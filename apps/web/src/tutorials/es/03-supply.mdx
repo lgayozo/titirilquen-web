@@ -1,0 +1,60 @@
+---
+slug: supply
+order: 3
+title: Oferta
+tagline: BPR, Greenshields, sistema cíclico
+---
+
+# 2. Oferta
+
+Tres submódulos distintos, unidos por una idea: **el tiempo de viaje depende del flujo asignado**.
+
+## Auto (Greenshields + BPR)
+
+Capacidad por pista derivada de la densidad de embotellamiento:
+
+$$
+Q = \frac{v_l \cdot k_e}{4}, \quad k_e = \frac{1000}{l_{\text{veh}} + \text{gap}}
+$$
+
+Tiempo por tramo con congestión (Bureau of Public Roads):
+
+$$
+t_i = t_0 \left( 1 + \alpha \left( \frac{q_i}{N_p \cdot Q} \right)^\beta \right)
+$$
+
+donde $q_i$ es el flujo acumulado hacia el CBD y $N_p$ el número de pistas.
+
+## Bicicleta (BPR con pendiente)
+
+Factor de ajuste por pendiente:
+
+$$
+f_p = \begin{cases} -0.0579\,p + 0.9992 & p > 0 \\ -0.0455\,p + 1 & p \le 0 \end{cases}
+$$
+
+<Callout type="warn">
+El Overleaf original dice $f_p = -0.0579 p + 0{.}09992$ — es un error tipográfico. El código implementa $0{.}9992$. Ver <DocLink path="/docs/DISCREPANCIES.md#d-01-factor-de-ajuste-por-pendiente-bici-subida">D-01</DocLink>.
+</Callout>
+
+A partir de $f_p$, se derivan dos velocidades (lado izquierdo y derecho del CBD), clampeadas a $[5, 45]$ km/h.
+
+## Metro (sistema cíclico)
+
+La frecuencia operativa se dimensiona al **tramo crítico**:
+
+$$
+f_{\text{op}} = \min\!\left(f_{\max},\ \max\!\left(f_{\min},\ \frac{L_{\max}}{K}\right)\right)
+$$
+
+donde $L_{\max}$ es el flujo máximo observado y $K$ la capacidad por tren.
+
+Tiempo de espera con llegada aleatoria + penalización si la estación satura:
+
+$$
+t_e = \frac{1}{2 f_{\text{op}}} \cdot 60 \cdot \begin{cases} 1 & \rho \le 1 \\ \alpha \rho^\beta & \rho > 1 \end{cases}
+$$
+
+con $\rho = L_s / (f_{\max} K)$ el grado de saturación.
+
+<NextStep to="demand">Módulo Demanda →</NextStep>

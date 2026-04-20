@@ -1,0 +1,33 @@
+---
+slug: equilibrium
+order: 5
+title: Equilibrium
+tagline: MSA — Method of Successive Averages
+---
+
+# 4. Equilibrium
+
+First iteration has no congestion info, so agents assume **free flow**. After assignment, cars overload (fastest mode). To avoid oscillations we use **MSA**:
+
+$$
+T^{(n+1)} = f_n \cdot T_{\text{obs}}^{(n)} + (1 - f_n) \cdot T^{(n)}, \quad f_n = \frac{1}{n + 1}
+$$
+
+The weight of new information decays with $1/n$: first iteration fully replaces, second averages 50/50, third weights 1/3 and 2/3, etc.
+
+The residual shown live is $\|T^{(n+1)} - T^{(n)}\|_\infty$ in minutes. Values near 0.01 mean the system is essentially in equilibrium.
+
+## V2: coupled land-use↔transport loop
+
+The outer loop (Land use page, *Coupled* mode) adds another layer:
+
+```
+repeat:
+  Land use  (Alonso-Muth-Mills logit fixed point)  →  parcels[i]
+  Transport (MSA over derived population)           →  T[h, i]
+  If ||ΔT|| < tol: break
+```
+
+Outer convergence usually needs more iterations than inner because two processes feed back into each other.
+
+<NextStep to="experimenting">Experiment →</NextStep>

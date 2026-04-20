@@ -1,0 +1,44 @@
+---
+slug: experimenting
+order: 6
+title: Experimenting
+tagline: Presets, comparison, suggested activities
+---
+
+# 5. Experimenting
+
+## Available tools
+
+**Sandbox** ([go](/sandbox)): free laboratory. Adjust any parameter and see results live.
+
+**Land use** ([go](/land-use)): Alonso equilibrium, with or without transport coupling.
+
+**Compare** ([go](/compare)): load up to 4 configurations in parallel and see deltas side by side.
+
+## Suggested activities
+
+### A. Parking price effect
+1. In Sandbox, vary parking between $3k, $6k, $15k.
+2. Watch car mode share change.
+3. Which stratum is more sensitive? (Hint: $\beta_c$ parameter)
+
+### B. Bikeway capacity
+1. Start with `cap_bike` = 800 bikes/h.
+2. Raise to 5000 (*Pro-Bike* preset).
+3. Where does demand migrate from?
+
+### C. Alonso effect
+1. Under Land use (*Land-use only* mode), set $\alpha_h$ = 3.0 for high stratum and 0.5 for low.
+2. Observe the distribution. Who lives near the CBD?
+3. Invert $\alpha$ values and repeat.
+
+## Persistence
+
+Every configuration can be exported as `.ttrq.json`:
+- **Export**: share with peers or save for grading.
+- **Import**: load teacher's scenario.
+- **Share via link**: state is URL-compressed.
+
+<Callout type="info">
+**For instructors**: every activity can be shared as a link. Students open the link, run, and export their observations for submission.
+</Callout>

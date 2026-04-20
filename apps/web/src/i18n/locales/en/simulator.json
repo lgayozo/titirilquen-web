@@ -1,0 +1,197 @@
+{
+  "sections": {
+    "city": "City",
+    "supply": "Supply",
+    "demand": "Demand",
+    "equilibrium": "Equilibrium",
+    "results": "Results",
+    "mode": "Mode"
+  },
+  "modes": {
+    "auto": "Car",
+    "metro": "Metro",
+    "bici": "Bicycle",
+    "caminata": "Walking",
+    "teletrabajo": "Remote work"
+  },
+  "strata": {
+    "alto": "High-income stratum",
+    "medio": "Middle-income stratum",
+    "bajo": "Low-income stratum",
+    "distribution": "Stratum distribution",
+    "auto_calculated": "auto-computed"
+  },
+  "city_params": {
+    "largo_ciudad_km": "City length (km)",
+    "n_celdas": "Number of cells",
+    "densidad_por_celda": "Density (pop/cell)",
+    "pendiente_porcentaje": "Slope (%)",
+    "teletrabajo_factor": "Remote-work factor",
+    "cbd_label": "{{n}} cells · CBD at center",
+    "density_unit": "pop/cell"
+  },
+  "supply_params": {
+    "bike": {
+      "v_media_kmh": "Mean speed (km/h)",
+      "capacidad_pista": "Bikeway capacity (bike/h)",
+      "alpha_bpr": "α BPR",
+      "beta_bpr": "β BPR"
+    },
+    "car": {
+      "v_max_kmh": "Max speed (km/h)",
+      "num_pistas": "Lanes per direction",
+      "ancho_pista_m": "Lane width (m)",
+      "largo_vehiculo_m": "Vehicle length (m)",
+      "gap_m": "Minimum gap (m)"
+    },
+    "train": {
+      "v_tren_kmh": "Train speed (km/h)",
+      "capacidad_tren": "Train capacity (pax)",
+      "num_estaciones": "Number of stations",
+      "frec_max": "Max frequency (trains/h)"
+    }
+  },
+  "equilibrium": {
+    "max_iter": "Max iterations",
+    "tolerance": "Convergence tolerance",
+    "residual": "Residual",
+    "iteration": "Iteration {{n}} of {{total}}",
+    "converged": "Equilibrium reached",
+    "booting_pyodide": "Initializing Pyodide in the browser (first run takes ~10–20s)…"
+  },
+  "presets": {
+    "city_label": "City structure",
+    "policy_label": "Transport policy",
+    "names": {
+      "Personalizado": "Custom",
+      "Compacta": "Compact",
+      "Base": "Base",
+      "Dispersa": "Sprawled",
+      "TP Gratis": "Free transit",
+      "Tarificación Vial": "Road pricing",
+      "Pro-Auto": "Pro-Car",
+      "Pro-Bici": "Pro-Bike",
+      "Vehículos híbridos": "Hybrid vehicles",
+      "Máx Metro": "Max metro",
+      "Ciclorrecreovía": "Car-free Sundays"
+    }
+  },
+  "sandbox": {
+    "city_heading": "City",
+    "modal_split_last": "Modal split (last iteration)",
+    "flow_per_cell": "{{mode}} — demand per cell",
+    "mode_share_by_location": "Modal split by location",
+    "city_figure_desc": "Linear city of {{length}} km with {{cells}} cells. CBD at center. Bar height and color scale with travel time on {{mode}}."
+  },
+  "demand_inspector": {
+    "title": "Utility inspector — multinomial logit",
+    "stratum": "Stratum",
+    "origin_km": "Origin (km)",
+    "has_car": "Car ownership",
+    "hint_with_sim": "Times from last iteration (with congestion).",
+    "hint_no_sim": "No simulation yet: free-flow times.",
+    "stratum_label_1": "1 — High",
+    "stratum_label_2": "2 — Middle",
+    "stratum_label_3": "3 — Low"
+  },
+  "utility_breakdown": {
+    "mode": "Mode",
+    "breakdown": "Breakdown",
+    "v": "V",
+    "p": "P",
+    "asc": "ASC",
+    "beta_tiempo": "β·Time",
+    "beta_costo": "β·Cost",
+    "penalizaciones": "Penalties",
+    "infeasible": "infeasible"
+  },
+  "stratum_distribution": {
+    "left_periphery": "Left periphery",
+    "cbd": "CBD",
+    "right_periphery": "Right periphery"
+  },
+  "land_use": {
+    "title": "Land use",
+    "subtitle": "Alonso-Muth-Mills model",
+    "mode_standalone": "Land use only",
+    "mode_coupled": "Coupled",
+    "info_standalone": "Solves the Alonso equilibrium with T = |i − CBD| (no transport).",
+    "info_coupled": "Iterates land use ↔ transport until T stabilizes.",
+    "density_ignored_hint": "In coupled mode, per-cell population comes from the land-use assignment (Σ H = {{total}}); the Sandbox's «Density per cell» slider is ignored.",
+    "outer_iterations": "Outer iterations",
+    "outer_iter_label": "N outer",
+    "outer_iter_hint": "Each iteration runs the full transport MSA. Keep small in class.",
+    "outer_iter_progress": "Outer iteration",
+    "outer_iter_last_residual": "Last residual:",
+    "run_placeholder": "Run the solver to see the spatial assignment.",
+    "heading_distribution": "Spatial distribution of households by stratum",
+    "heading_equilibrium": "Equilibrium",
+    "bid_price_title": "Implicit land price",
+    "trajectory_residual_title": "T residual across outer iterations",
+    "trajectory_residual_desc": "‖T_n − T_{n−1}‖∞ in minutes",
+    "trajectory_spatial_title": "Spatial rearrangement",
+    "trajectory_outer_counter": "Outer iteration:",
+    "logit_converged": "Logit converged",
+    "logit_iterations": "Logit iters",
+    "solver": "Solver",
+    "solver_logit": "Logit (ok)",
+    "solver_frechet": "Frechét (didactic)",
+    "solver_frechet_warn": "Frechét is inconsistent with heterogeneous λ_h. See docs.",
+    "param_beta": "β (logit sensitivity)",
+    "param_H": "H ({{stratum}})",
+    "param_y": "Income y",
+    "param_alpha": "α (transport weight)",
+    "param_rho": "ρ (density weight)",
+    "param_lambda": "λ (marg. util. of income)",
+    "yes": "yes",
+    "no": "no"
+  },
+  "supply_builder": {
+    "bpr_curve_auto": "BPR curve — Car",
+    "bpr_curve_bike": "BPR curve — Bicycle"
+  },
+  "flow_profile": {
+    "max": "max {{value}}"
+  },
+  "compare": {
+    "title": "Scenario comparison",
+    "subtitle": "Load up to 4 configurations in parallel. The first with a result is the baseline; others show deltas.",
+    "ready_count": "{{done}} of {{total}} ready",
+    "add_scenario": "Add scenario",
+    "kpis": "KPIs",
+    "flow_profile": "Demand profile",
+    "kpi": {
+      "metric": "Metric",
+      "base": "(base)",
+      "modal_share": "Modal split (%)",
+      "mean_time": "Mean time (min) by effective mode",
+      "operation": "Operation",
+      "metro_freq": "Metro frequency (trains/h)",
+      "final_residual": "Final residual (min)",
+      "physical_trips": "Physical trips"
+    },
+    "scenario_card": {
+      "no_config": "No configuration. Load a file or use the current sandbox.",
+      "cells": "{{n}} cells",
+      "length_km": "{{km}} km",
+      "density": "ρ={{rho}}/cell",
+      "max_iter": "max_iter={{n}}",
+      "parking_fare": "Parking ${{parking}} · Fare ${{fare}}",
+      "status": {
+        "empty": "—",
+        "configured": "ready",
+        "running": "running",
+        "done": "ok",
+        "error": "error"
+      }
+    },
+    "flow_no_profile": "Mode «{{mode}}» has no per-cell demand profile.",
+    "flow_empty": "No results to compare.",
+    "flow_demand_label": "Demand profile · {{mode}}"
+  },
+  "tutorial": {
+    "toc": "Contents",
+    "loading": "Loading tutorial",
+    "not_found": "Tutorial {{slug}} not found."
+  }
+}

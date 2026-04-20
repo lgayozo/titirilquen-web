@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-white text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+/* Focus ring universal — visible en todos los elementos interactivos. */
+*:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(14, 165, 233); /* sky-500 */
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip link — visible solo cuando recibe foco. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: rgb(15, 23, 42);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Respeto por prefers-reduced-motion: desactivar animaciones pesadas. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Solo visible para lectores de pantalla. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

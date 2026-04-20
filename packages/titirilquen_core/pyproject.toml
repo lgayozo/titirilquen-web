@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "titirilquen_core"
+version = "0.1.0"
+description = "Núcleo científico del simulador Titirilquen — oferta, demanda y equilibrio de transporte sobre ciudad lineal monocéntrica"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-or-later" }
+authors = [
+    { name = "Sebastian Acevedo" },
+    { name = "Pablo Alvarez" },
+    { name = "Fernando Castillo" },
+    { name = "Angelo Guevara" },
+]
+dependencies = [
+    "numpy>=1.26",
+    "pydantic>=2.8",
+    "scipy>=1.13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/titirilquen_core"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF"]

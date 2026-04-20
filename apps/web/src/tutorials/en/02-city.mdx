@@ -1,0 +1,34 @@
+---
+slug: city
+order: 2
+title: City
+tagline: Linear discretization with central CBD
+---
+
+# 1. City
+
+The city is abstracted as a **discretized ruler** of $n_{\text{cells}}$ parcels with uniform width $\Delta x = L / n_{\text{cells}}$.
+
+$$
+\text{position}(i) = (i + 0.5) \cdot \Delta x
+$$
+
+The **CBD** sits at $i_{\text{CBD}} = \lfloor n_{\text{cells}} / 2 \rfloor$. All trips target this cell.
+
+## Population
+
+Each cell has $\rho$ households split across 3 socioeconomic strata:
+
+| Stratum | Default share | Income |
+|---------|--------------:|--------:|
+| High (1) | 10 % | $120$ |
+| Middle (2) | 40 % | $50$  |
+| Low (3)  | 50 % | $10$  |
+
+Each agent draws attributes: `remote_work` with probability $P^s_{\text{remote}}$, `has_car` with probability $P^s_{\text{car}}$.
+
+<Callout type="warn">
+**Strong assumption**: every worker leaves their origin cell to the CBD and returns — exclusive Home–Work–Home tours. No trip chaining.
+</Callout>
+
+<NextStep to="supply">Supply module →</NextStep>

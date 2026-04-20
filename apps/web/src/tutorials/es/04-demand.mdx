@@ -1,0 +1,50 @@
+---
+slug: demand
+order: 4
+title: Demanda
+tagline: Utilidades logit multinomial
+---
+
+# 3. Demanda
+
+Cada agente evalúa la utilidad de cada modo disponible y elige con un **logit multinomial**:
+
+$$
+P(m) = \frac{e^{V_m}}{\sum_{j \in M} e^{V_j}}
+$$
+
+## Utilidades por modo
+
+**Auto**
+$$
+V_{\text{auto}}^s = \text{ASC}_{\text{auto}}^s + \beta_t^s \cdot t_{\text{auto}} + \beta_c^s \cdot (c_{\text{parking}} + c_{\text{combustible}} \cdot d)
+$$
+
+**Metro** (componentes de tiempo descompuestas)
+$$
+V_{\text{metro}}^s = \text{ASC}_{\text{metro}}^s + \beta_t^s \cdot t_v + \beta_{\text{esp}}^s \cdot t_e + \beta_{\text{cam}}^s \cdot t_a + \beta_c^s \cdot c_{\text{tarifa}}
+$$
+
+**Bicicleta** con penalizaciones físicas escalonadas
+$$
+V_{\text{bici}}^s = \text{ASC}_{\text{bici}}^s + \beta_t^s \cdot t_{\text{bici}} + \sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t_{\text{bici}} > k\} \cdot \pi_k^s
+$$
+con corte $V = -\infty$ si $t_{\text{bici}} > 45$ min.
+
+**Caminata** análoga, con umbrales $\{5, 15, 25\}$ y corte en 30 min.
+
+<Callout type="warn">
+Las penalizaciones $\pi_k$ son **constantes aditivas escalonadas**, no multiplicativas como sugiere una lectura ingenua del Overleaf (ver <DocLink path="/docs/DISCREPANCIES.md#d-02-penalizaciones-físicas-de-bicicleta-y-caminata-forma-funcional">D-02</DocLink>).
+</Callout>
+
+## Descomposición pedagógica
+
+En el **Sandbox** (página Sandbox) hay un "Inspector de utilidad" que muestra la descomposición:
+- Componente ASC (constante por modo/estrato)
+- Componente $\beta_t \cdot T$ (sensibilidad al tiempo)
+- Componente $\beta_c \cdot C$ (sensibilidad al costo)
+- Componente penalizaciones físicas (bici/caminata)
+
+Permite al estudiante ver **por qué** un modo gana en cada contexto.
+
+<NextStep to="equilibrium">Módulo Equilibrio →</NextStep>

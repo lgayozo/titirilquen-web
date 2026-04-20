@@ -1,0 +1,197 @@
+{
+  "sections": {
+    "city": "Ciudad",
+    "supply": "Oferta",
+    "demand": "Demanda",
+    "equilibrium": "Equilibrio",
+    "results": "Resultados",
+    "mode": "Modo"
+  },
+  "modes": {
+    "auto": "Auto",
+    "metro": "Metro",
+    "bici": "Bicicleta",
+    "caminata": "Caminata",
+    "teletrabajo": "Teletrabajo"
+  },
+  "strata": {
+    "alto": "Estrato alto",
+    "medio": "Estrato medio",
+    "bajo": "Estrato bajo",
+    "distribution": "Distribución por estrato",
+    "auto_calculated": "auto-calculado"
+  },
+  "city_params": {
+    "largo_ciudad_km": "Largo de la ciudad (km)",
+    "n_celdas": "Número de celdas",
+    "densidad_por_celda": "Densidad (hab/celda)",
+    "pendiente_porcentaje": "Pendiente (%)",
+    "teletrabajo_factor": "Factor de teletrabajo",
+    "cbd_label": "{{n}} celdas · CBD al centro",
+    "density_unit": "hab/celda"
+  },
+  "supply_params": {
+    "bike": {
+      "v_media_kmh": "Velocidad media (km/h)",
+      "capacidad_pista": "Capacidad ciclovía (bici/h)",
+      "alpha_bpr": "α BPR",
+      "beta_bpr": "β BPR"
+    },
+    "car": {
+      "v_max_kmh": "Velocidad máxima (km/h)",
+      "num_pistas": "Pistas por sentido",
+      "ancho_pista_m": "Ancho de pista (m)",
+      "largo_vehiculo_m": "Largo vehículo (m)",
+      "gap_m": "Gap mínimo (m)"
+    },
+    "train": {
+      "v_tren_kmh": "Velocidad tren (km/h)",
+      "capacidad_tren": "Capacidad tren (pax)",
+      "num_estaciones": "Número de estaciones",
+      "frec_max": "Frecuencia máxima (trenes/h)"
+    }
+  },
+  "equilibrium": {
+    "max_iter": "Iteraciones máximas",
+    "tolerance": "Tolerancia de convergencia",
+    "residual": "Residuo",
+    "iteration": "Iteración {{n}} de {{total}}",
+    "converged": "Equilibrio alcanzado",
+    "booting_pyodide": "Inicializando Pyodide en el navegador (primera vez ~10–20s)…"
+  },
+  "presets": {
+    "city_label": "Estructura de ciudad",
+    "policy_label": "Política de transporte",
+    "names": {
+      "Personalizado": "Personalizado",
+      "Compacta": "Compacta",
+      "Base": "Base",
+      "Dispersa": "Dispersa",
+      "TP Gratis": "TP Gratis",
+      "Tarificación Vial": "Tarificación Vial",
+      "Pro-Auto": "Pro-Auto",
+      "Pro-Bici": "Pro-Bici",
+      "Vehículos híbridos": "Vehículos híbridos",
+      "Máx Metro": "Máx Metro",
+      "Ciclorrecreovía": "Ciclorrecreovía"
+    }
+  },
+  "sandbox": {
+    "city_heading": "Ciudad",
+    "modal_split_last": "Modal split (última iteración)",
+    "flow_per_cell": "{{mode}} — demanda por celda",
+    "mode_share_by_location": "Reparto modal por ubicación",
+    "city_figure_desc": "Ciudad lineal de {{length}} km con {{cells}} celdas. CBD al centro. Altura y color de cada barra proporcional al tiempo de viaje en {{mode}}."
+  },
+  "demand_inspector": {
+    "title": "Inspector de utilidad — logit multinomial",
+    "stratum": "Estrato",
+    "origin_km": "Origen (km)",
+    "has_car": "Tenencia de auto",
+    "hint_with_sim": "Tiempos de la última iteración (congestión).",
+    "hint_no_sim": "Sin simulación aún: tiempos de flujo libre.",
+    "stratum_label_1": "1 — Alto",
+    "stratum_label_2": "2 — Medio",
+    "stratum_label_3": "3 — Bajo"
+  },
+  "utility_breakdown": {
+    "mode": "Modo",
+    "breakdown": "Descomposición",
+    "v": "V",
+    "p": "P",
+    "asc": "ASC",
+    "beta_tiempo": "β·Tiempo",
+    "beta_costo": "β·Costo",
+    "penalizaciones": "Penalizaciones",
+    "infeasible": "infeasible"
+  },
+  "stratum_distribution": {
+    "left_periphery": "Periferia izquierda",
+    "cbd": "CBD",
+    "right_periphery": "Periferia derecha"
+  },
+  "land_use": {
+    "title": "Uso de suelo",
+    "subtitle": "Modelo Alonso-Muth-Mills",
+    "mode_standalone": "Sólo suelo",
+    "mode_coupled": "Acoplado",
+    "info_standalone": "Resuelve el equilibrio Alonso con T = |i − CBD| (sin transporte).",
+    "info_coupled": "Itera suelo ↔ transporte hasta que T se estabilice.",
+    "density_ignored_hint": "En modo acoplado, la población por celda proviene de la asignación de uso de suelo (Σ H = {{total}}); el slider «Densidad por celda» del Sandbox se ignora.",
+    "outer_iterations": "Iteraciones exteriores",
+    "outer_iter_label": "N outer",
+    "outer_iter_hint": "Cada iteración corre el MSA de transporte completo. Usar pocas iteraciones en aula.",
+    "outer_iter_progress": "Iteración exterior",
+    "outer_iter_last_residual": "Último residuo:",
+    "run_placeholder": "Corre el solver para ver la asignación espacial.",
+    "heading_distribution": "Distribución espacial de hogares por estrato",
+    "heading_equilibrium": "Equilibrio",
+    "bid_price_title": "Precio implícito del suelo",
+    "trajectory_residual_title": "Residuo T entre iteraciones exteriores",
+    "trajectory_residual_desc": "‖T_n − T_{n−1}‖∞ en minutos",
+    "trajectory_spatial_title": "Reacomodo espacial",
+    "trajectory_outer_counter": "Iteración exterior:",
+    "logit_converged": "Logit convergió",
+    "logit_iterations": "Iter. logit",
+    "solver": "Solver",
+    "solver_logit": "Logit (ok)",
+    "solver_frechet": "Frechét (didáctico)",
+    "solver_frechet_warn": "Frechét es inconsistente con λ_h heterogéneos. Ver docs.",
+    "param_beta": "β (sensibilidad logit)",
+    "param_H": "H ({{stratum}})",
+    "param_y": "Ingreso y",
+    "param_alpha": "α (peso transporte)",
+    "param_rho": "ρ (peso densidad)",
+    "param_lambda": "λ (util. marg. ingreso)",
+    "yes": "sí",
+    "no": "no"
+  },
+  "supply_builder": {
+    "bpr_curve_auto": "Curva BPR — Auto",
+    "bpr_curve_bike": "Curva BPR — Bicicleta"
+  },
+  "flow_profile": {
+    "max": "máx {{value}}"
+  },
+  "compare": {
+    "title": "Comparación de escenarios",
+    "subtitle": "Carga hasta 4 configuraciones en paralelo. La primera con resultado se toma como línea base; las demás muestran el delta.",
+    "ready_count": "{{done}} de {{total}} listos",
+    "add_scenario": "Añadir escenario",
+    "kpis": "KPIs",
+    "flow_profile": "Perfil de demanda",
+    "kpi": {
+      "metric": "Métrica",
+      "base": "(base)",
+      "modal_share": "Reparto modal (%)",
+      "mean_time": "Tiempo medio (min) por modo efectivo",
+      "operation": "Operación",
+      "metro_freq": "Frecuencia metro (trenes/h)",
+      "final_residual": "Residuo final (min)",
+      "physical_trips": "Viajes físicos"
+    },
+    "scenario_card": {
+      "no_config": "Sin configuración. Carga un archivo o usa el sandbox actual.",
+      "cells": "{{n}} celdas",
+      "length_km": "{{km}} km",
+      "density": "ρ={{rho}}/celda",
+      "max_iter": "max_iter={{n}}",
+      "parking_fare": "Parking ${{parking}} · Tarifa ${{fare}}",
+      "status": {
+        "empty": "—",
+        "configured": "listo",
+        "running": "corriendo",
+        "done": "ok",
+        "error": "error"
+      }
+    },
+    "flow_no_profile": "El modo «{{mode}}» no tiene perfil de demanda por celda.",
+    "flow_empty": "Sin resultados para comparar.",
+    "flow_demand_label": "Perfil de demanda · {{mode}}"
+  },
+  "tutorial": {
+    "toc": "Contenido",
+    "loading": "Cargando tutorial",
+    "not_found": "Tutorial {{slug}} no encontrado."
+  }
+}

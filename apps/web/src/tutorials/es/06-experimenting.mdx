@@ -1,0 +1,50 @@
+---
+slug: experimenting
+order: 6
+title: Experimentar
+tagline: Presets, comparación, y actividades sugeridas
+---
+
+# 5. Experimentar
+
+## Herramientas disponibles
+
+**Sandbox** ([ir](/sandbox)): laboratorio libre. Ajusta cualquier parámetro y observa resultados en vivo — utilidad por modo, modal split, convergencia, flujos, tiempos por celda.
+
+**Uso de suelo** ([ir](/land-use)): equilibrio Alonso, con o sin acoplamiento a transporte.
+
+**Comparar** ([ir](/compare)): carga hasta 4 configuraciones en paralelo y ve los deltas lado a lado. Ideal para evaluar políticas.
+
+## Actividades sugeridas para estudiantes
+
+### A. Efecto del precio del parking
+1. En Sandbox, cambia el parking entre $3k, $6k, $15k.
+2. Observa cómo cambia la participación modal del auto.
+3. ¿Por qué estrato es más sensible? (Pista: mira el parámetro $\beta_c$)
+
+### B. Capacidad de ciclovía
+1. Empieza con cap_bici = 800 bici/h.
+2. Sube a 5000 (preset *Pro-Bici*).
+3. ¿De qué modos migra la demanda hacia la bicicleta?
+4. ¿Cambia la frecuencia operativa del metro?
+
+### C. Efecto Alonso
+1. En Uso de suelo (modo *Sólo suelo*), pon $\alpha_h$ del estrato alto en 3.0 y del bajo en 0.5.
+2. Observa la distribución. ¿Quién vive cerca del CBD?
+3. Invierte los $\alpha$ y repite. ¿Cambia la segregación? ¿Por qué?
+
+### D. Sensibilidad al MSA
+1. En Sandbox, baja `max_iter` a 3.
+2. ¿Converge? ¿Qué pasa con el residuo?
+3. Sube a 20 y observa el comportamiento asintótico.
+
+## Persistencia
+
+Cada configuración puede exportarse como `.ttrq.json`:
+- **Exportar**: descarga tu configuración actual para compartir con compañeros o guardar para una evaluación.
+- **Importar**: carga el archivo de otro estudiante o de la guía docente.
+- **Compartir por link**: el estado se comprime en la URL — copia-pega y quien abra el link verá exactamente tu escenario.
+
+<Callout type="info">
+**Para docentes**: cada actividad puede compartirse como link. Los estudiantes abren el link, corren, y exportan sus observaciones para entrega.
+</Callout>

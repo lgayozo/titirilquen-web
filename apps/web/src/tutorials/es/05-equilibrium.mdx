@@ -1,0 +1,38 @@
+---
+slug: equilibrium
+order: 5
+title: Equilibrio
+tagline: MSA — Método de Promedios Sucesivos
+---
+
+# 4. Equilibrio
+
+En la primera iteración los agentes no tienen información de congestión y asumen **flujo libre**. Al asignar demanda, el auto se sobrecarga (es el más rápido). Para evitar oscilaciones se usa el **Método de Promedios Sucesivos**:
+
+$$
+T^{(n+1)} = f_n \cdot T_{\text{obs}}^{(n)} + (1 - f_n) \cdot T^{(n)}, \quad f_n = \frac{1}{n + 1}
+$$
+
+El peso de la nueva información disminuye con $1/n$: la primera iteración reemplaza completo, la segunda hace un promedio 50/50, la tercera pondera 1/3 y 2/3, etc.
+
+## Interpretación
+
+- $f_n$ grande en iteraciones tempranas → adaptación rápida (ciudad "aprende")
+- $f_n$ pequeño en iteraciones tardías → estabilización (ciudad "recuerda")
+
+El residuo que muestra el panel en vivo es $\|T^{(n+1)} - T^{(n)}\|_\infty$ en minutos. Cuando baja a ~0.01 min, el sistema está esencialmente en equilibrio.
+
+## V2: loop acoplado suelo↔transporte
+
+El loop exterior (página **Uso de suelo**, modo *Acoplado*) añade otra capa:
+
+```
+repeat:
+  Uso de suelo  (Alonso-Muth-Mills, punto fijo logit)  →  parcelas[i]
+  Transporte    (MSA sobre población derivada)          →  T[h, i]
+  Si ||ΔT|| < tol: break
+```
+
+Convergencia externa suele requerir más iteraciones que la interna porque dos procesos se retroalimentan: más congestión en el centro → los hogares ricos se dispersan → menos congestión → vuelven al centro…
+
+<NextStep to="experimenting">Experimentar →</NextStep>

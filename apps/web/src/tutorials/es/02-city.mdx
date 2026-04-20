@@ -1,0 +1,41 @@
+---
+slug: city
+order: 2
+title: Ciudad
+tagline: Discretización lineal con CBD central
+---
+
+# 1. Ciudad
+
+La ciudad se abstrae como una **regla discretizada** en $n_{\text{celdas}}$ parcelas de ancho uniforme $\Delta x = L / n_{\text{celdas}}$.
+
+$$
+\text{posición}(i) = (i + 0.5) \cdot \Delta x, \quad i = 0, 1, \ldots, n_{\text{celdas}} - 1
+$$
+
+El **CBD** se ubica en $i_{\text{CBD}} = \lfloor n_{\text{celdas}} / 2 \rfloor$ (celda central). Todos los viajes se dirigen a esta celda.
+
+## Población
+
+Cada parcela tiene $\rho$ hogares (densidad por celda), distribuidos en 3 **estratos socioeconómicos** según shares configurables:
+
+| Estrato | Default share | Ingreso típico |
+|---------|--------------:|--------------:|
+| Alto (1) |  10 % | $120$ |
+| Medio (2) |  40 % | $50$  |
+| Bajo (3) |  50 % | $10$  |
+
+Cada agente tiene atributos sorteados:
+- `teletrabaja`: con probabilidad $P^s_{\text{tele}}$ (por estrato)
+- `tiene_auto`: con probabilidad $P^s_{\text{auto}}$
+
+<Callout type="warn">
+**Supuesto fuerte**: todos los trabajadores salen de su celda de origen al CBD
+y vuelven — son *tours* Hogar–Trabajo–Hogar exclusivos. No hay viajes encadenados.
+</Callout>
+
+## Pendiente
+
+La ciudad tiene una pendiente global $p$ (%) que afecta la velocidad de bicicletas (modifica sus velocidades distintamente según si la celda está a la izquierda o derecha del CBD).
+
+<NextStep to="supply">Módulo Oferta →</NextStep>

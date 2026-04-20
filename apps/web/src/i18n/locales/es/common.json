@@ -1,0 +1,46 @@
+{
+  "app_name": "Titirilquen",
+  "app_tagline": "Simulador educativo de transporte urbano",
+  "nav": {
+    "label": "Navegación principal",
+    "tutorial": "Tutorial",
+    "sandbox": "Sandbox",
+    "land_use": "Uso de suelo",
+    "compare": "Comparar"
+  },
+  "language": {
+    "label": "Idioma",
+    "es": "Español",
+    "en": "English"
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "actions": {
+    "run": "Simular equilibrio",
+    "run_all": "Correr todos",
+    "reset": "Restablecer",
+    "import": "Importar configuración",
+    "export": "Exportar configuración",
+    "share": "Compartir por link",
+    "export_svg": "Exportar figura",
+    "add_scenario": "Añadir escenario",
+    "remove": "Eliminar",
+    "use_sandbox": "Sandbox actual"
+  },
+  "engine": {
+    "label": "Motor",
+    "local": "Navegador (Pyodide)",
+    "api": "Servidor (FastAPI)",
+    "info_local": "Corre íntegramente en tu navegador. No requiere conexión.",
+    "info_api": "Corre en el servidor — recomendado para simulaciones grandes."
+  },
+  "skip_to_main": "Saltar al contenido principal",
+  "footer": {
+    "authors": "Sebastian Acevedo, Pablo Alvarez, Fernando Castillo, Angelo Guevara",
+    "license": "GPLv3"
+  }
+}

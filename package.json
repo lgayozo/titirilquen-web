@@ -1,0 +1,20 @@
+{
+  "name": "titirilquen-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simulador educativo de transporte urbano — ciudad lineal monocéntrica",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace @titirilquen/web",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,50 @@
+---
+slug: supply
+order: 3
+title: Supply
+tagline: BPR, Greenshields, cyclic system
+---
+
+# 2. Supply
+
+Three sub-modules sharing one idea: **travel time depends on assigned flow**.
+
+## Car (Greenshields + BPR)
+
+$$
+Q = \frac{v_l \cdot k_e}{4}, \quad k_e = \frac{1000}{l_{\text{veh}} + \text{gap}}
+$$
+
+BPR congestion:
+
+$$
+t_i = t_0 \left( 1 + \alpha \left( \frac{q_i}{N_p \cdot Q} \right)^\beta \right)
+$$
+
+## Bike (BPR with slope)
+
+$$
+f_p = \begin{cases} -0.0579\,p + 0.9992 & p > 0 \\ -0.0455\,p + 1 & p \le 0 \end{cases}
+$$
+
+<Callout type="warn">
+The Overleaf says $f_p = -0.0579 p + 0{.}09992$ — a typo. Code implements $0{.}9992$. See <DocLink path="/docs/DISCREPANCIES.md#d-01-factor-de-ajuste-por-pendiente-bici-subida">D-01</DocLink>.
+</Callout>
+
+Two velocities result (left/right of CBD), clamped to $[5, 45]$ km/h.
+
+## Metro (cyclic system)
+
+Operating frequency sized to the critical link:
+
+$$
+f_{\text{op}} = \min\!\left(f_{\max},\ \max\!\left(f_{\min},\ \frac{L_{\max}}{K}\right)\right)
+$$
+
+Wait time with random arrivals + saturation penalty:
+
+$$
+t_e = \frac{1}{2 f_{\text{op}}} \cdot 60 \cdot \begin{cases} 1 & \rho \le 1 \\ \alpha \rho^\beta & \rho > 1 \end{cases}
+$$
+
+<NextStep to="demand">Demand module →</NextStep>

@@ -1,0 +1,39 @@
+---
+slug: demand
+order: 4
+title: Demand
+tagline: Multinomial logit utilities
+---
+
+# 3. Demand
+
+Each agent evaluates mode utilities and picks via **multinomial logit**:
+
+$$
+P(m) = \frac{e^{V_m}}{\sum_{j \in M} e^{V_j}}
+$$
+
+## Utilities
+
+**Car**
+$$
+V_{\text{car}}^s = \text{ASC}_{\text{car}}^s + \beta_t^s \cdot t_{\text{car}} + \beta_c^s \cdot (c_{\text{park}} + c_{\text{fuel}} \cdot d)
+$$
+
+**Metro** (time components decomposed)
+$$
+V_{\text{metro}}^s = \text{ASC}_{\text{metro}}^s + \beta_t^s \cdot t_v + \beta_{\text{wait}}^s \cdot t_e + \beta_{\text{walk}}^s \cdot t_a + \beta_c^s \cdot c_{\text{fare}}
+$$
+
+**Bike** with stepped physical penalties
+$$
+V_{\text{bike}}^s = \text{ASC}_{\text{bike}}^s + \beta_t^s \cdot t_{\text{bike}} + \sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t_{\text{bike}} > k\} \cdot \pi_k^s
+$$
+
+Cutoff $V = -\infty$ if $t_{\text{bike}} > 45$ min.
+
+<Callout type="warn">
+Penalties $\pi_k$ are **additive step constants**, not multiplicative as a naïve reading of the Overleaf suggests (see <DocLink path="/docs/DISCREPANCIES.md#d-02-penalizaciones-físicas-de-bicicleta-y-caminata-forma-funcional">D-02</DocLink>).
+</Callout>
+
+<NextStep to="equilibrium">Equilibrium module →</NextStep>

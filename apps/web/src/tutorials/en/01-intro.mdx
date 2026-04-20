@@ -1,0 +1,35 @@
+---
+slug: intro
+order: 1
+title: Welcome
+tagline: Why a linear city and how to use this simulator
+---
+
+# Welcome to the simulator
+
+**Titirilquen** is an academic tool for exploring transport supply and demand models on a **monocentric linear city**. This guide walks through each module with its equations and assumptions.
+
+## Why a linear city?
+
+The 1D simplification is a pedagogical abstraction:
+
+- **Mathematically tractable**: no route ambiguity — every trip goes to the central CBD.
+- **Visualizable**: phenomena become curves along a single axis.
+- **Sufficient** for teaching BPR, logit, equilibrium, Alonso-Muth-Mills.
+
+It is not a tool for planning real cities. It is a tool for **understanding how the models work**.
+
+## Model structure
+
+1. **City** — geometry + population per stratum
+2. **Supply** — how the network responds to assigned demand
+3. **Demand** — how agents choose mode
+4. **Equilibrium** — MSA reconciling supply and demand
+5. **Land use** (V2) — where each household lives (Alonso-Muth-Mills)
+
+<Callout type="info">
+In V1, population is synthetically generated; in V2 it comes from the land-use
+module. You can switch between both modes on the **Land use** page.
+</Callout>
+
+<NextStep to="city">City module →</NextStep>

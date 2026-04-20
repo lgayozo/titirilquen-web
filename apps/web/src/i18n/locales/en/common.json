@@ -1,0 +1,46 @@
+{
+  "app_name": "Titirilquen",
+  "app_tagline": "Educational urban transport simulator",
+  "nav": {
+    "label": "Main navigation",
+    "tutorial": "Tutorial",
+    "sandbox": "Sandbox",
+    "land_use": "Land use",
+    "compare": "Compare"
+  },
+  "language": {
+    "label": "Language",
+    "es": "Español",
+    "en": "English"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "actions": {
+    "run": "Run equilibrium",
+    "run_all": "Run all",
+    "reset": "Reset",
+    "import": "Import configuration",
+    "export": "Export configuration",
+    "share": "Share via link",
+    "export_svg": "Export figure",
+    "add_scenario": "Add scenario",
+    "remove": "Remove",
+    "use_sandbox": "Current sandbox"
+  },
+  "engine": {
+    "label": "Engine",
+    "local": "Browser (Pyodide)",
+    "api": "Server (FastAPI)",
+    "info_local": "Runs entirely in your browser. No network required.",
+    "info_api": "Runs on the server — recommended for large simulations."
+  },
+  "skip_to_main": "Skip to main content",
+  "footer": {
+    "authors": "Sebastian Acevedo, Pablo Alvarez, Fernando Castillo, Angelo Guevara",
+    "license": "GPLv3"
+  }
+}

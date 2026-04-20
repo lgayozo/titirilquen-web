@@ -1,0 +1,37 @@
+---
+slug: intro
+order: 1
+title: Bienvenida
+tagline: Por qué ciudad lineal y cómo usar este simulador
+---
+
+# Bienvenida al simulador
+
+**Titirilquen** es una herramienta académica para explorar modelos de oferta y demanda de transporte sobre una **ciudad lineal monocéntrica**. Esta guía recorre los módulos que componen el modelo, cada uno con sus ecuaciones y supuestos.
+
+## ¿Por qué una ciudad lineal?
+
+La simplificación 1D es una abstracción pedagógica:
+
+- **Tractable matemáticamente**: sin ambigüedad en rutas — todos los viajes van de una parcela al CBD central.
+- **Visualizable**: los fenómenos se ven como curvas a lo largo de un solo eje.
+- **Suficiente** para enseñar conceptos de BPR, logit, equilibrio, Alonso-Muth-Mills.
+
+No es una herramienta para planificar ciudades reales. Es una herramienta para **entender cómo funcionan los modelos**.
+
+## Estructura del modelo
+
+El simulador tiene cinco módulos principales que interactúan:
+
+1. **Ciudad** — geometría + población por estrato
+2. **Oferta** — cómo responde la red a la demanda asignada
+3. **Demanda** — cómo eligen modo los agentes
+4. **Equilibrio** — MSA que reconcilia oferta y demanda
+5. **Uso de suelo** (V2) — dónde vive cada hogar (Alonso-Muth-Mills)
+
+<Callout type="info">
+En V1 la población se genera sintéticamente; en V2 proviene del módulo de uso
+de suelo. Puedes alternar entre ambos modos en la página **Uso de suelo**.
+</Callout>
+
+<NextStep to="city">Módulo Ciudad →</NextStep>
