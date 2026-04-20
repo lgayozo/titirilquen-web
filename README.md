@@ -53,4 +53,8 @@ pnpm dev
 
 ## Licencia
 
-GPLv3 (heredada de `titirilquen-repo`).
+**GNU General Public License v3.0 or later** — ver [`LICENSE`](LICENSE).
+
+Heredada del [repositorio original](https://github.com/lehyt2163/Titirilquen) por
+la cláusula copyleft de GPL. Ver [`NOTICE.md`](NOTICE.md) para la atribución
+completa a los autores originales.
