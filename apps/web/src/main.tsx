@@ -8,6 +8,7 @@ import { applyTheme, getStoredTheme } from "@/lib/theme";
 import { RootLayout } from "@/components/RootLayout";
 import { AboutPage } from "@/pages/AboutPage";
 import { ComparePage } from "@/pages/ComparePage";
+import { CoupledPage } from "@/pages/CoupledPage";
 import { LandUsePage } from "@/pages/LandUsePage";
 import { SandboxPage } from "@/pages/SandboxPage";
 import { TutorialPage } from "@/pages/TutorialPage";
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
       { path: "tutorial/:slug", element: <TutorialPage /> },
       { path: "sandbox", element: <SandboxPage /> },
       { path: "land-use", element: <LandUsePage /> },
+      { path: "coupled", element: <CoupledPage /> },
       { path: "compare", element: <ComparePage /> },
       { path: "about", element: <AboutPage /> },
     ],

@@ -20,6 +20,7 @@ const navItems: readonly NavItem[] = [
   { to: "/", key: "nav.tutorial", end: true },
   { to: "/sandbox", key: "nav.sandbox" },
   { to: "/land-use", key: "nav.land_use" },
+  { to: "/coupled", key: "nav.coupled" },
   { to: "/compare", key: "nav.compare" },
   { to: "/about", key: "nav.about" },
 ];

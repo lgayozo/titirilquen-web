@@ -239,6 +239,54 @@
     "flow_empty": "Sin resultados para comparar.",
     "flow_demand_label": "Perfil de demanda · {{mode}}"
   },
+  "coupled": {
+    "eyebrow": "Análisis conjunto suelo↔transporte",
+    "title": "Interdependencia",
+    "lede": "Transporte y uso de suelo no son sistemas independientes. La congestión reacomoda hogares; la nueva localización cambia la demanda; la demanda reconfigura la red. Esta página te permite correr un escenario conjunto y comparar el equilibrio ingenuo (sin feedback) con el acoplado (con feedback).",
+    "run": "Simular escenario",
+    "running": "Simulando…",
+    "placeholder": "Seleccioná un escenario y presioná «Simular escenario».",
+    "booting": "Inicializando Pyodide · primera corrida ~10-15s…",
+    "error": "Error",
+    "iter_n": "iter. {{n}}",
+    "waiting": "Esperando…",
+    "without_feedback": "Sin feedback",
+    "without_feedback_hint": "Primera pasada del loop acoplado: el uso de suelo se resuelve con tiempos de viaje iguales a la distancia, sin saber nada sobre congestión.",
+    "with_feedback": "Con feedback",
+    "with_feedback_hint": "Equilibrio reconciliado: suelo y transporte se iteran mutuamente hasta estabilizarse. Las diferencias revelan el efecto de la retroalimentación.",
+    "running_hint": "Corriendo iteración {{n}}…",
+    "presets": {
+      "compact_toll": {
+        "title": "Compacta + Tarificación Vial",
+        "desc": "Ciudad densa con cobro por congestión. Escenario europeo clásico."
+      },
+      "sparse_proauto": {
+        "title": "Dispersa + Pro-Auto",
+        "desc": "Ciudad sprawl con infra vial abundante. Escenario estadounidense."
+      },
+      "base_probici": {
+        "title": "Base + Pro-Bici",
+        "desc": "Ciudad intermedia con ciclovías amplias y parking desincentivado."
+      },
+      "compact_metro": {
+        "title": "Compacta + Máx Metro",
+        "desc": "Ciudad densa con máxima frecuencia de metro y muchas estaciones."
+      }
+    },
+    "interp": {
+      "header": "Lectura pedagógica",
+      "segregation_title": "Segregación",
+      "segregation_up": "El feedback aumentó la segregación en Δ={{delta}}. La congestión pushea a los estratos de alta valoración del tiempo hacia el centro; los de baja valoración migran a la periferia.",
+      "segregation_down": "El feedback redujo la segregación en Δ={{delta}}. La reconfiguración espacial diluyó la concentración inicial de estratos.",
+      "welfare_title": "Bienestar",
+      "welfare_regressive": "Efecto regresivo: el estrato alto ganó {{alto}} mientras el bajo ganó {{bajo}}. La política beneficia más a los que ya están mejor.",
+      "welfare_progressive": "Efecto progresivo: el estrato bajo ganó {{bajo}} vs el alto {{alto}}. La política favorece más a los vulnerables.",
+      "accessibility_title": "Accesibilidad",
+      "accessibility_body": "Alto ganó {{alto}}, bajo {{bajo}} (ratio {{ratio}}×). Distribución asimétrica del acceso al CBD.",
+      "stable_title": "Equilibrio estable",
+      "stable_body": "Las iteraciones exteriores no cambiaron significativamente las métricas agregadas. El feedback fue débil en este escenario — probá una política más agresiva."
+    }
+  },
   "coupled_metrics": {
     "header": "Métricas de interdependencia",
     "outer_count": "{{n}} iter. exteriores",

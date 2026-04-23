@@ -233,6 +233,54 @@
     "flow_empty": "No results to compare.",
     "flow_demand_label": "Demand profile · {{mode}}"
   },
+  "coupled": {
+    "eyebrow": "Joint land-use↔transport analysis",
+    "title": "Interdependence",
+    "lede": "Transport and land use are not independent systems. Congestion reshuffles households; the new locations change demand; demand reshapes the network. This page lets you run a joint scenario and compare the naive equilibrium (no feedback) with the coupled one (with feedback).",
+    "run": "Run scenario",
+    "running": "Running…",
+    "placeholder": "Select a scenario and press «Run scenario».",
+    "booting": "Initializing Pyodide · first run ~10-15s…",
+    "error": "Error",
+    "iter_n": "iter. {{n}}",
+    "waiting": "Waiting…",
+    "without_feedback": "Without feedback",
+    "without_feedback_hint": "First pass of the coupled loop: land use is solved with travel times equal to distance, unaware of congestion.",
+    "with_feedback": "With feedback",
+    "with_feedback_hint": "Reconciled equilibrium: land and transport iterate mutually until stable. Differences reveal the feedback effect.",
+    "running_hint": "Running iteration {{n}}…",
+    "presets": {
+      "compact_toll": {
+        "title": "Compact + Road Pricing",
+        "desc": "Dense city with congestion pricing. Classic European scenario."
+      },
+      "sparse_proauto": {
+        "title": "Sparse + Pro-Auto",
+        "desc": "Sprawled city with abundant road infra. US scenario."
+      },
+      "base_probici": {
+        "title": "Base + Pro-Bike",
+        "desc": "Medium city with wide bike lanes and disincentivized parking."
+      },
+      "compact_metro": {
+        "title": "Compact + Max Metro",
+        "desc": "Dense city with maximum metro frequency and many stations."
+      }
+    },
+    "interp": {
+      "header": "Pedagogical reading",
+      "segregation_title": "Segregation",
+      "segregation_up": "Feedback increased segregation by Δ={{delta}}. Congestion pushes high-time-value strata to the center; low-value ones migrate to the periphery.",
+      "segregation_down": "Feedback reduced segregation by Δ={{delta}}. Spatial reshuffle diluted the initial stratum concentration.",
+      "welfare_title": "Welfare",
+      "welfare_regressive": "Regressive effect: high-income gained {{alto}} while low-income gained {{bajo}}. Policy benefits those already better-off.",
+      "welfare_progressive": "Progressive effect: low-income gained {{bajo}} vs high-income {{alto}}. Policy favors the vulnerable more.",
+      "accessibility_title": "Accessibility",
+      "accessibility_body": "High gained {{alto}}, low {{bajo}} (ratio {{ratio}}×). Asymmetric distribution of CBD access.",
+      "stable_title": "Stable equilibrium",
+      "stable_body": "Outer iterations did not meaningfully shift aggregate metrics. Feedback was weak in this scenario — try a more aggressive policy."
+    }
+  },
   "coupled_metrics": {
     "header": "Interdependence metrics",
     "outer_count": "{{n}} outer iters",
