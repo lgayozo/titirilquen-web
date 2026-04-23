@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
@@ -16,7 +16,7 @@ const STRATUM_VAR: Record<number, string> = {
   3: "var(--s3)",
 };
 
-const MARGIN = { top: 8, right: 8, bottom: 26, left: 38 };
+const MARGIN = { top: 8, right: 8, bottom: 26, left: 42 };
 
 /**
  * Histograma apilado de hogares por estrato a lo largo de las parcelas.
@@ -50,21 +50,35 @@ export function StratumDistribution({
     return { counts: c, max: mx };
   }, [parcelas, bins, binWidth]);
 
-  const W = 600;
+  // Medimos el contenedor para escalar el SVG en 1:1 píxel físico (evita la
+  // distorsión de texto que producía `preserveAspectRatio="none"`).
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [W, setW] = useState(600);
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => setW(Math.max(240, el.clientWidth));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const H = height;
-  const plotW = W - MARGIN.left - MARGIN.right;
+  const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
   const plotH = H - MARGIN.top - MARGIN.bottom;
   const barW = plotW / bins;
 
   const yTicks = [0, Math.round(max * 0.25), Math.round(max * 0.5), Math.round(max * 0.75), max];
 
   return (
-    <div className={cn("relative", className)}>
+    <div ref={wrapRef} className={cn("relative", className)}>
       <svg
+        width={W}
+        height={H}
         viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        className="block w-full"
-        style={{ height }}
+        className="block"
+        style={{ display: "block", maxWidth: "100%" }}
       >
         {/* Grid lines + Y-axis labels */}
         {yTicks.map((v) => {

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 
@@ -8,7 +8,7 @@ interface BidPriceCurveProps {
   height?: number;
 }
 
-const MARGIN = { top: 8, right: 8, bottom: 22, left: 48 };
+const MARGIN = { top: 8, right: 8, bottom: 22, left: 52 };
 
 /**
  * Precios implícitos por parcela en el equilibrio. Curva con eje Y rotulado
@@ -24,9 +24,20 @@ export function BidPriceCurve({ p, className, height = 160 }: BidPriceCurveProps
     return { path: { p, mn, mx, range }, min: mn, max: mx, yTicks: ticks };
   }, [p]);
 
-  const W = 600;
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [W, setW] = useState(600);
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => setW(Math.max(240, el.clientWidth));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const H = height;
-  const plotW = W - MARGIN.left - MARGIN.right;
+  const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
   const plotH = H - MARGIN.top - MARGIN.bottom;
 
   const xOf = (i: number) => MARGIN.left + (i / Math.max(path.p.length - 1, 1)) * plotW;
@@ -40,12 +51,13 @@ export function BidPriceCurve({ p, className, height = 160 }: BidPriceCurveProps
   const fmt = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1));
 
   return (
-    <div className={cn("relative", className)}>
+    <div ref={wrapRef} className={cn("relative", className)}>
       <svg
+        width={W}
+        height={H}
         viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        className="block w-full"
-        style={{ height }}
+        className="block"
+        style={{ display: "block", maxWidth: "100%" }}
       >
         {/* Grid + Y labels */}
         {yTicks.map((v, i) => {
