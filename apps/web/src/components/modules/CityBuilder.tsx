@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { PresetSelector } from "@/components/ui/PresetSelector";
-import { Section } from "@/components/ui/Section";
+import { SidebarSection } from "@/components/ui/SidebarSection";
 import { CITY_PRESETS } from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";
 
@@ -43,66 +43,69 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
   };
 
   return (
-    <Section title={t("sections.city")} subtitle={t("city_params.cbd_label", { n: config.city.n_celdas })}>
-      <PresetSelector
-        label={t("presets.city_label")}
-        options={Object.keys(CITY_PRESETS)}
-        value={matchingPreset}
-        onChange={applyPreset}
-      />
+    <>
+      <SidebarSection title={t("sections_sidebar.scenarios")}>
+        <PresetSelector
+          label={t("presets.city_label")}
+          options={Object.keys(CITY_PRESETS)}
+          value={matchingPreset}
+          onChange={applyPreset}
+        />
+      </SidebarSection>
 
-      <LabeledSlider
-        label={t("city_params.largo_ciudad_km")}
-        value={config.city.largo_ciudad_km}
-        min={5}
-        max={40}
-        step={1}
-        unit="km"
-        onChange={(v) => setCity({ largo_ciudad_km: v })}
-      />
+      <SidebarSection
+        title={t("sections.city")}
+        meta={`${config.city.largo_ciudad_km} km · ${config.city.n_celdas} celdas`}
+      >
+        <LabeledSlider
+          label={t("city_params.largo_ciudad_km")}
+          value={config.city.largo_ciudad_km}
+          min={5}
+          max={40}
+          step={1}
+          unit="km"
+          onChange={(v) => setCity({ largo_ciudad_km: v })}
+        />
+        <LabeledSlider
+          label={t("city_params.n_celdas")}
+          value={config.city.n_celdas}
+          min={51}
+          max={1001}
+          step={50}
+          onChange={(v) => setCity({ n_celdas: v % 2 === 0 ? v + 1 : v })}
+        />
+        <LabeledSlider
+          label={t("city_params.densidad_por_celda")}
+          value={config.city.densidad_por_celda}
+          min={10}
+          max={300}
+          step={10}
+          unit={t("city_params.density_unit")}
+          onChange={(v) => setCity({ densidad_por_celda: v })}
+        />
+        <LabeledSlider
+          label={t("city_params.pendiente_porcentaje")}
+          value={config.city.pendiente_porcentaje}
+          min={-10}
+          max={10}
+          step={0.5}
+          unit="%"
+          onChange={(v) => setCity({ pendiente_porcentaje: v })}
+        />
+        <LabeledSlider
+          label={t("city_params.teletrabajo_factor")}
+          value={config.city.teletrabajo_factor}
+          min={0}
+          max={2}
+          step={0.1}
+          onChange={(v) => setCity({ teletrabajo_factor: v })}
+        />
+      </SidebarSection>
 
-      <LabeledSlider
-        label={t("city_params.n_celdas")}
-        value={config.city.n_celdas}
-        min={51}
-        max={1001}
-        step={50}
-        onChange={(v) => setCity({ n_celdas: v % 2 === 0 ? v + 1 : v })}
-      />
-
-      <LabeledSlider
-        label={t("city_params.densidad_por_celda")}
-        value={config.city.densidad_por_celda}
-        min={10}
-        max={300}
-        step={10}
-        unit={t("city_params.density_unit")}
-        onChange={(v) => setCity({ densidad_por_celda: v })}
-      />
-
-      <LabeledSlider
-        label={t("city_params.pendiente_porcentaje")}
-        value={config.city.pendiente_porcentaje}
-        min={-10}
-        max={10}
-        step={0.5}
-        unit="%"
-        onChange={(v) => setCity({ pendiente_porcentaje: v })}
-      />
-
-      <LabeledSlider
-        label={t("city_params.teletrabajo_factor")}
-        value={config.city.teletrabajo_factor}
-        min={0}
-        max={2}
-        step={0.1}
-        onChange={(v) => setCity({ teletrabajo_factor: v })}
-      />
-
-      <div className="space-y-2 border-t border-slate-200 pt-3 dark:border-slate-800">
-        <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-          {t("strata.distribution")}
-        </div>
+      <SidebarSection
+        title={t("strata.distribution")}
+        meta={`${(sA * 100).toFixed(0)}/${(sM * 100).toFixed(0)}/${(sB * 100).toFixed(0)}`}
+      >
         <LabeledSlider
           label={t("strata.alto")}
           value={sA}
@@ -121,11 +124,11 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           format={(v) => `${(v * 100).toFixed(0)}%`}
           onChange={(v) => setShares(sA, v)}
         />
-        <div className="text-xs text-slate-500 dark:text-slate-400">
+        <div className="text-[11px] text-muted">
           {t("strata.bajo")}: {(sB * 100).toFixed(0)}% ({t("strata.auto_calculated")})
         </div>
-      </div>
-    </Section>
+      </SidebarSection>
+    </>
   );
 }
 

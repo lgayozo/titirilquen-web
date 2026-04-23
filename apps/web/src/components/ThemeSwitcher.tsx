@@ -1,16 +1,17 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { BookOpen, Moon, Newspaper } from "lucide-react";
 
 import { cn } from "@/lib/cn";
-import type { Theme } from "@/lib/theme";
-import { watchSystemTheme } from "@/lib/theme";
+import { watchSystemTheme, type Theme } from "@/lib/theme";
 import { useThemeStore } from "@/store/themeStore";
 
-const OPTIONS: Array<{ value: Theme; icon: typeof Sun; tk: string }> = [
-  { value: "light", icon: Sun, tk: "theme.light" },
-  { value: "system", icon: Monitor, tk: "theme.system" },
-  { value: "dark", icon: Moon, tk: "theme.dark" },
+type Option = { value: Theme; icon: typeof Moon; labelKey: string };
+
+const OPTIONS: ReadonlyArray<Option> = [
+  { value: "paper", icon: Newspaper, labelKey: "theme.paper" },
+  { value: "journal", icon: BookOpen, labelKey: "theme.journal" },
+  { value: "dark", icon: Moon, labelKey: "theme.dark" },
 ];
 
 export function ThemeSwitcher() {
@@ -19,7 +20,6 @@ export function ThemeSwitcher() {
   const setTheme = useThemeStore((s) => s.setTheme);
   const syncSystem = useThemeStore((s) => s.syncSystem);
 
-  // Re-sincroniza si el usuario cambia la preferencia del SO mientras theme="system".
   useEffect(() => {
     const cancel = watchSystemTheme(() => {
       if (useThemeStore.getState().theme === "system") syncSystem();
@@ -28,33 +28,21 @@ export function ThemeSwitcher() {
   }, [syncSystem]);
 
   return (
-    <div
-      role="radiogroup"
-      aria-label={t("theme.label")}
-      className="flex items-center gap-0.5 rounded-full border border-slate-200 bg-white p-0.5 dark:border-slate-700 dark:bg-slate-900"
-    >
-      {OPTIONS.map(({ value, icon: Icon, tk }) => {
-        const active = theme === value;
-        return (
-          <button
-            key={value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            onClick={() => setTheme(value)}
-            title={t(tk)}
-            aria-label={t(tk)}
-            className={cn(
-              "rounded-full p-1 transition-colors",
-              active
-                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" aria-hidden />
-          </button>
-        );
-      })}
+    <div role="radiogroup" aria-label={t("theme.label")} className="seg">
+      {OPTIONS.map(({ value, icon: Icon, labelKey }) => (
+        <button
+          key={value}
+          type="button"
+          role="radio"
+          aria-checked={theme === value}
+          onClick={() => setTheme(value)}
+          title={t(labelKey)}
+          className={cn(theme === value && "active")}
+        >
+          <Icon className="h-3 w-3" aria-hidden />
+          <span className="sr-only">{t(labelKey)}</span>
+        </button>
+      ))}
     </div>
   );
 }

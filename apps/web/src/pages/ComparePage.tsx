@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { KPITable } from "@/components/compare/KPITable";
 import { ScenarioCard } from "@/components/compare/ScenarioCard";
 import { ScenarioFlowComparison } from "@/components/compare/ScenarioFlowComparison";
+import { Panel } from "@/components/ui/Panel";
 import { runSimulation } from "@/lib/api";
 import { computeKPIs } from "@/lib/kpis";
 import type { Modo } from "@/lib/types";
@@ -60,7 +61,14 @@ export function ComparePage() {
         id: s.id,
         name: s.name,
         result: s.result,
-        config: s.config ? { city: { n_celdas: s.config.city.n_celdas, largo_ciudad_km: s.config.city.largo_ciudad_km } } : null,
+        config: s.config
+          ? {
+              city: {
+                n_celdas: s.config.city.n_celdas,
+                largo_ciudad_km: s.config.city.largo_ciudad_km,
+              },
+            }
+          : null,
       })),
     [scenarios]
   );
@@ -69,85 +77,90 @@ export function ComparePage() {
   const baseId = scenarios.find((s) => s.status === "done")?.id;
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h2 className="text-xl font-semibold">{t("compare.title")}</h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          {t("compare.subtitle")}
-        </p>
-      </header>
+    <div className="main" style={{ padding: "var(--pad)", maxWidth: 1600, margin: "0 auto" }}>
+      <div className="hero">
+        <div className="hero-head">
+          <h1 className="hero-title">{t("compare.title")}</h1>
+          <div className="hero-sub">
+            <span className="dot">●</span> {t("compare.subtitle")}
+          </div>
+        </div>
+      </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="panel-grid" style={{ marginBottom: "var(--gap)" }}>
         {scenarios.map((s, i) => (
-          <ScenarioCard
-            key={s.id}
-            scenario={s}
-            onRun={() => void runOne(s.id)}
-            removable={i >= 2}
-          />
+          <div key={s.id} className="col-6">
+            <ScenarioCard scenario={s} onRun={() => void runOne(s.id)} removable={i >= 2} />
+          </div>
         ))}
         {scenarios.length < 4 && (
-          <button
-            type="button"
-            onClick={addScenario}
-            className="flex min-h-[100px] items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-300 text-sm text-slate-500 hover:border-slate-400 hover:text-slate-700 dark:border-slate-700 dark:text-slate-500 dark:hover:border-slate-600 dark:hover:text-slate-300"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            {t("compare.add_scenario")}
-          </button>
+          <div className="col-6">
+            <button
+              type="button"
+              onClick={addScenario}
+              className="flex min-h-[120px] w-full items-center justify-center gap-2"
+              style={{
+                border: "1px dashed var(--rule)",
+                background: "var(--paper)",
+                fontFamily: "var(--font-fig)",
+                fontSize: 11,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--muted)",
+                cursor: "pointer",
+              }}
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              {t("compare.add_scenario")}
+            </button>
+          </div>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3">
         <button
           type="button"
           onClick={() => void runAll()}
           disabled={!scenarios.some((s) => s.config)}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+          className="btn primary"
         >
           ▶ {tC("actions.run_all")}
         </button>
         {doneCount > 0 && (
-          <span className="text-xs text-slate-500 dark:text-slate-400">
+          <span className="font-fig text-[11px] uppercase tracking-[0.08em] text-muted">
             {t("compare.ready_count", { done: doneCount, total: scenarios.length })}
           </span>
         )}
       </div>
 
       {doneCount > 0 && (
-        <>
-          <section>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              {t("compare.kpis")}
-            </h3>
+        <div className="panel-grid">
+          <Panel n="01" title={t("compare.kpis")} meta="delta vs base" cls="col-12">
             <KPITable scenarios={rows} baseId={baseId} />
-          </section>
+          </Panel>
 
-          <section>
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                {t("compare.flow_profile")}
-              </h3>
-              <div className="flex items-center gap-1 text-[11px]">
+          <Panel
+            n="02"
+            title={t("compare.flow_profile")}
+            meta={
+              <div className="seg">
                 {(["Auto", "Metro", "Bici"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => setMode(m)}
-                    className={
-                      mode === m
-                        ? "rounded bg-slate-900 px-2 py-1 text-white dark:bg-slate-100 dark:text-slate-900"
-                        : "rounded px-2 py-1 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
-                    }
+                    className={mode === m ? "active" : ""}
                   >
-                    {m}
+                    {t(`modes.${m.toLowerCase()}`)}
                   </button>
                 ))}
               </div>
-            </div>
+            }
+            cls="col-12"
+          >
             <ScenarioFlowComparison scenarios={flowRows} mode={mode} />
-          </section>
-        </>
+          </Panel>
+        </div>
       )}
     </div>
   );

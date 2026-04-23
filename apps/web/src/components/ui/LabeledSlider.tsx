@@ -28,13 +28,10 @@ export function LabeledSlider({
   const display = format ? format(value) : unit ? `${value} ${unit}` : String(value);
 
   return (
-    <label className={cn("block text-xs", className)}>
-      <div className="flex items-baseline justify-between">
-        <span className="text-slate-600 dark:text-slate-300">{label}</span>
-        <span
-          className="font-mono text-sm font-medium tabular-nums text-slate-900 dark:text-slate-100"
-          aria-hidden="true"
-        >
+    <label className={cn("slider-row block", className)}>
+      <div className="srow-top">
+        <span className="srow-label">{label}</span>
+        <span className="srow-val" aria-hidden="true">
           {display}
         </span>
       </div>
@@ -48,7 +45,6 @@ export function LabeledSlider({
         disabled={disabled}
         aria-valuetext={display}
         aria-label={`${label}: ${display}`}
-        className="mt-1 w-full accent-slate-900 dark:accent-slate-200"
       />
     </label>
   );

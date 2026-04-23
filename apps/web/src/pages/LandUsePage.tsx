@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LandUseBuilder } from "@/components/modules/LandUseBuilder";
-import { Section } from "@/components/ui/Section";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
+import { Panel } from "@/components/ui/Panel";
 import { BidPriceCurve } from "@/components/viz/BidPriceCurve";
 import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
@@ -54,80 +54,67 @@ export function LandUsePage() {
             pushOuterIter(it);
           }
         );
-        // Consolidamos un CoupledResult sintético a partir de las iteraciones recibidas.
         const last = collected[collected.length - 1];
-        const result: CoupledResult = {
-          converged:
-            last != null && last.T_residual != null && last.T_residual < 1.0,
+        const synthetic: CoupledResult = {
+          converged: last != null && last.T_residual != null && last.T_residual < 1.0,
           iterations: collected,
-          final_parcelas: [],  // el streaming no incluye la asignación final completa
+          final_parcelas: [],
           S: null,
         };
-        finishCoupled(result);
+        finishCoupled(synthetic);
       }
     } catch (e) {
       fail(e instanceof Error ? e.message : String(e));
     }
   };
 
-  const parcelas =
-    mode === "standalone" ? result?.parcelas : coupledResult?.final_parcelas;
+  const parcelas = mode === "standalone" ? result?.parcelas : coupledResult?.final_parcelas;
   const prices = mode === "standalone" ? result?.result.p : null;
-  const lastOuter =
-    mode === "coupled" && coupledResult && coupledResult.iterations.length > 0
-      ? coupledResult.iterations[coupledResult.iterations.length - 1]
-      : null;
 
   return (
-    <div className="grid grid-cols-[340px_1fr] gap-6">
-      <aside className="space-y-4">
-        <Section title={tS("sections.mode")} defaultOpen>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setMode("standalone")}
-              className={
-                mode === "standalone"
-                  ? "flex-1 rounded bg-slate-900 px-3 py-1.5 text-xs font-medium text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "flex-1 rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-400"
-              }
-            >
-              {tS("land_use.mode_standalone")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("coupled")}
-              className={
-                mode === "coupled"
-                  ? "flex-1 rounded bg-slate-900 px-3 py-1.5 text-xs font-medium text-white dark:bg-slate-100 dark:text-slate-900"
-                  : "flex-1 rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-400"
-              }
-            >
-              {tS("land_use.mode_coupled")}
-            </button>
-          </div>
-          <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-            {mode === "standalone" ? tS("land_use.info_standalone") : tS("land_use.info_coupled")}
+    <div className="page">
+      <aside className="sidebar">
+        <h3>{tS("sections.mode")}</h3>
+        <div className="seg" style={{ width: "100%" }}>
+          <button
+            type="button"
+            className={mode === "standalone" ? "active" : ""}
+            onClick={() => setMode("standalone")}
+            style={{ flex: 1 }}
+          >
+            {tS("land_use.mode_standalone")}
+          </button>
+          <button
+            type="button"
+            className={mode === "coupled" ? "active" : ""}
+            onClick={() => setMode("coupled")}
+            style={{ flex: 1 }}
+          >
+            {tS("land_use.mode_coupled")}
+          </button>
+        </div>
+        <p className="mt-2 text-[11px] text-muted">
+          {mode === "standalone" ? tS("land_use.info_standalone") : tS("land_use.info_coupled")}
+        </p>
+        {mode === "coupled" && (
+          <p className="mt-1 text-[10px]" style={{ color: "var(--accent)" }}>
+            {tS("land_use.density_ignored_hint", {
+              total: config.H_por_estrato.reduce((a, b) => a + b, 0).toLocaleString(),
+            })}
           </p>
-          {mode === "coupled" && (
-            <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
-              {tS("land_use.density_ignored_hint", {
-                total: config.H_por_estrato.reduce((a, b) => a + b, 0).toLocaleString(),
-              })}
-            </p>
-          )}
-        </Section>
+        )}
 
         <LandUseBuilder config={config} onChange={setConfig} />
 
         {mode === "coupled" && (
-          <Section title={tS("land_use.outer_iterations")} defaultOpen>
-            <label className="block text-xs">
-              <div className="flex items-baseline justify-between">
-                <span className="text-slate-600 dark:text-slate-300">
-                  {tS("land_use.outer_iter_label")}
+          <>
+            <h3>{tS("land_use.outer_iterations")}</h3>
+            <label className="slider-row block">
+              <div className="srow-top">
+                <span className="srow-label">{tS("land_use.outer_iter_label")}</span>
+                <span className="srow-val" aria-hidden>
+                  {outerMaxIter}
                 </span>
-                <span className="font-mono text-sm tabular-nums">{outerMaxIter}</span>
               </div>
               <input
                 type="range"
@@ -136,44 +123,36 @@ export function LandUsePage() {
                 step={1}
                 value={outerMaxIter}
                 onChange={(e) => setOuterMaxIter(Number(e.target.value))}
-                className="mt-1 w-full accent-slate-900 dark:accent-slate-200"
               />
             </label>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              {tS("land_use.outer_iter_hint")}
-            </p>
-          </Section>
+            <p className="text-[11px] text-muted">{tS("land_use.outer_iter_hint")}</p>
+          </>
         )}
 
         <button
           type="button"
-          onClick={handleRun}
+          className="run-btn"
           disabled={stage === "running"}
-          className="w-full rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+          onClick={handleRun}
         >
-          {stage === "running" ? "…" : `▶ ${t("actions.run")}`}
+          {stage === "running" ? "◜ …" : `▶ ${t("actions.run")}`}
         </button>
 
         {stage === "running" && mode === "coupled" && (
-          <div className="rounded border border-slate-200 p-3 text-xs dark:border-slate-800">
-            <div className="mb-1 flex items-center justify-between">
+          <div className="callout mt-3" style={{ borderLeftColor: "var(--accent)" }}>
+            <div className="flex items-center justify-between">
               <span>{tS("land_use.outer_iter_progress")}</span>
-              <span className="font-mono tabular-nums">
+              <span className="font-fig tabular-nums">
                 {liveOuterIters.length} / {outerMaxIter}
               </span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-              <div
-                className="h-full bg-slate-900 transition-all dark:bg-slate-100"
-                style={{
-                  width: `${(liveOuterIters.length / outerMaxIter) * 100}%`,
-                }}
-              />
-            </div>
             {liveOuterIters.length > 0 && (
-              <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+              <div
+                className="mt-1 text-[11px]"
+                style={{ fontStyle: "normal", fontFamily: "var(--font-body)" }}
+              >
                 {tS("land_use.outer_iter_last_residual")}{" "}
-                <strong className="font-mono tabular-nums">
+                <strong className="font-fig tabular-nums">
                   {liveOuterIters[liveOuterIters.length - 1]?.T_residual?.toFixed(2) ?? "—"} min
                 </strong>
               </div>
@@ -182,50 +161,72 @@ export function LandUsePage() {
         )}
 
         {error && (
-          <div className="rounded border border-red-300 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <div className="callout" style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}>
             {error}
           </div>
         )}
       </aside>
 
-      <section className="space-y-4">
+      <section className="main">
+        <div className="hero">
+          <div className="hero-head">
+            <h1 className="hero-title">{tS("land_use.title")}</h1>
+            <div className="hero-sub">
+              <span className="dot">●</span> {tS("land_use.subtitle")}
+            </div>
+          </div>
+          <p
+            className="font-display"
+            style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)", marginBottom: 0 }}
+          >
+            La teoría del <em>bid-rent</em> predice que los hogares con mayor valoración de la
+            accesibilidad al centro superan en subasta a los demás por parcelas cercanas al CBD,
+            empujando a los grupos de menor valoración hacia la periferia.
+          </p>
+        </div>
+
         {parcelas ? (
-          <>
-            <div>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                {tS("land_use.heading_distribution")}
-              </h3>
+          <div className="panel-grid">
+            <Panel
+              n="01"
+              title={tS("land_use.heading_distribution")}
+              meta="bid-rent · 3 strata"
+              cls="col-7"
+            >
               <ExportableFigure
                 name="distribucion-estratos"
                 title={tS("land_use.heading_distribution")}
-                exportSize={{ width: 1200, height: 260 }}
+                exportSize={{ width: 1000, height: 260 }}
               >
                 <StratumDistribution parcelas={parcelas} />
               </ExportableFigure>
-            </div>
+            </Panel>
+
             {prices && (
-              <div>
-                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  {tS("land_use.heading_equilibrium")}
-                </h3>
+              <Panel
+                n="02"
+                title={tS("land_use.bid_price_title")}
+                meta="log-sum"
+                cls="col-5"
+              >
                 <ExportableFigure
                   name="precio-suelo"
                   title={tS("land_use.bid_price_title")}
-                  exportSize={{ width: 1200, height: 200 }}
+                  exportSize={{ width: 800, height: 200 }}
                 >
                   <BidPriceCurve p={prices} />
                 </ExportableFigure>
-              </div>
+              </Panel>
             )}
-          </>
-        ) : (
-          <div className="rounded border border-dashed border-slate-300 p-12 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            {tS("land_use.run_placeholder")}
-          </div>
-        )}
 
-        {mode === "coupled" && coupledResult && (
-          <OuterTrajectory result={coupledResult} />
+            {mode === "coupled" && coupledResult && (
+              <Panel n="03" title={tS("land_use.outer_iterations")} cls="col-12">
+                <OuterTrajectory result={coupledResult} />
+              </Panel>
+            )}
+          </div>
+        ) : (
+          <div className="callout">{tS("land_use.run_placeholder")}</div>
         )}
       </section>
     </div>

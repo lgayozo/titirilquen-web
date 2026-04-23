@@ -26,27 +26,31 @@ export function TutorialPage() {
     return lazy(entry.load);
   }, [lang, slug]);
 
-  const currentIdx = toc.findIndex((t) => t.slug === slug);
+  const currentIdx = toc.findIndex((entry) => entry.slug === slug);
+  const current = currentIdx >= 0 ? toc[currentIdx] : null;
   const prev = currentIdx > 0 ? toc[currentIdx - 1] : null;
   const next = currentIdx < toc.length - 1 ? toc[currentIdx + 1] : null;
 
   return (
-    <div className="grid grid-cols-[220px_1fr] gap-8">
-      <nav
-        aria-label={t("tutorial.toc")}
-        className="h-fit rounded-lg border border-slate-200 bg-white p-3 text-sm dark:border-slate-800 dark:bg-slate-950"
-      >
-        <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-          {t("tutorial.toc")}
-        </h2>
-        <ol className="space-y-1">
+    <div className="tutorial">
+      <nav aria-label={t("tutorial.toc")} className="tutorial-toc">
+        <h2>{t("tutorial.toc")}</h2>
+        <ol>
           {toc.map((entry) => (
             <TocItem key={entry.slug} entry={entry} />
           ))}
         </ol>
       </nav>
 
-      <article className="prose-none max-w-3xl pb-12">
+      <article className="tutorial-article">
+        {current && (
+          <div className="tutorial-eyebrow">
+            {t("tutorial.chapter", { n: String(current.order).padStart(2, "0") })}
+            {" · "}
+            {current.title}
+          </div>
+        )}
+
         {Component ? (
           <Suspense fallback={<SkeletonArticle />}>
             <MDXProvider components={mdxComponents}>
@@ -54,31 +58,33 @@ export function TutorialPage() {
             </MDXProvider>
           </Suspense>
         ) : (
-          <div className="rounded-lg border border-dashed border-slate-300 p-12 text-center text-sm text-slate-500 dark:border-slate-700">
-            {t("tutorial.not_found", { slug })}
-          </div>
+          <div className="tut-notfound">{t("tutorial.not_found", { slug })}</div>
         )}
 
-        <div className="mt-10 flex items-center justify-between border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
-          {prev ? (
-            <NavLink
-              to={`/tutorial/${prev.slug}`}
-              className="flex items-center gap-1 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-            >
-              ← {prev.title}
-            </NavLink>
-          ) : (
-            <span />
-          )}
-          {next && (
-            <NavLink
-              to={`/tutorial/${next.slug}`}
-              className="flex items-center gap-1 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-            >
-              {next.title} →
-            </NavLink>
-          )}
-        </div>
+        {(prev || next) && (
+          <div className="tut-pager">
+            {prev ? (
+              <NavLink to={`/tutorial/${prev.slug}`}>
+                <span className="arrow" aria-hidden>
+                  ←
+                </span>
+                {prev.title}
+              </NavLink>
+            ) : (
+              <span />
+            )}
+            {next ? (
+              <NavLink to={`/tutorial/${next.slug}`}>
+                {next.title}
+                <span className="arrow" aria-hidden>
+                  →
+                </span>
+              </NavLink>
+            ) : (
+              <span />
+            )}
+          </div>
+        )}
       </article>
     </div>
   );
@@ -89,22 +95,13 @@ function TocItem({ entry }: { entry: TutorialMeta }) {
     <li>
       <NavLink
         to={`/tutorial/${entry.slug}`}
-        className={({ isActive }) =>
-          cn(
-            "block rounded px-2 py-1.5",
-            isActive
-              ? "bg-slate-100 font-medium text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-900"
-          )
-        }
+        className={({ isActive }) => cn(isActive && "active")}
       >
-        <div className="text-[13px]">
-          <span className="font-mono text-[10px] text-slate-400">{entry.order}.</span>{" "}
+        <div>
+          <span className="toc-num">§{entry.order}</span>
           {entry.title}
         </div>
-        {entry.tagline && (
-          <div className="mt-0.5 text-[11px] text-slate-400">{entry.tagline}</div>
-        )}
+        {entry.tagline && <span className="toc-tag">{entry.tagline}</span>}
       </NavLink>
     </li>
   );
@@ -113,11 +110,11 @@ function TocItem({ entry }: { entry: TutorialMeta }) {
 function SkeletonArticle() {
   const { t } = useTranslation("simulator");
   return (
-    <div className="space-y-3 py-4" aria-busy="true" aria-label={t("tutorial.loading")}>
-      <div className="h-6 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
-      <div className="h-3 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
-      <div className="h-3 w-5/6 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
-      <div className="h-3 w-4/6 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+    <div className="tut-skeleton" aria-busy="true" aria-label={t("tutorial.loading")}>
+      <div />
+      <div />
+      <div />
+      <div />
     </div>
   );
 }

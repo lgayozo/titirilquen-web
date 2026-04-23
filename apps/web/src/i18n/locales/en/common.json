@@ -6,7 +6,8 @@
     "tutorial": "Tutorial",
     "sandbox": "Sandbox",
     "land_use": "Land use",
-    "compare": "Compare"
+    "compare": "Compare",
+    "about": "About"
   },
   "language": {
     "label": "Language",
@@ -15,9 +16,11 @@
   },
   "theme": {
     "label": "Theme",
-    "light": "Light",
+    "paper": "Paper",
+    "journal": "Journal",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "light": "Light"
   },
   "actions": {
     "run": "Run equilibrium",
@@ -41,6 +44,46 @@
   "skip_to_main": "Skip to main content",
   "footer": {
     "authors": "Sebastian Acevedo, Pablo Alvarez, Fernando Castillo, Angelo Guevara",
+    "web_by": "Web by Leandro Gayozo",
     "license": "GPLv3"
+  },
+  "about": {
+    "eyebrow": "Credits and attribution",
+    "title": "About Titirilquen",
+    "lede": "An educational transport simulator over a monocentric linear city, designed for university teaching at the School of Engineering (FCFM), University of Chile.",
+    "sections": {
+      "model_authors": "§1 · Model authors",
+      "web_impl": "§2 · Web re-implementation",
+      "license": "§3 · License",
+      "links": "§4 · Links"
+    },
+    "model_authors": {
+      "heading": "Original authorship",
+      "body": "The mathematical model — its supply, demand and equilibrium equations — and the original Streamlit version were developed by the following academic team:"
+    },
+    "web_impl": {
+      "heading": "Web rearchitecture",
+      "body": "This web interface re-implements the original simulator in React + FastAPI with a focus on pedagogical narrative. It preserves the numerical core intact and is fully interoperable with the Streamlit version."
+    },
+    "license": {
+      "heading": "GPLv3",
+      "body": "Both the original simulator and this re-implementation are distributed under the GNU General Public License v3. You are free to use, study, modify and redistribute the software under the same license."
+    },
+    "roles": {
+      "lead_author": "Lead author",
+      "author": "Model author",
+      "web_engineer": "Civil Engineer — Web Rearchitecture"
+    },
+    "links": {
+      "original_repo": "Original repository",
+      "web_repo": "Web repository",
+      "streamlit": "Streamlit app (V1)",
+      "license": "GPLv3 license"
+    },
+    "tags": {
+      "fcfm": "FCFM",
+      "uchile": "U. de Chile",
+      "transport": "Transport"
+    }
   }
 }

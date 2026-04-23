@@ -9,19 +9,15 @@ export function LanguageSwitcher() {
   const current = i18n.resolvedLanguage ?? "es";
 
   return (
-    <div className="flex items-center gap-1 text-xs" aria-label={t("language.label")}>
+    <div role="radiogroup" aria-label={t("language.label")} className="seg">
       {LANGS.map((lng) => (
         <button
           key={lng}
           type="button"
+          role="radio"
+          aria-checked={current === lng}
           onClick={() => void i18n.changeLanguage(lng)}
-          className={cn(
-            "rounded px-2 py-1 transition-colors",
-            current === lng
-              ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-              : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
-          )}
-          aria-pressed={current === lng}
+          className={cn(current === lng && "active")}
         >
           {lng.toUpperCase()}
         </button>

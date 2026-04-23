@@ -1,17 +1,22 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CityStrip } from "@/components/CityStrip";
 import { CityBuilder } from "@/components/modules/CityBuilder";
 import { DemandInspector } from "@/components/modules/DemandInspector";
 import { SupplyBuilder } from "@/components/modules/SupplyBuilder";
+import { RunStatus } from "@/components/RunStatus";
+import { SimulationSkeleton } from "@/components/SimulationSkeleton";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
-import { Section } from "@/components/ui/Section";
+import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
+import { Panel } from "@/components/ui/Panel";
+import { SidebarSection } from "@/components/ui/SidebarSection";
 import { ConvergenceTrace } from "@/components/viz/ConvergenceTrace";
 import { FlowProfile } from "@/components/viz/FlowProfile";
 import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
 import { runSimulation, runSimulationStream } from "@/lib/api";
 import { pyodideEngine } from "@/lib/pyodide-engine";
+import type { Modo } from "@/lib/types";
 import { useSimulationStore } from "@/store/simulationStore";
 
 type HeatMode = "auto" | "metro" | "bici";
@@ -49,9 +54,10 @@ export function SandboxPage() {
     : undefined;
 
   const operatingRatios = {
-    car: result && lastIter
-      ? Math.max(...lastIter.demanda_auto) / result.capacidad_auto
-      : null,
+    car:
+      result && lastIter
+        ? Math.max(...lastIter.demanda_auto) / result.capacidad_auto
+        : null,
     bike: lastIter
       ? Math.max(...lastIter.demanda_bici) / config.supply.bike.capacidad_pista
       : null,
@@ -65,7 +71,9 @@ export function SandboxPage() {
         const final = await runSimulation(config);
         finishRun(final);
       } else {
-        const final = await pyodideEngine.simulateStream(config, (snap) => pushIteration(snap));
+        const final = await pyodideEngine.simulateStream(config, (snap) =>
+          pushIteration(snap)
+        );
         finishRun(final);
       }
     } catch (e) {
@@ -73,19 +81,57 @@ export function SandboxPage() {
     }
   };
 
+  const totalAgents = lastIter
+    ? (Object.values(lastIter.modal_split) as number[]).reduce((s, n) => s + n, 0)
+    : 0;
+
+  const kpis = useMemo<KPI[]>(() => {
+    if (!result || !lastIter) {
+      return [
+        { label: t("kpi.trips"), value: "—" },
+        { label: t("kpi.auto_pct"), value: "—" },
+        { label: t("kpi.metro_pct"), value: "—" },
+        { label: t("kpi.bici_pct"), value: "—" },
+        { label: t("kpi.frequency"), value: "—" },
+        { label: t("kpi.residual"), value: "—" },
+      ];
+    }
+    const modal = lastIter.modal_split;
+    const total = (Object.values(modal) as number[]).reduce((s, n) => s + n, 0);
+    const tot = total > 0 ? total : 1;
+    const pct = (m: Modo) => `${(((modal[m] ?? 0) / tot) * 100).toFixed(1)}%`;
+    return [
+      { label: t("kpi.trips"), value: (total - (modal.Teletrabajo ?? 0)).toLocaleString() },
+      { label: t("kpi.auto_pct"), value: pct("Auto"), color: "var(--auto)" },
+      { label: t("kpi.metro_pct"), value: pct("Metro"), color: "var(--metro)" },
+      { label: t("kpi.bici_pct"), value: pct("Bici"), color: "var(--bici)" },
+      { label: t("kpi.frequency"), value: lastIter.frecuencia_metro.toFixed(1), unit: "tph" },
+      {
+        label: t("kpi.residual"),
+        value:
+          lastIter.residuo == null || !isFinite(lastIter.residuo)
+            ? "—"
+            : lastIter.residuo.toFixed(3),
+        unit: "min",
+      },
+    ];
+  }, [result, lastIter, t]);
+
   return (
-    <div className="grid grid-cols-[340px_1fr] gap-6">
-      <aside className="space-y-4">
+    <div className="page">
+      <aside className="sidebar">
         <CityBuilder config={config} onChange={setConfig} />
         <SupplyBuilder config={config} onChange={setConfig} operatingRatios={operatingRatios} />
 
-        <Section title={t("sections.equilibrium")} defaultOpen={false}>
-          <label className="block text-xs">
-            <div className="flex items-baseline justify-between">
-              <span className="text-slate-600 dark:text-slate-300">
-                {t("equilibrium.max_iter")}
-              </span>
-              <span className="font-mono text-sm font-medium tabular-nums">
+        <SidebarSection
+          title={t("sections.equilibrium")}
+          meta={`${config.max_iter} iter`}
+          defaultOpen={false}
+        >
+          <label className="slider-row block">
+            <div className="srow-top">
+              <span className="srow-label">{t("equilibrium.max_iter")}</span>
+              <span className="srow-val" aria-hidden>
                 {config.max_iter}
               </span>
             </div>
@@ -96,235 +142,284 @@ export function SandboxPage() {
               step={1}
               value={config.max_iter}
               onChange={(e) => setConfig((c) => ({ ...c, max_iter: Number(e.target.value) }))}
-              className="mt-1 w-full accent-slate-900 dark:accent-slate-200"
+              aria-label={t("equilibrium.max_iter")}
             />
           </label>
-        </Section>
+        </SidebarSection>
 
-        <Section title={tCommon("engine.label")} defaultOpen>
-          <div className="flex gap-2">
-            <EngineButton active={engine === "api"} onClick={() => setEngine("api")}>
+        <SidebarSection
+          title={tCommon("engine.label")}
+          meta={engine === "api" ? "FastAPI" : "Pyodide"}
+          defaultOpen={false}
+        >
+          <div className="seg" style={{ width: "100%" }}>
+            <button
+              type="button"
+              className={engine === "api" ? "active" : ""}
+              onClick={() => setEngine("api")}
+              style={{ flex: 1 }}
+            >
               FastAPI
-            </EngineButton>
-            <EngineButton active={engine === "local"} onClick={() => setEngine("local")}>
+            </button>
+            <button
+              type="button"
+              className={engine === "local" ? "active" : ""}
+              onClick={() => setEngine("local")}
+              style={{ flex: 1 }}
+            >
               Pyodide
-            </EngineButton>
+            </button>
           </div>
-          <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+          <p className="mt-2 text-[11px] text-muted">
             {engine === "api" ? tCommon("engine.info_api") : tCommon("engine.info_local")}
           </p>
-        </Section>
+        </SidebarSection>
 
-        <button
-          type="button"
-          onClick={handleRun}
-          disabled={running}
-          className="w-full rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
-        >
-          {running ? "…" : `▶ ${tCommon("actions.run")}`}
+        <button type="button" className="run-btn" disabled={running} onClick={handleRun}>
+          {running
+            ? `◜ ${t("equilibrium.iteration", {
+                n: progress?.current ?? 0,
+                total: progress?.total ?? 0,
+              })}`
+            : `▶ ${tCommon("actions.run")}`}
         </button>
 
         {error && (
-          <div className="rounded border border-red-300 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <div className="callout" style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}>
             {error}
           </div>
         )}
       </aside>
 
-      <section className="space-y-4">
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              {t("sandbox.city_heading")}
-            </h3>
-            <div className="flex items-center gap-1 text-[11px]">
-              {(["auto", "metro", "bici"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setHeatMode(m)}
-                  className={
-                    heatMode === m
-                      ? "rounded bg-slate-900 px-2 py-1 text-white dark:bg-slate-100 dark:text-slate-900"
-                      : "rounded px-2 py-1 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
-                  }
-                >
-                  {t(`modes.${m}`)}
-                </button>
-              ))}
+      <section className="main">
+        {/* HERO */}
+        <div className="hero">
+          <div className="hero-head">
+            <h1 className="hero-title">{t("hero.title")}</h1>
+            <div className="hero-sub">
+              <span className="dot">●</span>{" "}
+              {stage === "running" || stage === "booting"
+                ? t("hero.status_running")
+                : stage === "done"
+                ? t("hero.status_done")
+                : t("hero.status_ready")}
             </div>
           </div>
-          <ExportableFigure
-            name={`ciudad-${heatMode}`}
-            title={`${t("sandbox.city_heading")} — ${t(`modes.${heatMode}`)}`}
-            description={t("sandbox.city_figure_desc", {
-              length: config.city.largo_ciudad_km,
-              cells: config.city.n_celdas,
-              mode: t(`modes.${heatMode}`),
-            })}
-            exportSize={{ width: 1200, height: 200 }}
-          >
-            <CityStrip
-              nCeldas={config.city.n_celdas}
-              largoKm={config.city.largo_ciudad_km}
-              pendientePct={config.city.pendiente_porcentaje}
-              modeProfile={profile}
-              heatMode={heatMode}
-              shareEstratos={config.city.share_estratos}
-            />
-          </ExportableFigure>
-        </div>
 
-        {stage === "booting" && engine === "local" && (
-          <div
-            role="status"
-            aria-live="polite"
-            className="rounded border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
-          >
-            {t("equilibrium.booting_pyodide")}
-          </div>
-        )}
-
-        {progress && stage === "running" && (
-          <div
-            role="status"
-            aria-live="polite"
-            aria-busy="true"
-            className="rounded border border-slate-200 p-3 text-xs dark:border-slate-800"
-          >
+          <div className="ribbon-wrap">
             <div className="mb-2 flex items-center justify-between">
-              <span>{t("equilibrium.iteration", { n: progress.current, total: progress.total })}</span>
-              {lastIter?.residuo != null && (
-                <span className="font-mono tabular-nums text-slate-500">
-                  {t("equilibrium.residual")}: {lastIter.residuo.toFixed(3)}
-                </span>
-              )}
+              <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+                {t("sandbox.city_heading")}
+              </span>
+              <div className="seg">
+                {(["auto", "metro", "bici"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setHeatMode(m)}
+                    className={heatMode === m ? "active" : ""}
+                  >
+                    {t(`modes.${m}`)}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div
-              role="progressbar"
-              aria-valuenow={progress.current}
-              aria-valuemin={0}
-              aria-valuemax={progress.total}
-              aria-label={t("equilibrium.iteration", { n: progress.current, total: progress.total })}
-              className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
-            >
-              <div
-                className="h-full bg-slate-900 transition-all dark:bg-slate-100"
-                style={{ width: `${(progress.current / progress.total) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
 
-        {liveIterations.length > 0 && (
-          <ConvergenceTrace iterations={liveIterations} />
-        )}
-
-        {lastIter && (
-          <div className="rounded border border-slate-200 p-4 dark:border-slate-800">
-            <h4 className="mb-2 text-sm font-semibold">{t("sandbox.modal_split_last")}</h4>
-            <div className="flex flex-wrap gap-3 text-xs">
-              {Object.entries(lastIter.modal_split).map(([mode, count]) => (
-                <div
-                  key={mode}
-                  className="rounded bg-slate-100 px-3 py-1 dark:bg-slate-800"
-                >
-                  <span className="font-medium">{t(`modes.${mode.toLowerCase()}`, mode)}:</span>{" "}
-                  {count}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {lastIter && result && (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <ExportableFigure
-              name="flujo-auto"
-              title={t("sandbox.flow_per_cell", { mode: t("modes.auto") })}
-              exportSize={{ width: 600, height: 200 }}
+              name={`ciudad-${heatMode}`}
+              title={`${t("sandbox.city_heading")} — ${t(`modes.${heatMode}`)}`}
+              description={t("sandbox.city_figure_desc", {
+                length: config.city.largo_ciudad_km,
+                cells: config.city.n_celdas,
+                mode: t(`modes.${heatMode}`),
+              })}
+              exportSize={{ width: 1200, height: 200 }}
             >
-              <FlowProfile
-                flows={lastIter.demanda_auto}
-                largoKm={config.city.largo_ciudad_km}
-                label={t("sandbox.flow_per_cell", { mode: t("modes.auto") })}
-                color="#FF8C00"
-                capacity={result.capacidad_auto}
-              />
-            </ExportableFigure>
-            <ExportableFigure
-              name="flujo-bici"
-              title={t("sandbox.flow_per_cell", { mode: t("modes.bici") })}
-              exportSize={{ width: 600, height: 200 }}
-            >
-              <FlowProfile
-                flows={lastIter.demanda_bici}
-                largoKm={config.city.largo_ciudad_km}
-                label={t("sandbox.flow_per_cell", { mode: t("modes.bici") })}
-                color="#228B22"
-                capacity={config.supply.bike.capacidad_pista}
-              />
-            </ExportableFigure>
-            <ExportableFigure
-              name="flujo-metro"
-              title={t("sandbox.flow_per_cell", { mode: t("modes.metro") })}
-              exportSize={{ width: 600, height: 200 }}
-            >
-              <FlowProfile
-                flows={lastIter.demanda_metro}
-                largoKm={config.city.largo_ciudad_km}
-                label={t("sandbox.flow_per_cell", { mode: t("modes.metro") })}
-                color="#FF0000"
-              />
-            </ExportableFigure>
-          </div>
-        )}
-
-        <DemandInspector config={config} lastIter={lastIter} />
-
-        {result && result.agentes.length > 0 && (
-          <div>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              {t("sandbox.mode_share_by_location")}
-            </h3>
-            <ExportableFigure
-              name="reparto-modal-por-ubicacion"
-              title={t("sandbox.mode_share_by_location")}
-              exportSize={{ width: 1200, height: 280 }}
-            >
-              <ModeShareByLocation
-                agents={result.agentes}
+              <CityStrip
                 nCeldas={config.city.n_celdas}
                 largoKm={config.city.largo_ciudad_km}
+                pendientePct={config.city.pendiente_porcentaje}
+                modeProfile={profile}
+                heatMode={heatMode}
+                shareEstratos={config.city.share_estratos}
+                iterationToken={lastIter?.iter ?? -1}
               />
             </ExportableFigure>
+
+            <div className="ribbon-legend">
+              <span className="sw" style={{ "--c": "var(--auto)" } as React.CSSProperties}>
+                {t("modes.auto")}
+              </span>
+              <span className="sw" style={{ "--c": "var(--metro)" } as React.CSSProperties}>
+                {t("modes.metro")}
+              </span>
+              <span className="sw" style={{ "--c": "var(--bici)" } as React.CSSProperties}>
+                {t("modes.bici")}
+              </span>
+              <span className="sw" style={{ "--c": "var(--walk)" } as React.CSSProperties}>
+                {t("modes.caminata")}
+              </span>
+              <span style={{ marginLeft: "auto", textTransform: "none" }}>
+                {t("hero.stats_line", {
+                  total: totalAgents > 0 ? totalAgents.toLocaleString() : "—",
+                  length: config.city.largo_ciudad_km,
+                  stations: config.supply.train.num_estaciones,
+                  lanes: config.supply.car.num_pistas,
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <KPIStrip items={kpis} />
+
+        {/* Hint row — guía pedagógica */}
+        <div className="hint-row">
+          <div className="hint">
+            <strong>{t("hints.demand_title")}</strong>
+            {t("hints.demand_body")}
+          </div>
+          <div className="hint">
+            <strong>{t("hints.supply_title")}</strong>
+            {t("hints.supply_body")}
+          </div>
+          <div className="hint">
+            <strong>{t("hints.equilibrium_title")}</strong>
+            {t("hints.equilibrium_body")}
+          </div>
+        </div>
+
+        {/* Estado de corrida (mantiene animaciones) */}
+        {(stage === "booting" || stage === "running") && progress && (
+          <div style={{ marginBottom: "var(--gap)" }}>
+            <RunStatus
+              current={progress.current}
+              total={progress.total}
+              lastIter={lastIter}
+              stage={stage}
+              engine={engine}
+            />
+          </div>
+        )}
+
+        {((stage === "booting" && engine === "api") ||
+          (stage === "running" && liveIterations.length === 0)) && (
+          <div style={{ marginBottom: "var(--gap)" }}>
+            <SimulationSkeleton nCeldas={config.city.n_celdas} />
+          </div>
+        )}
+
+        {/* Grid de paneles FIG. NN */}
+        {liveIterations.length > 0 && (
+          <div className="panel-grid">
+            <Panel n="01" title={t("equilibrium.converged")} meta="MSA" cls="col-12">
+              <ConvergenceTrace iterations={liveIterations} />
+            </Panel>
+
+            {lastIter && result && (() => {
+              // Escala Y compartida: el máximo global entre los 3 modos.
+              // Permite comparar la magnitud relativa visualmente sin engañar
+              // con el auto-scale por panel.
+              const globalMax = Math.max(
+                ...lastIter.demanda_auto,
+                ...lastIter.demanda_bici,
+                ...lastIter.demanda_metro,
+                1
+              );
+              return (
+                <>
+                  <Panel
+                    n="02"
+                    title={t("modes.auto")}
+                    meta={t("sandbox.flow_per_cell", { mode: t("modes.auto") })}
+                    cls="col-4"
+                  >
+                    <ExportableFigure
+                      name="flujo-auto"
+                      title={t("sandbox.flow_per_cell", { mode: t("modes.auto") })}
+                      exportSize={{ width: 600, height: 200 }}
+                    >
+                      <FlowProfile
+                        flows={lastIter.demanda_auto}
+                        largoKm={config.city.largo_ciudad_km}
+                        color="var(--auto)"
+                        yMax={globalMax}
+                        capacityHint={`${Math.round(result.capacidad_auto)} veh/h corredor`}
+                      />
+                    </ExportableFigure>
+                  </Panel>
+                  <Panel
+                    n="03"
+                    title={t("modes.bici")}
+                    meta={t("sandbox.flow_per_cell", { mode: t("modes.bici") })}
+                    cls="col-4"
+                  >
+                    <ExportableFigure
+                      name="flujo-bici"
+                      title={t("sandbox.flow_per_cell", { mode: t("modes.bici") })}
+                      exportSize={{ width: 600, height: 200 }}
+                    >
+                      <FlowProfile
+                        flows={lastIter.demanda_bici}
+                        largoKm={config.city.largo_ciudad_km}
+                        color="var(--bici)"
+                        yMax={globalMax}
+                        capacityHint={`${config.supply.bike.capacidad_pista} bici/h`}
+                      />
+                    </ExportableFigure>
+                  </Panel>
+                  <Panel
+                    n="04"
+                    title={t("modes.metro")}
+                    meta={t("sandbox.flow_per_cell", { mode: t("modes.metro") })}
+                    cls="col-4"
+                  >
+                    <ExportableFigure
+                      name="flujo-metro"
+                      title={t("sandbox.flow_per_cell", { mode: t("modes.metro") })}
+                      exportSize={{ width: 600, height: 200 }}
+                    >
+                      <FlowProfile
+                        flows={lastIter.demanda_metro}
+                        largoKm={config.city.largo_ciudad_km}
+                        color="var(--metro)"
+                        yMax={globalMax}
+                        capacityHint={`${config.supply.train.capacidad_tren} pax/tren`}
+                      />
+                    </ExportableFigure>
+                  </Panel>
+                </>
+              );
+            })()}
+
+            <Panel n="05" title={t("sections.demand")} meta="logit · breakdown" cls="col-7">
+              <DemandInspector config={config} lastIter={lastIter} />
+            </Panel>
+
+            {result && result.agentes.length > 0 && (
+              <Panel
+                n="06"
+                title={t("sandbox.mode_share_by_location")}
+                meta="stacked · normalized 100%"
+                cls="col-5"
+              >
+                <ExportableFigure
+                  name="reparto-modal-por-ubicacion"
+                  title={t("sandbox.mode_share_by_location")}
+                  exportSize={{ width: 800, height: 280 }}
+                >
+                  <ModeShareByLocation
+                    agents={result.agentes}
+                    nCeldas={config.city.n_celdas}
+                    largoKm={config.city.largo_ciudad_km}
+                  />
+                </ExportableFigure>
+              </Panel>
+            )}
           </div>
         )}
       </section>
     </div>
-  );
-}
-
-function EngineButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        active
-          ? "flex-1 rounded bg-slate-900 px-3 py-1.5 text-xs font-medium text-white dark:bg-slate-100 dark:text-slate-900"
-          : "flex-1 rounded border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
-      }
-    >
-      {children}
-    </button>
   );
 }

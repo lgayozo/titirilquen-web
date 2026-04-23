@@ -1,403 +1,270 @@
-# Titirilquen Web — Documento de continuidad
+# Titirilquen Web — Handoff de continuidad
 
-> Documento de handoff para retomar el trabajo desde otra máquina o tras una pausa.
-> Captura decisiones, estado actual, y lo que queda por hacer.
+> Documento para retomar el trabajo desde otra sesión. Captura TODO lo hecho hasta ahora, decisiones arquitectónicas, estado actual del código y qué falta.
+
+---
 
 ## 1. Qué es esto
 
-**Titirilquen** es un simulador educativo de transporte urbano sobre una **ciudad lineal monocéntrica**, pensado para enseñanza universitaria. Implementa:
+**Titirilquen** es un simulador educativo de transporte urbano sobre **ciudad lineal monocéntrica**, para enseñanza universitaria en FCFM · Universidad de Chile.
 
-- **Modelos de oferta**: BPR + Greenshields (auto), BPR + pendiente (bici), sistema cíclico con frecuencia endógena (metro).
-- **Modelo de demanda**: logit multinomial con 3 estratos socioeconómicos, utilidad descompuesta por modo.
-- **Equilibrio**: Método de Promedios Sucesivos (MSA).
-- **Uso de suelo** (V2): Alonso-Muth-Mills monocéntrico, con loop acoplado suelo↔transporte.
-
-**Autores del modelo original**: Sebastian Acevedo, Pablo Alvarez, Fernando Castillo, Angelo Guevara (Facultad de Ciencias Físicas y Matemáticas, Universidad de Chile).
-
-**Repositorio fuente del modelo (Streamlit)**: `github.com/lehyt2163/Titirilquen`
-
-**Este repositorio**: re-implementación moderna React/FastAPI con foco en UX académica.
+- **Autores originales del modelo**: Sebastian Acevedo, Pablo Alvarez, Fernando Castillo, Angelo Guevara.
+- **Repo original (Streamlit, GPLv3)**: `github.com/lehyt2163/Titirilquen`
+- **Este repo**: `github.com/lgayozo/titirilquen-web` — re-implementación moderna React/FastAPI, también GPLv3 (hereda por copyleft).
+- **Usuario**: Leandro Gayozo (`leangayozo@gmail.com`, `@lgayozo`).
 
 ## 2. Arquitectura
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                         titirilquen-web                          │
-│                                                                  │
-│  ┌─────────────────────┐      ┌──────────────────────────────┐  │
-│  │  apps/web (Vite)    │──┬──▶│ apps/api (FastAPI)           │  │
-│  │  React · TS · D3    │  │   │ /simulate /coupled           │  │
-│  │  Recharts · KaTeX   │  │   │ SSE streaming                │  │
-│  │  Pyodide worker     │  │   └──────────────────────────────┘  │
-│  └─────────────────────┘  │                                     │
-│           │               │   REST + SSE                        │
-│           ▼               ▼                                     │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │ packages/titirilquen_core (Python puro)                    │ │
-│  │ supply · demand · equilibrium · land_use · emissions       │ │
-│  └────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-**Stack**:
-
-| Capa | Tecnología |
-|---|---|
-| Frontend | Vite 5 · React 18 · TypeScript · Tailwind · Zustand · react-router |
-| Tutorials | MDX (`@mdx-js/rollup`) · KaTeX · remark-math/gfm/frontmatter |
-| Visualización | D3.js · Recharts · SVG nativo |
-| Compute cliente | Pyodide 0.26 (Web Worker) — mismo wheel Python que el API |
-| Backend | FastAPI · Pydantic v2 · NumPy · SciPy |
-| Persistencia | `.ttrq.json` import/export + URL-encoded state (`?s=<b64>`) |
-| i18n | `react-i18next` ES/EN con namespaces `common` y `simulator` |
-| Deploy | Vercel (web) · Fly.io (api) · GH Pages (Pyodide-only) |
-
-## 3. Decisiones clave (cronológicas)
-
-| # | Decisión | Por qué |
-|---|---|---|
-| D1 | **Código es fuente de verdad** ante divergencias con el Overleaf | El código original funciona; el Overleaf tiene typos. Ver [`docs/DISCREPANCIES.md`](docs/DISCREPANCIES.md). |
-| D2 | **Monorepo con npm workspaces** (no pnpm) | Corepack requería admin en la máquina del usuario. Npm funciona sin privilegios elevados. `pnpm-workspace.yaml` permanece por compatibilidad futura. |
-| D3 | **Un solo paquete Python** (`titirilquen_core`) reutilizable | Evita duplicar matemática entre cliente y servidor. El mismo `.whl` se instala en FastAPI y se sirve a Pyodide. |
-| D4 | **Dos motores de cómputo intercambiables**: FastAPI (servidor) y Pyodide (navegador) | FastAPI para simulaciones grandes, Pyodide para aulas sin infra. Toggle en UI. |
-| D5 | **V1 sólo transporte; V2 añade uso de suelo** | Scope V1 manejable. V2 introduce `LandUseCity` y loop acoplado sin modificar V1. |
-| D6 | **Persistencia por archivo `.ttrq.json` + URL-state** (no DB) | Evita complejidad de backend stateful. Los escenarios son compartibles por link. |
-| D7 | **i18n ES/EN desde el inicio** con namespaces | Uso académico en Chile + publicable internacionalmente. |
-| D8 | **darkMode: "class"** en Tailwind con toggle manual | Usuario puede forzar light/dark/system. Se persiste en `localStorage`. |
-| D9 | **Streaming (SSE/postMessage) para iteraciones** | UX viva: el residuo y modal split se ven convergiendo en tiempo real en lugar de bloquear 20-30s. |
-| D10 | **MDX real para tutoriales** (no TSX hardcoded) | Contenido editable por no-programadores (académicos). Cada sección es un chunk lazy-loaded. |
-| D11 | **ExportableFigure con inlining de computed styles** | Los SVG exportados preservan colores/estilos Tailwind para uso en clases (LaTeX/Word). |
-| D12 | **Accesibilidad desde V4** | Skip link, ARIA completo, `prefers-reduced-motion`, sliders con `aria-valuetext`. |
-
-## 4. Estructura de directorios
-
-```
-titirilquen-web/
+titirilquen-web/                    (monorepo npm workspaces)
 ├── apps/
-│   ├── api/                       FastAPI + Dockerfile + fly.toml
-│   │   ├── src/api/main.py        Endpoints: /simulate /coupled /land-use
-│   │   ├── src/api/serialization.py
-│   │   └── tests/
-│   └── web/                       Vite + React
-│       ├── src/
-│       │   ├── assets/fcfm.png    Logo Universidad de Chile
-│       │   ├── components/
-│       │   │   ├── CityStrip.tsx  Visualización lineal de la ciudad
-│       │   │   ├── LanguageSwitcher.tsx
-│       │   │   ├── ThemeSwitcher.tsx
-│       │   │   ├── ScenarioToolbar.tsx  Import/Export/Share
-│       │   │   ├── RootLayout.tsx
-│       │   │   ├── Equation.tsx   KaTeX wrapper
-│       │   │   ├── compare/       ScenarioCard · KPITable · FlowComparison
-│       │   │   ├── modules/       CityBuilder · SupplyBuilder · DemandInspector · LandUseBuilder
-│       │   │   ├── ui/            Section · LabeledSlider · PresetSelector · ExportableFigure
-│       │   │   └── viz/           BPRCurve · FlowProfile · UtilityBreakdown · ConvergenceTrace
-│       │   │                      · ModeShareByLocation · StratumDistribution · BidPriceCurve
-│       │   │                      · OuterTrajectory
-│       │   ├── pages/
-│       │   │   ├── TutorialPage.tsx     Lee MDX con TOC + prev/next
-│       │   │   ├── SandboxPage.tsx      App principal
-│       │   │   ├── LandUsePage.tsx      V2: uso de suelo + loop acoplado
-│       │   │   └── ComparePage.tsx      Slots comparativos + KPIs con deltas
-│       │   ├── tutorials/
-│       │   │   ├── components.tsx       Callout · NextStep · DocLink + mapping MDX
-│       │   │   ├── manifest.ts          import.meta.glob para lazy-load
-│       │   │   ├── es/01..06-*.mdx      6 secciones en español
-│       │   │   └── en/01..06-*.mdx      6 secciones en inglés
-│       │   ├── workers/pyodide.worker.ts  Web Worker con Pyodide + core wheel
-│       │   ├── lib/
-│       │   │   ├── api.ts               Cliente REST V1
-│       │   │   ├── api-v2.ts            Cliente V2 (land-use + coupled + stream)
-│       │   │   ├── pyodide-engine.ts    Wrapper del worker
-│       │   │   ├── utility.ts           Espejo TS de calcular_utilidades (para live preview)
-│       │   │   ├── theme.ts             light/dark/system helpers
-│       │   │   ├── svg-export.ts        Serialización SVG + PNG
-│       │   │   ├── serialization.ts     .ttrq.json import/export + URL-state
-│       │   │   ├── types.ts             V1 types (espejo Pydantic)
-│       │   │   ├── types-v2.ts          V2 types (LandUse + Coupled)
-│       │   │   ├── presets.ts           Presets de ciudad/política
-│       │   │   ├── defaults.ts          Config inicial del simulador
-│       │   │   ├── kpis.ts              Cálculo de KPIs para Compare
-│       │   │   └── cn.ts                Utility Tailwind
-│       │   ├── store/                   Zustand stores
-│       │   │   ├── simulationStore.ts   V1
-│       │   │   ├── landUseStore.ts      V2
-│       │   │   ├── compareStore.ts      Compare
-│       │   │   └── themeStore.ts        Light/dark/system
-│       │   ├── i18n/
-│       │   │   ├── index.ts
-│       │   │   └── locales/{es,en}/{common,simulator}.json  ~130 claves × 2 idiomas
-│       │   ├── main.tsx                 Entry + router + theme bootstrap
-│       │   ├── index.css                Tailwind + focus-visible + reduced-motion
-│       │   └── mdx.d.ts                 Tipos MDX
-│       ├── public/
-│       │   └── pyodide/titirilquen_core-*.whl  Wheel servido al navegador
-│       ├── scripts/build-core-wheel.mjs Compila el wheel para Pyodide
-│       ├── vite.config.ts               Plugins MDX + manualChunks
-│       ├── tailwind.config.js           darkMode: "class"
-│       └── vercel.json                  Rewrites + cache headers
-├── packages/
-│   └── titirilquen_core/          Python puro (27 tests)
-│       ├── src/titirilquen_core/
-│       │   ├── city.py            CiudadLineal
-│       │   ├── config.py          Pydantic schemas (fuente única)
-│       │   ├── population.py      Generador de agentes (sintético o desde uso de suelo)
-│       │   ├── presets.py         Presets de ciudad/política
-│       │   ├── emissions.py       CO2 por velocidad local
-│       │   ├── coupled.py         Loop acoplado suelo↔transporte (run_coupled + iter_coupled)
-│       │   ├── supply/{bike,car,train}.py
-│       │   ├── demand/{utility,choice}.py
-│       │   ├── equilibrium/msa.py MSA + iter_msa (streaming)
-│       │   └── land_use/
-│       │       ├── config.py
-│       │       ├── ciudad.py      LandUseCity
-│       │       ├── equilibrium.py solve_logit + solve_frechet
-│       │       ├── allocation.py  asignar_hogares_simple
-│       │       └── supply.py      generar_oferta_normal
-│       └── tests/
-└── docs/
-    ├── DISCREPANCIES.md           11 discrepancias código↔Overleaf
-    ├── ARCHITECTURE.md            Diagrama y decisiones de diseño
-    └── DEPLOY.md                  Guía Vercel + Fly.io + GH Pages
+│   ├── web/                        Vite + React 18 + TypeScript
+│   │   ├── src/
+│   │   │   ├── components/         RootLayout, Theme/Lang/Scenario toolbars, RunStatus, SimulationSkeleton
+│   │   │   ├── components/ui/      Panel, KPIStrip, SidebarSection, LabeledSlider, PresetSelector, ExportableFigure, Section
+│   │   │   ├── components/modules/ CityBuilder, SupplyBuilder, DemandInspector, LandUseBuilder
+│   │   │   ├── components/viz/     CityStrip, FlowProfile, ModeShareByLocation, UtilityBreakdown, BPRCurve, ConvergenceTrace, StratumDistribution, BidPriceCurve, OuterTrajectory
+│   │   │   ├── components/compare/ ScenarioCard, KPITable, ScenarioFlowComparison
+│   │   │   ├── pages/              TutorialPage (MDX loader), SandboxPage, LandUsePage, ComparePage
+│   │   │   ├── tutorials/          6 MDX ES + 6 MDX EN + components.tsx (Callout/NextStep/DocLink) + manifest.ts
+│   │   │   ├── workers/            pyodide.worker.ts
+│   │   │   ├── lib/                api.ts, api-v2.ts, pyodide-engine.ts, utility.ts, types.ts, types-v2.ts, defaults.ts, presets.ts, serialization.ts, svg-export.ts, theme.ts, kpis.ts, cn.ts
+│   │   │   ├── store/              simulationStore, landUseStore, compareStore, themeStore (Zustand)
+│   │   │   ├── i18n/               ES/EN × {common.json, simulator.json}
+│   │   │   ├── assets/             fcfm.png (logo Universidad de Chile)
+│   │   │   ├── index.css           Sistema editorial (paper palette, tipografías, animaciones)
+│   │   │   └── main.tsx            Router + applyTheme() + expone stores en window.__stores (dev)
+│   │   ├── public/pyodide/*.whl   wheel de titirilquen_core para motor Pyodide
+│   │   ├── scripts/build-core-wheel.mjs  regenera el wheel
+│   │   └── tailwind.config.js      darkMode: ['selector', '[data-theme="dark"]'], paleta editorial
+│   └── api/                        FastAPI + uvicorn
+│       ├── src/api/main.py         /health /presets /simulate /simulate/stream /land-use/solve /coupled/solve /coupled/stream
+│       ├── src/api/serialization.py NumPy→JSON
+│       ├── Dockerfile
+│       └── fly.toml
+└── packages/
+    └── titirilquen_core/          Python puro (import desde FastAPI y desde Pyodide)
+        ├── src/titirilquen_core/
+        │   ├── supply/            bike.py, car.py, train.py
+        │   ├── demand/            utility.py, choice.py
+        │   ├── equilibrium/msa.py iter_msa() streaming + run_msa()
+        │   ├── land_use/          config, supply, allocation, equilibrium (logit + frechet), ciudad
+        │   ├── coupled.py         iter_coupled() + run_coupled()
+        │   ├── city.py, config.py, population.py, presets.py, emissions.py
+        └── tests/                 27 tests
 ```
 
-## 5. Cómo correr localmente
+## 3. Stack tecnológico
 
-### Prerequisitos
+- **Frontend**: Vite 5 + React 18 + TS 5 + Tailwind + KaTeX + Recharts + D3 + Zustand + react-router + react-i18next
+- **MDX**: `@mdx-js/rollup` + `@mdx-js/react` + `remark-gfm` + `remark-math` + `rehype-katex` + `remark-frontmatter` + `remark-mdx-frontmatter`
+- **Backend**: FastAPI + Pydantic v2 + NumPy + SciPy
+- **Navegador**: Pyodide 0.26 (Web Worker) — mismo wheel del core Python
+- **Build**: npm workspaces (no pnpm: corepack requiere admin en Windows del usuario)
+- **Tests**: pytest (backend), no tests front aún
+- **Deploy**: Vercel (web) + Fly.io (API). Archivos listos: `vercel.json`, `Dockerfile`, `fly.toml`.
 
-- **Node.js ≥ 20**
-- **Python ≥ 3.11**
-- **npm** (viene con Node)
+## 4. Sistema de diseño "editorial paper"
 
-### Setup desde cero (máquina nueva)
+Implementado desde un handoff de Claude Design (`https://api.anthropic.com/v1/design/h/BDbo_Oxds2o71QE3cllyxQ`). Archivos del diseño original descomprimidos en `../design-dump/titirilquen/` (fuera del repo).
 
+### Paleta (tres temas)
+
+Todos los colores via CSS variables en `:root` con variantes `[data-theme="dark"]` y `[data-theme="journal"]`:
+
+| Var | paper (default) | dark | journal |
+|---|---|---|---|
+| `--paper` | `#f4f1e8` (beige cálido) | `#0e0d0b` | `#fafaf7` |
+| `--ink` | `#1a1814` | `#f0ebe0` | `#0a0a0a` |
+| `--muted` | `#6b655a` | `#7d7667` | `#6a6a6a` |
+| `--rule` | `#c9c2af` | `#2b2822` | `#d4d4d0` |
+| `--accent` | `#b2431a` (terracota) | `#e67545` | `#1a4d8f` |
+| `--auto` / `--metro` / `--bici` / `--walk` / `--tele` | tonos tierra/sangre/verde/azul/gris | tonos más saturados | tonos sobrios |
+| `--s1` / `--s2` / `--s3` | estratos | | |
+
+### Tipografías (Google Fonts, cargadas en index.html)
+
+- **Display**: `Source Serif 4` — títulos (H1 hero, panel titles)
+- **Body**: `Inter` — texto
+- **Fig/mono**: `JetBrains Mono` — labels, números tabulares, navegación con tracking wide
+
+### Convenciones
+
+- **Radius 0** en todo (estética "periódico impreso")
+- Seg controls con border-divider entre botones, `.active` invierte colores
+- Panels con `FIG. NN` en accent + título serif + meta mono
+- KPI strip 6-col con divisores verticales
+- Hint-row 3 cards pedagógicos
+
+## 5. Estado del código por versión
+
+### V1 · Transporte
+- Módulos `supply/{bike,car,train}.py` portados verbatim de `app.py` original, con tipado + dataclasses
+- `demand/{utility,choice}.py` + `population.py`
+- MSA con streaming (`iter_msa`) + criterio de convergencia (antes sólo MAX_ITER)
+- FastAPI `POST /simulate` y `POST /simulate/stream` (SSE)
+- Pyodide worker con mismo wheel
+
+### V2 · Uso de suelo
+- `land_use/{config,supply,equilibrium,allocation,ciudad}.py` — `Ciudad2.py` portado con `solve_logit` + `solve_frechet`
+- `coupled.py` — loop acoplado suelo↔transporte con streaming (`iter_coupled`)
+- API: `POST /land-use/solve`, `POST /coupled/solve`, `POST /coupled/stream`
+
+### V3 · Comparación
+- Página `/compare` con hasta 4 escenarios paralelos
+- `KPITable` con deltas coloreados
+- `ScenarioFlowComparison` overlay de perfiles
+- Persistencia localStorage + import/export `.ttrq.json` + URL-state comprimido
+
+### V4 · Pulido
+- Tutorial MDX real ES/EN × 6 secciones + `<Callout>` `<NextStep>` `<DocLink>`
+- Accesibilidad: skip link, ARIA, `prefers-reduced-motion`, focus-visible
+- Export SVG/PNG de figuras (inline computed styles)
+- Theme switcher (paper/dark/journal/system)
+- Animaciones: `iteration-flash`, `skeleton-pulse`, `pulse-dot`, CityStrip transitions 400ms
+- `RunStatus` (fase textual + barra progreso + modal split en vivo) + `SimulationSkeleton` pre-primera-iter
+
+### Rediseño editorial (Claude Design handoff)
+- CSS completo reemplazado con sistema paper/ink (`index.css` ~720 líneas)
+- Layout editorial: topbar con logo FCFM + nav underline + seg controls
+- Hero con título serif grande + ribbon SVG
+- KPI strip 6-col, hint-row 3 cards
+- Grid 12-col de Panels con `FIG. NN`
+- Footer académico
+
+### Ajustes recientes (sesión actual, antes del reinicio)
+1. **Fix scroll sidebar**: `height: 100%` + `overflow-y: auto` + run-btn `position: sticky; bottom: 0`
+2. **Sidebar desplegable**: componente `<SidebarSection>` con `<details>`/`<summary>` nativo, muestra meta info al costado (ej. `20 km · 201 celdas`). Aplicado en CityBuilder, SupplyBuilder, LandUseBuilder, SandboxPage (Equilibrium, Engine).
+3. **FIG. 2-4 (FlowProfiles) con escala Y compartida**: `yMax` global max entre los 3 modos, no mezcla con capacidad del corredor (unidades distintas); capacidad ahora es pill textual (`capacityHint`), no línea en escala.
+4. **FIG. 6 (ModeShareByLocation) normalizado 100%**: colores editoriales, 48 bins, Y-axis labels, gap entre barras, orden apilado Tele→Walk→Bici→Metro→Auto.
+5. **FIG. 5 (DemandInspector + UtilityBreakdown)**:
+   - Controles en una sola fila: `[Estrato 140-170px] [Origen slider 1fr] [Checkbox auto]`
+   - Normalización simétrica: `maxAbsSide = max(sumPos_modo, sumNeg_modo)` → nunca desborda
+   - V y P en **misma tipografía mono** (JetBrains Mono tabular): V 12px, P 13px bold
+   - Filas compactas 32px, separadores entre filas
+   - Grid: `64px modo · 1fr barra · 52px V · 56px P`
+
+## 6. Tests y builds
+
+```
+packages/titirilquen_core:  27/27 tests ✓
+apps/api:                    6/6 tests ✓
+apps/web:                    typecheck limpio
+                             vite build OK (~700KB gz ~215KB incluyendo recharts + router)
+```
+
+Comandos:
 ```bash
-# 1. Clonar
-git clone <url-del-repo>
-cd titirilquen-web
+# Backend (desde apps/api)
+python -m pytest -q
+uvicorn api.main:app --host 127.0.0.1 --port 8001
 
-# 2. Instalar dependencias frontend
-npm install
+# Core (desde packages/titirilquen_core)
+python -m pytest -q
 
-# 3. Instalar paquetes Python en modo editable
-python -m pip install -e "packages/titirilquen_core[dev]"
-python -m pip install -e "apps/api[dev]"
-
-# 4. Compilar el wheel Pyodide (se guarda en apps/web/public/pyodide/)
-npm run build:core-wheel --workspace @titirilquen/web
-
-# 5. (Opcional) Clonar el repo original de referencia
-git clone https://github.com/lehyt2163/Titirilquen.git ../titirilquen-repo
+# Frontend (desde apps/web)
+npx tsc --noEmit
+npx vite build
+npx vite    # dev en http://localhost:5173
 ```
 
-### Dev servers
+## 7. Arranque local
 
-```bash
-# Terminal 1 — API
-cd apps/api
-uvicorn api.main:app --reload --port 8001
+1. **API** (terminal 1): `cd apps/api && uvicorn api.main:app --port 8001`
+2. **Web** (terminal 2): `cd apps/web && VITE_API_BASE=http://127.0.0.1:8001 npm run dev`
+3. Abre `http://localhost:5173`
 
-# Terminal 2 — Web
-cd apps/web
-VITE_API_BASE=http://127.0.0.1:8001 npm run dev
-# → http://localhost:5173
+Si usas Claude Code preview: ya existe `.claude/launch.json` en la raíz del proyecto con la configuración.
+
+## 8. Git y commits
+
+- Repo: `https://github.com/lgayozo/titirilquen-web` (público, GPLv3)
+- Autor de commits: `Leandro Gayozo <leangayozo@gmail.com>`
+- Commits llevan `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>` (por transparencia)
+- Repo NO se commitea automáticamente — cada sesión hay que pushear manualmente cuando se decida. Credenciales: PAT en Git Credential Manager de Windows.
+
+### Archivos ignored
+- `node_modules/`, `dist/`, `__pycache__/`, `.venv/`, `*.log`
+- `.claude/` (config local de Claude Code preview)
+
+## 9. Lo que falta / próximos pasos sugeridos
+
+Ordenados por valor pedagógico + esfuerzo:
+
+### A. Commit + deploy real (rápido)
+1. Commit los cambios de esta sesión con mensaje "Rediseño editorial + ajustes UX sidebar/figuras"
+2. Push a GitHub
+3. Deploy a Vercel desde el repo (usa `vercel.json` existente, buildCommand ya configurado)
+4. Deploy API a Fly.io: `cd apps/api && fly launch --no-deploy && fly deploy`
+5. Actualizar CORS en `apps/api/src/api/main.py` con URL pública de Vercel
+
+### B. Contenido didáctico (medio)
+- Tutorial MDX aún es genérico — personalizarlo con ejemplos concretos
+- Actividades pre-armadas: 5 `.ttrq.json` con preguntas guiadas compartibles via URL-state (Parking, Pro-Bici, Alonso α, etc.)
+- Hints-row en Sandbox podrían tener MDX con ecuaciones KaTeX inline
+
+### C. Visualizaciones pendientes del diseño Claude (medio)
+El diseño original del handoff (`../design-dump/titirilquen/project/dashboard/charts.jsx`) tiene varias figuras que aún no migré:
+- **CityRibbon** stacked areas (mode share por ubicación) — el hero actual usa el `CityStrip` de V1. El diseño tiene una "cinta" con áreas apiladas de auto/metro/bici/walk por km. Es más rica visualmente que el heatmap actual.
+- **MetroLoad** con perfil de carga vs capacidad + frecuencia
+- **BPRCurve** con operating point (ya existe, pero el original tiene más decoración)
+- **Residential** (para V2 uso de suelo — similar a StratumDistribution pero con rent-curve superpuesta)
+- **TimesChart** — curvas de tiempo por ubicación (alternativo al heatmap)
+
+### D. Detalles pendientes de UX (bajo)
+- **`FIG. 1 Equilibrio alcanzado`** ahora es col-12 con subgráficos de Recharts → debería adoptar estilo SVG custom editorial (Recharts tiene colores slate por default, se ven incongruentes)
+- **Panels responsive**: en viewport < 1100px todo pasa a col-12. Probar en mobile.
+- **Modo presentación**: full-screen para proyector, con tamaños fuente mayores
+- **Share URL long**: el compressed state del scenario puede ser largo. Considerar lz-string para reducir.
+
+### E. Profesionalización (medio-alto)
+- **CI GitHub Actions**: workflow que corre `pytest` + `tsc` + `vite build` en cada PR
+- **Badges README**: tests passing, license, deploy status
+- **Tests frontend**: vitest + testing-library para componentes críticos (CityBuilder, DemandInspector)
+- **Snapshots de SVG**: fixtures comparando exportedSVG vs golden para detectar regresiones visuales
+
+### F. V3 matemático (alto)
+- Loop acoplado completo con visualización de trayectoria (ya existe OuterTrajectory básico)
+- Métrica de bienestar agregado (utilidad media por estrato)
+- Sensibilidad paramétrica automática: dado un escenario base, variar α_h ± 20% y plotear respuesta
+
+## 10. Cómo retomar en otra sesión
+
+1. **Lee este archivo** — es la fuente única del contexto
+2. Abre el repo: `git clone https://github.com/lgayozo/titirilquen-web && cd titirilquen-web`
+3. Ve también `../design-dump/titirilquen/` si existe (archivos del diseño editorial de referencia)
+4. `npm install` + instalar Python en `packages/titirilquen_core` y `apps/api` con `pip install -e ".[dev]"`
+5. Correr tests para verificar que todo verde: `pytest` en cada paquete + `npx tsc --noEmit` + `npx vite build`
+6. Usar los stores expuestos en `window.__stores` (dev only) para debug rápido desde consola del navegador
+
+### Atajos útiles en la consola dev
+```js
+// Cambiar theme
+window.__stores.simulation.getState()  // ver config actual
+document.documentElement.dataset.theme = 'dark'  // paper / dark / journal
+
+// Cargar preset policy
+window.__stores.simulation.getState().replaceConfig({ ...configBase, /* policy overrides */ })
 ```
 
-### Tests
+## 11. Decisiones arquitectónicas registradas
 
-```bash
-# Python core
-cd packages/titirilquen_core && python -m pytest -q
-# → 27 tests
+Para evitar revisitar estas decisiones en otra sesión:
 
-# API
-cd apps/api && python -m pytest -q
-# → 6 tests
-
-# Frontend typecheck
-cd apps/web && npx tsc --noEmit
-
-# Frontend build (verifica bundle)
-cd apps/web && npm run build
-```
-
-## 6. Resumen de los modelos
-
-### Oferta
-
-- **Auto** — Greenshields para capacidad por pista + BPR con congestión.
-- **Bicicleta** — BPR con ajuste por pendiente (dos velocidades distintas según el lado del CBD).
-- **Metro** — Sistema cíclico con frecuencia endógena dimensionada al tramo crítico, tiempo de espera con penalización si la estación satura.
-
-### Demanda
-
-Logit multinomial con utilidad descompuesta:
-
-```
-V_m^s = ASC_m^s + β_t^s·T + β_c^s·C + Σ 1{T>τ_k}·π_k^s
-```
-
-Penalizaciones `π_k` son **aditivas escalonadas**, no multiplicativas (ver D-02).
-
-### Equilibrio MSA
-
-```
-T^(n+1) = f_n · T_obs^(n) + (1 − f_n) · T^(n),   f_n = 1/(n+1)
-```
-
-### Uso de suelo (V2)
-
-Alonso-Muth-Mills: fixed point logit sobre utilidades normalizadas `ū`, deriva precios `p` y probabilidades de subasta `Q[h, i]`. Hogares se asignan a parcelas respetando `Q` y `S`.
-
-### Loop acoplado
-
-```
-for outer = 1..N:
-    población = generar_desde_land_use(city)
-    transport_trace = run_msa(config, población)
-    T_new[h,i] = media de tiempos de viaje por (estrato, celda)
-    city.update(T_new)
-    if ||ΔT|| < tol: break
-```
-
-### Discrepancias con el Overleaf
-
-Ver [`docs/DISCREPANCIES.md`](docs/DISCREPANCIES.md). Principales:
-
-- **D-01**: factor pendiente bici `0.9992` en código vs `0.09992` (typo) en Overleaf.
-- **D-02**: penalizaciones bici/caminata aditivas escalonadas, no multiplicativas.
-- **D-03**: caminata usa `b_tiempo_caminata`, no `b_tiempo_viaje`.
-- **D-05**: caminata habilitada en código (Overleaf decía deshabilitada).
-- **D-06**: módulo de emisiones no documentado en Overleaf.
-- **D-09**: parámetros hardcodeados en el repo original, expuestos como sliders en V1.
-- **D-10**: criterio de convergencia real agregado en V1 (antes sólo `MAX_ITER`).
-
-## 7. Deploy
-
-Tres opciones en [`docs/DEPLOY.md`](docs/DEPLOY.md):
-
-1. **Vercel + Fly.io** (separado): frontend estático en Vercel + API en Fly.io con auto-suspend.
-2. **GitHub Pages** (sólo frontend con Pyodide): cero servidor, ideal para aulas sin internet.
-3. **Docker**: `apps/api/Dockerfile` produce imagen auto-contenida.
-
-## 8. Estado actual — lo que funciona
-
-- ✅ **V1** (transporte): City Builder, Supply Builder, Demand Inspector, MSA equilibrium, convergence viz, flow profiles, mode share by location, import/export/share.
-- ✅ **V2** (uso de suelo): LandUseBuilder, StratumDistribution, BidPriceCurve, modo standalone, modo acoplado con streaming SSE, OuterTrajectory con slider.
-- ✅ **V3** (comparación): /compare con hasta 4 slots, KPI table con deltas coloreados, ScenarioFlowComparison overlay.
-- ✅ **V4** (pulido): Tutorial MDX real con TOC + prev/next, accesibilidad (ARIA + skip link + reduced-motion + focus-visible), export SVG/PNG por figura, theme switcher light/dark/system.
-- ✅ Logo FCFM · Universidad de Chile en header.
-- ✅ i18n ES/EN completo (~130 claves × 2 idiomas).
-- ✅ Tests: 27 Python core + 6 API, typecheck + build limpios.
-
-## 9. Pendientes / ideas para próximas sesiones
-
-**Técnicas**:
-
-- [ ] Tests E2E con Playwright (la UI creció, conviene snapshot testing)
-- [ ] Snapshot de SVG exportados para detectar regresiones visuales
-- [ ] Cache de resultados pesados en IndexedDB (Pyodide es lento para n_celdas > 500)
-- [ ] CI/CD: GitHub Actions para ejecutar tests + build en cada push
-- [ ] Mejorar performance de Pyodide en simulaciones grandes (workers paralelos? WASM threading?)
-
-**Modelo / contenido**:
-
-- [ ] Activar las jornadas laborales (dead-path D-07): elección de hora endógena.
-- [ ] Añadir módulo de emisiones a la UI (está en `titirilquen_core.emissions` pero no expuesto).
-- [ ] Incluir el solver Frechét en ComparePage para pedagogía (mostrar la divergencia vs logit).
-- [ ] Micro-simulador de un agente individual (trazar su decisión paso a paso).
-
-**UX**:
-
-- [ ] Modo presentación (pantalla completa, fuentes grandes, proyector).
-- [ ] Panel "¿qué pasaría si…?" con preguntas guiadas antes de simular.
-- [ ] Integrar DiscrepanciesViewer en la UI (cargar el MD y mostrarlo).
-- [ ] Botón "reset al preset base" cuando el usuario toca parámetros y se pierde.
-- [ ] Persistir resultados (no sólo config) por escenario.
-
-**Documentación**:
-
-- [ ] Traducir completo los tutoriales EN (actualmente son resúmenes).
-- [ ] Video/GIF de 30s mostrando el flujo completo en el README.
-
-## 10. Cómo continuar con Claude Code en otra máquina
-
-Al abrir este proyecto en otra máquina con Claude Code instalado:
-
-1. **Clonar el repo** (asumimos que vas a pushear a GitHub primero — ver sección 11).
-2. **Leer este archivo primero**: `cat HANDOFF.md` o abrir en editor.
-3. **Referenciar memorias previas**: si usas Claude Code, las memorias globales viven en `~/.claude/` y no viajan con el repo. En la sesión nueva, puedes arrancar diciendo algo como:
-   > "Estoy retomando el proyecto Titirilquen. Lee `HANDOFF.md` en la raíz. El código es fuente de verdad sobre el Overleaf. Quiero seguir con [X]."
-4. **Estado mínimo viable**: con sólo clonar el repo + seguir la sección 5 tienes ambiente de desarrollo.
-
-**Memorias útiles que tenías en la máquina anterior** (si quieres replicarlas en la nueva):
-
-```
-~/.claude/projects/<project-hash>/memory/titirilquen_project.md
-```
-
-Contiene contexto del proyecto que puedes copiar manualmente o dejar que Claude reconstruya leyendo este HANDOFF.md.
-
-## 11. Setup para pushear a GitHub
-
-Desde la raíz del monorepo:
-
-```bash
-cd titirilquen-web
-
-# Inicializar git si aún no lo está
-git init
-git branch -M main
-
-# Configurar user (una vez)
-git config user.name "Tu nombre"
-git config user.email "tu@email.com"
-
-# Añadir todo
-git add .
-git commit -m "Initial commit: Titirilquen Web V1–V4"
-
-# Crear repo en GitHub (vía web o gh CLI)
-gh repo create titirilquen-web --private --source=. --remote=origin
-
-# O manualmente:
-# git remote add origin https://github.com/<tu-usuario>/titirilquen-web.git
-
-git push -u origin main
-```
-
-**Qué NO subir** (ya está en `.gitignore`):
-
-- `node_modules/`
-- `apps/web/dist/`
-- `apps/web/public/pyodide/*.whl` (se regenera con `npm run build:core-wheel`)
-- `**/__pycache__/`, `**/.venv/`, `**/*.egg-info/`
-- `.env.local`, `.env.*.local`
-
-**Qué sí subir**:
-
-- Todo el código fuente (`.py`, `.ts`, `.tsx`, `.mdx`, `.json`, `.css`)
-- `docs/`
-- `package.json`, `pnpm-workspace.yaml`, `tsconfig*.json`
-- `pyproject.toml`
-- Este `HANDOFF.md`
-- `README.md` (raíz + por app)
-- `apps/web/src/assets/fcfm.png` (el logo)
-
-## 12. Referencias rápidas
-
-| Archivo | Para qué |
-|---|---|
-| `docs/DISCREPANCIES.md` | Las 11 divergencias doc↔código |
-| `docs/ARCHITECTURE.md` | Diagrama + decisiones de diseño |
-| `docs/DEPLOY.md` | Guía de despliegue |
-| `packages/titirilquen_core/README.md` | API del núcleo científico |
-| `apps/web/README.md` | Estructura frontend |
-| `apps/api/README.md` | Endpoints FastAPI |
-| `HANDOFF.md` (este archivo) | Documento de continuidad |
+1. **Un solo paquete Python** (`titirilquen_core`) reutilizado por FastAPI Y Pyodide → una fuente de verdad matemática.
+2. **npm workspaces, NO pnpm** — corepack requería admin en Windows del usuario. `pnpm-workspace.yaml` existe por compatibilidad pero `npm install` es el path bendecido.
+3. **CSS variables para theming**, `data-theme` en `<html>` — NO class `.dark` de Tailwind porque hay 3 temas.
+4. **Tailwind `darkMode: ['selector', '[data-theme="dark"]']`** — así los utilities `dark:` funcionan con nuestro sistema de data-theme.
+5. **Código original es fuente de verdad** sobre el Overleaf ante discrepancias. Ver `docs/DISCREPANCIES.md` (11 casos documentados: D-01 a D-11).
+6. **V1 sólo transporte**, V2 añade uso de suelo con feature flag implícito (toggle en LandUsePage).
+7. **i18n ES/EN** con namespaces `common` y `simulator`. Texto académico/ecuaciones en MDX son independientes del idioma (KaTeX no traduce).
+8. **Persistencia sin DB**: `.ttrq.json` drag-drop + URL-encoded state + localStorage para temas y escenarios guardados.
+9. **Logo FCFM preservado** en topbar (no se eliminó con el rediseño editorial).
+10. **Animaciones preservadas** durante rediseño: `iteration-flash` en CityStrip, `skeleton-pulse` en SimulationSkeleton, `pulse-dot` en hero status, transitions 400ms en barras del CityStrip.
 
 ---
 
-**Última actualización de este documento**: 2026-04-20
+**Última actualización**: sesión del 2026-04-23, justo antes de reinicio de contexto por llegada al 90%.
 
-Cualquier cosa no documentada aquí pero relevante, debería añadirse a este archivo en la misma sesión en que se decida, para que futuros yo (o futuros colaboradores) lo encuentren.
+**Próximo movimiento recomendado para arrancar la próxima sesión**:
+> Commit los cambios actuales ("Rediseño editorial + fixes FIG. 5/6 + sidebar desplegable") y push a GitHub. Luego seguir con **A. Deploy real** para tener URL pública.

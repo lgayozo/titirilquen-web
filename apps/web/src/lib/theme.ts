@@ -1,19 +1,26 @@
 /**
- * Tema light/dark con preferencia del sistema como opción. Usamos
- * `document.documentElement.classList.toggle('dark', ...)` porque Tailwind
- * está configurado en modo `darkMode: "class"`.
+ * Sistema de temas editorial: `paper` (default), `dark`, `journal`, `system`.
  *
- * El tema se persiste en localStorage con la clave `titirilquen.theme`.
+ * Aplicamos el tema mediante `data-theme` en `<html>` — no usamos `.dark`
+ * porque queremos 3 paletas distintas, no solo dos. Tailwind está configurado
+ * con `darkMode: ['selector', '[data-theme="dark"]']` para que las clases
+ * `dark:` se activen cuando el tema efectivo es `dark`.
+ *
+ * La preferencia se persiste en localStorage. `system` resuelve a `paper` o
+ * `dark` según la media query del SO.
  */
 
-export type Theme = "light" | "dark" | "system";
+export type Theme = "paper" | "dark" | "journal" | "system";
+export type ResolvedTheme = "paper" | "dark" | "journal";
 
 const STORAGE_KEY = "titirilquen.theme";
 
 export function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "system";
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (raw === "light" || raw === "dark" || raw === "system") return raw;
+  if (raw === "paper" || raw === "dark" || raw === "journal" || raw === "system") return raw;
+  // Compat con valores antiguos
+  if (raw === "light") return "paper";
   return "system";
 }
 
@@ -22,29 +29,20 @@ export function storeTheme(theme: Theme): void {
   localStorage.setItem(STORAGE_KEY, theme);
 }
 
-/**
- * Resuelve `system` al valor efectivo que preferirían las media queries.
- */
-export function resolveTheme(theme: Theme): "light" | "dark" {
+export function resolveTheme(theme: Theme): ResolvedTheme {
   if (theme !== "system") return theme;
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  if (typeof window === "undefined") return "paper";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "paper";
 }
 
-/**
- * Aplica el tema al <html> — idempotente, seguro para llamar en cada cambio.
- */
-export function applyTheme(theme: Theme): "light" | "dark" {
+export function applyTheme(theme: Theme): ResolvedTheme {
   const resolved = resolveTheme(theme);
-  document.documentElement.classList.toggle("dark", resolved === "dark");
-  document.documentElement.style.colorScheme = resolved;
+  document.documentElement.dataset.theme = resolved;
+  // Mantener color-scheme para navegadores que lo usan
+  document.documentElement.style.colorScheme = resolved === "dark" ? "dark" : "light";
   return resolved;
 }
 
-/**
- * Suscribe a cambios de la media query — útil cuando theme = "system".
- * Devuelve una función para cancelar.
- */
 export function watchSystemTheme(onChange: (isDark: boolean) => void): () => void {
   if (typeof window === "undefined") return () => {};
   const mq = window.matchMedia("(prefers-color-scheme: dark)");

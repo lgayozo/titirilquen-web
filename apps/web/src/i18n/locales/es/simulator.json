@@ -59,6 +59,16 @@
     "converged": "Equilibrio alcanzado",
     "booting_pyodide": "Inicializando Pyodide en el navegador (primera vez ~10–20s)…"
   },
+  "run_status": {
+    "booting_pyodide": "Inicializando Pyodide…",
+    "connecting_api": "Conectando con el servidor…",
+    "generating_population": "Generando población…",
+    "iterating": "Ejecutando MSA…",
+    "smoothing_final": "Suavizando resultado final…",
+    "converging": "Convergiendo",
+    "diverging": "Divergiendo",
+    "skeleton_hint": "Asignando demanda inicial en flujo libre — aparecerán datos en cuanto termine la primera iteración."
+  },
   "presets": {
     "city_label": "Estructura de ciudad",
     "policy_label": "Política de transporte",
@@ -82,6 +92,46 @@
     "flow_per_cell": "{{mode}} — demanda por celda",
     "mode_share_by_location": "Reparto modal por ubicación",
     "city_figure_desc": "Ciudad lineal de {{length}} km con {{cells}} celdas. CBD al centro. Altura y color de cada barra proporcional al tiempo de viaje en {{mode}}."
+  },
+  "hero": {
+    "title": "La ciudad lineal",
+    "subtitle": "Partición modal por ubicación · 0 km = periferia oeste · centro = CBD",
+    "status_ready": "Listo",
+    "status_running": "Simulando",
+    "status_done": "Equilibrio",
+    "stats_line": "N={{total}} · {{length}} km · {{stations}} est · {{lanes}} pistas"
+  },
+  "kpi": {
+    "trips": "Viajes físicos",
+    "auto_pct": "% Auto",
+    "metro_pct": "% Metro",
+    "bici_pct": "% Bici",
+    "walk_pct": "% Caminata",
+    "tele_pct": "% Teletrabajo",
+    "frequency": "Frec. operativa",
+    "co2": "CO₂ total",
+    "mean_time": "Tiempo medio",
+    "residual": "Residuo"
+  },
+  "hints": {
+    "demand_title": "Demanda",
+    "demand_body": "Cada celda se divide en 3 estratos (Alto / Medio / Bajo). Los trabajadores activos eligen modo mediante un logit multinomial sobre tiempos y costos esperados.",
+    "supply_title": "Oferta",
+    "supply_body": "Auto usa una curva BPR; las ciclovías aplican una función similar de volumen/capacidad; el metro tiene frecuencia endógena al tramo crítico con espera amplificada por saturación.",
+    "equilibrium_title": "Equilibrio",
+    "equilibrium_body": "Las iteraciones del MSA alternan demanda ↔ oferta hasta que los tiempos se estabilizan. La convergencia se muestra en la figura de residuo."
+  },
+  "preset_names": {
+    "custom": "Personalizado",
+    "compact": "Compacta",
+    "base": "Base",
+    "sparse": "Dispersa"
+  },
+  "sections_sidebar": {
+    "scenarios": "Escenarios",
+    "infra": "Infraestructura",
+    "economy": "Economía",
+    "population": "Población"
   },
   "demand_inspector": {
     "title": "Inspector de utilidad — logit multinomial",
@@ -192,6 +242,7 @@
   "tutorial": {
     "toc": "Contenido",
     "loading": "Cargando tutorial",
-    "not_found": "Tutorial {{slug}} no encontrado."
+    "not_found": "Tutorial {{slug}} no encontrado.",
+    "chapter": "Capítulo {{n}}"
   }
 }

@@ -59,6 +59,16 @@
     "converged": "Equilibrium reached",
     "booting_pyodide": "Initializing Pyodide in the browser (first run takes ~10–20s)…"
   },
+  "run_status": {
+    "booting_pyodide": "Initializing Pyodide…",
+    "connecting_api": "Connecting to the server…",
+    "generating_population": "Generating population…",
+    "iterating": "Running MSA…",
+    "smoothing_final": "Smoothing final result…",
+    "converging": "Converging",
+    "diverging": "Diverging",
+    "skeleton_hint": "Assigning initial demand under free flow — data will appear as soon as the first iteration completes."
+  },
   "presets": {
     "city_label": "City structure",
     "policy_label": "Transport policy",
@@ -82,6 +92,40 @@
     "flow_per_cell": "{{mode}} — demand per cell",
     "mode_share_by_location": "Modal split by location",
     "city_figure_desc": "Linear city of {{length}} km with {{cells}} cells. CBD at center. Bar height and color scale with travel time on {{mode}}."
+  },
+  "hero": {
+    "title": "The linear city",
+    "subtitle": "Mode share by location · 0 km = west edge · center = CBD",
+    "status_ready": "Ready",
+    "status_running": "Simulating",
+    "status_done": "Equilibrium",
+    "stats_line": "N={{total}} · {{length}} km · {{stations}} st · {{lanes}} lanes"
+  },
+  "kpi": {
+    "trips": "Physical trips",
+    "auto_pct": "Car %",
+    "metro_pct": "Metro %",
+    "bici_pct": "Bike %",
+    "walk_pct": "Walk %",
+    "tele_pct": "Remote %",
+    "frequency": "Operating freq",
+    "co2": "Total CO₂",
+    "mean_time": "Mean time",
+    "residual": "Residual"
+  },
+  "hints": {
+    "demand_title": "Demand",
+    "demand_body": "Each cell has three strata (High / Mid / Low). Active workers choose a mode via a multinomial logit over expected times and costs.",
+    "supply_title": "Supply",
+    "supply_body": "Cars use a BPR delay curve; bike lanes use a similar volume/capacity function; metro has endogenous frequency on the critical link with wait amplified by saturation.",
+    "equilibrium_title": "Equilibrium",
+    "equilibrium_body": "MSA iterations alternate demand ↔ supply until travel times stabilize. Convergence is shown in the residual figure."
+  },
+  "sections_sidebar": {
+    "scenarios": "Scenarios",
+    "infra": "Infrastructure",
+    "economy": "Economy",
+    "population": "Population"
   },
   "demand_inspector": {
     "title": "Utility inspector — multinomial logit",
@@ -192,6 +236,7 @@
   "tutorial": {
     "toc": "Contents",
     "loading": "Loading tutorial",
-    "not_found": "Tutorial {{slug}} not found."
+    "not_found": "Tutorial {{slug}} not found.",
+    "chapter": "Chapter {{n}}"
   }
 }

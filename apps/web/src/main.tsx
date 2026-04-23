@@ -6,6 +6,7 @@ import "@/i18n";
 import "@/index.css";
 import { applyTheme, getStoredTheme } from "@/lib/theme";
 import { RootLayout } from "@/components/RootLayout";
+import { AboutPage } from "@/pages/AboutPage";
 import { ComparePage } from "@/pages/ComparePage";
 import { LandUsePage } from "@/pages/LandUsePage";
 import { SandboxPage } from "@/pages/SandboxPage";
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
       { path: "sandbox", element: <SandboxPage /> },
       { path: "land-use", element: <LandUsePage /> },
       { path: "compare", element: <ComparePage /> },
+      { path: "about", element: <AboutPage /> },
     ],
   },
 ]);

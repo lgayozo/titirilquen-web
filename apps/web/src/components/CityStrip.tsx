@@ -1,4 +1,4 @@
-import { useId, useMemo } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 
@@ -12,6 +12,8 @@ interface CityStripProps {
   shareEstratos?: readonly [number, number, number];
   /** Tiempo seleccionado para colorear (auto|metro|bici) */
   heatMode?: "auto" | "metro" | "bici";
+  /** Cuando cambia este token, se dispara un flash visual (para indicar "nueva iteración"). */
+  iterationToken?: number | string;
   className?: string;
   height?: number;
 }
@@ -29,11 +31,24 @@ export function CityStrip({
   pendientePct = 0,
   modeProfile,
   heatMode = "auto",
+  iterationToken,
   className,
   height = 120,
 }: CityStripProps) {
   const gradId = useId();
   const cbdIdx = Math.floor(nCeldas / 2);
+
+  // Flash al cambiar iteración
+  const [flash, setFlash] = useState(false);
+  const prevToken = useRef(iterationToken);
+  useEffect(() => {
+    if (iterationToken !== undefined && iterationToken !== prevToken.current) {
+      prevToken.current = iterationToken;
+      setFlash(true);
+      const tm = setTimeout(() => setFlash(false), 500);
+      return () => clearTimeout(tm);
+    }
+  }, [iterationToken]);
 
   const barW = 100 / nCeldas;
   const svgW = 100;
@@ -62,16 +77,20 @@ export function CityStrip({
       <svg
         viewBox={`0 0 ${svgW} ${svgH}`}
         preserveAspectRatio="none"
-        className="block w-full rounded border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900"
-        style={{ height }}
+        className={cn("block w-full transition-colors", flash && "animate-iteration-flash")}
+        style={{
+          height,
+          background: "var(--paper-2)",
+          border: `1px solid ${flash ? "var(--accent)" : "var(--rule)"}`,
+        }}
         role="img"
         aria-label="Ciudad lineal"
       >
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#dc2626" />
-            <stop offset="50%" stopColor="#eab308" />
-            <stop offset="100%" stopColor="#16a34a" />
+            <stop offset="0%" stopColor="var(--metro)" />
+            <stop offset="50%" stopColor="var(--auto)" />
+            <stop offset="100%" stopColor="var(--bici)" />
           </linearGradient>
         </defs>
 
@@ -81,12 +100,12 @@ export function CityStrip({
           y1={slopeY(0)}
           x2={svgW}
           y2={slopeY(100)}
-          className="stroke-slate-400 dark:stroke-slate-600"
+          stroke="var(--rule)"
           strokeWidth={0.3}
           strokeDasharray="0.5 0.5"
         />
 
-        {/* Parcelas */}
+        {/* Parcelas — animadas entre iteraciones vía transition CSS sobre y/height */}
         {bars.map(({ idx, norm }) => {
           const x = idx * barW;
           const isCbd = idx === cbdIdx;
@@ -100,8 +119,11 @@ export function CityStrip({
               y={floorY - barH}
               width={Math.max(barW - 0.05, 0.1)}
               height={barH}
-              fill={modeProfile ? `url(#${gradId})` : "#cbd5e1"}
-              opacity={0.8}
+              fill={modeProfile ? `url(#${gradId})` : "var(--rule)"}
+              opacity={0.85}
+              style={{
+                transition: "y 400ms ease-out, height 400ms ease-out, fill 400ms ease-out",
+              }}
             />
           );
         })}
@@ -117,21 +139,22 @@ export function CityStrip({
                 y1={floorY}
                 x2={cbdX + barW / 2}
                 y2={floorY - 55}
-                className="stroke-red-500"
+                stroke="var(--accent)"
                 strokeWidth={0.5}
+                strokeDasharray="0.6 0.6"
               />
               <polygon
                 points={`${cbdX + barW / 2},${floorY - 55} ${cbdX + barW / 2 + 4},${floorY - 53} ${cbdX + barW / 2},${floorY - 51}`}
-                className="fill-red-500"
+                fill="var(--accent)"
               />
             </g>
           );
         })()}
       </svg>
 
-      <div className="mt-1 flex justify-between text-[10px] text-slate-500 dark:text-slate-400">
+      <div className="mt-1 flex justify-between font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
         <span>0 km</span>
-        <span className="font-medium">CBD · {(largoKm / 2).toFixed(1)} km</span>
+        <span>CBD · {(largoKm / 2).toFixed(1)} km</span>
         <span>{largoKm.toFixed(0)} km</span>
       </div>
     </div>
