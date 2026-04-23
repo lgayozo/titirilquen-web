@@ -55,27 +55,68 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
       : approximateParcelasFromQ(iter.land_use.Q);
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-        <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <div className={cn(className)} style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
+      <div style={{ border: "1px solid var(--rule)", padding: 12, background: "var(--paper)" }}>
+        <h4
+          style={{
+            margin: 0,
+            fontFamily: "var(--font-fig)",
+            fontSize: 10,
+            fontWeight: 500,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "var(--muted)",
+          }}
+        >
           {t("land_use.trajectory_residual_title")}
         </h4>
-        <p className="mb-2 text-[11px] text-slate-400">
+        <p
+          style={{
+            margin: "4px 0 10px",
+            fontFamily: "var(--font-fig)",
+            fontSize: 10,
+            color: "var(--muted)",
+            letterSpacing: "0.04em",
+          }}
+        >
           {t("land_use.trajectory_residual_desc")}
         </p>
-        <div style={{ width: "100%", height: 140 }}>
+        <div style={{ width: "100%", height: 160 }}>
           <ResponsiveContainer>
-            <LineChart data={residualData} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="iter" stroke="#64748b" fontSize={10} />
-              <YAxis stroke="#64748b" fontSize={10} />
-              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 4 }} />
+            <LineChart data={residualData} margin={{ top: 8, right: 12, bottom: 4, left: -12 }}>
+              <CartesianGrid strokeDasharray="2 3" stroke="var(--rule)" opacity={0.6} />
+              <XAxis
+                dataKey="iter"
+                stroke="var(--muted)"
+                fontSize={10}
+                tickLine={{ stroke: "var(--rule)" }}
+                axisLine={{ stroke: "var(--rule)" }}
+                style={{ fontFamily: "var(--font-fig)" }}
+              />
+              <YAxis
+                stroke="var(--muted)"
+                fontSize={10}
+                tickLine={{ stroke: "var(--rule)" }}
+                axisLine={{ stroke: "var(--rule)" }}
+                style={{ fontFamily: "var(--font-fig)" }}
+              />
+              <Tooltip
+                contentStyle={{
+                  fontFamily: "var(--font-fig)",
+                  fontSize: 11,
+                  background: "var(--paper)",
+                  border: "1px solid var(--rule)",
+                  borderRadius: 0,
+                  color: "var(--ink)",
+                }}
+                labelStyle={{ color: "var(--muted)" }}
+              />
               <Line
                 type="monotone"
                 dataKey="residual"
-                stroke="#a855f7"
+                stroke="var(--accent)"
                 strokeWidth={2}
-                dot={{ r: 3 }}
+                dot={{ r: 3, fill: "var(--accent)" }}
                 isAnimationActive={false}
               />
             </LineChart>
@@ -83,14 +124,44 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-        <div className="mb-2 flex items-baseline justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div style={{ border: "1px solid var(--rule)", padding: 12, background: "var(--paper)" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            marginBottom: 10,
+          }}
+        >
+          <h4
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-fig)",
+              fontSize: 10,
+              fontWeight: 500,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--muted)",
+            }}
+          >
             {t("land_use.trajectory_spatial_title")}
           </h4>
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className="text-slate-400">{t("land_use.trajectory_outer_counter")}</span>
-            <span className="font-mono font-semibold tabular-nums">
+          <div
+            style={{
+              fontFamily: "var(--font-fig)",
+              fontSize: 11,
+              letterSpacing: "0.04em",
+              color: "var(--muted)",
+            }}
+          >
+            {t("land_use.trajectory_outer_counter")}{" "}
+            <span
+              style={{
+                color: "var(--ink)",
+                fontWeight: 600,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
               {selected + 1} / {result.iterations.length}
             </span>
           </div>
@@ -102,10 +173,17 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
           step={1}
           value={selected}
           onChange={(e) => setSelected(Number(e.target.value))}
-          className="mb-3 w-full accent-slate-900 dark:accent-slate-200"
+          style={{ width: "100%", marginBottom: 14 }}
         />
         <StratumDistribution parcelas={parcelasForSlide} />
-        <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
+        <div
+          style={{
+            marginTop: 12,
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 8,
+          }}
+        >
           <Stat
             label={t("equilibrium.residual")}
             value={iter.T_residual == null ? "—" : `${iter.T_residual.toFixed(2)} min`}
@@ -123,9 +201,35 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded bg-slate-50 px-2 py-1 dark:bg-slate-900">
-      <div className="text-slate-500">{label}</div>
-      <div className="font-mono font-semibold tabular-nums">{value}</div>
+    <div
+      style={{
+        border: "1px solid var(--rule)",
+        padding: "6px 10px",
+        background: "var(--paper-2)",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: "var(--font-fig)",
+          fontSize: 9,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "var(--muted)",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--font-fig)",
+          fontSize: 13,
+          fontWeight: 600,
+          color: "var(--ink)",
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
 }
