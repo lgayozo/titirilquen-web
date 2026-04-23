@@ -233,6 +233,19 @@
     "flow_empty": "No results to compare.",
     "flow_demand_label": "Demand profile · {{mode}}"
   },
+  "coupled_metrics": {
+    "header": "Interdependence metrics",
+    "outer_count": "{{n}} outer iters",
+    "segregation": "Segregation",
+    "segregation_unit": "Theil H",
+    "segregation_hint": "Theil index. 0 = integrated city, 1 = perfect segregation. Drops when policy brings strata together; rises if the market pulls them apart.",
+    "welfare": "Welfare",
+    "welfare_unit": "mean utility",
+    "welfare_hint": "Average chosen-mode utility per stratum. Rises under policies that reduce time or cost for the average agent.",
+    "accessibility": "Accessibility",
+    "accessibility_unit": "Hansen",
+    "accessibility_hint": "Hansen index per stratum: Σ exp(−α·T). Larger = destinations closer in generalized cost. Compare deltas, not absolute values."
+  },
   "tutorial": {
     "toc": "Contents",
     "loading": "Loading tutorial",

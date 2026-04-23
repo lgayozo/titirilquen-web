@@ -5,6 +5,7 @@ import { LandUseBuilder } from "@/components/modules/LandUseBuilder";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { Panel } from "@/components/ui/Panel";
 import { BidPriceCurve } from "@/components/viz/BidPriceCurve";
+import { CoupledMetrics } from "@/components/viz/CoupledMetrics";
 import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { solveCoupledStream, solveLandUse } from "@/lib/api-v2";
@@ -220,9 +221,19 @@ export function LandUsePage() {
             )}
 
             {mode === "coupled" && coupledResult && (
-              <Panel n="03" title={tS("land_use.outer_iterations")} cls="col-12">
-                <OuterTrajectory result={coupledResult} />
-              </Panel>
+              <>
+                <Panel
+                  n="03"
+                  title={tS("coupled_metrics.header")}
+                  meta="Theil · welfare · Hansen"
+                  cls="col-12"
+                >
+                  <CoupledMetrics result={coupledResult} landUseConfig={config} />
+                </Panel>
+                <Panel n="04" title={tS("land_use.outer_iterations")} cls="col-12">
+                  <OuterTrajectory result={coupledResult} />
+                </Panel>
+              </>
             )}
           </div>
         ) : (

@@ -239,6 +239,19 @@
     "flow_empty": "Sin resultados para comparar.",
     "flow_demand_label": "Perfil de demanda · {{mode}}"
   },
+  "coupled_metrics": {
+    "header": "Métricas de interdependencia",
+    "outer_count": "{{n}} iter. exteriores",
+    "segregation": "Segregación",
+    "segregation_unit": "índice H",
+    "segregation_hint": "Índice de Theil. 0 = ciudad integrada, 1 = segregación perfecta. Baja cuando la política acerca estratos; sube si el mercado los separa.",
+    "welfare": "Bienestar",
+    "welfare_unit": "utilidad media",
+    "welfare_hint": "Utilidad promedio del modo elegido por estrato. Sube con políticas que abaratan tiempo o costo para el promedio de agentes.",
+    "accessibility": "Accesibilidad",
+    "accessibility_unit": "Hansen",
+    "accessibility_hint": "Índice de Hansen por estrato: Σ exp(−α·T). Mayor = destinos más cerca en costo generalizado. Comparar sólo en deltas."
+  },
   "tutorial": {
     "toc": "Contenido",
     "loading": "Cargando tutorial",
