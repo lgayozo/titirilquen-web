@@ -101,11 +101,13 @@ export function SandboxPage() {
     const total = (Object.values(modal) as number[]).reduce((s, n) => s + n, 0);
     const tot = total > 0 ? total : 1;
     const pct = (m: Modo) => `${(((modal[m] ?? 0) / tot) * 100).toFixed(1)}%`;
+    const count = (m: Modo) =>
+      t("kpi.trips_subline", { n: (modal[m] ?? 0).toLocaleString() });
     return [
       { label: t("kpi.trips"), value: (total - (modal.Teletrabajo ?? 0)).toLocaleString() },
-      { label: t("kpi.auto_pct"), value: pct("Auto"), color: "var(--auto)" },
-      { label: t("kpi.metro_pct"), value: pct("Metro"), color: "var(--metro)" },
-      { label: t("kpi.bici_pct"), value: pct("Bici"), color: "var(--bici)" },
+      { label: t("kpi.auto_pct"), value: pct("Auto"), color: "var(--auto)", delta: count("Auto") },
+      { label: t("kpi.metro_pct"), value: pct("Metro"), color: "var(--metro)", delta: count("Metro") },
+      { label: t("kpi.bici_pct"), value: pct("Bici"), color: "var(--bici)", delta: count("Bici") },
       { label: t("kpi.frequency"), value: lastIter.frecuencia_metro.toFixed(1), unit: "tph" },
       {
         label: t("kpi.residual"),
@@ -116,6 +118,12 @@ export function SandboxPage() {
         unit: "min",
       },
     ];
+  }, [result, lastIter, t]);
+
+  const kpiCaption = useMemo(() => {
+    if (!result || !lastIter) return null;
+    const totalIters = result.iteraciones.length;
+    return t("kpi.last_iteration", { n: lastIter.iter + 1, total: totalIters });
   }, [result, lastIter, t]);
 
   return (
@@ -274,6 +282,7 @@ export function SandboxPage() {
         </div>
 
         {/* KPIs */}
+        {kpiCaption && <div className="kpi-caption">{kpiCaption}</div>}
         <KPIStrip items={kpis} />
 
         {/* Hint row — guía pedagógica */}

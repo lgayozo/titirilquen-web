@@ -116,7 +116,9 @@
     "frequency": "Frec. operativa",
     "co2": "CO₂ total",
     "mean_time": "Tiempo medio",
-    "residual": "Residuo"
+    "residual": "Residuo",
+    "trips_subline": "{{n}} viajes",
+    "last_iteration": "Última iteración · {{n}}/{{total}}"
   },
   "hints": {
     "demand_title": "Demanda",

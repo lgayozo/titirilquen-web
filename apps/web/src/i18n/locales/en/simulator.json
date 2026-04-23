@@ -116,7 +116,9 @@
     "frequency": "Operating freq",
     "co2": "Total CO₂",
     "mean_time": "Mean time",
-    "residual": "Residual"
+    "residual": "Residual",
+    "trips_subline": "{{n}} trips",
+    "last_iteration": "Last iteration · {{n}}/{{total}}"
   },
   "hints": {
     "demand_title": "Demand",

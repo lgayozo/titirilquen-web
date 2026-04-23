@@ -666,6 +666,18 @@ a:hover {
   display: inline-block;
 }
 
+/* Caption encima del KPI strip — indica que los datos son de la iteración
+   final del equilibrio (no de una iteración intermedia). */
+.kpi-caption {
+  font-family: var(--font-fig);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
 /* KPIs */
 .kpis {
   display: grid;
