@@ -1,3 +1,5 @@
+import { pyodideEngine } from "@/lib/pyodide-engine";
+import { useSimulationStore } from "@/store/simulationStore";
 import type {
   CoupledRequest,
   CoupledResult,
@@ -8,11 +10,16 @@ import type {
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api";
 
+function engineIsLocal(): boolean {
+  return useSimulationStore.getState().engine === "local";
+}
+
 export async function solveLandUse(req: {
   L: number;
   CBD: number;
   land_use: LandUseConfig;
 }): Promise<LandUseSolveResponse> {
+  if (engineIsLocal()) return pyodideEngine.solveLandUse(req);
   const r = await fetch(`${API_BASE}/land-use/solve`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -23,6 +30,17 @@ export async function solveLandUse(req: {
 }
 
 export async function solveCoupled(req: CoupledRequest): Promise<CoupledResult> {
+  if (engineIsLocal()) {
+    const collected: OuterIteration[] = [];
+    await pyodideEngine.solveCoupledStream(req, (it) => collected.push(it));
+    const last = collected[collected.length - 1];
+    return {
+      converged: last != null && last.T_residual != null && last.T_residual < req.outer_tol,
+      iterations: collected,
+      final_parcelas: [],
+      S: null,
+    };
+  }
   const r = await fetch(`${API_BASE}/coupled/solve`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -37,6 +55,7 @@ export async function solveCoupledStream(
   onOuter: (it: OuterIteration) => void,
   signal?: AbortSignal
 ): Promise<void> {
+  if (engineIsLocal()) return pyodideEngine.solveCoupledStream(req, onOuter);
   const r = await fetch(`${API_BASE}/coupled/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

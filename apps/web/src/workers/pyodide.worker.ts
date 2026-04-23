@@ -15,16 +15,31 @@
  */
 
 import type { IterationSnapshot, SimulationConfig, SimulationResult } from "@/lib/types";
+import type {
+  CoupledRequest,
+  LandUseConfig,
+  LandUseSolveResponse,
+  OuterIteration,
+} from "@/lib/types-v2";
 
 type InMsg =
   | { id: string; type: "init" }
   | { id: string; type: "simulate"; config: SimulationConfig }
-  | { id: string; type: "simulateStream"; config: SimulationConfig };
+  | { id: string; type: "simulateStream"; config: SimulationConfig }
+  | {
+      id: string;
+      type: "landUseSolve";
+      req: { L: number; CBD: number; land_use: LandUseConfig };
+    }
+  | { id: string; type: "coupledStream"; req: CoupledRequest };
 
 type OutMsg =
   | { id: string; type: "ready" }
   | { id: string; type: "iteration"; snapshot: IterationSnapshot }
   | { id: string; type: "done"; result: SimulationResult }
+  | { id: string; type: "landUseDone"; result: LandUseSolveResponse }
+  | { id: string; type: "outerIteration"; outer: OuterIteration }
+  | { id: string; type: "coupledDone" }
   | { id: string; type: "error"; message: string };
 
 declare const self: DedicatedWorkerGlobalScope;
@@ -44,6 +59,8 @@ type LoadPyodide = (opts: { indexURL: string }) => Promise<PyodideInterface>;
 let pyodide: PyodideInterface | null = null;
 let simulateFn: ((config: unknown) => unknown) | null = null;
 let iterFn: ((config: unknown) => unknown) | null = null;
+let landUseSolveFn: ((req: unknown) => unknown) | null = null;
+let coupledIterFn: ((req: unknown) => unknown) | null = null;
 
 function post(msg: OutMsg): void {
   self.postMessage(msg);
@@ -72,8 +89,10 @@ import micropip
 await micropip.install("pydantic")
 await micropip.install(${JSON.stringify(whlUrl)})
 
-from titirilquen_core import SimulationConfig, run_msa
+from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
+from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.equilibrium.msa import iter_msa
+import json
 import numpy as np
 
 def _snap_to_py(snap):
@@ -121,11 +140,63 @@ def iter_from_json(config_json: str):
     cfg = SimulationConfig.model_validate_json(config_json)
     for snap in iter_msa(cfg):
         yield _snap_to_py(snap)
+
+def _land_use_result_to_py(res):
+    return {
+        "u": res.u.tolist(),
+        "p": res.p.tolist(),
+        "Q": res.Q.tolist(),
+        "converged": res.converged,
+        "iterations": res.iterations,
+    }
+
+def _outer_iter_to_py(outer):
+    return {
+        "outer_iter": outer.outer_iter,
+        "land_use": _land_use_result_to_py(outer.land_use),
+        "transport": _trace_to_py(outer.transport),
+        "T_matrix": outer.T_matrix.tolist(),
+        "T_residual": None if outer.T_residual == float("inf") else outer.T_residual,
+    }
+
+def land_use_solve_from_json(req_json: str):
+    req = json.loads(req_json)
+    cfg = LandUseConfig.model_validate(req["land_use"])
+    city = LandUseCity.build(L=int(req["L"]), CBD=int(req["CBD"]), cfg=cfg)
+    assert city.result is not None
+    return {
+        "L": city.L,
+        "CBD": city.cbd_index,
+        "S": city.S.tolist(),
+        "parcelas": city.parcelas,
+        "result": _land_use_result_to_py(city.result),
+    }
+
+def coupled_iter_from_json(req_json: str):
+    req = json.loads(req_json)
+    sim = SimulationConfig.model_validate(req["sim"])
+    cfg = LandUseConfig.model_validate(req["land_use"])
+    outer_max_iter = int(req.get("outer_max_iter", 3))
+    outer_tol = float(req.get("outer_tol", 1.0))
+    for outer in iter_coupled(
+        sim=sim,
+        land_use_config=cfg,
+        outer_max_iter=outer_max_iter,
+        outer_tol=outer_tol,
+    ):
+        yield _outer_iter_to_py(outer)
 `);
 
-  const globals = py.pyimport("__main__") as { simulate_from_json: unknown; iter_from_json: unknown };
+  const globals = py.pyimport("__main__") as {
+    simulate_from_json: unknown;
+    iter_from_json: unknown;
+    land_use_solve_from_json: unknown;
+    coupled_iter_from_json: unknown;
+  };
   simulateFn = globals.simulate_from_json as (c: unknown) => unknown;
   iterFn = globals.iter_from_json as (c: unknown) => unknown;
+  landUseSolveFn = globals.land_use_solve_from_json as (r: unknown) => unknown;
+  coupledIterFn = globals.coupled_iter_from_json as (r: unknown) => unknown;
 }
 
 function jsFromPy(value: unknown): unknown {
@@ -168,6 +239,27 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
       // Para obtener el resultado completo (agentes, carga_metro final), corremos una vez más.
       const result = jsFromPy(simulateFn!(JSON.stringify(msg.config))) as SimulationResult;
       post({ id: msg.id, type: "done", result });
+      return;
+    }
+    if (msg.type === "landUseSolve") {
+      const result = jsFromPy(
+        landUseSolveFn!(JSON.stringify(msg.req))
+      ) as LandUseSolveResponse;
+      post({ id: msg.id, type: "landUseDone", result });
+      return;
+    }
+    if (msg.type === "coupledStream") {
+      const gen = coupledIterFn!(JSON.stringify(msg.req)) as {
+        [Symbol.iterator](): Iterator<unknown>;
+      };
+      const iter = gen[Symbol.iterator]();
+      while (true) {
+        const { value, done } = iter.next();
+        if (done) break;
+        const outer = jsFromPy(value) as OuterIteration;
+        post({ id: msg.id, type: "outerIteration", outer });
+      }
+      post({ id: msg.id, type: "coupledDone" });
       return;
     }
   } catch (e) {
