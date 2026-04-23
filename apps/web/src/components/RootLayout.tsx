@@ -58,7 +58,7 @@ export function RootLayout() {
           />
           <span>{t("app_name")}</span>
         </div>
-        <div className="sub hidden md:block">{t("app_tagline")}</div>
+        <div className="sub">{t("app_tagline")}</div>
         <div className="spacer" />
         <div className="nav" aria-label={t("nav.label")}>
           {navItems.map((item) => (
