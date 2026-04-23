@@ -27,3 +27,8 @@ Thumbs.db
 
 # Config local de herramientas de dev (Claude Code preview, etc.)
 .claude/
+
+# TypeScript build artifacts
+*.tsbuildinfo
+apps/web/vite.config.d.ts
+apps/web/vite.config.js
