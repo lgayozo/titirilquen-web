@@ -17,8 +17,8 @@ authors = [
 ]
 dependencies = [
     "numpy>=1.26",
-    "pydantic>=2.8",
-    "scipy>=1.13",
+    "pydantic>=2.7",
+    "scipy>=1.12",
 ]
 
 [project.optional-dependencies]

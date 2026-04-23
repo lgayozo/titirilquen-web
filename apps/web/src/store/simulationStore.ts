@@ -30,7 +30,7 @@ interface SimulationState {
 
 export const useSimulationStore = create<SimulationState>((set) => ({
   config: defaultSimulationConfig,
-  engine: "api",
+  engine: "local",
   stage: "idle",
   running: false,
   progress: null,

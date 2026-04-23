@@ -41,11 +41,6 @@ interface PyodideInterface {
 
 type LoadPyodide = (opts: { indexURL: string }) => Promise<PyodideInterface>;
 
-// `importScripts` inyecta `loadPyodide` en el scope global del worker.
-const workerScope = self as unknown as DedicatedWorkerGlobalScope & {
-  loadPyodide: LoadPyodide;
-};
-
 let pyodide: PyodideInterface | null = null;
 let simulateFn: ((config: unknown) => unknown) | null = null;
 let iterFn: ((config: unknown) => unknown) | null = null;
@@ -57,9 +52,13 @@ function post(msg: OutMsg): void {
 async function init(): Promise<void> {
   if (pyodide) return;
 
-  // Importación del bootstrap de Pyodide (expone `loadPyodide` global).
-  importScripts(`${PYODIDE_CDN}pyodide.js`);
-  const py = await workerScope.loadPyodide({ indexURL: PYODIDE_CDN });
+  // En module workers no existe `importScripts`. Usamos la build .mjs que
+  // Pyodide distribuye para contextos ESM. `@vite-ignore` evita que Vite
+  // intente resolver/bundlear la URL remota.
+  const mod = (await import(/* @vite-ignore */ `${PYODIDE_CDN}pyodide.mjs`)) as {
+    loadPyodide: LoadPyodide;
+  };
+  const py = await mod.loadPyodide({ indexURL: PYODIDE_CDN });
   pyodide = py;
 
   await py.loadPackage(["micropip", "numpy", "scipy"]);
