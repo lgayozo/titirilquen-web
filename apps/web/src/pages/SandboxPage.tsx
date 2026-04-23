@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { CityStrip } from "@/components/CityStrip";
 import { CityBuilder } from "@/components/modules/CityBuilder";
 import { DemandInspector } from "@/components/modules/DemandInspector";
+import { EconomyBuilder } from "@/components/modules/EconomyBuilder";
 import { SupplyBuilder } from "@/components/modules/SupplyBuilder";
 import { RunStatus } from "@/components/RunStatus";
 import { SimulationSkeleton } from "@/components/SimulationSkeleton";
@@ -122,6 +123,7 @@ export function SandboxPage() {
       <aside className="sidebar">
         <CityBuilder config={config} onChange={setConfig} />
         <SupplyBuilder config={config} onChange={setConfig} operatingRatios={operatingRatios} />
+        <EconomyBuilder config={config} onChange={setConfig} />
 
         <SidebarSection
           title={t("sections.equilibrium")}

@@ -30,6 +30,11 @@
     "cbd_label": "{{n}} celdas · CBD al centro",
     "density_unit": "hab/celda"
   },
+  "economy_params": {
+    "tarifa_metro": "Tarifa Metro",
+    "parking": "Estacionamiento",
+    "bencina": "Bencina"
+  },
   "supply_params": {
     "bike": {
       "v_media_kmh": "Velocidad media (km/h)",

@@ -30,6 +30,11 @@
     "cbd_label": "{{n}} cells · CBD at center",
     "density_unit": "pop/cell"
   },
+  "economy_params": {
+    "tarifa_metro": "Metro fare",
+    "parking": "Parking",
+    "bencina": "Fuel"
+  },
   "supply_params": {
     "bike": {
       "v_media_kmh": "Mean speed (km/h)",
