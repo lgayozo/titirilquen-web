@@ -307,6 +307,15 @@
     "accessibility_unit": "Hansen",
     "accessibility_hint": "Índice de Hansen por estrato: Σ exp(−α·T). Mayor = destinos más cerca en costo generalizado. Comparar sólo en deltas."
   },
+  "convergence": {
+    "x_iter": "Iteración",
+    "y_min": "minutos",
+    "y_trips": "viajes",
+    "iter": "Iter.",
+    "trips_unit": "viajes",
+    "modal_split_title": "Modal split por iteración",
+    "modal_split_sub": "Evolución del reparto modal mientras el MSA suaviza (viajes acumulados por modo)"
+  },
   "network": {
     "title": "Red vial · saturación por tramo",
     "aria": "Red vial de la ciudad lineal con auto, metro y bici",

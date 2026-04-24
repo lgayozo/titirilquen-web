@@ -301,6 +301,15 @@
     "accessibility_unit": "Hansen",
     "accessibility_hint": "Hansen index per stratum: Σ exp(−α·T). Larger = destinations closer in generalized cost. Compare deltas, not absolute values."
   },
+  "convergence": {
+    "x_iter": "Iteration",
+    "y_min": "minutes",
+    "y_trips": "trips",
+    "iter": "Iter.",
+    "trips_unit": "trips",
+    "modal_split_title": "Modal split by iteration",
+    "modal_split_sub": "Evolution of modal split while MSA smooths (cumulative trips per mode)"
+  },
   "network": {
     "title": "Road network · saturation by segment",
     "aria": "Linear city road network with auto, metro and bike",
