@@ -7,6 +7,8 @@ tagline: MSA — Método de Promedios Sucesivos
 
 # 4. Equilibrio
 
+<MSAFlowchart />
+
 En la primera iteración los agentes no tienen información de congestión y asumen **flujo libre**. Al asignar demanda, el auto se sobrecarga (es el más rápido). Para evitar oscilaciones se usa el **Método de Promedios Sucesivos**:
 
 $$
@@ -26,12 +28,7 @@ El residuo que muestra el panel en vivo es $\|T^{(n+1)} - T^{(n)}\|_\infty$ en m
 
 El loop exterior (página **Uso de suelo**, modo *Acoplado*) añade otra capa:
 
-```
-repeat:
-  Uso de suelo  (Alonso-Muth-Mills, punto fijo logit)  →  parcelas[i]
-  Transporte    (MSA sobre población derivada)          →  T[h, i]
-  Si ||ΔT|| < tol: break
-```
+<CoupledFlowchart />
 
 Convergencia externa suele requerir más iteraciones que la interna porque dos procesos se retroalimentan: más congestión en el centro → los hogares ricos se dispersan → menos congestión → vuelven al centro…
 

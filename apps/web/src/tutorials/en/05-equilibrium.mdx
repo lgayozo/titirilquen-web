@@ -7,6 +7,8 @@ tagline: MSA — Method of Successive Averages
 
 # 4. Equilibrium
 
+<MSAFlowchart />
+
 First iteration has no congestion info, so agents assume **free flow**. After assignment, cars overload (fastest mode). To avoid oscillations we use **MSA**:
 
 $$
@@ -21,12 +23,7 @@ The residual shown live is $\|T^{(n+1)} - T^{(n)}\|_\infty$ in minutes. Values n
 
 The outer loop (Land use page, *Coupled* mode) adds another layer:
 
-```
-repeat:
-  Land use  (Alonso-Muth-Mills logit fixed point)  →  parcels[i]
-  Transport (MSA over derived population)           →  T[h, i]
-  If ||ΔT|| < tol: break
-```
+<CoupledFlowchart />
 
 Outer convergence usually needs more iterations than inner because two processes feed back into each other.
 

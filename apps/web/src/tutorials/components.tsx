@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 
+import { CoupledFlowchart } from "@/components/viz/CoupledFlowchart";
+import { MSAFlowchart } from "@/components/viz/MSAFlowchart";
 import { cn } from "@/lib/cn";
 
 interface CalloutProps {
@@ -60,6 +62,8 @@ export const mdxComponents = {
   Callout,
   NextStep,
   DocLink,
+  MSAFlowchart,
+  CoupledFlowchart,
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
     if (props.href && props.href.startsWith("/")) {
       return (

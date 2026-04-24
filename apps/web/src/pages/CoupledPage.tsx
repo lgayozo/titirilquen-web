@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Panel } from "@/components/ui/Panel";
+import { CoupledFlowchart } from "@/components/viz/CoupledFlowchart";
 import { CoupledMetrics } from "@/components/viz/CoupledMetrics";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { solveCoupledStream } from "@/lib/api-v2";
@@ -71,7 +72,10 @@ export function CoupledPage() {
       <section className="coupled-hero">
         <div className="about-eyebrow">{tS("coupled.eyebrow")}</div>
         <h1 className="coupled-title">{tS("coupled.title")}</h1>
-        <p className="coupled-lede">{tS("coupled.lede")}</p>
+        <div className="coupled-hero-grid">
+          <p className="coupled-lede">{tS("coupled.lede")}</p>
+          <CoupledFlowchart />
+        </div>
       </section>
 
       <section className="coupled-controls">
