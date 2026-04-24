@@ -92,4 +92,11 @@ export const TUTORIAL_TOC_ES: readonly TutorialMeta[] = [
   { slug: "experimenting", order: 6, title: "Experimentar", tagline: "Presets y actividades" },
 ] as const;
 
-export const TUTORIAL_TOC_EN: readonly TutorialMeta[] = TUTORIAL_TOC_ES;
+export const TUTORIAL_TOC_EN: readonly TutorialMeta[] = [
+  { slug: "intro", order: 1, title: "Welcome", tagline: "Why a linear city" },
+  { slug: "city", order: 2, title: "City", tagline: "Discretization and population" },
+  { slug: "supply", order: 3, title: "Supply", tagline: "BPR, Greenshields, metro" },
+  { slug: "demand", order: 4, title: "Demand", tagline: "Utility + logit" },
+  { slug: "equilibrium", order: 5, title: "Equilibrium", tagline: "MSA + coupled loop" },
+  { slug: "experimenting", order: 6, title: "Experiment", tagline: "Presets and activities" },
+] as const;
