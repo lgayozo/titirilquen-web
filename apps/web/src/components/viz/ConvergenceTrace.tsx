@@ -104,7 +104,7 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
         </p>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
-            <LineChart data={data} margin={{ top: 8, right: 16, bottom: 20, left: 8 }}>
+            <LineChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
               <CartesianGrid strokeDasharray="2 3" stroke="var(--rule)" opacity={0.6} />
               <XAxis
                 dataKey="iter"
@@ -112,12 +112,6 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                 tickLine={{ stroke: "var(--rule)" }}
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
-                label={{
-                  value: t("convergence.x_iter"),
-                  position: "insideBottom",
-                  offset: -8,
-                  style: { ...AXIS_STYLE, fill: "var(--muted)" },
-                }}
               />
               <YAxis
                 stroke="var(--muted)"
@@ -157,7 +151,7 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
         <p style={PANEL_SUB}>{t("convergence.modal_split_sub")}</p>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
-            <AreaChart data={data} margin={{ top: 8, right: 16, bottom: 20, left: 8 }}>
+            <AreaChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
               <CartesianGrid strokeDasharray="2 3" stroke="var(--rule)" opacity={0.6} />
               <XAxis
                 dataKey="iter"
@@ -165,12 +159,6 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                 tickLine={{ stroke: "var(--rule)" }}
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
-                label={{
-                  value: t("convergence.x_iter"),
-                  position: "insideBottom",
-                  offset: -8,
-                  style: { ...AXIS_STYLE, fill: "var(--muted)" },
-                }}
               />
               <YAxis
                 stroke="var(--muted)"
