@@ -1680,6 +1680,119 @@ table.cmp th {
 }
 
 /* =============================================================================
+ * NetworkDiagram — red vial (auto/metro/bici) con colores por v/c
+ * ==========================================================================*/
+
+.network-diagram {
+  position: relative;
+}
+
+.network-band-label {
+  font-family: var(--font-fig);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
+.network-diagram rect:hover {
+  outline: 1px solid var(--ink);
+}
+
+.network-tooltip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  min-width: 180px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--ink) 40%, transparent);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.nt-head {
+  font-family: var(--font-fig);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.nt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--font-fig);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.nt-label {
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.nt-value {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.nt-value--emph {
+  color: var(--metro);
+  font-weight: 700;
+}
+
+.network-legend {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-fig);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.nl-label {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.nl-gradient {
+  grid-column: 2 / -1;
+  grid-row: 1;
+  height: 10px;
+  border: 1px solid var(--rule);
+  background: linear-gradient(
+    to right,
+    var(--bici) 0%,
+    color-mix(in srgb, var(--bici) 50%, var(--auto)) 25%,
+    var(--auto) 50%,
+    color-mix(in srgb, var(--auto) 50%, var(--metro)) 75%,
+    var(--metro) 100%
+  );
+}
+
+.nl-lo,
+.nl-mid,
+.nl-hi {
+  grid-row: 2;
+  font-variant-numeric: tabular-nums;
+}
+
+.nl-lo { grid-column: 2; text-align: left; }
+.nl-mid { grid-column: 3 / span 1; text-align: center; margin: 0 auto; }
+.nl-hi { grid-column: 4 / -1; text-align: right; margin-left: auto; }
+
+/* =============================================================================
  * Flowchart — diagramas interactivos (MSA, Coupled)
  * ==========================================================================*/
 

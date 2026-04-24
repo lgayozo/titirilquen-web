@@ -307,6 +307,26 @@
     "accessibility_unit": "Hansen",
     "accessibility_hint": "Índice de Hansen por estrato: Σ exp(−α·T). Mayor = destinos más cerca en costo generalizado. Comparar sólo en deltas."
   },
+  "network": {
+    "title": "Red vial · saturación por tramo",
+    "aria": "Red vial de la ciudad lineal con auto, metro y bici",
+    "x_axis": "Posición (km)",
+    "flow": "Flujo",
+    "capacity": "Capacidad",
+    "vc": "v/c",
+    "time": "Tiempo",
+    "unit": {
+      "auto": "veh/h",
+      "metro": "pax/h",
+      "bici": "bici/h"
+    },
+    "legend": {
+      "scale": "Saturación v/c",
+      "free": "libre · 0",
+      "moderate": "cargado · 0.5",
+      "saturated": "saturado · ≥1"
+    }
+  },
   "flowchart": {
     "play": "Reproducir",
     "pause": "Pausar",

@@ -7,8 +7,6 @@ tagline: MSA — Método de Promedios Sucesivos
 
 # 4. Equilibrio
 
-<MSAFlowchart />
-
 En la primera iteración los agentes no tienen información de congestión y asumen **flujo libre**. Al asignar demanda, el auto se sobrecarga (es el más rápido). Para evitar oscilaciones se usa el **Método de Promedios Sucesivos**:
 
 $$
@@ -23,6 +21,8 @@ El peso de la nueva información disminuye con $1/n$: la primera iteración reem
 - $f_n$ pequeño en iteraciones tardías → estabilización (ciudad "recuerda")
 
 El residuo que muestra el panel en vivo es $\|T^{(n+1)} - T^{(n)}\|_\infty$ en minutos. Cuando baja a ~0.01 min, el sistema está esencialmente en equilibrio.
+
+<MSAFlowchart />
 
 ## V2: loop acoplado suelo↔transporte
 

@@ -301,6 +301,26 @@
     "accessibility_unit": "Hansen",
     "accessibility_hint": "Hansen index per stratum: Σ exp(−α·T). Larger = destinations closer in generalized cost. Compare deltas, not absolute values."
   },
+  "network": {
+    "title": "Road network · saturation by segment",
+    "aria": "Linear city road network with auto, metro and bike",
+    "x_axis": "Position (km)",
+    "flow": "Flow",
+    "capacity": "Capacity",
+    "vc": "v/c",
+    "time": "Time",
+    "unit": {
+      "auto": "veh/h",
+      "metro": "pax/h",
+      "bici": "bike/h"
+    },
+    "legend": {
+      "scale": "Saturation v/c",
+      "free": "free · 0",
+      "moderate": "loaded · 0.5",
+      "saturated": "saturated · ≥1"
+    }
+  },
   "flowchart": {
     "play": "Play",
     "pause": "Pause",

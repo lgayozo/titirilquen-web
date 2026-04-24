@@ -15,6 +15,7 @@ import { SidebarSection } from "@/components/ui/SidebarSection";
 import { ConvergenceTrace } from "@/components/viz/ConvergenceTrace";
 import { FlowProfile } from "@/components/viz/FlowProfile";
 import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
+import { NetworkDiagram } from "@/components/viz/NetworkDiagram";
 import { runSimulation, runSimulationStream } from "@/lib/api";
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { Modo } from "@/lib/types";
@@ -324,6 +325,12 @@ export function SandboxPage() {
         {/* Grid de paneles FIG. NN */}
         {liveIterations.length > 0 && (
           <div className="panel-grid">
+            {lastIter && result && (
+              <Panel n="00" title={t("network.title")} meta="auto · metro · bici" cls="col-12">
+                <NetworkDiagram snapshot={lastIter} result={result} config={config} />
+              </Panel>
+            )}
+
             <Panel n="01" title={t("equilibrium.converged")} meta="MSA" cls="col-12">
               <ConvergenceTrace iterations={liveIterations} />
             </Panel>
