@@ -66,6 +66,16 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
             </p>
           )}
         </div>
+
+        <LabeledSlider
+          label={t("land_use.param_oferta_sigma")}
+          value={config.oferta_sigma_frac}
+          min={0.1}
+          max={1.5}
+          step={0.05}
+          onChange={(v) => onChange((c) => ({ ...c, oferta_sigma_frac: v }))}
+        />
+        <p className="-mt-1 text-[10px] text-muted">{t("land_use.oferta_sigma_hint")}</p>
       </SidebarSection>
 
       {[0, 1, 2].map((i) => {

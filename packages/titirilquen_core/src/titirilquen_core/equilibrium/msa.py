@@ -18,14 +18,15 @@ from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, SimulationConfig, SupplyConfig
-from titirilquen_core.demand.choice import elegir_modo
+from titirilquen_core.demand.choice import elegir_modo, probabilidades_logit
+from titirilquen_core.emissions import calcular_emisiones
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.population import Agente, generar_poblacion
 from titirilquen_core.supply.bike import demora_bici_tramo
 from titirilquen_core.supply.car import demora_auto_tramo
 from titirilquen_core.supply.train import oferta_tren
 
-ModalSplit = dict[str, int]
+ModalSplit = dict[str, float]
 
 
 @dataclass
@@ -60,6 +61,10 @@ class ConvergenceTrace:
     carga_metro: NDArray[np.float64] | None = None
     estaciones_km: NDArray[np.float64] | None = None
     agentes: list[Agente] = field(default_factory=list)
+    emisiones_total_kg: float = 0.0
+    emisiones_auto_kg: float = 0.0
+    emisiones_metro_kg: float = 0.0
+    emisiones_perfil_kg: NDArray[np.float64] | None = None
 
 
 def _tiempos_de_snapshot(snap: IterationSnapshot, n_celdas: int) -> list[TiemposObservados]:
@@ -81,8 +86,14 @@ def _correr_iteracion(
     demand: DemandConfig,
     tiempos_por_celda: list[TiemposObservados] | None,
     rng: np.random.Generator,
+    expected: bool = False,
 ) -> tuple[ModalSplit, NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
-    conteo: ModalSplit = {"Auto": 0, "Metro": 0, "Bici": 0, "Caminata": 0, "Teletrabajo": 0}
+    """Asigna demanda. Si `expected=False` (Monte Carlo) sortea el modo de cada
+    agente; si `expected=True` usa los **flujos esperados** = probabilidades
+    logit (asignación fraccional, determinista, sin ruido entre iteraciones).
+    En modo `expected`, el registro por agente (`modo_elegido`) usa el modo más
+    probable, solo para las figuras agente‑nivel."""
+    conteo: ModalSplit = {"Auto": 0.0, "Metro": 0.0, "Bici": 0.0, "Caminata": 0.0, "Teletrabajo": 0.0}
     dem_auto = np.zeros(ciudad.n_celdas)
     dem_metro = np.zeros(ciudad.n_celdas)
     dem_bici = np.zeros(ciudad.n_celdas)
@@ -91,7 +102,7 @@ def _correr_iteracion(
         if a.teletrabaja:
             a.modo_elegido = "Teletrabajo"
             a.utilidad_elegida = 0.0
-            conteo["Teletrabajo"] += 1
+            conteo["Teletrabajo"] += 1.0
             continue
 
         tiempos = tiempos_por_celda[a.celda_origen] if tiempos_por_celda is not None else None
@@ -103,16 +114,28 @@ def _correr_iteracion(
             config=demand,
             tiempos_observados=tiempos,
         )
-        modo = elegir_modo(utils, rng=rng)
-        a.modo_elegido = modo
-        a.utilidad_elegida = utils[modo].valor
-        conteo[modo] += 1
-        if modo == "Auto":
-            dem_auto[a.celda_origen] += 1
-        elif modo == "Metro":
-            dem_metro[a.celda_origen] += 1
-        elif modo == "Bici":
-            dem_bici[a.celda_origen] += 1
+        i = a.celda_origen
+        if expected:
+            probs = probabilidades_logit(utils)
+            for m, pr in probs.items():
+                conteo[m] += pr
+            dem_auto[i] += probs.get("Auto", 0.0)
+            dem_metro[i] += probs.get("Metro", 0.0)
+            dem_bici[i] += probs.get("Bici", 0.0)
+            modo = max(probs, key=lambda k: probs[k])  # más probable, para el registro
+            a.modo_elegido = modo
+            a.utilidad_elegida = utils[modo].valor
+        else:
+            modo = elegir_modo(utils, rng=rng)
+            a.modo_elegido = modo
+            a.utilidad_elegida = utils[modo].valor
+            conteo[modo] += 1.0
+            if modo == "Auto":
+                dem_auto[i] += 1
+            elif modo == "Metro":
+                dem_metro[i] += 1
+            elif modo == "Bici":
+                dem_bici[i] += 1
 
     return conteo, dem_auto, dem_metro, dem_bici
 
@@ -140,10 +163,11 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
     t_tren_acc_ac = np.zeros(ciudad.n_celdas)
     t_tren_esp_ac = np.zeros(ciudad.n_celdas)
     t_tren_v_ac = np.zeros(ciudad.n_celdas)
+    estables = 0  # iteraciones consecutivas bajo tolerancia
 
     for it in range(sim.max_iter):
         conteo, d_auto, d_metro, d_bici = _correr_iteracion(
-            agentes, ciudad, sim.demand, tiempos_actuales, rng
+            agentes, ciudad, sim.demand, tiempos_actuales, rng, sim.assignment == "expected"
         )
 
         car_p = sim.supply.car
@@ -171,6 +195,7 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
             alpha=bike_p.alpha_bpr,
             beta=bike_p.beta_bpr,
             pendiente_porcentaje=sim.city.pendiente_porcentaje,
+            v_caminata=sim.demand.globales.v_caminata,
         )
         train_result = oferta_tren(
             demanda=d_metro,
@@ -195,12 +220,23 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
         else:
             f = 1.0 / (it + 1)
             old_auto = t_auto_ac.copy()
+            old_bici = t_bici_ac.copy()
+            old_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
             t_auto_ac = f * car_result.t_usuarios_min + (1 - f) * t_auto_ac
             t_bici_ac = f * bike_result.t_usuarios_min + (1 - f) * t_bici_ac
             t_tren_acc_ac = f * train_result.t_acceso_min + (1 - f) * t_tren_acc_ac
             t_tren_esp_ac = f * train_result.t_espera_min + (1 - f) * t_tren_esp_ac
             t_tren_v_ac = f * train_result.t_viaje_min + (1 - f) * t_tren_v_ac
-            residuo = float(np.max(np.abs(t_auto_ac - old_auto)))
+            new_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
+            # Residual de TODA la red (no sólo auto): máximo cambio de tiempo en
+            # cualquier modo y celda entre iteraciones MSA.
+            residuo = float(
+                max(
+                    np.max(np.abs(t_auto_ac - old_auto)),
+                    np.max(np.abs(t_bici_ac - old_bici)),
+                    np.max(np.abs(new_metro - old_metro)),
+                )
+            )
 
         tiempos_actuales = [
             TiemposObservados(
@@ -229,6 +265,16 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
             residuo=residuo,
         )
 
+        # Criterio de convergencia: residual < tolerancia en 2 iteraciones
+        # consecutivas (robusto al ruido estocástico del residual). Fallback a
+        # max_iter. Con tolerance=0 nunca corta (sólo número de iteraciones).
+        if sim.tolerance > 0 and residuo < sim.tolerance:
+            estables += 1
+            if estables >= 2:
+                break
+        else:
+            estables = 0
+
 
 def run_msa(sim: SimulationConfig) -> ConvergenceTrace:
     """Ejecuta el loop MSA completo hasta convergencia o `max_iter`."""
@@ -245,7 +291,7 @@ def run_msa(sim: SimulationConfig) -> ConvergenceTrace:
     )
 
     trace = ConvergenceTrace(agentes=agentes)
-    last_car = _run_final_assignments(sim, ciudad, agentes, trace)
+    last_car = _run_final_assignments(sim, ciudad, agentes, trace, rng)
     if last_car is None:
         return trace
 
@@ -255,6 +301,25 @@ def run_msa(sim: SimulationConfig) -> ConvergenceTrace:
     trace.beta_auto_bpr = last_car["beta"]
     trace.carga_metro = last_car["carga_metro"]
     trace.estaciones_km = last_car["estaciones"]
+
+    # Emisiones de CO₂ a partir del estado físico final (flujos + BPR → v_local).
+    if last_car["carga_metro"] is not None and last_car["estaciones"] is not None:
+        em = calcular_emisiones(
+            flujos_auto=last_car["flujos_auto"],
+            carga_metro_tramos=last_car["carga_metro"],
+            estaciones_km=last_car["estaciones"],
+            capacidad_auto=last_car["capacidad"],
+            alpha_bpr=last_car["alpha"],
+            beta_bpr=last_car["beta"],
+            v_libre_kmh=last_car["v_libre"],
+            largo_ciudad_km=ciudad.largo_total_km,
+            n_celdas=ciudad.n_celdas,
+            factor_emision_metro=sim.demand.globales.factor_emision_metro,
+        )
+        trace.emisiones_total_kg = em.total_kg_hora
+        trace.emisiones_auto_kg = em.auto_kg_hora
+        trace.emisiones_metro_kg = em.metro_kg_hora
+        trace.emisiones_perfil_kg = em.perfil_espacial_kg
     return trace
 
 
@@ -263,9 +328,13 @@ def _run_final_assignments(
     ciudad: CiudadLineal,
     agentes: list[Agente],
     trace: ConvergenceTrace,
+    rng: np.random.Generator | None = None,
 ) -> dict | None:
-    rng = np.random.default_rng(sim.seed)
-    # Re-semilla para compatibilidad con iter_msa: una sola corrida
+    # Debe recibir el MISMO rng que generó la población (continuado), para que
+    # `run_msa` reproduzca exactamente la secuencia de `iter_msa` (streaming) —
+    # de lo contrario el corte por convergencia ocurre en iteraciones distintas.
+    if rng is None:
+        rng = np.random.default_rng(sim.seed)
     tiempos_actuales: list[TiemposObservados] | None = None
     t_auto_ac = np.zeros(ciudad.n_celdas)
     t_bici_ac = np.zeros(ciudad.n_celdas)
@@ -274,13 +343,14 @@ def _run_final_assignments(
     t_tren_v_ac = np.zeros(ciudad.n_celdas)
 
     last_state = None
+    estables = 0  # iteraciones consecutivas bajo tolerancia
     car_p = sim.supply.car
     bike_p = sim.supply.bike
     train_p = sim.supply.train
 
     for it in range(sim.max_iter):
         conteo, d_auto, d_metro, d_bici = _correr_iteracion(
-            agentes, ciudad, sim.demand, tiempos_actuales, rng
+            agentes, ciudad, sim.demand, tiempos_actuales, rng, sim.assignment == "expected"
         )
 
         car_result = demora_auto_tramo(
@@ -304,6 +374,7 @@ def _run_final_assignments(
             alpha=bike_p.alpha_bpr,
             beta=bike_p.beta_bpr,
             pendiente_porcentaje=sim.city.pendiente_porcentaje,
+            v_caminata=sim.demand.globales.v_caminata,
         )
         train_result = oferta_tren(
             demanda=d_metro,
@@ -328,12 +399,23 @@ def _run_final_assignments(
         else:
             f = 1.0 / (it + 1)
             old_auto = t_auto_ac.copy()
+            old_bici = t_bici_ac.copy()
+            old_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
             t_auto_ac = f * car_result.t_usuarios_min + (1 - f) * t_auto_ac
             t_bici_ac = f * bike_result.t_usuarios_min + (1 - f) * t_bici_ac
             t_tren_acc_ac = f * train_result.t_acceso_min + (1 - f) * t_tren_acc_ac
             t_tren_esp_ac = f * train_result.t_espera_min + (1 - f) * t_tren_esp_ac
             t_tren_v_ac = f * train_result.t_viaje_min + (1 - f) * t_tren_v_ac
-            residuo = float(np.max(np.abs(t_auto_ac - old_auto)))
+            new_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
+            # Residual de TODA la red (no sólo auto): máximo cambio de tiempo en
+            # cualquier modo y celda entre iteraciones MSA.
+            residuo = float(
+                max(
+                    np.max(np.abs(t_auto_ac - old_auto)),
+                    np.max(np.abs(t_bici_ac - old_bici)),
+                    np.max(np.abs(new_metro - old_metro)),
+                )
+            )
 
         tiempos_actuales = [
             TiemposObservados(
@@ -371,10 +453,15 @@ def _run_final_assignments(
             "beta": car_result.beta_bpr,
             "carga_metro": train_result.carga_por_tramo,
             "estaciones": train_result.estaciones_km,
+            "flujos_auto": car_result.flujos_veh_por_hora,
         }
 
         if sim.tolerance > 0 and residuo < sim.tolerance:
-            trace.converged = True
-            break
+            estables += 1
+            if estables >= 2:
+                trace.converged = True
+                break
+        else:
+            estables = 0
 
     return last_state

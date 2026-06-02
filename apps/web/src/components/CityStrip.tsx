@@ -1,17 +1,37 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
+
+type SingleMode = "auto" | "metro" | "bici" | "caminata";
+/** Vistas de la figura: un modo individual, todos los modos a la vez, o el
+ *  tiempo de espera del tren por estación. */
+export type CityView = SingleMode | "todos" | "espera";
+
+interface ModeTimes {
+  t_auto: number;
+  t_metro: number;
+  t_bici: number;
+  t_caminata: number;
+  /** Tiempo de espera del metro (escalonado por estación). */
+  t_espera: number;
+}
 
 interface CityStripProps {
   nCeldas: number;
   largoKm: number;
   pendientePct?: number;
   /** Perfil de tiempos por celda — eje Y (altura) */
-  modeProfile?: Array<{ t_auto: number; t_metro: number; t_bici: number }>;
+  modeProfile?: ModeTimes[];
   /** Shares de estratos (A, M, B) — coloreado de barras */
   shareEstratos?: readonly [number, number, number];
-  /** Tiempo seleccionado para colorear (auto|metro|bici) */
-  heatMode?: "auto" | "metro" | "bici";
+  /** Vista activa; define qué se grafica y el color uniforme de las barras */
+  heatMode?: CityView;
+  /** Umbral de factibilidad (min) del modo: sobre él las barras se atenúan y se dibuja una línea de corte. */
+  cutoffMin?: number;
+  /** Etiqueta de la línea de corte (ya traducida). */
+  cutoffLabel?: string;
+  /** Posiciones (km) de las estaciones de tren — marcadores verticales. */
+  estacionesKm?: readonly number[];
   /** Cuando cambia este token, se dispara un flash visual (para indicar "nueva iteración"). */
   iterationToken?: number | string;
   className?: string;
@@ -20,10 +40,36 @@ interface CityStripProps {
 
 const MARGIN = { top: 12, right: 10, bottom: 26, left: 48 };
 
+/** Color uniforme por modo — el color codifica QUÉ modo se está mostrando. */
+const MODE_COLOR: Record<SingleMode, string> = {
+  auto: "var(--auto)",
+  metro: "var(--metro)",
+  bici: "var(--bici)",
+  caminata: "var(--walk)",
+};
+
+/** Modos incluidos (en orden de apilado de leyenda) en la vista "todos". */
+const ALL_MODES: ReadonlyArray<{ mode: SingleMode; key: keyof ModeTimes }> = [
+  { mode: "auto", key: "t_auto" },
+  { mode: "metro", key: "t_metro" },
+  { mode: "bici", key: "t_bici" },
+  { mode: "caminata", key: "t_caminata" },
+];
+
+const KEY_BY_MODE: Record<SingleMode, keyof ModeTimes> = {
+  auto: "t_auto",
+  metro: "t_metro",
+  bici: "t_bici",
+  caminata: "t_caminata",
+};
+
 /**
- * Visualización SVG de la ciudad lineal. Cada parcela es una barra vertical
- * cuya altura = tiempo de viaje (en minutos) del modo seleccionado. Tiene
- * eje Y rotulado, marcador del CBD y etiquetas de posición en km.
+ * Visualización SVG de la ciudad lineal. Según la vista:
+ *  - modo individual (auto/metro/bici/caminata): barras de color uniforme cuya
+ *    altura = tiempo de viaje (min); con línea de corte de factibilidad.
+ *  - "todos": una línea por modo (color del modo) para comparar tiempos.
+ *  - "espera": barras del tiempo de espera del metro, escalonado por estación.
+ * Tiene eje Y rotulado, marcador del CBD, marcadores de estación y km.
  */
 export function CityStrip({
   nCeldas,
@@ -31,12 +77,17 @@ export function CityStrip({
   pendientePct = 0,
   modeProfile,
   heatMode = "auto",
+  cutoffMin,
+  cutoffLabel,
+  estacionesKm,
   iterationToken,
   className,
   height = 160,
 }: CityStripProps) {
-  const gradId = useId();
   const cbdIdx = Math.floor(nCeldas / 2);
+  const isAll = heatMode === "todos";
+  const isEspera = heatMode === "espera";
+  const singleColor = isEspera ? MODE_COLOR.metro : MODE_COLOR[(heatMode as SingleMode) ?? "auto"];
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(600);
@@ -66,29 +117,34 @@ export function CityStrip({
   const plotH = H - MARGIN.top - MARGIN.bottom;
   const barW = plotW / nCeldas;
 
-  const { bars, maxValue } = useMemo(() => {
+  // Series a graficar según la vista, y el máximo del eje Y.
+  const { lines, barValues, maxValue } = useMemo(() => {
     if (!modeProfile) {
-      return {
-        bars: Array.from({ length: nCeldas }, (_, i) => ({ idx: i, norm: 0, raw: 0 })),
-        maxValue: 0,
-      };
+      return { lines: null, barValues: null as number[] | null, maxValue: 0 };
     }
-    const values = modeProfile.map((p) =>
-      heatMode === "auto" ? p.t_auto : heatMode === "metro" ? p.t_metro : p.t_bici
-    );
+    if (isAll) {
+      const ls = ALL_MODES.map(({ mode, key }) => ({
+        mode,
+        color: MODE_COLOR[mode],
+        values: modeProfile.map((p) => p[key]),
+      }));
+      const max = Math.max(...ls.flatMap((l) => l.values), 0.1);
+      return { lines: ls, barValues: null, maxValue: max };
+    }
+    const key: keyof ModeTimes = isEspera ? "t_espera" : KEY_BY_MODE[heatMode as SingleMode];
+    const values = modeProfile.map((p) => p[key]);
     const max = Math.max(...values, 0.1);
-    return {
-      bars: values.map((v, i) => ({ idx: i, norm: v / max, raw: v })),
-      maxValue: max,
-    };
-  }, [modeProfile, heatMode, nCeldas]);
+    return { lines: null, barValues: values, maxValue: max };
+  }, [modeProfile, heatMode, isAll, isEspera]);
 
-  // Pendiente: desplaza la línea del "piso" proporcionalmente. Mantiene la
-  // intuición visual del original pero dentro del plot area.
+  // Pendiente: desplaza la línea del "piso" proporcionalmente.
   const slopeOffset = (xPct: number) => (pendientePct / 20) * (xPct - 50) * 0.4;
 
   const yTop = MARGIN.top;
   const yFloor = MARGIN.top + plotH;
+  const yOf = (v: number) => yFloor - (v / maxValue) * plotH;
+  const xOfCell = (i: number) => MARGIN.left + (i + 0.5) * barW;
+  const xOfKm = (km: number) => MARGIN.left + (km / largoKm) * plotW;
 
   const yTicks = useMemo(() => {
     if (maxValue <= 0) return [0];
@@ -96,6 +152,9 @@ export function CityStrip({
   }, [maxValue]);
 
   const fmt = (v: number) => (v >= 10 ? v.toFixed(0) : v.toFixed(1));
+
+  const showStations =
+    !!estacionesKm && estacionesKm.length > 0 && (isAll || isEspera || heatMode === "metro");
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
@@ -113,17 +172,9 @@ export function CityStrip({
         role="img"
         aria-label="Ciudad lineal"
       >
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--metro)" />
-            <stop offset="50%" stopColor="var(--auto)" />
-            <stop offset="100%" stopColor="var(--bici)" />
-          </linearGradient>
-        </defs>
-
         {/* Grid horizontales + etiquetas Y */}
         {yTicks.map((v, i) => {
-          const y = yFloor - (v / maxValue) * plotH;
+          const y = yOf(v);
           return (
             <g key={`yt-${i}`}>
               <line
@@ -157,31 +208,82 @@ export function CityStrip({
           transform="rotate(-90)"
           className="label"
         >
-          TIEMPO · MIN
+          {isEspera ? "ESPERA · MIN" : "TIEMPO · MIN"}
         </text>
 
-        {/* Barras — altura proporcional al tiempo real */}
-        {bars.map(({ idx, norm }) => {
-          const isCbd = idx === cbdIdx;
-          if (isCbd) return null;
-          const x = MARGIN.left + idx * barW;
-          const barH = Math.max(0.5, norm * plotH);
-          const floor = yFloor + slopeOffset(((idx + 0.5) / nCeldas) * 100);
-          return (
-            <rect
-              key={idx}
-              x={x}
-              y={floor - barH}
-              width={Math.max(barW - 0.15, 0.2)}
-              height={barH}
-              fill={modeProfile ? `url(#${gradId})` : "var(--rule)"}
-              opacity={0.85}
-              style={{
-                transition: "y 400ms ease-out, height 400ms ease-out, fill 400ms ease-out",
-              }}
+        {/* Marcadores de estación (posición km) */}
+        {showStations &&
+          estacionesKm!.map((km, i) => {
+            const x = xOfKm(km);
+            return (
+              <line
+                key={`st-${i}`}
+                x1={x}
+                y1={yTop}
+                x2={x}
+                y2={yFloor}
+                stroke="var(--metro)"
+                strokeWidth={0.7}
+                strokeDasharray="1 3"
+                opacity={0.5}
+              />
+            );
+          })}
+
+        {/* Barras (vistas de un modo o espera) */}
+        {barValues &&
+          barValues.map((raw, idx) => {
+            const isCbd = idx === cbdIdx;
+            if (isCbd) return null;
+            const x = MARGIN.left + idx * barW;
+            const barH = Math.max(0.5, (raw / maxValue) * plotH);
+            const floor = yFloor + slopeOffset(((idx + 0.5) / nCeldas) * 100);
+            const infeasible = cutoffMin != null && raw > cutoffMin;
+            return (
+              <rect
+                key={idx}
+                x={x}
+                y={floor - barH}
+                width={Math.max(barW - 0.15, 0.2)}
+                height={barH}
+                fill={singleColor}
+                opacity={infeasible ? 0.28 : 0.85}
+                style={{
+                  transition:
+                    "y 400ms ease-out, height 400ms ease-out, fill 400ms ease-out, opacity 400ms ease-out",
+                }}
+              />
+            );
+          })}
+
+        {/* Placeholder cuando aún no hay datos */}
+        {!modeProfile &&
+          Array.from({ length: nCeldas }).map((_, idx) =>
+            idx === cbdIdx ? null : (
+              <rect
+                key={`ph-${idx}`}
+                x={MARGIN.left + idx * barW}
+                y={yFloor - 0.5}
+                width={Math.max(barW - 0.15, 0.2)}
+                height={0.5}
+                fill="var(--rule)"
+              />
+            )
+          )}
+
+        {/* Líneas (vista "todos") — una por modo */}
+        {lines &&
+          lines.map((l) => (
+            <polyline
+              key={l.mode}
+              points={l.values.map((v, i) => `${xOfCell(i)},${yOf(v)}`).join(" ")}
+              fill="none"
+              stroke={l.color}
+              strokeWidth={1.6}
+              strokeLinejoin="round"
+              opacity={0.95}
             />
-          );
-        })}
+          ))}
 
         {/* Baseline del plot (eje X visual) */}
         <line
@@ -192,6 +294,32 @@ export function CityStrip({
           stroke="var(--ink)"
           strokeWidth={0.8}
         />
+
+        {/* Línea de corte de factibilidad del modo (caminata 30, bici 45). */}
+        {cutoffMin != null && cutoffMin > 0 && cutoffMin <= maxValue && (
+          <g>
+            <line
+              x1={MARGIN.left}
+              y1={yOf(cutoffMin)}
+              x2={MARGIN.left + plotW}
+              y2={yOf(cutoffMin)}
+              stroke="var(--accent)"
+              strokeWidth={1.2}
+              strokeDasharray="5 3"
+            />
+            {cutoffLabel && (
+              <text
+                x={MARGIN.left + plotW}
+                y={yOf(cutoffMin) - 4}
+                textAnchor="end"
+                className="label"
+                fill="var(--accent)"
+              >
+                {cutoffLabel}
+              </text>
+            )}
+          </g>
+        )}
 
         {/* CBD marker */}
         {(() => {
@@ -220,7 +348,7 @@ export function CityStrip({
           );
         })()}
 
-        {/* Etiquetas X: 0 / CBD / L en km */}
+        {/* Etiquetas X: 0 / L en km */}
         <text x={MARGIN.left} y={H - 8} textAnchor="start" className="label">
           0 KM
         </text>

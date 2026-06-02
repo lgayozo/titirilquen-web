@@ -16,6 +16,10 @@ import type { CoupledResult } from "@/lib/types-v2";
 
 interface OuterTrajectoryProps {
   result: CoupledResult;
+  /** Geometría para reconstruir la oferta S(i) y la distribución por estrato. */
+  nCeldas: number;
+  totalHogares: number;
+  sigmaFrac: number;
   className?: string;
 }
 
@@ -27,10 +31,38 @@ interface OuterTrajectoryProps {
  * Permite al estudiante ver cómo la ciudad "se reacomoda" mientras suelo y
  * transporte convergen mutuamente.
  */
-export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
+export function OuterTrajectory({
+  result,
+  nCeldas,
+  totalHogares,
+  sigmaFrac,
+  className,
+}: OuterTrajectoryProps) {
   const { t } = useTranslation("simulator");
   const [selected, setSelected] = useState(result.iterations.length - 1);
   const iter = result.iterations[selected];
+
+  // Oferta S(i) determinista (espejo de land_use/supply.py:generar_oferta_normal_det),
+  // constante en el loop. La distribución por estrato se reconstruye como
+  // hogares[h,i] = round(S[i]·Q[h,i]) — la asignación esperada del equilibrio.
+  const S = useMemo(() => {
+    const CBD = Math.floor(nCeldas / 2);
+    const sigma = Math.max(sigmaFrac * Math.min(CBD, nCeldas - 1 - CBD), 1e-6);
+    const w = new Array(nCeldas).fill(0).map((_, i) => Math.exp(-0.5 * ((i - CBD) / sigma) ** 2));
+    w[CBD] = 0;
+    const total = w.reduce((a, b) => a + b, 0) || 1;
+    const target = w.map((x) => (x / total) * totalHogares);
+    const arr = target.map((x) => Math.floor(x));
+    const resto = totalHogares - arr.reduce((a, b) => a + b, 0);
+    const order = target
+      .map((x, i) => ({ frac: i === CBD ? -1 : x - Math.floor(x), i }))
+      .sort((a, b) => b.frac - a.frac);
+    for (let k = 0; k < resto && k < order.length; k++) {
+      const idx = order[k]!.i;
+      arr[idx] = (arr[idx] ?? 0) + 1;
+    }
+    return arr;
+  }, [nCeldas, totalHogares, sigmaFrac]);
 
   const residualData = useMemo(
     () =>
@@ -52,7 +84,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
   const parcelasForSlide =
     isLast && result.final_parcelas.length > 0
       ? result.final_parcelas
-      : approximateParcelasFromQ(iter.land_use.Q);
+      : reconstructParcelas(iter.land_use.Q, S);
 
   return (
     <div className={cn(className)} style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
@@ -235,27 +267,20 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * Aproxima la distribución espacial a partir de la matriz Q: para cada parcela
- * `i`, sortea el estrato con más masa en Q[:, i]. Es una reconstrucción
- * determinista — no captura la aleatoriedad del algoritmo original — pero
- * sirve para ilustrar cómo la ciudad evoluciona entre iteraciones.
+ * Reconstruye la distribución espacial de hogares por estrato a partir de la
+ * matriz Q y la oferta S: para cada parcela `i`, el estrato `h` aporta
+ * `round(S[i]·Q[h,i])` hogares (la asignación esperada del equilibrio logit,
+ * dado que Q[:,i] suma 1 y la parcela tiene S[i] lotes). Reproduce la campana
+ * con las magnitudes reales, consistente con la vista standalone.
  */
-function approximateParcelasFromQ(Q: number[][]): number[][] {
+function reconstructParcelas(Q: number[][], S: readonly number[]): number[][] {
   const nStrata = Q.length;
-  const I = Q[0]?.length ?? 0;
+  const I = S.length;
   const parcelas: number[][] = Array.from({ length: I }, () => []);
   for (let i = 0; i < I; i++) {
-    let bestH = -1;
-    let bestV = -Infinity;
     for (let h = 0; h < nStrata; h++) {
-      const v = Q[h]?.[i] ?? 0;
-      if (v > bestV) {
-        bestV = v;
-        bestH = h;
-      }
-    }
-    if (bestH >= 0 && bestV > 0) {
-      parcelas[i]!.push(bestH + 1);
+      const cnt = Math.round((S[i] ?? 0) * (Q[h]?.[i] ?? 0));
+      for (let k = 0; k < cnt; k++) parcelas[i]!.push(h + 1);
     }
   }
   return parcelas;

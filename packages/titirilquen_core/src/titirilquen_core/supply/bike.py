@@ -39,8 +39,15 @@ def demora_bici_tramo(
     alpha: float,
     beta: float,
     pendiente_porcentaje: float = 0.0,
+    v_caminata: float = 4.8,
 ) -> BikeSupplyResult:
-    """Calcula demoras acumuladas y flujos por celda hacia el CBD."""
+    """Calcula demoras acumuladas y flujos por celda hacia el CBD.
+
+    El tiempo por tramo se acota al de **caminata** (`dx / v_caminata · 60`):
+    una bici congestionada nunca puede ser más lenta que caminar, porque el
+    ciclista desmonta y empuja. Sin este piso, el modelo BPR acumulado puede dar
+    tiempos absurdos en la periferia bajo congestión fuerte (ver D-15).
+    """
     N = len(demanda)
     idx_centro = int((ubicacion_centro_km / L_ciudad_km) * N)
     idx_centro = max(0, min(idx_centro, N - 1))
@@ -50,6 +57,8 @@ def demora_bici_tramo(
     v_der = _velocidad_con_pendiente(v_media, -pendiente_porcentaje)
     t0_izq = (dx / v_izq) * 60
     t0_der = (dx / v_der) * 60
+    # Piso: el tramo de bici no puede tardar más que caminar ese tramo.
+    t_tramo_walk = (dx / max(v_caminata, 1e-6)) * 60
 
     t_usuarios = np.zeros(N)
     flujos = np.zeros(N)
@@ -61,6 +70,7 @@ def demora_bici_tramo(
         flujo_izq = np.cumsum(d_izq)
         flujos[:idx_centro] = flujo_izq
         t_local = t0_izq * (1 + alpha * ((flujo_izq / capacidad) ** beta))
+        t_local = np.minimum(t_local, t_tramo_walk)
         t_ac_izq = np.cumsum(t_local[::-1])[::-1]
         t_usuarios[:idx_centro] = t_ac_izq - (t_local / 2)
 
@@ -69,6 +79,7 @@ def demora_bici_tramo(
         flujo_der = np.cumsum(d_der[::-1])[::-1]
         flujos[idx_centro + 1 :] = flujo_der
         t_local = t0_der * (1 + alpha * ((flujo_der / capacidad) ** beta))
+        t_local = np.minimum(t_local, t_tramo_walk)
         t_ac_der = np.cumsum(t_local)
         t_usuarios[idx_centro + 1 :] = t_ac_der - (t_local / 2)
 

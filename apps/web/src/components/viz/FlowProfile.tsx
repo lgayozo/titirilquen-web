@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 
@@ -13,18 +13,21 @@ interface FlowProfileProps {
   /** Capacidad del corredor — se muestra como pill informativa, NO como línea
    *  sobre la escala (está en unidad distinta: total vs por celda). */
   capacityHint?: string;
+  /** Formateo de valores (encabezado "max" y ticks Y). Default: redondeo entero. */
+  valueFmt?: (v: number) => string;
   height?: number;
   className?: string;
 }
 
+const MARGIN = { top: 16, right: 10, bottom: 18, left: 40 };
+
 /**
  * Perfil de demanda por celda de origen a lo largo de la ciudad.
  *
- * Escala Y: `yMax` compartido entre paneles (eje común para permitir
- * comparación visual Auto vs Bici vs Metro). Si no se entrega, usa el máximo
- * local del vector.
- *
- * Incluye regla vertical en el CBD y ticks de eje Y sutiles.
+ * Todo (ejes, ticks, etiquetas, encabezado) se dibuja DENTRO del `<svg>` con
+ * ancho medido en píxeles reales — así la figura exporta completa a SVG/PNG y
+ * el texto no se deforma. Escala Y: `yMax` compartido entre paneles para
+ * comparación visual; si no se entrega, usa el máximo local.
  */
 export function FlowProfile({
   flows,
@@ -33,103 +36,135 @@ export function FlowProfile({
   color = "var(--ink)",
   yMax = null,
   capacityHint,
+  valueFmt = (v: number) => String(Math.round(v)),
   height = 120,
   className,
 }: FlowProfileProps) {
-  const { path, linePath, max } = useMemo(() => {
-    const N = flows.length;
-    if (N === 0) return { path: "", linePath: "", max: 1 };
-    const localMax = Math.max(...flows, 1);
-    const scale = yMax != null ? Math.max(yMax, 1) : localMax;
-    const areaPts: string[] = [];
-    const linePts: string[] = [];
-    areaPts.push(`M0,100`);
-    flows.forEach((f, i) => {
-      const x = (i / (N - 1)) * 100;
-      const y = 100 - (Math.min(f, scale) / scale) * 92;
-      areaPts.push(`L${x.toFixed(2)},${y.toFixed(2)}`);
-      linePts.push(`${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`);
-    });
-    areaPts.push(`L100,100`);
-    areaPts.push(`Z`);
-    return { path: areaPts.join(" "), linePath: linePts.join(" "), max: localMax };
-  }, [flows, yMax]);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [W, setW] = useState(360);
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => setW(Math.max(240, el.clientWidth));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
-  // Ticks Y a 0, 1/2, 1
-  const effectiveMax = yMax ?? max;
-  const ticks = [0, effectiveMax / 2, effectiveMax];
+  const H = height + MARGIN.top + MARGIN.bottom;
+  const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
+  const plotH = height;
+  const yTop = MARGIN.top;
+  const yFloor = MARGIN.top + plotH;
+
+  const { areaPath, linePath, localMax } = useMemo(() => {
+    const N = flows.length;
+    if (N < 2) return { areaPath: "", linePath: "", localMax: Math.max(...flows, 1) };
+    const lMax = Math.max(...flows, 1);
+    const scale = yMax != null ? Math.max(yMax, 1) : lMax;
+    const xOf = (i: number) => MARGIN.left + (i / (N - 1)) * plotW;
+    const yOf = (f: number) => yFloor - (Math.min(f, scale) / scale) * plotH;
+    const line: string[] = [];
+    flows.forEach((f, i) => {
+      line.push(`${i === 0 ? "M" : "L"}${xOf(i).toFixed(2)},${yOf(f).toFixed(2)}`);
+    });
+    const area = `M${MARGIN.left.toFixed(2)},${yFloor} ${line.join(" ").slice(1)} L${(MARGIN.left + plotW).toFixed(2)},${yFloor} Z`;
+    return { areaPath: area, linePath: line.join(" "), localMax: lMax };
+  }, [flows, yMax, plotW, plotH, yFloor]);
+
+  const scale = yMax != null ? Math.max(yMax, 1) : localMax;
+  const effectiveMax = yMax ?? localMax;
+  const ticks = [0, scale / 2, scale];
+  const cbdX = MARGIN.left + plotW / 2;
 
   return (
-    <div className={cn("relative", className)}>
-      <div className="mb-1 flex items-baseline justify-between text-[11px]">
-        <span className="font-fig uppercase tracking-[0.06em] text-muted">
-          {label ?? ""}
-        </span>
-        <span className="font-fig tabular-nums text-muted">
-          max {Math.round(max)}
-          {capacityHint && <span className="ml-2 opacity-70">cap {capacityHint}</span>}
-        </span>
-      </div>
-
-      <div
-        className="relative"
-        style={{ height, border: "1px solid var(--rule)", background: "var(--paper-2)" }}
+    <div ref={wrapRef} className={cn("relative", className)}>
+      <svg
+        width={W}
+        height={H}
+        viewBox={`0 0 ${W} ${H}`}
+        className="block"
+        style={{ display: "block", maxWidth: "100%", background: "var(--paper-2)", border: "1px solid var(--rule)" }}
+        role="img"
+        aria-label={label ?? "flujo"}
       >
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="absolute inset-0 block h-full w-full"
-        >
-          {/* Grid-lines horizontales */}
-          {ticks.map((_, i) => {
-            const y = 100 - (i / (ticks.length - 1)) * 92 - 4;
-            return (
+        {/* Encabezado: label (izq) y max/cap (der) */}
+        {label && (
+          <text x={MARGIN.left} y={11} textAnchor="start" className="label">
+            {label}
+          </text>
+        )}
+        <text x={MARGIN.left + plotW} y={11} textAnchor="end" className="label" style={{ fontVariantNumeric: "tabular-nums" }}>
+          {`max ${valueFmt(localMax)}${capacityHint ? ` · cap ${capacityHint}` : ""}`}
+        </text>
+
+        {/* Grid + etiquetas Y */}
+        {ticks.map((v, i) => {
+          const y = yFloor - (v / scale) * plotH;
+          return (
+            <g key={i}>
               <line
-                key={i}
-                x1={0}
+                x1={MARGIN.left}
                 y1={y}
-                x2={100}
+                x2={MARGIN.left + plotW}
                 y2={y}
                 stroke="var(--rule)"
-                strokeWidth={0.25}
-                strokeDasharray="1 2"
-                opacity={0.7}
+                strokeWidth={0.6}
+                strokeDasharray="2 3"
+                opacity={0.6}
               />
-            );
-          })}
+              <text
+                x={MARGIN.left - 6}
+                y={y + 3}
+                textAnchor="end"
+                className="label"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
+                {valueFmt(v)}
+              </text>
+            </g>
+          );
+        })}
 
-          {/* CBD vertical */}
-          <line
-            x1={50}
-            y1={0}
-            x2={50}
-            y2={100}
-            stroke="var(--accent)"
-            strokeWidth={0.4}
-            strokeDasharray="1 1"
-            opacity={0.5}
-          />
+        {/* CBD vertical */}
+        <line
+          x1={cbdX}
+          y1={yTop}
+          x2={cbdX}
+          y2={yFloor}
+          stroke="var(--accent)"
+          strokeWidth={0.8}
+          strokeDasharray="2 2"
+          opacity={0.6}
+        />
 
-          {/* Área */}
-          <path d={path} fill={color} opacity={0.2} />
+        {/* Área + línea */}
+        {areaPath && <path d={areaPath} fill={color} opacity={0.2} />}
+        {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={1.2} />}
 
-          {/* Línea superior */}
-          <path d={linePath} fill="none" stroke={color} strokeWidth={0.8} />
-        </svg>
+        {/* Baseline */}
+        <line x1={MARGIN.left} y1={yFloor} x2={MARGIN.left + plotW} y2={yFloor} stroke="var(--ink)" strokeWidth={0.8} />
 
-        {/* Y-axis labels — absolutos en HTML para que no se deformen con preserveAspectRatio */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 flex-col justify-between py-1 pl-1 font-fig text-[9px] tabular-nums text-muted">
-          <span>{Math.round(effectiveMax)}</span>
-          <span>{Math.round(effectiveMax / 2)}</span>
-          <span>0</span>
-        </div>
-      </div>
-
-      <div className="flex justify-between font-fig text-[10px] uppercase tracking-[0.06em] text-muted">
-        <span>0 km</span>
-        <span>CBD</span>
-        <span>{largoKm.toFixed(0)} km</span>
-      </div>
+        {/* Etiquetas X */}
+        <text x={MARGIN.left} y={H - 5} textAnchor="start" className="label">
+          0 KM
+        </text>
+        <text x={cbdX} y={H - 5} textAnchor="middle" className="label" fill="var(--accent)">
+          CBD
+        </text>
+        <text
+          x={MARGIN.left + plotW}
+          y={H - 5}
+          textAnchor="end"
+          className="label"
+          style={{ fontVariantNumeric: "tabular-nums" }}
+        >
+          {largoKm.toFixed(0)} KM
+        </text>
+      </svg>
+      {/* effectiveMax expuesto para tooltips/lectores; no se muestra aparte */}
+      <span className="sr-only">{`max ${Math.round(effectiveMax)}`}</span>
     </div>
   );
 }

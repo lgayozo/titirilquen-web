@@ -14,7 +14,7 @@ from numpy.typing import NDArray
 from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult, solve_frechet, solve_logit
-from titirilquen_core.land_use.supply import generar_oferta_normal
+from titirilquen_core.land_use.supply import generar_oferta_normal_det
 
 
 def _default_T(n_parcelas: int, cbd_index: int, n_strata: int) -> NDArray[np.float64]:
@@ -59,7 +59,8 @@ class LandUseCity:
             rng = np.random.default_rng()
         N_total = int(sum(cfg.H_por_estrato))
         if S is None:
-            S = generar_oferta_normal(L, N_total, CBD, rng=rng)
+            sigma = cfg.oferta_sigma_frac * min(CBD, L - 1 - CBD)
+            S = generar_oferta_normal_det(L, N_total, CBD, stdv=sigma)
         if int(sum(S)) != N_total:
             raise ValueError(f"Σ S ({int(sum(S))}) ≠ Σ H ({N_total})")
 

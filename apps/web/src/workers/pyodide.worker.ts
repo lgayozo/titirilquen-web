@@ -121,6 +121,10 @@ def _trace_to_py(trace):
         "beta_auto_bpr": trace.beta_auto_bpr,
         "carga_metro": None if trace.carga_metro is None else trace.carga_metro.tolist(),
         "estaciones_km": None if trace.estaciones_km is None else trace.estaciones_km.tolist(),
+        "emisiones_total_kg": trace.emisiones_total_kg,
+        "emisiones_auto_kg": trace.emisiones_auto_kg,
+        "emisiones_metro_kg": trace.emisiones_metro_kg,
+        "emisiones_perfil_kg": None if trace.emisiones_perfil_kg is None else trace.emisiones_perfil_kg.tolist(),
         "iteraciones": [_snap_to_py(s) for s in trace.iteraciones],
         "agentes": [
             {

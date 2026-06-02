@@ -81,6 +81,10 @@ def trace_to_dict(trace: ConvergenceTrace) -> dict[str, Any]:
         "beta_auto_bpr": trace.beta_auto_bpr,
         "carga_metro": _to_list(trace.carga_metro),
         "estaciones_km": _to_list(trace.estaciones_km),
+        "emisiones_total_kg": trace.emisiones_total_kg,
+        "emisiones_auto_kg": trace.emisiones_auto_kg,
+        "emisiones_metro_kg": trace.emisiones_metro_kg,
+        "emisiones_perfil_kg": _to_list(trace.emisiones_perfil_kg),
         "iteraciones": [iteration_to_dict(s) for s in trace.iteraciones],
         "agentes": [
             {

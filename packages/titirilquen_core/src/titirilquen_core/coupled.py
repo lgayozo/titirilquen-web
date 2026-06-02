@@ -54,18 +54,30 @@ class CoupledResult:
     converged: bool = False
 
 
+# Velocidad de referencia (km/h) para el fallback en minutos de la 1ª iteración.
+_V_REF_FALLBACK_KMH = 30.0
+
+
 def _aggregate_T(
     agentes: list[Agente],
     snap: IterationSnapshot,
     n_strata: int,
     n_celdas: int,
     cbd_index: int,
+    ancho_celda_km: float,
+    T_prev: NDArray[np.float64] | None = None,
 ) -> NDArray[np.float64]:
     """Construye T[h, i] = tiempo de viaje esperado del estrato h desde la celda i.
 
-    Se usa el tiempo del modo efectivamente elegido por cada agente (de la
-    última iteración del MSA). Para celdas/estratos sin agentes representativos,
-    se cae a la distancia euclidiana al CBD (fallback estable).
+    Se usa el tiempo (en minutos) del modo efectivamente elegido por cada agente
+    (de la última iteración del MSA). Para celdas/estratos **sin agentes** de
+    muestra:
+      - si hay estado previo `T_prev`, se mantiene ese valor (carry-forward) —
+        así el residual refleja sólo cambios reales y no el ruido de qué celdas
+        quedaron vacías en cada sorteo;
+      - en la 1ª iteración (sin `T_prev`), se usa un fallback **en minutos**
+        (distancia km / velocidad de referencia · 60), no la distancia en
+        índices de celda.
     """
     T = np.zeros((n_strata, n_celdas), dtype=float)
     counts = np.zeros((n_strata, n_celdas), dtype=int)
@@ -82,19 +94,20 @@ def _aggregate_T(
         elif a.modo_elegido == "Bici":
             t = snap.t_bici[i]
         else:  # Caminata
-            # Aproximación: la BPR de caminata no se recalcula, asumimos constante.
-            # En V1 el t_cam se deriva en `calcular_utilidades` en el cliente.
-            t = abs(i - cbd_index) * (1.0 / 4.8) * 60  # distancia celda × (60/v_cam)
+            t = abs(i - cbd_index) * ancho_celda_km / 4.8 * 60  # dist_km / v_cam · 60
         T[h, i] += float(t)
         counts[h, i] += 1
 
-    # Celdas sin muestra: fallback a distancia*k_h
     mask = counts > 0
     with np.errstate(invalid="ignore", divide="ignore"):
         T = np.where(mask, T / np.maximum(counts, 1), T)
-    fallback = np.abs(np.arange(n_celdas) - cbd_index).astype(float)
-    for h in range(n_strata):
-        T[h, ~mask[h]] = fallback[~mask[h]]
+
+    if T_prev is not None:
+        T = np.where(mask, T, T_prev)
+    else:
+        dist_km = np.abs(np.arange(n_celdas) - cbd_index).astype(float) * ancho_celda_km
+        fallback_min = dist_km / _V_REF_FALLBACK_KMH * 60.0
+        T = np.where(mask, T, fallback_min[None, :])
     return T
 
 
@@ -140,7 +153,7 @@ def iter_coupled(
     city = LandUseCity.build(L=L, CBD=CBD, cfg=land_use_config, rng=rng)
 
     n_strata = len(land_use_config.H_por_estrato)
-    T_prev: NDArray[np.float64] | None = None
+    T_state: NDArray[np.float64] | None = None
 
     for outer in range(outer_max_iter):
         agentes = generar_poblacion_desde_land_use(
@@ -150,25 +163,30 @@ def iter_coupled(
             rng=rng,
         )
         transport_trace, final_snap = _run_transport_with_population(sim, agentes, ciudad)
-        T_new = _aggregate_T(agentes, final_snap, n_strata, L, CBD)
+        T_new = _aggregate_T(
+            agentes, final_snap, n_strata, L, CBD, ciudad.ancho_celda_km, T_state
+        )
 
-        residual = float("inf") if T_prev is None else float(np.max(np.abs(T_new - T_prev)))
+        residual = float("inf") if T_state is None else float(np.max(np.abs(T_new - T_state)))
+        # Amortiguación MSA del loop externo: T_state ← θ·T_new + (1-θ)·T_state.
+        if T_state is None:
+            T_state = T_new
+        else:
+            theta = 1.0 / (outer + 1)
+            T_state = theta * T_new + (1.0 - theta) * T_state
 
         assert city.result is not None
         yield OuterIteration(
             outer_iter=outer,
             land_use=city.result,
             transport=transport_trace,
-            T_matrix=T_new,
+            T_matrix=T_state.copy(),
             T_residual=residual,
         )
 
-        if T_prev is not None and residual < outer_tol:
-            T_prev = T_new
+        if outer > 0 and residual < outer_tol:
             break
-
-        T_prev = T_new
-        city.update(T=T_new, rng=rng)
+        city.update(T=T_state, rng=rng)
 
 
 def run_coupled(
@@ -193,7 +211,7 @@ def run_coupled(
 
     result = CoupledResult()
     n_strata = len(land_use_config.H_por_estrato)
-    T_prev: NDArray[np.float64] | None = None
+    T_state: NDArray[np.float64] | None = None
 
     for outer in range(outer_max_iter):
         agentes = generar_poblacion_desde_land_use(
@@ -203,8 +221,16 @@ def run_coupled(
             rng=rng,
         )
         transport_trace, final_snap = _run_transport_with_population(sim, agentes, ciudad)
-        T_new = _aggregate_T(agentes, final_snap, n_strata, L, CBD)
-        residual = float("inf") if T_prev is None else float(np.max(np.abs(T_new - T_prev)))
+        T_new = _aggregate_T(
+            agentes, final_snap, n_strata, L, CBD, ciudad.ancho_celda_km, T_state
+        )
+        residual = float("inf") if T_state is None else float(np.max(np.abs(T_new - T_state)))
+        # Amortiguación MSA del loop externo.
+        if T_state is None:
+            T_state = T_new
+        else:
+            theta = 1.0 / (outer + 1)
+            T_state = theta * T_new + (1.0 - theta) * T_state
 
         assert city.result is not None
         result.iterations.append(
@@ -212,18 +238,15 @@ def run_coupled(
                 outer_iter=outer,
                 land_use=city.result,
                 transport=transport_trace,
-                T_matrix=T_new,
+                T_matrix=T_state.copy(),
                 T_residual=residual,
             )
         )
 
-        if T_prev is not None and residual < outer_tol:
+        if outer > 0 and residual < outer_tol:
             result.converged = True
-            T_prev = T_new
             break
-
-        T_prev = T_new
-        city.update(T=T_new, rng=rng)
+        city.update(T=T_state, rng=rng)
 
     result.final_city = city
     if result.iterations:

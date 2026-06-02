@@ -2,6 +2,18 @@
 
 Este documento registra las divergencias entre el código fuente (`titirilquen-repo/`) y la documentación matemática en el Overleaf (`Titirilquen_overleaf/`). La política del proyecto es **tratar el código como fuente de verdad** y corregir la documentación matemática; este archivo preserva la trazabilidad de las decisiones.
 
+> **Nota (auditoría 2026-06):** el Overleaf original (`main.tex`, `Suelo.tex`) se
+> copió a `reference/overleaf/` (no versionado) y se auditó contra el core de esta
+> web. Hallazgos: la **config de demanda** (betas, costos, velocidades,
+> penalizaciones) y el flujo MSA (`f=1/(it+1)`, flujo‑libre iter 0 con
+> `t_acceso=10`, `t_espera=5`) son **fieles**. Se confirmaron D‑01/D‑02/D‑03/D‑05
+> y D‑08, y se detectó D‑16. Además, el Overleaf es **internamente inconsistente**
+> en varios puntos (sus ecuaciones contradicen sus propios listados de código): la
+> constante de pendiente (D‑01), la utilidad de bici aditiva vs multiplicativa
+> (D‑02) y los umbrales/β de caminata (D‑03/D‑05). El **loop acoplado** (D‑14) no
+> aparece en el Overleaf, y el **criterio de convergencia por tolerancia** (D‑10)
+> no existe en el original (solo `MAX_ITER`).
+
 Convenciones:
 - **Veredicto**: `Overleaf incorrecto` | `Código incorrecto` | `Equivalentes` | `Ambos describen distinto alcance`.
 - Las referencias a ecuaciones usan la numeración del Overleaf original.
@@ -157,7 +169,20 @@ Convenciones:
 - **Código** — `app.py:476`: `MAX_ITER = 12` fijo; no mide `‖T_n − T_{n−1}‖`.
 - **Análisis**: El loop MSA corre un número fijo de iteraciones sin verificar convergencia real. Con `f = 1/(it+1)`, 12 iteraciones suelen ser suficientes pero no garantizadas.
 - **Veredicto**: Limitación del implementación actual.
-- **Acción**: En `titirilquen_core.equilibrium.msa` añadir criterio `tol` con fallback a `MAX_ITER` y exponer residuo por iteración para visualización.
+- **Acción**: ✅ **Implementado** en `titirilquen_core.equilibrium.msa`:
+  - Corte cuando `residuo < tolerance` en **2 iteraciones consecutivas** (robusto
+    al ruido estocástico del residual), con fallback a `max_iter`. Con
+    `tolerance = 0` se mantiene el comportamiento anterior (sólo `max_iter`).
+  - El **residual es de toda la red** (máximo cambio de tiempo en auto, bici o
+    metro entre iteraciones), no sólo auto — antes podía ser ~0 mientras el resto
+    del sistema seguía cambiando.
+  - El corte se agregó también a `iter_msa` (streaming), antes ausente.
+  - **Fix de reproducibilidad**: `_run_final_assignments` ahora recibe el mismo
+    `rng` que generó la población (antes re‑sembraba) → `iter_msa` (vivo) y
+    `run_msa` (final) producen exactamente la misma corrida y cortan en la misma
+    iteración.
+  - App: default `tolerance = 0.1` min y slider en el panel *Equilibrio*; el KPI
+    indica si **convergió** o llegó a `max_iter`.
 
 ---
 
@@ -166,6 +191,145 @@ Convenciones:
 - **Código** — `app.py:256-278`: Define `generar_poblacion` con sampleo uniforme de estratos (`random.choice([1,2,3])`), pero el botón simular usa `mi_ciudad.generar_poblacion_completa(config)` que respeta la distribución generada por `Ciudad` (modelo Alonso).
 - **Veredicto**: Código muerto.
 - **Acción**: No portar a `titirilquen_core`.
+
+---
+
+## D-12 · Congestión de andén del metro prácticamente inactiva (+ artefacto)
+
+- **Código** — `titirilquen_core/supply/train.py:102-113` (portado de `app.py:237-238`):
+  ```python
+  capacidad_maxima_sistema = frec_max * capacidad_tren
+  ratio = carga_al_salir_estacion[i] / capacidad_maxima_sistema
+  factor = 1.0 if ratio <= 1 else 0.5 * ratio**4   # _ALFA=0.5, _BETA=4.0
+  t_espera = t_espera_base * factor
+  ```
+- **Análisis**:
+  1. **Umbral inalcanzable en operación normal.** El factor solo supera 1 cuando
+     `ratio > 2^¼ ≈ 1.19`, es decir cuando la carga de una estación supera
+     `frec_max · capacidad_tren` (24.000 pax con los valores por defecto). Una
+     ciudad típica tiene ~10.000 agentes en total: aunque el 100% tomara metro,
+     la carga máxima (~10k) nunca alcanza el umbral → `factor = 1` siempre →
+     espera plana `30/f_op`. Interpretación: mientras el sistema pueda **agregar
+     trenes** (`f_op < frec_max`) la espera no crece; recién al saturar la
+     frecuencia la carga extra se vuelve espera de andén.
+  2. **Discontinuidad no física.** Justo pasando `ratio = 1`, el factor cae de
+     `1.0` a `0.5·ratio⁴ ≈ 0.5` y solo vuelve a 1 en `ratio ≈ 1.19`; o sea, al
+     iniciarse la saturación la espera *disminuye* antes de dispararse.
+  3. **Bajo saturación real** (`f_op` fijada a `frec_max`, carga ≫ umbral) la
+     espera crece como `ratio⁴` y domina el tiempo de viaje (cientos de minutos).
+     Verificado empíricamente forzando `densidad_por_celda=300`,
+     `capacidad_tren=250`, `frec_max=12`.
+- **Veredicto**: Fiel al original (no es bug de la portación); limitación/artefacto
+  del modelo de oferta de tren.
+- **Acción**: Mantener idéntico al original (fuente de verdad). La vista
+  "Espera tren" de la Figura 1 (Sandbox) permite observar el efecto bajo
+  saturación. Si en el futuro se quisiera congestión visible en operación normal,
+  reformular el factor como una curva continua (p. ej. BPR `1 + α·ratio^β` sin la
+  caída a 0.5) y validar con los autores.
+
+---
+
+## D-13 · Oferta de suelo determinista + dispersión `σ` expuesta
+
+- **Código original** — `Ciudad2.py` / `supply.py:generar_oferta_normal`: la oferta
+  de vivienda `S[i]` se genera **muestreando** `N` hogares de una `Normal(CBD, stdv)`
+  y haciendo un histograma por parcela. `stdv` está **hardcodeado** en
+  `min(CBD, L-1-CBD)/2` (≈ L/4).
+- **Análisis**:
+  - Un histograma de muestras aleatorias es dentado parcela‑a‑parcela aunque la
+    densidad de fondo sea una campana suave (causa visual de la "peineta").
+  - `stdv` es un supuesto de **forma urbana** (compacidad ↔ dispersión de la
+    oferta de vivienda), pedagógicamente relevante pero invisible en la UI.
+- **Cambio (versión web)**:
+  1. Se añadió `supply.py:generar_oferta_normal_det` — discretiza la pdf
+     `Normal(CBD, σ)` directamente (excluyendo el CBD) y redondea por mayor
+     residuo garantizando `Σ S = N`. Curva suave, sin ruido de muestreo.
+  2. `LandUseCity.build` usa la versión determinista.
+  3. Se expuso `σ` vía `LandUseConfig.oferta_sigma_frac` (fracción de la
+     semi‑ciudad; `σ = frac · min(CBD, L-1-CBD)`), con slider en el panel de
+     Uso de suelo. Default `0.5` ⇒ `σ ≈ L/4`, preservando la magnitud original.
+  - La función estocástica original se conserva (`generar_oferta_normal`).
+- **Veredicto**: Divergencia intencional respecto al original (estocástico → 
+  determinista) + exposición de un parámetro antes hardcodeado.
+- **Acción**: Mantener. Interpretación: `oferta_sigma_frac` = compacidad urbana
+  (menor ⇒ ciudad compacta junto al CBD; mayor ⇒ dispersa). λ_h sigue gobernando
+  la **segregación** de estratos (los colores), no la altura.
+
+---
+
+## D-14 · Loop acoplado: residual espurio (unidades) + sin amortiguar (V2)
+
+- **Código (V2, nuevo en esta web)** — `coupled.py:_aggregate_T`: las celdas/estratos
+  sin agentes de muestra caían a un fallback `|i - CBD|` que es **distancia en
+  índices de celda**, no en minutos (valores hasta ~100 vs tiempos reales ~0–30).
+  Como qué celdas quedan vacías varía estocásticamente por iteración, el residual
+  `||T_n − T_{n−1}||_∞` quedaba dominado por ese ruido (≈ 188 → 241, creciendo).
+  Además el loop exterior aplicaba `T_new` directo (sin amortiguar).
+- **Veredicto**: Bug de implementación del módulo V2 (no hay contraparte Overleaf).
+- **Acción (aplicada)**:
+  1. Fallback **en minutos** (`dist_km / 30 km/h · 60`) en la 1ª iteración y
+     **carry‑forward** del estado previo para celdas vacías → el residual refleja
+     sólo cambios reales (pasó a ~10–20 min).
+  2. **Amortiguación MSA** del loop exterior: `T_state ← θ·T_new + (1−θ)·T_state`
+     con `θ = 1/(n+1)`.
+  - Persiste un piso de ~10 min por el remuestreo estocástico de población en cada
+    iteración exterior (no es divergencia).
+- **Frontend asociado**: en modo acoplado se ocultó la FIG 01 (quedaba vacía por
+  `final_parcelas=[]`) y la FIG 04 reconstruye la distribución como
+  `round(S[i]·Q[h,i])` (campana real) en vez de 1 hogar/parcela.
+
+---
+
+## D-15 · Bici sin piso de velocidad: podía ser más lenta que caminar
+
+- **Código original** — `supply/bike.py:demora_bici_tramo`: el tiempo de bici es
+  la suma acumulada de tramos hacia el CBD, con BPR sobre el **flujo acumulado**
+  (`cumsum`). No tiene cota superior.
+- **Análisis**: como todos los viajes de bici confluyen al centro, los tramos
+  centrales acumulan `flujo/capacidad ≫ 1` y con `β=2` el BPR explota; la
+  periferia hereda esa suma. Bajo congestión fuerte da tiempos absurdos
+  (ej.: 766 min en la periferia vs 124 min caminando y 42 min en flujo libre).
+  Viola un límite físico básico: **una bici nunca debería ser más lenta que
+  caminar** (el ciclista desmonta y empuja).
+- **Veredicto**: Bug físico del modelo (fiel al original, pero inconsistente).
+- **Acción (aplicada)**: piso por tramo — `t_bici_tramo ≤ dx / v_caminata · 60`.
+  Garantiza `t_bici ≤ t_caminata` en toda celda. No altera el comportamiento con
+  demanda baja (donde la bici ya es más rápida); sólo acota los casos
+  congestionados. Se pasa `v_caminata` a `demora_bici_tramo` desde `msa.py`.
+
+---
+
+## D-16 · Constantes de congestión de andén distintas al Overleaf
+
+- **Overleaf** — `main.tex` (eq. de $t_e$ y listado de código): la penalización por
+  congestión de andén es `t_e = (30/f_op)·α·ρ^β` para `ρ > 1`, y el listado de
+  código declara explícitamente **`α = 10, β = 10`**. Con esos valores, apenas
+  `ρ > 1` el factor **salta a ~10×** (penalización abrupta y creciente).
+- **Código** — `supply/train.py`: `_ALFA_CONGESTION = 0.5`, `_BETA_CONGESTION = 4.0`
+  → `factor = 0.5·ρ^4` para `ρ > 1` (con comentario "ver app.py:237-238").
+- **Análisis**: los valores difieren y, peor, **cambian el comportamiento
+  cualitativo**: con `0.5·ρ^4` el factor *cae* a 0.5 justo sobre `ρ=1` y solo
+  supera 1 en `ρ > 2^¼ ≈ 1.19` (ver D‑12), mientras que con `α=10, β=10` el factor
+  salta hacia arriba. No se puede saber cuál refleja el `app.py` real sin el
+  código original (no disponible).
+- **Veredicto**: Discrepancia código ↔ Overleaf (constantes y forma).
+- **Acción**: Decidir la calibración correcta de andén junto con D‑12 (idealmente
+  reformular como BPR continua sin el salto). Pendiente de decisión de los autores.
+
+---
+
+## D-17 · Signo de `f_h` en la disposición a pagar (Suelo)
+
+- **Overleaf** — `Suelo.tex`, *willingness to pay*: `w_h(u,i) = y_h − (u_h + f_h(i))/λ`.
+- **Código** — `land_use/equilibrium.py`: usa `y + f/λ` (`logw = y + f_dl`, y el
+  operador `z_hi = H_h·e^{β(y + f_h/λ_h)}`).
+- **Análisis**: despejando `p_i` de `u_h = λ_h(y_h − p_i) + f_h(i)` se obtiene
+  `p_i = y_h − (u_h − f_h(i))/λ_h = y_h − u_h/λ_h + f_h/λ_h`. La ecuación del
+  Overleaf tiene el signo de `f_h` invertido (`− f/λ` en vez de `+ f/λ`). El
+  propio operador de punto fijo del Overleaf usa `+ f/λ`, así que es una
+  inconsistencia interna; el código es correcto.
+- **Veredicto**: Overleaf incorrecto (typo de signo).
+- **Acción**: Corregir la ecuación de WTP en `Suelo.tex` a `y_h − (u_h − f_h(i))/λ_h`.
 
 ---
 
@@ -184,3 +348,9 @@ Convenciones:
 | D-09 | Parámetros hardcodeados | UI | Media (fix en web v1) |
 | D-10 | Sin criterio de convergencia | Mejora | Media (fix en core) |
 | D-11 | `generar_poblacion` muerta | Limpieza | Baja |
+| D-12 | Congestión de andén metro inactiva (+ artefacto) | Fiel al original (artefacto) | Baja |
+| D-13 | Oferta de suelo determinista + σ expuesta | Divergencia intencional | Media |
+| D-14 | Loop acoplado: residual espurio (unidades) + MSA | Bug V2 corregido | Alta |
+| D-15 | Bici sin piso de velocidad (podía ser > caminata) | Bug físico corregido | Alta |
+| D-16 | Constantes congestión andén (α,β) ≠ Overleaf | Discrepancia código↔Overleaf | Media |
+| D-17 | Signo de f_h en WTP (Suelo) | Overleaf incorrecto (typo) | Media |

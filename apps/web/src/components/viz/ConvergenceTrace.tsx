@@ -94,6 +94,9 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
     typeof v === "number" ? `${v.toFixed(3)} min` : String(v);
   const fmtTrips = (v: number | string) =>
     typeof v === "number" ? `${v.toLocaleString()} ${t("convergence.trips_unit")}` : String(v);
+  // Ticks compactos (10000 → "10k") para que no invadan la etiqueta del eje Y.
+  const fmtTickCompact = (v: number) =>
+    Math.abs(v) >= 1000 ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `${v}`;
 
   return (
     <div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2", className)}>
@@ -118,12 +121,14 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                 tickLine={{ stroke: "var(--rule)" }}
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
+                width={58}
+                tickFormatter={(v: number) => v.toFixed(3)}
                 label={{
                   value: t("convergence.y_min"),
                   angle: -90,
                   position: "insideLeft",
-                  offset: 18,
-                  style: { ...AXIS_STYLE, fill: "var(--muted)" },
+                  offset: 6,
+                  style: { ...AXIS_STYLE, fill: "var(--muted)", textAnchor: "middle" },
                 }}
               />
               <Tooltip
@@ -165,12 +170,14 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                 tickLine={{ stroke: "var(--rule)" }}
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
+                width={52}
+                tickFormatter={fmtTickCompact}
                 label={{
                   value: t("convergence.y_trips"),
                   angle: -90,
                   position: "insideLeft",
-                  offset: 18,
-                  style: { ...AXIS_STYLE, fill: "var(--muted)" },
+                  offset: 12,
+                  style: { ...AXIS_STYLE, fill: "var(--muted)", textAnchor: "middle" },
                 }}
               />
               <Tooltip

@@ -347,7 +347,6 @@ function Katex({ src }: { src: string }) {
   return (
     <div
       className="fc-tooltip-formula"
-      // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

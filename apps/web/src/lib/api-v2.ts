@@ -96,4 +96,5 @@ export const defaultLandUseConfig: LandUseConfig = {
   solver: "logit",
   tol: 1e-8,
   max_iter: 2000,
+  oferta_sigma_frac: 0.5,
 };

@@ -71,6 +71,8 @@ export function LandUsePage() {
 
   const parcelas = mode === "standalone" ? result?.parcelas : coupledResult?.final_parcelas;
   const prices = mode === "standalone" ? result?.result.p : null;
+  const hasResult = mode === "standalone" ? !!result : !!coupledResult;
+  const totalHogares = config.H_por_estrato.reduce((a, b) => a + b, 0);
 
   return (
     <div className="page">
@@ -186,22 +188,24 @@ export function LandUsePage() {
           </p>
         </div>
 
-        {parcelas ? (
+        {hasResult ? (
           <div className="panel-grid">
-            <Panel
-              n="01"
-              title={tS("land_use.heading_distribution")}
-              meta="bid-rent · 3 strata"
-              cls="col-7"
-            >
-              <ExportableFigure
-                name="distribucion-estratos"
+            {mode === "standalone" && parcelas && parcelas.length > 0 && (
+              <Panel
+                n="01"
                 title={tS("land_use.heading_distribution")}
-                exportSize={{ width: 1000, height: 260 }}
+                meta="bid-rent · 3 strata"
+                cls="col-7"
               >
-                <StratumDistribution parcelas={parcelas} />
-              </ExportableFigure>
-            </Panel>
+                <ExportableFigure
+                  name="distribucion-estratos"
+                  title={tS("land_use.heading_distribution")}
+                  exportSize={{ width: 1000, height: 260 }}
+                >
+                  <StratumDistribution parcelas={parcelas} />
+                </ExportableFigure>
+              </Panel>
+            )}
 
             {prices && (
               <Panel
@@ -231,7 +235,12 @@ export function LandUsePage() {
                   <CoupledMetrics result={coupledResult} landUseConfig={config} />
                 </Panel>
                 <Panel n="04" title={tS("land_use.outer_iterations")} cls="col-12">
-                  <OuterTrajectory result={coupledResult} />
+                  <OuterTrajectory
+                    result={coupledResult}
+                    nCeldas={L}
+                    totalHogares={totalHogares}
+                    sigmaFrac={config.oferta_sigma_frac}
+                  />
                 </Panel>
               </>
             )}

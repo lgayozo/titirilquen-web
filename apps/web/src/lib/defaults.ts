@@ -129,7 +129,10 @@ export const defaultSimulationConfig: SimulationConfig = {
     },
   },
   demand: defaultDemandConfig,
-  max_iter: 10,
-  tolerance: 0,
+  max_iter: 12,
+  // Criterio de convergencia: corta cuando el máximo cambio de tiempo de viaje
+  // (cualquier modo/celda) es < tolerance min en 2 iteraciones consecutivas.
+  tolerance: 0.1,
   seed: 42,
+  assignment: "montecarlo",
 };

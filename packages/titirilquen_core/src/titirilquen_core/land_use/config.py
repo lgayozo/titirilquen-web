@@ -48,6 +48,16 @@ class LandUseConfig(BaseModel):
     solver: SolverKind = "logit"
     tol: float = Field(default=1e-8, gt=0)
     max_iter: int = Field(default=10000, ge=1)
+    oferta_sigma_frac: float = Field(
+        default=0.5,
+        gt=0,
+        le=1.5,
+        description=(
+            "Dispersión de la oferta de vivienda como fracción de la semi-ciudad: "
+            "σ = frac · min(CBD, L-1-CBD). Menor ⇒ ciudad compacta (vivienda junto "
+            "al CBD); mayor ⇒ ciudad dispersa. Default 0.5 = σ ≈ L/4."
+        ),
+    )
 
     @field_validator("H_por_estrato")
     @classmethod

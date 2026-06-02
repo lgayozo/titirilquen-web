@@ -20,6 +20,9 @@ export interface LandUseConfig {
   solver: "logit" | "frechet";
   tol: number;
   max_iter: number;
+  /** Dispersión de la oferta de vivienda (σ como fracción de la semi‑ciudad).
+   *  Menor ⇒ ciudad compacta; mayor ⇒ dispersa. Default 0.5. */
+  oferta_sigma_frac: number;
 }
 
 export interface LandUseResult {

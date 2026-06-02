@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  core:
+    name: Python (core + api)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install (core primero, luego api que depende de él)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "packages/titirilquen_core[dev]"
+          pip install -e "apps/api[dev]"
+      - name: Ruff (no bloqueante)
+        continue-on-error: true
+        run: ruff check packages/titirilquen_core apps/api
+      - name: Pytest — core
+        run: pytest packages/titirilquen_core
+      - name: Pytest — api
+        run: pytest apps/api
+
+  web:
+    name: Web (typecheck + lint + build + e2e)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck --workspace @titirilquen/web
+      - name: Lint
+        run: npm run lint --workspace @titirilquen/web
+      - name: Build (tsc + vite)
+        run: npm run build --workspace @titirilquen/web
+      - name: Instalar navegador Playwright
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: E2E (rápido, excluye @slow que requiere CDN/Pyodide)
+        working-directory: apps/web
+        run: npm run test:e2e:fast

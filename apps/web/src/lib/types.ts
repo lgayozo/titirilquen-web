@@ -105,6 +105,9 @@ export interface SimulationConfig {
   max_iter: number;
   tolerance: number;
   seed: number | null;
+  /** Método de asignación de demanda: Monte Carlo (sorteo por agente) o
+   *  flujos esperados (probabilidades logit, determinista). */
+  assignment: "montecarlo" | "expected";
 }
 
 export interface IterationSnapshot {
@@ -141,6 +144,10 @@ export interface SimulationResult {
   beta_auto_bpr: number;
   carga_metro: number[] | null;
   estaciones_km: number[] | null;
+  emisiones_total_kg: number;
+  emisiones_auto_kg: number;
+  emisiones_metro_kg: number;
+  emisiones_perfil_kg: number[] | null;
   iteraciones: IterationSnapshot[];
   agentes: AgentRecord[];
 }

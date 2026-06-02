@@ -181,3 +181,11 @@ class SimulationConfig(BaseModel):
     max_iter: int = Field(default=12, ge=1, le=100)
     tolerance: float = Field(default=0.0, ge=0)
     seed: int | None = None
+    assignment: Literal["montecarlo", "expected"] = Field(
+        default="montecarlo",
+        description=(
+            "Método de asignación de demanda: 'montecarlo' sortea el modo de cada "
+            "agente (estocástico); 'expected' usa los flujos esperados = "
+            "probabilidades logit (determinista, sin ruido entre iteraciones)."
+        ),
+    )

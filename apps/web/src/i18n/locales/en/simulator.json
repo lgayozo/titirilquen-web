@@ -59,6 +59,12 @@
   "equilibrium": {
     "max_iter": "Max iterations",
     "tolerance": "Convergence tolerance",
+    "tol_off": "off",
+    "assignment": "Assignment method",
+    "assignment_mc": "Monte Carlo",
+    "assignment_expected": "Expected flows",
+    "assignment_hint_montecarlo": "Samples each agent's mode (stochastic; noisy across iterations).",
+    "assignment_hint_expected": "Fractional assignment by logit probabilities (deterministic, noise-free).",
     "residual": "Residual",
     "iteration": "Iteration {{n}} of {{total}}",
     "converged": "Equilibrium reached",
@@ -96,7 +102,25 @@
     "modal_split_last": "Modal split (last iteration)",
     "flow_per_cell": "{{mode}} — demand per cell",
     "mode_share_by_location": "Modal split by location",
-    "city_figure_desc": "Linear city of {{length}} km with {{cells}} cells. CBD at center. Bar height and color scale with travel time on {{mode}}."
+    "city_figure_desc": "Linear city of {{length}} km with {{cells}} cells. CBD at center. Bar height and color scale with travel time on {{mode}}.",
+    "cutoff_label": "{{min}} min · infeasible →",
+    "view_all": "All modes",
+    "view_wait": "Train wait",
+    "trips_by_stratum": "Mode split by stratum",
+    "trips_by_car_ownership": "Car ownership by stratum",
+    "utility_scatter": "Utility dispersion",
+    "utility_axis": "UTILITY",
+    "position_axis": "CITY POSITION · KM",
+    "with_car": "with car",
+    "without_car": "without car",
+    "sample_note": "showing {{shown}} of {{total}}",
+    "stratum_alto": "High",
+    "stratum_medio": "Mid",
+    "stratum_bajo": "Low",
+    "avg_time_by_mode": "Avg travel time by mode",
+    "avg_time_by_stratum": "Avg travel time by stratum",
+    "avg_utility_by_stratum": "Avg utility by stratum",
+    "co2_profile": "CO₂ by location"
   },
   "hero": {
     "title": "The linear city",
@@ -115,10 +139,13 @@
     "tele_pct": "Remote %",
     "frequency": "Operating freq",
     "co2": "Total CO₂",
+    "co2_split": "car {{auto}} · metro {{metro}}",
     "mean_time": "Mean time",
     "residual": "Residual",
     "trips_subline": "{{n}} trips",
-    "last_iteration": "Last iteration · {{n}}/{{total}}"
+    "last_iteration": "Last iteration · {{n}}/{{total}}",
+    "converged": "converged",
+    "maxiter": "max iterations (not converged)"
   },
   "hints": {
     "demand_title": "Demand",
@@ -194,6 +221,8 @@
     "param_alpha": "α (transport weight)",
     "param_rho": "ρ (density weight)",
     "param_lambda": "λ (marg. util. of income)",
+    "param_oferta_sigma": "Supply dispersion (σ)",
+    "oferta_sigma_hint": "Shape of housing supply: low = compact city (near CBD), high = sprawling.",
     "yes": "yes",
     "no": "no"
   },
