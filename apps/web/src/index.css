@@ -382,12 +382,17 @@ a:hover {
 }
 
 /* ----- Sidebar secciones desplegables (details/summary) ----- */
+/* El filete separa SECCIONES entre sí (va arriba de cada una), no el título de
+   su contenido — así el título "encabeza" lo que despliega en vez de quedar
+   detrás de una línea divisoria. */
 .sidebar-section {
-  margin-top: 18px;
+  border-top: 1px solid var(--rule);
+  padding: 14px 0;
 }
 
 .sidebar-section:first-child {
-  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
 }
 
 .sidebar-section > summary {
@@ -398,8 +403,6 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--rule);
   font-family: var(--font-fig);
   font-size: 10px;
   font-weight: 500;
@@ -420,6 +423,17 @@ a:hover {
 .sidebar-section > summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Sección abierta: el título se vuelve "dueño" del contenido (color tinta) y
+   deja aire antes de los controles. */
+.sidebar-section[open] > summary {
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.sidebar-section[open] > summary .sidebar-section-title {
+  color: var(--ink);
 }
 
 .sidebar-section-title {
@@ -447,8 +461,11 @@ a:hover {
   color: var(--accent);
 }
 
+/* El contenido desplegado se agrupa con sangría + filete a la izquierda, atado
+   visualmente a su título. */
 .sidebar-section-body {
-  padding-top: 10px;
+  padding-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 30%, var(--rule));
 }
 
 /* Nested: los <details> de estratos (LandUseBuilder) dentro del sidebar */
@@ -566,6 +583,27 @@ a:hover {
 .run-btn:disabled {
   opacity: 0.5;
   cursor: wait;
+}
+
+/* Acción secundaria: volver al plano para una nueva simulación */
+.reset-btn {
+  width: 100%;
+  padding: 9px;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  font-family: var(--font-fig);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 12px;
+  transition: background 150ms, border-color 150ms, color 150ms;
+}
+
+.reset-btn:hover {
+  background: var(--paper-2);
+  border-color: var(--ink);
 }
 
 /* Generic button */
@@ -1722,6 +1760,43 @@ table.cmp th {
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.12em;
+}
+
+/* City preview (plano pre-equilibrio) */
+.city-preview {
+  position: relative;
+}
+
+.city-preview-foot {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+
+.cpf-strata {
+  display: flex;
+  flex: 0 0 120px;
+  height: 10px;
+  margin-top: 3px;
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+
+.cpf-seg {
+  display: block;
+  height: 100%;
+}
+
+.cpf-caption {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
 }
 
 .network-diagram rect:hover {

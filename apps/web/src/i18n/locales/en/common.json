@@ -33,7 +33,8 @@
     "export_svg": "Export figure",
     "add_scenario": "Add scenario",
     "remove": "Remove",
-    "use_sandbox": "Current transport"
+    "use_sandbox": "Current transport",
+    "new_run": "New simulation"
   },
   "engine": {
     "label": "Engine",

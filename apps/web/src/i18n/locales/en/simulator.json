@@ -431,5 +431,20 @@
     "loading": "Loading tutorial",
     "not_found": "Tutorial {{slug}} not found.",
     "chapter": "Chapter {{n}}"
+  },
+  "preview": {
+    "aria": "Linear city blueprint: car corridor, metro line with stations and bike lane",
+    "slope": "slope {{pct}}%",
+    "spec_auto": "{{lanes}} lanes · {{width}} m",
+    "spec_metro": "{{stations}} st · {{cap}} pax",
+    "spec_bici": "{{cap}} bike/h",
+    "strata_aria": "Stratum composition (high · middle · low)",
+    "heading": "City blueprint",
+    "meta": "supply · demand · pre-equilibrium",
+    "caption": "Monocentric linear city of {{length}} km divided into {{cells}} cells (Δx ≈ {{dx}} m). Each cell is a trip origin toward the central CBD. In V1 demand is uniform —{{pop}} travellers, equal density per cell except the CBD— and supply (lanes, metro, bike lane) is homogeneous along the whole corridor.",
+    "export_desc": "City blueprint before running: infrastructure (supply) and trip origins (demand).",
+    "demand_label": "Origins",
+    "spec_demand": "{{pop}}/cell",
+    "tab": "Blueprint"
   }
 }

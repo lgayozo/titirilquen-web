@@ -437,5 +437,20 @@
     "loading": "Cargando tutorial",
     "not_found": "Tutorial {{slug}} no encontrado.",
     "chapter": "Capítulo {{n}}"
+  },
+  "preview": {
+    "aria": "Plano de la ciudad lineal: corredor de autos, línea de metro con estaciones y ciclovía",
+    "slope": "pendiente {{pct}}%",
+    "spec_auto": "{{lanes}} pistas · {{width}} m",
+    "spec_metro": "{{stations}} est · {{cap}} pax",
+    "spec_bici": "{{cap}} bici/h",
+    "strata_aria": "Composición de estratos (alto · medio · bajo)",
+    "heading": "Plano de la ciudad",
+    "meta": "oferta · demanda · pre-equilibrio",
+    "caption": "Ciudad lineal monocéntrica de {{length}} km dividida en {{cells}} celdas (Δx ≈ {{dx}} m). Cada celda es un origen de viajes hacia el CBD central. En V1 la demanda es uniforme —{{pop}} viajeros, misma densidad por celda salvo el CBD— y la oferta (pistas, metro, ciclovía) es homogénea en todo el corredor.",
+    "export_desc": "Plano de la ciudad antes de simular: infraestructura (oferta) y orígenes de viaje (demanda).",
+    "demand_label": "Orígenes",
+    "spec_demand": "{{pop}}/celda",
+    "tab": "Plano"
   }
 }

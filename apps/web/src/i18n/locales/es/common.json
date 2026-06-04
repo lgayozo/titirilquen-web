@@ -33,7 +33,8 @@
     "export_svg": "Exportar figura",
     "add_scenario": "Añadir escenario",
     "remove": "Eliminar",
-    "use_sandbox": "Transporte actual"
+    "use_sandbox": "Transporte actual",
+    "new_run": "Nueva simulación"
   },
   "engine": {
     "label": "Motor",

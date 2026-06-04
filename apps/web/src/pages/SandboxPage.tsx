@@ -11,6 +11,7 @@ import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CityPreview } from "@/components/viz/CityPreview";
 import { ConvergenceTrace } from "@/components/viz/ConvergenceTrace";
 import { FlowProfile } from "@/components/viz/FlowProfile";
 import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
@@ -18,26 +19,42 @@ import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
 import { NetworkDiagram } from "@/components/viz/NetworkDiagram";
 import { StatBars, type StatBar } from "@/components/viz/StatBars";
 import { UtilityScatter } from "@/components/viz/UtilityScatter";
-import { runSimulation, runSimulationStream } from "@/lib/api";
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { Modo } from "@/lib/types";
 import { useSimulationStore } from "@/store/simulationStore";
 
-type HeatMode = "auto" | "metro" | "bici" | "caminata" | "todos" | "espera";
+type HeatMode =
+  | "auto"
+  | "metro"
+  | "bici"
+  | "caminata"
+  | "todos"
+  | "espera"
+  | "plano";
 
-/** Opciones del toggle de la Figura 1, en orden. */
-const VIEW_OPTIONS: readonly HeatMode[] = ["auto", "metro", "bici", "caminata", "todos", "espera"];
+/** Opciones del toggle de la Figura 1, en orden. "plano" vuelve a la vista de
+ *  infraestructura (CityPreview) sin perder los resultados. */
+const VIEW_OPTIONS: readonly HeatMode[] = [
+  "auto",
+  "metro",
+  "bici",
+  "caminata",
+  "todos",
+  "espera",
+  "plano",
+];
 
 /** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
  *  elegible. Ver demand/utility.py — caminata > 30, bici > 45. */
-const MODE_CUTOFF: Partial<Record<HeatMode, number>> = { caminata: 30, bici: 45 };
+const MODE_CUTOFF: Partial<Record<HeatMode, number>> = {
+  caminata: 30,
+  bici: 45,
+};
 
 export function SandboxPage() {
   const { t } = useTranslation("simulator");
   const { t: tCommon } = useTranslation("common");
   const config = useSimulationStore((s) => s.config);
-  const engine = useSimulationStore((s) => s.engine);
-  const setEngine = useSimulationStore((s) => s.setEngine);
   const running = useSimulationStore((s) => s.running);
   const stage = useSimulationStore((s) => s.stage);
   const progress = useSimulationStore((s) => s.progress);
@@ -49,13 +66,25 @@ export function SandboxPage() {
   const finishRun = useSimulationStore((s) => s.finishRun);
   const failRun = useSimulationStore((s) => s.failRun);
   const pushIteration = useSimulationStore((s) => s.pushIteration);
+  const reset = useSimulationStore((s) => s.reset);
 
   const [heatMode, setHeatMode] = useState<HeatMode>("auto");
 
   const viewLabel = (m: HeatMode) =>
-    m === "todos" ? t("sandbox.view_all") : m === "espera" ? t("sandbox.view_wait") : t(`modes.${m}`);
+    m === "todos"
+      ? t("sandbox.view_all")
+      : m === "espera"
+        ? t("sandbox.view_wait")
+        : m === "plano"
+          ? t("preview.tab")
+          : t(`modes.${m}`);
 
   const lastIter = liveIterations.at(-1) ?? result?.iteraciones.at(-1);
+  // Antes de la primera iteración no hay perfil de tiempos: el hero muestra el
+  // "plano" (CityPreview) en vez de la cinta de tiempos (CityStrip). Con
+  // resultados, la pestaña "plano" del toggle vuelve a esa misma vista.
+  const hasData = lastIter != null;
+  const showPreview = !hasData || heatMode === "plano";
   const cellKm = config.city.largo_ciudad_km / config.city.n_celdas;
   const cbdIdx = Math.floor(config.city.n_celdas / 2);
   const vCaminata = config.demand.globales.v_caminata || 4.8;
@@ -86,25 +115,25 @@ export function SandboxPage() {
   };
 
   const handleRun = async () => {
+    // Si el toggle quedó en "plano", volver a una vista de resultados para no
+    // tapar la convergencia en vivo con la infraestructura estática.
+    if (heatMode === "plano") setHeatMode("auto");
     startRun(config.max_iter);
     try {
-      if (engine === "api") {
-        await runSimulationStream(config, (snap) => pushIteration(snap));
-        const final = await runSimulation(config);
-        finishRun(final);
-      } else {
-        const final = await pyodideEngine.simulateStream(config, (snap) =>
-          pushIteration(snap)
-        );
-        finishRun(final);
-      }
+      const final = await pyodideEngine.simulateStream(config, (snap) =>
+        pushIteration(snap),
+      );
+      finishRun(final);
     } catch (e) {
       failRun(e instanceof Error ? e.message : String(e));
     }
   };
 
   const totalAgents = lastIter
-    ? (Object.values(lastIter.modal_split) as number[]).reduce((s, n) => s + n, 0)
+    ? (Object.values(lastIter.modal_split) as number[]).reduce(
+        (s, n) => s + n,
+        0,
+      )
     : 0;
 
   const kpis = useMemo<KPI[]>(() => {
@@ -127,17 +156,39 @@ export function SandboxPage() {
     const count = (m: Modo) =>
       t("kpi.trips_subline", { n: Math.round(modal[m] ?? 0).toLocaleString() });
     return [
-      { label: t("kpi.trips"), value: Math.round(total - (modal.Teletrabajo ?? 0)).toLocaleString() },
-      { label: t("kpi.auto_pct"), value: pct("Auto"), color: "var(--auto)", delta: count("Auto") },
-      { label: t("kpi.metro_pct"), value: pct("Metro"), color: "var(--metro)", delta: count("Metro") },
-      { label: t("kpi.bici_pct"), value: pct("Bici"), color: "var(--bici)", delta: count("Bici") },
+      {
+        label: t("kpi.trips"),
+        value: Math.round(total - (modal.Teletrabajo ?? 0)).toLocaleString(),
+      },
+      {
+        label: t("kpi.auto_pct"),
+        value: pct("Auto"),
+        color: "var(--auto)",
+        delta: count("Auto"),
+      },
+      {
+        label: t("kpi.metro_pct"),
+        value: pct("Metro"),
+        color: "var(--metro)",
+        delta: count("Metro"),
+      },
+      {
+        label: t("kpi.bici_pct"),
+        value: pct("Bici"),
+        color: "var(--bici)",
+        delta: count("Bici"),
+      },
       {
         label: t("kpi.walk_pct"),
         value: pct("Caminata"),
         color: "var(--walk)",
         delta: count("Caminata"),
       },
-      { label: t("kpi.frequency"), value: lastIter.frecuencia_metro.toFixed(1), unit: "tph" },
+      {
+        label: t("kpi.frequency"),
+        value: lastIter.frecuencia_metro.toFixed(1),
+        unit: "tph",
+      },
       {
         label: t("kpi.residual"),
         value:
@@ -165,7 +216,10 @@ export function SandboxPage() {
   const kpiCaption = useMemo(() => {
     if (!result || !lastIter) return null;
     const totalIters = result.iteraciones.length;
-    const base = t("kpi.last_iteration", { n: lastIter.iter + 1, total: totalIters });
+    const base = t("kpi.last_iteration", {
+      n: lastIter.iter + 1,
+      total: totalIters,
+    });
     const status = result.converged ? t("kpi.converged") : t("kpi.maxiter");
     return `${base} · ${status}`;
   }, [result, lastIter, t]);
@@ -215,7 +269,11 @@ export function SandboxPage() {
       Bici: "var(--bici)",
       Caminata: "var(--walk)",
     };
-    const STR_C: Record<number, string> = { 1: "var(--s1)", 2: "var(--s2)", 3: "var(--s3)" };
+    const STR_C: Record<number, string> = {
+      1: "var(--s1)",
+      2: "var(--s2)",
+      3: "var(--s3)",
+    };
     const timeOf = (a: (typeof agents)[number]): number | null => {
       const c = a.celda_origen;
       switch (a.modo_elegido) {
@@ -241,8 +299,16 @@ export function SandboxPage() {
       Bici: [0, 0],
       Caminata: [0, 0],
     };
-    const strTime: Record<number, [number, number]> = { 1: [0, 0], 2: [0, 0], 3: [0, 0] };
-    const strUtil: Record<number, [number, number]> = { 1: [0, 0], 2: [0, 0], 3: [0, 0] };
+    const strTime: Record<number, [number, number]> = {
+      1: [0, 0],
+      2: [0, 0],
+      3: [0, 0],
+    };
+    const strUtil: Record<number, [number, number]> = {
+      1: [0, 0],
+      2: [0, 0],
+      3: [0, 0],
+    };
     for (const a of agents) {
       const tt = timeOf(a);
       if (tt != null) {
@@ -267,7 +333,9 @@ export function SandboxPage() {
     }
     const mean = (p: [number, number]) => (p[1] > 0 ? p[0] / p[1] : 0);
     const strLabel = (s: number) => t(`sandbox.stratum_${STRATUM_KEY[s - 1]}`);
-    const timeByMode: StatBar[] = (["Auto", "Metro", "Bici", "Caminata"] as const).map((m) => ({
+    const timeByMode: StatBar[] = (
+      ["Auto", "Metro", "Bici", "Caminata"] as const
+    ).map((m) => ({
       label: t(`modes.${m.toLowerCase()}`),
       value: mean(modeAgg[m]!),
       color: MODE_C[m]!,
@@ -290,7 +358,11 @@ export function SandboxPage() {
     <div className="page">
       <aside className="sidebar">
         <CityBuilder config={config} onChange={setConfig} />
-        <SupplyBuilder config={config} onChange={setConfig} operatingRatios={operatingRatios} />
+        <SupplyBuilder
+          config={config}
+          onChange={setConfig}
+          operatingRatios={operatingRatios}
+        />
         <EconomyBuilder config={config} onChange={setConfig} />
 
         <SidebarSection
@@ -308,10 +380,12 @@ export function SandboxPage() {
             <input
               type="range"
               min={3}
-              max={20}
+              max={50}
               step={1}
               value={config.max_iter}
-              onChange={(e) => setConfig((c) => ({ ...c, max_iter: Number(e.target.value) }))}
+              onChange={(e) =>
+                setConfig((c) => ({ ...c, max_iter: Number(e.target.value) }))
+              }
               aria-label={t("equilibrium.max_iter")}
             />
           </label>
@@ -331,7 +405,9 @@ export function SandboxPage() {
               max={1}
               step={0.05}
               value={config.tolerance}
-              onChange={(e) => setConfig((c) => ({ ...c, tolerance: Number(e.target.value) }))}
+              onChange={(e) =>
+                setConfig((c) => ({ ...c, tolerance: Number(e.target.value) }))
+              }
               aria-label={t("equilibrium.tolerance")}
             />
           </label>
@@ -389,39 +465,29 @@ export function SandboxPage() {
                 );
               })}
             </div>
-            <p className="mt-1 text-[11px] text-muted">{t("equilibrium.modos_hint")}</p>
+            <p className="mt-1 text-[11px] text-muted">
+              {t("equilibrium.modos_hint")}
+            </p>
           </div>
         </SidebarSection>
 
-        <SidebarSection
-          title={tCommon("engine.label")}
-          meta={engine === "api" ? "FastAPI" : "Pyodide"}
-          defaultOpen={false}
+        {(stage === "done" || stage === "error") && (
+          <button
+            type="button"
+            className="reset-btn"
+            onClick={reset}
+            title={tCommon("actions.new_run")}
+          >
+            {`↺ ${tCommon("actions.new_run")}`}
+          </button>
+        )}
+
+        <button
+          type="button"
+          className="run-btn"
+          disabled={running}
+          onClick={handleRun}
         >
-          <div className="seg" style={{ width: "100%" }}>
-            <button
-              type="button"
-              className={engine === "api" ? "active" : ""}
-              onClick={() => setEngine("api")}
-              style={{ flex: 1 }}
-            >
-              FastAPI
-            </button>
-            <button
-              type="button"
-              className={engine === "local" ? "active" : ""}
-              onClick={() => setEngine("local")}
-              style={{ flex: 1 }}
-            >
-              Pyodide
-            </button>
-          </div>
-          <p className="mt-2 text-[11px] text-muted">
-            {engine === "api" ? tCommon("engine.info_api") : tCommon("engine.info_local")}
-          </p>
-        </SidebarSection>
-
-        <button type="button" className="run-btn" disabled={running} onClick={handleRun}>
           {running
             ? `◜ ${t("equilibrium.iteration", {
                 n: progress?.current ?? 0,
@@ -431,7 +497,10 @@ export function SandboxPage() {
         </button>
 
         {error && (
-          <div className="callout" style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}>
+          <div
+            className="callout"
+            style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}
+          >
             {error}
           </div>
         )}
@@ -447,57 +516,76 @@ export function SandboxPage() {
               {stage === "running" || stage === "booting"
                 ? t("hero.status_running")
                 : stage === "done"
-                ? t("hero.status_done")
-                : t("hero.status_ready")}
+                  ? t("hero.status_done")
+                  : t("hero.status_ready")}
             </div>
           </div>
 
           <div className="ribbon-wrap">
             <div className="mb-2 flex items-center justify-between">
               <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-                {t("sandbox.city_heading")}
+                {showPreview ? t("preview.heading") : t("sandbox.city_heading")}
               </span>
-              <div className="seg">
-                {VIEW_OPTIONS.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setHeatMode(m)}
-                    className={heatMode === m ? "active" : ""}
-                  >
-                    {viewLabel(m)}
-                  </button>
-                ))}
-              </div>
+              {hasData ? (
+                <div className="seg">
+                  {VIEW_OPTIONS.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setHeatMode(m)}
+                      className={heatMode === m ? "active" : ""}
+                    >
+                      {viewLabel(m)}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+                  {t("preview.meta")}
+                </span>
+              )}
             </div>
 
-            <ExportableFigure
-              name={`ciudad-${heatMode}`}
-              title={`${t("sandbox.city_heading")} — ${viewLabel(heatMode)}`}
-              description={t("sandbox.city_figure_desc", {
-                length: config.city.largo_ciudad_km,
-                cells: config.city.n_celdas,
-                mode: viewLabel(heatMode),
-              })}
-              exportSize={{ width: 1200, height: 200 }}
-            >
-              <CityStrip
-                nCeldas={config.city.n_celdas}
-                largoKm={config.city.largo_ciudad_km}
-                pendientePct={config.city.pendiente_porcentaje}
-                modeProfile={profile}
-                heatMode={heatMode}
-                cutoffMin={MODE_CUTOFF[heatMode]}
-                cutoffLabel={
-                  MODE_CUTOFF[heatMode] != null
-                    ? t("sandbox.cutoff_label", { min: MODE_CUTOFF[heatMode] })
-                    : undefined
-                }
-                estacionesKm={result?.estaciones_km ?? undefined}
-                shareEstratos={config.city.share_estratos}
-                iterationToken={lastIter?.iter ?? -1}
-              />
-            </ExportableFigure>
+            {showPreview ? (
+              <ExportableFigure
+                name="plano-ciudad"
+                title={t("preview.heading")}
+                description={t("preview.export_desc")}
+                exportSize={{ width: 1200, height: 360 }}
+              >
+                <CityPreview config={config} />
+              </ExportableFigure>
+            ) : (
+              <ExportableFigure
+                name={`ciudad-${heatMode}`}
+                title={`${t("sandbox.city_heading")} — ${viewLabel(heatMode)}`}
+                description={t("sandbox.city_figure_desc", {
+                  length: config.city.largo_ciudad_km,
+                  cells: config.city.n_celdas,
+                  mode: viewLabel(heatMode),
+                })}
+                exportSize={{ width: 1200, height: 200 }}
+              >
+                <CityStrip
+                  nCeldas={config.city.n_celdas}
+                  largoKm={config.city.largo_ciudad_km}
+                  pendientePct={config.city.pendiente_porcentaje}
+                  modeProfile={profile}
+                  heatMode={heatMode}
+                  cutoffMin={MODE_CUTOFF[heatMode]}
+                  cutoffLabel={
+                    MODE_CUTOFF[heatMode] != null
+                      ? t("sandbox.cutoff_label", {
+                          min: MODE_CUTOFF[heatMode],
+                        })
+                      : undefined
+                  }
+                  estacionesKm={result?.estaciones_km ?? undefined}
+                  shareEstratos={config.city.share_estratos}
+                  iterationToken={lastIter?.iter ?? -1}
+                />
+              </ExportableFigure>
+            )}
 
             <div className="ribbon-legend">
               {(
@@ -566,12 +654,12 @@ export function SandboxPage() {
               total={progress.total}
               lastIter={lastIter}
               stage={stage}
-              engine={engine}
+              engine="local"
             />
           </div>
         )}
 
-        {((stage === "booting" && engine === "api") ||
+        {(stage === "booting" ||
           (stage === "running" && liveIterations.length === 0)) && (
           <div style={{ marginBottom: "var(--gap)" }}>
             <SimulationSkeleton nCeldas={config.city.n_celdas} />
@@ -582,60 +670,104 @@ export function SandboxPage() {
         {liveIterations.length > 0 && (
           <div className="panel-grid">
             {lastIter && result && (
-              <Panel n="00" title={t("network.title")} meta="auto · metro · bici · caminata" cls="col-12">
-                <NetworkDiagram snapshot={lastIter} result={result} config={config} />
+              <Panel
+                n="00"
+                title={t("network.title")}
+                meta="auto · metro · bici · caminata"
+                cls="col-12"
+              >
+                <NetworkDiagram
+                  snapshot={lastIter}
+                  result={result}
+                  config={config}
+                />
               </Panel>
             )}
 
-            <Panel n="01" title={t("equilibrium.converged")} meta="MSA" cls="col-12">
+            <Panel
+              n="01"
+              title={t("equilibrium.converged")}
+              meta="MSA"
+              cls="col-12"
+            >
               <ConvergenceTrace iterations={liveIterations} />
             </Panel>
 
-            {lastIter && result && (() => {
-              // Escala Y compartida: el máximo global entre los 3 modos.
-              // Permite comparar la magnitud relativa visualmente sin engañar
-              // con el auto-scale por panel.
-              const globalMax = Math.max(
-                ...lastIter.demanda_auto,
-                ...lastIter.demanda_bici,
-                ...lastIter.demanda_metro,
-                ...lastIter.demanda_caminata,
-                1
-              );
-              const flowPanels = [
-                { n: "02", mode: "auto", flows: lastIter.demanda_auto, color: "var(--auto)", cap: `${Math.round(result.capacidad_auto)} veh/h corredor` },
-                { n: "03", mode: "bici", flows: lastIter.demanda_bici, color: "var(--bici)", cap: `${config.supply.bike.capacidad_pista} bici/h` },
-                { n: "04", mode: "metro", flows: lastIter.demanda_metro, color: "var(--metro)", cap: `${config.supply.train.capacidad_tren} pax/tren` },
-                { n: "4b", mode: "caminata", flows: lastIter.demanda_caminata, color: "var(--walk)", cap: undefined as string | undefined },
-              ] as const;
-              return (
-                <>
-                  {flowPanels.map((fp) => (
-                    <Panel
-                      key={fp.n}
-                      n={fp.n}
-                      title={t(`modes.${fp.mode}`)}
-                      meta={t("sandbox.flow_per_cell", { mode: t(`modes.${fp.mode}`) })}
-                      cls="col-6"
-                    >
-                      <ExportableFigure
-                        name={`flujo-${fp.mode}`}
-                        title={t("sandbox.flow_per_cell", { mode: t(`modes.${fp.mode}`) })}
-                        exportSize={{ width: 600, height: 200 }}
+            {lastIter &&
+              result &&
+              (() => {
+                // Escala Y compartida: el máximo global entre los 3 modos.
+                // Permite comparar la magnitud relativa visualmente sin engañar
+                // con el auto-scale por panel.
+                const globalMax = Math.max(
+                  ...lastIter.demanda_auto,
+                  ...lastIter.demanda_bici,
+                  ...lastIter.demanda_metro,
+                  ...lastIter.demanda_caminata,
+                  1,
+                );
+                const flowPanels = [
+                  {
+                    n: "02",
+                    mode: "auto",
+                    flows: lastIter.demanda_auto,
+                    color: "var(--auto)",
+                    cap: `${Math.round(result.capacidad_auto)} veh/h corredor`,
+                  },
+                  {
+                    n: "03",
+                    mode: "bici",
+                    flows: lastIter.demanda_bici,
+                    color: "var(--bici)",
+                    cap: `${config.supply.bike.capacidad_pista} bici/h`,
+                  },
+                  {
+                    n: "04",
+                    mode: "metro",
+                    flows: lastIter.demanda_metro,
+                    color: "var(--metro)",
+                    cap: `${config.supply.train.capacidad_tren} pax/tren`,
+                  },
+                  {
+                    n: "4b",
+                    mode: "caminata",
+                    flows: lastIter.demanda_caminata,
+                    color: "var(--walk)",
+                    cap: undefined as string | undefined,
+                  },
+                ] as const;
+                return (
+                  <>
+                    {flowPanels.map((fp) => (
+                      <Panel
+                        key={fp.n}
+                        n={fp.n}
+                        title={t(`modes.${fp.mode}`)}
+                        meta={t("sandbox.flow_per_cell", {
+                          mode: t(`modes.${fp.mode}`),
+                        })}
+                        cls="col-6"
                       >
-                        <FlowProfile
-                          flows={fp.flows}
-                          largoKm={config.city.largo_ciudad_km}
-                          color={fp.color}
-                          yMax={globalMax}
-                          capacityHint={fp.cap}
-                        />
-                      </ExportableFigure>
-                    </Panel>
-                  ))}
-                </>
-              );
-            })()}
+                        <ExportableFigure
+                          name={`flujo-${fp.mode}`}
+                          title={t("sandbox.flow_per_cell", {
+                            mode: t(`modes.${fp.mode}`),
+                          })}
+                          exportSize={{ width: 600, height: 200 }}
+                        >
+                          <FlowProfile
+                            flows={fp.flows}
+                            largoKm={config.city.largo_ciudad_km}
+                            color={fp.color}
+                            yMax={globalMax}
+                            capacityHint={fp.cap}
+                          />
+                        </ExportableFigure>
+                      </Panel>
+                    ))}
+                  </>
+                );
+              })()}
 
             {result && result.emisiones_perfil_kg && (
               <Panel
