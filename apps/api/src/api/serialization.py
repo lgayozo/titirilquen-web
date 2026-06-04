@@ -29,6 +29,7 @@ def iteration_to_dict(snap: IterationSnapshot) -> dict[str, Any]:
         "demanda_auto": _to_list(snap.demanda_auto),
         "demanda_metro": _to_list(snap.demanda_metro),
         "demanda_bici": _to_list(snap.demanda_bici),
+        "demanda_caminata": _to_list(snap.demanda_caminata),
         "t_auto": _to_list(snap.t_auto),
         "t_bici": _to_list(snap.t_bici),
         "t_tren_acceso": _to_list(snap.t_tren_acceso),

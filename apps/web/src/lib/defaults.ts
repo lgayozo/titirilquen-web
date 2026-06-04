@@ -124,8 +124,12 @@ export const defaultSimulationConfig: SimulationConfig = {
       num_estaciones: 10,
       v_caminata_kmh: 4.8,
       tasa_carga: 6,
-      frec_min: 10,
-      frec_max: 20,
+      // Rango realista de metro: ~10 min (valle) a ~2 min (punta) de intervalo.
+      // El rango amplio fortalece el efecto Mohring (ver DISCREPANCIES D-18).
+      frec_min: 6,
+      frec_max: 30,
+      anden_alpha: 0.5,
+      anden_beta: 4,
     },
   },
   demand: defaultDemandConfig,
@@ -135,4 +139,5 @@ export const defaultSimulationConfig: SimulationConfig = {
   tolerance: 0.1,
   seed: 42,
   assignment: "montecarlo",
+  modos_habilitados: ["Auto", "Metro", "Bici", "Caminata"],
 };

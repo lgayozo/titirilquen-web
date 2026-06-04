@@ -17,8 +17,8 @@ import numpy as np
 from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
-from titirilquen_core.config import DemandConfig, SimulationConfig, SupplyConfig
-from titirilquen_core.demand.choice import elegir_modo, probabilidades_logit
+from titirilquen_core.config import DemandConfig, SimulationConfig, StratumId
+from titirilquen_core.demand.choice import probabilidades_logit
 from titirilquen_core.emissions import calcular_emisiones
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.population import Agente, generar_poblacion
@@ -39,6 +39,7 @@ class IterationSnapshot:
     demanda_auto: NDArray[np.float64]
     demanda_metro: NDArray[np.float64]
     demanda_bici: NDArray[np.float64]
+    demanda_caminata: NDArray[np.float64]
     t_auto: NDArray[np.float64]
     t_bici: NDArray[np.float64]
     t_tren_acceso: NDArray[np.float64]
@@ -80,70 +81,167 @@ def _tiempos_de_snapshot(snap: IterationSnapshot, n_celdas: int) -> list[Tiempos
     ]
 
 
+_MODOS: tuple[str, ...] = ("Auto", "Metro", "Bici", "Caminata")
+
+
+@dataclass
+class _GrupoDemanda:
+    """Agentes no‑teletrabajadores que comparten (estrato, celda, tiene_auto) y
+    por lo tanto tienen idéntica utilidad/probabilidades. Agrupar permite calcular
+    la elección **una vez por grupo** en lugar de una vez por agente: el costo del
+    loop pasa de O(agentes) a O(grupos ≈ 6·n_celdas), independiente de la densidad
+    (ver nota de rendimiento abajo)."""
+
+    estrato: StratumId
+    celda: int
+    tiene_auto: bool
+    agentes: list[Agente]
+
+
+def _agrupar_agentes(agentes: list[Agente]) -> tuple[list[_GrupoDemanda], int]:
+    """Agrupa los agentes elegibles por (estrato, celda, tiene_auto) y fija el
+    modo de los teletrabajadores. Se hace una sola vez por corrida. Devuelve
+    (grupos, n_teletrabaja)."""
+    grupos: dict[tuple[StratumId, int, bool], _GrupoDemanda] = {}
+    n_tele = 0
+    for a in agentes:
+        if a.teletrabaja:
+            a.modo_elegido = "Teletrabajo"
+            a.utilidad_elegida = 0.0
+            n_tele += 1
+            continue
+        key = (a.estrato, a.celda_origen, a.tiene_auto)
+        g = grupos.get(key)
+        if g is None:
+            g = _GrupoDemanda(a.estrato, a.celda_origen, a.tiene_auto, [])
+            grupos[key] = g
+        g.agentes.append(a)
+    return list(grupos.values()), n_tele
+
+
+def _probs_grupo(
+    g: _GrupoDemanda,
+    ciudad: CiudadLineal,
+    demand: DemandConfig,
+    tiempos_por_celda: list[TiemposObservados] | None,
+    modos_habilitados: tuple[str, ...] | None,
+):
+    tiempos = tiempos_por_celda[g.celda] if tiempos_por_celda is not None else None
+    utils = calcular_utilidades(
+        estrato=g.estrato,
+        celda_origen=g.celda,
+        tiene_auto=g.tiene_auto,
+        ciudad=ciudad,
+        config=demand,
+        tiempos_observados=tiempos,
+        modos_habilitados=modos_habilitados,
+    )
+    return utils, probabilidades_logit(utils)
+
+
 def _correr_iteracion(
-    agentes: list[Agente],
+    grupos: list[_GrupoDemanda],
+    n_tele: int,
     ciudad: CiudadLineal,
     demand: DemandConfig,
     tiempos_por_celda: list[TiemposObservados] | None,
     rng: np.random.Generator,
     expected: bool = False,
-) -> tuple[ModalSplit, NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
-    """Asigna demanda. Si `expected=False` (Monte Carlo) sortea el modo de cada
-    agente; si `expected=True` usa los **flujos esperados** = probabilidades
-    logit (asignación fraccional, determinista, sin ruido entre iteraciones).
-    En modo `expected`, el registro por agente (`modo_elegido`) usa el modo más
-    probable, solo para las figuras agente‑nivel."""
-    conteo: ModalSplit = {"Auto": 0.0, "Metro": 0.0, "Bici": 0.0, "Caminata": 0.0, "Teletrabajo": 0.0}
+    modos_habilitados: tuple[str, ...] | None = None,
+) -> tuple[
+    ModalSplit,
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
+    """Asigna demanda agregando por grupo (no por agente). Si `expected=False`
+    (Monte Carlo) sortea el conteo por modo de cada grupo con una multinomial;
+    si `expected=True` usa los **flujos esperados** = nₐ·prob (asignación
+    fraccional, determinista). No escribe registros por agente: eso se hace una
+    sola vez al final con `_asignar_modos_agentes`."""
+    conteo: ModalSplit = {
+        "Auto": 0.0,
+        "Metro": 0.0,
+        "Bici": 0.0,
+        "Caminata": 0.0,
+        "Teletrabajo": float(n_tele),
+    }
     dem_auto = np.zeros(ciudad.n_celdas)
     dem_metro = np.zeros(ciudad.n_celdas)
     dem_bici = np.zeros(ciudad.n_celdas)
+    dem_caminata = np.zeros(ciudad.n_celdas)
+    dem = {"Auto": dem_auto, "Metro": dem_metro, "Bici": dem_bici, "Caminata": dem_caminata}
 
-    for a in agentes:
-        if a.teletrabaja:
-            a.modo_elegido = "Teletrabajo"
-            a.utilidad_elegida = 0.0
-            conteo["Teletrabajo"] += 1.0
-            continue
-
-        tiempos = tiempos_por_celda[a.celda_origen] if tiempos_por_celda is not None else None
-        utils = calcular_utilidades(
-            estrato=a.estrato,
-            celda_origen=a.celda_origen,
-            tiene_auto=a.tiene_auto,
-            ciudad=ciudad,
-            config=demand,
-            tiempos_observados=tiempos,
-        )
-        i = a.celda_origen
+    for g in grupos:
+        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
+        n = len(g.agentes)
+        i = g.celda
         if expected:
-            probs = probabilidades_logit(utils)
-            for m, pr in probs.items():
-                conteo[m] += pr
-            dem_auto[i] += probs.get("Auto", 0.0)
-            dem_metro[i] += probs.get("Metro", 0.0)
-            dem_bici[i] += probs.get("Bici", 0.0)
-            modo = max(probs, key=lambda k: probs[k])  # más probable, para el registro
-            a.modo_elegido = modo
-            a.utilidad_elegida = utils[modo].valor
+            for m in _MODOS:
+                pr = probs.get(m, 0.0)
+                if pr:
+                    conteo[m] += n * pr
+                    dem[m][i] += n * pr
         else:
-            modo = elegir_modo(utils, rng=rng)
+            pvec = np.array([probs.get(m, 0.0) for m in _MODOS])
+            total = float(pvec.sum())
+            if total <= 0.0:
+                continue  # todos los modos infeasibles → agentes varados (sin viaje)
+            pvec = pvec / total
+            # Robustez fp: multinomial exige sum(pvals) ≤ 1; el último absorbe el resto.
+            pvec[-1] = max(0.0, 1.0 - float(pvec[:-1].sum()))
+            counts = rng.multinomial(n, pvec)
+            for k, m in enumerate(_MODOS):
+                ck = int(counts[k])
+                if ck:
+                    conteo[m] += ck
+                    dem[m][i] += ck
+
+    return conteo, dem_auto, dem_metro, dem_bici, dem_caminata
+
+
+def _asignar_modos_agentes(
+    grupos: list[_GrupoDemanda],
+    ciudad: CiudadLineal,
+    demand: DemandConfig,
+    tiempos_por_celda: list[TiemposObservados] | None,
+    rng: np.random.Generator,
+    modos_habilitados: tuple[str, ...] | None = None,
+) -> None:
+    """Asigna `modo_elegido`/`utilidad_elegida` a cada agente **una sola vez**, a
+    partir del estado final, muestreando de las probabilidades del grupo
+    (vectorizado: `rng.choice(size=nₐ)`). Los registros por agente alimentan las
+    figuras agente‑nivel; el muestreo (no argmax) preserva modos minoritarios
+    como la bici."""
+    for g in grupos:
+        utils, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
+        n = len(g.agentes)
+        pvec = np.array([probs.get(m, 0.0) for m in _MODOS])
+        total = float(pvec.sum())
+        if total <= 0.0:
+            for a in g.agentes:
+                a.modo_elegido = None  # agente varado
+                a.utilidad_elegida = 0.0
+            continue
+        pvec = pvec / total
+        idx = rng.choice(len(_MODOS), size=n, p=pvec)
+        for a, k in zip(g.agentes, idx, strict=True):
+            modo = _MODOS[int(k)]
             a.modo_elegido = modo
             a.utilidad_elegida = utils[modo].valor
-            conteo[modo] += 1.0
-            if modo == "Auto":
-                dem_auto[i] += 1
-            elif modo == "Metro":
-                dem_metro[i] += 1
-            elif modo == "Bici":
-                dem_bici[i] += 1
-
-    return conteo, dem_auto, dem_metro, dem_bici
 
 
-def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
-    """Generador que emite una IterationSnapshot por iteración.
+def iter_msa(
+    sim: SimulationConfig, trace: ConvergenceTrace | None = None
+) -> Iterator[IterationSnapshot]:
+    """Generador que emite una IterationSnapshot por iteración (streaming).
 
-    Ideal para streaming (SSE/WebSocket) — el consumidor decide cuándo parar.
+    Si se pasa `trace`, **popula el ConvergenceTrace completo en el mismo
+    recorrido**: snapshots, registros por agente (estado final), capacidades y
+    emisiones. Así el resultado completo se obtiene en **una sola corrida** (antes
+    el worker corría la simulación dos veces). `run_msa` no es más que consumir
+    este generador con un `trace`.
     """
     rng = np.random.default_rng(sim.seed)
     ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
@@ -156,6 +254,21 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
         teletrabajo_factor=sim.city.teletrabajo_factor,
         rng=rng,
     )
+    yield from _iter_loop(sim, ciudad, agentes, rng, trace)
+
+
+def _iter_loop(
+    sim: SimulationConfig,
+    ciudad: CiudadLineal,
+    agentes: list[Agente],
+    rng: np.random.Generator,
+    trace: ConvergenceTrace | None = None,
+) -> Iterator[IterationSnapshot]:
+    """Loop MSA sobre una **población ya construida** (compartido por `iter_msa`
+    y el loop acoplado). Si se pasa `trace`, lo popula por completo."""
+    grupos, n_tele = _agrupar_agentes(agentes)
+    if trace is not None:
+        trace.agentes = agentes
 
     tiempos_actuales: list[TiemposObservados] | None = None
     t_auto_ac = np.zeros(ciudad.n_celdas)
@@ -164,10 +277,12 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
     t_tren_esp_ac = np.zeros(ciudad.n_celdas)
     t_tren_v_ac = np.zeros(ciudad.n_celdas)
     estables = 0  # iteraciones consecutivas bajo tolerancia
+    last_state: dict | None = None
 
     for it in range(sim.max_iter):
-        conteo, d_auto, d_metro, d_bici = _correr_iteracion(
-            agentes, ciudad, sim.demand, tiempos_actuales, rng, sim.assignment == "expected"
+        conteo, d_auto, d_metro, d_bici, d_caminata = _correr_iteracion(
+            grupos, n_tele, ciudad, sim.demand, tiempos_actuales, rng,
+            sim.assignment == "expected", sim.modos_habilitados,
         )
 
         car_p = sim.supply.car
@@ -208,6 +323,8 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
             tasa_carga=train_p.tasa_carga,
             frec_min=train_p.frec_min,
             frec_max=train_p.frec_max,
+            anden_alpha=train_p.anden_alpha,
+            anden_beta=train_p.anden_beta,
         )
 
         if tiempos_actuales is None:
@@ -249,13 +366,14 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
             for i in range(ciudad.n_celdas)
         ]
 
-        yield IterationSnapshot(
+        snap = IterationSnapshot(
             iter=it,
             f_msa=1.0 / (it + 1),
             modal_split=conteo,
             demanda_auto=d_auto,
             demanda_metro=d_metro,
             demanda_bici=d_bici,
+            demanda_caminata=d_caminata,
             t_auto=t_auto_ac.copy(),
             t_bici=t_bici_ac.copy(),
             t_tren_acceso=t_tren_acc_ac.copy(),
@@ -264,6 +382,18 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
             frecuencia_metro=train_result.frecuencia_operativa,
             residuo=residuo,
         )
+        if trace is not None:
+            trace.iteraciones.append(snap)
+            last_state = {
+                "capacidad": car_result.capacidad_direccion,
+                "v_libre": car_result.v_libre_kmh,
+                "alpha": car_result.alpha_bpr,
+                "beta": car_result.beta_bpr,
+                "carga_metro": train_result.carga_por_tramo,
+                "estaciones": train_result.estaciones_km,
+                "flujos_auto": car_result.flujos_veh_por_hora,
+            }
+        yield snap
 
         # Criterio de convergencia: residual < tolerancia en 2 iteraciones
         # consecutivas (robusto al ruido estocástico del residual). Fallback a
@@ -271,47 +401,77 @@ def iter_msa(sim: SimulationConfig) -> Iterator[IterationSnapshot]:
         if sim.tolerance > 0 and residuo < sim.tolerance:
             estables += 1
             if estables >= 2:
+                if trace is not None:
+                    trace.converged = True
                 break
         else:
             estables = 0
 
+    if trace is not None:
+        _finalizar_trace(trace, sim, ciudad, grupos, tiempos_actuales, rng, last_state)
+
 
 def run_msa(sim: SimulationConfig) -> ConvergenceTrace:
-    """Ejecuta el loop MSA completo hasta convergencia o `max_iter`."""
-    rng = np.random.default_rng(sim.seed)
-    ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
+    """Ejecuta el loop MSA completo hasta convergencia o `max_iter`.
 
-    agentes = generar_poblacion(
-        ciudad=ciudad,
-        densidad_por_celda=sim.city.densidad_por_celda,
-        share_estratos=sim.city.share_estratos,
-        demand_config=sim.demand,
-        teletrabajo_factor=sim.city.teletrabajo_factor,
-        rng=rng,
+    Es simplemente consumir `iter_msa` con un `trace`: un único recorrido que
+    produce el resultado completo (snapshots + agentes + capacidades + emisiones).
+    """
+    trace = ConvergenceTrace()
+    for _ in iter_msa(sim, trace=trace):
+        pass
+    return trace
+
+
+def run_msa_con_poblacion(
+    sim: SimulationConfig,
+    ciudad: CiudadLineal,
+    agentes: list[Agente],
+    rng: np.random.Generator,
+) -> ConvergenceTrace:
+    """Corre el MSA sobre una población dada (la usa el loop acoplado, que
+    construye los agentes desde el uso de suelo). Devuelve el trace completo."""
+    trace = ConvergenceTrace()
+    for _ in _iter_loop(sim, ciudad, agentes, rng, trace):
+        pass
+    return trace
+
+
+def _finalizar_trace(
+    trace: ConvergenceTrace,
+    sim: SimulationConfig,
+    ciudad: CiudadLineal,
+    grupos: list[_GrupoDemanda],
+    tiempos_actuales: list[TiemposObservados] | None,
+    rng: np.random.Generator,
+    last_state: dict | None,
+) -> None:
+    """Completa el `trace` tras el loop: registros por agente (una sola pasada),
+    capacidades del estado final y emisiones de CO₂."""
+    # Registros por agente a partir del estado convergido, para figuras agente‑nivel.
+    _asignar_modos_agentes(
+        grupos, ciudad, sim.demand, tiempos_actuales, rng, sim.modos_habilitados
     )
+    if last_state is None:
+        return
 
-    trace = ConvergenceTrace(agentes=agentes)
-    last_car = _run_final_assignments(sim, ciudad, agentes, trace, rng)
-    if last_car is None:
-        return trace
-
-    trace.capacidad_auto = last_car["capacidad"]
-    trace.v_libre_auto = last_car["v_libre"]
-    trace.alpha_auto_bpr = last_car["alpha"]
-    trace.beta_auto_bpr = last_car["beta"]
-    trace.carga_metro = last_car["carga_metro"]
-    trace.estaciones_km = last_car["estaciones"]
+    trace.capacidad_auto = last_state["capacidad"]
+    trace.v_libre_auto = last_state["v_libre"]
+    trace.alpha_auto_bpr = last_state["alpha"]
+    trace.beta_auto_bpr = last_state["beta"]
+    trace.carga_metro = last_state["carga_metro"]
+    trace.estaciones_km = last_state["estaciones"]
 
     # Emisiones de CO₂ a partir del estado físico final (flujos + BPR → v_local).
-    if last_car["carga_metro"] is not None and last_car["estaciones"] is not None:
+    if last_state["carga_metro"] is not None and last_state["estaciones"] is not None:
         em = calcular_emisiones(
-            flujos_auto=last_car["flujos_auto"],
-            carga_metro_tramos=last_car["carga_metro"],
-            estaciones_km=last_car["estaciones"],
-            capacidad_auto=last_car["capacidad"],
-            alpha_bpr=last_car["alpha"],
-            beta_bpr=last_car["beta"],
-            v_libre_kmh=last_car["v_libre"],
+            flujos_auto=last_state["flujos_auto"],
+            carga_metro_tramos=last_state["carga_metro"],
+            estaciones_km=last_state["estaciones"],
+            capacidad_auto=last_state["capacidad"],
+            alpha_bpr=last_state["alpha"],
+            beta_bpr=last_state["beta"],
+            v_libre_kmh=last_state["v_libre"],
             largo_ciudad_km=ciudad.largo_total_km,
             n_celdas=ciudad.n_celdas,
             factor_emision_metro=sim.demand.globales.factor_emision_metro,
@@ -320,148 +480,3 @@ def run_msa(sim: SimulationConfig) -> ConvergenceTrace:
         trace.emisiones_auto_kg = em.auto_kg_hora
         trace.emisiones_metro_kg = em.metro_kg_hora
         trace.emisiones_perfil_kg = em.perfil_espacial_kg
-    return trace
-
-
-def _run_final_assignments(
-    sim: SimulationConfig,
-    ciudad: CiudadLineal,
-    agentes: list[Agente],
-    trace: ConvergenceTrace,
-    rng: np.random.Generator | None = None,
-) -> dict | None:
-    # Debe recibir el MISMO rng que generó la población (continuado), para que
-    # `run_msa` reproduzca exactamente la secuencia de `iter_msa` (streaming) —
-    # de lo contrario el corte por convergencia ocurre en iteraciones distintas.
-    if rng is None:
-        rng = np.random.default_rng(sim.seed)
-    tiempos_actuales: list[TiemposObservados] | None = None
-    t_auto_ac = np.zeros(ciudad.n_celdas)
-    t_bici_ac = np.zeros(ciudad.n_celdas)
-    t_tren_acc_ac = np.zeros(ciudad.n_celdas)
-    t_tren_esp_ac = np.zeros(ciudad.n_celdas)
-    t_tren_v_ac = np.zeros(ciudad.n_celdas)
-
-    last_state = None
-    estables = 0  # iteraciones consecutivas bajo tolerancia
-    car_p = sim.supply.car
-    bike_p = sim.supply.bike
-    train_p = sim.supply.train
-
-    for it in range(sim.max_iter):
-        conteo, d_auto, d_metro, d_bici = _correr_iteracion(
-            agentes, ciudad, sim.demand, tiempos_actuales, rng, sim.assignment == "expected"
-        )
-
-        car_result = demora_auto_tramo(
-            ubicacion_centro_km=ciudad.cbd_km,
-            demanda=d_auto,
-            v_max_kmh=car_p.v_max_kmh,
-            ancho_pista_m=car_p.ancho_pista_m,
-            largo_vehiculo_m=car_p.largo_vehiculo_m,
-            gap_m=car_p.gap_m,
-            L_ciudad_km=ciudad.largo_total_km,
-            num_pistas=car_p.num_pistas,
-            alpha_bpr=car_p.alpha_bpr,
-            beta_bpr=car_p.beta_bpr,
-        )
-        bike_result = demora_bici_tramo(
-            ubicacion_centro_km=ciudad.cbd_km,
-            capacidad=bike_p.capacidad_pista,
-            demanda=d_bici,
-            v_media=bike_p.v_media_kmh,
-            L_ciudad_km=ciudad.largo_total_km,
-            alpha=bike_p.alpha_bpr,
-            beta=bike_p.beta_bpr,
-            pendiente_porcentaje=sim.city.pendiente_porcentaje,
-            v_caminata=sim.demand.globales.v_caminata,
-        )
-        train_result = oferta_tren(
-            demanda=d_metro,
-            L_ciudad_km=ciudad.largo_total_km,
-            x_centro_km=ciudad.cbd_km,
-            v_tren_kmh=train_p.v_tren_kmh,
-            capacidad_tren=train_p.capacidad_tren,
-            num_estaciones=train_p.num_estaciones,
-            v_caminata_kmh=train_p.v_caminata_kmh,
-            tasa_carga=train_p.tasa_carga,
-            frec_min=train_p.frec_min,
-            frec_max=train_p.frec_max,
-        )
-
-        if tiempos_actuales is None:
-            t_auto_ac = car_result.t_usuarios_min.copy()
-            t_bici_ac = bike_result.t_usuarios_min.copy()
-            t_tren_acc_ac = train_result.t_acceso_min.copy()
-            t_tren_esp_ac = train_result.t_espera_min.copy()
-            t_tren_v_ac = train_result.t_viaje_min.copy()
-            residuo = float("inf")
-        else:
-            f = 1.0 / (it + 1)
-            old_auto = t_auto_ac.copy()
-            old_bici = t_bici_ac.copy()
-            old_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
-            t_auto_ac = f * car_result.t_usuarios_min + (1 - f) * t_auto_ac
-            t_bici_ac = f * bike_result.t_usuarios_min + (1 - f) * t_bici_ac
-            t_tren_acc_ac = f * train_result.t_acceso_min + (1 - f) * t_tren_acc_ac
-            t_tren_esp_ac = f * train_result.t_espera_min + (1 - f) * t_tren_esp_ac
-            t_tren_v_ac = f * train_result.t_viaje_min + (1 - f) * t_tren_v_ac
-            new_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
-            # Residual de TODA la red (no sólo auto): máximo cambio de tiempo en
-            # cualquier modo y celda entre iteraciones MSA.
-            residuo = float(
-                max(
-                    np.max(np.abs(t_auto_ac - old_auto)),
-                    np.max(np.abs(t_bici_ac - old_bici)),
-                    np.max(np.abs(new_metro - old_metro)),
-                )
-            )
-
-        tiempos_actuales = [
-            TiemposObservados(
-                auto_total=float(t_auto_ac[i]),
-                bici_total=float(t_bici_ac[i]),
-                tren_acceso=float(t_tren_acc_ac[i]),
-                tren_espera=float(t_tren_esp_ac[i]),
-                tren_viaje=float(t_tren_v_ac[i]),
-            )
-            for i in range(ciudad.n_celdas)
-        ]
-
-        trace.iteraciones.append(
-            IterationSnapshot(
-                iter=it,
-                f_msa=1.0 / (it + 1),
-                modal_split=conteo,
-                demanda_auto=d_auto.copy(),
-                demanda_metro=d_metro.copy(),
-                demanda_bici=d_bici.copy(),
-                t_auto=t_auto_ac.copy(),
-                t_bici=t_bici_ac.copy(),
-                t_tren_acceso=t_tren_acc_ac.copy(),
-                t_tren_espera=t_tren_esp_ac.copy(),
-                t_tren_viaje=t_tren_v_ac.copy(),
-                frecuencia_metro=train_result.frecuencia_operativa,
-                residuo=residuo,
-            )
-        )
-
-        last_state = {
-            "capacidad": car_result.capacidad_direccion,
-            "v_libre": car_result.v_libre_kmh,
-            "alpha": car_result.alpha_bpr,
-            "beta": car_result.beta_bpr,
-            "carga_metro": train_result.carga_por_tramo,
-            "estaciones": train_result.estaciones_km,
-            "flujos_auto": car_result.flujos_veh_por_hora,
-        }
-
-        if sim.tolerance > 0 and residuo < sim.tolerance:
-            estables += 1
-            if estables >= 2:
-                trace.converged = True
-                break
-        else:
-            estables = 0
-
-    return last_state

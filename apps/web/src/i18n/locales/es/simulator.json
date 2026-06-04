@@ -53,7 +53,9 @@
       "v_tren_kmh": "Velocidad tren (km/h)",
       "capacidad_tren": "Capacidad tren (pax)",
       "num_estaciones": "Número de estaciones",
-      "frec_max": "Frecuencia máxima (trenes/h)"
+      "frec_min": "Frec. mínima",
+      "frec_max": "Frec. máxima",
+      "anden_hint": "Congestión de andén (BPR): castiga la espera cuando la carga supera la capacidad a frecuencia máxima (v/c>1)."
     }
   },
   "equilibrium": {
@@ -65,6 +67,13 @@
     "assignment_expected": "Flujos esperados",
     "assignment_hint_montecarlo": "Sortea el modo de cada agente (estocástico; tiene ruido entre iteraciones).",
     "assignment_hint_expected": "Asignación fraccional por probabilidades logit (determinista, sin ruido).",
+    "modos": "Modos disponibles",
+    "modo_auto": "Auto",
+    "modo_metro": "Metro",
+    "modo_bici": "Bici",
+    "modo_caminata": "Caminata",
+    "modos_hint": "Quita modos del set de elección para estudiar escenarios estilizados (p.ej. solo Auto vs Metro).",
+    "modos_min": "Debe quedar al menos un modo habilitado.",
     "residual": "Residuo",
     "iteration": "Iteración {{n}} de {{total}}",
     "converged": "Equilibrio alcanzado",
@@ -201,7 +210,7 @@
     "mode_coupled": "Acoplado",
     "info_standalone": "Resuelve el equilibrio Alonso con T = |i − CBD| (sin transporte).",
     "info_coupled": "Itera suelo ↔ transporte hasta que T se estabilice.",
-    "density_ignored_hint": "En modo acoplado, la población por celda proviene de la asignación de uso de suelo (Σ H = {{total}}); el slider «Densidad por celda» del Sandbox se ignora.",
+    "density_ignored_hint": "En modo acoplado, la población por celda proviene de la asignación de uso de suelo (Σ H = {{total}}); el slider «Densidad por celda» de Transporte se ignora.",
     "outer_iterations": "Iteraciones exteriores",
     "outer_iter_label": "N outer",
     "outer_iter_hint": "Cada iteración corre el MSA de transporte completo. Usar pocas iteraciones en aula.",
@@ -245,6 +254,8 @@
     "ready_count": "{{done}} de {{total}} listos",
     "add_scenario": "Añadir escenario",
     "kpis": "KPIs",
+    "highlights": "Diferencias destacadas",
+    "highlights_vs": "Diferencias vs «{{base}}» (base)",
     "flow_profile": "Perfil de demanda",
     "kpi": {
       "metric": "Métrica",
@@ -254,10 +265,15 @@
       "operation": "Operación",
       "metro_freq": "Frecuencia metro (trenes/h)",
       "final_residual": "Residuo final (min)",
-      "physical_trips": "Viajes físicos"
+      "physical_trips": "Viajes físicos",
+      "emissions": "Emisiones CO₂ (kg/h)",
+      "total": "Total",
+      "stratum": "Estrato",
+      "travel_time": "Tiempo de viaje (min)",
+      "utility": "Utilidad media"
     },
     "scenario_card": {
-      "no_config": "Sin configuración. Carga un archivo o usa el sandbox actual.",
+      "no_config": "Sin configuración. Carga un archivo o usa Transporte actual.",
       "cells": "{{n}} celdas",
       "length_km": "{{km}} km",
       "density": "ρ={{rho}}/celda",
@@ -356,7 +372,8 @@
     "unit": {
       "auto": "veh/h",
       "metro": "pax/h",
-      "bici": "bici/h"
+      "bici": "bici/h",
+      "caminata": "viajes/h"
     },
     "legend": {
       "scale": "Saturación v/c",

@@ -14,6 +14,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 StratumId = Literal[1, 2, 3]
 """1 = Alto, 2 = Medio, 3 = Bajo."""
 
+Modo = Literal["Auto", "Metro", "Bici", "Caminata"]
+"""Modos de transporte que el usuario puede habilitar/deshabilitar en el set de
+elección antes de correr el equilibrio. El teletrabajo no es un modo elegible:
+se decide antes (prob_teletrabajo) y no se ve afectado por esta selección."""
+
 
 class PhysicalPenalties(BaseModel):
     """Penalizaciones aditivas escalonadas (step) para bici y caminata.
@@ -157,8 +162,19 @@ class TrainSupplyParams(BaseModel):
     num_estaciones: int = Field(default=10, ge=2)
     v_caminata_kmh: float = 4.8
     tasa_carga: float = 6.0
-    frec_min: float = 10
-    frec_max: float = 20
+    # Rango de frecuencia operativa (trenes/h). Valores realistas de metro:
+    # frec_min≈6 ⇒ ~10 min de intervalo (valle); frec_max≈30 ⇒ ~2 min (punta).
+    # El rango amplio fortalece el efecto Mohring: al perder demanda la
+    # frecuencia cae más y la espera (=30/f) sube con pendiente -30/f^2, más
+    # pronunciada a baja frecuencia. Ver docs/DISCREPANCIES.md (D-18).
+    frec_min: float = 6
+    frec_max: float = 30
+    anden_alpha: float = Field(
+        default=0.5,
+        ge=0,
+        description="α de la BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), ρ = carga/(frec_max·K)",
+    )
+    anden_beta: float = Field(default=4.0, ge=0, description="β de la BPR de congestión de andén")
 
 
 class SupplyConfig(BaseModel):
@@ -189,3 +205,19 @@ class SimulationConfig(BaseModel):
             "probabilidades logit (determinista, sin ruido entre iteraciones)."
         ),
     )
+    modos_habilitados: tuple[Modo, ...] = Field(
+        default=("Auto", "Metro", "Bici", "Caminata"),
+        description=(
+            "Modos disponibles en el set de elección. Los modos excluidos se "
+            "tratan como infeasibles (utilidad −∞) y no reciben demanda. Útil "
+            "para escenarios estilizados (p.ej. solo Auto vs Metro)."
+        ),
+    )
+
+    @field_validator("modos_habilitados")
+    @classmethod
+    def _at_least_one_mode(cls, v: tuple[Modo, ...]) -> tuple[Modo, ...]:
+        uniq = tuple(dict.fromkeys(v))  # dedup preservando orden
+        if not uniq:
+            raise ValueError("Debe habilitarse al menos un modo de transporte")
+        return uniq

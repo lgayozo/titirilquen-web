@@ -90,6 +90,9 @@ export interface TrainSupplyParams {
   tasa_carga: number;
   frec_min: number;
   frec_max: number;
+  /** BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), ρ = carga/(frec_max·K). */
+  anden_alpha: number;
+  anden_beta: number;
 }
 
 export interface SupplyConfig {
@@ -108,7 +111,13 @@ export interface SimulationConfig {
   /** Método de asignación de demanda: Monte Carlo (sorteo por agente) o
    *  flujos esperados (probabilidades logit, determinista). */
   assignment: "montecarlo" | "expected";
+  /** Modos disponibles en el set de elección antes de correr el equilibrio.
+   *  Los modos excluidos se tratan como infeasibles (utilidad −∞). El
+   *  teletrabajo no es elegible (se decide antes de la elección de modo). */
+  modos_habilitados: ModoTransporte[];
 }
+
+export type ModoTransporte = Exclude<Modo, "Teletrabajo">;
 
 export interface IterationSnapshot {
   iter: number;
@@ -122,6 +131,7 @@ export interface IterationSnapshot {
   demanda_auto: number[];
   demanda_metro: number[];
   demanda_bici: number[];
+  demanda_caminata: number[];
   frecuencia_metro: number;
   residuo: number | null;
 }

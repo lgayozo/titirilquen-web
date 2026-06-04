@@ -303,6 +303,36 @@ a:hover {
   color: var(--ink);
 }
 
+/* Chips de selección de modos (set de elección) */
+.chip-toggle {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: var(--font-fig);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+
+.chip-toggle.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.chip-toggle:hover:not(.active):not(:disabled) {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.chip-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
 /* Page grid — altura fija heredada del <main> flex-1; cada columna scrollea
    independientemente para que el botón "Simular" de la sidebar SIEMPRE sea
    alcanzable con scroll. */

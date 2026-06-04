@@ -24,8 +24,11 @@ from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
-from titirilquen_core.demand.utility import TiemposObservados
-from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot, _run_final_assignments
+from titirilquen_core.equilibrium.msa import (
+    ConvergenceTrace,
+    IterationSnapshot,
+    run_msa_con_poblacion,
+)
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult
@@ -115,21 +118,15 @@ def _run_transport_with_population(
     sim: SimulationConfig,
     agentes: list[Agente],
     ciudad: CiudadLineal,
+    rng: np.random.Generator | None = None,
 ) -> tuple[ConvergenceTrace, IterationSnapshot]:
     """Corre el loop MSA de transporte usando una población ya construida.
 
-    Reutiliza el helper interno `_run_final_assignments` de msa.py para evitar
-    duplicar la lógica.
+    Reutiliza `run_msa_con_poblacion` de msa.py para evitar duplicar la lógica.
     """
-    trace = ConvergenceTrace(agentes=agentes)
-    last = _run_final_assignments(sim, ciudad, agentes, trace)
-    if last is not None:
-        trace.capacidad_auto = last["capacidad"]
-        trace.v_libre_auto = last["v_libre"]
-        trace.alpha_auto_bpr = last["alpha"]
-        trace.beta_auto_bpr = last["beta"]
-        trace.carga_metro = last["carga_metro"]
-        trace.estaciones_km = last["estaciones"]
+    if rng is None:
+        rng = np.random.default_rng(sim.seed)
+    trace = run_msa_con_poblacion(sim, ciudad, agentes, rng)
     final_snap = trace.iteraciones[-1]
     return trace, final_snap
 

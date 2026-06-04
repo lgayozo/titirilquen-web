@@ -99,6 +99,17 @@ factor = 1                  si ρ_s ≤ 1
 > con ciudades de tamaño normal → la espera queda plana. Además las constantes del
 > código (`α_e=0.5, β_e=4`) **difieren** de las del Overleaf (`α=10, β=10`).
 > Pendiente de calibración con los autores.
+>
+> **Nota (D‑18 — efecto Mohring):** la frecuencia es **endógena a la demanda**
+> (`f_op = L_max/K`), por lo que la espera `t_esp ≈ 30/f_op` baja cuando sube el
+> patronaje y sube cuando baja — el **efecto Mohring**, ingrediente de la paradoja
+> de Downs‑Thomson. El rango por defecto es **realista de metro**:
+> `f_min = 6` (~10 min, valle) y `f_max = 30` (~2 min, punta). Con `f_min` bajo la
+> pendiente `d(t_esp)/df = −30/f²` es más empinada en baja frecuencia. Pruebas
+> empíricas: el canal Mohring es **medible** (la espera sube al perder pasajeros)
+> pero **DT no emerge** con parámetros realistas, porque la espera es una fracción
+> chica del tiempo total de metro (acceso + a bordo dominan, independientes de la
+> demanda) y la sustitución auto↔metro es modesta. Ver DISCREPANCIES.md D‑18.
 
 ---
 

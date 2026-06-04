@@ -59,6 +59,7 @@ type LoadPyodide = (opts: { indexURL: string }) => Promise<PyodideInterface>;
 let pyodide: PyodideInterface | null = null;
 let simulateFn: ((config: unknown) => unknown) | null = null;
 let iterFn: ((config: unknown) => unknown) | null = null;
+let lastTraceFn: (() => unknown) | null = null;
 let landUseSolveFn: ((req: unknown) => unknown) | null = null;
 let coupledIterFn: ((req: unknown) => unknown) | null = null;
 
@@ -91,7 +92,7 @@ await micropip.install(${JSON.stringify(whlUrl)})
 
 from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
 from titirilquen_core.coupled import iter_coupled
-from titirilquen_core.equilibrium.msa import iter_msa
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa
 import json
 import numpy as np
 
@@ -108,6 +109,7 @@ def _snap_to_py(snap):
         "demanda_auto": snap.demanda_auto.tolist(),
         "demanda_metro": snap.demanda_metro.tolist(),
         "demanda_bici": snap.demanda_bici.tolist(),
+        "demanda_caminata": snap.demanda_caminata.tolist(),
         "frecuencia_metro": snap.frecuencia_metro,
         "residuo": None if snap.residuo == float("inf") else snap.residuo,
     }
@@ -140,10 +142,22 @@ def simulate_from_json(config_json: str):
     cfg = SimulationConfig.model_validate_json(config_json)
     return _trace_to_py(run_msa(cfg))
 
+# Streaming en una sola corrida: iter_msa popula el trace completo mientras
+# emite los snapshots. Tras agotar el generador, last_trace_to_py() devuelve el
+# resultado final (agentes/emisiones) SIN volver a correr la simulación.
+_LAST_TRACE = {"trace": None}
+
 def iter_from_json(config_json: str):
     cfg = SimulationConfig.model_validate_json(config_json)
-    for snap in iter_msa(cfg):
+    trace = ConvergenceTrace()
+    _LAST_TRACE["trace"] = None
+    for snap in iter_msa(cfg, trace):
         yield _snap_to_py(snap)
+    _LAST_TRACE["trace"] = trace
+
+def last_trace_to_py():
+    t = _LAST_TRACE["trace"]
+    return None if t is None else _trace_to_py(t)
 
 def _land_use_result_to_py(res):
     return {
@@ -194,11 +208,13 @@ def coupled_iter_from_json(req_json: str):
   const globals = py.pyimport("__main__") as {
     simulate_from_json: unknown;
     iter_from_json: unknown;
+    last_trace_to_py: unknown;
     land_use_solve_from_json: unknown;
     coupled_iter_from_json: unknown;
   };
   simulateFn = globals.simulate_from_json as (c: unknown) => unknown;
   iterFn = globals.iter_from_json as (c: unknown) => unknown;
+  lastTraceFn = globals.last_trace_to_py as () => unknown;
   landUseSolveFn = globals.land_use_solve_from_json as (r: unknown) => unknown;
   coupledIterFn = globals.coupled_iter_from_json as (r: unknown) => unknown;
 }
@@ -240,8 +256,9 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
         const snapshot = jsFromPy(value) as IterationSnapshot;
         post({ id: msg.id, type: "iteration", snapshot });
       }
-      // Para obtener el resultado completo (agentes, carga_metro final), corremos una vez más.
-      const result = jsFromPy(simulateFn!(JSON.stringify(msg.config))) as SimulationResult;
+      // El trace completo (agentes, carga_metro final, emisiones) ya quedó poblado
+      // durante el streaming (iter_msa con trace) — lo leemos sin volver a correr.
+      const result = jsFromPy(lastTraceFn!()) as SimulationResult;
       post({ id: msg.id, type: "done", result });
       return;
     }

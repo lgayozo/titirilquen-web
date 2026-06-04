@@ -41,11 +41,19 @@ def elegir_modo(
     utilidades: dict[Modo, UtilityBreakdown],
     *,
     rng: np.random.Generator | None = None,
-) -> Modo:
-    """Sortea un modo según sus probabilidades logit."""
+) -> Modo | None:
+    """Sortea un modo según sus probabilidades logit.
+
+    Devuelve `None` si el agente no tiene ningún modo feasible (p.ej. sin auto y
+    con todos los demás modos deshabilitados): es un viaje "varado" que no se
+    asigna a ningún modo.
+    """
     probs = probabilidades_logit(utilidades)
     modos = list(probs.keys())
     weights = np.array([probs[m] for m in modos])
+
+    if weights.sum() <= 0:
+        return None
 
     if rng is None:
         rng = np.random.default_rng()

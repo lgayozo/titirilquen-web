@@ -24,7 +24,7 @@ export function ScenarioCard({ scenario, onRun, removable }: ScenarioCardProps) 
   const currentConfig = useSimulationStore((s) => s.config);
 
   const onUseCurrent = () => {
-    setConfig(scenario.id, currentConfig, `Sandbox · ${scenario.id}`);
+    setConfig(scenario.id, currentConfig, `Transporte · ${scenario.id}`);
   };
 
   const onImport = async (ev: React.ChangeEvent<HTMLInputElement>) => {

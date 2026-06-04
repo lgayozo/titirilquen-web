@@ -2,14 +2,17 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 
+import { ComparisonHighlights } from "@/components/compare/ComparisonHighlights";
 import { KPITable } from "@/components/compare/KPITable";
 import { ScenarioCard } from "@/components/compare/ScenarioCard";
 import { ScenarioFlowComparison } from "@/components/compare/ScenarioFlowComparison";
 import { Panel } from "@/components/ui/Panel";
 import { runSimulation } from "@/lib/api";
 import { computeKPIs } from "@/lib/kpis";
+import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { Modo } from "@/lib/types";
 import { useCompareStore } from "@/store/compareStore";
+import { useSimulationStore } from "@/store/simulationStore";
 
 export function ComparePage() {
   const { t } = useTranslation("simulator");
@@ -26,7 +29,9 @@ export function ComparePage() {
     if (!sc?.config) return;
     setStatus(id, "running");
     try {
-      const result = await runSimulation(sc.config);
+      const engine = useSimulationStore.getState().engine;
+      const result =
+        engine === "api" ? await runSimulation(sc.config) : await pyodideEngine.simulate(sc.config);
       setResult(id, result);
     } catch (e) {
       setError(id, e instanceof Error ? e.message : String(e));
@@ -135,6 +140,10 @@ export function ComparePage() {
 
       {doneCount > 0 && (
         <div className="panel-grid">
+          <Panel n="00" title={t("compare.highlights")} meta="auto · diff" cls="col-12">
+            <ComparisonHighlights scenarios={rows} baseId={baseId} />
+          </Panel>
+
           <Panel n="01" title={t("compare.kpis")} meta="delta vs base" cls="col-12">
             <KPITable scenarios={rows} baseId={baseId} />
           </Panel>

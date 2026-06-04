@@ -12,12 +12,6 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
-# Parámetros de congestión en andén — fijos en el código original.
-# Ver app.py:237-238 del repo original.
-_ALFA_CONGESTION = 0.5
-_BETA_CONGESTION = 4.0
-
-
 @dataclass(frozen=True)
 class TrainSupplyResult:
     t_acceso_min: NDArray[np.float64]
@@ -41,6 +35,8 @@ def oferta_tren(
     tasa_carga: float,
     frec_min: float,
     frec_max: float,
+    anden_alpha: float = 0.15,
+    anden_beta: float = 4.0,
 ) -> TrainSupplyResult:
     N = len(demanda)
     dx = L_ciudad_km / N
@@ -109,7 +105,9 @@ def oferta_tren(
             continue
         carga_local = carga_al_salir_estacion[i]
         ratio = carga_local / capacidad_maxima_sistema if capacidad_maxima_sistema > 0 else 0.0
-        factor = 1.0 if ratio <= 1 else _ALFA_CONGESTION * (ratio**_BETA_CONGESTION)
+        # BPR continua: sin salto ni caída en ρ=1. Con β alto el castigo es
+        # despreciable bajo saturación (ρ<1) y crece suave al pasar ρ=1.
+        factor = 1.0 + anden_alpha * (ratio**anden_beta)
         t_espera_por_estacion[i] = t_espera_base * factor
 
     t_acceso_min = (dist_acceso / v_caminata_kmh) * 60

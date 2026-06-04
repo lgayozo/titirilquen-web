@@ -4,7 +4,7 @@
   "nav": {
     "label": "Main navigation",
     "tutorial": "Tutorial",
-    "sandbox": "Sandbox",
+    "sandbox": "Transport",
     "land_use": "Land use",
     "coupled": "Coupled",
     "compare": "Compare",
@@ -33,7 +33,7 @@
     "export_svg": "Export figure",
     "add_scenario": "Add scenario",
     "remove": "Remove",
-    "use_sandbox": "Current sandbox"
+    "use_sandbox": "Current transport"
   },
   "engine": {
     "label": "Engine",

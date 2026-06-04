@@ -4,7 +4,7 @@
   "nav": {
     "label": "Navegación principal",
     "tutorial": "Tutorial",
-    "sandbox": "Sandbox",
+    "sandbox": "Transporte",
     "land_use": "Uso de suelo",
     "coupled": "Acoplado",
     "compare": "Comparar",
@@ -33,7 +33,7 @@
     "export_svg": "Exportar figura",
     "add_scenario": "Añadir escenario",
     "remove": "Eliminar",
-    "use_sandbox": "Sandbox actual"
+    "use_sandbox": "Transporte actual"
   },
   "engine": {
     "label": "Motor",

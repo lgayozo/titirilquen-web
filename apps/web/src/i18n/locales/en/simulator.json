@@ -53,7 +53,9 @@
       "v_tren_kmh": "Train speed (km/h)",
       "capacidad_tren": "Train capacity (pax)",
       "num_estaciones": "Number of stations",
-      "frec_max": "Max frequency (trains/h)"
+      "frec_min": "Min frequency",
+      "frec_max": "Max frequency",
+      "anden_hint": "Platform congestion (BPR): penalizes waiting once load exceeds the max-frequency capacity (v/c>1)."
     }
   },
   "equilibrium": {
@@ -65,6 +67,13 @@
     "assignment_expected": "Expected flows",
     "assignment_hint_montecarlo": "Samples each agent's mode (stochastic; noisy across iterations).",
     "assignment_hint_expected": "Fractional assignment by logit probabilities (deterministic, noise-free).",
+    "modos": "Available modes",
+    "modo_auto": "Car",
+    "modo_metro": "Metro",
+    "modo_bici": "Bike",
+    "modo_caminata": "Walk",
+    "modos_hint": "Remove modes from the choice set to study stylized scenarios (e.g. Car vs Metro only).",
+    "modos_min": "At least one mode must stay enabled.",
     "residual": "Residual",
     "iteration": "Iteration {{n}} of {{total}}",
     "converged": "Equilibrium reached",
@@ -195,7 +204,7 @@
     "mode_coupled": "Coupled",
     "info_standalone": "Solves the Alonso equilibrium with T = |i − CBD| (no transport).",
     "info_coupled": "Iterates land use ↔ transport until T stabilizes.",
-    "density_ignored_hint": "In coupled mode, per-cell population comes from the land-use assignment (Σ H = {{total}}); the Sandbox's «Density per cell» slider is ignored.",
+    "density_ignored_hint": "In coupled mode, per-cell population comes from the land-use assignment (Σ H = {{total}}); the Transport tab's «Density per cell» slider is ignored.",
     "outer_iterations": "Outer iterations",
     "outer_iter_label": "N outer",
     "outer_iter_hint": "Each iteration runs the full transport MSA. Keep small in class.",
@@ -239,6 +248,8 @@
     "ready_count": "{{done}} of {{total}} ready",
     "add_scenario": "Add scenario",
     "kpis": "KPIs",
+    "highlights": "Key differences",
+    "highlights_vs": "Differences vs “{{base}}” (base)",
     "flow_profile": "Demand profile",
     "kpi": {
       "metric": "Metric",
@@ -248,10 +259,15 @@
       "operation": "Operation",
       "metro_freq": "Metro frequency (trains/h)",
       "final_residual": "Final residual (min)",
-      "physical_trips": "Physical trips"
+      "physical_trips": "Physical trips",
+      "emissions": "CO₂ emissions (kg/h)",
+      "total": "Total",
+      "stratum": "Stratum",
+      "travel_time": "Travel time (min)",
+      "utility": "Mean utility"
     },
     "scenario_card": {
-      "no_config": "No configuration. Load a file or use the current sandbox.",
+      "no_config": "No configuration. Load a file or use the current transport.",
       "cells": "{{n}} cells",
       "length_km": "{{km}} km",
       "density": "ρ={{rho}}/cell",
@@ -350,7 +366,8 @@
     "unit": {
       "auto": "veh/h",
       "metro": "pax/h",
-      "bici": "bike/h"
+      "bici": "bike/h",
+      "caminata": "trips/h"
     },
     "legend": {
       "scale": "Saturation v/c",

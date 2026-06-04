@@ -139,15 +139,45 @@ export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuild
           step={1}
           onChange={(v) => setSupply("train", { num_estaciones: v })}
         />
-        <LabeledSlider
-          label={t("supply_params.train.frec_max")}
-          value={train.frec_max}
-          min={4}
-          max={60}
-          step={1}
-          unit="tph"
-          onChange={(v) => setSupply("train", { frec_max: v })}
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <LabeledSlider
+            label={t("supply_params.train.frec_min")}
+            value={train.frec_min}
+            min={2}
+            max={20}
+            step={1}
+            unit="tph"
+            onChange={(v) => setSupply("train", { frec_min: Math.min(v, train.frec_max) })}
+          />
+          <LabeledSlider
+            label={t("supply_params.train.frec_max")}
+            value={train.frec_max}
+            min={4}
+            max={60}
+            step={1}
+            unit="tph"
+            onChange={(v) => setSupply("train", { frec_max: Math.max(v, train.frec_min) })}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <LabeledSlider
+            label="α andén"
+            value={train.anden_alpha}
+            min={0}
+            max={3}
+            step={0.05}
+            onChange={(v) => setSupply("train", { anden_alpha: v })}
+          />
+          <LabeledSlider
+            label="β andén"
+            value={train.anden_beta}
+            min={1}
+            max={8}
+            step={0.5}
+            onChange={(v) => setSupply("train", { anden_beta: v })}
+          />
+        </div>
+        <p className="text-[10px] text-muted">{t("supply_params.train.anden_hint")}</p>
       </SidebarSection>
     </>
   );

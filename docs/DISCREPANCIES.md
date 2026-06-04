@@ -313,8 +313,21 @@ Convenciones:
   salta hacia arriba. No se puede saber cuál refleja el `app.py` real sin el
   código original (no disponible).
 - **Veredicto**: Discrepancia código ↔ Overleaf (constantes y forma).
-- **Acción**: Decidir la calibración correcta de andén junto con D‑12 (idealmente
-  reformular como BPR continua sin el salto). Pendiente de decisión de los autores.
+- **Acción**: ✅ **Reformulado** como **BPR continua** sin salto ni caída:
+  `factor = 1 + α·ρ^β`, `ρ = carga/(frec_max·K)`. Con `β` alto el castigo es
+  despreciable bajo saturación (`ρ<1`) y crece suave al pasar `ρ=1`. Los
+  parámetros `α, β` se expusieron como config del tren (`anden_alpha`,
+  `anden_beta`) con sliders en la UI; default `α=0.5, β=4` (efecto visible sin
+  colapsar el metro; con la calibración por defecto los escenarios no saturados
+  no se ven afectados). La calibración final queda para validar con los autores.
+- **Limitación conocida**: el castigo es **por estación de abordaje**, así que no
+  puede forzar el `v/c` del **tramo central** a 1 — ese tramo carga también a los
+  pasajeros "de paso" (que abordan en estaciones poco cargadas, con poca espera).
+  Verificado: subiendo `α` el `v/c` máximo y el share de metro bajan monótonamente
+  (p. ej. en un escenario saturado, `α=0`→ v/c 3.6 / metro 56%; `α=2`→ v/c 2.6 /
+  metro 42%), pero no llega a 1. Clavar `v/c=1` requeriría una restricción de
+  capacidad en el **arco/vehículo** (crowding) o asignación con capacidad, no solo
+  en andén.
 
 ---
 
@@ -330,6 +343,93 @@ Convenciones:
   inconsistencia interna; el código es correcto.
 - **Veredicto**: Overleaf incorrecto (typo de signo).
 - **Acción**: Corregir la ecuación de WTP en `Suelo.tex` a `y_h − (u_h − f_h(i))/λ_h`.
+
+---
+
+## D-18 — Refuerzo del canal Mohring (frecuencia ↔ demanda) y test de Downs‑Thomson
+
+- **Contexto**: se evaluó empíricamente si el simulador reproduce la **paradoja
+  de Downs‑Thomson** (agregar capacidad vial empeora el tiempo de sistema porque
+  degrada el transporte público). El ingrediente necesario es el **efecto
+  Mohring**: la frecuencia del metro es endógena a la demanda
+  (`f_op = clip(carga/K, frec_min, frec_max)`), de modo que al perder pasajeros
+  baja la frecuencia y sube la espera (`t_espera_base = 30/f_op`).
+- **Hallazgo (antes)**: con `frec_min=10, frec_max=20` el rango es angosto y la
+  frecuencia queda saturada (cerca de `fmax`) o pegada al piso (`fmin`), fuera
+  del tramo sensible de `30/f`. El canal Mohring estaba **inactivo en la
+  práctica** y DT no se observaba.
+- **Cambio**: se amplió el rango a valores **realistas de metro**:
+  `frec_min = 6` (~10 min de intervalo, valle) y `frec_max = 30` (~2 min, punta).
+  Con `fmin` más bajo la pendiente `d(espera)/df = −30/f²` es más pronunciada en
+  baja frecuencia → la espera responde más a la demanda. Se expone además
+  `frec_min` en la UI (antes solo `frec_max`).
+- **Verificación**: en régimen congestionado y con el metro dentro del tramo
+  sensible (`f_op≈8`), al quitar pistas el metro pierde pasajeros, la frecuencia
+  cae (8.4→8.0) y **la espera sube** (3.23→3.38 min) — el canal Mohring queda
+  **activo y medible**. Sin embargo el **tiempo de sistema sigue bajando**
+  monótonamente al agregar pistas (18.8→16.8 min): **DT no emerge** con
+  parámetros realistas porque (a) la sustitución auto↔metro es modesta (~3 pp,
+  el logit con ASCs la diluye) y (b) la espera es una **fracción chica** del
+  tiempo total de metro (≈3 min de ≈17), dominado por acceso + viaje a bordo,
+  ambos independientes de la demanda.
+- **Nota conceptual**: DT nace del **efecto Mohring** (frecuencia↑ con la
+  demanda ⇒ el TP mejora con más pasajeros), no del *crowding* (ocupación↑ ⇒ TP
+  peor), que es de signo opuesto (congestión del TP, estabilizadora). El castigo
+  de andén (D‑16) es del lado *crowding*. Reproducir DT pediría acoplar el
+  **tiempo a bordo** a la ocupación de forma dominante, lo que sería poco
+  realista para un metro; con parámetros realistas el modelo monocéntrico no
+  exhibe la paradoja.
+- **Veredicto**: Mejora de realismo + diagnóstico. Mohring reforzado (realista);
+  DT no observable con parámetros realistas (resultado esperado y defendible).
+- **Acción**: documentar en el Overleaf el rango de frecuencia y la ausencia de
+  DT como hallazgo del modelo.
+
+## D-19 — Selección de modos disponibles (set de elección)
+
+- **Contexto**: el usuario puede ahora **habilitar/deshabilitar modos** antes de
+  correr el equilibrio (`SimulationConfig.modos_habilitados`), p.ej. para
+  escenarios estilizados Auto vs Metro.
+- **Implementación**: los modos excluidos se marcan infeasibles (utilidad −∞) en
+  `calcular_utilidades`; `elegir_modo` devuelve `None` si un agente queda sin
+  modo feasible (viaje "varado", no se asigna). No afecta el teletrabajo (se
+  decide antes de la elección de modo). El original no contempla esta opción.
+- **Veredicto**: Ampliación de funcionalidad (no existe en el Overleaf).
+- **Acción**: documentar como funcionalidad nueva de la web.
+
+---
+
+## D-20 — Rendimiento: asignación agrupada (independiente de la densidad)
+
+- **Síntoma**: con `n_celdas` y `densidad_por_celda` altos el MSA corría
+  extremadamente lento (p.ej. 40k agentes ≈ 19 s en Pyodide).
+- **Causa**: `_correr_iteracion` recorría **cada agente** llamando
+  `calcular_utilidades` + `elegir_modo` (con `rng.choice` por agente), y esto se
+  repetía en **cada** iteración del MSA → costo O(max_iter · agentes). Además
+  `generar_poblacion` hacía 3 llamadas a `rng` por agente.
+- **Fix**:
+  1. **Agrupación**: la utilidad sólo depende de `(estrato, celda, tiene_auto)`,
+     así que hay ~6·`n_celdas` grupos distintos **independiente de la densidad**.
+     Se calcula la probabilidad **una vez por grupo** y se agregan los flujos:
+     en `expected`, `dem += nₐ·prob`; en `montecarlo`, una `rng.multinomial(nₐ,
+     prob)` por grupo. Costo del loop: O(max_iter · grupos).
+  2. **Registros por agente una sola vez**: `_asignar_modos_agentes` muestrea el
+     modo de cada agente (vectorizado, `rng.choice(size=nₐ)`) sólo al final, a
+     partir del estado convergido (antes se reescribían en cada iteración).
+  3. **`generar_poblacion` vectorizada**: 3 sorteos `rng` totales en vez de 3 por
+     agente.
+  4. **Una sola corrida en streaming**: antes el worker corría la simulación
+     **dos veces** (una para los snapshots en vivo, otra en `simulate_from_json`
+     para obtener `agentes`/emisiones). Ahora `iter_msa(sim, trace)` popula el
+     `ConvergenceTrace` completo durante el mismo recorrido y el worker lo lee con
+     `last_trace_to_py()` sin reejecutar. `run_msa` = consumir `iter_msa` con un
+     `trace`; el loop acoplado usa `run_msa_con_poblacion` (mismo `_iter_loop`
+     sobre una población dada). Se eliminó el duplicado `_run_final_assignments`.
+- **Resultado** (Pyodide): 40k agentes 19 s → **0.45 s**; default (10k) 8.5 s →
+  **0.26 s**. La densidad ya no afecta el costo del loop; sólo escala con
+  `n_celdas`. El modo `expected` es **numéricamente idéntico** al previo
+  (determinista); `montecarlo` es estadísticamente equivalente (cambia la
+  secuencia de sorteos).
+- **Veredicto**: Mejora de rendimiento (sin cambio de modelo en `expected`).
 
 ---
 
@@ -354,3 +454,6 @@ Convenciones:
 | D-15 | Bici sin piso de velocidad (podía ser > caminata) | Bug físico corregido | Alta |
 | D-16 | Constantes congestión andén (α,β) ≠ Overleaf | Discrepancia código↔Overleaf | Media |
 | D-17 | Signo de f_h en WTP (Suelo) | Overleaf incorrecto (typo) | Media |
+| D-18 | Rango de frecuencia realista (Mohring) + test Downs‑Thomson | Mejora + diagnóstico (DT no observable) | Media |
+| D-19 | Selección de modos disponibles (set de elección) | Ampliación de funcionalidad | Media |
+| D-20 | Rendimiento: asignación agrupada (independiente de densidad) | Mejora de rendimiento | Alta |

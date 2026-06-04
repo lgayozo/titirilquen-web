@@ -38,38 +38,49 @@ def generar_poblacion(
     teletrabajo_factor: float = 1.0,
     rng: np.random.Generator | None = None,
 ) -> list[Agente]:
-    """Genera agentes según densidad y shares configurados."""
+    """Genera agentes según densidad y shares configurados.
+
+    El sorteo está **vectorizado** (3 llamadas a `rng` en total en vez de 3 por
+    agente): clave para que el costo no explote con densidad alta.
+    """
     if rng is None:
         rng = np.random.default_rng()
 
-    agentes: list[Agente] = []
-    id_counter = 1
     estratos: tuple[StratumId, ...] = (1, 2, 3)
+    celdas_validas = np.array(
+        [i for i in range(ciudad.n_celdas) if i != ciudad.cbd_index], dtype=np.int64
+    )
+    total = int(celdas_validas.size) * densidad_por_celda
+    if total == 0:
+        return []
 
-    for i in range(ciudad.n_celdas):
-        if i == ciudad.cbd_index:
-            continue
-        for _ in range(densidad_por_celda):
-            estrato_idx = int(rng.choice(3, p=share_estratos))
-            estrato: StratumId = estratos[estrato_idx]
-            s = demand_config.estratos[estrato]
+    # Sorteos vectorizados (mismo orden conceptual: celda externa, densidad interna).
+    estrato_idx = rng.choice(3, size=total, p=share_estratos)
+    u_tele = rng.random(total)
+    u_auto = rng.random(total)
 
-            prob_tele = min(1.0, s.prob_teletrabajo * teletrabajo_factor)
-            teletrabaja = bool(rng.random() < prob_tele)
-            tiene_auto = bool(rng.random() < s.prob_auto)
+    prob_tele_por = np.array(
+        [
+            min(1.0, demand_config.estratos[e].prob_teletrabajo * teletrabajo_factor)
+            for e in estratos
+        ]
+    )
+    prob_auto_por = np.array([demand_config.estratos[e].prob_auto for e in estratos])
 
-            agentes.append(
-                Agente(
-                    id=id_counter,
-                    celda_origen=i,
-                    estrato=estrato,
-                    teletrabaja=teletrabaja,
-                    tiene_auto=tiene_auto,
-                )
-            )
-            id_counter += 1
+    teletrabaja = u_tele < prob_tele_por[estrato_idx]
+    tiene_auto = u_auto < prob_auto_por[estrato_idx]
+    celda_de = np.repeat(celdas_validas, densidad_por_celda)
 
-    return agentes
+    return [
+        Agente(
+            id=k + 1,
+            celda_origen=int(celda_de[k]),
+            estrato=estratos[int(estrato_idx[k])],
+            teletrabaja=bool(teletrabaja[k]),
+            tiene_auto=bool(tiene_auto[k]),
+        )
+        for k in range(total)
+    ]
 
 
 def generar_poblacion_desde_land_use(

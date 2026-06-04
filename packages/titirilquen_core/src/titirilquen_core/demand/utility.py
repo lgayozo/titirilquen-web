@@ -65,10 +65,14 @@ def calcular_utilidades(
     ciudad: CiudadLineal,
     config: DemandConfig,
     tiempos_observados: TiemposObservados | None,
+    modos_habilitados: tuple[Modo, ...] | frozenset[Modo] | None = None,
 ) -> dict[Modo, UtilityBreakdown]:
     """Calcula la utilidad de cada modo para un agente en una celda dada.
 
     Si `tiempos_observados is None` (iteración 0), se asumen tiempos de flujo libre.
+
+    `modos_habilitados` restringe el set de elección: cualquier modo fuera del
+    conjunto se marca infeasible (utilidad −∞). `None` ⇒ todos habilitados.
     """
     betas = config.estratos[estrato].betas
     penal = betas.penalizaciones_fisicas
@@ -134,9 +138,17 @@ def calcular_utilidades(
         v_cam = asc_cam + v_t_cam + p
         cam_breakdown = UtilityBreakdown("Caminata", v_cam, asc_cam, v_t_cam, 0.0, v_penalizaciones=p, feasible=True)
 
-    return {
+    resultado = {
         "Auto": auto_breakdown,
         "Metro": metro_breakdown,
         "Bici": bici_breakdown,
         "Caminata": cam_breakdown,
     }
+
+    if modos_habilitados is not None:
+        habilitados = set(modos_habilitados)
+        for m, bd in resultado.items():
+            if m not in habilitados and bd.feasible:
+                resultado[m] = UtilityBreakdown(m, UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
+
+    return resultado

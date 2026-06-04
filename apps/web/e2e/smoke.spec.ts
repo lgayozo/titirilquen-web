@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 /** Rutas de la nav (etiquetas en español, idioma por defecto). */
 const ROUTES = [
-  { name: "Sandbox", path: "/sandbox" },
+  { name: "Transporte", path: "/sandbox" },
   { name: "Uso de suelo", path: "/land-use" },
   { name: "Acoplado", path: "/coupled" },
   { name: "Comparar", path: "/compare" },

@@ -11,7 +11,7 @@ interface NetworkDiagramProps {
   className?: string;
 }
 
-const MARGIN = { top: 24, right: 16, bottom: 34, left: 54 };
+const MARGIN = { top: 24, right: 16, bottom: 34, left: 82 };
 
 /**
  * Red vial completa de la ciudad lineal. Muestra las 3 redes (auto, metro,
@@ -35,7 +35,7 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
     return () => ro.disconnect();
   }, []);
 
-  const H = 280;
+  const H = 332;
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
   const plotH = H - MARGIN.top - MARGIN.bottom;
   const L = config.city.n_celdas;
@@ -100,6 +100,14 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
     [flowMetro, capTren]
   );
 
+  // Caminata: no tiene capacidad/v-c. Mostramos la intensidad de demanda por
+  // celda (viajes a pie que se originan ahí), normalizada a su propio máximo.
+  const vCam = config.demand.globales.v_caminata;
+  const maxWalk = useMemo(
+    () => Math.max(1, ...snapshot.demanda_caminata),
+    [snapshot.demanda_caminata]
+  );
+
   // Bandas (y centers) -------------------------------------------------------
   const bandH = 40;
   const bandGap = 12;
@@ -107,6 +115,7 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
   const yAuto = bandsTop;
   const yMetro = bandsTop + bandH + bandGap;
   const yBici = bandsTop + 2 * (bandH + bandGap);
+  const yWalk = bandsTop + 3 * (bandH + bandGap);
 
   const cbdX = MARGIN.left + plotW / 2;
 
@@ -141,6 +150,7 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
         <BandFrame x={MARGIN.left} y={yAuto} w={plotW} h={bandH} label={t("modes.auto")} labelColor="var(--auto)" />
         <BandFrame x={MARGIN.left} y={yMetro} w={plotW} h={bandH} label={t("modes.metro")} labelColor="var(--metro)" />
         <BandFrame x={MARGIN.left} y={yBici} w={plotW} h={bandH} label={t("modes.bici")} labelColor="var(--bici)" />
+        <BandFrame x={MARGIN.left} y={yWalk} w={plotW} h={bandH} label={t("modes.caminata")} labelColor="var(--walk)" />
 
         {/* Celdas de cada modo --------------------------------------------- */}
         {vcAuto.map((vc, i) => (
@@ -230,6 +240,31 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
           />
         ))}
 
+        {/* Caminata: intensidad de demanda (sin v/c) ----------------------- */}
+        {snapshot.demanda_caminata.map((d, i) => (
+          <rect
+            key={`w-${i}`}
+            x={MARGIN.left + i * cellWidth}
+            y={yWalk + 1}
+            width={Math.max(cellWidth, 0.5)}
+            height={bandH - 2}
+            fill="var(--walk)"
+            opacity={d > 0 ? 0.12 + 0.88 * (d / maxWalk) : 0}
+            onMouseEnter={() =>
+              onEnter({
+                mode: "caminata",
+                cell: i,
+                vc: 0,
+                flow: d,
+                cap: 0,
+                time: ((Math.abs(i - Math.floor(L / 2)) * (lengthKm / L)) / vCam) * 60,
+                km: ((i + 0.5) / L) * lengthKm,
+              })
+            }
+            onMouseLeave={onLeave}
+          />
+        ))}
+
         {/* Estaciones de metro (sobre la banda metro) ---------------------- */}
         {stations.map((x, i) => (
           <g key={`st-${i}`}>
@@ -287,17 +322,21 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
       {hover && (
         <div className="network-tooltip" role="tooltip">
           <div className="nt-head" style={{ color: modeColor(hover.mode) }}>
-            {t(`modes.${hover.mode === "bici" ? "bici" : hover.mode === "metro" ? "metro" : "auto"}`)} · {hover.km.toFixed(1)} km
+            {t(`modes.${hover.mode}`)} · {hover.km.toFixed(1)} km
           </div>
           <Row
             label={t("network.flow")}
             value={`${Math.round(hover.flow).toLocaleString()} ${t(`network.unit.${hover.mode}`)}`}
           />
-          <Row
-            label={t("network.capacity")}
-            value={`${Math.round(hover.cap).toLocaleString()} ${t(`network.unit.${hover.mode}`)}`}
-          />
-          <Row label={t("network.vc")} value={hover.vc.toFixed(2)} emph={hover.vc > 1} />
+          {hover.mode !== "caminata" && (
+            <>
+              <Row
+                label={t("network.capacity")}
+                value={`${Math.round(hover.cap).toLocaleString()} ${t(`network.unit.${hover.mode}`)}`}
+              />
+              <Row label={t("network.vc")} value={hover.vc.toFixed(2)} emph={hover.vc > 1} />
+            </>
+          )}
           {hover.time != null && <Row label={t("network.time")} value={`${hover.time.toFixed(1)} min`} />}
         </div>
       )}
@@ -395,12 +434,12 @@ function cumulativeFlowTowardCBD(perCellDemand: readonly number[], L: number): n
   return out;
 }
 
-function modeColor(m: "auto" | "metro" | "bici"): string {
-  return `var(--${m})`;
+function modeColor(m: "auto" | "metro" | "bici" | "caminata"): string {
+  return m === "caminata" ? "var(--walk)" : `var(--${m})`;
 }
 
 interface HoverPayload {
-  mode: "auto" | "metro" | "bici";
+  mode: "auto" | "metro" | "bici" | "caminata";
   cell: number;
   vc: number;
   flow: number;

@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { ScenarioKPIs } from "@/lib/kpis";
-import type { Modo } from "@/lib/types";
+import type { Modo, StratumId } from "@/lib/types";
 
 interface KPITableProps {
   scenarios: Array<{ id: string; name: string; kpis: ScenarioKPIs | null }>;
@@ -10,6 +10,9 @@ interface KPITableProps {
 }
 
 const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
+const STRATA: StratumId[] = [1, 2, 3];
+const STRATUM_KEY: Record<StratumId, string> = { 1: "alto", 2: "medio", 3: "bajo" };
+const TRAVEL_MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
 
 /**
  * Tabla KPI comparativa. La primera columna con datos es la base; las demás
@@ -95,6 +98,72 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`}
             />
           </Section>
+
+          <Section label={t("compare.kpi.emissions")}>
+            <KPIRow
+              label={t("compare.kpi.total")}
+              scenarios={scenarios}
+              valueOf={(kpi) => kpi.co2_total}
+              baseKpis={base?.kpis ?? null}
+              formatter={(v) => Math.round(v).toLocaleString()}
+              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`}
+              invertedSign
+            />
+            <KPIRow
+              label={t("modes.auto")}
+              scenarios={scenarios}
+              valueOf={(kpi) => kpi.co2_auto}
+              baseKpis={base?.kpis ?? null}
+              formatter={(v) => Math.round(v).toLocaleString()}
+              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`}
+              invertedSign
+            />
+            <KPIRow
+              label={t("modes.metro")}
+              scenarios={scenarios}
+              valueOf={(kpi) => kpi.co2_metro}
+              baseKpis={base?.kpis ?? null}
+              formatter={(v) => Math.round(v).toLocaleString()}
+              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`}
+              invertedSign
+            />
+          </Section>
+
+          {STRATA.map((s) => (
+            <Section
+              key={s}
+              label={`${t("compare.kpi.stratum")} · ${t(`strata.${STRATUM_KEY[s]}`)}`}
+            >
+              <KPIRow
+                label={t("compare.kpi.travel_time")}
+                scenarios={scenarios}
+                valueOf={(kpi) => kpi.by_stratum[s].mean_time_min}
+                baseKpis={base?.kpis ?? null}
+                formatter={(v) => (v > 0 ? v.toFixed(1) : "—")}
+                deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}`}
+                invertedSign
+              />
+              <KPIRow
+                label={t("compare.kpi.utility")}
+                scenarios={scenarios}
+                valueOf={(kpi) => kpi.by_stratum[s].mean_utility}
+                baseKpis={base?.kpis ?? null}
+                formatter={(v) => v.toFixed(2)}
+                deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(2)}`}
+              />
+              {TRAVEL_MODES.map((m) => (
+                <KPIRow
+                  key={m}
+                  label={`% ${t(`modes.${m.toLowerCase()}`)}`}
+                  scenarios={scenarios}
+                  valueOf={(kpi) => kpi.by_stratum[s].modal_share[m] * 100}
+                  baseKpis={base?.kpis ?? null}
+                  formatter={(v) => `${v.toFixed(1)}%`}
+                  deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)} pp`}
+                />
+              ))}
+            </Section>
+          ))}
         </tbody>
       </table>
     </div>

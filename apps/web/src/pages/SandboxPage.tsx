@@ -114,6 +114,7 @@ export function SandboxPage() {
         { label: t("kpi.auto_pct"), value: "—" },
         { label: t("kpi.metro_pct"), value: "—" },
         { label: t("kpi.bici_pct"), value: "—" },
+        { label: t("kpi.walk_pct"), value: "—" },
         { label: t("kpi.frequency"), value: "—" },
         { label: t("kpi.residual"), value: "—" },
         { label: t("kpi.co2"), value: "—" },
@@ -130,6 +131,12 @@ export function SandboxPage() {
       { label: t("kpi.auto_pct"), value: pct("Auto"), color: "var(--auto)", delta: count("Auto") },
       { label: t("kpi.metro_pct"), value: pct("Metro"), color: "var(--metro)", delta: count("Metro") },
       { label: t("kpi.bici_pct"), value: pct("Bici"), color: "var(--bici)", delta: count("Bici") },
+      {
+        label: t("kpi.walk_pct"),
+        value: pct("Caminata"),
+        color: "var(--walk)",
+        delta: count("Caminata"),
+      },
       { label: t("kpi.frequency"), value: lastIter.frecuencia_metro.toFixed(1), unit: "tph" },
       {
         label: t("kpi.residual"),
@@ -352,6 +359,38 @@ export function SandboxPage() {
               {t(`equilibrium.assignment_hint_${config.assignment}`)}
             </p>
           </div>
+
+          <div className="mt-3">
+            <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+              {t("equilibrium.modos")}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {(["Auto", "Metro", "Bici", "Caminata"] as const).map((m) => {
+                const on = config.modos_habilitados.includes(m);
+                const last = on && config.modos_habilitados.length === 1;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    disabled={last}
+                    className={`chip-toggle${on ? " active" : ""}`}
+                    onClick={() =>
+                      setConfig((c) => ({
+                        ...c,
+                        modos_habilitados: on
+                          ? c.modos_habilitados.filter((x) => x !== m)
+                          : [...c.modos_habilitados, m],
+                      }))
+                    }
+                    title={last ? t("equilibrium.modos_min") : undefined}
+                  >
+                    {t(`equilibrium.modo_${m.toLowerCase()}`)}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-1 text-[11px] text-muted">{t("equilibrium.modos_hint")}</p>
+          </div>
         </SidebarSection>
 
         <SidebarSection
@@ -543,7 +582,7 @@ export function SandboxPage() {
         {liveIterations.length > 0 && (
           <div className="panel-grid">
             {lastIter && result && (
-              <Panel n="00" title={t("network.title")} meta="auto · metro · bici" cls="col-12">
+              <Panel n="00" title={t("network.title")} meta="auto · metro · bici · caminata" cls="col-12">
                 <NetworkDiagram snapshot={lastIter} result={result} config={config} />
               </Panel>
             )}
@@ -560,70 +599,40 @@ export function SandboxPage() {
                 ...lastIter.demanda_auto,
                 ...lastIter.demanda_bici,
                 ...lastIter.demanda_metro,
+                ...lastIter.demanda_caminata,
                 1
               );
+              const flowPanels = [
+                { n: "02", mode: "auto", flows: lastIter.demanda_auto, color: "var(--auto)", cap: `${Math.round(result.capacidad_auto)} veh/h corredor` },
+                { n: "03", mode: "bici", flows: lastIter.demanda_bici, color: "var(--bici)", cap: `${config.supply.bike.capacidad_pista} bici/h` },
+                { n: "04", mode: "metro", flows: lastIter.demanda_metro, color: "var(--metro)", cap: `${config.supply.train.capacidad_tren} pax/tren` },
+                { n: "4b", mode: "caminata", flows: lastIter.demanda_caminata, color: "var(--walk)", cap: undefined as string | undefined },
+              ] as const;
               return (
                 <>
-                  <Panel
-                    n="02"
-                    title={t("modes.auto")}
-                    meta={t("sandbox.flow_per_cell", { mode: t("modes.auto") })}
-                    cls="col-4"
-                  >
-                    <ExportableFigure
-                      name="flujo-auto"
-                      title={t("sandbox.flow_per_cell", { mode: t("modes.auto") })}
-                      exportSize={{ width: 600, height: 200 }}
+                  {flowPanels.map((fp) => (
+                    <Panel
+                      key={fp.n}
+                      n={fp.n}
+                      title={t(`modes.${fp.mode}`)}
+                      meta={t("sandbox.flow_per_cell", { mode: t(`modes.${fp.mode}`) })}
+                      cls="col-6"
                     >
-                      <FlowProfile
-                        flows={lastIter.demanda_auto}
-                        largoKm={config.city.largo_ciudad_km}
-                        color="var(--auto)"
-                        yMax={globalMax}
-                        capacityHint={`${Math.round(result.capacidad_auto)} veh/h corredor`}
-                      />
-                    </ExportableFigure>
-                  </Panel>
-                  <Panel
-                    n="03"
-                    title={t("modes.bici")}
-                    meta={t("sandbox.flow_per_cell", { mode: t("modes.bici") })}
-                    cls="col-4"
-                  >
-                    <ExportableFigure
-                      name="flujo-bici"
-                      title={t("sandbox.flow_per_cell", { mode: t("modes.bici") })}
-                      exportSize={{ width: 600, height: 200 }}
-                    >
-                      <FlowProfile
-                        flows={lastIter.demanda_bici}
-                        largoKm={config.city.largo_ciudad_km}
-                        color="var(--bici)"
-                        yMax={globalMax}
-                        capacityHint={`${config.supply.bike.capacidad_pista} bici/h`}
-                      />
-                    </ExportableFigure>
-                  </Panel>
-                  <Panel
-                    n="04"
-                    title={t("modes.metro")}
-                    meta={t("sandbox.flow_per_cell", { mode: t("modes.metro") })}
-                    cls="col-4"
-                  >
-                    <ExportableFigure
-                      name="flujo-metro"
-                      title={t("sandbox.flow_per_cell", { mode: t("modes.metro") })}
-                      exportSize={{ width: 600, height: 200 }}
-                    >
-                      <FlowProfile
-                        flows={lastIter.demanda_metro}
-                        largoKm={config.city.largo_ciudad_km}
-                        color="var(--metro)"
-                        yMax={globalMax}
-                        capacityHint={`${config.supply.train.capacidad_tren} pax/tren`}
-                      />
-                    </ExportableFigure>
-                  </Panel>
+                      <ExportableFigure
+                        name={`flujo-${fp.mode}`}
+                        title={t("sandbox.flow_per_cell", { mode: t(`modes.${fp.mode}`) })}
+                        exportSize={{ width: 600, height: 200 }}
+                      >
+                        <FlowProfile
+                          flows={fp.flows}
+                          largoKm={config.city.largo_ciudad_km}
+                          color={fp.color}
+                          yMax={globalMax}
+                          capacityHint={fp.cap}
+                        />
+                      </ExportableFigure>
+                    </Panel>
+                  ))}
                 </>
               );
             })()}
