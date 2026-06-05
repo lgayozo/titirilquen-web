@@ -108,7 +108,12 @@ export const defaultSimulationConfig: SimulationConfig = {
     ingresos_estratos: [120, 50, 10],
   },
   supply: {
-    bike: { v_media_kmh: 14, capacidad_pista: 800, alpha_bpr: 0.5, beta_bpr: 2 },
+    bike: {
+      v_media_kmh: 14,
+      capacidad_pista: 800,
+      alpha_bpr: 0.5,
+      beta_bpr: 2,
+    },
     car: {
       v_max_kmh: 31,
       ancho_pista_m: 3.5,
@@ -120,7 +125,10 @@ export const defaultSimulationConfig: SimulationConfig = {
     },
     train: {
       v_tren_kmh: 35,
-      capacidad_tren: 1200,
+      // Calibrado a la escala de demanda del modelo para que la frecuencia
+      // endógena sea responsiva y el efecto Mohring sea visible (antes 1200
+      // dejaba f clavada en f_min — ver docs/VERIFICACION_TRANSPORTE.md H1).
+      capacidad_tren: 300,
       num_estaciones: 10,
       v_caminata_kmh: 4.8,
       tasa_carga: 6,

@@ -101,15 +101,19 @@ factor = 1                  si ρ_s ≤ 1
 > Pendiente de calibración con los autores.
 >
 > **Nota (D‑18 — efecto Mohring):** la frecuencia es **endógena a la demanda**
-> (`f_op = L_max/K`), por lo que la espera `t_esp ≈ 30/f_op` baja cuando sube el
-> patronaje y sube cuando baja — el **efecto Mohring**, ingrediente de la paradoja
-> de Downs‑Thomson. El rango por defecto es **realista de metro**:
-> `f_min = 6` (~10 min, valle) y `f_max = 30` (~2 min, punta). Con `f_min` bajo la
-> pendiente `d(t_esp)/df = −30/f²` es más empinada en baja frecuencia. Pruebas
-> empíricas: el canal Mohring es **medible** (la espera sube al perder pasajeros)
-> pero **DT no emerge** con parámetros realistas, porque la espera es una fracción
-> chica del tiempo total de metro (acceso + a bordo dominan, independientes de la
-> demanda) y la sustitución auto↔metro es modesta. Ver DISCREPANCIES.md D‑18.
+> (`f_op = clip(L_max/K, f_min, f_max)`), por lo que la espera `t_esp ≈ 30/f_op`
+> baja cuando sube el patronaje y sube cuando baja — el **efecto Mohring**,
+> ingrediente de la paradoja de Downs‑Thomson. Rango por defecto **realista de
+> metro**: `f_min = 6` (~10 min, valle) y `f_max = 30` (~2 min, punta). La
+> activación de la frecuencia exige `L_max > f_min·K`; por eso la **capacidad por
+> tren `K = cap_tren` está calibrada a la escala del modelo (`300`)** — con el
+> valor previo (`1200`) el umbral `6·1200 = 7.200` pax/h superaba la demanda típica
+> y `f` quedaba clavada en `f_min` (frec_max inerte, espera fija). Con `K=300` la
+> frecuencia responde (`f≈7,6`) y `frec_max` muerde. Pruebas empíricas: el canal
+> Mohring es **medible** (espera baja al ganar pasajeros) pero **DT no emerge** con
+> parámetros realistas, porque la espera es una fracción chica del tiempo total de
+> metro (acceso + a bordo dominan) y la sustitución auto↔metro es modesta.
+> Ver DISCREPANCIES.md D‑18 y `VERIFICACION_TRANSPORTE.md` H1.
 
 ---
 

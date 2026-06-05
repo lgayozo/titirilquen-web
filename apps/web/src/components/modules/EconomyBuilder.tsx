@@ -30,7 +30,8 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
       },
     }));
 
-  const { costo_tarifa_metro, costo_parking, costo_combustible_km } = config.demand.globales;
+  const { costo_tarifa_metro, costo_parking, costo_combustible_km } =
+    config.demand.globales;
 
   const fmtCurrency = (v: number) => `$${v.toLocaleString("es-CL")}`;
   const fmtCurrencyPerKm = (v: number) => `$${v.toLocaleString("es-CL")}/km`;
@@ -65,6 +66,7 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         max={300}
         step={10}
         format={fmtCurrencyPerKm}
+        hint={t("economy_params.bencina_hint")}
         onChange={(v) => setGlobal({ costo_combustible_km: v })}
       />
     </SidebarSection>

@@ -383,6 +383,18 @@ Convenciones:
   DT no observable con parámetros realistas (resultado esperado y defendible).
 - **Acción**: documentar en el Overleaf el rango de frecuencia y la ausencia de
   DT como hallazgo del modelo.
+- **Refinamiento posterior (cap_tren, 2026-06)**: el experimento de verificación
+  (`VERIFICACION_TRANSPORTE.md`, H1) detectó que, pese al rango ampliado, con
+  `capacidad_tren=1200` la frecuencia seguía **clavada en `f_min`** en todo
+  escenario normal: el umbral de activación `f_min·cap_tren = 6·1200 = 7.200`
+  pax/h supera la carga pico típica (~2.000). En consecuencia `frec_max` era un
+  parámetro **inerte** (6 vs 30 daban resultados idénticos) y la espera quedaba
+  fija en 5 min. **Solución**: recalibrar `capacidad_tren` a **300** (default y
+  presets ×¼), a la escala de demanda del modelo. Validado: la frecuencia ahora
+  responde (f≈7,6, espera ~4 min), `frec_max` muerde, y el canal Mohring es
+  visible (tarifa 0 → +pasajeros → f 6,7→8,2 → espera 4,4→3,7 min). El reparto
+  modal apenas cambia (metro ~56%). No es un bug de fórmula sino de calibración
+  de escala.
 
 ## D-19 — Selección de modos disponibles (set de elección)
 

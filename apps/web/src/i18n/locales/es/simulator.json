@@ -33,7 +33,8 @@
   "economy_params": {
     "tarifa_metro": "Tarifa Metro",
     "parking": "Estacionamiento",
-    "bencina": "Bencina"
+    "bencina": "Bencina",
+    "bencina_hint": "Efecto chico: quien maneja (estratos altos) es poco sensible al costo por km. Para desincentivar el auto, usá el parking (costo fijo) o la tarificación."
   },
   "supply_params": {
     "bike": {
@@ -47,7 +48,8 @@
       "num_pistas": "Pistas por sentido",
       "ancho_pista_m": "Ancho de pista (m)",
       "largo_vehiculo_m": "Largo vehículo (m)",
-      "gap_m": "Gap mínimo (m)"
+      "gap_m": "Gap mínimo (m)",
+      "num_pistas_hint": "Solo alivia si el auto está congestionado (v/c alto). Con poca demanda de auto, agregar pistas casi no cambia nada."
     },
     "train": {
       "v_tren_kmh": "Velocidad tren (km/h)",

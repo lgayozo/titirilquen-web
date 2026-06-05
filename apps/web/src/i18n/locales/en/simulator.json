@@ -33,7 +33,8 @@
   "economy_params": {
     "tarifa_metro": "Metro fare",
     "parking": "Parking",
-    "bencina": "Fuel"
+    "bencina": "Fuel",
+    "bencina_hint": "Small effect: drivers (high-income) are insensitive to per-km cost. To discourage cars, use parking (fixed cost) or road pricing."
   },
   "supply_params": {
     "bike": {
@@ -47,7 +48,8 @@
       "num_pistas": "Lanes per direction",
       "ancho_pista_m": "Lane width (m)",
       "largo_vehiculo_m": "Vehicle length (m)",
-      "gap_m": "Minimum gap (m)"
+      "gap_m": "Minimum gap (m)",
+      "num_pistas_hint": "Only helps if cars are congested (high v/c). With low car demand, adding lanes barely changes anything."
     },
     "train": {
       "v_tren_kmh": "Train speed (km/h)",

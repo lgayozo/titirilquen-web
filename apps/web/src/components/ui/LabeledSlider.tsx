@@ -10,6 +10,8 @@ interface LabeledSliderProps {
   format?: (v: number) => string;
   onChange: (v: number) => void;
   disabled?: boolean;
+  /** Nota aclaratoria opcional bajo el slider (p. ej. cuándo la palanca muerde). */
+  hint?: string;
   className?: string;
 }
 
@@ -23,9 +25,14 @@ export function LabeledSlider({
   format,
   onChange,
   disabled,
+  hint,
   className,
 }: LabeledSliderProps) {
-  const display = format ? format(value) : unit ? `${value} ${unit}` : String(value);
+  const display = format
+    ? format(value)
+    : unit
+      ? `${value} ${unit}`
+      : String(value);
 
   return (
     <label className={cn("slider-row block", className)}>
@@ -46,6 +53,9 @@ export function LabeledSlider({
         aria-valuetext={display}
         aria-label={`${label}: ${display}`}
       />
+      {hint && (
+        <p className="mt-1 text-[11px] leading-snug text-muted">{hint}</p>
+      )}
     </label>
   );
 }

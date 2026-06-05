@@ -158,7 +158,11 @@ class TrainSupplyParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     v_tren_kmh: float = 35
-    capacidad_tren: int = 1200
+    # Capacidad por tren a la escala de demanda del modelo. Calibrada para que la
+    # frecuencia endógena f_op = clip(carga_pico/cap_tren, f_min, f_max) sea
+    # responsiva en el rango de uso (antes 1200 dejaba f clavada en f_min y el
+    # efecto Möhring inactivo — ver docs/VERIFICACION_TRANSPORTE.md, H1).
+    capacidad_tren: int = 300
     num_estaciones: int = Field(default=10, ge=2)
     v_caminata_kmh: float = 4.8
     tasa_carga: float = 6.0

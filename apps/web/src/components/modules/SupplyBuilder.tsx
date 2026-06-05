@@ -14,12 +14,16 @@ interface SupplyBuilderProps {
   };
 }
 
-export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuilderProps) {
+export function SupplyBuilder({
+  config,
+  onChange,
+  operatingRatios,
+}: SupplyBuilderProps) {
   const { t } = useTranslation("simulator");
 
   const setSupply = <K extends keyof SimulationConfig["supply"]>(
     key: K,
-    patch: Partial<SimulationConfig["supply"][K]>
+    patch: Partial<SimulationConfig["supply"][K]>,
   ) =>
     onChange((c) => ({
       ...c,
@@ -50,6 +54,7 @@ export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuild
           min={1}
           max={5}
           step={1}
+          hint={t("supply_params.car.num_pistas_hint")}
           onChange={(v) => setSupply("car", { num_pistas: v })}
         />
         <LabeledSlider
@@ -79,7 +84,11 @@ export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuild
             onChange={(v) => setSupply("car", { beta_bpr: v })}
           />
         </div>
-        <BPRCurve alpha={car.alpha_bpr} beta={car.beta_bpr} operatingRatio={operatingRatios?.car ?? null} />
+        <BPRCurve
+          alpha={car.alpha_bpr}
+          beta={car.beta_bpr}
+          operatingRatio={operatingRatios?.car ?? null}
+        />
       </SidebarSection>
 
       <SidebarSection
@@ -105,7 +114,11 @@ export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuild
           unit="bici/h"
           onChange={(v) => setSupply("bike", { capacidad_pista: v })}
         />
-        <BPRCurve alpha={bike.alpha_bpr} beta={bike.beta_bpr} operatingRatio={operatingRatios?.bike ?? null} />
+        <BPRCurve
+          alpha={bike.alpha_bpr}
+          beta={bike.beta_bpr}
+          operatingRatio={operatingRatios?.bike ?? null}
+        />
       </SidebarSection>
 
       <SidebarSection
@@ -125,7 +138,7 @@ export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuild
         <LabeledSlider
           label={t("supply_params.train.capacidad_tren")}
           value={train.capacidad_tren}
-          min={400}
+          min={100}
           max={2500}
           step={50}
           unit="pax"
@@ -147,7 +160,9 @@ export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuild
             max={20}
             step={1}
             unit="tph"
-            onChange={(v) => setSupply("train", { frec_min: Math.min(v, train.frec_max) })}
+            onChange={(v) =>
+              setSupply("train", { frec_min: Math.min(v, train.frec_max) })
+            }
           />
           <LabeledSlider
             label={t("supply_params.train.frec_max")}
@@ -156,7 +171,9 @@ export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuild
             max={60}
             step={1}
             unit="tph"
-            onChange={(v) => setSupply("train", { frec_max: Math.max(v, train.frec_min) })}
+            onChange={(v) =>
+              setSupply("train", { frec_max: Math.max(v, train.frec_min) })
+            }
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -177,7 +194,9 @@ export function SupplyBuilder({ config, onChange, operatingRatios }: SupplyBuild
             onChange={(v) => setSupply("train", { anden_beta: v })}
           />
         </div>
-        <p className="text-[10px] text-muted">{t("supply_params.train.anden_hint")}</p>
+        <p className="text-[10px] text-muted">
+          {t("supply_params.train.anden_hint")}
+        </p>
       </SidebarSection>
     </>
   );
