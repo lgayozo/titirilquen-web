@@ -156,7 +156,8 @@
     "trips_subline": "{{n}} trips",
     "last_iteration": "Last iteration · {{n}}/{{total}}",
     "converged": "converged",
-    "maxiter": "max iterations (not converged)"
+    "maxiter": "max iterations (not converged)",
+    "tele_subline": "{{n}} don’t travel"
   },
   "hints": {
     "demand_title": "Demand",

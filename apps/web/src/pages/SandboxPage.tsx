@@ -144,6 +144,7 @@ export function SandboxPage() {
         { label: t("kpi.metro_pct"), value: "—" },
         { label: t("kpi.bici_pct"), value: "—" },
         { label: t("kpi.walk_pct"), value: "—" },
+        { label: t("kpi.tele_pct"), value: "—" },
         { label: t("kpi.frequency"), value: "—" },
         { label: t("kpi.residual"), value: "—" },
         { label: t("kpi.co2"), value: "—" },
@@ -183,6 +184,14 @@ export function SandboxPage() {
         value: pct("Caminata"),
         color: "var(--walk)",
         delta: count("Caminata"),
+      },
+      {
+        label: t("kpi.tele_pct"),
+        value: pct("Teletrabajo"),
+        color: "var(--tele)",
+        delta: t("kpi.tele_subline", {
+          n: Math.round(modal.Teletrabajo ?? 0).toLocaleString(),
+        }),
       },
       {
         label: t("kpi.frequency"),
