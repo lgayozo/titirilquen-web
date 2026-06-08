@@ -19,10 +19,7 @@ interface KPIStripProps {
  */
 export function KPIStrip({ items, className }: KPIStripProps) {
   return (
-    <div
-      className={cn("kpis", className)}
-      style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}
-    >
+    <div className={cn("kpis", className)}>
       {items.map((it, i) => (
         <div key={i} className="kpi">
           <div className="label">{it.label}</div>

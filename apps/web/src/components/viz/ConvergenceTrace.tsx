@@ -92,6 +92,9 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
 
   const fmtMin = (v: number | string) =>
     typeof v === "number" ? `${v.toFixed(3)} min` : String(v);
+  // Ticks del residuo: hasta 3 decimales pero sin ceros sobrantes (12.000 → 12,
+  // 0.030 → 0.03) para que no invadan la etiqueta rotada del eje Y.
+  const fmtResidualTick = (v: number) => String(Number(v.toFixed(3)));
   const fmtTrips = (v: number | string) =>
     typeof v === "number" ? `${v.toLocaleString()} ${t("convergence.trips_unit")}` : String(v);
   // Ticks compactos (10000 → "10k") para que no invadan la etiqueta del eje Y.
@@ -121,13 +124,13 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                 tickLine={{ stroke: "var(--rule)" }}
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
-                width={58}
-                tickFormatter={(v: number) => v.toFixed(3)}
+                width={52}
+                tickFormatter={fmtResidualTick}
                 label={{
                   value: t("convergence.y_min"),
                   angle: -90,
                   position: "insideLeft",
-                  offset: 6,
+                  offset: 0,
                   style: { ...AXIS_STYLE, fill: "var(--muted)", textAnchor: "middle" },
                 }}
               />

@@ -746,10 +746,13 @@ a:hover {
   margin-bottom: 6px;
 }
 
-/* KPIs */
+/* KPIs — grilla que se ajusta al nº de celdas y ENVUELVE en pantallas chicas
+   (auto-fit) en vez de apretujarse. Los divisores son box-shadow por celda
+   (derecha + abajo), así las celdas vacías de la última fila quedan en --paper
+   (sin bloque gris) al envolver. */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
   gap: 0;
   border: 1px solid var(--rule);
   margin-bottom: var(--gap);
@@ -757,13 +760,12 @@ a:hover {
 }
 
 .kpi {
-  padding: 16px 18px;
-  border-right: 1px solid var(--rule);
+  padding: 14px 14px;
+  background: var(--paper);
   min-width: 0;
-}
-
-.kpi:last-child {
-  border-right: 0;
+  box-shadow:
+    1px 0 0 var(--rule),
+    0 1px 0 var(--rule);
 }
 
 .kpi .label {
@@ -777,11 +779,12 @@ a:hover {
 
 .kpi .value {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 .kpi .unit {
@@ -879,12 +882,6 @@ a:hover {
   .panel-grid .col-6, .panel-grid .col-7, .panel-grid .col-8,
   .panel-grid .col-9 {
     grid-column: span 12;
-  }
-  .kpis {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .kpi:nth-child(3n) {
-    border-right: 0;
   }
   .page {
     grid-template-columns: 1fr;
