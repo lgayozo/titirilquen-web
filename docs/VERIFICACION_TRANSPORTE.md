@@ -186,6 +186,24 @@ Tras el análisis se decidió y aplicó:
   costo marginal; sin congestión las pistas no alivian nada). Se agregaron
   **notas (`hint`) bajo los sliders** de bencina (Economía) y nº de pistas
   (Oferta) aclarando cuándo cada palanca muerde.
-- **H4 (convergencia) — sin cambios** (decisión de alcance): los 3 escenarios
-  extremos con bici saturada se resuelven subiendo `max_iter`/`tolerance` desde
-  la UI. Pendiente eventual: reforzar la estabilidad de `supply/bike.py`.
+- **H4 (convergencia) — diagnosticado; fix pendiente opcional.** Investigación
+  posterior (se exploró "arreglar la bici"): la **bici NO es la causa** de las
+  no-convergencias. Se midió el residual por modo y lo domina ΔBici, pero el
+  origen es la **cola lenta `~1/it` del propio MSA** cortada por `max_iter` bajo,
+  no una inestabilidad de la oferta de bici. De hecho el techo plano de la bici
+  (D-15) es **el que mejor converge** (el menos rígido): un prototipo de techo
+  degradado bajo saturación empeoró la convergencia. Con `tolerance=0,1` (default
+  del frontend) los 3 escenarios rígidos convergen con `max_iter ≈ 20–25`
+  (default actual: 12). **Fix pendiente opcional**: subir el default de
+  `max_iter` (validado: 25 hace converger todo sin ralentizar los runs normales,
+  que cortan solos por tolerancia). Mientras tanto se resuelven subiendo el
+  slider de iteraciones.
+- **Modelo de bici / saturación — se mantiene como está (decisión 2026-06).**
+  Separado de la convergencia: el techo de caminata plano hace que el costo de
+  congestión de la bici se **tope** bajo saturación (asimetría con el auto, cuyo
+  BPR no tiene tope), por lo que la capacidad de ciclovía es una palanca débil y
+  el flujo puede apilarse a varios× la capacidad. Es una **simplificación
+  defendible y coherente** con el resto del modelo (capacidad blanda en todos los
+  modos) y físicamente fundada (el ciclista desmonta y camina). Se documenta la
+  limitación y una mejora futura (techo degradado bajo `v/c>1`) en
+  `DISCREPANCIES.md` **D-21**.

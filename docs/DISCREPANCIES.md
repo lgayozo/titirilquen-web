@@ -445,6 +445,43 @@ Convenciones:
 
 ---
 
+## D-21 — Saturación de la ciclovía: techo de caminata plano (capacidad blanda)
+
+- **Contexto**: en la verificación (`VERIFICACION_TRANSPORTE.md`) se evaluó si el
+  modelo de bici refleja correctamente la **saturación** de la ciclovía.
+- **Cómo está**: `t_tramo = min( t0·(1+α·(q/cap)^β),  t_caminata_tramo )`. El
+  techo (D-15) acota el tiempo al de caminar el tramo. Es una capacidad
+  **blanda**, coherente con auto y metro (ningún modo tiene tope duro ni rechaza
+  demanda; todos usan funciones volumen-demora tipo BPR).
+- **Limitación**: el techo es **plano** → pasada la saturación (`v/c > 1`) el
+  costo de congestión de la bici **deja de crecer** (se queda en ~caminata).
+  Asimetría con el auto, cuyo BPR no tiene tope (a `v/c=2,5` el auto llega a
+  ~51 min; la bici se topa en caminata). En equilibrio, una ciclovía
+  sub-dimensionada **no expulsa usuarios**: el flujo se apila a varios× la
+  capacidad sin que suba el costo, y la **capacidad de ciclovía resulta una
+  palanca de política débil**.
+- **Decisión (2026-06)**: **se mantiene como está**. Es una simplificación
+  defendible y consistente con el resto del modelo (capacidad blanda en todos los
+  modos), y el techo D-15 está físicamente fundado (el ciclista desmonta y
+  camina). Se documenta la limitación.
+- **Mejora futura** (si se quiere que la capacidad de ciclovía sea una
+  restricción observable): **degradar el techo bajo `v/c > 1`** — caminar
+  empujando la bici en una ciclovía atestada es más lento que caminar libre —
+  manteniendo D-15 intacto a `v/c ≤ 1`. Es más realista pero numéricamente más
+  rígido (converge más lento), así que iría acompañado de subir `max_iter`. Se
+  prototipó (`techo·(1+γ·max(0, v/c−1)^δ)`) y funciona; se descartó por ahora por
+  simplicidad.
+- **Sobre la convergencia (aclaración)**: las no-convergencias observadas con
+  bici saturada **no son culpa del modelo de bici**, sino la cola lenta `~1/it`
+  del MSA cortada por un `max_iter` bajo. El techo plano es, de hecho, el que
+  **mejor converge** (es el menos rígido). Con `tolerance=0,1` (default del
+  frontend) los escenarios rígidos convergen con `max_iter ≈ 20–25` (default
+  actual: 12). Subir el default de `max_iter` queda como fix pendiente opcional.
+- **Veredicto**: Simplificación aceptada con limitación documentada; mejora
+  opcional identificada.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -469,3 +506,4 @@ Convenciones:
 | D-18 | Rango de frecuencia realista (Mohring) + test Downs‑Thomson | Mejora + diagnóstico (DT no observable) | Media |
 | D-19 | Selección de modos disponibles (set de elección) | Ampliación de funcionalidad | Media |
 | D-20 | Rendimiento: asignación agrupada (independiente de densidad) | Mejora de rendimiento | Alta |
+| D-21 | Saturación ciclovía: techo de caminata plano (capacidad blanda) | Simplificación aceptada (limitación documentada) | Media |
