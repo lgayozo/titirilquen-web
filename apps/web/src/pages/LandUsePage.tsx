@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LandUseBuilder } from "@/components/modules/LandUseBuilder";
@@ -7,16 +7,11 @@ import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { BidPriceCurve } from "@/components/viz/BidPriceCurve";
 import { CityShapePreview } from "@/components/viz/CityShapePreview";
-import { CoupledMetrics } from "@/components/viz/CoupledMetrics";
-import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
-import { solveCoupledStream, solveLandUse } from "@/lib/api-v2";
+import { solveLandUse } from "@/lib/api-v2";
 import { theilSegregation } from "@/lib/metrics";
-import type { CoupledResult, OuterIteration } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
-
-type Mode = "standalone" | "coupled";
 
 export function LandUsePage() {
   const { t } = useTranslation("common");
@@ -25,21 +20,13 @@ export function LandUsePage() {
   const setConfig = useLandUseStore((s) => s.setConfig);
   const stage = useLandUseStore((s) => s.stage);
   const result = useLandUseStore((s) => s.result);
-  const coupledResult = useLandUseStore((s) => s.coupledResult);
   const error = useLandUseStore((s) => s.error);
-  const outerMaxIter = useLandUseStore((s) => s.outerMaxIter);
-  const setOuterMaxIter = useLandUseStore((s) => s.setOuterMaxIter);
   const startRun = useLandUseStore((s) => s.startRun);
   const finishStandalone = useLandUseStore((s) => s.finishStandalone);
-  const finishCoupled = useLandUseStore((s) => s.finishCoupled);
   const fail = useLandUseStore((s) => s.fail);
   const reset = useLandUseStore((s) => s.reset);
 
   const simConfig = useSimulationStore((s) => s.config);
-  const liveOuterIters = useLandUseStore((s) => s.liveOuterIters);
-  const pushOuterIter = useLandUseStore((s) => s.pushOuterIter);
-
-  const [mode, setMode] = useState<Mode>("standalone");
 
   const L = simConfig.city.n_celdas;
   const CBD = Math.floor(L / 2);
@@ -47,49 +34,22 @@ export function LandUsePage() {
   const handleRun = async () => {
     startRun();
     try {
-      if (mode === "standalone") {
-        const r = await solveLandUse({ L, CBD, land_use: config });
-        finishStandalone(r);
-      } else {
-        const collected: OuterIteration[] = [];
-        await solveCoupledStream(
-          {
-            sim: simConfig,
-            land_use: config,
-            outer_max_iter: outerMaxIter,
-            outer_tol: 1.0,
-          },
-          (it) => {
-            collected.push(it);
-            pushOuterIter(it);
-          },
-        );
-        const last = collected[collected.length - 1];
-        const synthetic: CoupledResult = {
-          converged:
-            last != null && last.T_residual != null && last.T_residual < 1.0,
-          iterations: collected,
-          final_parcelas: [],
-          S: null,
-        };
-        finishCoupled(synthetic);
-      }
+      const r = await solveLandUse({ L, CBD, land_use: config });
+      finishStandalone(r);
     } catch (e) {
       fail(e instanceof Error ? e.message : String(e));
     }
   };
 
-  const parcelas =
-    mode === "standalone" ? result?.parcelas : coupledResult?.final_parcelas;
-  const prices = mode === "standalone" ? result?.result.p : null;
-  const hasResult = mode === "standalone" ? !!result : !!coupledResult;
-  const totalHogares = config.H_por_estrato.reduce((a, b) => a + b, 0);
+  const parcelas = result?.parcelas;
+  const prices = result?.result.p ?? null;
+  const hasResult = !!result;
 
-  // Métricas del equilibrio standalone: distancia media al CBD por estrato (el
-  // test del bid-rent) + segregación de Theil. La distancia se reporta en km
-  // usando el largo de la ciudad de transporte.
+  // Métricas del equilibrio: distancia media al CBD por estrato (el test del
+  // bid-rent) + segregación de Theil. La distancia se reporta en km usando el
+  // largo de la ciudad de transporte.
   const metrics = useMemo<KPI[] | null>(() => {
-    if (mode !== "standalone" || !result) return null;
+    if (!result) return null;
     const { parcelas: parc, L: nL, CBD: cbd } = result;
     const kmPerCell = simConfig.city.largo_ciudad_km / Math.max(nL, 1);
     const sum = [0, 0, 0];
@@ -120,74 +80,16 @@ export function LandUsePage() {
       }),
       { label: tS("land_use.metric_segregation"), value: theil.toFixed(3) },
     ];
-  }, [mode, result, simConfig.city.largo_ciudad_km, tS]);
+  }, [result, simConfig.city.largo_ciudad_km, tS]);
 
   return (
     <div className="page">
       <aside className="sidebar">
-        <h3>{tS("sections.mode")}</h3>
-        <div className="seg" style={{ width: "100%" }}>
-          <button
-            type="button"
-            className={mode === "standalone" ? "active" : ""}
-            onClick={() => setMode("standalone")}
-            style={{ flex: 1 }}
-          >
-            {tS("land_use.mode_standalone")}
-          </button>
-          <button
-            type="button"
-            className={mode === "coupled" ? "active" : ""}
-            onClick={() => setMode("coupled")}
-            style={{ flex: 1 }}
-          >
-            {tS("land_use.mode_coupled")}
-          </button>
-        </div>
-        <p className="mt-2 text-[11px] text-muted">
-          {mode === "standalone"
-            ? tS("land_use.info_standalone")
-            : tS("land_use.info_coupled")}
+        <p className="text-[11px] text-muted" style={{ marginBottom: 6 }}>
+          {tS("land_use.info_standalone")}
         </p>
-        {mode === "coupled" && (
-          <p className="mt-1 text-[10px]" style={{ color: "var(--accent)" }}>
-            {tS("land_use.density_ignored_hint", {
-              total: config.H_por_estrato.reduce(
-                (a, b) => a + b,
-                0,
-              ).toLocaleString(),
-            })}
-          </p>
-        )}
 
         <LandUseBuilder config={config} onChange={setConfig} />
-
-        {mode === "coupled" && (
-          <>
-            <h3>{tS("land_use.outer_iterations")}</h3>
-            <label className="slider-row block">
-              <div className="srow-top">
-                <span className="srow-label">
-                  {tS("land_use.outer_iter_label")}
-                </span>
-                <span className="srow-val" aria-hidden>
-                  {outerMaxIter}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={1}
-                max={5}
-                step={1}
-                value={outerMaxIter}
-                onChange={(e) => setOuterMaxIter(Number(e.target.value))}
-              />
-            </label>
-            <p className="text-[11px] text-muted">
-              {tS("land_use.outer_iter_hint")}
-            </p>
-          </>
-        )}
 
         {(stage === "done" || stage === "error") && (
           <button
@@ -208,34 +110,6 @@ export function LandUsePage() {
         >
           {stage === "running" ? "◜ …" : `▶ ${t("actions.run")}`}
         </button>
-
-        {stage === "running" && mode === "coupled" && (
-          <div
-            className="callout mt-3"
-            style={{ borderLeftColor: "var(--accent)" }}
-          >
-            <div className="flex items-center justify-between">
-              <span>{tS("land_use.outer_iter_progress")}</span>
-              <span className="font-fig tabular-nums">
-                {liveOuterIters.length} / {outerMaxIter}
-              </span>
-            </div>
-            {liveOuterIters.length > 0 && (
-              <div
-                className="mt-1 text-[11px]"
-                style={{ fontStyle: "normal", fontFamily: "var(--font-body)" }}
-              >
-                {tS("land_use.outer_iter_last_residual")}{" "}
-                <strong className="font-fig tabular-nums">
-                  {liveOuterIters[
-                    liveOuterIters.length - 1
-                  ]?.T_residual?.toFixed(2) ?? "—"}{" "}
-                  min
-                </strong>
-              </div>
-            )}
-          </div>
-        )}
 
         {error && (
           <div
@@ -282,7 +156,7 @@ export function LandUsePage() {
               </>
             )}
             <div className="panel-grid">
-              {mode === "standalone" && parcelas && parcelas.length > 0 && (
+              {parcelas && parcelas.length > 0 && (
                 <Panel
                   n="01"
                   title={tS("land_use.heading_distribution")}
@@ -314,34 +188,6 @@ export function LandUsePage() {
                     <BidPriceCurve p={prices} />
                   </ExportableFigure>
                 </Panel>
-              )}
-
-              {mode === "coupled" && coupledResult && (
-                <>
-                  <Panel
-                    n="03"
-                    title={tS("coupled_metrics.header")}
-                    meta="Theil · welfare · Hansen"
-                    cls="col-12"
-                  >
-                    <CoupledMetrics
-                      result={coupledResult}
-                      landUseConfig={config}
-                    />
-                  </Panel>
-                  <Panel
-                    n="04"
-                    title={tS("land_use.outer_iterations")}
-                    cls="col-12"
-                  >
-                    <OuterTrajectory
-                      result={coupledResult}
-                      nCeldas={L}
-                      totalHogares={totalHogares}
-                      sigmaFrac={config.oferta_sigma_frac}
-                    />
-                  </Panel>
-                </>
               )}
             </div>
           </>
