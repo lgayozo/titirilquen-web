@@ -13,6 +13,13 @@ export interface LandUseStratumConfig {
   rho: number;
 }
 
+export type FormaOferta =
+  | "normal"
+  | "uniforme"
+  | "exponencial"
+  | "meseta"
+  | "bimodal";
+
 export interface LandUseConfig {
   H_por_estrato: [number, number, number];
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
@@ -20,9 +27,14 @@ export interface LandUseConfig {
   solver: "logit" | "frechet";
   tol: number;
   max_iter: number;
-  /** Dispersión de la oferta de vivienda (σ como fracción de la semi‑ciudad).
+  /** Forma del perfil de oferta de vivienda a lo largo del corredor. */
+  forma: FormaOferta;
+  /** Ancho/dispersión de la oferta (σ como fracción de la semi‑ciudad).
    *  Menor ⇒ ciudad compacta; mayor ⇒ dispersa. Default 0.5. */
   oferta_sigma_frac: number;
+  /** 2º parámetro de la forma (fracción de la semi‑ciudad): radio del anillo
+   *  (anular) o separación de picos (bimodal). Ignorado en las demás. */
+  forma_param: number;
 }
 
 export interface LandUseResult {

@@ -1,12 +1,104 @@
 """Generación de la oferta de suelo S[i] — capacidades por parcela.
 
-Portado de `titirilquen-repo/Ciudad2.py:213-247`.
+Portado de `titirilquen-repo/Ciudad2.py:213-247`, extendido con varias **formas
+de ciudad** (no solo la Normal) para estudiar cómo cambia el equilibrio de
+asignación de suelo según la geometría (ver D-13).
 """
 
 from __future__ import annotations
 
+from typing import Literal
+
 import numpy as np
 from numpy.typing import NDArray
+
+FormaOferta = Literal["normal", "uniforme", "exponencial", "meseta", "bimodal"]
+"""Forma del perfil de oferta de vivienda S(d) a lo largo del corredor:
+
+- `normal`: campana gaussiana centrada en el CBD (monocéntrica compacta).
+- `uniforme`: densidad plana (suburbio homogéneo).
+- `exponencial`: S ∝ e^{−d/σ} (von Thünen; decae desde el CBD).
+- `meseta`: núcleo de densidad plana de radio σ con borde neto (ciudad compacta
+  con frontera; distinta de la normal, que tiene colas gaussianas).
+- `bimodal`: dos picos a ±sep del CBD (ciudad policéntrica con subcentros).
+
+Nota: en una ciudad **lineal** un anillo a radio r colapsa en dos puntos a ±r,
+es decir, coincide con `bimodal`; por eso no se incluye una forma "anular"
+separada (ver D-13).
+"""
+
+
+def _discretizar(w: NDArray[np.float64], N: int, CBD: int) -> NDArray[np.int_]:
+    """Discretiza un perfil de pesos `w` a un vector entero S con Σ S = N,
+    excluyendo el CBD, vía el método del mayor residuo (campana suave, sin el
+    "dentado" del muestreo)."""
+    w = np.asarray(w, dtype=float).copy()
+    w[CBD] = 0.0  # no se construyen viviendas sobre el centro de negocios
+    total = w.sum()
+    if total <= 0:
+        # Degenerado: reparte uniforme fuera del CBD.
+        w[:] = 1.0
+        w[CBD] = 0.0
+        total = w.sum()
+
+    I = len(w)
+    target = w / total * N
+    S = np.floor(target).astype(int)
+    resto = int(N - S.sum())
+
+    frac = target - np.floor(target)
+    frac[CBD] = -1.0  # nunca al CBD
+    orden = np.argsort(-frac)
+    for k in range(max(0, resto)):
+        S[orden[k % I]] += 1
+    return S
+
+
+def generar_oferta(
+    *,
+    forma: FormaOferta,
+    I: int,
+    N: int,
+    CBD: int,
+    sigma_frac: float = 0.5,
+    forma_param: float = 0.5,
+) -> NDArray[np.int_]:
+    """Genera la oferta S según `forma`, determinista, con Σ S = N y CBD vacío.
+
+    :param sigma_frac: ancho/dispersión como fracción de la semi-ciudad
+        (σ = frac · min(CBD, I−1−CBD)). Controla la dispersión de la campana, la
+        pendiente de la exponencial (e-folding) y el ancho del anillo/picos.
+    :param forma_param: 2º parámetro, fracción de la semi-ciudad: radio del
+        anillo (`anular`) o separación de los picos (`bimodal`). Ignorado en las
+        demás formas.
+    """
+    semi = max(1.0, float(min(CBD, I - 1 - CBD)))
+    sigma = max(sigma_frac * semi, 1e-6)
+    idx = np.arange(I, dtype=float)
+    d = np.abs(idx - CBD)
+
+    if forma == "normal":
+        w = np.exp(-0.5 * (d / sigma) ** 2)
+    elif forma == "uniforme":
+        w = np.ones(I, dtype=float)
+    elif forma == "exponencial":
+        w = np.exp(-d / sigma)
+    elif forma == "meseta":
+        # Núcleo de densidad plana con borde neto: super-gaussiana de orden alto
+        # (flat-top). w≈1 para d≪σ y cae abruptamente cerca de d=σ.
+        w = np.exp(-((d / sigma) ** 8))
+    elif forma == "bimodal":
+        # Los picos usan un ancho más angosto que el σ global, si no se solapan
+        # y la estructura bimodal queda indistinguible de una campana.
+        sigma_pico = sigma * 0.5
+        sep = forma_param * semi
+        w = np.exp(-0.5 * ((idx - (CBD - sep)) / sigma_pico) ** 2) + np.exp(
+            -0.5 * ((idx - (CBD + sep)) / sigma_pico) ** 2
+        )
+    else:  # pragma: no cover - validado por Pydantic aguas arriba
+        raise ValueError(f"forma de oferta desconocida: {forma!r}")
+
+    return _discretizar(w, N, CBD)
 
 
 def generar_oferta_normal(

@@ -5,10 +5,6 @@ import { cn } from "@/lib/cn";
 
 interface StratumDistributionProps {
   parcelas: readonly (readonly number[])[];
-  /** Nº objetivo de barras (bins de igual tamaño entero). Cada barra promedia
-   *  unas pocas parcelas para revelar el descenso desde el centro sin el ruido
-   *  parcela‑a‑parcela de la asignación estocástica. */
-  nBins?: number;
   height?: number;
   className?: string;
 }
@@ -19,81 +15,62 @@ const STRATUM_VAR: Record<number, string> = {
   3: "var(--s3)",
 };
 
-const MARGIN = { top: 8, right: 8, bottom: 26, left: 42 };
+// Mismo encuadre que CityShapePreview: el resultado es la misma silueta de la
+// ciudad (la oferta), ahora rellena con los colores de estrato.
+const MARGIN = { top: 16, right: 14, bottom: 26, left: 44 };
 
 /**
- * Distribución espacial de hogares por estrato como barras apiladas.
+ * Distribución espacial de hogares por estrato — barras apiladas **por celda**.
  *
- * Se agrega en bins de igual cantidad de parcelas (entero) para evitar dos
- * fuentes de "ruido" entre barras consecutivas:
- *  1. el aliasing de un `binWidth` fraccionario (cada bin recibiría 2 ó 3
- *     parcelas → alturas alternadas), y
- *  2. la varianza parcela‑a‑parcela de la asignación estocástica.
- * Con bins de igual tamaño y algo anchos, las barras descienden suave desde el
- * CBD hacia las periferias (densidad bid‑rent).
+ * Comparte el lenguaje visual de `CityShapePreview` (mismo encuadre, escala y
+ * ejes) para que se lea como la misma figura: el preview muestra la capacidad
+ * de la ciudad "sin asignar" y este resultado, la misma envolvente coloreada
+ * por estrato (la altura total de cada celda = su oferta S[i]). Por eso ambas
+ * siluetas coinciden.
  */
 export function StratumDistribution({
   parcelas,
-  nBins = 50,
-  height = 180,
+  height = 150,
   className,
 }: StratumDistributionProps) {
   const { t } = useTranslation("simulator");
 
-  const { areas, max } = useMemo(() => {
+  const { counts, max, cbd } = useMemo(() => {
     const L = parcelas.length;
-    const step = Math.max(1, Math.round(L / Math.max(1, nBins)));
-    const nb = Math.max(1, Math.ceil(L / step));
-    const bins: [number, number, number][] = [];
-    for (let b = 0; b < nb; b++) {
-      const start = b * step;
-      const end = Math.min(L, (b + 1) * step);
+    const cs: [number, number, number][] = [];
+    let mx = 1;
+    for (let i = 0; i < L; i++) {
       const c: [number, number, number] = [0, 0, 0];
-      for (let i = start; i < end; i++) {
-        for (const h of parcelas[i] ?? []) {
-          if (h === 1) c[0] += 1;
-          else if (h === 2) c[1] += 1;
-          else if (h === 3) c[2] += 1;
-        }
+      for (const h of parcelas[i] ?? []) {
+        if (h === 1) c[0] += 1;
+        else if (h === 2) c[1] += 1;
+        else if (h === 3) c[2] += 1;
       }
-      // Escala el último bin parcial para que represente `step` parcelas (evita
-      // una caída espuria al final).
-      const pc = end - start;
-      if (pc > 0 && pc < step) {
-        const f = step / pc;
-        c[0] *= f;
-        c[1] *= f;
-        c[2] *= f;
-      }
-      bins.push(c);
+      cs.push(c);
+      mx = Math.max(mx, c[0] + c[1] + c[2]);
     }
-    const mx = Math.max(1, ...bins.map((c) => c[0] + c[1] + c[2]));
-    return { areas: bins, max: mx };
-  }, [parcelas, nBins]);
+    return { counts: cs, max: mx, cbd: Math.floor(L / 2) };
+  }, [parcelas]);
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [W, setW] = useState(600);
+  const [W, setW] = useState(800);
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
-    const update = () => setW(Math.max(240, el.clientWidth));
+    const update = () => setW(Math.max(360, el.clientWidth));
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
+  const L = counts.length;
   const H = height;
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
   const plotH = H - MARGIN.top - MARGIN.bottom;
   const yFloor = MARGIN.top + plotH;
-
-  const n = areas.length;
-  const yOf = (v: number) => yFloor - (v / max) * plotH;
-  const barW = plotW / n;
-  const gap = Math.min(barW * 0.12, 1.5);
-
-  const yTicks = [0, Math.round(max * 0.25), Math.round(max * 0.5), Math.round(max * 0.75), Math.round(max)];
+  const barW = plotW / Math.max(L, 1);
+  const cbdX = MARGIN.left + (cbd + 0.5) * barW;
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
@@ -101,30 +78,28 @@ export function StratumDistribution({
         width={W}
         height={H}
         viewBox={`0 0 ${W} ${H}`}
-        className="block"
-        style={{ display: "block", maxWidth: "100%" }}
+        style={{
+          display: "block",
+          maxWidth: "100%",
+          background: "var(--paper-2)",
+          border: "1px solid var(--rule)",
+        }}
+        role="img"
+        aria-label="Distribución espacial de hogares por estrato"
       >
-        {/* Grid lines + Y-axis labels */}
-        {yTicks.map((v) => {
-          const y = yOf(v);
-          return (
-            <g key={v}>
-              <line className="grid-line" x1={MARGIN.left} y1={y} x2={MARGIN.left + plotW} y2={y} />
-              <text
-                className="label"
-                x={MARGIN.left - 6}
-                y={y + 3}
-                textAnchor="end"
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {v}
-              </text>
-            </g>
-          );
-        })}
+        {/* Eje Y (rótulo) */}
+        <text
+          x={-MARGIN.top - plotH / 2}
+          y={12}
+          textAnchor="middle"
+          transform="rotate(-90)"
+          className="label"
+        >
+          HOGARES
+        </text>
 
-        {/* Barras apiladas por bin (estrato 1 abajo → 3 arriba) */}
-        {areas.map((c, i) => {
+        {/* Barras apiladas por celda (estrato 1 abajo → 3 arriba) */}
+        {counts.map((c, i) => {
           const total = c[0] + c[1] + c[2];
           if (total <= 0) return null;
           const x = MARGIN.left + i * barW;
@@ -139,9 +114,9 @@ export function StratumDistribution({
                 return (
                   <rect
                     key={k}
-                    x={x + gap / 2}
+                    x={x}
                     y={yCursor}
-                    width={Math.max(barW - gap, 0.4)}
+                    width={Math.max(barW - 0.2, 0.3)}
                     height={h}
                     fill={STRATUM_VAR[k + 1]}
                     opacity={0.85}
@@ -152,42 +127,64 @@ export function StratumDistribution({
           );
         })}
 
-        {/* CBD vertical marker */}
+        {/* Baseline */}
         <line
-          x1={MARGIN.left + plotW / 2}
+          x1={MARGIN.left}
+          y1={yFloor}
+          x2={MARGIN.left + plotW}
+          y2={yFloor}
+          stroke="var(--ink)"
+          strokeWidth={0.8}
+        />
+
+        {/* CBD marker */}
+        <line
+          x1={cbdX}
           y1={MARGIN.top}
-          x2={MARGIN.left + plotW / 2}
+          x2={cbdX}
           y2={yFloor}
           stroke="var(--accent)"
           strokeWidth={1}
           strokeDasharray="3 3"
-          opacity={0.8}
         />
-        <text className="label" x={MARGIN.left + plotW / 2} y={MARGIN.top - 1} textAnchor="middle" fill="var(--accent)">
+        <text
+          x={cbdX}
+          y={MARGIN.top - 2}
+          textAnchor="middle"
+          className="label"
+          fill="var(--accent)"
+        >
           CBD
         </text>
 
-        {/* X axis baseline */}
-        <line x1={MARGIN.left} y1={yFloor} x2={MARGIN.left + plotW} y2={yFloor} stroke="var(--ink)" strokeWidth={0.8} />
-
-        {/* X labels */}
-        <text className="label" x={MARGIN.left} y={H - 8} textAnchor="start">
-          {t("stratum_distribution.left_periphery").toUpperCase()}
+        {/* Etiquetas X */}
+        <text x={MARGIN.left} y={H - 8} textAnchor="start" className="label">
+          PERIFERIA
         </text>
-        <text className="label" x={MARGIN.left + plotW} y={H - 8} textAnchor="end">
-          {t("stratum_distribution.right_periphery").toUpperCase()}
-        </text>
-
-        {/* Y-axis title */}
-        <text className="label" x={-MARGIN.top - plotH / 2} y={12} textAnchor="middle" transform="rotate(-90)">
-          HOGARES
+        <text
+          x={MARGIN.left + plotW}
+          y={H - 8}
+          textAnchor="end"
+          className="label"
+        >
+          PERIFERIA
         </text>
       </svg>
 
-      <div className="mt-2 flex flex-wrap gap-4" style={{ fontFamily: "var(--font-fig)", fontSize: 10 }}>
+      <div
+        className="mt-2 flex flex-wrap gap-4"
+        style={{ fontFamily: "var(--font-fig)", fontSize: 10 }}
+      >
         {[1, 2, 3].map((h) => (
-          <span key={h} className="flex items-center gap-1.5" style={{ color: "var(--muted)" }}>
-            <span className="inline-block" style={{ width: 10, height: 10, backgroundColor: STRATUM_VAR[h] }} />
+          <span
+            key={h}
+            className="flex items-center gap-1.5"
+            style={{ color: "var(--muted)" }}
+          >
+            <span
+              className="inline-block"
+              style={{ width: 10, height: 10, backgroundColor: STRATUM_VAR[h] }}
+            />
             <span style={{ color: "var(--ink-2)" }}>
               {t(`strata.${h === 1 ? "alto" : h === 2 ? "medio" : "bajo"}`)}
             </span>

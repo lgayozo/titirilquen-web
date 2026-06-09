@@ -14,7 +14,7 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
 
   const setStratum = (
     idx: 0 | 1 | 2,
-    patch: Partial<LandUseConfig["estratos"][number]>
+    patch: Partial<LandUseConfig["estratos"][number]>,
   ) =>
     onChange((c) => {
       const next = [...c.estratos] as LandUseConfig["estratos"];
@@ -29,11 +29,18 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
       return { ...c, H_por_estrato: H };
     });
 
-  const labels = [t("strata.alto"), t("strata.medio"), t("strata.bajo")] as const;
+  const labels = [
+    t("strata.alto"),
+    t("strata.medio"),
+    t("strata.bajo"),
+  ] as const;
 
   return (
     <>
-      <SidebarSection title={t("land_use.title")} meta={`β=${config.beta.toFixed(1)}`}>
+      <SidebarSection
+        title={t("land_use.title")}
+        meta={`β=${config.beta.toFixed(1)}`}
+      >
         <LabeledSlider
           label={t("land_use.param_beta")}
           value={config.beta}
@@ -56,7 +63,9 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
                 className={config.solver === s ? "active" : ""}
                 style={{ flex: 1 }}
               >
-                {s === "logit" ? t("land_use.solver_logit") : t("land_use.solver_frechet")}
+                {s === "logit"
+                  ? t("land_use.solver_logit")
+                  : t("land_use.solver_frechet")}
               </button>
             ))}
           </div>
@@ -67,6 +76,35 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
           )}
         </div>
 
+        <div className="mb-3">
+          <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+            {t("land_use.forma")}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {(
+              [
+                "normal",
+                "uniforme",
+                "exponencial",
+                "meseta",
+                "bimodal",
+              ] as const
+            ).map((f) => (
+              <button
+                key={f}
+                type="button"
+                className={`chip-toggle${config.forma === f ? " active" : ""}`}
+                onClick={() => onChange((c) => ({ ...c, forma: f }))}
+              >
+                {t(`land_use.forma_${f}`)}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-[10px] text-muted">
+            {t(`land_use.forma_hint_${config.forma}`)}
+          </p>
+        </div>
+
         <LabeledSlider
           label={t("land_use.param_oferta_sigma")}
           value={config.oferta_sigma_frac}
@@ -75,7 +113,20 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
           step={0.05}
           onChange={(v) => onChange((c) => ({ ...c, oferta_sigma_frac: v }))}
         />
-        <p className="-mt-1 text-[10px] text-muted">{t("land_use.oferta_sigma_hint")}</p>
+        <p className="-mt-1 text-[10px] text-muted">
+          {t("land_use.oferta_sigma_hint")}
+        </p>
+
+        {config.forma === "bimodal" && (
+          <LabeledSlider
+            label={t("land_use.param_separacion")}
+            value={config.forma_param}
+            min={0.1}
+            max={1}
+            step={0.05}
+            onChange={(v) => onChange((c) => ({ ...c, forma_param: v }))}
+          />
+        )}
       </SidebarSection>
 
       {[0, 1, 2].map((i) => {

@@ -6,6 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from titirilquen_core.land_use.supply import FormaOferta
+
 SolverKind = Literal["logit", "frechet"]
 """
 - `logit`: resolver_equilibrio_logit — el método principal (ver Suelo.tex sec. 5.4)
@@ -48,14 +50,32 @@ class LandUseConfig(BaseModel):
     solver: SolverKind = "logit"
     tol: float = Field(default=1e-8, gt=0)
     max_iter: int = Field(default=10000, ge=1)
+    forma: FormaOferta = Field(
+        default="normal",
+        description=(
+            "Forma del perfil de oferta de vivienda a lo largo del corredor: "
+            "normal · uniforme · exponencial · anular · bimodal."
+        ),
+    )
     oferta_sigma_frac: float = Field(
         default=0.5,
         gt=0,
         le=1.5,
         description=(
-            "Dispersión de la oferta de vivienda como fracción de la semi-ciudad: "
+            "Ancho/dispersión de la oferta como fracción de la semi-ciudad: "
             "σ = frac · min(CBD, L-1-CBD). Menor ⇒ ciudad compacta (vivienda junto "
-            "al CBD); mayor ⇒ ciudad dispersa. Default 0.5 = σ ≈ L/4."
+            "al CBD); mayor ⇒ dispersa. También controla la pendiente de la "
+            "exponencial y el ancho del anillo/picos. Default 0.5 = σ ≈ L/4."
+        ),
+    )
+    forma_param: float = Field(
+        default=0.5,
+        ge=0,
+        le=1,
+        description=(
+            "2º parámetro de la forma, como fracción de la semi-ciudad: radio del "
+            "anillo (anular) o separación de los picos (bimodal). Ignorado en "
+            "normal/uniforme/exponencial."
         ),
     )
 

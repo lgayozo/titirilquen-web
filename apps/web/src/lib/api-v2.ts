@@ -25,17 +25,23 @@ export async function solveLandUse(req: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
   });
-  if (!r.ok) throw new Error(`land-use/solve failed (${r.status}): ${await r.text()}`);
+  if (!r.ok)
+    throw new Error(`land-use/solve failed (${r.status}): ${await r.text()}`);
   return (await r.json()) as LandUseSolveResponse;
 }
 
-export async function solveCoupled(req: CoupledRequest): Promise<CoupledResult> {
+export async function solveCoupled(
+  req: CoupledRequest,
+): Promise<CoupledResult> {
   if (engineIsLocal()) {
     const collected: OuterIteration[] = [];
     await pyodideEngine.solveCoupledStream(req, (it) => collected.push(it));
     const last = collected[collected.length - 1];
     return {
-      converged: last != null && last.T_residual != null && last.T_residual < req.outer_tol,
+      converged:
+        last != null &&
+        last.T_residual != null &&
+        last.T_residual < req.outer_tol,
       iterations: collected,
       final_parcelas: [],
       S: null,
@@ -46,14 +52,15 @@ export async function solveCoupled(req: CoupledRequest): Promise<CoupledResult> 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
   });
-  if (!r.ok) throw new Error(`coupled/solve failed (${r.status}): ${await r.text()}`);
+  if (!r.ok)
+    throw new Error(`coupled/solve failed (${r.status}): ${await r.text()}`);
   return (await r.json()) as CoupledResult;
 }
 
 export async function solveCoupledStream(
   req: CoupledRequest,
   onOuter: (it: OuterIteration) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<void> {
   if (engineIsLocal()) return pyodideEngine.solveCoupledStream(req, onOuter);
   const r = await fetch(`${API_BASE}/coupled/stream`, {
@@ -96,5 +103,7 @@ export const defaultLandUseConfig: LandUseConfig = {
   solver: "logit",
   tol: 1e-8,
   max_iter: 2000,
+  forma: "normal",
   oferta_sigma_frac: 0.5,
+  forma_param: 0.5,
 };

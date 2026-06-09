@@ -11,17 +11,30 @@ interface BidPriceCurveProps {
 const MARGIN = { top: 8, right: 8, bottom: 22, left: 52 };
 
 /**
- * Precios implícitos por parcela en el equilibrio. Curva con eje Y rotulado
- * en la misma unidad del precio y marcador vertical del CBD.
+ * Precio implícito del suelo por parcela en el equilibrio. El precio está
+ * definido **salvo una constante aditiva** (la normalización u[0]=0 fija un cero
+ * arbitrario), así que solo el *gradiente* tiene sentido. Para no mostrar
+ * negativos confusos, se grafica **relativo** al mínimo (periferia = 0); la
+ * forma de la curva es idéntica.
  */
-export function BidPriceCurve({ p, className, height = 160 }: BidPriceCurveProps) {
-  const { path, min, max, yTicks } = useMemo(() => {
+export function BidPriceCurve({
+  p,
+  className,
+  height = 160,
+}: BidPriceCurveProps) {
+  const { path, max, yTicks } = useMemo(() => {
     const finite = p.filter(Number.isFinite);
     const mn = finite.length ? Math.min(...finite) : 0;
     const mx = finite.length ? Math.max(...finite) : 1;
     const range = Math.max(mx - mn, 1e-6);
-    const ticks = [mn, mn + range * 0.25, mn + range * 0.5, mn + range * 0.75, mx];
-    return { path: { p, mn, mx, range }, min: mn, max: mx, yTicks: ticks };
+    // Relativo al mínimo: periferia ≈ 0, CBD = Δ máximo.
+    const pr = p.map((v) => (Number.isFinite(v) ? v - mn : v));
+    const ticks = [0, range * 0.25, range * 0.5, range * 0.75, range];
+    return {
+      path: { p: pr, mn: 0, mx: range, range },
+      max: range,
+      yTicks: ticks,
+    };
   }, [p]);
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -40,12 +53,17 @@ export function BidPriceCurve({ p, className, height = 160 }: BidPriceCurveProps
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
   const plotH = H - MARGIN.top - MARGIN.bottom;
 
-  const xOf = (i: number) => MARGIN.left + (i / Math.max(path.p.length - 1, 1)) * plotW;
+  const xOf = (i: number) =>
+    MARGIN.left + (i / Math.max(path.p.length - 1, 1)) * plotW;
   const yOf = (v: number) =>
     MARGIN.top + plotH - ((v - path.mn) / path.range) * plotH;
 
   const pathD = path.p
-    .map((v, i) => (i === 0 ? `M${xOf(i).toFixed(2)},${yOf(v).toFixed(2)}` : `L${xOf(i).toFixed(2)},${yOf(v).toFixed(2)}`))
+    .map((v, i) =>
+      i === 0
+        ? `M${xOf(i).toFixed(2)},${yOf(v).toFixed(2)}`
+        : `L${xOf(i).toFixed(2)},${yOf(v).toFixed(2)}`,
+    )
     .join(" ");
 
   const fmt = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1));
@@ -139,7 +157,7 @@ export function BidPriceCurve({ p, className, height = 160 }: BidPriceCurveProps
           textAnchor="middle"
           transform="rotate(-90)"
         >
-          PRECIO IMPLÍCITO
+          PRECIO (REL.)
         </text>
       </svg>
 
@@ -154,7 +172,7 @@ export function BidPriceCurve({ p, className, height = 160 }: BidPriceCurveProps
           textAlign: "right",
         }}
       >
-        RANGO [{fmt(min)}, {fmt(max)}]
+        RELATIVO · 0 = PERIFERIA · Δ {fmt(max)} (precio salvo constante)
       </div>
     </div>
   );

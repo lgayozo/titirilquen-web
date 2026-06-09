@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LandUseBuilder } from "@/components/modules/LandUseBuilder";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
+import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { BidPriceCurve } from "@/components/viz/BidPriceCurve";
+import { CityShapePreview } from "@/components/viz/CityShapePreview";
 import { CoupledMetrics } from "@/components/viz/CoupledMetrics";
 import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { solveCoupledStream, solveLandUse } from "@/lib/api-v2";
+import { theilSegregation } from "@/lib/metrics";
 import type { CoupledResult, OuterIteration } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -30,6 +33,7 @@ export function LandUsePage() {
   const finishStandalone = useLandUseStore((s) => s.finishStandalone);
   const finishCoupled = useLandUseStore((s) => s.finishCoupled);
   const fail = useLandUseStore((s) => s.fail);
+  const reset = useLandUseStore((s) => s.reset);
 
   const simConfig = useSimulationStore((s) => s.config);
   const liveOuterIters = useLandUseStore((s) => s.liveOuterIters);
@@ -49,15 +53,21 @@ export function LandUsePage() {
       } else {
         const collected: OuterIteration[] = [];
         await solveCoupledStream(
-          { sim: simConfig, land_use: config, outer_max_iter: outerMaxIter, outer_tol: 1.0 },
+          {
+            sim: simConfig,
+            land_use: config,
+            outer_max_iter: outerMaxIter,
+            outer_tol: 1.0,
+          },
           (it) => {
             collected.push(it);
             pushOuterIter(it);
-          }
+          },
         );
         const last = collected[collected.length - 1];
         const synthetic: CoupledResult = {
-          converged: last != null && last.T_residual != null && last.T_residual < 1.0,
+          converged:
+            last != null && last.T_residual != null && last.T_residual < 1.0,
           iterations: collected,
           final_parcelas: [],
           S: null,
@@ -69,10 +79,48 @@ export function LandUsePage() {
     }
   };
 
-  const parcelas = mode === "standalone" ? result?.parcelas : coupledResult?.final_parcelas;
+  const parcelas =
+    mode === "standalone" ? result?.parcelas : coupledResult?.final_parcelas;
   const prices = mode === "standalone" ? result?.result.p : null;
   const hasResult = mode === "standalone" ? !!result : !!coupledResult;
   const totalHogares = config.H_por_estrato.reduce((a, b) => a + b, 0);
+
+  // Métricas del equilibrio standalone: distancia media al CBD por estrato (el
+  // test del bid-rent) + segregación de Theil. La distancia se reporta en km
+  // usando el largo de la ciudad de transporte.
+  const metrics = useMemo<KPI[] | null>(() => {
+    if (mode !== "standalone" || !result) return null;
+    const { parcelas: parc, L: nL, CBD: cbd } = result;
+    const kmPerCell = simConfig.city.largo_ciudad_km / Math.max(nL, 1);
+    const sum = [0, 0, 0];
+    const cnt = [0, 0, 0];
+    for (let i = 0; i < parc.length; i++) {
+      const dkm = Math.abs(i - cbd) * kmPerCell;
+      for (const h of parc[i] ?? []) {
+        const k = h - 1;
+        if (k === 0 || k === 1 || k === 2) {
+          sum[k] = (sum[k] ?? 0) + dkm;
+          cnt[k] = (cnt[k] ?? 0) + 1;
+        }
+      }
+    }
+    const theil = theilSegregation(result.result.Q);
+    const STR = ["alto", "medio", "bajo"];
+    const VAR = ["var(--s1)", "var(--s2)", "var(--s3)"];
+    return [
+      ...[0, 1, 2].map((k) => {
+        const c = cnt[k] ?? 0;
+        const dist = c > 0 ? (sum[k] ?? 0) / c : 0;
+        return {
+          label: tS("land_use.metric_dist", { s: tS(`strata.${STR[k]}`) }),
+          value: dist.toFixed(1),
+          unit: "km",
+          color: VAR[k],
+        };
+      }),
+      { label: tS("land_use.metric_segregation"), value: theil.toFixed(3) },
+    ];
+  }, [mode, result, simConfig.city.largo_ciudad_km, tS]);
 
   return (
     <div className="page">
@@ -97,12 +145,17 @@ export function LandUsePage() {
           </button>
         </div>
         <p className="mt-2 text-[11px] text-muted">
-          {mode === "standalone" ? tS("land_use.info_standalone") : tS("land_use.info_coupled")}
+          {mode === "standalone"
+            ? tS("land_use.info_standalone")
+            : tS("land_use.info_coupled")}
         </p>
         {mode === "coupled" && (
           <p className="mt-1 text-[10px]" style={{ color: "var(--accent)" }}>
             {tS("land_use.density_ignored_hint", {
-              total: config.H_por_estrato.reduce((a, b) => a + b, 0).toLocaleString(),
+              total: config.H_por_estrato.reduce(
+                (a, b) => a + b,
+                0,
+              ).toLocaleString(),
             })}
           </p>
         )}
@@ -114,7 +167,9 @@ export function LandUsePage() {
             <h3>{tS("land_use.outer_iterations")}</h3>
             <label className="slider-row block">
               <div className="srow-top">
-                <span className="srow-label">{tS("land_use.outer_iter_label")}</span>
+                <span className="srow-label">
+                  {tS("land_use.outer_iter_label")}
+                </span>
                 <span className="srow-val" aria-hidden>
                   {outerMaxIter}
                 </span>
@@ -128,8 +183,21 @@ export function LandUsePage() {
                 onChange={(e) => setOuterMaxIter(Number(e.target.value))}
               />
             </label>
-            <p className="text-[11px] text-muted">{tS("land_use.outer_iter_hint")}</p>
+            <p className="text-[11px] text-muted">
+              {tS("land_use.outer_iter_hint")}
+            </p>
           </>
+        )}
+
+        {(stage === "done" || stage === "error") && (
+          <button
+            type="button"
+            className="reset-btn"
+            onClick={reset}
+            title={t("actions.new_run")}
+          >
+            {`↺ ${t("actions.new_run")}`}
+          </button>
         )}
 
         <button
@@ -142,7 +210,10 @@ export function LandUsePage() {
         </button>
 
         {stage === "running" && mode === "coupled" && (
-          <div className="callout mt-3" style={{ borderLeftColor: "var(--accent)" }}>
+          <div
+            className="callout mt-3"
+            style={{ borderLeftColor: "var(--accent)" }}
+          >
             <div className="flex items-center justify-between">
               <span>{tS("land_use.outer_iter_progress")}</span>
               <span className="font-fig tabular-nums">
@@ -156,7 +227,10 @@ export function LandUsePage() {
               >
                 {tS("land_use.outer_iter_last_residual")}{" "}
                 <strong className="font-fig tabular-nums">
-                  {liveOuterIters[liveOuterIters.length - 1]?.T_residual?.toFixed(2) ?? "—"} min
+                  {liveOuterIters[
+                    liveOuterIters.length - 1
+                  ]?.T_residual?.toFixed(2) ?? "—"}{" "}
+                  min
                 </strong>
               </div>
             )}
@@ -164,7 +238,10 @@ export function LandUsePage() {
         )}
 
         {error && (
-          <div className="callout" style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}>
+          <div
+            className="callout"
+            style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}
+          >
             {error}
           </div>
         )}
@@ -180,73 +257,114 @@ export function LandUsePage() {
           </div>
           <p
             className="font-display"
-            style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)", marginBottom: 0 }}
+            style={{
+              fontSize: 14,
+              lineHeight: 1.6,
+              color: "var(--ink-2)",
+              marginBottom: 0,
+            }}
           >
-            La teoría del <em>bid-rent</em> predice que los hogares con mayor valoración de la
-            accesibilidad al centro superan en subasta a los demás por parcelas cercanas al CBD,
-            empujando a los grupos de menor valoración hacia la periferia.
+            La teoría del <em>bid-rent</em> predice que los hogares con mayor
+            valoración de la accesibilidad al centro superan en subasta a los
+            demás por parcelas cercanas al CBD, empujando a los grupos de menor
+            valoración hacia la periferia.
           </p>
         </div>
 
         {hasResult ? (
-          <div className="panel-grid">
-            {mode === "standalone" && parcelas && parcelas.length > 0 && (
-              <Panel
-                n="01"
-                title={tS("land_use.heading_distribution")}
-                meta="bid-rent · 3 strata"
-                cls="col-7"
-              >
-                <ExportableFigure
-                  name="distribucion-estratos"
-                  title={tS("land_use.heading_distribution")}
-                  exportSize={{ width: 1000, height: 260 }}
-                >
-                  <StratumDistribution parcelas={parcelas} />
-                </ExportableFigure>
-              </Panel>
-            )}
-
-            {prices && (
-              <Panel
-                n="02"
-                title={tS("land_use.bid_price_title")}
-                meta="log-sum"
-                cls="col-5"
-              >
-                <ExportableFigure
-                  name="precio-suelo"
-                  title={tS("land_use.bid_price_title")}
-                  exportSize={{ width: 800, height: 200 }}
-                >
-                  <BidPriceCurve p={prices} />
-                </ExportableFigure>
-              </Panel>
-            )}
-
-            {mode === "coupled" && coupledResult && (
+          <>
+            {metrics && (
               <>
-                <Panel
-                  n="03"
-                  title={tS("coupled_metrics.header")}
-                  meta="Theil · welfare · Hansen"
-                  cls="col-12"
-                >
-                  <CoupledMetrics result={coupledResult} landUseConfig={config} />
-                </Panel>
-                <Panel n="04" title={tS("land_use.outer_iterations")} cls="col-12">
-                  <OuterTrajectory
-                    result={coupledResult}
-                    nCeldas={L}
-                    totalHogares={totalHogares}
-                    sigmaFrac={config.oferta_sigma_frac}
-                  />
-                </Panel>
+                <div className="kpi-caption">
+                  {tS("land_use.metrics_caption")}
+                </div>
+                <KPIStrip items={metrics} />
               </>
             )}
-          </div>
+            <div className="panel-grid">
+              {mode === "standalone" && parcelas && parcelas.length > 0 && (
+                <Panel
+                  n="01"
+                  title={tS("land_use.heading_distribution")}
+                  meta="bid-rent · 3 strata"
+                  cls="col-12"
+                >
+                  <ExportableFigure
+                    name="distribucion-estratos"
+                    title={tS("land_use.heading_distribution")}
+                    exportSize={{ width: 1000, height: 260 }}
+                  >
+                    <StratumDistribution parcelas={parcelas} />
+                  </ExportableFigure>
+                </Panel>
+              )}
+
+              {prices && (
+                <Panel
+                  n="02"
+                  title={tS("land_use.bid_price_title")}
+                  meta="log-sum"
+                  cls="col-12"
+                >
+                  <ExportableFigure
+                    name="precio-suelo"
+                    title={tS("land_use.bid_price_title")}
+                    exportSize={{ width: 800, height: 200 }}
+                  >
+                    <BidPriceCurve p={prices} />
+                  </ExportableFigure>
+                </Panel>
+              )}
+
+              {mode === "coupled" && coupledResult && (
+                <>
+                  <Panel
+                    n="03"
+                    title={tS("coupled_metrics.header")}
+                    meta="Theil · welfare · Hansen"
+                    cls="col-12"
+                  >
+                    <CoupledMetrics
+                      result={coupledResult}
+                      landUseConfig={config}
+                    />
+                  </Panel>
+                  <Panel
+                    n="04"
+                    title={tS("land_use.outer_iterations")}
+                    cls="col-12"
+                  >
+                    <OuterTrajectory
+                      result={coupledResult}
+                      nCeldas={L}
+                      totalHogares={totalHogares}
+                      sigmaFrac={config.oferta_sigma_frac}
+                    />
+                  </Panel>
+                </>
+              )}
+            </div>
+          </>
         ) : (
-          <div className="callout">{tS("land_use.run_placeholder")}</div>
+          <div className="panel-grid">
+            <Panel
+              n="00"
+              title={tS("land_use.shape_preview_title")}
+              meta={tS(`land_use.forma_${config.forma}`)}
+              cls="col-12"
+            >
+              <CityShapePreview
+                forma={config.forma}
+                L={L}
+                CBD={CBD}
+                sigmaFrac={config.oferta_sigma_frac}
+                formaParam={config.forma_param}
+              />
+              <p className="kpi-caption" style={{ marginTop: 8 }}>
+                {tS("land_use.shape_preview_caption")}
+              </p>
+            </Panel>
+          </div>
         )}
       </section>
     </div>

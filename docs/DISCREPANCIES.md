@@ -254,6 +254,23 @@ Convenciones:
 - **Acción**: Mantener. Interpretación: `oferta_sigma_frac` = compacidad urbana
   (menor ⇒ ciudad compacta junto al CBD; mayor ⇒ dispersa). λ_h sigue gobernando
   la **segregación** de estratos (los colores), no la altura.
+- **Extensión (2026-06) — formas de ciudad parametrizables**: la oferta dejó de
+  ser solo la Normal. Se añadió `supply.py:generar_oferta(forma, …)` con un
+  dispatcher de **5 formas** (todas deterministas, CBD excluido, `Σ S = N` por
+  mayor residuo): `normal` (campana, idéntica al default anterior), `uniforme`
+  (densidad plana), `exponencial` (`S ∝ e^{−d/σ}`, von Thünen), `meseta` (núcleo
+  de densidad plana de radio σ con borde neto — super-gaussiana de orden alto;
+  ciudad compacta con frontera) y `bimodal` (dos picos a ±`sep` — policéntrica).
+  `LandUseConfig` expone `forma`, reusa `oferta_sigma_frac` como ancho/pendiente,
+  y añade `forma_param` (separación de picos, solo `bimodal`). Objetivo
+  pedagógico: estudiar cómo cambia el equilibrio de asignación (y el acoplado con
+  transporte) según la geometría. Validado: `normal` reproduce bit a bit el S
+  anterior; las 5 convergen. La forma "normal" sigue siendo el default (sin
+  cambio de comportamiento por defecto).
+  - **Nota 1D**: no se incluye una forma "anular" (dona) separada porque en una
+    ciudad **lineal** un anillo a radio `r` colapsa en dos puntos a ±`r`, es
+    decir, es idéntico a `bimodal` (medido: correlación 0.996). La distinción
+    dona vs policéntrica solo es significativa en 2D.
 
 ---
 
