@@ -225,8 +225,6 @@
     "logit_iterations": "Logit iters",
     "solver": "Solver",
     "solver_logit": "Logit",
-    "solver_frechet": "Frechet",
-    "solver_frechet_warn": "Frechét is inconsistent with heterogeneous λ_h. See docs.",
     "param_beta": "β (logit sensitivity)",
     "param_H": "H ({{stratum}})",
     "param_y": "Income y",
@@ -259,8 +257,7 @@
     "oferta_sigma_na": "Not applicable to the uniform shape (flat density).",
     "solver_heteroscedastic": "Heterosc.",
     "solver_hint_heteroscedastic": "Consistent: per-stratum scale β_h = β·λ_h. Fixes the heterogeneous-λ problem (recommended · default).",
-    "solver_hint_logit": "Uniform β over the bid y + f/λ: inconsistent with heterogeneous λ (scales the noise per stratum). For comparison.",
-    "solver_hint_frechet": "Variant flagged 'bad' in the original code; even more sensitive to heterogeneous λ."
+    "solver_hint_logit": "Uniform β over the bid y + f/λ: inconsistent with heterogeneous λ (scales the noise per stratum). For comparison."
   },
   "supply_builder": {
     "bpr_curve_auto": "BPR curve — Car",

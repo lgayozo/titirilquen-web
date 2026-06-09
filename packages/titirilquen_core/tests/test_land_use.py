@@ -8,7 +8,6 @@ from titirilquen_core.land_use import (
     LandUseConfig,
     LandUseStratumConfig,
     generar_oferta_normal,
-    solve_frechet,
     solve_heteroscedastic,
     solve_logit,
 )
@@ -120,23 +119,6 @@ def test_update_con_T_custom() -> None:
     city.update(T=T_custom, rng=rng)
     asignados = sum(len(p) for p in city.parcelas)
     assert asignados == 600
-
-
-def test_frechet_tambien_converge() -> None:
-    L, CBD = 31, 15
-    H = np.array([100, 100, 100])
-    S = np.full(L, 10)
-    S[CBD] = 0
-    S[0] += H.sum() - S.sum()
-    T = np.tile(np.abs(np.arange(L) - CBD).astype(float), (3, 1))
-    res = solve_frechet(
-        H=H, S=S, y=np.array([100.0, 50.0, 10.0]), T=T,
-        alpha=np.array([1.0, 1.0, 1.0]),
-        rho=np.array([1.0, 1.0, 1.0]),
-        lambda_h=np.array([1.0, 1.0, 1.0]),  # λ homogéneo para que converja
-        beta=1.0, tol=1e-6, max_iter=2000,
-    )
-    assert res.converged
 
 
 def test_alpha_mas_alto_atrae_cerca_del_cbd() -> None:

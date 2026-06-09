@@ -50,7 +50,7 @@ coincida con el código (que ya es correcto). No implican cambios de código.
 |----|---|---|---|
 | **B1** (D‑16) | Constantes de congestión de andén (metro) | Overleaf declara `α=10, β=10` (factor salta a ~10× apenas `ρ>1`). El código usa `α=0.5, β=4` (factor *cae* a 0.5 y solo supera 1 en `ρ>1.19`). | ¿Cuál es la calibración real del `app.py`? Idealmente reformular como **BPR continua** sin salto/caída en `ρ=1`. |
 | **B2** (D‑12) | Activación de la congestión de andén | El umbral usa `frec_max·K` (capacidad a frecuencia máxima); con ciudades típicas (~10k agentes) **nunca** se alcanza → la espera queda plana. | ¿Es el comportamiento deseado, o se quiere que la congestión sea visible en operación normal? |
-| **B3** (D‑08) | Logit de uso de suelo con `λ_h` heterogéneo | **RESUELTO (2026‑06):** se implementó el logit heteroscedástico (`solve_heteroscedastic`) y es el **default**. Derivación paper‑ready en **§C8** abajo. | Adoptarlo como método principal en el paper; conservar `logit`/`frechet` como comparación didáctica. |
+| **B3** (D‑08) | Logit de uso de suelo con `λ_h` heterogéneo | **RESUELTO (2026‑06):** se implementó el logit heteroscedástico (`solve_heteroscedastic`) y es el **default**. Derivación paper‑ready en **§C8** abajo. | Adoptarlo como método principal en el paper; conservar `logit` como comparación didáctica (el `frechet` se quitó por redundante). |
 
 ---
 

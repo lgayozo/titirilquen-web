@@ -55,7 +55,7 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
             {t("land_use.solver")}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {(["heteroscedastic", "logit", "frechet"] as const).map((s) => (
+            {(["heteroscedastic", "logit"] as const).map((s) => (
               <button
                 key={s}
                 type="button"

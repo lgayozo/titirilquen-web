@@ -17,7 +17,6 @@ from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 from titirilquen_core.land_use.equilibrium import (
     LandUseResult,
-    solve_frechet,
     solve_heteroscedastic,
     solve_logit,
 )
@@ -30,7 +29,6 @@ __all__ = [
     "LandUseStratumConfig",
     "asignar_hogares_simple",
     "generar_oferta_normal",
-    "solve_frechet",
     "solve_heteroscedastic",
     "solve_logit",
 ]

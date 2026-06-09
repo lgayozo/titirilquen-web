@@ -8,15 +8,13 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from titirilquen_core.land_use.supply import FormaOferta
 
-SolverKind = Literal["heteroscedastic", "logit", "frechet"]
+SolverKind = Literal["heteroscedastic", "logit"]
 """
 - `heteroscedastic`: logit heteroscedástico (escala por estrato β_h = β·λ_h) — el
   método **consistente**, que corrige el problema del λ heterogéneo (ver D-08).
   Default. Coincide con `logit` cuando λ_h = 1 ∀h.
 - `logit`: β uniforme sobre la puja `y + f/λ` — inconsistente con λ_h heterogéneo
   (Suelo.tex sec. 5.4). Se conserva para comparación didáctica.
-- `frechet`: variante marcada "MALA" en el código original; aún más sensible al
-  λ heterogéneo.
 """
 
 

@@ -15,7 +15,6 @@ from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import (
     LandUseResult,
-    solve_frechet,
     solve_heteroscedastic,
     solve_logit,
 )
@@ -23,7 +22,6 @@ from titirilquen_core.land_use.equilibrium import (
 _SOLVERS = {
     "heteroscedastic": solve_heteroscedastic,
     "logit": solve_logit,
-    "frechet": solve_frechet,
 }
 from titirilquen_core.land_use.supply import generar_oferta
 

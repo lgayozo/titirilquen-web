@@ -165,8 +165,12 @@ Convenciones:
     `[12.5,14.7,17.3]` al pasar `k` de 0.5 a 4); (c) converge (más rápido que el
     logit). Separa la utilidad marginal del ingreso (`λ_h`) del ruido de elección
     (`β`).
-  - Se conservan `logit` y `frechet` como opciones para la comparación didáctica
-    (mostrar empíricamente la inconsistencia). Ver `MATHEMATICAL_MODEL.md` §5.
+  - Se conserva `logit` como opción para la comparación didáctica (mostrar
+    empíricamente la inconsistencia). El `frechet` (la variante "MALA" del
+    original) **se quitó** por redundante: el contraste `heteroscedastic`
+    (correcto) vs `logit` (inconsistente) ya cubre el punto pedagógico, y un
+    tercer método "incorrecto de otra forma" confundía más que aclaraba. Ver
+    `MATHEMATICAL_MODEL.md` §5.
 
 ---
 
