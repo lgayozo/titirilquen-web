@@ -8,9 +8,53 @@ from titirilquen_core.land_use import (
     LandUseConfig,
     LandUseStratumConfig,
     generar_oferta_normal,
-    solve_logit,
     solve_frechet,
+    solve_heteroscedastic,
+    solve_logit,
 )
+
+
+def _toy_scenario(lam: np.ndarray):
+    L, CBD = 81, 40
+    idx = np.arange(L)
+    S = np.maximum(
+        1, np.round(np.exp(-0.5 * ((idx - CBD) / 20.0) ** 2) * 100)
+    ).astype(int)
+    S[CBD] = 0
+    H = np.array([2000, 2000, 2000])
+    S[0] += int(H.sum() - S.sum())
+    T = np.tile(np.abs(idx - CBD).astype(float), (3, 1))
+    return dict(
+        H=H, S=S, y=np.array([120.0, 50.0, 10.0]), T=T,
+        alpha=np.array([1.3, 1.2, 1.1]), rho=np.array([1.0, 1.0, 1.0]),
+        lambda_h=lam, beta=1.0, tol=1e-9, max_iter=20000,
+    )
+
+
+def test_heteroscedastic_reduce_a_logit_con_lambda_1() -> None:
+    """Con λ_h = 1 ∀h, el logit heteroscedástico coincide exactamente con el logit."""
+    args = _toy_scenario(np.array([1.0, 1.0, 1.0]))
+    rl = solve_logit(**args)
+    rh = solve_heteroscedastic(**args)
+    np.testing.assert_allclose(rl.u, rh.u, atol=1e-9)
+    np.testing.assert_allclose(rl.Q, rh.Q, atol=1e-9)
+
+
+def test_heteroscedastic_invariante_a_escala_comun_de_lambda() -> None:
+    """Escalar TODOS los λ por un factor común no debe cambiar la asignación
+    (propiedad de consistencia que el logit NO tiene)."""
+    base = solve_heteroscedastic(**_toy_scenario(np.array([1.0, 1.0, 1.0]))).Q
+    for k in (0.5, 2.0, 4.0):
+        Qk = solve_heteroscedastic(**_toy_scenario(np.array([k, k, k]))).Q
+        np.testing.assert_allclose(Qk, base, atol=1e-6)
+
+
+def test_heteroscedastic_converge_con_lambda_heterogeneo() -> None:
+    res = solve_heteroscedastic(**_toy_scenario(np.array([2.0, 1.0, 0.5])))
+    assert res.converged
+    col_sum = res.Q.sum(axis=0)
+    expected = np.where(_toy_scenario(np.array([2.0, 1.0, 0.5]))["S"] > 0, 1.0, 0.0)
+    np.testing.assert_allclose(col_sum, expected, atol=1e-6)
 
 
 def test_oferta_normal_suma_exactamente_N() -> None:

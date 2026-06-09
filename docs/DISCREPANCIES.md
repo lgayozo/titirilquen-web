@@ -147,6 +147,26 @@ Convenciones:
 - **Análisis**: Existe una implementación alternativa que el propio autor considera incorrecta. Valiosa didácticamente: permite comparar ambas y discutir sus limitaciones.
 - **Veredicto**: No es discrepancia sino ampliación del alcance.
 - **Acción**: Mantener ambos métodos en v2 y usarlos en material didáctico comparativo.
+- **Resolución (2026-06) — logit heteroscedástico implementado**: se agregó el
+  solver **`heteroscedastic`** (`equilibrium.py:solve_heteroscedastic`), que es la
+  corrección consistente que sugería el Overleaf, y pasó a ser el **default**.
+  - **El problema**: la utilidad es `U_hi = λ_h(y_h − p_i) + f_h(i) + ε_hi` con `ε`
+    Gumbel de escala `1/β` (homoscedástica **en utilidad**). La puja (WTP) divide
+    por `λ_h`, dejando el ruido con escala `1/(β·λ_h)` **por estrato** → el logit
+    (β uniforme sobre la puja `y + f/λ`) es inconsistente: trata estratos de mayor
+    `λ` como si tuvieran elección más ruidosa (artefacto).
+  - **La corrección**: escala por estrato `β_h = β·λ_h`, equivalente a trabajar en
+    espacio de utilidad con `score = λ_h·y_h + f_h(i)` (sin dividir por `λ`). Mismo
+    operador de punto fijo; solo cambia el `score`.
+  - **Propiedades (validadas, con tests):** (a) coincide **exactamente** con
+    `logit` cuando `λ_h = 1 ∀h` (el default de estratos); (b) es **invariante a la
+    escala común de `λ`** — escalar todos los `λ` por `k` no cambia la asignación,
+    cosa que el logit NO cumple (su `dmedia` se comprime de `[6.6,13.2,24.8]` a
+    `[12.5,14.7,17.3]` al pasar `k` de 0.5 a 4); (c) converge (más rápido que el
+    logit). Separa la utilidad marginal del ingreso (`λ_h`) del ruido de elección
+    (`β`).
+  - Se conservan `logit` y `frechet` como opciones para la comparación didáctica
+    (mostrar empíricamente la inconsistencia). Ver `MATHEMATICAL_MODEL.md` §5.
 
 ---
 

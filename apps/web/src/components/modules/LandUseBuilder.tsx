@@ -54,26 +54,21 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
           <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
             {t("land_use.solver")}
           </div>
-          <div className="seg" style={{ width: "100%" }}>
-            {(["logit", "frechet"] as const).map((s) => (
+          <div className="flex flex-wrap gap-1.5">
+            {(["heteroscedastic", "logit", "frechet"] as const).map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => onChange((c) => ({ ...c, solver: s }))}
-                className={config.solver === s ? "active" : ""}
-                style={{ flex: 1 }}
+                className={`chip-toggle${config.solver === s ? " active" : ""}`}
               >
-                {s === "logit"
-                  ? t("land_use.solver_logit")
-                  : t("land_use.solver_frechet")}
+                {t(`land_use.solver_${s}`)}
               </button>
             ))}
           </div>
-          {config.solver === "frechet" && (
-            <p className="mt-1 text-[10px]" style={{ color: "var(--accent)" }}>
-              {t("land_use.solver_frechet_warn")}
-            </p>
-          )}
+          <p className="mt-1 text-[10px] text-muted">
+            {t(`land_use.solver_hint_${config.solver}`)}
+          </p>
         </div>
 
         <div className="mb-3">

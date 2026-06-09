@@ -25,7 +25,7 @@ export interface LandUseConfig {
   H_por_estrato: [number, number, number];
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   beta: number;
-  solver: "logit" | "frechet";
+  solver: "heteroscedastic" | "logit" | "frechet";
   tol: number;
   max_iter: number;
   /** Forma del perfil de oferta de vivienda a lo largo del corredor. */

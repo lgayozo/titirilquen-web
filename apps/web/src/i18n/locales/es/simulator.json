@@ -230,8 +230,8 @@
     "logit_converged": "Logit convergió",
     "logit_iterations": "Iter. logit",
     "solver": "Solver",
-    "solver_logit": "Logit (ok)",
-    "solver_frechet": "Frechét (didáctico)",
+    "solver_logit": "Logit",
+    "solver_frechet": "Frechét",
     "solver_frechet_warn": "Frechét es inconsistente con λ_h heterogéneos. Ver docs.",
     "param_beta": "β (sensibilidad logit)",
     "param_H": "H ({{stratum}})",
@@ -262,7 +262,11 @@
     "metrics_caption": "Distancia media al CBD por estrato (test del bid-rent: el estrato de mayor valoración gana el centro) · Segregación de Theil (0 = mezcla, 1 = segregación total)",
     "forma_valle": "Valle",
     "forma_hint_valle": "Poco espacio en el centro, mucho en la periferia: la densidad crece con la distancia (triángulo invertido).",
-    "oferta_sigma_na": "No aplica a la forma uniforme (densidad plana)."
+    "oferta_sigma_na": "No aplica a la forma uniforme (densidad plana).",
+    "solver_heteroscedastic": "Heteroced.",
+    "solver_hint_heteroscedastic": "Consistente: escala por estrato β_h = β·λ_h. Corrige el problema del λ heterogéneo (recomendado · default).",
+    "solver_hint_logit": "β uniforme sobre la puja y + f/λ: inconsistente con λ heterogéneo (escala el ruido por estrato). Para comparar.",
+    "solver_hint_frechet": "Variante marcada 'mala' en el código original; aún más sensible al λ heterogéneo."
   },
   "supply_builder": {
     "bpr_curve_auto": "Curva BPR — Auto",

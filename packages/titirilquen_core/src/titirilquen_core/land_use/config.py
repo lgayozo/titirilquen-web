@@ -8,11 +8,15 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from titirilquen_core.land_use.supply import FormaOferta
 
-SolverKind = Literal["logit", "frechet"]
+SolverKind = Literal["heteroscedastic", "logit", "frechet"]
 """
-- `logit`: resolver_equilibrio_logit — el método principal (ver Suelo.tex sec. 5.4)
-- `frechet`: resolver_equilibrio_frechet — alternativa didáctica; el código
-  original la marca "MALA" al enfrentar `λ_h` heterogéneos.
+- `heteroscedastic`: logit heteroscedástico (escala por estrato β_h = β·λ_h) — el
+  método **consistente**, que corrige el problema del λ heterogéneo (ver D-08).
+  Default. Coincide con `logit` cuando λ_h = 1 ∀h.
+- `logit`: β uniforme sobre la puja `y + f/λ` — inconsistente con λ_h heterogéneo
+  (Suelo.tex sec. 5.4). Se conserva para comparación didáctica.
+- `frechet`: variante marcada "MALA" en el código original; aún más sensible al
+  λ heterogéneo.
 """
 
 
@@ -47,7 +51,7 @@ class LandUseConfig(BaseModel):
         )
     )
     beta: float = Field(default=1.0, gt=0, description="Parámetro de sensibilidad logit")
-    solver: SolverKind = "logit"
+    solver: SolverKind = "heteroscedastic"
     tol: float = Field(default=1e-8, gt=0)
     max_iter: int = Field(default=10000, ge=1)
     forma: FormaOferta = Field(

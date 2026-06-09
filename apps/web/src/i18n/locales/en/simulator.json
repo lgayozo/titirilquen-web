@@ -224,8 +224,8 @@
     "logit_converged": "Logit converged",
     "logit_iterations": "Logit iters",
     "solver": "Solver",
-    "solver_logit": "Logit (ok)",
-    "solver_frechet": "Frechét (didactic)",
+    "solver_logit": "Logit",
+    "solver_frechet": "Frechet",
     "solver_frechet_warn": "Frechét is inconsistent with heterogeneous λ_h. See docs.",
     "param_beta": "β (logit sensitivity)",
     "param_H": "H ({{stratum}})",
@@ -256,7 +256,11 @@
     "metrics_caption": "Mean distance to the CBD by stratum (bid-rent test: the highest-valuation stratum wins the center) · Theil segregation (0 = mixed, 1 = fully segregated)",
     "forma_valle": "Valley",
     "forma_hint_valle": "Little space at the center, lots at the periphery: density grows with distance (inverted triangle).",
-    "oferta_sigma_na": "Not applicable to the uniform shape (flat density)."
+    "oferta_sigma_na": "Not applicable to the uniform shape (flat density).",
+    "solver_heteroscedastic": "Heterosc.",
+    "solver_hint_heteroscedastic": "Consistent: per-stratum scale β_h = β·λ_h. Fixes the heterogeneous-λ problem (recommended · default).",
+    "solver_hint_logit": "Uniform β over the bid y + f/λ: inconsistent with heterogeneous λ (scales the noise per stratum). For comparison.",
+    "solver_hint_frechet": "Variant flagged 'bad' in the original code; even more sensitive to heterogeneous λ."
   },
   "supply_builder": {
     "bpr_curve_auto": "BPR curve — Car",

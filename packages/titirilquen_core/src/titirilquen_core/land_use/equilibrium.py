@@ -41,6 +41,16 @@ class LandUseResult:
     iterations: int
 
 
+def _f(
+    T: NDArray[np.float64],
+    S: NDArray[np.float64],
+    alpha: NDArray[np.float64],
+    rho: NDArray[np.float64],
+) -> NDArray[np.float64]:
+    """Atractividad de la parcela f_h(i) = -α_h·T(i) - ρ_h·S(i)."""
+    return -alpha[:, None] * T - rho[:, None] * S[None, :]
+
+
 def _f_div_lambda(
     T: NDArray[np.float64],
     S: NDArray[np.float64],
@@ -48,41 +58,40 @@ def _f_div_lambda(
     rho: NDArray[np.float64],
     lambda_h: NDArray[np.float64],
 ) -> NDArray[np.float64]:
-    """f_h(i) / λ_h donde f_h(i) = -α_h·T(i) - ρ_h·S(i)."""
-    return (-alpha[:, None] * T - rho[:, None] * S[None, :]) / lambda_h[:, None]
+    """f_h(i) / λ_h."""
+    return _f(T, S, alpha, rho) / lambda_h[:, None]
 
 
-def solve_logit(
-    *,
-    H: NDArray[np.int_],
-    S: NDArray[np.int_],
-    y: NDArray[np.float64],
-    T: NDArray[np.float64],
-    alpha: NDArray[np.float64],
-    rho: NDArray[np.float64],
-    lambda_h: NDArray[np.float64],
-    beta: float = 1.0,
-    tol: float = 1e-8,
-    max_iter: int = 10000,
+def _solve_fixed_point(
+    score: NDArray[np.float64],
+    H_arr: NDArray[np.float64],
+    S_arr: NDArray[np.float64],
+    beta: float,
+    tol: float,
+    max_iter: int,
 ) -> LandUseResult:
-    """Resolver el equilibrio vía iteración de punto fijo logit (ec. 5.4 Martínez)."""
-    H_arr = np.asarray(H, dtype=float)
-    S_arr = np.asarray(S, dtype=float).reshape(-1)
+    """Punto fijo de subasta logit sobre el `score[h, i]` (la puja de cada estrato
+    por cada parcela, en las unidades que defina el solver):
+
+        Q[h,i] ∝ S_i·exp(β·(score_hi − ū_h − p_i)),   columnas de Q suman 1.
+
+    Equilibrio: cada estrato coloca exactamente H_h hogares, vía el punto fijo
+    F(ū)=ū sobre las utilidades ū. `logit` usa `score = y + f/λ` (espacio de
+    pujas); `heteroscedastic` usa `score = λ·y + f` (espacio de utilidad, escala
+    por estrato β_h = β·λ_h). Coinciden cuando λ_h = 1 ∀h."""
     I = len(S_arr)
     n_strata = len(H_arr)
-
-    f_dl = _f_div_lambda(T, S_arr, alpha, rho, lambda_h)
 
     mask_S_pos = S_arr > 0
     log_S = np.full(I, -np.inf, dtype=float)
     log_S[mask_S_pos] = np.log(S_arr[mask_S_pos])
 
-    logZ = np.log(H_arr)[:, None] + beta * (y[:, None] + f_dl)
+    logZ = np.log(H_arr)[:, None] + beta * score
     assert logZ.shape == (n_strata, I)
 
     def F(u_bar: NDArray[np.float64]) -> NDArray[np.float64]:
         log_denom = logsumexp(logZ - beta * u_bar[:, None], axis=0)
-        log_num = beta * (y[:, None] + f_dl) - log_denom[None, :] + log_S[None, :]
+        log_num = beta * score - log_denom[None, :] + log_S[None, :]
         u_new = (1 / beta) * logsumexp(log_num, axis=1)
         u_new -= u_new[0]
         return u_new
@@ -101,7 +110,7 @@ def solve_logit(
         u_bar = u_new
 
     log_p = logsumexp(
-        np.log(H_arr)[:, None] + beta * (y[:, None] - u_bar[:, None] + f_dl),
+        np.log(H_arr)[:, None] + beta * (score - u_bar[:, None]),
         axis=0,
     )
     p = log_p / beta
@@ -110,10 +119,65 @@ def solve_logit(
     for i in range(I):
         if not mask_S_pos[i]:
             continue
-        log_q = np.log(S_arr[i]) + beta * (y + f_dl[:, i] - u_bar - p[i])
+        log_q = np.log(S_arr[i]) + beta * (score[:, i] - u_bar - p[i])
         Q[:, i] = np.exp(log_q - logsumexp(log_q))
 
     return LandUseResult(u=u_bar, p=p, Q=Q, converged=converged, iterations=iterations)
+
+
+def solve_logit(
+    *,
+    H: NDArray[np.int_],
+    S: NDArray[np.int_],
+    y: NDArray[np.float64],
+    T: NDArray[np.float64],
+    alpha: NDArray[np.float64],
+    rho: NDArray[np.float64],
+    lambda_h: NDArray[np.float64],
+    beta: float = 1.0,
+    tol: float = 1e-8,
+    max_iter: int = 10000,
+) -> LandUseResult:
+    """Equilibrio vía punto fijo logit (ec. 5.4 Martínez). Puja `y_h + f_h(i)/λ_h`.
+
+    Aplica un β **uniforme** a las pujas; con `λ_h` heterogéneo el ruido de la
+    puja queda con escala `1/(β·λ_h)` por estrato → es **inconsistente** (ver
+    D‑08). Se conserva para comparación didáctica con `solve_heteroscedastic`.
+    """
+    H_arr = np.asarray(H, dtype=float)
+    S_arr = np.asarray(S, dtype=float).reshape(-1)
+    score = y[:, None] + _f_div_lambda(T, S_arr, alpha, rho, lambda_h)
+    return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)
+
+
+def solve_heteroscedastic(
+    *,
+    H: NDArray[np.int_],
+    S: NDArray[np.int_],
+    y: NDArray[np.float64],
+    T: NDArray[np.float64],
+    alpha: NDArray[np.float64],
+    rho: NDArray[np.float64],
+    lambda_h: NDArray[np.float64],
+    beta: float = 1.0,
+    tol: float = 1e-8,
+    max_iter: int = 10000,
+) -> LandUseResult:
+    """Equilibrio con **logit heteroscedástico** — la corrección del λ (ver D‑08).
+
+    La utilidad es `U_hi = λ_h(y_h − p_i) + f_h(i) + ε_hi` con ε Gumbel de escala
+    `1/β` (homoscedástica **en utilidad**). La puja (WTP) divide por λ_h, lo que
+    en `solve_logit` deja el ruido con escala `1/(β·λ_h)` por estrato. La versión
+    consistente usa una **escala por estrato `β_h = β·λ_h`**, equivalente a
+    trabajar en el espacio de utilidad con `score = λ_h·y_h + f_h(i)` (sin dividir
+    por λ). Propiedades (validadas): coincide con `solve_logit` cuando `λ_h = 1`;
+    es **invariante a la escala común de λ** (a diferencia del logit); y separa
+    la utilidad marginal del ingreso (λ_h) del ruido de elección (β).
+    """
+    H_arr = np.asarray(H, dtype=float)
+    S_arr = np.asarray(S, dtype=float).reshape(-1)
+    score = (lambda_h * y)[:, None] + _f(T, S_arr, alpha, rho)
+    return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)
 
 
 def solve_frechet(

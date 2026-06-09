@@ -158,12 +158,17 @@ de `f`):
 ```
 w_h(u,i) = y_h − (u_h − f_h(i))/λ_h
 ```
-Probabilidad de subasta (logit) y operador de punto fijo:
+Probabilidad de subasta (logit) y operador de punto fijo sobre un **score** `s_hi`:
 ```
-Q_hi = H_h·e^{β·w_hi} / Σ_g H_g·e^{β·w_gi}
-u* = F(u*),   F(u)_h = (1/β)·ln( Σ_i S_i · e^{β z_hi} / Σ_g e^{β(z_gi − u_g)} ),
-z_hi = H_h·e^{β(y_h + f_h(i)/λ_h)}
+Q_hi = H_h·e^{β·s_hi} / Σ_g H_g·e^{β·s_gi}
+u* = F(u*),   F(u)_h = (1/β)·ln( Σ_i S_i · e^{β(s_hi − u_h)} / Σ_g e^{β(s_gi − u_g)} )
 ```
+Tres solvers comparten ese operador, cambiando solo el `score`:
+- **`heteroscedastic`** (default, consistente): `s_hi = λ_h·y_h + f_h(i)` — escala
+  por estrato `β_h = β·λ_h`, en espacio de utilidad.
+- **`logit`**: `s_hi = y_h + f_h(i)/λ_h` — `β` uniforme sobre la puja. Inconsistente
+  con `λ_h` heterogéneo (ver D‑08).
+- **`frechet`**: variante "mala" del original.
 **Oferta `S`** (`land_use/supply.py`, ver [D‑13](DISCREPANCIES.md)): perfil
 **determinista** redondeado a `Σ S = Σ H` (CBD excluido), con **forma
 parametrizable** (`forma`): `normal` (campana, default), `uniforme`,
@@ -174,9 +179,12 @@ min(c, N−1−c)` (default 0.5 ⇒ σ≈L/4) y `forma_param` fija `sep` (solo b
 en 1D un anillo coincide con bimodal). Permite estudiar cómo cambia el
 equilibrio de asignación según la geometría urbana.
 
-> El propio Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente y
-> sugiere logit‑heteroscedástico; el código incluye `solve_frechet` como
-> alternativa (marcada "MALA"). Ver [D‑08](DISCREPANCIES.md).
+> El Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente (al dividir
+> la puja por `λ_h`, el ruido queda con escala `1/(β·λ_h)` por estrato) y sugiere
+> un **logit heteroscedástico**. Ese es el solver `heteroscedastic` (default,
+> `s = λ·y + f`, escala `β_h = β·λ_h`): coincide con `logit` cuando `λ_h = 1` y es
+> **invariante a la escala común de `λ`** (a diferencia del logit). Ver
+> [D‑08](DISCREPANCIES.md).
 
 ---
 

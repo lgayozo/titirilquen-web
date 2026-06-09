@@ -100,7 +100,7 @@ export const defaultLandUseConfig: LandUseConfig = {
     { y: 10, lambda: 1, alpha: 1.1, rho: 1 },
   ],
   beta: 1,
-  solver: "logit",
+  solver: "heteroscedastic",
   tol: 1e-8,
   max_iter: 2000,
   forma: "normal",

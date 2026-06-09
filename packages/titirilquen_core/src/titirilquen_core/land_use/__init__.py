@@ -15,7 +15,12 @@ Portado verbatim de `titirilquen-repo/Ciudad2.py`.
 from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
-from titirilquen_core.land_use.equilibrium import LandUseResult, solve_frechet, solve_logit
+from titirilquen_core.land_use.equilibrium import (
+    LandUseResult,
+    solve_frechet,
+    solve_heteroscedastic,
+    solve_logit,
+)
 from titirilquen_core.land_use.supply import generar_oferta_normal
 
 __all__ = [
@@ -26,5 +31,6 @@ __all__ = [
     "asignar_hogares_simple",
     "generar_oferta_normal",
     "solve_frechet",
+    "solve_heteroscedastic",
     "solve_logit",
 ]
