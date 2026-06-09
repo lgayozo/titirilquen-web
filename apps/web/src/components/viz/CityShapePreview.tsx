@@ -57,7 +57,8 @@ function shapeWeights(
         break;
       }
       case "valle":
-        v = d; // densidad crece con la distancia (triángulo invertido)
+        // densidad crece con la distancia; σ controla la profundidad del valle
+        v = (d / semi) ** (2 * sigmaFrac);
         break;
     }
     w[i] = v;

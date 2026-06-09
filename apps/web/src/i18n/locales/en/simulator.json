@@ -255,7 +255,8 @@
     "metric_segregation": "Segregation",
     "metrics_caption": "Mean distance to the CBD by stratum (bid-rent test: the highest-valuation stratum wins the center) · Theil segregation (0 = mixed, 1 = fully segregated)",
     "forma_valle": "Valley",
-    "forma_hint_valle": "Little space at the center, lots at the periphery: density grows with distance (inverted triangle)."
+    "forma_hint_valle": "Little space at the center, lots at the periphery: density grows with distance (inverted triangle).",
+    "oferta_sigma_na": "Not applicable to the uniform shape (flat density)."
   },
   "supply_builder": {
     "bpr_curve_auto": "BPR curve — Car",

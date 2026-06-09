@@ -112,10 +112,13 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
           min={0.1}
           max={1.5}
           step={0.05}
+          disabled={config.forma === "uniforme"}
           onChange={(v) => onChange((c) => ({ ...c, oferta_sigma_frac: v }))}
         />
         <p className="-mt-1 text-[10px] text-muted">
-          {t("land_use.oferta_sigma_hint")}
+          {config.forma === "uniforme"
+            ? t("land_use.oferta_sigma_na")
+            : t("land_use.oferta_sigma_hint")}
         </p>
 
         {config.forma === "bimodal" && (

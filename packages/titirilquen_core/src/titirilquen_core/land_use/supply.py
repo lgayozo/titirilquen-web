@@ -101,8 +101,12 @@ def generar_oferta(
         )
     elif forma == "valle":
         # Densidad creciente con la distancia (V / triángulo invertido): poco
-        # espacio en el centro, mucho en la periferia.
-        w = d.astype(float)
+        # espacio en el centro, mucho en la periferia. El exponente lo controla
+        # σ: p=2·sigma_frac. Default (0.5)⇒p=1 (triángulo lineal); menor σ ⇒
+        # valle suave (centro más poblado); mayor σ ⇒ valle profundo (centro
+        # casi vacío, bordes agudos).
+        p = 2.0 * sigma_frac
+        w = (d.astype(float) / semi) ** p
     else:  # pragma: no cover - validado por Pydantic aguas arriba
         raise ValueError(f"forma de oferta desconocida: {forma!r}")
 
