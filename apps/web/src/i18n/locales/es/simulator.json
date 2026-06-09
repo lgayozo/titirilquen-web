@@ -263,7 +263,8 @@
     "oferta_sigma_na": "No aplica a la forma uniforme (densidad plana).",
     "solver_heteroscedastic": "Heteroced.",
     "solver_hint_heteroscedastic": "Consistente: escala por estrato β_h = β·λ_h. Corrige el problema del λ heterogéneo (recomendado · default).",
-    "solver_hint_logit": "β uniforme sobre la puja y + f/λ: inconsistente con λ heterogéneo (escala el ruido por estrato). Para comparar."
+    "solver_hint_logit": "β uniforme sobre la puja y + f/λ: inconsistente con λ heterogéneo (escala el ruido por estrato). Para comparar.",
+    "lambda_na_het": "No mueve la asignación con el solver heteroscedástico: el ordenamiento lo gobiernan α y ρ. (Sí afecta con el logit.)"
   },
   "supply_builder": {
     "bpr_curve_auto": "Curva BPR — Auto",

@@ -171,6 +171,14 @@ Convenciones:
     (correcto) vs `logit` (inconsistente) ya cubre el punto pedagógico, y un
     tercer método "incorrecto de otra forma" confundía más que aclaraba. Ver
     `MATHEMATICAL_MODEL.md` §5.
+  - **Propiedad de identificación (importante):** en el heteroscedástico, `λ_h` e
+    `y_h` entran solo como la constante `λ_h·y_h` y se **absorben** en la
+    normalización de utilidad → **no afectan la asignación** (`Q` idéntico al
+    variar `λ` o `y`, verificado a ≈1e‑13). El ordenamiento lo gobiernan `α_h` y
+    `ρ_h`. Es correcto (la cara opuesta de la consistencia: el logit movía el
+    orden con `λ`, pero era el artefacto). En la UI el slider de `λ` se
+    **deshabilita** con un hint cuando el solver es heteroscedástico. Detalle y
+    derivación en `OVERLEAF_CHANGES.md` §C8 (propiedad 4).
 
 ---
 

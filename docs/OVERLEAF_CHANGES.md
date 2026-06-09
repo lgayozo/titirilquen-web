@@ -140,6 +140,20 @@ Se itera `ū ← F(ū)`, con `F(ū)_h = (1/β)·ln Σ_i S_i·e^{β(s_hi − p_i(
    `[12.5, 14.7, 17.3]` al variar `k` de 0.5 a 4.
 3. **Separación de efectos.** Separa la utilidad marginal del ingreso (`λ_h`) del
    ruido de elección (`β`), que el logit confunde.
+4. **Identificación (λ e `y` se absorben).** Como `s_hi = λ_h·y_h + f_h(i)` y el
+   término `λ_h·y_h` es **constante en `i`** (la subasta tampoco ve el precio,
+   que se cancela entre postores de una misma parcela), la sustitución
+   `ũ_h = ū_h − λ_h·y_h` deja `Q`, `ũ`, `p` en función **solo** de
+   `f_h(i) = −α_h·T(i) − ρ_h·S_i`, `H`, `S`, `β`. En consecuencia, **ni `λ_h` ni
+   el ingreso `y_h` mueven la asignación espacial**: el ordenamiento de estratos
+   lo gobiernan `α_h` (sensibilidad al transporte) y `ρ_h` (densidad). El
+   ordenamiento por ingreso emerge igual, pero **vía `α_h`** (calibrado más alto
+   para estratos de mayor ingreso). Verificado numéricamente: variar `λ` o `y`
+   deja `Q` idéntico (≈1e-13); variar `α` lo cambia (e incluso invierte). En el
+   `logit` (inconsistente) `λ` sí movía el orden, vía el término `f/λ` — el
+   artefacto. (Es propio de la **subasta**/*bid model*; un modelo de elección de
+   ubicación, con `P(h|i) ∝ e^{β(−λ_h·p_i + f_hi)}`, sí dejaría a `λ` actuar vía
+   la sensibilidad al precio.)
 
 ---
 

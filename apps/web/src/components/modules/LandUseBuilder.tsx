@@ -175,6 +175,12 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
               min={0.1}
               max={3}
               step={0.05}
+              disabled={config.solver === "heteroscedastic"}
+              hint={
+                config.solver === "heteroscedastic"
+                  ? t("land_use.lambda_na_het")
+                  : undefined
+              }
               onChange={(v) => setStratum(idx, { lambda: v })}
             />
           </SidebarSection>

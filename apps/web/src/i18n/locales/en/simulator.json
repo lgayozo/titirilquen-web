@@ -257,7 +257,8 @@
     "oferta_sigma_na": "Not applicable to the uniform shape (flat density).",
     "solver_heteroscedastic": "Heterosc.",
     "solver_hint_heteroscedastic": "Consistent: per-stratum scale β_h = β·λ_h. Fixes the heterogeneous-λ problem (recommended · default).",
-    "solver_hint_logit": "Uniform β over the bid y + f/λ: inconsistent with heterogeneous λ (scales the noise per stratum). For comparison."
+    "solver_hint_logit": "Uniform β over the bid y + f/λ: inconsistent with heterogeneous λ (scales the noise per stratum). For comparison.",
+    "lambda_na_het": "Does not move the allocation with the heteroscedastic solver: sorting is governed by α and ρ. (It does affect the logit.)"
   },
   "supply_builder": {
     "bpr_curve_auto": "BPR curve — Car",
