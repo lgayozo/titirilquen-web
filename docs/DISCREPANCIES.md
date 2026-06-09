@@ -260,7 +260,8 @@ Convenciones:
   mayor residuo): `normal` (campana, idéntica al default anterior), `uniforme`
   (densidad plana), `exponencial` (`S ∝ e^{−d/σ}`, von Thünen), `meseta` (núcleo
   de densidad plana de radio σ con borde neto — super-gaussiana de orden alto;
-  ciudad compacta con frontera) y `bimodal` (dos picos a ±`sep` — policéntrica).
+  ciudad compacta con frontera) `bimodal` (dos picos a ±`sep` — policéntrica) y `valle` (densidad creciente con
+  la distancia — triángulo invertido / ciudad desconcentrada).
   `LandUseConfig` expone `forma`, reusa `oferta_sigma_frac` como ancho/pendiente,
   y añade `forma_param` (separación de picos, solo `bimodal`). Objetivo
   pedagógico: estudiar cómo cambia el equilibrio de asignación (y el acoplado con

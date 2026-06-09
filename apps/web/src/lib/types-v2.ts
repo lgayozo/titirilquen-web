@@ -18,7 +18,8 @@ export type FormaOferta =
   | "uniforme"
   | "exponencial"
   | "meseta"
-  | "bimodal";
+  | "bimodal"
+  | "valle";
 
 export interface LandUseConfig {
   H_por_estrato: [number, number, number];

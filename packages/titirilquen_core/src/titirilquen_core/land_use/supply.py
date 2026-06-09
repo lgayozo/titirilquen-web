@@ -12,7 +12,9 @@ from typing import Literal
 import numpy as np
 from numpy.typing import NDArray
 
-FormaOferta = Literal["normal", "uniforme", "exponencial", "meseta", "bimodal"]
+FormaOferta = Literal[
+    "normal", "uniforme", "exponencial", "meseta", "bimodal", "valle"
+]
 """Forma del perfil de oferta de vivienda S(d) a lo largo del corredor:
 
 - `normal`: campana gaussiana centrada en el CBD (monocéntrica compacta).
@@ -21,6 +23,8 @@ FormaOferta = Literal["normal", "uniforme", "exponencial", "meseta", "bimodal"]
 - `meseta`: núcleo de densidad plana de radio σ con borde neto (ciudad compacta
   con frontera; distinta de la normal, que tiene colas gaussianas).
 - `bimodal`: dos picos a ±sep del CBD (ciudad policéntrica con subcentros).
+- `valle`: densidad que **crece con la distancia** (poco espacio en el centro,
+  mucho en la periferia) — triángulo invertido / ciudad desconcentrada.
 
 Nota: en una ciudad **lineal** un anillo a radio r colapsa en dos puntos a ±r,
 es decir, coincide con `bimodal`; por eso no se incluye una forma "anular"
@@ -95,6 +99,10 @@ def generar_oferta(
         w = np.exp(-0.5 * ((idx - (CBD - sep)) / sigma_pico) ** 2) + np.exp(
             -0.5 * ((idx - (CBD + sep)) / sigma_pico) ** 2
         )
+    elif forma == "valle":
+        # Densidad creciente con la distancia (V / triángulo invertido): poco
+        # espacio en el centro, mucho en la periferia.
+        w = d.astype(float)
     else:  # pragma: no cover - validado por Pydantic aguas arriba
         raise ValueError(f"forma de oferta desconocida: {forma!r}")
 

@@ -88,6 +88,7 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
                 "exponencial",
                 "meseta",
                 "bimodal",
+                "valle",
               ] as const
             ).map((f) => (
               <button

@@ -253,7 +253,9 @@
     "shape_preview_caption": "Housing supply profile S(d) for the current parameters. Run the equilibrium to see how the strata sort over this city.",
     "metric_dist": "CBD dist. · {{s}}",
     "metric_segregation": "Segregation",
-    "metrics_caption": "Mean distance to the CBD by stratum (bid-rent test: the highest-valuation stratum wins the center) · Theil segregation (0 = mixed, 1 = fully segregated)"
+    "metrics_caption": "Mean distance to the CBD by stratum (bid-rent test: the highest-valuation stratum wins the center) · Theil segregation (0 = mixed, 1 = fully segregated)",
+    "forma_valle": "Valley",
+    "forma_hint_valle": "Little space at the center, lots at the periphery: density grows with distance (inverted triangle)."
   },
   "supply_builder": {
     "bpr_curve_auto": "BPR curve — Car",

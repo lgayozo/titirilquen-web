@@ -56,6 +56,9 @@ function shapeWeights(
           Math.exp(-0.5 * ((i - (CBD + sep)) / sp) ** 2);
         break;
       }
+      case "valle":
+        v = d; // densidad crece con la distancia (triángulo invertido)
+        break;
     }
     w[i] = v;
   }

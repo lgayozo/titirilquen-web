@@ -259,7 +259,9 @@
     "shape_preview_caption": "Forma de la oferta de vivienda S(d) según los parámetros. Corré el equilibrio para ver cómo los estratos se reparten sobre esta ciudad.",
     "metric_dist": "Dist. CBD · {{s}}",
     "metric_segregation": "Segregación",
-    "metrics_caption": "Distancia media al CBD por estrato (test del bid-rent: el estrato de mayor valoración gana el centro) · Segregación de Theil (0 = mezcla, 1 = segregación total)"
+    "metrics_caption": "Distancia media al CBD por estrato (test del bid-rent: el estrato de mayor valoración gana el centro) · Segregación de Theil (0 = mezcla, 1 = segregación total)",
+    "forma_valle": "Valle",
+    "forma_hint_valle": "Poco espacio en el centro, mucho en la periferia: la densidad crece con la distancia (triángulo invertido)."
   },
   "supply_builder": {
     "bpr_curve_auto": "Curva BPR — Auto",

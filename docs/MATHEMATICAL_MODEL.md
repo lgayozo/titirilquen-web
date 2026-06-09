@@ -167,8 +167,9 @@ z_hi = H_h·e^{β(y_h + f_h(i)/λ_h)}
 **Oferta `S`** (`land_use/supply.py`, ver [D‑13](DISCREPANCIES.md)): perfil
 **determinista** redondeado a `Σ S = Σ H` (CBD excluido), con **forma
 parametrizable** (`forma`): `normal` (campana, default), `uniforme`,
-`exponencial` (`S ∝ e^{−d/σ}`), `meseta` (núcleo plano con borde neto) y
-`bimodal` (dos picos a ±`sep`). El ancho/pendiente es `σ = oferta_sigma_frac ·
+`exponencial` (`S ∝ e^{−d/σ}`), `meseta` (núcleo plano con borde neto),
+`bimodal` (dos picos a ±`sep`) y `valle` (densidad creciente con la distancia —
+triángulo invertido). El ancho/pendiente es `σ = oferta_sigma_frac ·
 min(c, N−1−c)` (default 0.5 ⇒ σ≈L/4) y `forma_param` fija `sep` (solo bimodal;
 en 1D un anillo coincide con bimodal). Permite estudiar cómo cambia el
 equilibrio de asignación según la geometría urbana.
