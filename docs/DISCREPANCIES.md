@@ -176,9 +176,23 @@ Convenciones:
     normalización de utilidad → **no afectan la asignación** (`Q` idéntico al
     variar `λ` o `y`, verificado a ≈1e‑13). El ordenamiento lo gobiernan `α_h` y
     `ρ_h`. Es correcto (la cara opuesta de la consistencia: el logit movía el
-    orden con `λ`, pero era el artefacto). En la UI el slider de `λ` se
-    **deshabilita** con un hint cuando el solver es heteroscedástico. Detalle y
-    derivación en `OVERLEAF_CHANGES.md` §C8 (propiedad 4).
+    orden con `λ`, pero era el artefacto).
+  - **El ingreso `y_h` es inerte en AMBOS solvers** (no solo en el
+    heteroscedástico): en el `logit` entra como `score = y_h + f_h(i)/λ_h`, donde
+    `y_h` es también una **constante por estrato** (independiente de `i`) y se
+    absorbe igual en `ū_h` → `Q` idéntico al variar `y` (verificado: `logit`
+    ≈1e‑14, `het` ≈2e‑14). La diferencia es **solo `λ`**: mueve el `logit` (vía
+    `f/λ`, que sí varía con `i`; verificado ≈0.98) pero no el heteroscedástico.
+  - **UI (regla uniforme):** un control se **deshabilita** con un hint
+    exactamente cuando no mueve la asignación. Por eso el slider de `y` queda
+    deshabilitado **siempre** (`land_use.y_na`) y el de `λ` **solo** en
+    heteroscedástico (`land_use.lambda_na_het`). En `logit`, `λ` queda activo
+    pero con un **aviso de artefacto** (`land_use.lambda_artifact_logit`): su
+    efecto sobre la asignación es la manifestación de la inconsistencia (escala
+    el ruido por estrato), **no** un efecto-ingreso real — el `logit` se conserva
+    solo para exhibir empíricamente ese artefacto. Los gobernantes (`α`, `ρ`) van
+    arriba y los absorbidos (`y`, `λ`) agrupados abajo. Detalle y derivación en
+    `OVERLEAF_CHANGES.md` §C8 (propiedad 4).
 
 ---
 

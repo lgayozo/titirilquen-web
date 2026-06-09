@@ -146,14 +146,6 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
               onChange={(v) => setH(idx, v)}
             />
             <LabeledSlider
-              label={t("land_use.param_y")}
-              value={s.y}
-              min={1}
-              max={300}
-              step={1}
-              onChange={(v) => setStratum(idx, { y: v })}
-            />
-            <LabeledSlider
               label={t("land_use.param_alpha")}
               value={s.alpha}
               min={0.1}
@@ -170,6 +162,16 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
               onChange={(v) => setStratum(idx, { rho: v })}
             />
             <LabeledSlider
+              label={t("land_use.param_y")}
+              value={s.y}
+              min={1}
+              max={300}
+              step={1}
+              disabled
+              hint={t("land_use.y_na")}
+              onChange={(v) => setStratum(idx, { y: v })}
+            />
+            <LabeledSlider
               label={t("land_use.param_lambda")}
               value={s.lambda}
               min={0.1}
@@ -179,7 +181,7 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
               hint={
                 config.solver === "heteroscedastic"
                   ? t("land_use.lambda_na_het")
-                  : undefined
+                  : t("land_use.lambda_artifact_logit")
               }
               onChange={(v) => setStratum(idx, { lambda: v })}
             />

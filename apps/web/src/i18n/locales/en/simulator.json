@@ -258,7 +258,9 @@
     "solver_heteroscedastic": "Heterosc.",
     "solver_hint_heteroscedastic": "Consistent: per-stratum scale β_h = β·λ_h. Fixes the heterogeneous-λ problem (recommended · default).",
     "solver_hint_logit": "Uniform β over the bid y + f/λ: inconsistent with heterogeneous λ (scales the noise per stratum). For comparison.",
-    "lambda_na_het": "Does not move the allocation with the heteroscedastic solver: sorting is governed by α and ρ. (It does affect the logit.)"
+    "lambda_na_het": "Does not move the allocation with the heteroscedastic solver: sorting is governed by α and ρ. (It does in the logit, but as an artifact of its inconsistency.)",
+    "lambda_artifact_logit": "⚠ It does move the allocation, but this is a logit artifact (inconsistent with heterogeneous λ): it scales the per-stratum noise, not a real income effect. The heteroscedastic solver (default) fixes it.",
+    "y_na": "Does not affect the allocation in either solver: income enters only as a per-stratum constant (λ·y or y) and is absorbed into the equilibrium utility. Sorting is governed by α and ρ."
   },
   "supply_builder": {
     "bpr_curve_auto": "BPR curve — Car",

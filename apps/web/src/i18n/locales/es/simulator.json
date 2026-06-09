@@ -264,7 +264,9 @@
     "solver_heteroscedastic": "Heteroced.",
     "solver_hint_heteroscedastic": "Consistente: escala por estrato β_h = β·λ_h. Corrige el problema del λ heterogéneo (recomendado · default).",
     "solver_hint_logit": "β uniforme sobre la puja y + f/λ: inconsistente con λ heterogéneo (escala el ruido por estrato). Para comparar.",
-    "lambda_na_het": "No mueve la asignación con el solver heteroscedástico: el ordenamiento lo gobiernan α y ρ. (Sí afecta con el logit.)"
+    "lambda_na_het": "No mueve la asignación con el solver heteroscedástico: el ordenamiento lo gobiernan α y ρ. (En el logit sí, pero como artefacto de su inconsistencia.)",
+    "lambda_artifact_logit": "⚠ Sí mueve la asignación, pero es un artefacto del logit (inconsistente con λ heterogéneo): escala el ruido por estrato, no es un efecto-ingreso real. El heteroscedástico (default) lo corrige.",
+    "y_na": "No afecta la asignación en ningún solver: el ingreso entra solo como constante por estrato (λ·y o y) y se absorbe en la utilidad de equilibrio. El ordenamiento lo gobiernan α y ρ."
   },
   "supply_builder": {
     "bpr_curve_auto": "Curva BPR — Auto",
