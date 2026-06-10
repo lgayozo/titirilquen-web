@@ -219,3 +219,25 @@ def test_sensibilidad_al_tamano_fisico() -> None:
         assert city.result is not None
         theil_por_largo[largo] = _theil(city.result.Q)
     assert theil_por_largo[40.0] > theil_por_largo[10.0] + 0.1, theil_por_largo
+
+
+def test_asignacion_no_se_estanca_con_Q_degenerado() -> None:
+    """Regresión (gridlock D-24): con Q underfloweado a 0/1 y cuotas agotadas,
+    la asignación debe completarse por desborde, no lanzar RuntimeError."""
+    from titirilquen_core.land_use.allocation import asignar_hogares_simple
+
+    L, n = 21, 3
+    Q = np.zeros((n, L))
+    Q[0, 5:16] = 1.0
+    Q[2, :5] = 1.0
+    Q[2, 16:] = 1.0
+    S = np.full(L, 10)
+    S[10] = 0
+    H = np.array([20, 90, 90])
+    parcelas = asignar_hogares_simple(Q=Q, S=S, H=H, rng=np.random.default_rng(1))
+    conteo = np.zeros(n, dtype=int)
+    for parc in parcelas:
+        for h in parc:
+            conteo[h - 1] += 1
+    np.testing.assert_array_equal(conteo, H)          # cuotas exactas
+    assert sum(len(p) for p in parcelas) == int(S.sum())  # capacidad exacta

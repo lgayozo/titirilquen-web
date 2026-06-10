@@ -243,6 +243,21 @@ export function CoupledPage() {
           />
           <span className="num">{(poblacion / 1000).toFixed(0)}k</span>
         </label>
+        {(() => {
+          // Cada escenario tiene un techo de demanda antes de gridlockear el
+          // corredor monocéntrico (D-24); sobre eso el equilibrio se degrada.
+          const recomendada = preset?.poblacionDefault ?? CUSTOM_POBLACION;
+          return poblacion > recomendada ? (
+            <p
+              className="text-[11px] leading-snug"
+              style={{ color: "var(--accent)", marginTop: -6 }}
+            >
+              {tS("coupled.poblacion_warn", {
+                n: Math.round(recomendada / 1000),
+              })}
+            </p>
+          ) : null;
+        })()}
 
         <label className="coupled-iter-input">
           <span>{tS("land_use.outer_iter_label")}</span>

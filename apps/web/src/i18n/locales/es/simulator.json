@@ -412,7 +412,8 @@
     "placeholder_desc": "El loop exterior alterna tres pasos: (1) el bid-rent asigna los hogares según la accesibilidad T(i), (2) esa población corre el equilibrio de transporte (MSA), (3) los nuevos tiempos actualizan T. Itera hasta que T se estabiliza.",
     "params_city_land": "Ciudad y suelo",
     "params_transport": "Transporte",
-    "unit_households": "hog"
+    "unit_households": "hog",
+    "poblacion_warn": "⚠ Sobre ~{{n}}k este escenario satura el corredor (gridlock): los tiempos se vuelven irreales y el equilibrio se degrada. Útil para ver el colapso, no como escenario realista."
   },
   "coupled_metrics": {
     "header": "Métricas de interdependencia",

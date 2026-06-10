@@ -412,7 +412,8 @@
     "placeholder_desc": "The outer loop alternates three steps: (1) bid-rent allocates households given accessibility T(i), (2) that population runs the transport equilibrium (MSA), (3) the new travel times update T. It iterates until T stabilizes.",
     "params_city_land": "City & land",
     "params_transport": "Transport",
-    "unit_households": "hh"
+    "unit_households": "hh",
+    "poblacion_warn": "⚠ Above ~{{n}}k this scenario saturates the corridor (gridlock): travel times become unrealistic and the equilibrium degrades. Useful to observe collapse, not as a realistic scenario."
   },
   "coupled_metrics": {
     "header": "Interdependence metrics",

@@ -611,6 +611,14 @@ Convenciones:
   transporte (frecuencia de metro responde, congestión real) sin diverger.
 - **Pendiente**: estabilizar el loop externo (damping adaptativo / relajación)
   para admitir demanda alta en ciudades grandes sin acotar por población.
+- **Robustez (jun-2026)**: en gridlock extremo (p.ej. Dispersa·Pro-Auto a 120k),
+  T llega a miles de minutos y las diferencias de score α_h·T superan el rango
+  de `exp()` → `Q` underfloweaba a 0/1 exactos y `asignar_hogares_simple`
+  crasheaba ("Asignación estancada") cuando la única masa de una parcela estaba
+  en un estrato con cuota agotada. Fix: la asignación se completa por
+  **desborde de cuotas** (los hogares restantes llenan los espacios restantes),
+  con test de regresión; y el slider de población muestra una advertencia al
+  superar la población recomendada del escenario.
 - **Veredicto**: Acotado por configuración; mejora de robustez del loop externo
   identificada como pendiente.
 
