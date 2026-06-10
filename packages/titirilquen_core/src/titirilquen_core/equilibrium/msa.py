@@ -248,7 +248,7 @@ def iter_msa(
 
     agentes = generar_poblacion(
         ciudad=ciudad,
-        densidad_por_celda=sim.city.densidad_por_celda,
+        densidad_hab_km=sim.city.densidad_hab_km,
         share_estratos=sim.city.share_estratos,
         demand_config=sim.demand,
         teletrabajo_factor=sim.city.teletrabajo_factor,

@@ -58,7 +58,8 @@ export interface DemandConfig {
 export interface CityConfig {
   n_celdas: number;
   largo_ciudad_km: number;
-  densidad_por_celda: number;
+  /** Densidad física (hab/km): población = densidad × largo (D-28). */
+  densidad_hab_km: number;
   pendiente_porcentaje: number;
   teletrabajo_factor: number;
   share_estratos: [number, number, number];

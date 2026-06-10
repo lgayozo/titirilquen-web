@@ -710,6 +710,40 @@ Convenciones:
 
 ---
 
+## D-28 — Transporte: densidad física (hab/km) → `n_celdas` puramente numérico
+
+- **Síntoma**: en el módulo de transporte (V1/Sandbox), subir el slider
+  "número de celdas" con largo y densidad fijos **multiplicaba la población**:
+  `generar_poblacion` creaba `densidad_por_celda × (n_celdas − 1)` agentes, así
+  que 201 → 401 celdas duplicaba la demanda (y la congestión) de la misma
+  ciudad de 20 km. El mismo artefacto de unidades que D-26, entrando por la
+  generación de población; peor aún, el slider significaba dos cosas opuestas
+  según la página (resolución pura en suelo/acoplado tras D-26, palanca de
+  población encubierta en transporte).
+- **Discusión de modelo**: la parametrización antigua es coherente con la
+  lectura literal "celda = parcela llena" (más parcelas ⇒ más vivienda), pero
+  esa lectura hace que una decisión numérica tenga efectos urbanos. La densidad
+  de la ciudad debe ser una **palanca explícita del usuario**, no un efecto
+  colateral de la grilla. La lectura física de la celda se conserva vía la
+  **cuadra de referencia de 100 m** (la celda de la grilla 201/20 km): 500
+  hab/km ≡ 50 hogares por cuadra, que es exactamente el default anterior.
+- **Fix (jun-2026)**: `CityConfig.densidad_por_celda` (hab/celda) →
+  `densidad_hab_km` (hab/km). Población total = densidad × largo, repartida por
+  celda con el método del mayor residuo sobre el objetivo uniforme `dens·Δx`
+  (determinista). Presets convertidos preservando su población (Compacta 4200,
+  Base 1800, Dispersa 650 hab/km; default 500). El frontend **migra** escenarios
+  viejos al importar (`.ttrq`/`?s=`): `densidad_hab_km = dpc·(N−1)/largo`.
+- **Semántica resultante** (los tres diales quedan ortogonales):
+  `n_celdas` = resolución (no cambia nada económico, en ningún módulo) ·
+  `densidad_hab_km` = qué tan densa es la ciudad · `largo_ciudad_km` = qué tan
+  grande (más gente a densidad constante + más distancia).
+- **Verificación**: `test_poblacion_invariante_a_la_grilla` — población total
+  estable (±6 sobre 250) entre 51, 101 y 401 celdas con la misma ciudad física.
+- **Veredicto**: Continuación de D-26 (unidades físicas en todos los módulos);
+  decisión de modelo jun-2026.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -741,3 +775,4 @@ Convenciones:
 | D-25 | Suelo: Q sin ponderación H_h (no conservaba hogares por estrato) | Bug del port corregido | Alta |
 | D-26 | Suelo: unidades físicas (T en min, densidad hog/km) → invariancia de grilla | Bug de unidades corregido (decisión de modelo) | Alta |
 | D-27 | Carga mensual costo/ingreso con y en $/mes | Unidades corregidas | Media |
+| D-28 | Transporte: densidad física hab/km (n_celdas puramente numérico) | Continuación de D-26 | Alta |

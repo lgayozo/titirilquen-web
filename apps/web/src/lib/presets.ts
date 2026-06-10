@@ -5,6 +5,7 @@
 
 export interface CityPresetValues {
   largo_ciudad?: number;
+  /** Densidad física en hab/km (D-28). */
   densidad?: number;
 }
 
@@ -21,9 +22,9 @@ export interface PolicyPresetValues {
 
 export const CITY_PRESETS: Record<string, CityPresetValues> = {
   Personalizado: {},
-  Compacta: { largo_ciudad: 12, densidad: 250 },
-  Base: { largo_ciudad: 20, densidad: 180 },
-  Dispersa: { largo_ciudad: 30, densidad: 100 },
+  Compacta: { largo_ciudad: 12, densidad: 4200 },
+  Base: { largo_ciudad: 20, densidad: 1800 },
+  Dispersa: { largo_ciudad: 30, densidad: 650 },
 };
 
 export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {

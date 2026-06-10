@@ -101,7 +101,8 @@ export const defaultSimulationConfig: SimulationConfig = {
   city: {
     n_celdas: 201,
     largo_ciudad_km: 20,
-    densidad_por_celda: 50,
+    // 500 hab/km ≈ 50 hogares por cuadra de 100 m; población = 500 × 20 km = 10.000.
+    densidad_hab_km: 500,
     pendiente_porcentaje: 0,
     teletrabajo_factor: 1,
     share_estratos: [0.1, 0.4, 0.5],

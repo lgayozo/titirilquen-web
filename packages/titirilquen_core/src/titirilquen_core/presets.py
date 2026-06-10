@@ -26,9 +26,11 @@ class PolicyPreset(TypedDict, total=False):
 
 CITY_PRESETS: dict[str, CityPreset] = {
     "Personalizado": {},
-    "Compacta": {"largo_ciudad": 12, "densidad": 250},
-    "Base": {"largo_ciudad": 20, "densidad": 180},
-    "Dispersa": {"largo_ciudad": 30, "densidad": 100},
+    # Densidad física en hab/km (D-28); equivalente a la población de los
+    # presets antiguos (hab/celda × 200 celdas) en cada largo.
+    "Compacta": {"largo_ciudad": 12, "densidad": 4200},
+    "Base": {"largo_ciudad": 20, "densidad": 1800},
+    "Dispersa": {"largo_ciudad": 30, "densidad": 650},
 }
 
 POLICY_PRESETS: dict[str, PolicyPreset] = {

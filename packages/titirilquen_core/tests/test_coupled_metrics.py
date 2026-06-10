@@ -32,7 +32,7 @@ def _demand_config() -> DemandConfig:
 
 def _sim_small() -> SimulationConfig:
     return SimulationConfig(
-        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_por_celda=5),
+        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_hab_km=50),
         supply=SupplyConfig(),
         demand=_demand_config(),
         max_iter=3,

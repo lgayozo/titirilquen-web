@@ -24,15 +24,15 @@
   "city_params": {
     "largo_ciudad_km": "Largo de la ciudad (km)",
     "n_celdas": "Número de celdas",
-    "densidad_por_celda": "Densidad (hab/celda)",
     "pendiente_porcentaje": "Pendiente (%)",
     "teletrabajo_factor": "Factor de teletrabajo",
     "cbd_label": "{{n}} celdas · CBD al centro",
-    "density_unit": "hab/celda",
-    "n_celdas_hint": "Resolución espacial: más celdas = perfiles más suaves pero simulación más lenta. No cambia la física del modelo.",
-    "densidad_hint": "Demanda total = densidad × celdas. Valores muy altos pueden saturar toda la red (gridlock) y dificultar la convergencia.",
+    "density_unit": "hab/km",
+    "n_celdas_hint": "Resolución espacial: más celdas = perfiles más suaves pero simulación más lenta. No cambia la física del modelo (la población la fija la densidad × largo).",
+    "densidad_hint": "≈ {{cuadra}} hogares por cuadra de 100 m · población total = densidad × largo = {{total}}. Valores muy altos saturan la red (gridlock).",
     "pendiente_hint": "Pendiente del corredor: castiga la velocidad de la bici hacia el CBD (subida) y la favorece de vuelta.",
-    "teletrabajo_hint": "Escala la probabilidad de teletrabajar de cada estrato: esos agentes no viajan y salen de la demanda de punta."
+    "teletrabajo_hint": "Escala la probabilidad de teletrabajar de cada estrato: esos agentes no viajan y salen de la demanda de punta.",
+    "densidad_hab_km": "Densidad (hab/km)"
   },
   "economy_params": {
     "tarifa_metro": "Tarifa Metro",
@@ -310,7 +310,7 @@
       "no_config": "Sin configuración. Carga un archivo o usa Transporte actual.",
       "cells": "{{n}} celdas",
       "length_km": "{{km}} km",
-      "density": "ρ={{rho}}/celda",
+      "density": "ρ={{rho}} hab/km",
       "max_iter": "max_iter={{n}}",
       "parking_fare": "Parking ${{parking}} · Tarifa ${{fare}}",
       "status": {

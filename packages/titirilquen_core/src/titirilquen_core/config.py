@@ -119,7 +119,11 @@ class CityConfig(BaseModel):
 
     n_celdas: int = Field(default=1001, ge=11)
     largo_ciudad_km: float = Field(default=20.0, gt=0)
-    densidad_por_celda: int = Field(default=100, ge=1)
+    # Densidad FÍSICA (D-28): población total = densidad_hab_km · largo, así que
+    # `n_celdas` queda como variable puramente numérica (antes era hab/celda y
+    # refinar la grilla multiplicaba la población). 500 hab/km ≈ 50 hogares por
+    # cuadra de 100 m. El frontend migra configs viejas (serialization.ts).
+    densidad_hab_km: float = Field(default=500.0, gt=0)
     pendiente_porcentaje: float = Field(default=0.0)
     teletrabajo_factor: float = Field(default=1.0, ge=0.0, le=5.0)
     share_estratos: tuple[float, float, float] = Field(default=(0.10, 0.40, 0.50))

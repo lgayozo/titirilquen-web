@@ -32,13 +32,18 @@ class Agente:
 def generar_poblacion(
     *,
     ciudad: CiudadLineal,
-    densidad_por_celda: int,
+    densidad_hab_km: float,
     share_estratos: tuple[float, float, float],
     demand_config: DemandConfig,
     teletrabajo_factor: float = 1.0,
     rng: np.random.Generator | None = None,
 ) -> list[Agente]:
-    """Genera agentes según densidad y shares configurados.
+    """Genera agentes según la densidad FÍSICA (hab/km) y shares configurados.
+
+    Población total = densidad · largo de las celdas válidas, **independiente de
+    la resolución de la grilla** (D-28): antes era hab/celda y refinar la grilla
+    multiplicaba la población. El reparto por celda usa el método del mayor
+    residuo sobre el objetivo uniforme densidad·Δx (determinista).
 
     El sorteo está **vectorizado** (3 llamadas a `rng` en total en vez de 3 por
     agente): clave para que el costo no explote con densidad alta.
@@ -50,9 +55,13 @@ def generar_poblacion(
     celdas_validas = np.array(
         [i for i in range(ciudad.n_celdas) if i != ciudad.cbd_index], dtype=np.int64
     )
-    total = int(celdas_validas.size) * densidad_por_celda
-    if total == 0:
+    objetivo_por_celda = densidad_hab_km * ciudad.ancho_celda_km
+    total = int(round(objetivo_por_celda * celdas_validas.size))
+    if total <= 0:
         return []
+    conteo_por_celda = _mayor_residuo(
+        np.full(celdas_validas.size, objetivo_por_celda), total
+    )
 
     # Sorteos vectorizados (mismo orden conceptual: celda externa, densidad interna).
     estrato_idx = rng.choice(3, size=total, p=share_estratos)
@@ -69,7 +78,7 @@ def generar_poblacion(
 
     teletrabaja = u_tele < prob_tele_por[estrato_idx]
     tiene_auto = u_auto < prob_auto_por[estrato_idx]
-    celda_de = np.repeat(celdas_validas, densidad_por_celda)
+    celda_de = np.repeat(celdas_validas, conteo_por_celda)
 
     return [
         Agente(

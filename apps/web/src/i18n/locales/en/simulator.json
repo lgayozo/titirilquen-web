@@ -24,15 +24,15 @@
   "city_params": {
     "largo_ciudad_km": "City length (km)",
     "n_celdas": "Number of cells",
-    "densidad_por_celda": "Density (pop/cell)",
     "pendiente_porcentaje": "Slope (%)",
     "teletrabajo_factor": "Remote-work factor",
     "cbd_label": "{{n}} cells · CBD at center",
-    "density_unit": "pop/cell",
-    "n_celdas_hint": "Spatial resolution: more cells = smoother profiles but slower simulation. Does not change the model physics.",
-    "densidad_hint": "Total demand = density × cells. Very high values can saturate the whole network (gridlock) and hinder convergence.",
+    "density_unit": "pop/km",
+    "n_celdas_hint": "Spatial resolution: more cells = smoother profiles but slower simulation. Does not change the model physics (population is set by density × length).",
+    "densidad_hint": "≈ {{cuadra}} households per 100 m block · total population = density × length = {{total}}. Very high values saturate the network (gridlock).",
     "pendiente_hint": "Corridor slope: it slows the bike toward the CBD (uphill) and favors it on the way back.",
-    "teletrabajo_hint": "Scales each stratum's remote-work probability: those agents don't travel and leave the peak demand."
+    "teletrabajo_hint": "Scales each stratum's remote-work probability: those agents don't travel and leave the peak demand.",
+    "densidad_hab_km": "Density (pop/km)"
   },
   "economy_params": {
     "tarifa_metro": "Metro fare",
@@ -310,7 +310,7 @@
       "no_config": "No configuration. Load a file or use the current transport.",
       "cells": "{{n}} cells",
       "length_km": "{{km}} km",
-      "density": "ρ={{rho}}/cell",
+      "density": "ρ={{rho}} pop/km",
       "max_iter": "max_iter={{n}}",
       "parking_fare": "Parking ${{parking}} · Fare ${{fare}}",
       "status": {

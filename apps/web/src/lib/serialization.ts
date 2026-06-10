@@ -50,6 +50,15 @@ function migrateConfig(config: SimulationConfig): SimulationConfig {
   if (city && "ingresos_estratos" in city) {
     delete city.ingresos_estratos; // parámetro muerto, eliminado del core (A3)
   }
+  if (city && "densidad_por_celda" in city && !("densidad_hab_km" in city)) {
+    // D-28: la densidad pasó de hab/celda a hab/km. Conversión fiel: preserva
+    // la población total que tenía el escenario (densidad·(N−1)/largo).
+    const n = Number(city.n_celdas) || 201;
+    const largo = Number(city.largo_ciudad_km) || 20;
+    const dpc = Number(city.densidad_por_celda) || 50;
+    city.densidad_hab_km = Math.max(1, Math.round((dpc * (n - 1)) / largo));
+    delete city.densidad_por_celda;
+  }
   return config;
 }
 

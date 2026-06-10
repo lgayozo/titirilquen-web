@@ -61,14 +61,15 @@ export function CityPreview({ config, className }: CityPreviewProps) {
   const largoKm = config.city.largo_ciudad_km;
   const nCeldas = config.city.n_celdas;
   const cbdIdx = Math.floor(nCeldas / 2);
-  const densidad = config.city.densidad_por_celda;
+  const densidadKm = config.city.densidad_hab_km;
   const numPistas = config.supply.car.num_pistas;
   const numEst = config.supply.train.num_estaciones;
   const pendiente = config.city.pendiente_porcentaje;
   const share = config.city.share_estratos;
-  // Ancho de celda en metros (Δx = L/N) y población total EXCLUYENDO el CBD
-  // (nadie viaja hacia sí mismo). Coincide con population.py: (N−1)·densidad.
+  // Ancho de celda en metros (Δx = L/N); hab por celda y población derivadas de
+  // la densidad física (D-28). Coincide con population.py: dens·Δx·(N−1).
   const dxMetros = Math.round((largoKm / nCeldas) * 1000);
+  const densidad = (densidadKm * largoKm) / nCeldas;
   const poblacion = Math.round(densidad * (nCeldas - 1));
 
   const H = 320;

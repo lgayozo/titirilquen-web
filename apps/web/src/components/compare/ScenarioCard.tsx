@@ -74,7 +74,7 @@ export function ScenarioCard({ scenario, onRun, removable }: ScenarioCardProps) 
         <div className="mb-2 grid grid-cols-2 gap-1 text-[11px] text-[var(--muted)]">
           <span>{tS("compare.scenario_card.cells", { n: scenario.config.city.n_celdas })}</span>
           <span>{tS("compare.scenario_card.length_km", { km: scenario.config.city.largo_ciudad_km })}</span>
-          <span>{tS("compare.scenario_card.density", { rho: scenario.config.city.densidad_por_celda })}</span>
+          <span>{tS("compare.scenario_card.density", { rho: scenario.config.city.densidad_hab_km })}</span>
           <span>{tS("compare.scenario_card.max_iter", { n: scenario.config.max_iter })}</span>
           <span className="col-span-2">
             {tS("compare.scenario_card.parking_fare", {

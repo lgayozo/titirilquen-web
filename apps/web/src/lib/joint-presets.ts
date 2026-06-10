@@ -106,7 +106,7 @@ export function describePresetParams(
     },
     {
       // Población total = ΣH del uso de suelo. Es la **escala de demanda** real
-      // del loop acoplado (a diferencia de `densidad_por_celda`, que no afecta
+      // del loop acoplado (a diferencia de `densidad_hab_km`, que no afecta
       // este módulo: la población viene del suelo, no de la densidad de celda).
       key: "poblacion",
       labelKey: "coupled.param.poblacion",
@@ -181,7 +181,7 @@ export function applyJointPreset(
     city: {
       ...defaultSimulationConfig.city,
       ...(city.largo_ciudad !== undefined && { largo_ciudad_km: city.largo_ciudad }),
-      ...(city.densidad !== undefined && { densidad_por_celda: city.densidad }),
+      ...(city.densidad !== undefined && { densidad_hab_km: city.densidad }),
     },
     supply: {
       ...defaultSimulationConfig.supply,

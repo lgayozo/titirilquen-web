@@ -22,7 +22,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
     if (!preset) return;
     setCity({
       ...(preset.largo_ciudad !== undefined && { largo_ciudad_km: preset.largo_ciudad }),
-      ...(preset.densidad !== undefined && { densidad_por_celda: preset.densidad }),
+      ...(preset.densidad !== undefined && { densidad_hab_km: preset.densidad }),
     });
   };
 
@@ -30,7 +30,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
     Object.entries(CITY_PRESETS).find(
       ([, v]) =>
         v.largo_ciudad === config.city.largo_ciudad_km &&
-        v.densidad === config.city.densidad_por_celda
+        v.densidad === config.city.densidad_hab_km
     )?.[0] ?? "Personalizado";
 
   const [sA, sM, sB] = config.city.share_estratos;
@@ -76,14 +76,19 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           onChange={(v) => setCity({ n_celdas: v % 2 === 0 ? v + 1 : v })}
         />
         <LabeledSlider
-          label={t("city_params.densidad_por_celda")}
-          value={config.city.densidad_por_celda}
-          min={10}
-          max={300}
-          step={10}
+          label={t("city_params.densidad_hab_km")}
+          value={config.city.densidad_hab_km}
+          min={100}
+          max={5000}
+          step={50}
           unit={t("city_params.density_unit")}
-          hint={t("city_params.densidad_hint")}
-          onChange={(v) => setCity({ densidad_por_celda: v })}
+          hint={t("city_params.densidad_hint", {
+            cuadra: Math.round(config.city.densidad_hab_km / 10),
+            total: Math.round(
+              config.city.densidad_hab_km * config.city.largo_ciudad_km
+            ).toLocaleString(),
+          })}
+          onChange={(v) => setCity({ densidad_hab_km: v })}
         />
         <LabeledSlider
           label={t("city_params.pendiente_porcentaje")}

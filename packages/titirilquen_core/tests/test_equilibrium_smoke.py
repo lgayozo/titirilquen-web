@@ -30,7 +30,7 @@ def _demand_config() -> DemandConfig:
 def test_run_msa_smoke_pequena() -> None:
     """Smoke test: corre una simulación chica y verifica invariantes básicas."""
     sim = SimulationConfig(
-        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_por_celda=5),
+        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_hab_km=50),
         supply=SupplyConfig(),
         demand=_demand_config(),
         max_iter=3,
@@ -51,7 +51,7 @@ def test_run_msa_smoke_pequena() -> None:
 
 def test_run_msa_converge_con_tolerancia_alta() -> None:
     sim = SimulationConfig(
-        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_por_celda=5),
+        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_hab_km=50),
         supply=SupplyConfig(),
         demand=_demand_config(),
         max_iter=20,
@@ -61,3 +61,30 @@ def test_run_msa_converge_con_tolerancia_alta() -> None:
     trace = run_msa(sim)
     assert trace.converged
     assert len(trace.iteraciones) < 20
+
+
+def test_poblacion_invariante_a_la_grilla() -> None:
+    """D-28: con densidad física (hab/km), la población total no depende de la
+    resolución. Antes (hab/celda) refinar la grilla multiplicaba la población:
+    el slider de resolución actuaba como palanca de demanda encubierta."""
+    import numpy as np
+
+    from titirilquen_core.city import CiudadLineal
+    from titirilquen_core.population import generar_poblacion
+
+    cfg = _demand_config()
+    totales = {}
+    for n in (51, 101, 401):
+        ciudad = CiudadLineal(n_celdas=n, largo_total_km=5.0)
+        agentes = generar_poblacion(
+            ciudad=ciudad,
+            densidad_hab_km=50.0,
+            share_estratos=(0.10, 0.40, 0.50),
+            demand_config=cfg,
+            rng=np.random.default_rng(42),
+        )
+        totales[n] = len(agentes)
+    # densidad·largo ≈ 250; tolerancia = el peso de la celda del CBD (excluida).
+    vals = list(totales.values())
+    assert max(vals) - min(vals) <= 6, totales
+    assert all(abs(v - 250) <= 6 for v in vals), totales
