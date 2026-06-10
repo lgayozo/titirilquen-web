@@ -4,6 +4,7 @@ import type {
   StratumConfig,
   StratumId,
 } from "@/lib/types";
+import type { LandUseConfig } from "@/lib/types-v2";
 
 const baseBetas = (stratum: StratumId): StratumConfig => {
   if (stratum === 1) {
@@ -150,4 +151,22 @@ export const defaultSimulationConfig: SimulationConfig = {
   seed: 42,
   assignment: "montecarlo",
   modos_habilitados: ["Auto", "Metro", "Bici", "Caminata"],
+};
+
+export const defaultLandUseConfig: LandUseConfig = {
+  H_por_estrato: [1000, 4000, 5000],
+  // Unidades físicas (D-26/D-27): α en utiles/min, ρ en utiles/(hogar/km),
+  // y en $/mes. Calibración equivalente a la antigua en 201 celdas / 20 km.
+  estratos: [
+    { y: 3_500_000, lambda: 1, alpha: 6.5, rho: 0.1 },
+    { y: 1_500_000, lambda: 1, alpha: 6.0, rho: 0.1 },
+    { y: 500_000, lambda: 1, alpha: 5.5, rho: 0.1 },
+  ],
+  beta: 1,
+  solver: "heteroscedastic",
+  tol: 1e-8,
+  max_iter: 2000,
+  forma: "normal",
+  oferta_sigma_frac: 0.5,
+  forma_param: 0.5,
 };

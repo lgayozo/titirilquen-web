@@ -1,0 +1,102 @@
+{
+ "_": "Defaults Pydantic del core. NO editar a mano.",
+ "defaults": {
+  "city": {
+   "n_celdas": 1001,
+   "largo_ciudad_km": 20.0,
+   "densidad_hab_km": 500.0,
+   "pendiente_porcentaje": 0.0,
+   "teletrabajo_factor": 1.0,
+   "share_estratos": [
+    0.1,
+    0.4,
+    0.5
+   ]
+  },
+  "supply": {
+   "bike": {
+    "v_media_kmh": 14,
+    "capacidad_pista": 800,
+    "alpha_bpr": 0.5,
+    "beta_bpr": 2.0
+   },
+   "car": {
+    "v_max_kmh": 31,
+    "ancho_pista_m": 3.5,
+    "largo_vehiculo_m": 5.0,
+    "gap_m": 2.0,
+    "num_pistas": 2,
+    "alpha_bpr": 0.8,
+    "beta_bpr": 2.0
+   },
+   "train": {
+    "v_tren_kmh": 35,
+    "capacidad_tren": 300,
+    "num_estaciones": 10,
+    "v_caminata_kmh": 4.8,
+    "tasa_carga": 6.0,
+    "frec_min": 6,
+    "frec_max": 30,
+    "anden_alpha": 0.5,
+    "anden_beta": 4.0
+   }
+  },
+  "globales": {
+   "v_auto": 31,
+   "v_metro": 35,
+   "v_bici": 14,
+   "v_caminata": 4.8,
+   "costo_combustible_km": 120,
+   "costo_tarifa_metro": 800,
+   "costo_parking": 6000,
+   "factor_emision_auto": 0.18,
+   "factor_emision_metro_tren_km": 2.5
+  },
+  "sim": {
+   "max_iter": 20,
+   "tolerance": 0.0,
+   "seed": null,
+   "assignment": "montecarlo",
+   "modos_habilitados": [
+    "Auto",
+    "Metro",
+    "Bici",
+    "Caminata"
+   ]
+  },
+  "land_use": {
+   "H_por_estrato": [
+    33300,
+    33300,
+    33300
+   ],
+   "estratos": [
+    {
+     "y": 3500000.0,
+     "lambda": 1.0,
+     "alpha": 6.5,
+     "rho": 0.1
+    },
+    {
+     "y": 1500000.0,
+     "lambda": 1.0,
+     "alpha": 6.0,
+     "rho": 0.1
+    },
+    {
+     "y": 500000.0,
+     "lambda": 1.0,
+     "alpha": 5.5,
+     "rho": 0.1
+    }
+   ],
+   "beta": 1.0,
+   "solver": "heteroscedastic",
+   "tol": 1e-08,
+   "max_iter": 10000,
+   "forma": "normal",
+   "oferta_sigma_frac": 0.5,
+   "forma_param": 0.5
+  }
+ }
+}

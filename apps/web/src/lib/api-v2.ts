@@ -98,20 +98,6 @@ export async function solveCoupledStream(
   }
 }
 
-export const defaultLandUseConfig: LandUseConfig = {
-  H_por_estrato: [1000, 4000, 5000],
-  // Unidades físicas (D-26/D-27): α en utiles/min, ρ en utiles/(hogar/km),
-  // y en $/mes. Calibración equivalente a la antigua en 201 celdas / 20 km.
-  estratos: [
-    { y: 3_500_000, lambda: 1, alpha: 6.5, rho: 0.1 },
-    { y: 1_500_000, lambda: 1, alpha: 6.0, rho: 0.1 },
-    { y: 500_000, lambda: 1, alpha: 5.5, rho: 0.1 },
-  ],
-  beta: 1,
-  solver: "heteroscedastic",
-  tol: 1e-8,
-  max_iter: 2000,
-  forma: "normal",
-  oferta_sigma_frac: 0.5,
-  forma_param: 0.5,
-};
+// Re-export: la definición vive en defaults.ts (módulo puro, sin engine) para
+// que los tests de contrato puedan importarla desde Node.
+export { defaultLandUseConfig } from "@/lib/defaults";
