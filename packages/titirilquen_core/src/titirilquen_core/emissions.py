@@ -5,8 +5,17 @@ Overleaf no cubre (ver D-06).
 
 Fórmulas:
   - Auto:  FE(v) = 2467.4 · v^(-0.699)   [g/km], v clampeado a [1, 120]
-  - Metro: factor_emision_metro · dist   [kg/pax·km, lineal]
+  - Metro: factor · tren-km/h            [kg/tren·km — ver D-29]
+           con tren-km/h = f_op · largo_línea · 2 (ida y vuelta: el servicio
+           es un ciclo; el retorno "vacío" es costo real de la frecuencia).
   - Bici / Caminata: 0 (implícito)
+
+El metro emite por TREN circulando, no por pasajero (D-29): con la frecuencia
+endógena, esto exhibe las economías de escala del transporte público — más
+demanda ⇒ más frecuencia ⇒ más tren-km, pero emisiones por pasajero a la baja;
+y con poca demanda el servicio mínimo emite igual (costo fijo). La versión
+anterior (kg/pax·km lineal) hacía que cada pasajero nuevo "emitiera", ocultando
+exactamente ese efecto.
 """
 
 from __future__ import annotations
@@ -34,7 +43,7 @@ class EmissionsResult:
 def calcular_emisiones(
     *,
     flujos_auto: NDArray[np.float64],
-    carga_metro_tramos: NDArray[np.float64],
+    frecuencia_metro: float,
     estaciones_km: NDArray[np.float64],
     capacidad_auto: float,
     alpha_bpr: float,
@@ -42,7 +51,7 @@ def calcular_emisiones(
     v_libre_kmh: float,
     largo_ciudad_km: float,
     n_celdas: int,
-    factor_emision_metro: float,
+    factor_emision_metro_tren_km: float,
 ) -> EmissionsResult:
     dx_km = largo_ciudad_km / n_celdas
 
@@ -56,17 +65,20 @@ def calcular_emisiones(
     emisiones_auto_g = flujos_auto * dx_km * factores_g_km
     auto_kg = float(np.sum(emisiones_auto_g)) / 1000
 
-    f_metro_g_pkm = factor_emision_metro * 1000
+    # Metro por TREN-km (D-29): emisión fija por tren circulando, independiente
+    # de la carga. tren-km/h = f_op · largo de la línea · 2 (ida y vuelta).
+    # El perfil espacial se reparte uniforme sobre las celdas que cubre la línea.
     emisiones_metro_g = np.zeros(n_celdas)
-    for j in range(len(carga_metro_tramos)):
-        start_km = estaciones_km[j]
-        end_km = estaciones_km[j + 1]
-        idx_start = int((start_km / largo_ciudad_km) * n_celdas)
-        idx_end = int((end_km / largo_ciudad_km) * n_celdas)
-        if idx_end > idx_start:
-            val = carga_metro_tramos[j] * f_metro_g_pkm * dx_km
-            emisiones_metro_g[idx_start:idx_end] = val
-    metro_kg = float(np.sum(emisiones_metro_g)) / 1000
+    metro_kg = 0.0
+    if len(estaciones_km) >= 2 and frecuencia_metro > 0:
+        span_km = float(estaciones_km.max() - estaciones_km.min())
+        tren_km_h = frecuencia_metro * span_km * 2.0
+        metro_kg = factor_emision_metro_tren_km * tren_km_h
+        idx_start = int((float(estaciones_km.min()) / largo_ciudad_km) * n_celdas)
+        idx_end = int((float(estaciones_km.max()) / largo_ciudad_km) * n_celdas)
+        idx_start = max(0, min(idx_start, n_celdas - 1))
+        idx_end = max(idx_start + 1, min(idx_end, n_celdas))
+        emisiones_metro_g[idx_start:idx_end] = (metro_kg * 1000) / (idx_end - idx_start)
 
     perfil_kg = (emisiones_auto_g + emisiones_metro_g) / 1000
 

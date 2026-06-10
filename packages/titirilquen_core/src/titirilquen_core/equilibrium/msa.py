@@ -391,6 +391,7 @@ def _iter_loop(
                 "beta": car_result.beta_bpr,
                 "carga_metro": train_result.carga_por_tramo,
                 "estaciones": train_result.estaciones_km,
+                "frecuencia": train_result.frecuencia_operativa,
                 "flujos_auto": car_result.flujos_veh_por_hora,
             }
         yield snap
@@ -462,11 +463,12 @@ def _finalizar_trace(
     trace.carga_metro = last_state["carga_metro"]
     trace.estaciones_km = last_state["estaciones"]
 
-    # Emisiones de CO₂ a partir del estado físico final (flujos + BPR → v_local).
-    if last_state["carga_metro"] is not None and last_state["estaciones"] is not None:
+    # Emisiones de CO₂ a partir del estado físico final (flujos + BPR → v_local;
+    # metro por tren-km con la frecuencia del equilibrio — ver D-29).
+    if last_state["estaciones"] is not None:
         em = calcular_emisiones(
             flujos_auto=last_state["flujos_auto"],
-            carga_metro_tramos=last_state["carga_metro"],
+            frecuencia_metro=last_state["frecuencia"],
             estaciones_km=last_state["estaciones"],
             capacidad_auto=last_state["capacidad"],
             alpha_bpr=last_state["alpha"],
@@ -474,7 +476,7 @@ def _finalizar_trace(
             v_libre_kmh=last_state["v_libre"],
             largo_ciudad_km=ciudad.largo_total_km,
             n_celdas=ciudad.n_celdas,
-            factor_emision_metro=sim.demand.globales.factor_emision_metro,
+            factor_emision_metro_tren_km=sim.demand.globales.factor_emision_metro_tren_km,
         )
         trace.emisiones_total_kg = em.total_kg_hora
         trace.emisiones_auto_kg = em.auto_kg_hora

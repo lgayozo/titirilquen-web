@@ -752,6 +752,58 @@ Convenciones:
 
 ---
 
+## D-29 — Emisiones de metro por tren-km (no por pax·km)
+
+- **Cómo estaba**: `FE_metro = 0.040 kg/pax·km` — la emisión del metro crecía
+  linealmente con los pasajeros, como si cada pasajero nuevo "emitiera".
+- **Problema conceptual**: el costo ambiental del metro es por **tren
+  circulando**, no por pasajero: un tren emite (energía de tracción) casi lo
+  mismo vacío que lleno. Con la formulación por pax·km, atraer pasajeros al
+  metro aumentaba sus emisiones uno a uno y el modelo ocultaba las **economías
+  de escala** del transporte público — exactamente el efecto pedagógico
+  interesante (el "Mohring de emisiones": más demanda ⇒ más frecuencia ⇒ más
+  servicio, pero emisiones POR PASAJERO a la baja; y el servicio mínimo emite
+  igual aunque viaje vacío).
+- **Fix (jun-2026)**: `emisiones_metro = factor · tren-km/h`, con
+  `tren-km/h = f_op · largo_línea · 2` (ida y vuelta: el retorno es costo real
+  de proveer la frecuencia). El perfil espacial se reparte uniforme sobre la
+  línea. Con la frecuencia endógena, las emisiones del metro ahora solo
+  responden al **nivel de servicio**.
+- **Calibración**: `factor_emision_metro_tren_km = 2.5 kg/tren·km` — continuidad
+  con la calibración anterior en el escenario de referencia (medido 2.45) y
+  plausible físicamente (~8 kWh/km × ~0.3 kgCO₂/kWh de la red).
+- **Migración**: el campo `factor_emision_metro` (kg/pax·km) se elimina; el
+  frontend lo descarta al importar escenarios viejos y adopta el default nuevo
+  (no hay conversión automática: requeriría el factor de carga).
+- **Verificación** (`test_emissions.py`): emisión exacta `factor·f·span·2`;
+  invariante a la carga de pasajeros a frecuencia fija; doble frecuencia ⇒
+  doble emisión; perfil espacial suma el total.
+- **Veredicto**: Corrección conceptual del módulo de emisiones (D-06 sigue
+  pendiente de documentarse en el Overleaf; ver OVERLEAF_CHANGES C5).
+
+---
+
+## D-30 — Tres baselines de "sin congestión": convenciones y por qué difieren
+
+No es un bug sino una aclaración (auditoría jun-2026): el modelo usa **tres
+nociones distintas de "red sin congestión"**, cada una apropiada a su contexto.
+Se documentan aquí para que no se confundan:
+
+| Uso | Baseline | Definición | Por qué |
+|---|---|---|---|
+| **Iteración 0 del MSA** | Flujo libre *naive* | auto/bici a velocidad libre; metro con `t_acceso=10`, `t_espera=5` fijos | Es el arranque histórico del original (fiel al Overleaf, ver D-04 nota); solo necesita ser un punto de partida razonable — el MSA lo corrige en 1–2 iteraciones. |
+| **ΔCS (excedente del consumidor)** | **Red vacía** | la misma infraestructura con demanda 0: BPR(0), tren a `f_min` con las estaciones reales | El Δ debe aislar el efecto de la DEMANDA sobre la red (congestión vs Mohring); usar tiempos fijos inventados sesgaría el signo (con pocas estaciones, el acceso real a flujo libre es peor que el "10 min" naive). |
+| **Arranque del loop acoplado** | Flujo libre **en minutos** a `v_auto` | `T(i) = d_km/v_auto·60` | El suelo de la iteración 0 no conoce la red (aún no corre el MSA); solo necesita una accesibilidad monótona en la MISMA unidad (minutos) que las iteraciones siguientes (D-23). |
+
+- **Nota relacionada (caminata sin congestión)**: `d_caminata` se calcula y
+  reporta pero no existe función de oferta peatonal — la caminata nunca se
+  congestiona. Simplificación deliberada: su rol en el modelo es ser el "piso"
+  del set de elección (y el techo físico de la bici, D-15), no un modo con
+  capacidad.
+- **Veredicto**: Convenciones documentadas; no requiere cambio de código.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -784,3 +836,5 @@ Convenciones:
 | D-26 | Suelo: unidades físicas (T en min, densidad hog/km) → invariancia de grilla | Bug de unidades corregido (decisión de modelo) | Alta |
 | D-27 | Carga mensual costo/ingreso con y en $/mes | Unidades corregidas | Media |
 | D-28 | Transporte: densidad física hab/km (n_celdas puramente numérico) | Continuación de D-26 | Alta |
+| D-29 | Emisiones de metro por tren-km (economías de escala visibles) | Corrección conceptual | Media |
+| D-30 | Tres baselines de "sin congestión" (convenciones) | Documentado, sin cambio de código | Baja |

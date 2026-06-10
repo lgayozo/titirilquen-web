@@ -47,7 +47,8 @@ export interface GlobalConfig {
   costo_tarifa_metro: number;
   costo_parking: number;
   factor_emision_auto: number;
-  factor_emision_metro: number;
+  /** kg CO₂ por tren-km (D-29): emisión por servicio, no por pasajero. */
+  factor_emision_metro_tren_km: number;
 }
 
 export interface DemandConfig {

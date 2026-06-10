@@ -86,7 +86,11 @@ class GlobalConfig(BaseModel):
     costo_tarifa_metro: float = 800
     costo_parking: float = 6000
     factor_emision_auto: float = 0.180
-    factor_emision_metro: float = 0.040
+    # kg CO₂ por tren-km (D-29): el metro emite por servicio circulando, no por
+    # pasajero. 2.5 ≈ continuidad con la calibración anterior (0.040 kg/pax·km)
+    # en el escenario de referencia, y plausible para metro eléctrico
+    # (~8 kWh/km × ~0.3 kgCO₂/kWh). El frontend migra configs viejas.
+    factor_emision_metro_tren_km: float = 2.5
 
 
 class DemandConfig(BaseModel):

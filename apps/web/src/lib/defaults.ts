@@ -88,7 +88,7 @@ export const defaultDemandConfig: DemandConfig = {
     costo_tarifa_metro: 800,
     costo_parking: 6000,
     factor_emision_auto: 0.18,
-    factor_emision_metro: 0.04,
+    factor_emision_metro_tren_km: 2.5,
   },
   estratos: {
     1: baseBetas(1),

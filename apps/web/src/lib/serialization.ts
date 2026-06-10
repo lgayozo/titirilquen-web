@@ -50,6 +50,16 @@ function migrateConfig(config: SimulationConfig): SimulationConfig {
   if (city && "ingresos_estratos" in city) {
     delete city.ingresos_estratos; // parámetro muerto, eliminado del core (A3)
   }
+  const globales = (config as unknown as { demand?: { globales?: Record<string, unknown> } })
+    .demand?.globales;
+  if (globales && "factor_emision_metro" in globales) {
+    // D-29: el metro emite por tren-km, no por pax·km. No hay conversión
+    // automática (requiere el factor de carga); se adopta el default nuevo.
+    delete globales.factor_emision_metro;
+    if (!("factor_emision_metro_tren_km" in globales)) {
+      globales.factor_emision_metro_tren_km = 2.5;
+    }
+  }
   if (city && "densidad_por_celda" in city && !("densidad_hab_km" in city)) {
     // D-28: la densidad pasó de hab/celda a hab/km. Conversión fiel: preserva
     // la población total que tenía el escenario (densidad·(N−1)/largo).
