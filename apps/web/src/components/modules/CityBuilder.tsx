@@ -72,6 +72,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           min={51}
           max={1001}
           step={50}
+          hint={t("city_params.n_celdas_hint")}
           onChange={(v) => setCity({ n_celdas: v % 2 === 0 ? v + 1 : v })}
         />
         <LabeledSlider
@@ -81,6 +82,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           max={300}
           step={10}
           unit={t("city_params.density_unit")}
+          hint={t("city_params.densidad_hint")}
           onChange={(v) => setCity({ densidad_por_celda: v })}
         />
         <LabeledSlider
@@ -90,6 +92,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           max={10}
           step={0.5}
           unit="%"
+          hint={t("city_params.pendiente_hint")}
           onChange={(v) => setCity({ pendiente_porcentaje: v })}
         />
         <LabeledSlider
@@ -98,6 +101,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           min={0}
           max={2}
           step={0.1}
+          hint={t("city_params.teletrabajo_hint")}
           onChange={(v) => setCity({ teletrabajo_factor: v })}
         />
       </SidebarSection>

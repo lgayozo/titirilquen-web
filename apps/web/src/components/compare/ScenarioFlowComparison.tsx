@@ -27,7 +27,7 @@ export function ScenarioFlowComparison({ scenarios, mode, className }: ScenarioF
 
   if (!modeKey) {
     return (
-      <div className="rounded border border-slate-200 p-8 text-center text-xs text-slate-400 dark:border-slate-800">
+      <div className="rounded border border-[var(--rule)] p-8 text-center text-xs text-[var(--muted)]">
         {t("compare.flow_no_profile", { mode: t(`modes.${mode.toLowerCase()}`) })}
       </div>
     );
@@ -46,7 +46,7 @@ export function ScenarioFlowComparison({ scenarios, mode, className }: ScenarioF
 
   if (curves.length === 0) {
     return (
-      <div className="rounded border border-dashed border-slate-300 p-8 text-center text-xs text-slate-400 dark:border-slate-700">
+      <div className="rounded border border-dashed border-[var(--rule)] p-8 text-center text-xs text-[var(--muted)]">
         {t("compare.flow_empty")}
       </div>
     );
@@ -56,9 +56,9 @@ export function ScenarioFlowComparison({ scenarios, mode, className }: ScenarioF
   const colors = ["#0ea5e9", "#ef4444", "#10b981", "#f59e0b"];
 
   return (
-    <div className={cn("rounded border border-slate-200 p-3 dark:border-slate-800", className)}>
+    <div className={cn("rounded border border-[var(--rule)] p-3", className)}>
       <div className="mb-2 flex items-center gap-3 text-[11px]">
-        <span className="font-medium text-slate-600 dark:text-slate-300">
+        <span className="font-medium text-[var(--ink-2)]">
           {t("compare.flow_demand_label", { mode: t(`modes.${mode.toLowerCase()}`) })}
         </span>
         {curves.map((c, i) => (

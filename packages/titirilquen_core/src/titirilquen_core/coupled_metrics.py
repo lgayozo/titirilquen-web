@@ -15,12 +15,20 @@ Reglas de procedencia de los datos (importante para interpretar):
 
 Caveats de unidades (ver discusión en DISCREPANCIES.md / OVERLEAF_CHANGES.md):
 
-- El **excedente del consumidor** (`excedente_consumidor_clp`) usa el logsum del
+- El **excedente del consumidor** (`delta_excedente_clp`) usa el logsum del
   logit de modo, convertido a $ con la utilidad marginal del dinero **propia de
   cada estrato** (`-b_costo_h`). Es comparable como *escala monetaria*
   (eficiencia / disposición a pagar), **no** como bienestar interpersonal: cada
   $1 vale distinto para un rico que para un pobre, y `b_costo` varía ~7.5 veces entre
   estratos. Para la lectura distributiva usar `carga_costo_ingreso` y el tiempo.
+- Se reporta como **Δ contra la red vacía** (misma infraestructura con demanda
+  cero: BPR(0) en auto/bici, tren a frecuencia mínima, mismas estaciones), no
+  como nivel: el logsum incluye las ASC, así que el nivel absoluto tiene un
+  cero arbitrario y no significa nada — solo las diferencias son
+  interpretables. El signo es informativo: Δ < 0 ⇒ domina la congestión
+  (demoras, espera, modos que dejan de ser factibles); Δ > 0 ⇒ domina el
+  **efecto Mohring** (más demanda ⇒ más frecuencia de metro ⇒ menos espera que
+  con la red vacía).
 """
 
 from __future__ import annotations
@@ -41,6 +49,9 @@ from titirilquen_core.demand.utility import (
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult
+from titirilquen_core.supply.bike import demora_bici_tramo
+from titirilquen_core.supply.car import demora_auto_tramo
+from titirilquen_core.supply.train import oferta_tren
 
 if TYPE_CHECKING:
     from titirilquen_core.config import StratumId
@@ -72,9 +83,11 @@ class StratumMetrics:
     costo_medio_clp: float
     """Costo monetario medio del viaje, sobre los que viajan ($)."""
 
-    excedente_consumidor_clp: float
-    """Excedente del consumidor de transporte (logsum / -b_costo), en $.
-    Eficiencia/DAP, NO bienestar interpersonal — ver módulo docstring."""
+    delta_excedente_clp: float
+    """Δ excedente del consumidor vs la **red vacía** ((logsum − logsum_0) /
+    −b_costo), en $. Δ<0 ⇒ costo neto de la congestión; Δ>0 ⇒ domina el efecto
+    Mohring (frecuencia endógena). Eficiencia/DAP, NO bienestar interpersonal —
+    ver módulo docstring."""
 
     carga_costo_ingreso: float
     """Costo de transporte medio / ingreso del estrato (fracción). Lente de equidad."""
@@ -113,8 +126,9 @@ class SystemMetrics:
     segregacion_theil: float
     """Índice H de Theil sobre Q ∈ [0,1]. 0 = integrada, 1 = segregación total."""
 
-    bienestar_total_clp: float
-    """Σ_h n_hogares_h · CS_h ($). Suma del excedente del consumidor de transporte."""
+    delta_bienestar_total_clp: float
+    """Σ_h n_hogares_h · ΔCS_h ($). Efecto agregado de bienestar de la demanda
+    sobre la red (congestión vs Mohring), respecto a la red vacía."""
 
     ratio_tiempo_bajo_alto: float | None
     """Tiempo medio bajo / alto. >1 ⇒ los pobres viajan más (regresivo)."""
@@ -176,7 +190,64 @@ def _costo_modo(modo: str, dist_km: float, gl) -> float:
     return 0.0  # Bici / Caminata
 
 
-def _logsum(snap: IterationSnapshot, *, estrato: int, celda: int, tiene_auto: bool,
+def _tiempos_red_vacia(
+    sim: SimulationConfig, ciudad: CiudadLineal
+) -> list[TiemposObservados]:
+    """Tiempos por celda con la **red vacía** (demanda cero): BPR(0) en auto y
+    bici, tren a frecuencia mínima con las mismas estaciones. Es el baseline del
+    ΔCS — la misma infraestructura sin nadie usándola."""
+    zero = np.zeros(ciudad.n_celdas)
+    car_p, bike_p, train_p = sim.supply.car, sim.supply.bike, sim.supply.train
+    car0 = demora_auto_tramo(
+        ubicacion_centro_km=ciudad.cbd_km,
+        demanda=zero,
+        v_max_kmh=car_p.v_max_kmh,
+        ancho_pista_m=car_p.ancho_pista_m,
+        largo_vehiculo_m=car_p.largo_vehiculo_m,
+        gap_m=car_p.gap_m,
+        L_ciudad_km=ciudad.largo_total_km,
+        num_pistas=car_p.num_pistas,
+        alpha_bpr=car_p.alpha_bpr,
+        beta_bpr=car_p.beta_bpr,
+    )
+    bike0 = demora_bici_tramo(
+        ubicacion_centro_km=ciudad.cbd_km,
+        capacidad=bike_p.capacidad_pista,
+        demanda=zero,
+        v_media=bike_p.v_media_kmh,
+        L_ciudad_km=ciudad.largo_total_km,
+        alpha=bike_p.alpha_bpr,
+        beta=bike_p.beta_bpr,
+        pendiente_porcentaje=sim.city.pendiente_porcentaje,
+        v_caminata=sim.demand.globales.v_caminata,
+    )
+    train0 = oferta_tren(
+        demanda=zero,
+        L_ciudad_km=ciudad.largo_total_km,
+        x_centro_km=ciudad.cbd_km,
+        v_tren_kmh=train_p.v_tren_kmh,
+        capacidad_tren=train_p.capacidad_tren,
+        num_estaciones=train_p.num_estaciones,
+        v_caminata_kmh=train_p.v_caminata_kmh,
+        tasa_carga=train_p.tasa_carga,
+        frec_min=train_p.frec_min,
+        frec_max=train_p.frec_max,
+        anden_alpha=train_p.anden_alpha,
+        anden_beta=train_p.anden_beta,
+    )
+    return [
+        TiemposObservados(
+            auto_total=float(car0.t_usuarios_min[i]),
+            bici_total=float(bike0.t_usuarios_min[i]),
+            tren_acceso=float(train0.t_acceso_min[i]),
+            tren_espera=float(train0.t_espera_min[i]),
+            tren_viaje=float(train0.t_viaje_min[i]),
+        )
+        for i in range(ciudad.n_celdas)
+    ]
+
+
+def _logsum(tiempos: TiemposObservados, *, estrato: int, celda: int, tiene_auto: bool,
             ciudad: CiudadLineal, sim: SimulationConfig) -> float:
     """Logsum (utiles) del logit de modo: ln Σ_m e^{V_m} sobre modos factibles."""
     utils = calcular_utilidades(
@@ -185,7 +256,7 @@ def _logsum(snap: IterationSnapshot, *, estrato: int, celda: int, tiene_auto: bo
         tiene_auto=tiene_auto,
         ciudad=ciudad,
         config=sim.demand,
-        tiempos_observados=_tiempos_observados(snap, celda),
+        tiempos_observados=tiempos,
         modos_habilitados=sim.modos_habilitados,
     )
     vs = np.array(
@@ -277,7 +348,11 @@ def compute_equilibrium_metrics(
     cat_idx = {c: k for k, c in enumerate(_CATEGORIAS_MODALES)}
 
     # Logsum depende solo de (estrato, celda, tiene_auto): memoizar.
+    # `cache_ff` es el baseline de red vacía del ΔCS (no depende del snapshot).
     cache_ls: dict[tuple[int, int, bool], float] = {}
+    cache_ff: dict[tuple[int, int, bool], float] = {}
+    tiempos_obs = [_tiempos_observados(snap, i) for i in range(L)]
+    tiempos_ff = _tiempos_red_vacia(sim, ciudad)
 
     for a in agentes:
         h = a.estrato - 1
@@ -296,11 +371,18 @@ def compute_equilibrium_metrics(
         key = (a.estrato, i, a.tiene_auto)
         ls = cache_ls.get(key)
         if ls is None:
-            ls = _logsum(snap, estrato=a.estrato, celda=i, tiene_auto=a.tiene_auto,
-                         ciudad=ciudad, sim=sim)
+            ls = _logsum(tiempos_obs[i], estrato=a.estrato, celda=i,
+                         tiene_auto=a.tiene_auto, ciudad=ciudad, sim=sim)
             cache_ls[key] = ls
-        if not np.isnan(ls):
-            cs_sum[h] += ls / (-b_costo[h])
+        ls_ff = cache_ff.get(key)
+        if ls_ff is None:
+            ls_ff = _logsum(tiempos_ff[i], estrato=a.estrato, celda=i,
+                            tiene_auto=a.tiene_auto, ciudad=ciudad, sim=sim)
+            cache_ff[key] = ls_ff
+        # ΔCS vs red vacía: el nivel del logsum tiene cero arbitrario (ASC);
+        # solo la diferencia es interpretable (congestión vs efecto Mohring).
+        if not np.isnan(ls) and not np.isnan(ls_ff):
+            cs_sum[h] += (ls - ls_ff) / (-b_costo[h])
         viajan[h] += 1
 
     # --- Construir métricas por estrato ---
@@ -326,7 +408,7 @@ def compute_equilibrium_metrics(
                 tiempo_medio_min=t_medio,
                 reparto_modal=reparto,
                 costo_medio_clp=c_medio,
-                excedente_consumidor_clp=cs_medio,
+                delta_excedente_clp=cs_medio,
                 carga_costo_ingreso=carga,
             )
         )
@@ -342,7 +424,7 @@ def compute_equilibrium_metrics(
     n_viajan_total = int(viajan.sum())
     t_medio_sis = t_total / n_viajan_total if n_viajan_total > 0 else 0.0
 
-    bienestar_total = float(sum(por_estrato[h].excedente_consumidor_clp * por_estrato[h].n_hogares
+    bienestar_total = float(sum(por_estrato[h].delta_excedente_clp * por_estrato[h].n_hogares
                                 for h in range(n_strata)))
 
     t_alto = por_estrato[0].tiempo_medio_min
@@ -369,7 +451,7 @@ def compute_equilibrium_metrics(
         emisiones_auto_kg=float(trace.emisiones_auto_kg),
         emisiones_metro_kg=float(trace.emisiones_metro_kg),
         segregacion_theil=_theil(Q),
-        bienestar_total_clp=bienestar_total,
+        delta_bienestar_total_clp=bienestar_total,
         ratio_tiempo_bajo_alto=ratio_t,
         ratio_carga_bajo_alto=ratio_carga,
     )

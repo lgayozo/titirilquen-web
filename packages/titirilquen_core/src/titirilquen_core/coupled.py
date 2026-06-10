@@ -81,6 +81,7 @@ def _aggregate_T_expected(
     snap: IterationSnapshot,
     n_strata: int,
     cbd_index: int,
+    H_por_estrato: NDArray[np.float64] | None = None,
 ) -> NDArray[np.float64]:
     """T[h, i] = accesibilidad (tiempo de viaje esperado) de la celda i hacia el
     CBD — **común a todos los estratos** (todas las filas h son iguales).
@@ -91,8 +92,11 @@ def _aggregate_T_expected(
 
     con `w_auto = prob_auto` (entre los que viajan; teletrabajo excluido) y
     `P(m|·)` el logit de modo sobre los tiempos del snapshot final; luego se
-    devuelve la **media simple entre estratos** `T(i) = mean_h Te_h(i)`,
-    replicada en todas las filas.
+    devuelve la **media entre estratos ponderada por población**
+    `T(i) = Σ_h (H_h/ΣH)·Te_h(i)` (con `H_por_estrato`; si es `None`, media
+    simple), replicada en todas las filas. La ponderación hace que T(i) sea el
+    tiempo esperado del viajero *representativo* de la ubicación: con shares
+    10/40/50 el estrato bajo pesa lo que su población, no 1/3.
 
     Por qué común y no por estrato (ver D-22): la accesibilidad es un **atributo
     de la ubicación** en el bid-rent de suelo; la heterogeneidad entre usuarios
@@ -162,9 +166,13 @@ def _aggregate_T_expected(
                 den += w
             T[h, i] = (num / den) if den > 0 else d_km / _V_REF_FALLBACK_KMH * 60.0
 
-    # Accesibilidad común por ubicación: media simple entre estratos, replicada
-    # en todas las filas (ver docstring — evita la inversión del bid-rent).
-    T_comun = T.mean(axis=0)
+    # Accesibilidad común por ubicación (ver docstring — evita la inversión del
+    # bid-rent), ponderada por la población de cada estrato.
+    if H_por_estrato is not None and float(np.sum(H_por_estrato)) > 0:
+        w_h = np.asarray(H_por_estrato, dtype=float)
+        T_comun = (w_h[:, None] * T).sum(axis=0) / w_h.sum()
+    else:
+        T_comun = T.mean(axis=0)
     return np.tile(T_comun, (n_strata, 1))
 
 
@@ -210,10 +218,14 @@ def iter_coupled(
     land_use_config: LandUseConfig,
     outer_max_iter: int = 5,
     outer_tol: float = 1.0,
+    result: CoupledResult | None = None,
 ) -> Iterator[OuterIteration]:
     """Generador que emite una OuterIteration por cada paso del loop exterior.
 
-    Ideal para SSE: el consumidor puede renderizar progreso en vivo.
+    Ideal para SSE: el consumidor puede renderizar progreso en vivo. Si se pasa
+    `result`, lo popula por completo en el mismo recorrido (iteraciones, ciudad
+    final, agentes, convergencia) — mismo patrón que `iter_msa(trace=...)`;
+    `run_coupled` no es más que consumir este generador con un `result`.
     """
     rng = np.random.default_rng(sim.seed)
     # El loop acoplado usa asignación **esperada** (determinista) para que el
@@ -224,6 +236,7 @@ def iter_coupled(
     ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
 
     n_strata = len(land_use_config.H_por_estrato)
+    H_arr = np.asarray(land_use_config.H_por_estrato, dtype=float)
     # Baseline "sin feedback" en minutos a flujo libre (no índices de celda),
     # para que iter0→final mida el efecto real del feedback (ver D-23).
     T_init = _freeflow_T(ciudad, n_strata, sim.demand.globales.v_auto)
@@ -240,7 +253,7 @@ def iter_coupled(
             teletrabajo_factor=sim.city.teletrabajo_factor,
         )
         transport_trace, final_snap = _run_transport_with_population(sim_eq, agentes, ciudad)
-        T_new = _aggregate_T_expected(sim_eq, ciudad, final_snap, n_strata, CBD)
+        T_new = _aggregate_T_expected(sim_eq, ciudad, final_snap, n_strata, CBD, H_arr)
 
         residual = float("inf") if T_state is None else float(np.max(np.abs(T_new - T_state)))
         # Amortiguación MSA del loop externo: T_state ← θ·T_new + (1-θ)·T_state.
@@ -262,7 +275,7 @@ def iter_coupled(
             converged=is_converged,
             iterations_count=outer + 1,
         )
-        yield OuterIteration(
+        iteration = OuterIteration(
             outer_iter=outer,
             land_use=city.result,
             transport=transport_trace,
@@ -270,10 +283,20 @@ def iter_coupled(
             T_residual=residual,
             metrics=metrics,
         )
+        if result is not None:
+            result.iterations.append(iteration)
+        yield iteration
 
         if is_converged:
+            if result is not None:
+                result.converged = True
             break
         city.update(T=T_state, rng=rng)
+
+    if result is not None:
+        result.final_city = city
+        if result.iterations:
+            result.final_agents = result.iterations[-1].transport.agentes
 
 
 def run_coupled(
@@ -285,72 +308,20 @@ def run_coupled(
 ) -> CoupledResult:
     """Ejecuta el loop suelo↔transporte hasta el final y devuelve el resultado agregado.
 
+    Es simplemente consumir `iter_coupled` con un `result` (un único recorrido).
+
     :param sim: configuración de transporte (`SimulationConfig` de V1).
     :param land_use_config: configuración del módulo de uso de suelo.
     :param outer_max_iter: iteraciones máximas del loop exterior.
     :param outer_tol: tolerancia en minutos sobre ||T_new - T_old||_∞.
     """
-    rng = np.random.default_rng(sim.seed)
-    sim_eq = sim.model_copy(update={"assignment": "expected"})
-    L = sim.city.n_celdas
-    CBD = L // 2
-    ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
-
     result = CoupledResult()
-    n_strata = len(land_use_config.H_por_estrato)
-    # Baseline "sin feedback" en minutos a flujo libre (ver D-23).
-    T_init = _freeflow_T(ciudad, n_strata, sim.demand.globales.v_auto)
-    city = LandUseCity.build(L=L, CBD=CBD, cfg=land_use_config, T=T_init, rng=rng)
-    T_state: NDArray[np.float64] | None = None
-
-    for outer in range(outer_max_iter):
-        assert city.result is not None
-        agentes = generar_poblacion_desde_land_use_det(
-            Q=city.result.Q,
-            S=city.S,
-            cbd_index=CBD,
-            demand_config=sim.demand,
-            teletrabajo_factor=sim.city.teletrabajo_factor,
-        )
-        transport_trace, final_snap = _run_transport_with_population(sim_eq, agentes, ciudad)
-        T_new = _aggregate_T_expected(sim_eq, ciudad, final_snap, n_strata, CBD)
-        residual = float("inf") if T_state is None else float(np.max(np.abs(T_new - T_state)))
-        # Amortiguación MSA del loop externo.
-        if T_state is None:
-            T_state = T_new
-        else:
-            theta = 1.0 / (outer + 1)
-            T_state = theta * T_new + (1.0 - theta) * T_state
-
-        assert city.result is not None
-        is_converged = outer > 0 and residual < outer_tol
-        metrics = compute_equilibrium_metrics(
-            land_use=city.result,
-            trace=transport_trace,
-            S=city.S,
-            sim=sim,
-            land_use_config=land_use_config,
-            T_residual=residual,
-            converged=is_converged,
-            iterations_count=outer + 1,
-        )
-        result.iterations.append(
-            OuterIteration(
-                outer_iter=outer,
-                land_use=city.result,
-                transport=transport_trace,
-                T_matrix=T_state.copy(),
-                T_residual=residual,
-                metrics=metrics,
-            )
-        )
-
-        if is_converged:
-            result.converged = True
-            break
-        city.update(T=T_state, rng=rng)
-
-    result.final_city = city
-    if result.iterations:
-        result.final_agents = result.iterations[-1].transport.agentes
+    for _ in iter_coupled(
+        sim=sim,
+        land_use_config=land_use_config,
+        outer_max_iter=outer_max_iter,
+        outer_tol=outer_tol,
+        result=result,
+    ):
+        pass
     return result

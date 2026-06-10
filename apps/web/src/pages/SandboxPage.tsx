@@ -682,7 +682,7 @@ export function SandboxPage() {
               <Panel
                 n="00"
                 title={t("network.title")}
-                meta="auto · metro · bici · caminata"
+                meta={t("panel_meta.modes_all")}
                 cls="col-12"
               >
                 <NetworkDiagram
@@ -782,7 +782,7 @@ export function SandboxPage() {
               <Panel
                 n="4c"
                 title={t("sandbox.co2_profile")}
-                meta="kg/h · por celda"
+                meta={t("panel_meta.co2")}
                 cls="col-12"
               >
                 <ExportableFigure
@@ -807,7 +807,7 @@ export function SandboxPage() {
                 <Panel
                   n="05"
                   title={t("sandbox.trips_by_stratum")}
-                  meta="reparto · estrato"
+                  meta={t("panel_meta.share_stratum")}
                   cls="col-6"
                 >
                   <ExportableFigure
@@ -822,7 +822,7 @@ export function SandboxPage() {
                 <Panel
                   n="06"
                   title={t("sandbox.trips_by_car_ownership")}
-                  meta="tenencia · estrato"
+                  meta={t("panel_meta.ownership_stratum")}
                   cls="col-6"
                 >
                   <ExportableFigure
@@ -837,7 +837,7 @@ export function SandboxPage() {
                 <Panel
                   n="07"
                   title={t("sandbox.utility_scatter")}
-                  meta="utilidad · posición"
+                  meta={t("panel_meta.utility_position")}
                   cls="col-7"
                 >
                   <ExportableFigure
@@ -877,7 +877,7 @@ export function SandboxPage() {
                     <Panel
                       n="09"
                       title={t("sandbox.avg_time_by_mode")}
-                      meta="promedio · min"
+                      meta={t("panel_meta.avg_min")}
                       cls="col-4"
                     >
                       <ExportableFigure
@@ -892,7 +892,7 @@ export function SandboxPage() {
                     <Panel
                       n="10"
                       title={t("sandbox.avg_time_by_stratum")}
-                      meta="promedio · min"
+                      meta={t("panel_meta.avg_min")}
                       cls="col-4"
                     >
                       <ExportableFigure
@@ -907,7 +907,7 @@ export function SandboxPage() {
                     <Panel
                       n="11"
                       title={t("sandbox.avg_utility_by_stratum")}
-                      meta="promedio · util"
+                      meta={t("panel_meta.avg_util")}
                       cls="col-4"
                     >
                       <ExportableFigure

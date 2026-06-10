@@ -335,7 +335,17 @@ export function CoupledPage() {
         )}
 
         {iters.length === 0 && stage !== "running" && (
-          <div className="coupled-placeholder">{tS("coupled.placeholder")}</div>
+          <div className="coupled-placeholder">
+            <div className="coupled-placeholder-title">
+              {tS("coupled.placeholder_title")}
+            </div>
+            <p className="coupled-placeholder-desc">
+              {tS("coupled.placeholder_desc")}
+            </p>
+            <div className="coupled-placeholder-cta">
+              {tS("coupled.placeholder")}
+            </div>
+          </div>
         )}
 
         {running && iters.length === 0 && (

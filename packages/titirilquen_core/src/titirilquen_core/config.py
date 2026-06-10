@@ -198,7 +198,9 @@ class SimulationConfig(BaseModel):
     city: CityConfig = Field(default_factory=CityConfig)
     supply: SupplyConfig = Field(default_factory=SupplyConfig)
     demand: DemandConfig
-    max_iter: int = Field(default=12, ge=1, le=100)
+    # 20 (no 12): con tolerance>0 el corte es por residual; el margen extra deja
+    # converger la cola lenta ~1/it del MSA en escenarios rígidos (ver D-21/H4).
+    max_iter: int = Field(default=20, ge=1, le=100)
     tolerance: float = Field(default=0.0, ge=0)
     seed: int | None = None
     assignment: Literal["montecarlo", "expected"] = Field(

@@ -138,10 +138,7 @@ export function LandUsePage() {
               marginBottom: 0,
             }}
           >
-            La teoría del <em>bid-rent</em> predice que los hogares con mayor
-            valoración de la accesibilidad al centro superan en subasta a los
-            demás por parcelas cercanas al CBD, empujando a los grupos de menor
-            valoración hacia la periferia.
+            {tS("land_use.intro")}
           </p>
         </div>
 
@@ -160,7 +157,7 @@ export function LandUsePage() {
                 <Panel
                   n="01"
                   title={tS("land_use.heading_distribution")}
-                  meta="bid-rent · 3 strata"
+                  meta={tS("land_use.distribution_meta")}
                   cls="col-12"
                 >
                   <ExportableFigure
@@ -185,7 +182,7 @@ export function LandUsePage() {
                     title={tS("land_use.bid_price_title")}
                     exportSize={{ width: 800, height: 200 }}
                   >
-                    <BidPriceCurve p={prices} />
+                    <BidPriceCurve p={prices} solver={config.solver} />
                   </ExportableFigure>
                 </Panel>
               )}

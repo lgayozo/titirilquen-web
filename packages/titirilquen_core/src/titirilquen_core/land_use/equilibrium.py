@@ -32,10 +32,22 @@ class LandUseResult:
     """Utilidades normalizadas por estrato — ū ∈ R^H. u[0]=0 (normalización)."""
 
     p: NDArray[np.float64]
-    """Precios implícitos por parcela — p ∈ R^I (salvo constante)."""
+    """Precios implícitos por parcela — p ∈ R^I (salvo constante).
+
+    **Unidades según el solver** (heredan las del `score`): con `logit` el score
+    es la puja `y + f/λ` en $ (WTP), así que p está en $; con `heteroscedastic`
+    el score es `λ·y + f` en **utiles**, así que p está en utiles y no es
+    convertible a $ sin elegir un λ de referencia (λ_h es heterogéneo). En ambos
+    casos solo el *gradiente* espacial es informativo; comparar niveles o
+    magnitudes entre solvers no tiene sentido."""
 
     Q: NDArray[np.float64]
-    """Matriz de probabilidades de subasta Q[h, i] — columnas suman 1."""
+    """Matriz de probabilidades de subasta Q[h, i] — columnas suman 1.
+
+    Ponderada por el tamaño del estrato (Suelo.tex ec. 3):
+    `Q[h,i] = H_h·e^{β(s_hi − ū_h)} / Σ_g H_g·e^{β(s_gi − ū_g)}` — más postores
+    de un tipo ⇒ más probable que ganen la parcela. En el equilibrio conserva
+    los hogares por estrato: `Σ_i S_i·Q[h,i] = H_h` (ver D-25)."""
 
     converged: bool
     iterations: int
@@ -115,11 +127,17 @@ def _solve_fixed_point(
     )
     p = log_p / beta
 
+    # Q ponderado por H (Suelo.tex ec. 3): la subasta la disputan H_h postores
+    # de cada tipo, así que P(gana h) ∝ H_h·e^{β(s_hi − ū_h)}. Sin el log(H) la
+    # composición no conserva los hogares por estrato (Σ_i S_i·Q_hi ≠ H_h) en
+    # cuanto H es heterogéneo — ver D-25. (El término −p_i es constante por
+    # columna; se deja por estabilidad numérica y la normalización hace el resto.)
+    log_H = np.log(H_arr)
     Q = np.zeros((n_strata, I))
     for i in range(I):
         if not mask_S_pos[i]:
             continue
-        log_q = np.log(S_arr[i]) + beta * (score[:, i] - u_bar - p[i])
+        log_q = log_H + beta * (score[:, i] - u_bar - p[i])
         Q[:, i] = np.exp(log_q - logsumexp(log_q))
 
     return LandUseResult(u=u_bar, p=p, Q=Q, converged=converged, iterations=iterations)

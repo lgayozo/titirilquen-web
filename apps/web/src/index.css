@@ -878,17 +878,37 @@ a:hover {
 .col-12 { grid-column: span 12; }
 
 @media (max-width: 1100px) {
-  .panel-grid .col-3, .panel-grid .col-4, .panel-grid .col-5,
-  .panel-grid .col-6, .panel-grid .col-7, .panel-grid .col-8,
-  .panel-grid .col-9 {
+  /* Tablet: los paneles chicos caben de a dos por fila; los anchos van a fila
+     completa (antes todo saltaba a 1 columna y quedaba muy "verticalizado"). */
+  .panel-grid .col-5, .panel-grid .col-6, .panel-grid .col-7,
+  .panel-grid .col-8, .panel-grid .col-9 {
     grid-column: span 12;
   }
+  .panel-grid .col-3, .panel-grid .col-4 {
+    grid-column: span 6;
+  }
+  /* La página vuelve al flujo normal: una sola columna con UN scroll (el del
+     <main> exterior), en vez de sidebar y main con scrolls independientes. */
   .page {
-    grid-template-columns: 1fr;
+    display: block;
+    height: auto;
   }
   .sidebar {
+    height: auto;
+    overflow-y: visible;
     border-right: 0;
     border-bottom: 1px solid var(--rule);
+  }
+  .main {
+    height: auto;
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Móvil: todo a fila completa. */
+  .panel-grid .col-3, .panel-grid .col-4 {
+    grid-column: span 12;
   }
 }
 
@@ -2357,6 +2377,31 @@ table.cmp th {
   text-transform: uppercase;
   color: var(--muted);
   background: var(--paper-2);
+}
+
+.coupled-placeholder-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.coupled-placeholder-desc {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-2);
+  line-height: 1.6;
+  max-width: 560px;
+  margin: 0 auto 18px;
+}
+
+.coupled-placeholder-cta {
+  color: var(--accent);
 }
 
 .coupled-interpretation {

@@ -85,7 +85,8 @@ def test_valores_finitos_y_signos() -> None:
         assert np.isfinite(sm.dist_media_cbd_km) and sm.dist_media_cbd_km >= 0
         assert np.isfinite(sm.tiempo_medio_min) and sm.tiempo_medio_min >= 0
         assert np.isfinite(sm.costo_medio_clp) and sm.costo_medio_clp >= 0
-        assert np.isfinite(sm.excedente_consumidor_clp)
+        # ΔCS vs red vacía: signo libre (congestión <0, Mohring >0), pero finito.
+        assert np.isfinite(sm.delta_excedente_clp)
         assert np.isfinite(sm.carga_costo_ingreso) and sm.carga_costo_ingreso >= 0
     s = m.sistema
     assert 0.0 <= s.segregacion_theil <= 1.0
@@ -115,5 +116,5 @@ def test_regresividad_por_ingreso() -> None:
 
 def test_bienestar_total_es_suma_ponderada() -> None:
     m, _sim, _lu = _run()
-    esperado = sum(sm.excedente_consumidor_clp * sm.n_hogares for sm in m.por_estrato)
-    assert abs(m.sistema.bienestar_total_clp - esperado) < 1e-3
+    esperado = sum(sm.delta_excedente_clp * sm.n_hogares for sm in m.por_estrato)
+    assert abs(m.sistema.delta_bienestar_total_clp - esperado) < 1e-3

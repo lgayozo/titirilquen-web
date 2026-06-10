@@ -539,8 +539,10 @@ Convenciones:
   bici saturada **no son culpa del modelo de bici**, sino la cola lenta `~1/it`
   del MSA cortada por un `max_iter` bajo. El techo plano es, de hecho, el que
   **mejor converge** (es el menos rígido). Con `tolerance=0,1` (default del
-  frontend) los escenarios rígidos convergen con `max_iter ≈ 20–25` (default
-  actual: 12). Subir el default de `max_iter` queda como fix pendiente opcional.
+  frontend) los escenarios rígidos convergen con `max_iter ≈ 20–25`.
+  **Fix aplicado (jun-2026)**: el default de `max_iter` subió de 12 a 20 (core y
+  frontend); el corte real sigue siendo por `tolerance`, así que los escenarios
+  fáciles no se encarecen.
 - **Veredicto**: Simplificación aceptada con limitación documentada; mejora
   opcional identificada.
 
@@ -557,11 +559,16 @@ Convenciones:
   la distancia" e **invertía** el ordenamiento Alonso/Martínez. Verificado: per
   estrato daba alto 7.6 km / bajo 2.2 km (invertido); común da 3.1 / 4.7 / 6.2 km
   (correcto).
-- **Fix**: la accesibilidad es un **atributo de la ubicación** → se devuelve la
-  **media simple entre estratos** `T(i) = mean_h Te_h(i)`, replicada en todas las
-  filas. La heterogeneidad entre usuarios ya la captura `α_h`. El tiempo
-  experimentado por estrato (con el efecto auto) se sigue reportando en
-  `coupled_metrics.py` a partir de los agentes.
+- **Fix**: la accesibilidad es un **atributo de la ubicación** → se devuelve una
+  **media entre estratos** común, replicada en todas las filas. La
+  heterogeneidad entre usuarios ya la captura `α_h`. El tiempo experimentado por
+  estrato (con el efecto auto) se sigue reportando en `coupled_metrics.py` a
+  partir de los agentes.
+- **Refinamiento (jun-2026)**: la media pasó de simple a **ponderada por
+  población** (`T(i) = Σ_h (H_h/ΣH)·Te_h(i)`): con shares 10/40/50 el estrato
+  bajo pesa lo que su población, no 1/3 — T(i) es el tiempo esperado del viajero
+  *representativo* de la ubicación. Sigue siendo común por ubicación (no
+  reintroduce el problema de la inversión).
 - **Veredicto**: Bug del modelo acoplado corregido (decisión del autor del
   modelo, jun-2026). NO reintroducir T por estrato en el bid-rent.
 
@@ -609,6 +616,31 @@ Convenciones:
 
 ---
 
+## D-25 — Uso de suelo: Q sin la ponderación H_h de la subasta (no conservaba hogares por estrato)
+
+- **Síntoma**: con `H_por_estrato` heterogéneo (default web `[1000, 4000, 5000]`)
+  la asignación espacial se veía "rara": el estrato alto sobrerrepresentado
+  (Σ_i S_i·Q[1,i] ≈ 2287 con solo 1000 hogares) y la asignación final
+  (`asignar_hogares_simple`) lo corregía agotando cuotas en orden de barrido,
+  distorsionando el patrón espacial.
+- **Causa**: `_solve_fixed_point` (y los solvers del commit inicial, portados
+  verbatim de `Ciudad2.py`) calculaban la matriz final como
+  `Q[h,i] ∝ e^{β(s_hi − ū_h)}` — **sin el factor `H_h`**. La ec. (3) del
+  `Suelo.tex` es `Q_hi = H_h·e^{βw}/Σ_g H_g·e^{βw}`: la parcela la disputan
+  `H_g` postores de cada tipo, y el máximo de `H_g` Gumbel i.i.d. corre la
+  ubicación en `ln(H_g)/β`. El propio punto fijo y el precio (`e^{βp_i} =
+  Σ_g H_g·e^{β(s_gi − ū_g)}`) sí incluían `H` — solo el `Q` devuelto lo omitía.
+  Con `H` igual entre estratos (el default histórico, 33300×3) el factor se
+  cancela, por eso pasó inadvertido.
+- **Fix (jun-2026)**: `log_q = log(H) + β(score − ū − p_i)`, normalizado por
+  columna. Verificado: `Σ_i S_i·Q[h,i] = H_h` exacto en ambos solvers
+  (test de regresión `test_q_conserva_hogares_por_estrato_con_H_desigual`).
+  El punto fijo, `ū` y `p` no cambian (ya eran correctos).
+- **Veredicto**: Bug del port corregido (afectaba ambos solvers); ahora fiel a
+  Suelo.tex ec. 3.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -637,3 +669,4 @@ Convenciones:
 | D-22 | Acoplado: accesibilidad común por ubicación (no por estrato) | Bug del modelo corregido | Alta |
 | D-23 | Acoplado: baseline "sin feedback" en min a flujo libre (no índices) | Artefacto de unidades corregido | Alta |
 | D-24 | Acoplado: gridlock monocéntrico → población por escenario | Acotado por config (robustez pendiente) | Media |
+| D-25 | Suelo: Q sin ponderación H_h (no conservaba hogares por estrato) | Bug del port corregido | Alta |

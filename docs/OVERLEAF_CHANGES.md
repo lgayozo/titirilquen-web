@@ -114,9 +114,15 @@ utilidad** vía el *score*
     s_hi := λ_h·y_h + f_h(i)           (⇒ β_h·w_hi = β·(s_hi − ū_h))
 
 donde `s_hi = U_hi(0)` es la **utilidad bruta** (a renta nula). La subasta es
-entonces un logit con índice `β·(s_hi − ū_h)`:
+entonces un logit con índice `β·(s_hi − ū_h)`, **ponderado por el número de
+postores de cada tipo** (la parcela la disputan `H_g` hogares de cada estrato;
+el máximo de `H_g` Gumbel i.i.d. desplaza la ubicación en `ln(H_g)/β` — igual
+que la ec. 3 del `Suelo.tex`):
 
-    Q_hi = e^{β(s_hi − ū_h)} / Σ_g e^{β(s_gi − ū_g)}        (columnas suman 1).
+    Q_hi = H_h·e^{β(s_hi − ū_h)} / Σ_g H_g·e^{β(s_gi − ū_g)}    (columnas suman 1).
+
+En el equilibrio esto conserva los hogares por estrato: `Σ_i S_i·Q_hi = H_h`
+(ver D-25 — la implementación original omitía el factor `H_h`).
 
 > El método `logit` (inconsistente) es el mismo operador con `s_hi = y_h + f_h(i)/λ_h`.
 

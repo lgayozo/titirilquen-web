@@ -72,9 +72,10 @@ export interface StratumMetrics {
   tiempo_medio_min: number;
   reparto_modal: RepartoModal;
   costo_medio_clp: number;
-  /** Excedente del consumidor de transporte (logsum / −b_costo), en $.
-   *  Eficiencia/DAP, NO bienestar interpersonal (b_costo varía por estrato). */
-  excedente_consumidor_clp: number;
+  /** Δ excedente del consumidor vs flujo libre ((logsum − logsum_ff) / −b_costo),
+   *  en $. Costo de bienestar de la congestión; ≤ 0. Eficiencia/DAP, NO
+   *  bienestar interpersonal (b_costo varía por estrato). */
+  delta_excedente_clp: number;
   /** Costo de transporte / ingreso del estrato. Lente de equidad. */
   carga_costo_ingreso: number;
 }
@@ -93,7 +94,8 @@ export interface SystemMetrics {
   emisiones_auto_kg: number;
   emisiones_metro_kg: number;
   segregacion_theil: number;
-  bienestar_total_clp: number;
+  /** Σ_h hogares_h · ΔCS_h ($): costo de bienestar agregado de la congestión. */
+  delta_bienestar_total_clp: number;
   ratio_tiempo_bajo_alto: number | null;
   ratio_carga_bajo_alto: number | null;
 }

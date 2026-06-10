@@ -143,3 +143,21 @@ def test_alpha_mas_alto_atrae_cerca_del_cbd() -> None:
     dist_media = np.array([np.sum(conteos[h] * dist) / max(conteos[h].sum(), 1) for h in range(3)])
     # α=3.0 (h=0) debería estar estrictamente más cerca que α=0.5 (h=2)
     assert dist_media[0] < dist_media[2], f"dist_media={dist_media}"
+
+
+def test_q_conserva_hogares_por_estrato_con_H_desigual() -> None:
+    """Σ_i S_i·Q[h,i] = H_h en el equilibrio (Suelo.tex ec. 3; ver D-25).
+
+    Regresión: el Q devuelto omitía la ponderación H_h de la subasta, así que
+    con H heterogéneo la composición no conservaba los hogares por estrato
+    (p.ej. H=(1000,4000,5000) daba ≈(2287,3149,4565))."""
+    args = _toy_scenario(np.array([1.0, 1.0, 1.0]))
+    args["H"] = np.array([1000, 4000, 5000])
+    # Recalzar oferta = demanda tras cambiar H.
+    diff = int(args["H"].sum() - args["S"].sum())
+    args["S"][0] += diff
+    for solver in (solve_logit, solve_heteroscedastic):
+        res = solver(**args)
+        assert res.converged
+        hogares = res.Q @ args["S"].astype(float)
+        np.testing.assert_allclose(hogares, args["H"].astype(float), rtol=1e-6)

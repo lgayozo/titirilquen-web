@@ -35,10 +35,10 @@ const fmtRatio = (v: number | null) => (v == null ? "—" : `${v.toFixed(2)}×`)
  *   - Una tabla **por estrato** (los distintos usuarios).
  *   - Un panel **del sistema** (el equilibrio agregado).
  *
- * Caveat de interpretación (replicado de la discusión λ/y): el excedente del
- * consumidor en $ es comparable como *eficiencia/DAP*, no como bienestar
- * interpersonal. La lectura distributiva va por la carga (costo/ingreso) y el
- * tiempo.
+ * Caveat de interpretación (replicado de la discusión λ/y): el Δ excedente del
+ * consumidor (vs flujo libre — costo de bienestar de la congestión, ≤ 0) en $
+ * es comparable como *eficiencia/DAP*, no como bienestar interpersonal. La
+ * lectura distributiva va por la carga (costo/ingreso) y el tiempo.
  */
 export function EquilibriumMetricsTable({ last, first, className }: Props) {
   const { t } = useTranslation("simulator");
@@ -65,7 +65,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
     { key: "tiempo", label: t("eqt.tiempo"), get: (s) => s.tiempo_medio_min, fmt: fmtMin },
     { key: "costo", label: t("eqt.costo"), get: (s) => s.costo_medio_clp, fmt: fmtMoney },
     { key: "carga", label: t("eqt.carga"), get: (s) => s.carga_costo_ingreso, fmt: fmtPct },
-    { key: "cs", label: t("eqt.cs"), get: (s) => s.excedente_consumidor_clp, fmt: fmtMoney },
+    { key: "cs", label: t("eqt.cs"), get: (s) => s.delta_excedente_clp, fmt: fmtMoney },
   ];
 
   return (
@@ -174,7 +174,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
         <Stat label={t("eqt.freq")} value={`${sys.frecuencia_metro.toFixed(1)}`} sub={t("eqt.freq_sub")} />
         <Stat label={t("eqt.emissions")} value={`${fmtInt(sys.emisiones_total_kg)}`} sub={t("eqt.emissions_sub")} />
         <Stat label={t("eqt.theil")} value={sys.segregacion_theil.toFixed(3)} sub={t("eqt.theil_sub")} />
-        <Stat label={t("eqt.welfare_total")} value={fmtMoney(sys.bienestar_total_clp)} sub={t("eqt.welfare_total_sub")} />
+        <Stat label={t("eqt.welfare_total")} value={fmtMoney(sys.delta_bienestar_total_clp)} sub={t("eqt.welfare_total_sub")} />
         <Stat label={t("eqt.regress_time")} value={fmtRatio(sys.ratio_tiempo_bajo_alto)} sub={t("eqt.regress_time_sub")}
           warn={(sys.ratio_tiempo_bajo_alto ?? 0) > 1} />
         <Stat label={t("eqt.regress_burden")} value={fmtRatio(sys.ratio_carga_bajo_alto)} sub={t("eqt.regress_burden_sub")}

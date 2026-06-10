@@ -141,7 +141,9 @@ export const defaultSimulationConfig: SimulationConfig = {
     },
   },
   demand: defaultDemandConfig,
-  max_iter: 12,
+  // 20 (no 12): margen para la cola lenta ~1/it del MSA en escenarios rígidos
+  // (ciclovía saturada / densidad alta); el corte real es por tolerance (D-21/H4).
+  max_iter: 20,
   // Criterio de convergencia: corta cuando el máximo cambio de tiempo de viaje
   // (cualquier modo/celda) es < tolerance min en 2 iteraciones consecutivas.
   tolerance: 0.1,

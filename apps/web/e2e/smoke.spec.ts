@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 const ROUTES = [
   { name: "Transporte", path: "/sandbox" },
   { name: "Uso de suelo", path: "/land-use" },
-  { name: "Acoplado", path: "/coupled" },
+  { name: "Ciudad en equilibrio", path: "/coupled" },
   { name: "Comparar", path: "/compare" },
   { name: "Acerca de", path: "/about" },
   { name: "Tutorial", path: "/" },

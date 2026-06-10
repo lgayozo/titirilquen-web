@@ -26,16 +26,16 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
   if (withKpis.length === 0) return null;
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+    <div className="overflow-x-auto rounded-lg border border-[var(--rule)]">
       <table className="w-full text-xs">
-        <thead className="bg-slate-50 dark:bg-slate-900">
-          <tr className="border-b border-slate-200 dark:border-slate-800">
+        <thead className="bg-[var(--paper-2)]">
+          <tr className="border-b border-[var(--rule)]">
             <th className="px-3 py-2 text-left font-semibold">{t("compare.kpi.metric")}</th>
             {scenarios.map((s) => (
               <th key={s.id} className="px-3 py-2 text-right font-semibold">
                 {s.name}{" "}
                 {base?.id === s.id && (
-                  <span className="text-slate-400">{t("compare.kpi.base")}</span>
+                  <span className="text-[var(--muted)]">{t("compare.kpi.base")}</span>
                 )}
               </th>
             ))}
@@ -176,7 +176,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
       <tr>
         <td
           colSpan={99}
-          className="bg-slate-100/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-900/50"
+          className="bg-[var(--paper-2)] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]"
         >
           {label}
         </td>
@@ -199,12 +199,12 @@ interface KPIRowProps {
 
 function KPIRow({ label, scenarios, valueOf, baseKpis, formatter, deltaFormatter, invertedSign }: KPIRowProps) {
   return (
-    <tr className="border-b border-slate-100 hover:bg-slate-50/50 dark:border-slate-900 dark:hover:bg-slate-900/50">
-      <td className="px-3 py-1.5 text-slate-600 dark:text-slate-300">{label}</td>
+    <tr className="border-b border-[var(--rule)] hover:bg-[var(--paper-2)]">
+      <td className="px-3 py-1.5 text-[var(--ink-2)]">{label}</td>
       {scenarios.map((s) => {
         if (!s.kpis) {
           return (
-            <td key={s.id} className="px-3 py-1.5 text-right text-slate-300">
+            <td key={s.id} className="px-3 py-1.5 text-right text-[var(--muted)]">
               —
             </td>
           );
@@ -235,9 +235,9 @@ function KPIRow({ label, scenarios, valueOf, baseKpis, formatter, deltaFormatter
 
 function deltaColor(delta: number, inverted?: boolean): string {
   const positiveIsGood = !inverted;
-  if (Math.abs(delta) < 1e-3) return "text-slate-400";
+  if (Math.abs(delta) < 1e-3) return "text-[var(--muted)]";
   const good = positiveIsGood ? delta > 0 : delta < 0;
   return good
-    ? "text-green-600 dark:text-green-400"
-    : "text-red-600 dark:text-red-400";
+    ? "text-[var(--bici)]"
+    : "text-[var(--metro)]";
 }

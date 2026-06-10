@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 
 interface BidPriceCurveProps {
   p: readonly number[];
+  /** Solver de suelo que produjo `p` — define las unidades de la nota al pie:
+   * `logit` puja en $ (WTP); `heteroscedastic` score en utiles (no convertible a $). */
+  solver?: "heteroscedastic" | "logit";
   className?: string;
   height?: number;
 }
@@ -19,9 +23,11 @@ const MARGIN = { top: 8, right: 8, bottom: 22, left: 52 };
  */
 export function BidPriceCurve({
   p,
+  solver,
   className,
   height = 160,
 }: BidPriceCurveProps) {
+  const { t } = useTranslation("simulator");
   const { path, max, yTicks } = useMemo(() => {
     const finite = p.filter(Number.isFinite);
     const mn = finite.length ? Math.min(...finite) : 0;
@@ -157,7 +163,7 @@ export function BidPriceCurve({
           textAnchor="middle"
           transform="rotate(-90)"
         >
-          PRECIO (REL.)
+          {t("bid_price.y_label")}
         </text>
       </svg>
 
@@ -172,7 +178,13 @@ export function BidPriceCurve({
           textAlign: "right",
         }}
       >
-        RELATIVO · 0 = PERIFERIA · Δ {fmt(max)} (precio salvo constante)
+        {t("bid_price.footer", { delta: fmt(max) })}
+        {solver && (
+          <>
+            <br />
+            {t(`bid_price.units_${solver}`)}
+          </>
+        )}
       </div>
     </div>
   );

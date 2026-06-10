@@ -28,7 +28,11 @@
     "pendiente_porcentaje": "Slope (%)",
     "teletrabajo_factor": "Remote-work factor",
     "cbd_label": "{{n}} cells · CBD at center",
-    "density_unit": "pop/cell"
+    "density_unit": "pop/cell",
+    "n_celdas_hint": "Spatial resolution: more cells = smoother profiles but slower simulation. Does not change the model physics.",
+    "densidad_hint": "Total demand = density × cells. Very high values can saturate the whole network (gridlock) and hinder convergence.",
+    "pendiente_hint": "Corridor slope: it slows the bike toward the CBD (uphill) and favors it on the way back.",
+    "teletrabajo_hint": "Scales each stratum's remote-work probability: those agents don't travel and leave the peak demand."
   },
   "economy_params": {
     "tarifa_metro": "Metro fare",
@@ -260,7 +264,15 @@
     "solver_hint_logit": "Uniform β over the bid y + f/λ: inconsistent with heterogeneous λ (scales the noise per stratum). For comparison.",
     "lambda_na_het": "Does not move the allocation with the heteroscedastic solver: sorting is governed by α and ρ. (It does in the logit, but as an artifact of its inconsistency.)",
     "lambda_artifact_logit": "⚠ It does move the allocation, but this is a logit artifact (inconsistent with heterogeneous λ): it scales the per-stratum noise, not a real income effect. The heteroscedastic solver (default) fixes it.",
-    "y_na": "Does not affect the allocation in either solver: income enters only as a per-stratum constant (λ·y or y) and is absorbed into the equilibrium utility. Sorting is governed by α and ρ."
+    "y_na": "Does not affect the allocation in either solver: income enters only as a per-stratum constant (λ·y or y) and is absorbed into the equilibrium utility. Sorting is governed by α and ρ.",
+    "intro": "Bid-rent theory predicts that households with the highest valuation of accessibility to the center outbid the rest for parcels near the CBD, pushing lower-valuation groups toward the periphery.",
+    "distribution_meta": "bid-rent · 3 strata"
+  },
+  "bid_price": {
+    "y_label": "PRICE (REL.)",
+    "footer": "RELATIVE · 0 = PERIPHERY · Δ {{delta}} (price up to a constant)",
+    "units_heteroscedastic": "Utility units (score λ·y + f): only the gradient is informative, not convertible to $.",
+    "units_logit": "Monetary units (bid y + f/λ, willingness to pay)."
   },
   "supply_builder": {
     "bpr_curve_auto": "BPR curve — Car",
@@ -387,7 +399,9 @@
       "accessibility_body": "High gained {{alto}}, low {{bajo}} (ratio {{ratio}}×). Asymmetric distribution of CBD access.",
       "stable_title": "Stable equilibrium",
       "stable_body": "Outer iterations did not meaningfully shift aggregate metrics. Feedback was weak in this scenario — try a more aggressive policy."
-    }
+    },
+    "placeholder_title": "City in equilibrium · land ↔ transport",
+    "placeholder_desc": "The outer loop alternates three steps: (1) bid-rent allocates households given accessibility T(i), (2) that population runs the transport equilibrium (MSA), (3) the new travel times update T. It iterates until T stabilizes."
   },
   "coupled_metrics": {
     "header": "Interdependence metrics",
@@ -412,7 +426,7 @@
     "tiempo": "Mean travel time",
     "costo": "Transport cost",
     "carga": "Burden (cost / income)",
-    "cs": "Consumer surplus",
+    "cs": "Δ Surplus vs empty network",
     "input_badge": "input",
     "delta_note": "Δ = change vs iteration 0 (no feedback). Metrics tagged «input» are scenario data and do not change with feedback.",
     "modal_system": "System",
@@ -435,13 +449,13 @@
     "emissions_sub": "kg/h (total)",
     "theil": "Segregation (Theil)",
     "theil_sub": "0 = integrated · 1 = total",
-    "welfare_total": "Total welfare",
-    "welfare_total_sub": "Σ households · CS ($)",
+    "welfare_total": "Δ Welfare (network)",
+    "welfare_total_sub": "Σ households · ΔCS vs empty network ($)",
     "regress_time": "Regressivity (time)",
     "regress_time_sub": "time low / high",
     "regress_burden": "Regressivity (burden)",
     "regress_burden_sub": "burden low / high",
-    "caveat": "Consumer surplus is in $ as an efficiency / willingness-to-pay measure, NOT interpersonal welfare: $1 is worth differently to each stratum (b_costo varies ~7.5×). For the distributional reading, look at the burden (cost/income) and time. Δ is vs iteration 0 (no feedback)."
+    "caveat": "The surplus Δ compares the observed logsum against the same network with zero demand (BPR at 0, train at minimum frequency): Δ<0 ⇒ congestion dominates; Δ>0 ⇒ the Mohring effect dominates (more demand ⇒ higher frequency ⇒ less waiting). It is in $ as efficiency / willingness to pay, NOT interpersonal welfare: $1 is worth differently to each stratum (b_costo varies ~7.5×). For the distributional reading, look at the burden (cost/income) and time. The table's Δ is vs iteration 0 (no feedback)."
   },
   "convergence": {
     "x_iter": "Iteration",
@@ -543,5 +557,14 @@
     "demand_label": "Origins",
     "spec_demand": "{{pop}}/cell",
     "tab": "Blueprint"
+  },
+  "panel_meta": {
+    "modes_all": "car · metro · bike · walk",
+    "co2": "kg/h · per cell",
+    "share_stratum": "share · stratum",
+    "ownership_stratum": "ownership · stratum",
+    "utility_position": "utility · position",
+    "avg_min": "average · min",
+    "avg_util": "average · util"
   }
 }
