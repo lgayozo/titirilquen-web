@@ -32,7 +32,8 @@
     "densidad_hint": "≈ {{cuadra}} hogares por cuadra de 100 m · población total = densidad × largo = {{total}}. Valores muy altos saturan la red (gridlock).",
     "pendiente_hint": "Pendiente del corredor: castiga la velocidad de la bici hacia el CBD (subida) y la favorece de vuelta.",
     "teletrabajo_hint": "Escala la probabilidad de teletrabajar de cada estrato: esos agentes no viajan y salen de la demanda de punta.",
-    "densidad_hab_km": "Densidad (hab/km)"
+    "densidad_hab_km": "Densidad (hab/km)",
+    "meta": "{{km}} km · {{n}} celdas"
   },
   "economy_params": {
     "tarifa_metro": "Tarifa Metro",
@@ -45,7 +46,8 @@
       "v_media_kmh": "Velocidad media (km/h)",
       "capacidad_pista": "Capacidad ciclovía (bici/h)",
       "alpha_bpr": "α BPR",
-      "beta_bpr": "β BPR"
+      "beta_bpr": "β BPR",
+      "unit": "bici/h"
     },
     "car": {
       "v_max_kmh": "Velocidad máxima (km/h)",
@@ -269,7 +271,10 @@
     "lambda_artifact_logit": "⚠ Sí mueve la asignación, pero es un artefacto del logit (inconsistente con λ heterogéneo): escala el ruido por estrato, no es un efecto-ingreso real. El heteroscedástico (default) lo corrige.",
     "y_na": "No afecta la asignación en ningún solver: el ingreso entra solo como constante por estrato (λ·y o y) y se absorbe en la utilidad de equilibrio. El ordenamiento lo gobiernan α y ρ.",
     "intro": "La teoría del bid-rent predice que los hogares con mayor valoración de la accesibilidad al centro superan en subasta a los demás por parcelas cercanas al CBD, empujando a los grupos de menor valoración hacia la periferia.",
-    "distribution_meta": "bid-rent · 3 estratos"
+    "distribution_meta": "bid-rent · 3 estratos",
+    "relation": "Este módulo resuelve SOLO el suelo, con transporte fijo a flujo libre. Para el loop completo suelo ↔ transporte, ver «Ciudad en equilibrio».",
+    "placeholder_title": "Uso de suelo · la subasta del espacio",
+    "placeholder_desc": "El equilibrio Alonso asigna los hogares por subasta: cada estrato puja por las parcelas según su valoración de la accesibilidad (α·T) y su rechazo a la densidad (ρ·dens). El estrato que más valora la cercanía gana el centro; el resto se ordena hacia la periferia. Ajustá la forma de la ciudad y los parámetros por estrato en el panel izquierdo."
   },
   "bid_price": {
     "y_label": "PRECIO (REL.)",
@@ -286,7 +291,7 @@
   },
   "compare": {
     "title": "Comparación de escenarios",
-    "subtitle": "Carga hasta 4 configuraciones en paralelo. La primera con resultado se toma como línea base; las demás muestran el delta.",
+    "subtitle": "Hasta 4 configuraciones en paralelo · la primera con resultado es la base",
     "ready_count": "{{done}} de {{total}} listos",
     "add_scenario": "Añadir escenario",
     "kpis": "KPIs",
@@ -329,7 +334,7 @@
   },
   "coupled": {
     "eyebrow": "Análisis conjunto suelo↔transporte",
-    "title": "Interdependencia",
+    "title": "Ciudad en equilibrio",
     "lede": "Transporte y uso de suelo no son sistemas independientes. La congestión reacomoda hogares; la nueva localización cambia la demanda; la demanda reconfigura la red. Esta página te permite correr un escenario conjunto y comparar el equilibrio ingenuo (sin feedback) con el acoplado (con feedback).",
     "run": "Simular escenario",
     "running": "Simulando…",
@@ -404,7 +409,10 @@
       "stable_body": "Las iteraciones exteriores no cambiaron significativamente las métricas agregadas. El feedback fue débil en este escenario — probá una política más agresiva."
     },
     "placeholder_title": "Ciudad en equilibrio · suelo ↔ transporte",
-    "placeholder_desc": "El loop exterior alterna tres pasos: (1) el bid-rent asigna los hogares según la accesibilidad T(i), (2) esa población corre el equilibrio de transporte (MSA), (3) los nuevos tiempos actualizan T. Itera hasta que T se estabiliza."
+    "placeholder_desc": "El loop exterior alterna tres pasos: (1) el bid-rent asigna los hogares según la accesibilidad T(i), (2) esa población corre el equilibrio de transporte (MSA), (3) los nuevos tiempos actualizan T. Itera hasta que T se estabiliza.",
+    "params_city_land": "Ciudad y suelo",
+    "params_transport": "Transporte",
+    "unit_households": "hog"
   },
   "coupled_metrics": {
     "header": "Métricas de interdependencia",

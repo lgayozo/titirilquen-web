@@ -93,7 +93,7 @@ export function SupplyBuilder({
 
       <SidebarSection
         title={`${t("sections.supply")} · ${t("modes.bici")}`}
-        meta={`${bike.capacidad_pista} bici/h`}
+        meta={`${bike.capacidad_pista} ${t("supply_params.bike.unit")}`}
         defaultOpen={false}
       >
         <LabeledSlider
@@ -111,7 +111,7 @@ export function SupplyBuilder({
           min={200}
           max={6000}
           step={100}
-          unit="bici/h"
+          unit={t("supply_params.bike.unit")}
           onChange={(v) => setSupply("bike", { capacidad_pista: v })}
         />
         <BPRCurve

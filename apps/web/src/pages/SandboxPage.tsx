@@ -677,7 +677,9 @@ export function SandboxPage() {
         {kpiCaption && <div className="kpi-caption">{kpiCaption}</div>}
         <KPIStrip items={kpis} />
 
-        {/* Hint row — guía pedagógica */}
+        {/* Hint row — guía pedagógica (solo antes de la primera corrida: tras
+            simular, los resultados mandan y los hints serían ruido) */}
+        {!hasData && (
         <div className="hint-row">
           <div className="hint">
             <strong>{t("hints.demand_title")}</strong>
@@ -692,24 +694,7 @@ export function SandboxPage() {
             {t("hints.equilibrium_body")}
           </div>
         </div>
-
-        {/* Inspector de utilidad — descomposición del logit para una celda/
-            estrato; lo referencia el tutorial de demanda. Antes de correr usa
-            tiempos de flujo libre; después, los de la última iteración. */}
-        <div className="panel-grid" style={{ marginBottom: "var(--gap)" }}>
-          <Panel
-            n="0i"
-            title={t("demand_inspector.title")}
-            meta={
-              lastIter
-                ? t("demand_inspector.hint_with_sim")
-                : t("demand_inspector.hint_no_sim")
-            }
-            cls="col-12"
-          >
-            <DemandInspector config={cfgRes} lastIter={lastIter} />
-          </Panel>
-        </div>
+        )}
 
         {/* Estado de corrida (mantiene animaciones) */}
         {(stage === "booting" || stage === "running") && progress && (
@@ -836,7 +821,7 @@ export function SandboxPage() {
 
             {result && result.emisiones_perfil_kg && (
               <Panel
-                n="4c"
+                n="05"
                 title={t("sandbox.co2_profile")}
                 meta={t("panel_meta.co2")}
                 cls="col-12"
@@ -861,7 +846,7 @@ export function SandboxPage() {
             {result && result.agentes.length > 0 && (
               <>
                 <Panel
-                  n="05"
+                  n="06"
                   title={t("sandbox.trips_by_stratum")}
                   meta={t("panel_meta.share_stratum")}
                   cls="col-6"
@@ -876,7 +861,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="06"
+                  n="07"
                   title={t("sandbox.trips_by_car_ownership")}
                   meta={t("panel_meta.ownership_stratum")}
                   cls="col-6"
@@ -891,7 +876,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="07"
+                  n="08"
                   title={t("sandbox.utility_scatter")}
                   meta={t("panel_meta.utility_position")}
                   cls="col-7"
@@ -910,7 +895,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="08"
+                  n="09"
                   title={t("sandbox.mode_share_by_location")}
                   meta="stacked · 100%"
                   cls="col-5"
@@ -931,7 +916,7 @@ export function SandboxPage() {
                 {avgStats && (
                   <>
                     <Panel
-                      n="09"
+                      n="10"
                       title={t("sandbox.avg_time_by_mode")}
                       meta={t("panel_meta.avg_min")}
                       cls="col-4"
@@ -946,7 +931,7 @@ export function SandboxPage() {
                     </Panel>
 
                     <Panel
-                      n="10"
+                      n="11"
                       title={t("sandbox.avg_time_by_stratum")}
                       meta={t("panel_meta.avg_min")}
                       cls="col-4"
@@ -961,7 +946,7 @@ export function SandboxPage() {
                     </Panel>
 
                     <Panel
-                      n="11"
+                      n="12"
                       title={t("sandbox.avg_utility_by_stratum")}
                       meta={t("panel_meta.avg_util")}
                       cls="col-4"
@@ -980,6 +965,24 @@ export function SandboxPage() {
             )}
           </div>
         )}
+
+        {/* Inspector de utilidad — descomposición del logit para una celda/
+            estrato; lo referencia el tutorial de demanda. Antes de correr usa
+            tiempos de flujo libre; después, los de la última iteración. */}
+        <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
+          <Panel
+            n="13"
+            title={t("demand_inspector.title")}
+            meta={
+              lastIter
+                ? t("demand_inspector.hint_with_sim")
+                : t("demand_inspector.hint_no_sim")
+            }
+            cls="col-12"
+          >
+            <DemandInspector config={cfgRes} lastIter={lastIter} />
+          </Panel>
+        </div>
       </section>
     </div>
   );

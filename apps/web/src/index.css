@@ -189,16 +189,12 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 20px;
+  padding: 9px 20px;
   background: var(--paper);
   border-bottom: 1px solid var(--rule);
 }
 
 .topbar .logo {
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -206,26 +202,106 @@ a:hover {
   flex-shrink: 0;
 }
 
+/* Logo institucional a tamaño legible. */
 .topbar .logo img {
-  height: 30px;
+  height: 34px;
   width: auto;
 }
 
-.topbar .sub {
-  font-family: var(--font-fig);
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  display: none;
+.brand-divider {
+  width: 1px;
+  height: 30px;
+  background: var(--rule);
 }
 
-@media (min-width: 1440px) {
-  .topbar .sub {
-    display: block;
-  }
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
+
+.topbar .logo .brand {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.topbar .logo .brand-sub {
+  font-family: var(--font-fig);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Agrupación de herramientas a la derecha, con etiqueta de contexto. */
+.topbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.tools-label {
+  font-family: var(--font-fig);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.nav-burger {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-fig);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+/* Menú colapsado (≤1000px): empuja el contenido, sin overlay. */
+.nav-menu {
+  position: sticky;
+  top: 54px; /* = altura del topbar */
+  z-index: 49;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  padding: 4px 20px 12px;
+}
+
+.nav-menu a {
+  font-family: var(--font-fig);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  text-decoration: none;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.nav-menu a.active {
+  color: var(--accent);
+}
+
+.nav-menu-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+}
+
 
 .topbar .spacer {
   flex: 1;
@@ -2681,3 +2757,41 @@ table.cmp th {
   background: var(--accent);
   color: var(--paper);
 }
+
+/* Topbar colapsado: al final del archivo para ganar la cascada sobre las
+   reglas base de .nav/.topbar-tools (misma especificidad). */
+@media (max-width: 1000px) {
+  .topbar .nav,
+  .topbar .topbar-tools {
+    display: none;
+  }
+  .nav-burger {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbar .logo img {
+    height: 26px;
+  }
+  .topbar .logo .brand {
+    font-size: 17px;
+  }
+  .topbar .logo .brand-sub {
+    display: none;
+  }
+}
+
+/* Métricas del sistema (Ciudad en equilibrio): 8 stats en 4×2, balanceado. */
+.eqt-sys-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+@media (max-width: 700px) {
+  .eqt-sys-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

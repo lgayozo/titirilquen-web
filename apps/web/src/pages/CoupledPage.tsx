@@ -146,18 +146,29 @@ export function CoupledPage() {
     : null;
 
   // Palancas del escenario, para el KPIStrip de parámetros.
-  const kpis: KPI[] = useMemo(() => {
+  // Parámetros agrupados en dos filas con sentido (antes una sola grilla de 10
+  // ítems que dejaba un huérfano en la segunda fila): ciudad+suelo (3) arriba,
+  // transporte (7) abajo.
+  const { kpisCityLand, kpisTransport } = useMemo(() => {
     const groupColor: Record<string, string> = {
       city: "var(--s2)",
       land_use: "var(--accent)",
       transport: "var(--ink)",
     };
-    return describePresetParams(sim, landUseEff).map((p) => ({
-      label: tS(p.labelKey),
-      value: p.value,
-      unit: p.unit,
-      color: groupColor[p.group],
+    const all = describePresetParams(sim, landUseEff).map((p) => ({
+      group: p.group,
+      kpi: {
+        label: tS(p.labelKey),
+        value: p.value,
+        // "hog" (hogares) es la única unidad con idioma; el resto son símbolos.
+        unit: p.unit === "hog" ? tS("coupled.unit_households") : p.unit,
+        color: groupColor[p.group],
+      } as KPI,
     }));
+    return {
+      kpisCityLand: all.filter((x) => x.group !== "transport").map((x) => x.kpi),
+      kpisTransport: all.filter((x) => x.group === "transport").map((x) => x.kpi),
+    };
   }, [sim, landUseEff, tS]);
 
   const L = sim.city.n_celdas;
@@ -328,7 +339,10 @@ export function CoupledPage() {
                 ? tS("coupled.preset_detail_hint_custom")
                 : tS("coupled.preset_detail_hint")}
             </p>
-            <KPIStrip items={kpis} />
+            <div className="kpi-caption">{tS("coupled.params_city_land")}</div>
+            <KPIStrip items={kpisCityLand} />
+            <div className="kpi-caption">{tS("coupled.params_transport")}</div>
+            <KPIStrip items={kpisTransport} />
           </Panel>
         </div>
 
@@ -346,7 +360,7 @@ export function CoupledPage() {
             {result && (
               <div className="panel-grid">
                 <Panel
-                  n="03"
+                  n="04"
                   title={tS("coupled.convergence_title")}
                   meta={tS("coupled.convergence_meta")}
                   cls="col-12"
@@ -360,7 +374,7 @@ export function CoupledPage() {
             {last && (
               <div className="panel-grid">
                 <Panel
-                  n="99"
+                  n="05"
                   title={tS("eqt.title")}
                   meta={tS("coupled_metrics.outer_count", { n: iters.length })}
                   cls="col-12"
@@ -417,7 +431,7 @@ function Comparison({ first, last, supply, tS, stage, iters }: ComparisonProps) 
   return (
     <div className="panel-grid">
       <Panel
-        n="01"
+        n="02"
         title={tS("coupled.without_feedback")}
         meta={tS("coupled.iter_n", { n: first.outer_iter + 1 })}
         cls="col-6"
@@ -427,7 +441,7 @@ function Comparison({ first, last, supply, tS, stage, iters }: ComparisonProps) 
       </Panel>
 
       <Panel
-        n="02"
+        n="03"
         title={tS("coupled.with_feedback")}
         meta={
           isSameIter

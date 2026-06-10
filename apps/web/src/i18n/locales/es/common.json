@@ -8,7 +8,8 @@
     "land_use": "Uso de suelo",
     "coupled": "Ciudad en equilibrio",
     "compare": "Comparar",
-    "about": "Acerca de"
+    "about": "Acerca de",
+    "menu": "Menú"
   },
   "language": {
     "label": "Idioma",
@@ -88,5 +89,6 @@
       "uchile": "U. de Chile",
       "transport": "Transporte"
     }
-  }
+  },
+  "scenario_label": "Escenario"
 }

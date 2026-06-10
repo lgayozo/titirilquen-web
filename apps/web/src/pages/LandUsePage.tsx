@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { LandUseBuilder } from "@/components/modules/LandUseBuilder";
@@ -168,6 +169,12 @@ export function LandUsePage() {
           >
             {tS("land_use.intro")}
           </p>
+          <p className="kpi-caption" style={{ marginTop: 8, marginBottom: 0 }}>
+            {tS("land_use.relation")}{" "}
+            <Link to="/coupled" style={{ color: "var(--accent)" }}>
+              →
+            </Link>
+          </p>
         </div>
 
         {hasResult ? (
@@ -235,6 +242,20 @@ export function LandUsePage() {
                 {tS("land_use.shape_preview_caption")}
               </p>
             </Panel>
+
+            <div className="col-12">
+              <div className="coupled-placeholder">
+                <div className="coupled-placeholder-title">
+                  {tS("land_use.placeholder_title")}
+                </div>
+                <p className="coupled-placeholder-desc">
+                  {tS("land_use.placeholder_desc")}
+                </p>
+                <div className="coupled-placeholder-cta">
+                  {tS("land_use.run_placeholder")}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </section>

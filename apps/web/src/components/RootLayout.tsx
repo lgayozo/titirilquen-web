@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -30,6 +30,7 @@ export function RootLayout() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const replaceConfig = useSimulationStore((s) => s.replaceConfig);
+  const [menuOpen, setMenuOpen] = useState(false);
   const setLandUseConfig = useLandUseStore((s) => s.setConfig);
   const setCoupledPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
   const setCoupledOuterMaxIter = useLandUseStore((s) => s.setCoupledOuterMaxIter);
@@ -60,14 +61,19 @@ export function RootLayout() {
       </a>
 
       <nav className="topbar" role="banner">
+        {/* Identidad: logo institucional legible + lockup de la app en dos
+            líneas (nombre con peso tipográfico, tagline en versalitas). */}
         <div className="logo">
           <img
             src={fcfmLogo}
             alt="Facultad de Ciencias Físicas y Matemáticas · Universidad de Chile"
           />
-          <span>{t("app_name")}</span>
+          <span className="brand-divider" aria-hidden />
+          <span className="brand-block">
+            <span className="brand">{t("app_name")}</span>
+            <span className="brand-sub">{t("app_tagline")}</span>
+          </span>
         </div>
-        <div className="sub">{t("app_tagline")}</div>
         <div className="spacer" />
         <div className="nav" aria-label={t("nav.label")}>
           {navItems.map((item) => (
@@ -81,10 +87,44 @@ export function RootLayout() {
             </NavLink>
           ))}
         </div>
-        <ScenarioToolbar />
-        <ThemeSwitcher />
-        <LanguageSwitcher />
+        <div className="topbar-tools">
+          <span className="tools-label">{t("scenario_label")}</span>
+          <ScenarioToolbar />
+          <ThemeSwitcher />
+          <LanguageSwitcher />
+        </div>
+        <button
+          type="button"
+          className="nav-burger"
+          aria-expanded={menuOpen}
+          aria-label={t("nav.menu")}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          ☰ {t("nav.menu")}
+        </button>
       </nav>
+
+      {menuOpen && (
+        <div className="nav-menu">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => cn(isActive && "active")}
+              onClick={() => setMenuOpen(false)}
+            >
+              {t(item.key)}
+            </NavLink>
+          ))}
+          <div className="nav-menu-tools">
+            <span className="tools-label">{t("scenario_label")}</span>
+            <ScenarioToolbar />
+            <ThemeSwitcher />
+            <LanguageSwitcher />
+          </div>
+        </div>
+      )}
 
       <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto overflow-x-hidden">
         <Outlet />

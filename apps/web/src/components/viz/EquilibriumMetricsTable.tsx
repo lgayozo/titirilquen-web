@@ -156,13 +156,9 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           {t("eqt.system_header")}
         </div>
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-          gap: 0,
-        }}
-      >
+      {/* Grilla fija 4×2 (8 stats): balanceada siempre — con auto-fill, en
+          anchos intermedios quedaba una fila de 7 + 1 huérfano. */}
+      <div className="eqt-sys-grid">
         <Stat label={t("eqt.convergence")}
           value={sys.convergio_exterior ? t("eqt.converged") : t("eqt.maxiter")}
           sub={t("eqt.conv_sub", {

@@ -55,7 +55,10 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
 
       <SidebarSection
         title={t("sections.city")}
-        meta={`${config.city.largo_ciudad_km} km · ${config.city.n_celdas} celdas`}
+        meta={t("city_params.meta", {
+          km: config.city.largo_ciudad_km,
+          n: config.city.n_celdas,
+        })}
       >
         <LabeledSlider
           label={t("city_params.largo_ciudad_km")}

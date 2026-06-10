@@ -1,18 +1,19 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("tema e idioma", () => {
-  test("cambia el tema vía el selector", async ({ page }) => {
+  test("cambia el tema vía el botón cíclico", async ({ page }) => {
     await page.goto("/");
     const html = page.locator("html");
-    const theme = page.getByRole("radiogroup", { name: "Tema" });
+    // Un solo botón que cicla paper → journal → dark → paper.
+    const theme = page.getByRole("banner").getByRole("button", { name: "Tema" });
 
-    await theme.getByRole("radio", { name: "Oscuro" }).click();
-    await expect(html).toHaveAttribute("data-theme", "dark");
-
-    await theme.getByRole("radio", { name: "Journal" }).click();
+    await theme.click();
     await expect(html).toHaveAttribute("data-theme", "journal");
 
-    await theme.getByRole("radio", { name: "Papel" }).click();
+    await theme.click();
+    await expect(html).toHaveAttribute("data-theme", "dark");
+
+    await theme.click();
     await expect(html).toHaveAttribute("data-theme", "paper");
   });
 

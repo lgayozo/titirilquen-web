@@ -32,7 +32,8 @@
     "densidad_hint": "≈ {{cuadra}} households per 100 m block · total population = density × length = {{total}}. Very high values saturate the network (gridlock).",
     "pendiente_hint": "Corridor slope: it slows the bike toward the CBD (uphill) and favors it on the way back.",
     "teletrabajo_hint": "Scales each stratum's remote-work probability: those agents don't travel and leave the peak demand.",
-    "densidad_hab_km": "Density (pop/km)"
+    "densidad_hab_km": "Density (pop/km)",
+    "meta": "{{km}} km · {{n}} cells"
   },
   "economy_params": {
     "tarifa_metro": "Metro fare",
@@ -45,7 +46,8 @@
       "v_media_kmh": "Mean speed (km/h)",
       "capacidad_pista": "Bikeway capacity (bike/h)",
       "alpha_bpr": "α BPR",
-      "beta_bpr": "β BPR"
+      "beta_bpr": "β BPR",
+      "unit": "bikes/h"
     },
     "car": {
       "v_max_kmh": "Max speed (km/h)",
@@ -269,7 +271,10 @@
     "lambda_artifact_logit": "⚠ It does move the allocation, but this is a logit artifact (inconsistent with heterogeneous λ): it scales the per-stratum noise, not a real income effect. The heteroscedastic solver (default) fixes it.",
     "y_na": "Does not affect the allocation in either solver: income enters only as a per-stratum constant (λ·y or y) and is absorbed into the equilibrium utility. Sorting is governed by α and ρ.",
     "intro": "Bid-rent theory predicts that households with the highest valuation of accessibility to the center outbid the rest for parcels near the CBD, pushing lower-valuation groups toward the periphery.",
-    "distribution_meta": "bid-rent · 3 strata"
+    "distribution_meta": "bid-rent · 3 strata",
+    "relation": "This module solves land use ONLY, with transport fixed at free flow. For the full land ↔ transport loop, see “City at equilibrium”.",
+    "placeholder_title": "Land use · the auction for space",
+    "placeholder_desc": "The Alonso equilibrium allocates households by auction: each stratum bids for parcels according to its valuation of accessibility (α·T) and its disutility of density (ρ·dens). The stratum that values proximity the most wins the center; the rest sort toward the periphery. Adjust the city shape and per-stratum parameters on the left panel."
   },
   "bid_price": {
     "y_label": "PRICE (REL.)",
@@ -286,7 +291,7 @@
   },
   "compare": {
     "title": "Scenario comparison",
-    "subtitle": "Load up to 4 configurations in parallel. The first with a result is the baseline; others show deltas.",
+    "subtitle": "Up to 4 configurations side by side · the first with a result is the baseline",
     "ready_count": "{{done}} of {{total}} ready",
     "add_scenario": "Add scenario",
     "kpis": "KPIs",
@@ -329,7 +334,7 @@
   },
   "coupled": {
     "eyebrow": "Joint land-use↔transport analysis",
-    "title": "Interdependence",
+    "title": "City at equilibrium",
     "lede": "Transport and land use are not independent systems. Congestion reshuffles households; the new locations change demand; demand reshapes the network. This page lets you run a joint scenario and compare the naive equilibrium (no feedback) with the coupled one (with feedback).",
     "run": "Run scenario",
     "running": "Running…",
@@ -404,7 +409,10 @@
       "stable_body": "Outer iterations did not meaningfully shift aggregate metrics. Feedback was weak in this scenario — try a more aggressive policy."
     },
     "placeholder_title": "City in equilibrium · land ↔ transport",
-    "placeholder_desc": "The outer loop alternates three steps: (1) bid-rent allocates households given accessibility T(i), (2) that population runs the transport equilibrium (MSA), (3) the new travel times update T. It iterates until T stabilizes."
+    "placeholder_desc": "The outer loop alternates three steps: (1) bid-rent allocates households given accessibility T(i), (2) that population runs the transport equilibrium (MSA), (3) the new travel times update T. It iterates until T stabilizes.",
+    "params_city_land": "City & land",
+    "params_transport": "Transport",
+    "unit_households": "hh"
   },
   "coupled_metrics": {
     "header": "Interdependence metrics",

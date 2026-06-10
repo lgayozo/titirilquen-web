@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Moon, Newspaper } from "lucide-react";
 
-import { cn } from "@/lib/cn";
 import { watchSystemTheme, type Theme } from "@/lib/theme";
 import { useThemeStore } from "@/store/themeStore";
 
@@ -27,22 +26,24 @@ export function ThemeSwitcher() {
     return cancel;
   }, [syncSystem]);
 
+  // Un solo botón que cicla paper → journal → dark: tres targets menos en el
+  // topbar. El título anuncia el tema actual y el siguiente.
+  const idx = Math.max(0, OPTIONS.findIndex((o) => o.value === theme));
+  const current = OPTIONS[idx]!;
+  const next = OPTIONS[(idx + 1) % OPTIONS.length]!;
+  const Icon = current.icon;
+
   return (
-    <div role="radiogroup" aria-label={t("theme.label")} className="seg">
-      {OPTIONS.map(({ value, icon: Icon, labelKey }) => (
-        <button
-          key={value}
-          type="button"
-          role="radio"
-          aria-checked={theme === value}
-          onClick={() => setTheme(value)}
-          title={t(labelKey)}
-          className={cn(theme === value && "active")}
-        >
-          <Icon className="h-3 w-3" aria-hidden />
-          <span className="sr-only">{t(labelKey)}</span>
-        </button>
-      ))}
+    <div className="seg">
+      <button
+        type="button"
+        onClick={() => setTheme(next.value)}
+        title={`${t(current.labelKey)} → ${t(next.labelKey)}`}
+        aria-label={t("theme.label")}
+      >
+        <Icon className="h-3 w-3" aria-hidden />
+        <span className="sr-only">{t(current.labelKey)}</span>
+      </button>
     </div>
   );
 }
