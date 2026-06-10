@@ -326,11 +326,43 @@
         "running": "running",
         "done": "ok",
         "error": "error"
-      }
+      },
+      "untitled": "Scenario {{id}}",
+      "land_line": "land: {{forma}} · population {{pob}}"
     },
     "flow_no_profile": "Mode «{{mode}}» has no per-cell demand profile.",
     "flow_empty": "No results to compare.",
-    "flow_demand_label": "Demand profile · {{mode}}"
+    "flow_demand_label": "Demand profile · {{mode}}",
+    "kind_label": "Comparing",
+    "kind": {
+      "transport": "Transport",
+      "land_use": "Land use",
+      "coupled": "City at equilibrium"
+    },
+    "coupled_hint": "Runs the full land ↔ transport loop per scenario (expected assignment · max 8 outer iterations).",
+    "not_converged": "⚠ not converged",
+    "lu": {
+      "table_title": "Land-use equilibrium · metrics",
+      "theil": "Segregation (Theil)",
+      "dist_alto": "CBD dist. · high stratum",
+      "dist_medio": "CBD dist. · middle stratum",
+      "dist_bajo": "CBD dist. · low stratum",
+      "dist_title": "Spatial distribution"
+    },
+    "cp": {
+      "table_title": "City at equilibrium · final metrics",
+      "theil": "Segregation (Theil)",
+      "t_medio": "Mean travel time",
+      "auto": "Car share",
+      "carga_bajo": "Monthly burden · low stratum",
+      "ratio_carga": "Burden ratio low/high",
+      "bienestar": "Δ Welfare (network)",
+      "emisiones": "CO₂ emissions",
+      "iteraciones": "Outer iterations",
+      "caption": "Final-equilibrium metrics for each scenario (last outer iteration). Green/red = better/worse than the baseline per metric direction; Δ Welfare is vs EACH scenario's own empty network."
+    },
+    "processing_one": "Computing 1 scenario…",
+    "processing_other": "Computing {{count}} scenarios…"
   },
   "coupled": {
     "eyebrow": "Joint land-use↔transport analysis",

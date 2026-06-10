@@ -326,11 +326,43 @@
         "running": "corriendo",
         "done": "ok",
         "error": "error"
-      }
+      },
+      "untitled": "Escenario {{id}}",
+      "land_line": "suelo: {{forma}} · población {{pob}}"
     },
     "flow_no_profile": "El modo «{{mode}}» no tiene perfil de demanda por celda.",
     "flow_empty": "Sin resultados para comparar.",
-    "flow_demand_label": "Perfil de demanda · {{mode}}"
+    "flow_demand_label": "Perfil de demanda · {{mode}}",
+    "kind_label": "Comparando",
+    "kind": {
+      "transport": "Transporte",
+      "land_use": "Uso de suelo",
+      "coupled": "Ciudad en equilibrio"
+    },
+    "coupled_hint": "Corre el loop suelo ↔ transporte completo por escenario (asignación esperada · máx. 8 iter. exteriores).",
+    "not_converged": "⚠ sin converger",
+    "lu": {
+      "table_title": "Equilibrio de suelo · métricas",
+      "theil": "Segregación (Theil)",
+      "dist_alto": "Dist. CBD · estrato alto",
+      "dist_medio": "Dist. CBD · estrato medio",
+      "dist_bajo": "Dist. CBD · estrato bajo",
+      "dist_title": "Distribución espacial"
+    },
+    "cp": {
+      "table_title": "Ciudad en equilibrio · métricas finales",
+      "theil": "Segregación (Theil)",
+      "t_medio": "Tiempo medio de viaje",
+      "auto": "Reparto Auto",
+      "carga_bajo": "Carga mensual · estrato bajo",
+      "ratio_carga": "Ratio carga bajo/alto",
+      "bienestar": "Δ Bienestar (red)",
+      "emisiones": "Emisiones CO₂",
+      "iteraciones": "Iteraciones exteriores",
+      "caption": "Métricas del equilibrio final de cada escenario (última iteración exterior). Verde/rojo = mejor/peor que la base según la dirección de cada métrica; el Δ Bienestar es vs la red vacía de CADA escenario."
+    },
+    "processing_one": "Calculando 1 escenario…",
+    "processing_other": "Calculando {{count}} escenarios…"
   },
   "coupled": {
     "eyebrow": "Análisis conjunto suelo↔transporte",

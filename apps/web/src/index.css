@@ -2795,3 +2795,55 @@ table.cmp th {
   }
 }
 
+/* Indicadores sutiles de procesamiento (Comparar): barra indeterminada en el
+   borde superior de la tarjeta y punto pulsante junto a "Correr todos". */
+.card-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--paper-2);
+  overflow: hidden;
+}
+
+.card-progress::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  background: var(--accent);
+  animation: card-progress-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes card-progress-slide {
+  0% { left: -35%; }
+  100% { left: 100%; }
+}
+
+.pulse-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-progress::after {
+    animation: none;
+    left: 0;
+    width: 100%;
+    opacity: 0.5;
+  }
+  .pulse-dot {
+    animation: none;
+  }
+}

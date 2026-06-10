@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { parseTtrqJson, readFileAsText, serializeToJson, downloadFile, TTRQ_EXT } from "@/lib/serialization";
 import type { Scenario } from "@/store/compareStore";
 import { useCompareStore } from "@/store/compareStore";
+import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
 interface ScenarioCardProps {
@@ -18,13 +19,20 @@ export function ScenarioCard({ scenario, onRun, removable }: ScenarioCardProps) 
   const { t } = useTranslation("common");
   const { t: tS } = useTranslation("simulator");
   const inputRef = useRef<HTMLInputElement>(null);
-  const setConfig = useCompareStore((s) => s.setConfig);
+  const setScenario = useCompareStore((s) => s.setScenario);
   const rename = useCompareStore((s) => s.renameScenario);
   const remove = useCompareStore((s) => s.removeScenario);
   const currentConfig = useSimulationStore((s) => s.config);
 
+  // Captura el escenario COMPLETO: transporte + suelo + población del acoplado.
+  // Qué se corre con él lo decide el tipo de comparación de la página.
   const onUseCurrent = () => {
-    setConfig(scenario.id, currentConfig, `Transporte · ${scenario.id}`);
+    const lu = useLandUseStore.getState();
+    setScenario(scenario.id, {
+      config: currentConfig,
+      landUse: lu.config,
+      poblacion: lu.coupledPoblacion,
+    });
   };
 
   const onImport = async (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +42,12 @@ export function ScenarioCard({ scenario, onRun, removable }: ScenarioCardProps) 
     try {
       const raw = await readFileAsText(file);
       const ttrq = parseTtrqJson(raw);
-      setConfig(scenario.id, ttrq.config, ttrq.name ?? file.name.replace(/\.ttrq\.json$/, ""));
+      setScenario(scenario.id, {
+        config: ttrq.config,
+        landUse: ttrq.land_use ?? null,
+        poblacion: ttrq.coupled?.poblacion,
+        name: ttrq.name ?? file.name.replace(/\.ttrq\.json$/, ""),
+      });
     } catch (e) {
       useCompareStore.getState().setError(
         scenario.id,
@@ -45,15 +58,30 @@ export function ScenarioCard({ scenario, onRun, removable }: ScenarioCardProps) 
 
   const onExport = () => {
     if (!scenario.config) return;
-    downloadFile(`${scenario.name}${TTRQ_EXT}`, serializeToJson(scenario.config, scenario.name));
+    const name = scenario.name || `escenario-${scenario.id}`;
+    downloadFile(
+      `${name}${TTRQ_EXT}`,
+      serializeToJson(scenario.config, name, {
+        land_use: scenario.landUse ?? undefined,
+        coupled: { poblacion: scenario.poblacion, outer_max_iter: 12 },
+      }),
+    );
   };
 
   return (
-    <div className="rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-3">
+    <div
+      className="relative overflow-hidden rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-3"
+      aria-busy={scenario.status === "running"}
+    >
+      {/* Indicador sutil de procesamiento: barra indeterminada en el borde
+          superior (el acoplado puede tardar ~10-20 s y sin esto la página
+          parece congelada). */}
+      {scenario.status === "running" && <div className="card-progress" aria-hidden />}
       <div className="mb-2 flex items-center gap-2">
         <input
           type="text"
           value={scenario.name}
+          placeholder={tS("compare.scenario_card.untitled", { id: scenario.id })}
           onChange={(e) => rename(scenario.id, e.target.value)}
           className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 text-sm font-semibold focus:border-[var(--rule)] focus:outline-none"
         />
@@ -82,6 +110,14 @@ export function ScenarioCard({ scenario, onRun, removable }: ScenarioCardProps) 
               fare: scenario.config.demand.globales.costo_tarifa_metro,
             })}
           </span>
+          {scenario.landUse && (
+            <span className="col-span-2">
+              {tS("compare.scenario_card.land_line", {
+                forma: tS(`land_use.forma_${scenario.landUse.forma}`),
+                pob: `${Math.round(scenario.poblacion / 1000)}k`,
+              })}
+            </span>
+          )}
         </div>
       ) : (
         <div className="mb-2 rounded bg-[var(--paper-2)] p-2 text-[11px] text-[var(--muted)]">

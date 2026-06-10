@@ -34,7 +34,7 @@
     "export_svg": "Export figure",
     "add_scenario": "Add scenario",
     "remove": "Remove",
-    "use_sandbox": "Current transport",
+    "use_sandbox": "Use current configuration",
     "new_run": "New simulation",
     "cancel": "Cancel"
   },
