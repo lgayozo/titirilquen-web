@@ -159,7 +159,7 @@ export function LandUsePage() {
             </div>
           </div>
           <p
-            className="font-display"
+            className="font-display text-justify"
             style={{
               fontSize: 14,
               lineHeight: 1.6,

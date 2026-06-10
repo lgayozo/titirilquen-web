@@ -2847,3 +2847,21 @@ table.cmp th {
     animation: none;
   }
 }
+
+/* Prosa justificada: los párrafos explicativos largos se veían desordenados
+   (borde derecho irregular) en varias vistas. La silabación (hyphens) evita
+   ríos de espacio y sigue el lang del documento. */
+.tutorial-article p,
+.tutorial-article li,
+.about-lede,
+.about-section p,
+.hint,
+.callout,
+.coupled-panel-hint,
+.coupled-sidebar-info,
+.coupled-placeholder-desc,
+.text-justify {
+  text-align: justify;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}

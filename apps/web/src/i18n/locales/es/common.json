@@ -47,8 +47,7 @@
   },
   "skip_to_main": "Saltar al contenido principal",
   "footer": {
-    "authors": "Sebastian Acevedo, Pablo Alvarez, Fernando Castillo, Angelo Guevara",
-    "web_by": "Web por Leandro Gayozo",
+    "authors": "Angelo Guevara, Leandro Gayozo, Sebastian Acevedo, Pablo Alvarez, Fernando Castillo",
     "license": "GPLv3"
   },
   "about": {
@@ -56,38 +55,23 @@
     "title": "Acerca de Titirilquen",
     "lede": "Un simulador educativo de transporte urbano sobre ciudad lineal monocéntrica, pensado para la docencia universitaria en la Facultad de Ciencias Físicas y Matemáticas de la Universidad de Chile.",
     "sections": {
-      "model_authors": "§1 · Autores del modelo",
-      "web_impl": "§2 · Re-implementación web",
-      "license": "§3 · Licencia",
-      "links": "§4 · Enlaces"
+      "authorship": "§1 · Autoría",
+      "links": "§2 · Enlaces"
     },
-    "model_authors": {
-      "heading": "Autoría original",
-      "body": "El modelo matemático, su formulación de ecuaciones de oferta, demanda y equilibrio, y la versión original en Streamlit fueron desarrollados por el siguiente equipo académico:"
+    "tags": {
+      "fcfm": "FCFM",
+      "uchile": "U. de Chile",
+      "transport": "Transporte"
     },
-    "web_impl": {
-      "heading": "Rearquitectura web",
-      "body": "Esta interfaz web re-implementa el simulador original en React + FastAPI con foco en la narrativa pedagógica. Conserva íntegro el núcleo numérico y es completamente interoperable con la versión Streamlit."
-    },
-    "license": {
-      "heading": "GPLv3",
-      "body": "Tanto el simulador original como esta re-implementación se distribuyen bajo licencia GNU General Public License v3. Eres libre de usar, estudiar, modificar y redistribuir el software manteniendo la misma licencia."
-    },
-    "roles": {
-      "lead_author": "Autor principal",
-      "author": "Autor del modelo",
-      "web_engineer": "Ingeniero Civil — Rearquitectura Web"
+    "authorship": {
+      "heading": "Equipo",
+      "body": "El modelo matemático —oferta, demanda y equilibrio sobre la ciudad lineal—, su versión original en Streamlit y esta re-implementación web fueron desarrollados por:"
     },
     "links": {
       "original_repo": "Repositorio original",
       "web_repo": "Repositorio web",
       "streamlit": "App Streamlit (V1)",
       "license": "Licencia GPLv3"
-    },
-    "tags": {
-      "fcfm": "FCFM",
-      "uchile": "U. de Chile",
-      "transport": "Transporte"
     }
   },
   "scenario_label": "Escenario"

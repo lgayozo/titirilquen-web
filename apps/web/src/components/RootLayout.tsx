@@ -131,7 +131,7 @@ export function RootLayout() {
       </main>
 
       <footer className="foot" role="contentinfo">
-        {t("footer.authors")} · {t("footer.web_by")} · {t("footer.license")}
+        {t("footer.authors")} · {t("footer.license")}
       </footer>
     </div>
   );

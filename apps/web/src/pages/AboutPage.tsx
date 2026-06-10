@@ -1,19 +1,13 @@
 import { useTranslation } from "react-i18next";
 
-interface Author {
-  name: string;
-  roleKey: string;
-}
-
-const ORIGINAL_AUTHORS: readonly Author[] = [
-  { name: "Angelo Guevara", roleKey: "about.roles.lead_author" },
-  { name: "Sebastian Acevedo", roleKey: "about.roles.author" },
-  { name: "Pablo Alvarez", roleKey: "about.roles.author" },
-  { name: "Fernando Castillo", roleKey: "about.roles.author" },
-] as const;
-
-const WEB_AUTHORS: readonly Author[] = [
-  { name: "Leandro Gayozo", roleKey: "about.roles.web_engineer" },
+/** Autoría unificada: modelo original + re-arquitectura web, todos asociados a
+ * FCFM · U. de Chile · Transporte (los tags aplican al equipo completo). */
+const AUTHORS: readonly string[] = [
+  "Angelo Guevara",
+  "Leandro Gayozo",
+  "Sebastian Acevedo",
+  "Pablo Alvarez",
+  "Fernando Castillo",
 ] as const;
 
 const LINKS = [
@@ -47,12 +41,14 @@ export function AboutPage() {
       </header>
 
       <section className="about-section">
-        <div className="about-section-head">{t("about.sections.model_authors")}</div>
-        <h3>{t("about.model_authors.heading")}</h3>
-        <p>{t("about.model_authors.body")}</p>
+        <div className="about-section-head">{t("about.sections.authorship")}</div>
+        <h3>{t("about.authorship.heading")}</h3>
+        <p>{t("about.authorship.body")}</p>
         <div className="authors-grid">
-          {ORIGINAL_AUTHORS.map((author) => (
-            <AuthorCard key={author.name} name={author.name} role={t(author.roleKey)} />
+          {AUTHORS.map((name) => (
+            <div key={name} className="author-card">
+              <div className="author-name">{name}</div>
+            </div>
           ))}
         </div>
         <div className="about-tags">
@@ -60,23 +56,6 @@ export function AboutPage() {
           <span className="about-tag">{t("about.tags.uchile")}</span>
           <span className="about-tag">{t("about.tags.transport")}</span>
         </div>
-      </section>
-
-      <section className="about-section">
-        <div className="about-section-head">{t("about.sections.web_impl")}</div>
-        <h3>{t("about.web_impl.heading")}</h3>
-        <p>{t("about.web_impl.body")}</p>
-        <div className="authors-grid authors-grid--wide">
-          {WEB_AUTHORS.map((author) => (
-            <AuthorCard key={author.name} name={author.name} role={t(author.roleKey)} />
-          ))}
-        </div>
-      </section>
-
-      <section className="about-section">
-        <div className="about-section-head">{t("about.sections.license")}</div>
-        <h3>{t("about.license.heading")}</h3>
-        <p>{t("about.license.body")}</p>
       </section>
 
       <section className="about-section">
@@ -96,15 +75,6 @@ export function AboutPage() {
           ))}
         </div>
       </section>
-    </div>
-  );
-}
-
-function AuthorCard({ name, role }: { name: string; role: string }) {
-  return (
-    <div className="author-card">
-      <div className="author-name">{name}</div>
-      <p className="author-role">{role}</p>
     </div>
   );
 }
