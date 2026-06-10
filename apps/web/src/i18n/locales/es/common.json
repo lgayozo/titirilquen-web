@@ -34,7 +34,8 @@
     "add_scenario": "Añadir escenario",
     "remove": "Eliminar",
     "use_sandbox": "Transporte actual",
-    "new_run": "Nueva simulación"
+    "new_run": "Nueva simulación",
+    "cancel": "Cancelar"
   },
   "engine": {
     "label": "Motor",

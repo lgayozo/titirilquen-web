@@ -34,7 +34,8 @@
     "add_scenario": "Add scenario",
     "remove": "Remove",
     "use_sandbox": "Current transport",
-    "new_run": "New simulation"
+    "new_run": "New simulation",
+    "cancel": "Cancel"
   },
   "engine": {
     "label": "Engine",

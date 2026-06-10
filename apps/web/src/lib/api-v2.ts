@@ -14,16 +14,20 @@ function engineIsLocal(): boolean {
   return useSimulationStore.getState().engine === "local";
 }
 
-export async function solveLandUse(req: {
-  L: number;
-  CBD: number;
-  land_use: LandUseConfig;
-}): Promise<LandUseSolveResponse> {
-  if (engineIsLocal()) return pyodideEngine.solveLandUse(req);
+export async function solveLandUse(
+  req: {
+    L: number;
+    CBD: number;
+    land_use: LandUseConfig;
+  },
+  signal?: AbortSignal,
+): Promise<LandUseSolveResponse> {
+  if (engineIsLocal()) return pyodideEngine.solveLandUse(req, signal);
   const r = await fetch(`${API_BASE}/land-use/solve`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
+    signal,
   });
   if (!r.ok)
     throw new Error(`land-use/solve failed (${r.status}): ${await r.text()}`);
@@ -62,7 +66,7 @@ export async function solveCoupledStream(
   onOuter: (it: OuterIteration) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  if (engineIsLocal()) return pyodideEngine.solveCoupledStream(req, onOuter);
+  if (engineIsLocal()) return pyodideEngine.solveCoupledStream(req, onOuter, signal);
   const r = await fetch(`${API_BASE}/coupled/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

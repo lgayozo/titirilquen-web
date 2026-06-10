@@ -16,6 +16,10 @@ interface SimulationState {
   result: SimulationResult | null;
   liveIterations: IterationSnapshot[];
   error: string | null;
+  /** Snapshot de la config con la que se lanzó la última corrida. Las figuras
+   * derivadas del resultado deben usar ESTA config (no la viva) para no mezclar
+   * geometrías; comparar con `config` detecta resultados desactualizados. */
+  configUsed: SimulationConfig | null;
 
   setConfig: (updater: (prev: SimulationConfig) => SimulationConfig) => void;
   replaceConfig: (config: SimulationConfig) => void;
@@ -25,8 +29,11 @@ interface SimulationState {
   pushIteration: (snap: IterationSnapshot) => void;
   finishRun: (result: SimulationResult) => void;
   failRun: (message: string) => void;
+  cancelRun: () => void;
   reset: () => void;
 }
+
+const snapshot = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
 export const useSimulationStore = create<SimulationState>((set) => ({
   config: defaultSimulationConfig,
@@ -37,6 +44,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   result: null,
   liveIterations: [],
   error: null,
+  configUsed: null,
 
   setConfig: (updater) => set((s) => ({ config: updater(s.config) })),
   replaceConfig: (config) => set({ config }),
@@ -44,14 +52,15 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   setStage: (stage) => set({ stage }),
 
   startRun: (total) =>
-    set({
+    set((s) => ({
       running: true,
       stage: "booting",
       progress: { current: 0, total },
       result: null,
       liveIterations: [],
       error: null,
-    }),
+      configUsed: snapshot(s.config),
+    })),
 
   pushIteration: (snap) =>
     set((s) => ({
@@ -76,6 +85,19 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       progress: null,
     }),
 
+  // Cancelación por el usuario: vuelve a idle descartando lo parcial (la
+  // corrida del motor se aborta aparte, vía AbortController / cancelAll).
+  cancelRun: () =>
+    set({
+      running: false,
+      stage: "idle",
+      progress: null,
+      result: null,
+      liveIterations: [],
+      error: null,
+      configUsed: null,
+    }),
+
   reset: () =>
     set({
       result: null,
@@ -84,5 +106,16 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       running: false,
       stage: "idle",
       error: null,
+      configUsed: null,
     }),
 }));
+
+/** ¿El resultado vigente quedó desactualizado respecto de la config viva? */
+export function isResultStale(s: {
+  stage: RunStage;
+  config: SimulationConfig;
+  configUsed: SimulationConfig | null;
+}): boolean {
+  if (s.stage !== "done" || s.configUsed == null) return false;
+  return JSON.stringify(s.config) !== JSON.stringify(s.configUsed);
+}

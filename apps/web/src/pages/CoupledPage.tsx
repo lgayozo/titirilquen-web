@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
@@ -35,6 +35,11 @@ type Stage = "idle" | "running" | "done" | "error";
 /** Fuente del escenario: la config propia del usuario o un preset de prueba. */
 const CUSTOM = "custom";
 
+// AbortController de la corrida activa, a nivel de módulo: la página puede
+// desmontarse y volver a montar mientras el stream sigue (el estado vive en el
+// store); esto permite cancelar igual tras la navegación.
+let activeCoupledAbort: AbortController | null = null;
+
 export function CoupledPage() {
   const { t: tS } = useTranslation("simulator");
 
@@ -44,9 +49,24 @@ export function CoupledPage() {
   const luStore = useLandUseStore((s) => s.config);
 
   const CUSTOM_POBLACION = 25000;
-  const [source, setSource] = useState<string>(CUSTOM);
-  const [outerMaxIter, setOuterMaxIter] = useState(12);
-  const [poblacion, setPoblacion] = useState(CUSTOM_POBLACION);
+  // El estado de la corrida vive en el store (no en useState): navegar a mitad
+  // de una corrida no la pierde — al volver, el stream sigue poblando la página.
+  const source = useLandUseStore((s) => s.coupledSource);
+  const setSource = useLandUseStore((s) => s.setCoupledSource);
+  const outerMaxIter = useLandUseStore((s) => s.coupledOuterMaxIter);
+  const setOuterMaxIter = useLandUseStore((s) => s.setCoupledOuterMaxIter);
+  const poblacion = useLandUseStore((s) => s.coupledPoblacion);
+  const setPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
+  const stage: Stage = useLandUseStore((s) => s.coupledStage);
+  const error = useLandUseStore((s) => s.coupledError);
+  const iters = useLandUseStore((s) => s.coupledIters);
+  const snapshot = useLandUseStore((s) => s.coupledSnapshot);
+  const startCoupled = useLandUseStore((s) => s.startCoupled);
+  const pushOuterIter = useLandUseStore((s) => s.pushOuterIter);
+  const finishCoupled = useLandUseStore((s) => s.finishCoupled);
+  const failCoupled = useLandUseStore((s) => s.failCoupled);
+  const cancelCoupled = useLandUseStore((s) => s.cancelCoupled);
+  const resetCoupled = useLandUseStore((s) => s.resetCoupled);
 
   // Seleccionar escenario fija también la población recomendada (cada escenario
   // tiene un techo de demanda distinto antes de gridlockear — ver D-24).
@@ -55,9 +75,6 @@ export function CoupledPage() {
     const p = JOINT_PRESETS.find((x) => x.key === key);
     setPoblacion(p ? p.poblacionDefault : CUSTOM_POBLACION);
   };
-  const [stage, setStage] = useState<Stage>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [iters, setIters] = useState<OuterIteration[]>([]);
 
   const isCustom = source === CUSTOM;
   const preset = JOINT_PRESETS.find((p) => p.key === source) ?? null;
@@ -83,31 +100,42 @@ export function CoupledPage() {
     return { ...landUse, H_por_estrato: scaled };
   }, [landUse, poblacion]);
 
+  const abortRef = useRef<AbortController | null>(activeCoupledAbort);
+
   const handleRun = async () => {
-    setStage("running");
-    setError(null);
-    setIters([]);
-    const collected: OuterIteration[] = [];
+    const ctrl = new AbortController();
+    activeCoupledAbort = ctrl;
+    abortRef.current = ctrl;
+    startCoupled({ sim, landUse: landUseEff, outerMaxIter });
     try {
       await solveCoupledStream(
         { sim, land_use: landUseEff, outer_max_iter: outerMaxIter, outer_tol: 1.0 },
-        (it) => {
-          collected.push(it);
-          setIters([...collected]);
-        }
+        (it) => pushOuterIter(it),
+        ctrl.signal
       );
-      setStage("done");
+      finishCoupled();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setStage("error");
+      if (ctrl.signal.aborted) return; // cancelado por el usuario
+      failCoupled(e instanceof Error ? e.message : String(e));
     }
   };
 
-  const handleReset = () => {
-    setStage("idle");
-    setIters([]);
-    setError(null);
+  const handleCancel = () => {
+    (abortRef.current ?? activeCoupledAbort)?.abort();
+    cancelCoupled();
   };
+
+  const handleReset = () => resetCoupled();
+
+  // ¿El resultado quedó desactualizado respecto del escenario configurado?
+  const stale = useMemo(
+    () =>
+      stage === "done" &&
+      snapshot != null &&
+      JSON.stringify({ sim, landUse: landUseEff, outerMaxIter }) !==
+        JSON.stringify(snapshot),
+    [stage, snapshot, sim, landUseEff, outerMaxIter]
+  );
 
   const first = iters[0] ?? null;
   const last = iters[iters.length - 1] ?? null;
@@ -233,6 +261,12 @@ export function CoupledPage() {
           {running ? "◜ …" : `▶ ${tS("coupled.run")}`}
         </button>
 
+        {running && (
+          <button type="button" className="reset-btn" onClick={handleCancel}>
+            {`✕ ${tS("stale.cancel")}`}
+          </button>
+        )}
+
         {error && (
           <div className="callout" style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}>
             <strong>{tS("coupled.error")}:</strong> {error}
@@ -242,6 +276,15 @@ export function CoupledPage() {
 
       {/* ---------- Main: imagen arriba + parámetros + resultados ---------- */}
       <section className="main">
+        {stale && (
+          <div className="stale-banner" role="status">
+            <span>{tS("stale.banner")}</span>
+            <button type="button" onClick={() => void handleRun()}>
+              {`▶ ${tS("stale.rerun")}`}
+            </button>
+          </div>
+        )}
+
         <div className="hero">
           <div className="hero-head">
             <h1 className="hero-title">{tS("coupled.title")}</h1>

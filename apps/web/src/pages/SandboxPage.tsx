@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CityStrip } from "@/components/CityStrip";
@@ -21,7 +21,7 @@ import { StatBars, type StatBar } from "@/components/viz/StatBars";
 import { UtilityScatter } from "@/components/viz/UtilityScatter";
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { Modo } from "@/lib/types";
-import { useSimulationStore } from "@/store/simulationStore";
+import { isResultStale, useSimulationStore } from "@/store/simulationStore";
 
 type HeatMode =
   | "auto"
@@ -67,6 +67,16 @@ export function SandboxPage() {
   const failRun = useSimulationStore((s) => s.failRun);
   const pushIteration = useSimulationStore((s) => s.pushIteration);
   const reset = useSimulationStore((s) => s.reset);
+  const configUsed = useSimulationStore((s) => s.configUsed);
+  const cancelRun = useSimulationStore((s) => s.cancelRun);
+
+  // Config de la corrida visible: el snapshot usado por el resultado, no la
+  // viva — así las figuras no mezclan geometrías si el usuario mueve sliders.
+  const cfgRes = configUsed ?? config;
+  const stale = useMemo(
+    () => isResultStale({ stage, config, configUsed }),
+    [stage, config, configUsed],
+  );
 
   const [heatMode, setHeatMode] = useState<HeatMode>("auto");
 
@@ -85,9 +95,9 @@ export function SandboxPage() {
   // resultados, la pestaña "plano" del toggle vuelve a esa misma vista.
   const hasData = lastIter != null;
   const showPreview = !hasData || heatMode === "plano";
-  const cellKm = config.city.largo_ciudad_km / config.city.n_celdas;
-  const cbdIdx = Math.floor(config.city.n_celdas / 2);
-  const vCaminata = config.demand.globales.v_caminata || 4.8;
+  const cellKm = cfgRes.city.largo_ciudad_km / cfgRes.city.n_celdas;
+  const cbdIdx = Math.floor(cfgRes.city.n_celdas / 2);
+  const vCaminata = cfgRes.demand.globales.v_caminata || 4.8;
   const profile = lastIter
     ? lastIter.t_auto.map((t_auto, i) => ({
         t_auto,
@@ -110,23 +120,35 @@ export function SandboxPage() {
         ? Math.max(...lastIter.demanda_auto) / result.capacidad_auto
         : null,
     bike: lastIter
-      ? Math.max(...lastIter.demanda_bici) / config.supply.bike.capacidad_pista
+      ? Math.max(...lastIter.demanda_bici) / cfgRes.supply.bike.capacidad_pista
       : null,
   };
+
+  const abortRef = useRef<AbortController | null>(null);
 
   const handleRun = async () => {
     // Si el toggle quedó en "plano", volver a una vista de resultados para no
     // tapar la convergencia en vivo con la infraestructura estática.
     if (heatMode === "plano") setHeatMode("auto");
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     startRun(config.max_iter);
     try {
-      const final = await pyodideEngine.simulateStream(config, (snap) =>
-        pushIteration(snap),
+      const final = await pyodideEngine.simulateStream(
+        config,
+        (snap) => pushIteration(snap),
+        ctrl.signal,
       );
       finishRun(final);
     } catch (e) {
+      if (ctrl.signal.aborted) return; // cancelado por el usuario
       failRun(e instanceof Error ? e.message : String(e));
     }
+  };
+
+  const handleCancel = () => {
+    abortRef.current?.abort();
+    cancelRun();
   };
 
   const totalAgents = lastIter
@@ -505,6 +527,12 @@ export function SandboxPage() {
             : `▶ ${tCommon("actions.run")}`}
         </button>
 
+        {running && (
+          <button type="button" className="reset-btn" onClick={handleCancel}>
+            {`✕ ${tCommon("actions.cancel")}`}
+          </button>
+        )}
+
         {error && (
           <div
             className="callout"
@@ -516,6 +544,15 @@ export function SandboxPage() {
       </aside>
 
       <section className="main">
+        {stale && (
+          <div className="stale-banner" role="status">
+            <span>{t("stale.banner")}</span>
+            <button type="button" onClick={() => void handleRun()}>
+              {`▶ ${t("stale.rerun")}`}
+            </button>
+          </div>
+        )}
+
         {/* HERO */}
         <div className="hero">
           <div className="hero-head">
@@ -569,16 +606,16 @@ export function SandboxPage() {
                 name={`ciudad-${heatMode}`}
                 title={`${t("sandbox.city_heading")} — ${viewLabel(heatMode)}`}
                 description={t("sandbox.city_figure_desc", {
-                  length: config.city.largo_ciudad_km,
-                  cells: config.city.n_celdas,
+                  length: cfgRes.city.largo_ciudad_km,
+                  cells: cfgRes.city.n_celdas,
                   mode: viewLabel(heatMode),
                 })}
                 exportSize={{ width: 1200, height: 200 }}
               >
                 <CityStrip
-                  nCeldas={config.city.n_celdas}
-                  largoKm={config.city.largo_ciudad_km}
-                  pendientePct={config.city.pendiente_porcentaje}
+                  nCeldas={cfgRes.city.n_celdas}
+                  largoKm={cfgRes.city.largo_ciudad_km}
+                  pendientePct={cfgRes.city.pendiente_porcentaje}
                   modeProfile={profile}
                   heatMode={heatMode}
                   cutoffMin={MODE_CUTOFF[heatMode]}
@@ -590,7 +627,7 @@ export function SandboxPage() {
                       : undefined
                   }
                   estacionesKm={result?.estaciones_km ?? undefined}
-                  shareEstratos={config.city.share_estratos}
+                  shareEstratos={cfgRes.city.share_estratos}
                   iterationToken={lastIter?.iter ?? -1}
                 />
               </ExportableFigure>
@@ -626,9 +663,9 @@ export function SandboxPage() {
               <span style={{ marginLeft: "auto", textTransform: "none" }}>
                 {t("hero.stats_line", {
                   total: totalAgents > 0 ? totalAgents.toLocaleString() : "—",
-                  length: config.city.largo_ciudad_km,
-                  stations: config.supply.train.num_estaciones,
-                  lanes: config.supply.car.num_pistas,
+                  length: cfgRes.city.largo_ciudad_km,
+                  stations: cfgRes.supply.train.num_estaciones,
+                  lanes: cfgRes.supply.car.num_pistas,
                 })}
               </span>
             </div>
@@ -671,7 +708,7 @@ export function SandboxPage() {
         {(stage === "booting" ||
           (stage === "running" && liveIterations.length === 0)) && (
           <div style={{ marginBottom: "var(--gap)" }}>
-            <SimulationSkeleton nCeldas={config.city.n_celdas} />
+            <SimulationSkeleton nCeldas={cfgRes.city.n_celdas} />
           </div>
         )}
 
@@ -728,14 +765,14 @@ export function SandboxPage() {
                     mode: "bici",
                     flows: lastIter.demanda_bici,
                     color: "var(--bici)",
-                    cap: `${config.supply.bike.capacidad_pista} bici/h`,
+                    cap: `${cfgRes.supply.bike.capacidad_pista} bici/h`,
                   },
                   {
                     n: "04",
                     mode: "metro",
                     flows: lastIter.demanda_metro,
                     color: "var(--metro)",
-                    cap: `${config.supply.train.capacidad_tren} pax/tren`,
+                    cap: `${cfgRes.supply.train.capacidad_tren} pax/tren`,
                   },
                   {
                     n: "4b",
@@ -766,7 +803,7 @@ export function SandboxPage() {
                         >
                           <FlowProfile
                             flows={fp.flows}
-                            largoKm={config.city.largo_ciudad_km}
+                            largoKm={cfgRes.city.largo_ciudad_km}
                             color={fp.color}
                             yMax={globalMax}
                             capacityHint={fp.cap}
@@ -792,7 +829,7 @@ export function SandboxPage() {
                 >
                   <FlowProfile
                     flows={result.emisiones_perfil_kg}
-                    largoKm={config.city.largo_ciudad_km}
+                    largoKm={cfgRes.city.largo_ciudad_km}
                     color="var(--accent)"
                     label="kg/h"
                     valueFmt={(v) => v.toFixed(1)}
@@ -847,8 +884,8 @@ export function SandboxPage() {
                   >
                     <UtilityScatter
                       agents={result.agentes}
-                      nCeldas={config.city.n_celdas}
-                      largoKm={config.city.largo_ciudad_km}
+                      nCeldas={cfgRes.city.n_celdas}
+                      largoKm={cfgRes.city.largo_ciudad_km}
                     />
                   </ExportableFigure>
                 </Panel>
@@ -866,8 +903,8 @@ export function SandboxPage() {
                   >
                     <ModeShareByLocation
                       agents={result.agentes}
-                      nCeldas={config.city.n_celdas}
-                      largoKm={config.city.largo_ciudad_km}
+                      nCeldas={cfgRes.city.n_celdas}
+                      largoKm={cfgRes.city.largo_ciudad_km}
                     />
                   </ExportableFigure>
                 </Panel>

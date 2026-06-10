@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
 import { defaultLandUseConfig } from "@/lib/api-v2";
+import type { SimulationConfig } from "@/lib/types";
 import type {
-  CoupledResult,
   LandUseConfig,
   LandUseSolveResponse,
   OuterIteration,
@@ -10,58 +10,145 @@ import type {
 
 export type LandUseStage = "idle" | "running" | "done" | "error";
 
+/** Contexto con el que se lanzó la corrida standalone: la geometría (L, km)
+ * viene del módulo de transporte y puede cambiar a espaldas de esta página,
+ * así que el resultado debe leerse SIEMPRE contra este snapshot. */
+export interface LandUseRunContext {
+  L: number;
+  CBD: number;
+  largoKm: number;
+  config: LandUseConfig;
+}
+
+/** Snapshot del escenario con el que se lanzó la corrida acoplada. */
+export interface CoupledRunSnapshot {
+  sim: SimulationConfig;
+  landUse: LandUseConfig;
+  outerMaxIter: number;
+}
+
 interface LandUseState {
   config: LandUseConfig;
+
+  // ---- Corrida standalone (página Uso de suelo) ----
   stage: LandUseStage;
   result: LandUseSolveResponse | null;
-  coupledResult: CoupledResult | null;
-  liveOuterIters: OuterIteration[];
-  outerMaxIter: number;
+  runContext: LandUseRunContext | null;
   error: string | null;
 
+  // ---- Corrida acoplada (página Ciudad en equilibrio) ----
+  // Vive en el store (no en useState de la página) para que navegar a mitad de
+  // una corrida no deje el stream huérfano e invisible al volver.
+  coupledStage: LandUseStage;
+  coupledIters: OuterIteration[];
+  coupledError: string | null;
+  coupledSnapshot: CoupledRunSnapshot | null;
+  // Preferencias del escenario acoplado (persisten entre visitas a la página).
+  coupledSource: string;
+  coupledPoblacion: number;
+  coupledOuterMaxIter: number;
+
   setConfig: (updater: (prev: LandUseConfig) => LandUseConfig) => void;
-  setOuterMaxIter: (n: number) => void;
-  startRun: () => void;
-  pushOuterIter: (it: OuterIteration) => void;
+
+  startRun: (ctx: LandUseRunContext) => void;
   finishStandalone: (r: LandUseSolveResponse) => void;
-  finishCoupled: (r: CoupledResult) => void;
   fail: (msg: string) => void;
   reset: () => void;
+
+  setCoupledSource: (s: string) => void;
+  setCoupledPoblacion: (n: number) => void;
+  setCoupledOuterMaxIter: (n: number) => void;
+  startCoupled: (snap: CoupledRunSnapshot) => void;
+  pushOuterIter: (it: OuterIteration) => void;
+  finishCoupled: () => void;
+  failCoupled: (msg: string) => void;
+  cancelCoupled: () => void;
+  resetCoupled: () => void;
 }
+
+const snapshot = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
 export const useLandUseStore = create<LandUseState>((set) => ({
   config: defaultLandUseConfig,
+
   stage: "idle",
   result: null,
-  coupledResult: null,
-  liveOuterIters: [],
-  outerMaxIter: 3,
+  runContext: null,
   error: null,
 
-  setConfig: (updater) => set((s) => ({ config: updater(s.config) })),
-  setOuterMaxIter: (n) => set({ outerMaxIter: n }),
+  coupledStage: "idle",
+  coupledIters: [],
+  coupledError: null,
+  coupledSnapshot: null,
+  coupledSource: "custom",
+  coupledPoblacion: 25000,
+  coupledOuterMaxIter: 12,
 
-  startRun: () =>
+  setConfig: (updater) => set((s) => ({ config: updater(s.config) })),
+
+  startRun: (ctx) =>
     set({
       stage: "running",
       result: null,
-      coupledResult: null,
-      liveOuterIters: [],
+      runContext: snapshot(ctx),
       error: null,
     }),
 
-  pushOuterIter: (it) =>
-    set((s) => ({ liveOuterIters: [...s.liveOuterIters, it] })),
-
   finishStandalone: (r) => set({ stage: "done", result: r }),
-  finishCoupled: (r) => set({ stage: "done", coupledResult: r }),
   fail: (msg) => set({ stage: "error", error: msg }),
   reset: () =>
     set({
       stage: "idle",
       result: null,
-      coupledResult: null,
-      liveOuterIters: [],
+      runContext: null,
       error: null,
     }),
+
+  setCoupledSource: (s) => set({ coupledSource: s }),
+  setCoupledPoblacion: (n) => set({ coupledPoblacion: n }),
+  setCoupledOuterMaxIter: (n) => set({ coupledOuterMaxIter: n }),
+
+  startCoupled: (snap) =>
+    set({
+      coupledStage: "running",
+      coupledIters: [],
+      coupledError: null,
+      coupledSnapshot: snapshot(snap),
+    }),
+
+  pushOuterIter: (it) =>
+    set((s) => ({ coupledIters: [...s.coupledIters, it] })),
+
+  finishCoupled: () => set({ coupledStage: "done" }),
+  failCoupled: (msg) => set({ coupledStage: "error", coupledError: msg }),
+
+  // Cancelación por el usuario: descarta lo parcial y vuelve a idle.
+  cancelCoupled: () =>
+    set({
+      coupledStage: "idle",
+      coupledIters: [],
+      coupledError: null,
+      coupledSnapshot: null,
+    }),
+
+  resetCoupled: () =>
+    set({
+      coupledStage: "idle",
+      coupledIters: [],
+      coupledError: null,
+      coupledSnapshot: null,
+    }),
 }));
+
+/** ¿El resultado standalone quedó desactualizado respecto de la config viva? */
+export function isLandUseStale(s: {
+  stage: LandUseStage;
+  config: LandUseConfig;
+  runContext: LandUseRunContext | null;
+  liveL: number;
+  liveLargoKm: number;
+}): boolean {
+  if (s.stage !== "done" || s.runContext == null) return false;
+  if (s.runContext.L !== s.liveL || s.runContext.largoKm !== s.liveLargoKm) return true;
+  return JSON.stringify(s.config) !== JSON.stringify(s.runContext.config);
+}

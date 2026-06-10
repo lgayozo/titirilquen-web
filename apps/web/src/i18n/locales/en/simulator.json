@@ -566,5 +566,10 @@
     "utility_position": "utility · position",
     "avg_min": "average · min",
     "avg_util": "average · util"
+  },
+  "stale": {
+    "banner": "Stale result: the configuration changed since this run. The figures show the previous scenario.",
+    "rerun": "Re-run",
+    "cancel": "Cancel"
   }
 }

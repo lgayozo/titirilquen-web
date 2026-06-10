@@ -566,5 +566,10 @@
     "utility_position": "utilidad · posición",
     "avg_min": "promedio · min",
     "avg_util": "promedio · util"
+  },
+  "stale": {
+    "banner": "Resultado desactualizado: la configuración cambió desde esta corrida. Las figuras muestran el escenario anterior.",
+    "rerun": "Volver a simular",
+    "cancel": "Cancelar"
   }
 }

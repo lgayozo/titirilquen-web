@@ -2,6 +2,11 @@
  * Wrapper de alto nivel sobre el Web Worker de Pyodide. Expone una API
  * simétrica a `api.ts` / `api-v2.ts` para que los stores no necesiten saber
  * qué motor está detrás.
+ *
+ * Cancelación: Pyodide no puede interrumpirse a mitad de un cómputo, así que
+ * cancelar (vía `AbortSignal` o `cancelAll()`) **termina el worker** y rechaza
+ * todas las promesas pendientes con `AbortError`; el próximo uso re-inicializa
+ * Pyodide (la UI ya tiene estado "booting" para ese caso).
  */
 
 import type { IterationSnapshot, SimulationConfig, SimulationResult } from "@/lib/types";
@@ -32,10 +37,20 @@ type WorkerInMsg =
     }
   | { id: string; type: "coupledStream"; req: CoupledRequest };
 
+function abortError(): Error {
+  return new DOMException("Corrida cancelada", "AbortError");
+}
+
+/** Omit distributivo: aplica Omit a cada miembro de la unión (el Omit normal
+ * colapsa la unión y pierde los campos específicos de cada mensaje). */
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+
 class PyodideEngine {
   private worker: Worker | null = null;
   private ready: Promise<void> | null = null;
   private nextId = 0;
+  /** Corridas en vuelo: cómo rechazarlas y desuscribir sus listeners. */
+  private pending = new Map<string, { reject: (e: Error) => void; cleanup: () => void }>();
 
   private ensureWorker(): Worker {
     if (!this.worker) {
@@ -54,13 +69,18 @@ class PyodideEngine {
       const onMsg = (ev: MessageEvent<WorkerOutMsg>) => {
         if (ev.data.id !== id) return;
         if (ev.data.type === "ready") {
-          worker.removeEventListener("message", onMsg);
+          cleanup();
           resolve();
         } else if (ev.data.type === "error") {
-          worker.removeEventListener("message", onMsg);
+          cleanup();
           reject(new Error(ev.data.message));
         }
       };
+      const cleanup = () => {
+        worker.removeEventListener("message", onMsg);
+        this.pending.delete(id);
+      };
+      this.pending.set(id, { reject, cleanup });
       worker.addEventListener("message", onMsg);
       const req: WorkerInMsg = { id, type: "init" };
       worker.postMessage(req);
@@ -68,102 +88,144 @@ class PyodideEngine {
     return this.ready;
   }
 
-  async simulate(config: SimulationConfig): Promise<SimulationResult> {
+  /**
+   * Registra una corrida contra el worker. `onMessage` devuelve `true` cuando
+   * el mensaje es terminal (resolve/reject ya llamado) para desuscribir.
+   */
+  private async request<T>(
+    msg: DistributiveOmit<WorkerInMsg, "id">,
+    handle: (
+      data: WorkerOutMsg,
+      resolve: (v: T) => void,
+      reject: (e: Error) => void,
+    ) => boolean,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    if (signal?.aborted) throw abortError();
     await this.init();
+    if (signal?.aborted) throw abortError();
     const worker = this.ensureWorker();
     const id = String(this.nextId++);
-    return new Promise<SimulationResult>((resolve, reject) => {
+    return new Promise<T>((resolve, reject) => {
+      const onAbort = () => this.cancelAll();
+      const cleanup = () => {
+        worker.removeEventListener("message", onMsg);
+        signal?.removeEventListener("abort", onAbort);
+        this.pending.delete(id);
+      };
       const onMsg = (ev: MessageEvent<WorkerOutMsg>) => {
         if (ev.data.id !== id) return;
-        if (ev.data.type === "done") {
-          worker.removeEventListener("message", onMsg);
-          resolve(ev.data.result);
-        } else if (ev.data.type === "error") {
-          worker.removeEventListener("message", onMsg);
-          reject(new Error(ev.data.message));
-        }
+        const terminal = handle(ev.data, resolve, reject);
+        if (terminal) cleanup();
       };
+      this.pending.set(id, { reject, cleanup });
+      signal?.addEventListener("abort", onAbort, { once: true });
       worker.addEventListener("message", onMsg);
-      const req: WorkerInMsg = { id, type: "simulate", config };
-      worker.postMessage(req);
+      worker.postMessage({ ...msg, id } as WorkerInMsg);
     });
+  }
+
+  async simulate(config: SimulationConfig, signal?: AbortSignal): Promise<SimulationResult> {
+    return this.request<SimulationResult>(
+      { type: "simulate", config },
+      (data, resolve, reject) => {
+        if (data.type === "done") {
+          resolve(data.result);
+          return true;
+        }
+        if (data.type === "error") {
+          reject(new Error(data.message));
+          return true;
+        }
+        return false;
+      },
+      signal,
+    );
   }
 
   async simulateStream(
     config: SimulationConfig,
-    onIteration: (s: IterationSnapshot) => void
+    onIteration: (s: IterationSnapshot) => void,
+    signal?: AbortSignal,
   ): Promise<SimulationResult> {
-    await this.init();
-    const worker = this.ensureWorker();
-    const id = String(this.nextId++);
-    return new Promise<SimulationResult>((resolve, reject) => {
-      const onMsg = (ev: MessageEvent<WorkerOutMsg>) => {
-        if (ev.data.id !== id) return;
-        if (ev.data.type === "iteration") {
-          onIteration(ev.data.snapshot);
-        } else if (ev.data.type === "done") {
-          worker.removeEventListener("message", onMsg);
-          resolve(ev.data.result);
-        } else if (ev.data.type === "error") {
-          worker.removeEventListener("message", onMsg);
-          reject(new Error(ev.data.message));
+    return this.request<SimulationResult>(
+      { type: "simulateStream", config },
+      (data, resolve, reject) => {
+        if (data.type === "iteration") {
+          onIteration(data.snapshot);
+          return false;
         }
-      };
-      worker.addEventListener("message", onMsg);
-      const req: WorkerInMsg = { id, type: "simulateStream", config };
-      worker.postMessage(req);
-    });
+        if (data.type === "done") {
+          resolve(data.result);
+          return true;
+        }
+        if (data.type === "error") {
+          reject(new Error(data.message));
+          return true;
+        }
+        return false;
+      },
+      signal,
+    );
   }
 
-  async solveLandUse(req: {
-    L: number;
-    CBD: number;
-    land_use: LandUseConfig;
-  }): Promise<LandUseSolveResponse> {
-    await this.init();
-    const worker = this.ensureWorker();
-    const id = String(this.nextId++);
-    return new Promise<LandUseSolveResponse>((resolve, reject) => {
-      const onMsg = (ev: MessageEvent<WorkerOutMsg>) => {
-        if (ev.data.id !== id) return;
-        if (ev.data.type === "landUseDone") {
-          worker.removeEventListener("message", onMsg);
-          resolve(ev.data.result);
-        } else if (ev.data.type === "error") {
-          worker.removeEventListener("message", onMsg);
-          reject(new Error(ev.data.message));
+  async solveLandUse(
+    req: { L: number; CBD: number; land_use: LandUseConfig },
+    signal?: AbortSignal,
+  ): Promise<LandUseSolveResponse> {
+    return this.request<LandUseSolveResponse>(
+      { type: "landUseSolve", req },
+      (data, resolve, reject) => {
+        if (data.type === "landUseDone") {
+          resolve(data.result);
+          return true;
         }
-      };
-      worker.addEventListener("message", onMsg);
-      const msg: WorkerInMsg = { id, type: "landUseSolve", req };
-      worker.postMessage(msg);
-    });
+        if (data.type === "error") {
+          reject(new Error(data.message));
+          return true;
+        }
+        return false;
+      },
+      signal,
+    );
   }
 
   async solveCoupledStream(
     req: CoupledRequest,
-    onOuter: (it: OuterIteration) => void
+    onOuter: (it: OuterIteration) => void,
+    signal?: AbortSignal,
   ): Promise<void> {
-    await this.init();
-    const worker = this.ensureWorker();
-    const id = String(this.nextId++);
-    return new Promise<void>((resolve, reject) => {
-      const onMsg = (ev: MessageEvent<WorkerOutMsg>) => {
-        if (ev.data.id !== id) return;
-        if (ev.data.type === "outerIteration") {
-          onOuter(ev.data.outer);
-        } else if (ev.data.type === "coupledDone") {
-          worker.removeEventListener("message", onMsg);
-          resolve();
-        } else if (ev.data.type === "error") {
-          worker.removeEventListener("message", onMsg);
-          reject(new Error(ev.data.message));
+    return this.request<void>(
+      { type: "coupledStream", req },
+      (data, resolve, reject) => {
+        if (data.type === "outerIteration") {
+          onOuter(data.outer);
+          return false;
         }
-      };
-      worker.addEventListener("message", onMsg);
-      const msg: WorkerInMsg = { id, type: "coupledStream", req };
-      worker.postMessage(msg);
-    });
+        if (data.type === "coupledDone") {
+          resolve();
+          return true;
+        }
+        if (data.type === "error") {
+          reject(new Error(data.message));
+          return true;
+        }
+        return false;
+      },
+      signal,
+    );
+  }
+
+  /** Aborta TODO: rechaza las corridas pendientes y mata el worker. El próximo
+   * uso re-inicializa Pyodide desde cero. */
+  cancelAll(): void {
+    const inflight = [...this.pending.values()];
+    this.pending.clear();
+    for (const p of inflight) {
+      p.cleanup();
+      p.reject(abortError());
+    }
+    this.terminate();
   }
 
   terminate(): void {

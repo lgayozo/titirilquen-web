@@ -2647,3 +2647,37 @@ table.cmp th {
   border: 1px solid var(--rule);
   color: var(--muted);
 }
+
+/* Banner de resultado desactualizado (la config cambió tras la corrida) */
+.stale-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--accent);
+  border-left-width: 3px;
+  background: var(--paper-2);
+  color: var(--ink-2);
+  padding: 8px 14px;
+  margin-bottom: var(--gap);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.stale-banner button {
+  flex: none;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--font-fig);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.stale-banner button:hover {
+  background: var(--accent);
+  color: var(--paper);
+}

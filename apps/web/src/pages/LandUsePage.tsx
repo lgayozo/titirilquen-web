@@ -10,7 +10,7 @@ import { CityShapePreview } from "@/components/viz/CityShapePreview";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { solveLandUse } from "@/lib/api-v2";
 import { theilSegregation } from "@/lib/metrics";
-import { useLandUseStore } from "@/store/landUseStore";
+import { isLandUseStale, useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
 export function LandUsePage() {
@@ -25,6 +25,7 @@ export function LandUsePage() {
   const finishStandalone = useLandUseStore((s) => s.finishStandalone);
   const fail = useLandUseStore((s) => s.fail);
   const reset = useLandUseStore((s) => s.reset);
+  const runContext = useLandUseStore((s) => s.runContext);
 
   const simConfig = useSimulationStore((s) => s.config);
 
@@ -32,7 +33,7 @@ export function LandUsePage() {
   const CBD = Math.floor(L / 2);
 
   const handleRun = async () => {
-    startRun();
+    startRun({ L, CBD, largoKm: simConfig.city.largo_ciudad_km, config });
     try {
       const r = await solveLandUse({ L, CBD, land_use: config });
       finishStandalone(r);
@@ -40,6 +41,16 @@ export function LandUsePage() {
       fail(e instanceof Error ? e.message : String(e));
     }
   };
+
+  // El resultado queda desactualizado si cambia la config de suelo O la
+  // geometría compartida con Transporte (n_celdas / largo de la ciudad).
+  const stale = isLandUseStale({
+    stage,
+    config,
+    runContext,
+    liveL: L,
+    liveLargoKm: simConfig.city.largo_ciudad_km,
+  });
 
   const parcelas = result?.parcelas;
   const prices = result?.result.p ?? null;
@@ -51,7 +62,10 @@ export function LandUsePage() {
   const metrics = useMemo<KPI[] | null>(() => {
     if (!result) return null;
     const { parcelas: parc, L: nL, CBD: cbd } = result;
-    const kmPerCell = simConfig.city.largo_ciudad_km / Math.max(nL, 1);
+    // Geometría de la corrida (snapshot), no la viva: cambiar la ciudad en
+    // Transporte no debe reinterpretar un resultado viejo.
+    const kmPerCell =
+      (runContext?.largoKm ?? simConfig.city.largo_ciudad_km) / Math.max(nL, 1);
     const sum = [0, 0, 0];
     const cnt = [0, 0, 0];
     for (let i = 0; i < parc.length; i++) {
@@ -80,7 +94,7 @@ export function LandUsePage() {
       }),
       { label: tS("land_use.metric_segregation"), value: theil.toFixed(3) },
     ];
-  }, [result, simConfig.city.largo_ciudad_km, tS]);
+  }, [result, runContext, simConfig.city.largo_ciudad_km, tS]);
 
   return (
     <div className="page">
@@ -122,6 +136,15 @@ export function LandUsePage() {
       </aside>
 
       <section className="main">
+        {stale && (
+          <div className="stale-banner" role="status">
+            <span>{tS("stale.banner")}</span>
+            <button type="button" onClick={() => void handleRun()}>
+              {`▶ ${tS("stale.rerun")}`}
+            </button>
+          </div>
+        )}
+
         <div className="hero">
           <div className="hero-head">
             <h1 className="hero-title">{tS("land_use.title")}</h1>
