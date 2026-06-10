@@ -186,7 +186,8 @@
     "hint_no_sim": "Sin simulación aún: tiempos de flujo libre.",
     "stratum_label_1": "1 — Alto",
     "stratum_label_2": "2 — Medio",
-    "stratum_label_3": "3 — Bajo"
+    "stratum_label_3": "3 — Bajo",
+    "interpretation": "P = probabilidad de elección de ESTE agente (no el reparto modal del sistema). V está en utiles: solo las diferencias entre modos importan — ~1 util de ventaja ≈ 2.7× más probable."
   },
   "utility_breakdown": {
     "mode": "Modo",

@@ -105,7 +105,6 @@ export const defaultSimulationConfig: SimulationConfig = {
     pendiente_porcentaje: 0,
     teletrabajo_factor: 1,
     share_estratos: [0.1, 0.4, 0.5],
-    ingresos_estratos: [120, 50, 10],
   },
   supply: {
     bike: {

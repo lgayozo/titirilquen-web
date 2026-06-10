@@ -18,7 +18,11 @@ test.describe("simulación end-to-end @slow", () => {
     await expect(kpiValues.first()).not.toHaveText("—", { timeout: 170_000 });
 
     // El KPI de reparto Auto debe ser un porcentaje y aparecen los paneles FIG.
+    // (hay más de un .panel-grid: el Inspector de utilidad es permanente; el
+    // grid de resultados aparece con la corrida — verificamos este último).
     await expect(kpiValues.nth(1)).toContainText("%");
-    await expect(page.locator(".panel-grid")).toBeVisible();
+    await expect(
+      page.locator(".panel-grid", { hasText: "Red vial" })
+    ).toBeVisible();
   });
 });

@@ -24,19 +24,22 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
   const [estrato, setEstrato] = useState<StratumId>(2);
   const [tieneAuto, setTieneAuto] = useState(true);
 
+  // Clamp por si la grilla se achicó después de elegir la celda.
+  const celdaEff = Math.min(celda, config.city.n_celdas - 1);
+
   const distKm =
-    Math.abs(cbdIdx - celda) * (config.city.largo_ciudad_km / config.city.n_celdas);
+    Math.abs(cbdIdx - celdaEff) * (config.city.largo_ciudad_km / config.city.n_celdas);
 
   const tiempos = useMemo(() => {
     if (!lastIter) return null;
     return {
-      auto_total: lastIter.t_auto[celda] ?? 0,
-      bici_total: lastIter.t_bici[celda] ?? 0,
-      tren_acceso: lastIter.t_tren_acceso[celda] ?? 0,
-      tren_espera: lastIter.t_tren_espera[celda] ?? 0,
-      tren_viaje: lastIter.t_tren_viaje[celda] ?? 0,
+      auto_total: lastIter.t_auto[celdaEff] ?? 0,
+      bici_total: lastIter.t_bici[celdaEff] ?? 0,
+      tren_acceso: lastIter.t_tren_acceso[celdaEff] ?? 0,
+      tren_espera: lastIter.t_tren_espera[celdaEff] ?? 0,
+      tren_viaje: lastIter.t_tren_viaje[celdaEff] ?? 0,
     };
-  }, [lastIter, celda]);
+  }, [lastIter, celdaEff]);
 
   const utilities = useMemo(
     () =>
@@ -96,7 +99,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
             min={0}
             max={config.city.n_celdas - 1}
             step={1}
-            value={celda}
+            value={celdaEff}
             onChange={(e) => setCelda(Number(e.target.value))}
             className="w-full"
           />
@@ -123,6 +126,9 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
 
       <p className="font-fig text-[10px] uppercase tracking-[0.06em] text-muted">
         {lastIter ? t("demand_inspector.hint_with_sim") : t("demand_inspector.hint_no_sim")}
+      </p>
+      <p className="text-[11px] leading-snug text-muted" style={{ marginTop: -6 }}>
+        {t("demand_inspector.interpretation")}
       </p>
     </div>
   );

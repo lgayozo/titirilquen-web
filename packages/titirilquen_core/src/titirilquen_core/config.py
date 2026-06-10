@@ -123,7 +123,9 @@ class CityConfig(BaseModel):
     pendiente_porcentaje: float = Field(default=0.0)
     teletrabajo_factor: float = Field(default=1.0, ge=0.0, le=5.0)
     share_estratos: tuple[float, float, float] = Field(default=(0.10, 0.40, 0.50))
-    ingresos_estratos: tuple[float, float, float] = Field(default=(120.0, 50.0, 10.0))
+    # `ingresos_estratos` se eliminó (jun-2026): nunca se usó en el core y
+    # duplicaba el `y` del módulo de suelo. El frontend descarta el campo al
+    # importar escenarios viejos (ver serialization.ts::migrateConfig).
 
     @field_validator("share_estratos")
     @classmethod

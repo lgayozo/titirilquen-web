@@ -7,6 +7,7 @@ import { EconomyBuilder } from "@/components/modules/EconomyBuilder";
 import { SupplyBuilder } from "@/components/modules/SupplyBuilder";
 import { RunStatus } from "@/components/RunStatus";
 import { SimulationSkeleton } from "@/components/SimulationSkeleton";
+import { DemandInspector } from "@/components/modules/DemandInspector";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
@@ -690,6 +691,24 @@ export function SandboxPage() {
             <strong>{t("hints.equilibrium_title")}</strong>
             {t("hints.equilibrium_body")}
           </div>
+        </div>
+
+        {/* Inspector de utilidad — descomposición del logit para una celda/
+            estrato; lo referencia el tutorial de demanda. Antes de correr usa
+            tiempos de flujo libre; después, los de la última iteración. */}
+        <div className="panel-grid" style={{ marginBottom: "var(--gap)" }}>
+          <Panel
+            n="0i"
+            title={t("demand_inspector.title")}
+            meta={
+              lastIter
+                ? t("demand_inspector.hint_with_sim")
+                : t("demand_inspector.hint_no_sim")
+            }
+            cls="col-12"
+          >
+            <DemandInspector config={cfgRes} lastIter={lastIter} />
+          </Panel>
         </div>
 
         {/* Estado de corrida (mantiene animaciones) */}

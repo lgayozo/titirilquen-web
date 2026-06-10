@@ -7,7 +7,8 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ScenarioToolbar } from "@/components/ScenarioToolbar";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { cn } from "@/lib/cn";
-import { configFromUrlParam } from "@/lib/serialization";
+import { scenarioFromUrlParam } from "@/lib/serialization";
+import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
 interface NavItem {
@@ -29,13 +30,21 @@ export function RootLayout() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const replaceConfig = useSimulationStore((s) => s.replaceConfig);
+  const setLandUseConfig = useLandUseStore((s) => s.setConfig);
+  const setCoupledPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
+  const setCoupledOuterMaxIter = useLandUseStore((s) => s.setCoupledOuterMaxIter);
 
   useEffect(() => {
     const stateParam = searchParams.get("s");
     if (!stateParam) return;
     try {
-      const cfg = configFromUrlParam(stateParam);
-      replaceConfig(cfg);
+      const scenario = scenarioFromUrlParam(stateParam);
+      replaceConfig(scenario.config);
+      if (scenario.land_use) setLandUseConfig(() => scenario.land_use!);
+      if (scenario.coupled) {
+        setCoupledPoblacion(scenario.coupled.poblacion);
+        setCoupledOuterMaxIter(scenario.coupled.outer_max_iter);
+      }
       searchParams.delete("s");
       setSearchParams(searchParams, { replace: true });
     } catch {

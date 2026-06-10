@@ -186,7 +186,8 @@
     "hint_no_sim": "No simulation yet: free-flow times.",
     "stratum_label_1": "1 — High",
     "stratum_label_2": "2 — Middle",
-    "stratum_label_3": "3 — Low"
+    "stratum_label_3": "3 — Low",
+    "interpretation": "P = choice probability of THIS agent (not the system's mode share). V is in utils: only differences across modes matter — ~1 util of advantage ≈ 2.7× more likely."
   },
   "utility_breakdown": {
     "mode": "Mode",

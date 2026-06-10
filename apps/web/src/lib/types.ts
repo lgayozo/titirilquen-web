@@ -62,7 +62,6 @@ export interface CityConfig {
   pendiente_porcentaje: number;
   teletrabajo_factor: number;
   share_estratos: [number, number, number];
-  ingresos_estratos: [number, number, number];
 }
 
 export interface BikeSupplyParams {
