@@ -546,6 +546,69 @@ Convenciones:
 
 ---
 
+## D-22 — Loop acoplado: accesibilidad común por ubicación (no por estrato)
+
+- **Síntoma**: al correr "Ciudad en equilibrio", la asignación de estratos en el
+  suelo se veía **invertida/revuelta** (ricos a la periferia, pobres al centro) y
+  el loop convergía instantáneamente.
+- **Causa**: `_aggregate_T_expected` devolvía la accesibilidad `T[h,i]` **por
+  estrato**. Como los estratos con más `prob_auto` (auto = modo rápido)
+  experimentan menor tiempo, el bid-rent lo leía como "a los ricos no les molesta
+  la distancia" e **invertía** el ordenamiento Alonso/Martínez. Verificado: per
+  estrato daba alto 7.6 km / bajo 2.2 km (invertido); común da 3.1 / 4.7 / 6.2 km
+  (correcto).
+- **Fix**: la accesibilidad es un **atributo de la ubicación** → se devuelve la
+  **media simple entre estratos** `T(i) = mean_h Te_h(i)`, replicada en todas las
+  filas. La heterogeneidad entre usuarios ya la captura `α_h`. El tiempo
+  experimentado por estrato (con el efecto auto) se sigue reportando en
+  `coupled_metrics.py` a partir de los agentes.
+- **Veredicto**: Bug del modelo acoplado corregido (decisión del autor del
+  modelo, jun-2026). NO reintroducir T por estrato en el bid-rent.
+
+---
+
+## D-23 — Loop acoplado: baseline "sin feedback" en minutos a flujo libre
+
+- **Síntoma**: la comparación "sin feedback" (iter 0) vs "con feedback" (iter N)
+  mostraba un efecto enorme y engañoso (Theil colapsaba ~0.46 → ~0.05).
+- **Causa**: el arranque (`LandUseCity.build`, antes con `T=None`) resolvía el
+  suelo con `_default_T` = **distancia en índices de celda** (escala 0–100),
+  mientras las iteraciones acopladas usan **minutos** (0–33). El salto iter0→
+  final era mayormente un **reescalado de unidades**, no el efecto real del
+  feedback de congestión.
+- **Fix**: el baseline se inicializa con `_freeflow_T` = accesibilidad ingenua a
+  **flujo libre en minutos** (`T(i) = d_km/v_auto·60`, común), en la **misma
+  escala** que el loop. Con el baseline honesto el feedback transporte→suelo
+  sobre la **localización es genuinamente modesto** (Theil ~0.08); lo que
+  responde fuerte es el lado transporte (congestión, frecuencia de metro) y la
+  diferencia **entre escenarios**.
+- **Veredicto**: Artefacto de unidades corregido; el feedback honesto es modesto
+  (no era un bug que estuviera "apagado", era el artefacto el que lo inflaba).
+
+---
+
+## D-24 — Loop acoplado: gridlock del corredor monocéntrico → población por escenario
+
+- **Síntoma**: con demanda alta, escenarios grandes y auto-dependientes (p. ej.
+  `sparse-proauto`, corredor de 30 km) el loop externo **diverge** (residual
+  oscila/crece, t_medio explota a cientos de min).
+- **Causa**: estructura monocéntrica (todo el flujo al CBD) + BPR → la congestión
+  cerca del CBD crece sin techo cuando la demanda supera la capacidad vial. Es
+  **físico**, no numérico: probado damping (θ constante) y no estabiliza un
+  estado genuinamente gridlockeado. La escala de demanda del loop es ΣH (del
+  suelo); `densidad_por_celda` **no** afecta el acoplado.
+- **Fix (UI/configuración)**: la población (ΣH) se expone como **palanca de
+  demanda** en la página, y cada preset tiene un `poblacionDefault` acorde a su
+  capacidad antes de gridlockear (compacta 12 km ~40k, base 20 km ~30k, sparse
+  30 km ~12k; custom 25k). Régimen sano donde se activan los feedbacks del
+  transporte (frecuencia de metro responde, congestión real) sin diverger.
+- **Pendiente**: estabilizar el loop externo (damping adaptativo / relajación)
+  para admitir demanda alta en ciudades grandes sin acotar por población.
+- **Veredicto**: Acotado por configuración; mejora de robustez del loop externo
+  identificada como pendiente.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -571,3 +634,6 @@ Convenciones:
 | D-19 | Selección de modos disponibles (set de elección) | Ampliación de funcionalidad | Media |
 | D-20 | Rendimiento: asignación agrupada (independiente de densidad) | Mejora de rendimiento | Alta |
 | D-21 | Saturación ciclovía: techo de caminata plano (capacidad blanda) | Simplificación aceptada (limitación documentada) | Media |
+| D-22 | Acoplado: accesibilidad común por ubicación (no por estrato) | Bug del modelo corregido | Alta |
+| D-23 | Acoplado: baseline "sin feedback" en min a flujo libre (no índices) | Artefacto de unidades corregido | Alta |
+| D-24 | Acoplado: gridlock monocéntrico → población por escenario | Acotado por config (robustez pendiente) | Media |

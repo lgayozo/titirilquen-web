@@ -92,6 +92,7 @@ await micropip.install(${JSON.stringify(whlUrl)})
 
 from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
 from titirilquen_core.coupled import iter_coupled
+from titirilquen_core.coupled_metrics import equilibrium_metrics_to_dict
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa
 import json
 import numpy as np
@@ -175,6 +176,7 @@ def _outer_iter_to_py(outer):
         "transport": _trace_to_py(outer.transport),
         "T_matrix": outer.T_matrix.tolist(),
         "T_residual": None if outer.T_residual == float("inf") else outer.T_residual,
+        "metrics": equilibrium_metrics_to_dict(outer.metrics),
     }
 
 def land_use_solve_from_json(req_json: str):

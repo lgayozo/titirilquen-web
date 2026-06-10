@@ -24,6 +24,10 @@ export interface JointPreset {
   policy: keyof typeof POLICY_PRESETS;
   /** Override parcial del uso de suelo (opcional). */
   landUseOverride?: Partial<LandUseConfig>;
+  /** Población total recomendada (escala de demanda) para que el loop converja
+   *  sin gridlock. Una ciudad más larga/auto-dependiente colapsa con menos
+   *  población; una compacta con buen transporte aguanta mucha más. */
+  poblacionDefault: number;
 }
 
 export const JOINT_PRESETS: readonly JointPreset[] = [
@@ -33,6 +37,9 @@ export const JOINT_PRESETS: readonly JointPreset[] = [
     descriptionKey: "coupled.presets.compact_toll.desc",
     city: "Compacta",
     policy: "Tarificación Vial",
+    // Ciudad compacta ⇒ oferta de vivienda concentrada cerca del CBD (σ bajo).
+    landUseOverride: { forma: "normal", oferta_sigma_frac: 0.32 },
+    poblacionDefault: 40000,
   },
   {
     key: "sparse-proauto",
@@ -40,6 +47,11 @@ export const JOINT_PRESETS: readonly JointPreset[] = [
     descriptionKey: "coupled.presets.sparse_proauto.desc",
     city: "Dispersa",
     policy: "Pro-Auto",
+    // Sprawl ⇒ oferta extendida hacia la periferia (σ alto).
+    landUseOverride: { forma: "normal", oferta_sigma_frac: 0.85 },
+    // Corredor de 30 km auto-dependiente: gridlocka por sobre ~15k (todo el
+    // flujo converge al CBD). Población baja para que el equilibrio sea estable.
+    poblacionDefault: 12000,
   },
   {
     key: "base-probici",
@@ -47,6 +59,8 @@ export const JOINT_PRESETS: readonly JointPreset[] = [
     descriptionKey: "coupled.presets.base_probici.desc",
     city: "Base",
     policy: "Pro-Bici",
+    landUseOverride: { forma: "normal", oferta_sigma_frac: 0.5 },
+    poblacionDefault: 30000,
   },
   {
     key: "compact-metro",
@@ -54,8 +68,106 @@ export const JOINT_PRESETS: readonly JointPreset[] = [
     descriptionKey: "coupled.presets.compact_metro.desc",
     city: "Compacta",
     policy: "Máx Metro",
+    landUseOverride: { forma: "normal", oferta_sigma_frac: 0.32 },
+    poblacionDefault: 40000,
   },
 ] as const;
+
+/** Un parámetro del escenario, listo para mostrar (la página traduce labelKey). */
+export interface PresetParam {
+  key: string;
+  /** Clave i18n del rótulo (namespace simulator). */
+  labelKey: string;
+  /** Valor ya formateado. */
+  value: string;
+  unit?: string;
+  /** Grupo: de qué módulo proviene el parámetro. */
+  group: "city" | "transport" | "land_use";
+}
+
+/**
+ * Extrae los parámetros que **definen** el escenario (los que mueve el preset),
+ * para que el estudiante vea *por qué* una ciudad es compacta / pro-auto / etc.
+ * No es la config completa: solo las palancas pedagógicamente relevantes.
+ */
+export function describePresetParams(
+  sim: SimulationConfig,
+  landUse: LandUseConfig,
+): PresetParam[] {
+  const nf = (v: number) => v.toLocaleString("es-CL");
+  return [
+    // --- Ciudad / suelo (¿compacta o dispersa?) ---
+    {
+      key: "largo",
+      labelKey: "coupled.param.largo",
+      value: nf(sim.city.largo_ciudad_km),
+      unit: "km",
+      group: "city",
+    },
+    {
+      // Población total = ΣH del uso de suelo. Es la **escala de demanda** real
+      // del loop acoplado (a diferencia de `densidad_por_celda`, que no afecta
+      // este módulo: la población viene del suelo, no de la densidad de celda).
+      key: "poblacion",
+      labelKey: "coupled.param.poblacion",
+      value: nf(landUse.H_por_estrato.reduce((a, b) => a + b, 0)),
+      unit: "hog",
+      group: "land_use",
+    },
+    {
+      key: "compacidad",
+      labelKey: "coupled.param.compacidad",
+      value: landUse.oferta_sigma_frac.toFixed(2),
+      unit: "σ",
+      group: "land_use",
+    },
+    // --- Transporte (¿pro-auto, pro-bici, pro-metro?) ---
+    {
+      key: "pistas",
+      labelKey: "coupled.param.pistas",
+      value: nf(sim.supply.car.num_pistas),
+      group: "transport",
+    },
+    {
+      key: "frec",
+      labelKey: "coupled.param.frec",
+      value: nf(sim.supply.train.frec_max),
+      unit: "tr/h",
+      group: "transport",
+    },
+    {
+      key: "estaciones",
+      labelKey: "coupled.param.estaciones",
+      value: nf(sim.supply.train.num_estaciones),
+      group: "transport",
+    },
+    {
+      key: "cap_bici",
+      labelKey: "coupled.param.cap_bici",
+      value: nf(sim.supply.bike.capacidad_pista),
+      group: "transport",
+    },
+    {
+      key: "tarifa",
+      labelKey: "coupled.param.tarifa",
+      value: `$${nf(sim.demand.globales.costo_tarifa_metro)}`,
+      group: "transport",
+    },
+    {
+      key: "parking",
+      labelKey: "coupled.param.parking",
+      value: `$${nf(sim.demand.globales.costo_parking)}`,
+      group: "transport",
+    },
+    {
+      key: "bencina",
+      labelKey: "coupled.param.bencina",
+      value: `$${nf(sim.demand.globales.costo_combustible_km)}`,
+      unit: "/km",
+      group: "transport",
+    },
+  ];
+}
 
 /** Aplica un preset y retorna el par {sim, landUse} listo para correr. */
 export function applyJointPreset(

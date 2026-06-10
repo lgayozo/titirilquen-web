@@ -11,6 +11,7 @@ from typing import Any
 import numpy as np
 
 from titirilquen_core.coupled import CoupledResult, OuterIteration
+from titirilquen_core.coupled_metrics import equilibrium_metrics_to_dict
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.equilibrium import LandUseResult
 
@@ -57,6 +58,7 @@ def outer_iteration_to_dict(outer: OuterIteration) -> dict[str, Any]:
         "transport": trace_to_dict(outer.transport),
         "T_matrix": outer.T_matrix.tolist(),
         "T_residual": None if outer.T_residual == float("inf") else outer.T_residual,
+        "metrics": equilibrium_metrics_to_dict(outer.metrics),
     }
 
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { cityShapeWeights } from "@/lib/citySupply";
 import { cn } from "@/lib/cn";
 import type { FormaOferta } from "@/lib/types-v2";
 
@@ -15,57 +16,6 @@ interface CityShapePreviewProps {
 }
 
 const MARGIN = { top: 16, right: 14, bottom: 26, left: 44 };
-
-/**
- * Perfil de pesos de la oferta de vivienda `w(d)` — **espejo de presentación**
- * de `land_use/supply.py:generar_oferta` (solo para el preview en vivo). El
- * vector S entero que realmente se resuelve lo genera el core Python; acá solo
- * dibujamos la *forma* relativa para que se entienda qué ciudad se configura.
- */
-function shapeWeights(
-  forma: FormaOferta,
-  L: number,
-  CBD: number,
-  sigmaFrac: number,
-  formaParam: number,
-): number[] {
-  const semi = Math.max(1, Math.min(CBD, L - 1 - CBD));
-  const sigma = Math.max(sigmaFrac * semi, 1e-6);
-  const w = new Array<number>(L).fill(0);
-  for (let i = 0; i < L; i++) {
-    const d = Math.abs(i - CBD);
-    let v = 0;
-    switch (forma) {
-      case "normal":
-        v = Math.exp(-0.5 * (d / sigma) ** 2);
-        break;
-      case "uniforme":
-        v = 1;
-        break;
-      case "exponencial":
-        v = Math.exp(-d / sigma);
-        break;
-      case "meseta":
-        v = Math.exp(-((d / sigma) ** 8));
-        break;
-      case "bimodal": {
-        const sp = sigma * 0.5;
-        const sep = formaParam * semi;
-        v =
-          Math.exp(-0.5 * ((i - (CBD - sep)) / sp) ** 2) +
-          Math.exp(-0.5 * ((i - (CBD + sep)) / sp) ** 2);
-        break;
-      }
-      case "valle":
-        // densidad crece con la distancia; σ controla la profundidad del valle
-        v = (d / semi) ** (2 * sigmaFrac);
-        break;
-    }
-    w[i] = v;
-  }
-  w[CBD] = 0; // no se construye sobre el CBD
-  return w;
-}
 
 /**
  * Vista previa de la **forma de la ciudad** (oferta de vivienda) antes de
@@ -94,7 +44,7 @@ export function CityShapePreview({
   }, []);
 
   const weights = useMemo(
-    () => shapeWeights(forma, L, CBD, sigmaFrac, formaParam),
+    () => cityShapeWeights(forma, L, CBD, sigmaFrac, formaParam),
     [forma, L, CBD, sigmaFrac, formaParam],
   );
   const wMax = useMemo(() => Math.max(...weights, 1e-9), [weights]);

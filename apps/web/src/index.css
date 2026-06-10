@@ -2175,6 +2175,15 @@ table.cmp th {
   margin-bottom: 16px;
 }
 
+.coupled-source-label {
+  font-family: var(--font-fig);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
 .coupled-preset {
   background: var(--paper);
   border: 1px solid var(--rule);
@@ -2198,6 +2207,41 @@ table.cmp th {
   border-color: var(--accent);
   background: var(--paper);
   box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Variante compacta para el listado vertical del sidebar. */
+.coupled-sidebar-info {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin-bottom: 16px;
+}
+
+.coupled-scenario-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.coupled-preset.compact {
+  padding: 9px 11px;
+  gap: 3px;
+}
+
+.coupled-preset.compact .coupled-preset-title {
+  font-size: 13px;
+}
+
+.coupled-preset.compact .coupled-preset-desc {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.coupled-preset.compact .coupled-preset-tags {
+  font-size: 9px;
+  padding-top: 2px;
 }
 
 .coupled-preset-title {
@@ -2248,6 +2292,15 @@ table.cmp th {
   color: var(--muted);
   flex: 1;
   min-width: 280px;
+}
+
+/* En el sidebar va a todo el ancho, sin min-width forzado. */
+.sidebar .coupled-iter-input {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+  margin: 6px 0 14px;
 }
 
 .coupled-iter-input input[type="range"] {
