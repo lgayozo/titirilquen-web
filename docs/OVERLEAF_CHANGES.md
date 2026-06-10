@@ -161,6 +161,49 @@ Se itera `ū ← F(ū)`, con `F(ū)_h = (1/β)·ln Σ_i S_i·e^{β(s_hi − p_i(
    ubicación, con `P(h|i) ∝ e^{β(−λ_h·p_i + f_hi)}`, sí dejaría a `λ` actuar vía
    la sensibilidad al precio.)
 
+### C9 (D-26/D-27) — Unidades físicas en la función de puje (invariancia de grilla)
+
+> Cambia la definición de `T_h(i)` y del término de densidad en `Suelo.tex`
+> (§Función de puje), que hoy dice "el modelo usa la distancia al centro"
+> (índices de parcela) y `ρ_h·S_i` con S en hogares/parcela.
+
+**Problema.** Con `T` en índices de celda y `S` en hogares/celda, el equilibrio
+**depende de la discretización**: refinar la grilla (misma ciudad física) es
+algebraicamente idéntico a estirar la ciudad — verificado: Theil 0.245 → 0.658
+al pasar de 101 a 401 celdas con la misma ciudad de 20 km. Es una instancia del
+*Modifiable Areal Unit Problem* (Openshaw 1983; para segregación, Reardon &
+O'Sullivan 2004): el resultado no debe depender de la unidad espacial elegida,
+porque el límite continuo (Alonso 1964; Fujita 1989) está bien definido.
+
+**Corrección (implementada en la web, jun-2026).**
+
+    T(i)   = d_km(i) / v_ref · 60          [minutos, v_ref = 30 km/h]
+    f_h(i) = −α_h·T(i) − ρ_h·(S_i/Δx)      [densidad en hogares/km]
+
+con `α_h` en utiles/min (mismas unidades que el β de tiempo del módulo de
+demanda) y `ρ_h` en utiles/(hogar/km). La capacidad `S_i` (hogares/parcela)
+sigue siendo la restricción del punto fijo; solo la *desamenidad* usa densidad.
+En el loop acoplado `T` ya estaba en minutos (D-23); esto unifica el caso
+standalone con la misma convención.
+
+**Propiedades verificadas** (tests de consistencia):
+1. *Invariancia de grilla*: Theil y distancias medias estables (±2% / ±0.35 km)
+   entre L = 101, 201 y 401 con la misma ciudad física.
+2. *Sensibilidad al tamaño físico*: agrandar la ciudad de 10 → 40 km (misma
+   grilla) sube el Theil de 0.245 → 0.658 — el efecto económico real, ahora
+   separado del artefacto numérico.
+3. Conservación `Σ_i S_i·Q_hi = H_h` se mantiene (D-25).
+
+**Calibración**: α = (6.5, 6.0, 5.5) utiles/min y ρ = 0.1 utiles/(hogar/km)
+reproducen el comportamiento previo en la grilla de referencia (201 celdas /
+20 km). Además (D-27) el ingreso `y_h` se declara en $/mes (3.5M / 1.5M / 0.5M)
+y la métrica de carga del acoplado pasa a (costo·44 viajes/mes)/y — `y` sigue
+sin mover la asignación (se absorbe en ū, ver §C8 punto 4).
+
+**Referencias para el paper**: Alonso (1964) *Location and Land Use*; Fujita
+(1989) *Urban Economic Theory*; Openshaw (1983) *The MAUP*, CATMOG 38; Reardon
+& O'Sullivan (2004) *Sociological Methodology* 34; Hansen (1959) *JAPA* 25.
+
 ---
 
 ## D. Limpieza / menores

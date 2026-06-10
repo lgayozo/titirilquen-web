@@ -56,6 +56,10 @@ from titirilquen_core.supply.train import oferta_tren
 if TYPE_CHECKING:
     from titirilquen_core.config import StratumId
 
+VIAJES_MES = 44
+"""Viajes de conmutación por mes (2 por día laboral × 22 días) para convertir
+el costo por viaje a carga mensual costo/ingreso (D-27)."""
+
 _MODOS_VIAJE: tuple[str, ...] = ("Auto", "Metro", "Bici", "Caminata")
 # Categorías reportadas en el reparto modal (suman 1 sobre todos los agentes).
 _CATEGORIAS_MODALES: tuple[str, ...] = (*_MODOS_VIAJE, "Teletrabajo", "Varado")
@@ -90,7 +94,9 @@ class StratumMetrics:
     ver módulo docstring."""
 
     carga_costo_ingreso: float
-    """Costo de transporte medio / ingreso del estrato (fracción). Lente de equidad."""
+    """Carga **mensual**: (costo medio por viaje · 44 viajes/mes) / ingreso
+    mensual del estrato ($/mes). Fracción interpretable (~0.02–0.30) — antes
+    mezclaba costo por viaje en $ con un ingreso adimensional (D-27)."""
 
 
 @dataclass(frozen=True)
@@ -399,7 +405,8 @@ def compute_equilibrium_metrics(
             c: (float(modal[h, k] / tot) if tot > 0 else 0.0)
             for c, k in cat_idx.items()
         }
-        carga = c_medio / ingresos[h] if ingresos[h] > 0 else 0.0
+        # Carga mensual: costo por viaje × viajes/mes sobre ingreso mensual (D-27).
+        carga = (c_medio * VIAJES_MES) / ingresos[h] if ingresos[h] > 0 else 0.0
         por_estrato.append(
             StratumMetrics(
                 estrato=h + 1,

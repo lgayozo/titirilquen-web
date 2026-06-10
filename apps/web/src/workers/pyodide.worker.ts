@@ -182,7 +182,9 @@ def _outer_iter_to_py(outer):
 def land_use_solve_from_json(req_json: str):
     req = json.loads(req_json)
     cfg = LandUseConfig.model_validate(req["land_use"])
-    city = LandUseCity.build(L=int(req["L"]), CBD=int(req["CBD"]), cfg=cfg)
+    L = int(req["L"])
+    largo_km = float(req.get("largo_km", 20.0))
+    city = LandUseCity.build(L=L, CBD=int(req["CBD"]), cfg=cfg, ancho_celda_km=largo_km / L)
     assert city.result is not None
     return {
         "L": city.L,

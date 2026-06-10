@@ -58,9 +58,18 @@ def _f(
     S: NDArray[np.float64],
     alpha: NDArray[np.float64],
     rho: NDArray[np.float64],
+    ancho_celda_km: float = 1.0,
 ) -> NDArray[np.float64]:
-    """Atractividad de la parcela f_h(i) = -α_h·T(i) - ρ_h·S(i)."""
-    return -alpha[:, None] * T - rho[:, None] * S[None, :]
+    """Atractividad de la parcela f_h(i) = -α_h·T(i) - ρ_h·dens(i).
+
+    **Unidades físicas (D-26)**: `T` en minutos y la densidad `dens = S/Δx` en
+    hogares/km — NO la capacidad por celda. Así el equilibrio es invariante a
+    la resolución de la grilla: refinarla no cambia ni T(x) ni dens(x), solo
+    los muestrea más fino. Con `ancho_celda_km=1` (default) dens = S, lo que
+    reproduce el comportamiento previo (útil para tests con unidades
+    arbitrarias)."""
+    dens = S[None, :] / ancho_celda_km
+    return -alpha[:, None] * T - rho[:, None] * dens
 
 
 def _f_div_lambda(
@@ -69,9 +78,10 @@ def _f_div_lambda(
     alpha: NDArray[np.float64],
     rho: NDArray[np.float64],
     lambda_h: NDArray[np.float64],
+    ancho_celda_km: float = 1.0,
 ) -> NDArray[np.float64]:
     """f_h(i) / λ_h."""
-    return _f(T, S, alpha, rho) / lambda_h[:, None]
+    return _f(T, S, alpha, rho, ancho_celda_km) / lambda_h[:, None]
 
 
 def _solve_fixed_point(
@@ -155,16 +165,18 @@ def solve_logit(
     beta: float = 1.0,
     tol: float = 1e-8,
     max_iter: int = 10000,
+    ancho_celda_km: float = 1.0,
 ) -> LandUseResult:
     """Equilibrio vía punto fijo logit (ec. 5.4 Martínez). Puja `y_h + f_h(i)/λ_h`.
 
     Aplica un β **uniforme** a las pujas; con `λ_h` heterogéneo el ruido de la
     puja queda con escala `1/(β·λ_h)` por estrato → es **inconsistente** (ver
     D‑08). Se conserva para comparación didáctica con `solve_heteroscedastic`.
+    `T` en minutos; `ancho_celda_km` convierte S a densidad (ver D-26).
     """
     H_arr = np.asarray(H, dtype=float)
     S_arr = np.asarray(S, dtype=float).reshape(-1)
-    score = y[:, None] + _f_div_lambda(T, S_arr, alpha, rho, lambda_h)
+    score = y[:, None] + _f_div_lambda(T, S_arr, alpha, rho, lambda_h, ancho_celda_km)
     return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)
 
 
@@ -180,8 +192,10 @@ def solve_heteroscedastic(
     beta: float = 1.0,
     tol: float = 1e-8,
     max_iter: int = 10000,
+    ancho_celda_km: float = 1.0,
 ) -> LandUseResult:
     """Equilibrio con **logit heteroscedástico** — la corrección del λ (ver D‑08).
+    `T` en minutos; `ancho_celda_km` convierte S a densidad hogares/km (D-26).
 
     La utilidad es `U_hi = λ_h(y_h − p_i) + f_h(i) + ε_hi` con ε Gumbel de escala
     `1/β` (homoscedástica **en utilidad**). La puja (WTP) divide por λ_h, lo que
@@ -194,5 +208,5 @@ def solve_heteroscedastic(
     """
     H_arr = np.asarray(H, dtype=float)
     S_arr = np.asarray(S, dtype=float).reshape(-1)
-    score = (lambda_h * y)[:, None] + _f(T, S_arr, alpha, rho)
+    score = (lambda_h * y)[:, None] + _f(T, S_arr, alpha, rho, ancho_celda_km)
     return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)

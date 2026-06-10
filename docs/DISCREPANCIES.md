@@ -641,6 +641,75 @@ Convenciones:
 
 ---
 
+## D-26 — Uso de suelo: unidades físicas (T en minutos, densidad en hogares/km) → invariancia de grilla
+
+- **Síntoma**: el equilibrio de suelo dependía de la **resolución de la grilla**:
+  con la misma ciudad física (20 km, misma población y parámetros), el índice de
+  Theil pasaba de 0.245 (L=101) a 0.462 (L=201) y 0.658 (L=401). Subir el
+  slider "número de celdas" — una decisión puramente numérica — cambiaba las
+  conclusiones del modelo.
+- **Causa**: dos términos de la atractividad `f_h(i) = −α_h·T(i) − ρ_h·S_i`
+  estaban en **unidades de grilla**, no físicas: `T = |i − CBD|` en *índices de
+  celda* (su rango crece con L) y `S_i` en *hogares por celda* (se diluye con
+  L). Refinar la grilla era matemáticamente **idéntico** a estirar la ciudad:
+  los Theil del artefacto (0.245/0.462/0.658 para L=101/201/401) coinciden
+  exactamente con los de agrandar la ciudad física (10/20/40 km a L fija).
+- **Fix (jun-2026)**:
+  - `T` en **minutos** a flujo libre (`d_km/v_ref·60`, `v_ref = 30 km/h`), la
+    misma convención que el baseline del loop acoplado (D-23) — standalone y
+    acoplado quedan en la misma escala, y α gana unidades interpretables
+    (utiles/min, las mismas del `b_tiempo_viaje` de demanda).
+  - La penalización de densidad usa **hogares/km** (`ρ·S_i/Δx`), separando los
+    dos roles de `S`: capacidad por parcela (clearing del punto fijo, sigue en
+    hogares/celda) y desamenidad por densidad (física, en hogares/km).
+  - Defaults recalibrados para reproducir el comportamiento previo en la grilla
+    de referencia (201 celdas / 20 km): `α = (6.5, 6.0, 5.5)` utiles/min
+    (≈ α_viejo·5), `ρ = 0.1` utiles/(hogar/km) (= ρ_viejo·Δx).
+- **Por qué es lo correcto**: la discretización es una elección numérica y los
+  indicadores deben **converger** al refinarla (el límite continuo es el modelo
+  monocéntrico de Alonso/Fujita); que un resultado dependa de la unidad espacial
+  de agregación es el clásico *Modifiable Areal Unit Problem* (Openshaw 1983),
+  documentado para índices de segregación por Reardon & O'Sullivan (2004). El
+  tamaño **físico** de la ciudad, en cambio, sí debe mover los indicadores —
+  más km ⇒ el gradiente α·T pesa más contra el ruido del logit ⇒ más sorting.
+- **Verificación** (`test_land_use.py`):
+  `test_invariancia_a_la_resolucion_de_la_grilla` — Theil estable (±2%) y
+  distancias medias estables (±0.35 km) entre L=101/201/401;
+  `test_sensibilidad_al_tamano_fisico` — Theil(40 km) > Theil(10 km).
+- **Referencias**: Alonso (1964) *Location and Land Use*; Fujita (1989) *Urban
+  Economic Theory*; Martínez (2018) *Microeconomic Modeling in Urban Science*
+  caps. 3–5; Openshaw (1983) *The Modifiable Areal Unit Problem* (CATMOG 38);
+  Reardon & O'Sullivan (2004) "Measures of Spatial Segregation", *Sociological
+  Methodology* 34; Hansen (1959) "How Accessibility Shapes Land Use", *JAPA* 25.
+- **Migración**: escenarios `.ttrq` con α/ρ/y en unidades viejas (solo los
+  exportados desde esta rama antes del cambio) requieren reescalar a mano
+  (α×5, ρ×0.1); los v1 no traían suelo, así que no les afecta.
+- **Veredicto**: Bug de unidades corregido (decisión de modelo, jun-2026);
+  documentar en el Overleaf (ver OVERLEAF_CHANGES §C9).
+
+---
+
+## D-27 — Métrica de carga: costo mensual / ingreso mensual (unidades monetarias reales)
+
+- **Síntoma**: la "carga costo/ingreso" del reporte del acoplado mostraba
+  valores absurdos (3.494% / 6.165% / **27.443%** con los defaults): dividía el
+  costo **por viaje en $** (~3.000) por un ingreso **adimensional** (120/50/10).
+- **Fix (jun-2026)**: el ingreso `y` del suelo se declara en **$/mes**
+  (defaults 3.5M / 1.5M / 0.5M, ~deciles chilenos estilizados) y la carga pasa a
+  ser **mensual**: `(costo_por_viaje · 44 viajes/mes) / y` (2 viajes × 22 días).
+  Con los defaults da ~4% / 9% / 26% — y el ~26% del estrato bajo es el hallazgo
+  pedagógico correcto (umbral típico de (in)asequibilidad de transporte).
+- **Nota de modelo**: `y` sigue **sin mover la asignación** (se absorbe en ū,
+  propiedad del solver heteroscedástico — ver D-08 §C8); solo alimenta la
+  métrica de equidad. El ratio bajo/alto era válido incluso antes (adimensional);
+  lo que no tenía sentido era el *nivel*.
+- **Referencia**: el costo de transporte como fracción del ingreso es la métrica
+  estándar de asequibilidad (p.ej. el *H+T Affordability Index* del CNT usa 15%
+  del ingreso como umbral de transporte asequible).
+- **Veredicto**: Unidades corregidas; métrica interpretable.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -670,3 +739,5 @@ Convenciones:
 | D-23 | Acoplado: baseline "sin feedback" en min a flujo libre (no índices) | Artefacto de unidades corregido | Alta |
 | D-24 | Acoplado: gridlock monocéntrico → población por escenario | Acotado por config (robustez pendiente) | Media |
 | D-25 | Suelo: Q sin ponderación H_h (no conservaba hogares por estrato) | Bug del port corregido | Alta |
+| D-26 | Suelo: unidades físicas (T en min, densidad hog/km) → invariancia de grilla | Bug de unidades corregido (decisión de modelo) | Alta |
+| D-27 | Carga mensual costo/ingreso con y en $/mes | Unidades corregidas | Media |

@@ -148,25 +148,26 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
             <LabeledSlider
               label={t("land_use.param_alpha")}
               value={s.alpha}
-              min={0.1}
-              max={5}
-              step={0.05}
+              min={0.5}
+              max={20}
+              step={0.25}
               onChange={(v) => setStratum(idx, { alpha: v })}
             />
             <LabeledSlider
               label={t("land_use.param_rho")}
               value={s.rho}
               min={0}
-              max={3}
-              step={0.05}
+              max={0.5}
+              step={0.01}
               onChange={(v) => setStratum(idx, { rho: v })}
             />
             <LabeledSlider
               label={t("land_use.param_y")}
               value={s.y}
-              min={1}
-              max={300}
-              step={1}
+              min={100_000}
+              max={10_000_000}
+              step={100_000}
+              format={(v) => `$${(v / 1_000_000).toFixed(1)}M`}
               disabled
               hint={t("land_use.y_na")}
               onChange={(v) => setStratum(idx, { y: v })}

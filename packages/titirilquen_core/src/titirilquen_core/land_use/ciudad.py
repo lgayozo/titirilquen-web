@@ -26,11 +26,24 @@ _SOLVERS = {
 from titirilquen_core.land_use.supply import generar_oferta
 
 
-def _default_T(n_parcelas: int, cbd_index: int, n_strata: int) -> NDArray[np.float64]:
-    """T[h, i] = |i - cbd|, igual para todos los estratos (la variación por
-    estrato se captura vía α_h)."""
-    dist = np.abs(np.arange(n_parcelas) - cbd_index).astype(float)
-    return np.tile(dist, (n_strata, 1))
+V_REF_KMH = 30.0
+"""Velocidad de referencia del baseline "sin transporte": el T por defecto es
+el tiempo a flujo libre a esta velocidad. Misma convención que el arranque del
+loop acoplado (ver D-23/D-26)."""
+
+
+def _default_T(
+    n_parcelas: int, cbd_index: int, n_strata: int, ancho_celda_km: float
+) -> NDArray[np.float64]:
+    """T[h, i] = tiempo a flujo libre al CBD, en **minutos** (d_km/v_ref·60),
+    igual para todos los estratos (la variación por estrato se captura vía α_h).
+
+    En minutos y no en índices de celda (D-26): con índices, refinar la grilla
+    "agrandaba" la ciudad que ve el bid-rent y el equilibrio dependía de la
+    resolución; en unidades físicas T(x) es invariante a la discretización."""
+    dist_km = np.abs(np.arange(n_parcelas) - cbd_index).astype(float) * ancho_celda_km
+    t_min = dist_km / V_REF_KMH * 60.0
+    return np.tile(t_min, (n_strata, 1))
 
 
 @dataclass
@@ -46,7 +59,9 @@ class LandUseCity:
     L: int
     cbd_index: int
     cfg: LandUseConfig
-    ancho_celda_km: float = 0.01
+    # Ancho físico de cada celda. Default ≈ ciudad de 20 km en 201 celdas (la
+    # referencia del frontend); los callers deben pasar largo_km/L real.
+    ancho_celda_km: float = 0.1
     S: NDArray[np.int_] = field(default_factory=lambda: np.zeros(0, dtype=int))
     result: LandUseResult | None = None
     parcelas: list[list[int]] = field(default_factory=list)
@@ -101,7 +116,7 @@ class LandUseCity:
         lambda_h = np.asarray([s.lambda_ for s in self.cfg.estratos], dtype=float)
 
         if T is None:
-            T = _default_T(self.L, self.cbd_index, n_strata)
+            T = _default_T(self.L, self.cbd_index, n_strata, self.ancho_celda_km)
         if T.shape != (n_strata, self.L):
             raise ValueError(f"T shape {T.shape} != ({n_strata}, {self.L})")
 
@@ -117,6 +132,7 @@ class LandUseCity:
             beta=self.cfg.beta,
             tol=self.cfg.tol,
             max_iter=self.cfg.max_iter,
+            ancho_celda_km=self.ancho_celda_km,
         )
         self.parcelas = asignar_hogares_simple(Q=self.result.Q, S=self.S, H=H, rng=rng)
 

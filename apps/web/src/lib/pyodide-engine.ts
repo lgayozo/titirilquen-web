@@ -33,7 +33,7 @@ type WorkerInMsg =
   | {
       id: string;
       type: "landUseSolve";
-      req: { L: number; CBD: number; land_use: LandUseConfig };
+      req: { L: number; CBD: number; largo_km: number; land_use: LandUseConfig };
     }
   | { id: string; type: "coupledStream"; req: CoupledRequest };
 
@@ -170,7 +170,7 @@ class PyodideEngine {
   }
 
   async solveLandUse(
-    req: { L: number; CBD: number; land_use: LandUseConfig },
+    req: { L: number; CBD: number; largo_km: number; land_use: LandUseConfig },
     signal?: AbortSignal,
   ): Promise<LandUseSolveResponse> {
     return this.request<LandUseSolveResponse>(

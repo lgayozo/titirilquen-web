@@ -18,6 +18,8 @@ export async function solveLandUse(
   req: {
     L: number;
     CBD: number;
+    /** Largo físico de la ciudad (km): T y densidad usan unidades físicas (D-26). */
+    largo_km: number;
     land_use: LandUseConfig;
   },
   signal?: AbortSignal,
@@ -98,10 +100,12 @@ export async function solveCoupledStream(
 
 export const defaultLandUseConfig: LandUseConfig = {
   H_por_estrato: [1000, 4000, 5000],
+  // Unidades físicas (D-26/D-27): α en utiles/min, ρ en utiles/(hogar/km),
+  // y en $/mes. Calibración equivalente a la antigua en 201 celdas / 20 km.
   estratos: [
-    { y: 120, lambda: 1, alpha: 1.3, rho: 1 },
-    { y: 50, lambda: 1, alpha: 1.2, rho: 1 },
-    { y: 10, lambda: 1, alpha: 1.1, rho: 1 },
+    { y: 3_500_000, lambda: 1, alpha: 6.5, rho: 0.1 },
+    { y: 1_500_000, lambda: 1, alpha: 6.0, rho: 0.1 },
+    { y: 500_000, lambda: 1, alpha: 5.5, rho: 0.1 },
   ],
   beta: 1,
   solver: "heteroscedastic",

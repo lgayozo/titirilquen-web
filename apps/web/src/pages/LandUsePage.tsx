@@ -35,7 +35,12 @@ export function LandUsePage() {
   const handleRun = async () => {
     startRun({ L, CBD, largoKm: simConfig.city.largo_ciudad_km, config });
     try {
-      const r = await solveLandUse({ L, CBD, land_use: config });
+      const r = await solveLandUse({
+        L,
+        CBD,
+        largo_km: simConfig.city.largo_ciudad_km,
+        land_use: config,
+      });
       finishStandalone(r);
     } catch (e) {
       fail(e instanceof Error ? e.message : String(e));

@@ -240,7 +240,15 @@ def iter_coupled(
     # Baseline "sin feedback" en minutos a flujo libre (no índices de celda),
     # para que iter0→final mida el efecto real del feedback (ver D-23).
     T_init = _freeflow_T(ciudad, n_strata, sim.demand.globales.v_auto)
-    city = LandUseCity.build(L=L, CBD=CBD, cfg=land_use_config, T=T_init, rng=rng)
+    city = LandUseCity.build(
+        L=L,
+        CBD=CBD,
+        cfg=land_use_config,
+        T=T_init,
+        rng=rng,
+        # Ancho físico real: la penalización ρ usa densidad hogares/km (D-26).
+        ancho_celda_km=ciudad.ancho_celda_km,
+    )
     T_state: NDArray[np.float64] | None = None
 
     for outer in range(outer_max_iter):

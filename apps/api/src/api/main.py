@@ -93,13 +93,16 @@ class LandUseOnlyRequest(BaseModel):
 
     L: int = Field(default=201, ge=11)
     CBD: int = Field(default=100, ge=0)
+    largo_km: float = Field(default=20.0, gt=0, description="Largo físico de la ciudad")
     land_use: LandUseConfig
 
 
 @app.post("/land-use/solve")
 def land_use_solve(req: LandUseOnlyRequest) -> dict[str, object]:
-    """Resuelve el equilibrio de uso de suelo con T = distancia al CBD."""
-    city = LandUseCity.build(L=req.L, CBD=req.CBD, cfg=req.land_use)
+    """Resuelve el equilibrio de uso de suelo con T = tiempo a flujo libre (min)."""
+    city = LandUseCity.build(
+        L=req.L, CBD=req.CBD, cfg=req.land_use, ancho_celda_km=req.largo_km / req.L
+    )
     assert city.result is not None
     return {
         "L": city.L,

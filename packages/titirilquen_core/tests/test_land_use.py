@@ -161,3 +161,61 @@ def test_q_conserva_hogares_por_estrato_con_H_desigual() -> None:
         assert res.converged
         hogares = res.Q @ args["S"].astype(float)
         np.testing.assert_allclose(hogares, args["H"].astype(float), rtol=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# D-26: invariancia a la resolución de la grilla (unidades físicas)
+# ---------------------------------------------------------------------------
+
+from titirilquen_core.coupled_metrics import _theil  # noqa: E402
+
+
+def _cfg_default_fisica() -> LandUseConfig:
+    """Defaults del paquete (α en utiles/min, ρ en utiles/(hog/km), y en $/mes)
+    con la población de referencia del frontend."""
+    return LandUseConfig(H_por_estrato=(1000, 4000, 5000))
+
+
+def test_invariancia_a_la_resolucion_de_la_grilla() -> None:
+    """Misma ciudad FÍSICA (20 km), distinta grilla ⇒ los indicadores deben
+    converger (D-26). La grilla es una decisión numérica, no económica.
+
+    Regresión: con T en índices de celda y ρ sobre hogares/celda, el Theil iba
+    de 0.245 (L=101) a 0.658 (L=401) — refinar la grilla equivalía a estirar
+    la ciudad."""
+    LARGO_KM = 20.0
+    theils: list[float] = []
+    dists: list[np.ndarray] = []
+    for L in (101, 201, 401):
+        CBD = L // 2
+        city = LandUseCity.build(
+            L=L, CBD=CBD, cfg=_cfg_default_fisica(),
+            ancho_celda_km=LARGO_KM / L, rng=np.random.default_rng(7),
+        )
+        assert city.result is not None and city.result.converged
+        Q, S = city.result.Q, city.S.astype(float)
+        theils.append(_theil(Q))
+        dist_km = np.abs(np.arange(L) - CBD) * (LARGO_KM / L)
+        NQ = Q * S[None, :]
+        dists.append((NQ * dist_km).sum(1) / NQ.sum(1))
+
+    t = np.array(theils)
+    assert t.max() - t.min() < 0.02 * t.mean() + 0.01, f"Theil no invariante: {t}"
+    d = np.stack(dists)
+    assert np.all(np.abs(d - d.mean(axis=0)) < 0.35), f"dist medias no invariantes:\n{d}"
+
+
+def test_sensibilidad_al_tamano_fisico() -> None:
+    """Agrandar la ciudad FÍSICA (más km, misma grilla y población) SÍ debe
+    aumentar el sorting: el gradiente α·T pesa más contra el ruido del logit.
+    Es el efecto económico real, a diferencia del artefacto de grilla (D-26)."""
+    L = 201
+    theil_por_largo: dict[float, float] = {}
+    for largo in (10.0, 40.0):
+        city = LandUseCity.build(
+            L=L, CBD=L // 2, cfg=_cfg_default_fisica(),
+            ancho_celda_km=largo / L, rng=np.random.default_rng(7),
+        )
+        assert city.result is not None
+        theil_por_largo[largo] = _theil(city.result.Q)
+    assert theil_por_largo[40.0] > theil_por_largo[10.0] + 0.1, theil_por_largo

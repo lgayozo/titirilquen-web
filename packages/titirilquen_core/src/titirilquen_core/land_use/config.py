@@ -19,17 +19,24 @@ SolverKind = Literal["heteroscedastic", "logit"]
 
 
 class LandUseStratumConfig(BaseModel):
-    """Parámetros de la función de puje (bid function) por estrato."""
+    """Parámetros de la función de puje (bid function) por estrato.
+
+    **Unidades (D-26/D-27)**: `T` entra en minutos y la densidad en hogares/km,
+    así que `alpha` está en utiles/min y `rho` en utiles/(hogar/km). `y` está en
+    $/mes (CLP); no mueve la asignación (se absorbe en ū, ver D-08 §C8) pero sí
+    la métrica de carga mensual costo/ingreso del acoplado."""
 
     model_config = ConfigDict(extra="forbid")
 
-    y: float = Field(description="Ingreso del estrato (unidades consistentes con p_i)")
+    y: float = Field(description="Ingreso mensual del estrato ($/mes)")
     lambda_: float = Field(
         default=1.0, gt=0, alias="lambda",
         description="Utilidad marginal del ingreso (λ_h)",
     )
-    alpha: float = Field(default=1.0, description="Peso de costo de transporte (α_h)")
-    rho: float = Field(default=1.0, description="Peso de penalización de densidad (ρ_h)")
+    alpha: float = Field(default=6.0, description="Peso del tiempo de viaje (utiles/min)")
+    rho: float = Field(
+        default=0.1, description="Penalización de densidad (utiles por hogar/km)"
+    )
 
 
 class LandUseConfig(BaseModel):
@@ -41,11 +48,15 @@ class LandUseConfig(BaseModel):
         default=(33300, 33300, 33300),
         description="Número de hogares por estrato (alto, medio, bajo)",
     )
+    # Calibración en unidades físicas (D-26), equivalente a la antigua
+    # (α=1.3/1.2/1.1 por celda, ρ=1 por hogar/celda) en la grilla de referencia
+    # del frontend (201 celdas / 20 km): α' ≈ α·(celdas/km)/2 ≈ α·5, ρ' = ρ·Δx ≈ 0.1.
+    # Ingresos en $/mes (D-27).
     estratos: tuple[LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig] = Field(
         default=(
-            LandUseStratumConfig(y=120.0, alpha=1.3, rho=1.0),
-            LandUseStratumConfig(y=50.0, alpha=1.2, rho=1.0),
-            LandUseStratumConfig(y=10.0, alpha=1.1, rho=1.0),
+            LandUseStratumConfig(y=3_500_000.0, alpha=6.5, rho=0.1),
+            LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=0.1),
+            LandUseStratumConfig(y=500_000.0, alpha=5.5, rho=0.1),
         )
     )
     beta: float = Field(default=1.0, gt=0, description="Parámetro de sensibilidad logit")
