@@ -180,14 +180,16 @@
   "demand_inspector": {
     "title": "Inspector de utilidad — logit multinomial",
     "stratum": "Estrato",
-    "origin_km": "Origen (km)",
+    "origin_km": "Posición en la ciudad",
     "has_car": "Tenencia de auto",
     "hint_with_sim": "Tiempos de la última iteración (congestión).",
     "hint_no_sim": "Sin simulación aún: tiempos de flujo libre.",
     "stratum_label_1": "1 — Alto",
     "stratum_label_2": "2 — Medio",
     "stratum_label_3": "3 — Bajo",
-    "interpretation": "P = probabilidad de elección de ESTE agente (no el reparto modal del sistema). V está en utiles: solo las diferencias entre modos importan — ~1 util de ventaja ≈ 2.7× más probable."
+    "interpretation": "P = probabilidad de elección de ESTE agente (no el reparto modal del sistema). V está en utiles: solo las diferencias entre modos importan — ~1 util de ventaja ≈ 2.7× más probable.",
+    "position_value": "{{pos}} km · a {{dist}} km del CBD",
+    "cbd_center": "▲ CBD ({{km}} km)"
   },
   "utility_breakdown": {
     "mode": "Modo",
@@ -556,7 +558,7 @@
     "caption": "Ciudad lineal monocéntrica de {{length}} km dividida en {{cells}} celdas (Δx ≈ {{dx}} m). Cada celda es un origen de viajes hacia el CBD central. En V1 la demanda es uniforme —{{pop}} viajeros, misma densidad por celda salvo el CBD— y la oferta (pistas, metro, ciclovía) es homogénea en todo el corredor.",
     "export_desc": "Plano de la ciudad antes de simular: infraestructura (oferta) y orígenes de viaje (demanda).",
     "demand_label": "Orígenes",
-    "spec_demand": "{{pop}}/celda",
+    "spec_demand": "{{dens}} hab/km · ≈{{cuadra}}/cuadra",
     "tab": "Plano"
   },
   "panel_meta": {

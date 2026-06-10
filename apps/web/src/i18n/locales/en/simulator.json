@@ -180,14 +180,16 @@
   "demand_inspector": {
     "title": "Utility inspector — multinomial logit",
     "stratum": "Stratum",
-    "origin_km": "Origin (km)",
+    "origin_km": "Position in the city",
     "has_car": "Car ownership",
     "hint_with_sim": "Times from last iteration (with congestion).",
     "hint_no_sim": "No simulation yet: free-flow times.",
     "stratum_label_1": "1 — High",
     "stratum_label_2": "2 — Middle",
     "stratum_label_3": "3 — Low",
-    "interpretation": "P = choice probability of THIS agent (not the system's mode share). V is in utils: only differences across modes matter — ~1 util of advantage ≈ 2.7× more likely."
+    "interpretation": "P = choice probability of THIS agent (not the system's mode share). V is in utils: only differences across modes matter — ~1 util of advantage ≈ 2.7× more likely.",
+    "position_value": "{{pos}} km · {{dist}} km from CBD",
+    "cbd_center": "▲ CBD ({{km}} km)"
   },
   "utility_breakdown": {
     "mode": "Mode",
@@ -556,7 +558,7 @@
     "caption": "Monocentric linear city of {{length}} km divided into {{cells}} cells (Δx ≈ {{dx}} m). Each cell is a trip origin toward the central CBD. In V1 demand is uniform —{{pop}} travellers, equal density per cell except the CBD— and supply (lanes, metro, bike lane) is homogeneous along the whole corridor.",
     "export_desc": "City blueprint before running: infrastructure (supply) and trip origins (demand).",
     "demand_label": "Origins",
-    "spec_demand": "{{pop}}/cell",
+    "spec_demand": "{{dens}} pop/km · ≈{{cuadra}}/block",
     "tab": "Blueprint"
   },
   "panel_meta": {

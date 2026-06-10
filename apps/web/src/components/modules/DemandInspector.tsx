@@ -27,8 +27,9 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
   // Clamp por si la grilla se achicó después de elegir la celda.
   const celdaEff = Math.min(celda, config.city.n_celdas - 1);
 
-  const distKm =
-    Math.abs(cbdIdx - celdaEff) * (config.city.largo_ciudad_km / config.city.n_celdas);
+  const cellKm = config.city.largo_ciudad_km / config.city.n_celdas;
+  const distKm = Math.abs(cbdIdx - celdaEff) * cellKm;
+  const posKm = (celdaEff + 0.5) * cellKm;
 
   const tiempos = useMemo(() => {
     if (!lastIter) return null;
@@ -91,7 +92,10 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
               {t("demand_inspector.origin_km")}
             </span>
             <span className="srow-val tabular-nums" aria-hidden>
-              {distKm.toFixed(2)} km
+              {t("demand_inspector.position_value", {
+                pos: posKm.toFixed(1),
+                dist: distKm.toFixed(1),
+              })}
             </span>
           </div>
           <input
@@ -103,6 +107,18 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
             onChange={(e) => setCelda(Number(e.target.value))}
             className="w-full"
           />
+          {/* Escala: el slider recorre la ciudad de oeste a este; el CBD (el
+              destino) está al CENTRO, no al inicio — por eso la distancia baja
+              y vuelve a subir. */}
+          <div className="flex justify-between font-fig text-[9px] uppercase tracking-[0.06em] text-muted">
+            <span>0 km</span>
+            <span style={{ color: "var(--accent)" }}>
+              {t("demand_inspector.cbd_center", {
+                km: (config.city.largo_ciudad_km / 2).toFixed(0),
+              })}
+            </span>
+            <span>{config.city.largo_ciudad_km} km</span>
+          </div>
         </label>
 
         <label

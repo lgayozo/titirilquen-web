@@ -303,7 +303,10 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             className="label"
             fill="var(--muted)"
           >
-            {t("preview.spec_demand", { pop: densidad })}
+            {t("preview.spec_demand", {
+              dens: Math.round(densidadKm),
+              cuadra: Math.round(densidadKm / 10),
+            })}
           </text>
         </g>
 
