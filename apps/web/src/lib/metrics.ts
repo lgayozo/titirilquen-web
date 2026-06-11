@@ -7,7 +7,7 @@
  * espaciales individuales no revelan directamente.
  */
 
-import type { AgentRecord, StratumId } from "@/lib/types";
+import type { StratumId } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // Segregación — índice H de Theil (información mutua relativa)
@@ -73,68 +73,6 @@ export function theilSegregation(Q: readonly (readonly number[])[]): number {
   }
 
   return 1 - weighted / E;
-}
-
-// ---------------------------------------------------------------------------
-// Bienestar — utilidad media del modo elegido por estrato
-// ---------------------------------------------------------------------------
-
-/**
- * Utilidad media del modo elegido, segregada por estrato. Proxy de bienestar
- * agregado: mayor = agentes eligen opciones más atractivas (combinando tiempo,
- * costo y penalizaciones).
- *
- * Retorna `[alto, medio, bajo]` con `null` para estratos sin agentes o sin
- * modo elegido (ej. todos teletrabajaron).
- */
-export function meanUtilityByStratum(
-  agentes: readonly AgentRecord[]
-): [number | null, number | null, number | null] {
-  const sums: [number, number, number] = [0, 0, 0];
-  const counts: [number, number, number] = [0, 0, 0];
-  for (const a of agentes) {
-    if (a.modo_elegido == null) continue;
-    const idx = (a.estrato - 1) as 0 | 1 | 2;
-    sums[idx] += a.utilidad_elegida;
-    counts[idx] += 1;
-  }
-  return [
-    counts[0] > 0 ? sums[0] / counts[0] : null,
-    counts[1] > 0 ? sums[1] / counts[1] : null,
-    counts[2] > 0 ? sums[2] / counts[2] : null,
-  ];
-}
-
-// ---------------------------------------------------------------------------
-// Accesibilidad — índice de Hansen
-// ---------------------------------------------------------------------------
-
-/**
- * Accesibilidad de Hansen agregada por estrato:
- *
- *   A_h = (1/L) · Σ_i exp(−α_h · T[h, i])
- *
- * Usa la matriz T (en minutos, resultado del equilibrio de transporte) y el
- * α_h del solver de suelo. Mayor A = mejor accesibilidad (destinos más cerca
- * en costo generalizado).
- *
- * El valor depende de la escala de T y α_h — interpretar siempre **deltas**
- * entre escenarios o iteraciones exteriores, no el valor absoluto.
- */
-export function accessibilityHansen(
-  T: readonly (readonly number[])[],
-  alphaPorEstrato: readonly number[]
-): [number | null, number | null, number | null] {
-  const result: (number | null)[] = [null, null, null];
-  for (let h = 0; h < 3; h++) {
-    const row = T[h];
-    const alpha = alphaPorEstrato[h];
-    if (!row || alpha == null || row.length === 0) continue;
-    let acc = 0;
-    for (const t of row) acc += Math.exp(-alpha * t);
-    result[h] = acc / row.length;
-  }
-  return result as [number | null, number | null, number | null];
 }
 
 // ---------------------------------------------------------------------------

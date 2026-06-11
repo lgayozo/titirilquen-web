@@ -14,11 +14,6 @@ import {
   applyJointPreset,
   describePresetParams,
 } from "@/lib/joint-presets";
-import {
-  accessibilityHansen,
-  meanUtilityByStratum,
-  theilSegregation,
-} from "@/lib/metrics";
 import type { CoupledResult, LandUseConfig, OuterIteration } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -402,7 +397,7 @@ export function CoupledPage() {
               </div>
             )}
 
-            <Interpretation first={first!} last={last!} landUse={landUseEff} tS={tS} />
+            <Interpretation first={first!} last={last!} tS={tS} />
           </>
         )}
 
@@ -479,24 +474,34 @@ function Comparison({ first, last, supply, tS, stage, iters }: ComparisonProps) 
 interface InterpretationProps {
   first: OuterIteration;
   last: OuterIteration;
-  landUse: LandUseConfig;
   tS: (key: string, opts?: Record<string, unknown>) => string;
 }
 
-function Interpretation({ first, last, landUse, tS }: InterpretationProps) {
-  const alpha = landUse.estratos.map((s) => s.alpha);
-  const segFirst = theilSegregation(first.land_use.Q);
-  const segLast = theilSegregation(last.land_use.Q);
-  const welfFirst = meanUtilityByStratum(first.transport.agentes);
-  const welfLast = meanUtilityByStratum(last.transport.agentes);
-  const accFirst = accessibilityHansen(first.T_matrix, alpha);
-  const accLast = accessibilityHansen(last.T_matrix, alpha);
+function Interpretation({ first, last, tS }: InterpretationProps) {
+  // Lectura pedagógica desde el REPORTE DEL CORE (metrics) — la misma fuente
+  // que la tabla del equilibrio, comparando iteración 0 (sin feedback) vs
+  // final. Antes se recomputaba en TS con métricas rotas: el índice de Hansen
+  // underfloweaba con α en utiles/min (exp(−130) ≈ 0) sobre una T que ya es
+  // común por ubicación (D-22), y el "bienestar" comparaba utiles ENTRE
+  // estratos, que no son conmensurables (cada estrato tiene sus ASC/β).
+  const eF = first.metrics.por_estrato;
+  const eL = last.metrics.por_estrato;
+  const alto = 0;
+  const bajo = eL.length - 1;
 
-  const dSeg = segLast - segFirst;
-  const dWelfAlto = diff(welfLast[0], welfFirst[0]);
-  const dWelfBajo = diff(welfLast[2], welfFirst[2]);
-  const dAccAlto = diff(accLast[0], accFirst[0]);
-  const dAccBajo = diff(accLast[2], accFirst[2]);
+  const dSeg =
+    last.metrics.sistema.segregacion_theil - first.metrics.sistema.segregacion_theil;
+
+  // Equidad: carga mensual costo/ingreso (adimensional ⇒ comparable entre
+  // estratos), en puntos porcentuales.
+  const dCargaAlto =
+    ((eL[alto]?.carga_costo_ingreso ?? 0) - (eF[alto]?.carga_costo_ingreso ?? 0)) * 100;
+  const dCargaBajo =
+    ((eL[bajo]?.carga_costo_ingreso ?? 0) - (eF[bajo]?.carga_costo_ingreso ?? 0)) * 100;
+
+  // Accesibilidad: tiempo medio de viaje experimentado por estrato (min).
+  const dTAlto = (eL[alto]?.tiempo_medio_min ?? 0) - (eF[alto]?.tiempo_medio_min ?? 0);
+  const dTBajo = (eL[bajo]?.tiempo_medio_min ?? 0) - (eF[bajo]?.tiempo_medio_min ?? 0);
 
   const highlights: Array<{ title: string; body: string }> = [];
 
@@ -509,24 +514,27 @@ function Interpretation({ first, last, landUse, tS }: InterpretationProps) {
       ),
     });
   }
-  if (dWelfAlto != null && dWelfBajo != null) {
-    const gap = dWelfAlto - dWelfBajo;
+  if (Math.abs(dCargaBajo - dCargaAlto) > 0.2) {
+    const regresivo = dCargaBajo > dCargaAlto;
     highlights.push({
       title: tS("coupled.interp.welfare_title"),
       body: tS(
-        gap > 0 ? "coupled.interp.welfare_regressive" : "coupled.interp.welfare_progressive",
-        { alto: fmt(dWelfAlto), bajo: fmt(dWelfBajo) }
+        regresivo ? "coupled.interp.welfare_regressive" : "coupled.interp.welfare_progressive",
+        {
+          alto: fmt(dCargaAlto, 1),
+          bajo: fmt(dCargaBajo, 1),
+          cargaBajo: ((eL[bajo]?.carga_costo_ingreso ?? 0) * 100).toFixed(1),
+        }
       ),
     });
   }
-  if (dAccAlto != null && dAccBajo != null) {
-    const ratio = dAccAlto !== 0 && dAccBajo !== 0 ? Math.abs(dAccAlto / dAccBajo) : 1;
+  if (Math.max(Math.abs(dTAlto), Math.abs(dTBajo)) > 0.5) {
     highlights.push({
       title: tS("coupled.interp.accessibility_title"),
       body: tS("coupled.interp.accessibility_body", {
-        alto: fmt(dAccAlto, 3),
-        bajo: fmt(dAccBajo, 3),
-        ratio: ratio.toFixed(1),
+        alto: fmt(dTAlto, 1),
+        bajo: fmt(dTBajo, 1),
+        tBajo: (eL[bajo]?.tiempo_medio_min ?? 0).toFixed(1),
       }),
     });
   }
@@ -551,11 +559,6 @@ function Interpretation({ first, last, landUse, tS }: InterpretationProps) {
       </div>
     </div>
   );
-}
-
-function diff(a: number | null, b: number | null): number | null {
-  if (a == null || b == null) return null;
-  return a - b;
 }
 
 function fmt(v: number, digits = 2): string {
