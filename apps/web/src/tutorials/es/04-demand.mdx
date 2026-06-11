@@ -10,36 +10,62 @@ tagline: Utilidades logit multinomial
 Cada agente evalúa la utilidad de cada modo disponible y elige con un **logit multinomial**:
 
 $$
-P(m) = \frac{e^{V_m}}{\sum_{j \in M} e^{V_j}}
+P(i) = \frac{e^{V_i}}{\sum_{j} e^{V_j}}
 $$
+
+<OverleafRef sec="Demanda · Elección de modo" />
 
 ## Utilidades por modo
 
-**Auto**
+**Auto** — el costo tiene un componente fijo (parking) y uno **por kilómetro** (combustible):
+
 $$
-V_{\text{auto}}^s = \text{ASC}_{\text{auto}}^s + \beta_t^s \cdot t_{\text{auto}} + \beta_c^s \cdot (c_{\text{parking}} + c_{\text{combustible}} \cdot d)
+V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(c_{\text{parking}} + c_{\text{combustible}} \cdot d_i\right)
 $$
 
-**Metro** (componentes de tiempo descompuestas)
+<OverleafRef sec="Modelo de Demanda" tag="R-14" />
+
+con $d_i$ la distancia (km) del origen al CBD.
+
+**Metro** — tres componentes de tiempo, cada una con su sensibilidad:
+
 $$
-V_{\text{metro}}^s = \text{ASC}_{\text{metro}}^s + \beta_t^s \cdot t_v + \beta_{\text{esp}}^s \cdot t_e + \beta_{\text{cam}}^s \cdot t_a + \beta_c^s \cdot c_{\text{tarifa}}
+V_{\text{metro}}^s = ASC_{\text{metro}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_{t_{\text{espera}}}^s \cdot t_{\text{espera}} + \beta_{t_{\text{caminata}}}^s \cdot t_{\text{caminata}} + \beta_c^s \cdot c_{\text{tarifa}}
 $$
 
-**Bicicleta** con penalizaciones físicas escalonadas
-$$
-V_{\text{bici}}^s = \text{ASC}_{\text{bici}}^s + \beta_t^s \cdot t_{\text{bici}} + \sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t_{\text{bici}} > k\} \cdot \pi_k^s
-$$
-con corte $V = -\infty$ si $t_{\text{bici}} > 45$ min.
+<OverleafRef sec="Modelo de Demanda" />
 
-**Caminata** análoga, con umbrales $\{5, 15, 25\}$ y corte en 30 min.
+donde $t_{\text{caminata}}$ es el **acceso a la estación** ($t_a$ en la notación del módulo de oferta de trenes) y $t_{\text{espera}}$ la espera en andén ($t_e$).
 
-<Callout type="warn">
-Las penalizaciones $\pi_k$ son **constantes aditivas escalonadas**, no multiplicativas como sugiere una lectura ingenua del Overleaf (ver <DocLink path="/docs/DISCREPANCIES.md#d-02-penalizaciones-físicas-de-bicicleta-y-caminata-forma-funcional">D-02</DocLink>).
+**Bicicleta** — penalizaciones físicas **aditivas escalonadas** y corte de factibilidad:
+
+$$
+V^s_{\text{bicicleta}} = \begin{cases}
+-\infty & \text{si } t_{\text{bici}} > 45 \\
+ASC_{\text{bici}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{bici}} + \displaystyle\sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t_{\text{bici}} > k\} \cdot \pi_k^s & \text{si } t_{\text{bici}} \le 45
+\end{cases}
+$$
+
+<OverleafRef sec="Modelo de Demanda" tag="R-2" />
+
+**Caminata** — con su **sensibilidad propia** $\beta_{t_{\text{caminata}}}^s$ (no $\beta_{t_{\text{viaje}}}^s$), umbrales $\{5, 15, 25\}$ y corte a los 30 min:
+
+$$
+V^s_{\text{caminata}} = \begin{cases}
+-\infty & \text{si } t_{\text{caminata}} > 30 \\
+ASC_{\text{caminata}}^s + \beta_{t_{\text{caminata}}}^s \cdot t_{\text{caminata}} + \displaystyle\sum_{k \in \{5, 15, 25\}} \mathbb{1}\{t_{\text{caminata}} > k\} \cdot \pi_k^s & \text{si } t_{\text{caminata}} \le 30
+\end{cases}
+$$
+
+<OverleafRef sec="Modelo de Demanda" tag="R-3" />
+
+<Callout type="info">
+Las penalizaciones $\pi_k^s$ son **constantes aditivas** que se suman al superar cada umbral de fatiga — no coeficientes que multipliquen al tiempo. Los umbrales de penalización (10/20/30 bici, 5/15/25 caminata) son un concepto distinto del **corte de factibilidad** (45 y 30 min), donde el modo sale del set de elección.
 </Callout>
 
 ## Descomposición pedagógica
 
-En el **Transporte** (página Transporte) hay un "Inspector de utilidad" que muestra la descomposición:
+En la página **Transporte** hay un "Inspector de utilidad" que muestra la descomposición:
 - Componente ASC (constante por modo/estrato)
 - Componente $\beta_t \cdot T$ (sensibilidad al tiempo)
 - Componente $\beta_c \cdot C$ (sensibilidad al costo)

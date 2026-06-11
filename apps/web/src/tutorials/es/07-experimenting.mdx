@@ -1,17 +1,17 @@
 ---
 slug: experimenting
-order: 6
+order: 7
 title: Experimentar
 tagline: Presets, comparación, y actividades sugeridas
 ---
 
-# 5. Experimentar
+# 6. Experimentar
 
 ## Herramientas disponibles
 
 **Transporte** ([ir](/sandbox)): experimentación libre del equilibrio oferta–demanda. Ajusta cualquier parámetro y observa resultados en vivo — utilidad por modo, modal split, convergencia, flujos, tiempos por celda.
 
-**Uso de suelo** ([ir](/land-use)): equilibrio Alonso, con o sin acoplamiento a transporte.
+**Uso de suelo** ([ir](/land-use)): equilibrio Alonso aislado (solver heteroscedástico o logit). **Ciudad en equilibrio** ([ir](/coupled)): el loop completo suelo ↔ transporte.
 
 **Comparar** ([ir](/compare)): carga hasta 4 configuraciones en paralelo y ve los deltas lado a lado. Ideal para evaluar políticas.
 
@@ -22,18 +22,24 @@ tagline: Presets, comparación, y actividades sugeridas
 2. Observa cómo cambia la participación modal del auto.
 3. ¿Por qué estrato es más sensible? (Pista: mira el parámetro $\beta_c$)
 
-### B. Capacidad de ciclovía
+### B. El artefacto del logit (solver heteroscedástico)
+1. En Uso de suelo, con el solver **logit**, varía λ del estrato alto (0.5 → 3).
+2. Observa cómo la asignación espacial cambia — siendo que λ es solo la utilidad marginal del ingreso.
+3. Cambia al solver **heteroscedástico** y repite: la asignación no se mueve.
+4. ¿Por qué la dependencia en λ era una inconsistencia y no un efecto-ingreso real? (Pista: tutorial de Uso de suelo, sección de la corrección.)
+
+### C. Capacidad de ciclovía
 1. Empieza con cap_bici = 800 bici/h.
 2. Sube a 5000 (preset *Pro-Bici*).
 3. ¿De qué modos migra la demanda hacia la bicicleta?
 4. ¿Cambia la frecuencia operativa del metro?
 
-### C. Efecto Alonso
-1. En Uso de suelo (modo *Sólo suelo*), pon $\alpha_h$ del estrato alto en 3.0 y del bajo en 0.5.
+### D. Efecto Alonso
+1. En Uso de suelo, pon $\alpha_h$ del estrato alto en 12 y del bajo en 3 (utiles/min).
 2. Observa la distribución. ¿Quién vive cerca del CBD?
 3. Invierte los $\alpha$ y repite. ¿Cambia la segregación? ¿Por qué?
 
-### D. Sensibilidad al MSA
+### E. Sensibilidad al MSA
 1. En Transporte, baja `max_iter` a 3.
 2. ¿Converge? ¿Qué pasa con el residuo?
 3. Sube a 20 y observa el comportamiento asintótico.

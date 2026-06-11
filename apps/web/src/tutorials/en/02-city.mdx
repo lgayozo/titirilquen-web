@@ -7,28 +7,51 @@ tagline: Linear discretization with central CBD
 
 # 1. City
 
-The city is abstracted as a **discretized ruler** of $n_{\text{cells}}$ parcels with uniform width $\Delta x = L / n_{\text{cells}}$.
+The city is abstracted as a **discretized ruler** with $n_{\text{cells}}$ parcels of uniform width $\Delta x = L / n_{\text{cells}}$.
 
 $$
-\text{position}(i) = (i + 0.5) \cdot \Delta x
+\text{position}(i) = (i + 0.5) \cdot \Delta x, \quad i = 0, 1, \ldots, n_{\text{cells}} - 1
 $$
 
-The **CBD** sits at $i_{\text{CBD}} = \lfloor n_{\text{cells}} / 2 \rfloor$. All trips target this cell.
+<OverleafRef sec="Creación de la ciudad" />
+
+The **CBD** sits at $i_{\text{CBD}} = \lfloor n_{\text{cells}} / 2 \rfloor$ (central cell). All trips head to this cell.
 
 ## Population
 
-Each cell has $\rho$ households split across 3 socioeconomic strata:
+Population is parameterized with a **physical density** $\rho_{\text{pop}}$ in inhabitants/km — not per cell — so the grid is a purely numerical choice:
 
-| Stratum | Default share | Income |
-|---------|--------------:|--------:|
-| High (1) | 10 % | $120$ |
-| Middle (2) | 40 % | $50$  |
-| Low (3)  | 50 % | $10$  |
+$$
+N_{\text{pop}} = \rho_{\text{pop}} \cdot L
+$$
 
-Each agent draws attributes: `remote_work` with probability $P^s_{\text{remote}}$, `has_car` with probability $P^s_{\text{car}}$.
+<OverleafRef sec="Creación de la ciudad" tag="R-8" />
+
+The reference is $\rho_{\text{pop}} = 500$ pop/km ($\equiv$ 50 households per 100 m block). Refining the grid does **not** change population or congestion: the three dials are orthogonal — `n_cells` is resolution, *density* controls how dense the city is, and *length* how large.
+
+Households split into 3 **socioeconomic strata** with configurable shares:
+
+| Stratum | Share (default) | Income $y_h$ (land-use module) |
+|---------|--------------:|--------------:|
+| High (1) |  10 % | \$3.5M /month |
+| Middle (2) |  40 % | \$1.5M /month |
+| Low (3) |  50 % | \$0.5M /month |
+
+<Callout type="info">
+The income $y_h$ belongs to the **land-use module** (in \$/month; it feeds the monthly cost/income burden metric). In the transport module, income heterogeneity enters via each stratum's $\beta^s_c$, not as an explicit variable.
+</Callout>
+
+Each agent has sampled attributes:
+- `teleworks`: with probability $P^s_{\text{tele}}$ (per stratum)
+- `owns_car`: with probability $P^s_{\text{auto}}$
 
 <Callout type="warn">
-**Strong assumption**: every worker leaves their origin cell to the CBD and returns — exclusive Home–Work–Home tours. No trip chaining.
+**Strong assumption**: every worker leaves their origin cell to the CBD and
+returns — exclusive Home–Work–Home *tours*. No trip chaining.
 </Callout>
+
+## Slope
+
+The city has a global slope $p$ (%) affecting bicycle speeds (differently for cells left or right of the CBD).
 
 <NextStep to="supply">Supply module →</NextStep>

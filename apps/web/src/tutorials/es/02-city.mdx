@@ -13,17 +13,33 @@ $$
 \text{posición}(i) = (i + 0.5) \cdot \Delta x, \quad i = 0, 1, \ldots, n_{\text{celdas}} - 1
 $$
 
+<OverleafRef sec="Creación de la ciudad" />
+
 El **CBD** se ubica en $i_{\text{CBD}} = \lfloor n_{\text{celdas}} / 2 \rfloor$ (celda central). Todos los viajes se dirigen a esta celda.
 
 ## Población
 
-Cada parcela tiene $\rho$ hogares (densidad por celda), distribuidos en 3 **estratos socioeconómicos** según shares configurables:
+La población se parametriza con una **densidad física** $\rho_{\text{hab}}$ en habitantes/km — no por celda — de modo que la grilla es una decisión puramente numérica:
 
-| Estrato | Default share | Ingreso típico |
+$$
+N_{\text{pob}} = \rho_{\text{hab}} \cdot L
+$$
+
+<OverleafRef sec="Creación de la ciudad" tag="R-8" />
+
+La referencia es $\rho_{\text{hab}} = 500$ hab/km ($\equiv$ 50 hogares por cuadra de 100 m). Refinar la grilla **no** cambia la población ni la congestión: los tres diales quedan ortogonales — `n_celdas` es resolución, la *densidad* controla cuán densa es la ciudad y el *largo* cuán grande.
+
+Los hogares se reparten en 3 **estratos socioeconómicos** según shares configurables:
+
+| Estrato | Share (default) | Ingreso $y_h$ (módulo de suelo) |
 |---------|--------------:|--------------:|
-| Alto (1) |  10 % | $120$ |
-| Medio (2) |  40 % | $50$  |
-| Bajo (3) |  50 % | $10$  |
+| Alto (1) |  10 % | \$3.5M /mes |
+| Medio (2) |  40 % | \$1.5M /mes |
+| Bajo (3) |  50 % | \$0.5M /mes |
+
+<Callout type="info">
+El ingreso $y_h$ pertenece al **módulo de uso de suelo** (en \$/mes; alimenta la métrica de carga mensual costo/ingreso). En el módulo de transporte la heterogeneidad de ingreso entra vía los $\beta^s_c$ de cada estrato, no como variable explícita.
+</Callout>
 
 Cada agente tiene atributos sorteados:
 - `teletrabaja`: con probabilidad $P^s_{\text{tele}}$ (por estrato)

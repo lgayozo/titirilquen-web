@@ -1,0 +1,106 @@
+---
+slug: land-use
+order: 6
+title: Land use
+tagline: Bid-rent, logit auction and the heteroscedastic correction
+---
+
+# 5. Land use
+
+The land module (**Land use** page) solves where each household lives through an Alonso–Muth–Mills style **auction**: each stratum bids for parcels and the one valuing each location the most wins it, pushing the rest toward the periphery.
+
+## Utility and willingness to pay
+
+The utility of a stratum-$h$ household at parcel $i$, paying rent $p_i$, is **linear in income**:
+
+$$
+u_h = \lambda_h\,(y_h - p_i) + f_h(i)
+$$
+
+<OverleafRef sec="Suelo · Función de puje" />
+
+where $\lambda_h$ is the marginal utility of income, $y_h$ the stratum's monthly income and $f_h(i)$ the **amenity function**, in physical units:
+
+$$
+f_h(i) = -\alpha_h\, T(i) - \rho_h \cdot \frac{S_i}{\Delta x}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-2" />
+
+with $T(i)$ the travel time to the CBD in **minutes** (free-flow in the standalone mode; from the transport equilibrium in the coupled one), $\alpha_h$ in utils/min and $\rho_h$ the **density** penalty (households/km). Physical units make the equilibrium invariant to grid resolution — refining the discretization does not change the conclusions.
+
+Solving for the price yields the **willingness to pay** at utility level $u_h$:
+
+$$
+w_h(u, i) = y_h - \frac{u_h - f_h(i)}{\lambda_h}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-3" />
+
+## The logit auction
+
+With an idiosyncratic Gumbel term in utility, the probability that a stratum-$h$ household wins the auction for parcel $i$ is:
+
+$$
+Q_{hi} = \frac{H_h\, e^{\beta\, w_{hi}}}{\sum_{g} H_g\, e^{\beta\, w_{gi}}}
+$$
+
+<OverleafRef sec="Suelo · Asignación probabilística" />
+
+The $H_h$ weighting (number of bidders of each type) guarantees **per-stratum conservation** at equilibrium: $\sum_i S_i\, Q_{hi} = H_h$.
+
+<OverleafRef sec="Suelo · Asignación probabilística" tag="S-4" />
+
+The equilibrium is a fixed point over the utilities $\bar{u}_h$ (each stratum places exactly its $H_h$ households), and the **implicit land prices** come from the identity:
+
+$$
+p_i^{*} = \frac{1}{\beta} \ln\left( \sum_g H_g\, e^{\beta\, w_{gi}} \right)
+$$
+
+<OverleafRef sec="Suelo · Interpretación del punto fijo" />
+
+defined up to a constant: only the spatial **gradient** is informative.
+
+## The correction: heteroscedastic logit
+
+The logit above has a subtle problem when $\lambda_h$ is heterogeneous. The Gumbel noise lives in **utility** (same scale $1/\beta$ for everyone), but solving for the bid divides the noise by $\lambda_h$:
+
+$$
+\tilde{w}_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}
+$$
+
+<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
+
+— scale $1/(\beta \lambda_h)$, **different per stratum**. Applying the logit with a uniform $\beta$ over bids amounts to giving higher-$\lambda$ strata a *noisier* location choice (an artifact with no behavioral basis), and makes the equilibrium depend on the common scale of $\lambda$, which is just a choice of units.
+
+The correction weighs each bid by its own precision $\beta_h = \beta\,\lambda_h$, which is equivalent to auctioning in **utility** space with the *score*:
+
+$$
+s_{hi} = \lambda_h\, y_h + f_h(i), \qquad
+Q_{hi} = \frac{H_h\, e^{\beta (s_{hi} - \bar{u}_h)}}{\sum_g H_g\, e^{\beta (s_{gi} - \bar{u}_g)}}
+$$
+
+<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
+
+with the rent–utility equilibrium system:
+
+$$
+e^{\beta p_i} = \sum_h H_h\, e^{\beta (s_{hi} - \bar{u}_h)}, \qquad
+e^{\beta \bar{u}_h} = \sum_i S_i\, e^{\beta (s_{hi} - p_i)}
+$$
+
+<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
+
+**Properties** (verified with tests): it coincides with the logit when $\lambda_h = 1$; it is invariant to the common scale of $\lambda$ (the logit is not); and **neither $\lambda_h$ nor $y_h$ moves the allocation** in the auction — the term $\lambda_h y_h$ is constant in $i$ and gets absorbed into $\bar{u}_h$. Income sorting emerges via $\alpha_h$ (calibrated higher for higher-income strata).
+
+<Callout type="info">
+In the simulator, the **heteroscedastic** solver is the default; the *logit* is kept to compare and watch the artifact live ("Solver" selector in the Land-use panel). Try varying $\lambda$ in both: with the heteroscedastic solver the allocation does not move; with the logit it does — and that is precisely the inconsistency.
+</Callout>
+
+## The shape of the city
+
+The supply $S(i)$ is generated **deterministically** (largest-remainder discretization, $\sum_i S_i = \sum_h H_h$ exact, empty CBD) with six parameterizable shapes: normal, uniform, exponential, plateau, bimodal and valley, with dispersion $\sigma$ as a fraction of the half-city.
+
+<OverleafRef sec="Suelo (oferta S)" tag="S-1" />
+
+<NextStep to="experimenting">Experiment →</NextStep>

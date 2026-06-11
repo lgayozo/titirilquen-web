@@ -1,0 +1,106 @@
+---
+slug: land-use
+order: 6
+title: Uso de suelo
+tagline: Bid-rent, subasta logit y la corrección heteroscedástica
+---
+
+# 5. Uso de suelo
+
+El módulo de suelo (página **Uso de suelo**) resuelve dónde vive cada hogar mediante una **subasta** tipo Alonso–Muth–Mills: cada estrato puja por las parcelas y el que más valora cada ubicación la gana, empujando al resto hacia la periferia.
+
+## Utilidad y disposición a pagar
+
+La utilidad de un hogar del estrato $h$ en la parcela $i$, pagando renta $p_i$, es **lineal en el ingreso**:
+
+$$
+u_h = \lambda_h\,(y_h - p_i) + f_h(i)
+$$
+
+<OverleafRef sec="Suelo · Función de puje" />
+
+donde $\lambda_h$ es la utilidad marginal del ingreso, $y_h$ el ingreso mensual del estrato y $f_h(i)$ la **función de amenidad**, en unidades físicas:
+
+$$
+f_h(i) = -\alpha_h\, T(i) - \rho_h \cdot \frac{S_i}{\Delta x}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-2" />
+
+con $T(i)$ el tiempo de viaje al CBD en **minutos** (a flujo libre en el modo aislado; del equilibrio de transporte en el acoplado), $\alpha_h$ en utiles/min y $\rho_h$ la penalización a la **densidad** (hogares/km). Las unidades físicas hacen que el equilibrio sea invariante a la resolución de la grilla — refinar la discretización no cambia las conclusiones.
+
+Despejando el precio se obtiene la **disposición a pagar** (*willingness to pay*) al nivel de utilidad $u_h$:
+
+$$
+w_h(u, i) = y_h - \frac{u_h - f_h(i)}{\lambda_h}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-3" />
+
+## La subasta logit
+
+Con un término idiosincrático Gumbel en la utilidad, la probabilidad de que un hogar del estrato $h$ gane la subasta por la parcela $i$ es:
+
+$$
+Q_{hi} = \frac{H_h\, e^{\beta\, w_{hi}}}{\sum_{g} H_g\, e^{\beta\, w_{gi}}}
+$$
+
+<OverleafRef sec="Suelo · Asignación probabilística" />
+
+La ponderación por $H_h$ (número de postores de cada tipo) garantiza la **conservación por estrato** en el equilibrio: $\sum_i S_i\, Q_{hi} = H_h$.
+
+<OverleafRef sec="Suelo · Asignación probabilística" tag="S-4" />
+
+El equilibrio se obtiene como punto fijo sobre las utilidades $\bar{u}_h$ (cada estrato coloca exactamente sus $H_h$ hogares), y los **precios implícitos** del suelo salen de la identidad:
+
+$$
+p_i^{*} = \frac{1}{\beta} \ln\left( \sum_g H_g\, e^{\beta\, w_{gi}} \right)
+$$
+
+<OverleafRef sec="Suelo · Interpretación del punto fijo" />
+
+definidos salvo una constante: solo el **gradiente** espacial es informativo.
+
+## La corrección: logit heteroscedástico
+
+El logit anterior tiene un problema sutil cuando $\lambda_h$ es heterogéneo. El ruido Gumbel vive en la **utilidad** (misma escala $1/\beta$ para todos), pero al despejar la puja el ruido queda dividido por $\lambda_h$:
+
+$$
+\tilde{w}_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}
+$$
+
+<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
+
+— escala $1/(\beta \lambda_h)$, **distinta por estrato**. Aplicar el logit con $\beta$ uniforme sobre las pujas equivale a darle a los estratos de mayor $\lambda$ una elección *más ruidosa* (artefacto sin fundamento conductual), y hace que el equilibrio dependa de la escala común de $\lambda$, que es solo una elección de unidades.
+
+La corrección pesa cada puja por su precisión $\beta_h = \beta\,\lambda_h$, lo que equivale a subastar en el espacio de **utilidad** con el *score*:
+
+$$
+s_{hi} = \lambda_h\, y_h + f_h(i), \qquad
+Q_{hi} = \frac{H_h\, e^{\beta (s_{hi} - \bar{u}_h)}}{\sum_g H_g\, e^{\beta (s_{gi} - \bar{u}_g)}}
+$$
+
+<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
+
+con el sistema de equilibrio renta–utilidad:
+
+$$
+e^{\beta p_i} = \sum_h H_h\, e^{\beta (s_{hi} - \bar{u}_h)}, \qquad
+e^{\beta \bar{u}_h} = \sum_i S_i\, e^{\beta (s_{hi} - p_i)}
+$$
+
+<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
+
+**Propiedades** (verificadas con tests): coincide con el logit cuando $\lambda_h = 1$; es invariante a la escala común de $\lambda$ (el logit no); y **ni $\lambda_h$ ni $y_h$ mueven la asignación** en la subasta — el término $\lambda_h y_h$ es constante en $i$ y se absorbe en $\bar{u}_h$. El ordenamiento por ingreso emerge vía $\alpha_h$ (calibrado mayor para estratos de mayor ingreso).
+
+<Callout type="info">
+En el simulador, el solver **heteroscedástico es el default**; el *logit* se conserva para comparar y ver el artefacto en vivo (selector "Solver" en el panel de Uso de suelo). Probá variar $\lambda$ en ambos: en el heteroscedástico la asignación no se mueve; en el logit sí — y eso es precisamente la inconsistencia.
+</Callout>
+
+## La forma de la ciudad
+
+La oferta $S(i)$ se genera **determinista** (discretización por mayor residuo, $\sum_i S_i = \sum_h H_h$ exacto, CBD vacío) con seis formas parametrizables: normal, uniforme, exponencial, meseta, bimodal y valle, con dispersión $\sigma$ como fracción de la semi-ciudad.
+
+<OverleafRef sec="Suelo (oferta S)" tag="S-1" />
+
+<NextStep to="experimenting">Experimentar →</NextStep>

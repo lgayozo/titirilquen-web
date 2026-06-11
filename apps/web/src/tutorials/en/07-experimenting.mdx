@@ -1,17 +1,17 @@
 ---
 slug: experimenting
-order: 6
+order: 7
 title: Experimenting
 tagline: Presets, comparison, suggested activities
 ---
 
-# 5. Experimenting
+# 6. Experimenting
 
 ## Available tools
 
 **Transport** ([go](/sandbox)): free experimentation with the supply–demand equilibrium. Adjust any parameter and see results live.
 
-**Land use** ([go](/land-use)): Alonso equilibrium, with or without transport coupling.
+**Land use** ([go](/land-use)): standalone Alonso equilibrium (heteroscedastic or logit solver). **City at equilibrium** ([go](/coupled)): the full land ↔ transport loop.
 
 **Compare** ([go](/compare)): load up to 4 configurations in parallel and see deltas side by side.
 
@@ -22,15 +22,27 @@ tagline: Presets, comparison, suggested activities
 2. Watch car mode share change.
 3. Which stratum is more sensitive? (Hint: $\beta_c$ parameter)
 
-### B. Bikeway capacity
+### B. The logit artifact (heteroscedastic solver)
+1. Under Land use, with the **logit** solver, vary the high stratum's λ (0.5 → 3).
+2. Watch the spatial allocation change — even though λ is just the marginal utility of income.
+3. Switch to the **heteroscedastic** solver and repeat: the allocation does not move.
+4. Why was the λ dependence an inconsistency rather than a real income effect? (Hint: Land-use tutorial, correction section.)
+
+### C. Bikeway capacity
 1. Start with `cap_bike` = 800 bikes/h.
 2. Raise to 5000 (*Pro-Bike* preset).
 3. Where does demand migrate from?
 
-### C. Alonso effect
-1. Under Land use (*Land-use only* mode), set $\alpha_h$ = 3.0 for high stratum and 0.5 for low.
+### D. Alonso effect
+1. Under Land use, set $\alpha_h$ = 12 for the high stratum and 3 for the low one (utils/min).
 2. Observe the distribution. Who lives near the CBD?
 3. Invert $\alpha$ values and repeat.
+
+
+### E. MSA sensitivity
+1. Under Transport, lower `max_iter` to 3.
+2. Does it converge? What happens to the residual?
+3. Raise it to 20 and watch the asymptotic behavior.
 
 ## Persistence
 

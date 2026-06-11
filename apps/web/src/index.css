@@ -2865,3 +2865,19 @@ table.cmp th {
   hyphens: auto;
   overflow-wrap: break-word;
 }
+
+/* Cita de procedencia de ecuaciones del tutorial (Overleaf · §sección · [R-n]) */
+.tut-eqref {
+  font-family: var(--font-fig);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: right;
+  margin: -4px 0 14px;
+}
+
+.tut-eqref a {
+  color: var(--accent);
+  text-decoration: none;
+}

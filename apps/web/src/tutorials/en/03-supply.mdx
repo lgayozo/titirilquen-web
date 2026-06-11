@@ -7,44 +7,92 @@ tagline: BPR, Greenshields, cyclic system
 
 # 2. Supply
 
-Three sub-modules sharing one idea: **travel time depends on assigned flow**.
+Three distinct submodules, united by one idea: **travel time depends on assigned flow**.
 
 ## Car (Greenshields + BPR)
 
-$$
-Q = \frac{v_l \cdot k_e}{4}, \quad k_e = \frac{1000}{l_{\text{veh}} + \text{gap}}
-$$
-
-BPR congestion:
+Per-lane capacity derived from jam density:
 
 $$
-t_i = t_0 \left( 1 + \alpha \left( \frac{q_i}{N_p \cdot Q} \right)^\beta \right)
+Q = \frac{v_l \cdot k_e}{4}, \quad k_e = \frac{1000}{l + \text{gap}}
 $$
 
-## Bike (BPR with slope)
+<OverleafRef sec="Oferta de autos" />
+
+Per-segment time under congestion (Bureau of Public Roads):
+
+$$
+t_i = t_{i_0} \left( 1 + \alpha \left( \frac{q_i}{N_p \cdot Q} \right)^\beta \right)
+$$
+
+<OverleafRef sec="Oferta de autos" />
+
+where $q_i$ is the flow accumulated toward the CBD, $N_p$ the number of lanes and $t_{i_0} = \frac{L/N}{v_l}$ the free-flow segment time.
+
+## Bicycle (BPR with slope and physical floor)
+
+Slope adjustment factor:
 
 $$
 f_p = \begin{cases} -0.0579\,p + 0.9992 & p > 0 \\ -0.0455\,p + 1 & p \le 0 \end{cases}
 $$
 
-<Callout type="warn">
-The Overleaf says $f_p = -0.0579 p + 0{.}09992$ — a typo. Code implements $0{.}9992$. See <DocLink path="/docs/DISCREPANCIES.md#d-01-factor-de-ajuste-por-pendiente-bici-subida">D-01</DocLink>.
-</Callout>
+<OverleafRef sec="Oferta de bicicletas" tag="R-1" />
 
-Two velocities result (left/right of CBD), clamped to $[5, 45]$ km/h.
+From $f_p$ two speeds are derived (left and right of the CBD), clamped to $[5, 45]$ km/h. The per-segment time applies the BPR **capped at the time to walk the segment**:
+
+$$
+t_i = \min\left\{ t_{i_0} \left( 1 + \alpha \left( \frac{q_i}{Q} \right)^\beta \right),\ \frac{L/N}{v_c} \cdot 60 \right\}
+$$
+
+<OverleafRef sec="Oferta de bicicletas" tag="R-7" />
+
+<Callout type="info">
+The floor is physical: a congested bike lane can never be slower than **dismounting and pushing** the bike ($v_c$ = walking speed). Without the cap, the accumulated BPR produced absurd times in the congested periphery.
+</Callout>
 
 ## Metro (cyclic system)
 
-Operating frequency sized to the critical link:
+The operating frequency is sized to the **critical link**:
 
 $$
 f_{\text{op}} = \min\!\left(f_{\max},\ \max\!\left(f_{\min},\ \frac{L_{\max}}{K}\right)\right)
 $$
 
-Wait time with random arrivals + saturation penalty:
+<OverleafRef sec="Oferta de trenes" />
+
+where $L_{\max}$ is the maximum observed flow and $K$ the per-train capacity. The endogenous frequency induces the **Mohring effect**: more demand ⇒ higher frequency ⇒ less waiting for everyone (transit's economy of scale).
+
+Waiting time with random arrivals and **continuous** platform congestion (BPR-like):
 
 $$
-t_e = \frac{1}{2 f_{\text{op}}} \cdot 60 \cdot \begin{cases} 1 & \rho \le 1 \\ \alpha \rho^\beta & \rho > 1 \end{cases}
+t_{e,s} = \frac{30}{f_{\text{op}}} \cdot \left(1 + \alpha\, \rho_s^{\,\beta}\right), \qquad \alpha = 0.5,\ \beta = 4
 $$
+
+<OverleafRef sec="Oferta de trenes" tag="R-5" />
+
+with $\rho_s = L_s / (f_{\max} K)$ the station saturation. The base wait $30/f_{\text{op}} = \tfrac{1}{2 f_{\text{op}}} \cdot 60$ is the mean wait under random arrivals at frequency $f_{\text{op}}$.
+
+## CO₂ emissions
+
+Cars emit according to their **local circulation speed** (reconstructed by inverting the BPR per parcel):
+
+$$
+FE_{\text{auto}}(v) = 2467.4 \cdot v^{-0.699} \ \ [\text{g/km}], \qquad E_{\text{auto}} = \sum_i q_i \cdot \Delta x \cdot FE_{\text{auto}}(v_i)
+$$
+
+<OverleafRef sec="Modelo de Emisiones" tag="R-9" />
+
+The metro emits **per train-kilometre** — the environmental cost is per service running, not per passenger:
+
+$$
+E_{\text{metro}} = \phi \cdot f_{\text{op}} \cdot L_{\text{line}} \cdot 2, \qquad \phi = 2.5\ \text{kg CO}_2/\text{train-km}
+$$
+
+<OverleafRef sec="Modelo de Emisiones" tag="R-9" />
+
+<Callout type="info">
+At fixed frequency, attracting passengers to the metro does **not** raise its emissions (fixed service cost); with growing demand the frequency rises and emissions *per passenger* fall — the emissions analogue of the Mohring effect. Bike and walking are assumed emission-free.
+</Callout>
 
 <NextStep to="demand">Demand module →</NextStep>

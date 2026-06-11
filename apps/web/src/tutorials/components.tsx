@@ -41,6 +41,38 @@ export function NextStep({ to, children }: NextStepProps) {
   );
 }
 
+interface OverleafRefProps {
+  /** Sección del Overleaf de donde proviene la ecuación (sin el símbolo §). */
+  sec: string;
+  /** Marca de revisión [R-n]/[S-n] si la ecuación pertenece a la revisión
+   * jun-2026; linkea a la agenda OVERLEAF_CHANGES.md del repo web. */
+  tag?: string;
+}
+
+/** Cita de procedencia de una ecuación: el documento matemático (Overleaf) es
+ * la referencia normativa del modelo. Se cita por sección —los números de
+ * ecuación del Overleaf son automáticos e inestables— y, si corresponde, por
+ * la marca de revisión. */
+export function OverleafRef({ sec, tag }: OverleafRefProps) {
+  return (
+    <div className="tut-eqref">
+      Overleaf · §{sec}
+      {tag && (
+        <>
+          {" · "}
+          <a
+            href={`https://github.com/lgayozo/titirilquen-web/blob/main/docs/OVERLEAF_CHANGES.md`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            [{tag}]
+          </a>
+        </>
+      )}
+    </div>
+  );
+}
+
 interface DocLinkProps {
   path: string;
   children: React.ReactNode;
@@ -62,6 +94,7 @@ export const mdxComponents = {
   Callout,
   NextStep,
   DocLink,
+  OverleafRef,
   MSAFlowchart,
   CoupledFlowchart,
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {

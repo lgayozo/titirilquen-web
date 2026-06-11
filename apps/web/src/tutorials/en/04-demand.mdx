@@ -7,33 +7,60 @@ tagline: Multinomial logit utilities
 
 # 3. Demand
 
-Each agent evaluates mode utilities and picks via **multinomial logit**:
+Each agent evaluates the utility of every available mode and chooses via a **multinomial logit**:
 
 $$
-P(m) = \frac{e^{V_m}}{\sum_{j \in M} e^{V_j}}
+P(i) = \frac{e^{V_i}}{\sum_{j} e^{V_j}}
 $$
 
-## Utilities
+<OverleafRef sec="Demanda · Elección de modo" />
 
-**Car**
-$$
-V_{\text{car}}^s = \text{ASC}_{\text{car}}^s + \beta_t^s \cdot t_{\text{car}} + \beta_c^s \cdot (c_{\text{park}} + c_{\text{fuel}} \cdot d)
-$$
+## Utilities per mode
 
-**Metro** (time components decomposed)
+**Car** — the cost has a fixed component (parking) and a **per-kilometre** one (fuel):
+
 $$
-V_{\text{metro}}^s = \text{ASC}_{\text{metro}}^s + \beta_t^s \cdot t_v + \beta_{\text{wait}}^s \cdot t_e + \beta_{\text{walk}}^s \cdot t_a + \beta_c^s \cdot c_{\text{fare}}
+V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(c_{\text{parking}} + c_{\text{combustible}} \cdot d_i\right)
 $$
 
-**Bike** with stepped physical penalties
+<OverleafRef sec="Modelo de Demanda" tag="R-14" />
+
+with $d_i$ the distance (km) from origin to the CBD.
+
+**Metro** — three time components, each with its own sensitivity:
+
 $$
-V_{\text{bike}}^s = \text{ASC}_{\text{bike}}^s + \beta_t^s \cdot t_{\text{bike}} + \sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t_{\text{bike}} > k\} \cdot \pi_k^s
+V_{\text{metro}}^s = ASC_{\text{metro}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_{t_{\text{espera}}}^s \cdot t_{\text{espera}} + \beta_{t_{\text{caminata}}}^s \cdot t_{\text{caminata}} + \beta_c^s \cdot c_{\text{tarifa}}
 $$
 
-Cutoff $V = -\infty$ if $t_{\text{bike}} > 45$ min.
+<OverleafRef sec="Modelo de Demanda" />
 
-<Callout type="warn">
-Penalties $\pi_k$ are **additive step constants**, not multiplicative as a naïve reading of the Overleaf suggests (see <DocLink path="/docs/DISCREPANCIES.md#d-02-penalizaciones-físicas-de-bicicleta-y-caminata-forma-funcional">D-02</DocLink>).
+where $t_{\text{caminata}}$ is the **station access time** ($t_a$ in the train-supply notation) and $t_{\text{espera}}$ the platform wait ($t_e$).
+
+**Bicycle** — **additive stepped** physical penalties and a feasibility cutoff:
+
+$$
+V^s_{\text{bicicleta}} = \begin{cases}
+-\infty & \text{if } t_{\text{bici}} > 45 \\
+ASC_{\text{bici}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{bici}} + \displaystyle\sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t_{\text{bici}} > k\} \cdot \pi_k^s & \text{if } t_{\text{bici}} \le 45
+\end{cases}
+$$
+
+<OverleafRef sec="Modelo de Demanda" tag="R-2" />
+
+**Walking** — with its **own sensitivity** $\beta_{t_{\text{caminata}}}^s$ (not $\beta_{t_{\text{viaje}}}^s$), thresholds $\{5, 15, 25\}$ and a 30-min cutoff:
+
+$$
+V^s_{\text{caminata}} = \begin{cases}
+-\infty & \text{if } t_{\text{caminata}} > 30 \\
+ASC_{\text{caminata}}^s + \beta_{t_{\text{caminata}}}^s \cdot t_{\text{caminata}} + \displaystyle\sum_{k \in \{5, 15, 25\}} \mathbb{1}\{t_{\text{caminata}} > k\} \cdot \pi_k^s & \text{if } t_{\text{caminata}} \le 30
+\end{cases}
+$$
+
+<OverleafRef sec="Modelo de Demanda" tag="R-3" />
+
+<Callout type="info">
+Penalties $\pi_k^s$ are **additive constants** added when each fatigue threshold is exceeded — not coefficients multiplying time. The penalty thresholds (10/20/30 bike, 5/15/25 walk) are a different concept from the **feasibility cutoffs** (45 and 30 min), where the mode leaves the choice set.
 </Callout>
 
 ## Pedagogical breakdown
