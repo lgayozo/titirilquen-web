@@ -164,7 +164,12 @@ export function ComparePage() {
         name: s.name || untitled(s.id),
         kpis:
           s.result && s.config
-            ? computeKPIs(s.result, s.config.city.largo_ciudad_km, s.config.city.n_celdas)
+            ? computeKPIs(
+                s.result,
+                s.config.city.largo_ciudad_km,
+                s.config.city.n_celdas,
+                s.config.demand.globales.v_caminata,
+              )
             : null,
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps

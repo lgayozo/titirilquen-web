@@ -40,7 +40,8 @@ function modeTimeFor(
   modo: Modo,
   celda: number,
   snap: SimulationResult["iteraciones"][number],
-  distCbdKm: number
+  distCbdKm: number,
+  vCaminata: number
 ): number {
   switch (modo) {
     case "Auto":
@@ -50,13 +51,20 @@ function modeTimeFor(
     case "Bici":
       return snap.t_bici[celda] ?? 0;
     case "Caminata":
-      return (distCbdKm / 4.8) * 60;
+      return (distCbdKm / vCaminata) * 60;
     case "Teletrabajo":
       return 0;
   }
 }
 
-export function computeKPIs(result: SimulationResult, largoKm: number, nCeldas: number): ScenarioKPIs {
+export function computeKPIs(
+  result: SimulationResult,
+  largoKm: number,
+  nCeldas: number,
+  // Velocidad de caminata DEL ESCENARIO (config.demand.globales.v_caminata):
+  // antes estaba hardcodeada en 4.8 y los KPIs de Comparar la ignoraban.
+  vCaminata = 4.8,
+): ScenarioKPIs {
   const lastIter = result.iteraciones.at(-1);
   const modal_share = zeroModes();
   const tiempo_medio_min = zeroModes();
@@ -76,7 +84,7 @@ export function computeKPIs(result: SimulationResult, largoKm: number, nCeldas: 
   for (const a of agentes) {
     const m = (a.modo_elegido ?? "Teletrabajo") as Modo;
     const distKm = Math.abs(a.celda_origen - cbdIdx) * cellWidthKm;
-    const t = lastIter ? modeTimeFor(m, a.celda_origen, lastIter, distKm) : 0;
+    const t = lastIter ? modeTimeFor(m, a.celda_origen, lastIter, distKm, vCaminata) : 0;
 
     modal_share[m] += 1;
     if (lastIter) {

@@ -137,7 +137,8 @@
     "avg_time_by_mode": "Avg travel time by mode",
     "avg_time_by_stratum": "Avg travel time by stratum",
     "avg_utility_by_stratum": "Avg utility by stratum",
-    "co2_profile": "CO₂ by location"
+    "co2_profile": "CO₂ by location",
+    "utility_caveat": "Utilities are in each stratum's own utils (different ASC and β): comparing heights ACROSS strata is not valid — only within a stratum and across modes."
   },
   "hero": {
     "title": "The linear city",

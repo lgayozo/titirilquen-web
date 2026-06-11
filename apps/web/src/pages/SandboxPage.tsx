@@ -892,6 +892,9 @@ export function SandboxPage() {
                       largoKm={cfgRes.city.largo_ciudad_km}
                     />
                   </ExportableFigure>
+                  <p className="kpi-caption" style={{ marginTop: 6 }}>
+                    {t("sandbox.utility_caveat")}
+                  </p>
                 </Panel>
 
                 <Panel
@@ -958,6 +961,9 @@ export function SandboxPage() {
                       >
                         <StatBars bars={avgStats.utilByStratum} decimals={2} />
                       </ExportableFigure>
+                      <p className="kpi-caption" style={{ marginTop: 6 }}>
+                        {t("sandbox.utility_caveat")}
+                      </p>
                     </Panel>
                   </>
                 )}

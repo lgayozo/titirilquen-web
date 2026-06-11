@@ -44,7 +44,7 @@ export function CoupledFlowchart() {
         tooltip: {
           title: t("flowchart.coupled.landuse_title"),
           description: t("flowchart.coupled.landuse_desc"),
-          formula: String.raw`Q_{h,i} = \frac{S_i \cdot e^{\beta \cdot u_{h,i}}}{\sum_h H_h \cdot e^{\beta \cdot u_{h,i}}}`,
+          formula: String.raw`Q_{h,i} = \frac{H_h \, e^{\beta (s_{h,i} - \bar{u}_h)}}{\sum_g H_g \, e^{\beta (s_{g,i} - \bar{u}_g)}}`,
           ref: { path: "land_use/equilibrium.py", label: "solve_logit" },
         },
       },

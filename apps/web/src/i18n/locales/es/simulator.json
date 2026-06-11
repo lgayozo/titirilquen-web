@@ -137,7 +137,8 @@
     "avg_time_by_mode": "Tiempo de viaje medio por modo",
     "avg_time_by_stratum": "Tiempo de viaje medio por estrato",
     "avg_utility_by_stratum": "Utilidad media por estrato",
-    "co2_profile": "CO₂ por ubicación"
+    "co2_profile": "CO₂ por ubicación",
+    "utility_caveat": "Las utilidades están en utiles propios de cada estrato (ASC y β distintos): comparar alturas ENTRE estratos no es válido — solo dentro de cada estrato y entre modos."
   },
   "hero": {
     "title": "La ciudad lineal",
