@@ -6,6 +6,22 @@ densidad) y alimente al módulo de **Transporte** (Sandbox).
 
 Fecha de inicio: 2026-06-30. Rama: `ciudad-equilibrio-mejoras`.
 
+> **Estado vigente (2026-07-03).** Este es un registro cronológico; algunas
+> fórmulas de secciones anteriores quedaron **superadas**. La verdad actual del
+> módulo:
+> - **Densidad por celda** = gradiente de **Clark geométrico** en la distancia al
+>   CBD (independiente del precio, de `ρ` y de la composición `Q`). NO es
+>   `Σ_h Q·δ_h` ni endógena del precio: la sección «Formulación de la densidad por
+>   celda» de más abajo es historia superada.
+> - **Envolvente de las figuras de población por celda** (`StratumDistribution`,
+>   `StrataHeatmap`) = la **oferta `S`** («forma de la ciudad», `smoothSupply`), no
+>   `densidad_celda`. Esto supersede la entrada «FIG. hogares: envolvente =
+>   densidad_celda» de «Figuras alineadas». Coincide con cómo el core reparte
+>   hogares (`asignar_hogares_simple` usa `S`); la densidad de Clark queda solo
+>   para la FIG. de densidad.
+> - **Solver**: la app corre siempre **logit** (el heteroscedástico existe en el
+>   core pero no se expone en la UI).
+
 ## Objetivos
 
 1. Reordenar las pestañas del banner: **Uso de Suelo primero**, antes de Transporte.

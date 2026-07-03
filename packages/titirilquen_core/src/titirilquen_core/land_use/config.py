@@ -52,18 +52,18 @@ class LandUseConfig(BaseModel):
         default=800.0,
         gt=0,
         description=(
-            "Densidad residencial (hab/km) en la parcela de MAYOR precio de suelo "
-            "(el CBD). La densidad es endógena del precio del equilibrio (Alonso-"
-            "Muth-Mills): densidad ∝ renta del suelo, decae con la distancia."
+            "Densidad residencial (hab/km) en el CBD. La densidad es un gradiente "
+            "de Clark GEOMÉTRICO en la distancia al CBD, independiente del precio y "
+            "de ρ: dens(d) = densidad_max·(densidad_min/densidad_max)^(d/d_max)."
         ),
     )
     densidad_min: float = Field(
         default=200.0,
         gt=0,
         description=(
-            "Densidad residencial (hab/km) en la parcela de MENOR precio (periferia)."
-            " Piso del gradiente: dens(i) = densidad_min + (densidad_max−densidad_min)"
-            "·(p_i−p_min)/(p_max−p_min). Independiente del estrato."
+            "Densidad residencial (hab/km) en la periferia (piso del gradiente de "
+            "Clark). Interpola geométricamente entre densidad_max en el CBD y "
+            "densidad_min en el borde según la distancia. Independiente del estrato."
         ),
     )
     # Calibración en unidades físicas (D-26), equivalente a la antigua
@@ -85,7 +85,7 @@ class LandUseConfig(BaseModel):
         default="normal",
         description=(
             "Forma del perfil de oferta de vivienda a lo largo del corredor: "
-            "normal · uniforme · exponencial · anular · bimodal."
+            "normal · uniforme · exponencial · meseta · bimodal · valle."
         ),
     )
     oferta_sigma_frac: float = Field(
@@ -96,7 +96,7 @@ class LandUseConfig(BaseModel):
             "Ancho/dispersión de la oferta como fracción de la semi-ciudad: "
             "σ = frac · min(CBD, L-1-CBD). Menor ⇒ ciudad compacta (vivienda junto "
             "al CBD); mayor ⇒ dispersa. También controla la pendiente de la "
-            "exponencial y el ancho del anillo/picos. Default 0.5 = σ ≈ L/4."
+            "exponencial y el ancho de los picos (bimodal). Default 0.5 = σ ≈ L/4."
         ),
     )
     forma_param: float = Field(
@@ -104,9 +104,8 @@ class LandUseConfig(BaseModel):
         ge=0,
         le=1,
         description=(
-            "2º parámetro de la forma, como fracción de la semi-ciudad: radio del "
-            "anillo (anular) o separación de los picos (bimodal). Ignorado en "
-            "normal/uniforme/exponencial."
+            "2º parámetro de la forma, como fracción de la semi-ciudad: separación "
+            "de los picos (bimodal). Ignorado en las demás formas."
         ),
     )
 

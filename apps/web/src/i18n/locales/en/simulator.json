@@ -224,7 +224,7 @@
     "densidad_max": "Max (center / highest price)",
     "densidad_min": "Min (periphery / lowest price)",
     "poblacion_total_hint": "Total population ≈ {{total}} = length × mean density ({{dens}} pop/km). Density is endogenous to land price (dense center → sparse periphery); the exact value comes from the equilibrium.",
-    "bidrent_hint": "Auction sensitivities: β (logit noise) global; α (time), ρ (density) and λ (income) per stratum set who bids most for the center.",
+    "bidrent_hint": "Auction sensitivities: only α (time) and ρ (density) per stratum set the spatial ordering (who wins the center). β (global) and λ (per stratum) scale the choice noise —in the logit, λ as a ~1/βλ artifact—; income y does not move the allocation.",
     "subtitle": "Alonso-Muth-Mills model",
     "mode_standalone": "Land use only",
     "mode_coupled": "City at equilibrium",

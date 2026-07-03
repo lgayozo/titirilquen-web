@@ -23,11 +23,11 @@ export type FormaOferta =
 
 export interface LandUseConfig {
   H_por_estrato: [number, number, number];
-  /** Densidad (hab/km) en la parcela de MAYOR precio (CBD). La densidad es
-   *  endógena del precio del equilibrio (AMM): dens(i) = densidad_min +
-   *  (densidad_max−densidad_min)·(p_i−p_min)/(p_max−p_min). */
+  /** Densidad (hab/km) en el CBD. La densidad es un gradiente de Clark
+   *  GEOMÉTRICO en la distancia al CBD (indep. del precio y de ρ):
+   *  dens(d) = densidad_max·(densidad_min/densidad_max)^(d/d_max), d=|i−CBD|. */
   densidad_max: number;
-  /** Densidad (hab/km) en la parcela de MENOR precio (periferia). */
+  /** Densidad (hab/km) en la periferia (piso del gradiente de Clark). */
   densidad_min: number;
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   beta: number;
@@ -39,8 +39,8 @@ export interface LandUseConfig {
   /** Ancho/dispersión de la oferta (σ como fracción de la semi‑ciudad).
    *  Menor ⇒ ciudad compacta; mayor ⇒ dispersa. Default 0.5. */
   oferta_sigma_frac: number;
-  /** 2º parámetro de la forma (fracción de la semi‑ciudad): radio del anillo
-   *  (anular) o separación de picos (bimodal). Ignorado en las demás. */
+  /** 2º parámetro de la forma (fracción de la semi‑ciudad): separación de los
+   *  picos (bimodal). Ignorado en las demás formas. */
   forma_param: number;
 }
 
@@ -57,8 +57,8 @@ export interface LandUseSolveResponse {
   CBD: number;
   S: number[];
   parcelas: number[][];
-  /** Perfil de densidad por celda (hab/km), endógeno del precio del suelo:
-   *  dens(i) = densidad_min + (densidad_max−densidad_min)·(p_i−p_min)/(p_max−p_min). */
+  /** Perfil de densidad por celda (hab/km): gradiente de Clark geométrico en la
+   *  distancia al CBD, indep. del precio; 0 en celdas sin oferta (S≤0). */
   densidad_celda: number[];
   result: LandUseResult;
 }

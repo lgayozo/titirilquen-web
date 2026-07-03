@@ -207,7 +207,11 @@ export function StrataHeatmap({
                 ? "land_use.heatmap_before"
                 : "land_use.heatmap_after",
             )}
-            {hover.km != null ? ` · ${hover.km.toFixed(1)} km` : ""}
+            {/* La franja "antes" es uniforme (misma mezcla en toda celda): la
+                posición no aporta. Solo se muestra km en "después". */}
+            {hover.row === "after" && hover.km != null
+              ? ` · ${hover.km.toFixed(1)} km`
+              : ""}
           </div>
           {STRATUM_KEYS.map((key, h) => (
             <div key={key} className="nt-row">

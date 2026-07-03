@@ -224,7 +224,7 @@
     "densidad_max": "Máx (centro / mayor precio)",
     "densidad_min": "Mín (periferia / menor precio)",
     "poblacion_total_hint": "Población total ≈ {{total}} = largo × densidad media ({{dens}} hab/km). La densidad es endógena del precio del suelo (centro denso → periferia rala); el valor exacto sale del equilibrio.",
-    "bidrent_hint": "Sensibilidades de la subasta: β (ruido logit) global; α (tiempo), ρ (densidad) y λ (ingreso) por estrato definen quién puja más por el centro.",
+    "bidrent_hint": "Sensibilidades de la subasta: solo α (tiempo) y ρ (densidad) por estrato definen el ordenamiento espacial (quién gana el centro). β (global) y λ (por estrato) escalan el ruido de elección —en logit, λ como artefacto ~1/βλ—; el ingreso y no mueve la asignación.",
     "subtitle": "Modelo Alonso-Muth-Mills",
     "mode_standalone": "Sólo suelo",
     "mode_coupled": "Ciudad en equilibrio",

@@ -1,4 +1,4 @@
-"""Solvers de equilibrio — logit y Frechét.
+"""Solvers de equilibrio — logit y heteroscedástico.
 
 Portados de `titirilquen-repo/Ciudad2.py:249-479`. La matemática se preserva
 verbatim; se cambian sólo los interfaces para devolver un dataclass tipado.
@@ -6,13 +6,16 @@ verbatim; se cambian sólo los interfaces para devolver un dataclass tipado.
 Ambos solvers implementan el mismo operador de punto fijo sobre el vector de
 utilidades promedio `ū ∈ R^H`:
 
-    F(ū)_h = (1/β) log( Σ_i S_i · exp(βz_hi) / Σ_g exp(β(z_gi - ū_g)) )
+    F(ū)_h = (1/β) · log Σ_i  S_i · e^{β·s_hi} / ( Σ_g H_g · e^{β(s_gi − ū_g)} )
 
-donde z_hi = H_h · exp(β(y_h + f_h(i)/λ_h)) en la formulación logit.
+donde s_hi es la puja/score del estrato h por la parcela i y f_h(i) = −α_h·T(i)
+− ρ_h·dens(i) la atractividad. El peso H_g aparece SOLO en el denominador (la
+subasta la disputan H_g postores de cada tipo; ver la ponderación de `Q`).
 
-Diferencia: la versión Frechét usa `log w_hi` directo en lugar de `z_hi`, lo
-que introduce una inconsistencia si `λ_h` es heterogéneo (ver D-08 y
-Suelo.tex sec. Notas).
+Diferencia entre solvers: `logit` usa `s_hi = y_h + f_h(i)/λ_h` (β uniforme sobre
+la puja) — inconsistente si `λ_h` es heterogéneo (ver D-08 y Suelo.tex sec. 5.4);
+`heteroscedastic` usa `s_hi = λ_h·y_h + f_h(i)` (escala por estrato β_h = β·λ_h).
+Coinciden cuando λ_h = 1 ∀h.
 """
 
 from __future__ import annotations
