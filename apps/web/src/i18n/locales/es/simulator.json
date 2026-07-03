@@ -102,7 +102,6 @@
     "skeleton_hint": "Asignando demanda inicial en flujo libre — aparecerán datos en cuanto termine la primera iteración."
   },
   "presets": {
-    "city_label": "Estructura de ciudad",
     "policy_label": "Política de transporte",
     "names": {
       "Personalizado": "Personalizado",
@@ -179,7 +178,6 @@
     "equilibrium_body": "Las iteraciones del MSA alternan demanda ↔ oferta hasta que los tiempos se estabilizan. La convergencia se muestra en la figura de residuo."
   },
   "sections_sidebar": {
-    "scenarios": "Escenarios",
     "infra": "Infraestructura",
     "economy": "Economía",
     "population": "Población"
@@ -248,7 +246,7 @@
     "heatmap_meta": "mezcla uniforme → subasta",
     "heatmap_before": "Antes",
     "heatmap_after": "Después",
-    "heatmap_caption": "Composición de estratos por celda. Antes del equilibrio todas las celdas tienen la misma mezcla (proporciones globales); el bid-rent la reordena: el estrato que más valora el centro gana las parcelas cercanas al CBD. La densidad total por celda no cambia (ver perfil de densidad); solo cambia quién vive dónde.",
+    "heatmap_caption": "Composición de estratos por celda. Antes del equilibrio todas las celdas tienen la misma mezcla (proporciones globales); el bid-rent la reordena: el estrato que más valora el centro gana las parcelas cercanas al CBD. El total de hogares por celda lo fija la oferta de vivienda y no cambia con el equilibrio; solo cambia quién vive dónde.",
     "bid_price_title": "Precio implícito del suelo",
     "trajectory_residual_title": "Residuo T entre iteraciones exteriores",
     "trajectory_residual_desc": "‖T_n − T_{n−1}‖∞ en minutos",
@@ -296,8 +294,7 @@
     "solver_heteroscedastic": "Heteroced.",
     "solver_hint_heteroscedastic": "Consistente: escala por estrato β_h = β·λ_h. Corrige el problema del λ heterogéneo (recomendado · default).",
     "solver_hint_logit": "β uniforme sobre la puja y + f/λ: inconsistente con λ heterogéneo (escala el ruido por estrato). Para comparar.",
-    "lambda_na_het": "No mueve la asignación con el solver heteroscedástico: el ordenamiento lo gobiernan α y ρ. (En el logit sí, pero como artefacto de su inconsistencia.)",
-    "lambda_artifact_logit": "⚠ Sí mueve la asignación, pero es un artefacto del logit (inconsistente con λ heterogéneo): escala el ruido por estrato, no es un efecto-ingreso real. El heteroscedástico (default) lo corrige.",
+    "lambda_artifact_logit": "⚠ Mueve la asignación, pero es un artefacto del logit (el solver de la app): escala el ruido de elección por estrato (~1/βλ), no es un efecto-ingreso real (el ingreso y se absorbe). Subir λ dispersa al estrato; bajarlo lo concentra en su óptimo de α/ρ.",
     "y_na": "No afecta la asignación en ningún solver: el ingreso entra solo como constante por estrato (λ·y o y) y se absorbe en la utilidad de equilibrio. El ordenamiento lo gobiernan α y ρ.",
     "intro": "La teoría del bid-rent predice que los hogares con mayor valoración de la accesibilidad al centro superan en subasta a los demás por parcelas cercanas al CBD, empujando a los grupos de menor valoración hacia la periferia.",
     "distribution_meta": "bid-rent · 3 estratos",

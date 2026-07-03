@@ -1,9 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
-import { PresetSelector } from "@/components/ui/PresetSelector";
 import { SidebarSection } from "@/components/ui/SidebarSection";
-import { CITY_PRESETS } from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";
 
 interface CityBuilderProps {
@@ -17,30 +15,8 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
   const setCity = (patch: Partial<SimulationConfig["city"]>) =>
     onChange((c) => ({ ...c, city: { ...c.city, ...patch } }));
 
-  const applyPreset = (name: string) => {
-    const preset = CITY_PRESETS[name];
-    if (!preset) return;
-    setCity({
-      ...(preset.largo_ciudad !== undefined && { largo_ciudad_km: preset.largo_ciudad }),
-    });
-  };
-
-  const matchingPreset =
-    Object.entries(CITY_PRESETS).find(
-      ([, v]) => v.largo_ciudad === config.city.largo_ciudad_km
-    )?.[0] ?? "Personalizado";
-
   return (
     <>
-      <SidebarSection title={t("sections_sidebar.scenarios")}>
-        <PresetSelector
-          label={t("presets.city_label")}
-          options={Object.keys(CITY_PRESETS)}
-          value={matchingPreset}
-          onChange={applyPreset}
-        />
-      </SidebarSection>
-
       <SidebarSection
         title={t("sections.city")}
         meta={t("city_params.meta", {

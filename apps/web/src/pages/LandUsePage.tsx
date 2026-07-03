@@ -13,7 +13,7 @@ import { DensityProfile } from "@/components/viz/DensityProfile";
 import { StrataHeatmap } from "@/components/viz/StrataHeatmap";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { solveLandUse } from "@/lib/api-v2";
-import { densityGradient, expectedComposition } from "@/lib/citySupply";
+import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { theilSegregation } from "@/lib/metrics";
 import { isLandUseStale, useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -88,39 +88,50 @@ export function LandUsePage() {
     return { before, after };
   }, [result, runContext, config]);
 
-  // Hogares por celda = densidad_celda·Δx (gradiente de Clark), repartidos por la
-  // composición Q: N[h,i] = Q[h,i]·densidad_celda[i]·Δx. La envolvente es el perfil
-  // de densidad (coincide con la FIG. de densidad), no la oferta. Suave (la
-  // densidad es exponencial continua), sin peineta ni escalera.
+  // Hogares por celda = oferta S(i), repartidos por la composición Q del
+  // equilibrio: N[h,i] = Q[h,i]·S_i. La envolvente es el perfil de OFERTA (la
+  // «forma de la ciudad», Fig. 00), igual que como el core coloca los hogares
+  // (asignar_hogares reparte según S). La densidad de Clark es una capa aparte y
+  // vive solo en la Fig. de densidad. `smoothSupply` reproduce la forma continua
+  // (sin el dentado de la discretización entera).
   const composition = useMemo<number[][] | null>(() => {
     if (!result) return null;
-    const dx =
-      (runContext?.largoKm ?? simConfig.city.largo_ciudad_km) /
-      Math.max(result.L, 1);
-    const sEff = result.densidad_celda.map((d) => d * dx);
-    return expectedComposition(result.result.Q, sEff);
-  }, [result, runContext, simConfig.city.largo_ciudad_km]);
+    const cfg = runContext?.config ?? config;
+    const N = cfg.H_por_estrato.reduce((a, b) => a + b, 0);
+    if (N <= 0) return null;
+    const S = smoothSupply(
+      cfg.forma,
+      result.L,
+      result.CBD,
+      cfg.oferta_sigma_frac,
+      cfg.forma_param,
+      N,
+    );
+    return expectedComposition(result.result.Q, S);
+  }, [result, runContext, config]);
 
   // Estado INICIAL (pre-equilibrio): todas las celdas con la MISMA proporción de
-  // estratos (π_h = H_h/ΣH), sobre el perfil de DENSIDAD (gradiente de Clark, el
-  // mismo que post-equilibrio: la densidad es fija por geometría). El bid-rent
-  // luego reordena la mezcla uniforme sin cambiar la densidad total por celda.
+  // estratos (π_h = H_h/ΣH), sobre el perfil de OFERTA (la «forma de la ciudad»,
+  // misma envolvente que la Fig. 00 y que la composición post-equilibrio). El
+  // bid-rent luego reordena la mezcla uniforme sin cambiar el total por celda.
   const initComposition = useMemo<number[][] | null>(() => {
     const N = config.H_por_estrato.reduce((a, b) => a + b, 0);
     if (N <= 0) return null;
     const pi = config.H_por_estrato.map((h) => h / N);
-    const dx = simConfig.city.largo_ciudad_km / Math.max(L, 1);
-    const dens = densityGradient(L, CBD, config.densidad_max, config.densidad_min);
-    return dens.map((d) => [
-      d * dx * pi[0]!,
-      d * dx * pi[1]!,
-      d * dx * pi[2]!,
-    ]);
+    const S = smoothSupply(
+      config.forma,
+      L,
+      CBD,
+      config.oferta_sigma_frac,
+      config.forma_param,
+      N,
+    );
+    return S.map((s) => [s * pi[0]!, s * pi[1]!, s * pi[2]!]);
   }, [
     config.H_por_estrato,
-    config.densidad_max,
-    config.densidad_min,
-    simConfig.city.largo_ciudad_km,
+    config.forma,
+    config.oferta_sigma_frac,
+    config.forma_param,
     L,
     CBD,
   ]);
@@ -291,7 +302,13 @@ export function LandUsePage() {
                     title={tS("land_use.heatmap_title")}
                     exportSize={{ width: 1000, height: 200 }}
                   >
-                    <StrataHeatmap before={heatmap.before} after={heatmap.after} />
+                    <StrataHeatmap
+                      before={heatmap.before}
+                      after={heatmap.after}
+                      largoKm={
+                        runContext?.largoKm ?? simConfig.city.largo_ciudad_km
+                      }
+                    />
                   </ExportableFigure>
                   <p className="kpi-caption" style={{ marginTop: 8 }}>
                     {tS("land_use.heatmap_caption")}

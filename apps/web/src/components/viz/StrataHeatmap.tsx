@@ -8,8 +8,20 @@ interface StrataHeatmapProps {
   before: readonly (readonly number[])[];
   /** Composición por celda DESPUÉS del equilibrio. [L][3] shares. */
   after: readonly (readonly number[])[];
+  /** Largo de la ciudad (km) para ubicar la celda en el tooltip. */
+  largoKm?: number;
   className?: string;
 }
+
+interface HoverPayload {
+  /** Franja donde está el cursor. */
+  row: "before" | "after";
+  cell: number;
+  km: number | null;
+  shares: readonly number[];
+}
+
+const STRATUM_KEYS = ["alto", "medio", "bajo"] as const;
 
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.trim().replace("#", "");
@@ -36,10 +48,16 @@ const STRIP_GAP = 30;
  * subasta (la densidad total por celda es fija — ver el perfil de densidad —; lo
  * que cambia es quién vive dónde).
  */
-export function StrataHeatmap({ before, after, className }: StrataHeatmapProps) {
+export function StrataHeatmap({
+  before,
+  after,
+  largoKm,
+  className,
+}: StrataHeatmapProps) {
   const { t } = useTranslation("simulator");
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(700);
+  const [hover, setHover] = useState<HoverPayload | null>(null);
   const [colors, setColors] = useState<[number, number, number][]>([
     [62, 42, 95],
     [178, 67, 26],
@@ -92,7 +110,14 @@ export function StrataHeatmap({ before, after, className }: StrataHeatmapProps) 
   const yBefore = MARGIN.top;
   const yAfter = MARGIN.top + STRIP_H + STRIP_GAP;
 
-  const strip = (data: readonly (readonly number[])[], y: number) =>
+  const cellKm = (i: number) =>
+    largoKm != null ? ((i + 0.5) / Math.max(L, 1)) * largoKm : null;
+
+  const strip = (
+    data: readonly (readonly number[])[],
+    y: number,
+    row: "before" | "after",
+  ) =>
     data.map((sh, i) => (
       <rect
         key={i}
@@ -101,11 +126,15 @@ export function StrataHeatmap({ before, after, className }: StrataHeatmapProps) 
         width={Math.max(cellW + 0.5, 0.8)}
         height={STRIP_H}
         fill={blend(sh)}
+        onMouseEnter={() =>
+          setHover({ row, cell: i, km: cellKm(i), shares: sh })
+        }
+        onMouseLeave={() => setHover(null)}
       />
     ));
 
   return (
-    <div ref={wrapRef} className={cn("relative", className)}>
+    <div ref={wrapRef} className={cn("network-diagram relative", className)}>
       <svg
         width={W}
         height={H}
@@ -133,8 +162,8 @@ export function StrataHeatmap({ before, after, className }: StrataHeatmapProps) 
           {t("land_use.heatmap_after")}
         </text>
 
-        {strip(before, yBefore)}
-        {strip(after, yAfter)}
+        {strip(before, yBefore, "before")}
+        {strip(after, yAfter, "after")}
 
         {[yBefore, yAfter].map((y, k) => (
           <line
@@ -169,6 +198,37 @@ export function StrataHeatmap({ before, after, className }: StrataHeatmapProps) 
           PERIFERIA
         </text>
       </svg>
+
+      {hover && (
+        <div className="network-tooltip" role="tooltip">
+          <div className="nt-head" style={{ color: "var(--accent)" }}>
+            {t(
+              hover.row === "before"
+                ? "land_use.heatmap_before"
+                : "land_use.heatmap_after",
+            )}
+            {hover.km != null ? ` · ${hover.km.toFixed(1)} km` : ""}
+          </div>
+          {STRATUM_KEYS.map((key, h) => (
+            <div key={key} className="nt-row">
+              <span className="nt-label" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    backgroundColor: `var(--s${h + 1})`,
+                    display: "inline-block",
+                  }}
+                />
+                {t(`strata.${key}`)}
+              </span>
+              <span className="nt-value">
+                {((hover.shares[h] ?? 0) * 100).toFixed(0)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div
         className="mt-2 flex flex-wrap gap-4"

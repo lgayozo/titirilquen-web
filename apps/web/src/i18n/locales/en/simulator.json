@@ -102,7 +102,6 @@
     "skeleton_hint": "Assigning initial demand under free flow — data will appear as soon as the first iteration completes."
   },
   "presets": {
-    "city_label": "City structure",
     "policy_label": "Transport policy",
     "names": {
       "Personalizado": "Custom",
@@ -179,7 +178,6 @@
     "equilibrium_body": "MSA iterations alternate demand ↔ supply until travel times stabilize. Convergence is shown in the residual figure."
   },
   "sections_sidebar": {
-    "scenarios": "Scenarios",
     "infra": "Infrastructure",
     "economy": "Economy",
     "population": "Population"
@@ -248,7 +246,7 @@
     "heatmap_meta": "uniform mix → auction",
     "heatmap_before": "Before",
     "heatmap_after": "After",
-    "heatmap_caption": "Per-cell strata composition. Before the equilibrium every cell has the same mix (global proportions); bid-rent sorts it: the stratum that values the center most wins the parcels near the CBD. Total per-cell density does not change (see density profile); only who lives where.",
+    "heatmap_caption": "Per-cell strata composition. Before the equilibrium every cell has the same mix (global proportions); bid-rent sorts it: the stratum that values the center most wins the parcels near the CBD. Total households per cell are set by the housing supply and do not change with the equilibrium; only who lives where.",
     "bid_price_title": "Implicit land price",
     "trajectory_residual_title": "T residual across outer iterations",
     "trajectory_residual_desc": "‖T_n − T_{n−1}‖∞ in minutes",
@@ -296,8 +294,7 @@
     "solver_heteroscedastic": "Heterosc.",
     "solver_hint_heteroscedastic": "Consistent: per-stratum scale β_h = β·λ_h. Fixes the heterogeneous-λ problem (recommended · default).",
     "solver_hint_logit": "Uniform β over the bid y + f/λ: inconsistent with heterogeneous λ (scales the noise per stratum). For comparison.",
-    "lambda_na_het": "Does not move the allocation with the heteroscedastic solver: sorting is governed by α and ρ. (It does in the logit, but as an artifact of its inconsistency.)",
-    "lambda_artifact_logit": "⚠ It does move the allocation, but this is a logit artifact (inconsistent with heterogeneous λ): it scales the per-stratum noise, not a real income effect. The heteroscedastic solver (default) fixes it.",
+    "lambda_artifact_logit": "⚠ It moves the allocation, but this is a logit artifact (the solver the app runs): it scales the per-stratum choice noise (~1/βλ), not a real income effect (income y is absorbed). Raising λ disperses the stratum; lowering it concentrates it at its α/ρ optimum.",
     "y_na": "Does not affect the allocation in either solver: income enters only as a per-stratum constant (λ·y or y) and is absorbed into the equilibrium utility. Sorting is governed by α and ρ.",
     "intro": "Bid-rent theory predicts that households with the highest valuation of accessibility to the center outbid the rest for parcels near the CBD, pushing lower-valuation groups toward the periphery.",
     "distribution_meta": "bid-rent · 3 strata",
