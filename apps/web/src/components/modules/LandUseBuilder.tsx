@@ -11,11 +11,6 @@ interface LandUseBuilderProps {
   largoKm: number;
 }
 
-/** Total de referencia para el equilibrio: como `Q` solo depende de las razones
- *  de estratos, este valor es inmaterial para la asignación; solo fija la escala
- *  numérica de `H`. La población REAL la da la densidad (ver docs). */
-const POBLACION_REF = 10_000;
-
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
 
 export function LandUseBuilder({
@@ -36,40 +31,44 @@ export function LandUseBuilder({
     });
 
 
-  // Proporciones π_h = H_h/ΣH (la mezcla). Se editan alto y medio; bajo es el
-  // resto. Internamente se escriben como H = round(π·N_REF) — el equilibrio solo
-  // usa las razones, así que N_REF no afecta la asignación.
-  const totalH =
-    config.H_por_estrato.reduce((a, b) => a + b, 0) || POBLACION_REF;
+  // Proporciones π_h = H_h/ΣH (la mezcla) y ESCALA de población (ΣH). La
+  // «densidad media» es una vista de la escala: densidad_media = ΣH / largo.
+  // Mover la densidad reescala ΣH (y con ella la oferta S y la densidad por
+  // celda = S/Δx); las proporciones fijan el reparto sin cambiar el total.
+  const totalH = config.H_por_estrato.reduce((a, b) => a + b, 0) || 1;
   const pi = config.H_por_estrato.map((h) => h / totalH) as [
     number,
     number,
     number,
   ];
+  const densMedia = totalH / largoKm;
+
+  // Reescribe H con proporciones `p` y total `T` (Σ = T exacto, cada H ≥ 1).
+  const writeH = (p: [number, number, number], T: number) => {
+    const Ha = Math.max(1, Math.round(p[0] * T));
+    const Hm = Math.max(1, Math.round(p[1] * T));
+    const Hb = Math.max(1, T - Ha - Hm);
+    onChange((c) => ({ ...c, H_por_estrato: [Ha, Hm, Hb] }));
+  };
 
   const setProporciones = (a: number, m: number) => {
     const A = Math.max(0, Math.min(1, a));
     const M = Math.max(0, Math.min(1 - A, m));
-    const Ha = Math.max(1, Math.round(A * POBLACION_REF));
-    const Hm = Math.max(1, Math.round(M * POBLACION_REF));
-    const Hb = Math.max(1, POBLACION_REF - Ha - Hm);
-    onChange((c) => ({ ...c, H_por_estrato: [Ha, Hm, Hb] }));
+    writeH([A, M, 1 - A - M], totalH);
   };
 
-  const labels = [t("strata.alto"), t("strata.medio"), t("strata.bajo")] as const;
+  // T = densidad_media · largo, ≥ 3 para garantizar ≥1 hogar por estrato.
+  const setDensidadMedia = (dm: number) =>
+    writeH(pi, Math.max(3, Math.round(dm * largoKm)));
 
-  // Población total ESTIMADA (pre-corrida) ≈ largo · densidad media. Como la
-  // densidad es endógena del precio, el valor exacto sale del equilibrio; acá se
-  // usa el promedio (max+min)/2 como referencia.
-  const densMedia = (config.densidad_max + config.densidad_min) / 2;
-  const poblacionTotal = Math.round(largoKm * densMedia);
+  const labels = [t("strata.alto"), t("strata.medio"), t("strata.bajo")] as const;
 
   return (
     <>
       {/* ---- POBLACIÓN: proporciones (mezcla) + densidad por estrato ---- */}
       <SidebarSection
         title={t("land_use.section_poblacion")}
-        meta={`≈ ${poblacionTotal.toLocaleString()}`}
+        meta={`≈ ${Math.round(totalH).toLocaleString()}`}
       >
         <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
           {t("land_use.proporciones")}
@@ -97,30 +96,21 @@ export function LandUseBuilder({
         </div>
 
         <div className="mb-1 mt-3 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-          {t("land_use.densidad_gradiente_label")}
+          {t("land_use.densidad_media_label")}
         </div>
         <LabeledSlider
-          label={t("land_use.densidad_max")}
-          value={config.densidad_max}
+          label={t("land_use.densidad_media")}
+          value={densMedia}
           min={100}
-          max={3000}
+          max={1500}
           step={50}
           unit="hab/km"
-          onChange={(v) => onChange((c) => ({ ...c, densidad_max: v }))}
-        />
-        <LabeledSlider
-          label={t("land_use.densidad_min")}
-          value={config.densidad_min}
-          min={50}
-          max={2000}
-          step={50}
-          unit="hab/km"
-          onChange={(v) => onChange((c) => ({ ...c, densidad_min: v }))}
+          onChange={setDensidadMedia}
         />
 
         <p className="mt-2 text-[10px] text-muted">
           {t("land_use.poblacion_total_hint", {
-            total: poblacionTotal.toLocaleString(),
+            total: Math.round(totalH).toLocaleString(),
             dens: Math.round(densMedia),
           })}
         </p>

@@ -94,12 +94,14 @@ $$
 **Properties** (verified with tests): it coincides with the logit when $\lambda_h = 1$; it is invariant to the common scale of $\lambda$ (the logit is not); and **neither $\lambda_h$ nor $y_h$ moves the allocation** in the auction — the term $\lambda_h y_h$ is constant in $i$ and gets absorbed into $\bar{u}_h$. Income sorting emerges via $\alpha_h$ (calibrated higher for higher-income strata).
 
 <Callout type="info">
-In the simulator, the **heteroscedastic** solver is the default; the *logit* is kept to compare and watch the artifact live ("Solver" selector in the Land-use panel). Try varying $\lambda$ in both: with the heteroscedastic solver the allocation does not move; with the logit it does — and that is precisely the inconsistency.
+In the simulator, the app **always runs the logit** (the UI exposes no selector). Try varying the high stratum's $\lambda$: the allocation **does move** — and that is precisely the inconsistency, not a real income effect (income $y$ is absorbed into $\bar{u}$). Raising $\lambda$ disperses the stratum (more noise); lowering it concentrates it. The heteroscedastic correction above lives in the core as a theoretical reference but is not exposed in the UI: its price stays in utils and does not integrate with the coupled model's \$-denominated metrics.
 </Callout>
 
 ## The shape of the city
 
 The supply $S(i)$ is generated **deterministically** (largest-remainder discretization, $\sum_i S_i = \sum_h H_h$ exact, empty CBD) with six parameterizable shapes: normal, uniform, exponential, plateau, bimodal and valley, with dispersion $\sigma$ as a fraction of the half-city.
+
+The **per-cell density** is a direct consequence of supply: $\text{dens}(i) = S_i/\Delta x$, so it follows the chosen shape (not an imposed gradient). The population figures and the strata heatmap share that envelope; bid-rent only reorders *who* lives where, without changing *how many* per cell.
 
 <OverleafRef sec="Suelo (oferta S)" tag="S-1" />
 

@@ -26,7 +26,7 @@ from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.population import (
     Agente,
     generar_poblacion,
-    generar_poblacion_desde_densidad,
+    generar_poblacion_desde_land_use_det,
 )
 from titirilquen_core.supply.bike import demora_bici_tramo
 from titirilquen_core.supply.car import demora_auto_tramo
@@ -270,9 +270,11 @@ def iter_msa_desde_suelo(
 ) -> Iterator[IterationSnapshot]:
     """Igual que :func:`iter_msa` pero la población se deriva del **uso de suelo**
     (opción A del feed suelo→transporte): se resuelve el equilibrio de suelo una
-    vez y la densidad por estrato `δ_h` fija los hogares por celda
-    (`N[h,i] = round(Q[h,i]·δ_h·Δx)`), en vez de la densidad plana
-    `densidad_hab_km` y el `share_estratos` global.
+    vez y los `S_i` hogares que la ciudad ofrece en cada celda se reparten entre
+    estratos según `Q` (`N[h,i] = mayor_residuo(S_i·Q[h,i])`, con `Σ_h = S_i`
+    exacto), en vez de la densidad plana `densidad_hab_km` y el `share_estratos`
+    global. Envolvente de población = oferta `S` (misma que las figuras y que el
+    loop acoplado); conserva los hogares por estrato (`Σ_i N[h,i] = H_h`).
 
     El equilibrio de suelo usa la T por defecto (flujo libre a la velocidad de
     referencia), igual que la pestaña *Uso de Suelo*, así que el `Q` coincide con
@@ -290,10 +292,9 @@ def iter_msa_desde_suelo(
         ancho_celda_km=ciudad.ancho_celda_km,
     )
     assert city.result is not None
-    agentes = generar_poblacion_desde_densidad(
+    agentes = generar_poblacion_desde_land_use_det(
         Q=city.result.Q,
-        densidad_celda=city.densidad_por_celda(),
-        ancho_celda_km=ciudad.ancho_celda_km,
+        S=city.S,
         cbd_index=CBD,
         demand_config=sim.demand,
         teletrabajo_factor=sim.city.teletrabajo_factor,

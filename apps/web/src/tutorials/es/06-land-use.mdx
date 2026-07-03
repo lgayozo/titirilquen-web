@@ -94,12 +94,14 @@ $$
 **Propiedades** (verificadas con tests): coincide con el logit cuando $\lambda_h = 1$; es invariante a la escala común de $\lambda$ (el logit no); y **ni $\lambda_h$ ni $y_h$ mueven la asignación** en la subasta — el término $\lambda_h y_h$ es constante en $i$ y se absorbe en $\bar{u}_h$. El ordenamiento por ingreso emerge vía $\alpha_h$ (calibrado mayor para estratos de mayor ingreso).
 
 <Callout type="info">
-En el simulador, el solver **heteroscedástico es el default**; el *logit* se conserva para comparar y ver el artefacto en vivo (selector "Solver" en el panel de Uso de suelo). Probá variar $\lambda$ en ambos: en el heteroscedástico la asignación no se mueve; en el logit sí — y eso es precisamente la inconsistencia.
+En el simulador, la app corre **siempre el logit** (la UI no expone selector). Probá variar $\lambda$ del estrato alto: la asignación **sí se mueve** — y eso es precisamente la inconsistencia, no un efecto-ingreso real (el ingreso $y$ se absorbe en $\bar{u}$). Subir $\lambda$ dispersa al estrato (más ruido); bajarlo lo concentra. La corrección heteroscedástica de arriba existe en el núcleo como referencia teórica, pero no se expone en la UI: su precio queda en utiles y no se integra con las métricas en \$ del acoplado.
 </Callout>
 
 ## La forma de la ciudad
 
 La oferta $S(i)$ se genera **determinista** (discretización por mayor residuo, $\sum_i S_i = \sum_h H_h$ exacto, CBD vacío) con seis formas parametrizables: normal, uniforme, exponencial, meseta, bimodal y valle, con dispersión $\sigma$ como fracción de la semi-ciudad.
+
+La **densidad por celda** es una consecuencia directa de la oferta: $\text{dens}(i) = S_i/\Delta x$, así que sigue la forma elegida (no es un gradiente impuesto). Las figuras de población y el mapa de calor de estratos comparten esa envolvente; el bid-rent solo reordena *quién* vive dónde, sin cambiar *cuántos* por celda.
 
 <OverleafRef sec="Suelo (oferta S)" tag="S-1" />
 

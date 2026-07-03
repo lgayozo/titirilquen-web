@@ -179,10 +179,13 @@ u* = F(u*),   F(u)_h = (1/β)·ln( Σ_i S_i · e^{β(s_hi − u_h)} / Σ_g e^{β
 > por la misma razón: el remuestreo dejaría un piso de residual que impide converger.
 
 Dos solvers comparten ese operador, cambiando solo el `score`:
-- **`heteroscedastic`** (default, consistente): `s_hi = λ_h·y_h + f_h(i)` — escala
-  por estrato `β_h = β·λ_h`, en espacio de utilidad.
-- **`logit`**: `s_hi = y_h + f_h(i)/λ_h` — `β` uniforme sobre la puja. Inconsistente
-  con `λ_h` heterogéneo (ver D‑08). Se conserva para comparación didáctica.
+- **`logit`** (default, el solver que corre la app): `s_hi = y_h + f_h(i)/λ_h` —
+  `β` uniforme sobre la puja. Inconsistente con `λ_h` heterogéneo (ver D‑08): `λ`
+  escala el ruido de elección por estrato, no es un efecto‑ingreso real.
+- **`heteroscedastic`** (consistente): `s_hi = λ_h·y_h + f_h(i)` — escala por
+  estrato `β_h = β·λ_h`, en espacio de utilidad; corrige el `λ` heterogéneo.
+  Se conserva en el core para comparación, pero su precio queda en **utiles** (no
+  en $) y no se expone en la UI.
 **Oferta `S`** (`land_use/supply.py`, ver [D‑13](DISCREPANCIES.md)): perfil
 **determinista** redondeado a `Σ S = Σ H` (CBD excluido), con **forma
 parametrizable** (`forma`): `normal` (campana, default), `uniforme`,

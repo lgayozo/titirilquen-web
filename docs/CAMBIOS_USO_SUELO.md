@@ -6,21 +6,22 @@ densidad) y alimente al módulo de **Transporte** (Sandbox).
 
 Fecha de inicio: 2026-06-30. Rama: `ciudad-equilibrio-mejoras`.
 
-> **Estado vigente (2026-07-03).** Este es un registro cronológico; algunas
-> fórmulas de secciones anteriores quedaron **superadas**. La verdad actual del
-> módulo:
-> - **Densidad por celda** = gradiente de **Clark geométrico** en la distancia al
->   CBD (independiente del precio, de `ρ` y de la composición `Q`). NO es
->   `Σ_h Q·δ_h` ni endógena del precio: la sección «Formulación de la densidad por
->   celda» de más abajo es historia superada.
-> - **Envolvente de las figuras de población por celda** (`StratumDistribution`,
->   `StrataHeatmap`) = la **oferta `S`** («forma de la ciudad», `smoothSupply`), no
->   `densidad_celda`. Esto supersede la entrada «FIG. hogares: envolvente =
->   densidad_celda» de «Figuras alineadas». Coincide con cómo el core reparte
->   hogares (`asignar_hogares_simple` usa `S`); la densidad de Clark queda solo
->   para la FIG. de densidad.
-> - **Solver**: la app corre siempre **logit** (el heteroscedástico existe en el
->   core pero no se expone en la UI).
+> **Estado vigente (2026-07-03).** Este es un registro cronológico; varias
+> fórmulas de secciones anteriores quedaron **superadas** (ver «Unificación en la
+> oferta S» al final). La verdad actual del módulo:
+> - **Población por celda = oferta `S`.** La ciudad ofrece `S_i` hogares en cada
+>   celda (perfil `forma`) y la subasta bid-rent los reparte entre estratos
+>   (`asignar_hogares_simple` reparte `S·Q`, con `Σ_i S_i·Q[h,i]=H_h`). Es la
+>   **única** envolvente de población: figuras (`StratumDistribution`,
+>   `StrataHeatmap`), feed a transporte y densidad la comparten.
+> - **Densidad por celda = `S_i/Δx`** — una **consecuencia** de la oferta (sigue la
+>   forma), NO un gradiente de Clark geométrico ni `Σ_h Q·δ_h` ni endógena del
+>   precio. Las secciones «Formulación de la densidad por celda» y toda mención a
+>   un gradiente de Clark más abajo son historia superada. Los campos
+>   `densidad_max`/`densidad_min` quedaron **vestigiales**; la escala de población
+>   la fija `H_por_estrato` (la UI la expone como «densidad media» = `ΣH/largo`).
+> - **Solver = `logit`** (default en el core y en la app; la UI no expone
+>   selector). El heteroscedástico se conserva en el core solo para comparación.
 
 ## Objetivos
 
@@ -269,3 +270,29 @@ La densidad por celda pasó a ser **endógena, decreciente con la distancia al C
   El loop iterativo completo sigue viviendo en la pestaña *Coupled*.
 - Opción B (descartada salvo indicación): solo sincronizar `share_estratos` y una
   densidad promedio escalar; Transporte mantendría su población plana.
+
+## Unificación en la oferta S (2026-07-03)
+
+El gradiente de densidad de Clark se **desacoplaba** del equilibrio (se imponía
+por geometría desde `densidad_max`/`densidad_min`, sin relación con dónde la
+subasta coloca a los hogares) y su total no cuadraba con `ΣH`, así que el feed a
+transporte de una pasada rompía la conservación (`Σ_i N[h,i] ≠ H_h`). Se unifica
+todo en la **oferta `S`**:
+
+- **`densidad_por_celda` = `S/Δx`** (antes: exponencial de Clark). La densidad es
+  ahora una consecuencia de la oferta: sigue la forma, invariante a la grilla,
+  independiente de `ρ` y del estrato.
+- **Feed a transporte de una pasada** (`iter_msa_desde_suelo`): pasa de
+  `generar_poblacion_desde_densidad` (Clark) a `generar_poblacion_desde_land_use_det`
+  (S, mayor residuo) — **conserva** `H` exacto, igual que el loop acoplado. La
+  función `generar_poblacion_desde_densidad` se eliminó (sin consumidores).
+- **UI:** los sliders `densidad_max`/`densidad_min` se reemplazan por uno solo,
+  **«densidad media»** (`hab/km`), que fija la escala de población
+  (`ΣH = densidad_media · largo`, `H_h = π_h · ΣH`). Los campos `densidad_max/min`
+  quedan **vestigiales** en el schema (compat de serialización), no usados.
+- **Figuras:** población (Fig. hogares/heatmap) y densidad (Fig. densidad)
+  comparten ahora la misma envolvente (la forma de `S`); ya no se contradicen para
+  formas no-normales (p.ej. `valle`).
+- **Espejo muerto** `densityGradient` (`citySupply.ts`) eliminado.
+- Wheel recompilado. Verificado en navegador: con `forma=valle` la densidad tiene
+  el pico en los bordes (antes, con Clark, era siempre centro-densa).

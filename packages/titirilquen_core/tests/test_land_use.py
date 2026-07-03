@@ -221,6 +221,40 @@ def test_sensibilidad_al_tamano_fisico() -> None:
     assert theil_por_largo[40.0] > theil_por_largo[10.0] + 0.1, theil_por_largo
 
 
+def test_densidad_por_celda_es_oferta_sobre_dx() -> None:
+    """La densidad por celda es una CONSECUENCIA de la oferta: dens = S/Δx (ya no
+    el gradiente de Clark). Sigue la forma y es 0 donde no hay oferta (el CBD)."""
+    L, largo = 201, 20.0
+    dx = largo / L
+    city = LandUseCity.build(
+        L=L, CBD=L // 2, cfg=_cfg_default_fisica(),
+        ancho_celda_km=dx, rng=np.random.default_rng(7),
+    )
+    dens = city.densidad_por_celda()
+    S = np.asarray(city.S, dtype=float)
+    assert np.allclose(dens, S / dx)  # dens = S/Δx exacto
+    assert dens[city.cbd_index] == 0.0  # CBD sin oferta → 0
+    assert np.all((S <= 0) == (dens == 0.0))  # 0 sii S<=0
+
+
+def test_densidad_y_equilibrio_conservan_hogares() -> None:
+    """El equilibrio conserva hogares por estrato: Σ_i S_i·Q[h,i] = H_h (D-25), lo
+    que hace que el feed S-based a transporte reparta ΣH exacto. Y como la densidad
+    es S/Δx, Σ_i densidad·Δx = ΣS = ΣH — antes, con la densidad de Clark, ese total
+    no cuadraba con ΣH (rompía la conservación del feed, audit #5)."""
+    L, dx = 201, 20.0 / 201
+    city = LandUseCity.build(
+        L=L, CBD=L // 2, cfg=_cfg_default_fisica(),
+        ancho_celda_km=dx, rng=np.random.default_rng(7),
+    )
+    assert city.result is not None
+    H = np.asarray(_cfg_default_fisica().H_por_estrato, dtype=float)
+    # Σ_i S_i·Q[h,i] = H_h (conservación por estrato del equilibrio).
+    assert np.allclose(city.result.Q @ city.S.astype(float), H, rtol=1e-6)
+    # Σ_i densidad·Δx = ΣH (el total que la densidad de Clark rompía).
+    assert np.isclose((city.densidad_por_celda() * dx).sum(), H.sum())
+
+
 def test_asignacion_no_se_estanca_con_Q_degenerado() -> None:
     """Regresión (gridlock D-24): con Q underfloweado a 0/1 y cuotas agotadas,
     la asignación debe completarse por desborde, no lanzar RuntimeError."""

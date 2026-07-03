@@ -11,7 +11,7 @@ tagline: Presets, comparison, suggested activities
 
 **Transport** ([go](/sandbox)): free experimentation with the supply–demand equilibrium. Adjust any parameter and see results live.
 
-**Land use** ([go](/land-use)): standalone Alonso equilibrium (heteroscedastic or logit solver). **City at equilibrium** ([go](/coupled)): the full land ↔ transport loop.
+**Land use** ([go](/land-use)): standalone Alonso equilibrium (logit auction). **City at equilibrium** ([go](/coupled)): the full land ↔ transport loop.
 
 **Compare** ([go](/compare)): load up to 4 configurations in parallel and see deltas side by side.
 
@@ -22,10 +22,10 @@ tagline: Presets, comparison, suggested activities
 2. Watch car mode share change.
 3. Which stratum is more sensitive? (Hint: $\beta_c$ parameter)
 
-### B. The logit artifact (heteroscedastic solver)
-1. Under Land use, with the **logit** solver, vary the high stratum's λ (0.5 → 3).
+### B. The logit artifact
+1. Under Land use (the app always runs logit), vary the high stratum's λ (0.5 → 3).
 2. Watch the spatial allocation change — even though λ is just the marginal utility of income.
-3. Switch to the **heteroscedastic** solver and repeat: the allocation does not move.
+3. Raise λ ⇒ the stratum disperses (more noise); lower it ⇒ it concentrates. It is the scale of the choice noise (~1/βλ), not a real income effect.
 4. Why was the λ dependence an inconsistency rather than a real income effect? (Hint: Land-use tutorial, correction section.)
 
 ### C. Bikeway capacity

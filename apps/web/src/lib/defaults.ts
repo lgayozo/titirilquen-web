@@ -154,9 +154,11 @@ export const defaultSimulationConfig: SimulationConfig = {
 };
 
 export const defaultLandUseConfig: LandUseConfig = {
+  // ΣH = 10.000 = 500 hab/km × 20 km (la «densidad media» default de la UI).
   H_por_estrato: [1000, 4000, 5000],
-  // Densidad endógena del precio (AMM): centro denso (densidad_max en el CBD),
-  // periferia rala (densidad_min). Decae con la distancia vía el precio del suelo.
+  // VESTIGIAL: la densidad por celda ahora es S/Δx (consecuencia de la oferta);
+  // estos campos ya no fijan la densidad. Se conservan por compat de
+  // serialización. La escala de población la fija H_por_estrato (UI: «densidad media»).
   densidad_max: 800,
   densidad_min: 200,
   // Unidades físicas (D-26/D-27): α en utiles/min, ρ en utiles/(hogar/km),
@@ -167,7 +169,10 @@ export const defaultLandUseConfig: LandUseConfig = {
     { y: 500_000, lambda: 1, alpha: 5.5, rho: 0.1 },
   ],
   beta: 1,
-  // Fijo en logit: el heteroscedástico no está resuelto y se quitó de la UI.
+  // Logit es el default y único solver de la app (la UI no expone selector; el
+  // default Pydantic del core también es logit). El heteroscedástico queda en el
+  // core solo para comparación: su precio está en utiles, no integrado con el
+  // downstream en $ del acoplado.
   solver: "logit",
   tol: 1e-8,
   max_iter: 2000,

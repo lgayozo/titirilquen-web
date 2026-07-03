@@ -10,11 +10,15 @@ from titirilquen_core.land_use.supply import FormaOferta
 
 SolverKind = Literal["heteroscedastic", "logit"]
 """
+- `logit`: β uniforme sobre la puja `y + f/λ`. **Default** y único solver que
+  corre la app (la UI no expone selector). Inconsistente con λ_h heterogéneo
+  (Suelo.tex sec. 5.4): λ escala el ruido de elección por estrato, no es un
+  efecto-ingreso real.
 - `heteroscedastic`: logit heteroscedástico (escala por estrato β_h = β·λ_h) — el
-  método **consistente**, que corrige el problema del λ heterogéneo (ver D-08).
-  Default. Coincide con `logit` cuando λ_h = 1 ∀h.
-- `logit`: β uniforme sobre la puja `y + f/λ` — inconsistente con λ_h heterogéneo
-  (Suelo.tex sec. 5.4). Se conserva para comparación didáctica.
+  método **consistente** que corrige el λ heterogéneo (ver D-08); coincide con
+  `logit` cuando λ_h = 1 ∀h. Se conserva en el core para comparación, pero su
+  precio queda en **utiles** (no en $), así que no está integrado con los
+  consumidores en $ del acoplado — por eso no se expone en la UI.
 """
 
 
@@ -48,23 +52,20 @@ class LandUseConfig(BaseModel):
         default=(33300, 33300, 33300),
         description="Número de hogares por estrato (alto, medio, bajo)",
     )
+    # VESTIGIAL: la densidad por celda ahora es una CONSECUENCIA de la oferta
+    # (dens = S/Δx, ver LandUseCity.densidad_por_celda); estos campos ya no fijan
+    # la densidad. Se conservan (default 800/200) por compatibilidad de
+    # serialización con escenarios guardados. La escala de población la fija
+    # H_por_estrato (el frontend la deriva de una «densidad media»).
     densidad_max: float = Field(
         default=800.0,
         gt=0,
-        description=(
-            "Densidad residencial (hab/km) en el CBD. La densidad es un gradiente "
-            "de Clark GEOMÉTRICO en la distancia al CBD, independiente del precio y "
-            "de ρ: dens(d) = densidad_max·(densidad_min/densidad_max)^(d/d_max)."
-        ),
+        description="Vestigial (no usado): la densidad es S/Δx. Ver densidad_por_celda.",
     )
     densidad_min: float = Field(
         default=200.0,
         gt=0,
-        description=(
-            "Densidad residencial (hab/km) en la periferia (piso del gradiente de "
-            "Clark). Interpola geométricamente entre densidad_max en el CBD y "
-            "densidad_min en el borde según la distancia. Independiente del estrato."
-        ),
+        description="Vestigial (no usado): la densidad es S/Δx. Ver densidad_por_celda.",
     )
     # Calibración en unidades físicas (D-26), equivalente a la antigua
     # (α=1.3/1.2/1.1 por celda, ρ=1 por hogar/celda) en la grilla de referencia
@@ -78,7 +79,7 @@ class LandUseConfig(BaseModel):
         )
     )
     beta: float = Field(default=1.0, gt=0, description="Parámetro de sensibilidad logit")
-    solver: SolverKind = "heteroscedastic"
+    solver: SolverKind = "logit"
     tol: float = Field(default=1e-8, gt=0)
     max_iter: int = Field(default=10000, ge=1)
     forma: FormaOferta = Field(

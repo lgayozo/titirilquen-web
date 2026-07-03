@@ -11,7 +11,7 @@ tagline: Presets, comparación, y actividades sugeridas
 
 **Transporte** ([ir](/sandbox)): experimentación libre del equilibrio oferta–demanda. Ajusta cualquier parámetro y observa resultados en vivo — utilidad por modo, modal split, convergencia, flujos, tiempos por celda.
 
-**Uso de suelo** ([ir](/land-use)): equilibrio Alonso aislado (solver heteroscedástico o logit). **Ciudad en equilibrio** ([ir](/coupled)): el loop completo suelo ↔ transporte.
+**Uso de suelo** ([ir](/land-use)): equilibrio Alonso aislado (subasta logit). **Ciudad en equilibrio** ([ir](/coupled)): el loop completo suelo ↔ transporte.
 
 **Comparar** ([ir](/compare)): carga hasta 4 configuraciones en paralelo y ve los deltas lado a lado. Ideal para evaluar políticas.
 
@@ -22,10 +22,10 @@ tagline: Presets, comparación, y actividades sugeridas
 2. Observa cómo cambia la participación modal del auto.
 3. ¿Por qué estrato es más sensible? (Pista: mira el parámetro $\beta_c$)
 
-### B. El artefacto del logit (solver heteroscedástico)
-1. En Uso de suelo, con el solver **logit**, varía λ del estrato alto (0.5 → 3).
+### B. El artefacto del logit
+1. En Uso de suelo (la app corre siempre logit), varía λ del estrato alto (0.5 → 3).
 2. Observa cómo la asignación espacial cambia — siendo que λ es solo la utilidad marginal del ingreso.
-3. Cambia al solver **heteroscedástico** y repite: la asignación no se mueve.
+3. Sube λ ⇒ el estrato se dispersa (más ruido); bájalo ⇒ se concentra. Es la escala del ruido de elección (~1/βλ), no un efecto-ingreso real.
 4. ¿Por qué la dependencia en λ era una inconsistencia y no un efecto-ingreso real? (Pista: tutorial de Uso de suelo, sección de la corrección.)
 
 ### C. Capacidad de ciclovía

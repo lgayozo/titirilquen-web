@@ -23,11 +23,10 @@ export type FormaOferta =
 
 export interface LandUseConfig {
   H_por_estrato: [number, number, number];
-  /** Densidad (hab/km) en el CBD. La densidad es un gradiente de Clark
-   *  GEOMÉTRICO en la distancia al CBD (indep. del precio y de ρ):
-   *  dens(d) = densidad_max·(densidad_min/densidad_max)^(d/d_max), d=|i−CBD|. */
+  /** VESTIGIAL (no usado): la densidad por celda ahora es S/Δx, consecuencia de
+   *  la oferta. Se conservan por compat de serialización; la escala de población
+   *  la fija H_por_estrato. */
   densidad_max: number;
-  /** Densidad (hab/km) en la periferia (piso del gradiente de Clark). */
   densidad_min: number;
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   beta: number;
@@ -57,8 +56,8 @@ export interface LandUseSolveResponse {
   CBD: number;
   S: number[];
   parcelas: number[][];
-  /** Perfil de densidad por celda (hab/km): gradiente de Clark geométrico en la
-   *  distancia al CBD, indep. del precio; 0 en celdas sin oferta (S≤0). */
+  /** Perfil de densidad por celda (hab/km) = S_i/Δx, consecuencia de la oferta
+   *  (sigue la forma); 0 en celdas sin oferta (S≤0). */
   densidad_celda: number[];
   result: LandUseResult;
 }

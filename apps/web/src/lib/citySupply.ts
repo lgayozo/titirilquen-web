@@ -87,35 +87,6 @@ export function supplyVector(
 }
 
 /**
- * Distribución espacial de hogares por estrato: N[h,i] = round(S_i · Q[h,i]).
- * Devuelve, por celda, la lista de estratos presentes (1..H) repetida según el
- * conteo — el formato que consume `StratumDistribution`. Reproduce la
- * envolvente real de la ciudad (oferta × asignación), no una ciudad plana.
- */
-/**
- * Perfil de densidad por celda (hab/km) decreciente con la distancia al CBD
- * — **espejo de presentación** de `LandUseCity.densidad_por_celda` (gradiente de
- * Clark, exponencial negativa anclada a `dMax` en el CBD y `dMin` en la
- * periferia). Sirve para la vista PRE-equilibrio (sin resultado); el perfil real
- * post-equilibrio viene en `densidad_celda` de la respuesta. El CBD queda en 0
- * (sin vivienda).
- */
-export function densityGradient(
-  L: number,
-  CBD: number,
-  dMax: number,
-  dMin: number,
-): number[] {
-  const maxDist = Math.max(CBD, L - 1 - CBD, 1);
-  const ratio = dMax > 0 ? dMin / dMax : 1;
-  const out = new Array<number>(L);
-  for (let i = 0; i < L; i++) {
-    out[i] = i === CBD ? 0 : dMax * Math.pow(ratio, Math.abs(i - CBD) / maxDist);
-  }
-  return out;
-}
-
-/**
  * Perfil de oferta **suave** (float, sin discretizar): `w(d)` normalizado para
  * sumar `N`, con el CBD vacío. A diferencia de `supplyVector` (que redondea a
  * enteros por mayor residuo y produce una "escalera" de mesetas donde el conteo

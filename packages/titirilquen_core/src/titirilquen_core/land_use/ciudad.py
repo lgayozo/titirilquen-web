@@ -137,28 +137,24 @@ class LandUseCity:
         self.parcelas = asignar_hogares_simple(Q=self.result.Q, S=self.S, H=H, rng=rng)
 
     def densidad_por_celda(self) -> NDArray[np.float64]:
-        """Perfil de densidad por celda (hab/km), **decreciente con la distancia al
-        CBD** (gradiente de Clark / Alonso-Muth-Mills). Forma exponencial negativa
-        anclada a los extremos `densidad_max` (CBD) y `densidad_min` (periferia):
+        """Densidad de población por celda (hab/km) como **consecuencia de la oferta
+        `S`**:
 
-            dens(d) = densidad_max · (densidad_min/densidad_max)^(d/d_max)
+            dens(i) = S_i / Δx
 
-        con `d = |i − CBD|` y `d_max` la distancia máxima al borde. En el CBD
-        (d=0) vale `densidad_max`; en el borde, `densidad_min`.
+        donde `S_i` son los hogares que la ciudad ofrece en la celda `i`
+        (`supply.generar_oferta`) y `Δx = ancho_celda_km`. La **forma** la da el
+        perfil de oferta (`forma`); ya NO es un gradiente de Clark geométrico
+        impuesto e independiente del equilibrio. Es **invariante a la grilla** (`S`
+        escala con `Δx`, así que `S/Δx` no depende de la resolución) e
+        **independiente del estrato** (la composición `Q` solo reparte esa
+        población entre estratos, no fija su nivel). Las celdas sin oferta (el CBD,
+        `S=0`) quedan en 0.
 
-        Es **robusto**: depende solo de la geometría, NO del precio ni de `ρ`, así
-        que siempre es centro-denso (no se invierte). Es **independiente del
-        estrato** — la composición `Q` solo reparte la población de cada celda
-        entre estratos, no fija su nivel. Las parcelas sin oferta (el CBD) quedan
-        en 0."""
-        d_max = float(self.cfg.densidad_max)
-        d_min = float(self.cfg.densidad_min)
-        idx = np.arange(self.L, dtype=float)
-        dist = np.abs(idx - self.cbd_index)
-        max_dist = float(dist.max()) if float(dist.max()) > 0 else 1.0
-        nd = dist / max_dist  # distancia normalizada ∈ [0, 1]
-        ratio = (d_min / d_max) if d_max > 0 else 1.0
-        dens = d_max * np.power(ratio, nd)  # exponencial (Clark): dmax → dmin
+        Es la **misma envolvente** que usa la asignación de hogares
+        (`asignar_hogares_simple` reparte `S·Q`), el feed a transporte y las
+        figuras del frontend: una sola definición de "cuántos viven en la celda i"."""
+        dens = np.asarray(self.S, dtype=float) / self.ancho_celda_km
         dens[np.asarray(self.S) <= 0] = 0.0  # sin vivienda (CBD)
         return dens
 

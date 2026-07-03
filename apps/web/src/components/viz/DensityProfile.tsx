@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 
 interface DensityProfileProps {
-  /** Densidad por celda (hab/km): gradiente de Clark por distancia al CBD. */
+  /** Densidad por celda (hab/km) = S_i/Δx, consecuencia de la oferta. */
   densidad: readonly number[];
   className?: string;
   height?: number;
@@ -13,10 +13,10 @@ interface DensityProfileProps {
 const MARGIN = { top: 8, right: 8, bottom: 22, left: 52 };
 
 /**
- * Perfil de densidad por celda a lo largo del corredor. Es un gradiente de
- * Clark GEOMÉTRICO en la distancia al CBD (dens = densidad_max·(densidad_min/
- * densidad_max)^(d/d_max)), independiente del precio, de la composición Q y de
- * ρ: centro denso, periferia rala. Escala absoluta en hab/km.
+ * Perfil de densidad por celda a lo largo del corredor. Es una **consecuencia de
+ * la oferta**: dens(i) = S_i/Δx (hogares por km), así que sigue la forma de la
+ * ciudad (perfil de oferta), no un gradiente geométrico impuesto. Comparte forma
+ * con las figuras de población (todas derivan de S). Escala absoluta en hab/km.
  */
 export function DensityProfile({
   densidad,

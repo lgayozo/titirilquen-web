@@ -91,9 +91,9 @@ export function LandUsePage() {
   // Hogares por celda = oferta S(i), repartidos por la composición Q del
   // equilibrio: N[h,i] = Q[h,i]·S_i. La envolvente es el perfil de OFERTA (la
   // «forma de la ciudad», Fig. 00), igual que como el core coloca los hogares
-  // (asignar_hogares reparte según S). La densidad de Clark es una capa aparte y
-  // vive solo en la Fig. de densidad. `smoothSupply` reproduce la forma continua
-  // (sin el dentado de la discretización entera).
+  // (asignar_hogares reparte según S). La Fig. de densidad usa la MISMA envolvente
+  // (densidad = S/Δx), así que todas las figuras comparten forma. `smoothSupply`
+  // reproduce la forma continua (sin el dentado de la discretización entera).
   const composition = useMemo<number[][] | null>(() => {
     if (!result) return null;
     const cfg = runContext?.config ?? config;

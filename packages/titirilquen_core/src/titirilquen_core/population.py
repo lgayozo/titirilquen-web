@@ -136,66 +136,6 @@ def generar_poblacion_desde_land_use(
     return agentes
 
 
-def generar_poblacion_desde_densidad(
-    *,
-    Q: np.ndarray,
-    densidad_celda: np.ndarray,
-    ancho_celda_km: float,
-    cbd_index: int,
-    demand_config: DemandConfig,
-    teletrabajo_factor: float = 1.0,
-) -> list[Agente]:
-    """Población **determinista** desde la densidad por celda del equilibrio.
-
-    `densidad_celda[i]` (hab/km) es endógena del precio del suelo (ver
-    `LandUseCity.densidad_por_celda`); la composición `Q[:,i]` reparte esa
-    población de la celda entre estratos:
-
-        N[h, i] = round( Q[h, i] · densidad_celda[i] · Δx )
-
-    así que el total por celda es `densidad_celda(i)·Δx`. El CBD se omite (no se
-    viaja hacia sí mismo). Teletrabajo/auto se fijan por conteos redondeados,
-    igual que la versión `_det`."""
-    Q = np.asarray(Q, dtype=float)
-    dens = np.asarray(densidad_celda, dtype=float)
-    n_strata, n_celdas = Q.shape
-
-    agentes: list[Agente] = []
-    id_counter = 1
-    estratos_valid: tuple[StratumId, ...] = (1, 2, 3)
-
-    for i in range(n_celdas):
-        if i == cbd_index:
-            continue
-        # hogares por estrato: la composición Q reparte la densidad de la celda i
-        N_h = np.round(Q[:, i] * dens[i] * ancho_celda_km).astype(int)
-        for h in range(n_strata):
-            n = int(N_h[h])
-            if n <= 0:
-                continue
-            estrato: StratumId = estratos_valid[h]
-            s = demand_config.estratos[estrato]
-            prob_tele = min(1.0, s.prob_teletrabajo * teletrabajo_factor)
-            n_tele = int(round(n * prob_tele))
-            n_work = n - n_tele
-            n_auto = int(round(n_work * s.prob_auto))
-            for k in range(n):
-                tele = k < n_tele
-                tiene_auto = (not tele) and (k - n_tele) < n_auto
-                agentes.append(
-                    Agente(
-                        id=id_counter,
-                        celda_origen=i,
-                        estrato=estrato,
-                        teletrabaja=tele,
-                        tiene_auto=tiene_auto,
-                    )
-                )
-                id_counter += 1
-
-    return agentes
-
-
 def _mayor_residuo(target: np.ndarray, total: int) -> np.ndarray:
     """Redondea `target` (que suma ~`total`) a enteros que suman EXACTO `total`,
     por el método del mayor residuo. Determinista."""
