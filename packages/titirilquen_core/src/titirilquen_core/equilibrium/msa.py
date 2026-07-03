@@ -21,7 +21,13 @@ from titirilquen_core.config import DemandConfig, SimulationConfig, StratumId
 from titirilquen_core.demand.choice import probabilidades_logit
 from titirilquen_core.emissions import calcular_emisiones
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
-from titirilquen_core.population import Agente, generar_poblacion
+from titirilquen_core.land_use.ciudad import LandUseCity
+from titirilquen_core.land_use.config import LandUseConfig
+from titirilquen_core.population import (
+    Agente,
+    generar_poblacion,
+    generar_poblacion_desde_densidad,
+)
 from titirilquen_core.supply.bike import demora_bici_tramo
 from titirilquen_core.supply.car import demora_auto_tramo
 from titirilquen_core.supply.train import oferta_tren
@@ -253,6 +259,44 @@ def iter_msa(
         demand_config=sim.demand,
         teletrabajo_factor=sim.city.teletrabajo_factor,
         rng=rng,
+    )
+    yield from _iter_loop(sim, ciudad, agentes, rng, trace)
+
+
+def iter_msa_desde_suelo(
+    sim: SimulationConfig,
+    land_use_config: LandUseConfig,
+    trace: ConvergenceTrace | None = None,
+) -> Iterator[IterationSnapshot]:
+    """Igual que :func:`iter_msa` pero la población se deriva del **uso de suelo**
+    (opción A del feed suelo→transporte): se resuelve el equilibrio de suelo una
+    vez y la densidad por estrato `δ_h` fija los hogares por celda
+    (`N[h,i] = round(Q[h,i]·δ_h·Δx)`), en vez de la densidad plana
+    `densidad_hab_km` y el `share_estratos` global.
+
+    El equilibrio de suelo usa la T por defecto (flujo libre a la velocidad de
+    referencia), igual que la pestaña *Uso de Suelo*, así que el `Q` coincide con
+    el que se visualiza ahí para la misma config. El loop iterativo completo
+    (feedback suelo↔transporte) sigue viviendo en el módulo acoplado."""
+    rng = np.random.default_rng(sim.seed)
+    L = sim.city.n_celdas
+    CBD = L // 2
+    ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
+    city = LandUseCity.build(
+        L=L,
+        CBD=CBD,
+        cfg=land_use_config,
+        rng=rng,
+        ancho_celda_km=ciudad.ancho_celda_km,
+    )
+    assert city.result is not None
+    agentes = generar_poblacion_desde_densidad(
+        Q=city.result.Q,
+        densidad_celda=city.densidad_por_celda(),
+        ancho_celda_km=ciudad.ancho_celda_km,
+        cbd_index=CBD,
+        demand_config=sim.demand,
+        teletrabajo_factor=sim.city.teletrabajo_factor,
     )
     yield from _iter_loop(sim, ciudad, agentes, rng, trace)
 

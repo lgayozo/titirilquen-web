@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CityStrip } from "@/components/CityStrip";
-import { CityBuilder } from "@/components/modules/CityBuilder";
 import { EconomyBuilder } from "@/components/modules/EconomyBuilder";
 import { SupplyBuilder } from "@/components/modules/SupplyBuilder";
 import { RunStatus } from "@/components/RunStatus";
@@ -22,6 +21,7 @@ import { StatBars, type StatBar } from "@/components/viz/StatBars";
 import { UtilityScatter } from "@/components/viz/UtilityScatter";
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { Modo } from "@/lib/types";
+import { useLandUseStore } from "@/store/landUseStore";
 import { isResultStale, useSimulationStore } from "@/store/simulationStore";
 
 type HeatMode =
@@ -70,6 +70,11 @@ export function SandboxPage() {
   const reset = useSimulationStore((s) => s.reset);
   const configUsed = useSimulationStore((s) => s.configUsed);
   const cancelRun = useSimulationStore((s) => s.cancelRun);
+
+  // Opción A: la población del transporte se deriva del uso de suelo (densidad
+  // por estrato → por celda). La config de suelo vive en su propio store y la
+  // definen en la pestaña Uso de Suelo.
+  const landUseConfig = useLandUseStore((s) => s.config);
 
   // Config de la corrida visible: el snapshot usado por el resultado, no la
   // viva — así las figuras no mezclan geometrías si el usuario mueve sliders.
@@ -139,6 +144,7 @@ export function SandboxPage() {
         config,
         (snap) => pushIteration(snap),
         ctrl.signal,
+        landUseConfig,
       );
       finishRun(final);
     } catch (e) {
@@ -389,7 +395,19 @@ export function SandboxPage() {
   return (
     <div className="page">
       <aside className="sidebar">
-        <CityBuilder config={config} onChange={setConfig} />
+        {/* La ciudad (largo, celdas, pendiente, teletrabajo, densidad y estratos)
+            se define en Uso de Suelo y alimenta esta simulación. */}
+        <SidebarSection
+          title={t("sections.city")}
+          meta={t("city_params.meta", {
+            km: config.city.largo_ciudad_km,
+            n: config.city.n_celdas,
+          })}
+        >
+          <p className="text-[11px] leading-snug text-muted">
+            {t("city_params.defined_in_land_use")}
+          </p>
+        </SidebarSection>
         <SupplyBuilder
           config={config}
           onChange={setConfig}

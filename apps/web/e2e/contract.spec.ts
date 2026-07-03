@@ -67,6 +67,9 @@ const ALLOWED: Record<string, { py: unknown; ts: unknown }> = {
   "land_use.H_por_estrato.2": { py: 33300, ts: 5000 },
   // Punto fijo del suelo: presupuesto menor en el navegador.
   "land_use.max_iter": { py: 10000, ts: 2000 },
+  // Solver: la UI solo ofrece logit (el heteroscedástico aún no está resuelto);
+  // el core conserva 'heteroscedastic' como default para trabajo futuro.
+  "land_use.solver": { py: "heteroscedastic", ts: "logit" },
 };
 
 function flatten(obj: unknown, prefix = "", out: Record<string, unknown> = {}) {

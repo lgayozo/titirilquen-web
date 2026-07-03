@@ -15,6 +15,7 @@ import { Panel } from "@/components/ui/Panel";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { runSimulation } from "@/lib/api";
 import { defaultLandUseConfig, solveCoupled, solveLandUse } from "@/lib/api-v2";
+import { expectedComposition } from "@/lib/citySupply";
 import { computeKPIs } from "@/lib/kpis";
 import { theilSegregation } from "@/lib/metrics";
 import { pyodideEngine } from "@/lib/pyodide-engine";
@@ -392,7 +393,12 @@ export function ComparePage() {
                 meta="bid-rent"
                 cls="col-6"
               >
-                <StratumDistribution parcelas={s.luResult!.parcelas} />
+                <StratumDistribution
+                  composition={expectedComposition(
+                    s.luResult!.result.Q,
+                    s.luResult!.S,
+                  )}
+                />
               </Panel>
             ))}
         </div>

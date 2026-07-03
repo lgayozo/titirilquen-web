@@ -109,6 +109,7 @@ def land_use_solve(req: LandUseOnlyRequest) -> dict[str, object]:
         "CBD": city.cbd_index,
         "S": city.S.tolist(),
         "parcelas": city.parcelas,
+        "densidad_celda": city.densidad_por_celda().tolist(),
         "result": land_use_result_to_dict(city.result),
     }
 

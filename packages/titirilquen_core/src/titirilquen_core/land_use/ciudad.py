@@ -136,6 +136,32 @@ class LandUseCity:
         )
         self.parcelas = asignar_hogares_simple(Q=self.result.Q, S=self.S, H=H, rng=rng)
 
+    def densidad_por_celda(self) -> NDArray[np.float64]:
+        """Perfil de densidad por celda (hab/km), **decreciente con la distancia al
+        CBD** (gradiente de Clark / Alonso-Muth-Mills). Forma exponencial negativa
+        anclada a los extremos `densidad_max` (CBD) y `densidad_min` (periferia):
+
+            dens(d) = densidad_max · (densidad_min/densidad_max)^(d/d_max)
+
+        con `d = |i − CBD|` y `d_max` la distancia máxima al borde. En el CBD
+        (d=0) vale `densidad_max`; en el borde, `densidad_min`.
+
+        Es **robusto**: depende solo de la geometría, NO del precio ni de `ρ`, así
+        que siempre es centro-denso (no se invierte). Es **independiente del
+        estrato** — la composición `Q` solo reparte la población de cada celda
+        entre estratos, no fija su nivel. Las parcelas sin oferta (el CBD) quedan
+        en 0."""
+        d_max = float(self.cfg.densidad_max)
+        d_min = float(self.cfg.densidad_min)
+        idx = np.arange(self.L, dtype=float)
+        dist = np.abs(idx - self.cbd_index)
+        max_dist = float(dist.max()) if float(dist.max()) > 0 else 1.0
+        nd = dist / max_dist  # distancia normalizada ∈ [0, 1]
+        ratio = (d_min / d_max) if d_max > 0 else 1.0
+        dens = d_max * np.power(ratio, nd)  # exponencial (Clark): dmax → dmin
+        dens[np.asarray(self.S) <= 0] = 0.0  # sin vivienda (CBD)
+        return dens
+
     def hogares_por_parcela_estrato(self) -> NDArray[np.int_]:
         """Matriz (n_strata, L) con el conteo efectivo asignado por celda."""
         n_strata = len(self.cfg.H_por_estrato)

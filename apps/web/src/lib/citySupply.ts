@@ -92,6 +92,77 @@ export function supplyVector(
  * conteo — el formato que consume `StratumDistribution`. Reproduce la
  * envolvente real de la ciudad (oferta × asignación), no una ciudad plana.
  */
+/**
+ * Perfil de densidad por celda (hab/km) decreciente con la distancia al CBD
+ * — **espejo de presentación** de `LandUseCity.densidad_por_celda` (gradiente de
+ * Clark, exponencial negativa anclada a `dMax` en el CBD y `dMin` en la
+ * periferia). Sirve para la vista PRE-equilibrio (sin resultado); el perfil real
+ * post-equilibrio viene en `densidad_celda` de la respuesta. El CBD queda en 0
+ * (sin vivienda).
+ */
+export function densityGradient(
+  L: number,
+  CBD: number,
+  dMax: number,
+  dMin: number,
+): number[] {
+  const maxDist = Math.max(CBD, L - 1 - CBD, 1);
+  const ratio = dMax > 0 ? dMin / dMax : 1;
+  const out = new Array<number>(L);
+  for (let i = 0; i < L; i++) {
+    out[i] = i === CBD ? 0 : dMax * Math.pow(ratio, Math.abs(i - CBD) / maxDist);
+  }
+  return out;
+}
+
+/**
+ * Perfil de oferta **suave** (float, sin discretizar): `w(d)` normalizado para
+ * sumar `N`, con el CBD vacío. A diferencia de `supplyVector` (que redondea a
+ * enteros por mayor residuo y produce una "escalera" de mesetas donde el conteo
+ * por celda es chico), esto es continuo. Es un **espejo de presentación** para
+ * las figuras (la campana se ve suave); la oferta entera que resuelve el core es
+ * `supplyVector`/`generar_oferta`. Mismo perfil, sin el dentado de la
+ * discretización.
+ */
+export function smoothSupply(
+  forma: FormaOferta,
+  L: number,
+  CBD: number,
+  sigmaFrac: number,
+  formaParam: number,
+  N: number,
+): number[] {
+  const w = cityShapeWeights(forma, L, CBD, sigmaFrac, formaParam);
+  const total = w.reduce((a, b) => a + b, 0);
+  if (total <= 0) return w.map(() => 0);
+  return w.map((x) => (x / total) * N);
+}
+
+/**
+ * Composición ESPERADA por celda en floats: comp[i][h] = S_i · Q[h][i] (hogares
+ * esperados del estrato h en la celda i, **sin redondear**). A diferencia de
+ * `reconstructParcelas` (que redondea a enteros y produce una "peineta" entre
+ * celdas contiguas con pocos hogares) y de la asignación estocástica del core,
+ * esto es pseudocontinuo: deriva directo de la composición de equilibrio Q. La
+ * suma por celda sigue siendo S_i (Σ_h Q[h][i] = 1), así que la envolvente
+ * coincide con la oferta. Formato para el prop `composition` de
+ * `StratumDistribution`.
+ */
+export function expectedComposition(
+  Q: readonly (readonly number[])[],
+  S: readonly number[],
+): number[][] {
+  const nStrata = Q.length;
+  const I = S.length;
+  const comp: number[][] = Array.from({ length: I }, () => []);
+  for (let i = 0; i < I; i++) {
+    for (let h = 0; h < nStrata; h++) {
+      comp[i]!.push((S[i] ?? 0) * (Q[h]?.[i] ?? 0));
+    }
+  }
+  return comp;
+}
+
 export function reconstructParcelas(
   Q: readonly (readonly number[])[],
   S: readonly number[],

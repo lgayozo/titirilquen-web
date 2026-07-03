@@ -163,6 +163,21 @@ Probabilidad de subasta (logit) y operador de punto fijo sobre un **score** `s_h
 Q_hi = H_h·e^{β·s_hi} / Σ_g H_g·e^{β·s_gi}
 u* = F(u*),   F(u)_h = (1/β)·ln( Σ_i S_i · e^{β(s_hi − u_h)} / Σ_g e^{β(s_gi − u_g)} )
 ```
+
+> **Nota (asignación vs. visualización).** `Q_hi` ya es la probabilidad de subasta
+> con el shock `ε` **integrado** (el logit es el máximo de Gumbels marginalizado);
+> el equilibrio es `Q`, no una realización concreta. Por eso **las figuras de
+> distribución de estratos grafican la ocupación esperada `E[N_hi] = S_i·Q_hi`**
+> (determinista, pseudocontinua entre celdas), no una asignación muestreada. El
+> conteo por celda es lineal en la asignación, así que el esperado es insesgado
+> (sin Jensen). **Muestrear el `ε`** (`asignar_hogares_simple`, `rng.choice`) o
+> discretizar por conteos (`_mayor_residuo`) se reserva para generar la
+> **población agent-based** del transporte, donde cada agente necesita un estrato
+> y un modo concretos. Nunca graficar una sola muestra: introduce una "peineta"
+> entre celdas contiguas con pocos hogares que no es parte del equilibrio (ver
+> `CAMBIOS_USO_SUELO.md`). El loop acoplado usa asignación **esperada/determinista**
+> por la misma razón: el remuestreo dejaría un piso de residual que impide converger.
+
 Dos solvers comparten ese operador, cambiando solo el `score`:
 - **`heteroscedastic`** (default, consistente): `s_hi = λ_h·y_h + f_h(i)` — escala
   por estrato `β_h = β·λ_h`, en espacio de utilidad.

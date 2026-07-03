@@ -23,6 +23,12 @@ export type FormaOferta =
 
 export interface LandUseConfig {
   H_por_estrato: [number, number, number];
+  /** Densidad (hab/km) en la parcela de MAYOR precio (CBD). La densidad es
+   *  endógena del precio del equilibrio (AMM): dens(i) = densidad_min +
+   *  (densidad_max−densidad_min)·(p_i−p_min)/(p_max−p_min). */
+  densidad_max: number;
+  /** Densidad (hab/km) en la parcela de MENOR precio (periferia). */
+  densidad_min: number;
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   beta: number;
   solver: "heteroscedastic" | "logit";
@@ -51,6 +57,9 @@ export interface LandUseSolveResponse {
   CBD: number;
   S: number[];
   parcelas: number[][];
+  /** Perfil de densidad por celda (hab/km), endógeno del precio del suelo:
+   *  dens(i) = densidad_min + (densidad_max−densidad_min)·(p_i−p_min)/(p_max−p_min). */
+  densidad_celda: number[];
   result: LandUseResult;
 }
 

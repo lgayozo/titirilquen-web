@@ -25,7 +25,14 @@ import type {
 type InMsg =
   | { id: string; type: "init" }
   | { id: string; type: "simulate"; config: SimulationConfig }
-  | { id: string; type: "simulateStream"; config: SimulationConfig }
+  | {
+      id: string;
+      type: "simulateStream";
+      config: SimulationConfig;
+      /** Opción A: si viene, la población se deriva del uso de suelo
+       *  (densidad por estrato → por celda) en vez de la densidad plana. */
+      land_use?: LandUseConfig;
+    }
   | {
       id: string;
       type: "landUseSolve";
@@ -59,6 +66,7 @@ type LoadPyodide = (opts: { indexURL: string }) => Promise<PyodideInterface>;
 let pyodide: PyodideInterface | null = null;
 let simulateFn: ((config: unknown) => unknown) | null = null;
 let iterFn: ((config: unknown) => unknown) | null = null;
+let iterSueloFn: ((req: unknown) => unknown) | null = null;
 let lastTraceFn: (() => unknown) | null = null;
 let landUseSolveFn: ((req: unknown) => unknown) | null = null;
 let coupledIterFn: ((req: unknown) => unknown) | null = null;
@@ -93,7 +101,7 @@ await micropip.install(${JSON.stringify(whlUrl)})
 from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.coupled_metrics import equilibrium_metrics_to_dict
-from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa, iter_msa_desde_suelo
 import json
 import numpy as np
 
@@ -156,6 +164,18 @@ def iter_from_json(config_json: str):
         yield _snap_to_py(snap)
     _LAST_TRACE["trace"] = trace
 
+def iter_from_json_suelo(req_json: str):
+    # Opción A: la población del transporte se deriva del uso de suelo
+    # (densidad por estrato → densidad por celda), no de la densidad plana.
+    req = json.loads(req_json)
+    cfg = SimulationConfig.model_validate(req["config"])
+    lu = LandUseConfig.model_validate(req["land_use"])
+    trace = ConvergenceTrace()
+    _LAST_TRACE["trace"] = None
+    for snap in iter_msa_desde_suelo(cfg, lu, trace):
+        yield _snap_to_py(snap)
+    _LAST_TRACE["trace"] = trace
+
 def last_trace_to_py():
     t = _LAST_TRACE["trace"]
     return None if t is None else _trace_to_py(t)
@@ -191,6 +211,7 @@ def land_use_solve_from_json(req_json: str):
         "CBD": city.cbd_index,
         "S": city.S.tolist(),
         "parcelas": city.parcelas,
+        "densidad_celda": city.densidad_por_celda().tolist(),
         "result": _land_use_result_to_py(city.result),
     }
 
@@ -212,12 +233,14 @@ def coupled_iter_from_json(req_json: str):
   const globals = py.pyimport("__main__") as {
     simulate_from_json: unknown;
     iter_from_json: unknown;
+    iter_from_json_suelo: unknown;
     last_trace_to_py: unknown;
     land_use_solve_from_json: unknown;
     coupled_iter_from_json: unknown;
   };
   simulateFn = globals.simulate_from_json as (c: unknown) => unknown;
   iterFn = globals.iter_from_json as (c: unknown) => unknown;
+  iterSueloFn = globals.iter_from_json_suelo as (r: unknown) => unknown;
   lastTraceFn = globals.last_trace_to_py as () => unknown;
   landUseSolveFn = globals.land_use_solve_from_json as (r: unknown) => unknown;
   coupledIterFn = globals.coupled_iter_from_json as (r: unknown) => unknown;
@@ -250,7 +273,13 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
       return;
     }
     if (msg.type === "simulateStream") {
-      const gen = iterFn!(JSON.stringify(msg.config)) as {
+      // Opción A: con `land_use`, la población viene del uso de suelo
+      // (densidad por estrato → por celda); si no, densidad plana clásica.
+      const gen = (
+        msg.land_use
+          ? iterSueloFn!(JSON.stringify({ config: msg.config, land_use: msg.land_use }))
+          : iterFn!(JSON.stringify(msg.config))
+      ) as {
         [Symbol.iterator](): Iterator<unknown>;
       };
       const iter = gen[Symbol.iterator]();

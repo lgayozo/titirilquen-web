@@ -22,25 +22,13 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
     if (!preset) return;
     setCity({
       ...(preset.largo_ciudad !== undefined && { largo_ciudad_km: preset.largo_ciudad }),
-      ...(preset.densidad !== undefined && { densidad_hab_km: preset.densidad }),
     });
   };
 
   const matchingPreset =
     Object.entries(CITY_PRESETS).find(
-      ([, v]) =>
-        v.largo_ciudad === config.city.largo_ciudad_km &&
-        v.densidad === config.city.densidad_hab_km
+      ([, v]) => v.largo_ciudad === config.city.largo_ciudad_km
     )?.[0] ?? "Personalizado";
-
-  const [sA, sM, sB] = config.city.share_estratos;
-
-  const setShares = (nextA: number, nextM: number) => {
-    const a = clamp01(nextA);
-    const m = clamp01(nextM);
-    const b = Math.max(0, 1 - a - m);
-    setCity({ share_estratos: [round2(a), round2(m), round2(b)] });
-  };
 
   return (
     <>
@@ -70,28 +58,17 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           onChange={(v) => setCity({ largo_ciudad_km: v })}
         />
         <LabeledSlider
-          label={t("city_params.n_celdas")}
+          label={t("city_params.n_parcelas")}
           value={config.city.n_celdas}
           min={51}
           max={1001}
           step={50}
-          hint={t("city_params.n_celdas_hint")}
-          onChange={(v) => setCity({ n_celdas: v % 2 === 0 ? v + 1 : v })}
-        />
-        <LabeledSlider
-          label={t("city_params.densidad_hab_km")}
-          value={config.city.densidad_hab_km}
-          min={100}
-          max={5000}
-          step={50}
-          unit={t("city_params.density_unit")}
-          hint={t("city_params.densidad_hint", {
-            cuadra: Math.round(config.city.densidad_hab_km / 10),
-            total: Math.round(
-              config.city.densidad_hab_km * config.city.largo_ciudad_km
-            ).toLocaleString(),
+          hint={t("city_params.n_parcelas_hint", {
+            dx: Math.round(
+              (config.city.largo_ciudad_km / config.city.n_celdas) * 1000,
+            ),
           })}
-          onChange={(v) => setCity({ densidad_hab_km: v })}
+          onChange={(v) => setCity({ n_celdas: v % 2 === 0 ? v + 1 : v })}
         />
         <LabeledSlider
           label={t("city_params.pendiente_porcentaje")}
@@ -113,41 +90,6 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           onChange={(v) => setCity({ teletrabajo_factor: v })}
         />
       </SidebarSection>
-
-      <SidebarSection
-        title={t("strata.distribution")}
-        meta={`${(sA * 100).toFixed(0)}/${(sM * 100).toFixed(0)}/${(sB * 100).toFixed(0)}`}
-      >
-        <LabeledSlider
-          label={t("strata.alto")}
-          value={sA}
-          min={0}
-          max={1}
-          step={0.05}
-          format={(v) => `${(v * 100).toFixed(0)}%`}
-          onChange={(v) => setShares(v, sM)}
-        />
-        <LabeledSlider
-          label={t("strata.medio")}
-          value={sM}
-          min={0}
-          max={1 - sA}
-          step={0.05}
-          format={(v) => `${(v * 100).toFixed(0)}%`}
-          onChange={(v) => setShares(sA, v)}
-        />
-        <div className="text-[11px] text-muted">
-          {t("strata.bajo")}: {(sB * 100).toFixed(0)}% ({t("strata.auto_calculated")})
-        </div>
-      </SidebarSection>
     </>
   );
-}
-
-function clamp01(v: number): number {
-  return Math.min(1, Math.max(0, v));
-}
-
-function round2(v: number): number {
-  return Math.round(v * 100) / 100;
 }

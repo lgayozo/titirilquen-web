@@ -70,6 +70,8 @@
     33300,
     33300
    ],
+   "densidad_max": 800.0,
+   "densidad_min": 200.0,
    "estratos": [
     {
      "y": 3500000.0,

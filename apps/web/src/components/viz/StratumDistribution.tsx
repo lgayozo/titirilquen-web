@@ -4,7 +4,16 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 
 interface StratumDistributionProps {
-  parcelas: readonly (readonly number[])[];
+  /** Asignación discreta (muestreada) de hogares por celda. parcelas[i] = lista
+   *  de estratos. Fallback si no se entrega `composition`. */
+  parcelas?: readonly (readonly number[])[];
+  /** Ocupación **esperada** por celda S[i]·Q[h,i] (floats), preferida sobre
+   *  `parcelas`. El muestreo discreto produce una "peineta" entre celdas
+   *  contiguas (varianza alta donde hay pocos hogares); la esperada deriva
+   *  directo de la composición de equilibrio Q y es pseudocontinua.
+   *  composition[i] = [alto, medio, bajo]. La suma por celda sigue siendo S[i],
+   *  así que la envolvente coincide con la oferta. */
+  composition?: readonly (readonly number[])[];
   height?: number;
   className?: string;
 }
@@ -30,18 +39,35 @@ const MARGIN = { top: 16, right: 14, bottom: 26, left: 44 };
  */
 export function StratumDistribution({
   parcelas,
+  composition,
   height = 150,
   className,
 }: StratumDistributionProps) {
   const { t } = useTranslation("simulator");
 
   const { counts, max, cbd } = useMemo(() => {
-    const L = parcelas.length;
+    // Preferir la ocupación esperada (suave); si no, contar el muestreo discreto.
+    if (composition) {
+      const cs: [number, number, number][] = [];
+      let mx = 1;
+      for (const row of composition) {
+        const c: [number, number, number] = [
+          row[0] ?? 0,
+          row[1] ?? 0,
+          row[2] ?? 0,
+        ];
+        cs.push(c);
+        mx = Math.max(mx, c[0] + c[1] + c[2]);
+      }
+      return { counts: cs, max: mx, cbd: Math.floor(composition.length / 2) };
+    }
+    const src = parcelas ?? [];
+    const L = src.length;
     const cs: [number, number, number][] = [];
     let mx = 1;
     for (let i = 0; i < L; i++) {
       const c: [number, number, number] = [0, 0, 0];
-      for (const h of parcelas[i] ?? []) {
+      for (const h of src[i] ?? []) {
         if (h === 1) c[0] += 1;
         else if (h === 2) c[1] += 1;
         else if (h === 3) c[2] += 1;
@@ -50,7 +76,7 @@ export function StratumDistribution({
       mx = Math.max(mx, c[0] + c[1] + c[2]);
     }
     return { counts: cs, max: mx, cbd: Math.floor(L / 2) };
-  }, [parcelas]);
+  }, [parcelas, composition]);
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(800);

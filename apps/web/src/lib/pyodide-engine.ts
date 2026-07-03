@@ -29,7 +29,12 @@ type WorkerOutMsg =
 type WorkerInMsg =
   | { id: string; type: "init" }
   | { id: string; type: "simulate"; config: SimulationConfig }
-  | { id: string; type: "simulateStream"; config: SimulationConfig }
+  | {
+      id: string;
+      type: "simulateStream";
+      config: SimulationConfig;
+      land_use?: LandUseConfig;
+    }
   | {
       id: string;
       type: "landUseSolve";
@@ -147,9 +152,10 @@ class PyodideEngine {
     config: SimulationConfig,
     onIteration: (s: IterationSnapshot) => void,
     signal?: AbortSignal,
+    landUse?: LandUseConfig,
   ): Promise<SimulationResult> {
     return this.request<SimulationResult>(
-      { type: "simulateStream", config },
+      { type: "simulateStream", config, land_use: landUse },
       (data, resolve, reject) => {
         if (data.type === "iteration") {
           onIteration(data.snapshot);

@@ -48,6 +48,24 @@ class LandUseConfig(BaseModel):
         default=(33300, 33300, 33300),
         description="Número de hogares por estrato (alto, medio, bajo)",
     )
+    densidad_max: float = Field(
+        default=800.0,
+        gt=0,
+        description=(
+            "Densidad residencial (hab/km) en la parcela de MAYOR precio de suelo "
+            "(el CBD). La densidad es endógena del precio del equilibrio (Alonso-"
+            "Muth-Mills): densidad ∝ renta del suelo, decae con la distancia."
+        ),
+    )
+    densidad_min: float = Field(
+        default=200.0,
+        gt=0,
+        description=(
+            "Densidad residencial (hab/km) en la parcela de MENOR precio (periferia)."
+            " Piso del gradiente: dens(i) = densidad_min + (densidad_max−densidad_min)"
+            "·(p_i−p_min)/(p_max−p_min). Independiente del estrato."
+        ),
+    )
     # Calibración en unidades físicas (D-26), equivalente a la antigua
     # (α=1.3/1.2/1.1 por celda, ρ=1 por hogar/celda) en la grilla de referencia
     # del frontend (201 celdas / 20 km): α' ≈ α·(celdas/km)/2 ≈ α·5, ρ' = ρ·Δx ≈ 0.1.

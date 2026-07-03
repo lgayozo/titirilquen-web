@@ -155,6 +155,10 @@ export const defaultSimulationConfig: SimulationConfig = {
 
 export const defaultLandUseConfig: LandUseConfig = {
   H_por_estrato: [1000, 4000, 5000],
+  // Densidad endógena del precio (AMM): centro denso (densidad_max en el CBD),
+  // periferia rala (densidad_min). Decae con la distancia vía el precio del suelo.
+  densidad_max: 800,
+  densidad_min: 200,
   // Unidades físicas (D-26/D-27): α en utiles/min, ρ en utiles/(hogar/km),
   // y en $/mes. Calibración equivalente a la antigua en 201 celdas / 20 km.
   estratos: [
@@ -163,7 +167,8 @@ export const defaultLandUseConfig: LandUseConfig = {
     { y: 500_000, lambda: 1, alpha: 5.5, rho: 0.1 },
   ],
   beta: 1,
-  solver: "heteroscedastic",
+  // Fijo en logit: el heteroscedástico no está resuelto y se quitó de la UI.
+  solver: "logit",
   tol: 1e-8,
   max_iter: 2000,
   forma: "normal",

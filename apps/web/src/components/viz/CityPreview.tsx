@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { SimulationConfig } from "@/lib/types";
+import { useLandUseStore } from "@/store/landUseStore";
 
 interface CityPreviewProps {
   config: SimulationConfig;
@@ -58,19 +59,43 @@ export function CityPreview({ config, className }: CityPreviewProps) {
     return () => ro.disconnect();
   }, []);
 
+  // Opción A: la composición de estratos y la densidad las define Uso de Suelo.
+  // La composición (proporciones) sale de H_por_estrato; la población exacta del
+  // perfil densidad_celda del último resultado de suelo (si lo hay).
+  const luConfig = useLandUseStore((s) => s.config);
+  const luResult = useLandUseStore((s) => s.result);
+
   const largoKm = config.city.largo_ciudad_km;
   const nCeldas = config.city.n_celdas;
   const cbdIdx = Math.floor(nCeldas / 2);
-  const densidadKm = config.city.densidad_hab_km;
   const numPistas = config.supply.car.num_pistas;
   const numEst = config.supply.train.num_estaciones;
   const pendiente = config.city.pendiente_porcentaje;
-  const share = config.city.share_estratos;
-  // Ancho de celda en metros (Δx = L/N); hab por celda y población derivadas de
-  // la densidad física (D-28). Coincide con population.py: dens·Δx·(N−1).
+
+  // Proporciones de estratos = H_por_estrato normalizado (siempre disponible).
+  const hTot = luConfig.H_por_estrato.reduce((a, b) => a + b, 0) || 1;
+  const share = luConfig.H_por_estrato.map((h) => h / hTot) as [
+    number,
+    number,
+    number,
+  ];
+
   const dxMetros = Math.round((largoKm / nCeldas) * 1000);
-  const densidad = (densidadKm * largoKm) / nCeldas;
-  const poblacion = Math.round(densidad * (nCeldas - 1));
+  // Perfil densidad_celda válido solo si la geometría coincide con la del
+  // resultado de suelo (si el usuario cambió L, el perfil viejo no aplica).
+  const densidadCelda =
+    luResult && luResult.densidad_celda.length === nCeldas
+      ? luResult.densidad_celda
+      : null;
+  const densidadMediaKm = densidadCelda
+    ? densidadCelda.reduce((a, b) => a + b, 0) / Math.max(densidadCelda.length, 1)
+    : null;
+  // Población = Σ_i densidad_celda(i)·Δx (exacta) cuando hay resultado de suelo.
+  const poblacion = densidadCelda
+    ? Math.round(
+        densidadCelda.reduce((a, b) => a + b, 0) * (largoKm / nCeldas),
+      )
+    : null;
 
   const H = 320;
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
@@ -303,10 +328,11 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             className="label"
             fill="var(--muted)"
           >
-            {t("preview.spec_demand", {
-              dens: Math.round(densidadKm),
-              cuadra: Math.round(densidadKm / 10),
-            })}
+            {densidadMediaKm != null
+              ? t("preview.spec_demand_mean", {
+                  dens: Math.round(densidadMediaKm),
+                })
+              : t("preview.spec_demand_land_use")}
           </text>
         </g>
 
@@ -388,12 +414,18 @@ export function CityPreview({ config, className }: CityPreviewProps) {
           ))}
         </div>
         <p className="cpf-caption">
-          {t("preview.caption", {
-            length: largoKm,
-            cells: nCeldas,
-            dx: dxMetros,
-            pop: poblacion.toLocaleString(),
-          })}
+          {poblacion != null
+            ? t("preview.caption", {
+                length: largoKm,
+                cells: nCeldas,
+                dx: dxMetros,
+                pop: poblacion.toLocaleString(),
+              })
+            : t("preview.caption_no_pop", {
+                length: largoKm,
+                cells: nCeldas,
+                dx: dxMetros,
+              })}
         </p>
       </div>
     </div>

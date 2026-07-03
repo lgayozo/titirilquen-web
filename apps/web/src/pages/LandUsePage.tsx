@@ -2,14 +2,18 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { CityBuilder } from "@/components/modules/CityBuilder";
 import { LandUseBuilder } from "@/components/modules/LandUseBuilder";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { BidPriceCurve } from "@/components/viz/BidPriceCurve";
 import { CityShapePreview } from "@/components/viz/CityShapePreview";
+import { DensityProfile } from "@/components/viz/DensityProfile";
+import { StrataHeatmap } from "@/components/viz/StrataHeatmap";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { solveLandUse } from "@/lib/api-v2";
+import { densityGradient, expectedComposition } from "@/lib/citySupply";
 import { theilSegregation } from "@/lib/metrics";
 import { isLandUseStale, useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -29,6 +33,7 @@ export function LandUsePage() {
   const runContext = useLandUseStore((s) => s.runContext);
 
   const simConfig = useSimulationStore((s) => s.config);
+  const setSimConfig = useSimulationStore((s) => s.setConfig);
 
   const L = simConfig.city.n_celdas;
   const CBD = Math.floor(L / 2);
@@ -60,7 +65,65 @@ export function LandUsePage() {
 
   const parcelas = result?.parcelas;
   const prices = result?.result.p ?? null;
+  const densidadCelda = result?.densidad_celda ?? null;
   const hasResult = !!result;
+
+  // Heatmap de composición: ANTES = mezcla uniforme (proporciones π_h en cada
+  // celda) · DESPUÉS = composición Q del equilibrio (ordenada por el bid-rent).
+  const heatmap = useMemo<{
+    before: number[][];
+    after: number[][];
+  } | null>(() => {
+    if (!result) return null;
+    const Q = result.result.Q; // Q[h][i]
+    const Hc = (runContext?.config ?? config).H_por_estrato;
+    const tot = Hc.reduce((a, b) => a + b, 0) || 1;
+    const pi = Hc.map((h) => h / tot);
+    const before = Array.from({ length: result.L }, () => [...pi]);
+    const after = Array.from({ length: result.L }, (_, i) => [
+      Q[0]?.[i] ?? 0,
+      Q[1]?.[i] ?? 0,
+      Q[2]?.[i] ?? 0,
+    ]);
+    return { before, after };
+  }, [result, runContext, config]);
+
+  // Hogares por celda = densidad_celda·Δx (gradiente de Clark), repartidos por la
+  // composición Q: N[h,i] = Q[h,i]·densidad_celda[i]·Δx. La envolvente es el perfil
+  // de densidad (coincide con la FIG. de densidad), no la oferta. Suave (la
+  // densidad es exponencial continua), sin peineta ni escalera.
+  const composition = useMemo<number[][] | null>(() => {
+    if (!result) return null;
+    const dx =
+      (runContext?.largoKm ?? simConfig.city.largo_ciudad_km) /
+      Math.max(result.L, 1);
+    const sEff = result.densidad_celda.map((d) => d * dx);
+    return expectedComposition(result.result.Q, sEff);
+  }, [result, runContext, simConfig.city.largo_ciudad_km]);
+
+  // Estado INICIAL (pre-equilibrio): todas las celdas con la MISMA proporción de
+  // estratos (π_h = H_h/ΣH), sobre el perfil de DENSIDAD (gradiente de Clark, el
+  // mismo que post-equilibrio: la densidad es fija por geometría). El bid-rent
+  // luego reordena la mezcla uniforme sin cambiar la densidad total por celda.
+  const initComposition = useMemo<number[][] | null>(() => {
+    const N = config.H_por_estrato.reduce((a, b) => a + b, 0);
+    if (N <= 0) return null;
+    const pi = config.H_por_estrato.map((h) => h / N);
+    const dx = simConfig.city.largo_ciudad_km / Math.max(L, 1);
+    const dens = densityGradient(L, CBD, config.densidad_max, config.densidad_min);
+    return dens.map((d) => [
+      d * dx * pi[0]!,
+      d * dx * pi[1]!,
+      d * dx * pi[2]!,
+    ]);
+  }, [
+    config.H_por_estrato,
+    config.densidad_max,
+    config.densidad_min,
+    simConfig.city.largo_ciudad_km,
+    L,
+    CBD,
+  ]);
 
   // Métricas del equilibrio: distancia media al CBD por estrato (el test del
   // bid-rent) + segregación de Theil. La distancia se reporta en km usando el
@@ -109,7 +172,15 @@ export function LandUsePage() {
           {tS("land_use.info_standalone")}
         </p>
 
-        <LandUseBuilder config={config} onChange={setConfig} />
+        {/* Módulo completo de ciudad (largo, celdas, pendiente, teletrabajo):
+            se define aquí y alimenta al módulo de Transporte. */}
+        <CityBuilder config={simConfig} onChange={setSimConfig} />
+
+        <LandUseBuilder
+          config={config}
+          onChange={setConfig}
+          largoKm={simConfig.city.largo_ciudad_km}
+        />
 
         {(stage === "done" || stage === "error") && (
           <button
@@ -200,14 +271,54 @@ export function LandUsePage() {
                     title={tS("land_use.heading_distribution")}
                     exportSize={{ width: 1000, height: 260 }}
                   >
-                    <StratumDistribution parcelas={parcelas} />
+                    <StratumDistribution
+                      parcelas={parcelas}
+                      composition={composition ?? undefined}
+                    />
+                  </ExportableFigure>
+                </Panel>
+              )}
+
+              {heatmap && (
+                <Panel
+                  n="02"
+                  title={tS("land_use.heatmap_title")}
+                  meta={tS("land_use.heatmap_meta")}
+                  cls="col-12"
+                >
+                  <ExportableFigure
+                    name="heatmap-estratos"
+                    title={tS("land_use.heatmap_title")}
+                    exportSize={{ width: 1000, height: 200 }}
+                  >
+                    <StrataHeatmap before={heatmap.before} after={heatmap.after} />
+                  </ExportableFigure>
+                  <p className="kpi-caption" style={{ marginTop: 8 }}>
+                    {tS("land_use.heatmap_caption")}
+                  </p>
+                </Panel>
+              )}
+
+              {densidadCelda && densidadCelda.length > 0 && (
+                <Panel
+                  n="03"
+                  title={tS("land_use.density_title")}
+                  meta={tS("land_use.density_meta")}
+                  cls="col-12"
+                >
+                  <ExportableFigure
+                    name="densidad-por-celda"
+                    title={tS("land_use.density_title")}
+                    exportSize={{ width: 800, height: 200 }}
+                  >
+                    <DensityProfile densidad={densidadCelda} />
                   </ExportableFigure>
                 </Panel>
               )}
 
               {prices && (
                 <Panel
-                  n="02"
+                  n="04"
                   title={tS("land_use.bid_price_title")}
                   meta="log-sum"
                   cls="col-12"
@@ -242,6 +353,26 @@ export function LandUsePage() {
                 {tS("land_use.shape_preview_caption")}
               </p>
             </Panel>
+
+            {initComposition && initComposition.length > 0 && (
+              <Panel
+                n="01"
+                title={tS("land_use.initial_pop_title")}
+                meta={tS("land_use.initial_pop_meta")}
+                cls="col-12"
+              >
+                <ExportableFigure
+                  name="poblacion-inicial"
+                  title={tS("land_use.initial_pop_title")}
+                  exportSize={{ width: 1000, height: 260 }}
+                >
+                  <StratumDistribution composition={initComposition} />
+                </ExportableFigure>
+                <p className="kpi-caption" style={{ marginTop: 8 }}>
+                  {tS("land_use.initial_pop_caption")}
+                </p>
+              </Panel>
+            )}
 
             <div className="col-12">
               <div className="coupled-placeholder">

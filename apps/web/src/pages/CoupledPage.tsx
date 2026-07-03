@@ -8,7 +8,7 @@ import { EquilibriumMetricsTable } from "@/components/viz/EquilibriumMetricsTabl
 import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { solveCoupledStream } from "@/lib/api-v2";
-import { reconstructParcelas, supplyVector } from "@/lib/citySupply";
+import { expectedComposition, supplyVector } from "@/lib/citySupply";
 import {
   JOINT_PRESETS,
   applyJointPreset,
@@ -434,8 +434,10 @@ interface ComparisonProps {
 
 function Comparison({ first, last, supply, tS, stage, iters }: ComparisonProps) {
   // Distribución = oferta S × asignación Q (respeta la forma de la ciudad).
-  const firstParcelas = reconstructParcelas(first.land_use.Q, supply);
-  const lastParcelas = reconstructParcelas(last.land_use.Q, supply);
+  // Composición ESPERADA en floats (S·Q sin redondear): el redondeo entero por
+  // celda producía una "peineta" entre celdas contiguas con pocos hogares.
+  const firstComposition = expectedComposition(first.land_use.Q, supply);
+  const lastComposition = expectedComposition(last.land_use.Q, supply);
   const isSameIter = first.outer_iter === last.outer_iter;
 
   return (
@@ -447,7 +449,7 @@ function Comparison({ first, last, supply, tS, stage, iters }: ComparisonProps) 
         cls="col-6"
       >
         <p className="coupled-panel-hint">{tS("coupled.without_feedback_hint")}</p>
-        <StratumDistribution parcelas={firstParcelas} />
+        <StratumDistribution composition={firstComposition} />
       </Panel>
 
       <Panel
@@ -465,7 +467,7 @@ function Comparison({ first, last, supply, tS, stage, iters }: ComparisonProps) 
             ? tS("coupled.running_hint", { n: iters })
             : tS("coupled.with_feedback_hint")}
         </p>
-        <StratumDistribution parcelas={lastParcelas} />
+        <StratumDistribution composition={lastComposition} />
       </Panel>
     </div>
   );

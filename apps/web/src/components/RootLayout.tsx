@@ -19,8 +19,10 @@ interface NavItem {
 
 const navItems: readonly NavItem[] = [
   { to: "/", key: "nav.tutorial", end: true },
-  { to: "/sandbox", key: "nav.sandbox" },
+  // Uso de suelo va PRIMERO: define las características de la ciudad (forma +
+  // estratos + densidad) que alimentan al módulo de transporte (Sandbox).
   { to: "/land-use", key: "nav.land_use" },
+  { to: "/sandbox", key: "nav.sandbox" },
   { to: "/coupled", key: "nav.coupled" },
   { to: "/compare", key: "nav.compare" },
   { to: "/about", key: "nav.about" },
