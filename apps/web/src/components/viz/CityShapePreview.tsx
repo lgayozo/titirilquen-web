@@ -93,7 +93,10 @@ export function CityShapePreview({
               y={yFloor - barH}
               width={Math.max(barW - 0.2, 0.3)}
               height={barH}
-              fill="var(--s2)"
+              // Ciudad vacía: oferta de vivienda (capacidad) sin estratos aún.
+              // Gris neutro — NO un color de estrato ni de modo; la Fig. 01
+              // colorea esta misma silueta por estrato.
+              fill="var(--muted)"
               opacity={0.8}
               style={{ transition: "y 200ms ease-out, height 200ms ease-out" }}
             />

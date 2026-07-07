@@ -34,6 +34,7 @@ type WorkerInMsg =
       type: "simulateStream";
       config: SimulationConfig;
       land_use?: LandUseConfig;
+      localizacion?: "equilibrio" | "original";
     }
   | {
       id: string;
@@ -153,9 +154,10 @@ class PyodideEngine {
     onIteration: (s: IterationSnapshot) => void,
     signal?: AbortSignal,
     landUse?: LandUseConfig,
+    localizacion?: "equilibrio" | "original",
   ): Promise<SimulationResult> {
     return this.request<SimulationResult>(
-      { type: "simulateStream", config, land_use: landUse },
+      { type: "simulateStream", config, land_use: landUse, localizacion },
       (data, resolve, reject) => {
         if (data.type === "iteration") {
           onIteration(data.snapshot);

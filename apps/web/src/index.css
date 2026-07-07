@@ -24,10 +24,15 @@
   --walk: #2a4d7a;
   --tele: #8a8578;
 
-  /* Estratos */
-  --s1: #3e2a5f;
-  --s2: #b2431a;
-  --s3: #2d5a3d;
+  /* Estratos — rampa ciruela/malva apagada (alto→bajo), cálida y desaturada
+     para encajar con la paleta impresa, sin colisión con los colores de modo. */
+  --s1: #5a3a4a;
+  --s2: #8a6478;
+  --s3: #b697a6;
+
+  /* Emisiones CO₂ — gris pizarra frío, distinto de los modos y del gris cálido
+     de teletrabajo; no representa un modo ni un estrato. */
+  --co2: #4d5358;
 
   /* Tipografías */
   --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
@@ -58,9 +63,10 @@
   --bici: #4fb07a;
   --walk: #5b8fd6;
   --tele: #6f6a5e;
-  --s1: #a48fd6;
-  --s2: #e88b4a;
-  --s3: #5ab08c;
+  --s1: #c4a8b6;
+  --s2: #9c7286;
+  --s3: #6b475b;
+  --co2: #99a0a6;
   color-scheme: dark;
 }
 
@@ -77,9 +83,10 @@
   --bici: #1a5a2a;
   --walk: #1a4d8f;
   --tele: #8a8a8a;
-  --s1: #2a1f5f;
-  --s2: #8b6914;
-  --s3: #1a5a2a;
+  --s1: #4a2a3c;
+  --s2: #7d4f66;
+  --s3: #a97e92;
+  --co2: #4a5056;
   color-scheme: light;
 }
 

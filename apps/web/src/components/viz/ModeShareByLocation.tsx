@@ -2,11 +2,23 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
-import type { AgentRecord, Modo } from "@/lib/types";
+import type { Modo } from "@/lib/types";
 
 interface ModeShareByLocationProps {
-  agents: readonly AgentRecord[];
-  nCeldas: number;
+  /** Flujo por celda de origen de cada modo de viaje. Con asignación
+   *  "expected" es el flujo **esperado** (nₐ·prob, continuo); con "montecarlo"
+   *  es la realización muestreada — igual que las figuras de demanda 2/3/4. Usar
+   *  esto (y no el conteo de `modo_elegido` por agente, que siempre se sortea)
+   *  evita el "dentado" de muestreo agente‑nivel bajo asignación esperada. */
+  demandByCell: {
+    Auto: readonly number[];
+    Metro: readonly number[];
+    Bici: readonly number[];
+    Caminata: readonly number[];
+  };
+  /** Teletrabajo por celda de origen (conteo determinista: no viaja, así que no
+   *  aparece en `demandByCell`). */
+  teleByCell: readonly number[];
   largoKm: number;
   nBins?: number;
   height?: number;
@@ -34,8 +46,8 @@ const LEGEND_H = 20;
  * ancho medido en píxeles, para exportar completo a SVG/PNG sin distorsión.
  */
 export function ModeShareByLocation({
-  agents,
-  nCeldas,
+  demandByCell,
+  teleByCell,
   largoKm,
   nBins = 48,
   height = 200,
@@ -43,6 +55,7 @@ export function ModeShareByLocation({
   normalize = true,
 }: ModeShareByLocationProps) {
   const { t } = useTranslation("simulator");
+  const nCeldas = teleByCell.length;
   const binWidth = nCeldas / nBins;
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -65,16 +78,22 @@ export function ModeShareByLocation({
       Caminata: 0,
       Teletrabajo: 0,
     }));
-    for (const a of agents) {
-      if (!a.modo_elegido) continue;
-      const idx = Math.min(nBins - 1, Math.floor(a.celda_origen / binWidth));
+    // Acumula el flujo esperado por celda (fraccional bajo "expected") en su bin
+    // de ubicación. Teletrabajo va aparte (conteo por celda), no es un viaje.
+    for (let i = 0; i < nCeldas; i++) {
+      const idx = Math.min(nBins - 1, Math.floor(i / binWidth));
       const bin = bins[idx];
-      if (bin) bin[a.modo_elegido] += 1;
+      if (!bin) continue;
+      bin.Auto += demandByCell.Auto[i] ?? 0;
+      bin.Metro += demandByCell.Metro[i] ?? 0;
+      bin.Bici += demandByCell.Bici[i] ?? 0;
+      bin.Caminata += demandByCell.Caminata[i] ?? 0;
+      bin.Teletrabajo += teleByCell[i] ?? 0;
     }
     const totals = bins.map((b) => MODE_ORDER.reduce((s, m) => s + b[m], 0));
     const maxTotal = Math.max(1, ...totals);
     return { bins, totals, maxTotal };
-  }, [agents, nBins, binWidth]);
+  }, [demandByCell, teleByCell, nCeldas, nBins, binWidth]);
 
   const H = MARGIN.top + height + MARGIN.bottom + LEGEND_H;
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
@@ -141,7 +160,7 @@ export function ModeShareByLocation({
                     fill={MODE_COLORS[m]}
                     opacity={0.92}
                   >
-                    <title>{`${t(`modes.${m.toLowerCase()}`)} — bin ${i}: ${count} (${((count / total) * 100).toFixed(1)}%)`}</title>
+                    <title>{`${t(`modes.${m.toLowerCase()}`)} — bin ${i}: ${Math.round(count)} (${((count / total) * 100).toFixed(1)}%)`}</title>
                   </rect>
                 );
               })}

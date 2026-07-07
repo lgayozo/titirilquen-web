@@ -159,6 +159,9 @@ export interface SimulationResult {
   emisiones_auto_kg: number;
   emisiones_metro_kg: number;
   emisiones_perfil_kg: number[] | null;
+  /** Demanda esperada por [estrato 0..2][modo Auto|Metro|Bici|Caminata][celda].
+   *  Para el reparto modal espacial por estrato (Fig. 9 desagregada). */
+  demanda_estrato: number[][][] | null;
   iteraciones: IterationSnapshot[];
   agentes: AgentRecord[];
 }

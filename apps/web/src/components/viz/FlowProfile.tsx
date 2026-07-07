@@ -139,9 +139,10 @@ export function FlowProfile({
           opacity={0.6}
         />
 
-        {/* Área + línea */}
-        {areaPath && <path d={areaPath} fill={color} opacity={0.2} />}
-        {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={1.2} />}
+        {/* Área + línea — relleno con el color pleno del modo (no un tinte claro)
+            para que la figura se lea con el color canónico del modo. */}
+        {areaPath && <path d={areaPath} fill={color} opacity={0.6} />}
+        {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={1.6} />}
 
         {/* Baseline */}
         <line x1={MARGIN.left} y1={yFloor} x2={MARGIN.left + plotW} y2={yFloor} stroke="var(--ink)" strokeWidth={0.8} />

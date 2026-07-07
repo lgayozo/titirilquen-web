@@ -11,7 +11,7 @@ Portado y extendido desde `titirilquen-repo/app.py:470-524`. Cambios:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterator
+from typing import Iterator, Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -23,6 +23,7 @@ from titirilquen_core.emissions import calcular_emisiones
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
+from titirilquen_core.land_use.supply import generar_oferta
 from titirilquen_core.population import (
     Agente,
     generar_poblacion,
@@ -72,6 +73,11 @@ class ConvergenceTrace:
     emisiones_auto_kg: float = 0.0
     emisiones_metro_kg: float = 0.0
     emisiones_perfil_kg: NDArray[np.float64] | None = None
+    # Demanda ESPERADA por (estrato, modo, celda) del estado final — forma
+    # [3, len(_MODOS), n_celdas], estratos 0..2 = 1..3, modos en orden _MODOS.
+    # Es la demanda por celda (misma que las Fig. 2/3/4) desagregada por estrato,
+    # para el reparto modal espacial por estrato.
+    demanda_estrato: NDArray[np.float64] | None = None
 
 
 def _tiempos_de_snapshot(snap: IterationSnapshot, n_celdas: int) -> list[TiemposObservados]:
@@ -267,34 +273,65 @@ def iter_msa_desde_suelo(
     sim: SimulationConfig,
     land_use_config: LandUseConfig,
     trace: ConvergenceTrace | None = None,
+    localizacion: Literal["equilibrio", "original"] = "equilibrio",
 ) -> Iterator[IterationSnapshot]:
     """Igual que :func:`iter_msa` pero la población se deriva del **uso de suelo**
-    (opción A del feed suelo→transporte): se resuelve el equilibrio de suelo una
-    vez y los `S_i` hogares que la ciudad ofrece en cada celda se reparten entre
-    estratos según `Q` (`N[h,i] = mayor_residuo(S_i·Q[h,i])`, con `Σ_h = S_i`
-    exacto), en vez de la densidad plana `densidad_hab_km` y el `share_estratos`
-    global. Envolvente de población = oferta `S` (misma que las figuras y que el
-    loop acoplado); conserva los hogares por estrato (`Σ_i N[h,i] = H_h`).
+    (opción A del feed suelo→transporte): los `S_i` hogares que la ciudad ofrece
+    en cada celda se reparten entre estratos según una matriz `Q`
+    (`N[h,i] = mayor_residuo(S_i·Q[h,i])`, con `Σ_h = S_i` exacto), en vez de la
+    densidad plana `densidad_hab_km` y el `share_estratos` global. La envolvente
+    de población es la oferta `S` (misma que las figuras y que el loop acoplado);
+    conserva los hogares por estrato (`Σ_i N[h,i] = H_h`).
 
-    El equilibrio de suelo usa la T por defecto (flujo libre a la velocidad de
-    referencia), igual que la pestaña *Uso de Suelo*, así que el `Q` coincide con
-    el que se visualiza ahí para la misma config. El loop iterativo completo
-    (feedback suelo↔transporte) sigue viviendo en el módulo acoplado."""
+    El parámetro `localizacion` decide de dónde sale `Q` — es decir, **dónde vive
+    cada estrato**:
+
+    - ``"equilibrio"`` (default): se resuelve el equilibrio de pujas de suelo y se
+      usa su `Q`. Usa la T por defecto (flujo libre a la velocidad de referencia),
+      igual que la pestaña *Uso de Suelo*, así que el `Q` coincide con el que se
+      visualiza ahí para la misma config.
+    - ``"original"``: el equilibrio de pujas **no se ha aplicado**, así que la
+      localización es la ORIGINAL — mezcla uniforme `π_h = H_h/ΣH` en todas las
+      celdas (`Q[h,i] = π_h`). No se resuelve el suelo. La envolvente `S` es la
+      misma; sólo cambia la composición por estrato de cada celda.
+
+    El loop iterativo completo (feedback suelo↔transporte) sigue viviendo en el
+    módulo acoplado."""
     rng = np.random.default_rng(sim.seed)
     L = sim.city.n_celdas
     CBD = L // 2
     ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
-    city = LandUseCity.build(
-        L=L,
+    # Envolvente de oferta S(i): la misma en ambos modos (dónde hay vivienda).
+    N_total = int(sum(land_use_config.H_por_estrato))
+    S = generar_oferta(
+        forma=land_use_config.forma,
+        I=L,
+        N=N_total,
         CBD=CBD,
-        cfg=land_use_config,
-        rng=rng,
-        ancho_celda_km=ciudad.ancho_celda_km,
+        sigma_frac=land_use_config.oferta_sigma_frac,
+        forma_param=land_use_config.forma_param,
     )
-    assert city.result is not None
+    if localizacion == "original":
+        # Localización original: mezcla uniforme π_h en cada celda (sin resolver).
+        H = np.asarray(land_use_config.H_por_estrato, dtype=float)
+        total = float(H.sum())
+        pi = H / total if total > 0 else np.full(len(H), 1.0 / max(len(H), 1))
+        Q = np.tile(pi.reshape(-1, 1), (1, L))
+    else:
+        # Localización de equilibrio de pujas: se resuelve con esta misma oferta S.
+        city = LandUseCity.build(
+            L=L,
+            CBD=CBD,
+            cfg=land_use_config,
+            rng=rng,
+            ancho_celda_km=ciudad.ancho_celda_km,
+            S=S,
+        )
+        assert city.result is not None
+        Q = city.result.Q
     agentes = generar_poblacion_desde_land_use_det(
-        Q=city.result.Q,
-        S=city.S,
+        Q=Q,
+        S=S,
         cbd_index=CBD,
         demand_config=sim.demand,
         teletrabajo_factor=sim.city.teletrabajo_factor,
@@ -483,6 +520,29 @@ def run_msa_con_poblacion(
     return trace
 
 
+def _demanda_esperada_por_estrato(
+    grupos: list[_GrupoDemanda],
+    ciudad: CiudadLineal,
+    demand: DemandConfig,
+    tiempos_por_celda: list[TiemposObservados] | None,
+    modos_habilitados: tuple[str, ...] | None,
+) -> NDArray[np.float64]:
+    """Demanda esperada (nₐ·prob) por estrato·modo·celda del estado dado —
+    forma [estrato 0..2, modo (orden _MODOS), celda]. Es la Fig. 9 desagregada
+    por estrato: al usar el flujo esperado (no el modo sorteado por agente) sale
+    continua bajo cualquier asignación. Teletrabajo va aparte (no viaja)."""
+    arr = np.zeros((3, len(_MODOS), ciudad.n_celdas))
+    for g in grupos:
+        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
+        e = int(g.estrato) - 1
+        if not 0 <= e < 3:
+            continue
+        n = len(g.agentes)
+        for k, m in enumerate(_MODOS):
+            arr[e, k, g.celda] += n * probs.get(m, 0.0)
+    return arr
+
+
 def _finalizar_trace(
     trace: ConvergenceTrace,
     sim: SimulationConfig,
@@ -497,6 +557,10 @@ def _finalizar_trace(
     # Registros por agente a partir del estado convergido, para figuras agente‑nivel.
     _asignar_modos_agentes(
         grupos, ciudad, sim.demand, tiempos_actuales, rng, sim.modos_habilitados
+    )
+    # Demanda esperada por estrato·modo·celda (reparto modal espacial por estrato).
+    trace.demanda_estrato = _demanda_esperada_por_estrato(
+        grupos, ciudad, sim.demand, tiempos_actuales, sim.modos_habilitados
     )
     if last_state is None:
         return

@@ -60,6 +60,9 @@ const ALLOWED: Record<string, { py: unknown; ts: unknown }> = {
   "sim.tolerance": { py: 0, ts: 0.1 },
   // El frontend fija la semilla para reproducibilidad de la demo.
   "sim.seed": { py: null, ts: 42 },
+  // El frontend asigna por flujos esperados (determinista, curvas de demanda
+  // continuas); el core conserva la multinomial Monte Carlo del original.
+  "sim.assignment": { py: "montecarlo", ts: "expected" },
   // Población de suelo: el core conserva la escala del paper (99.900); el
   // frontend usa 10.000 para que el acoplado sea interactivo.
   "land_use.H_por_estrato.0": { py: 33300, ts: 1000 },

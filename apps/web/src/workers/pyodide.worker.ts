@@ -32,6 +32,10 @@ type InMsg =
       /** Opción A: si viene, la población se deriva del uso de suelo
        *  (densidad por estrato → por celda) en vez de la densidad plana. */
       land_use?: LandUseConfig;
+      /** Localización de los estratos: "original" = mezcla uniforme π_h (el
+       *  equilibrio de pujas no se ha movido); "equilibrio" = producto del
+       *  bid-rent. Solo aplica con `land_use`. Default "equilibrio". */
+      localizacion?: "equilibrio" | "original";
     }
   | {
       id: string;
@@ -136,6 +140,7 @@ def _trace_to_py(trace):
         "emisiones_auto_kg": trace.emisiones_auto_kg,
         "emisiones_metro_kg": trace.emisiones_metro_kg,
         "emisiones_perfil_kg": None if trace.emisiones_perfil_kg is None else trace.emisiones_perfil_kg.tolist(),
+        "demanda_estrato": None if trace.demanda_estrato is None else trace.demanda_estrato.tolist(),
         "iteraciones": [_snap_to_py(s) for s in trace.iteraciones],
         "agentes": [
             {
@@ -170,9 +175,10 @@ def iter_from_json_suelo(req_json: str):
     req = json.loads(req_json)
     cfg = SimulationConfig.model_validate(req["config"])
     lu = LandUseConfig.model_validate(req["land_use"])
+    localizacion = req.get("localizacion", "equilibrio")
     trace = ConvergenceTrace()
     _LAST_TRACE["trace"] = None
-    for snap in iter_msa_desde_suelo(cfg, lu, trace):
+    for snap in iter_msa_desde_suelo(cfg, lu, trace, localizacion=localizacion):
         yield _snap_to_py(snap)
     _LAST_TRACE["trace"] = trace
 
@@ -277,7 +283,13 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
       // (densidad por estrato → por celda); si no, densidad plana clásica.
       const gen = (
         msg.land_use
-          ? iterSueloFn!(JSON.stringify({ config: msg.config, land_use: msg.land_use }))
+          ? iterSueloFn!(
+              JSON.stringify({
+                config: msg.config,
+                land_use: msg.land_use,
+                localizacion: msg.localizacion ?? "equilibrio",
+              }),
+            )
           : iterFn!(JSON.stringify(msg.config))
       ) as {
         [Symbol.iterator](): Iterator<unknown>;

@@ -149,7 +149,12 @@ export const defaultSimulationConfig: SimulationConfig = {
   // (cualquier modo/celda) es < tolerance min en 2 iteraciones consecutivas.
   tolerance: 0.1,
   seed: 42,
-  assignment: "montecarlo",
+  // El frontend usa asignación por FLUJOS ESPERADOS (nₐ·prob) en vez de la
+  // multinomial Monte Carlo del core: con 201 celdas y demanda baja por celda,
+  // el muestreo entero produce perfiles de demanda "dentados" (ruido de
+  // muestreo). La esperada es determinista y continua — mejor para la lectura
+  // pedagógica de las figuras. Sigue disponible "montecarlo" en el toggle.
+  assignment: "expected",
   modos_habilitados: ["Auto", "Metro", "Bici", "Caminata"],
 };
 
