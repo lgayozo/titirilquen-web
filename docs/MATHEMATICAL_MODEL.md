@@ -149,9 +149,28 @@ residual decrece monótonamente y la corrida es reproducible.
 
 ## 5. Uso de suelo — bid‑rent (`land_use/`, ver `Suelo.tex`)
 
-Modelo monocéntrico tipo Alonso‑Muth‑Mills. Utilidad lineal en el ingreso:
+*Mapa: esta sección es la spec **as-built** del módulo. El historial de cómo se
+llegó está en [`CAMBIOS_USO_SUELO.md`](CAMBIOS_USO_SUELO.md); lo que falta reflejar
+en el Overleaf, en [`OVERLEAF_CHANGES.md`](OVERLEAF_CHANGES.md) §C8–C9.*
+
+Modelo monocéntrico tipo Alonso‑Muth‑Mills.
+
+> **Alcance (qué ES y qué NO es).** Es **bid‑rent**: ordena estratos sobre una
+> oferta `S` **exógena y fija** → composición `Q` + precios implícitos `p`. Es
+> "tipo AMM" solo en el sabor monocéntrico (la oferta normal por defecto imita el
+> centro denso), pero la **densidad NO es endógena**: la define `S`, no el
+> equilibrio. `Suelo.tex` lo elige a propósito («la oferta… se mantiene "fijo"…
+> esto debe de momento ser así, si permitimos un cambio en esta oferta a corto
+> plazo… el sistema no tendría equilibrios»). La **densidad física es `S_i/Δx`**
+> (`Suelo.tex`: `S` tiene doble rol, capacidad + desamenidad vía `ρ_h`); el
+> gradiente de Clark de una versión intermedia del código era una **divergencia**,
+> ya revertida (ver `CAMBIOS_USO_SUELO.md` §Unificación en la oferta S). El **loop
+> acoplado (§6) tampoco endogeneiza la densidad**: acopla suelo↔transporte vía la
+> accesibilidad `T`, con `S` fija (`N_{hi} = S_i·Q_{hi}`).
+
+Utilidad lineal en el ingreso:
 ```
-u_h = λ_h(y_h − p_i) + f_h(i),     f_h(i) = −α_h·T_h(i) − ρ_h·S_i
+u_h = λ_h(y_h − p_i) + f_h(i),     f_h(i) = −α_h·T_h(i) − ρ_h·(S_i/Δx)
 ```
 Disposición a pagar (ver [D‑17](DISCREPANCIES.md) — el Overleaf invierte el signo
 de `f`):
@@ -198,10 +217,11 @@ equilibrio de asignación según la geometría urbana.
 
 > El Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente (al dividir
 > la puja por `λ_h`, el ruido queda con escala `1/(β·λ_h)` por estrato) y sugiere
-> un **logit heteroscedástico**. Ese es el solver `heteroscedastic` (default,
-> `s = λ·y + f`, escala `β_h = β·λ_h`): coincide con `logit` cuando `λ_h = 1` y es
-> **invariante a la escala común de `λ`** (a diferencia del logit). Ver
-> [D‑08](DISCREPANCIES.md).
+> un **logit heteroscedástico**. Ese es el solver `heteroscedastic` (`s = λ·y + f`,
+> escala `β_h = β·λ_h`): coincide con `logit` cuando `λ_h = 1` y es **invariante a
+> la escala común de `λ`** (a diferencia del logit). Existe en el core pero **no se
+> expone en la UI** (precio en utiles, no integrado con el downstream en $); la app
+> corre siempre `logit`. Ver [D‑08](DISCREPANCIES.md).
 
 ---
 
