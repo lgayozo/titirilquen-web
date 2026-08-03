@@ -14,6 +14,11 @@ __pycache__/
 .mypy_cache/
 .venv/
 venv/
+# Lock de entorno de desarrollo (uv). El core es librería con cotas abiertas
+# y ningún deploy lo consume: Fly.io instala wheels con pip y Pyodide resuelve
+# con micropip. Si algún día hace falta reproducibilidad, va un uv workspace
+# con un único lock en la raíz.
+uv.lock
 
 .env
 .env.local
