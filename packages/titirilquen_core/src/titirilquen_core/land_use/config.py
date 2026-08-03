@@ -8,17 +8,18 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from titirilquen_core.land_use.supply import FormaOferta
 
-SolverKind = Literal["heteroscedastic", "logit"]
+SolverKind = Literal["utility_logit", "logit"]
 """
 - `logit`: β uniforme sobre la puja `y + f/λ`. **Default** y único solver que
   corre la app (la UI no expone selector). Inconsistente con λ_h heterogéneo
   (Suelo.tex sec. 5.4): λ escala el ruido de elección por estrato, no es un
   efecto-ingreso real.
-- `heteroscedastic`: logit heteroscedástico (escala por estrato β_h = β·λ_h) — el
-  método **consistente** que corrige el λ heterogéneo (ver D-08); coincide con
-  `logit` cuando λ_h = 1 ∀h. Se conserva en el core para comparación, pero su
-  precio queda en **utiles** (no en $), así que no está integrado con los
-  consumidores en $ del acoplado — por eso no se expone en la UI.
+- `utility_logit`: logit en el espacio de utilidad, `score = λ·y + f` (equivale a
+  una escala por estrato β_h = β·λ_h sobre la puja) — el método **consistente**
+  que corrige el λ heterogéneo (ver D-08); coincide con `logit` cuando λ_h = 1 ∀h.
+  Se conserva en el core para comparación, pero su precio queda en **utiles** (no
+  en $), así que no está integrado con los consumidores en $ del acoplado — por
+  eso no se expone en la UI. **No es el HEV** de Train §4.5; ver `equilibrium.py`.
 """
 
 

@@ -8,8 +8,8 @@ from titirilquen_core.land_use import (
     LandUseConfig,
     LandUseStratumConfig,
     generar_oferta_normal,
-    solve_heteroscedastic,
     solve_logit,
+    solve_utility_logit,
 )
 
 
@@ -30,26 +30,26 @@ def _toy_scenario(lam: np.ndarray):
     )
 
 
-def test_heteroscedastic_reduce_a_logit_con_lambda_1() -> None:
+def test_utility_logit_reduce_a_logit_con_lambda_1() -> None:
     """Con λ_h = 1 ∀h, el logit heteroscedástico coincide exactamente con el logit."""
     args = _toy_scenario(np.array([1.0, 1.0, 1.0]))
     rl = solve_logit(**args)
-    rh = solve_heteroscedastic(**args)
+    rh = solve_utility_logit(**args)
     np.testing.assert_allclose(rl.u, rh.u, atol=1e-9)
     np.testing.assert_allclose(rl.Q, rh.Q, atol=1e-9)
 
 
-def test_heteroscedastic_invariante_a_escala_comun_de_lambda() -> None:
+def test_utility_logit_invariante_a_escala_comun_de_lambda() -> None:
     """Escalar TODOS los λ por un factor común no debe cambiar la asignación
     (propiedad de consistencia que el logit NO tiene)."""
-    base = solve_heteroscedastic(**_toy_scenario(np.array([1.0, 1.0, 1.0]))).Q
+    base = solve_utility_logit(**_toy_scenario(np.array([1.0, 1.0, 1.0]))).Q
     for k in (0.5, 2.0, 4.0):
-        Qk = solve_heteroscedastic(**_toy_scenario(np.array([k, k, k]))).Q
+        Qk = solve_utility_logit(**_toy_scenario(np.array([k, k, k]))).Q
         np.testing.assert_allclose(Qk, base, atol=1e-6)
 
 
-def test_heteroscedastic_converge_con_lambda_heterogeneo() -> None:
-    res = solve_heteroscedastic(**_toy_scenario(np.array([2.0, 1.0, 0.5])))
+def test_utility_logit_converge_con_lambda_heterogeneo() -> None:
+    res = solve_utility_logit(**_toy_scenario(np.array([2.0, 1.0, 0.5])))
     assert res.converged
     col_sum = res.Q.sum(axis=0)
     expected = np.where(_toy_scenario(np.array([2.0, 1.0, 0.5]))["S"] > 0, 1.0, 0.0)
@@ -156,7 +156,7 @@ def test_q_conserva_hogares_por_estrato_con_H_desigual() -> None:
     # Recalzar oferta = demanda tras cambiar H.
     diff = int(args["H"].sum() - args["S"].sum())
     args["S"][0] += diff
-    for solver in (solve_logit, solve_heteroscedastic):
+    for solver in (solve_logit, solve_utility_logit):
         res = solver(**args)
         assert res.converged
         hogares = res.Q @ args["S"].astype(float)

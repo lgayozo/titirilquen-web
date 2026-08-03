@@ -170,7 +170,7 @@ export const defaultLandUseConfig: LandUseConfig = {
   ],
   beta: 1,
   // Logit es el default y único solver de la app (la UI no expone selector; el
-  // default Pydantic del core también es logit). El heteroscedástico queda en el
+  // default Pydantic del core también es logit). El `utility_logit` queda en el
   // core solo para comparación: su precio está en utiles, no integrado con el
   // downstream en $ del acoplado.
   solver: "logit",

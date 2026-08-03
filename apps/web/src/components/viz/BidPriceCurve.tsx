@@ -6,8 +6,8 @@ import { cn } from "@/lib/cn";
 interface BidPriceCurveProps {
   p: readonly number[];
   /** Solver de suelo que produjo `p` — define las unidades de la nota al pie:
-   * `logit` puja en $ (WTP); `heteroscedastic` score en utiles (no convertible a $). */
-  solver?: "heteroscedastic" | "logit";
+   * `logit` puja en $ (WTP); `utility_logit` score en utiles (no convertible a $). */
+  solver?: "utility_logit" | "logit";
   className?: string;
   height?: number;
 }

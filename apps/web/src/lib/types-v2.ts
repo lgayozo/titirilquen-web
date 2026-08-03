@@ -30,7 +30,7 @@ export interface LandUseConfig {
   densidad_min: number;
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   beta: number;
-  solver: "heteroscedastic" | "logit";
+  solver: "utility_logit" | "logit";
   tol: number;
   max_iter: number;
   /** Forma del perfil de oferta de vivienda a lo largo del corredor. */

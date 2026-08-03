@@ -148,7 +148,7 @@ Convenciones:
 - **Veredicto**: No es discrepancia sino ampliación del alcance.
 - **Acción**: Mantener ambos métodos en v2 y usarlos en material didáctico comparativo.
 - **Resolución (2026-06) — logit heteroscedástico implementado**: se agregó el
-  solver **`heteroscedastic`** (`equilibrium.py:solve_heteroscedastic`), que es la
+  solver **`utility_logit`** (`equilibrium.py:solve_utility_logit`), que es la
   corrección consistente que sugería el Overleaf, y pasó a ser el **default**.
   - **El problema**: la utilidad es `U_hi = λ_h(y_h − p_i) + f_h(i) + ε_hi` con `ε`
     Gumbel de escala `1/β` (homoscedástica **en utilidad**). La puja (WTP) divide
@@ -167,7 +167,7 @@ Convenciones:
     (`β`).
   - Se conserva `logit` como opción para la comparación didáctica (mostrar
     empíricamente la inconsistencia). El `frechet` (la variante "MALA" del
-    original) **se quitó** por redundante: el contraste `heteroscedastic`
+    original) **se quitó** por redundante: el contraste `utility_logit`
     (correcto) vs `logit` (inconsistente) ya cubre el punto pedagógico, y un
     tercer método "incorrecto de otra forma" confundía más que aclaraba. Ver
     `MATHEMATICAL_MODEL.md` §5.

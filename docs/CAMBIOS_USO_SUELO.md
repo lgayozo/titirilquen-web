@@ -57,9 +57,9 @@ del módulo de transporte.
   Sandbox · Coupled · Compare · About.
 - **Solver logit fijo** — se quita el toggle de solver de la UI:
   - `apps/web/src/components/modules/LandUseBuilder.tsx`: eliminado el selector
-    `heteroscedastic`/`logit`; el slider `λ` queda siempre activo.
+    `utility_logit`/`logit`; el slider `λ` queda siempre activo.
   - `apps/web/src/lib/defaults.ts`: `solver: "logit"` por defecto.
-  - El core Python conserva `solve_heteroscedastic` (trabajo no resuelto, no se
+  - El core Python conserva `solve_utility_logit` (trabajo no resuelto, no se
     borra).
 
 - **Densidad por estrato `δ_h` (core + config + UI)**:
@@ -100,7 +100,7 @@ del módulo de transporte.
     último resultado de suelo (con fallback si no hay corrida).
 - **Contrato TS↔Python** (`apps/web/e2e/`): golden `defaults-golden.json` con
   `densidad_estrato`; divergencia intencional `land_use.solver` (py
-  `heteroscedastic` / ts `logit`) en `contract.spec.ts`.
+  `utility_logit` / ts `logit`) en `contract.spec.ts`.
 - **Wheel recompilado** (`npm run build:core-wheel`) para que Pyodide use el core
   nuevo.
 

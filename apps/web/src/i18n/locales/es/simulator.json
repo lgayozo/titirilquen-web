@@ -290,8 +290,8 @@
     "forma_valle": "Valle",
     "forma_hint_valle": "Poco espacio en el centro, mucho en la periferia: la densidad crece con la distancia (triángulo invertido).",
     "oferta_sigma_na": "No aplica a la forma uniforme (densidad plana).",
-    "solver_heteroscedastic": "Heteroced.",
-    "solver_hint_heteroscedastic": "Consistente: escala por estrato β_h = β·λ_h. Corrige el problema del λ heterogéneo (recomendado · default).",
+    "solver_utility_logit": "Heteroced.",
+    "solver_hint_utility_logit": "Consistente: escala por estrato β_h = β·λ_h. Corrige el problema del λ heterogéneo (recomendado · default).",
     "solver_hint_logit": "β uniforme sobre la puja y + f/λ: inconsistente con λ heterogéneo (escala el ruido por estrato). Para comparar.",
     "lambda_artifact_logit": "⚠ Mueve la asignación, pero es un artefacto del logit (el solver de la app): escala el ruido de elección por estrato (~1/βλ), no es un efecto-ingreso real (el ingreso y se absorbe). Subir λ dispersa al estrato; bajarlo lo concentra en su óptimo de α/ρ.",
     "y_na": "No afecta la asignación en ningún solver: el ingreso entra solo como constante por estrato (λ·y o y) y se absorbe en la utilidad de equilibrio. El ordenamiento lo gobiernan α y ρ.",
@@ -304,7 +304,7 @@
   "bid_price": {
     "y_label": "PRECIO (REL.)",
     "footer": "RELATIVO · 0 = PERIFERIA · Δ {{delta}} (precio salvo constante)",
-    "units_heteroscedastic": "Unidades de utilidad (score λ·y + f): solo el gradiente es informativo, no es convertible a $.",
+    "units_utility_logit": "Unidades de utilidad (score λ·y + f): solo el gradiente es informativo, no es convertible a $.",
     "units_logit": "Unidades monetarias (puja y + f/λ, disposición a pagar)."
   },
   "supply_builder": {

@@ -1,4 +1,4 @@
-"""Solvers de equilibrio — logit y heteroscedástico.
+"""Solvers de equilibrio — logit en puja y logit en utilidad.
 
 Portados de `titirilquen-repo/Ciudad2.py:249-479`. La matemática se preserva
 verbatim; se cambian sólo los interfaces para devolver un dataclass tipado.
@@ -14,8 +14,13 @@ subasta la disputan H_g postores de cada tipo; ver la ponderación de `Q`).
 
 Diferencia entre solvers: `logit` usa `s_hi = y_h + f_h(i)/λ_h` (β uniforme sobre
 la puja) — inconsistente si `λ_h` es heterogéneo (ver D-08 y Suelo.tex sec. 5.4);
-`heteroscedastic` usa `s_hi = λ_h·y_h + f_h(i)` (escala por estrato β_h = β·λ_h).
+`utility_logit` usa `s_hi = λ_h·y_h + f_h(i)` (Gumbel homoscedástico en el espacio
+de **utilidad**, equivalente a una escala por estrato β_h = β·λ_h sobre la puja).
 Coinciden cuando λ_h = 1 ∀h.
+
+**No confundir con el HEV** (*heteroscedastic extreme value*, Train §4.5): ese
+modela varianza distinta por **alternativa** y no está implementado en el core.
+Aquí la escala varía por **estrato**, que es otra cosa.
 """
 
 from __future__ import annotations
@@ -38,7 +43,7 @@ class LandUseResult:
     """Precios implícitos por parcela — p ∈ R^I (salvo constante).
 
     **Unidades según el solver** (heredan las del `score`): con `logit` el score
-    es la puja `y + f/λ` en $ (WTP), así que p está en $; con `heteroscedastic`
+    es la puja `y + f/λ` en $ (WTP), así que p está en $; con `utility_logit`
     el score es `λ·y + f` en **utiles**, así que p está en utiles y no es
     convertible a $ sin elegir un λ de referencia (λ_h es heterogéneo). En ambos
     casos solo el *gradiente* espacial es informativo; comparar niveles o
@@ -102,7 +107,7 @@ def _solve_fixed_point(
 
     Equilibrio: cada estrato coloca exactamente H_h hogares, vía el punto fijo
     F(ū)=ū sobre las utilidades ū. `logit` usa `score = y + f/λ` (espacio de
-    pujas); `heteroscedastic` usa `score = λ·y + f` (espacio de utilidad, escala
+    pujas); `utility_logit` usa `score = λ·y + f` (espacio de utilidad, escala
     por estrato β_h = β·λ_h). Coinciden cuando λ_h = 1 ∀h."""
     I = len(S_arr)
     n_strata = len(H_arr)
@@ -174,7 +179,7 @@ def solve_logit(
 
     Aplica un β **uniforme** a las pujas; con `λ_h` heterogéneo el ruido de la
     puja queda con escala `1/(β·λ_h)` por estrato → es **inconsistente** (ver
-    D‑08). Se conserva para comparación didáctica con `solve_heteroscedastic`.
+    D‑08). Se conserva para comparación didáctica con `solve_utility_logit`.
     `T` en minutos; `ancho_celda_km` convierte S a densidad (ver D-26).
     """
     H_arr = np.asarray(H, dtype=float)
@@ -183,7 +188,7 @@ def solve_logit(
     return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)
 
 
-def solve_heteroscedastic(
+def solve_utility_logit(
     *,
     H: NDArray[np.int_],
     S: NDArray[np.int_],
@@ -197,17 +202,26 @@ def solve_heteroscedastic(
     max_iter: int = 10000,
     ancho_celda_km: float = 1.0,
 ) -> LandUseResult:
-    """Equilibrio con **logit heteroscedástico** — la corrección del λ (ver D‑08).
-    `T` en minutos; `ancho_celda_km` convierte S a densidad hogares/km (D-26).
+    """Equilibrio con **logit en el espacio de utilidad** — la corrección del λ
+    (ver D‑08). `T` en minutos; `ancho_celda_km` convierte S a densidad
+    hogares/km (D-26).
 
     La utilidad es `U_hi = λ_h(y_h − p_i) + f_h(i) + ε_hi` con ε Gumbel de escala
-    `1/β` (homoscedástica **en utilidad**). La puja (WTP) divide por λ_h, lo que
+    `1/β` **homoscedástica en utilidad**. La puja (WTP) divide por λ_h, lo que
     en `solve_logit` deja el ruido con escala `1/(β·λ_h)` por estrato. La versión
-    consistente usa una **escala por estrato `β_h = β·λ_h`**, equivalente a
-    trabajar en el espacio de utilidad con `score = λ_h·y_h + f_h(i)` (sin dividir
-    por λ). Propiedades (validadas): coincide con `solve_logit` cuando `λ_h = 1`;
-    es **invariante a la escala común de λ** (a diferencia del logit); y separa
-    la utilidad marginal del ingreso (λ_h) del ruido de elección (β).
+    consistente trabaja directamente en utilidad con `score = λ_h·y_h + f_h(i)`
+    (sin dividir por λ), lo que **en el espacio de pujas** equivale a una escala
+    por estrato `β_h = β·λ_h`. Propiedades (validadas): coincide con `solve_logit`
+    cuando `λ_h = 1`; es **invariante a la escala común de λ** (a diferencia del
+    logit); y separa la utilidad marginal del ingreso (λ_h) del ruido de elección
+    (β).
+
+    **Sobre el nombre.** La literatura suele llamar a esto "logit heteroscedástico"
+    por la escala por estrato en pujas, y la exposición pedagógica del proyecto usa
+    ese término. El símbolo lo evita a propósito: el supuesto de partida es
+    homoscedástico (en utilidad), y "heteroscedastic" colisiona con el **HEV** de
+    Train §4.5 — varianza distinta por *alternativa*, no por *estrato* — que **no
+    está implementado** en el core.
     """
     H_arr = np.asarray(H, dtype=float)
     S_arr = np.asarray(S, dtype=float).reshape(-1)

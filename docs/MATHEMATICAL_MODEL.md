@@ -201,10 +201,16 @@ Dos solvers comparten ese operador, cambiando solo el `score`:
 - **`logit`** (default, el solver que corre la app): `s_hi = y_h + f_h(i)/λ_h` —
   `β` uniforme sobre la puja. Inconsistente con `λ_h` heterogéneo (ver D‑08): `λ`
   escala el ruido de elección por estrato, no es un efecto‑ingreso real.
-- **`heteroscedastic`** (consistente): `s_hi = λ_h·y_h + f_h(i)` — escala por
+- **`utility_logit`** (consistente): `s_hi = λ_h·y_h + f_h(i)` — escala por
   estrato `β_h = β·λ_h`, en espacio de utilidad; corrige el `λ` heterogéneo.
   Se conserva en el core para comparación, pero su precio queda en **utiles** (no
   en $) y no se expone en la UI.
+  > **Nomenclatura.** La exposición pedagógica llama a esto "logit
+  > heteroscedástico" (por la escala por estrato en el espacio de pujas) y ese
+  > término se mantiene en tutoriales y en el Overleaf. El identificador de código
+  > lo evita: el supuesto de partida es *homoscedástico en utilidad*, y
+  > "heteroscedastic" colisiona con el **HEV** de Train §4.5 — varianza distinta
+  > por *alternativa*, no por *estrato* —, que **no está implementado** en el core.
 **Oferta `S`** (`land_use/supply.py`, ver [D‑13](DISCREPANCIES.md)): perfil
 **determinista** redondeado a `Σ S = Σ H` (CBD excluido), con **forma
 parametrizable** (`forma`): `normal` (campana, default), `uniforme`,
@@ -217,7 +223,7 @@ equilibrio de asignación según la geometría urbana.
 
 > El Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente (al dividir
 > la puja por `λ_h`, el ruido queda con escala `1/(β·λ_h)` por estrato) y sugiere
-> un **logit heteroscedástico**. Ese es el solver `heteroscedastic` (`s = λ·y + f`,
+> un **logit heteroscedástico**. Ese es el solver `utility_logit` (`s = λ·y + f`,
 > escala `β_h = β·λ_h`): coincide con `logit` cuando `λ_h = 1` y es **invariante a
 > la escala común de `λ`** (a diferencia del logit). Existe en el core pero **no se
 > expone en la UI** (precio en utiles, no integrado con el downstream en $); la app
