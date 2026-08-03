@@ -63,11 +63,17 @@ const ALLOWED: Record<string, { py: unknown; ts: unknown }> = {
   // El frontend asigna por flujos esperados (determinista, curvas de demanda
   // continuas); el core conserva la multinomial Monte Carlo del original.
   "sim.assignment": { py: "montecarlo", ts: "expected" },
+  // Escala de población: el core conserva la liviana original (500 hab/km);
+  // el frontend usa la del preset «Base» (1800) para que la congestión BPR del
+  // auto sea visible y la oferta mueva el equilibrio — S-03 de
+  // docs/ANALISIS_SENSIBILIDAD.md, reproducible con scripts/sensibilidad.py.
+  "city.densidad_hab_km": { py: 500, ts: 1800 },
   // Población de suelo: el core conserva la escala del paper (99.900); el
-  // frontend usa 10.000 para que el acoplado sea interactivo.
-  "land_use.H_por_estrato.0": { py: 33300, ts: 1000 },
-  "land_use.H_por_estrato.1": { py: 33300, ts: 4000 },
-  "land_use.H_por_estrato.2": { py: 33300, ts: 5000 },
+  // frontend usa 36.000 (= 1800 hab/km × 20 km, shares 10/40/50) en sync con
+  // city.densidad_hab_km.
+  "land_use.H_por_estrato.0": { py: 33300, ts: 3600 },
+  "land_use.H_por_estrato.1": { py: 33300, ts: 14400 },
+  "land_use.H_por_estrato.2": { py: 33300, ts: 18000 },
   // Punto fijo del suelo: presupuesto menor en el navegador.
   "land_use.max_iter": { py: 10000, ts: 2000 },
 };

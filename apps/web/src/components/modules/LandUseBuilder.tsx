@@ -102,7 +102,9 @@ export function LandUseBuilder({
           label={t("land_use.densidad_media")}
           value={densMedia}
           min={100}
-          max={1500}
+          // 3000: aire sobre el default 1800 (preset Base). Compacta (4200) se
+          // aplica por preset, no por slider.
+          max={3000}
           step={50}
           unit="hab/km"
           onChange={setDensidadMedia}

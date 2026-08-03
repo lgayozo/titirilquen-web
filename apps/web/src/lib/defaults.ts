@@ -102,8 +102,11 @@ export const defaultSimulationConfig: SimulationConfig = {
   city: {
     n_celdas: 201,
     largo_ciudad_km: 20,
-    // 500 hab/km ≈ 50 hogares por cuadra de 100 m; población = 500 × 20 km = 10.000.
-    densidad_hab_km: 500,
+    // 1800 hab/km = preset «Base» del repo (≈ 180 hogares por cuadra de 100 m);
+    // población = 1800 × 20 km = 36.000. Con la escala anterior (500) el corredor
+    // operaba a v/c 0.27 y la oferta de auto no movía el equilibrio — ver
+    // docs/ANALISIS_SENSIBILIDAD.md S-03 y scripts/sensibilidad.py del core.
+    densidad_hab_km: 1800,
     pendiente_porcentaje: 0,
     teletrabajo_factor: 1,
     share_estratos: [0.1, 0.4, 0.5],
@@ -159,8 +162,9 @@ export const defaultSimulationConfig: SimulationConfig = {
 };
 
 export const defaultLandUseConfig: LandUseConfig = {
-  // ΣH = 10.000 = 500 hab/km × 20 km (la «densidad media» default de la UI).
-  H_por_estrato: [1000, 4000, 5000],
+  // ΣH = 36.000 = 1800 hab/km × 20 km (la «densidad media» default de la UI;
+  // shares 10/40/50). En sync con city.densidad_hab_km — la app puebla desde acá.
+  H_por_estrato: [3600, 14400, 18000],
   // VESTIGIAL: la densidad por celda ahora es S/Δx (consecuencia de la oferta);
   // estos campos ya no fijan la densidad. Se conservan por compat de
   // serialización. La escala de población la fija H_por_estrato (UI: «densidad media»).
