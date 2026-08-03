@@ -28,9 +28,17 @@ export function ScenarioCard({ scenario, onRun, removable }: ScenarioCardProps) 
   // Qué se corre con él lo decide el tipo de comparación de la página.
   const onUseCurrent = () => {
     const lu = useLandUseStore.getState();
+    // C-02: snapshot de la regla de localización del Sandbox (isPost) — si el
+    // bid-rent corrió con geometría concordante, la lente Transporte usará la
+    // localización de equilibrio, igual que una corrida en el Sandbox.
+    const isPost =
+      lu.result != null &&
+      lu.result.L === currentConfig.city.n_celdas &&
+      (lu.result.result?.Q?.length ?? 0) > 0;
     setScenario(scenario.id, {
       config: currentConfig,
       landUse: lu.config,
+      localizacion: isPost ? "equilibrio" : "original",
       poblacion: lu.coupledPoblacion,
     });
   };
@@ -45,6 +53,9 @@ export function ScenarioCard({ scenario, onRun, removable }: ScenarioCardProps) 
       setScenario(scenario.id, {
         config: ttrq.config,
         landUse: ttrq.land_use ?? null,
+        // El .ttrq no registra la localización: se decide al correr (según si
+        // la tarjeta tiene resultado de suelo) — ver runOne en ComparePage.
+        localizacion: null,
         poblacion: ttrq.coupled?.poblacion,
         name: ttrq.name ?? file.name.replace(/\.ttrq\.json$/, ""),
       });

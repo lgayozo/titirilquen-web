@@ -381,7 +381,8 @@
       "total": "Total",
       "stratum": "Estrato",
       "travel_time": "Tiempo de viaje (min)",
-      "utility": "Utilidad media"
+      "utility": "Utilidad media",
+      "congestion": "Congestión (v/c corredor)"
     },
     "scenario_card": {
       "no_config": "Sin configuración. Carga un archivo o usa Transporte actual.",
@@ -432,7 +433,8 @@
       "caption": "Métricas del equilibrio final de cada escenario (última iteración exterior). Verde/rojo = mejor/peor que la base según la dirección de cada métrica; el Δ Bienestar es vs la red vacía de CADA escenario."
     },
     "processing_one": "Calculando 1 escenario…",
-    "processing_other": "Calculando {{count}} escenarios…"
+    "processing_other": "Calculando {{count}} escenarios…",
+    "export_csv": "Exportar CSV"
   },
   "coupled": {
     "eyebrow": "Análisis conjunto suelo↔transporte",

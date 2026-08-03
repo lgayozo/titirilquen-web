@@ -16,7 +16,8 @@ import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { runSimulation } from "@/lib/api";
 import { defaultLandUseConfig, solveCoupled, solveLandUse } from "@/lib/api-v2";
 import { expectedComposition } from "@/lib/citySupply";
-import { computeKPIs } from "@/lib/kpis";
+import { downloadCsv } from "@/lib/csv";
+import { computeKPIs, type ScenarioKPIs } from "@/lib/kpis";
 import { theilSegregation } from "@/lib/metrics";
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { Modo } from "@/lib/types";
@@ -112,10 +113,29 @@ export function ComparePage() {
     try {
       if (k === "transport") {
         const engine = useSimulationStore.getState().engine;
+        // C-02: misma población y localización que el Sandbox. El motor recibe
+        // el suelo de la tarjeta (puebla desde H_por_estrato) y la localización:
+        // el snapshot capturado por «Usar Transporte actual» o, si vino de
+        // archivo, «equilibrio» solo si la tarjeta ya corrió la lente de suelo.
+        const loc =
+          sc.localizacion ??
+          (sc.luResult != null &&
+          sc.luResult.L === sc.config.city.n_celdas &&
+          (sc.luResult.result?.Q?.length ?? 0) > 0
+            ? "equilibrio"
+            : "original");
         const result =
           engine === "api"
-            ? await runSimulation(sc.config)
-            : await pyodideEngine.simulate(sc.config);
+            ? // El endpoint /simulate no recibe suelo: en modo api persiste la
+              // población de densidad plana (documentado en C-02).
+              await runSimulation(sc.config)
+            : await pyodideEngine.simulateStream(
+                sc.config,
+                () => {},
+                undefined,
+                sc.landUse ?? defaultLandUseConfig,
+                loc,
+              );
         setTransportResult(id, result);
       } else if (k === "land_use") {
         const L = sc.config.city.n_celdas;
@@ -170,6 +190,7 @@ export function ComparePage() {
                 s.config.city.largo_ciudad_km,
                 s.config.city.n_celdas,
                 s.config.demand.globales.v_caminata,
+                s.config.supply.bike.capacidad_pista,
               )
             : null,
       })),
@@ -256,6 +277,64 @@ export function ComparePage() {
   const runningCount = scenarios.filter((s) => s.status === "running").length;
   const baseId = scenarios.find((s) => s.status === "done")?.id;
 
+  // C-04: export CSV de la lente activa. Para transporte el spec espeja las
+  // secciones de KPITable (mismas claves i18n); mantener ambos en sync.
+  const exportCsv = () => {
+    const MODES = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"] as const;
+    const num = (v: number | null | undefined, dec = 2): string | number =>
+      v == null || !Number.isFinite(v) ? "" : Number(v.toFixed(dec));
+    let header: (string | number)[];
+    let body: (string | number)[][];
+    if (kind === "transport") {
+      const cols = rows.filter((r) => r.kpis);
+      header = [t("compare.kpi.metric"), ...cols.map((c) => c.name)];
+      const fila = (
+        seccion: string,
+        metrica: string,
+        valueOf: (k: ScenarioKPIs) => number | null,
+        dec = 2,
+      ): (string | number)[] => [
+        `${seccion} · ${metrica}`,
+        ...cols.map((c) => num(valueOf(c.kpis!), dec)),
+      ];
+      body = [
+        ...MODES.map((m) =>
+          fila(t("compare.kpi.modal_share"), `% ${t(`modes.${m.toLowerCase()}`)}`, (k) => k.modal_share[m] * 100, 1),
+        ),
+        ...MODES.slice(0, 4).map((m) =>
+          fila(t("compare.kpi.mean_time"), `${t(`modes.${m.toLowerCase()}`)} (min)`, (k) => k.tiempo_medio_min[m], 1),
+        ),
+        fila(t("compare.kpi.operation"), t("compare.kpi.metro_freq"), (k) => k.frecuencia_metro, 1),
+        fila(t("compare.kpi.operation"), t("compare.kpi.final_residual"), (k) => k.residuo_final, 3),
+        fila(t("compare.kpi.operation"), t("compare.kpi.physical_trips"), (k) => k.viajes_fisicos, 0),
+        fila(t("compare.kpi.congestion"), t("metrics_table.vc_auto"), (k) => k.vc_auto),
+        fila(t("compare.kpi.congestion"), t("metrics_table.vc_bici"), (k) => k.vc_bici),
+        fila(t("compare.kpi.emissions"), `${t("compare.kpi.total")} (kg/h)`, (k) => k.co2_total, 0),
+        fila(t("compare.kpi.emissions"), `${t("modes.auto")} (kg/h)`, (k) => k.co2_auto, 0),
+        fila(t("compare.kpi.emissions"), `${t("modes.metro")} (kg/h)`, (k) => k.co2_metro, 0),
+        ...([1, 2, 3] as const).flatMap((s) => {
+          const sec = `${t("compare.kpi.stratum")} ${s}`;
+          return [
+            fila(sec, `${t("compare.kpi.travel_time")} (min)`, (k) => k.by_stratum[s].mean_time_min, 1),
+            fila(sec, t("compare.kpi.utility"), (k) => k.by_stratum[s].mean_utility),
+            ...MODES.slice(0, 4).map((m) =>
+              fila(sec, `% ${t(`modes.${m.toLowerCase()}`)}`, (k) => k.by_stratum[s].modal_share[m] * 100, 1),
+            ),
+          ];
+        }),
+      ];
+    } else if (kind === "land_use") {
+      const cols = luCols.filter((c) => c.values);
+      header = [t("compare.kpi.metric"), ...cols.map((c) => c.name)];
+      body = luRows.map((r) => [r.label, ...cols.map((c) => num(c.values![r.key] ?? null, 3))]);
+    } else {
+      const cols = cpCols.filter((c) => c.values);
+      header = [t("compare.kpi.metric"), ...cols.map((c) => c.name)];
+      body = cpRows.map((r) => [r.label, ...cols.map((c) => num(c.values![r.key] ?? null, 3))]);
+    }
+    downloadCsv(`comparacion-${kind}`, [header, ...body]);
+  };
+
   return (
     <div className="main" style={{ padding: "var(--pad)", maxWidth: 1600, margin: "0 auto" }}>
       <div className="hero">
@@ -341,6 +420,11 @@ export function ComparePage() {
           <span className="font-fig text-[11px] uppercase tracking-[0.08em] text-muted">
             {t("compare.ready_count", { done: doneCount, total: scenarios.length })}
           </span>
+        )}
+        {doneCount > 0 && (
+          <button type="button" onClick={exportCsv} className="btn ml-auto">
+            ↓ {t("compare.export_csv")}
+          </button>
         )}
       </div>
 

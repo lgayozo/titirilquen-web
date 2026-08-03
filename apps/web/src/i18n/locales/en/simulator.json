@@ -381,7 +381,8 @@
       "total": "Total",
       "stratum": "Stratum",
       "travel_time": "Travel time (min)",
-      "utility": "Mean utility"
+      "utility": "Mean utility",
+      "congestion": "Congestion (corridor v/c)"
     },
     "scenario_card": {
       "no_config": "No configuration. Load a file or use the current transport.",
@@ -432,7 +433,8 @@
       "caption": "Final-equilibrium metrics for each scenario (last outer iteration). Green/red = better/worse than the baseline per metric direction; Δ Welfare is vs EACH scenario's own empty network."
     },
     "processing_one": "Computing 1 scenario…",
-    "processing_other": "Computing {{count}} scenarios…"
+    "processing_other": "Computing {{count}} scenarios…",
+    "export_csv": "Export CSV"
   },
   "coupled": {
     "eyebrow": "Joint land-use↔transport analysis",

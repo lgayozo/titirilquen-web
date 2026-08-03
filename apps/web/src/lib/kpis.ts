@@ -23,6 +23,10 @@ export interface ScenarioKPIs {
   tiempo_medio_min: Record<Modo, number>;
   frecuencia_metro: number;
   residuo_final: number | null;
+  /** v/c del corredor en el equilibrio (flujo máx acumulado hacia el CBD /
+   * capacidad direccional). null si el trace no trae flujos (wheel antiguo). */
+  vc_auto: number | null;
+  vc_bici: number | null;
   co2_total: number;
   co2_auto: number;
   co2_metro: number;
@@ -64,6 +68,9 @@ export function computeKPIs(
   // Velocidad de caminata DEL ESCENARIO (config.demand.globales.v_caminata):
   // antes estaba hardcodeada en 4.8 y los KPIs de Comparar la ignoraban.
   vCaminata = 4.8,
+  // Capacidad de la ciclovía DEL ESCENARIO (config.supply.bike.capacidad_pista),
+  // denominador del v/c bici; sin ella el ratio queda null.
+  capacidadBici?: number,
 ): ScenarioKPIs {
   const lastIter = result.iteraciones.at(-1);
   const modal_share = zeroModes();
@@ -125,6 +132,16 @@ export function computeKPIs(
     return acc;
   }, {} as Record<StratumId, StratumKPIs>);
 
+  // v/c del corredor: flujo acumulado hacia el CBD (no demanda originada).
+  const vc_auto =
+    result.flujos_auto_veh_h?.length && result.capacidad_auto > 0
+      ? Math.max(...result.flujos_auto_veh_h) / result.capacidad_auto
+      : null;
+  const vc_bici =
+    result.flujos_bici_veh_h?.length && capacidadBici && capacidadBici > 0
+      ? Math.max(...result.flujos_bici_veh_h) / capacidadBici
+      : null;
+
   return {
     total_agentes: total,
     viajes_fisicos: viajesFisicos,
@@ -132,6 +149,8 @@ export function computeKPIs(
     tiempo_medio_min,
     frecuencia_metro: lastIter?.frecuencia_metro ?? 0,
     residuo_final: lastIter?.residuo ?? null,
+    vc_auto,
+    vc_bici,
     co2_total: result.emisiones_total_kg ?? 0,
     co2_auto: result.emisiones_auto_kg ?? 0,
     co2_metro: result.emisiones_metro_kg ?? 0,

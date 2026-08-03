@@ -99,6 +99,34 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
             />
           </Section>
 
+          {/* v/c del corredor (flujo máx acumulado/capacidad) — recién posible
+              desde que el trace expone los flujos (S-01). NaN ⇒ "—" (wheel
+              antiguo o resultado importado sin flujos). */}
+          <Section label={t("compare.kpi.congestion")}>
+            <KPIRow
+              label={t("metrics_table.vc_auto")}
+              scenarios={scenarios}
+              valueOf={(kpi) => kpi.vc_auto ?? NaN}
+              baseKpis={base?.kpis ?? null}
+              formatter={(v) => (Number.isFinite(v) ? `${v.toFixed(2)}×` : "—")}
+              deltaFormatter={(d) =>
+                Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
+              }
+              invertedSign
+            />
+            <KPIRow
+              label={t("metrics_table.vc_bici")}
+              scenarios={scenarios}
+              valueOf={(kpi) => kpi.vc_bici ?? NaN}
+              baseKpis={base?.kpis ?? null}
+              formatter={(v) => (Number.isFinite(v) ? `${v.toFixed(2)}×` : "—")}
+              deltaFormatter={(d) =>
+                Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
+              }
+              invertedSign
+            />
+          </Section>
+
           <Section label={t("compare.kpi.emissions")}>
             <KPIRow
               label={t("compare.kpi.total")}

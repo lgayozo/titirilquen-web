@@ -29,6 +29,10 @@ export interface Scenario {
   config: SimulationConfig | null;
   /** Config de uso de suelo (null ⇒ defaults al correr suelo/acoplado). */
   landUse: LandUseConfig | null;
+  /** Localización de estratos para la lente Transporte (C-02): snapshot de la
+   * regla del Sandbox al capturar con «Usar Transporte actual». null ⇒ se
+   * decide al correr según si la tarjeta tiene resultado de suelo. */
+  localizacion: "equilibrio" | "original" | null;
   /** Población del escenario acoplado (escala H_por_estrato). */
   poblacion: number;
   /** Resultados por tipo de comparación. */
@@ -47,6 +51,7 @@ function emptyScenario(id: string): Scenario {
     name: "",
     config: null,
     landUse: null,
+    localizacion: null,
     poblacion: DEFAULT_POBLACION,
     result: null,
     luResult: null,
@@ -75,6 +80,7 @@ interface CompareState {
     payload: {
       config: SimulationConfig;
       landUse?: LandUseConfig | null;
+      localizacion?: "equilibrio" | "original" | null;
       poblacion?: number;
       name?: string;
     },
@@ -139,6 +145,8 @@ export const useCompareStore = create<CompareState>((set) => ({
               ...sc,
               config: payload.config,
               landUse: payload.landUse ?? sc.landUse,
+              localizacion:
+                payload.localizacion !== undefined ? payload.localizacion : sc.localizacion,
               poblacion: payload.poblacion ?? sc.poblacion,
               ...(payload.name !== undefined ? { name: payload.name } : {}),
               result: null,
