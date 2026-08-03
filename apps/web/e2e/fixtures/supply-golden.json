@@ -1,5 +1,5 @@
 {
- "_": "Generado por el core Python (fuente de verdad). NO editar a mano; regenerar con el script de tests/test_contract_frontend.py.",
+ "_": "Generado por el core Python (fuente de verdad). NO editar a mano; regenerar con: uv run --extra dev python tests/test_contract_frontend.py",
  "cases": [
   {
    "forma": "normal",

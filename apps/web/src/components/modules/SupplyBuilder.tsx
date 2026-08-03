@@ -14,6 +14,15 @@ interface SupplyBuilderProps {
   };
 }
 
+/** Espejo de display de la capacidad Greenshields de supply/car.py
+ * (q_max = k_j·v_l/4, con el factor de ancho escalonado). Solo para el hint
+ * del sidebar — la matemática vive en el core. */
+function capGreenshields(car: SimulationConfig["supply"]["car"]): number {
+  const fa = car.ancho_pista_m >= 3.5 ? 1.0 : car.ancho_pista_m >= 3 ? 0.9 : 0.75;
+  const kJam = 1000 / (car.largo_vehiculo_m + car.gap_m);
+  return Math.round((kJam * car.v_max_kmh * fa) / 4);
+}
+
 export function SupplyBuilder({
   config,
   onChange,
@@ -66,6 +75,39 @@ export function SupplyBuilder({
           unit="m"
           onChange={(v) => setSupply("car", { ancho_pista_m: v })}
         />
+        {/* S-04: capacidad por pista desacoplada de la velocidad. Apagado ⇒
+            Greenshields (C ∝ v_libre, la velocidad nunca empeora congestión). */}
+        <label className="mt-1 flex items-center gap-2 text-[11px] text-[var(--ink-2)]">
+          <input
+            type="checkbox"
+            checked={car.capacidad_pista != null}
+            onChange={(e) =>
+              setSupply("car", {
+                // Al activar, partir del valor Greenshields actual redondeado.
+                capacidad_pista: e.target.checked ? capGreenshields(car) : null,
+              })
+            }
+          />
+          {t("supply_params.car.cap_manual")}
+        </label>
+        {car.capacidad_pista != null ? (
+          <LabeledSlider
+            label={t("supply_params.car.capacidad_pista")}
+            value={car.capacidad_pista}
+            min={300}
+            max={4000}
+            step={50}
+            unit="veh/h"
+            hint={t("supply_params.car.cap_manual_hint")}
+            onChange={(v) => setSupply("car", { capacidad_pista: v })}
+          />
+        ) : (
+          <p className="mb-2 text-[10px] leading-snug text-muted">
+            {t("supply_params.car.cap_greenshields", {
+              cap: capGreenshields(car).toLocaleString("es-CL"),
+            })}
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <LabeledSlider
             label="α BPR"

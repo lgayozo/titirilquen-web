@@ -59,7 +59,11 @@
       "ancho_pista_m": "Lane width (m)",
       "largo_vehiculo_m": "Vehicle length (m)",
       "gap_m": "Minimum gap (m)",
-      "num_pistas_hint": "Only helps if cars are congested (high v/c). With low car demand, adding lanes barely changes anything."
+      "num_pistas_hint": "Only helps if cars are congested (high v/c). With low car demand, adding lanes barely changes anything.",
+      "cap_manual": "Manual capacity (decoupled from speed)",
+      "capacidad_pista": "Capacity per lane",
+      "cap_manual_hint": "Fixed capacity: raising speed no longer increases it (S-04).",
+      "cap_greenshields": "Greenshields capacity: {{cap}} veh/h per lane (∝ free-flow speed — raising v_max also raises capacity)."
     },
     "train": {
       "v_tren_kmh": "Train speed (km/h)",

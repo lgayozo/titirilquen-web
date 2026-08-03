@@ -215,6 +215,7 @@ def _tiempos_red_vacia(
         num_pistas=car_p.num_pistas,
         alpha_bpr=car_p.alpha_bpr,
         beta_bpr=car_p.beta_bpr,
+        capacidad_pista=car_p.capacidad_pista,
     )
     bike0 = demora_bici_tramo(
         ubicacion_centro_km=ciudad.cbd_km,

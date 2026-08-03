@@ -27,7 +27,8 @@
     "gap_m": 2.0,
     "num_pistas": 2,
     "alpha_bpr": 0.8,
-    "beta_bpr": 2.0
+    "beta_bpr": 2.0,
+    "capacidad_pista": null
    },
    "train": {
     "v_tren_kmh": 35,

@@ -59,7 +59,11 @@
       "ancho_pista_m": "Ancho de pista (m)",
       "largo_vehiculo_m": "Largo vehículo (m)",
       "gap_m": "Gap mínimo (m)",
-      "num_pistas_hint": "Solo alivia si el auto está congestionado (v/c alto). Con poca demanda de auto, agregar pistas casi no cambia nada."
+      "num_pistas_hint": "Solo alivia si el auto está congestionado (v/c alto). Con poca demanda de auto, agregar pistas casi no cambia nada.",
+      "cap_manual": "Capacidad manual (desacoplada de la velocidad)",
+      "capacidad_pista": "Capacidad por pista",
+      "cap_manual_hint": "Capacidad fija: subir la velocidad ya no la aumenta (S-04).",
+      "cap_greenshields": "Capacidad Greenshields: {{cap}} veh/h por pista (∝ velocidad libre — subir v_max también sube la capacidad)."
     },
     "train": {
       "v_tren_kmh": "Velocidad tren (km/h)",

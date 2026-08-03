@@ -81,6 +81,9 @@ export interface CarSupplyParams {
   num_pistas: number;
   alpha_bpr: number;
   beta_bpr: number;
+  /** Capacidad por pista (veh/h). null ⇒ Greenshields (C ∝ v_libre); un valor
+   *  explícito desacopla capacidad de velocidad — S-04. */
+  capacidad_pista: number | null;
 }
 
 export interface TrainSupplyParams {

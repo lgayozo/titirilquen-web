@@ -42,11 +42,14 @@ def demora_auto_tramo(
     num_pistas: int,
     alpha_bpr: float,
     beta_bpr: float,
+    capacidad_pista: float | None = None,
 ) -> CarSupplyResult:
     f_a = _factor_ancho(ancho_pista_m)
     v_l = v_max_kmh * f_a
     densidad_emb = 1000 / (largo_vehiculo_m + gap_m)
-    cap_pista = (densidad_emb * v_l) / 4
+    # S-04: capacidad explícita desacoplada de la velocidad; None conserva
+    # Greenshields (q_max = k_j·v_l/4), donde C ∝ v_l.
+    cap_pista = capacidad_pista if capacidad_pista is not None else (densidad_emb * v_l) / 4
     num_pistas = max(1, num_pistas)
     capacidad_direccion = cap_pista * num_pistas
 

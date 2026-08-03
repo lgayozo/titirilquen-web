@@ -126,6 +126,8 @@ export const defaultSimulationConfig: SimulationConfig = {
       num_pistas: 2,
       alpha_bpr: 0.8,
       beta_bpr: 2,
+      // null = Greenshields (capacidad acoplada a la velocidad); manual = S-04.
+      capacidad_pista: null,
     },
     train: {
       v_tren_kmh: 35,

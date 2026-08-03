@@ -162,6 +162,11 @@ class CarSupplyParams(BaseModel):
     num_pistas: int = Field(default=2, ge=1)
     alpha_bpr: float = 0.8
     beta_bpr: float = 2.0
+    # Capacidad por pista (veh/h). None ⇒ Greenshields q_max = k_j·v_l/4, que
+    # ACOPLA capacidad y velocidad (subir v_max sube C en igual proporción y la
+    # velocidad nunca puede empeorar la congestión). Un valor explícito separa
+    # C de v_f como en la BPR estándar — ver docs/ANALISIS_SENSIBILIDAD.md S-04.
+    capacidad_pista: float | None = Field(default=None, gt=0)
 
 
 class TrainSupplyParams(BaseModel):
