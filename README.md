@@ -12,8 +12,7 @@ titirilquen-web/
 │   ├── web/              Vite + React 18 + TypeScript (frontend)
 │   └── api/              FastAPI (backend opcional)
 ├── packages/
-│   ├── titirilquen_core/ Núcleo científico Python (compartido por Pyodide y API)
-│   └── shared-types/     Tipos TS generados desde Pydantic
+│   └── titirilquen_core/ Núcleo científico Python (compartido por Pyodide y API)
 └── docs/                 Documentación viva (discrepancias, modelo, tutoriales)
 ```
 
@@ -35,15 +34,19 @@ titirilquen-web/
 
 ## Requisitos
 
-- Node.js ≥ 20, pnpm ≥ 9
-- Python ≥ 3.11
+- Node.js ≥ 20, npm ≥ 10
+- Python ≥ 3.11 (solo para el backend opcional y los tests del núcleo; el
+  frontend corre el mismo núcleo en el navegador vía Pyodide)
 
 ## Inicio rápido
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
+
+> El gestor de paquetes del monorepo es **npm** (hay `package-lock.json` y los
+> scripts raíz usan `npm --workspace`). No uses pnpm ni yarn.
 
 ## Documentación
 

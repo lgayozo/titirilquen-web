@@ -10,7 +10,7 @@ Idioma del código y la documentación: **español** (comentarios, docs, mensaje
 
 ## Comandos
 
-Gestor de paquetes JS: **npm** (hay `package-lock.json`; el `README` menciona pnpm pero los scripts raíz usan `npm --workspace`).
+Gestor de paquetes JS: **npm** (hay `package-lock.json` y los scripts raíz usan `npm --workspace`). No uses pnpm ni yarn.
 
 Frontend E2E (Playwright, en `apps/web/`):
 - `npm run test:e2e` — toda la suite (levanta Vite solo) · `npm run test:e2e:fast` — excluye `@slow` · `npm run test:e2e:ui` — modo UI
