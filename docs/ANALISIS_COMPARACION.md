@@ -8,12 +8,12 @@ La comparación de escenarios es el cierre pedagógico del simulador: ahí es do
 (4 tarjetas × 3 lentes) pero tiene una inconsistencia de población que puede
 producir conclusiones falsas (C-02) y varios costos de fricción.
 
-| ID | Problema | Prioridad propuesta |
+| ID | Problema | Estado |
 |---|---|---|
-| C-01 | Base de comparación implícita, no seleccionable | P1 |
-| C-02 | La lente Transporte corre sin `land_use`: población distinta al Sandbox | **P0 (corrección)** |
-| C-03 | Sin detección de staleness en tarjetas | P1 |
-| C-04 | Sin export CSV de la comparación | P0 |
+| C-01 | Base de comparación implícita, no seleccionable | P1 (pendiente) |
+| C-02 | La lente Transporte corre sin `land_use`: población distinta al Sandbox | **CORREGIDO** (it. 3; paridad exacta verificada, salvo modo engine=api) |
+| C-03 | Sin detección de staleness en tarjetas | P1 (pendiente) |
+| C-04 | Sin export CSV de la comparación | **CORREGIDO** (it. 3, + fila v/c en KPITable) |
 | C-05 | Sin cancelación ni feedback de cola | P2 |
 | C-06 | `outer_max_iter` incoherente (12 al exportar vs 8 al correr) | P2 (corrección) |
 | C-07 | Colores hex fijos fuera del sistema de temas | P2 |

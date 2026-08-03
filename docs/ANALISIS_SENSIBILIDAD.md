@@ -11,7 +11,7 @@ reproduce con `packages/titirilquen_core/scripts/sensibilidad.py`.
 | S-01 | KPI v/c usaba demanda originada en vez de flujo de corredor (subestima ~62×) | **CORREGIDO** (it. 2) |
 | S-02 | NetworkDiagram dividía la capacidad dos veces por `num_pistas` | **CORREGIDO** (it. 2) |
 | S-03 | Escala default (500 hab/km) dejaba la BPR del auto sin morder | **CORREGIDO** (it. 2) |
-| S-04 | Capacidad del auto acoplada a la velocidad (`cap_pista ∝ v_l`) | PROPUESTA it. 3 |
+| S-04 | Capacidad del auto acoplada a la velocidad (`cap_pista ∝ v_l`) | **CORREGIDO** (it. 3: `capacidad_pista` opcional) |
 | S-05 | Parámetros muertos o inertes en el schema | DOCUMENTADO |
 | S-06 | Vacío de normalización de unidades (viajes/período vs veh/h) | DOCUMENTADO |
 | S-07 | Metro: `capacidad_tren` con signo invertido y sin hacinamiento | PROPUESTA it. 3 |
@@ -113,15 +113,18 @@ registrada en `contract.spec.ts`; tutorial 02-city actualizado. El core conserva
 la escala liviana (500) — la divergencia es deliberada y está documentada.
 Costo verificado: corridas ~20 s post-boot (antes ~8 s) con 36.000 agentes.
 
-### S-04 — Capacidad acoplada a la velocidad [PROPUESTA it. 3]
+### S-04 — Capacidad acoplada a la velocidad [CORREGIDO it. 3]
 
 `car.py`: `cap_pista = k_e·v_l/4` — es el q_max de Greenshields, correcto en
 teoría, pero convierte a `v_max_kmh` en una palanca doble: subir la velocidad sube
 la capacidad en la misma proporción, así que **la velocidad nunca puede empeorar
 la congestión** (medido: v/c cae de 0.27 a 0.10 al pasar de 31 a 80 km/h). En una
-BPR estándar `v_f` y `C` son parámetros separables. Propuesta: exponer
-`cap_pista` como parámetro directo (o un factor de capacidad), manteniendo
-Greenshields como default informado.
+BPR estándar `v_f` y `C` son parámetros separables. **Corregido en it. 3**:
+`CarSupplyParams.capacidad_pista: float | None` — `None` conserva Greenshields
+exacto (default retrocompatible); un valor explícito fija C independiente de
+v_f (checkbox «capacidad manual» + slider en el Sandbox). Verificado: cap 600 +
+v_max 60 → capacidad 1200 con v_libre 60 y v/c 1.77 — «vía rápida y saturada»,
+el régimen antes inexpresable.
 
 ## 3. Tabla parámetro → efecto medido → veredicto
 

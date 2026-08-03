@@ -8,11 +8,11 @@ La premisa del análisis: la herramienta es **pedagógica** — el usuario objet
 un estudiante que entra por primera vez, y el éxito se mide en cuán rápido pasa de
 «pantalla llena de sliders» a «entiendo qué palanca mueve qué resultado y por qué».
 
-| ID | Fricción | Prioridad propuesta |
+| ID | Fricción | Estado |
 |---|---|---|
-| F-01 | Presets invisibles (existen en código, sin UI) | P0 |
-| F-02 | Tutorial desconectado de los módulos | P0 |
-| F-03 | Boot de Pyodide sin precarga ni progreso | P0 |
+| F-01 | Presets invisibles (existen en código, sin UI) | **RESUELTO** (it. 3: PresetGallery en el Sandbox) |
+| F-02 | Tutorial desconectado de los módulos | **RESUELTO** (it. 3: `<LoadScenario>` en las actividades) |
+| F-03 | Boot de Pyodide sin precarga ni progreso | **RESUELTO** (it. 3: preboot + etapas + cancel cooperativo) |
 | F-04 | Sidebar colapsado, sin CTA de simulación | P1 |
 | F-05 | Errores crudos sin traducir | P2 |
 | F-06 | Sin persistencia de sesión; share sin comprimir | P1/P2 |

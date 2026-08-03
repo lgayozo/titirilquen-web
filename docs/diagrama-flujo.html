@@ -174,11 +174,12 @@ const NODOS = [
              "Muestra sin-feedback vs con-feedback y el reporte EquilibriumMetrics.",
     conecta: ["lu-store"] },
   { id: "compare", capa: 0, titulo: "ComparePage (Comparar)", archivo: "apps/web/src/pages/ComparePage.tsx",
-    seccion: "—", estado: "discrepancia", refs: ["C-02"],
+    seccion: "—", estado: "infra", refs: ["C-02"],
     ecuacion: "hasta 4 escenarios × 3 lentes (transporte / suelo / acoplado)",
-    detalle: "La lente Transporte corre simulate(sc.config) SIN land_use: población distinta " +
-             "a la del Sandbox — el «mismo escenario» da otro resultado (C-02 de " +
-             "ANALISIS_COMPARACION.md). Base de comparación implícita, sin CSV, sin cancelar.",
+    detalle: "C-02 corregido (it. 3): la lente Transporte recibe el land_use de la tarjeta y " +
+             "la localización del Sandbox — paridad exacta verificada (persiste solo en modo " +
+             "engine=api). Con export CSV y fila de congestión v/c. Pendientes: base " +
+             "seleccionable (C-01), staleness (C-03), cancelación (C-05).",
     conecta: ["compare-store"] },
 
   // Capa 2 — estado y espejos
@@ -269,9 +270,9 @@ const NODOS = [
     seccion: "§4.2 / §7.2", estado: "divergencia", refs: ["S-04"],
     ecuacion: "Q = k<sub>e</sub>·v<sub>l</sub>/4 · cap = Q·N<sub>pistas</sub> · t = t₀(1 + α(q/cap)<sup>β</sup>), q = cumsum→CBD",
     detalle: "Greenshields + BPR con factor de ancho escalonado (1.0/0.9/0.75). " +
-             "Divergencia S-04: cap_pista ∝ v_l — subir la velocidad sube la capacidad en la " +
-             "misma proporción, así que la velocidad nunca puede empeorar la congestión " +
-             "(en BPR estándar v_f y C son separables). Propuesta para iteración 3.",
+             "S-04 (resuelto it. 3): capacidad_pista opcional desacopla C de v_l — None " +
+             "conserva Greenshields (C ∝ v_l, la velocidad nunca empeoraba la congestión); " +
+             "un valor explícito fija C como en la BPR estándar.",
     conecta: [] },
   { id: "bike", capa: 4, titulo: "Oferta — bicicleta", archivo: "packages/…/supply/bike.py",
     seccion: "§4.1 / §7.1", estado: "fiel", refs: ["R-1", "R-7", "D-15", "D-21"],
