@@ -3,10 +3,12 @@
  * simétrica a `api.ts` / `api-v2.ts` para que los stores no necesiten saber
  * qué motor está detrás.
  *
- * Cancelación: Pyodide no puede interrumpirse a mitad de un cómputo, así que
- * cancelar (vía `AbortSignal` o `cancelAll()`) **termina el worker** y rechaza
- * todas las promesas pendientes con `AbortError`; el próximo uso re-inicializa
- * Pyodide (la UI ya tiene estado "booting" para ese caso).
+ * Cancelación (F-03): cooperativa. El `AbortSignal` envía un mensaje "cancel"
+ * y el loop de streaming del worker se detiene en el próximo borde de
+ * iteración — el worker y Pyodide SOBREVIVEN, así que relanzar no re-paga el
+ * boot (~10-20 s). Una iteración en curso no puede interrumpirse (Pyodide es
+ * síncrono): la cancelación toma efecto en ~1 iteración. `cancelAll()` queda
+ * como opción nuclear que sí termina el worker.
  */
 
 import type { IterationSnapshot, SimulationConfig, SimulationResult } from "@/lib/types";
@@ -17,8 +19,11 @@ import type {
   OuterIteration,
 } from "@/lib/types-v2";
 
+export type BootStage = "runtime" | "packages" | "wheel";
+
 type WorkerOutMsg =
   | { id: string; type: "ready" }
+  | { id: string; type: "bootStage"; stage: BootStage }
   | { id: string; type: "iteration"; snapshot: IterationSnapshot }
   | { id: string; type: "done"; result: SimulationResult }
   | { id: string; type: "landUseDone"; result: LandUseSolveResponse }
@@ -41,7 +46,8 @@ type WorkerInMsg =
       type: "landUseSolve";
       req: { L: number; CBD: number; largo_km: number; land_use: LandUseConfig };
     }
-  | { id: string; type: "coupledStream"; req: CoupledRequest };
+  | { id: string; type: "coupledStream"; req: CoupledRequest }
+  | { id: string; type: "cancel"; targetId: string };
 
 function abortError(): Error {
   return new DOMException("Corrida cancelada", "AbortError");
@@ -57,15 +63,35 @@ class PyodideEngine {
   private nextId = 0;
   /** Corridas en vuelo: cómo rechazarlas y desuscribir sus listeners. */
   private pending = new Map<string, { reject: (e: Error) => void; cleanup: () => void }>();
+  /** Etapa del boot en curso (null cuando terminó) — para el indicador F-03. */
+  private bootStage: BootStage | null = null;
+  private bootListeners = new Set<() => void>();
 
   private ensureWorker(): Worker {
     if (!this.worker) {
       this.worker = new Worker(new URL("../workers/pyodide.worker.ts", import.meta.url), {
         type: "module",
       });
+      // Listener persistente del progreso de boot (id "boot", broadcast).
+      this.worker.addEventListener("message", (ev: MessageEvent<WorkerOutMsg>) => {
+        if (ev.data.type === "bootStage") {
+          this.bootStage = ev.data.stage;
+          this.bootListeners.forEach((cb) => cb());
+        } else if (ev.data.type === "ready") {
+          this.bootStage = null;
+          this.bootListeners.forEach((cb) => cb());
+        }
+      });
     }
     return this.worker;
   }
+
+  /** Estado del boot para useSyncExternalStore (RunStatus). */
+  getBootStage = (): BootStage | null => this.bootStage;
+  subscribeBoot = (cb: () => void): (() => void) => {
+    this.bootListeners.add(cb);
+    return () => this.bootListeners.delete(cb);
+  };
 
   async init(): Promise<void> {
     if (this.ready) return this.ready;
@@ -113,7 +139,18 @@ class PyodideEngine {
     const worker = this.ensureWorker();
     const id = String(this.nextId++);
     return new Promise<T>((resolve, reject) => {
-      const onAbort = () => this.cancelAll();
+      // Cancelación cooperativa POR CORRIDA (F-03): el worker se detiene en el
+      // próximo borde de iteración y sigue vivo; la promesa se rechaza ya.
+      const onAbort = () => {
+        const cancelMsg: WorkerInMsg = {
+          id: String(this.nextId++),
+          type: "cancel",
+          targetId: id,
+        };
+        worker.postMessage(cancelMsg);
+        cleanup();
+        reject(abortError());
+      };
       const cleanup = () => {
         worker.removeEventListener("message", onMsg);
         signal?.removeEventListener("abort", onAbort);

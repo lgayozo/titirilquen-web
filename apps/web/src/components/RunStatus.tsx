@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { IterationSnapshot, Modo } from "@/lib/types";
 
 interface RunStatusProps {
@@ -48,11 +49,18 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
 
   const pct = total > 0 ? Math.min(100, (current / total) * 100) : 0;
 
+  // Etapa del boot de Pyodide (F-03): runtime → paquetes → wheel.
+  const bootStage = useSyncExternalStore(
+    pyodideEngine.subscribeBoot,
+    pyodideEngine.getBootStage,
+  );
+
   const phaseLabel = (() => {
     if (stage === "booting") {
-      return engine === "local"
-        ? t("run_status.booting_pyodide")
-        : t("run_status.connecting_api");
+      if (engine !== "local") return t("run_status.connecting_api");
+      return bootStage
+        ? `${t("run_status.booting_pyodide")} · ${t(`run_status.boot_stage.${bootStage}`)}`
+        : t("run_status.booting_pyodide");
     }
     if (stage === "running") {
       if (current === 0) return t("run_status.generating_population");

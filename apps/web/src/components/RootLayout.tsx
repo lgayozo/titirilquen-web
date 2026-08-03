@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import fcfmLogo from "@/assets/fcfm.png";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ScenarioToolbar } from "@/components/ScenarioToolbar";
+import { pyodideEngine } from "@/lib/pyodide-engine";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { cn } from "@/lib/cn";
 import { scenarioFromUrlParam } from "@/lib/serialization";
@@ -54,6 +55,17 @@ export function RootLayout() {
       // ignore malformed state
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // F-03: precarga del worker de Pyodide al montar la app, para que el
+  // estudiante no pague los ~10-20 s de boot DENTRO de su primera corrida.
+  // Con retardo para no competir con el primer render; errores silenciosos
+  // (sin red el boot fallará igual al simular, y ahí sí se muestra).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void pyodideEngine.init().catch(() => {});
+    }, 1200);
+    return () => clearTimeout(timer);
   }, []);
 
   return (

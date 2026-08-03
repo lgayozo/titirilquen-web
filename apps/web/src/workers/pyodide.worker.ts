@@ -42,10 +42,15 @@ type InMsg =
       type: "landUseSolve";
       req: { L: number; CBD: number; land_use: LandUseConfig };
     }
-  | { id: string; type: "coupledStream"; req: CoupledRequest };
+  | { id: string; type: "coupledStream"; req: CoupledRequest }
+  /** Cancelación cooperativa (F-03): marca la corrida `targetId` para que su
+   *  loop de streaming se detenga en el próximo borde de iteración, SIN
+   *  terminar el worker (Pyodide sobrevive; no se re-paga el boot). */
+  | { id: string; type: "cancel"; targetId: string };
 
 type OutMsg =
   | { id: string; type: "ready" }
+  | { id: string; type: "bootStage"; stage: "runtime" | "packages" | "wheel" }
   | { id: string; type: "iteration"; snapshot: IterationSnapshot }
   | { id: string; type: "done"; result: SimulationResult }
   | { id: string; type: "landUseDone"; result: LandUseSolveResponse }
@@ -79,21 +84,32 @@ function post(msg: OutMsg): void {
   self.postMessage(msg);
 }
 
+/** Corridas marcadas para cancelar (F-03). Los loops de streaming ceden el
+ * event loop entre iteraciones (yield0) para que el mensaje "cancel" pueda
+ * procesarse mientras corren; sin ese yield el loop es síncrono y el mensaje
+ * quedaría encolado hasta el final. */
+const cancelledIds = new Set<string>();
+
+const yield0 = () => new Promise<void>((r) => setTimeout(r, 0));
+
 async function init(): Promise<void> {
   if (pyodide) return;
 
   // En module workers no existe `importScripts`. Usamos la build .mjs que
   // Pyodide distribuye para contextos ESM. `@vite-ignore` evita que Vite
   // intente resolver/bundlear la URL remota.
+  post({ id: "boot", type: "bootStage", stage: "runtime" });
   const mod = (await import(/* @vite-ignore */ `${PYODIDE_CDN}pyodide.mjs`)) as {
     loadPyodide: LoadPyodide;
   };
   const py = await mod.loadPyodide({ indexURL: PYODIDE_CDN });
   pyodide = py;
 
+  post({ id: "boot", type: "bootStage", stage: "packages" });
   await py.loadPackage(["micropip", "numpy", "scipy"]);
 
   // Descargar y registrar el wheel del core.
+  post({ id: "boot", type: "bootStage", stage: "wheel" });
   const whlUrl = new URL("/pyodide/titirilquen_core-0.1.0-py3-none-any.whl", self.location.origin)
     .toString();
 
@@ -270,6 +286,12 @@ function jsFromPy(value: unknown): unknown {
 self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
   const msg = ev.data;
   try {
+    // La cancelación no necesita Pyodide y debe procesarse aunque el init
+    // esté en curso: antes del await.
+    if (msg.type === "cancel") {
+      cancelledIds.add(msg.targetId);
+      return;
+    }
     await init();
     if (msg.type === "init") {
       post({ id: msg.id, type: "ready" });
@@ -297,11 +319,18 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
         [Symbol.iterator](): Iterator<unknown>;
       };
       const iter = gen[Symbol.iterator]();
-      while (true) {
-        const { value, done } = iter.next();
-        if (done) break;
-        const snapshot = jsFromPy(value) as IterationSnapshot;
-        post({ id: msg.id, type: "iteration", snapshot });
+      try {
+        while (true) {
+          const { value, done } = iter.next();
+          if (done) break;
+          const snapshot = jsFromPy(value) as IterationSnapshot;
+          post({ id: msg.id, type: "iteration", snapshot });
+          // Ceder el event loop: permite procesar un "cancel" en vuelo.
+          await yield0();
+          if (cancelledIds.delete(msg.id)) return;
+        }
+      } finally {
+        (gen as { destroy?: () => void }).destroy?.();
       }
       // El trace completo (agentes, carga_metro final, emisiones) ya quedó poblado
       // durante el streaming (iter_msa con trace) — lo leemos sin volver a correr.
@@ -321,11 +350,17 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
         [Symbol.iterator](): Iterator<unknown>;
       };
       const iter = gen[Symbol.iterator]();
-      while (true) {
-        const { value, done } = iter.next();
-        if (done) break;
-        const outer = jsFromPy(value) as OuterIteration;
-        post({ id: msg.id, type: "outerIteration", outer });
+      try {
+        while (true) {
+          const { value, done } = iter.next();
+          if (done) break;
+          const outer = jsFromPy(value) as OuterIteration;
+          post({ id: msg.id, type: "outerIteration", outer });
+          await yield0();
+          if (cancelledIds.delete(msg.id)) return;
+        }
+      } finally {
+        (gen as { destroy?: () => void }).destroy?.();
       }
       post({ id: msg.id, type: "coupledDone" });
       return;

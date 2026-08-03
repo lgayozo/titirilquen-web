@@ -99,7 +99,12 @@
     "smoothing_final": "Suavizando resultado final…",
     "converging": "Convergiendo",
     "diverging": "Divergiendo",
-    "skeleton_hint": "Asignando demanda inicial en flujo libre — aparecerán datos en cuanto termine la primera iteración."
+    "skeleton_hint": "Asignando demanda inicial en flujo libre — aparecerán datos en cuanto termine la primera iteración.",
+    "boot_stage": {
+      "runtime": "descargando runtime",
+      "packages": "instalando numpy/scipy",
+      "wheel": "instalando el core"
+    }
   },
   "presets": {
     "title": "Presets",

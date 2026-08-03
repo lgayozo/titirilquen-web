@@ -99,7 +99,12 @@
     "smoothing_final": "Smoothing final result…",
     "converging": "Converging",
     "diverging": "Diverging",
-    "skeleton_hint": "Assigning initial demand under free flow — data will appear as soon as the first iteration completes."
+    "skeleton_hint": "Assigning initial demand under free flow — data will appear as soon as the first iteration completes.",
+    "boot_stage": {
+      "runtime": "downloading runtime",
+      "packages": "installing numpy/scipy",
+      "wheel": "installing the core"
+    }
   },
   "presets": {
     "title": "Presets",
