@@ -155,6 +155,10 @@ export interface SimulationResult {
   beta_auto_bpr: number;
   carga_metro: number[] | null;
   estaciones_km: number[] | null;
+  /** Flujo acumulado por corredor hacia el CBD del estado final (veh/h y bici/h
+   *  por celda). Numerador correcto del v/c — la demanda originada no lo es. */
+  flujos_auto_veh_h: number[] | null;
+  flujos_bici_veh_h: number[] | null;
   emisiones_total_kg: number;
   emisiones_auto_kg: number;
   emisiones_metro_kg: number;

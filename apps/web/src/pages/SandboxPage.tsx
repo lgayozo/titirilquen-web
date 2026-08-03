@@ -169,13 +169,16 @@ export function SandboxPage() {
       }))
     : undefined;
 
+  // v/c del equilibrio = flujo máximo ACUMULADO del corredor / capacidad.
+  // La demanda originada por celda (demanda_auto[i]) NO sirve de numerador:
+  // subestima el v/c ~60× porque ignora el cumsum hacia el CBD.
   const operatingRatios = {
     car:
-      result && lastIter
-        ? Math.max(...lastIter.demanda_auto) / result.capacidad_auto
+      result?.flujos_auto_veh_h?.length && result.capacidad_auto > 0
+        ? Math.max(...result.flujos_auto_veh_h) / result.capacidad_auto
         : null,
-    bike: lastIter
-      ? Math.max(...lastIter.demanda_bici) / cfgRes.supply.bike.capacidad_pista
+    bike: result?.flujos_bici_veh_h?.length
+      ? Math.max(...result.flujos_bici_veh_h) / cfgRes.supply.bike.capacidad_pista
       : null,
   };
 

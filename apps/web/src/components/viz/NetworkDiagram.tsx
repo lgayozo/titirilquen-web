@@ -43,7 +43,9 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
   const cellWidth = plotW / L;
 
   // Capacidades para computar v/c --------------------------------------------
-  const capAuto = result.capacidad_auto * config.supply.car.num_pistas;
+  // `capacidad_auto` es la capacidad_direccion del core y YA incluye num_pistas
+  // (supply/car.py: cap_pista · num_pistas) — multiplicar de nuevo la duplicaba.
+  const capAuto = result.capacidad_auto;
   const capTren = config.supply.train.capacidad_tren * config.supply.train.frec_max;
   const capBici = config.supply.bike.capacidad_pista;
 

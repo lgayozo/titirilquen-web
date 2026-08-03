@@ -136,6 +136,8 @@ def _trace_to_py(trace):
         "beta_auto_bpr": trace.beta_auto_bpr,
         "carga_metro": None if trace.carga_metro is None else trace.carga_metro.tolist(),
         "estaciones_km": None if trace.estaciones_km is None else trace.estaciones_km.tolist(),
+        "flujos_auto_veh_h": None if trace.flujos_auto_veh_h is None else trace.flujos_auto_veh_h.tolist(),
+        "flujos_bici_veh_h": None if trace.flujos_bici_veh_h is None else trace.flujos_bici_veh_h.tolist(),
         "emisiones_total_kg": trace.emisiones_total_kg,
         "emisiones_auto_kg": trace.emisiones_auto_kg,
         "emisiones_metro_kg": trace.emisiones_metro_kg,

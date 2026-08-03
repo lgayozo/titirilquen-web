@@ -92,7 +92,14 @@ export function BPRCurve({ alpha, beta, operatingRatio = null, className }: BPRC
 
       {opT != null && (
         <g>
-          <circle cx={xScale(operatingRatio!)} cy={yScale(opT)} r={2.5} className="fill-red-500" />
+          {/* Clamp a xMax: con v/c > 1.6 el punto se pega al borde en vez de
+              desaparecer recortado por el viewBox. */}
+          <circle
+            cx={xScale(Math.min(operatingRatio!, xMax))}
+            cy={yScale(opT)}
+            r={2.5}
+            className="fill-red-500"
+          />
         </g>
       )}
 

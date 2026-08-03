@@ -73,6 +73,11 @@ class ConvergenceTrace:
     emisiones_auto_kg: float = 0.0
     emisiones_metro_kg: float = 0.0
     emisiones_perfil_kg: NDArray[np.float64] | None = None
+    # Flujo ACUMULADO por corredor hacia el CBD del estado final (cumsum de la
+    # demanda originada, por dirección) — veh/h y bici/h por celda. Es el numerador
+    # correcto del v/c: la demanda originada por celda NO lo es (subestima ~60×).
+    flujos_auto_veh_h: NDArray[np.float64] | None = None
+    flujos_bici_veh_h: NDArray[np.float64] | None = None
     # Demanda ESPERADA por (estrato, modo, celda) del estado final — forma
     # [3, len(_MODOS), n_celdas], estratos 0..2 = 1..3, modos en orden _MODOS.
     # Es la demanda por celda (misma que las Fig. 2/3/4) desagregada por estrato,
@@ -475,6 +480,7 @@ def _iter_loop(
                 "estaciones": train_result.estaciones_km,
                 "frecuencia": train_result.frecuencia_operativa,
                 "flujos_auto": car_result.flujos_veh_por_hora,
+                "flujos_bici": bike_result.flujos_bici_por_hora,
             }
         yield snap
 
@@ -571,6 +577,8 @@ def _finalizar_trace(
     trace.beta_auto_bpr = last_state["beta"]
     trace.carga_metro = last_state["carga_metro"]
     trace.estaciones_km = last_state["estaciones"]
+    trace.flujos_auto_veh_h = last_state["flujos_auto"]
+    trace.flujos_bici_veh_h = last_state["flujos_bici"]
 
     # Emisiones de CO₂ a partir del estado físico final (flujos + BPR → v_local;
     # metro por tren-km con la frecuencia del equilibrio — ver D-29).

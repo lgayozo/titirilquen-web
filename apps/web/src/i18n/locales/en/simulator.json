@@ -167,7 +167,7 @@
     "vc": "v/c",
     "vc_auto": "v/c car",
     "vc_bici": "v/c bike",
-    "vc_sub": "demand/capacity",
+    "vc_sub": "peak corridor flow/capacity",
     "convergence": "Convergence",
     "converged": "Converged",
     "maxiter": "Max iter",

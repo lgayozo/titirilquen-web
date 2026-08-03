@@ -47,6 +47,14 @@ def test_run_msa_smoke_pequena() -> None:
     total_agentes = len(trace.agentes)
     total_modal = sum(last.modal_split.values())
     assert total_modal == total_agentes
+    # Flujos de corredor expuestos en el trace (numerador del v/c). El flujo
+    # acumulado domina a la demanda originada por celda y es 0 en el CBD.
+    assert trace.flujos_auto_veh_h is not None
+    assert trace.flujos_bici_veh_h is not None
+    assert len(trace.flujos_auto_veh_h) == sim.city.n_celdas
+    cbd = sim.city.n_celdas // 2
+    assert trace.flujos_auto_veh_h[cbd] == 0
+    assert trace.flujos_auto_veh_h.max() >= last.demanda_auto.max()
 
 
 def test_run_msa_converge_con_tolerancia_alta() -> None:
