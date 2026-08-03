@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Diagrama de flujo código ↔ Overleaf</title>
+<style>
+  :root {
+    --bg: #faf8f4; --fg: #1c1a17; --muted: #6b6558; --line: #d8d2c4;
+    --nodo: #ffffff; --nodo-borde: #c9c2b2;
+    --fiel: #2e7d32; --fiel-bg: #e5f2e6;
+    --div: #1565c0; --div-bg: #e3edf8;
+    --disc: #b45309; --disc-bg: #fdf0dd;
+    --infra: #616161; --infra-bg: #ececec;
+    --arista: #a89f8c; --loop: #b45309;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16140f; --fg: #e8e4da; --muted: #9a927f; --line: #3a352a;
+      --nodo: #1f1c15; --nodo-borde: #4a4436;
+      --fiel: #81c784; --fiel-bg: #1d2b1e;
+      --div: #64b5f6; --div-bg: #16232f;
+      --disc: #f0a850; --disc-bg: #2f2312;
+      --infra: #9e9e9e; --infra-bg: #262626;
+      --arista: #5c5546; --loop: #f0a850;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 20px 60px; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 Georgia, "Times New Roman", serif; max-width: 1200px;
+    margin-inline: auto;
+  }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 40px 0 10px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .meta, .muted { color: var(--muted); font-size: 12px; }
+  code, .archivo {
+    font: 12px/1.4 Consolas, "Courier New", monospace;
+  }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 22px; }
+  .badge {
+    display: inline-block; padding: 1px 8px; border-radius: 9px;
+    font: 10.5px/1.6 Consolas, monospace; white-space: nowrap;
+  }
+  .badge.fiel        { color: var(--fiel); background: var(--fiel-bg); }
+  .badge.divergencia { color: var(--div); background: var(--div-bg); }
+  .badge.discrepancia{ color: var(--disc); background: var(--disc-bg); }
+  .badge.infra       { color: var(--infra); background: var(--infra-bg); }
+  .badge.ref         { color: var(--muted); background: transparent; border: 1px solid var(--line); }
+
+  #lienzo { position: relative; }
+  #aristas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+  .capa { position: relative; z-index: 1; margin: 0 0 34px; }
+  .capa > h3 {
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 8px; font-family: Consolas, monospace;
+  }
+  .fila { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+  .nodo {
+    background: var(--nodo); border: 1px solid var(--nodo-borde);
+    border-radius: 6px; padding: 0; min-width: 200px; max-width: 340px; flex: 1 1 200px;
+  }
+  .nodo > summary {
+    cursor: pointer; padding: 8px 10px; list-style: none;
+  }
+  .nodo > summary::-webkit-details-marker { display: none; }
+  .nodo .titulo { font-weight: bold; font-size: 13.5px; }
+  .nodo .seccion { color: var(--disc); font-family: Consolas, monospace; font-size: 11px; }
+  .nodo .archivo { display: block; color: var(--muted); margin-top: 2px; word-break: break-all; }
+  .nodo .cuerpo { padding: 0 10px 10px; border-top: 1px dashed var(--line); }
+  .nodo .ecuacion {
+    font-family: Consolas, monospace; font-size: 12px; margin: 8px 0;
+    padding: 6px 8px; background: var(--infra-bg); border-radius: 4px;
+    overflow-x: auto;
+  }
+  .nodo .detalle { font-size: 12.5px; }
+  .badges { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: var(--infra-bg); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .tabla-scroll { overflow-x: auto; }
+  footer { margin-top: 48px; color: var(--muted); font-size: 11.5px; border-top: 1px solid var(--line); padding-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Titirilquen — diagrama de flujo código ↔ Overleaf</h1>
+<p class="meta">
+  Audiencia: equipo docente/desarrollo · Correlación técnica archivo ↔ sección/ecuación del apunte
+  (<code>reference/overleaf_modificado/main.tex</code> + <code>Suelo.tex</code>, revisión jun-2026 [R-n]/[S-n]).<br>
+  Fuente de verdad de las divergencias: <code>docs/DISCREPANCIES.md</code> (D-xx) ·
+  <code>docs/OVERLEAF_CHANGES.md</code> · <code>docs/MATHEMATICAL_MODEL.md</code>.
+  Cada nodo se expande con clic.
+</p>
+<div class="leyenda">
+  <span class="badge fiel">fiel al apunte</span>
+  <span class="badge divergencia">divergencia intencional (código mejora el modelo, documentada)</span>
+  <span class="badge discrepancia">discrepancia viva (pendiente de resolver)</span>
+  <span class="badge infra">infraestructura (sin § en el apunte)</span>
+</div>
+
+<div id="lienzo">
+  <svg id="aristas" aria-hidden="true"></svg>
+  <!-- Las capas se generan desde NODOS -->
+</div>
+
+<h2>Anexo A — Correlación completa archivo ↔ sección/ecuación</h2>
+<div class="tabla-scroll"><table id="tabla-correlacion">
+  <thead><tr><th>Archivo</th><th>§ Overleaf</th><th>Ecuación / rol</th><th>Estado</th><th>Refs</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<h2>Anexo B — Contradicciones vivas entre documentos</h2>
+<div class="tabla-scroll"><table id="tabla-contradicciones">
+  <thead><tr><th>#</th><th>Dónde</th><th>Qué dice</th><th>Qué es verdad</th><th>Acción pendiente</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<h2>Anexo C — Parámetros muertos o inertes (medidos)</h2>
+<p class="muted">Medición: barrido con defaults de la UI (201 celdas · 20 km · seed 42 · expected),
+reproducible con <code>packages/titirilquen_core/scripts/sensibilidad.py</code> y detallada en
+<code>docs/ANALISIS_SENSIBILIDAD.md</code>.</p>
+<div class="tabla-scroll"><table id="tabla-muertos">
+  <thead><tr><th>Parámetro</th><th>Ubicación</th><th>Síntoma medido</th><th>Estado</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<footer id="pie"></footer>
+
+<script>
+"use strict";
+
+// ─── Modelo de datos ────────────────────────────────────────────────────────
+// estado: "fiel" | "divergencia" | "discrepancia" | "infra"
+const CAPAS = [
+  "1 · Frontend — páginas (apps/web/src/pages)",
+  "2 · Frontend — estado y espejos TS",
+  "3 · Motor — dos runtimes, un solo núcleo",
+  "4 · Core — equilibrio de transporte",
+  "5 · Core — demanda y oferta",
+  "6 · Core — uso de suelo (bid-rent)",
+  "7 · Core — acoplamiento suelo ↔ transporte",
+];
+
+const NODOS = [
+  // Capa 1 — páginas
+  { id: "tutorial", capa: 0, titulo: "TutorialPage", archivo: "apps/web/src/pages/TutorialPage.tsx",
+    seccion: "—", estado: "infra", refs: [],
+    ecuacion: "7 capítulos MDX × 2 idiomas (tutorials/{es,en}/NN-*.mdx)",
+    detalle: "TOC estático + artículo lazy. Los links a los módulos viven solo en el cap. 7 " +
+             "(actividades A–E en prosa, sin botón de carga) — fricción F-02 del análisis de frontend.",
+    conecta: [] },
+  { id: "sandbox", capa: 0, titulo: "SandboxPage (Transporte)", archivo: "apps/web/src/pages/SandboxPage.tsx",
+    seccion: "usa §9", estado: "infra", refs: ["D-19"],
+    ecuacion: "sliders → SimulationConfig → simulateStream(cfg, cb, signal, landUse, localización)",
+    detalle: "Corre SIEMPRE el motor Pyodide (ignora engine). Pasa la ciudad de Uso de Suelo: " +
+             "localización = «equilibrio» si el bid-rent corrió, «original» (mezcla π_h) si no. " +
+             "15 figuras + tabla de métricas con export CSV.",
+    conecta: ["sim-store", "lu-store"] },
+  { id: "landuse-page", capa: 0, titulo: "LandUsePage (Uso de Suelo)", archivo: "apps/web/src/pages/LandUsePage.tsx",
+    seccion: "usa §2", estado: "infra", refs: [],
+    ecuacion: "CityBuilder (geometría, escribe simulationStore) + LandUseBuilder (H, forma, β, α, ρ)",
+    detalle: "El único lugar donde se edita la ciudad. Motor: solveLandUse de api-v2 " +
+             "(pyodide o REST según engine).",
+    conecta: ["lu-store", "sim-store"] },
+  { id: "coupled-page", capa: 0, titulo: "CoupledPage (Ciudad en equilibrio)", archivo: "apps/web/src/pages/CoupledPage.tsx",
+    seccion: "usa §10", estado: "infra", refs: [],
+    ecuacion: "4 JOINT_PRESETS + población (10k–120k) + iteraciones exteriores",
+    detalle: "Único consumidor de los presets de lib/presets.ts (vía joint-presets.ts). " +
+             "Muestra sin-feedback vs con-feedback y el reporte EquilibriumMetrics.",
+    conecta: ["lu-store"] },
+  { id: "compare", capa: 0, titulo: "ComparePage (Comparar)", archivo: "apps/web/src/pages/ComparePage.tsx",
+    seccion: "—", estado: "discrepancia", refs: ["C-02"],
+    ecuacion: "hasta 4 escenarios × 3 lentes (transporte / suelo / acoplado)",
+    detalle: "La lente Transporte corre simulate(sc.config) SIN land_use: población distinta " +
+             "a la del Sandbox — el «mismo escenario» da otro resultado (C-02 de " +
+             "ANALISIS_COMPARACION.md). Base de comparación implícita, sin CSV, sin cancelar.",
+    conecta: ["compare-store"] },
+
+  // Capa 2 — estado y espejos
+  { id: "sim-store", capa: 1, titulo: "simulationStore", archivo: "apps/web/src/store/simulationStore.ts",
+    seccion: "—", estado: "infra", refs: [],
+    ecuacion: "config → startRun → pushIteration(snap) → finishRun(trace)",
+    detalle: "Zustand sin persistencia. configUsed = snapshot de la corrida; " +
+             "isResultStale compara JSON de la config viva vs el snapshot.",
+    conecta: ["engine-pyodide", "engine-api"] },
+  { id: "lu-store", capa: 1, titulo: "landUseStore", archivo: "apps/web/src/store/landUseStore.ts",
+    seccion: "—", estado: "infra", refs: [],
+    ecuacion: "standalone (config/result) + acoplado (coupledIters, población)",
+    detalle: "El resultado del bid-rent alimenta al Sandbox (feed unidireccional, «Opción A»).",
+    conecta: ["engine-pyodide", "engine-api"] },
+  { id: "compare-store", capa: 1, titulo: "compareStore", archivo: "apps/web/src/store/compareStore.ts",
+    seccion: "—", estado: "infra", refs: [],
+    ecuacion: "Scenario[] {config, landUse, población, 3 resultados por lente}",
+    detalle: "Máx. 4 tarjetas. setScenario invalida los 3 resultados; renombrar no.",
+    conecta: ["engine-pyodide"] },
+  { id: "espejos-ts", capa: 1, titulo: "Espejos TS de la config", archivo: "apps/web/src/lib/{types,types-v2,defaults,utility,serialization}.ts",
+    seccion: "espejo de §6.1", estado: "divergencia", refs: ["contract.spec.ts"],
+    ecuacion: "SimulationConfig Pydantic ⇄ espejo TS escrito a mano",
+    detalle: "La paridad la vigila e2e/contract.spec.ts con la lista ALLOWED de divergencias " +
+             "intencionales (n_celdas 1001/201, tolerance 0/0.1, assignment montecarlo/expected, " +
+             "densidad 500/1800, H_por_estrato). serialization.ts exporta .ttrq.json y ?s= (base64url).",
+    conecta: [] },
+
+  // Capa 3 — motor
+  { id: "engine-pyodide", capa: 2, titulo: "Motor Pyodide (default)", archivo: "apps/web/src/lib/pyodide-engine.ts → workers/pyodide.worker.ts",
+    seccion: "—", estado: "infra", refs: [],
+    ecuacion: "micropip instala public/pyodide/titirilquen_core-*.whl → postMessage por iteración",
+    detalle: "El worker define _snap_to_py/_trace_to_py: espejo nº1 del trace. " +
+             "Gotcha: tras tocar el core hay que recompilar el wheel (npm run build:core-wheel) " +
+             "o el navegador ejecuta código viejo.",
+    conecta: ["msa", "lu-eq", "coupled"] },
+  { id: "engine-api", capa: 2, titulo: "Motor FastAPI (opcional)", archivo: "apps/web/src/lib/api.ts · apps/api/src/api/serialization.py",
+    seccion: "—", estado: "discrepancia", refs: [],
+    ecuacion: "REST + SSE (/simulate/stream, /land-use/solve, /coupled/*)",
+    detalle: "serialization.py es el espejo nº2 del trace y debe mantenerse en sync con el " +
+             "worker. Hoy omite demanda_estrato (la Fig. 9b quedaría vacía en modo api) — " +
+             "pendiente de sincronizar.",
+    conecta: ["msa", "lu-eq", "coupled"] },
+
+  // Capa 4 — core equilibrio
+  { id: "msa", capa: 3, titulo: "MSA — bucle interior", archivo: "packages/…/equilibrium/msa.py",
+    seccion: "§9", estado: "fiel", refs: ["R-10", "R-11", "D-20", "D-21"],
+    ecuacion: "T ← f·T_nuevo + (1−f)·T, f = 1/(it+1) · corte: ‖ΔT‖<sub>∞</sub> &lt; 0.1 min ×2 consec · MAX 20",
+    detalle: "Demanda (logit) → oferta (3 modos) → promediado → residuo, streaming por iteración. " +
+             "Asignación por flujos esperados n·P(m) [R-10] o Monte Carlo. Agrupación por " +
+             "(estrato, celda, tiene_auto) [D-20]. El trace expone los flujos de corredor " +
+             "(numerador del v/c) desde el fix S-01.",
+    conecta: ["utility", "car", "bike", "train", "emissions", "population"] },
+  { id: "population", capa: 3, titulo: "Población", archivo: "packages/…/population.py",
+    seccion: "§6", estado: "fiel", refs: ["R-8", "D-28"],
+    ecuacion: "N = ρ_hab·L (hab/km, reparto por mayor residuo, CBD excluido)",
+    detalle: "Dos rutas: generar_poblacion (densidad plana — la usan core/API/tests) y " +
+             "generar_poblacion_desde_land_use_det (N_hi = S_i·Q_hi — la usa la app). " +
+             "En la app densidad_hab_km y share_estratos quedan MUERTOS: manda H_por_estrato.",
+    conecta: [] },
+  { id: "emissions", capa: 3, titulo: "Emisiones", archivo: "packages/…/emissions.py",
+    seccion: "§5", estado: "fiel", refs: ["R-9", "D-29"],
+    ecuacion: "FE<sub>auto</sub>(v) = 2467.4·v<sup>−0.699</sup> g/km · E<sub>metro</sub> = φ·f<sub>op</sub>·L·2, φ = 2.5 kg/tren-km",
+    detalle: "Auto por velocidad local (BPR inversa); metro por tren-km (no por pax·km). " +
+             "El campo config factor_emision_auto es huérfano: la curva COPERT manda.",
+    conecta: [] },
+  { id: "config-core", capa: 3, titulo: "Config Pydantic", archivo: "packages/…/config.py · presets.py",
+    seccion: "§6.1", estado: "divergencia", refs: ["D-09"],
+    ecuacion: "SimulationConfig (extra=forbid) · CITY_PRESETS · POLICY_PRESETS",
+    detalle: "Los presets de ciudad (Compacta 4200 · Base 1800 · Dispersa 650) sí estresan " +
+             "la capacidad; ningún POLICY_PRESET lo hace. Campos muertos en el schema: ver Anexo C.",
+    conecta: [] },
+
+  // Capa 5 — demanda y oferta
+  { id: "utility", capa: 4, titulo: "Demanda — utilidades", archivo: "packages/…/demand/utility.py",
+    seccion: "§3 / §8.1", estado: "fiel", refs: ["R-2", "R-3", "R-4", "R-14"],
+    ecuacion: "V<sup>s</sup><sub>m</sub> = ASC + β<sub>t</sub>·t + β<sub>c</sub>·C + Σ<sub>k</sub> 1{t&gt;k}·π<sub>k</sub> · auto: β<sub>c</sub>·(parking + comb·d<sub>i</sub>)",
+    detalle: "Penalizaciones aditivas escalonadas (bici 10/20/30, caminata 5/15/25). " +
+             "Cortes: bici &gt;45 min, caminata &gt;30 min → infactible. Modos deshabilitados → −9999. " +
+             "v_auto/v_metro/v_bici globales solo alimentan la iteración 0 (flujo libre).",
+    conecta: ["choice"] },
+  { id: "choice", capa: 4, titulo: "Demanda — elección", archivo: "packages/…/demand/choice.py",
+    seccion: "§8.2", estado: "fiel", refs: [],
+    ecuacion: "P(m) = e<sup>V<sub>m</sub></sup> / Σ<sub>j</sub> e<sup>V<sub>j</sub></sup> (MNL, escala implícita β=1)",
+    detalle: "Logit multinomial por grupo (estrato, celda, tenencia). Sin costo en bici; " +
+             "sin peaje en auto (la palanca real del auto es el parking).",
+    conecta: [] },
+  { id: "car", capa: 4, titulo: "Oferta — auto", archivo: "packages/…/supply/car.py",
+    seccion: "§4.2 / §7.2", estado: "divergencia", refs: ["S-04"],
+    ecuacion: "Q = k<sub>e</sub>·v<sub>l</sub>/4 · cap = Q·N<sub>pistas</sub> · t = t₀(1 + α(q/cap)<sup>β</sup>), q = cumsum→CBD",
+    detalle: "Greenshields + BPR con factor de ancho escalonado (1.0/0.9/0.75). " +
+             "Divergencia S-04: cap_pista ∝ v_l — subir la velocidad sube la capacidad en la " +
+             "misma proporción, así que la velocidad nunca puede empeorar la congestión " +
+             "(en BPR estándar v_f y C son separables). Propuesta para iteración 3.",
+    conecta: [] },
+  { id: "bike", capa: 4, titulo: "Oferta — bicicleta", archivo: "packages/…/supply/bike.py",
+    seccion: "§4.1 / §7.1", estado: "fiel", refs: ["R-1", "R-7", "D-15", "D-21"],
+    ecuacion: "v(p): −0.0579p+0.9992 (subida) · t = min{t₀(1+α(q/Q)<sup>β</sup>), t_caminar} [R-7]",
+    detalle: "Piso físico: un tramo en bici nunca tarda más que caminarlo → techo plano en " +
+             "2.92× el flujo libre (capacidad blanda, D-21). Con defaults es EL modo congestionado " +
+             "(v/c ≈ 1.3 a 500 hab/km; satura el techo a 1800).",
+    conecta: [] },
+  { id: "train", capa: 4, titulo: "Oferta — tren", archivo: "packages/…/supply/train.py",
+    seccion: "§4.3 / §7.3", estado: "discrepancia", refs: ["R-5", "R-6", "D-16", "B1/B2"],
+    ecuacion: "f<sub>op</sub> = clip(L<sub>max</sub>/K, f<sub>min</sub>, f<sub>max</sub>) · t<sub>e</sub> = (30/f)(1 + α·ρ<sup>β</sup>), α=0.5 β=4",
+    detalle: "Frecuencia endógena (efecto Mohring, R-6). DISCREPANCIA VIVA: la calibración del " +
+             "andén sigue pendiente de validar con los autores (B1/B2, prioridad #1 de reunión); " +
+             "con defaults el factor vale 1.002 (+0.5 s) — inerte. capacidad_tren tiene signo " +
+             "invertido para el usuario (divide la frecuencia; no hay hacinamiento en vehículo). " +
+             "tasa_carga NO está implementado (línea «_ = tasa_carga»).",
+    conecta: [] },
+
+  // Capa 6 — uso de suelo
+  { id: "lu-supply", capa: 5, titulo: "Suelo — oferta S", archivo: "packages/…/land_use/supply.py",
+    seccion: "§2 (S-1)", estado: "fiel", refs: ["S-1", "D-13"],
+    ecuacion: "w(d) por forma (normal·uniforme·exp·meseta·bimodal·valle) · Σ S<sub>i</sub> = Σ H<sub>h</sub> exacto · S<sub>CBD</sub> = 0",
+    detalle: "Discretización determinista por mayor residuo (reemplazó el muestreo Normal " +
+             "ruidoso del original). σ = frac·min(CBD, I−1−CBD) expuesta como compacidad.",
+    conecta: ["lu-eq"] },
+  { id: "lu-eq", capa: 5, titulo: "Suelo — equilibrio bid-rent", archivo: "packages/…/land_use/equilibrium.py",
+    seccion: "§2.1–§2.7", estado: "discrepancia", refs: ["S-3", "S-4", "S-5", "D-17", "D-25"],
+    ecuacion: "Q<sub>hi</sub> = H<sub>h</sub>e<sup>β·w<sub>hi</sub></sup>/Σ<sub>g</sub>H<sub>g</sub>e<sup>β·w<sub>gi</sub></sup> · u* = F(u*) · f<sub>h</sub>(i) = −α<sub>h</sub>·T(i) − ρ<sub>h</sub>·S<sub>i</sub>/Δx",
+    detalle: "Solver logit (default y único en la UI). DISCREPANCIA VIVA: Suelo.tex §2.7 (S-5) " +
+             "afirma que el heteroscedástico (solve_utility_logit) es «el default de la " +
+             "implementación de referencia» — falso: queda en el core solo para comparación, " +
+             "su precio está en utiles y no se integra con el downstream en $. " +
+             "Conservación Σ<sub>i</sub> S<sub>i</sub>Q<sub>hi</sub> = H<sub>h</sub> exacta (S-4/D-25).",
+    conecta: ["lu-alloc"] },
+  { id: "lu-alloc", capa: 5, titulo: "Suelo — asignación y ciudad", archivo: "packages/…/land_use/{ciudad,allocation,config}.py",
+    seccion: "§2.2", estado: "fiel", refs: ["S-2", "D-26"],
+    ecuacion: "E[N<sub>hi</sub>] = S<sub>i</sub>·Q<sub>hi</sub> (esperado; las figuras no muestrean)",
+    detalle: "Unidades físicas (S-2): T en minutos, densidad en hogares/km, y en $/mes. " +
+             "Campos vestigiales en el schema: densidad_max/min, densidad_estrato (Anexo C).",
+    conecta: ["population"] },
+
+  // Capa 7 — acoplado
+  { id: "coupled", capa: 6, titulo: "Acoplamiento — bucle exterior", archivo: "packages/…/coupled.py",
+    seccion: "§10", estado: "fiel", refs: ["R-12", "D-14", "D-22", "D-23", "D-24"],
+    ecuacion: "T ← θ·T<sup>nuevo</sup> + (1−θ)·T, θ = 1/(n+1) · T<sup>nuevo</sup>(i) = Σ<sub>h</sub>(H<sub>h</sub>/ΣH)·E[t|h,i]",
+    detalle: "Suelo dado T → Q → población N_hi = S·Q → MSA → accesibilidad COMÚN ponderada. " +
+             "D-22: NO reintroducir T por estrato en el bid-rent (invierte el patrón: ricos a la " +
+             "periferia). Gridlock del corredor acota la población por preset (D-24).",
+    conecta: ["msa", "lu-eq"] },
+  { id: "coupled-metrics", capa: 6, titulo: "Métricas del equilibrio", archivo: "packages/…/coupled_metrics.py",
+    seccion: "§10 (parcial)", estado: "divergencia", refs: ["D-27", "D-30"],
+    ecuacion: "Theil · ΔCS = Δlogsum/(−β<sub>c</sub>) vs red vacía · carga = costo·44/y",
+    detalle: "Por estrato: tiempo, reparto (incl. Varado), costo, ΔCS, carga costo/ingreso. " +
+             "Sistema: Theil, Δbienestar, ratios bajo/alto. D-30: hay TRES baselines distintos " +
+             "de «sin congestión» (iter 0, red vacía del ΔCS, arranque del acoplado) — solo el " +
+             "primero está en el paper.",
+    conecta: [] },
+];
+
+// Aristas de retorno (los dos bucles del modelo)
+const LOOPS = [
+  { desde: "car", hasta: "msa", etiqueta: "bucle interior §9: tiempos → demanda (MSA)" },
+  { desde: "coupled", hasta: "lu-eq", etiqueta: "bucle exterior §10: T común → bid-rent" },
+];
+
+const CONTRADICCIONES = [
+  { donde: "Suelo.tex:331-333 (S-5)",
+    dice: "el solver heteroscedástico «es el default de la implementación de referencia»",
+    verdad: "la app corre `logit` (defaults.ts, sin selector en la UI); `utility_logit` queda solo para comparación",
+    accion: "corregir el .tex (B3 de OVERLEAF_CHANGES: presentarlo como referencia teórica)" },
+  { donde: "MATHEMATICAL_MODEL.md:93-101",
+    dice: "espera de andén por tramos (factor = 1 si ρ≤1; α·ρ^β si ρ>1)",
+    verdad: "BPR continua t_e = (30/f)(1+α·ρ^β) implementada (R-5/D-16)",
+    accion: "actualizar el doc as-built" },
+  { donde: "MATHEMATICAL_MODEL.md:127",
+    dice: "emisiones de metro por pax·km (carga·factor·Δx)",
+    verdad: "por tren-km: φ·f_op·L·2 (R-9/D-29); factor_emision_metro fue eliminado de la config",
+    accion: "actualizar el doc as-built" },
+  { donde: "main.tex — residuos pre-revisión",
+    dice: "β^s_{t>} como «dummy» (:209) · listado antiguo del andén con α=10,β=10 (:933-941) · factor_emision_metro=0.040 (:618,624)",
+    verdad: "superados por R-2/R-3, R-5 y R-9 respectivamente",
+    accion: "limpiar en la próxima pasada del .tex" },
+  { donde: "Figuras del paper (ofau/ofbi/oftr/suelo1.png)",
+    dice: "diagramas previos a las correcciones A1–A6",
+    verdad: "overleaf_modificado/Figuras/ es idéntico al original",
+    accion: "regenerar las figuras (D3 de OVERLEAF_CHANGES)" },
+  { donde: "train.py — calibración del andén (α=0.5, β=4)",
+    dice: "valores provisorios del código (D-16)",
+    verdad: "con defaults el factor es 1.002 — numéricamente inerte",
+    accion: "validar con los autores (B1/B2, prioridad #1 de reunión)" },
+];
+
+const MUERTOS = [
+  { p: "tasa_carga", u: "supply/train.py:120", s: "«_ = tasa_carga» — no implementado; =100 da resultado byte a byte idéntico", e: "muerto" },
+  { p: "factor_emision_auto", u: "config.py (globales)", s: "huérfano: la emisión usa la curva COPERT 2467.4·v^−0.699", e: "muerto" },
+  { p: "prob_jornada_flexible · prob_part_time · jornada.*", u: "config.py (estratos)", s: "nunca leídos por el core (D-07)", e: "muerto" },
+  { p: "frec_min / frec_max", u: "supply/train.py", s: "f_op = 7.69 cae en el interior de [6,30]; los presets «Máx Metro» (50) y «TP Gratis» (35) tocan un knob inerte", e: "inerte con defaults" },
+  { p: "anden_alpha / anden_beta", u: "supply/train.py", s: "ρ = 0.256 → factor 1.002 (+0.5 s); α=0 y α=5 dan idéntico reparto", e: "inerte con defaults" },
+  { p: "capacidad_tren", u: "supply/train.py", s: "signo invertido: divide la frecuencia (f = carga/K) sin hacinamiento — tren más grande ⇒ más espera", e: "signo invertido" },
+  { p: "ancho_pista_m (≥3.5)", u: "supply/car.py:_factor_ancho", s: "función escalón topada en 1.0: 3.5 y 5.0 idénticos", e: "muerto hacia arriba" },
+  { p: "v_auto / v_metro / v_bici (globales)", u: "demand/utility.py", s: "solo semilla de la iteración 0; 31→80 mueve 0.01 pp", e: "casi muerto" },
+  { p: "densidad_hab_km · share_estratos", u: "config.py (city)", s: "MUERTOS en la app: iter_msa_desde_suelo puebla desde LandUseConfig.H_por_estrato (viven en la ruta core/API)", e: "muerto en la app" },
+  { p: "densidad_max / densidad_min / densidad_estrato", u: "land_use/config.py", s: "vestigiales: la densidad por celda es S/Δx; se conservan por compat de serialización", e: "vestigial" },
+  { p: "num_pistas · alpha_bpr · beta_bpr (auto)", u: "supply/car.py", s: "RESUELTO con escala 1800 (S-03): antes Δ 0.20 pp (v/c 0.27), ahora Δ 2.05 pp (v/c 0.95)", e: "resuelto it.2" },
+];
+
+// ─── Render ─────────────────────────────────────────────────────────────────
+const lienzo = document.getElementById("lienzo");
+const porId = {};
+
+CAPAS.forEach((titulo, i) => {
+  const sec = document.createElement("section");
+  sec.className = "capa";
+  sec.innerHTML = "<h3>" + titulo + "</h3>";
+  const fila = document.createElement("div");
+  fila.className = "fila";
+  NODOS.filter(n => n.capa === i).forEach(n => {
+    const d = document.createElement("details");
+    d.className = "nodo";
+    d.id = "nodo-" + n.id;
+    const refs = n.refs.map(r => '<span class="badge ref">' + r + "</span>").join("");
+    d.innerHTML =
+      "<summary>" +
+        '<div class="titulo">' + n.titulo + ' <span class="seccion">' + n.seccion + "</span></div>" +
+        '<span class="archivo">' + n.archivo + "</span>" +
+        '<div class="badges"><span class="badge ' + n.estado + '">' + n.estado + "</span>" + refs + "</div>" +
+      "</summary>" +
+      '<div class="cuerpo"><div class="ecuacion">' + n.ecuacion + "</div>" +
+      '<div class="detalle">' + n.detalle + "</div></div>";
+    fila.appendChild(d);
+    porId[n.id] = d;
+  });
+  sec.appendChild(fila);
+  lienzo.appendChild(sec);
+});
+
+// Conectores SVG entre nodos (flujo principal + bucles de retorno)
+function dibujarAristas() {
+  const svg = document.getElementById("aristas");
+  const base = lienzo.getBoundingClientRect();
+  svg.setAttribute("viewBox", "0 0 " + base.width + " " + base.height);
+  svg.innerHTML =
+    '<defs><marker id="punta" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">' +
+    '<path d="M0,0 L7,3.5 L0,7 z" fill="var(--arista)"/></marker>' +
+    '<marker id="punta-loop" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">' +
+    '<path d="M0,0 L7,3.5 L0,7 z" fill="var(--loop)"/></marker></defs>';
+  const centro = el => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left - base.left + r.width / 2, top: r.top - base.top, bot: r.bottom - base.top };
+  };
+  const traza = (a, b, esLoop) => {
+    const A = centro(a), B = centro(b);
+    const abajo = B.top > A.bot; // destino más abajo
+    const y1 = abajo ? A.bot : A.top, y2 = abajo ? B.top : B.bot;
+    const mx = esLoop ? Math.max(A.x, B.x) + 60 : (A.x + B.x) / 2;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M" + A.x + "," + y1 + " C" + mx + "," + (y1 + 40) + " " + mx + "," + (y2 - 40) + " " + B.x + "," + y2);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", esLoop ? "var(--loop)" : "var(--arista)");
+    path.setAttribute("stroke-width", esLoop ? "1.6" : "1");
+    if (esLoop) path.setAttribute("stroke-dasharray", "6 3");
+    path.setAttribute("marker-end", "url(#" + (esLoop ? "punta-loop" : "punta") + ")");
+    path.setAttribute("opacity", esLoop ? "0.9" : "0.55");
+    svg.appendChild(path);
+  };
+  NODOS.forEach(n => n.conecta.forEach(dest => {
+    if (porId[n.id] && porId[dest]) traza(porId[n.id], porId[dest], false);
+  }));
+  LOOPS.forEach(l => {
+    if (porId[l.desde] && porId[l.hasta]) traza(porId[l.desde], porId[l.hasta], true);
+  });
+}
+window.addEventListener("load", dibujarAristas);
+window.addEventListener("resize", dibujarAristas);
+// Re-dibujar al expandir/cerrar nodos (cambia el layout)
+lienzo.addEventListener("toggle", () => requestAnimationFrame(dibujarAristas), true);
+
+// ─── Anexos ─────────────────────────────────────────────────────────────────
+const tbodyA = document.querySelector("#tabla-correlacion tbody");
+NODOS.forEach(n => {
+  const tr = document.createElement("tr");
+  tr.innerHTML =
+    "<td><code>" + n.archivo + "</code></td>" +
+    "<td>" + n.seccion + "</td>" +
+    "<td>" + n.ecuacion + "</td>" +
+    '<td><span class="badge ' + n.estado + '">' + n.estado + "</span></td>" +
+    "<td>" + n.refs.join(" · ") + "</td>";
+  tbodyA.appendChild(tr);
+});
+
+const tbodyB = document.querySelector("#tabla-contradicciones tbody");
+CONTRADICCIONES.forEach((c, i) => {
+  const tr = document.createElement("tr");
+  tr.innerHTML = "<td>" + (i + 1) + "</td><td><code>" + c.donde + "</code></td><td>" + c.dice +
+                 "</td><td>" + c.verdad + "</td><td>" + c.accion + "</td>";
+  tbodyB.appendChild(tr);
+});
+
+const tbodyC = document.querySelector("#tabla-muertos tbody");
+MUERTOS.forEach(m => {
+  const tr = document.createElement("tr");
+  tr.innerHTML = "<td><code>" + m.p + "</code></td><td><code>" + m.u + "</code></td><td>" + m.s +
+                 "</td><td>" + m.e + "</td>";
+  tbodyC.appendChild(tr);
+});
+
+document.getElementById("pie").textContent =
+  "Generado en la iteración 2 (agosto 2026) sobre la rama ciudad-equilibrio-mejoras. " +
+  "Documento estático y autocontenido: sin dependencias externas, abre offline. " +
+  "Fuente de verdad de las divergencias: docs/DISCREPANCIES.md · docs/OVERLEAF_CHANGES.md · " +
+  "docs/MATHEMATICAL_MODEL.md. Los diffs de la revisión jun-2026 viven en " +
+  "reference/overleaf_modificado/REVISION-jun2026-{main,Suelo}.diff.";
+</script>
+</body>
+</html>
