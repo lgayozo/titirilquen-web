@@ -102,20 +102,11 @@
     "skeleton_hint": "Asignando demanda inicial en flujo libre — aparecerán datos en cuanto termine la primera iteración."
   },
   "presets": {
-    "policy_label": "Política de transporte",
-    "names": {
-      "Personalizado": "Personalizado",
-      "Compacta": "Compacta",
-      "Base": "Base",
-      "Dispersa": "Dispersa",
-      "TP Gratis": "TP Gratis",
-      "Tarificación Vial": "Tarificación Vial",
-      "Pro-Auto": "Pro-Auto",
-      "Pro-Bici": "Pro-Bici",
-      "Vehículos híbridos": "Vehículos híbridos",
-      "Máx Metro": "Máx Metro",
-      "Ciclorrecreovía": "Ciclorrecreovía"
-    }
+    "title": "Presets",
+    "custom": "Personalizado",
+    "city_label": "Ciudad",
+    "policy_label": "Política",
+    "hint": "Los presets de ciudad reescalan la población del suelo (hoy {{pop}} hogares). Mover cualquier slider vuelve a «Personalizado»."
   },
   "sandbox": {
     "city_heading": "Ciudad",
@@ -479,7 +470,8 @@
       "cap_bici": "Capacidad ciclovía",
       "tarifa": "Tarifa metro",
       "parking": "Parking",
-      "bencina": "Combustible"
+      "bencina": "Combustible",
+      "cap_tren": "Capacidad tren"
     },
     "presets": {
       "compact_toll": {

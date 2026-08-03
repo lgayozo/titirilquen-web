@@ -1748,6 +1748,31 @@ table.cmp th {
   text-decoration: none;
 }
 
+/* Botón «cargar escenario» de las actividades guiadas (F-02) */
+.tut-load {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 6px 2px 0;
+  padding: 4px 10px;
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  color: var(--ink-2);
+  font-family: var(--font-fig);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 150ms,
+    color 150ms;
+}
+
+.tut-load:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 .tut-next .arrow {
   display: inline-block;
   transition: transform 150ms;

@@ -102,20 +102,11 @@
     "skeleton_hint": "Assigning initial demand under free flow — data will appear as soon as the first iteration completes."
   },
   "presets": {
-    "policy_label": "Transport policy",
-    "names": {
-      "Personalizado": "Custom",
-      "Compacta": "Compact",
-      "Base": "Base",
-      "Dispersa": "Sprawled",
-      "TP Gratis": "Free transit",
-      "Tarificación Vial": "Road pricing",
-      "Pro-Auto": "Pro-Car",
-      "Pro-Bici": "Pro-Bike",
-      "Vehículos híbridos": "Hybrid vehicles",
-      "Máx Metro": "Max metro",
-      "Ciclorrecreovía": "Car-free Sundays"
-    }
+    "title": "Presets",
+    "custom": "Custom",
+    "city_label": "City",
+    "policy_label": "Policy",
+    "hint": "City presets rescale the land-use population (currently {{pop}} households). Moving any slider returns to \"Custom\"."
   },
   "sandbox": {
     "city_heading": "City",
@@ -479,7 +470,8 @@
       "cap_bici": "Bike lane capacity",
       "tarifa": "Metro fare",
       "parking": "Parking",
-      "bencina": "Fuel"
+      "bencina": "Fuel",
+      "cap_tren": "Train capacity"
     },
     "presets": {
       "compact_toll": {

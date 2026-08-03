@@ -22,11 +22,19 @@ tagline: Presets, comparación, y actividades sugeridas
 2. Observa cómo cambia la participación modal del auto.
 3. ¿Por qué estrato es más sensible? (Pista: mira el parámetro $\beta_c$)
 
+{/* Sin "$" en las etiquetas: remark-math los tomaría como delimitadores. */}
+<LoadScenario id="parking_3k">Parking 3k</LoadScenario>
+<LoadScenario id="parking_6k">Parking 6k (base)</LoadScenario>
+<LoadScenario id="parking_15k">Parking 15k</LoadScenario>
+
 ### B. El artefacto del logit
 1. En Uso de suelo (la app corre siempre logit), varía λ del estrato alto (0.5 → 3).
 2. Observa cómo la asignación espacial cambia — siendo que λ es solo la utilidad marginal del ingreso.
 3. Sube λ ⇒ el estrato se dispersa (más ruido); bájalo ⇒ se concentra. Es la escala del ruido de elección (~1/βλ), no un efecto-ingreso real.
 4. ¿Por qué la dependencia en λ era una inconsistencia y no un efecto-ingreso real? (Pista: tutorial de Uso de suelo, sección de la corrección.)
+
+<LoadScenario id="lambda_alto_05">λ alto = 0.5</LoadScenario>
+<LoadScenario id="lambda_alto_3">λ alto = 3</LoadScenario>
 
 ### C. Capacidad de ciclovía
 1. Empieza con cap_bici = 800 bici/h.
@@ -34,15 +42,24 @@ tagline: Presets, comparación, y actividades sugeridas
 3. ¿De qué modos migra la demanda hacia la bicicleta?
 4. ¿Cambia la frecuencia operativa del metro?
 
+<LoadScenario id="bici_base">Ciclovía 800 bici/h (base)</LoadScenario>
+<LoadScenario id="bici_probici">Ciclovía 5.000 (Pro-Bici)</LoadScenario>
+
 ### D. Efecto Alonso
 1. En Uso de suelo, pon $\alpha_h$ del estrato alto en 12 y del bajo en 3 (utiles/min).
 2. Observa la distribución. ¿Quién vive cerca del CBD?
 3. Invierte los $\alpha$ y repite. ¿Cambia la segregación? ¿Por qué?
 
+<LoadScenario id="alonso_directo">α alto 12 · bajo 3</LoadScenario>
+<LoadScenario id="alonso_invertido">α alto 3 · bajo 12 (invertido)</LoadScenario>
+
 ### E. Sensibilidad al MSA
 1. En Transporte, baja `max_iter` a 3.
 2. ¿Converge? ¿Qué pasa con el residuo?
 3. Sube a 20 y observa el comportamiento asintótico.
+
+<LoadScenario id="msa_corto">max_iter = 3</LoadScenario>
+<LoadScenario id="msa_largo">max_iter = 20</LoadScenario>
 
 ## Persistencia
 

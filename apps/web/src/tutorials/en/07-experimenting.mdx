@@ -22,27 +22,44 @@ tagline: Presets, comparison, suggested activities
 2. Watch car mode share change.
 3. Which stratum is more sensitive? (Hint: $\beta_c$ parameter)
 
+{/* No "$" in labels: remark-math would treat them as delimiters. */}
+<LoadScenario id="parking_3k">Parking 3k</LoadScenario>
+<LoadScenario id="parking_6k">Parking 6k (base)</LoadScenario>
+<LoadScenario id="parking_15k">Parking 15k</LoadScenario>
+
 ### B. The logit artifact
 1. Under Land use (the app always runs logit), vary the high stratum's λ (0.5 → 3).
 2. Watch the spatial allocation change — even though λ is just the marginal utility of income.
 3. Raise λ ⇒ the stratum disperses (more noise); lower it ⇒ it concentrates. It is the scale of the choice noise (~1/βλ), not a real income effect.
 4. Why was the λ dependence an inconsistency rather than a real income effect? (Hint: Land-use tutorial, correction section.)
 
+<LoadScenario id="lambda_alto_05">High λ = 0.5</LoadScenario>
+<LoadScenario id="lambda_alto_3">High λ = 3</LoadScenario>
+
 ### C. Bikeway capacity
 1. Start with `cap_bike` = 800 bikes/h.
 2. Raise to 5000 (*Pro-Bike* preset).
 3. Where does demand migrate from?
+
+<LoadScenario id="bici_base">Bikeway 800 bikes/h (base)</LoadScenario>
+<LoadScenario id="bici_probici">Bikeway 5,000 (Pro-Bike)</LoadScenario>
 
 ### D. Alonso effect
 1. Under Land use, set $\alpha_h$ = 12 for the high stratum and 3 for the low one (utils/min).
 2. Observe the distribution. Who lives near the CBD?
 3. Invert $\alpha$ values and repeat.
 
+<LoadScenario id="alonso_directo">α high 12 · low 3</LoadScenario>
+<LoadScenario id="alonso_invertido">α high 3 · low 12 (inverted)</LoadScenario>
+
 
 ### E. MSA sensitivity
 1. Under Transport, lower `max_iter` to 3.
 2. Does it converge? What happens to the residual?
 3. Raise it to 20 and watch the asymptotic behavior.
+
+<LoadScenario id="msa_corto">max_iter = 3</LoadScenario>
+<LoadScenario id="msa_largo">max_iter = 20</LoadScenario>
 
 ## Persistence
 

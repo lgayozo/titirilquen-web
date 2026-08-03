@@ -1,8 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { CoupledFlowchart } from "@/components/viz/CoupledFlowchart";
 import { MSAFlowchart } from "@/components/viz/MSAFlowchart";
 import { cn } from "@/lib/cn";
+import { useLandUseStore } from "@/store/landUseStore";
+import { useSimulationStore } from "@/store/simulationStore";
+import { TUTORIAL_SCENARIOS } from "@/tutorials/scenarios";
 
 interface CalloutProps {
   type?: "info" | "warn";
@@ -90,11 +93,39 @@ export function DocLink({ path, children }: DocLinkProps) {
   );
 }
 
+interface LoadScenarioProps {
+  /** Id en TUTORIAL_SCENARIOS (src/tutorials/scenarios.ts). */
+  id: string;
+  children: React.ReactNode;
+}
+
+/** Botón «cargar escenario» de las actividades guiadas (F-02): aplica el
+ * estado inicial de la actividad a los stores (desde los defaults, no desde la
+ * config viva — reproducible) y navega al módulo. Si había un resultado, el
+ * banner de staleness del módulo lo señala. */
+export function LoadScenario({ id, children }: LoadScenarioProps) {
+  const navigate = useNavigate();
+  const scenario = TUTORIAL_SCENARIOS[id];
+  if (!scenario) return null;
+  const onClick = () => {
+    const { sim, landUse } = scenario.build();
+    if (sim) useSimulationStore.getState().replaceConfig(sim);
+    if (landUse) useLandUseStore.getState().setConfig(() => landUse);
+    navigate(scenario.to);
+  };
+  return (
+    <button type="button" onClick={onClick} className="tut-load">
+      ▶ {children}
+    </button>
+  );
+}
+
 export const mdxComponents = {
   Callout,
   NextStep,
   DocLink,
   OverleafRef,
+  LoadScenario,
   MSAFlowchart,
   CoupledFlowchart,
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {

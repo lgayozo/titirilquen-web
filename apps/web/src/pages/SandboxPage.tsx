@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { CityStrip } from "@/components/CityStrip";
 import { EconomyBuilder } from "@/components/modules/EconomyBuilder";
+import { PresetGallery } from "@/components/modules/PresetGallery";
 import { SupplyBuilder } from "@/components/modules/SupplyBuilder";
 import { RunStatus } from "@/components/RunStatus";
 import { SimulationSkeleton } from "@/components/SimulationSkeleton";
@@ -589,6 +590,9 @@ export function SandboxPage() {
   return (
     <div className="page">
       <aside className="sidebar">
+        {/* F-01: escenarios con nombre (ciudad × política) como punto de
+            partida, en vez de mover sliders a ciegas desde los defaults. */}
+        <PresetGallery />
         {/* La ciudad (largo, celdas, pendiente, teletrabajo, densidad y estratos)
             se define en Uso de Suelo y alimenta esta simulación. */}
         <SidebarSection
