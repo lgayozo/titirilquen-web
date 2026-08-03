@@ -115,7 +115,10 @@
     "custom": "Custom",
     "city_label": "City",
     "policy_label": "Policy",
-    "hint": "City presets rescale the land-use population (currently {{pop}} households). Moving any slider returns to \"Custom\"."
+    "diff_hint": "{{n}} parameter(s) differ from the base scenario (marked ↑/↓). Grey rows are at their base value.",
+    "no_diff_hint": "Base scenario: no parameter differs from the default.",
+    "vs_base": "Base: {{base}}",
+    "same_as_base": "Same as base scenario"
   },
   "sandbox": {
     "city_heading": "City",

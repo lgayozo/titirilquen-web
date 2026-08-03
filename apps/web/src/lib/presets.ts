@@ -97,5 +97,8 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     bencina: 120,
     frec_max: 20,
     cap_tren: 300,
+    // Faltaba (7 de 8 claves): sin esto la política heredaba el valor vigente y
+    // no era reproducible. 10 = default. Espejo de presets.py.
+    num_estaciones: 10,
   },
 };

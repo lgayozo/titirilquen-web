@@ -115,7 +115,10 @@
     "custom": "Personalizado",
     "city_label": "Ciudad",
     "policy_label": "Política",
-    "hint": "Los presets de ciudad reescalan la población del suelo (hoy {{pop}} hogares). Mover cualquier slider vuelve a «Personalizado»."
+    "diff_hint": "{{n}} parámetro(s) difieren del escenario base (marcados con ↑/↓). Las filas grises están en su valor base.",
+    "no_diff_hint": "Escenario base: ningún parámetro difiere del default.",
+    "vs_base": "Base: {{base}}",
+    "same_as_base": "Igual al escenario base"
   },
   "sandbox": {
     "city_heading": "Ciudad",

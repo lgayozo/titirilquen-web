@@ -60,8 +60,12 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "parking": 6000, "bencina": 120, "num_pistas": 2, "cap_bici": 800,
     },
     "Ciclorrecreovía": {
+        # `num_estaciones` faltaba (7 de 8 claves): la política heredaba el valor
+        # vigente, así que aplicarla desde «Máx Metro» (20 est.) daba otro
+        # escenario que aplicarla desde el default. Completada con 10 = default,
+        # para que el preset sea reproducible.
         "num_pistas": 1, "cap_bici": 6000, "tarifa": 800, "parking": 6000,
-        "bencina": 120, "frec_max": 20, "cap_tren": 300,
+        "bencina": 120, "frec_max": 20, "cap_tren": 300, "num_estaciones": 10,
     },
 }
 

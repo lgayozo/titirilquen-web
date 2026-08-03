@@ -1,47 +1,123 @@
 import { useTranslation } from "react-i18next";
 
 import { SidebarSection } from "@/components/ui/SidebarSection";
+import { defaultLandUseConfig } from "@/lib/api-v2";
 import { cn } from "@/lib/cn";
+import { defaultSimulationConfig } from "@/lib/defaults";
 import { CITY_PRESETS, POLICY_PRESETS, type PolicyPresetValues } from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";
+import type { LandUseConfig } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
 /**
  * Galería de presets del Sandbox (F-01): expone CITY_PRESETS y POLICY_PRESETS
- * como chips de acción. Un preset de ciudad debe escalar TAMBIÉN la población
- * del uso de suelo (H_por_estrato): la app puebla desde ahí, no desde
- * `densidad_hab_km` (S-05) — sin eso el preset sería inerte.
+ * como chips de acción, con una tabla de **posición fija** que muestra los
+ * mismos parámetros en el mismo orden para todos los escenarios y marca cuáles
+ * difieren del default. Sin orden fijo no se puede leer qué mueve cada preset:
+ * antes se iteraba el objeto del preset y cada uno declara sus claves en orden
+ * distinto (y `Ciclorrecreovía` ni siquiera las declara todas).
  *
- * Los chips aplican sobre la config VIVA (una política no resetea la ciudad ni
- * los ajustes del usuario). "Personalizado" no es un chip: es el estado en que
- * ningún preset con nombre coincide con la config.
+ * La tabla se arma desde la config VIVA, no desde el preset: así refleja el
+ * estado real (incluye ajustes manuales y los parámetros que un preset no fija).
+ *
+ * Un preset de ciudad debe escalar TAMBIÉN la población del uso de suelo
+ * (H_por_estrato): la app puebla desde ahí, no desde `densidad_hab_km` (S-05).
  */
 
-/** Campos de la config que definen una política (mismos que applyJointPreset). */
-function policyFields(cfg: SimulationConfig): Required<PolicyPresetValues> {
-  return {
-    tarifa: cfg.demand.globales.costo_tarifa_metro,
-    parking: cfg.demand.globales.costo_parking,
-    bencina: cfg.demand.globales.costo_combustible_km,
-    num_pistas: cfg.supply.car.num_pistas,
-    num_estaciones: cfg.supply.train.num_estaciones,
-    cap_bici: cfg.supply.bike.capacidad_pista,
-    frec_max: cfg.supply.train.frec_max,
-    cap_tren: cfg.supply.train.capacidad_tren,
-  };
+interface Fila {
+  key: string;
+  labelKey: string;
+  /** Valor actual y de referencia; el delta se marca contra el default. */
+  valor: number;
+  base: number;
+  fmt: (v: number) => string;
 }
 
-/** Rótulos de los campos de política (claves ya existentes de coupled.param). */
-const FIELD_LABEL_KEY: Record<keyof PolicyPresetValues, string> = {
-  tarifa: "coupled.param.tarifa",
-  parking: "coupled.param.parking",
-  bencina: "coupled.param.bencina",
-  num_pistas: "coupled.param.pistas",
-  num_estaciones: "coupled.param.estaciones",
-  cap_bici: "coupled.param.cap_bici",
-  frec_max: "coupled.param.frec",
-  cap_tren: "coupled.param.cap_tren",
+const nf = (v: number) => v.toLocaleString("es-CL");
+const money = (v: number) => `$${nf(v)}`;
+
+function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
+  const pob = (c: LandUseConfig) => c.H_por_estrato.reduce((a, b) => a + b, 0);
+  return [
+    {
+      key: "largo",
+      labelKey: "coupled.param.largo",
+      valor: cfg.city.largo_ciudad_km,
+      base: defaultSimulationConfig.city.largo_ciudad_km,
+      fmt: (v) => `${nf(v)} km`,
+    },
+    {
+      key: "densidad",
+      labelKey: "coupled.param.densidad",
+      valor: cfg.city.densidad_hab_km,
+      base: defaultSimulationConfig.city.densidad_hab_km,
+      fmt: (v) => `${nf(v)} hab/km`,
+    },
+    {
+      // La población REAL sale del uso de suelo (ΣH), no de la densidad — es
+      // la escala de demanda que ve el MSA. Se muestra porque los presets de
+      // ciudad NO son iso-población (Compacta 50.400 vs Dispersa 19.500).
+      key: "poblacion",
+      labelKey: "coupled.param.poblacion",
+      valor: pob(lu),
+      base: pob(defaultLandUseConfig),
+      fmt: (v) => `${nf(v)} hog`,
+    },
+  ];
+}
+
+/** Grupos de la tabla de política: orden FIJO, agrupado por subsistema. */
+const GRUPOS: { labelKey: string; keys: (keyof PolicyPresetValues)[] }[] = [
+  { labelKey: "modes.auto", keys: ["num_pistas", "parking", "bencina"] },
+  { labelKey: "modes.metro", keys: ["num_estaciones", "frec_max", "cap_tren", "tarifa"] },
+  { labelKey: "modes.bici", keys: ["cap_bici"] },
+];
+
+const CAMPO: Record<
+  keyof PolicyPresetValues,
+  { labelKey: string; get: (c: SimulationConfig) => number; fmt: (v: number) => string }
+> = {
+  num_pistas: {
+    labelKey: "coupled.param.pistas",
+    get: (c) => c.supply.car.num_pistas,
+    fmt: nf,
+  },
+  parking: {
+    labelKey: "coupled.param.parking",
+    get: (c) => c.demand.globales.costo_parking,
+    fmt: money,
+  },
+  bencina: {
+    labelKey: "coupled.param.bencina",
+    get: (c) => c.demand.globales.costo_combustible_km,
+    fmt: (v) => `${money(v)}/km`,
+  },
+  num_estaciones: {
+    labelKey: "coupled.param.estaciones",
+    get: (c) => c.supply.train.num_estaciones,
+    fmt: nf,
+  },
+  frec_max: {
+    labelKey: "coupled.param.frec",
+    get: (c) => c.supply.train.frec_max,
+    fmt: (v) => `${nf(v)} tr/h`,
+  },
+  cap_tren: {
+    labelKey: "coupled.param.cap_tren",
+    get: (c) => c.supply.train.capacidad_tren,
+    fmt: (v) => `${nf(v)} pax`,
+  },
+  tarifa: {
+    labelKey: "coupled.param.tarifa",
+    get: (c) => c.demand.globales.costo_tarifa_metro,
+    fmt: money,
+  },
+  cap_bici: {
+    labelKey: "coupled.param.cap_bici",
+    get: (c) => c.supply.bike.capacidad_pista,
+    fmt: (v) => `${nf(v)} bici/h`,
+  },
 };
 
 export function PresetGallery() {
@@ -60,9 +136,10 @@ export function PresetGallery() {
       config.city.densidad_hab_km === v.densidad,
   )?.[0];
 
-  const current = policyFields(config);
   const activePolicy = policies.find(([, v]) =>
-    (Object.keys(v) as (keyof PolicyPresetValues)[]).every((k) => current[k] === v[k]),
+    (Object.keys(v) as (keyof PolicyPresetValues)[]).every(
+      (k) => CAMPO[k].get(config) === v[k],
+    ),
   )?.[0];
 
   const applyCity = (name: string) => {
@@ -119,62 +196,117 @@ export function PresetGallery() {
     }));
   };
 
-  // Qué cambió el preset activo respecto de la config default equivalente:
-  // mostramos los campos que la política FIJA (todos sus campos declarados),
-  // para que el estudiante vea por qué el escenario es pro-X.
-  const activeDiff = activePolicy
-    ? (Object.entries(POLICY_PRESETS[activePolicy]!) as [
-        keyof PolicyPresetValues,
-        number,
-      ][])
-    : null;
-
-  const nf = (v: number) => v.toLocaleString("es-CL");
+  const nCambios =
+    filasCiudad(config, landUse).filter((f) => f.valor !== f.base).length +
+    GRUPOS.flatMap((g) => g.keys).filter(
+      (k) => CAMPO[k].get(config) !== CAMPO[k].get(defaultSimulationConfig),
+    ).length;
 
   return (
     <SidebarSection
       title={t("presets.title")}
-      meta={activePolicy ?? activeCity ?? t("presets.custom")}
+      meta={
+        [activeCity, activePolicy].filter(Boolean).join(" · ") ||
+        t("presets.custom")
+      }
       defaultOpen
     >
       <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
         {t("presets.city_label")}
       </div>
-      <div className="mb-2 flex flex-wrap gap-1">
+      <div className="mb-1.5 flex flex-wrap gap-1">
         {cities.map(([name]) => (
           <Chip key={name} active={activeCity === name} onClick={() => applyCity(name)}>
             {name}
           </Chip>
         ))}
       </div>
+      <Tabla filas={filasCiudad(config, landUse)} t={t} />
 
-      <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+      <div className="mb-1 mt-3 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
         {t("presets.policy_label")}
       </div>
-      <div className="flex flex-wrap gap-1">
+      <div className="mb-1.5 flex flex-wrap gap-1">
         {policies.map(([name]) => (
           <Chip key={name} active={activePolicy === name} onClick={() => applyPolicy(name)}>
             {name}
           </Chip>
         ))}
       </div>
+      {GRUPOS.map((g) => (
+        <Tabla
+          key={g.labelKey}
+          titulo={t(g.labelKey)}
+          t={t}
+          filas={g.keys.map((k) => ({
+            key: k,
+            labelKey: CAMPO[k].labelKey,
+            valor: CAMPO[k].get(config),
+            base: CAMPO[k].get(defaultSimulationConfig),
+            fmt: CAMPO[k].fmt,
+          }))}
+        />
+      ))}
 
-      {activeDiff && (
-        <dl className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-muted">
-          {activeDiff.map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-1">
-              <dt>{t(FIELD_LABEL_KEY[k])}</dt>
-              <dd className="font-mono">{nf(v)}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
       <p className="mt-2 text-[10px] leading-snug text-muted">
-        {t("presets.hint", {
-          pop: nf(landUse.H_por_estrato.reduce((a, b) => a + b, 0)),
-        })}
+        {nCambios > 0
+          ? t("presets.diff_hint", { n: nCambios })
+          : t("presets.no_diff_hint")}
       </p>
     </SidebarSection>
+  );
+}
+
+/** Tabla de posición fija: mismas filas, mismo orden, para todo escenario.
+ * Las que difieren del default se destacan con una flecha de dirección; NO se
+ * colorean por «bueno/malo» (subir el parking es bueno o malo según el objetivo). */
+function Tabla({
+  filas,
+  titulo,
+  t,
+}: {
+  filas: Fila[];
+  titulo?: string;
+  t: (k: string, o?: Record<string, unknown>) => string;
+}) {
+  return (
+    <div className="mb-1">
+      {titulo && (
+        <div className="mt-1 font-fig text-[9px] uppercase tracking-[0.1em] text-muted opacity-70">
+          {titulo}
+        </div>
+      )}
+      <dl className="grid grid-cols-[1fr_auto] gap-x-2 text-[10.5px]">
+        {filas.map((f) => {
+          const cambiado = f.valor !== f.base;
+          return (
+            <div key={f.key} className="col-span-2 grid grid-cols-subgrid">
+              <dt className={cn(cambiado ? "text-[var(--ink-2)]" : "text-muted opacity-60")}>
+                {t(f.labelKey)}
+              </dt>
+              <dd
+                className={cn(
+                  "text-right font-mono tabular-nums",
+                  cambiado ? "font-semibold text-[var(--ink)]" : "text-muted opacity-60",
+                )}
+                title={
+                  cambiado
+                    ? t("presets.vs_base", { base: f.fmt(f.base) })
+                    : t("presets.same_as_base")
+                }
+              >
+                {f.fmt(f.valor)}
+                {cambiado && (
+                  <span aria-hidden className="ml-0.5">
+                    {f.valor > f.base ? "↑" : "↓"}
+                  </span>
+                )}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </div>
   );
 }
 
