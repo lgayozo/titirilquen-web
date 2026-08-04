@@ -23,9 +23,12 @@ class CarSupplyResult:
 
 
 def _factor_ancho(ancho_m: float) -> float:
+    # El borde en 3.0 es INCLUSIVO (§4.2 del Overleaf: «0.9·v_max si 3 ≤ a <
+    # 3.5»). Estaba como `3.0 < ancho_m`, así que un ancho de exactamente 3.0 m
+    # —alcanzable con el slider, paso 0.1— caía en 0.75 en vez de 0.9.
     if ancho_m >= 3.5:
         return 1.0
-    if 3.0 < ancho_m < 3.5:
+    if ancho_m >= 3.0:
         return 0.9
     return 0.75
 

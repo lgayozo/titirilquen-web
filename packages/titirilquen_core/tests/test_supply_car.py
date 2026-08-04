@@ -9,6 +9,11 @@ def test_factor_ancho() -> None:
     assert _factor_ancho(3.5) == 1.0
     assert _factor_ancho(3.2) == 0.9
     assert _factor_ancho(2.9) == 0.75
+    # Bordes exactos: el Overleaf §4.2 define «0.9 si 3 ≤ a < 3.5», con el 3.0
+    # INCLUSIVO. Antes `3.0 < a` dejaba el 3.0 exacto (alcanzable con el slider)
+    # cayendo al 0.75 de pista angosta.
+    assert _factor_ancho(3.0) == 0.9
+    assert _factor_ancho(3.49) == 0.9
 
 
 def test_mas_pistas_baja_congestion() -> None:
