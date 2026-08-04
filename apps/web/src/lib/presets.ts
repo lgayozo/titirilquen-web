@@ -55,7 +55,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     bencina: 120,
     cap_tren: 300,
     cap_bici: 800,
-    frec_max: 20,
+    frec_max: 30,
   },
   "Pro-Auto": {
     tarifa: 1000,
@@ -72,7 +72,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     parking: 6000,
     num_pistas: 2,
     cap_bici: 5000,
-    frec_max: 20,
+    frec_max: 30,
     bencina: 120,
     cap_tren: 300,
     num_estaciones: 10,
@@ -82,7 +82,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     bencina: 65,
     tarifa: 800,
     parking: 6000,
-    frec_max: 20,
+    frec_max: 30,
     cap_tren: 300,
     num_estaciones: 10,
     cap_bici: 800,
@@ -103,7 +103,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     tarifa: 800,
     parking: 6000,
     bencina: 120,
-    frec_max: 20,
+    frec_max: 30,
     cap_tren: 300,
     // Faltaba (7 de 8 claves): sin esto la política heredaba el valor vigente y
     // no era reproducible. 10 = default. Espejo de presets.py.

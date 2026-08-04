@@ -11,7 +11,7 @@ from typing import TypedDict
 class CityPreset(TypedDict, total=False):
     largo_ciudad: int
     densidad: int
-    # Concentración de la oferta de vivienda (σ del perfil, land_use/supply.py):
+    # Concentración de la oferta de vivienda (sigma del perfil, land_use/supply):
     # la otra dimensión de «forma urbana» además de la extensión — dónde vive la
     # gente DENTRO de la ciudad. Sin ella el preset movía la mitad del efecto.
     sigma: float
@@ -36,7 +36,7 @@ CITY_PRESETS: dict[str, CityPreset] = {
     #
     # Rango ampliado respecto de la calibración original (12/20/30, sin sigma)
     # porque a iso-población ese rango movía la mitad del efecto: el contraste
-    # compacta↔dispersa pasa de −15,6 a −36,5 pp en metro y de +10,8 a +28,6 pp
+    # compacta-dispersa pasa de -15,6 a -36,5 pp en metro y de +10,8 a +28,6 pp
     # en caminata. El v/c NO contrasta en ninguna calibración: en una ciudad
     # monocéntrica el tramo junto al CBD carga ~la mitad de los viajes en auto
     # sea cual sea el largo, así que responde a población/precios/capacidad y no
@@ -46,6 +46,14 @@ CITY_PRESETS: dict[str, CityPreset] = {
     "Dispersa": {"largo_ciudad": 40, "densidad": 900, "sigma": 0.90},
 }
 
+# NOTA sobre `frec_max`: cuatro políticas declaraban 20, que era el default
+# ANTIGUO; D-18 recalibró el rango a [6, 30] y estas no se actualizaron. Como el
+# preset fija valores absolutos (no diffs), ese 20 quedó capando el metro por
+# debajo del default en políticas que no son sobre el metro — degradación no
+# declarada: la espera máxima se cuadruplicaba (6.98 vs 1.78 min en Tarificación
+# Vial). Ahora las neutras declaran 30 = default. Siguen siendo deliberados los
+# valores de Pro-Auto (6, degrada el TP a propósito), TP Gratis (35) y Máx Metro
+# (50), que sí son políticas sobre el metro.
 POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Personalizado": {},
     "TP Gratis": {
@@ -54,7 +62,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     },
     "Tarificación Vial": {
         "tarifa": 800, "parking": 15000, "num_pistas": 2, "num_estaciones": 10,
-        "bencina": 120, "cap_tren": 300, "cap_bici": 800, "frec_max": 20,
+        "bencina": 120, "cap_tren": 300, "cap_bici": 800, "frec_max": 30,
     },
     "Pro-Auto": {
         "tarifa": 1000, "parking": 3000, "num_pistas": 3, "num_estaciones": 8,
@@ -62,11 +70,11 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     },
     "Pro-Bici": {
         "tarifa": 800, "parking": 6000, "num_pistas": 2, "cap_bici": 5000,
-        "frec_max": 20, "bencina": 120, "cap_tren": 300, "num_estaciones": 10,
+        "frec_max": 30, "bencina": 120, "cap_tren": 300, "num_estaciones": 10,
     },
     "Vehículos híbridos": {
         "num_pistas": 2, "bencina": 65, "tarifa": 800, "parking": 6000,
-        "frec_max": 20, "cap_tren": 300, "num_estaciones": 10, "cap_bici": 800,
+        "frec_max": 30, "cap_tren": 300, "num_estaciones": 10, "cap_bici": 800,
     },
     "Máx Metro": {
         "tarifa": 400, "num_estaciones": 20, "frec_max": 50, "cap_tren": 300,
@@ -78,7 +86,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         # escenario que aplicarla desde el default. Completada con 10 = default,
         # para que el preset sea reproducible.
         "num_pistas": 1, "cap_bici": 6000, "tarifa": 800, "parking": 6000,
-        "bencina": 120, "frec_max": 20, "cap_tren": 300, "num_estaciones": 10,
+        "bencina": 120, "frec_max": 30, "cap_tren": 300, "num_estaciones": 10,
     },
 }
 
