@@ -13,8 +13,8 @@ Base: 201 celdas · 20 km · ΣH = 36.000 · shares 10/40/50 · α = 6,5/6,0/5,5
 | AU-03 | La asignación es invariante a la escala de población | ✅ conforme |
 | AU-04 | `β` opera como escala de ruido del logit, monótona | ✅ conforme |
 | AU-05 | `ρ` uniforme no reasigna pero **sí aplana el gradiente de precios** | ✅ conforme, no documentado |
-| AU-06 | `λ` mueve la localización con `logit` — artefacto D-08 **vivo** | ⚠️ incoherencia conocida |
-| AU-07 | `utility_logit` neutraliza `λ` correctamente, pero **no se expone** | ⚠️ el arreglo existe y no se usa |
+| AU-06 | `λ` mueve la localización: es **ruido**, limitación conocida del modelo | ✅ esperado, documentado |
+| AU-07 | `utility_logit` decía corregirlo y no lo hacía — **eliminado** | 🐛 corregido |
 | AU-08 | No hay **techo de densidad**: la densidad puede crecer sin límite | ⚠️ decisión de modelo a discutir |
 | AU-09 | Convergencia lenta en configuraciones asimétricas (hasta 2.640 iter) | ℹ️ observación |
 | AU-10 | Sensibilidad muy alta a diferencias pequeñas de α | ℹ️ para la lectura pedagógica |
@@ -87,33 +87,57 @@ alto se va a 8,48 km): también correcto.
 
 ## 2. ¿Tiene coherencia con la teoría?
 
-### AU-06 / AU-07 — El artefacto de λ sigue vivo, y el arreglo está sin usar ⚠️
+### AU-06 — `λ` produce ruido: es una limitación del modelo, no un bug ✅
 
-| Configuración | solver | d_alto | d_medio | d_bajo |
+| λ del estrato alto | 0,4 | 1,0 (base) | 1,5 | 3,0 |
 |---|---|---|---|---|
-| λ = 1,1,1 | `logit` | 0,99 | 2,13 | 5,36 |
-| **λ_alto = 0,5** | `logit` | **8,48** | 1,70 | 4,21 |
-| λ_alto = 3 | `logit` | 0,94 | 2,14 | 5,37 |
-| **λ_alto = 3** | `utility_logit` | **0,99** | **2,13** | **5,36** |
+| dispersión del estrato | 25,3 | **12,1** | 19,4 | 19,3 |
+| centroide (celda) | 40,3 | 39,7 | **13,9** | 13,9 |
 
-Bajar λ del estrato alto de 1 a 0,5 lo manda de **0,99 a 8,48 km** — de vivir
-pegado al CBD a la periferia. λ es la utilidad marginal del ingreso: no es una
-preferencia por localización y no debería mover a nadie. Es el artefacto
-documentado en D-08 / Suelo.tex §2.6: al dividir por λ_h se rompe la hipótesis
-de shocks idénticamente distribuidos, y λ termina actuando como escala de ruido
-por estrato (~1/βλ).
+Mover `λ` cambia la asignación. Eso **es lo esperado dado el modelo
+implementado**: `solve_logit` aplica un β uniforme sobre la puja `y + f/λ`, así
+que dividir por λ_h escala el ruido de elección de ese estrato (~1/βλ). λ es la
+utilidad marginal del ingreso, no una preferencia de localización: lo que se
+observa es **ruido, no comportamiento**.
 
-**Lo relevante de esta auditoría**: la última fila muestra que `utility_logit`
-**neutraliza λ por completo** — el resultado es idéntico al de λ = 1. O sea, la
-corrección teórica funciona y está implementada en el core, pero la app corre
-`logit` y no expone el selector. La razón está documentada (el precio del
-solver consistente queda en utiles y no se integra con el downstream en $ del
-acoplado), pero la consecuencia es que **el simulador enseña un modelo con una
-inconsistencia conocida teniendo el arreglo al lado**.
+El contraste que lo confirma: el ingreso `y` —que sí es un parámetro económico
+del estrato— **no reasigna a nadie** (AU-02), porque entra como constante y se
+absorbe en ū. Si λ moviera gente por una razón económica, `y` también debería.
 
-Esto conecta con la contradicción ya detectada entre documentos: `Suelo.tex`
-§2.7 (S-5) afirma que el heteroscedástico «es el default de la implementación
-de referencia», lo que es falso. Punto para la reunión con los autores.
+La medición agrega una evidencia que no teníamos: **el efecto ni siquiera es
+monótono**. Entre λ=1 y λ=1,5 el centroide del estrato alto salta del centro
+(39,7) a la periferia (13,9), y la dispersión baja y vuelve a subir. Un
+parámetro de comportamiento no se comporta así; un artefacto de escala de ruido,
+sí.
+
+**La corrección es el logit heteroscedástico** (Suelo.tex §2.7), que **no está
+implementado** y queda pendiente. Mientras tanto, esto es una limitación
+declarada del modelo y debe leerse como tal — el hint de la UI lo dice.
+
+### AU-07 — `utility_logit` decía corregirlo y no lo hacía 🐛 ELIMINADO
+
+El core traía un segundo solver presentado como «el método consistente que
+corrige el λ heterogéneo», seleccionable por el campo `solver`. **No corregía
+nada.** Su implementación era:
+
+```python
+score = (lambda_h * y)[:, None] + _f(T, S_arr, alpha, rho, ancho_celda_km)
+return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)
+```
+
+`λ_h·y_h` es una **constante por estrato**, y el punto fijo absorbe cualquier
+constante por estrato en ū_h. Además `_solve_fixed_point` recibe un β **escalar**:
+la escala por estrato `β_h = β·λ_h` que su docstring afirmaba aplicar no estaba
+implementada en ninguna parte. Verificado empíricamente: con λ de `[1,1,1]` a
+`[100, 0.01, 1]` —rango de 10.000×— la matriz `Q` es **idéntica dígito a
+dígito**.
+
+O sea: no corregía el artefacto, lo **borraba**, haciendo λ completamente
+inerte. Sus dos tests pasaban vacuamente por lo mismo (una invariancia trivial).
+
+Eliminado: el solver, el campo `solver` del schema, el selector de i18n y los
+tests vacuos. Queda un único solver (`logit`) con su limitación documentada. Los
+escenarios guardados que traen el campo se migran en `serialization.ts`.
 
 ### AU-08 — No hay techo de densidad ⚠️
 
@@ -176,8 +200,11 @@ conservación de hogares es exacta.
 
 Las dos observaciones de fondo:
 
-1. **El artefacto de λ (AU-06/07)** — es la única incoherencia teórica viva, y
-   el arreglo ya está implementado sin exponerse. Decisión de los autores.
+1. **El artefacto de λ (AU-06)** — es la única incoherencia teórica viva, y es
+   una limitación **declarada**: el modelo implementado hace que λ escale el
+   ruido. La corrección (logit heteroscedástico, Suelo.tex §2.7) no está
+   implementada y queda pendiente para los autores. Lo que sí se eliminó (AU-07)
+   fue un solver que decía corregirlo sin hacerlo.
 2. **Sin techo de densidad (AU-08)** — la restricción de capacidad que sí existe
    (vaciado de mercado sobre `S`) es la correcta; falta la normativa. Extensión
    posible, no defecto.

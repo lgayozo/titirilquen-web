@@ -345,7 +345,7 @@ export function LandUsePage() {
                     title={tS("land_use.bid_price_title")}
                     exportSize={{ width: 800, height: 200 }}
                   >
-                    <BidPriceCurve p={prices} solver={config.solver} />
+                    <BidPriceCurve p={prices} />
                   </ExportableFigure>
                 </Panel>
               )}

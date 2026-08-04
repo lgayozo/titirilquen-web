@@ -72,6 +72,21 @@ function migrateConfig(config: SimulationConfig): SimulationConfig {
   return config;
 }
 
+/** Migraciones sobre el `land_use` importado. Mismo motivo que `migrateConfig`:
+ * el core valida con `extra="forbid"`, así que un campo eliminado hace fallar
+ * la importación de escenarios guardados. Muta y devuelve el mismo objeto. */
+function migrateLandUse(landUse: LandUseConfig): LandUseConfig {
+  const lu = landUse as unknown as Record<string, unknown>;
+  if ("solver" in lu) {
+    // El campo ofrecía `utility_logit` como «corrección» del λ heterogéneo y no
+    // lo era: dejaba λ inerte sin aplicar β_h = β·λ_h. Se eliminó del core con
+    // su solver; queda un único solver (logit). La corrección real es el logit
+    // heteroscedástico, no implementado (D-08 · Suelo.tex §2.7).
+    delete lu.solver;
+  }
+  return landUse;
+}
+
 export function serializeToJson(
   config: SimulationConfig,
   name?: string,
@@ -108,6 +123,7 @@ export function parseTtrqJson(raw: string): TtrqFile {
   }
   const file = obj as unknown as TtrqFile;
   migrateConfig(file.config);
+  if (file.land_use) migrateLandUse(file.land_use);
   return file;
 }
 
@@ -136,6 +152,7 @@ export function scenarioFromUrlParam(param: string): ScenarioPayload {
   if (typeof data.config === "object" && data.config !== null) {
     const payload = data as unknown as ScenarioPayload;
     migrateConfig(payload.config);
+    if (payload.land_use) migrateLandUse(payload.land_use);
     return payload;
   }
   // Legado: el JSON ES el SimulationConfig.

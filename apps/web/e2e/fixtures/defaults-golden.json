@@ -94,7 +94,6 @@
     }
    ],
    "beta": 1.0,
-   "solver": "logit",
    "tol": 1e-08,
    "max_iter": 10000,
    "forma": "normal",

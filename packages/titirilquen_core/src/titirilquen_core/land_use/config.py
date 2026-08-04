@@ -8,19 +8,15 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from titirilquen_core.land_use.supply import FormaOferta
 
-SolverKind = Literal["utility_logit", "logit"]
-"""
-- `logit`: β uniforme sobre la puja `y + f/λ`. **Default** y único solver que
-  corre la app (la UI no expone selector). Inconsistente con λ_h heterogéneo
-  (Suelo.tex sec. 5.4): λ escala el ruido de elección por estrato, no es un
-  efecto-ingreso real.
-- `utility_logit`: logit en el espacio de utilidad, `score = λ·y + f` (equivale a
-  una escala por estrato β_h = β·λ_h sobre la puja) — el método **consistente**
-  que corrige el λ heterogéneo (ver D-08); coincide con `logit` cuando λ_h = 1 ∀h.
-  Se conserva en el core para comparación, pero su precio queda en **utiles** (no
-  en $), así que no está integrado con los consumidores en $ del acoplado — por
-  eso no se expone en la UI. **No es el HEV** de Train §4.5; ver `equilibrium.py`.
-"""
+"""El módulo tiene un **único solver**: `solve_logit` (β uniforme sobre la puja
+`y + f/λ`). Con λ_h heterogéneo el ruido queda escalado por estrato — limitación
+conocida (D-08 · Suelo.tex §2.6), no un efecto de comportamiento. La corrección
+es el logit heteroscedástico, **no implementado**.
+
+Existió un campo `solver` con la opción `utility_logit`, presentada como la
+corrección: no lo era (dejaba λ inerte, sin aplicar β_h = β·λ_h). Se eliminó
+junto con el campo; los escenarios guardados que lo traen se migran en el
+frontend (`serialization.ts`)."""
 
 
 class LandUseStratumConfig(BaseModel):
@@ -80,7 +76,6 @@ class LandUseConfig(BaseModel):
         )
     )
     beta: float = Field(default=1.0, gt=0, description="Parámetro de sensibilidad logit")
-    solver: SolverKind = "logit"
     tol: float = Field(default=1e-8, gt=0)
     max_iter: int = Field(default=10000, ge=1)
     forma: FormaOferta = Field(

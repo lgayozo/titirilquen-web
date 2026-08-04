@@ -180,11 +180,6 @@ export const defaultLandUseConfig: LandUseConfig = {
     { y: 500_000, lambda: 1, alpha: 5.5, rho: 0.1 },
   ],
   beta: 1,
-  // Logit es el default y único solver de la app (la UI no expone selector; el
-  // default Pydantic del core también es logit). El `utility_logit` queda en el
-  // core solo para comparación: su precio está en utiles, no integrado con el
-  // downstream en $ del acoplado.
-  solver: "logit",
   tol: 1e-8,
   max_iter: 2000,
   forma: "normal",

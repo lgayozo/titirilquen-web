@@ -5,9 +5,6 @@ import { cn } from "@/lib/cn";
 
 interface BidPriceCurveProps {
   p: readonly number[];
-  /** Solver de suelo que produjo `p` — define las unidades de la nota al pie:
-   * `logit` puja en $ (WTP); `utility_logit` score en utiles (no convertible a $). */
-  solver?: "utility_logit" | "logit";
   className?: string;
   height?: number;
 }
@@ -23,7 +20,6 @@ const MARGIN = { top: 8, right: 8, bottom: 22, left: 52 };
  */
 export function BidPriceCurve({
   p,
-  solver,
   className,
   height = 160,
 }: BidPriceCurveProps) {
@@ -179,12 +175,9 @@ export function BidPriceCurve({
         }}
       >
         {t("bid_price.footer", { delta: fmt(max) })}
-        {solver && (
-          <>
-            <br />
-            {t(`bid_price.units_${solver}`)}
-          </>
-        )}
+        <br />
+        {/* Único solver: la puja es `y + f/λ`, en $ (WTP). */}
+        {t("bid_price.units_logit")}
       </div>
     </div>
   );

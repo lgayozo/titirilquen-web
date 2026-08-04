@@ -9,7 +9,6 @@ from titirilquen_core.land_use import (
     LandUseStratumConfig,
     generar_oferta_normal,
     solve_logit,
-    solve_utility_logit,
 )
 
 
@@ -30,30 +29,41 @@ def _toy_scenario(lam: np.ndarray):
     )
 
 
-def test_utility_logit_reduce_a_logit_con_lambda_1() -> None:
-    """Con λ_h = 1 ∀h, el logit heteroscedástico coincide exactamente con el logit."""
+def test_lambda_heterogeneo_dispersa_por_ruido_no_por_comportamiento() -> None:
+    """D-08 — LIMITACION documentada, no bug.
+
+    Con beta uniforme sobre la puja `y + f/lambda`, dividir por lambda_h escala
+    el ruido de eleccion por estrato (~1/(beta*lambda)): mover lambda cambia la
+    asignacion aunque lambda sea la utilidad marginal del ingreso y no una
+    preferencia de localizacion. Es RUIDO, no comportamiento.
+
+    El test fija dos cosas y deliberadamente NO fija una direccion: el efecto de
+    lambda no es monotono (medido en este escenario, la dispersion del estrato
+    alto va 25.3 -> 12.1 -> 19.3 para lambda 0.4 -> 1.0 -> 3.0, y entre 1.0 y
+    1.5 el centroide salta del centro a la periferia). Esa falta de monotonia es
+    precisamente la evidencia de que es un artefacto.
+
+    La correccion es el logit heteroscedastico (Suelo.tex 2.7), NO implementado.
+    Hubo un `solve_utility_logit` que decia corregirlo y solo dejaba lambda
+    inerte; se elimino."""
+    S = _toy_scenario(np.array([1.0, 1.0, 1.0]))["S"]
+
+    def asignacion(lam_alto: float) -> np.ndarray:
+        return solve_logit(**_toy_scenario(np.array([lam_alto, 1.0, 1.0]))).Q
+
+    base = asignacion(1.0)
+    # 1) lambda SI mueve la asignacion — la limitacion existe y es observable.
+    for lam in (0.4, 3.0):
+        delta = float(np.abs(asignacion(lam) - base).max())
+        assert delta > 1e-3, f"lambda={lam} deberia mover la asignacion (delta={delta})"
+
+    # 2) el ingreso NO la mueve: entra como constante por estrato y se absorbe
+    #    en la utilidad de equilibrio. Es el contraste que separa ruido de
+    #    efecto-ingreso.
     args = _toy_scenario(np.array([1.0, 1.0, 1.0]))
-    rl = solve_logit(**args)
-    rh = solve_utility_logit(**args)
-    np.testing.assert_allclose(rl.u, rh.u, atol=1e-9)
-    np.testing.assert_allclose(rl.Q, rh.Q, atol=1e-9)
-
-
-def test_utility_logit_invariante_a_escala_comun_de_lambda() -> None:
-    """Escalar TODOS los λ por un factor común no debe cambiar la asignación
-    (propiedad de consistencia que el logit NO tiene)."""
-    base = solve_utility_logit(**_toy_scenario(np.array([1.0, 1.0, 1.0]))).Q
-    for k in (0.5, 2.0, 4.0):
-        Qk = solve_utility_logit(**_toy_scenario(np.array([k, k, k]))).Q
-        np.testing.assert_allclose(Qk, base, atol=1e-6)
-
-
-def test_utility_logit_converge_con_lambda_heterogeneo() -> None:
-    res = solve_utility_logit(**_toy_scenario(np.array([2.0, 1.0, 0.5])))
-    assert res.converged
-    col_sum = res.Q.sum(axis=0)
-    expected = np.where(_toy_scenario(np.array([2.0, 1.0, 0.5]))["S"] > 0, 1.0, 0.0)
-    np.testing.assert_allclose(col_sum, expected, atol=1e-6)
+    args["y"] = args["y"] * 1000.0
+    np.testing.assert_allclose(base, solve_logit(**args).Q, atol=1e-9)
+    assert S.sum() > 0
 
 
 def test_oferta_normal_suma_exactamente_N() -> None:
@@ -156,11 +166,10 @@ def test_q_conserva_hogares_por_estrato_con_H_desigual() -> None:
     # Recalzar oferta = demanda tras cambiar H.
     diff = int(args["H"].sum() - args["S"].sum())
     args["S"][0] += diff
-    for solver in (solve_logit, solve_utility_logit):
-        res = solver(**args)
-        assert res.converged
-        hogares = res.Q @ args["S"].astype(float)
-        np.testing.assert_allclose(hogares, args["H"].astype(float), rtol=1e-6)
+    res = solve_logit(**args)
+    assert res.converged
+    hogares = res.Q @ args["S"].astype(float)
+    np.testing.assert_allclose(hogares, args["H"].astype(float), rtol=1e-6)
 
 
 # ---------------------------------------------------------------------------

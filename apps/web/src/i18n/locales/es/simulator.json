@@ -307,8 +307,6 @@
     "trajectory_outer_counter": "Iteración exterior:",
     "logit_converged": "Logit convergió",
     "logit_iterations": "Iter. logit",
-    "solver": "Solver",
-    "solver_logit": "Logit",
     "param_beta": "β (sensibilidad logit)",
     "param_H": "H ({{stratum}})",
     "param_y": "Ingreso y ($/mes)",
@@ -344,11 +342,8 @@
     "forma_valle": "Valle",
     "forma_hint_valle": "Poco espacio en el centro, mucho en la periferia: la densidad crece con la distancia (triángulo invertido).",
     "oferta_sigma_na": "No aplica a la forma uniforme (densidad plana).",
-    "solver_utility_logit": "Heteroced.",
-    "solver_hint_utility_logit": "Consistente: escala por estrato β_h = β·λ_h. Corrige el problema del λ heterogéneo (recomendado · default).",
-    "solver_hint_logit": "β uniforme sobre la puja y + f/λ: inconsistente con λ heterogéneo (escala el ruido por estrato). Para comparar.",
-    "lambda_artifact_logit": "⚠ Mueve la asignación, pero es un artefacto del logit (el solver de la app): escala el ruido de elección por estrato (~1/βλ), no es un efecto-ingreso real (el ingreso y se absorbe). Subir λ dispersa al estrato; bajarlo lo concentra en su óptimo de α/ρ.",
-    "y_na": "No afecta la asignación en ningún solver: el ingreso entra solo como constante por estrato (λ·y o y) y se absorbe en la utilidad de equilibrio. El ordenamiento lo gobiernan α y ρ.",
+    "lambda_artifact_logit": "⚠ Mueve la asignación, pero es RUIDO, no comportamiento: con β uniforme, dividir la puja por λ escala el ruido de elección por estrato (~1/βλ). No es un efecto-ingreso — el ingreso y se absorbe y no reasigna a nadie. El efecto ni siquiera es monótono (puede saltar de concentrar a dispersar). Limitación conocida del modelo; la corrección (logit heteroscedástico) no está implementada.",
+    "y_na": "No afecta la asignación: el ingreso entra solo como constante por estrato y se absorbe en la utilidad de equilibrio. El ordenamiento lo gobiernan α y ρ.",
     "intro": "La teoría del bid-rent predice que los hogares con mayor valoración de la accesibilidad al centro superan en subasta a los demás por parcelas cercanas al CBD, empujando a los grupos de menor valoración hacia la periferia.",
     "distribution_meta": "bid-rent · 3 estratos",
     "relation": "Este módulo resuelve SOLO el suelo, con transporte fijo a flujo libre. Para el loop completo suelo ↔ transporte, ver «Ciudad en equilibrio».",
@@ -358,7 +353,6 @@
   "bid_price": {
     "y_label": "PRECIO (REL.)",
     "footer": "RELATIVO · 0 = PERIFERIA · Δ {{delta}} (precio salvo constante)",
-    "units_utility_logit": "Unidades de utilidad (score λ·y + f): solo el gradiente es informativo, no es convertible a $.",
     "units_logit": "Unidades monetarias (puja y + f/λ, disposición a pagar)."
   },
   "supply_builder": {

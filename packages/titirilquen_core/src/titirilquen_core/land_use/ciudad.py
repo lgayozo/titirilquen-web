@@ -13,16 +13,7 @@ from numpy.typing import NDArray
 
 from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.config import LandUseConfig
-from titirilquen_core.land_use.equilibrium import (
-    LandUseResult,
-    solve_logit,
-    solve_utility_logit,
-)
-
-_SOLVERS = {
-    "utility_logit": solve_utility_logit,
-    "logit": solve_logit,
-}
+from titirilquen_core.land_use.equilibrium import LandUseResult, solve_logit
 from titirilquen_core.land_use.supply import generar_oferta
 
 
@@ -120,8 +111,7 @@ class LandUseCity:
         if T.shape != (n_strata, self.L):
             raise ValueError(f"T shape {T.shape} != ({n_strata}, {self.L})")
 
-        solver = _SOLVERS[self.cfg.solver]
-        self.result = solver(
+        self.result = solve_logit(
             H=H,
             S=self.S,
             y=y,
