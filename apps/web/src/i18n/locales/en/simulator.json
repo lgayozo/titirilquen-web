@@ -37,7 +37,8 @@
     "densidad_hab_km": "Density (pop/km)",
     "meta": "{{km}} km · {{n}} parcels",
     "land_use_note": "Stratum composition and density are defined in Land Use and feed this simulation (per-stratum density → per-cell density).",
-    "defined_in_land_use": "The city (length, cells, slope, remote-work, density and strata) is defined in Land Use and feeds this simulation."
+    "defined_in_land_use": "The city (length, cells, slope, remote-work, density and strata) is defined in Land Use and feeds this simulation.",
+    "largo_hint": "Population fixed ({{pob}} hh): changing the length recomputes density (now {{rho}} pop/km)."
   },
   "economy_params": {
     "tarifa_metro": "Metro fare",
@@ -118,7 +119,8 @@
     "diff_hint": "{{n}} parameter(s) differ from the base scenario (marked ↑/↓). Grey rows are at their base value.",
     "no_diff_hint": "Base scenario: no parameter differs from the default.",
     "vs_base": "Base: {{base}}",
-    "same_as_base": "Same as base scenario"
+    "same_as_base": "Same as base scenario",
+    "presets_hint": "City presets change only the length and keep population: they compare urban form, not demand size."
   },
   "sandbox": {
     "city_heading": "City",
@@ -483,7 +485,8 @@
       "tarifa": "Metro fare",
       "parking": "Parking",
       "bencina": "Fuel",
-      "cap_tren": "Train capacity"
+      "cap_tren": "Train capacity",
+      "densidad_derivada": "Density (derived)"
     },
     "presets": {
       "compact_toll": {

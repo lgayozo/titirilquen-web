@@ -37,7 +37,8 @@
     "densidad_hab_km": "Densidad (hab/km)",
     "meta": "{{km}} km · {{n}} parcelas",
     "land_use_note": "La composición de estratos y la densidad se definen en Uso de Suelo y alimentan esta simulación (densidad por estrato → densidad por celda).",
-    "defined_in_land_use": "La ciudad (largo, celdas, pendiente, teletrabajo, densidad y estratos) se define en Uso de Suelo y alimenta esta simulación."
+    "defined_in_land_use": "La ciudad (largo, celdas, pendiente, teletrabajo, densidad y estratos) se define en Uso de Suelo y alimenta esta simulación.",
+    "largo_hint": "Población fija ({{pob}} hog): al cambiar el largo, la densidad se recalcula (hoy {{rho}} hab/km)."
   },
   "economy_params": {
     "tarifa_metro": "Tarifa Metro",
@@ -118,7 +119,8 @@
     "diff_hint": "{{n}} parámetro(s) difieren del escenario base (marcados con ↑/↓). Las filas grises están en su valor base.",
     "no_diff_hint": "Escenario base: ningún parámetro difiere del default.",
     "vs_base": "Base: {{base}}",
-    "same_as_base": "Igual al escenario base"
+    "same_as_base": "Igual al escenario base",
+    "presets_hint": "Los presets de ciudad cambian solo el largo y conservan la población: comparan forma urbana, no tamaño de la demanda."
   },
   "sandbox": {
     "city_heading": "Ciudad",
@@ -483,7 +485,8 @@
       "tarifa": "Tarifa metro",
       "parking": "Parking",
       "bencina": "Combustible",
-      "cap_tren": "Capacidad tren"
+      "cap_tren": "Capacidad tren",
+      "densidad_derivada": "Densidad (derivada)"
     },
     "presets": {
       "compact_toll": {

@@ -2,7 +2,9 @@ import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { SidebarSection } from "@/components/ui/SidebarSection";
+import { densidadDerivadaHabKm } from "@/lib/citySupply";
 import type { SimulationConfig } from "@/lib/types";
+import { useLandUseStore } from "@/store/landUseStore";
 
 interface CityBuilderProps {
   config: SimulationConfig;
@@ -11,6 +13,10 @@ interface CityBuilderProps {
 
 export function CityBuilder({ config, onChange }: CityBuilderProps) {
   const { t } = useTranslation("simulator");
+  // La población (ΣH) es el input; la densidad se deriva de ella y del largo.
+  const sumaH = useLandUseStore((s) =>
+    s.config.H_por_estrato.reduce((a, b) => a + b, 0),
+  );
 
   const setCity = (patch: Partial<SimulationConfig["city"]>) =>
     onChange((c) => ({ ...c, city: { ...c.city, ...patch } }));
@@ -31,7 +37,19 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           max={40}
           step={1}
           unit="km"
-          onChange={(v) => setCity({ largo_ciudad_km: v })}
+          hint={t("city_params.largo_hint", {
+            pob: sumaH.toLocaleString("es-CL"),
+            rho: densidadDerivadaHabKm(sumaH, config.city.largo_ciudad_km).toLocaleString(
+              "es-CL",
+            ),
+          })}
+          onChange={(v) =>
+            // Cambiar el largo con población fija ⇒ la densidad se recalcula.
+            setCity({
+              largo_ciudad_km: v,
+              densidad_hab_km: densidadDerivadaHabKm(sumaH, v),
+            })
+          }
         />
         <LabeledSlider
           label={t("city_params.n_parcelas")}

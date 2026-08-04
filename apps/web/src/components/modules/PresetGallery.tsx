@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { SidebarSection } from "@/components/ui/SidebarSection";
 import { defaultLandUseConfig } from "@/lib/api-v2";
+import { densidadDerivadaHabKm } from "@/lib/citySupply";
 import { cn } from "@/lib/cn";
 import { defaultSimulationConfig } from "@/lib/defaults";
 import { CITY_PRESETS, POLICY_PRESETS, type PolicyPresetValues } from "@/lib/presets";
@@ -39,6 +40,8 @@ const money = (v: number) => `$${nf(v)}`;
 
 function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
   const pob = (c: LandUseConfig) => c.H_por_estrato.reduce((a, b) => a + b, 0);
+  const sumaH = pob(lu);
+  const sumaHBase = pob(defaultLandUseConfig);
   return [
     {
       key: "largo",
@@ -48,21 +51,25 @@ function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
       fmt: (v) => `${nf(v)} km`,
     },
     {
-      key: "densidad",
-      labelKey: "coupled.param.densidad",
-      valor: cfg.city.densidad_hab_km,
-      base: defaultSimulationConfig.city.densidad_hab_km,
-      fmt: (v) => `${nf(v)} hab/km`,
-    },
-    {
-      // La población REAL sale del uso de suelo (ΣH), no de la densidad — es
-      // la escala de demanda que ve el MSA. Se muestra porque los presets de
-      // ciudad NO son iso-población (Compacta 50.400 vs Dispersa 19.500).
+      // La población (ΣH del uso de suelo) es el INPUT de escala: es lo que
+      // puebla el MSA. Los presets de ciudad la conservan (iso-población).
       key: "poblacion",
       labelKey: "coupled.param.poblacion",
-      valor: pob(lu),
-      base: pob(defaultLandUseConfig),
+      valor: sumaH,
+      base: sumaHBase,
       fmt: (v) => `${nf(v)} hog`,
+    },
+    {
+      // …y la densidad es la CONSECUENCIA: ρ = ΣH/largo. Se calcula en vivo
+      // para que sea verdad aunque `densidad_hab_km` quede desfasado.
+      key: "densidad",
+      labelKey: "coupled.param.densidad_derivada",
+      valor: densidadDerivadaHabKm(sumaH, cfg.city.largo_ciudad_km),
+      base: densidadDerivadaHabKm(
+        sumaHBase,
+        defaultSimulationConfig.city.largo_ciudad_km,
+      ),
+      fmt: (v) => `${nf(v)} hab/km`,
     },
   ];
 }
@@ -124,16 +131,15 @@ export function PresetGallery() {
   const { t } = useTranslation("simulator");
   const config = useSimulationStore((s) => s.config);
   const setConfig = useSimulationStore((s) => s.setConfig);
-  const setLandUse = useLandUseStore((s) => s.setConfig);
   const landUse = useLandUseStore((s) => s.config);
 
   const cities = Object.entries(CITY_PRESETS).filter(([k]) => k !== "Personalizado");
   const policies = Object.entries(POLICY_PRESETS).filter(([k]) => k !== "Personalizado");
 
+  // La ciudad activa se identifica solo por el largo: la densidad ya no es un
+  // input del preset sino ρ = ΣH/largo (ver applyCity).
   const activeCity = cities.find(
-    ([, v]) =>
-      config.city.largo_ciudad_km === v.largo_ciudad &&
-      config.city.densidad_hab_km === v.densidad,
+    ([, v]) => config.city.largo_ciudad_km === v.largo_ciudad,
   )?.[0];
 
   const activePolicy = policies.find(([, v]) =>
@@ -142,24 +148,34 @@ export function PresetGallery() {
     ),
   )?.[0];
 
+  /**
+   * ISO-POBLACIÓN: el preset de ciudad cambia SOLO el largo y conserva ΣH; la
+   * densidad se recalcula como ρ = ΣH/largo. Así «compacta vs dispersa» compara
+   * forma urbana con la misma gente, que es la comparativa estática que interesa.
+   *
+   * Antes se escalaba ΣH desde la densidad del preset y la población cambiaba
+   * (Compacta 50.400 vs Dispersa 19.500): eso INVERTÍA la lectura de congestión
+   * —la compacta parecía saturada (v/c 1.25 vs 0.55) por tener 2.6× más gente,
+   * cuando a igual población es 0.92 vs 0.98— y enmascaraba el efecto real de la
+   * compacidad sobre la bici (+5.0 pp medidos vs +1.0 pp aparente).
+   *
+   * El campo `densidad` de CITY_PRESETS lo sigue usando el módulo acoplado
+   * (applyJointPreset), donde las poblaciones difieren a propósito por
+   * estabilidad numérica del loop exterior (D-24).
+   */
   const applyCity = (name: string) => {
     const p = CITY_PRESETS[name];
-    if (!p?.largo_ciudad || !p.densidad) return;
+    if (!p?.largo_ciudad) return;
+    const largo = p.largo_ciudad;
+    const sumaH = landUse.H_por_estrato.reduce((a, b) => a + b, 0);
     setConfig((c) => ({
       ...c,
-      city: { ...c.city, largo_ciudad_km: p.largo_ciudad!, densidad_hab_km: p.densidad! },
+      city: {
+        ...c.city,
+        largo_ciudad_km: largo,
+        densidad_hab_km: densidadDerivadaHabKm(sumaH, largo),
+      },
     }));
-    // Escalar ΣH = densidad·largo conservando los shares actuales del suelo.
-    const total = p.densidad * p.largo_ciudad;
-    setLandUse((lu) => {
-      const sum = lu.H_por_estrato.reduce((a, b) => a + b, 0) || 1;
-      return {
-        ...lu,
-        H_por_estrato: lu.H_por_estrato.map((h) =>
-          Math.max(1, Math.round((total * h) / sum)),
-        ) as [number, number, number],
-      };
-    });
   };
 
   const applyPolicy = (name: string) => {
@@ -222,6 +238,9 @@ export function PresetGallery() {
         ))}
       </div>
       <Tabla filas={filasCiudad(config, landUse)} t={t} />
+      <p className="mt-1 text-[10px] leading-snug text-muted">
+        {t("presets.presets_hint")}
+      </p>
 
       <div className="mb-1 mt-3 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
         {t("presets.policy_label")}
