@@ -55,9 +55,6 @@ const ALLOWED: Record<string, { py: unknown; ts: unknown }> = {
   // El frontend usa una grilla liviana por interactividad; el core conserva la
   // resolución del modelo original.
   "city.n_celdas": { py: 1001, ts: 201 },
-  // El frontend corta por residual (pedagógico); el core respeta el original
-  // (solo max_iter) salvo que se pida tolerancia.
-  "sim.tolerance": { py: 0, ts: 0.1 },
   // El frontend fija la semilla para reproducibilidad de la demo.
   "sim.seed": { py: null, ts: 42 },
   // El frontend asigna por flujos esperados (determinista, curvas de demanda

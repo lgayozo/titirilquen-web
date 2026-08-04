@@ -26,6 +26,8 @@ class PolicyPreset(TypedDict, total=False):
     cap_bici: int
     frec_max: int
     cap_tren: int
+    # Multiplicador de la emisión por km del auto (composición de la flota).
+    factor_flota: float
 
 
 CITY_PRESETS: dict[str, CityPreset] = {
@@ -46,56 +48,106 @@ CITY_PRESETS: dict[str, CityPreset] = {
     "Dispersa": {"largo_ciudad": 40, "densidad": 900, "sigma": 0.90},
 }
 
-# NOTA sobre `parking`: al bajar el default de 6000 a 2500 (calibración de la
-# elasticidad) hubo que mover los presets, porque declaran valores ABSOLUTOS y
-# no diffs. Las cinco políticas neutras pasan a 2500 = default; si no, aplicar
-# cualquiera de ellas habría revertido el parking a 6000 en silencio. Las dos
-# deliberadas se reescalaron manteniendo su razón contra la base, que es lo que
-# define su intensidad: Tarificación Vial 2.5x (15000 -> 6250) y Pro-Auto 0.5x
-# (3000 -> 1250). Sin reescalar, Pro-Auto habría quedado MÁS caro que la base,
-# invirtiendo su sentido.
+# REGLA GENERAL: los presets declaran valores ABSOLUTOS, no diffs. Cada vez que
+# se recalibra un default hay que moverlos, o aplicar cualquier política revierte
+# ese parámetro en silencio. Los valores neutros van al default; los deliberados
+# se reescalan manteniendo su RAZÓN contra la base, que es lo que define su
+# intensidad. Ya pasó dos veces (`frec_max: 20` y `parking: 6000`).
 #
-# NOTA sobre `frec_max`: cuatro políticas declaraban 20, que era el default
-# ANTIGUO; D-18 recalibró el rango a [6, 30] y estas no se actualizaron. Como el
-# preset fija valores absolutos (no diffs), ese 20 quedó capando el metro por
-# debajo del default en políticas que no son sobre el metro — degradación no
-# declarada: la espera máxima se cuadruplicaba (6.98 vs 1.78 min en Tarificación
-# Vial). Ahora las neutras declaran 30 = default. Siguen siendo deliberados los
-# valores de Pro-Auto (6, degrada el TP a propósito), TP Gratis (35) y Máx Metro
-# (50), que sí son políticas sobre el metro.
+# Recalibración vigente — defaults: parking 4000 · 3 pistas · cap_bici 2500 ·
+# frec_max 40. Deliberados reescalados: Tarificación Vial parking 2.5x (10000),
+# Pro-Auto parking 0.5x (2000) y una pista más que la base (4), Ciclorrecreovía
+# una menos (2). Sin reescalar, Pro-Auto habría quedado más caro que la base y
+# con menos pistas, invirtiendo su sentido.
+#
+# `frec_max` de las metro-friendly (TP Gratis y Máx Metro) queda en 50, por
+# encima del default: un tope PERMISIVO es inocuo si no muerde, mientras que uno
+# restrictivo degrada en silencio. Pro-Auto conserva 6 porque estrangular el
+# metro es justamente su política.
+#
+# PRECEDENTE (por qué existe la regla de arriba): cuatro políticas declaraban
+# `frec_max: 20`, el default ANTIGUO. D-18 recalibró el rango y no se
+# actualizaron, así que ese 20 quedó capando el metro POR DEBAJO del default en
+# políticas que ni siquiera son sobre el metro — degradación no declarada: la
+# espera máxima se cuadruplicaba (6.98 vs 1.78 min en Tarificación Vial).
 POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Personalizado": {},
     "TP Gratis": {
-        "tarifa": 0, "parking": 2500, "num_pistas": 2, "num_estaciones": 10,
-        "bencina": 120, "cap_bici": 800, "frec_max": 35, "cap_tren": 300,
+        "tarifa": 0,
+        "parking": 4000,
+        "num_pistas": 3,
+        "num_estaciones": 10,
+        "bencina": 120,
+        "cap_bici": 2500,
+        "frec_max": 50,
+        "cap_tren": 300,
     },
     "Tarificación Vial": {
-        "tarifa": 800, "parking": 6250, "num_pistas": 2, "num_estaciones": 10,
-        "bencina": 120, "cap_tren": 300, "cap_bici": 800, "frec_max": 30,
+        "tarifa": 800,
+        "parking": 10000,
+        "num_pistas": 3,
+        "num_estaciones": 10,
+        "bencina": 120,
+        "cap_tren": 300,
+        "cap_bici": 2500,
+        "frec_max": 40,
     },
     "Pro-Auto": {
-        "tarifa": 1000, "parking": 1250, "num_pistas": 3, "num_estaciones": 8,
-        "bencina": 100, "cap_tren": 250, "cap_bici": 500, "frec_max": 6,
+        "tarifa": 1000,
+        "parking": 2000,
+        "num_pistas": 4,
+        "num_estaciones": 8,
+        "bencina": 100,
+        "cap_tren": 250,
+        "cap_bici": 1250,
+        "frec_max": 6,
     },
     "Pro-Bici": {
-        "tarifa": 800, "parking": 2500, "num_pistas": 2, "cap_bici": 5000,
-        "frec_max": 30, "bencina": 120, "cap_tren": 300, "num_estaciones": 10,
+        "tarifa": 800,
+        "parking": 4000,
+        "num_pistas": 3,
+        "cap_bici": 5000,
+        "frec_max": 40,
+        "bencina": 120,
+        "cap_tren": 300,
+        "num_estaciones": 10,
     },
     "Vehículos híbridos": {
-        "num_pistas": 2, "bencina": 65, "tarifa": 800, "parking": 2500,
-        "frec_max": 30, "cap_tren": 300, "num_estaciones": 10, "cap_bici": 800,
+        # AHORA sí reduce la emisión por km: antes solo abarataba la bencina, o
+        # sea abarataba el auto y terminaba SUBIENDO el CO2 (+1.6% medido).
+        "num_pistas": 3,
+        "bencina": 65,
+        "tarifa": 800,
+        "parking": 4000,
+        "frec_max": 40,
+        "cap_tren": 300,
+        "num_estaciones": 10,
+        "cap_bici": 2500,
+        "factor_flota": 0.7,
     },
     "Máx Metro": {
-        "tarifa": 400, "num_estaciones": 20, "frec_max": 50, "cap_tren": 300,
-        "parking": 2500, "bencina": 120, "num_pistas": 2, "cap_bici": 800,
+        "tarifa": 400,
+        "num_estaciones": 20,
+        "frec_max": 50,
+        "cap_tren": 300,
+        "parking": 4000,
+        "bencina": 120,
+        "num_pistas": 3,
+        "cap_bici": 2500,
     },
     "Ciclorrecreovía": {
         # `num_estaciones` faltaba (7 de 8 claves): la política heredaba el valor
         # vigente, así que aplicarla desde «Máx Metro» (20 est.) daba otro
         # escenario que aplicarla desde el default. Completada con 10 = default,
         # para que el preset sea reproducible.
-        "num_pistas": 1, "cap_bici": 6000, "tarifa": 800, "parking": 2500,
-        "bencina": 120, "frec_max": 30, "cap_tren": 300, "num_estaciones": 10,
+        "num_pistas": 2,
+        "cap_bici": 6000,
+        "tarifa": 800,
+        "parking": 4000,
+        "bencina": 120,
+        "frec_max": 40,
+        "cap_tren": 300,
+        "num_estaciones": 10,
     },
 }
 
@@ -108,12 +160,21 @@ DEFAULT_STRATA = {
         "prob_part_time": 0.05,
         "jornada": {"horas_rigido": 9.0, "horas_flexible": 8.0, "horas_part_time": 4.0},
         "betas": {
-            "asc_auto": 1.5, "asc_metro": -0.2, "asc_bici": -0.9, "asc_caminata": -0.5,
-            "b_tiempo_viaje": -0.055, "b_costo": -0.00008, "b_tiempo_espera": -0.05,
+            "asc_auto": 1.5,
+            "asc_metro": -0.2,
+            "asc_bici": -0.9,
+            "asc_caminata": -0.5,
+            "b_tiempo_viaje": -0.055,
+            "b_costo": -0.00008,
+            "b_tiempo_espera": -0.05,
             "b_tiempo_caminata": -0.15,
             "penalizaciones_fisicas": {
-                "bici_10": -0.09, "bici_20": -0.15, "bici_30": -0.5,
-                "walk_5": -0.09, "walk_15": -0.18, "walk_25": -0.4,
+                "bici_10": -0.09,
+                "bici_20": -0.15,
+                "bici_30": -0.5,
+                "walk_5": -0.09,
+                "walk_15": -0.18,
+                "walk_25": -0.4,
             },
         },
     },
@@ -124,12 +185,21 @@ DEFAULT_STRATA = {
         "prob_part_time": 0.10,
         "jornada": {"horas_rigido": 9.0, "horas_flexible": 8.5, "horas_part_time": 4.5},
         "betas": {
-            "asc_auto": 0.7889, "asc_metro": 0.1040, "asc_bici": -0.6818, "asc_caminata": 0.1,
-            "b_tiempo_viaje": -0.0331, "b_costo": -0.0002, "b_tiempo_espera": -0.0243,
+            "asc_auto": 0.7889,
+            "asc_metro": 0.1040,
+            "asc_bici": -0.6818,
+            "asc_caminata": 0.1,
+            "b_tiempo_viaje": -0.0331,
+            "b_costo": -0.0002,
+            "b_tiempo_espera": -0.0243,
             "b_tiempo_caminata": -0.0440,
             "penalizaciones_fisicas": {
-                "bici_10": -0.0634, "bici_20": -0.1, "bici_30": -0.4,
-                "walk_5": -0.05, "walk_15": -0.09, "walk_25": -0.2,
+                "bici_10": -0.0634,
+                "bici_20": -0.1,
+                "bici_30": -0.4,
+                "walk_5": -0.05,
+                "walk_15": -0.09,
+                "walk_25": -0.2,
             },
         },
     },
@@ -140,12 +210,21 @@ DEFAULT_STRATA = {
         "prob_part_time": 0.15,
         "jornada": {"horas_rigido": 9.5, "horas_flexible": 9.0, "horas_part_time": 5.0},
         "betas": {
-            "asc_auto": 0.2, "asc_metro": 0.25, "asc_bici": -0.4, "asc_caminata": 0.4,
-            "b_tiempo_viaje": -0.0150, "b_costo": -0.0006, "b_tiempo_espera": -0.0150,
+            "asc_auto": 0.2,
+            "asc_metro": 0.25,
+            "asc_bici": -0.4,
+            "asc_caminata": 0.4,
+            "b_tiempo_viaje": -0.0150,
+            "b_costo": -0.0006,
+            "b_tiempo_espera": -0.0150,
             "b_tiempo_caminata": -0.0250,
             "penalizaciones_fisicas": {
-                "bici_10": -0.0300, "bici_20": -0.0500, "bici_30": -0.7,
-                "walk_5": -0.0250, "walk_15": -0.0400, "walk_25": -0.08,
+                "bici_10": -0.0300,
+                "bici_20": -0.0500,
+                "bici_30": -0.7,
+                "walk_5": -0.0250,
+                "walk_15": -0.0400,
+                "walk_25": -0.08,
             },
         },
     },

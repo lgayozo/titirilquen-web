@@ -487,6 +487,7 @@
       "tarifa": "Tarifa metro",
       "parking": "Parking",
       "bencina": "Combustible",
+      "factor_flota": "Emisión de la flota",
       "cap_tren": "Capacidad tren",
       "densidad_derivada": "Densidad (derivada)"
     },

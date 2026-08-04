@@ -87,11 +87,12 @@ export const defaultDemandConfig: DemandConfig = {
     v_caminata: 4.8,
     costo_combustible_km: 120,
     costo_tarifa_metro: 800,
-    // 2500 (antes 6000): calibrado para que la elasticidad-parking del reparto
-    // de auto quede en ≈ −0.30 en vez de −0.59. Ver el comentario del core y
+    // 4000 (antes 6000): calibrado para bajar la elasticidad-parking del
+    // reparto de auto de −0.59 a ≈ −0.31. Ver el comentario del core y
     // scripts/diagnostico_elasticidades.py.
-    costo_parking: 2500,
-    factor_emision_auto: 0.18,
+    costo_parking: 4000,
+    // 1 = flota de referencia. Escala la curva COPERT; ver core config.py.
+    factor_flota_auto: 1,
     factor_emision_metro_tren_km: 2.5,
   },
   estratos: {
@@ -117,7 +118,9 @@ export const defaultSimulationConfig: SimulationConfig = {
   supply: {
     bike: {
       v_media_kmh: 14,
-      capacidad_pista: 800,
+      // 2500 bici/h = flujo de saturación realista; con 800 el modo operaba
+      // sobre el techo de caminata (v/c 1.96) y su BPR quedaba inerte.
+      capacidad_pista: 2500,
       alpha_bpr: 0.5,
       beta_bpr: 2,
     },
@@ -126,7 +129,8 @@ export const defaultSimulationConfig: SimulationConfig = {
       ancho_pista_m: 3.5,
       largo_vehiculo_m: 5,
       gap_m: 2,
-      num_pistas: 2,
+      // 3: con parking 4000 el corredor quedaba sobre capacidad con 2 pistas.
+      num_pistas: 3,
       alpha_bpr: 0.8,
       beta_bpr: 2,
       // null = Greenshields (capacidad acoplada a la velocidad); manual = S-04.
@@ -144,7 +148,9 @@ export const defaultSimulationConfig: SimulationConfig = {
       // Rango realista de metro: ~10 min (valle) a ~2 min (punta) de intervalo.
       // El rango amplio fortalece el efecto Mohring (ver DISCREPANCIES D-18).
       frec_min: 6,
-      frec_max: 30,
+      // 40 (antes 30): con 30 la frecuencia quedaba topada y el efecto Mohring
+      // agotado en el default. Con 40 queda interior y responde a la demanda.
+      frec_max: 40,
       anden_alpha: 0.5,
       anden_beta: 4,
     },

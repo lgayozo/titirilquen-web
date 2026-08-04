@@ -85,7 +85,7 @@ function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
 
 /** Grupos de la tabla de política: orden FIJO, agrupado por subsistema. */
 const GRUPOS: { labelKey: string; keys: (keyof PolicyPresetValues)[] }[] = [
-  { labelKey: "modes.auto", keys: ["num_pistas", "parking", "bencina"] },
+  { labelKey: "modes.auto", keys: ["num_pistas", "parking", "bencina", "factor_flota"] },
   { labelKey: "modes.metro", keys: ["num_estaciones", "frec_max", "cap_tren", "tarifa"] },
   { labelKey: "modes.bici", keys: ["cap_bici"] },
 ];
@@ -108,6 +108,11 @@ const CAMPO: Record<
     labelKey: "coupled.param.bencina",
     get: (c) => c.demand.globales.costo_combustible_km,
     fmt: (v) => `${money(v)}/km`,
+  },
+  factor_flota: {
+    labelKey: "coupled.param.factor_flota",
+    get: (c) => c.demand.globales.factor_flota_auto,
+    fmt: (v) => `× ${v.toFixed(2)}`,
   },
   num_estaciones: {
     labelKey: "coupled.param.estaciones",

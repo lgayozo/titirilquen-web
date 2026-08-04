@@ -52,6 +52,16 @@ function migrateConfig(config: SimulationConfig): SimulationConfig {
   }
   const globales = (config as unknown as { demand?: { globales?: Record<string, unknown> } })
     .demand?.globales;
+  if (globales && "factor_emision_auto" in globales) {
+    // Era un parámetro HUÉRFANO (0.18, nadie lo leía): las emisiones salían de
+    // la curva COPERT. Se reemplaza por `factor_flota_auto`, un multiplicador
+    // adimensional sobre esa curva. No hay conversión posible —el valor viejo
+    // no tenía efecto ni unidades comparables—, así que se adopta el default.
+    delete globales.factor_emision_auto;
+    if (!("factor_flota_auto" in globales)) {
+      globales.factor_flota_auto = 1;
+    }
+  }
   if (globales && "factor_emision_metro" in globales) {
     // D-29: el metro emite por tren-km, no por pax·km. No hay conversión
     // automática (requiere el factor de carga); se adopta el default nuevo.

@@ -84,13 +84,23 @@ class GlobalConfig(BaseModel):
     v_caminata: float = 4.8
     costo_combustible_km: float = 120
     costo_tarifa_metro: float = 800
-    # 2500 (antes 6000): con 6000 el parking era ~91% del costo monetario del
+    # 4000 (antes 6000): con 6000 el parking era ~91% del costo monetario del
     # viaje en auto a la distancia media, y su elasticidad salia -0.588 mientras
     # bencina y tarifa quedaban en -0.03. Como hay un UNICO `b_costo` que aplica
     # a la suma de todo el dinero, la razon entre esas elasticidades la fijan los
     # MONTOS, no los betas — ver scripts/diagnostico_elasticidades.py.
-    costo_parking: float = 2500
-    factor_emision_auto: float = 0.180
+    costo_parking: float = 4000
+    # Multiplicador ADIMENSIONAL sobre la curva COPERT de emision del auto
+    # (`emissions.factor_emision_auto(v)`), para representar la composicion de
+    # la flota: 1.0 = flota de referencia, ~0.7 hibrida, ~0.15 electrica.
+    #
+    # Reemplaza al antiguo `factor_emision_auto = 0.180`, que era un parametro
+    # HUERFANO: nadie lo leia. Por eso el preset «Vehiculos hibridos» solo
+    # abarataba la bencina y terminaba SUBIENDO el CO2 (mas viajes en auto, la
+    # misma emision por km). Se multiplica en vez de reemplazar la curva para
+    # conservar la dependencia de la velocidad, que es lo pedagogicamente
+    # valioso: congestion => menos velocidad => mas emision por km.
+    factor_flota_auto: float = Field(default=1.0, gt=0)
     # kg CO₂ por tren-km (D-29): el metro emite por servicio circulando, no por
     # pasajero. 2.5 ≈ continuidad con la calibración anterior (0.040 kg/pax·km)
     # en el escenario de referencia, y plausible para metro eléctrico
@@ -114,7 +124,9 @@ class DemandConfig(BaseModel):
 
     @field_validator("estratos")
     @classmethod
-    def _check_strata_complete(cls, v: dict[StratumId, StratumConfig]) -> dict[StratumId, StratumConfig]:
+    def _check_strata_complete(
+        cls, v: dict[StratumId, StratumConfig]
+    ) -> dict[StratumId, StratumConfig]:
         missing = {1, 2, 3} - set(v.keys())
         if missing:
             raise ValueError(f"Faltan estratos: {sorted(missing)}")
@@ -152,7 +164,11 @@ class BikeSupplyParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     v_media_kmh: float = 14
-    capacidad_pista: int = 800
+    # 2500 bici/h = flujo de saturacion realista de una ciclovia. Antes 800, que
+    # dejaba el modo operando a v/c ~2.4, POR ENCIMA del techo de caminata (que
+    # se activa sobre v/c = ((v_bici/v_caminata - 1)/alpha)^(1/beta) = 1.96): en
+    # esa zona la BPR ya no opera y alpha/beta no significan nada.
+    capacidad_pista: int = 2500
     alpha_bpr: float = 0.5
     beta_bpr: float = 2.0
 
@@ -164,7 +180,10 @@ class CarSupplyParams(BaseModel):
     ancho_pista_m: float = 3.5
     largo_vehiculo_m: float = 5.0
     gap_m: float = 2.0
-    num_pistas: int = Field(default=2, ge=1)
+    # 3 (antes 2): con parking 4000 el corredor quedaba sobre capacidad en la
+    # ciudad de referencia. Con 3 pistas vuelve a v/c < 1, que es donde la BPR
+    # es mas informativa.
+    num_pistas: int = Field(default=3, ge=1)
     alpha_bpr: float = 0.8
     beta_bpr: float = 2.0
     # Capacidad por pista (veh/h). None ⇒ Greenshields q_max = k_j·v_l/4, que
@@ -192,7 +211,13 @@ class TrainSupplyParams(BaseModel):
     # frecuencia cae más y la espera (=30/f) sube con pendiente -30/f^2, más
     # pronunciada a baja frecuencia. Ver docs/DISCREPANCIES.md (D-18).
     frec_min: float = 6
-    frec_max: float = 30
+    # 40 (antes 30): con 30 la frecuencia demandada quedaba justo en el tope,
+    # asi que f_op estaba RECORTADA y el efecto Mohring agotado en el default
+    # (mas demanda ya no traia mas trenes). Con 40 la frecuencia queda interior
+    # y vuelve a responder a la demanda. Ojo: por encima de la frecuencia que
+    # pide la demanda, subir este tope no hace NADA — el indicador de la UI lo
+    # dice explicitamente (AT-08).
+    frec_max: float = 40
     anden_alpha: float = Field(
         default=0.5,
         ge=0,
@@ -221,7 +246,14 @@ class SimulationConfig(BaseModel):
     # 20 (no 12): con tolerance>0 el corte es por residual; el margen extra deja
     # converger la cola lenta ~1/it del MSA en escenarios rígidos (ver D-21/H4).
     max_iter: int = Field(default=20, ge=1, le=100)
-    tolerance: float = Field(default=0.0, ge=0)
+    # 0.1 min (antes 0.0): con 0 el criterio por residual NUNCA se cumple, asi
+    # que la corrida agotaba max_iter y quedaba marcada «sin converger» aunque
+    # el residuo fuera despreciable. El 0 venia de replicar el original, que
+    # cortaba solo por max_iter; el costo era una etiqueta falsa. Ahora el core
+    # y el frontend usan el mismo valor (se elimino la divergencia declarada del
+    # contrato). `tolerance=0` sigue siendo valido y significa «no cortar por
+    # residual».
+    tolerance: float = Field(default=0.1, ge=0)
     seed: int | None = None
     assignment: Literal["montecarlo", "expected"] = Field(
         default="montecarlo",

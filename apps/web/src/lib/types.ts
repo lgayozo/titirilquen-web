@@ -46,7 +46,10 @@ export interface GlobalConfig {
   costo_combustible_km: number;
   costo_tarifa_metro: number;
   costo_parking: number;
-  factor_emision_auto: number;
+  /** Multiplicador adimensional sobre la curva COPERT de emisión del auto:
+   *  1 = flota de referencia, ~0.7 híbrida, ~0.15 eléctrica. Reemplaza al
+   *  antiguo `factor_emision_auto`, que era un parámetro huérfano. */
+  factor_flota_auto: number;
   /** kg CO₂ por tren-km (D-29): emisión por servicio, no por pasajero. */
   factor_emision_metro_tren_km: number;
 }

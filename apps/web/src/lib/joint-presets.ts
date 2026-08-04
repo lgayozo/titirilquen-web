@@ -207,6 +207,7 @@ export function applyJointPreset(
         ...(pol.tarifa !== undefined && { costo_tarifa_metro: pol.tarifa }),
         ...(pol.parking !== undefined && { costo_parking: pol.parking }),
         ...(pol.bencina !== undefined && { costo_combustible_km: pol.bencina }),
+        ...(pol.factor_flota !== undefined && { factor_flota_auto: pol.factor_flota }),
       },
     },
   };

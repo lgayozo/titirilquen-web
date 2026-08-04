@@ -52,6 +52,7 @@ def calcular_emisiones(
     largo_ciudad_km: float,
     n_celdas: int,
     factor_emision_metro_tren_km: float,
+    factor_flota_auto: float = 1.0,
 ) -> EmissionsResult:
     dx_km = largo_ciudad_km / n_celdas
 
@@ -61,7 +62,10 @@ def calcular_emisiones(
         v_local = v_libre_kmh / factor_demora
     v_local = np.nan_to_num(v_local, nan=v_libre_kmh)
 
-    factores_g_km = factor_emision_auto(v_local)
+    # El factor de flota ESCALA la curva COPERT en vez de reemplazarla: así una
+    # flota más limpia baja la emisión por km sin perder la dependencia de la
+    # velocidad (congestión ⇒ menos velocidad ⇒ más emisión por km).
+    factores_g_km = factor_flota_auto * factor_emision_auto(v_local)
     emisiones_auto_g = flujos_auto * dx_km * factores_g_km
     auto_kg = float(np.sum(emisiones_auto_g)) / 1000
 

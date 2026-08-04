@@ -371,8 +371,14 @@ def _iter_loop(
 
     for it in range(sim.max_iter):
         conteo, d_auto, d_metro, d_bici, d_caminata = _correr_iteracion(
-            grupos, n_tele, ciudad, sim.demand, tiempos_actuales, rng,
-            sim.assignment == "expected", sim.modos_habilitados,
+            grupos,
+            n_tele,
+            ciudad,
+            sim.demand,
+            tiempos_actuales,
+            rng,
+            sim.assignment == "expected",
+            sim.modos_habilitados,
         )
 
         car_p = sim.supply.car
@@ -566,9 +572,7 @@ def _finalizar_trace(
     """Completa el `trace` tras el loop: registros por agente (una sola pasada),
     capacidades del estado final y emisiones de CO₂."""
     # Registros por agente a partir del estado convergido, para figuras agente‑nivel.
-    _asignar_modos_agentes(
-        grupos, ciudad, sim.demand, tiempos_actuales, rng, sim.modos_habilitados
-    )
+    _asignar_modos_agentes(grupos, ciudad, sim.demand, tiempos_actuales, rng, sim.modos_habilitados)
     # Demanda esperada por estrato·modo·celda (reparto modal espacial por estrato).
     trace.demanda_estrato = _demanda_esperada_por_estrato(
         grupos, ciudad, sim.demand, tiempos_actuales, sim.modos_habilitados
@@ -599,6 +603,7 @@ def _finalizar_trace(
             largo_ciudad_km=ciudad.largo_total_km,
             n_celdas=ciudad.n_celdas,
             factor_emision_metro_tren_km=sim.demand.globales.factor_emision_metro_tren_km,
+            factor_flota_auto=sim.demand.globales.factor_flota_auto,
         )
         trace.emisiones_total_kg = em.total_kg_hora
         trace.emisiones_auto_kg = em.auto_kg_hora
