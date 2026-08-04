@@ -86,20 +86,51 @@ def bloque_elasticidades() -> None:
     print(f"{'parametro':<26} {'modo':<9} {'-20%':>8} {'+20%':>8} {'elasticidad':>12}")
     print("-" * 68)
 
+    # Los valores base se LEEN del config: fijarlos a mano hace que el barrido
+    # mida alrededor de un punto que ya no es el default (paso al recalibrar el
+    # parking de 6000 a 2500, y la fila siguio reportando la elasticidad vieja).
+    s0 = base_sim()
+    g0, c0, b0, t0 = s0.demand.globales, s0.supply.car, s0.supply.bike, s0.supply.train
+
     casos = [
-        ("costo_parking", 6000.0, lambda s, v: con_glob(s, costo_parking=v), "Auto"),
-        ("costo_combustible_km", 120.0, lambda s, v: con_glob(s, costo_combustible_km=v), "Auto"),
-        ("costo_tarifa_metro", 800.0, lambda s, v: con_glob(s, costo_tarifa_metro=v), "Metro"),
+        ("costo_parking", g0.costo_parking, lambda s, v: con_glob(s, costo_parking=v), "Auto"),
+        (
+            "costo_combustible_km",
+            g0.costo_combustible_km,
+            lambda s, v: con_glob(s, costo_combustible_km=v),
+            "Auto",
+        ),
+        (
+            "costo_tarifa_metro",
+            g0.costo_tarifa_metro,
+            lambda s, v: con_glob(s, costo_tarifa_metro=v),
+            "Metro",
+        ),
         (
             "costo_tarifa_metro (cruz.)",
-            800.0,
+            g0.costo_tarifa_metro,
             lambda s, v: con_glob(s, costo_tarifa_metro=v),
             "Auto",
         ),
-        ("num_pistas", 2.0, lambda s, v: con_car(s, num_pistas=max(1, round(v))), "Auto"),
-        ("v_max_kmh", 31.0, lambda s, v: con_car(s, v_max_kmh=v), "Auto"),
-        ("capacidad_pista bici", 800.0, lambda s, v: con_bike(s, capacidad_pista=round(v)), "Bici"),
-        ("num_estaciones", 10.0, lambda s, v: con_train(s, num_estaciones=round(v)), "Metro"),
+        (
+            "num_pistas",
+            float(c0.num_pistas),
+            lambda s, v: con_car(s, num_pistas=max(1, round(v))),
+            "Auto",
+        ),
+        ("v_max_kmh", c0.v_max_kmh, lambda s, v: con_car(s, v_max_kmh=v), "Auto"),
+        (
+            "capacidad_pista bici",
+            float(b0.capacidad_pista),
+            lambda s, v: con_bike(s, capacidad_pista=round(v)),
+            "Bici",
+        ),
+        (
+            "num_estaciones",
+            float(t0.num_estaciones),
+            lambda s, v: con_train(s, num_estaciones=round(v)),
+            "Metro",
+        ),
     ]
     for nombre, base, aplicar, modo in casos:
         e, q_lo, q_hi = elasticidad(base, aplicar, modo)

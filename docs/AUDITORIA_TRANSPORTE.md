@@ -5,7 +5,16 @@ usa la app (`iter_msa_desde_suelo`). Hallazgos con ID `AT-xx`.
 
 Reproducir: `cd packages/titirilquen_core && uv run python scripts/auditoria_transporte.py`
 Baseline: 201 celdas · 20 km · ΣH = 36.000 · `expected` · seed 42 · tol 0,1 →
-**auto 11,00 · metro 55,46 · bici 11,32 · caminata 7,75 · tele 14,47 · v/c 0,89**
+**auto 16,19 · metro 51,61 · bici 10,69 · caminata 7,04 · tele 14,47 · v/c 1,32**
+
+> ⚠ **Las tablas de este documento se midieron con `costo_parking = 6.000`**, el
+> default anterior. Al recalibrarlo a 2.500 (para llevar la elasticidad-parking
+> de −0,59 a −0,31, ver `diagnostico_elasticidades.py`) el baseline cambió: el
+> auto sube de 11,00 a 16,19% y el corredor pasa de v/c 0,89 a **1,32**. Las
+> **direcciones** y los veredictos siguen valiendo —son propiedades
+> estructurales—, pero las **magnitudes** de las tablas hay que releerlas
+> corriendo el script. Es la misma advertencia metodológica de S-05: un hallazgo
+> de sensibilidad caduca cuando cambia el punto de operación.
 
 | ID | Hallazgo | Veredicto |
 |---|---|---|

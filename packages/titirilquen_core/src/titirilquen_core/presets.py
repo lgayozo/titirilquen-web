@@ -46,6 +46,15 @@ CITY_PRESETS: dict[str, CityPreset] = {
     "Dispersa": {"largo_ciudad": 40, "densidad": 900, "sigma": 0.90},
 }
 
+# NOTA sobre `parking`: al bajar el default de 6000 a 2500 (calibración de la
+# elasticidad) hubo que mover los presets, porque declaran valores ABSOLUTOS y
+# no diffs. Las cinco políticas neutras pasan a 2500 = default; si no, aplicar
+# cualquiera de ellas habría revertido el parking a 6000 en silencio. Las dos
+# deliberadas se reescalaron manteniendo su razón contra la base, que es lo que
+# define su intensidad: Tarificación Vial 2.5x (15000 -> 6250) y Pro-Auto 0.5x
+# (3000 -> 1250). Sin reescalar, Pro-Auto habría quedado MÁS caro que la base,
+# invirtiendo su sentido.
+#
 # NOTA sobre `frec_max`: cuatro políticas declaraban 20, que era el default
 # ANTIGUO; D-18 recalibró el rango a [6, 30] y estas no se actualizaron. Como el
 # preset fija valores absolutos (no diffs), ese 20 quedó capando el metro por
@@ -57,35 +66,35 @@ CITY_PRESETS: dict[str, CityPreset] = {
 POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Personalizado": {},
     "TP Gratis": {
-        "tarifa": 0, "parking": 6000, "num_pistas": 2, "num_estaciones": 10,
+        "tarifa": 0, "parking": 2500, "num_pistas": 2, "num_estaciones": 10,
         "bencina": 120, "cap_bici": 800, "frec_max": 35, "cap_tren": 300,
     },
     "Tarificación Vial": {
-        "tarifa": 800, "parking": 15000, "num_pistas": 2, "num_estaciones": 10,
+        "tarifa": 800, "parking": 6250, "num_pistas": 2, "num_estaciones": 10,
         "bencina": 120, "cap_tren": 300, "cap_bici": 800, "frec_max": 30,
     },
     "Pro-Auto": {
-        "tarifa": 1000, "parking": 3000, "num_pistas": 3, "num_estaciones": 8,
+        "tarifa": 1000, "parking": 1250, "num_pistas": 3, "num_estaciones": 8,
         "bencina": 100, "cap_tren": 250, "cap_bici": 500, "frec_max": 6,
     },
     "Pro-Bici": {
-        "tarifa": 800, "parking": 6000, "num_pistas": 2, "cap_bici": 5000,
+        "tarifa": 800, "parking": 2500, "num_pistas": 2, "cap_bici": 5000,
         "frec_max": 30, "bencina": 120, "cap_tren": 300, "num_estaciones": 10,
     },
     "Vehículos híbridos": {
-        "num_pistas": 2, "bencina": 65, "tarifa": 800, "parking": 6000,
+        "num_pistas": 2, "bencina": 65, "tarifa": 800, "parking": 2500,
         "frec_max": 30, "cap_tren": 300, "num_estaciones": 10, "cap_bici": 800,
     },
     "Máx Metro": {
         "tarifa": 400, "num_estaciones": 20, "frec_max": 50, "cap_tren": 300,
-        "parking": 6000, "bencina": 120, "num_pistas": 2, "cap_bici": 800,
+        "parking": 2500, "bencina": 120, "num_pistas": 2, "cap_bici": 800,
     },
     "Ciclorrecreovía": {
         # `num_estaciones` faltaba (7 de 8 claves): la política heredaba el valor
         # vigente, así que aplicarla desde «Máx Metro» (20 est.) daba otro
         # escenario que aplicarla desde el default. Completada con 10 = default,
         # para que el preset sea reproducible.
-        "num_pistas": 1, "cap_bici": 6000, "tarifa": 800, "parking": 6000,
+        "num_pistas": 1, "cap_bici": 6000, "tarifa": 800, "parking": 2500,
         "bencina": 120, "frec_max": 30, "cap_tren": 300, "num_estaciones": 10,
     },
 }

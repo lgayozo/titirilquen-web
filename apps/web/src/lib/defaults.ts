@@ -87,7 +87,10 @@ export const defaultDemandConfig: DemandConfig = {
     v_caminata: 4.8,
     costo_combustible_km: 120,
     costo_tarifa_metro: 800,
-    costo_parking: 6000,
+    // 2500 (antes 6000): calibrado para que la elasticidad-parking del reparto
+    // de auto quede en ≈ −0.30 en vez de −0.59. Ver el comentario del core y
+    // scripts/diagnostico_elasticidades.py.
+    costo_parking: 2500,
     factor_emision_auto: 0.18,
     factor_emision_metro_tren_km: 2.5,
   },

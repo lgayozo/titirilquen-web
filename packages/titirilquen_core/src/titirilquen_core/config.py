@@ -84,7 +84,12 @@ class GlobalConfig(BaseModel):
     v_caminata: float = 4.8
     costo_combustible_km: float = 120
     costo_tarifa_metro: float = 800
-    costo_parking: float = 6000
+    # 2500 (antes 6000): con 6000 el parking era ~91% del costo monetario del
+    # viaje en auto a la distancia media, y su elasticidad salia -0.588 mientras
+    # bencina y tarifa quedaban en -0.03. Como hay un UNICO `b_costo` que aplica
+    # a la suma de todo el dinero, la razon entre esas elasticidades la fijan los
+    # MONTOS, no los betas — ver scripts/diagnostico_elasticidades.py.
+    costo_parking: float = 2500
     factor_emision_auto: float = 0.180
     # kg CO₂ por tren-km (D-29): el metro emite por servicio circulando, no por
     # pasajero. 2.5 ≈ continuidad con la calibración anterior (0.040 kg/pax·km)
