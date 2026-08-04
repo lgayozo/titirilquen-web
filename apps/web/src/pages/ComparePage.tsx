@@ -10,6 +10,7 @@ import {
   type MetricRow,
 } from "@/components/compare/MetricCompareTable";
 import { ScenarioCard } from "@/components/compare/ScenarioCard";
+import { ScenarioDiffTable } from "@/components/compare/ScenarioDiffTable";
 import { ScenarioFlowComparison } from "@/components/compare/ScenarioFlowComparison";
 import { Panel } from "@/components/ui/Panel";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
@@ -100,6 +101,8 @@ export function ComparePage() {
   const setCoupledResult = useCompareStore((s) => s.setCoupledResult);
   const setError = useCompareStore((s) => s.setError);
   const addScenario = useCompareStore((s) => s.addScenario);
+  const baseIdSel = useCompareStore((s) => s.baseId);
+  const setBaseId = useCompareStore((s) => s.setBaseId);
   const [mode, setMode] = useState<Modo>("Auto");
 
   const untitled = (id: string) => t("compare.scenario_card.untitled", { id });
@@ -147,7 +150,10 @@ export function ComparePage() {
         });
         setLuResult(id, r);
       } else {
-        const lu = scaledLandUse(sc.landUse ?? defaultLandUseConfig, sc.poblacion);
+        const lu = scaledLandUse(
+          sc.landUse ?? defaultLandUseConfig,
+          sc.poblacion,
+        );
         const res = await solveCoupled({
           sim: sc.config,
           land_use: lu,
@@ -235,10 +241,27 @@ export function ComparePage() {
 
   const luRows = useMemo<MetricRow[]>(
     () => [
-      { key: "theil", label: t("compare.lu.theil"), fmt: (v) => v.toFixed(3), betterWhen: "down" },
-      { key: "dist_alto", label: t("compare.lu.dist_alto"), fmt: (v) => `${v.toFixed(2)} km` },
-      { key: "dist_medio", label: t("compare.lu.dist_medio"), fmt: (v) => `${v.toFixed(2)} km` },
-      { key: "dist_bajo", label: t("compare.lu.dist_bajo"), fmt: (v) => `${v.toFixed(2)} km` },
+      {
+        key: "theil",
+        label: t("compare.lu.theil"),
+        fmt: (v) => v.toFixed(3),
+        betterWhen: "down",
+      },
+      {
+        key: "dist_alto",
+        label: t("compare.lu.dist_alto"),
+        fmt: (v) => `${v.toFixed(2)} km`,
+      },
+      {
+        key: "dist_medio",
+        label: t("compare.lu.dist_medio"),
+        fmt: (v) => `${v.toFixed(2)} km`,
+      },
+      {
+        key: "dist_bajo",
+        label: t("compare.lu.dist_bajo"),
+        fmt: (v) => `${v.toFixed(2)} km`,
+      },
     ],
     [t],
   );
@@ -262,21 +285,72 @@ export function ComparePage() {
   const fmtInt = (v: number) => Math.round(v).toLocaleString("es-CL");
   const cpRows = useMemo<MetricRow[]>(
     () => [
-      { key: "theil", label: t("compare.cp.theil"), fmt: (v) => v.toFixed(3), betterWhen: "down" },
-      { key: "t_medio", label: t("compare.cp.t_medio"), fmt: (v) => `${v.toFixed(1)} min`, betterWhen: "down" },
-      { key: "auto", label: t("compare.cp.auto"), fmt: (v) => `${v.toFixed(1)}%` },
-      { key: "carga_bajo", label: t("compare.cp.carga_bajo"), fmt: (v) => `${v.toFixed(1)}%`, betterWhen: "down" },
-      { key: "ratio_carga", label: t("compare.cp.ratio_carga"), fmt: (v) => `${v.toFixed(2)}×`, betterWhen: "down" },
-      { key: "bienestar", label: t("compare.cp.bienestar"), fmt: (v) => `$${fmtInt(v)}`, betterWhen: "up" },
-      { key: "emisiones", label: t("compare.cp.emisiones"), fmt: (v) => `${fmtInt(v)} kg/h`, betterWhen: "down" },
-      { key: "iteraciones", label: t("compare.cp.iteraciones"), fmt: (v) => `${Math.round(v)}` },
+      {
+        key: "theil",
+        label: t("compare.cp.theil"),
+        fmt: (v) => v.toFixed(3),
+        betterWhen: "down",
+      },
+      {
+        key: "t_medio",
+        label: t("compare.cp.t_medio"),
+        fmt: (v) => `${v.toFixed(1)} min`,
+        betterWhen: "down",
+      },
+      {
+        key: "auto",
+        label: t("compare.cp.auto"),
+        fmt: (v) => `${v.toFixed(1)}%`,
+      },
+      {
+        key: "carga_bajo",
+        label: t("compare.cp.carga_bajo"),
+        fmt: (v) => `${v.toFixed(1)}%`,
+        betterWhen: "down",
+      },
+      {
+        key: "ratio_carga",
+        label: t("compare.cp.ratio_carga"),
+        fmt: (v) => `${v.toFixed(2)}×`,
+        betterWhen: "down",
+      },
+      {
+        key: "bienestar",
+        label: t("compare.cp.bienestar"),
+        fmt: (v) => `$${fmtInt(v)}`,
+        betterWhen: "up",
+      },
+      {
+        key: "emisiones",
+        label: t("compare.cp.emisiones"),
+        fmt: (v) => `${fmtInt(v)} kg/h`,
+        betterWhen: "down",
+      },
+      {
+        key: "iteraciones",
+        label: t("compare.cp.iteraciones"),
+        fmt: (v) => `${Math.round(v)}`,
+      },
     ],
     [t],
   );
 
   const doneCount = scenarios.filter((s) => s.status === "done").length;
   const runningCount = scenarios.filter((s) => s.status === "running").length;
-  const baseId = scenarios.find((s) => s.status === "done")?.id;
+  const configuredCount = scenarios.filter((s) => s.config != null).length;
+  // Base ELEGIBLE (C-01). Se distinguen dos: la de INPUTS —que existe apenas
+  // hay una tarjeta configurada, para el diff y para marcar la tarjeta— y la de
+  // RESULTADOS, que necesita una corrida. Sin separarlas, antes de correr no
+  // había ninguna marcada y las dos tarjetas se veían igual.
+  const baseInputsId =
+    (baseIdSel && scenarios.some((s) => s.id === baseIdSel && s.config)
+      ? baseIdSel
+      : undefined) ?? scenarios.find((s) => s.config)?.id;
+  const baseId =
+    (baseIdSel &&
+    scenarios.some((s) => s.id === baseIdSel && s.status === "done")
+      ? baseIdSel
+      : undefined) ?? scenarios.find((s) => s.status === "done")?.id;
 
   // C-04: export CSV de la lente activa. Para transporte el spec espeja las
   // secciones de KPITable (mismas claves i18n); mantener ambos en sync.
@@ -300,27 +374,93 @@ export function ComparePage() {
       ];
       body = [
         ...MODES.map((m) =>
-          fila(t("compare.kpi.modal_share"), `% ${t(`modes.${m.toLowerCase()}`)}`, (k) => k.modal_share[m] * 100, 1),
+          fila(
+            t("compare.kpi.modal_share"),
+            `% ${t(`modes.${m.toLowerCase()}`)}`,
+            (k) => k.modal_share[m] * 100,
+            1,
+          ),
         ),
         ...MODES.slice(0, 4).map((m) =>
-          fila(t("compare.kpi.mean_time"), `${t(`modes.${m.toLowerCase()}`)} (min)`, (k) => k.tiempo_medio_min[m], 1),
+          fila(
+            t("compare.kpi.mean_time"),
+            `${t(`modes.${m.toLowerCase()}`)} (min)`,
+            (k) => k.tiempo_medio_min[m],
+            1,
+          ),
         ),
-        fila(t("compare.kpi.operation"), t("compare.kpi.metro_freq"), (k) => k.frecuencia_metro, 1),
-        fila(t("compare.kpi.operation"), t("compare.kpi.final_residual"), (k) => k.residuo_final, 3),
-        fila(t("compare.kpi.operation"), t("compare.kpi.physical_trips"), (k) => k.viajes_fisicos, 0),
-        fila(t("compare.kpi.congestion"), t("metrics_table.vc_auto"), (k) => k.vc_auto),
-        fila(t("compare.kpi.congestion"), t("metrics_table.vc_metro"), (k) => k.vc_metro),
-        fila(t("compare.kpi.congestion"), t("metrics_table.vc_bici"), (k) => k.vc_bici),
-        fila(t("compare.kpi.emissions"), `${t("compare.kpi.total")} (kg/h)`, (k) => k.co2_total, 0),
-        fila(t("compare.kpi.emissions"), `${t("modes.auto")} (kg/h)`, (k) => k.co2_auto, 0),
-        fila(t("compare.kpi.emissions"), `${t("modes.metro")} (kg/h)`, (k) => k.co2_metro, 0),
+        fila(
+          t("compare.kpi.operation"),
+          t("compare.kpi.metro_freq"),
+          (k) => k.frecuencia_metro,
+          1,
+        ),
+        fila(
+          t("compare.kpi.operation"),
+          t("compare.kpi.final_residual"),
+          (k) => k.residuo_final,
+          3,
+        ),
+        fila(
+          t("compare.kpi.operation"),
+          t("compare.kpi.physical_trips"),
+          (k) => k.viajes_fisicos,
+          0,
+        ),
+        fila(
+          t("compare.kpi.congestion"),
+          t("metrics_table.vc_auto"),
+          (k) => k.vc_auto,
+        ),
+        fila(
+          t("compare.kpi.congestion"),
+          t("metrics_table.vc_metro"),
+          (k) => k.vc_metro,
+        ),
+        fila(
+          t("compare.kpi.congestion"),
+          t("metrics_table.vc_bici"),
+          (k) => k.vc_bici,
+        ),
+        fila(
+          t("compare.kpi.emissions"),
+          `${t("compare.kpi.total")} (kg/h)`,
+          (k) => k.co2_total,
+          0,
+        ),
+        fila(
+          t("compare.kpi.emissions"),
+          `${t("modes.auto")} (kg/h)`,
+          (k) => k.co2_auto,
+          0,
+        ),
+        fila(
+          t("compare.kpi.emissions"),
+          `${t("modes.metro")} (kg/h)`,
+          (k) => k.co2_metro,
+          0,
+        ),
         ...([1, 2, 3] as const).flatMap((s) => {
           const sec = `${t("compare.kpi.stratum")} ${s}`;
           return [
-            fila(sec, `${t("compare.kpi.travel_time")} (min)`, (k) => k.by_stratum[s].mean_time_min, 1),
-            fila(sec, t("compare.kpi.utility"), (k) => k.by_stratum[s].mean_utility),
+            fila(
+              sec,
+              `${t("compare.kpi.travel_time")} (min)`,
+              (k) => k.by_stratum[s].mean_time_min,
+              1,
+            ),
+            fila(
+              sec,
+              t("compare.kpi.utility"),
+              (k) => k.by_stratum[s].mean_utility,
+            ),
             ...MODES.slice(0, 4).map((m) =>
-              fila(sec, `% ${t(`modes.${m.toLowerCase()}`)}`, (k) => k.by_stratum[s].modal_share[m] * 100, 1),
+              fila(
+                sec,
+                `% ${t(`modes.${m.toLowerCase()}`)}`,
+                (k) => k.by_stratum[s].modal_share[m] * 100,
+                1,
+              ),
             ),
           ];
         }),
@@ -328,17 +468,26 @@ export function ComparePage() {
     } else if (kind === "land_use") {
       const cols = luCols.filter((c) => c.values);
       header = [t("compare.kpi.metric"), ...cols.map((c) => c.name)];
-      body = luRows.map((r) => [r.label, ...cols.map((c) => num(c.values![r.key] ?? null, 3))]);
+      body = luRows.map((r) => [
+        r.label,
+        ...cols.map((c) => num(c.values![r.key] ?? null, 3)),
+      ]);
     } else {
       const cols = cpCols.filter((c) => c.values);
       header = [t("compare.kpi.metric"), ...cols.map((c) => c.name)];
-      body = cpRows.map((r) => [r.label, ...cols.map((c) => num(c.values![r.key] ?? null, 3))]);
+      body = cpRows.map((r) => [
+        r.label,
+        ...cols.map((c) => num(c.values![r.key] ?? null, 3)),
+      ]);
     }
     downloadCsv(`comparacion-${kind}`, [header, ...body]);
   };
 
   return (
-    <div className="main" style={{ padding: "var(--pad)", maxWidth: 1600, margin: "0 auto" }}>
+    <div
+      className="main"
+      style={{ padding: "var(--pad)", maxWidth: 1600, margin: "0 auto" }}
+    >
       <div className="hero">
         <div className="hero-head">
           <h1 className="hero-title">{t("compare.title")}</h1>
@@ -365,7 +514,9 @@ export function ComparePage() {
             ))}
           </div>
           {kind === "coupled" && (
-            <span className="text-[11px] text-muted">{t("compare.coupled_hint")}</span>
+            <span className="text-[11px] text-muted">
+              {t("compare.coupled_hint")}
+            </span>
           )}
         </div>
       </div>
@@ -373,7 +524,13 @@ export function ComparePage() {
       <div className="panel-grid" style={{ marginBottom: "var(--gap)" }}>
         {scenarios.map((s, i) => (
           <div key={s.id} className="col-6">
-            <ScenarioCard scenario={s} onRun={() => void runOne(s.id)} removable={i >= 2} />
+            <ScenarioCard
+              scenario={s}
+              onRun={() => void runOne(s.id)}
+              removable={i >= 2}
+              isBase={s.id === baseInputsId}
+              onMakeBase={s.config ? () => setBaseId(s.id) : undefined}
+            />
           </div>
         ))}
         {scenarios.length < 4 && (
@@ -420,7 +577,10 @@ export function ComparePage() {
         )}
         {doneCount > 0 && (
           <span className="font-fig text-[11px] uppercase tracking-[0.08em] text-muted">
-            {t("compare.ready_count", { done: doneCount, total: scenarios.length })}
+            {t("compare.ready_count", {
+              done: doneCount,
+              total: scenarios.length,
+            })}
           </span>
         )}
         {doneCount > 0 && (
@@ -430,13 +590,38 @@ export function ComparePage() {
         )}
       </div>
 
+      {/* Diff de INPUTS. Va antes de los resultados y NO espera a que corran:
+          sirve para revisar qué se está por comparar. Es la mitad que faltaba
+          del par «cambié esto → pasó esto». */}
+      {configuredCount >= 2 && (
+        <div className="panel-grid" style={{ marginBottom: "var(--gap)" }}>
+          <Panel
+            title={t("compare.diff.title")}
+            meta={t("compare.diff.meta")}
+            cls="col-12"
+          >
+            <ScenarioDiffTable scenarios={scenarios} baseId={baseInputsId} />
+          </Panel>
+        </div>
+      )}
+
       {doneCount > 0 && kind === "transport" && (
         <div className="panel-grid">
-          <Panel n="00" title={t("compare.highlights")} meta="auto · diff" cls="col-12">
+          <Panel
+            n="00"
+            title={t("compare.highlights")}
+            meta="auto · diff"
+            cls="col-12"
+          >
             <ComparisonHighlights scenarios={rows} baseId={baseId} />
           </Panel>
 
-          <Panel n="01" title={t("compare.kpis")} meta="delta vs base" cls="col-12">
+          <Panel
+            n="01"
+            title={t("compare.kpis")}
+            meta="delta vs base"
+            cls="col-12"
+          >
             <KPITable scenarios={rows} baseId={baseId} />
           </Panel>
 
@@ -466,7 +651,12 @@ export function ComparePage() {
 
       {doneCount > 0 && kind === "land_use" && (
         <div className="panel-grid">
-          <Panel n="00" title={t("compare.lu.table_title")} meta="delta vs base" cls="col-12">
+          <Panel
+            n="00"
+            title={t("compare.lu.table_title")}
+            meta="delta vs base"
+            cls="col-12"
+          >
             <MetricCompareTable cols={luCols} rows={luRows} baseId={baseId} />
           </Panel>
           {scenarios
@@ -492,7 +682,12 @@ export function ComparePage() {
 
       {doneCount > 0 && kind === "coupled" && (
         <div className="panel-grid">
-          <Panel n="00" title={t("compare.cp.table_title")} meta="delta vs base" cls="col-12">
+          <Panel
+            n="00"
+            title={t("compare.cp.table_title")}
+            meta="delta vs base"
+            cls="col-12"
+          >
             <MetricCompareTable cols={cpCols} rows={cpRows} baseId={baseId} />
             <p className="kpi-caption" style={{ marginTop: 8 }}>
               {t("compare.cp.caption")}

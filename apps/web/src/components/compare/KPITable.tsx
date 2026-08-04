@@ -11,7 +11,11 @@ interface KPITableProps {
 
 const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
 const STRATA: StratumId[] = [1, 2, 3];
-const STRATUM_KEY: Record<StratumId, string> = { 1: "alto", 2: "medio", 3: "bajo" };
+const STRATUM_KEY: Record<StratumId, string> = {
+  1: "alto",
+  2: "medio",
+  3: "bajo",
+};
 const TRAVEL_MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
 
 /**
@@ -21,7 +25,9 @@ const TRAVEL_MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
 export function KPITable({ scenarios, baseId }: KPITableProps) {
   const { t } = useTranslation("simulator");
 
-  const base = scenarios.find((s) => s.id === baseId && s.kpis) ?? scenarios.find((s) => s.kpis);
+  const base =
+    scenarios.find((s) => s.id === baseId && s.kpis) ??
+    scenarios.find((s) => s.kpis);
   const withKpis = scenarios.filter((s) => s.kpis);
   if (withKpis.length === 0) return null;
 
@@ -30,12 +36,16 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
       <table className="w-full text-xs">
         <thead className="bg-[var(--paper-2)]">
           <tr className="border-b border-[var(--rule)]">
-            <th className="px-3 py-2 text-left font-semibold">{t("compare.kpi.metric")}</th>
+            <th className="px-3 py-2 text-left font-semibold">
+              {t("compare.kpi.metric")}
+            </th>
             {scenarios.map((s) => (
               <th key={s.id} className="px-3 py-2 text-right font-semibold">
                 {s.name}{" "}
                 {base?.id === s.id && (
-                  <span className="text-[var(--muted)]">{t("compare.kpi.base")}</span>
+                  <span className="text-[var(--muted)]">
+                    {t("compare.kpi.base")}
+                  </span>
                 )}
               </th>
             ))}
@@ -95,7 +105,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               valueOf={(kpi) => kpi.viajes_fisicos}
               baseKpis={base?.kpis ?? null}
               formatter={(v) => v.toLocaleString()}
-              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`}
+              deltaFormatter={(d) =>
+                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`
+              }
             />
           </Section>
 
@@ -145,7 +157,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               valueOf={(kpi) => kpi.co2_total}
               baseKpis={base?.kpis ?? null}
               formatter={(v) => Math.round(v).toLocaleString()}
-              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`}
+              deltaFormatter={(d) =>
+                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`
+              }
               invertedSign
             />
             <KPIRow
@@ -154,7 +168,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               valueOf={(kpi) => kpi.co2_auto}
               baseKpis={base?.kpis ?? null}
               formatter={(v) => Math.round(v).toLocaleString()}
-              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`}
+              deltaFormatter={(d) =>
+                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`
+              }
               invertedSign
             />
             <KPIRow
@@ -163,7 +179,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               valueOf={(kpi) => kpi.co2_metro}
               baseKpis={base?.kpis ?? null}
               formatter={(v) => Math.round(v).toLocaleString()}
-              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`}
+              deltaFormatter={(d) =>
+                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`
+              }
               invertedSign
             />
           </Section>
@@ -198,7 +216,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                   valueOf={(kpi) => kpi.by_stratum[s].modal_share[m] * 100}
                   baseKpis={base?.kpis ?? null}
                   formatter={(v) => `${v.toFixed(1)}%`}
-                  deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)} pp`}
+                  deltaFormatter={(d) =>
+                    `${d >= 0 ? "+" : ""}${d.toFixed(1)} pp`
+                  }
                 />
               ))}
             </Section>
@@ -209,7 +229,13 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
   );
 }
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
+function Section({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <>
       <tr>
@@ -236,14 +262,25 @@ interface KPIRowProps {
   invertedSign?: boolean;
 }
 
-function KPIRow({ label, scenarios, valueOf, baseKpis, formatter, deltaFormatter, invertedSign }: KPIRowProps) {
+function KPIRow({
+  label,
+  scenarios,
+  valueOf,
+  baseKpis,
+  formatter,
+  deltaFormatter,
+  invertedSign,
+}: KPIRowProps) {
   return (
     <tr className="border-b border-[var(--rule)] hover:bg-[var(--paper-2)]">
       <td className="px-3 py-1.5 text-[var(--ink-2)]">{label}</td>
       {scenarios.map((s) => {
         if (!s.kpis) {
           return (
-            <td key={s.id} className="px-3 py-1.5 text-right text-[var(--muted)]">
+            <td
+              key={s.id}
+              className="px-3 py-1.5 text-right text-[var(--muted)]"
+            >
               —
             </td>
           );
@@ -253,14 +290,14 @@ function KPIRow({ label, scenarios, valueOf, baseKpis, formatter, deltaFormatter
         const delta = base != null ? v - base : null;
         const isBase = baseKpis === s.kpis;
         return (
-          <td key={s.id} className="px-3 py-1.5 text-right font-mono tabular-nums">
+          <td
+            key={s.id}
+            className="px-3 py-1.5 text-right font-mono tabular-nums"
+          >
             <div>{formatter(v)}</div>
             {delta != null && !isBase && (
               <div
-                className={cn(
-                  "text-[10px]",
-                  deltaColor(delta, invertedSign)
-                )}
+                className={cn("text-[10px]", deltaColor(delta, invertedSign))}
               >
                 {deltaFormatter(delta)}
               </div>
@@ -276,7 +313,5 @@ function deltaColor(delta: number, inverted?: boolean): string {
   const positiveIsGood = !inverted;
   if (Math.abs(delta) < 1e-3) return "text-[var(--muted)]";
   const good = positiveIsGood ? delta > 0 : delta < 0;
-  return good
-    ? "text-[var(--bici)]"
-    : "text-[var(--metro)]";
+  return good ? "text-[var(--bici)]" : "text-[var(--metro)]";
 }

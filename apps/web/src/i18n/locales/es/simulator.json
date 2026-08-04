@@ -368,7 +368,7 @@
   },
   "compare": {
     "title": "Comparación de escenarios",
-    "subtitle": "Hasta 4 configuraciones en paralelo · la primera con resultado es la base",
+    "subtitle": "Hasta 4 configuraciones en paralelo · elige la base con ○ en cada tarjeta",
     "ready_count": "{{done}} de {{total}} listos",
     "add_scenario": "Añadir escenario",
     "kpis": "KPIs",
@@ -406,7 +406,11 @@
         "error": "error"
       },
       "untitled": "Escenario {{id}}",
-      "land_line": "suelo: {{forma}} · población {{pob}}"
+      "land_line": "suelo: {{forma}} · población {{pob}}",
+      "city_preset": "Ciudad",
+      "policy_preset": "Política",
+      "base": "base",
+      "make_base": "Usar como base de comparación"
     },
     "flow_no_profile": "El modo «{{mode}}» no tiene perfil de demanda por celda.",
     "flow_empty": "Sin resultados para comparar.",
@@ -441,7 +445,32 @@
     },
     "processing_one": "Calculando 1 escenario…",
     "processing_other": "Calculando {{count}} escenarios…",
-    "export_csv": "Exportar CSV"
+    "export_csv": "Exportar CSV",
+    "diff": {
+      "title": "Qué cambia entre escenarios",
+      "meta": "inputs · vs base",
+      "parametro": "Parámetro",
+      "need_two": "Configura al menos dos escenarios para ver las diferencias.",
+      "identical": "Los escenarios configurados son idénticos: no hay diferencias de entrada que explicar.",
+      "city": "Ciudad y uso de suelo",
+      "numerico": "Numérico",
+      "largo": "Largo de la ciudad",
+      "celdas": "Celdas",
+      "pendiente": "Pendiente",
+      "teletrabajo": "Factor teletrabajo",
+      "forma": "Forma de la oferta",
+      "sigma": "Compacidad (σ)",
+      "poblacion": "Población (ΣH)",
+      "alpha_bpr_auto": "α BPR auto",
+      "beta_bpr_auto": "β BPR auto",
+      "alpha_bpr_bici": "α BPR bici",
+      "beta_bpr_bici": "β BPR bici",
+      "anden_alpha": "α andén",
+      "anden_beta": "β andén",
+      "max_iter": "Iteraciones máximas",
+      "tolerance": "Tolerancia",
+      "assignment": "Asignación"
+    }
   },
   "coupled": {
     "eyebrow": "Análisis conjunto suelo↔transporte",

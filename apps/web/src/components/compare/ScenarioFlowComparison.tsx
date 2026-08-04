@@ -5,18 +5,29 @@ import { cn } from "@/lib/cn";
 import type { IterationSnapshot, Modo, SimulationResult } from "@/lib/types";
 
 interface ScenarioFlowComparisonProps {
-  scenarios: Array<{ id: string; name: string; result: SimulationResult | null; config: SimulationConfigSlice | null }>;
+  scenarios: Array<{
+    id: string;
+    name: string;
+    result: SimulationResult | null;
+    config: SimulationConfigSlice | null;
+  }>;
   mode: Modo;
   className?: string;
 }
 
-type SimulationConfigSlice = { city: { n_celdas: number; largo_ciudad_km: number } };
+type SimulationConfigSlice = {
+  city: { n_celdas: number; largo_ciudad_km: number };
+};
 
 /**
  * Overlay de perfiles de flujo por celda — varios escenarios en el mismo gráfico
  * para comparar visualmente cómo cambia la distribución espacial de demanda.
  */
-export function ScenarioFlowComparison({ scenarios, mode, className }: ScenarioFlowComparisonProps) {
+export function ScenarioFlowComparison({
+  scenarios,
+  mode,
+  className,
+}: ScenarioFlowComparisonProps) {
   const { t } = useTranslation("simulator");
   const modeKey = useMemo(() => {
     if (mode === "Auto") return "demanda_auto";
@@ -28,21 +39,36 @@ export function ScenarioFlowComparison({ scenarios, mode, className }: ScenarioF
   if (!modeKey) {
     return (
       <div className="rounded border border-[var(--rule)] p-8 text-center text-xs text-[var(--muted)]">
-        {t("compare.flow_no_profile", { mode: t(`modes.${mode.toLowerCase()}`) })}
+        {t("compare.flow_no_profile", {
+          mode: t(`modes.${mode.toLowerCase()}`),
+        })}
       </div>
     );
   }
 
   const curves = scenarios
-    .filter((s): s is typeof s & { result: SimulationResult; config: SimulationConfigSlice } =>
-      s.result != null && s.config != null
+    .filter(
+      (
+        s,
+      ): s is typeof s & {
+        result: SimulationResult;
+        config: SimulationConfigSlice;
+      } => s.result != null && s.config != null,
     )
     .map((s) => {
       const last = s.result.iteraciones.at(-1);
       if (!last) return null;
-      return { id: s.id, name: s.name, data: (last as IterationSnapshot)[modeKey as keyof IterationSnapshot] as number[] };
+      return {
+        id: s.id,
+        name: s.name,
+        data: (last as IterationSnapshot)[
+          modeKey as keyof IterationSnapshot
+        ] as number[],
+      };
     })
-    .filter((c): c is { id: string; name: string; data: number[] } => c !== null);
+    .filter(
+      (c): c is { id: string; name: string; data: number[] } => c !== null,
+    );
 
   if (curves.length === 0) {
     return (
@@ -59,7 +85,9 @@ export function ScenarioFlowComparison({ scenarios, mode, className }: ScenarioF
     <div className={cn("rounded border border-[var(--rule)] p-3", className)}>
       <div className="mb-2 flex items-center gap-3 text-[11px]">
         <span className="font-medium text-[var(--ink-2)]">
-          {t("compare.flow_demand_label", { mode: t(`modes.${mode.toLowerCase()}`) })}
+          {t("compare.flow_demand_label", {
+            mode: t(`modes.${mode.toLowerCase()}`),
+          })}
         </span>
         {curves.map((c, i) => (
           <span key={c.id} className="flex items-center gap-1">
@@ -77,7 +105,16 @@ export function ScenarioFlowComparison({ scenarios, mode, className }: ScenarioF
         className="block w-full"
         style={{ height: 140 }}
       >
-        <line x1={50} y1={0} x2={50} y2={100} stroke="#ef4444" strokeWidth={0.4} strokeDasharray="1 1" opacity={0.5} />
+        <line
+          x1={50}
+          y1={0}
+          x2={50}
+          y2={100}
+          stroke="#ef4444"
+          strokeWidth={0.4}
+          strokeDasharray="1 1"
+          opacity={0.5}
+        />
         {curves.map((c, i) => {
           const N = c.data.length;
           const pts: string[] = [];

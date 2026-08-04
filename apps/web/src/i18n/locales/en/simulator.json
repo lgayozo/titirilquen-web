@@ -368,7 +368,7 @@
   },
   "compare": {
     "title": "Scenario comparison",
-    "subtitle": "Up to 4 configurations side by side · the first with a result is the baseline",
+    "subtitle": "Up to 4 configurations side by side · pick the baseline with ○ on each card",
     "ready_count": "{{done}} of {{total}} ready",
     "add_scenario": "Add scenario",
     "kpis": "KPIs",
@@ -406,7 +406,11 @@
         "error": "error"
       },
       "untitled": "Scenario {{id}}",
-      "land_line": "land: {{forma}} · population {{pob}}"
+      "land_line": "land: {{forma}} · population {{pob}}",
+      "city_preset": "City",
+      "policy_preset": "Policy",
+      "base": "base",
+      "make_base": "Use as comparison base"
     },
     "flow_no_profile": "Mode «{{mode}}» has no per-cell demand profile.",
     "flow_empty": "No results to compare.",
@@ -441,7 +445,32 @@
     },
     "processing_one": "Computing 1 scenario…",
     "processing_other": "Computing {{count}} scenarios…",
-    "export_csv": "Export CSV"
+    "export_csv": "Export CSV",
+    "diff": {
+      "title": "What differs between scenarios",
+      "meta": "inputs · vs base",
+      "parametro": "Parameter",
+      "need_two": "Configure at least two scenarios to see the differences.",
+      "identical": "The configured scenarios are identical: there is no input difference to explain.",
+      "city": "City and land use",
+      "numerico": "Numerical",
+      "largo": "City length",
+      "celdas": "Cells",
+      "pendiente": "Slope",
+      "teletrabajo": "Telework factor",
+      "forma": "Supply shape",
+      "sigma": "Compactness (σ)",
+      "poblacion": "Population (ΣH)",
+      "alpha_bpr_auto": "α BPR car",
+      "beta_bpr_auto": "β BPR car",
+      "alpha_bpr_bici": "α BPR bike",
+      "beta_bpr_bici": "β BPR bike",
+      "anden_alpha": "α platform",
+      "anden_beta": "β platform",
+      "max_iter": "Max iterations",
+      "tolerance": "Tolerance",
+      "assignment": "Assignment"
+    }
   },
   "coupled": {
     "eyebrow": "Joint land-use↔transport analysis",
