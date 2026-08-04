@@ -72,6 +72,21 @@ CITY_PRESETS: dict[str, CityPreset] = {
 # espera máxima se cuadruplicaba (6.98 vs 1.78 min en Tarificación Vial).
 POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Personalizado": {},
+    # Política de referencia: TODOS los parámetros en su default. No es lo mismo
+    # que «Personalizado», que es el dict vacío y por lo tanto hereda lo que
+    # haya vigente. «Base» es reproducible: aplicarla desde cualquier escenario
+    # deja siempre la misma ciudad, y da la fila de referencia de la tabla.
+    "Base": {
+        "tarifa": 800,
+        "parking": 4000,
+        "num_pistas": 2,
+        "num_estaciones": 10,
+        "bencina": 120,
+        "cap_bici": 2500,
+        "frec_max": 40,
+        "cap_tren": 300,
+        "factor_flota": 1.0,
+    },
     "TP Gratis": {
         "tarifa": 0,
         "parking": 4000,

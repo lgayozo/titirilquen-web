@@ -39,6 +39,19 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
 
 export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   Personalizado: {},
+  // Política de referencia: todos los parámetros en su default. A diferencia de
+  // «Personalizado» (dict vacío, hereda lo vigente), «Base» es reproducible.
+  Base: {
+    tarifa: 800,
+    parking: 4000,
+    num_pistas: 2,
+    num_estaciones: 10,
+    bencina: 120,
+    cap_bici: 2500,
+    frec_max: 40,
+    cap_tren: 300,
+    factor_flota: 1.0,
+  },
   "TP Gratis": {
     tarifa: 0,
     parking: 4000,
