@@ -5,7 +5,11 @@ import { defaultLandUseConfig } from "@/lib/api-v2";
 import { densidadDerivadaHabKm } from "@/lib/citySupply";
 import { cn } from "@/lib/cn";
 import { defaultSimulationConfig } from "@/lib/defaults";
-import { CITY_PRESETS, POLICY_PRESETS, type PolicyPresetValues } from "@/lib/presets";
+import {
+  CITY_PRESETS,
+  POLICY_PRESETS,
+  type PolicyPresetValues,
+} from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
@@ -85,14 +89,24 @@ function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
 
 /** Grupos de la tabla de política: orden FIJO, agrupado por subsistema. */
 const GRUPOS: { labelKey: string; keys: (keyof PolicyPresetValues)[] }[] = [
-  { labelKey: "modes.auto", keys: ["num_pistas", "parking", "bencina", "factor_flota"] },
-  { labelKey: "modes.metro", keys: ["num_estaciones", "frec_max", "cap_tren", "tarifa"] },
+  {
+    labelKey: "modes.auto",
+    keys: ["num_pistas", "parking", "bencina", "factor_flota"],
+  },
+  {
+    labelKey: "modes.metro",
+    keys: ["num_estaciones", "frec_max", "cap_tren", "tarifa"],
+  },
   { labelKey: "modes.bici", keys: ["cap_bici"] },
 ];
 
 const CAMPO: Record<
   keyof PolicyPresetValues,
-  { labelKey: string; get: (c: SimulationConfig) => number; fmt: (v: number) => string }
+  {
+    labelKey: string;
+    get: (c: SimulationConfig) => number;
+    fmt: (v: number) => string;
+  }
 > = {
   num_pistas: {
     labelKey: "coupled.param.pistas",
@@ -141,15 +155,26 @@ const CAMPO: Record<
   },
 };
 
-export function PresetGallery() {
+interface PresetGalleryProps {
+  /** `city` en Uso de suelo (la forma urbana se define ahí) · `policy` en
+   *  Transporte. Antes ambos vivían en Transporte, lo que ponía la definición
+   *  de la ciudad en el módulo que solo la consume. */
+  variant: "city" | "policy";
+}
+
+export function PresetGallery({ variant }: PresetGalleryProps) {
   const { t } = useTranslation("simulator");
   const config = useSimulationStore((s) => s.config);
   const setConfig = useSimulationStore((s) => s.setConfig);
   const setLandUse = useLandUseStore((s) => s.setConfig);
   const landUse = useLandUseStore((s) => s.config);
 
-  const cities = Object.entries(CITY_PRESETS).filter(([k]) => k !== "Personalizado");
-  const policies = Object.entries(POLICY_PRESETS).filter(([k]) => k !== "Personalizado");
+  const cities = Object.entries(CITY_PRESETS).filter(
+    ([k]) => k !== "Personalizado",
+  );
+  const policies = Object.entries(POLICY_PRESETS).filter(
+    ([k]) => k !== "Personalizado",
+  );
 
   // La ciudad activa se identifica por las dos dimensiones de forma que el
   // preset fija (largo y σ); la densidad no, porque es derivada (ver applyCity).
@@ -217,7 +242,9 @@ export function PresetGallery() {
         },
         train: {
           ...c.supply.train,
-          ...(p.num_estaciones !== undefined && { num_estaciones: p.num_estaciones }),
+          ...(p.num_estaciones !== undefined && {
+            num_estaciones: p.num_estaciones,
+          }),
           ...(p.frec_max !== undefined && { frec_max: p.frec_max }),
           ...(p.cap_tren !== undefined && { capacidad_tren: p.cap_tren }),
         },
@@ -234,60 +261,67 @@ export function PresetGallery() {
     }));
   };
 
-  const nCambios =
-    filasCiudad(config, landUse).filter((f) => f.valor !== f.base).length +
-    GRUPOS.flatMap((g) => g.keys).filter(
-      (k) => CAMPO[k].get(config) !== CAMPO[k].get(defaultSimulationConfig),
-    ).length;
+  const esCiudad = variant === "city";
+  const nCambios = esCiudad
+    ? filasCiudad(config, landUse).filter((f) => f.valor !== f.base).length
+    : GRUPOS.flatMap((g) => g.keys).filter(
+        (k) => CAMPO[k].get(config) !== CAMPO[k].get(defaultSimulationConfig),
+      ).length;
 
   return (
     <SidebarSection
       title={t("presets.title")}
-      meta={
-        [activeCity, activePolicy].filter(Boolean).join(" · ") ||
-        t("presets.custom")
-      }
+      meta={(esCiudad ? activeCity : activePolicy) || t("presets.custom")}
       defaultOpen
     >
-      <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-        {t("presets.city_label")}
-      </div>
-      <div className="mb-1.5 flex flex-wrap gap-1">
-        {cities.map(([name]) => (
-          <Chip key={name} active={activeCity === name} onClick={() => applyCity(name)}>
-            {name}
-          </Chip>
-        ))}
-      </div>
-      <Tabla filas={filasCiudad(config, landUse)} t={t} />
-      <p className="mt-1 text-[10px] leading-snug text-muted">
-        {t("presets.presets_hint")}
-      </p>
+      {esCiudad && (
+        <>
+          <div className="mb-1.5 flex flex-wrap gap-1">
+            {cities.map(([name]) => (
+              <Chip
+                key={name}
+                active={activeCity === name}
+                onClick={() => applyCity(name)}
+              >
+                {name}
+              </Chip>
+            ))}
+          </div>
+          <Tabla filas={filasCiudad(config, landUse)} t={t} />
+          <p className="mt-1 text-[10px] leading-snug text-muted">
+            {t("presets.presets_hint")}
+          </p>
+        </>
+      )}
 
-      <div className="mb-1 mt-3 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-        {t("presets.policy_label")}
-      </div>
-      <div className="mb-1.5 flex flex-wrap gap-1">
-        {policies.map(([name]) => (
-          <Chip key={name} active={activePolicy === name} onClick={() => applyPolicy(name)}>
-            {name}
-          </Chip>
+      {!esCiudad && (
+        <div className="mb-1.5 flex flex-wrap gap-1">
+          {policies.map(([name]) => (
+            <Chip
+              key={name}
+              active={activePolicy === name}
+              onClick={() => applyPolicy(name)}
+            >
+              {name}
+            </Chip>
+          ))}
+        </div>
+      )}
+      {!esCiudad &&
+        GRUPOS.map((g) => (
+          <Tabla
+            key={g.labelKey}
+            titulo={t(g.labelKey)}
+            t={t}
+            filas={g.keys.map((k) => ({
+              key: k,
+              labelKey: CAMPO[k].labelKey,
+              valor: CAMPO[k].get(config),
+              base: CAMPO[k].get(defaultSimulationConfig),
+              fmt: CAMPO[k].fmt,
+            }))}
+          />
         ))}
-      </div>
-      {GRUPOS.map((g) => (
-        <Tabla
-          key={g.labelKey}
-          titulo={t(g.labelKey)}
-          t={t}
-          filas={g.keys.map((k) => ({
-            key: k,
-            labelKey: CAMPO[k].labelKey,
-            valor: CAMPO[k].get(config),
-            base: CAMPO[k].get(defaultSimulationConfig),
-            fmt: CAMPO[k].fmt,
-          }))}
-        />
-      ))}
 
       <p className="mt-2 text-[10px] leading-snug text-muted">
         {nCambios > 0
@@ -322,13 +356,19 @@ function Tabla({
           const cambiado = f.valor !== f.base;
           return (
             <div key={f.key} className="col-span-2 grid grid-cols-subgrid">
-              <dt className={cn(cambiado ? "text-[var(--ink-2)]" : "text-muted opacity-60")}>
+              <dt
+                className={cn(
+                  cambiado ? "text-[var(--ink-2)]" : "text-muted opacity-60",
+                )}
+              >
                 {t(f.labelKey)}
               </dt>
               <dd
                 className={cn(
                   "text-right font-mono tabular-nums",
-                  cambiado ? "font-semibold text-[var(--ink)]" : "text-muted opacity-60",
+                  cambiado
+                    ? "font-semibold text-[var(--ink)]"
+                    : "text-muted opacity-60",
                 )}
                 title={
                   cambiado

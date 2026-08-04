@@ -85,7 +85,15 @@ def agregados(sim: SimulationConfig) -> dict:
 
 
 def con(
-    sim: SimulationConfig, *, pistas=None, k=None, fmin=None, fmax=None, solo_am=False, parking=None
+    sim: SimulationConfig,
+    *,
+    pistas=None,
+    k=None,
+    fmin=None,
+    fmax=None,
+    solo_am=False,
+    parking=None,
+    espera_x=None,
 ):
     car = sim.supply.car.model_copy(update={"num_pistas": pistas} if pistas else {})
     upd = {}
@@ -103,6 +111,21 @@ def con(
         # Escenario estilizado: sin bici ni caminata, toda la sustitucion ocurre
         # entre auto y metro — que es lo que exige el lazo de Downs-Thomson.
         out = out.model_copy(update={"modos_habilitados": ["Auto", "Metro"]})
+    if espera_x is not None:
+        # Reescala b_tiempo_espera a `espera_x` veces b_tiempo_viaje. La espera
+        # es el UNICO canal por el que el metro se degrada al perder pasajeros,
+        # asi que su ponderacion decide si el lazo de Downs-Thomson tiene fuerza.
+        estratos = {}
+        for h, cfg in out.demand.estratos.items():
+            b = cfg.betas
+            estratos[h] = cfg.model_copy(
+                update={
+                    "betas": b.model_copy(update={"b_tiempo_espera": b.b_tiempo_viaje * espera_x})
+                }
+            )
+        out = out.model_copy(
+            update={"demand": out.demand.model_copy(update={"estratos": estratos})}
+        )
     if parking is not None:
         out = out.model_copy(
             update={
@@ -160,6 +183,24 @@ def main() -> None:
         fmin=0.5,
         solo_am=True,
         parking=0,
+    )
+    # ¿Y si la espera se valora como manda la evidencia (~2x el tiempo en
+    # vehiculo) en vez de ~0.7-1.0x como esta hoy?
+    for x in (2.0, 4.0):
+        barrido(
+            f"G. Espera x{x} el tiempo en vehiculo (K=1500, estilizado)",
+            k=1500,
+            fmin=0.5,
+            solo_am=True,
+            espera_x=x,
+        )
+    barrido(
+        "H. Espera x4 + K=3000 + parking 0 (lazo maximo)",
+        k=3000,
+        fmin=0.5,
+        solo_am=True,
+        parking=0,
+        espera_x=4.0,
     )
 
 

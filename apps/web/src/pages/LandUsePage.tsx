@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { CityBuilder } from "@/components/modules/CityBuilder";
 import { LandUseBuilder } from "@/components/modules/LandUseBuilder";
+import { PresetGallery } from "@/components/modules/PresetGallery";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
@@ -182,6 +183,10 @@ export function LandUsePage() {
         <p className="text-[11px] text-muted" style={{ marginBottom: 6 }}>
           {tS("land_use.info_standalone")}
         </p>
+
+        {/* Los presets de FORMA URBANA viven acá, no en Transporte: definen la
+            ciudad (largo y compacidad), y Transporte solo la consume. */}
+        <PresetGallery variant="city" />
 
         {/* Módulo completo de ciudad (largo, celdas, pendiente, teletrabajo):
             se define aquí y alimenta al módulo de Transporte. */}

@@ -612,7 +612,7 @@ export function SandboxPage() {
       <aside className="sidebar">
         {/* F-01: escenarios con nombre (ciudad × política) como punto de
             partida, en vez de mover sliders a ciegas desde los defaults. */}
-        <PresetGallery />
+        <PresetGallery variant="policy" />
         {/* La ciudad (largo, celdas, pendiente, teletrabajo, densidad y estratos)
             se define en Uso de Suelo y alimenta esta simulación. */}
         <SidebarSection
