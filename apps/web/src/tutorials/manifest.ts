@@ -89,7 +89,7 @@ export const TUTORIAL_TOC_ES: readonly TutorialMeta[] = [
   { slug: "supply", order: 3, title: "Oferta", tagline: "BPR, Greenshields, metro" },
   { slug: "demand", order: 4, title: "Demanda", tagline: "Utilidad + logit" },
   { slug: "equilibrium", order: 5, title: "Equilibrio", tagline: "MSA + loop acoplado" },
-  { slug: "land-use", order: 6, title: "Uso de suelo", tagline: "Bid-rent + logit heteroscedástico" },
+  { slug: "land-use", order: 6, title: "Uso de suelo", tagline: "Bid-rent + subasta logit" },
   { slug: "experimenting", order: 7, title: "Experimentar", tagline: "Presets y actividades" },
 ] as const;
 
@@ -99,6 +99,6 @@ export const TUTORIAL_TOC_EN: readonly TutorialMeta[] = [
   { slug: "supply", order: 3, title: "Supply", tagline: "BPR, Greenshields, metro" },
   { slug: "demand", order: 4, title: "Demand", tagline: "Utility + logit" },
   { slug: "equilibrium", order: 5, title: "Equilibrium", tagline: "MSA + coupled loop" },
-  { slug: "land-use", order: 6, title: "Land use", tagline: "Bid-rent + heteroscedastic logit" },
+  { slug: "land-use", order: 6, title: "Land use", tagline: "Bid-rent + logit auction" },
   { slug: "experimenting", order: 7, title: "Experiment", tagline: "Presets and activities" },
 ] as const;

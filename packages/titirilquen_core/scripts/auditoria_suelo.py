@@ -8,6 +8,9 @@ Métricas reportadas
 -------------------
 - `dist_h`  distancia media al CBD del estrato h (km), ponderada por la
             ocupación esperada E[N_hi] = S_i·Q_hi (no muestreada).
+- `disp_a`  desviación estándar de la localización del estrato ALTO (km), con el
+            mismo ponderador. Separa «se mudó» (cambia dist) de «se desparramó»
+            (cambia disp) — necesario para leer el artefacto de lambda (AU-06).
 - `theil`   segregación de Theil entre celdas (0 = mezcla perfecta).
 - `grad_p`  gradiente de precio: (p_CBD - p_periferia)/|p| relativo; en el modelo
             Alonso-Muth-Mills debe ser POSITIVO (el suelo central vale más).
@@ -45,7 +48,20 @@ def base_cfg(**kw) -> LandUseConfig:
         forma="normal",
         oferta_sigma_frac=0.5,
     )
+    # `model_copy(update=...)` NO valida: una clave inexistente se cuela como
+    # atributo suelto y el barrido reporta un efecto que no existe. Paso de
+    # verdad con el `solver` eliminado (las filas decian `utility_logit` y
+    # corrian `logit`). Se chequea contra los campos declarados.
+    desconocidas = set(kw) - set(LandUseConfig.model_fields)
+    if desconocidas:
+        raise ValueError(f"no son campos de LandUseConfig: {sorted(desconocidas)}")
     return cfg.model_copy(update=kw) if kw else cfg
+
+
+def resolver_q(cfg: LandUseConfig) -> np.ndarray:
+    """Matriz de composición Q[h, i] del equilibrio (sin métricas derivadas)."""
+    ciudad = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=LARGO_KM / L)
+    return np.asarray(ciudad.result.Q, dtype=float)
 
 
 def resolver(cfg: LandUseConfig) -> dict:
@@ -60,6 +76,13 @@ def resolver(cfg: LandUseConfig) -> dict:
     ocup = oferta[None, :] * q_mat  # [h, i]
     tot_h = ocup.sum(axis=1)
     dist_h = np.where(tot_h > 0, (ocup * dist_km[None, :]).sum(axis=1) / np.maximum(tot_h, 1e-9), 0)
+
+    # Dispersión del estrato alto: sd de su posición SIGNADA (no de |d| al CBD),
+    # para que una asignación bimodal centro/periferia se lea como dispersa.
+    pos_km = (np.arange(L) - CBD) * dx
+    w = ocup[0] / max(float(ocup[0].sum()), 1e-9)
+    mu = float((w * pos_km).sum())
+    disp_a = float(np.sqrt((w * (pos_km - mu) ** 2).sum()))
 
     # Theil entre celdas sobre la composición por estrato.
     tot = ocup.sum()
@@ -83,6 +106,7 @@ def resolver(cfg: LandUseConfig) -> dict:
 
     return {
         "dist": dist_h,
+        "disp_a": disp_a,
         "theil": theil,
         "grad_p": grad,
         "dens_pk": float(np.max(ciudad.densidad_por_celda())),
@@ -93,7 +117,7 @@ def resolver(cfg: LandUseConfig) -> dict:
 def fila(etiqueta: str, r: dict) -> str:
     d = r["dist"]
     return (
-        f"{etiqueta:<22} {d[0]:>7.2f} {d[1]:>7.2f} {d[2]:>7.2f} "
+        f"{etiqueta:<22} {d[0]:>7.2f} {d[1]:>7.2f} {d[2]:>7.2f} {r['disp_a']:>7.2f} "
         f"{r['theil']:>8.4f} {r['grad_p']:>+8.2f} {r['dens_pk']:>9.0f} {r['iters']:>6}"
     )
 
@@ -101,10 +125,10 @@ def fila(etiqueta: str, r: dict) -> str:
 def encabezado(titulo: str) -> None:
     print(f"\n### {titulo}")
     print(
-        f"{'escenario':<22} {'d_alto':>7} {'d_medio':>7} {'d_bajo':>7} "
+        f"{'escenario':<22} {'d_alto':>7} {'d_medio':>7} {'d_bajo':>7} {'disp_a':>7} "
         f"{'theil':>8} {'grad_p':>8} {'dens_pk':>9} {'iters':>6}"
     )
-    print("-" * 82)
+    print("-" * 90)
 
 
 def barrer(titulo: str, casos: list[tuple[str, LandUseConfig]]) -> None:
@@ -124,6 +148,28 @@ def _estratos(alphas=None, rhos=None, lambdas=None, ys=None):
     return tuple(
         LandUseStratumConfig(y=y[i], alpha=a[i], rho=r[i], **{"lambda": lam[i]}) for i in range(3)
     )
+
+
+def equivalencia_lambda() -> None:
+    """Muestra POR QUE lambda es un artefacto: la puja es `y + f/lambda` con
+    `f = -alpha*T - rho*dens`, asi que dividir por lambda_h es IDENTICO a
+    re-escalar (alpha_h, rho_h) por 1/lambda_h. No hay parametro nuevo."""
+    print("\n### 4b. lambda == re-escalar (alpha, rho) por 1/lambda — ¿identico?")
+    print(f"  {'lambda':>7} {'alpha_ef':>9} {'rho_ef':>8} {'max|dQ|':>11}  veredicto")
+    for lam in (0.4, 0.5, 1.5, 3.0):
+        q_lam = np.asarray(resolver_q(base_cfg(estratos=_estratos(lambdas=[lam, 1, 1]))))
+        q_pref = np.asarray(
+            resolver_q(
+                base_cfg(
+                    estratos=_estratos(alphas=[6.5 / lam, 6.0, 5.5], rhos=[0.1 / lam, 0.1, 0.1])
+                )
+            )
+        )
+        d = float(np.abs(q_lam - q_pref).max())
+        print(
+            f"  {lam:>7} {6.5 / lam:>9.2f} {0.1 / lam:>8.3f} {d:>11.3e}  "
+            f"{'IDENTICO' if d < 1e-12 else 'DIFIERE'}"
+        )
 
 
 def main() -> None:
@@ -164,14 +210,21 @@ def main() -> None:
         ],
     )
 
+    # LIMITACION DEL MODELO, no un parametro de comportamiento: `solve_logit`
+    # aplica un beta uniforme sobre la puja `y + f/lambda`, asi que dividir por
+    # lambda_h escala el RUIDO de eleccion de ese estrato (~1/(beta·lambda)). Lo
+    # que se observa es ruido. La correccion es el logit heterocedastico
+    # (Suelo.tex 2.7), NO implementado. Se barre fino para exhibir que el efecto
+    # ni siquiera es monotono — la firma de un artefacto, no de una preferencia.
     barrer(
-        "4. lambda (utilidad marginal del ingreso) — artefacto conocido D-08",
+        "4. lambda (utilidad marginal del ingreso) — RUIDO, limitación D-08",
         [
-            ("todos 1 (base)", base_cfg()),
-            ("alto 0.5", base_cfg(estratos=_estratos(lambdas=[0.5, 1, 1]))),
-            ("alto 3", base_cfg(estratos=_estratos(lambdas=[3, 1, 1]))),
+            (f"alto {lam}", base_cfg(estratos=_estratos(lambdas=[lam, 1, 1])))
+            for lam in (0.4, 0.5, 1.0, 1.5, 2.0, 3.0)
         ],
     )
+
+    equivalencia_lambda()
 
     barrer(
         "5. y (ingreso) — debe ser INERTE en la asignación (se absorbe en ū)",
@@ -219,20 +272,11 @@ def main() -> None:
         ],
     )
 
+    # Hubo un barrido «10. solver» comparando `logit` vs `utility_logit`. El
+    # segundo decia corregir el lambda heterogeneo y solo lo dejaba inerte: se
+    # elimino del core (AU-07), y con el este barrido.
     barrer(
-        "10. solver",
-        [
-            ("logit (default)", base_cfg()),
-            ("utility_logit", base_cfg(solver="utility_logit")),
-            (
-                "utility_logit λ≠1",
-                base_cfg(solver="utility_logit", estratos=_estratos(lambdas=[3, 1, 1])),
-            ),
-        ],
-    )
-
-    barrer(
-        "11. vestigiales (densidad_max/min) — deben ser INERTES",
+        "10. vestigiales (densidad_max/min) — deben ser INERTES",
         [
             ("base 800/200", base_cfg()),
             ("9999/1", base_cfg(densidad_max=9999.0, densidad_min=1.0)),

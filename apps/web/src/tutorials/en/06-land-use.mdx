@@ -61,7 +61,7 @@ $$
 
 defined up to a constant: only the spatial **gradient** is informative.
 
-## The correction: heteroscedastic logit
+## The pending correction: heteroscedastic logit
 
 The logit above has a subtle problem when $\lambda_h$ is heterogeneous. The Gumbel noise lives in **utility** (same scale $1/\beta$ for everyone), but solving for the bid divides the noise by $\lambda_h$:
 
@@ -91,10 +91,14 @@ $$
 
 <OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
 
-**Properties** (verified with tests): it coincides with the logit when $\lambda_h = 1$; it is invariant to the common scale of $\lambda$ (the logit is not); and **neither $\lambda_h$ nor $y_h$ moves the allocation** in the auction — the term $\lambda_h y_h$ is constant in $i$ and gets absorbed into $\bar{u}_h$. Income sorting emerges via $\alpha_h$ (calibrated higher for higher-income strata).
+**Expected properties**: it would coincide with the logit when $\lambda_h = 1$; it would be invariant to the common scale of $\lambda$ (the logit is not); and income sorting would emerge via $\alpha_h$ (calibrated higher for higher-income strata), not via $\lambda_h$.
+
+<Callout type="warn">
+**This correction is NOT implemented.** The simulator always runs the logit above, artifact included. The core did have a solver claiming to fix it (`utility_logit`) and it did not: it fed $\lambda$ in only as $\lambda_h y_h$ —constant in $i$, absorbed by $\bar{u}_h$— never applying the precision $\beta_h = \beta\lambda_h$, so it left $\lambda$ **inert** instead of correcting it. It was removed.
+</Callout>
 
 <Callout type="info">
-In the simulator, the app **always runs the logit** (the UI exposes no selector). Try varying the high stratum's $\lambda$: the allocation **does move** — and that is precisely the inconsistency, not a real income effect (income $y$ is absorbed into $\bar{u}$). Raising $\lambda$ disperses the stratum (more noise); lowering it concentrates it. The heteroscedastic correction above lives in the core as a theoretical reference but is not exposed in the UI: its price stays in utils and does not integrate with the coupled model's \$-denominated metrics.
+Try varying the high stratum's $\lambda$: the allocation **does move**, and that is the inconsistency — income $y$ is absorbed into $\bar{u}$ and reallocates nobody. Because the bid is divided by $\lambda_h$, moving it is **exactly** equivalent to rescaling $\alpha_h$ and $\rho_h$ by $1/\lambda_h$ (and the noise along with them): it is not an independent economic parameter. That is why lowering it to 0.5 **sends the high stratum to the periphery** (8.5 km from the CBD): effective $\rho$ grows and penalises the central cells, which are the dense ones.
 </Callout>
 
 ## The shape of the city

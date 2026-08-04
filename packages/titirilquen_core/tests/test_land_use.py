@@ -15,55 +15,78 @@ from titirilquen_core.land_use import (
 def _toy_scenario(lam: np.ndarray):
     L, CBD = 81, 40
     idx = np.arange(L)
-    S = np.maximum(
-        1, np.round(np.exp(-0.5 * ((idx - CBD) / 20.0) ** 2) * 100)
-    ).astype(int)
+    S = np.maximum(1, np.round(np.exp(-0.5 * ((idx - CBD) / 20.0) ** 2) * 100)).astype(int)
     S[CBD] = 0
     H = np.array([2000, 2000, 2000])
     S[0] += int(H.sum() - S.sum())
     T = np.tile(np.abs(idx - CBD).astype(float), (3, 1))
     return dict(
-        H=H, S=S, y=np.array([120.0, 50.0, 10.0]), T=T,
-        alpha=np.array([1.3, 1.2, 1.1]), rho=np.array([1.0, 1.0, 1.0]),
-        lambda_h=lam, beta=1.0, tol=1e-9, max_iter=20000,
+        H=H,
+        S=S,
+        y=np.array([120.0, 50.0, 10.0]),
+        T=T,
+        alpha=np.array([1.3, 1.2, 1.1]),
+        rho=np.array([1.0, 1.0, 1.0]),
+        lambda_h=lam,
+        beta=1.0,
+        tol=1e-9,
+        max_iter=20000,
     )
 
 
-def test_lambda_heterogeneo_dispersa_por_ruido_no_por_comportamiento() -> None:
+def test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho() -> None:
     """D-08 — LIMITACION documentada, no bug.
 
-    Con beta uniforme sobre la puja `y + f/lambda`, dividir por lambda_h escala
-    el ruido de eleccion por estrato (~1/(beta*lambda)): mover lambda cambia la
-    asignacion aunque lambda sea la utilidad marginal del ingreso y no una
-    preferencia de localizacion. Es RUIDO, no comportamiento.
+    La puja es `y_h + f_h(i)/lambda_h` con `f = -alpha*T - rho*dens`, asi que
 
-    El test fija dos cosas y deliberadamente NO fija una direccion: el efecto de
-    lambda no es monotono (medido en este escenario, la dispersion del estrato
-    alto va 25.3 -> 12.1 -> 19.3 para lambda 0.4 -> 1.0 -> 3.0, y entre 1.0 y
-    1.5 el centroide salta del centro a la periferia). Esa falta de monotonia es
-    precisamente la evidencia de que es un artefacto.
+        f_h(i)/lambda_h  ==  f(i; alpha_h/lambda_h, rho_h/lambda_h)
 
-    La correccion es el logit heteroscedastico (Suelo.tex 2.7), NO implementado.
-    Hubo un `solve_utility_logit` que decia corregirlo y solo dejaba lambda
-    inerte; se elimino."""
-    S = _toy_scenario(np.array([1.0, 1.0, 1.0]))["S"]
+    es una IDENTIDAD. Mover `lambda_h` no es un efecto-ingreso: es re-escalar
+    las preferencias de ese estrato y —con beta uniforme— tambien su ruido de
+    eleccion (~1/(beta*lambda)), las tres cosas juntas y sin poder separarlas.
+    `lambda` no es un parametro economico independiente sino una
+    re-parametrizacion redundante.
 
-    def asignacion(lam_alto: float) -> np.ndarray:
-        return solve_logit(**_toy_scenario(np.array([lam_alto, 1.0, 1.0]))).Q
+    Fijarlo como identidad es la forma mas dura de documentar la limitacion: si
+    algun dia deja de cumplirse, es porque alguien implemento el logit
+    heteroscedastico (Suelo.tex 2.7, NO implementado) y este test debe caer."""
+    for lam in (0.4, 1.5, 3.0):
+        escala = np.array([lam, 1.0, 1.0])
+        via_lambda = solve_logit(**_toy_scenario(escala)).Q
 
-    base = asignacion(1.0)
-    # 1) lambda SI mueve la asignacion — la limitacion existe y es observable.
+        args = _toy_scenario(np.array([1.0, 1.0, 1.0]))
+        args["alpha"] = args["alpha"] / escala
+        args["rho"] = args["rho"] / escala
+        via_preferencias = solve_logit(**args).Q
+
+        np.testing.assert_allclose(
+            via_lambda,
+            via_preferencias,
+            atol=1e-12,
+            err_msg=f"lambda={lam} deberia ser identico a reescalar alpha y rho por 1/lambda",
+        )
+
+
+def test_lambda_mueve_la_asignacion_pero_el_ingreso_no() -> None:
+    """El contraste que separa el artefacto de un efecto-ingreso real.
+
+    `lambda` mueve la asignacion (limitacion observable, ver el test anterior);
+    `y` no puede moverla, porque entra como constante por estrato y se absorbe
+    en la utilidad de equilibrio u_h. Si `lambda` reasignara gente por una razon
+    economica, `y` tambien deberia.
+
+    No se fija una direccion a proposito: el efecto de lambda no es monotono."""
+    base = solve_logit(**_toy_scenario(np.array([1.0, 1.0, 1.0]))).Q
+
     for lam in (0.4, 3.0):
-        delta = float(np.abs(asignacion(lam) - base).max())
+        delta = float(
+            np.abs(solve_logit(**_toy_scenario(np.array([lam, 1.0, 1.0]))).Q - base).max()
+        )
         assert delta > 1e-3, f"lambda={lam} deberia mover la asignacion (delta={delta})"
 
-    # 2) el ingreso NO la mueve: entra como constante por estrato y se absorbe
-    #    en la utilidad de equilibrio. Es el contraste que separa ruido de
-    #    efecto-ingreso.
     args = _toy_scenario(np.array([1.0, 1.0, 1.0]))
     args["y"] = args["y"] * 1000.0
     np.testing.assert_allclose(base, solve_logit(**args).Q, atol=1e-9)
-    assert S.sum() > 0
 
 
 def test_oferta_normal_suma_exactamente_N() -> None:
@@ -89,11 +112,16 @@ def test_solve_logit_converge_simple() -> None:
     assert int(S.sum()) == int(H.sum())
     T = np.tile(np.abs(np.arange(L) - CBD).astype(float), (3, 1))
     res = solve_logit(
-        H=H, S=S, y=np.array([100.0, 50.0, 10.0]), T=T,
+        H=H,
+        S=S,
+        y=np.array([100.0, 50.0, 10.0]),
+        T=T,
         alpha=np.array([1.3, 1.2, 1.1]),
         rho=np.array([1.0, 1.0, 1.0]),
         lambda_h=np.array([1.0, 1.0, 1.0]),
-        beta=1.0, tol=1e-6, max_iter=5000,
+        beta=1.0,
+        tol=1e-6,
+        max_iter=5000,
     )
     assert res.converged
     # Q columnas deben sumar 1 donde S>0; donde S=0, Q=0.
@@ -139,7 +167,7 @@ def test_alpha_mas_alto_atrae_cerca_del_cbd() -> None:
         estratos=(
             LandUseStratumConfig(y=100.0, alpha=3.0, rho=1.0),  # alto α = no quiere viajar
             LandUseStratumConfig(y=50.0, alpha=1.0, rho=1.0),
-            LandUseStratumConfig(y=10.0, alpha=0.5, rho=1.0),   # bajo α = indiferente
+            LandUseStratumConfig(y=10.0, alpha=0.5, rho=1.0),  # bajo α = indiferente
         ),
         beta=1.0,
         max_iter=2000,
@@ -198,8 +226,11 @@ def test_invariancia_a_la_resolucion_de_la_grilla() -> None:
     for L in (101, 201, 401):
         CBD = L // 2
         city = LandUseCity.build(
-            L=L, CBD=CBD, cfg=_cfg_default_fisica(),
-            ancho_celda_km=LARGO_KM / L, rng=np.random.default_rng(7),
+            L=L,
+            CBD=CBD,
+            cfg=_cfg_default_fisica(),
+            ancho_celda_km=LARGO_KM / L,
+            rng=np.random.default_rng(7),
         )
         assert city.result is not None and city.result.converged
         Q, S = city.result.Q, city.S.astype(float)
@@ -222,8 +253,11 @@ def test_sensibilidad_al_tamano_fisico() -> None:
     theil_por_largo: dict[float, float] = {}
     for largo in (10.0, 40.0):
         city = LandUseCity.build(
-            L=L, CBD=L // 2, cfg=_cfg_default_fisica(),
-            ancho_celda_km=largo / L, rng=np.random.default_rng(7),
+            L=L,
+            CBD=L // 2,
+            cfg=_cfg_default_fisica(),
+            ancho_celda_km=largo / L,
+            rng=np.random.default_rng(7),
         )
         assert city.result is not None
         theil_por_largo[largo] = _theil(city.result.Q)
@@ -236,8 +270,11 @@ def test_densidad_por_celda_es_oferta_sobre_dx() -> None:
     L, largo = 201, 20.0
     dx = largo / L
     city = LandUseCity.build(
-        L=L, CBD=L // 2, cfg=_cfg_default_fisica(),
-        ancho_celda_km=dx, rng=np.random.default_rng(7),
+        L=L,
+        CBD=L // 2,
+        cfg=_cfg_default_fisica(),
+        ancho_celda_km=dx,
+        rng=np.random.default_rng(7),
     )
     dens = city.densidad_por_celda()
     S = np.asarray(city.S, dtype=float)
@@ -253,8 +290,11 @@ def test_densidad_y_equilibrio_conservan_hogares() -> None:
     no cuadraba con ΣH (rompía la conservación del feed, audit #5)."""
     L, dx = 201, 20.0 / 201
     city = LandUseCity.build(
-        L=L, CBD=L // 2, cfg=_cfg_default_fisica(),
-        ancho_celda_km=dx, rng=np.random.default_rng(7),
+        L=L,
+        CBD=L // 2,
+        cfg=_cfg_default_fisica(),
+        ancho_celda_km=dx,
+        rng=np.random.default_rng(7),
     )
     assert city.result is not None
     H = np.asarray(_cfg_default_fisica().H_por_estrato, dtype=float)
@@ -282,5 +322,5 @@ def test_asignacion_no_se_estanca_con_Q_degenerado() -> None:
     for parc in parcelas:
         for h in parc:
             conteo[h - 1] += 1
-    np.testing.assert_array_equal(conteo, H)          # cuotas exactas
+    np.testing.assert_array_equal(conteo, H)  # cuotas exactas
     assert sum(len(p) for p in parcelas) == int(S.sum())  # capacidad exacta

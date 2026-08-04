@@ -177,11 +177,25 @@ def solve_logit(
     densidad (ver D-26).
 
     **Limitación conocida (D-08).** Aplica un β **uniforme** a las pujas, así
-    que con `λ_h` heterogéneo el ruido de la puja queda con escala `1/(β·λ_h)`
-    por estrato: mover `λ` de un estrato cambia su dispersión espacial. Eso es
-    **ruido de elección, no un efecto-ingreso real** — el ingreso `y` se absorbe
-    en la utilidad de equilibrio y no puede reasignar a nadie. Es una limitación
-    del modelo implementado y debe leerse como tal.
+    que `λ_h` entra dividiendo `f_h` entero. Consecuencia exacta:
+
+        y_h + f_h(i)/λ_h  ==  y_h + f(i; alpha_h/λ_h, rho_h/λ_h)
+
+    o sea **mover `λ_h` es idénticamente re-escalar `(alpha_h, rho_h)` por
+    `1/λ_h`**
+    —verificado: Q coincide dígito a dígito— y, a la vez, escalar el ruido de
+    elección de ese estrato a `1/(β·λ_h)`. Las tres cosas se mueven juntas y no
+    se pueden separar, así que `λ` no es un parámetro económico independiente:
+    es una re-parametrización redundante de las preferencias.
+
+    El efecto **no es un efecto-ingreso**: el ingreso `y` entra como constante
+    por estrato, se absorbe en la utilidad de equilibrio ū_h y no reasigna a
+    nadie. Y no es suave: bajar `λ` amplifica `rho_eff = rho/λ`, que castiga
+    justamente las celdas centrales (las densas), de modo que el estrato de
+    alpha más alto **huye del centro** — en la base el salto ocurre entre
+    λ ≈ 0.8 y λ ≈ 0.95. Es una limitación del modelo implementado y debe leerse
+    como tal; ver `scripts/auditoria_suelo.py` §4 y docs/AUDITORIA_USO_SUELO.md
+    (AU-06).
 
     La corrección correcta es el **logit heteroscedástico** (Suelo.tex §2.7),
     que **no está implementado**. Hubo un `solve_utility_logit` que decía

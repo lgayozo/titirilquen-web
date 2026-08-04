@@ -6,6 +6,12 @@ sobre los resultados. Hallazgos con ID `AU-xx` (auditoría uso de suelo).
 Reproducir: `cd packages/titirilquen_core && uv run python scripts/auditoria_suelo.py`
 Base: 201 celdas · 20 km · ΣH = 36.000 · shares 10/40/50 · α = 6,5/6,0/5,5 · β = 1.
 
+Todas las cifras de este documento salen de ese script. Las columnas son
+`d_h` (distancia media al CBD del estrato h, km), `disp_a` (desviación estándar
+de la posición del estrato alto, km — distingue «se mudó» de «se desparramó»),
+`theil` (segregación entre celdas), `grad_p` (gradiente de precio centro-periferia,
+positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
+
 | ID | Hallazgo | Veredicto |
 |---|---|---|
 | AU-01 | El efecto Alonso funciona en dirección y magnitud correctas | ✅ conforme |
@@ -13,7 +19,7 @@ Base: 201 celdas · 20 km · ΣH = 36.000 · shares 10/40/50 · α = 6,5/6,0/5,5
 | AU-03 | La asignación es invariante a la escala de población | ✅ conforme |
 | AU-04 | `β` opera como escala de ruido del logit, monótona | ✅ conforme |
 | AU-05 | `ρ` uniforme no reasigna pero **sí aplana el gradiente de precios** | ✅ conforme, no documentado |
-| AU-06 | `λ` mueve la localización: es **ruido**, limitación conocida del modelo | ✅ esperado, documentado |
+| AU-06 | `λ` ≡ re-escalar α y ρ: no es un parámetro, es un artefacto | ✅ esperado, limitación declarada |
 | AU-07 | `utility_logit` decía corregirlo y no lo hacía — **eliminado** | 🐛 corregido |
 | AU-08 | No hay **techo de densidad**: la densidad puede crecer sin límite | ⚠️ decisión de modelo a discutir |
 | AU-09 | Convergencia lenta en configuraciones asimétricas (hasta 2.640 iter) | ℹ️ observación |
@@ -87,32 +93,69 @@ alto se va a 8,48 km): también correcto.
 
 ## 2. ¿Tiene coherencia con la teoría?
 
-### AU-06 — `λ` produce ruido: es una limitación del modelo, no un bug ✅
+### AU-06 — `λ` es un artefacto: no es un parámetro económico independiente ✅
 
-| λ del estrato alto | 0,4 | 1,0 (base) | 1,5 | 3,0 |
-|---|---|---|---|---|
-| dispersión del estrato | 25,3 | **12,1** | 19,4 | 19,3 |
-| centroide (celda) | 40,3 | 39,7 | **13,9** | 13,9 |
+`λ_h` es la utilidad marginal del ingreso. Mover `λ` cambia la asignación, y eso
+**es lo esperado dado el modelo implementado**. Pero la razón es más fuerte —y
+más incómoda— que «escala el ruido».
 
-Mover `λ` cambia la asignación. Eso **es lo esperado dado el modelo
-implementado**: `solve_logit` aplica un β uniforme sobre la puja `y + f/λ`, así
-que dividir por λ_h escala el ruido de elección de ese estrato (~1/βλ). λ es la
-utilidad marginal del ingreso, no una preferencia de localización: lo que se
-observa es **ruido, no comportamiento**.
+**El hallazgo central: `λ_h` es una identidad algebraica, no un parámetro.** La
+puja es `y_h + f_h(i)/λ_h` con `f = −α·T − ρ·dens`, así que dividir por `λ_h`
+es **exactamente lo mismo** que re-escalar las preferencias de ese estrato:
 
-El contraste que lo confirma: el ingreso `y` —que sí es un parámetro económico
-del estrato— **no reasigna a nadie** (AU-02), porque entra como constante y se
-absorbe en ū. Si λ moviera gente por una razón económica, `y` también debería.
+```
+y_h + f_h(i)/λ_h  ≡  y_h + f(i;  α_h/λ_h,  ρ_h/λ_h)
+```
 
-La medición agrega una evidencia que no teníamos: **el efecto ni siquiera es
-monótono**. Entre λ=1 y λ=1,5 el centroide del estrato alto salta del centro
-(39,7) a la periferia (13,9), y la dispersión baja y vuelve a subir. Un
-parámetro de comportamiento no se comporta así; un artefacto de escala de ruido,
-sí.
+Verificado (§4b del script): con λ ∈ {0,4 · 0,5 · 1,5 · 3,0} la matriz `Q` de
+ambas vías coincide con `max|ΔQ| = 0,000e+00` — **cero, no «aproximadamente
+cero»**. Fijado como test de regresión
+(`test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho`).
 
-**La corrección es el logit heteroscedástico** (Suelo.tex §2.7), que **no está
-implementado** y queda pendiente. Mientras tanto, esto es una limitación
-declarada del modelo y debe leerse como tal — el hint de la UI lo dice.
+O sea, `λ` mueve tres cosas a la vez y no permite separarlas: `α_eff = α/λ`
+(cuánto pesa el acceso), `ρ_eff = ρ/λ` (cuánto molesta la densidad) y la escala
+del ruido `1/(β·λ)`. No agrega información al modelo: es una
+**re-parametrización redundante** de α y ρ.
+
+**Consecuencia medida — bajar λ expulsa al estrato alto del centro:**
+
+| λ del estrato alto | 0,4 | 0,5 | 0,8 | 0,9 | 0,95 | 1,0 (base) | 1,5 | 3,0 |
+|---|---|---|---|---|---|---|---|---|
+| d_alto (km al CBD) | 8,48 | 8,48 | 8,26 | 4,75 | **1,33** | 0,99 | 0,89 | 0,94 |
+| dispersión (km) | 8,51 | 8,51 | — | — | — | 1,27 | 1,02 | 1,02 |
+| Theil | 0,537 | 0,532 | — | — | — | 0,357 | 0,386 | 0,405 |
+| iteraciones | 801 | 511 | 70 | 21 | 31 | 36 | 52 | 68 |
+
+Dos cosas que un parámetro de comportamiento no hace:
+
+1. **Salto casi discontinuo.** Entre λ = 0,8 y λ = 0,95 —un cambio de 19%— el
+   estrato alto **cruza la ciudad entera**, de 8,26 km a 1,33 km. Fuera de esa
+   banda estrecha, λ casi no hace nada (0,4 y 0,5 dan el mismo resultado; 1,5 y
+   3,0 también).
+2. **Dirección absurda.** Bajar λ manda a los **ricos a la periferia**. El
+   mecanismo es transparente con la identidad de arriba: `ρ_eff = ρ/λ` crece
+   (0,1 → 0,25 con λ = 0,4) y la penalización de densidad castiga justo las
+   celdas centrales, que son las densas. Gana ρ sobre α y el estrato huye. De
+   hecho λ = 0,4 reproduce **exactamente** la fila «alto ρ = 0,5, resto 0» de
+   AU-05 (8,48 / 1,70 / 4,21) — es el mismo corner solution.
+
+El contraste que cierra el argumento: el ingreso `y` —que sí es un parámetro
+económico del estrato— **no reasigna a nadie** (AU-02), porque entra como
+constante y se absorbe en ū. Si λ moviera gente por una razón económica, `y`
+también debería.
+
+**Qué debe verse en clase.** Que mover λ cambia el mapa es una **limitación
+declarada del modelo**, no un resultado. La lectura honesta es: «este parámetro
+no está identificado; lo que ves es el ruido y el re-escalamiento de α y ρ, no
+una respuesta al ingreso». **La corrección es el logit heteroscedástico**
+(Suelo.tex §2.7), que **no está implementado** y queda pendiente para los
+autores. El hint de la UI y el tutorial §7-B lo dicen así.
+
+> Corrección de esta iteración: el tutorial afirmaba «sube λ ⇒ el estrato se
+> dispersa; bájalo ⇒ se concentra». Es **al revés** incluso según la teoría del
+> ruido (~1/βλ), y la medición lo desmiente: λ = 0,4 da dispersión 8,51 y
+> λ = 3,0 da 1,02. Corregido en `07-experimenting.mdx` (es/en) y en los hints
+> `lambda_artifact_logit` y `bidrent_hint`.
 
 ### AU-07 — `utility_logit` decía corregirlo y no lo hacía 🐛 ELIMINADO
 
@@ -138,6 +181,14 @@ inerte. Sus dos tests pasaban vacuamente por lo mismo (una invariancia trivial).
 Eliminado: el solver, el campo `solver` del schema, el selector de i18n y los
 tests vacuos. Queda un único solver (`logit`) con su limitación documentada. Los
 escenarios guardados que traen el campo se migran en `serialization.ts`.
+
+**Cola del mismo problema, en el propio script de auditoría.** Su §10 comparaba
+`logit` vs `utility_logit` vía `base_cfg(solver=...)`. Tras la eliminación el
+barrido **no falló**: `model_copy(update=...)` de Pydantic **no valida**, así
+que la clave se colaba como atributo suelto y se ignoraba — las filas decían
+`utility_logit` y corrían `logit`. Un barrido de sensibilidad que reporta un
+efecto inexistente es peor que uno que se cae. Se eliminó la §10 y `base_cfg`
+ahora valida las claves contra `LandUseConfig.model_fields` antes de copiar.
 
 ### AU-08 — No hay techo de densidad ⚠️
 
@@ -185,10 +236,14 @@ clase:
 
 ### AU-09 — Convergencia lenta en configuraciones asimétricas ℹ️
 
-Iteraciones del punto fijo: base 36, pero **2.640** con ρ heterogénea y 511 con
-λ heterogénea. El tope es `max_iter = 10.000`, así que no truncan, pero el
-tiempo de respuesta se nota en la UI. Ninguna configuración probada falló en
-converger.
+Iteraciones del punto fijo: base 36, pero **2.640** con ρ heterogénea y 801 con
+λ = 0,4. El tope es `max_iter = 10.000`, así que no truncan, pero el tiempo de
+respuesta se nota en la UI. Ninguna configuración probada falló en converger.
+
+El patrón es informativo: las configuraciones lentas son exactamente las que
+caen en el corner solution de AU-05/AU-06 (el estrato alto expulsado a la
+periferia). La lentitud es la firma de un equilibrio cerca de la bifurcación,
+no un problema numérico.
 
 ## 4. Resumen ejecutivo
 
@@ -201,10 +256,13 @@ conservación de hogares es exacta.
 Las dos observaciones de fondo:
 
 1. **El artefacto de λ (AU-06)** — es la única incoherencia teórica viva, y es
-   una limitación **declarada**: el modelo implementado hace que λ escale el
-   ruido. La corrección (logit heteroscedástico, Suelo.tex §2.7) no está
-   implementada y queda pendiente para los autores. Lo que sí se eliminó (AU-07)
-   fue un solver que decía corregirlo sin hacerlo.
+   una limitación **declarada**. Esta iteración la precisa: `λ_h` no es un
+   parámetro económico independiente sino, **con identidad exacta verificada**,
+   re-escalar `(α_h, ρ_h)` por `1/λ_h`. Por eso su efecto es abrupto (cruza la
+   ciudad entre λ = 0,8 y 0,95) y de dirección absurda (bajarlo expulsa a los
+   ricos del centro). La corrección (logit heteroscedástico, Suelo.tex §2.7) no
+   está implementada y queda pendiente para los autores. Lo que sí se eliminó
+   (AU-07) fue un solver que decía corregirlo sin hacerlo.
 2. **Sin techo de densidad (AU-08)** — la restricción de capacidad que sí existe
    (vaciado de mercado sobre `S`) es la correcta; falta la normativa. Extensión
    posible, no defecto.
