@@ -20,8 +20,8 @@ Fecha de inicio: 2026-06-30. Rama: `ciudad-equilibrio-mejoras`.
 >   un gradiente de Clark más abajo son historia superada. Los campos
 >   `densidad_max`/`densidad_min` quedaron **vestigiales**; la escala de población
 >   la fija `H_por_estrato` (la UI la expone como «densidad media» = `ΣH/largo`).
-> - **Solver = `logit`** (default en el core y en la app; la UI no expone
->   selector). El heteroscedástico se conserva en el core solo para comparación.
+> - **Solver = `logit`**, único (en el core y en la app; la UI no expone
+>   selector). El segundo solver que existía se eliminó después — ver D-08.
 
 ## Objetivos
 
@@ -29,7 +29,7 @@ Fecha de inicio: 2026-06-30. Rama: `ciudad-equilibrio-mejoras`.
 2. En la vista de Uso de Suelo se define la **proporción de estratos** y la
    **densidad** de la ciudad.
 3. La densidad queda **amarrada a la proporción de estratos por celda**.
-4. Solo se ofrece el solver **logit** (el heteroscedástico no está resuelto).
+4. Solo se ofrece el solver **logit** (la limitación de `λ` no está resuelta).
 5. La configuración de esta vista **alimenta al módulo de transporte**.
 
 ## Formulación de la densidad por celda
@@ -57,10 +57,10 @@ del módulo de transporte.
   Sandbox · Coupled · Compare · About.
 - **Solver logit fijo** — se quita el toggle de solver de la UI:
   - `apps/web/src/components/modules/LandUseBuilder.tsx`: eliminado el selector
-    `utility_logit`/`logit`; el slider `λ` queda siempre activo.
+    de solver; el slider `λ` queda siempre activo.
   - `apps/web/src/lib/defaults.ts`: `solver: "logit"` por defecto.
-  - El core Python conserva `solve_utility_logit` (trabajo no resuelto, no se
-    borra).
+  - En su momento el core conservó el segundo solver; **se eliminó después**
+    (no corregía lo que decía corregir — ver D-08), junto con el campo `solver`.
 
 - **Densidad por estrato `δ_h` (core + config + UI)**:
   - `packages/.../land_use/config.py`: campo `densidad_estrato: tuple[float,
@@ -99,8 +99,8 @@ del módulo de transporte.
     (`H_por_estrato` normalizado) y la población del perfil `densidad_celda` del
     último resultado de suelo (con fallback si no hay corrida).
 - **Contrato TS↔Python** (`apps/web/e2e/`): golden `defaults-golden.json` con
-  `densidad_estrato`; divergencia intencional `land_use.solver` (py
-  `utility_logit` / ts `logit`) en `contract.spec.ts`.
+  `densidad_estrato`; había una divergencia intencional `land_use.solver` en
+  `contract.spec.ts`, hoy sin objeto (el campo se eliminó del schema).
 - **Wheel recompilado** (`npm run build:core-wheel`) para que Pyodide use el core
   nuevo.
 

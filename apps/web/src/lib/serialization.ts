@@ -78,10 +78,9 @@ function migrateConfig(config: SimulationConfig): SimulationConfig {
 function migrateLandUse(landUse: LandUseConfig): LandUseConfig {
   const lu = landUse as unknown as Record<string, unknown>;
   if ("solver" in lu) {
-    // El campo ofrecía `utility_logit` como «corrección» del λ heterogéneo y no
-    // lo era: dejaba λ inerte sin aplicar β_h = β·λ_h. Se eliminó del core con
-    // su solver; queda un único solver (logit). La corrección real es el logit
-    // heteroscedástico, no implementado (D-08 · Suelo.tex §2.7).
+    // El campo ofrecía un segundo solver como «corrección» del λ heterogéneo y
+    // no lo era: dejaba λ inerte. Se eliminó del core; queda un único solver
+    // (logit), con su limitación de λ documentada y sin corregir (D-08).
     delete lu.solver;
   }
   return landUse;

@@ -50,8 +50,8 @@ def base_cfg(**kw) -> LandUseConfig:
     )
     # `model_copy(update=...)` NO valida: una clave inexistente se cuela como
     # atributo suelto y el barrido reporta un efecto que no existe. Paso de
-    # verdad con el `solver` eliminado (las filas decian `utility_logit` y
-    # corrian `logit`). Se chequea contra los campos declarados.
+    # verdad con el `solver` eliminado (las filas decian usar el metodo removido
+    # y corrian el logit). Se chequea contra los campos declarados.
     desconocidas = set(kw) - set(LandUseConfig.model_fields)
     if desconocidas:
         raise ValueError(f"no son campos de LandUseConfig: {sorted(desconocidas)}")
@@ -212,12 +212,11 @@ def main() -> None:
 
     # LIMITACION DEL MODELO, no un parametro de comportamiento: `solve_logit`
     # aplica un beta uniforme sobre la puja `y + f/lambda`, asi que dividir por
-    # lambda_h escala el RUIDO de eleccion de ese estrato (~1/(beta·lambda)). Lo
-    # que se observa es ruido. La correccion es el logit heterocedastico
-    # (Suelo.tex 2.7), NO implementado. Se barre fino para exhibir que el efecto
-    # ni siquiera es monotono — la firma de un artefacto, no de una preferencia.
+    # lambda_h re-escala a la vez las preferencias de ese estrato y su ruido de
+    # eleccion. NO hay correccion implementada. Se barre fino para exhibir que
+    # el efecto es abrupto y de direccion absurda — la firma de un artefacto.
     barrer(
-        "4. lambda (utilidad marginal del ingreso) — RUIDO, limitación D-08",
+        "4. lambda (utilidad marginal del ingreso) — ARTEFACTO, limitación D-08",
         [
             (f"alto {lam}", base_cfg(estratos=_estratos(lambdas=[lam, 1, 1])))
             for lam in (0.4, 0.5, 1.0, 1.5, 2.0, 3.0)
@@ -272,9 +271,9 @@ def main() -> None:
         ],
     )
 
-    # Hubo un barrido «10. solver» comparando `logit` vs `utility_logit`. El
-    # segundo decia corregir el lambda heterogeneo y solo lo dejaba inerte: se
-    # elimino del core (AU-07), y con el este barrido.
+    # Hubo un barrido «10. solver» comparando dos metodos. El segundo decia
+    # corregir el lambda heterogeneo y solo lo dejaba inerte: se elimino del
+    # core (AU-07), y con el este barrido.
     barrer(
         "10. vestigiales (densidad_max/min) — deben ser INERTES",
         [

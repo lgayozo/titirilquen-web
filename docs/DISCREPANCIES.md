@@ -140,59 +140,56 @@ Convenciones:
 
 ---
 
-## D-08 · Método de resolución alternativo (Frechét)
+## D-08 · `λ_h` no está identificado en el logit de uso de suelo
 
-- **Overleaf** — `Suelo.tex:170-174`: Reconoce que el logit es "erróneo" ante `λ_h` heterogéneo y sugiere logit-heteroscedástico como solución.
-- **Código** — `Ciudad2.py:361`: Implementa `resolver_equilibrio_frechet` (marcado "MALA" en el docstring).
-- **Análisis**: Existe una implementación alternativa que el propio autor considera incorrecta. Valiosa didácticamente: permite comparar ambas y discutir sus limitaciones.
-- **Veredicto**: No es discrepancia sino ampliación del alcance.
-- **Acción**: Mantener ambos métodos en v2 y usarlos en material didáctico comparativo.
-- **Resolución (2026-06) — logit heteroscedástico implementado**: se agregó el
-  solver **`utility_logit`** (`equilibrium.py:solve_utility_logit`), que es la
-  corrección consistente que sugería el Overleaf, y pasó a ser el **default**.
-  - **El problema**: la utilidad es `U_hi = λ_h(y_h − p_i) + f_h(i) + ε_hi` con `ε`
-    Gumbel de escala `1/β` (homoscedástica **en utilidad**). La puja (WTP) divide
-    por `λ_h`, dejando el ruido con escala `1/(β·λ_h)` **por estrato** → el logit
-    (β uniforme sobre la puja `y + f/λ`) es inconsistente: trata estratos de mayor
-    `λ` como si tuvieran elección más ruidosa (artefacto).
-  - **La corrección**: escala por estrato `β_h = β·λ_h`, equivalente a trabajar en
-    espacio de utilidad con `score = λ_h·y_h + f_h(i)` (sin dividir por `λ`). Mismo
-    operador de punto fijo; solo cambia el `score`.
-  - **Propiedades (validadas, con tests):** (a) coincide **exactamente** con
-    `logit` cuando `λ_h = 1 ∀h` (el default de estratos); (b) es **invariante a la
-    escala común de `λ`** — escalar todos los `λ` por `k` no cambia la asignación,
-    cosa que el logit NO cumple (su `dmedia` se comprime de `[6.6,13.2,24.8]` a
-    `[12.5,14.7,17.3]` al pasar `k` de 0.5 a 4); (c) converge (más rápido que el
-    logit). Separa la utilidad marginal del ingreso (`λ_h`) del ruido de elección
-    (`β`).
-  - Se conserva `logit` como opción para la comparación didáctica (mostrar
-    empíricamente la inconsistencia). El `frechet` (la variante "MALA" del
-    original) **se quitó** por redundante: el contraste `utility_logit`
-    (correcto) vs `logit` (inconsistente) ya cubre el punto pedagógico, y un
-    tercer método "incorrecto de otra forma" confundía más que aclaraba. Ver
-    `MATHEMATICAL_MODEL.md` §5.
-  - **Propiedad de identificación (importante):** en el heteroscedástico, `λ_h` e
-    `y_h` entran solo como la constante `λ_h·y_h` y se **absorben** en la
-    normalización de utilidad → **no afectan la asignación** (`Q` idéntico al
-    variar `λ` o `y`, verificado a ≈1e‑13). El ordenamiento lo gobiernan `α_h` y
-    `ρ_h`. Es correcto (la cara opuesta de la consistencia: el logit movía el
-    orden con `λ`, pero era el artefacto).
-  - **El ingreso `y_h` es inerte en AMBOS solvers** (no solo en el
-    heteroscedástico): en el `logit` entra como `score = y_h + f_h(i)/λ_h`, donde
-    `y_h` es también una **constante por estrato** (independiente de `i`) y se
-    absorbe igual en `ū_h` → `Q` idéntico al variar `y` (verificado: `logit`
-    ≈1e‑14, `het` ≈2e‑14). La diferencia es **solo `λ`**: mueve el `logit` (vía
-    `f/λ`, que sí varía con `i`; verificado ≈0.98) pero no el heteroscedástico.
-  - **UI (regla uniforme):** un control se **deshabilita** con un hint
-    exactamente cuando no mueve la asignación. Por eso el slider de `y` queda
-    deshabilitado **siempre** (`land_use.y_na`) y el de `λ` **solo** en
-    heteroscedástico (`land_use.lambda_na_het`). En `logit`, `λ` queda activo
-    pero con un **aviso de artefacto** (`land_use.lambda_artifact_logit`): su
-    efecto sobre la asignación es la manifestación de la inconsistencia (escala
-    el ruido por estrato), **no** un efecto-ingreso real — el `logit` se conserva
-    solo para exhibir empíricamente ese artefacto. Los gobernantes (`α`, `ρ`) van
-    arriba y los absorbidos (`y`, `λ`) agrupados abajo. Detalle y derivación en
-    `OVERLEAF_CHANGES.md` §C8 (propiedad 4).
+- **Overleaf** — `Suelo.tex:170-174`: reconoce que el logit es "erróneo" ante `λ_h` heterogéneo y propone un método alternativo.
+- **Código** — `Ciudad2.py:361`: implementaba `resolver_equilibrio_frechet` (marcado "MALA" en el docstring). No se portó a v2.
+- **Estado (2026-08): sigue abierto. No hay corrección implementada.**
+
+**El problema.** La utilidad es `U_hi = λ_h(y_h − p_i) + f_h(i) + ε_hi` con `ε`
+Gumbel de escala `1/β` (homoscedástica **en utilidad**). La puja (WTP) divide por
+`λ_h`, y el solver aplica un `β` **uniforme** sobre las pujas. Consecuencia
+exacta, dado que `f = −α·T − ρ·dens` es lineal en `α` y `ρ`:
+
+    y_h + f_h(i)/λ_h  ≡  y_h + f(i;  α_h/λ_h,  ρ_h/λ_h)
+
+**Mover `λ_h` es idénticamente re-escalar `(α_h, ρ_h)` por `1/λ_h`** —verificado
+con `max|ΔQ| = 0,000e+00`, fijado en `test_land_use.py`— y a la vez escalar el
+ruido de ese estrato a `1/(β·λ_h)`. Las tres cosas se mueven juntas y no se
+pueden separar: `λ` **no es un parámetro económico independiente**, es una
+re-parametrización redundante de `α` y `ρ`.
+
+**Cómo se manifiesta** (medido en `scripts/auditoria_suelo.py`, ver AU-06):
+- Salto casi discontinuo: entre `λ = 0,8` y `λ = 0,95` el estrato alto cruza la
+  ciudad entera (8,26 → 1,33 km del CBD). Fuera de esa banda, `λ` casi no hace
+  nada.
+- Dirección absurda: bajar `λ` manda a los ricos a la periferia, porque
+  `ρ_eff = ρ/λ` castiga justamente las celdas centrales, que son las densas.
+
+**El ingreso `y_h` es inerte**, en cambio: entra como constante por estrato,
+independiente de `i`, y se absorbe en `ū_h` → `Q` idéntico al variar `y`
+(verificado ≈1e‑14). Ese contraste es lo que separa el artefacto de un
+efecto-ingreso real: si `λ` reasignara gente por una razón económica, `y`
+también debería.
+
+**Intento de corrección fallido (eliminado 2026-08).** Existió un segundo solver
+presentado como la corrección consistente y declarado default.
+**No corregía nada**: metía `λ` solo como `λ_h·y_h`, una constante por estrato
+que el punto fijo absorbe, dejando `λ` **completamente inerte** (`Q` idéntica con
+`λ` de 0.01 a 100). Nunca aplicó la escala por estrato que su documentación
+afirmaba — el operador de punto fijo toma un `β` **escalar**, así que esa escala
+no estaba implementada en ninguna parte. Sus tests pasaban vacuamente por lo
+mismo. Se eliminó junto con el campo `solver` del schema; los escenarios
+guardados que lo traen se migran en `serialization.ts`.
+
+- **Veredicto**: limitación **declarada** del modelo, no un bug. Una corrección
+  real exige que el ruido escale por estrato, lo que implica cambiar el operador
+  de punto fijo, no solo el `score`. **Pendiente para los autores.**
+- **UI**: el slider de `y` queda **deshabilitado siempre** (`land_use.y_na`,
+  regla: se deshabilita lo que no mueve la asignación). El de `λ` queda activo
+  pero con un **aviso de artefacto** (`land_use.lambda_artifact_logit`).
+- **Acción**: no presentar el efecto de `λ` como resultado en material docente.
+  Ver `AUDITORIA_USO_SUELO.md` AU-06/AU-07 y el tutorial §6.
 
 ---
 
@@ -707,8 +704,8 @@ Convenciones:
   ser **mensual**: `(costo_por_viaje · 44 viajes/mes) / y` (2 viajes × 22 días).
   Con los defaults da ~4% / 9% / 26% — y el ~26% del estrato bajo es el hallazgo
   pedagógico correcto (umbral típico de (in)asequibilidad de transporte).
-- **Nota de modelo**: `y` sigue **sin mover la asignación** (se absorbe en ū,
-  propiedad del solver heteroscedástico — ver D-08 §C8); solo alimenta la
+- **Nota de modelo**: `y` sigue **sin mover la asignación** (entra como constante
+  por estrato y se absorbe en ū — ver D-08); solo alimenta la
   métrica de equidad. El ratio bajo/alto era válido incluso antes (adimensional);
   lo que no tenía sentido era el *nivel*.
 - **Referencia**: el costo de transporte como fracción del ingreso es la métrica

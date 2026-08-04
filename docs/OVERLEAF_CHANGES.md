@@ -50,7 +50,7 @@ coincida con el código (que ya es correcto). No implican cambios de código.
 |----|---|---|---|
 | **B1** (D‑16) | Constantes de congestión de andén (metro) | Overleaf declara `α=10, β=10` (factor salta a ~10× apenas `ρ>1`). El código usa `α=0.5, β=4` (factor *cae* a 0.5 y solo supera 1 en `ρ>1.19`). | ¿Cuál es la calibración real del `app.py`? Idealmente reformular como **BPR continua** sin salto/caída en `ρ=1`. |
 | **B2** (D‑12) | Activación de la congestión de andén | El umbral usa `frec_max·K` (capacidad a frecuencia máxima); con ciudades típicas (~10k agentes) **nunca** se alcanza → la espera queda plana. | ¿Es el comportamiento deseado, o se quiere que la congestión sea visible en operación normal? |
-| **B3** (D‑08) | Logit de uso de suelo con `λ_h` heterogéneo | **RESUELTO (2026‑06):** se implementó el logit heteroscedástico (`solve_utility_logit`) como corrección. **La web, sin embargo, corre siempre `logit`** (el heteroscedástico no se expone: precio en utiles; ver §C8). Derivación paper‑ready en **§C8** abajo. | Presentar la corrección en el paper como referencia teórica, aclarando que la implementación web usa `logit`; conservar `logit` como método principal (el `frechet` se quitó por redundante). |
+| **B3** (D‑08) | Logit de uso de suelo con `λ_h` heterogéneo | **ABIERTO. Sin corregir.** La web corre siempre `logit`, donde `λ` **no está identificado**: como `f` es lineal en `α` y `ρ`, dividir la puja por `λ_h` es *idéntico* a re-escalar `(α_h, ρ_h)` por `1/λ_h` (verificado, `max\|ΔQ\| = 0`), además de escalar el ruido de ese estrato. Hubo un segundo solver declarado «la corrección»: **no corregía nada** (dejaba `λ` inerte) y se eliminó. Ver D‑08. | (a) Decidir si el paper mantiene `λ_h` heterogéneo, sabiendo que en la implementación no es un parámetro independiente. (b) **`Suelo.tex` §2.7 afirma que el método alternativo «es el default de la implementación de referencia»: eso es falso** y hay que quitarlo o marcarlo como no implementado. (c) Si se quiere corregir, hay que escalar el ruido por estrato — cambia el operador de punto fijo, no solo la puja. |
 
 ---
 
@@ -68,99 +68,19 @@ coincida con el código (que ya es correcto). No implican cambios de código.
 | **C5** (D‑06) | **Módulo de emisiones de CO₂**: auto `FE(v)=2467.4·v^{-0.699}` g/km con v desde la BPR; metro **por tren-km** `factor·f_op·largo·2` (D-29, exhibe las economías de escala del servicio; antes era por pax·km). Conectado al pipeline y visible en KPIs y FIG. 05. | Implementado y conectado; falta redactar la sección del paper. |
 | **C6** (D‑09) | **Parámetros físicos expuestos en la UI** (velocidades, anchos, α/β BPR, pendiente, etc.) que en el original estaban hardcodeados. | Mayormente expuestos en la web. |
 | **C7** | **Método de asignación opcional**: además del Monte Carlo del Overleaf (sorteo por agente con `random.choices`), se agregó **"flujos esperados"** (asignación fraccional por probabilidades logit), determinista y sin ruido entre iteraciones. Toggle en la UI; **pendiente decidir con el profesor cuál dejar definitivo**. | Implementado (`msa.py`, `SimulationConfig.assignment`). |
-| **C8** (D‑08) | **Logit heteroscedástico** para el uso de suelo — la corrección del `λ_h` heterogéneo. **Derivación completa abajo** (lista para el `.tex`). | Implementado (`equilibrium.py:solve_utility_logit`), pero **NO expuesto en la UI**: su precio queda en utiles (no en $) y no se integra con el downstream en $ del acoplado. La app corre siempre `logit` (default Pydantic y TS). El `.tex` debería presentar la corrección como referencia teórica, aclarando que la web usa logit. |
+| ~~**C8**~~ (D‑08) | **Retirado.** Documentaba como funcionalidad implementada una corrección del `λ_h` heterogéneo que **nunca existió** (ver B3). El tema sigue abierto y se discute en **B3**, no acá. | — |
 | **C9** | **Densidad como consecuencia de la oferta**: la app unifica la densidad por celda en `dens(i) = S_i/Δx` (población = oferta `S`), y las figuras de población, la densidad y el feed a transporte comparten esa única envolvente. La UI fija la **escala de población** con un slider «densidad media» (`ΣH = densidad_media · largo`, `H_h = π_h·ΣH`). **Reconciliación:** el `Suelo.tex` ya define la densidad física como `S_i/Δx` (doble rol de `S`), así que el modelo **ya coincide** — solo hay que (i) confirmar que NO hay un gradiente de densidad separado (el código tuvo una divergencia intermedia, «gradiente de Clark» con `densidad_max/min`, ya **revertida**), y (ii) opcionalmente documentar la parametrización de escala «densidad media». | Implementado (`ciudad.py:densidad_por_celda = S/Δx`, `population.py`, `LandUseBuilder`); ver `CAMBIOS_USO_SUELO.md` §Unificación en la oferta S. |
 
-### C8 — Logit heteroscedástico (derivación para el Overleaf)
+### C8 — retirado
 
-> Reemplaza la nota de `Suelo.tex` (“el logit es erróneo con `λ_h` heterogéneo… se
-> sugiere un logit heteroscedástico”) por esta derivación. Notación: estrato
-> `h ∈ {1..H}`, parcela `i ∈ {1..I}`.
+Esta sección contenía una derivación «lista para el `.tex`» de una corrección del
+`λ_h` heterogéneo, presentada como implementada y con «propiedades verificadas
+con tests». **Nada de eso era cierto**: el solver que la respaldaba no aplicaba
+la corrección —dejaba `λ` inerte— y sus tests pasaban vacuamente por esa misma
+razón. Se eliminó el solver y, con él, esta sección.
 
-**Modelo.** Estrato `h` con ingreso `y_h`, utilidad marginal del ingreso
-`λ_h > 0`, sensibilidad al transporte `α_h` y a la densidad `ρ_h`. Parcela `i`
-con capacidad `S_i` y costo de transporte `T_h(i)`. Atractividad de la parcela:
-
-    f_h(i) = −α_h·T_h(i) − ρ_h·S_i .
-
-La utilidad de un hogar de tipo `h` localizado en `i` pagando renta `r` es
-
-    U_hi(r) = λ_h·(y_h − r) + f_h(i) + ε_hi ,   ε_hi ~ Gumbel(0, 1/β) i.i.d.
-
-El supuesto clave: **el ruido es homoscedástico en UTILIDAD** (misma escala `1/β`
-para todos los estratos).
-
-**Disposición a pagar (WTP).** A un nivel de utilidad de referencia `ū_h`, la puja
-de `h` por `i` sale de `U_hi = ū_h`:
-
-    w_hi = y_h − (ū_h − f_h(i))/λ_h          (parte determinista)
-    (con el shock:  w_hi + ε_hi/λ_h)
-
-**La inconsistencia.** La subasta asigna `i` al mayor postor:
-`Q_hi = Pr( w_hi + ε_hi/λ_h ≥ w_gi + ε_gi/λ_g  ∀g )`. El término aleatorio
-`ε_hi/λ_h` tiene **escala Gumbel `1/(β·λ_h)`, distinta por estrato**
-(heteroscedástica). Aplicar un logit con escala `β` **uniforme** sobre las pujas
-(lo que hace el método `logit` y la formulación actual del Overleaf) equivale a
-suponer ruido homoscedástico en el espacio de **pujas**, i.e., ruido en
-**utilidad** de escala `λ_h/β`: los estratos de mayor `λ` quedarían con elección
-de ubicación *más ruidosa*, un artefacto sin fundamento conductual. Además el
-equilibrio pasa a depender de la **escala común de `λ`** (una mera elección de
-unidades de la utilidad).
-
-**La corrección (logit heteroscedástico).** Pesar la puja de cada estrato por su
-propia **precisión `β_h = β·λ_h`**, que cancela exactamente el `1/λ_h` del ruido
-(`β·λ_h · 1/(β·λ_h) = 1`). Algebraicamente, el índice queda en **unidades de
-utilidad** vía el *score*
-
-    s_hi := λ_h·y_h + f_h(i)           (⇒ β_h·w_hi = β·(s_hi − ū_h))
-
-donde `s_hi = U_hi(0)` es la **utilidad bruta** (a renta nula). La subasta es
-entonces un logit con índice `β·(s_hi − ū_h)`, **ponderado por el número de
-postores de cada tipo** (la parcela la disputan `H_g` hogares de cada estrato;
-el máximo de `H_g` Gumbel i.i.d. desplaza la ubicación en `ln(H_g)/β` — igual
-que la ec. 3 del `Suelo.tex`):
-
-    Q_hi = H_h·e^{β(s_hi − ū_h)} / Σ_g H_g·e^{β(s_gi − ū_g)}    (columnas suman 1).
-
-En el equilibrio esto conserva los hogares por estrato: `Σ_i S_i·Q_hi = H_h`
-(ver D-25 — la implementación original omitía el factor `H_h`).
-
-> El método `logit` (inconsistente) es el mismo operador con `s_hi = y_h + f_h(i)/λ_h`.
-
-**Equilibrio.** Las utilidades `ū = (ū_h)` y las rentas `p = (p_i)` resuelven el
-sistema simétrico (punto fijo tipo Martínez, cap. 5):
-
-    e^{β·p_i} = Σ_h H_h · e^{β(s_hi − ū_h)}          (renta = valor inclusivo de las pujas)
-    e^{β·ū_h} = Σ_i S_i · e^{β(s_hi − p_i)}          (utilidad = valor inclusivo de las ubicaciones)
-
-Se itera `ū ← F(ū)`, con `F(ū)_h = (1/β)·ln Σ_i S_i·e^{β(s_hi − p_i(ū))}` y
-`p_i(ū) = (1/β)·ln Σ_h H_h·e^{β(s_hi − ū_h)}`, normalizando `ū_1 = 0`.
-
-**Propiedades (verificadas con tests, `test_land_use.py`):**
-
-1. **Reducción.** Si `λ_h = 1 ∀h` entonces `s_hi = y_h + f_h(i)` y el
-   heteroscedástico **coincide exactamente** con el logit (default de estratos).
-2. **Invariancia de escala.** `λ → k·λ` (factor común `k>0`) **no cambia** la
-   asignación `Q` — como debe ser, ya que `λ` es la utilidad marginal del ingreso
-   y su escala global es una elección de unidades. El `logit` **no** lo cumple:
-   la distancia media al CBD por estrato pasa de `[6.6, 13.2, 24.8]` a
-   `[12.5, 14.7, 17.3]` al variar `k` de 0.5 a 4.
-3. **Separación de efectos.** Separa la utilidad marginal del ingreso (`λ_h`) del
-   ruido de elección (`β`), que el logit confunde.
-4. **Identificación (λ e `y` se absorben).** Como `s_hi = λ_h·y_h + f_h(i)` y el
-   término `λ_h·y_h` es **constante en `i`** (la subasta tampoco ve el precio,
-   que se cancela entre postores de una misma parcela), la sustitución
-   `ũ_h = ū_h − λ_h·y_h` deja `Q`, `ũ`, `p` en función **solo** de
-   `f_h(i) = −α_h·T(i) − ρ_h·S_i`, `H`, `S`, `β`. En consecuencia, **ni `λ_h` ni
-   el ingreso `y_h` mueven la asignación espacial**: el ordenamiento de estratos
-   lo gobiernan `α_h` (sensibilidad al transporte) y `ρ_h` (densidad). El
-   ordenamiento por ingreso emerge igual, pero **vía `α_h`** (calibrado más alto
-   para estratos de mayor ingreso). Verificado numéricamente: variar `λ` o `y`
-   deja `Q` idéntico (≈1e-13); variar `α` lo cambia (e incluso invierte). En el
-   `logit` (inconsistente) `λ` sí movía el orden, vía el término `f/λ` — el
-   artefacto. (Es propio de la **subasta**/*bid model*; un modelo de elección de
-   ubicación, con `P(h|i) ∝ e^{β(−λ_h·p_i + f_hi)}`, sí dejaría a `λ` actuar vía
-   la sensibilidad al precio.)
+El problema sigue abierto y es un punto de agenda para la reunión: ver **B3** y
+`DISCREPANCIES.md` D‑08.
 
 ### C9 (D-26/D-27) — Unidades físicas en la función de puje (invariancia de grilla)
 

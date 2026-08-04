@@ -20,7 +20,7 @@ positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
 | AU-04 | `β` opera como escala de ruido del logit, monótona | ✅ conforme |
 | AU-05 | `ρ` uniforme no reasigna pero **sí aplana el gradiente de precios** | ✅ conforme, no documentado |
 | AU-06 | `λ` ≡ re-escalar α y ρ: no es un parámetro, es un artefacto | ✅ esperado, limitación declarada |
-| AU-07 | `utility_logit` decía corregirlo y no lo hacía — **eliminado** | 🐛 corregido |
+| AU-07 | El solver que decía corregirlo no lo hacía — **eliminado** | 🐛 corregido |
 | AU-08 | No hay **techo de densidad**: la densidad puede crecer sin límite | ⚠️ decisión de modelo a discutir |
 | AU-09 | Convergencia lenta en configuraciones asimétricas (hasta 2.640 iter) | ℹ️ observación |
 | AU-10 | Sensibilidad muy alta a diferencias pequeñas de α | ℹ️ para la lectura pedagógica |
@@ -147,9 +147,10 @@ también debería.
 **Qué debe verse en clase.** Que mover λ cambia el mapa es una **limitación
 declarada del modelo**, no un resultado. La lectura honesta es: «este parámetro
 no está identificado; lo que ves es el ruido y el re-escalamiento de α y ρ, no
-una respuesta al ingreso». **La corrección es el logit heteroscedástico**
-(Suelo.tex §2.7), que **no está implementado** y queda pendiente para los
-autores. El hint de la UI y el tutorial §7-B lo dicen así.
+una respuesta al ingreso». **No hay corrección implementada** y queda pendiente
+para los autores: corregirlo exige que el ruido escale por estrato, lo que
+implica cambiar el operador de punto fijo, no solo la puja. El hint de la UI y
+el tutorial §6 lo dicen así.
 
 > Corrección de esta iteración: el tutorial afirmaba «sube λ ⇒ el estrato se
 > dispersa; bájalo ⇒ se concentra». Es **al revés** incluso según la teoría del
@@ -157,7 +158,7 @@ autores. El hint de la UI y el tutorial §7-B lo dicen así.
 > λ = 3,0 da 1,02. Corregido en `07-experimenting.mdx` (es/en) y en los hints
 > `lambda_artifact_logit` y `bidrent_hint`.
 
-### AU-07 — `utility_logit` decía corregirlo y no lo hacía 🐛 ELIMINADO
+### AU-07 — el solver que decía corregirlo no lo hacía 🐛 ELIMINADO
 
 El core traía un segundo solver presentado como «el método consistente que
 corrige el λ heterogéneo», seleccionable por el campo `solver`. **No corregía
@@ -183,10 +184,10 @@ tests vacuos. Queda un único solver (`logit`) con su limitación documentada. L
 escenarios guardados que traen el campo se migran en `serialization.ts`.
 
 **Cola del mismo problema, en el propio script de auditoría.** Su §10 comparaba
-`logit` vs `utility_logit` vía `base_cfg(solver=...)`. Tras la eliminación el
+los dos solvers vía `base_cfg(solver=...)`. Tras la eliminación el
 barrido **no falló**: `model_copy(update=...)` de Pydantic **no valida**, así
 que la clave se colaba como atributo suelto y se ignoraba — las filas decían
-`utility_logit` y corrían `logit`. Un barrido de sensibilidad que reporta un
+usar el método removido y corrían el logit. Un barrido de sensibilidad que reporta un
 efecto inexistente es peor que uno que se cae. Se eliminó la §10 y `base_cfg`
 ahora valida las claves contra `LandUseConfig.model_fields` antes de copiar.
 
@@ -260,9 +261,9 @@ Las dos observaciones de fondo:
    parámetro económico independiente sino, **con identidad exacta verificada**,
    re-escalar `(α_h, ρ_h)` por `1/λ_h`. Por eso su efecto es abrupto (cruza la
    ciudad entre λ = 0,8 y 0,95) y de dirección absurda (bajarlo expulsa a los
-   ricos del centro). La corrección (logit heteroscedástico, Suelo.tex §2.7) no
-   está implementada y queda pendiente para los autores. Lo que sí se eliminó
-   (AU-07) fue un solver que decía corregirlo sin hacerlo.
+   ricos del centro). **No hay corrección implementada** y queda pendiente para
+   los autores. Lo que sí se eliminó (AU-07) fue un solver que decía corregirlo
+   sin hacerlo.
 2. **Sin techo de densidad (AU-08)** — la restricción de capacidad que sí existe
    (vaciado de mercado sobre `S`) es la correcta; falta la normativa. Extensión
    posible, no defecto.

@@ -2,7 +2,7 @@
 slug: land-use
 order: 6
 title: Uso de suelo
-tagline: Bid-rent, subasta logit y la corrección heteroscedástica
+tagline: Bid-rent, subasta logit y el artefacto de lambda
 ---
 
 # 5. Uso de suelo
@@ -61,44 +61,24 @@ $$
 
 definidos salvo una constante: solo el **gradiente** espacial es informativo.
 
-## La corrección pendiente: logit heteroscedástico
+## Una limitación: $\lambda$ no está identificado
 
-El logit anterior tiene un problema sutil cuando $\lambda_h$ es heterogéneo. El ruido Gumbel vive en la **utilidad** (misma escala $1/\beta$ para todos), pero al despejar la puja el ruido queda dividido por $\lambda_h$:
+El modelo de arriba tiene un problema cuando $\lambda_h$ es heterogéneo, y conviene entenderlo porque el simulador **no lo corrige**.
 
-$$
-\tilde{w}_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}
-$$
-
-<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
-
-— escala $1/(\beta \lambda_h)$, **distinta por estrato**. Aplicar el logit con $\beta$ uniforme sobre las pujas equivale a darle a los estratos de mayor $\lambda$ una elección *más ruidosa* (artefacto sin fundamento conductual), y hace que el equilibrio dependa de la escala común de $\lambda$, que es solo una elección de unidades.
-
-La corrección pesa cada puja por su precisión $\beta_h = \beta\,\lambda_h$, lo que equivale a subastar en el espacio de **utilidad** con el *score*:
+La puja divide la atractividad por $\lambda_h$, y $f$ es lineal en $\alpha_h$ y $\rho_h$. Entonces:
 
 $$
-s_{hi} = \lambda_h\, y_h + f_h(i), \qquad
-Q_{hi} = \frac{H_h\, e^{\beta (s_{hi} - \bar{u}_h)}}{\sum_g H_g\, e^{\beta (s_{gi} - \bar{u}_g)}}
+y_h + \frac{f_h(i)}{\lambda_h} \;\equiv\; y_h + f\!\left(i;\; \frac{\alpha_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
 $$
 
-<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
-
-con el sistema de equilibrio renta–utilidad:
-
-$$
-e^{\beta p_i} = \sum_h H_h\, e^{\beta (s_{hi} - \bar{u}_h)}, \qquad
-e^{\beta \bar{u}_h} = \sum_i S_i\, e^{\beta (s_{hi} - p_i)}
-$$
-
-<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
-
-**Propiedades esperadas**: coincidiría con el logit cuando $\lambda_h = 1$; sería invariante a la escala común de $\lambda$ (el logit no lo es); y el ordenamiento por ingreso emergería vía $\alpha_h$ (calibrado mayor para estratos de mayor ingreso), no vía $\lambda_h$.
+Es una **identidad**, no una aproximación: mover $\lambda_h$ es exactamente lo mismo que re-escalar las preferencias de ese estrato por $1/\lambda_h$. Y como $\beta$ es uniforme, de paso re-escala su ruido de elección a $1/(\beta\lambda_h)$. Las tres cosas se mueven juntas y no hay forma de separarlas: $\lambda$ **no es un parámetro económico independiente** en este modelo, es una re-parametrización redundante de $\alpha$ y $\rho$.
 
 <Callout type="warn">
-**Esta corrección NO está implementada.** El simulador corre siempre el logit de arriba, con su artefacto. Hubo en el núcleo un solver que decía corregirlo (`utility_logit`) y no lo hacía: metía $\lambda$ solo como $\lambda_h y_h$ —constante en $i$, absorbida por $\bar{u}_h$— sin aplicar nunca la precisión $\beta_h = \beta\lambda_h$, así que dejaba $\lambda$ **inerte** en vez de corregirlo. Se eliminó.
+**El simulador no corrige esto y no hay corrección implementada.** Hubo en el núcleo un segundo solver que decía corregirlo y no lo hacía —dejaba $\lambda$ completamente **inerte** en vez de identificarlo—, así que se eliminó. Corregirlo de verdad exige que el ruido escale por estrato, lo que implica cambiar el solver del punto fijo, no solo la puja. Es trabajo pendiente.
 </Callout>
 
 <Callout type="info">
-Probá variar $\lambda$ del estrato alto: la asignación **sí se mueve**, y eso es la inconsistencia — el ingreso $y$ se absorbe en $\bar{u}$ y no reasigna a nadie. Como la puja se divide por $\lambda_h$, moverlo equivale **exactamente** a re-escalar $\alpha_h$ y $\rho_h$ por $1/\lambda_h$ (y de paso el ruido): no es un parámetro económico independiente. Por eso bajarlo a 0.5 **manda al estrato alto a la periferia** (8.5 km del CBD): $\rho$ efectivo crece y castiga las celdas centrales, que son las densas.
+Probá variar $\lambda$ del estrato alto y mirá la asignación. Se mueve — y eso es la limitación, no un resultado. Bajarlo a 0.5 **manda al estrato alto a la periferia** (8.5 km del CBD), lo contrario de lo que diría cualquier historia de ingreso: al crecer $\rho/\lambda$ la penalización de densidad castiga justo las celdas centrales, que son las densas. El contraste que lo confirma: el ingreso $y$ —que sí es un parámetro económico— **no reasigna a nadie**, porque entra como constante y se absorbe en $\bar{u}$.
 </Callout>
 
 ## La forma de la ciudad

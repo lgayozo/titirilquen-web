@@ -197,20 +197,13 @@ u* = F(u*),   F(u)_h = (1/β)·ln( Σ_i S_i · e^{β(s_hi − u_h)} / Σ_g e^{β
 > `CAMBIOS_USO_SUELO.md`). El loop acoplado usa asignación **esperada/determinista**
 > por la misma razón: el remuestreo dejaría un piso de residual que impide converger.
 
-Dos solvers comparten ese operador, cambiando solo el `score`:
-- **`logit`** (default, el solver que corre la app): `s_hi = y_h + f_h(i)/λ_h` —
-  `β` uniforme sobre la puja. Inconsistente con `λ_h` heterogéneo (ver D‑08): `λ`
-  escala el ruido de elección por estrato, no es un efecto‑ingreso real.
-- **`utility_logit`** (consistente): `s_hi = λ_h·y_h + f_h(i)` — escala por
-  estrato `β_h = β·λ_h`, en espacio de utilidad; corrige el `λ` heterogéneo.
-  Se conserva en el core para comparación, pero su precio queda en **utiles** (no
-  en $) y no se expone en la UI.
-  > **Nomenclatura.** La exposición pedagógica llama a esto "logit
-  > heteroscedástico" (por la escala por estrato en el espacio de pujas) y ese
-  > término se mantiene en tutoriales y en el Overleaf. El identificador de código
-  > lo evita: el supuesto de partida es *homoscedástico en utilidad*, y
-  > "heteroscedastic" colisiona con el **HEV** de Train §4.5 — varianza distinta
-  > por *alternativa*, no por *estrato* —, que **no está implementado** en el core.
+**Un único solver** usa ese operador: **`logit`** (`s_hi = y_h + f_h(i)/λ_h`),
+con `β` uniforme sobre la puja. Es inconsistente con `λ_h` heterogéneo (ver
+D‑08): como `f` es lineal en `α` y `ρ`, dividir por `λ_h` es **idéntico** a
+re-escalar `(α_h, ρ_h)` por `1/λ_h`, y de paso escala el ruido de ese estrato.
+`λ` no queda identificado — su efecto es un artefacto, no un efecto‑ingreso.
+**No hay corrección implementada**; hubo un segundo solver que decía corregirlo
+y solo dejaba `λ` inerte, y se eliminó (D‑08).
 **Oferta `S`** (`land_use/supply.py`, ver [D‑13](DISCREPANCIES.md)): perfil
 **determinista** redondeado a `Σ S = Σ H` (CBD excluido), con **forma
 parametrizable** (`forma`): `normal` (campana, default), `uniforme`,
@@ -221,13 +214,10 @@ min(c, N−1−c)` (default 0.5 ⇒ σ≈L/4) y `forma_param` fija `sep` (solo b
 en 1D un anillo coincide con bimodal). Permite estudiar cómo cambia el
 equilibrio de asignación según la geometría urbana.
 
-> El Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente (al dividir
-> la puja por `λ_h`, el ruido queda con escala `1/(β·λ_h)` por estrato) y sugiere
-> un **logit heteroscedástico**. Ese es el solver `utility_logit` (`s = λ·y + f`,
-> escala `β_h = β·λ_h`): coincide con `logit` cuando `λ_h = 1` y es **invariante a
-> la escala común de `λ`** (a diferencia del logit). Existe en el core pero **no se
-> expone en la UI** (precio en utiles, no integrado con el downstream en $); la app
-> corre siempre `logit`. Ver [D‑08](DISCREPANCIES.md).
+> El Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente y propone
+> un método alternativo. **Ese método no está implementado en Titirilquen**, ni
+> ningún otro que corrija el problema: la app corre siempre `logit`, con la
+> limitación declarada. Ver [D‑08](DISCREPANCIES.md).
 
 ---
 

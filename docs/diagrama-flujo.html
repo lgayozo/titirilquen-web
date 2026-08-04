@@ -301,10 +301,10 @@ const NODOS = [
   { id: "lu-eq", capa: 5, titulo: "Suelo — equilibrio bid-rent", archivo: "packages/…/land_use/equilibrium.py",
     seccion: "§2.1–§2.7", estado: "discrepancia", refs: ["S-3", "S-4", "S-5", "D-17", "D-25"],
     ecuacion: "Q<sub>hi</sub> = H<sub>h</sub>e<sup>β·w<sub>hi</sub></sup>/Σ<sub>g</sub>H<sub>g</sub>e<sup>β·w<sub>gi</sub></sup> · u* = F(u*) · f<sub>h</sub>(i) = −α<sub>h</sub>·T(i) − ρ<sub>h</sub>·S<sub>i</sub>/Δx",
-    detalle: "Solver logit (default y único en la UI). DISCREPANCIA VIVA: Suelo.tex §2.7 (S-5) " +
-             "afirma que el heteroscedástico (solve_utility_logit) es «el default de la " +
-             "implementación de referencia» — falso: queda en el core solo para comparación, " +
-             "su precio está en utiles y no se integra con el downstream en $. " +
+    detalle: "Solver logit, ÚNICO. DISCREPANCIA VIVA: Suelo.tex §2.7 (S-5) describe un método " +
+             "alternativo y afirma que es «el default de la implementación de referencia» — " +
+             "falso: no está implementado. LIMITACIÓN (D-08): λ no está identificado — dividir " +
+             "la puja por λ_h es idéntico a re-escalar (α_h, ρ_h) por 1/λ_h. " +
              "Conservación Σ<sub>i</sub> S<sub>i</sub>Q<sub>hi</sub> = H<sub>h</sub> exacta (S-4/D-25).",
     conecta: ["lu-alloc"] },
   { id: "lu-alloc", capa: 5, titulo: "Suelo — asignación y ciudad", archivo: "packages/…/land_use/{ciudad,allocation,config}.py",
@@ -340,9 +340,9 @@ const LOOPS = [
 
 const CONTRADICCIONES = [
   { donde: "Suelo.tex:331-333 (S-5)",
-    dice: "el solver heteroscedástico «es el default de la implementación de referencia»",
-    verdad: "la app corre `logit` (defaults.ts, sin selector en la UI); `utility_logit` queda solo para comparación",
-    accion: "corregir el .tex (B3 de OVERLEAF_CHANGES: presentarlo como referencia teórica)" },
+    dice: "el método alternativo de §2.7 «es el default de la implementación de referencia»",
+    verdad: "no está implementado; la app corre `logit`, único solver, con λ sin identificar (D-08)",
+    accion: "corregir el .tex — quitarlo o marcarlo como no implementado (B3 de OVERLEAF_CHANGES)" },
   { donde: "MATHEMATICAL_MODEL.md:93-101",
     dice: "espera de andén por tramos (factor = 1 si ρ≤1; α·ρ^β si ρ>1)",
     verdad: "BPR continua t_e = (30/f)(1+α·ρ^β) implementada (R-5/D-16)",

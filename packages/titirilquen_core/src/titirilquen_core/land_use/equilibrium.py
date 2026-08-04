@@ -12,14 +12,12 @@ f_h(i) = −α_h·T(i) − ρ_h·dens(i) la atractividad. El peso H_g aparece SO
 denominador (la subasta la disputan H_g postores de cada tipo; ver la
 ponderación de `Q`).
 
-**Limitación (D-08).** β es uniforme sobre las pujas, así que con `λ_h`
-heterogéneo el ruido queda con escala `1/(β·λ_h)` por estrato: mover λ dispersa
-o concentra a ese estrato. Es **ruido de elección**, no comportamiento — hay que
-leerlo como una limitación del modelo. La corrección es el **logit
-heteroscedástico** (Suelo.tex §2.7), que **no está implementado**.
-
-**No confundir con el HEV** (*heteroscedastic extreme value*, Train §4.5): ese
-modela varianza distinta por **alternativa**, no por estrato.
+**Limitación (D-08): `λ` no está identificado.** β es uniforme sobre las pujas y
+`f` es lineal en alpha y rho, así que dividir por `λ_h` es **idéntico** a
+re-escalar `(alpha_h, rho_h)` por `1/λ_h`, y de paso escala el ruido a
+`1/(β·λ_h)`. Mover λ no es un efecto-ingreso: es re-parametrizar preferencias y
+ruido a la vez. Hay que leerlo como una limitación del modelo. **No hay
+corrección implementada** — ver el docstring de `solve_logit`.
 """
 
 from __future__ import annotations
@@ -197,13 +195,13 @@ def solve_logit(
     como tal; ver `scripts/auditoria_suelo.py` §4 y docs/AUDITORIA_USO_SUELO.md
     (AU-06).
 
-    La corrección correcta es el **logit heteroscedástico** (Suelo.tex §2.7),
-    que **no está implementado**. Hubo un `solve_utility_logit` que decía
+    **No hay corrección implementada.** Hubo un segundo solver que decía
     corregirlo y no lo hacía: metía `λ` solo como `λ_h·y_h`, una constante por
     estrato que el punto fijo absorbe, dejando `λ` completamente inerte (Q
-    idéntica con λ de 0.01 a 100). No aplicaba la escala `β_h = β·λ_h` que su
-    docstring afirmaba —`_solve_fixed_point` toma un β escalar— así que no
-    corregía el artefacto: lo borraba. Se eliminó por eso.
+    idéntica con λ de 0.01 a 100). No corregía el artefacto: lo borraba. Se
+    eliminó por eso. Cualquier corrección futura tendría que escalar el ruido
+    por estrato, lo que exige cambiar este solver —`_solve_fixed_point` toma un
+    β escalar—, no solo el `score`.
     """
     H_arr = np.asarray(H, dtype=float)
     S_arr = np.asarray(S, dtype=float).reshape(-1)

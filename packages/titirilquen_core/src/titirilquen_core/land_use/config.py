@@ -9,14 +9,13 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from titirilquen_core.land_use.supply import FormaOferta
 
 """El módulo tiene un **único solver**: `solve_logit` (β uniforme sobre la puja
-`y + f/λ`). Con λ_h heterogéneo el ruido queda escalado por estrato — limitación
-conocida (D-08 · Suelo.tex §2.6), no un efecto de comportamiento. La corrección
-es el logit heteroscedástico, **no implementado**.
+`y + f/λ`). Con λ_h heterogéneo, mover λ re-escala las preferencias y el ruido
+de ese estrato a la vez — limitación conocida (D-08), no un efecto de
+comportamiento. No hay corrección implementada.
 
-Existió un campo `solver` con la opción `utility_logit`, presentada como la
-corrección: no lo era (dejaba λ inerte, sin aplicar β_h = β·λ_h). Se eliminó
-junto con el campo; los escenarios guardados que lo traen se migran en el
-frontend (`serialization.ts`)."""
+Existió un campo `solver` con un segundo método presentado como la corrección:
+no lo era (dejaba λ inerte). Se eliminó junto con el campo; los escenarios
+guardados que lo traen se migran en el frontend (`serialization.ts`)."""
 
 
 class LandUseStratumConfig(BaseModel):
@@ -24,7 +23,7 @@ class LandUseStratumConfig(BaseModel):
 
     **Unidades (D-26/D-27)**: `T` entra en minutos y la densidad en hogares/km,
     así que `alpha` está en utiles/min y `rho` en utiles/(hogar/km). `y` está en
-    $/mes (CLP); no mueve la asignación (se absorbe en ū, ver D-08 §C8) pero sí
+    $/mes (CLP); no mueve la asignación (se absorbe en ū, ver D-08) pero sí
     la métrica de carga mensual costo/ingreso del acoplado."""
 
     model_config = ConfigDict(extra="forbid")

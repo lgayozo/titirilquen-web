@@ -48,8 +48,8 @@ def test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho() -> None:
     re-parametrizacion redundante.
 
     Fijarlo como identidad es la forma mas dura de documentar la limitacion: si
-    algun dia deja de cumplirse, es porque alguien implemento el logit
-    heteroscedastico (Suelo.tex 2.7, NO implementado) y este test debe caer."""
+    algun dia deja de cumplirse, es porque alguien implemento una correccion
+    (hoy no hay ninguna) y este test debe caer."""
     for lam in (0.4, 1.5, 3.0):
         escala = np.array([lam, 1.0, 1.0])
         via_lambda = solve_logit(**_toy_scenario(escala)).Q

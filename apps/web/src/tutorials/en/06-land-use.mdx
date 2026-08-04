@@ -2,7 +2,7 @@
 slug: land-use
 order: 6
 title: Land use
-tagline: Bid-rent, logit auction and the heteroscedastic correction
+tagline: Bid-rent, logit auction and the lambda artifact
 ---
 
 # 5. Land use
@@ -61,44 +61,24 @@ $$
 
 defined up to a constant: only the spatial **gradient** is informative.
 
-## The pending correction: heteroscedastic logit
+## A limitation: $\lambda$ is not identified
 
-The logit above has a subtle problem when $\lambda_h$ is heterogeneous. The Gumbel noise lives in **utility** (same scale $1/\beta$ for everyone), but solving for the bid divides the noise by $\lambda_h$:
+The model above has a problem when $\lambda_h$ is heterogeneous, and it is worth understanding because the simulator **does not fix it**.
 
-$$
-\tilde{w}_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}
-$$
-
-<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
-
-— scale $1/(\beta \lambda_h)$, **different per stratum**. Applying the logit with a uniform $\beta$ over bids amounts to giving higher-$\lambda$ strata a *noisier* location choice (an artifact with no behavioral basis), and makes the equilibrium depend on the common scale of $\lambda$, which is just a choice of units.
-
-The correction weighs each bid by its own precision $\beta_h = \beta\,\lambda_h$, which is equivalent to auctioning in **utility** space with the *score*:
+The bid divides attractiveness by $\lambda_h$, and $f$ is linear in $\alpha_h$ and $\rho_h$. Therefore:
 
 $$
-s_{hi} = \lambda_h\, y_h + f_h(i), \qquad
-Q_{hi} = \frac{H_h\, e^{\beta (s_{hi} - \bar{u}_h)}}{\sum_g H_g\, e^{\beta (s_{gi} - \bar{u}_g)}}
+y_h + \frac{f_h(i)}{\lambda_h} \;\equiv\; y_h + f\!\left(i;\; \frac{\alpha_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
 $$
 
-<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
-
-with the rent–utility equilibrium system:
-
-$$
-e^{\beta p_i} = \sum_h H_h\, e^{\beta (s_{hi} - \bar{u}_h)}, \qquad
-e^{\beta \bar{u}_h} = \sum_i S_i\, e^{\beta (s_{hi} - p_i)}
-$$
-
-<OverleafRef sec="Suelo · Corrección: logit heteroscedástico" tag="S-5" />
-
-**Expected properties**: it would coincide with the logit when $\lambda_h = 1$; it would be invariant to the common scale of $\lambda$ (the logit is not); and income sorting would emerge via $\alpha_h$ (calibrated higher for higher-income strata), not via $\lambda_h$.
+This is an **identity**, not an approximation: moving $\lambda_h$ is exactly the same as rescaling that stratum's preferences by $1/\lambda_h$. And since $\beta$ is uniform, it also rescales its choice noise to $1/(\beta\lambda_h)$. All three move together and cannot be separated: in this model $\lambda$ is **not an independent economic parameter**, it is a redundant reparameterisation of $\alpha$ and $\rho$.
 
 <Callout type="warn">
-**This correction is NOT implemented.** The simulator always runs the logit above, artifact included. The core did have a solver claiming to fix it (`utility_logit`) and it did not: it fed $\lambda$ in only as $\lambda_h y_h$ —constant in $i$, absorbed by $\bar{u}_h$— never applying the precision $\beta_h = \beta\lambda_h$, so it left $\lambda$ **inert** instead of correcting it. It was removed.
+**The simulator does not correct this, and no correction is implemented.** The core did have a second solver claiming to fix it, and it did not — it left $\lambda$ completely **inert** rather than identified — so it was removed. A real fix requires the noise to scale per stratum, which means changing the fixed-point solver, not just the bid. It is pending work.
 </Callout>
 
 <Callout type="info">
-Try varying the high stratum's $\lambda$: the allocation **does move**, and that is the inconsistency — income $y$ is absorbed into $\bar{u}$ and reallocates nobody. Because the bid is divided by $\lambda_h$, moving it is **exactly** equivalent to rescaling $\alpha_h$ and $\rho_h$ by $1/\lambda_h$ (and the noise along with them): it is not an independent economic parameter. That is why lowering it to 0.5 **sends the high stratum to the periphery** (8.5 km from the CBD): effective $\rho$ grows and penalises the central cells, which are the dense ones.
+Try varying the high stratum's $\lambda$ and watch the allocation. It moves — and that is the limitation, not a result. Lowering it to 0.5 **sends the high stratum to the periphery** (8.5 km from the CBD), the opposite of what any income story would say: as $\rho/\lambda$ grows, the density penalty hits precisely the central cells, which are the dense ones. The contrast that confirms it: income $y$ —which *is* an economic parameter— **reallocates nobody**, because it enters as a constant and is absorbed into $\bar{u}$.
 </Callout>
 
 ## The shape of the city
