@@ -96,17 +96,36 @@ def barrer(titulo: str, casos) -> None:
             print(f"{etiqueta:<24} ERROR {type(e).__name__}: {e}")
 
 
+def _valida(modelo, kw: dict) -> dict:
+    """`model_copy(update=...)` de Pydantic NO valida: una clave inexistente se
+    cuela como atributo suelto y el barrido reporta «inerte» un parametro que en
+    realidad no se esta moviendo. Paso de verdad dos veces (el `solver` de suelo
+    y `factor_emision_auto` tras renombrarlo a `factor_flota_auto`)."""
+    desconocidas = set(kw) - set(type(modelo).model_fields)
+    if desconocidas:
+        raise ValueError(f"no son campos de {type(modelo).__name__}: {sorted(desconocidas)}")
+    return kw
+
+
 def con_car(**kw):
     s = base_sim()
     return s.model_copy(
-        update={"supply": s.supply.model_copy(update={"car": s.supply.car.model_copy(update=kw)})}
+        update={
+            "supply": s.supply.model_copy(
+                update={"car": s.supply.car.model_copy(update=_valida(s.supply.car, kw))}
+            )
+        }
     ), None
 
 
 def con_bike(**kw):
     s = base_sim()
     return s.model_copy(
-        update={"supply": s.supply.model_copy(update={"bike": s.supply.bike.model_copy(update=kw)})}
+        update={
+            "supply": s.supply.model_copy(
+                update={"bike": s.supply.bike.model_copy(update=_valida(s.supply.bike, kw))}
+            )
+        }
     ), None
 
 
@@ -114,7 +133,9 @@ def con_train(**kw):
     s = base_sim()
     return s.model_copy(
         update={
-            "supply": s.supply.model_copy(update={"train": s.supply.train.model_copy(update=kw)})
+            "supply": s.supply.model_copy(
+                update={"train": s.supply.train.model_copy(update=_valida(s.supply.train, kw))}
+            )
         }
     ), None
 
@@ -124,7 +145,9 @@ def con_glob(**kw):
     return s.model_copy(
         update={
             "demand": s.demand.model_copy(
-                update={"globales": s.demand.globales.model_copy(update=kw)}
+                update={
+                    "globales": s.demand.globales.model_copy(update=_valida(s.demand.globales, kw))
+                }
             )
         }
     ), None
@@ -132,7 +155,7 @@ def con_glob(**kw):
 
 def con_city(**kw):
     s = base_sim()
-    return s.model_copy(update={"city": s.city.model_copy(update=kw)}), None
+    return s.model_copy(update={"city": s.city.model_copy(update=_valida(s.city, kw))}), None
 
 
 def con_raiz(**kw):
@@ -183,7 +206,7 @@ def main() -> None:
         + [(f"tarifa {t}", *con_glob(costo_tarifa_metro=t)) for t in (0, 800, 2000)]
         + [(f"v_caminata {v}", *con_glob(v_caminata=v)) for v in (3.5, 4.8, 7.0)]
         + [(f"v_auto glob {v}", *con_glob(v_auto=v)) for v in (31, 80)]
-        + [(f"factor_em_auto {f}", *con_glob(factor_emision_auto=f)) for f in (0.18, 5.0)]
+        + [(f"factor_flota {f}", *con_glob(factor_flota_auto=f)) for f in (0.15, 1.0, 2.0)]
         + [(f"em_metro {f}", *con_glob(factor_emision_metro_tren_km=f)) for f in (2.5, 10.0)],
     )
 
