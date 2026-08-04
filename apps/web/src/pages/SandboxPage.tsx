@@ -294,6 +294,15 @@ export function SandboxPage() {
         label: t("kpi.frequency"),
         value: lastIter.frecuencia_metro.toFixed(1),
         unit: "tph",
+        // Si la teórica (carga/K) difiere de la operativa, un tope está
+        // mordiendo: sin ese dato el usuario no distingue «subí el tope y no
+        // pasó nada» de «el tope no estaba activo» (AT-08).
+        delta:
+          Math.abs(lastIter.frecuencia_teorica_metro - lastIter.frecuencia_metro) > 0.05
+            ? t("kpi.frequency_capped", {
+                teo: lastIter.frecuencia_teorica_metro.toFixed(1),
+              })
+            : undefined,
       },
       {
         label: t("kpi.residual"),
@@ -621,6 +630,14 @@ export function SandboxPage() {
           config={config}
           onChange={setConfig}
           operatingRatios={operatingRatios}
+          metroFreq={
+            lastIter
+              ? {
+                  operativa: lastIter.frecuencia_metro,
+                  teorica: lastIter.frecuencia_teorica_metro,
+                }
+              : undefined
+          }
         />
         <EconomyBuilder config={config} onChange={setConfig} />
 
@@ -1005,10 +1022,12 @@ export function SandboxPage() {
             {/* La tabla va inmediatamente después de la convergencia: es el
                 RESULTADO del equilibrio. Los gráficos que lo desagregan vienen
                 después. Antes cerraba la página, así que había que recorrer 13
-                figuras para llegar al número. */}
+                figuras para llegar al número.
+
+                SIN `n`: no es una figura, es el resultado. Numerarla corría toda
+                la secuencia de figuras en uno (los flujos quedaban en 03-06). */}
             {transportMetrics && (
               <Panel
-                n="02"
                 title={t("metrics_table.title")}
                 meta={t("metrics_table.meta")}
                 cls="col-12"
@@ -1032,28 +1051,28 @@ export function SandboxPage() {
                 );
                 const flowPanels = [
                   {
-                    n: "03",
+                    n: "02",
                     mode: "auto",
                     flows: lastIter.demanda_auto,
                     color: "var(--auto)",
                     cap: `${Math.round(result.capacidad_auto)} veh/h corredor`,
                   },
                   {
-                    n: "04",
+                    n: "03",
                     mode: "bici",
                     flows: lastIter.demanda_bici,
                     color: "var(--bici)",
                     cap: `${cfgRes.supply.bike.capacidad_pista} bici/h`,
                   },
                   {
-                    n: "05",
+                    n: "04",
                     mode: "metro",
                     flows: lastIter.demanda_metro,
                     color: "var(--metro)",
                     cap: `${cfgRes.supply.train.capacidad_tren} pax/tren`,
                   },
                   {
-                    n: "06",
+                    n: "05",
                     mode: "caminata",
                     flows: lastIter.demanda_caminata,
                     color: "var(--walk)",
@@ -1095,7 +1114,7 @@ export function SandboxPage() {
 
             {result && result.emisiones_perfil_kg && (
               <Panel
-                n="07"
+                n="06"
                 title={t("sandbox.co2_profile")}
                 meta={t("panel_meta.co2")}
                 cls="col-12"
@@ -1120,7 +1139,7 @@ export function SandboxPage() {
             {result && result.agentes.length > 0 && (
               <>
                 <Panel
-                  n="08"
+                  n="07"
                   title={t("sandbox.trips_by_stratum")}
                   meta={t("panel_meta.share_stratum")}
                   cls="col-6"
@@ -1135,7 +1154,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="09"
+                  n="08"
                   title={t("sandbox.trips_by_car_ownership")}
                   meta={t("panel_meta.ownership_stratum")}
                   cls="col-6"
@@ -1150,7 +1169,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="10"
+                  n="09"
                   title={t("sandbox.utility_scatter")}
                   meta={t("panel_meta.utility_position")}
                   cls="col-7"
@@ -1172,7 +1191,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="11"
+                  n="10"
                   title={t("sandbox.mode_share_by_location")}
                   meta="stacked · 100%"
                   cls="col-5"
@@ -1199,7 +1218,7 @@ export function SandboxPage() {
 
                 {modeShareByStratum && (
                   <Panel
-                    n="12"
+                    n="11"
                     title={t("sandbox.mode_share_by_location_stratum")}
                     meta={t("sandbox.mode_share_stratum_meta")}
                     cls="col-12"
@@ -1243,7 +1262,7 @@ export function SandboxPage() {
                 {avgStats && (
                   <>
                     <Panel
-                      n="13"
+                      n="12"
                       title={t("sandbox.avg_time_by_mode")}
                       meta={t("panel_meta.avg_min")}
                       cls="col-4"
@@ -1258,7 +1277,7 @@ export function SandboxPage() {
                     </Panel>
 
                     <Panel
-                      n="14"
+                      n="13"
                       title={t("sandbox.avg_time_by_stratum")}
                       meta={t("panel_meta.avg_min")}
                       cls="col-4"
@@ -1273,7 +1292,7 @@ export function SandboxPage() {
                     </Panel>
 
                     <Panel
-                      n="15"
+                      n="14"
                       title={t("sandbox.avg_utility_by_stratum")}
                       meta={t("panel_meta.avg_util")}
                       cls="col-4"
@@ -1301,7 +1320,7 @@ export function SandboxPage() {
             tiempos de flujo libre; después, los de la última iteración. */}
         <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
           <Panel
-            n="16"
+            n="15"
             title={t("demand_inspector.title")}
             meta={
               lastIter

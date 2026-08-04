@@ -53,6 +53,9 @@ class IterationSnapshot:
     t_tren_espera: NDArray[np.float64]
     t_tren_viaje: NDArray[np.float64]
     frecuencia_metro: float
+    #: Frecuencia sin recortar (`carga/K`). Comparada con `frecuencia_metro`
+    #: revela si `frec_min`/`frec_max` estan mordiendo — ver AT-08/AT-09.
+    frecuencia_teorica_metro: float
     residuo: float
 
 
@@ -468,6 +471,7 @@ def _iter_loop(
             t_tren_espera=t_tren_esp_ac.copy(),
             t_tren_viaje=t_tren_v_ac.copy(),
             frecuencia_metro=train_result.frecuencia_operativa,
+            frecuencia_teorica_metro=train_result.frecuencia_teorica,
             residuo=residuo,
         )
         if trace is not None:

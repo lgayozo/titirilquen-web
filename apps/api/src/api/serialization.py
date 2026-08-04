@@ -37,6 +37,7 @@ def iteration_to_dict(snap: IterationSnapshot) -> dict[str, Any]:
         "t_tren_espera": _to_list(snap.t_tren_espera),
         "t_tren_viaje": _to_list(snap.t_tren_viaje),
         "frecuencia_metro": snap.frecuencia_metro,
+        "frecuencia_teorica_metro": snap.frecuencia_teorica_metro,
         "residuo": snap.residuo if snap.residuo != float("inf") else None,
     }
 

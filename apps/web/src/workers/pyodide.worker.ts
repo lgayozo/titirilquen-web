@@ -140,6 +140,7 @@ def _snap_to_py(snap):
         "demanda_bici": snap.demanda_bici.tolist(),
         "demanda_caminata": snap.demanda_caminata.tolist(),
         "frecuencia_metro": snap.frecuencia_metro,
+        "frecuencia_teorica_metro": snap.frecuencia_teorica_metro,
         "residuo": None if snap.residuo == float("inf") else snap.residuo,
     }
 

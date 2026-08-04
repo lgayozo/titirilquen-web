@@ -137,6 +137,9 @@ export interface IterationSnapshot {
   demanda_bici: number[];
   demanda_caminata: number[];
   frecuencia_metro: number;
+  /** Frecuencia sin recortar (`carga/K`). Si difiere de `frecuencia_metro`, un
+   *  tope (`frec_min`/`frec_max`) está mordiendo — ver AT-08/AT-09. */
+  frecuencia_teorica_metro: number;
   residuo: number | null;
 }
 

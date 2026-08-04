@@ -12,6 +12,29 @@ interface SupplyBuilderProps {
     car: number | null;
     bike: number | null;
   };
+  /** Frecuencia del metro del último equilibrio: la operativa (recortada) y la
+   *  teórica (`carga/K`, sin recortar). Ver `estadoFrecuencia`. */
+  metroFreq?: { operativa: number; teorica: number };
+}
+
+/** Estado del recorte de la frecuencia endógena del metro (AT-08/AT-09).
+ *
+ * El core calcula `f_op = clip(carga/K, frec_min, frec_max)` y hasta ahora solo
+ * exponía `f_op`. Con una sola cifra el usuario no puede distinguir «subí el
+ * tope y no pasó nada» de «el tope no estaba mordiendo» — y medido, con los
+ * defaults `frec_min` es inerte y `frec_max` satura sobre ~31 tph. Comparar la
+ * operativa con la teórica lo resuelve exactamente. */
+function estadoFrecuencia(
+  freq: { operativa: number; teorica: number } | undefined,
+  frecMin: number,
+  frecMax: number,
+): { caso: "max" | "min" | "libre"; op: string; teo: string } | null {
+  if (!freq || freq.operativa <= 0) return null;
+  const EPS = 1e-6;
+  const cifras = { op: freq.operativa.toFixed(1), teo: freq.teorica.toFixed(1) };
+  if (freq.teorica > frecMax + EPS) return { caso: "max", ...cifras };
+  if (freq.teorica < frecMin - EPS) return { caso: "min", ...cifras };
+  return { caso: "libre", ...cifras };
 }
 
 /** Espejo de display de la capacidad Greenshields de supply/car.py
@@ -27,6 +50,7 @@ export function SupplyBuilder({
   config,
   onChange,
   operatingRatios,
+  metroFreq,
 }: SupplyBuilderProps) {
   const { t } = useTranslation("simulator");
 
@@ -218,6 +242,18 @@ export function SupplyBuilder({
             }
           />
         </div>
+        {(() => {
+          const f = estadoFrecuencia(metroFreq, train.frec_min, train.frec_max);
+          if (!f) return null;
+          return (
+            <p
+              className="text-[10px]"
+              style={{ color: f.caso === "libre" ? "var(--muted)" : "var(--accent)" }}
+            >
+              {t(`supply_params.train.freq_clip_${f.caso}`, { op: f.op, teo: f.teo })}
+            </p>
+          );
+        })()}
         <div className="grid grid-cols-2 gap-3">
           <LabeledSlider
             label="α andén"

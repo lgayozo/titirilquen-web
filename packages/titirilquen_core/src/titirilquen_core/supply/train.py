@@ -19,6 +19,13 @@ class TrainSupplyResult:
     t_viaje_min: NDArray[np.float64]
     t_total_min: NDArray[np.float64]
     frecuencia_operativa: float
+    #: Frecuencia ANTES del recorte: `carga_maxima / capacidad_tren`. Junto con
+    #: `frecuencia_operativa` dice si `frec_min`/`frec_max` estan mordiendo y
+    #: cuanto falta para que dejen de hacerlo. Sin esto la UI no puede
+    #: distinguir «subi el tope y no paso nada» de «el tope no estaba activo»
+    #: (AT-08/AT-09): cuando la frecuencia esta topada el efecto Mohring esta
+    #: agotado, `frec_min` es irrelevante y la BPR de anden si muerde.
+    frecuencia_teorica: float
     carga_por_tramo: NDArray[np.float64]
     estaciones_km: NDArray[np.float64]
 
@@ -125,6 +132,7 @@ def oferta_tren(
         t_viaje_min=t_viaje_min,
         t_total_min=t_total,
         frecuencia_operativa=f_op,
+        frecuencia_teorica=f_teorica,
         carga_por_tramo=carga_por_tramo,
         estaciones_km=estaciones,
     )

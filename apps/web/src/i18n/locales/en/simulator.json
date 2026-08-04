@@ -72,6 +72,9 @@
       "num_estaciones": "Number of stations",
       "frec_min": "Min frequency",
       "frec_max": "Max frequency",
+      "freq_clip_max": "⚠ Frequency CAPPED by max frequency at {{op}} tph — demand asks for {{teo}}. Raising it does change the result; lowering the minimum does nothing. The Mohring effect is exhausted: more riders no longer bring more trains.",
+      "freq_clip_min": "⚠ Frequency CAPPED by min frequency at {{op}} tph — demand only asks for {{teo}}. Lowering it does change the result; raising the maximum does nothing.",
+      "freq_clip_libre": "Frequency free at {{op}} tph: demand sets it (load / train capacity). Neither cap is binding, so moving the minimum or maximum changes nothing until it crosses that value.",
       "anden_hint": "Platform congestion (BPR): penalizes waiting once load exceeds the max-frequency capacity (v/c>1)."
     }
   },
@@ -213,6 +216,7 @@
     "walk_pct": "Walk %",
     "tele_pct": "Remote %",
     "frequency": "Operating freq",
+    "frequency_capped": "capped · demand asks {{teo}}",
     "co2": "Total CO₂",
     "co2_split": "car {{auto}} · metro {{metro}}",
     "mean_time": "Mean time",

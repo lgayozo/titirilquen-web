@@ -16,7 +16,7 @@ Baseline: 201 celdas · 20 km · ΣH = 36.000 · `expected` · seed 42 · tol 0,
 | AT-05 | Pendiente ±p da resultados idénticos — simetría por construcción | ⚠️ contraintuitivo |
 | AT-06 | `capacidad_tren` con signo invertido y no monótono | ⚠️ S-07 confirmado |
 | AT-07 | Muertos confirmados: `tasa_carga`, `factor_emision_auto`, `v_*`, `densidad_hab_km` | ⚠️ limpieza pendiente |
-| AT-08 | `frec_min` inerte; `frec_max` satura sobre ~31 | ℹ️ observación |
+| AT-08 | `frec_min` inerte; `frec_max` satura sobre ~31 | 🔧 **la UI ahora lo avisa** |
 | AT-09 | `anden_beta` inerte con defaults; `anden_alpha` sí muerde | ⚠️ para calibrar |
 | AT-10 | Sin restricción dura de capacidad — BPR blanda; el techo de la bici es no estándar | ✅/⚠️ ver §3 |
 | AT-11 | `tolerance = 0` nunca converge formalmente | ℹ️ menor |
@@ -142,6 +142,37 @@ la brecha de modelo más clara del módulo.
   34,6 min de espera). Su calibración importa.
 - `anden_beta` 1 / 4 / 8 → prácticamente idéntico (metro 55,45 / 55,46 / 55,45).
   Inerte en el rango de operación normal.
+
+#### Corregido: la UI ahora dice si un tope está mordiendo 🔧
+
+El problema de AT-08 no era el modelo —el recorte es correcto— sino que el
+simulador mostraba **una sola cifra**, `f_op`, y con eso el estudiante no puede
+distinguir «subí el tope y no pasó nada» de «el tope no estaba activo». Las dos
+lecturas llevan a conclusiones opuestas sobre el modelo.
+
+El core calculaba `f_teorica = carga/K` y la descartaba al recortar. Ahora la
+expone (`TrainSupplyResult.frecuencia_teorica` → snapshot del trace → ambos
+espejos → `types.ts`), y comparar las dos cifras resuelve el caso **exactamente**,
+sin heurísticas:
+
+| Caso | Qué se muestra |
+|---|---|
+| `f_teorica > frec_max` | ⚠ topada por la máxima; subirla **sí** cambia el resultado, bajar la mínima no. El efecto Mohring está agotado. |
+| `f_teorica < frec_min` | ⚠ topada por la mínima; bajarla **sí** cambia el resultado, subir la máxima no. |
+| en rango | libre: la fija la demanda; ningún tope muerde hasta cruzar ese valor. |
+
+Aparece junto a los sliders de frecuencia (donde ocurre la confusión) y como
+sub-línea del KPI de frecuencia operativa. Verificado con corridas reales del
+MSA en el navegador: 27,1 tph libre · 15,0 topada por arriba con demanda
+pidiendo 26,4 · 6,0 topada por abajo con demanda pidiendo 4,0.
+
+**No se extendió al andén** a propósito. Sería tentador decir «si la frecuencia
+está topada, la BPR de andén muerde», pero AT-09 mide que `anden_alpha` tiene
+efecto **pequeño** incluso con la frecuencia topada. El ratio del andén es
+`carga/(frec_max·K)`, así que depende del **nivel** de `frec_max`, no de si el
+tope está activo: son cosas distintas que correlacionan. Afirmarlo sería
+inventar un vínculo que la medición no respalda. Un indicador honesto del andén
+necesitaría exponer ese ratio — queda pendiente.
 
 ### AT-07 — Parámetros muertos, confirmados por medición ⚠️
 
