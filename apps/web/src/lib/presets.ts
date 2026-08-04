@@ -42,7 +42,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   "TP Gratis": {
     tarifa: 0,
     parking: 4000,
-    num_pistas: 3,
+    num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
     cap_bici: 2500,
@@ -52,7 +52,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   "Tarificación Vial": {
     tarifa: 800,
     parking: 10000,
-    num_pistas: 3,
+    num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
     cap_tren: 300,
@@ -62,7 +62,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   "Pro-Auto": {
     tarifa: 1000,
     parking: 2000,
-    num_pistas: 4,
+    num_pistas: 3,
     num_estaciones: 8,
     bencina: 100,
     cap_tren: 250,
@@ -72,7 +72,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   "Pro-Bici": {
     tarifa: 800,
     parking: 4000,
-    num_pistas: 3,
+    num_pistas: 2,
     cap_bici: 5000,
     frec_max: 40,
     bencina: 120,
@@ -80,7 +80,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_estaciones: 10,
   },
   "Vehículos híbridos": {
-    num_pistas: 3,
+    num_pistas: 2,
     bencina: 65,
     tarifa: 800,
     parking: 4000,
@@ -99,11 +99,11 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     cap_tren: 300,
     parking: 4000,
     bencina: 120,
-    num_pistas: 3,
+    num_pistas: 2,
     cap_bici: 2500,
   },
   Ciclorrecreovía: {
-    num_pistas: 2,
+    num_pistas: 1,
     cap_bici: 6000,
     tarifa: 800,
     parking: 4000,

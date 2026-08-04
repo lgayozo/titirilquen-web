@@ -180,10 +180,12 @@ class CarSupplyParams(BaseModel):
     ancho_pista_m: float = 3.5
     largo_vehiculo_m: float = 5.0
     gap_m: float = 2.0
-    # 3 (antes 2): con parking 4000 el corredor quedaba sobre capacidad en la
-    # ciudad de referencia. Con 3 pistas vuelve a v/c < 1, que es donde la BPR
-    # es mas informativa.
-    num_pistas: int = Field(default=3, ge=1)
+    # 2 pistas => v/c ~1.05 en la ciudad de referencia. Se probo con 3 (v/c
+    # 0.71) y la oferta vial quedaba MUERTA como palanca: bajo capacidad la BPR
+    # es plana, asi que de 3 a 6 pistas el reparto se movia 0.11 pp. Todo el
+    # efecto vive cerca de v/c = 1. No se puede tener a la vez una ciudad base
+    # descongestionada y una oferta vial que mueva el reparto.
+    num_pistas: int = Field(default=2, ge=1)
     alpha_bpr: float = 0.8
     beta_bpr: float = 2.0
     # Capacidad por pista (veh/h). None ⇒ Greenshields q_max = k_j·v_l/4, que

@@ -54,10 +54,10 @@ CITY_PRESETS: dict[str, CityPreset] = {
 # se reescalan manteniendo su RAZÓN contra la base, que es lo que define su
 # intensidad. Ya pasó dos veces (`frec_max: 20` y `parking: 6000`).
 #
-# Recalibración vigente — defaults: parking 4000 · 3 pistas · cap_bici 2500 ·
+# Recalibración vigente — defaults: parking 4000 · 2 pistas · cap_bici 2500 ·
 # frec_max 40. Deliberados reescalados: Tarificación Vial parking 2.5x (10000),
-# Pro-Auto parking 0.5x (2000) y una pista más que la base (4), Ciclorrecreovía
-# una menos (2). Sin reescalar, Pro-Auto habría quedado más caro que la base y
+# Pro-Auto parking 0.5x (2000) y una pista más que la base (3), Ciclorrecreovía
+# una menos (1). Sin reescalar, Pro-Auto habría quedado más caro que la base y
 # con menos pistas, invirtiendo su sentido.
 #
 # `frec_max` de las metro-friendly (TP Gratis y Máx Metro) queda en 50, por
@@ -75,7 +75,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "TP Gratis": {
         "tarifa": 0,
         "parking": 4000,
-        "num_pistas": 3,
+        "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
         "cap_bici": 2500,
@@ -85,7 +85,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Tarificación Vial": {
         "tarifa": 800,
         "parking": 10000,
-        "num_pistas": 3,
+        "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
         "cap_tren": 300,
@@ -95,7 +95,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Pro-Auto": {
         "tarifa": 1000,
         "parking": 2000,
-        "num_pistas": 4,
+        "num_pistas": 3,
         "num_estaciones": 8,
         "bencina": 100,
         "cap_tren": 250,
@@ -105,7 +105,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Pro-Bici": {
         "tarifa": 800,
         "parking": 4000,
-        "num_pistas": 3,
+        "num_pistas": 2,
         "cap_bici": 5000,
         "frec_max": 40,
         "bencina": 120,
@@ -115,7 +115,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Vehículos híbridos": {
         # AHORA sí reduce la emisión por km: antes solo abarataba la bencina, o
         # sea abarataba el auto y terminaba SUBIENDO el CO2 (+1.6% medido).
-        "num_pistas": 3,
+        "num_pistas": 2,
         "bencina": 65,
         "tarifa": 800,
         "parking": 4000,
@@ -132,7 +132,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "cap_tren": 300,
         "parking": 4000,
         "bencina": 120,
-        "num_pistas": 3,
+        "num_pistas": 2,
         "cap_bici": 2500,
     },
     "Ciclorrecreovía": {
@@ -140,7 +140,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         # vigente, así que aplicarla desde «Máx Metro» (20 est.) daba otro
         # escenario que aplicarla desde el default. Completada con 10 = default,
         # para que el preset sea reproducible.
-        "num_pistas": 2,
+        "num_pistas": 1,
         "cap_bici": 6000,
         "tarifa": 800,
         "parking": 4000,

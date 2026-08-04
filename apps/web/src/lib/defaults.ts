@@ -129,8 +129,9 @@ export const defaultSimulationConfig: SimulationConfig = {
       ancho_pista_m: 3.5,
       largo_vehiculo_m: 5,
       gap_m: 2,
-      // 3: con parking 4000 el corredor quedaba sobre capacidad con 2 pistas.
-      num_pistas: 3,
+      // 2 => v/c ~1.05. Con 3 (v/c 0.71) la oferta vial quedaba muerta como
+      // palanca: la BPR es plana bajo capacidad. Ver el comentario del core.
+      num_pistas: 2,
       alpha_bpr: 0.8,
       beta_bpr: 2,
       // null = Greenshields (capacidad acoplada a la velocidad); manual = S-04.
