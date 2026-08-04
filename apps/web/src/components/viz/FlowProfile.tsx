@@ -22,7 +22,12 @@ interface FlowProfileProps {
 const MARGIN = { top: 16, right: 10, bottom: 18, left: 40 };
 
 /**
- * Perfil de demanda por celda de origen a lo largo de la ciudad.
+ * Perfil de demanda **por celda** de origen a lo largo de la ciudad.
+ *
+ * Se dibuja como barras discretas —una por celda— y no como área continua: la
+ * magnitud es por celda, y el resto de las figuras espaciales (silueta de la
+ * ciudad, distribución por estrato, diagrama de red) ya usan esa gramática.
+ * Con área+línea el eje X sugería una variable continua que no existe.
  *
  * Todo (ejes, ticks, etiquetas, encabezado) se dibuja DENTRO del `<svg>` con
  * ancho medido en píxeles reales — así la figura exporta completa a SVG/PNG y
@@ -58,25 +63,18 @@ export function FlowProfile({
   const yTop = MARGIN.top;
   const yFloor = MARGIN.top + plotH;
 
-  const { areaPath, linePath, localMax } = useMemo(() => {
-    const N = flows.length;
-    if (N < 2) return { areaPath: "", linePath: "", localMax: Math.max(...flows, 1) };
-    const lMax = Math.max(...flows, 1);
-    const scale = yMax != null ? Math.max(yMax, 1) : lMax;
-    const xOf = (i: number) => MARGIN.left + (i / (N - 1)) * plotW;
-    const yOf = (f: number) => yFloor - (Math.min(f, scale) / scale) * plotH;
-    const line: string[] = [];
-    flows.forEach((f, i) => {
-      line.push(`${i === 0 ? "M" : "L"}${xOf(i).toFixed(2)},${yOf(f).toFixed(2)}`);
-    });
-    const area = `M${MARGIN.left.toFixed(2)},${yFloor} ${line.join(" ").slice(1)} L${(MARGIN.left + plotW).toFixed(2)},${yFloor} Z`;
-    return { areaPath: area, linePath: line.join(" "), localMax: lMax };
-  }, [flows, yMax, plotW, plotH, yFloor]);
+  const localMax = useMemo(() => Math.max(...flows, 1), [flows]);
 
   const scale = yMax != null ? Math.max(yMax, 1) : localMax;
   const effectiveMax = yMax ?? localMax;
   const ticks = [0, scale / 2, scale];
-  const cbdX = MARGIN.left + plotW / 2;
+  // Una barra por celda, igual que StratumDistribution/CityStrip. Con 201
+  // celdas la barra mide ~2 px: se dibuja sin separación para que la envolvente
+  // se lea; con pocas celdas se deja 1 px de aire y se ven individuales.
+  const nCeldas = Math.max(flows.length, 1);
+  const barW = plotW / nCeldas;
+  const rectW = barW > 3 ? barW - 1 : barW;
+  const cbdX = MARGIN.left + (Math.floor(nCeldas / 2) + 0.5) * barW;
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
@@ -139,10 +137,23 @@ export function FlowProfile({
           opacity={0.6}
         />
 
-        {/* Área + línea — relleno con el color pleno del modo (no un tinte claro)
-            para que la figura se lea con el color canónico del modo. */}
-        {areaPath && <path d={areaPath} fill={color} opacity={0.6} />}
-        {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={1.6} />}
+        {/* Barras por celda, con el color pleno del modo. */}
+        {flows.map((f, i) => {
+          if (!(f > 0)) return null;
+          const h = (Math.min(f, scale) / scale) * plotH;
+          if (h <= 0) return null;
+          return (
+            <rect
+              key={i}
+              x={MARGIN.left + i * barW}
+              y={yFloor - h}
+              width={rectW}
+              height={h}
+              fill={color}
+              opacity={0.75}
+            />
+          );
+        })}
 
         {/* Baseline */}
         <line x1={MARGIN.left} y1={yFloor} x2={MARGIN.left + plotW} y2={yFloor} stroke="var(--ink)" strokeWidth={0.8} />

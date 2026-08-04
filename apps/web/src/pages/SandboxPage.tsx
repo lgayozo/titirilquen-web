@@ -1002,6 +1002,21 @@ export function SandboxPage() {
               <ConvergenceTrace iterations={liveIterations} />
             </Panel>
 
+            {/* La tabla va inmediatamente después de la convergencia: es el
+                RESULTADO del equilibrio. Los gráficos que lo desagregan vienen
+                después. Antes cerraba la página, así que había que recorrer 13
+                figuras para llegar al número. */}
+            {transportMetrics && (
+              <Panel
+                n="02"
+                title={t("metrics_table.title")}
+                meta={t("metrics_table.meta")}
+                cls="col-12"
+              >
+                <TransportMetricsTable data={transportMetrics} />
+              </Panel>
+            )}
+
             {lastIter &&
               result &&
               (() => {
@@ -1017,28 +1032,28 @@ export function SandboxPage() {
                 );
                 const flowPanels = [
                   {
-                    n: "02",
+                    n: "03",
                     mode: "auto",
                     flows: lastIter.demanda_auto,
                     color: "var(--auto)",
                     cap: `${Math.round(result.capacidad_auto)} veh/h corredor`,
                   },
                   {
-                    n: "03",
+                    n: "04",
                     mode: "bici",
                     flows: lastIter.demanda_bici,
                     color: "var(--bici)",
                     cap: `${cfgRes.supply.bike.capacidad_pista} bici/h`,
                   },
                   {
-                    n: "04",
+                    n: "05",
                     mode: "metro",
                     flows: lastIter.demanda_metro,
                     color: "var(--metro)",
                     cap: `${cfgRes.supply.train.capacidad_tren} pax/tren`,
                   },
                   {
-                    n: "4b",
+                    n: "06",
                     mode: "caminata",
                     flows: lastIter.demanda_caminata,
                     color: "var(--walk)",
@@ -1080,7 +1095,7 @@ export function SandboxPage() {
 
             {result && result.emisiones_perfil_kg && (
               <Panel
-                n="05"
+                n="07"
                 title={t("sandbox.co2_profile")}
                 meta={t("panel_meta.co2")}
                 cls="col-12"
@@ -1105,7 +1120,7 @@ export function SandboxPage() {
             {result && result.agentes.length > 0 && (
               <>
                 <Panel
-                  n="06"
+                  n="08"
                   title={t("sandbox.trips_by_stratum")}
                   meta={t("panel_meta.share_stratum")}
                   cls="col-6"
@@ -1120,7 +1135,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="07"
+                  n="09"
                   title={t("sandbox.trips_by_car_ownership")}
                   meta={t("panel_meta.ownership_stratum")}
                   cls="col-6"
@@ -1135,7 +1150,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="08"
+                  n="10"
                   title={t("sandbox.utility_scatter")}
                   meta={t("panel_meta.utility_position")}
                   cls="col-7"
@@ -1157,7 +1172,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="09"
+                  n="11"
                   title={t("sandbox.mode_share_by_location")}
                   meta="stacked · 100%"
                   cls="col-5"
@@ -1184,7 +1199,7 @@ export function SandboxPage() {
 
                 {modeShareByStratum && (
                   <Panel
-                    n="9b"
+                    n="12"
                     title={t("sandbox.mode_share_by_location_stratum")}
                     meta={t("sandbox.mode_share_stratum_meta")}
                     cls="col-12"
@@ -1228,7 +1243,7 @@ export function SandboxPage() {
                 {avgStats && (
                   <>
                     <Panel
-                      n="10"
+                      n="13"
                       title={t("sandbox.avg_time_by_mode")}
                       meta={t("panel_meta.avg_min")}
                       cls="col-4"
@@ -1243,7 +1258,7 @@ export function SandboxPage() {
                     </Panel>
 
                     <Panel
-                      n="11"
+                      n="14"
                       title={t("sandbox.avg_time_by_stratum")}
                       meta={t("panel_meta.avg_min")}
                       cls="col-4"
@@ -1258,7 +1273,7 @@ export function SandboxPage() {
                     </Panel>
 
                     <Panel
-                      n="12"
+                      n="15"
                       title={t("sandbox.avg_utility_by_stratum")}
                       meta={t("panel_meta.avg_util")}
                       cls="col-4"
@@ -1286,7 +1301,7 @@ export function SandboxPage() {
             tiempos de flujo libre; después, los de la última iteración. */}
         <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
           <Panel
-            n="13"
+            n="16"
             title={t("demand_inspector.title")}
             meta={
               lastIter
@@ -1298,22 +1313,6 @@ export function SandboxPage() {
             <DemandInspector config={cfgRes} lastIter={lastIter} />
           </Panel>
         </div>
-
-        {/* Tabla final: todas las métricas del equilibrio, ordenadas y
-            exportables a CSV para comparar escenarios y estimar
-            beneficios/desbeneficios sociales. */}
-        {transportMetrics && (
-          <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
-            <Panel
-              n="14"
-              title={t("metrics_table.title")}
-              meta={t("metrics_table.meta")}
-              cls="col-12"
-            >
-              <TransportMetricsTable data={transportMetrics} />
-            </Panel>
-          </div>
-        )}
       </section>
     </div>
   );
