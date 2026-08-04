@@ -115,6 +115,17 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               invertedSign
             />
             <KPIRow
+              label={t("metrics_table.vc_metro")}
+              scenarios={scenarios}
+              valueOf={(kpi) => kpi.vc_metro ?? NaN}
+              baseKpis={base?.kpis ?? null}
+              formatter={(v) => (Number.isFinite(v) ? `${v.toFixed(2)}×` : "—")}
+              deltaFormatter={(d) =>
+                Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
+              }
+              invertedSign
+            />
+            <KPIRow
               label={t("metrics_table.vc_bici")}
               scenarios={scenarios}
               valueOf={(kpi) => kpi.vc_bici ?? NaN}

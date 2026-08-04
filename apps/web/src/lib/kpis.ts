@@ -27,6 +27,8 @@ export interface ScenarioKPIs {
    * capacidad direccional). null si el trace no trae flujos (wheel antiguo). */
   vc_auto: number | null;
   vc_bici: number | null;
+  /** Metro: carga máx del tramo / capacidad operativa (f_op · capacidad_tren). */
+  vc_metro: number | null;
   co2_total: number;
   co2_auto: number;
   co2_metro: number;
@@ -71,6 +73,7 @@ export function computeKPIs(
   // Capacidad de la ciclovía DEL ESCENARIO (config.supply.bike.capacidad_pista),
   // denominador del v/c bici; sin ella el ratio queda null.
   capacidadBici?: number,
+  capacidadTren?: number,
 ): ScenarioKPIs {
   const lastIter = result.iteraciones.at(-1);
   const modal_share = zeroModes();
@@ -141,6 +144,11 @@ export function computeKPIs(
     result.flujos_bici_veh_h?.length && capacidadBici && capacidadBici > 0
       ? Math.max(...result.flujos_bici_veh_h) / capacidadBici
       : null;
+  const fOp = lastIter?.frecuencia_metro ?? 0;
+  const vc_metro =
+    result.carga_metro?.length && capacidadTren && fOp > 0
+      ? Math.max(...result.carga_metro) / (fOp * capacidadTren)
+      : null;
 
   return {
     total_agentes: total,
@@ -151,6 +159,7 @@ export function computeKPIs(
     residuo_final: lastIter?.residuo ?? null,
     vc_auto,
     vc_bici,
+    vc_metro,
     co2_total: result.emisiones_total_kg ?? 0,
     co2_auto: result.emisiones_auto_kg ?? 0,
     co2_metro: result.emisiones_metro_kg ?? 0,

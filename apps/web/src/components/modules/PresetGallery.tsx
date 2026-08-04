@@ -60,6 +60,15 @@ function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
       fmt: (v) => `${nf(v)} hog`,
     },
     {
+      // Segunda dimensión de la forma: qué tan concentrada está la vivienda
+      // dentro de la ciudad (σ del perfil de oferta del uso de suelo).
+      key: "sigma",
+      labelKey: "coupled.param.compacidad",
+      valor: lu.oferta_sigma_frac,
+      base: defaultLandUseConfig.oferta_sigma_frac,
+      fmt: (v) => v.toFixed(2),
+    },
+    {
       // …y la densidad es la CONSECUENCIA: ρ = ΣH/largo. Se calcula en vivo
       // para que sea verdad aunque `densidad_hab_km` quede desfasado.
       key: "densidad",
@@ -131,15 +140,18 @@ export function PresetGallery() {
   const { t } = useTranslation("simulator");
   const config = useSimulationStore((s) => s.config);
   const setConfig = useSimulationStore((s) => s.setConfig);
+  const setLandUse = useLandUseStore((s) => s.setConfig);
   const landUse = useLandUseStore((s) => s.config);
 
   const cities = Object.entries(CITY_PRESETS).filter(([k]) => k !== "Personalizado");
   const policies = Object.entries(POLICY_PRESETS).filter(([k]) => k !== "Personalizado");
 
-  // La ciudad activa se identifica solo por el largo: la densidad ya no es un
-  // input del preset sino ρ = ΣH/largo (ver applyCity).
+  // La ciudad activa se identifica por las dos dimensiones de forma que el
+  // preset fija (largo y σ); la densidad no, porque es derivada (ver applyCity).
   const activeCity = cities.find(
-    ([, v]) => config.city.largo_ciudad_km === v.largo_ciudad,
+    ([, v]) =>
+      config.city.largo_ciudad_km === v.largo_ciudad &&
+      (v.sigma === undefined || landUse.oferta_sigma_frac === v.sigma),
   )?.[0];
 
   const activePolicy = policies.find(([, v]) =>
@@ -176,6 +188,11 @@ export function PresetGallery() {
         densidad_hab_km: densidadDerivadaHabKm(sumaH, largo),
       },
     }));
+    // La concentración de la oferta (σ) es la segunda dimensión de la forma:
+    // sin ella el preset movía la mitad del efecto. No toca la población.
+    if (p.sigma !== undefined) {
+      setLandUse((lu) => ({ ...lu, oferta_sigma_frac: p.sigma! }));
+    }
   };
 
   const applyPolicy = (name: string) => {

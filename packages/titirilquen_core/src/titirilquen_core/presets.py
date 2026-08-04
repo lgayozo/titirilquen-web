@@ -11,6 +11,10 @@ from typing import TypedDict
 class CityPreset(TypedDict, total=False):
     largo_ciudad: int
     densidad: int
+    # Concentración de la oferta de vivienda (σ del perfil, land_use/supply.py):
+    # la otra dimensión de «forma urbana» además de la extensión — dónde vive la
+    # gente DENTRO de la ciudad. Sin ella el preset movía la mitad del efecto.
+    sigma: float
 
 
 class PolicyPreset(TypedDict, total=False):
@@ -26,11 +30,20 @@ class PolicyPreset(TypedDict, total=False):
 
 CITY_PRESETS: dict[str, CityPreset] = {
     "Personalizado": {},
-    # Densidad física en hab/km (D-28); equivalente a la población de los
-    # presets antiguos (hab/celda × 200 celdas) en cada largo.
-    "Compacta": {"largo_ciudad": 12, "densidad": 4200},
-    "Base": {"largo_ciudad": 20, "densidad": 1800},
-    "Dispersa": {"largo_ciudad": 30, "densidad": 650},
+    # Calibración ISO-POBLACIÓN (ΣH = 36.000): los tres presets comparan FORMA
+    # urbana —extensión (largo) y concentración (sigma)— con la misma gente. La
+    # densidad es la consecuencia (36.000/largo), no un input independiente.
+    #
+    # Rango ampliado respecto de la calibración original (12/20/30, sin sigma)
+    # porque a iso-población ese rango movía la mitad del efecto: el contraste
+    # compacta↔dispersa pasa de −15,6 a −36,5 pp en metro y de +10,8 a +28,6 pp
+    # en caminata. El v/c NO contrasta en ninguna calibración: en una ciudad
+    # monocéntrica el tramo junto al CBD carga ~la mitad de los viajes en auto
+    # sea cual sea el largo, así que responde a población/precios/capacidad y no
+    # a la forma.
+    "Compacta": {"largo_ciudad": 8, "densidad": 4500, "sigma": 0.30},
+    "Base": {"largo_ciudad": 20, "densidad": 1800, "sigma": 0.50},
+    "Dispersa": {"largo_ciudad": 40, "densidad": 900, "sigma": 0.90},
 }
 
 POLICY_PRESETS: dict[str, PolicyPreset] = {

@@ -181,6 +181,16 @@ export function SandboxPage() {
     bike: result?.flujos_bici_veh_h?.length
       ? Math.max(...result.flujos_bici_veh_h) / cfgRes.supply.bike.capacidad_pista
       : null,
+    // Metro: carga máxima del tramo / capacidad OPERATIVA (f_op · K). Es el
+    // análogo del v/c y faltaba — se mostraban solo dos de los tres modos con
+    // oferta congestionable. Ojo: el core calcula la ρ del andén contra
+    // frec_max (capacidad potencial), no contra f_op; acá interesa la que
+    // realmente circula.
+    metro:
+      result?.carga_metro?.length && lastIter && lastIter.frecuencia_metro > 0
+        ? Math.max(...result.carga_metro) /
+          (lastIter.frecuencia_metro * cfgRes.supply.train.capacidad_tren)
+        : null,
   };
 
   const abortRef = useRef<AbortController | null>(null);
@@ -581,6 +591,7 @@ export function SandboxPage() {
       capacidadAuto: result.capacidad_auto,
       vcAuto: operatingRatios.car,
       vcBici: operatingRatios.bike,
+      vcMetro: operatingRatios.metro,
       tiempoPorModo,
       porEstrato,
     };

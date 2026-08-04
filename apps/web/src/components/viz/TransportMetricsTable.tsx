@@ -37,8 +37,12 @@ export interface TransportMetricsData {
   totalIteraciones: number;
   converged: boolean;
   capacidadAuto: number;
+  /** Carga de la red por modo (flujo o carga / capacidad ofrecida). El metro
+   *  usa la frecuencia OPERATIVA (f_op·K), no frec_max: es la capacidad que
+   *  realmente circula. >1 ⇒ el modo opera sobre su capacidad. */
   vcAuto: number | null;
   vcBici: number | null;
+  vcMetro: number | null;
   tiempoPorModo: { modo: string; label: string; min: number; color: string }[];
   porEstrato: StratumMetric[];
 }
@@ -85,6 +89,7 @@ export function TransportMetricsTable({ data, className }: Props) {
     rows.push([sys, H("co2"), "metro", data.co2Metro.toFixed(2), "kg/h"]);
     rows.push([sys, H("cap_auto"), "", Math.round(data.capacidadAuto), "veh/h"]);
     rows.push([sys, H("vc"), "auto", data.vcAuto == null ? "" : data.vcAuto.toFixed(3), "v/c"]);
+    rows.push([sys, H("vc"), "metro", data.vcMetro == null ? "" : data.vcMetro.toFixed(3), "v/c"]);
     rows.push([sys, H("vc"), "bici", data.vcBici == null ? "" : data.vcBici.toFixed(3), "v/c"]);
     rows.push([sys, H("convergence"), "", data.converged ? H("converged") : H("maxiter"), `${data.iteraciones}/${data.totalIteraciones}`]);
 
@@ -154,8 +159,6 @@ export function TransportMetricsTable({ data, className }: Props) {
           sub="min"
         />
         <Stat label={t("metrics_table.co2_total")} value={`${fmtInt(data.co2Total)}`} sub="kg/h" />
-        <Stat label={t("metrics_table.vc_auto")} value={fmtRatio(data.vcAuto)} sub={t("metrics_table.vc_sub")} warn={(data.vcAuto ?? 0) > 1} />
-        <Stat label={t("metrics_table.vc_bici")} value={fmtRatio(data.vcBici)} sub={t("metrics_table.vc_sub")} warn={(data.vcBici ?? 0) > 1} />
         <Stat
           label={t("metrics_table.convergence")}
           value={data.converged ? t("metrics_table.converged") : t("metrics_table.maxiter")}
@@ -163,6 +166,22 @@ export function TransportMetricsTable({ data, className }: Props) {
           good={data.converged}
         />
       </div>
+
+      {/* ---- Carga de la red: los tres modos con oferta congestionable ----
+           Agrupados aparte de los KPI de escenario porque miden otra cosa:
+           responden a población, precios y capacidad, NO a la forma urbana (en
+           una ciudad monocéntrica el tramo junto al CBD carga ~la mitad de los
+           viajes sea cual sea el largo). Antes se mostraban solo auto y bici
+           mezclados con el resto, sin el metro y sin esa aclaración. */}
+      <SectionHead>{t("metrics_table.network_load")}</SectionHead>
+      <div className="eqt-sys-grid">
+        <Stat label={t("metrics_table.vc_auto")} value={fmtRatio(data.vcAuto)} sub={t("metrics_table.vc_sub")} warn={(data.vcAuto ?? 0) > 1} />
+        <Stat label={t("metrics_table.vc_metro")} value={fmtRatio(data.vcMetro)} sub={t("metrics_table.vc_metro_sub")} warn={(data.vcMetro ?? 0) > 1} />
+        <Stat label={t("metrics_table.vc_bici")} value={fmtRatio(data.vcBici)} sub={t("metrics_table.vc_sub")} warn={(data.vcBici ?? 0) > 1} />
+      </div>
+      <p style={{ ...fig(10), padding: "6px 14px 0", lineHeight: 1.5 }}>
+        {t("metrics_table.network_load_note")}
+      </p>
 
       {/* ---- Reparto modal del sistema ---- */}
       <SectionHead>{t("metrics_table.modal_system")}</SectionHead>

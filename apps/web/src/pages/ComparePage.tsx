@@ -191,6 +191,7 @@ export function ComparePage() {
                 s.config.city.n_celdas,
                 s.config.demand.globales.v_caminata,
                 s.config.supply.bike.capacidad_pista,
+                s.config.supply.train.capacidad_tren,
               )
             : null,
       })),
@@ -308,6 +309,7 @@ export function ComparePage() {
         fila(t("compare.kpi.operation"), t("compare.kpi.final_residual"), (k) => k.residuo_final, 3),
         fila(t("compare.kpi.operation"), t("compare.kpi.physical_trips"), (k) => k.viajes_fisicos, 0),
         fila(t("compare.kpi.congestion"), t("metrics_table.vc_auto"), (k) => k.vc_auto),
+        fila(t("compare.kpi.congestion"), t("metrics_table.vc_metro"), (k) => k.vc_metro),
         fila(t("compare.kpi.congestion"), t("metrics_table.vc_bici"), (k) => k.vc_bici),
         fila(t("compare.kpi.emissions"), `${t("compare.kpi.total")} (kg/h)`, (k) => k.co2_total, 0),
         fila(t("compare.kpi.emissions"), `${t("modes.auto")} (kg/h)`, (k) => k.co2_auto, 0),

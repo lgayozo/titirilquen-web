@@ -5,8 +5,12 @@
 
 export interface CityPresetValues {
   largo_ciudad?: number;
-  /** Densidad física en hab/km (D-28). */
+  /** Densidad física en hab/km (D-28). A iso-población es la CONSECUENCIA
+   *  (ΣH/largo), no un input: la app puebla desde ΣH del uso de suelo. */
   densidad?: number;
+  /** Concentración de la oferta de vivienda (σ): la otra dimensión de la forma
+   *  urbana — dónde vive la gente dentro de la ciudad. */
+  sigma?: number;
 }
 
 export interface PolicyPresetValues {
@@ -20,11 +24,15 @@ export interface PolicyPresetValues {
   cap_tren?: number;
 }
 
+// Calibración ISO-POBLACIÓN (ΣH = 36.000): comparan FORMA urbana —extensión y
+// concentración— con la misma gente; la densidad es la consecuencia. Rango
+// ampliado respecto del original (12/20/30 sin σ), que a iso-población movía la
+// mitad del efecto. Espejo de presets.py — ver ahí la justificación medida.
 export const CITY_PRESETS: Record<string, CityPresetValues> = {
   Personalizado: {},
-  Compacta: { largo_ciudad: 12, densidad: 4200 },
-  Base: { largo_ciudad: 20, densidad: 1800 },
-  Dispersa: { largo_ciudad: 30, densidad: 650 },
+  Compacta: { largo_ciudad: 8, densidad: 4500, sigma: 0.3 },
+  Base: { largo_ciudad: 20, densidad: 1800, sigma: 0.5 },
+  Dispersa: { largo_ciudad: 40, densidad: 900, sigma: 0.9 },
 };
 
 export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
