@@ -188,7 +188,26 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 #    Efecto lateral grande: el estrato alto pasa a ser 6.7x mas sensible al
 #    dinero, o sea las palancas de precio recien empiezan a morder.
 #
-# Las ASC NO se tocaron. Siguen pesando 31 / 21 / 3 minutos-equivalentes en el
+# ASC SIN GRADIENTE DE INGRESO (ago-2026). Las cuatro constantes quedan fijadas
+# como una ventaja COMUN a los tres estratos, medida en minutos de viaje sobre el
+# metro: auto +20, bici -18, caminata 0, metro 0 por definicion.
+#
+# Antes llevaban un gradiente propio (auto +30.9/+20.7/-3.3, bici -12.7/-23.7/
+# -43.3, caminata -5.5/-0.1/+10.0) que se SUMABA al del valor del tiempo. No era
+# error de origen: venian de la calibracion hecha cuando la dispersion del VoT
+# era 27.5x, donde el canal de gustos explicaba solo el 19% de la brecha
+# auto-metro. Al comprimir esa dispersion a 3.9x (VoT 6.200/3.100/1.600) el mismo
+# gradiente de gustos paso a explicar el 41%, o sea el ingreso entraba dos veces.
+#
+# Ahora el gradiente de uso del auto por estrato (46.3 / 19.2 / 6.4) EMERGE del
+# valor del tiempo y de la disponibilidad de auto, que es donde el ingreso debe
+# entrar. Los valores comunes se eligieron para que el agregado no se moviera
+# (auto 11.99 vs 12.16, v/c 0.97 vs 0.99): son neutrales respecto de la
+# calibracion, NO estimados. Con una EOD que de reparto modal por estrato hay que
+# reemplazarlos por el ajuste estandar ASC += ln(objetivo/modelo).
+#
+# La formula para leerlos: ventaja_min = -(asc_m - asc_metro) / b_tiempo_viaje.
+# Antes de esto, las ASC pesaban 31 / 21 / 3 minutos-equivalentes en el
 # auto y 13 / 24 / 43 en la bici, que es la razon de fondo de que la
 # infraestructura mueva poco el reparto del estrato bajo.
 DEFAULT_STRATA = {
@@ -199,10 +218,10 @@ DEFAULT_STRATA = {
         "prob_part_time": 0.05,
         "jornada": {"horas_rigido": 9.0, "horas_flexible": 8.0, "horas_part_time": 4.0},
         "betas": {
-            "asc_auto": 1.5,
+            "asc_auto": 0.9,
             "asc_metro": -0.2,
             "asc_bici": -1.19,
-            "asc_caminata": -0.5,
+            "asc_caminata": -0.2,
             "b_tiempo_viaje": -0.055,
             "b_costo": -0.00053226,  # VoT 6.200 $/h
             "b_tiempo_espera": -0.11,  # 2.0 x viaje
@@ -224,10 +243,10 @@ DEFAULT_STRATA = {
         "prob_part_time": 0.10,
         "jornada": {"horas_rigido": 9.0, "horas_flexible": 8.5, "horas_part_time": 4.5},
         "betas": {
-            "asc_auto": 0.7889,
+            "asc_auto": 0.766,
             "asc_metro": 0.1040,
             "asc_bici": -0.4918,
-            "asc_caminata": 0.1,
+            "asc_caminata": 0.104,
             "b_tiempo_viaje": -0.0331,
             "b_costo": -0.00064065,  # VoT 3.100 $/h
             "b_tiempo_espera": -0.0662,  # 2.0 x viaje
@@ -249,10 +268,10 @@ DEFAULT_STRATA = {
         "prob_part_time": 0.15,
         "jornada": {"horas_rigido": 9.5, "horas_flexible": 9.0, "horas_part_time": 5.0},
         "betas": {
-            "asc_auto": 0.2,
+            "asc_auto": 0.55,
             "asc_metro": 0.25,
             "asc_bici": -0.02,
-            "asc_caminata": 0.4,
+            "asc_caminata": 0.25,
             "b_tiempo_viaje": -0.0150,
             "b_costo": -0.0005625,  # VoT 1.600 $/h
             "b_tiempo_espera": -0.03,  # 2.0 x viaje
