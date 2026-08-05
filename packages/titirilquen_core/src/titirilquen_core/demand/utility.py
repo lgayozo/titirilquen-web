@@ -80,7 +80,9 @@ def calcular_utilidades(
 
     dist_km = abs(ciudad.cbd_index - celda_origen) * ciudad.ancho_celda_km
 
-    tiempos = tiempos_observados if tiempos_observados is not None else _tiempos_flujo_libre(dist_km, gl)
+    tiempos = (
+        tiempos_observados if tiempos_observados is not None else _tiempos_flujo_libre(dist_km, gl)
+    )
     t_cam = (dist_km / gl.v_caminata) * 60
 
     # AUTO
@@ -90,7 +92,9 @@ def calcular_utilidades(
     v_c_auto = betas.b_costo * c_auto
     if tiene_auto:
         v_auto = asc_auto + v_t_auto + v_c_auto
-        auto_breakdown = UtilityBreakdown("Auto", v_auto, asc_auto, v_t_auto, v_c_auto, feasible=True)
+        auto_breakdown = UtilityBreakdown(
+            "Auto", v_auto, asc_auto, v_t_auto, v_c_auto, feasible=True
+        )
     else:
         auto_breakdown = UtilityBreakdown("Auto", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
 
@@ -104,7 +108,9 @@ def calcular_utilidades(
     )
     v_c_metro = betas.b_costo * c_metro
     v_metro = asc_metro + v_t_metro + v_c_metro
-    metro_breakdown = UtilityBreakdown("Metro", v_metro, asc_metro, v_t_metro, v_c_metro, feasible=True)
+    metro_breakdown = UtilityBreakdown(
+        "Metro", v_metro, asc_metro, v_t_metro, v_c_metro, feasible=True
+    )
 
     # BICI — penalizaciones aditivas escalonadas (ver D-02)
     if tiempos.bici_total > 45:
@@ -120,7 +126,9 @@ def calcular_utilidades(
         asc_bici = betas.asc_bici
         v_t_bici = betas.b_tiempo_viaje * tiempos.bici_total
         v_bici = asc_bici + v_t_bici + p
-        bici_breakdown = UtilityBreakdown("Bici", v_bici, asc_bici, v_t_bici, 0.0, v_penalizaciones=p, feasible=True)
+        bici_breakdown = UtilityBreakdown(
+            "Bici", v_bici, asc_bici, v_t_bici, 0.0, v_penalizaciones=p, feasible=True
+        )
 
     # CAMINATA — usa b_tiempo_caminata (no b_tiempo_viaje); ver D-03
     if t_cam > 30:
@@ -136,7 +144,9 @@ def calcular_utilidades(
         asc_cam = betas.asc_caminata
         v_t_cam = betas.b_tiempo_caminata * t_cam
         v_cam = asc_cam + v_t_cam + p
-        cam_breakdown = UtilityBreakdown("Caminata", v_cam, asc_cam, v_t_cam, 0.0, v_penalizaciones=p, feasible=True)
+        cam_breakdown = UtilityBreakdown(
+            "Caminata", v_cam, asc_cam, v_t_cam, 0.0, v_penalizaciones=p, feasible=True
+        )
 
     resultado = {
         "Auto": auto_breakdown,

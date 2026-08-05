@@ -30,13 +30,13 @@ class LandUseStratumConfig(BaseModel):
 
     y: float = Field(description="Ingreso mensual del estrato ($/mes)")
     lambda_: float = Field(
-        default=1.0, gt=0, alias="lambda",
+        default=1.0,
+        gt=0,
+        alias="lambda",
         description="Utilidad marginal del ingreso (λ_h)",
     )
     alpha: float = Field(default=6.0, description="Peso del tiempo de viaje (utiles/min)")
-    rho: float = Field(
-        default=0.1, description="Penalización de densidad (utiles por hogar/km)"
-    )
+    rho: float = Field(default=0.1, description="Penalización de densidad (utiles por hogar/km)")
 
 
 class LandUseConfig(BaseModel):

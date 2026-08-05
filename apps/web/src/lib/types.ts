@@ -95,6 +95,9 @@ export interface TrainSupplyParams {
   num_estaciones: number;
   v_caminata_kmh: number;
   tasa_carga: number;
+  /** Detención en cada estación intermedia (min). Sin esto, agregar estaciones
+   *  acortaba el acceso sin costo alguno en tiempo de viaje. */
+  tiempo_detencion_min: number;
   frec_min: number;
   frec_max: number;
   /** BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), ρ = carga/(frec_max·K). */

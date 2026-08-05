@@ -146,6 +146,7 @@ export const defaultSimulationConfig: SimulationConfig = {
       num_estaciones: 10,
       v_caminata_kmh: 4.8,
       tasa_carga: 6,
+      tiempo_detencion_min: 0.5,
       // Rango realista de metro: ~10 min (valle) a ~2 min (punta) de intervalo.
       // El rango amplio fortalece el efecto Mohring (ver DISCREPANCIES D-18).
       frec_min: 6,

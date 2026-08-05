@@ -12,9 +12,7 @@ from typing import Literal
 import numpy as np
 from numpy.typing import NDArray
 
-FormaOferta = Literal[
-    "normal", "uniforme", "exponencial", "meseta", "bimodal", "valle"
-]
+FormaOferta = Literal["normal", "uniforme", "exponencial", "meseta", "bimodal", "valle"]
 """Forma del perfil de oferta de vivienda S(d) a lo largo del corredor:
 
 - `normal`: campana gaussiana centrada en el CBD (monocéntrica compacta).

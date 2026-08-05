@@ -418,6 +418,7 @@ def _iter_loop(
             num_estaciones=train_p.num_estaciones,
             v_caminata_kmh=train_p.v_caminata_kmh,
             tasa_carga=train_p.tasa_carga,
+            tiempo_detencion_min=train_p.tiempo_detencion_min,
             frec_min=train_p.frec_min,
             frec_max=train_p.frec_max,
             anden_alpha=train_p.anden_alpha,

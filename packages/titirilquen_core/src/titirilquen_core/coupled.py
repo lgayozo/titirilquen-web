@@ -133,7 +133,9 @@ def _aggregate_T_expected(
             d_km = abs(i - cbd_index) * ciudad.ancho_celda_km
             t_modo = {
                 "Auto": float(snap.t_auto[i]),
-                "Metro": float(snap.t_tren_acceso[i] + snap.t_tren_espera[i] + snap.t_tren_viaje[i]),
+                "Metro": float(
+                    snap.t_tren_acceso[i] + snap.t_tren_espera[i] + snap.t_tren_viaje[i]
+                ),
                 "Bici": float(snap.t_bici[i]),
                 "Caminata": d_km / gl.v_caminata * 60.0,
             }
@@ -176,9 +178,7 @@ def _aggregate_T_expected(
     return np.tile(T_comun, (n_strata, 1))
 
 
-def _freeflow_T(
-    ciudad: CiudadLineal, n_strata: int, v_ref_kmh: float
-) -> NDArray[np.float64]:
+def _freeflow_T(ciudad: CiudadLineal, n_strata: int, v_ref_kmh: float) -> NDArray[np.float64]:
     """Accesibilidad inicial **a flujo libre**, en minutos: T(i) = d_km(i)/v_ref·60.
 
     Es el baseline "sin feedback" honesto: el suelo se resuelve con una

@@ -216,6 +216,18 @@ class TrainSupplyParams(BaseModel):
     num_estaciones: int = Field(default=10, ge=2)
     v_caminata_kmh: float = 4.8
     tasa_carga: float = 6.0
+    # Detención en cada estación INTERMEDIA entre la de subida y el CBD. Sin
+    # esto, agregar estaciones acortaba el acceso a caminar SIN ningún costo en
+    # tiempo de viaje: un almuerzo gratis que hacía monótonamente buena la
+    # densificación de la red. Con la detención aparece el trade-off real —más
+    # estaciones = menos acceso pero más viaje— que es el fenómeno que se quiere
+    # enseñar. 0.5 min = 30 s por parada.
+    #
+    # Es una detención FIJA. Un dwell que crezca con los pasajeros que suben
+    # (para eso está reservado `tasa_carga`, hoy sin uso) sería una DESECONOMÍA
+    # de escala del metro, que juega en contra del efecto Möhring; es una
+    # decisión de modelación aparte, no un simple refinamiento.
+    tiempo_detencion_min: float = Field(default=0.5, ge=0)
     # Rango de frecuencia operativa (trenes/h). Valores realistas de metro:
     # frec_min≈6 ⇒ ~10 min de intervalo (valle); frec_max≈30 ⇒ ~2 min (punta).
     # El rango amplio fortalece el efecto Mohring: al perder demanda la

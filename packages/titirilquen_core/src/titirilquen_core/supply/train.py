@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
+
 @dataclass(frozen=True)
 class TrainSupplyResult:
     t_acceso_min: NDArray[np.float64]
@@ -42,6 +43,7 @@ def oferta_tren(
     tasa_carga: float,
     frec_min: float,
     frec_max: float,
+    tiempo_detencion_min: float = 0.5,
     anden_alpha: float = 0.15,
     anden_beta: float = 4.0,
 ) -> TrainSupplyResult:
@@ -119,11 +121,19 @@ def oferta_tren(
 
     t_acceso_min = (dist_acceso / v_caminata_kmh) * 60
     t_espera_min = t_espera_por_estacion[idx_estacion_usuario]
-    t_viaje_min = (np.abs(loc_estacion_acceso - x_centro_km) / v_tren_kmh) * 60
+    # Tiempo en vehículo = marcha + detenciones. Las paradas que el viajero
+    # sufre son las INTERMEDIAS: no la de subida (ya está adentro) ni la del CBD
+    # (se baja). Sin este término, agregar estaciones acortaba el acceso sin
+    # ningún costo — ver el comentario de `tiempo_detencion_min` en config.py.
+    paradas_intermedias = np.maximum(np.abs(idx_estacion_usuario - idx_centro_est) - 1, 0)
+    t_marcha_min = (np.abs(loc_estacion_acceso - x_centro_km) / v_tren_kmh) * 60
+    t_viaje_min = t_marcha_min + paradas_intermedias * tiempo_detencion_min
     t_total = t_acceso_min + t_espera_min + t_viaje_min
 
-    # `tasa_carga` actualmente sin uso en la fórmula original, se preserva como
-    # parámetro reservado para futura inclusión de tiempo de dwell.
+    # `tasa_carga` sigue SIN USO. La detención ya está modelada arriba, pero fija
+    # por parada; `tasa_carga` (pax/s de subida) serviría para hacerla dependiente
+    # de los pasajeros que suben, que es una deseconomía de escala del metro y una
+    # decisión de modelación aparte — ver el comentario en config.py.
     _ = tasa_carga
 
     return TrainSupplyResult(

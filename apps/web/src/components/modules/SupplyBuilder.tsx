@@ -216,7 +216,17 @@ export function SupplyBuilder({
           min={3}
           max={30}
           step={1}
+          hint={t("supply_params.train.num_estaciones_hint")}
           onChange={(v) => setSupply("train", { num_estaciones: v })}
+        />
+        <LabeledSlider
+          label={t("supply_params.train.tiempo_detencion")}
+          value={train.tiempo_detencion_min}
+          min={0}
+          max={2}
+          step={0.1}
+          format={(v) => `${(v * 60).toFixed(0)} s`}
+          onChange={(v) => setSupply("train", { tiempo_detencion_min: v })}
         />
         <div className="grid grid-cols-2 gap-3">
           <LabeledSlider

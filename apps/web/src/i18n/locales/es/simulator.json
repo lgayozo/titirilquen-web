@@ -75,7 +75,9 @@
       "freq_clip_max": "⚠ Frecuencia TOPADA por frec. máxima en {{op}} tph — la demanda pide {{teo}}. Subirla sí cambia el resultado; bajar la mínima no hace nada. El efecto Mohring está agotado: más pasajeros ya no traen más trenes.",
       "freq_clip_min": "⚠ Frecuencia TOPADA por frec. mínima en {{op}} tph — la demanda solo pide {{teo}}. Bajarla sí cambia el resultado; subir la máxima no hace nada.",
       "freq_clip_libre": "Frecuencia libre en {{op}} tph: la fija la demanda (carga/capacidad del tren). Ningún tope está mordiendo, así que mover mínima o máxima no cambia nada hasta cruzar ese valor.",
-      "anden_hint": "Congestión de andén (BPR): castiga la espera cuando la carga supera la capacidad a frecuencia máxima (v/c>1)."
+      "anden_hint": "Congestión de andén (BPR): castiga la espera cuando la carga supera la capacidad a frecuencia máxima (v/c>1).",
+      "tiempo_detencion": "Detención por estación",
+      "num_estaciones_hint": "Más estaciones acortan el acceso a pie pero alargan el viaje: el tren para en cada una. Existe un óptimo intermedio."
     }
   },
   "equilibrium": {

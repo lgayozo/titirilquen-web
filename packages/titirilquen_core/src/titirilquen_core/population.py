@@ -59,9 +59,7 @@ def generar_poblacion(
     total = int(round(objetivo_por_celda * celdas_validas.size))
     if total <= 0:
         return []
-    conteo_por_celda = _mayor_residuo(
-        np.full(celdas_validas.size, objetivo_por_celda), total
-    )
+    conteo_por_celda = _mayor_residuo(np.full(celdas_validas.size, objetivo_por_celda), total)
 
     # Sorteos vectorizados (mismo orden conceptual: celda externa, densidad interna).
     estrato_idx = rng.choice(3, size=total, p=share_estratos)

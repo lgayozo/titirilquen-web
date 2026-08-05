@@ -196,9 +196,7 @@ def _costo_modo(modo: str, dist_km: float, gl) -> float:
     return 0.0  # Bici / Caminata
 
 
-def _tiempos_red_vacia(
-    sim: SimulationConfig, ciudad: CiudadLineal
-) -> list[TiemposObservados]:
+def _tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[TiemposObservados]:
     """Tiempos por celda con la **red vacía** (demanda cero): BPR(0) en auto y
     bici, tren a frecuencia mínima con las mismas estaciones. Es el baseline del
     ΔCS — la misma infraestructura sin nadie usándola."""
@@ -237,6 +235,7 @@ def _tiempos_red_vacia(
         num_estaciones=train_p.num_estaciones,
         v_caminata_kmh=train_p.v_caminata_kmh,
         tasa_carga=train_p.tasa_carga,
+        tiempo_detencion_min=train_p.tiempo_detencion_min,
         frec_min=train_p.frec_min,
         frec_max=train_p.frec_max,
         anden_alpha=train_p.anden_alpha,
@@ -254,8 +253,15 @@ def _tiempos_red_vacia(
     ]
 
 
-def _logsum(tiempos: TiemposObservados, *, estrato: int, celda: int, tiene_auto: bool,
-            ciudad: CiudadLineal, sim: SimulationConfig) -> float:
+def _logsum(
+    tiempos: TiemposObservados,
+    *,
+    estrato: int,
+    celda: int,
+    tiene_auto: bool,
+    ciudad: CiudadLineal,
+    sim: SimulationConfig,
+) -> float:
     """Logsum (utiles) del logit de modo: ln Σ_m e^{V_m} sobre modos factibles."""
     utils = calcular_utilidades(
         estrato=estrato,  # type: ignore[arg-type]
@@ -341,8 +347,7 @@ def compute_equilibrium_metrics(
 
     ingresos = [float(s.y) for s in land_use_config.estratos]
     b_costo = [
-        float(sim.demand.estratos[cast("StratumId", h + 1)].betas.b_costo)
-        for h in range(n_strata)
+        float(sim.demand.estratos[cast("StratumId", h + 1)].betas.b_costo) for h in range(n_strata)
     ]
 
     # --- Acumuladores de transporte por estrato (sobre agentes que viajan) ---
@@ -378,13 +383,25 @@ def compute_equilibrium_metrics(
         key = (a.estrato, i, a.tiene_auto)
         ls = cache_ls.get(key)
         if ls is None:
-            ls = _logsum(tiempos_obs[i], estrato=a.estrato, celda=i,
-                         tiene_auto=a.tiene_auto, ciudad=ciudad, sim=sim)
+            ls = _logsum(
+                tiempos_obs[i],
+                estrato=a.estrato,
+                celda=i,
+                tiene_auto=a.tiene_auto,
+                ciudad=ciudad,
+                sim=sim,
+            )
             cache_ls[key] = ls
         ls_ff = cache_ff.get(key)
         if ls_ff is None:
-            ls_ff = _logsum(tiempos_ff[i], estrato=a.estrato, celda=i,
-                            tiene_auto=a.tiene_auto, ciudad=ciudad, sim=sim)
+            ls_ff = _logsum(
+                tiempos_ff[i],
+                estrato=a.estrato,
+                celda=i,
+                tiene_auto=a.tiene_auto,
+                ciudad=ciudad,
+                sim=sim,
+            )
             cache_ff[key] = ls_ff
         # ΔCS vs red vacía: el nivel del logsum tiene cero arbitrario (ASC);
         # solo la diferencia es interpretable (congestión vs efecto Mohring).
@@ -402,10 +419,7 @@ def compute_equilibrium_metrics(
         c_medio = float(c_sum[h] / nv) if nv > 0 else 0.0
         cs_medio = float(cs_sum[h] / nv) if nv > 0 else 0.0
         tot = int(total_ag[h])
-        reparto = {
-            c: (float(modal[h, k] / tot) if tot > 0 else 0.0)
-            for c, k in cat_idx.items()
-        }
+        reparto = {c: (float(modal[h, k] / tot) if tot > 0 else 0.0) for c, k in cat_idx.items()}
         # Carga mensual: costo por viaje × viajes/mes sobre ingreso mensual (D-27).
         carga = (c_medio * VIAJES_MES) / ingresos[h] if ingresos[h] > 0 else 0.0
         por_estrato.append(
@@ -432,8 +446,9 @@ def compute_equilibrium_metrics(
     n_viajan_total = int(viajan.sum())
     t_medio_sis = t_total / n_viajan_total if n_viajan_total > 0 else 0.0
 
-    bienestar_total = float(sum(por_estrato[h].delta_excedente_clp * por_estrato[h].n_hogares
-                                for h in range(n_strata)))
+    bienestar_total = float(
+        sum(por_estrato[h].delta_excedente_clp * por_estrato[h].n_hogares for h in range(n_strata))
+    )
 
     t_alto = por_estrato[0].tiempo_medio_min
     t_bajo = por_estrato[-1].tiempo_medio_min
@@ -442,9 +457,7 @@ def compute_equilibrium_metrics(
     carga_bajo = por_estrato[-1].carga_costo_ingreso
     ratio_carga = (carga_bajo / carga_alto) if carga_alto > 0 else None
 
-    residual_out = (
-        None if T_residual is None or not np.isfinite(T_residual) else float(T_residual)
-    )
+    residual_out = None if T_residual is None or not np.isfinite(T_residual) else float(T_residual)
 
     sistema = SystemMetrics(
         convergio_exterior=converged,
