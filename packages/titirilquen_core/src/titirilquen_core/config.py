@@ -84,12 +84,21 @@ class GlobalConfig(BaseModel):
     v_caminata: float = 4.8
     costo_combustible_km: float = 120
     costo_tarifa_metro: float = 800
-    # 4000 (antes 6000): con 6000 el parking era ~91% del costo monetario del
-    # viaje en auto a la distancia media, y su elasticidad salia -0.588 mientras
-    # bencina y tarifa quedaban en -0.03. Como hay un UNICO `b_costo` que aplica
-    # a la suma de todo el dinero, la razon entre esas elasticidades la fijan los
+    # 2000 (antes 4000, antes 6000). NO es un precio de lista: el modelo le cobra
+    # parking a TODOS los viajes en auto, cuando en la realidad buena parte
+    # estaciona gratis (en la calle o provisto por el empleador). O sea es un
+    # costo ESPERADO = precio x probabilidad de pagarlo.
+    #
+    # Bajo de 4000 al recalibrar el valor del tiempo (ago-2026): 4000 se habia
+    # elegido cuando `b_costo` era 6.7x menor y valia 5.8 minutos del tiempo del
+    # estrato alto; con el VoT corregido (6.200 $/h) pasaba a valer 39 y hundia
+    # el auto a 5.7% con el corredor descongestionado (v/c 0.47). Con 2000 el
+    # reparto vuelve a 12.7% y el v/c a 1.03, la rodilla de la BPR.
+    #
+    # Como hay un UNICO `b_costo` que aplica a la suma de todo el dinero, la
+    # razon entre las elasticidades de parking, bencina y tarifa la fijan los
     # MONTOS, no los betas — ver scripts/diagnostico_elasticidades.py.
-    costo_parking: float = 4000
+    costo_parking: float = 2000
     # Multiplicador ADIMENSIONAL sobre la curva COPERT de emision del auto
     # (`emissions.factor_emision_auto(v)`), para representar la composicion de
     # la flota: 1.0 = flota de referencia, ~0.7 hibrida, ~0.15 electrica.

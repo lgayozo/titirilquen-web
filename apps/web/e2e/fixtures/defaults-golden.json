@@ -49,7 +49,7 @@
    "v_caminata": 4.8,
    "costo_combustible_km": 120,
    "costo_tarifa_metro": 800,
-   "costo_parking": 4000,
+   "costo_parking": 2000,
    "factor_flota_auto": 1.0,
    "factor_emision_metro_tren_km": 2.5
   },

@@ -54,9 +54,9 @@ CITY_PRESETS: dict[str, CityPreset] = {
 # se reescalan manteniendo su RAZÓN contra la base, que es lo que define su
 # intensidad. Ya pasó dos veces (`frec_max: 20` y `parking: 6000`).
 #
-# Recalibración vigente — defaults: parking 4000 · 2 pistas · cap_bici 2500 ·
-# frec_max 40. Deliberados reescalados: Tarificación Vial parking 2.5x (10000),
-# Pro-Auto parking 0.5x (2000) y una pista más que la base (3), Ciclorrecreovía
+# Recalibración vigente — defaults: parking 2000 · 2 pistas · cap_bici 2500 ·
+# frec_max 40. Deliberados reescalados: Tarificación Vial parking 2.5x (5000),
+# Pro-Auto parking 0.5x (1000) y una pista más que la base (3), Ciclorrecreovía
 # una menos (1). Sin reescalar, Pro-Auto habría quedado más caro que la base y
 # con menos pistas, invirtiendo su sentido.
 #
@@ -78,7 +78,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     # deja siempre la misma ciudad, y da la fila de referencia de la tabla.
     "Base": {
         "tarifa": 800,
-        "parking": 4000,
+        "parking": 2000,
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
@@ -89,7 +89,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     },
     "TP Gratis": {
         "tarifa": 0,
-        "parking": 4000,
+        "parking": 2000,
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
@@ -99,7 +99,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     },
     "Tarificación Vial": {
         "tarifa": 800,
-        "parking": 10000,
+        "parking": 5000,
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
@@ -109,7 +109,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     },
     "Pro-Auto": {
         "tarifa": 1000,
-        "parking": 2000,
+        "parking": 1000,
         "num_pistas": 3,
         "num_estaciones": 8,
         "bencina": 100,
@@ -119,7 +119,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     },
     "Pro-Bici": {
         "tarifa": 800,
-        "parking": 4000,
+        "parking": 2000,
         "num_pistas": 2,
         "cap_bici": 5000,
         "frec_max": 40,
@@ -133,7 +133,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_pistas": 2,
         "bencina": 65,
         "tarifa": 800,
-        "parking": 4000,
+        "parking": 2000,
         "frec_max": 40,
         "cap_tren": 300,
         "num_estaciones": 10,
@@ -145,7 +145,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_estaciones": 20,
         "frec_max": 50,
         "cap_tren": 300,
-        "parking": 4000,
+        "parking": 2000,
         "bencina": 120,
         "num_pistas": 2,
         "cap_bici": 2500,
@@ -158,7 +158,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_pistas": 1,
         "cap_bici": 6000,
         "tarifa": 800,
-        "parking": 4000,
+        "parking": 2000,
         "bencina": 120,
         "frec_max": 40,
         "cap_tren": 300,

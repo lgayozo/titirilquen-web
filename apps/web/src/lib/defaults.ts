@@ -90,7 +90,7 @@ export const defaultDemandConfig: DemandConfig = {
     // 4000 (antes 6000): calibrado para bajar la elasticidad-parking del
     // reparto de auto de −0.59 a ≈ −0.31. Ver el comentario del core y
     // scripts/diagnostico_elasticidades.py.
-    costo_parking: 4000,
+    costo_parking: 2000,
     // 1 = flota de referencia. Escala la curva COPERT; ver core config.py.
     factor_flota_auto: 1,
     factor_emision_metro_tren_km: 2.5,

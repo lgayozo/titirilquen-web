@@ -43,7 +43,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   // «Personalizado» (dict vacío, hereda lo vigente), «Base» es reproducible.
   Base: {
     tarifa: 800,
-    parking: 4000,
+    parking: 2000,
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
@@ -54,7 +54,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   },
   "TP Gratis": {
     tarifa: 0,
-    parking: 4000,
+    parking: 2000,
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
@@ -64,7 +64,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   },
   "Tarificación Vial": {
     tarifa: 800,
-    parking: 10000,
+    parking: 5000,
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
@@ -74,7 +74,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   },
   "Pro-Auto": {
     tarifa: 1000,
-    parking: 2000,
+    parking: 1000,
     num_pistas: 3,
     num_estaciones: 8,
     bencina: 100,
@@ -84,7 +84,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   },
   "Pro-Bici": {
     tarifa: 800,
-    parking: 4000,
+    parking: 2000,
     num_pistas: 2,
     cap_bici: 5000,
     frec_max: 40,
@@ -96,7 +96,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 2,
     bencina: 65,
     tarifa: 800,
-    parking: 4000,
+    parking: 2000,
     frec_max: 40,
     cap_tren: 300,
     num_estaciones: 10,
@@ -110,7 +110,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_estaciones: 20,
     frec_max: 50,
     cap_tren: 300,
-    parking: 4000,
+    parking: 2000,
     bencina: 120,
     num_pistas: 2,
     cap_bici: 2500,
@@ -119,7 +119,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 1,
     cap_bici: 6000,
     tarifa: 800,
-    parking: 4000,
+    parking: 2000,
     bencina: 120,
     frec_max: 40,
     cap_tren: 300,

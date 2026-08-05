@@ -22,8 +22,8 @@ const lu = (): LandUseConfig => structuredClone(defaultLandUseConfig);
 
 export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
   // A. Efecto del precio del parking
-  // Escalera alrededor del nuevo default ($2.500). Los ids no llevan la cifra
-  // a propósito: antes eran `parking_3k`/`_6k`/`_15k` y quedaron mintiendo al
+  // Escalera alrededor del default vigente. Los ids no llevan la cifra a
+  // propósito: antes eran `parking_3k`/`_6k`/`_15k` y quedaron mintiendo al
   // recalibrar el default.
   parking_bajo: {
     to: "/sandbox",
@@ -35,13 +35,13 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
   },
   parking_base: {
     to: "/sandbox",
-    build: () => ({ sim: sim() }), // default = $2.500
+    build: () => ({ sim: sim() }),
   },
   parking_alto: {
     to: "/sandbox",
     build: () => {
       const s = sim();
-      s.demand.globales.costo_parking = 10000;
+      s.demand.globales.costo_parking = 5000;
       return { sim: s };
     },
   },
