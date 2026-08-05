@@ -10,7 +10,7 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
   if (stratum === 1) {
     return {
       prob_teletrabajo: 0.4,
-      prob_auto: 0.95,
+      prob_auto: 0.9,
       betas: {
         asc_auto: 1.5,
         asc_metro: -0.2,
@@ -34,7 +34,7 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
   if (stratum === 2) {
     return {
       prob_teletrabajo: 0.2,
-      prob_auto: 0.75,
+      prob_auto: 0.6,
       betas: {
         asc_auto: 0.7889,
         asc_metro: 0.104,
@@ -57,7 +57,7 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
   }
   return {
     prob_teletrabajo: 0.05,
-    prob_auto: 0.45,
+    prob_auto: 0.25,
     betas: {
       asc_auto: 0.2,
       asc_metro: 0.25,

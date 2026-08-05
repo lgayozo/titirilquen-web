@@ -194,7 +194,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 DEFAULT_STRATA = {
     1: {
         "prob_teletrabajo": 0.40,
-        "prob_auto": 0.95,
+        "prob_auto": 0.90,
         "prob_jornada_flexible": 0.50,
         "prob_part_time": 0.05,
         "jornada": {"horas_rigido": 9.0, "horas_flexible": 8.0, "horas_part_time": 4.0},
@@ -219,7 +219,7 @@ DEFAULT_STRATA = {
     },
     2: {
         "prob_teletrabajo": 0.20,
-        "prob_auto": 0.75,
+        "prob_auto": 0.60,
         "prob_jornada_flexible": 0.30,
         "prob_part_time": 0.10,
         "jornada": {"horas_rigido": 9.0, "horas_flexible": 8.5, "horas_part_time": 4.5},
@@ -244,7 +244,7 @@ DEFAULT_STRATA = {
     },
     3: {
         "prob_teletrabajo": 0.05,
-        "prob_auto": 0.45,
+        "prob_auto": 0.25,
         "prob_jornada_flexible": 0.10,
         "prob_part_time": 0.15,
         "jornada": {"horas_rigido": 9.5, "horas_flexible": 9.0, "horas_part_time": 5.0},
