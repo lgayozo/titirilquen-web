@@ -78,12 +78,10 @@ Todos desde `packages/titirilquen_core`, con `uv run python scripts/<x>.py`:
 
 ### 4.2 Implementable
 
-- **Panel de calibración**: los ~42 betas (ASC, β de tiempo/costo/espera/
-  caminata, penalizaciones, `prob_auto`, `prob_teletrabajo`) **no son editables
-  en ninguna parte**. Acordado: van en el módulo de transporte, en una sección
-  rotulada «calibración del modelo — no es una política», separada
-  visualmente de las palancas, con el **valor del tiempo por estrato** arriba
-  como cifra derivada (es lo que hace legibles 42 números opacos).
+- ~~**Panel de calibración**~~ — **hecho** (`2a4c9f6`). Está en el sidebar de
+  transporte, después de las palancas, con pestañas por estrato y tres cifras
+  derivadas arriba: valor del tiempo, razón espera/viaje y razón
+  caminata/viaje. Los campos confirman al salir o con Enter, no en cada tecla.
 
 - **Demanda inducida** — es lo que falta para que Downs-Thomson pueda
   aparecer, ver §5.
@@ -156,7 +154,9 @@ un desplazamiento grande con una ganancia chica.
    parámetro económico independiente.
 6. **La espera está subvalorada**: `b_tiempo_espera / b_tiempo_viaje` da
    0,91 / 0,73 / 1,00 por estrato. La evidencia apunta a que la espera pesa
-   MÁS que el tiempo en vehículo (~1,5–2,5×), no menos.
+   MÁS que el tiempo en vehículo (~1,5–2,5×), no menos. Desde `2a4c9f6` la
+   razón se muestra en pantalla, en el panel de calibración, así que se puede
+   mostrar en vivo en la reunión.
 
 ---
 
@@ -189,6 +189,8 @@ De más reciente a más antigua:
 
 | Commit | Qué |
 |---|---|
+| `2a4c9f6` | Panel de calibración: los betas del logit, visibles y editables |
+| `a4d3970` | Este documento |
 | `7fdb77b` | Sandbox de 16 figuras a 8 |
 | `1a9af0b` | Comparar dentro de transporte + agregados + logsum |
 | `3ee6773` | Presets de ciudad al módulo de uso de suelo |
