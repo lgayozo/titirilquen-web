@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CityStrip } from "@/components/CityStrip";
+import { CalibrationPanel } from "@/components/modules/CalibrationPanel";
 import { EconomyBuilder } from "@/components/modules/EconomyBuilder";
 import { PresetGallery } from "@/components/modules/PresetGallery";
 import { SupplyBuilder } from "@/components/modules/SupplyBuilder";
@@ -668,6 +669,10 @@ export function SandboxPage() {
           }
         />
         <EconomyBuilder config={config} onChange={setConfig} />
+        {/* Después de las palancas y antes del solver: los betas no son
+            política, pero son lo que traduce cualquier política en reparto
+            modal. Hasta ahora no eran visibles en ninguna parte. */}
+        <CalibrationPanel config={config} onChange={setConfig} />
 
         <SidebarSection
           title={t("sections.equilibrium")}
