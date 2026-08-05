@@ -91,12 +91,17 @@ precio social del combustible 760 $/l para automóvil.
 
 ### 2.4 Línea base
 
-**auto 11,87 · metro 41,62 · bici 23,92 · caminata 8,12 · tele 14,47 ·
-v/c 0,97 · t_auto 21,7 min · f_op 23,4 tph**
-
-Participación del auto por estrato: **46,3 / 19,2 / 6,4**.
+**auto 15,38 · metro 36,99 · bici 21,43 · caminata 6,75 · tele 19,44 ·
+v/c 1,25 · t_auto 23,7 min · f_op 20,9 tph** (expected, seed 42, tol 0,1)
 
 Reproducir: `uv run python scripts/auditoria_transporte.py`
+
+> **Errata**: las líneas base reportadas en los commits `9854f6d..ea4a05b`
+> (auto 15,41 → 12,16 → 11,87 → 12,10) se midieron con la `H` de la auditoría
+> desactualizada en la mezcla ANTIGUA (10/40/50) — quinta mordida de la trampa
+> de los espejos. La app siempre usó 20/50/30 (`defaults.ts`); la cifra de
+> arriba es la de la app. Direcciones y comparaciones de esos commits valen;
+> los niveles no.
 
 ---
 

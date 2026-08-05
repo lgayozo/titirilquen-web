@@ -23,7 +23,11 @@ from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_su
 from titirilquen_core.land_use.config import LandUseConfig
 
 SUMA_H = 36000
-H = (int(SUMA_H * 0.10), int(SUMA_H * 0.40), int(SUMA_H * 0.50))
+# 20/50/30, en sync con `defaults.ts::defaultLandUseConfig.H_por_estrato` (la
+# poblacion que ve la app). OJO: quedo atras en la recalibracion de la mezcla
+# (ago-2026) y las auditorias midieron 10/40/50 un buen rato sin avisar — las
+# lineas base reportadas en esos commits son de la ciudad ANTIGUA.
+H = (int(SUMA_H * 0.20), int(SUMA_H * 0.50), int(SUMA_H * 0.30))
 
 
 def base_sim() -> SimulationConfig:

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Informe: la paradoja de Downs-Thomson en el simulador</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 3px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 620px;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso p { margin: 4px 0; }
+  .etiqueta {
+    display: inline-block; font-family: "Segoe UI", system-ui, sans-serif; font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 1px 8px;
+    border-radius: 3px; margin-right: 6px;
+  }
+  .etiqueta.si { background: #e7d9d0; color: var(--accent); }
+  .etiqueta.no { background: #e2e8e3; color: var(--ok); }
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  @media (max-width: 720px) { .dos-col { grid-template-columns: 1fr; } }
+  .paso { margin: 10px 0; padding-left: 34px; position: relative; max-width: 72ch; }
+  .paso .n-paso {
+    position: absolute; left: 0; top: 1px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--ink); color: var(--paper); font-family: "Segoe UI", sans-serif;
+    font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Simulador educativo de transporte urbano · Informe técnico para el equipo docente</div>
+  <h1>La paradoja de Downs-Thomson: modelo, condiciones y receta reproducible</h1>
+  <p class="bajada">Resultado de una búsqueda sistemática sobre 10 escenarios × 3 métodos de
+  equilibrio × barridos de capacidad vial: la paradoja <strong>se observa en el simulador</strong>,
+  aparece únicamente bajo elección determinística (Wardrop) con el metro operando en la zona
+  empinada de su economía de escala, y es reproducible desde la interfaz en cuatro corridas.</p>
+  <div class="meta">Agosto 2026 · rama <code>ciudad-equilibrio-mejoras</code> · evidencia:
+  <code>scripts/buscar_downs_thomson.py</code> · verificación: max_iter=120, tol=0,02</div>
+</header>
+
+<!-- ================================================================ -->
+<h2><span class="num">1</span>La ciudad y la población</h2>
+
+<p>Ciudad <strong>lineal monocéntrica</strong> de 20 km discretizada en 201 celdas, con el CBD en
+la celda central. Todos los viajes son de conmutación hacia el CBD por un corredor único —
+no hay elección de ruta, por lo que la paradoja de <em>Braess</em> es imposible por topología,
+no por calibración. La población se genera desde el módulo de uso de suelo
+(densidad 1.800 hab/km × 20 km = 36.000 hogares, perfil normal σ = 0,5) y se divide en tres
+estratos socioeconómicos.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Estrato</th><th class="n">Participación</th><th class="n">Valor del tiempo</th>
+<th class="n">Disponibilidad de auto</th><th class="n">Teletrabajo (tasa base)</th></tr></thead>
+<tbody>
+<tr><td>Alto</td><td class="n">20%</td><td class="n">$6.200/h</td><td class="n">0,90</td><td class="n">0,40</td></tr>
+<tr><td>Medio</td><td class="n">50%</td><td class="n">$3.100/h</td><td class="n">0,60</td><td class="n">0,20</td></tr>
+<tr><td>Bajo</td><td class="n">30%</td><td class="n">$1.600/h</td><td class="n">0,25</td><td class="n">0,05</td></tr>
+</tbody></table>
+<p class="pie-tabla">El total de viajes es fijo dada la población: el teletrabajo es exógeno
+(tasa base × factor de política) y quien no teletrabaja viaja. No hay demanda inducida.</p></div>
+
+<!-- ================================================================ -->
+<h2><span class="num">2</span>Los modelos</h2>
+
+<h3>2.1 Demanda: logit multinomial</h3>
+<p>Cada agente elige entre Auto (si dispone), Metro, Bicicleta y Caminata maximizando una
+utilidad con coeficientes por estrato <em>s</em>. Para el metro:</p>
+<div class="ecuacion">V<sup>s</sup><sub>metro</sub> = ASC<sup>s</sup><sub>metro</sub>
++ β<sup>s</sup><sub>viaje</sub>·t<sub>v</sub> + β<sup>s</sup><sub>espera</sub>·t<sub>e</sub>
++ β<sup>s</sup><sub>acceso</sub>·t<sub>a</sub> + β<sup>s</sup><sub>costo</sub>·tarifa</div>
+<p>y análogas para los demás modos (la caminata usa su propio β; la bici suma penalizaciones
+escalonadas por duración: sobre 10, 20 y 30 min, e infactible sobre 45; la caminata es
+infactible sobre 30 min). La elección probabilística es
+P<sub>m</sub> = e<sup>V<sub>m</sub></sup> / Σ<sub>m'</sub> e<sup>V<sub>m'</sub></sup>.</p>
+
+<h3>2.2 Oferta</h3>
+<ul>
+<li><strong>Auto</strong>: BPR <span class="mono">t = t₀·(1 + α·(q/C)^β)</span> con α=0,8, β=2;
+capacidad por pista de Greenshields (∝ velocidad libre). El flujo del corredor es el
+acumulado direccional hacia el CBD.</li>
+<li><strong>Bicicleta</strong>: BPR (α=0,5, β=2) con techo: el tiempo por tramo nunca supera el
+de caminarlo. Capacidad 2.500 bici/h.</li>
+<li><strong>Metro</strong>: sistema cíclico con estaciones equidistantes. La frecuencia es
+<em>endógena</em> — el corazón del efecto Mohring y de esta paradoja:
+<div class="ecuacion">f<sub>op</sub> = min( f<sub>max</sub>, max( f<sub>min</sub>, L<sub>max</sub>/K ) )
+&nbsp;&nbsp;&nbsp;&nbsp; t<sub>espera</sub> = 30 / f<sub>op</sub></div>
+donde L<sub>max</sub> es la carga del tramo crítico y K la capacidad por tren. Más pasajeros
+⇒ más frecuencia ⇒ menos espera (economía de escala, elasticidad −1). El tiempo en vehículo
+cobra además una detención de 30 s por estación intermedia. Congestión de andén tipo BPR si
+la carga supera f<sub>max</sub>·K.</li>
+<li><strong>Caminata</strong>: tiempo puramente geométrico (4,8 km/h), sin congestión — decisión
+de modelo explícita.</li>
+</ul>
+
+<h3>2.3 Equilibrio: MSA con tres métodos de asignación</h3>
+<p>El equilibrio oferta-demanda se resuelve por Método de Promedios Sucesivos: en cada
+iteración se asigna la demanda con los tiempos vigentes, se recalculan los tiempos de la red y
+se promedian con peso 1/(n+1) hasta que el máximo cambio de tiempo cae bajo la tolerancia
+(0,1 min). El <strong>método de asignación</strong> es la palanca conceptual clave:</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Método</th><th>Qué hace</th><th>Qué supone</th></tr></thead>
+<tbody>
+<tr><td><code>montecarlo</code></td><td>Sortea el modo de cada agente según P<sub>m</sub></td>
+<td rowspan="2">Equilibrio <strong>estocástico</strong> (SUE): hay gustos no observados; en el
+óptimo los modos usados tienen costos <em>distintos</em> y la brecha la absorbe el gusto.</td></tr>
+<tr><td><code>expected</code></td><td>Asigna la fracción P<sub>m</sub> de cada grupo (determinista, sin ruido)</td></tr>
+<tr><td><code>wardrop</code></td><td>Asigna <em>todo</em> el grupo al modo de mayor utilidad</td>
+<td>Equilibrio <strong>determinístico</strong> (UE): sin heterogeneidad de gustos, los usuarios
+arbitran hasta igualar costos. Es el límite del logit cuando la escala de los β crece.</td></tr>
+</tbody></table></div>
+
+<!-- ================================================================ -->
+<h2><span class="num">3</span>Parámetros vigentes (calibración agosto 2026)</h2>
+
+<p>La calibración fija <em>razones</em> — que son lo identificable — y las convierte a
+coeficientes. Fuente normativa: <em>Precios Sociales vigentes 2026</em>, Sistema Nacional de
+Inversiones (MDSF), Tabla 2.1: valor social del tiempo urbano $3.338/h-pax con ponderador
+<strong>2</strong> para espera y caminata de acceso.</p>
+
+<div class="dos-col">
+<div>
+<h3>Demanda (por estrato: alto / medio / bajo)</h3>
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Parámetro</th><th class="n">Valor</th></tr></thead>
+<tbody>
+<tr><td>β tiempo de viaje (util/min)</td><td class="n">−0,055 / −0,0331 / −0,015</td></tr>
+<tr><td>Espera / viaje</td><td class="n">2,0× (los tres)</td></tr>
+<tr><td>Acceso al metro / viaje</td><td class="n">2,0× (norma SNI)</td></tr>
+<tr><td>Caminata (modo) / viaje</td><td class="n">1,7× (juicio)</td></tr>
+<tr><td>Valor del tiempo (β<sub>t</sub>/β<sub>c</sub>)</td><td class="n">$6.200 / $3.100 / $1.600 por hora</td></tr>
+<tr><td>ASC en minutos de ventaja sobre el metro</td><td class="n">auto +20 · bici −18 · caminata 0<br>(iguales entre estratos)</td></tr>
+</tbody></table>
+<p class="pie-tabla">Las ASC comunes eliminan el doble conteo del ingreso: el gradiente de uso
+del auto emerge del valor del tiempo y la disponibilidad, no de gustos impuestos.</p></div>
+</div>
+<div>
+<h3>Ciudad y oferta</h3>
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Parámetro</th><th class="n">Valor</th></tr></thead>
+<tbody>
+<tr><td>Estacionamiento (costo esperado)</td><td class="n">$2.000</td></tr>
+<tr><td>Tarifa metro / bencina</td><td class="n">$800 · $120/km</td></tr>
+<tr><td>Pistas por sentido</td><td class="n">2</td></tr>
+<tr><td>Capacidad por tren K</td><td class="n">300 pax</td></tr>
+<tr><td>Frecuencia (mín–máx)</td><td class="n">6 – 40 tph</td></tr>
+<tr><td>Estaciones · detención</td><td class="n">10 · 30 s c/u</td></tr>
+<tr><td>Capacidad ciclovía</td><td class="n">2.500 bici/h</td></tr>
+</tbody></table></div>
+</div>
+</div>
+
+<h3>Línea base (defaults de la app, asignación <code>expected</code>)</h3>
+<div class="envoltorio-tabla"><table>
+<thead><tr><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th>
+<th class="n">Caminata</th><th class="n">Teletrabajo</th><th class="n">v/c corredor</th>
+<th class="n">f<sub>op</sub> metro</th></tr></thead>
+<tbody><tr><td class="n">15,4%</td><td class="n">37,0%</td><td class="n">21,4%</td>
+<td class="n">6,8%</td><td class="n">19,4%</td><td class="n">1,25</td><td class="n">20,9 tph</td></tr></tbody>
+</table>
+<p class="pie-tabla">Reproducir: <code>uv run python scripts/auditoria_transporte.py</code>.
+Con K=300 el metro opera a frecuencia alta y espera de ~1,4 min: la zona <em>plana</em> de su
+economía de escala — relevante para lo que sigue.</p></div>
+
+<!-- ================================================================ -->
+<h2><span class="num">4</span>La paradoja: teoría y condiciones</h2>
+
+<p><strong>Enunciado.</strong> Al expandir la capacidad vial, usuarios migran del transporte
+público al auto. Si el costo medio del transporte público <em>decrece</em> con su patronato
+(efecto Mohring: menos pasajeros ⇒ menos frecuencia ⇒ más espera), la migración lo encarece.
+Si además los usuarios arbitran hasta igualar costos entre modos, el costo común del nuevo
+equilibrio puede ser <em>mayor</em>: la ciudad entera termina peor tras ampliar la vía.
+Formalmente, con c<sub>R</sub>(q<sub>R</sub>, Cap) = c<sub>T</sub>(Q − q<sub>R</sub>):</p>
+
+<div class="ecuacion">dc*/dCap = c'<sub>T</sub> · (∂c<sub>R</sub>/∂Cap) / (c'<sub>R</sub> + c'<sub>T</sub>)
+&nbsp;&gt; 0&nbsp;&nbsp; si&nbsp; c'<sub>T</sub> &lt; 0</div>
+
+<p>La derivación deja explícitas las condiciones, y la búsqueda las midió una a una:</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th></th><th>Condición</th><th>Evidencia medida en el simulador</th></tr></thead>
+<tbody>
+<tr><td><strong>C2</strong></td><td><strong>Arbitraje de costos (la decisiva)</strong></td>
+<td><strong>0 paradojas bajo logit en los 10 escenarios; 8 verificadas bajo Wardrop.</strong>
+El logit deja al usuario del modo mejorado una ganancia sin arbitrar. Condición derivada para
+el MNL: P<sub>metro</sub>·w<sub>esp</sub>·espera·|β<sub>t</sub>| &gt; 1; con valores
+defendibles alcanza a lo más <strong>0,37</strong>.</td></tr>
+<tr><td><strong>C4</strong></td><td>Metro en la zona empinada de su economía de escala</td>
+<td>Con K=300 (f<sub>op</sub>≈21, espera 1,4 min) <em>no aparece ni bajo Wardrop</em>: la curva
+es plana. Con K=1.000 (f<sub>op</sub> 4–7, espera 4–8 min) aparece. Un piso de frecuencia alto
+la mata: impide que la frecuencia caiga.</td></tr>
+<tr><td><strong>C3</strong></td><td>Homogeneidad de los decisores</td>
+<td>Wardrop iguala costos entre las alternativas de <em>un</em> decisor, no entre decisores.
+Con 3 estratos y 201 distancias la caída es −0,6 min; con población homogénea concentrada a
+una distancia, −2 a −33 min (espiral completa).</td></tr>
+<tr><td><strong>C1</strong></td><td>Sin terceros modos que absorban</td>
+<td>Solo auto+metro la refuerza. Con 4 modos igual aparece si C2+C4 se cumplen (escenario E02).</td></tr>
+<tr><td><strong>C5</strong></td><td>Dinero y ASC no dominantes</td>
+<td>El diferencial de dinero no depende de la capacidad vial: si decide él, las pistas no
+mueven a nadie. Dinero=0 y ASC=0 refuerzan, pero no son necesarios.</td></tr>
+</tbody></table></div>
+
+<div class="aviso">
+<p><strong>Metodología — los tres falsos positivos que esta búsqueda descartó antes de llegar
+al resultado.</strong> La medida de bienestar decide el veredicto, y las intuitivas engañan:</p>
+<ul>
+<li>El <em>tiempo físico medio</em> puede subir sin paradoja (quien cambia de modo elige más
+minutos menos penosos) y puede <em>bajar durante</em> la paradoja (composición).</li>
+<li>El <em>costo generalizado tiempo+dinero</em> puede subir sin paradoja (quien se pasa al
+auto paga más estacionamiento… y lo elige).</li>
+<li>Dividir utilidades por β<sub>t</sub> &lt; 0 sin invertir el signo lee ventajas como costos.</li>
+</ul>
+<p>Medidas correctas, en minutos-equivalentes: <strong>logsum medio</strong>
+E[ln Σ e<sup>V</sup>]/|β<sub>t</sub>| para logit; <strong>utilidad máxima media</strong>
+E[max V]/|β<sub>t</sub>| para Wardrop. El detector exige además el mecanismo completo:
+auto ↑, metro ↓, espera ↑ y fuga a bici+caminata acotada.</p>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">5</span>Escenarios evaluados y resultados</h2>
+
+<p>Cada escenario ataca un supuesto. Todos se corren con los tres métodos donde aporta,
+barriendo pistas por sentido (1→8). Script: <code>scripts/buscar_downs_thomson.py</code>;
+los hallazgos se reverificaron con max_iter=120 y tolerancia 0,02.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Escenario</th><th>Diseño (qué cambia respecto de la app)</th>
+<th>Logit</th><th>Wardrop</th></tr></thead>
+<tbody>
+<tr><td>E01</td><td>Ciudad de la app tal cual (3 estratos, 4 modos, K=300)</td>
+<td><span class="etiqueta no">no</span></td><td><span class="etiqueta no">no</span></td></tr>
+<tr class="destacada"><td>E02</td><td>Ciudad de la app + metro K=1.000, piso de frecuencia bajo</td>
+<td><span class="etiqueta no">no</span></td><td><span class="etiqueta si">paradoja</span> −0,63 min (1→3 pistas)</td></tr>
+<tr><td>E03</td><td>Solo auto+metro, K=1.000</td>
+<td><span class="etiqueta no">no</span></td><td><span class="etiqueta no">no</span></td></tr>
+<tr><td>E04</td><td>Población homogénea, solo auto+metro, K=1.000</td>
+<td><span class="etiqueta no">no</span></td><td><span class="etiqueta si">paradoja</span> −20,1 min</td></tr>
+<tr><td>E05–E06</td><td>+ dinero cero (compiten solo por tiempo); K=1.000 y 2.500</td>
+<td><span class="etiqueta no">no</span></td><td><span class="etiqueta si">paradoja</span> −1,4 a −21,7 min</td></tr>
+<tr><td>E07–E08</td><td>+ ciudad bimodal concentrada (todos a ~7 km del CBD)</td>
+<td><span class="etiqueta no">no</span></td><td><span class="etiqueta si">paradoja</span> −2,6 a −32,6 min</td></tr>
+<tr><td>E09</td><td>Clásico puro: homogéneo + bimodal + ASC=0 + dinero=0</td>
+<td><span class="etiqueta no">no</span></td><td><span class="etiqueta si">paradoja</span> −9,9 min</td></tr>
+<tr><td>E10</td><td>E09 con cautivos del metro (disponibilidad de auto 0,7)</td>
+<td>—</td><td><span class="etiqueta si">paradoja</span> −5,0 min</td></tr>
+</tbody></table>
+<p class="pie-tabla">«no» = el bienestar emparejado sube monótonamente al agregar pistas.
+Montecarlo replica a expected con ruido (verificado en E01). Magnitudes = peor tramo.</p></div>
+
+<h3>5.1 El resultado central: la ciudad realista (E02, verificado fino)</h3>
+<p>Tres estratos, cuatro modos, calibración vigente; solo se cambió el metro a trenes de
+tamaño realista (K=1.000 en vez de 300) con piso de frecuencia bajo, y la asignación a
+Wardrop. Bienestar = utilidad máxima media en minutos-equivalentes (mayor = mejor):</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th class="n">Pistas</th><th class="n">Auto %</th><th class="n">Metro %</th>
+<th class="n">f<sub>op</sub></th><th class="n">Espera (min)</th><th class="n">Bienestar (min)</th><th></th></tr></thead>
+<tbody>
+<tr><td class="n">1</td><td class="n">15,7</td><td class="n">39,1</td><td class="n">7,0</td><td class="n">4,7</td><td class="n">−34,62</td><td></td></tr>
+<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,0</td><td class="n">5,9</td><td class="n">5,8</td><td class="n">−34,79</td><td>cae</td></tr>
+<tr class="destacada"><td class="n">3</td><td class="n">28,2</td><td class="n">27,3</td><td class="n">4,9</td><td class="n">6,9</td><td class="n">−35,25</td><td>mínimo</td></tr>
+<tr><td class="n">4</td><td class="n">29,8</td><td class="n">25,9</td><td class="n">4,7</td><td class="n">7,2</td><td class="n">−34,99</td><td>aún peor que 1 pista</td></tr>
+<tr><td class="n">6</td><td class="n">31,3</td><td class="n">24,8</td><td class="n">4,5</td><td class="n">7,4</td><td class="n">−34,50</td><td>≈ recupera</td></tr>
+<tr><td class="n">8</td><td class="n">31,4</td><td class="n">24,7</td><td class="n">4,4</td><td class="n">7,4</td><td class="n">−34,28</td><td>supera</td></tr>
+</tbody></table>
+<p class="pie-tabla">Triplicar la vialidad (1→3) deja a la ciudad <strong>peor</strong>; hay que
+llegar a ~6 pistas por sentido para recuperar el bienestar inicial. La fuga a bici+caminata es
+≈0 (25,7% → 24,5%): la sustitución es auto↔metro, el mecanismo correcto.</p></div>
+
+<h3>5.2 La forma fuerte: espiral de muerte del metro (E08–E09)</h3>
+<p>En los escenarios homogéneos concentrados la paradoja toma la forma que Mogridge describió
+para Londres: cada pista adicional drena al metro, la frecuencia cae, la espera explota y el
+sistema colapsa al peor equilibrio posible antes de «recuperarse» recién cuando el metro ya
+murió y la vialidad es enorme. E08 (K=2.500, Wardrop): de 2 a 4 pistas el metro pasa de 52%
+a 7%, la espera de 8 a 29 minutos, y el bienestar cae <strong>−32,6 min</strong>. En E09
+(ASC=0, dinero=0 — el caso de libro) la secuencia completa es 79% de metro con 1 pista →
+extinción con 8, con el mínimo de bienestar en plena transición.</p>
+
+<div class="aviso">
+<p><strong>Contraste pedagógico clave:</strong> en esos mismos escenarios bajo
+<code>expected</code> (logit), el bienestar <em>sube</em> monótonamente aunque el metro
+colapse igual — cada usuario que migra retiene una ganancia subjetiva que el arbitraje
+determinístico disiparía. La paradoja no es un hecho de la congestión: es un hecho del
+<em>supuesto de comportamiento</em>. Esa es la lección para el aula.</p>
+</div>
+
+<h3>5.3 Advertencias de interpretación</h3>
+<ul>
+<li><strong>Equilibrios múltiples bajo Wardrop:</strong> la carga todo-o-nada puede aterrizar
+en puntos fijos distintos ante cambios menores (está advertido en la interfaz). Para
+comparativas, barrer siempre desde la misma configuración.</li>
+<li><strong>La tabla de resultados muestra el excedente logsum</strong>, que es la medida del
+mundo logit; bajo Wardrop la medida emparejada es la utilidad máxima. El costo generalizado
+percibido —que sí está en pantalla— muestra el fenómeno (ver §6).</li>
+<li>El hacinamiento en vehículo y un dwell dependiente de la demanda jugarían <em>en
+contra</em> (son deseconomías que se alivian al perder pasajeros): agregarlos debilitaría la
+paradoja, no la ayudaría.</li>
+</ul>
+
+<!-- ================================================================ -->
+<h2><span class="num">6</span>Reproducción en el simulador (módulo Transporte)</h2>
+
+<p class="aviso ok" style="display:block"><strong>Receta de aula — 4 corridas, ~3 minutos.</strong>
+Todo con controles visibles de la interfaz; no requiere tocar la calibración.</p>
+
+<div class="paso"><span class="n-paso">1</span><strong>Configurar el metro y el método.</strong>
+En <em>Oferta · Metro</em>: capacidad tren <strong>1.000 pax</strong>, frec. mínima
+<strong>2 tph</strong> (resto en default). En <em>Equilibrio</em>: método de asignación
+<strong>Wardrop</strong>.</div>
+<div class="paso"><span class="n-paso">2</span><strong>Correr la base.</strong> En
+<em>Oferta · Auto</em>: <strong>1 pista</strong> por sentido. Simular equilibrio y
+<strong>«Fijar como referencia»</strong>.</div>
+<div class="paso"><span class="n-paso">3</span><strong>Ampliar la vía.</strong> Subir a 2 pistas
+y simular; repetir con 3 y 4. En cada corrida, mirar la tabla comparativa contra la
+referencia.</div>
+<div class="paso"><span class="n-paso">4</span><strong>Observar.</strong> Con cada pista
+adicional: el metro pierde participación, su frecuencia cae, la espera sube — y el
+<strong>costo generalizado percibido sube</strong> pese a que la vía es más grande.</div>
+
+<h3>Lo que ve el estudiante (medido con esa receta exacta)</h3>
+<div class="envoltorio-tabla"><table>
+<thead><tr><th class="n">Pistas</th><th class="n">Auto %</th><th class="n">Metro %</th>
+<th class="n">f<sub>op</sub> (tph)</th><th class="n">Espera (min)</th>
+<th class="n">Tiempo físico medio</th><th class="n">CG percibido (min-eq)</th></tr></thead>
+<tbody>
+<tr><td class="n">1</td><td class="n">15,5</td><td class="n">39,3</td><td class="n">7,1</td><td class="n">4,5</td><td class="n">17,6</td><td class="n">39,5</td></tr>
+<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">17,2</td><td class="n">41,5</td></tr>
+<tr><td class="n">3</td><td class="n">27,3</td><td class="n">28,7</td><td class="n">5,2</td><td class="n">6,1</td><td class="n">17,0</td><td class="n">42,4</td></tr>
+<tr class="destacada"><td class="n">4</td><td class="n">29,7</td><td class="n">26,2</td><td class="n">4,7</td><td class="n">6,6</td><td class="n">16,6</td><td class="n">42,7</td></tr>
+</tbody></table>
+<p class="pie-tabla">Costo generalizado percibido = tiempo ponderado (espera y acceso ×2, etc.)
++ dinero convertido al valor del tiempo de cada estrato, en <strong>minutos-equivalentes por
+viajero</strong>. La métrica «costo generalizado percibido» de la tabla de resultados de la app
+está construida sobre este mismo objeto (expresado en $), por lo que el alza se ve en pantalla.
+Nótese la divergencia deliberadamente instructiva: el <em>tiempo físico medio baja</em>
+(composición: los que migran suman minutos de auto menos penosos) mientras el <em>costo
+generalizado sube</em>. Discutir esa divergencia en clase <strong>es</strong> la lección de
+bienestar.</p></div>
+
+<p>Para contraste inmediato: repetir la secuencia con método <code>Flujos esperados</code> —
+el costo generalizado deja de subir y el fenómeno desaparece. Un solo botón separa el mundo
+donde la paradoja existe del mundo donde no.</p>
+
+<h3>Reproducción exacta por scripts (equipo técnico)</h3>
+<pre><code># desde packages/titirilquen_core
+uv run python scripts/buscar_downs_thomson.py     # los 10 escenarios completos (~5 min)
+uv run python scripts/auditoria_transporte.py     # línea base y barridos de la app
+uv run python scripts/diagnostico_calibracion.py  # los betas en minutos-equivalentes</code></pre>
+
+<!-- ================================================================ -->
+<h2><span class="num">7</span>Conclusiones</h2>
+
+<ol>
+<li><strong>La paradoja de Downs-Thomson se observa en el simulador</strong>, incluida la
+ciudad realista de tres estratos y cuatro modos, y es reproducible desde la interfaz en
+cuatro corridas.</li>
+<li><strong>Es una propiedad del supuesto de arbitraje, no de la congestión.</strong> Cero
+apariciones bajo logit en toda la búsqueda; ocho bajo Wardrop. El mismo colapso del metro que
+bajo Wardrop empeora a la ciudad, bajo logit la «mejora» — porque cada migrante retiene una
+ganancia subjetiva. Comparar ambos mundos con un botón es el mejor uso docente del hallazgo.</li>
+<li><strong>Necesita al metro en la zona empinada de su economía de escala.</strong> Con la
+calibración por defecto (K=300, espera 1,4 min) la curva es plana y no hay paradoja posible:
+no es un defecto, es una ciudad con metro de alta frecuencia. Trenes grandes y piso de
+frecuencia bajo la exponen.</li>
+<li><strong>La heterogeneidad amortigua.</strong> Estratos, distancias y modos alternativos
+convierten la espiral de muerte de los modelos de pizarra en una caída modesta (−0,6 min). Eso
+también es contenido docente: por qué las paradojas de libro rara vez se ven puras en
+ciudades reales.</li>
+<li><strong>La medida de bienestar decide el veredicto.</strong> Tiempo físico y costo
+tiempo+dinero producen falsos positivos y falsos negativos por composición; las medidas
+emparejadas (logsum / utilidad máxima) son las únicas concluyentes.</li>
+<li><strong>Braess no es representable</strong> (corredor único, sin elección de ruta) y la
+<strong>demanda inducida está apagada</strong> (teletrabajo exógeno): las otras dos paradojas
+clásicas quedan fuera del alcance actual por diseño.</li>
+</ol>
+
+<footer>
+<p><strong>Trazabilidad.</strong> Evidencia y detector: <code>packages/titirilquen_core/scripts/buscar_downs_thomson.py</code> ·
+estado del proyecto: <code>docs/CONTINUAR.md</code> · implementación Wardrop: commit <code>321bd07</code> ·
+búsqueda sistemática: <code>0e48a70</code> · calibración: commits <code>807c78a…ea4a05b</code>.
+Paper original (<code>reference/overleaf_original/main.tex</code>): logit multinomial puro, sin mención de la
+paradoja — objetivo pedagógico del proyecto, no promesa de los autores. Valores sociales:
+Precios Sociales 2026, SNI/MDSF (<code>reference/Precios-Sociales-2026.pdf</code>).</p>
+<p>Titirilquen · agosto 2026 · generado sobre la rama <code>ciudad-equilibrio-mejoras</code>.</p>
+</footer>
+
+</div>
+</body>
+</html>
