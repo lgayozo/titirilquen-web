@@ -248,12 +248,12 @@
     "vot": "Valor del tiempo",
     "ratio_espera": "Espera / viaje",
     "ratio_caminata": "Caminata / viaje",
-    "ratio_hint": "El valor del tiempo es β tiempo ÷ β costo. Las razones dicen cuántas veces más molesta un minuto de espera —o de caminata— que uno arriba del vehículo: la evidencia empírica ubica la espera entre 1,5 y 2,5; bajo 1 el modelo afirma que esperar molesta menos que viajar.",
+    "ratio_hint": "El valor del tiempo es β tiempo ÷ β costo. Las razones dicen cuántas veces más molesta un minuto de espera —o de acceso al metro— que uno arriba del vehículo. Los Precios Sociales 2026 del SNI asignan ponderador 2 a ambos; bajo 1 el modelo afirma que esperar molesta menos que viajar.",
     "b_costo_warn": "β costo debe ser negativo: en 0 o positivo el valor del tiempo y el excedente quedan indefinidos.",
     "g_asc": "Constantes específicas (ASC)",
     "g_asc_hint": "Capturan todo lo que el modelo no mide (comodidad, hábito, estatus). Solo importan las diferencias entre modos: sumarle lo mismo a las cuatro no cambia nada.",
     "g_tiempo": "Tiempo y costo",
-    "g_tiempo_hint": "En utiles por minuto y por peso. Todos negativos: más tiempo o más plata, menos utilidad. Hay un único β de costo para bencina, tarifa y estacionamiento juntos.",
+    "g_tiempo_hint": "En utiles por minuto y por peso. Todos negativos: más tiempo o más plata, menos utilidad. El acceso al metro y el modo caminata llevan coeficientes SEPARADOS: no es lo mismo el tramo a pie de un viaje en metro que el viaje entero caminando. Hay un único β de costo para bencina, tarifa y estacionamiento juntos.",
     "g_penal": "Penalizaciones físicas",
     "g_penal_hint": "Aditivas, acumulativas y por umbral de MINUTOS: un viaje en bici de 25 min suma la de 10 y la de 20. Sobre 45 min la bici es infactible; la caminata, sobre 30 min.",
     "g_poblacion": "Población",
@@ -275,8 +275,10 @@
       "walk_15": "Caminata sobre 15 min",
       "walk_25": "Caminata sobre 25 min",
       "prob_auto": "Tenencia de auto",
-      "prob_teletrabajo": "Teletrabajo (tasa base)"
-    }
+      "prob_teletrabajo": "Teletrabajo (tasa base)",
+      "b_tiempo_acceso": "β acceso al metro"
+    },
+    "ratio_acceso": "Acceso metro / viaje"
   },
   "demand_inspector": {
     "title": "Inspector de utilidad — logit multinomial",

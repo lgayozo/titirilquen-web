@@ -104,7 +104,7 @@ def calcular_utilidades(
     v_t_metro = (
         betas.b_tiempo_viaje * tiempos.tren_viaje
         + betas.b_tiempo_espera * tiempos.tren_espera
-        + betas.b_tiempo_caminata * tiempos.tren_acceso
+        + betas.b_tiempo_acceso * tiempos.tren_acceso
     )
     v_c_metro = betas.b_costo * c_metro
     v_metro = asc_metro + v_t_metro + v_c_metro

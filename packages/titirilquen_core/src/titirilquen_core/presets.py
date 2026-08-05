@@ -176,10 +176,16 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 #    o sea el modelo afirmaba que esperar en un anden molesta MENOS que ir
 #    sentado. Ademas subvaluaba el efecto Mohring, que opera justamente por la
 #    espera: mas frecuencia -> menos espera -> mas demanda -> mas frecuencia.
-#  * `b_tiempo_caminata` = 1.7 x `b_tiempo_viaje`. Antes 2.73 / 1.33 / 1.67, sin
-#    patron, y en los tres estratos POR ENCIMA de la espera. Queda el orden
-#    viaje < caminata < espera. Ojo: este beta pesa el acceso al metro Y el modo
-#    caminata completo (utility.py), asi que mueve dos cosas a la vez.
+#  * El peso del tiempo caminando se PARTIO EN DOS, porque un solo coeficiente
+#    pesaba el acceso al metro y el modo caminata completo, que no son lo mismo:
+#      - `b_tiempo_acceso` = 2.0 x viaje. Valor de NORMA: Precios Sociales 2026
+#        del SNI, Tabla 2.1, ponderador 2, acotado a «usuarios de transporte
+#        publico mayor» y, en viajes combinados, «solo el tramo de transporte
+#        publico» — o sea exactamente este termino.
+#      - `b_tiempo_caminata` = 1.7 x viaje, para el viaje entero a pie. NO esta
+#        cubierto por esa tabla; es un juicio, no una norma.
+#    Antes ambos eran el mismo numero y daban 2.73 / 1.33 / 1.67, sin patron y
+#    en los tres estratos POR ENCIMA de la espera.
 #  * `b_costo` se despeja del valor del tiempo pedido (6.200 / 3.100 / 1.600
 #    $/hora): b_costo = b_tiempo_viaje * 60 / VoT. Se ajusta el coeficiente de
 #    COSTO y no el de tiempo a proposito: `b_tiempo_viaje` es el denominador de
@@ -225,6 +231,7 @@ DEFAULT_STRATA = {
             "b_tiempo_viaje": -0.055,
             "b_costo": -0.00053226,  # VoT 6.200 $/h
             "b_tiempo_espera": -0.11,  # 2.0 x viaje
+            "b_tiempo_acceso": -0.11,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.0935,  # 1.7 x viaje
             "penalizaciones_fisicas": {
                 "bici_10": -0.09,
@@ -250,6 +257,7 @@ DEFAULT_STRATA = {
             "b_tiempo_viaje": -0.0331,
             "b_costo": -0.00064065,  # VoT 3.100 $/h
             "b_tiempo_espera": -0.0662,  # 2.0 x viaje
+            "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.05627,  # 1.7 x viaje
             "penalizaciones_fisicas": {
                 "bici_10": -0.0634,
@@ -275,6 +283,7 @@ DEFAULT_STRATA = {
             "b_tiempo_viaje": -0.0150,
             "b_costo": -0.0005625,  # VoT 1.600 $/h
             "b_tiempo_espera": -0.03,  # 2.0 x viaje
+            "b_tiempo_acceso": -0.03,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.0255,  # 1.7 x viaje
             "penalizaciones_fisicas": {
                 "bici_10": -0.0300,

@@ -248,12 +248,12 @@
     "vot": "Value of time",
     "ratio_espera": "Wait / in-vehicle",
     "ratio_caminata": "Walk / in-vehicle",
-    "ratio_hint": "Value of time is β time ÷ β cost. The ratios say how many times more onerous a minute of waiting —or walking— is than a minute in the vehicle: empirical evidence puts waiting between 1.5 and 2.5; below 1 the model claims waiting bothers people less than travelling.",
+    "ratio_hint": "Value of time is β time ÷ β cost. The ratios say how many times more onerous a minute of waiting —or of walking to the station— is than a minute in the vehicle. Chile's 2026 social prices (SNI) assign weight 2 to both; below 1 the model claims waiting bothers people less than travelling.",
     "b_costo_warn": "β cost must be negative: at 0 or positive, the value of time and the surplus are undefined.",
     "g_asc": "Alternative-specific constants (ASC)",
     "g_asc_hint": "They capture everything the model does not measure (comfort, habit, status). Only differences between modes matter: adding the same amount to all four changes nothing.",
     "g_tiempo": "Time and cost",
-    "g_tiempo_hint": "In utils per minute and per peso. All negative: more time or more money, less utility. There is a single cost β covering fuel, fare and parking together.",
+    "g_tiempo_hint": "In utils per minute and per peso. All negative: more time or more money, less utility. Metro access and the walking mode use SEPARATE coefficients: the walk to a station is not the same as walking the whole trip. There is a single cost β covering fuel, fare and parking together.",
     "g_penal": "Physical penalties",
     "g_penal_hint": "Additive, cumulative and triggered by MINUTE thresholds: a 25-min bike trip adds both the 10-min and the 20-min penalty. Above 45 min cycling is infeasible; walking, above 30 min.",
     "g_poblacion": "Population",
@@ -275,8 +275,10 @@
       "walk_15": "Walk over 15 min",
       "walk_25": "Walk over 25 min",
       "prob_auto": "Car ownership",
-      "prob_teletrabajo": "Telework (base rate)"
-    }
+      "prob_teletrabajo": "Telework (base rate)",
+      "b_tiempo_acceso": "β metro access"
+    },
+    "ratio_acceso": "Metro access / in-vehicle"
   },
   "demand_inspector": {
     "title": "Utility inspector — multinomial logit",

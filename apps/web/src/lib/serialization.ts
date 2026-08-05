@@ -50,6 +50,22 @@ function migrateConfig(config: SimulationConfig): SimulationConfig {
   if (city && "ingresos_estratos" in city) {
     delete city.ingresos_estratos; // parámetro muerto, eliminado del core (A3)
   }
+  // `b_tiempo_acceso` se separó de `b_tiempo_caminata` (ago-2026): antes un solo
+  // coeficiente pesaba el acceso al metro Y el modo caminata completo. Es campo
+  // REQUERIDO en el core, así que un escenario viejo sin él no valida. Se rellena
+  // con el valor que tenía el coeficiente único, que es exactamente lo que ese
+  // escenario usaba para el acceso: la migración conserva su comportamiento.
+  const estratos = (
+    config as unknown as { demand?: { estratos?: Record<string, { betas?: Record<string, unknown> }> } }
+  ).demand?.estratos;
+  if (estratos) {
+    for (const s of Object.values(estratos)) {
+      const b = s?.betas;
+      if (b && !("b_tiempo_acceso" in b) && "b_tiempo_caminata" in b) {
+        b.b_tiempo_acceso = b.b_tiempo_caminata;
+      }
+    }
+  }
   const globales = (config as unknown as { demand?: { globales?: Record<string, unknown> } })
     .demand?.globales;
   if (globales && "factor_emision_auto" in globales) {

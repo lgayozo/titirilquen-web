@@ -19,6 +19,7 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
         b_tiempo_viaje: -0.055,
         b_costo: -0.00053226,
         b_tiempo_espera: -0.11,
+        b_tiempo_acceso: -0.11,
         b_tiempo_caminata: -0.0935,
         penalizaciones_fisicas: {
           bici_10: -0.09,
@@ -43,6 +44,7 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
         b_tiempo_viaje: -0.0331,
         b_costo: -0.00064065,
         b_tiempo_espera: -0.0662,
+        b_tiempo_acceso: -0.0662,
         b_tiempo_caminata: -0.05627,
         penalizaciones_fisicas: {
           bici_10: -0.0634,
@@ -66,6 +68,7 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
       b_tiempo_viaje: -0.015,
       b_costo: -0.0005625,
       b_tiempo_espera: -0.03,
+      b_tiempo_acceso: -0.03,
       b_tiempo_caminata: -0.0255,
       penalizaciones_fisicas: {
         bici_10: -0.03,

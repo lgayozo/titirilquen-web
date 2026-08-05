@@ -52,6 +52,7 @@ const ASC_KEYS: BetaKey[] = ["asc_auto", "asc_metro", "asc_bici", "asc_caminata"
 const TIEMPO_KEYS: BetaKey[] = [
   "b_tiempo_viaje",
   "b_tiempo_espera",
+  "b_tiempo_acceso",
   "b_tiempo_caminata",
   "b_costo",
 ];
@@ -72,6 +73,7 @@ const STEP: Record<BetaKey, number> = {
   asc_caminata: 0.05,
   b_tiempo_viaje: 0.005,
   b_tiempo_espera: 0.005,
+  b_tiempo_acceso: 0.005,
   b_tiempo_caminata: 0.005,
   b_costo: 0.00002,
 };
@@ -211,6 +213,7 @@ export function CalibrationPanel({ config, onChange }: Props) {
   const razon = (b: number) =>
     betas.b_tiempo_viaje === 0 ? null : b / betas.b_tiempo_viaje;
   const rEspera = razon(betas.b_tiempo_espera);
+  const rAcceso = razon(betas.b_tiempo_acceso);
   const rCaminata = razon(betas.b_tiempo_caminata);
   const fmtRazon = (r: number | null) => (r == null ? "—" : `${r.toFixed(2)}×`);
 
@@ -263,6 +266,14 @@ export function CalibrationPanel({ config, onChange }: Props) {
           </dt>
           <dd className="font-fig text-[12px] tabular-nums text-[var(--ink)]">
             {fmtRazon(rEspera)}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-[11px] text-[var(--ink-2)]">
+            {t("calibration.ratio_acceso")}
+          </dt>
+          <dd className="font-fig text-[12px] tabular-nums text-[var(--ink)]">
+            {fmtRazon(rAcceso)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-2">

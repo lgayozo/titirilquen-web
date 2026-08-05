@@ -25,6 +25,11 @@ export interface StratumBetas {
   b_tiempo_viaje: number;
   b_costo: number;
   b_tiempo_espera: number;
+  /** Acceso caminando a la estación de metro. Valor de norma: ponderador 2 del
+   *  SNI (Precios Sociales 2026, Tabla 2.1). */
+  b_tiempo_acceso: number;
+  /** Modo caminata completo. NO cubierto por la tabla del SNI, que habla del
+   *  tramo caminado de un viaje en transporte público. */
   b_tiempo_caminata: number;
   penalizaciones_fisicas: PhysicalPenalties;
 }

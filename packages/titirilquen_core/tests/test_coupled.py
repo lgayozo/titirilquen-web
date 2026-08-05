@@ -23,7 +23,7 @@ def _demand_config() -> DemandConfig:
     betas = StratumBetas(
         asc_auto=1.5, asc_metro=-0.2, asc_bici=-0.9, asc_caminata=-0.5,
         b_tiempo_viaje=-0.055, b_costo=-0.00008,
-        b_tiempo_espera=-0.05, b_tiempo_caminata=-0.15,
+        b_tiempo_espera=-0.05, b_tiempo_acceso=-0.15, b_tiempo_caminata=-0.15,
         penalizaciones_fisicas=penal,
     )
     s = StratumConfig(prob_teletrabajo=0.2, prob_auto=0.6, betas=betas)

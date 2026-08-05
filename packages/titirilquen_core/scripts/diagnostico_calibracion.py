@@ -95,11 +95,14 @@ def razones(estratos: dict[int, StratumConfig]) -> None:
     print("\n1-2. PESO RELATIVO DE CADA COMPONENTE DEL TIEMPO")
     print("     (= beta del componente / beta del tiempo en vehiculo)")
     linea()
-    print(f"{'estrato':<10}{'espera/viaje':>16}{'caminata/viaje':>18}   veredicto")
+    print(
+        f"{'estrato':<10}{'espera/viaje':>14}{'acceso/viaje':>14}{'caminata/viaje':>16}   veredicto"
+    )
     linea()
     for h, s in sorted(estratos.items()):
         b = s.betas
         r_esp = b.b_tiempo_espera / b.b_tiempo_viaje
+        r_acc = b.b_tiempo_acceso / b.b_tiempo_viaje
         r_cam = b.b_tiempo_caminata / b.b_tiempo_viaje
         ok_esp = RAZON_ESPERA_MIN <= r_esp <= RAZON_ESPERA_MAX
         ok_cam = RAZON_CAMINATA_MIN <= r_cam <= RAZON_CAMINATA_MAX
@@ -111,7 +114,7 @@ def razones(estratos: dict[int, StratumConfig]) -> None:
                 f"caminata {r_cam:.2f} fuera de [{RAZON_CAMINATA_MIN}, {RAZON_CAMINATA_MAX}]"
             )
         print(
-            f"{NOMBRES[h]:<10}{r_esp:>16.2f}{r_cam:>18.2f}   "
+            f"{NOMBRES[h]:<10}{r_esp:>14.2f}{r_acc:>14.2f}{r_cam:>16.2f}   "
             f"{veredicto(ok_esp and ok_cam)}{'; '.join(marcas)}"
         )
     linea()

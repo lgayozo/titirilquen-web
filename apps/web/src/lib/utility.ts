@@ -87,7 +87,7 @@ export function calcularUtilidades({
   const vTMetro =
     betas.b_tiempo_viaje * tt.tren_viaje +
     betas.b_tiempo_espera * tt.tren_espera +
-    betas.b_tiempo_caminata * tt.tren_acceso;
+    betas.b_tiempo_acceso * tt.tren_acceso;
   const vCMetro = betas.b_costo * cMetro;
   const metro: UtilityBreakdown = {
     modo: "Metro",

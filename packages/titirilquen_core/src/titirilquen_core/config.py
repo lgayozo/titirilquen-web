@@ -49,6 +49,20 @@ class StratumBetas(BaseModel):
     b_tiempo_viaje: float
     b_costo: float
     b_tiempo_espera: float
+    # ACCESO caminando a la estación de metro. Separado de `b_tiempo_caminata`
+    # en ago-2026: un solo coeficiente pesaba las dos cosas, y no son lo mismo.
+    #
+    # Este SÍ tiene valor de norma: Precios Sociales 2026 del SNI, Tabla 2.1,
+    # asigna ponderador 2 a la caminata frente a 1 del viaje en vehículo, y acota
+    # que esos valores aplican «solo para los usuarios de transporte público
+    # mayor» y que en viajes combinados «solo el tramo de transporte público está
+    # afecto a ellos» — o sea, exactamente este término. De ahí el 2.0 x
+    # `b_tiempo_viaje`.
+    b_tiempo_acceso: float
+    # Modo CAMINATA completo (el viaje entero a pie). NO está cubierto por la
+    # tabla del SNI, que habla del tramo caminado de un viaje en transporte
+    # público. Queda en 1.7 x `b_tiempo_viaje`, que es un juicio, no una norma:
+    # caminar todo el viaje es un modo elegido, no un tramo forzado de otro.
     b_tiempo_caminata: float
     penalizaciones_fisicas: PhysicalPenalties
 
