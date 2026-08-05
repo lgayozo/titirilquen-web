@@ -85,7 +85,6 @@
     "tolerance": "Tolerancia de convergencia",
     "tol_off": "off",
     "assignment": "Método de asignación",
-    "assignment_mc": "Monte Carlo",
     "assignment_expected": "Flujos esperados",
     "assignment_hint_montecarlo": "Sortea el modo de cada agente (estocástico; tiene ruido entre iteraciones).",
     "assignment_hint_expected": "Asignación fraccional por probabilidades logit (determinista, sin ruido).",
@@ -99,7 +98,10 @@
     "residual": "Residuo",
     "iteration": "Iteración {{n}} de {{total}}",
     "converged": "Equilibrio alcanzado",
-    "booting_pyodide": "Inicializando Pyodide en el navegador (primera vez ~10–20s)…"
+    "booting_pyodide": "Inicializando Pyodide en el navegador (primera vez ~10–20s)…",
+    "assignment_montecarlo": "Monte Carlo",
+    "assignment_wardrop": "Wardrop",
+    "assignment_hint_wardrop": "Elección DETERMINÍSTICA: cada grupo va entero al modo de mayor utilidad, sin heterogeneidad de gustos. Es el límite del logit cuando la escala de los coeficientes crece. Ojo: la carga todo-o-nada puede tener equilibrios múltiples — dos configuraciones parecidas pueden aterrizar en repartos distintos."
   },
   "run_status": {
     "booting_pyodide": "Inicializando Pyodide…",

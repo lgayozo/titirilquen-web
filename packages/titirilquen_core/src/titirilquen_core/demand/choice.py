@@ -37,6 +37,41 @@ def probabilidades_logit(utilidades: dict[Modo, UtilityBreakdown]) -> dict[Modo,
     return out
 
 
+def probabilidades_wardrop(utilidades: dict[Modo, UtilityBreakdown]) -> dict[Modo, float]:
+    """Elección DETERMINÍSTICA: toda la probabilidad al modo de mayor utilidad.
+
+    Es el límite del logit cuando la escala de los coeficientes tiende a
+    infinito, o sea cuando la heterogeneidad de gustos no observada se desvanece.
+    Combinado con el promediado del MSA, el punto fijo es un equilibrio de
+    Wardrop: todo modo usado termina con el mismo costo generalizado, porque
+    mientras uno sea mejor la iteración sigue moviéndole demanda.
+
+    La diferencia con `probabilidades_logit` no es de precisión sino de
+    supuesto, y decide resultados: bajo Wardrop los usuarios arbitran hasta
+    igualar costos, así que una mejora vial se disipa por completo; bajo logit el
+    trasvase se detiene antes y el usuario del modo que mejoró conserva una
+    ganancia. De ahí que la paradoja de Downs-Thomson aparezca con el primero y
+    no con el segundo (docs/CONTINUAR.md §5).
+
+    Empates: se reparte en partes iguales entre los modos empatados. Sin eso, un
+    desempate arbitrario por orden de diccionario introduciría un sesgo estable
+    entre iteraciones.
+    """
+    feasibles = [m for m, u in utilidades.items() if u.feasible]
+    out: dict[Modo, float] = dict.fromkeys(utilidades, 0.0)
+    if not feasibles:
+        return out
+    mejor = max(utilidades[m].valor for m in feasibles)
+    empatados = [m for m in feasibles if utilidades[m].valor >= mejor - _TOL_EMPATE]
+    for m in empatados:
+        out[m] = 1.0 / len(empatados)
+    return out
+
+
+_TOL_EMPATE = 1e-12
+"""Tolerancia para considerar empatadas dos utilidades en `probabilidades_wardrop`."""
+
+
 def elegir_modo(
     utilidades: dict[Modo, UtilityBreakdown],
     *,

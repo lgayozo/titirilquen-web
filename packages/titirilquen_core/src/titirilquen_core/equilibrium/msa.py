@@ -18,7 +18,7 @@ from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, SimulationConfig, StratumId
-from titirilquen_core.demand.choice import probabilidades_logit
+from titirilquen_core.demand.choice import probabilidades_logit, probabilidades_wardrop
 from titirilquen_core.emissions import calcular_emisiones
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.land_use.ciudad import LandUseCity
@@ -145,6 +145,7 @@ def _probs_grupo(
     demand: DemandConfig,
     tiempos_por_celda: list[TiemposObservados] | None,
     modos_habilitados: tuple[str, ...] | None,
+    wardrop: bool = False,
 ):
     tiempos = tiempos_por_celda[g.celda] if tiempos_por_celda is not None else None
     utils = calcular_utilidades(
@@ -156,7 +157,8 @@ def _probs_grupo(
         tiempos_observados=tiempos,
         modos_habilitados=modos_habilitados,
     )
-    return utils, probabilidades_logit(utils)
+    reparto = probabilidades_wardrop if wardrop else probabilidades_logit
+    return utils, reparto(utils)
 
 
 def _correr_iteracion(
@@ -168,6 +170,7 @@ def _correr_iteracion(
     rng: np.random.Generator,
     expected: bool = False,
     modos_habilitados: tuple[str, ...] | None = None,
+    wardrop: bool = False,
 ) -> tuple[
     ModalSplit,
     NDArray[np.float64],
@@ -194,7 +197,7 @@ def _correr_iteracion(
     dem = {"Auto": dem_auto, "Metro": dem_metro, "Bici": dem_bici, "Caminata": dem_caminata}
 
     for g in grupos:
-        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
+        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados, wardrop)
         n = len(g.agentes)
         i = g.celda
         if expected:
@@ -228,14 +231,22 @@ def _asignar_modos_agentes(
     tiempos_por_celda: list[TiemposObservados] | None,
     rng: np.random.Generator,
     modos_habilitados: tuple[str, ...] | None = None,
+    wardrop: bool = False,
 ) -> None:
     """Asigna `modo_elegido`/`utilidad_elegida` a cada agente **una sola vez**, a
     partir del estado final, muestreando de las probabilidades del grupo
     (vectorizado: `rng.choice(size=nₐ)`). Los registros por agente alimentan las
     figuras agente‑nivel; el muestreo (no argmax) preserva modos minoritarios
-    como la bici."""
+    como la bici.
+
+    Con `wardrop=True` el reparto del grupo ya es degenerado —toda la masa en el
+    mejor modo—, así que muestrear de él devuelve ese modo para todos los
+    agentes del grupo. Es lo correcto: bajo equilibrio determinístico no hay
+    heterogeneidad de gustos que separe a dos agentes idénticos."""
     for g in grupos:
-        utils, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
+        utils, probs = _probs_grupo(
+            g, ciudad, demand, tiempos_por_celda, modos_habilitados, wardrop
+        )
         n = len(g.agentes)
         pvec = np.array([probs.get(m, 0.0) for m in _MODOS])
         total = float(pvec.sum())
@@ -377,8 +388,12 @@ def _iter_loop(
             sim.demand,
             tiempos_actuales,
             rng,
-            sim.assignment == "expected",
+            # 'wardrop' carga de forma fraccional igual que 'expected': su
+            # reparto ya es degenerado (todo al mejor modo), asi que sortearlo
+            # solo agregaria ruido sin cambiar el valor esperado.
+            sim.assignment in ("expected", "wardrop"),
             sim.modos_habilitados,
+            sim.assignment == "wardrop",
         )
 
         car_p = sim.supply.car
@@ -544,6 +559,7 @@ def _demanda_esperada_por_estrato(
     demand: DemandConfig,
     tiempos_por_celda: list[TiemposObservados] | None,
     modos_habilitados: tuple[str, ...] | None,
+    wardrop: bool = False,
 ) -> NDArray[np.float64]:
     """Demanda esperada (nₐ·prob) por estrato·modo·celda del estado dado —
     forma [estrato 0..2, modo (orden _MODOS), celda]. Es la Fig. 9 desagregada
@@ -551,7 +567,7 @@ def _demanda_esperada_por_estrato(
     continua bajo cualquier asignación. Teletrabajo va aparte (no viaja)."""
     arr = np.zeros((3, len(_MODOS), ciudad.n_celdas))
     for g in grupos:
-        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
+        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados, wardrop)
         e = int(g.estrato) - 1
         if not 0 <= e < 3:
             continue
@@ -573,10 +589,23 @@ def _finalizar_trace(
     """Completa el `trace` tras el loop: registros por agente (una sola pasada),
     capacidades del estado final y emisiones de CO₂."""
     # Registros por agente a partir del estado convergido, para figuras agente‑nivel.
-    _asignar_modos_agentes(grupos, ciudad, sim.demand, tiempos_actuales, rng, sim.modos_habilitados)
+    _asignar_modos_agentes(
+        grupos,
+        ciudad,
+        sim.demand,
+        tiempos_actuales,
+        rng,
+        sim.modos_habilitados,
+        sim.assignment == "wardrop",
+    )
     # Demanda esperada por estrato·modo·celda (reparto modal espacial por estrato).
     trace.demanda_estrato = _demanda_esperada_por_estrato(
-        grupos, ciudad, sim.demand, tiempos_actuales, sim.modos_habilitados
+        grupos,
+        ciudad,
+        sim.demand,
+        tiempos_actuales,
+        sim.modos_habilitados,
+        sim.assignment == "wardrop",
     )
     if last_state is None:
         return

@@ -726,7 +726,7 @@ export function SandboxPage() {
               {t("equilibrium.assignment")}
             </div>
             <div className="seg" style={{ width: "100%" }}>
-              {(["montecarlo", "expected"] as const).map((m) => (
+              {(["montecarlo", "expected", "wardrop"] as const).map((m) => (
                 <button
                   key={m}
                   type="button"
@@ -734,9 +734,7 @@ export function SandboxPage() {
                   onClick={() => setConfig((c) => ({ ...c, assignment: m }))}
                   style={{ flex: 1 }}
                 >
-                  {m === "montecarlo"
-                    ? t("equilibrium.assignment_mc")
-                    : t("equilibrium.assignment_expected")}
+                  {t(`equilibrium.assignment_${m}`)}
                 </button>
               ))}
             </div>

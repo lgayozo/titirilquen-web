@@ -125,7 +125,10 @@ export interface SimulationConfig {
   seed: number | null;
   /** Método de asignación de demanda: Monte Carlo (sorteo por agente) o
    *  flujos esperados (probabilidades logit, determinista). */
-  assignment: "montecarlo" | "expected";
+  /** `montecarlo` y `expected` son equilibrio ESTOCÁSTICO (logit): los modos
+   *  usados terminan con costos distintos y la brecha la absorbe el gusto.
+   *  `wardrop` es DETERMINÍSTICO: cada grupo va al modo de mayor utilidad. */
+  assignment: "montecarlo" | "expected" | "wardrop";
   /** Modos disponibles en el set de elección antes de correr el equilibrio.
    *  Los modos excluidos se tratan como infeasibles (utilidad −∞). El
    *  teletrabajo no es elegible (se decide antes de la elección de modo). */

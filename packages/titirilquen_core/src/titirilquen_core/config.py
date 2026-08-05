@@ -296,12 +296,19 @@ class SimulationConfig(BaseModel):
     # residual».
     tolerance: float = Field(default=0.1, ge=0)
     seed: int | None = None
-    assignment: Literal["montecarlo", "expected"] = Field(
+    assignment: Literal["montecarlo", "expected", "wardrop"] = Field(
         default="montecarlo",
         description=(
-            "Método de asignación de demanda: 'montecarlo' sortea el modo de cada "
+            "Método de asignación de demanda. 'montecarlo' sortea el modo de cada "
             "agente (estocástico); 'expected' usa los flujos esperados = "
-            "probabilidades logit (determinista, sin ruido entre iteraciones)."
+            "probabilidades logit (determinista, sin ruido entre iteraciones); "
+            "'wardrop' asigna TODO el grupo al modo de mayor utilidad "
+            "(determinístico, sin heterogeneidad de gustos). "
+            "Los dos primeros son equilibrio estocástico (SUE): en el óptimo los "
+            "modos usados tienen costos DISTINTOS y la brecha la absorbe el gusto. "
+            "'wardrop' es equilibrio determinístico (UE): los usuarios arbitran "
+            "hasta IGUALAR costos. Esa diferencia decide si se observa la paradoja "
+            "de Downs-Thomson — ver docs/CONTINUAR.md §5."
         ),
     )
     modos_habilitados: tuple[Modo, ...] = Field(

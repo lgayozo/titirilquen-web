@@ -85,7 +85,6 @@
     "tolerance": "Convergence tolerance",
     "tol_off": "off",
     "assignment": "Assignment method",
-    "assignment_mc": "Monte Carlo",
     "assignment_expected": "Expected flows",
     "assignment_hint_montecarlo": "Samples each agent's mode (stochastic; noisy across iterations).",
     "assignment_hint_expected": "Fractional assignment by logit probabilities (deterministic, noise-free).",
@@ -99,7 +98,10 @@
     "residual": "Residual",
     "iteration": "Iteration {{n}} of {{total}}",
     "converged": "Equilibrium reached",
-    "booting_pyodide": "Initializing Pyodide in the browser (first run takes ~10–20s)…"
+    "booting_pyodide": "Initializing Pyodide in the browser (first run takes ~10–20s)…",
+    "assignment_montecarlo": "Monte Carlo",
+    "assignment_wardrop": "Wardrop",
+    "assignment_hint_wardrop": "DETERMINISTIC choice: each group goes entirely to the highest-utility mode, with no taste heterogeneity. It is the logit limit as the coefficient scale grows. Careful: all-or-nothing loading can have multiple equilibria — two similar setups may land on different splits."
   },
   "run_status": {
     "booting_pyodide": "Initializing Pyodide…",
