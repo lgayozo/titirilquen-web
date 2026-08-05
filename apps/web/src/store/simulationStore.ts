@@ -1,7 +1,11 @@
 import { create } from "zustand";
 
 import { defaultSimulationConfig } from "@/lib/defaults";
-import type { IterationSnapshot, SimulationConfig, SimulationResult } from "@/lib/types";
+import type {
+  IterationSnapshot,
+  SimulationConfig,
+  SimulationResult,
+} from "@/lib/types";
 
 export type Engine = "api" | "local";
 
@@ -20,6 +24,11 @@ interface SimulationState {
    * derivadas del resultado deben usar ESTA config (no la viva) para no mezclar
    * geometrías; comparar con `config` detecta resultados desactualizados. */
   configUsed: SimulationConfig | null;
+  /** Instantánea FIJADA como referencia para comparar dentro del módulo: la
+   *  config y el resultado de una corrida anterior. Permite «corro un
+   *  escenario, lo fijo, corro otro y veo el delta» sin salir de la página ni
+   *  reconstruir el escenario en Comparar. */
+  reference: { config: SimulationConfig; result: SimulationResult } | null;
 
   setConfig: (updater: (prev: SimulationConfig) => SimulationConfig) => void;
   replaceConfig: (config: SimulationConfig) => void;
@@ -31,6 +40,10 @@ interface SimulationState {
   failRun: (message: string) => void;
   cancelRun: () => void;
   reset: () => void;
+  /** Fija la corrida visible como referencia. No hace nada si no hay resultado
+   *  (el snapshot debe corresponder a una config efectivamente corrida). */
+  pinReference: () => void;
+  clearReference: () => void;
 }
 
 const snapshot = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
@@ -45,6 +58,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   liveIterations: [],
   error: null,
   configUsed: null,
+  reference: null,
 
   setConfig: (updater) => set((s) => ({ config: updater(s.config) })),
   replaceConfig: (config) => set({ config }),
@@ -66,8 +80,19 @@ export const useSimulationStore = create<SimulationState>((set) => ({
     set((s) => ({
       stage: "running",
       liveIterations: [...s.liveIterations, snap],
-      progress: s.progress ? { current: snap.iter + 1, total: s.progress.total } : null,
+      progress: s.progress
+        ? { current: snap.iter + 1, total: s.progress.total }
+        : null,
     })),
+
+  pinReference: () =>
+    set((s) =>
+      s.result && s.configUsed
+        ? { reference: { config: s.configUsed, result: s.result } }
+        : s,
+    ),
+
+  clearReference: () => set({ reference: null }),
 
   finishRun: (result) =>
     set({

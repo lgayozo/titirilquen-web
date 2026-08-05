@@ -729,5 +729,27 @@
     "banner": "Resultado desactualizado: la configuración cambió desde esta corrida. Las figuras muestran el escenario anterior.",
     "rerun": "Volver a simular",
     "cancel": "Cancelar"
+  },
+  "agg": {
+    "metrica": "Métrica",
+    "actual": "Escenario actual",
+    "referencia": "Referencia",
+    "tiempo_total": "Tiempo total de viaje (persona-min)",
+    "tiempo_medio": "Tiempo medio por viajero",
+    "cg_percibido": "Costo generalizado percibido",
+    "cg_percibido_nota": "(VoT conductual por estrato)",
+    "cg_social": "Costo generalizado social",
+    "cg_social_nota": "(VoT único {{vot}}/h)",
+    "excedente_estrato": "Excedente del consumidor · {{h}}",
+    "no_comparable": "no comparable",
+    "intro_sin_ref": "Agregados de ciudad completa. Fija esta corrida como referencia para comparar la siguiente contra ella.",
+    "intro_con_ref": "Δ contra la corrida fijada como referencia. Verde = mejora, rojo = empeora.",
+    "vot_hint": "Valor del tiempo implícito (β_tiempo/β_costo): alto {{alto}}/h · medio {{medio}}/h · bajo {{bajo}}/h. El costo social usa un valor único para no ponderar por ingreso.",
+    "logsum_incomparable": "⚠ Los escenarios no comparten el conjunto de modos: el excedente no es comparable entre ellos (el logsum cambia de escala).",
+    "pin": "Fijar como referencia",
+    "unpin": "Quitar referencia",
+    "pinned": "Referencia fijada",
+    "title": "Agregados y comparación",
+    "meta": "ciudad completa"
   }
 }

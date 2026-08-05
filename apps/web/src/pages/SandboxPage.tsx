@@ -18,6 +18,7 @@ import { FlowProfile } from "@/components/viz/FlowProfile";
 import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
 import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
 import { NetworkDiagram } from "@/components/viz/NetworkDiagram";
+import { ReferenceComparison } from "@/components/viz/ReferenceComparison";
 import { StatBars, type StatBar } from "@/components/viz/StatBars";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import {
@@ -79,6 +80,9 @@ export function SandboxPage() {
   const reset = useSimulationStore((s) => s.reset);
   const configUsed = useSimulationStore((s) => s.configUsed);
   const cancelRun = useSimulationStore((s) => s.cancelRun);
+  const reference = useSimulationStore((s) => s.reference);
+  const pinReference = useSimulationStore((s) => s.pinReference);
+  const clearReference = useSimulationStore((s) => s.clearReference);
 
   // Opción A: la población del transporte se deriva del uso de suelo (densidad
   // por estrato → por celda). La config de suelo vive en su propio store y la
@@ -142,7 +146,10 @@ export function SandboxPage() {
       landUseResult.L === L &&
       landUseResult.result?.Q?.length
     ) {
-      return { comp: expectedComposition(landUseResult.result.Q, S), isPost: true };
+      return {
+        comp: expectedComposition(landUseResult.result.Q, S),
+        isPost: true,
+      };
     }
     const pi = lu.H_por_estrato.map((h) => h / N);
     return {
@@ -179,7 +186,8 @@ export function SandboxPage() {
         ? Math.max(...result.flujos_auto_veh_h) / result.capacidad_auto
         : null,
     bike: result?.flujos_bici_veh_h?.length
-      ? Math.max(...result.flujos_bici_veh_h) / cfgRes.supply.bike.capacidad_pista
+      ? Math.max(...result.flujos_bici_veh_h) /
+        cfgRes.supply.bike.capacidad_pista
       : null,
     // Metro: carga máxima del tramo / capacidad OPERATIVA (f_op · K). Es el
     // análogo del v/c y faltaba — se mostraban solo dos de los tres modos con
@@ -298,7 +306,9 @@ export function SandboxPage() {
         // mordiendo: sin ese dato el usuario no distingue «subí el tope y no
         // pasó nada» de «el tope no estaba activo» (AT-08).
         delta:
-          Math.abs(lastIter.frecuencia_teorica_metro - lastIter.frecuencia_metro) > 0.05
+          Math.abs(
+            lastIter.frecuencia_teorica_metro - lastIter.frecuencia_metro,
+          ) > 0.05
             ? t("kpi.frequency_capped", {
                 teo: lastIter.frecuencia_teorica_metro.toFixed(1),
               })
@@ -956,20 +966,20 @@ export function SandboxPage() {
         {/* Hint row — guía pedagógica (solo antes de la primera corrida: tras
             simular, los resultados mandan y los hints serían ruido) */}
         {!hasData && (
-        <div className="hint-row">
-          <div className="hint">
-            <strong>{t("hints.demand_title")}</strong>
-            {t("hints.demand_body")}
+          <div className="hint-row">
+            <div className="hint">
+              <strong>{t("hints.demand_title")}</strong>
+              {t("hints.demand_body")}
+            </div>
+            <div className="hint">
+              <strong>{t("hints.supply_title")}</strong>
+              {t("hints.supply_body")}
+            </div>
+            <div className="hint">
+              <strong>{t("hints.equilibrium_title")}</strong>
+              {t("hints.equilibrium_body")}
+            </div>
           </div>
-          <div className="hint">
-            <strong>{t("hints.supply_title")}</strong>
-            {t("hints.supply_body")}
-          </div>
-          <div className="hint">
-            <strong>{t("hints.equilibrium_title")}</strong>
-            {t("hints.equilibrium_body")}
-          </div>
-        </div>
         )}
 
         {/* Estado de corrida (mantiene animaciones) */}
@@ -1033,6 +1043,41 @@ export function SandboxPage() {
                 cls="col-12"
               >
                 <TransportMetricsTable data={transportMetrics} />
+              </Panel>
+            )}
+
+            {/* Agregados de ciudad completa + delta contra la corrida fijada.
+                Permite comparar dos escenarios sin salir del módulo. */}
+            {result && configUsed && (
+              <Panel
+                title={t("agg.title")}
+                meta={reference ? t("agg.pinned") : t("agg.meta")}
+                cls="col-12"
+              >
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={pinReference}
+                    className="btn"
+                    disabled={stale}
+                  >
+                    {t("agg.pin")}
+                  </button>
+                  {reference && (
+                    <button
+                      type="button"
+                      onClick={clearReference}
+                      className="btn"
+                    >
+                      {t("agg.unpin")}
+                    </button>
+                  )}
+                </div>
+                <ReferenceComparison
+                  config={configUsed}
+                  result={result}
+                  reference={reference}
+                />
               </Panel>
             )}
 

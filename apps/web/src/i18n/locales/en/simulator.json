@@ -729,5 +729,27 @@
     "banner": "Stale result: the configuration changed since this run. The figures show the previous scenario.",
     "rerun": "Re-run",
     "cancel": "Cancel"
+  },
+  "agg": {
+    "metrica": "Metric",
+    "actual": "Current scenario",
+    "referencia": "Reference",
+    "tiempo_total": "Total travel time (person-min)",
+    "tiempo_medio": "Mean time per traveller",
+    "cg_percibido": "Perceived generalized cost",
+    "cg_percibido_nota": "(behavioural VoT per stratum)",
+    "cg_social": "Social generalized cost",
+    "cg_social_nota": "(single VoT {{vot}}/h)",
+    "excedente_estrato": "Consumer surplus · {{h}}",
+    "no_comparable": "not comparable",
+    "intro_sin_ref": "City-wide aggregates. Pin this run as the reference to compare the next one against it.",
+    "intro_con_ref": "Δ against the pinned reference. Green = improvement, red = worse.",
+    "vot_hint": "Implied value of time (β_time/β_cost): high {{alto}}/h · mid {{medio}}/h · low {{bajo}}/h. The social cost uses a single value so as not to weight by income.",
+    "logsum_incomparable": "⚠ The scenarios do not share the same mode set: surplus is not comparable between them (the logsum changes scale).",
+    "pin": "Pin as reference",
+    "unpin": "Clear reference",
+    "pinned": "Reference pinned",
+    "title": "Aggregates and comparison",
+    "meta": "city-wide"
   }
 }
