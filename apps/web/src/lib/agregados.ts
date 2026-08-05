@@ -241,14 +241,22 @@ export function calcularAgregados(
   };
 }
 
-/** VoT social por defecto: promedio de los conductuales ponderado por los
- *  shares de estrato. Arranca neutro (no cambia el ranking respecto del
- *  percibido si los shares son los del escenario) y es lo que el usuario debe
- *  reemplazar por el valor de norma que corresponda. */
-export function votSocialPorDefecto(cfg: SimulationConfig): number {
-  const shares = cfg.city.share_estratos;
-  return STRATA.reduce(
-    (s, h) => s + votClpHora(cfg.demand, h) * (shares[h - 1] ?? 0),
-    0,
-  );
-}
+/**
+ * Valor social del tiempo de viaje urbano, en CLP/hora-pasajero.
+ *
+ * Valor de NORMA, no calibración: Precios Sociales vigentes 2026 del Sistema
+ * Nacional de Inversiones (MDSF, División de Evaluación Social de Inversiones),
+ * Tabla 2.1 «Valor Social del Tiempo Urbano 2026», fila «Viaje en vehículo».
+ * Moneda al 31 de diciembre de 2025. El PDF está en `reference/`.
+ *
+ * La misma tabla asigna ponderador 2 a la espera y a la caminata (6.676 CLP/h),
+ * que es lo que fija la razón espera/viaje = 2,0 de la calibración conductual.
+ *
+ * Es un valor ÚNICO a propósito: el documento señala que la práctica nacional
+ * desestima la distinción por ingreso «aduciendo regresividad». Por eso la tabla
+ * de resultados muestra el costo generalizado en dos versiones — con este valor
+ * y con el conductual por estrato — que responden preguntas distintas.
+ *
+ * Hay que actualizarlo cada año: el SNI publica precios sociales nuevos.
+ */
+export const VOT_SOCIAL_CLP_HORA = 3338;

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   calcularAgregados,
   logsumComparable,
-  votSocialPorDefecto,
+  VOT_SOCIAL_CLP_HORA,
   type Agregados,
 } from "@/lib/agregados";
 import type {
@@ -52,7 +52,7 @@ interface FilaAgg {
 
 export function ReferenceComparison({ config, result, reference }: Props) {
   const { t } = useTranslation("simulator");
-  const votSocial = votSocialPorDefecto(config);
+  const votSocial = VOT_SOCIAL_CLP_HORA;
   const agg = calcularAgregados(result, config, votSocial);
   const aggRef = reference
     ? calcularAgregados(reference.result, reference.config, votSocial)

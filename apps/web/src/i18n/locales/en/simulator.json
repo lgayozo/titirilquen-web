@@ -777,7 +777,7 @@
     "cg_percibido": "Perceived generalized cost",
     "cg_percibido_nota": "(behavioural VoT per stratum)",
     "cg_social": "Social generalized cost",
-    "cg_social_nota": "(single VoT {{vot}}/h)",
+    "cg_social_nota": "(single social VoT {{vot}}/h · SNI 2026)",
     "excedente_estrato": "Consumer surplus · {{h}}",
     "no_comparable": "not comparable",
     "intro_sin_ref": "City-wide aggregates. Pin this run as the reference to compare the next one against it.",

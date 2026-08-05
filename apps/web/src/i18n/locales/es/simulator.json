@@ -777,7 +777,7 @@
     "cg_percibido": "Costo generalizado percibido",
     "cg_percibido_nota": "(VoT conductual por estrato)",
     "cg_social": "Costo generalizado social",
-    "cg_social_nota": "(VoT único {{vot}}/h)",
+    "cg_social_nota": "(VoT social único {{vot}}/h · SNI 2026)",
     "excedente_estrato": "Excedente del consumidor · {{h}}",
     "no_comparable": "no comparable",
     "intro_sin_ref": "Agregados de ciudad completa. Fija esta corrida como referencia para comparar la siguiente contra ella.",
