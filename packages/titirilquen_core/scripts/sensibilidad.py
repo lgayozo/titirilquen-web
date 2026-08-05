@@ -22,107 +22,28 @@ import sys
 from titirilquen_core.config import (
     CityConfig,
     DemandConfig,
-    PhysicalPenalties,
     SimulationConfig,
-    StratumBetas,
-    StratumConfig,
     SupplyConfig,
 )
 from titirilquen_core.equilibrium.msa import run_msa
+from titirilquen_core.presets import DEFAULT_STRATA
 
 DENSIDADES = (500.0, 1800.0)
 PISTAS = (1, 2, 3, 4, 5, 6)
 
-# Espejo de los betas de apps/web/src/lib/defaults.ts (baseBetas). El core no
-# trae defaults de demanda; para reproducir lo que ve el usuario hay que
-# replicarlos aquí. Si defaults.ts cambia, actualizar este bloque.
-_BETAS_UI = {
-    1: {
-        "prob_teletrabajo": 0.4,
-        "prob_auto": 0.9,
-        "asc_auto": 1.5,
-        "asc_metro": -0.2,
-        "asc_bici": -0.9,
-        "asc_caminata": -0.5,
-        "b_tiempo_viaje": -0.055,
-        "b_costo": -0.00008,
-        "b_tiempo_espera": -0.05,
-        "b_tiempo_caminata": -0.15,
-        "penal": {
-            "bici_10": -0.09,
-            "bici_20": -0.15,
-            "bici_30": -0.5,
-            "walk_5": -0.09,
-            "walk_15": -0.18,
-            "walk_25": -0.4,
-        },
-    },
-    2: {
-        "prob_teletrabajo": 0.2,
-        "prob_auto": 0.6,
-        "asc_auto": 0.7889,
-        "asc_metro": 0.104,
-        "asc_bici": -0.6818,
-        "asc_caminata": 0.1,
-        "b_tiempo_viaje": -0.0331,
-        "b_costo": -0.0002,
-        "b_tiempo_espera": -0.0243,
-        "b_tiempo_caminata": -0.044,
-        "penal": {
-            "bici_10": -0.0634,
-            "bici_20": -0.1,
-            "bici_30": -0.4,
-            "walk_5": -0.05,
-            "walk_15": -0.09,
-            "walk_25": -0.2,
-        },
-    },
-    3: {
-        "prob_teletrabajo": 0.05,
-        "prob_auto": 0.3,
-        "asc_auto": 0.2,
-        "asc_metro": 0.25,
-        "asc_bici": -0.4,
-        "asc_caminata": 0.4,
-        "b_tiempo_viaje": -0.015,
-        "b_costo": -0.0006,
-        "b_tiempo_espera": -0.015,
-        "b_tiempo_caminata": -0.025,
-        "penal": {
-            "bici_10": -0.03,
-            "bici_20": -0.05,
-            "bici_30": -0.7,
-            "walk_5": -0.025,
-            "walk_15": -0.04,
-            "walk_25": -0.08,
-        },
-    },
-}
+# Los defaults de demanda son `presets.DEFAULT_STRATA`, que es tambien la
+# fuente del espejo TS (apps/web/src/lib/defaults.ts, con paridad verificada
+# por el test de contrato). Antes este modulo llevaba una TERCERA copia de
+# los 42 betas: en la recalibracion de ago-2026 quedo desincronizada y las
+# auditorias midieron la calibracion vieja sin avisar.
 
 
 def _demanda_ui() -> DemandConfig:
-    estratos = {}
-    for h, b in _BETAS_UI.items():
-        estratos[h] = StratumConfig(
-            prob_teletrabajo=b["prob_teletrabajo"],
-            prob_auto=b["prob_auto"],
-            betas=StratumBetas(
-                asc_auto=b["asc_auto"],
-                asc_metro=b["asc_metro"],
-                asc_bici=b["asc_bici"],
-                asc_caminata=b["asc_caminata"],
-                b_tiempo_viaje=b["b_tiempo_viaje"],
-                b_costo=b["b_costo"],
-                b_tiempo_espera=b["b_tiempo_espera"],
-                b_tiempo_caminata=b["b_tiempo_caminata"],
-                penalizaciones_fisicas=PhysicalPenalties(**b["penal"]),
-            ),
-        )
-    return DemandConfig(estratos=estratos)
+    return DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
 
 
 def _config(densidad: float, pistas: int) -> SimulationConfig:
-    """Config con los defaults que ve el usuario de la web (no los del core):
+    """Config equivalente a la que ve el usuario de la web:
     201 celdas, 20 km, expected, tolerancia 0.1, seed fija."""
     cfg = SimulationConfig(
         city=CityConfig(n_celdas=201, largo_ciudad_km=20, densidad_hab_km=densidad),

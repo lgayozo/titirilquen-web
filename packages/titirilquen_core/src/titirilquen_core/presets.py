@@ -167,6 +167,30 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 }
 
 
+# RECALIBRACION ago-2026. Ver scripts/diagnostico_calibracion.py, que imprime
+# los coeficientes en minutos-equivalentes (= util / b_tiempo_viaje, donde la
+# escala de utilidad de cada estrato se cancela y recien ahi son comparables).
+# Tres correcciones, todas sobre razones INTERNAS de cada estrato:
+#
+#  * `b_tiempo_espera` = 2.0 x `b_tiempo_viaje`. Antes daba 0.91 / 0.73 / 1.00,
+#    o sea el modelo afirmaba que esperar en un anden molesta MENOS que ir
+#    sentado. Ademas subvaluaba el efecto Mohring, que opera justamente por la
+#    espera: mas frecuencia -> menos espera -> mas demanda -> mas frecuencia.
+#  * `b_tiempo_caminata` = 1.7 x `b_tiempo_viaje`. Antes 2.73 / 1.33 / 1.67, sin
+#    patron, y en los tres estratos POR ENCIMA de la espera. Queda el orden
+#    viaje < caminata < espera. Ojo: este beta pesa el acceso al metro Y el modo
+#    caminata completo (utility.py), asi que mueve dos cosas a la vez.
+#  * `b_costo` se despeja del valor del tiempo pedido (6.200 / 3.100 / 1.600
+#    $/hora): b_costo = b_tiempo_viaje * 60 / VoT. Se ajusta el coeficiente de
+#    COSTO y no el de tiempo a proposito: `b_tiempo_viaje` es el denominador de
+#    los minutos-equivalentes, asi que dejarlo fijo preserva el significado de
+#    las ASC y de las penalizaciones, que quedaron pendientes de revisar.
+#    Efecto lateral grande: el estrato alto pasa a ser 6.7x mas sensible al
+#    dinero, o sea las palancas de precio recien empiezan a morder.
+#
+# Las ASC NO se tocaron. Siguen pesando 31 / 21 / 3 minutos-equivalentes en el
+# auto y 13 / 24 / 43 en la bici, que es la razon de fondo de que la
+# infraestructura mueva poco el reparto del estrato bajo.
 DEFAULT_STRATA = {
     1: {
         "prob_teletrabajo": 0.40,
@@ -180,9 +204,9 @@ DEFAULT_STRATA = {
             "asc_bici": -0.9,
             "asc_caminata": -0.5,
             "b_tiempo_viaje": -0.055,
-            "b_costo": -0.00008,
-            "b_tiempo_espera": -0.05,
-            "b_tiempo_caminata": -0.15,
+            "b_costo": -0.00053226,  # VoT 6.200 $/h
+            "b_tiempo_espera": -0.11,  # 2.0 x viaje
+            "b_tiempo_caminata": -0.0935,  # 1.7 x viaje
             "penalizaciones_fisicas": {
                 "bici_10": -0.09,
                 "bici_20": -0.15,
@@ -205,9 +229,9 @@ DEFAULT_STRATA = {
             "asc_bici": -0.6818,
             "asc_caminata": 0.1,
             "b_tiempo_viaje": -0.0331,
-            "b_costo": -0.0002,
-            "b_tiempo_espera": -0.0243,
-            "b_tiempo_caminata": -0.0440,
+            "b_costo": -0.00064065,  # VoT 3.100 $/h
+            "b_tiempo_espera": -0.0662,  # 2.0 x viaje
+            "b_tiempo_caminata": -0.05627,  # 1.7 x viaje
             "penalizaciones_fisicas": {
                 "bici_10": -0.0634,
                 "bici_20": -0.1,
@@ -230,13 +254,19 @@ DEFAULT_STRATA = {
             "asc_bici": -0.4,
             "asc_caminata": 0.4,
             "b_tiempo_viaje": -0.0150,
-            "b_costo": -0.0006,
-            "b_tiempo_espera": -0.0150,
-            "b_tiempo_caminata": -0.0250,
+            "b_costo": -0.0005625,  # VoT 1.600 $/h
+            "b_tiempo_espera": -0.03,  # 2.0 x viaje
+            "b_tiempo_caminata": -0.0255,  # 1.7 x viaje
             "penalizaciones_fisicas": {
                 "bici_10": -0.0300,
                 "bici_20": -0.0500,
-                "bici_30": -0.7,
+                # -0.20 (antes -0.7). El -0.7 rompia la pauta: en las otras
+                # cinco celdas este estrato es ~0.49x el medio, y ahi era 1.75x.
+                # Con su b_tiempo_viaje chico eso daba 46.7 minutos-equivalentes
+                # contra 9.1 y 12.1 de los otros dos, o sea un viaje en bici de
+                # 31 min se evaluaba como uno de 83 y mataba el modo justo en el
+                # estrato que mas lo usa. 0.49 x 0.40 = 0.196 -> -0.20.
+                "bici_30": -0.20,
                 "walk_5": -0.0250,
                 "walk_15": -0.0400,
                 "walk_25": -0.08,

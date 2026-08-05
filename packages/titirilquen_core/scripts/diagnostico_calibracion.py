@@ -21,8 +21,11 @@ Lo que se contrasta (cada bloque imprime OK o el desvio):
   3. Valor del tiempo creciente en el ingreso, y con una dispersion entre
      estratos que no sea absurda.
   4. Penalizaciones fisicas: signo, monotonia por umbral y magnitud en
-     minutos-equivalentes.
-  5. Constantes especificas: cuanto pesan en minutos-equivalentes.
+     minutos-equivalentes de CASTIGO.
+  5. Constantes especificas, en minutos de VENTAJA sobre el metro. Ojo con el
+     signo: `b_tiempo_viaje` es negativo, asi que una ventaja de utilidad
+     dividida por el beta sale negativa. Por eso hay dos funciones separadas,
+     `castigo_min` y `ventaja_min`, y no una sola.
 
 OJO con lo que este script NO hace: no valida los betas contra ninguna
 estimacion externa. Los rangos de referencia estan declarados arriba como
@@ -69,9 +72,23 @@ def veredicto(ok: bool) -> str:
     return "OK  " if ok else "**  "
 
 
-def minutos_equivalentes(utiles: float, b: StratumBetas) -> float:
-    """Utiles -> minutos de viaje en vehiculo. La escala de utilidad se cancela."""
+def castigo_min(utiles: float, b: StratumBetas) -> float:
+    """Utiles NEGATIVOS -> cuantos minutos de viaje equivale el castigo (positivo).
+
+    `b_tiempo_viaje` es negativo, asi que el cociente ya sale positivo para una
+    penalizacion. La escala de utilidad de cada estrato se cancela, que es lo
+    que permite comparar entre estratos.
+    """
     return utiles / b.b_tiempo_viaje
+
+
+def ventaja_min(utiles: float, b: StratumBetas) -> float:
+    """Utiles -> minutos de viaje de VENTAJA (positivo = el modo arranca mejor).
+
+    Se niega respecto de `castigo_min`: dividir una ventaja de utilidad por un
+    beta negativo daria un numero negativo para algo que es a favor.
+    """
+    return -utiles / b.b_tiempo_viaje
 
 
 def razones(estratos: dict[int, StratumConfig]) -> None:
@@ -129,7 +146,7 @@ def penalizaciones(estratos: dict[int, StratumConfig]) -> None:
     for h, s in sorted(estratos.items()):
         b = s.betas
         p = b.penalizaciones_fisicas
-        vals = [minutos_equivalentes(x, b) for x in (p.bici_10, p.bici_20, p.bici_30)]
+        vals = [castigo_min(x, b) for x in (p.bici_10, p.bici_20, p.bici_30)]
         print(f"{NOMBRES[h]:<10}" + "".join(f"{v:>12.1f}" for v in vals) + f"{sum(vals):>18.1f}")
     linea()
     encabezado = "".join(f"{f'>{u} min':>12}" for u in UMBRALES_WALK)
@@ -138,7 +155,7 @@ def penalizaciones(estratos: dict[int, StratumConfig]) -> None:
     for h, s in sorted(estratos.items()):
         b = s.betas
         p = b.penalizaciones_fisicas
-        vals = [minutos_equivalentes(x, b) for x in (p.walk_5, p.walk_15, p.walk_25)]
+        vals = [castigo_min(x, b) for x in (p.walk_5, p.walk_15, p.walk_25)]
         print(f"{NOMBRES[h]:<10}" + "".join(f"{v:>12.1f}" for v in vals) + f"{sum(vals):>18.1f}")
     linea()
 
@@ -159,7 +176,7 @@ def penalizaciones(estratos: dict[int, StratumConfig]) -> None:
 
 
 def constantes(estratos: dict[int, StratumConfig]) -> None:
-    print("\n5. CONSTANTES ESPECIFICAS, en minutos-equivalentes de viaje")
+    print("\n5. CONSTANTES ESPECIFICAS, en minutos de VENTAJA sobre el metro")
     print("   (solo importan las DIFERENCIAS; se toma el metro como referencia)")
     linea()
     print(f"{'estrato':<10}{'auto':>12}{'metro':>12}{'bici':>12}{'caminata':>12}")
@@ -168,13 +185,13 @@ def constantes(estratos: dict[int, StratumConfig]) -> None:
         b = s.betas
         base = b.asc_metro
         vals = [
-            minutos_equivalentes(x - base, b)
-            for x in (b.asc_auto, b.asc_metro, b.asc_bici, b.asc_caminata)
+            ventaja_min(x - base, b) for x in (b.asc_auto, b.asc_metro, b.asc_bici, b.asc_caminata)
         ]
         print(f"{NOMBRES[h]:<10}" + "".join(f"{v:>12.1f}" for v in vals))
     linea()
-    print("     Positivo = el modo arranca con VENTAJA sobre el metro, medida en")
-    print("     minutos de viaje que el usuario aceptaria de mas por elegirlo.")
+    print("     POSITIVO = el modo arranca con ventaja: son los minutos de viaje")
+    print("     de MAS que el usuario aceptaria con tal de elegirlo por sobre el")
+    print("     metro. Negativo = arranca en desventaja.")
 
 
 def main() -> None:
