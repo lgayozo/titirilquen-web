@@ -68,9 +68,9 @@ const ALLOWED: Record<string, { py: unknown; ts: unknown }> = {
   // Población de suelo: el core conserva la escala del paper (99.900); el
   // frontend usa 36.000 (= 1800 hab/km × 20 km, shares 10/40/50) en sync con
   // city.densidad_hab_km.
-  "land_use.H_por_estrato.0": { py: 33300, ts: 3600 },
-  "land_use.H_por_estrato.1": { py: 33300, ts: 14400 },
-  "land_use.H_por_estrato.2": { py: 33300, ts: 18000 },
+  "land_use.H_por_estrato.0": { py: 33300, ts: 7200 },
+  "land_use.H_por_estrato.1": { py: 33300, ts: 18000 },
+  "land_use.H_por_estrato.2": { py: 33300, ts: 10800 },
   // Punto fijo del suelo: presupuesto menor en el navegador.
   "land_use.max_iter": { py: 10000, ts: 2000 },
 };

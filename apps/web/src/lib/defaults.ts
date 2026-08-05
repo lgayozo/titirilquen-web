@@ -10,11 +10,11 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
   if (stratum === 1) {
     return {
       prob_teletrabajo: 0.4,
-      prob_auto: 0.9,
+      prob_auto: 0.95,
       betas: {
         asc_auto: 1.5,
         asc_metro: -0.2,
-        asc_bici: -0.9,
+        asc_bici: -1.19,
         asc_caminata: -0.5,
         b_tiempo_viaje: -0.055,
         b_costo: -0.00053226,
@@ -34,11 +34,11 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
   if (stratum === 2) {
     return {
       prob_teletrabajo: 0.2,
-      prob_auto: 0.6,
+      prob_auto: 0.75,
       betas: {
         asc_auto: 0.7889,
         asc_metro: 0.104,
-        asc_bici: -0.6818,
+        asc_bici: -0.4918,
         asc_caminata: 0.1,
         b_tiempo_viaje: -0.0331,
         b_costo: -0.00064065,
@@ -57,11 +57,11 @@ const baseBetas = (stratum: StratumId): StratumConfig => {
   }
   return {
     prob_teletrabajo: 0.05,
-    prob_auto: 0.3,
+    prob_auto: 0.45,
     betas: {
       asc_auto: 0.2,
       asc_metro: 0.25,
-      asc_bici: -0.4,
+      asc_bici: -0.02,
       asc_caminata: 0.4,
       b_tiempo_viaje: -0.015,
       b_costo: -0.0005625,
@@ -87,9 +87,11 @@ export const defaultDemandConfig: DemandConfig = {
     v_caminata: 4.8,
     costo_combustible_km: 120,
     costo_tarifa_metro: 800,
-    // 4000 (antes 6000): calibrado para bajar la elasticidad-parking del
-    // reparto de auto de −0.59 a ≈ −0.31. Ver el comentario del core y
-    // scripts/diagnostico_elasticidades.py.
+    // 2000: NO es un precio de lista sino un costo ESPERADO (el modelo se lo
+    // cobra a todos los viajes en auto, cuando en la realidad buena parte
+    // estaciona gratis). Bajó de 4000 al recalibrar el valor del tiempo: con
+    // VoT 6.200 $/h, 4000 valían 39 minutos y hundían el auto a 5.7%. Ver el
+    // comentario del core.
     costo_parking: 2000,
     // 1 = flota de referencia. Escala la curva COPERT; ver core config.py.
     factor_flota_auto: 1,
@@ -113,7 +115,7 @@ export const defaultSimulationConfig: SimulationConfig = {
     densidad_hab_km: 1800,
     pendiente_porcentaje: 0,
     teletrabajo_factor: 1,
-    share_estratos: [0.1, 0.4, 0.5],
+    share_estratos: [0.2, 0.5, 0.3],
   },
   supply: {
     bike: {
@@ -176,8 +178,8 @@ export const defaultSimulationConfig: SimulationConfig = {
 
 export const defaultLandUseConfig: LandUseConfig = {
   // ΣH = 36.000 = 1800 hab/km × 20 km (la «densidad media» default de la UI;
-  // shares 10/40/50). En sync con city.densidad_hab_km — la app puebla desde acá.
-  H_por_estrato: [3600, 14400, 18000],
+  // shares 20/50/30). En sync con city.share_estratos — la app puebla desde acá.
+  H_por_estrato: [7200, 18000, 10800],
   // VESTIGIAL: la densidad por celda ahora es S/Δx (consecuencia de la oferta);
   // estos campos ya no fijan la densidad. Se conservan por compat de
   // serialización. La escala de población la fija H_por_estrato (UI: «densidad media»).

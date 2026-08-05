@@ -194,14 +194,14 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 DEFAULT_STRATA = {
     1: {
         "prob_teletrabajo": 0.40,
-        "prob_auto": 0.90,
+        "prob_auto": 0.95,
         "prob_jornada_flexible": 0.50,
         "prob_part_time": 0.05,
         "jornada": {"horas_rigido": 9.0, "horas_flexible": 8.0, "horas_part_time": 4.0},
         "betas": {
             "asc_auto": 1.5,
             "asc_metro": -0.2,
-            "asc_bici": -0.9,
+            "asc_bici": -1.19,
             "asc_caminata": -0.5,
             "b_tiempo_viaje": -0.055,
             "b_costo": -0.00053226,  # VoT 6.200 $/h
@@ -219,14 +219,14 @@ DEFAULT_STRATA = {
     },
     2: {
         "prob_teletrabajo": 0.20,
-        "prob_auto": 0.60,
+        "prob_auto": 0.75,
         "prob_jornada_flexible": 0.30,
         "prob_part_time": 0.10,
         "jornada": {"horas_rigido": 9.0, "horas_flexible": 8.5, "horas_part_time": 4.5},
         "betas": {
             "asc_auto": 0.7889,
             "asc_metro": 0.1040,
-            "asc_bici": -0.6818,
+            "asc_bici": -0.4918,
             "asc_caminata": 0.1,
             "b_tiempo_viaje": -0.0331,
             "b_costo": -0.00064065,  # VoT 3.100 $/h
@@ -244,14 +244,14 @@ DEFAULT_STRATA = {
     },
     3: {
         "prob_teletrabajo": 0.05,
-        "prob_auto": 0.30,
+        "prob_auto": 0.45,
         "prob_jornada_flexible": 0.10,
         "prob_part_time": 0.15,
         "jornada": {"horas_rigido": 9.5, "horas_flexible": 9.0, "horas_part_time": 5.0},
         "betas": {
             "asc_auto": 0.2,
             "asc_metro": 0.25,
-            "asc_bici": -0.4,
+            "asc_bici": -0.02,
             "asc_caminata": 0.4,
             "b_tiempo_viaje": -0.0150,
             "b_costo": -0.0005625,  # VoT 1.600 $/h

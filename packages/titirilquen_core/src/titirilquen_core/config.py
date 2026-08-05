@@ -156,7 +156,11 @@ class CityConfig(BaseModel):
     densidad_hab_km: float = Field(default=500.0, gt=0)
     pendiente_porcentaje: float = Field(default=0.0)
     teletrabajo_factor: float = Field(default=1.0, ge=0.0, le=5.0)
-    share_estratos: tuple[float, float, float] = Field(default=(0.10, 0.40, 0.50))
+    # (0.20, 0.50, 0.30) — antes (0.10, 0.40, 0.50). Con media ciudad en el
+    # estrato bajo (VoT $1.600/h), los ~$1.800 de diferencia entre auto y metro
+    # les valen 67 minutos y el auto no puede competir por construcción: era una
+    # ciudad pobre por supuesto, no por resultado. Ago-2026.
+    share_estratos: tuple[float, float, float] = Field(default=(0.20, 0.50, 0.30))
     # `ingresos_estratos` se eliminó (jun-2026): nunca se usó en el core y
     # duplicaba el `y` del módulo de suelo. El frontend descarta el campo al
     # importar escenarios viejos (ver serialization.ts::migrateConfig).
