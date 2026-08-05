@@ -19,13 +19,12 @@ import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
 import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
 import { NetworkDiagram } from "@/components/viz/NetworkDiagram";
 import { ReferenceComparison } from "@/components/viz/ReferenceComparison";
-import { StatBars, type StatBar } from "@/components/viz/StatBars";
+import type { StatBar } from "@/components/viz/StatBars";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import {
   TransportMetricsTable,
   type TransportMetricsData,
 } from "@/components/viz/TransportMetricsTable";
-import { UtilityScatter } from "@/components/viz/UtilityScatter";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { Modo } from "@/lib/types";
@@ -57,6 +56,10 @@ const VIEW_OPTIONS: readonly HeatMode[] = [
 
 /** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
  *  elegible. Ver demand/utility.py — caminata > 30, bici > 45. */
+/** Modos del panel de flujos por celda (FIG. 02), en orden. */
+type FlowMode = "auto" | "bici" | "metro" | "caminata";
+const FLOW_MODES: readonly FlowMode[] = ["auto", "bici", "metro", "caminata"];
+
 const MODE_CUTOFF: Partial<Record<HeatMode, number>> = {
   caminata: 30,
   bici: 45,
@@ -99,6 +102,7 @@ export function SandboxPage() {
   );
 
   const [heatMode, setHeatMode] = useState<HeatMode>("auto");
+  const [flowMode, setFlowMode] = useState<FlowMode>("auto");
 
   const viewLabel = (m: HeatMode) =>
     m === "todos"
@@ -176,6 +180,41 @@ export function SandboxPage() {
         t_espera: lastIter.t_tren_espera[i]!,
       }))
     : undefined;
+
+  // Datos del panel de flujos. La escala Y es el máximo GLOBAL entre modos:
+  // cambiar de modo no debe reescalar el eje o la comparación visual engaña.
+  const flowData = useMemo(() => {
+    if (!lastIter || !result) return null;
+    const globalMax = Math.max(
+      ...lastIter.demanda_auto,
+      ...lastIter.demanda_bici,
+      ...lastIter.demanda_metro,
+      ...lastIter.demanda_caminata,
+      1,
+    );
+    const porModo: Record<
+      FlowMode,
+      { flows: number[]; color: string; cap?: string }
+    > = {
+      auto: {
+        flows: lastIter.demanda_auto,
+        color: "var(--auto)",
+        cap: `${Math.round(result.capacidad_auto)} veh/h corredor`,
+      },
+      bici: {
+        flows: lastIter.demanda_bici,
+        color: "var(--bici)",
+        cap: `${cfgRes.supply.bike.capacidad_pista} bici/h`,
+      },
+      metro: {
+        flows: lastIter.demanda_metro,
+        color: "var(--metro)",
+        cap: `${cfgRes.supply.train.capacidad_tren} pax/tren`,
+      },
+      caminata: { flows: lastIter.demanda_caminata, color: "var(--walk)" },
+    };
+    return { ...porModo[flowMode], globalMax };
+  }, [lastIter, result, cfgRes, flowMode]);
 
   // v/c del equilibrio = flujo máximo ACUMULADO del corredor / capacidad.
   // La demanda originada por celda (demanda_auto[i]) NO sirve de numerador:
@@ -358,27 +397,6 @@ export function SandboxPage() {
       label: t(`sandbox.stratum_${STRATUM_KEY[s - 1]}`),
       agents: agents.filter((a) => a.estrato === s),
     }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result, t]);
-
-  const carGroups = useMemo<AgentGroup[]>(() => {
-    const agents = result?.agentes;
-    if (!agents) return [];
-    const groups: AgentGroup[] = [];
-    for (const s of [1, 2, 3]) {
-      const label = t(`sandbox.stratum_${STRATUM_KEY[s - 1]}`);
-      groups.push({
-        label,
-        tag: t("sandbox.with_car"),
-        agents: agents.filter((a) => a.estrato === s && a.tiene_auto),
-      });
-      groups.push({
-        label,
-        tag: t("sandbox.without_car"),
-        agents: agents.filter((a) => a.estrato === s && !a.tiene_auto),
-      });
-    }
-    return groups;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, t]);
 
@@ -1081,85 +1099,59 @@ export function SandboxPage() {
               </Panel>
             )}
 
-            {lastIter &&
-              result &&
-              (() => {
-                // Escala Y compartida: el máximo global entre los 3 modos.
-                // Permite comparar la magnitud relativa visualmente sin engañar
-                // con el auto-scale por panel.
-                const globalMax = Math.max(
-                  ...lastIter.demanda_auto,
-                  ...lastIter.demanda_bici,
-                  ...lastIter.demanda_metro,
-                  ...lastIter.demanda_caminata,
-                  1,
-                );
-                const flowPanels = [
-                  {
-                    n: "02",
-                    mode: "auto",
-                    flows: lastIter.demanda_auto,
-                    color: "var(--auto)",
-                    cap: `${Math.round(result.capacidad_auto)} veh/h corredor`,
-                  },
-                  {
-                    n: "03",
-                    mode: "bici",
-                    flows: lastIter.demanda_bici,
-                    color: "var(--bici)",
-                    cap: `${cfgRes.supply.bike.capacidad_pista} bici/h`,
-                  },
-                  {
-                    n: "04",
-                    mode: "metro",
-                    flows: lastIter.demanda_metro,
-                    color: "var(--metro)",
-                    cap: `${cfgRes.supply.train.capacidad_tren} pax/tren`,
-                  },
-                  {
-                    n: "05",
-                    mode: "caminata",
-                    flows: lastIter.demanda_caminata,
-                    color: "var(--walk)",
-                    cap: undefined as string | undefined,
-                  },
-                ] as const;
-                return (
-                  <>
-                    {flowPanels.map((fp) => (
-                      <Panel
-                        key={fp.n}
-                        n={fp.n}
-                        title={t(`modes.${fp.mode}`)}
-                        meta={t("sandbox.flow_per_cell", {
-                          mode: t(`modes.${fp.mode}`),
-                        })}
-                        cls="col-6"
+            {/* UN panel de flujos con selector de modo, en vez de cuatro paneles
+                que repetían la misma forma. El profesor reportó que tanto
+                gráfico marea; cuatro figuras para una sola lectura es
+                justamente el caso. La escala Y sigue siendo la global para que
+                cambiar de modo no engañe con auto-scale. */}
+            {lastIter && result && flowData && (
+              <Panel
+                n="02"
+                title={t("sandbox.flow_per_cell", {
+                  mode: t(`modes.${flowMode}`),
+                })}
+                meta={
+                  <div className="flex flex-wrap gap-1">
+                    {FLOW_MODES.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setFlowMode(m)}
+                        className="tab"
+                        aria-pressed={flowMode === m}
+                        style={{
+                          color: flowMode === m ? "var(--paper)" : undefined,
+                          background: flowMode === m ? "var(--ink)" : undefined,
+                        }}
                       >
-                        <ExportableFigure
-                          name={`flujo-${fp.mode}`}
-                          title={t("sandbox.flow_per_cell", {
-                            mode: t(`modes.${fp.mode}`),
-                          })}
-                          exportSize={{ width: 600, height: 200 }}
-                        >
-                          <FlowProfile
-                            flows={fp.flows}
-                            largoKm={cfgRes.city.largo_ciudad_km}
-                            color={fp.color}
-                            yMax={globalMax}
-                            capacityHint={fp.cap}
-                          />
-                        </ExportableFigure>
-                      </Panel>
+                        {t(`modes.${m}`)}
+                      </button>
                     ))}
-                  </>
-                );
-              })()}
+                  </div>
+                }
+                cls="col-12"
+              >
+                <ExportableFigure
+                  name={`flujo-${flowMode}`}
+                  title={t("sandbox.flow_per_cell", {
+                    mode: t(`modes.${flowMode}`),
+                  })}
+                  exportSize={{ width: 1000, height: 200 }}
+                >
+                  <FlowProfile
+                    flows={flowData.flows}
+                    largoKm={cfgRes.city.largo_ciudad_km}
+                    color={flowData.color}
+                    yMax={flowData.globalMax}
+                    capacityHint={flowData.cap}
+                  />
+                </ExportableFigure>
+              </Panel>
+            )}
 
             {result && result.emisiones_perfil_kg && (
               <Panel
-                n="06"
+                n="03"
                 title={t("sandbox.co2_profile")}
                 meta={t("panel_meta.co2")}
                 cls="col-12"
@@ -1184,7 +1176,7 @@ export function SandboxPage() {
             {result && result.agentes.length > 0 && (
               <>
                 <Panel
-                  n="07"
+                  n="04"
                   title={t("sandbox.trips_by_stratum")}
                   meta={t("panel_meta.share_stratum")}
                   cls="col-6"
@@ -1199,44 +1191,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="08"
-                  title={t("sandbox.trips_by_car_ownership")}
-                  meta={t("panel_meta.ownership_stratum")}
-                  cls="col-6"
-                >
-                  <ExportableFigure
-                    name="reparto-tenencia-auto"
-                    title={t("sandbox.trips_by_car_ownership")}
-                    exportSize={{ width: 700, height: 340 }}
-                  >
-                    <ModeShareBars groups={carGroups} />
-                  </ExportableFigure>
-                </Panel>
-
-                <Panel
-                  n="09"
-                  title={t("sandbox.utility_scatter")}
-                  meta={t("panel_meta.utility_position")}
-                  cls="col-7"
-                >
-                  <ExportableFigure
-                    name="dispersion-utilidades"
-                    title={t("sandbox.utility_scatter")}
-                    exportSize={{ width: 800, height: 280 }}
-                  >
-                    <UtilityScatter
-                      agents={result.agentes}
-                      nCeldas={cfgRes.city.n_celdas}
-                      largoKm={cfgRes.city.largo_ciudad_km}
-                    />
-                  </ExportableFigure>
-                  <p className="kpi-caption" style={{ marginTop: 6 }}>
-                    {t("sandbox.utility_caveat")}
-                  </p>
-                </Panel>
-
-                <Panel
-                  n="10"
+                  n="05"
                   title={t("sandbox.mode_share_by_location")}
                   meta="stacked · 100%"
                   cls="col-5"
@@ -1263,7 +1218,7 @@ export function SandboxPage() {
 
                 {modeShareByStratum && (
                   <Panel
-                    n="11"
+                    n="06"
                     title={t("sandbox.mode_share_by_location_stratum")}
                     meta={t("sandbox.mode_share_stratum_meta")}
                     cls="col-12"
@@ -1303,58 +1258,6 @@ export function SandboxPage() {
                     </div>
                   </Panel>
                 )}
-
-                {avgStats && (
-                  <>
-                    <Panel
-                      n="12"
-                      title={t("sandbox.avg_time_by_mode")}
-                      meta={t("panel_meta.avg_min")}
-                      cls="col-4"
-                    >
-                      <ExportableFigure
-                        name="tiempo-medio-por-modo"
-                        title={t("sandbox.avg_time_by_mode")}
-                        exportSize={{ width: 500, height: 240 }}
-                      >
-                        <StatBars bars={avgStats.timeByMode} unit="min" />
-                      </ExportableFigure>
-                    </Panel>
-
-                    <Panel
-                      n="13"
-                      title={t("sandbox.avg_time_by_stratum")}
-                      meta={t("panel_meta.avg_min")}
-                      cls="col-4"
-                    >
-                      <ExportableFigure
-                        name="tiempo-medio-por-estrato"
-                        title={t("sandbox.avg_time_by_stratum")}
-                        exportSize={{ width: 500, height: 240 }}
-                      >
-                        <StatBars bars={avgStats.timeByStratum} unit="min" />
-                      </ExportableFigure>
-                    </Panel>
-
-                    <Panel
-                      n="14"
-                      title={t("sandbox.avg_utility_by_stratum")}
-                      meta={t("panel_meta.avg_util")}
-                      cls="col-4"
-                    >
-                      <ExportableFigure
-                        name="utilidad-media-por-estrato"
-                        title={t("sandbox.avg_utility_by_stratum")}
-                        exportSize={{ width: 500, height: 240 }}
-                      >
-                        <StatBars bars={avgStats.utilByStratum} decimals={2} />
-                      </ExportableFigure>
-                      <p className="kpi-caption" style={{ marginTop: 6 }}>
-                        {t("sandbox.utility_caveat")}
-                      </p>
-                    </Panel>
-                  </>
-                )}
               </>
             )}
           </div>
@@ -1365,7 +1268,7 @@ export function SandboxPage() {
             tiempos de flujo libre; después, los de la última iteración. */}
         <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
           <Panel
-            n="15"
+            n="07"
             title={t("demand_inspector.title")}
             meta={
               lastIter
