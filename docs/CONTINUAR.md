@@ -152,14 +152,19 @@ a +60 / +90 / +126 minutos sin alcanzar el objetivo, porque la congestión se
 autolimita y el techo de `prob_auto` ata. Ese resultado importa: dice que
 objetivos muy altos de auto exigen también más capacidad vial y más motorización.
 
-### 4.3 Siguiente en la fila
+### 4.3 Hecho: Wardrop como tercer método de asignación
 
-**Asignación determinística (Wardrop)** como tercera opción del selector que ya
-existe (`montecarlo` / `expected`). Ver §5: es lo único que hace observable
-Downs-Thomson. Alcance: `assignment` pasa de dos a tres valores en `config.py` y
-en el espejo TS, la elección de modo en `msa.py` usa `argmin` de costo en vez del
-logit, y hay que regenerar el fixture. El MSA ya promedia iteraciones, que es
-justo lo que hace converger un equilibrio de Wardrop con carga todo-o-nada.
+Implementado (`321bd07`): `assignment ∈ {montecarlo, expected, wardrop}`.
+`probabilidades_wardrop` en `demand/choice.py` (todo el grupo al modo de mayor
+utilidad, empates repartidos en partes iguales), carga fraccional como
+`expected`, selector en la UI con hint sobre equilibrios múltiples. Converge en
+12–15 iteraciones; 6 tests unitarios, incluido «es el límite del logit al
+escalar las utilidades».
+
+Follow-up de UI pendiente: bajo Wardrop la medida emparejada de bienestar es la
+utilidad máxima media, no el logsum — la tabla de resultados sigue mostrando el
+excedente logsum. El costo generalizado percibido sí muestra el fenómeno (ver
+§5), así que no es urgente.
 
 ### 4.4 Deuda de documentación
 
@@ -169,41 +174,67 @@ magnitudes no.**
 
 ---
 
-## 5. Downs-Thomson: resultado medido
+## 5. Downs-Thomson: RESUELTO — se observa, y se sabe exactamente cuándo
 
-**No se observa con parámetros realistas, y la razón es estructural.**
+Búsqueda sistemática en `scripts/buscar_downs_thomson.py` (10 escenarios × 3
+equilibrios × barrido de capacidad, mecanismo verificado en cada tramo, y los
+hallazgos reverificados con `max_iter=120` y `tol=0.02`). El paper original
+(`reference/overleaf_original/main.tex`) es logit puro y no menciona la
+paradoja: era un objetivo nuestro, no una promesa de los autores.
 
-Se probó, midiendo con el **logsum** (la única medida que no se deja engañar por
-efectos de composición): capacidad de tren de 300 a 5.000 · frecuencia mínima de
-0,5 a 6 · estaciones de 8 a 24 · densidad de 300 a 2.500 hab/km · espera de 2,0×
-a 2,5× · escala del logit igualada entre estratos · mezcla de estratos ·
-motorización · parking de $0 a $6.000 · sólo auto+metro · demanda inducida
-(teletrabajo endógeno) · e incrementos finos de capacidad en vez de pistas
-enteras. **En todos, el excedente sube al agregar capacidad.**
+### Las condiciones, medidas una a una
 
-Lo único que produjo la paradoja: llevar los betas a **×20**, o sea acercar el
-logit a elección determinística.
+| Condición | Evidencia |
+|---|---|
+| **C2 — arbitraje (Wardrop), la decisiva** | 0 paradojas bajo logit en los 10 escenarios; 8 con mecanismo verificado bajo Wardrop. El logit deja al usuario del modo mejorado una ganancia sin arbitrar (condición MNL: `P_metro·w_esp·espera·β_t > 1`; con valores defendibles llega a 0,37) |
+| **C4 — metro en la zona empinada** | Con K=300 (f_op ~23, espera 1,3 min) no aparece ni bajo Wardrop: la curva de escala es plana. Con K=1.000 (f_op 4–7, espera 4–8 min) aparece. `frec_min` alto la mata (el piso impide que la frecuencia caiga) |
+| **C3 — homogeneidad amplifica** | En la ciudad real (3 estratos) la caída es −0,6 min; con población homogénea y ciudad bimodal concentrada (todos a la misma distancia), −2 a −10 min; es la diferencia entre arbitraje del decisor y arbitraje poblacional |
+| **C1 — terceros modos diluyen** | Sólo auto+metro la refuerza; con 4 modos igual aparece si C2+C4 se cumplen (E02) |
+| **C5 — dinero y ASC desplazan la frontera** | dinero=0 y ASC=0 la refuerzan, pero no son necesarios |
 
-**Por qué.** Derivando el equilibrio clásico `c_R(q_R,K) = c_T(Q−q_R)`:
+### La receta de aula (módulo de transporte, todo alcanzable en la UI)
+
+Asignación **Wardrop** · capacidad tren **1.000 pax** · frec. mínima **2** ·
+resto en default. Barrer pistas 1→4:
+
+```
+pistas   auto%  metro%   f_op  espera  cg percibido
+     1   15.5    39.3    7.1    4.5       $39.5
+     2   23.3    33.3    6.0    5.3       $41.5
+     3   27.3    28.7    5.2    6.1       $42.4
+     4   29.7    26.2    4.7    6.6       $42.7
+```
+
+El **costo generalizado percibido de la tabla de resultados sube** al agregar
+pistas — el alumno lo ve en pantalla. El bienestar emparejado (utilidad máxima
+media) cae de 1 a 3 pistas y recién con ~6 pistas recupera el punto de partida
+(verificado con tol=0.02). El tiempo físico medio BAJA mientras tanto:
+composición, no mejora — es parte de la lección.
+
+En los escenarios estilizados homogéneos la paradoja toma su forma fuerte, la
+**espiral de muerte del metro** (Mogridge): al agregar pistas la participación
+del metro cae hasta 0, la espera se va a `30/frec_min`, y el bienestar cae
+−10 a −33 min antes de recuperarse recién cuando el metro ya murió y la vía es
+enorme. `buscar_downs_thomson.py` E06–E09 lo reproducen.
+
+**Caveat de multiplicidad**: bajo Wardrop dos configuraciones con topes NO
+activos pueden aterrizar en equilibrios levemente distintos (sensibilidad de
+trayectoria de la carga todo-o-nada). Está advertido en el hint de la UI; para
+comparaciones usar siempre el mismo barrido con la misma configuración inicial.
+
+### Por qué el logit no la produce (se mantiene)
+
+Derivando el equilibrio clásico `c_R(q_R,K) = c_T(Q−q_R)`:
 
 ```
 dc*/dK = c_T' · (∂c_R/∂K) / (c_R' + c_T')  >  0   si c_T' < 0
 ```
 
-la paradoja es **automática** cuando el transporte público tiene economías de
-escala — pero el resultado depende de que los usuarios **arbitren hasta igualar
-costos**. Un logit con dispersión de gustos realista no iguala: el usuario de
-auto retiene una ganancia neta que el modelo clásico habría disipado.
-
-Condición cuantitativa derivada para el MNL:
-
-```
-P_metro · w_espera · espera(min) · |β_tiempo|  >  1
-```
-
-Lo mejor alcanzado con valores defendibles fue **0,37**. Para llegar a 1 con
-|β_t| = 0,055 haría falta `P_metro × espera > 7,3`, o sea el metro llevando 45%
-de los viajes con una espera de 16 minutos: un headway de 32 minutos.
+la paradoja exige **arbitrar hasta igualar costos**. La dispersión de gustos
+del logit deja ganancias sin arbitrar, y la heterogeneidad (estratos,
+distancias) impide el arbitraje poblacional incluso bajo Wardrop — por eso la
+versión realista muestra una caída modesta y las homogéneas la espiral
+completa.
 
 > **Dos falsos positivos que ya se descartaron**, por si reaparecen: el tiempo
 > físico medio puede SUBIR y el costo generalizado tiempo+dinero también, sin que
@@ -223,8 +254,11 @@ y este es un corredor único.
 
 ## 6. Para la reunión con los autores
 
-1. **Downs-Thomson no es robusto a utilidad aleatoria.** Es una propiedad del
-   equilibrio determinístico. Ver §5 — hay derivación y medición.
+1. **Downs-Thomson no es robusto a utilidad aleatoria — y ahora es demostrable
+   en vivo.** Cero paradojas bajo logit en 10 escenarios; bajo Wardrop aparece
+   incluso en la ciudad realista si el metro opera en la zona empinada de su
+   economía de escala, y en escenarios homogéneos toma la forma de espiral de
+   muerte del metro. Ver §5: derivación, medición y receta de aula.
 2. **La «congestión de andén» no modela congestión de andén.** El código usa
    `ratio = carga / (frec_max · K)`, y como `f_teórica = carga/K`, eso es
    **algebraicamente idéntico a `f_teórica / frec_max`**: mide utilización de
