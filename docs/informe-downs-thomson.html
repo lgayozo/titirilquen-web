@@ -280,6 +280,73 @@ una distancia, −2 a −33 min (espiral completa).</td></tr>
 mueven a nadie. Dinero=0 y ASC=0 refuerzan, pero no son necesarios.</td></tr>
 </tbody></table></div>
 
+<h3>4.1 Por qué ocurre en unos casos y no en otros: la condición en forma cerrada</h3>
+
+<p>Bajo logit, una pista adicional que mejora el auto en δ minutos mueve el bienestar por dos
+canales: la <em>ganancia directa</em> de quienes pueden aprovecharla (proporcional a
+P<sub>auto</sub>) y la <em>pérdida inducida</em> de los usuarios del metro, cuya espera sube al
+perder pasajeros. Derivando ambos canales, la pérdida solo puede superar a la ganancia si</p>
+
+<div class="ecuacion">P<sub>metro</sub> · w<sub>espera</sub> · espera · |β<sub>t</sub>| &gt; 1</div>
+
+<p>donde w<sub>espera</sub> es la razón espera/viaje y |β<sub>t</sub>| la escala del logit. El
+término <span class="mono">espera·|β<sub>t</sub>|·w</span> es la desutilidad de la espera en
+utiles: para valer ~1, la espera sola tendría que pesar tanto como una ventaja de 2,7× en odds
+de elección. Y la regla de frecuencia <span class="mono">f = carga/K</span> aporta una
+<strong>identidad</strong> que cierra la condición: mientras la frecuencia sea interior,
+<span class="mono">espera·P<sub>metro</sub> = 30K/Q<sub>corredor</sub></span> (la espera es
+30K/carga y la carga es P·Q). Sustituyendo:</p>
+
+<div class="ecuacion"><strong>30 · K / Q<sub>corredor</sub></strong>
+<span style="color:var(--muted)">(estructura: oferta y ciudad)</span>
+&nbsp;×&nbsp; <strong>w<sub>espera</sub> · |β<sub>t</sub>|</strong>
+<span style="color:var(--muted)">(conducta: calibración)</span> &nbsp;&gt;&nbsp; 1</div>
+
+<p>La paradoja aparece o no según si este producto puede cruzar 1 — y cada factor tiene un
+techo disciplinado por algo externo:</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Factor</th><th>Tipo</th><th>Qué lo disciplina</th><th class="n">Techo defendible</th></tr></thead>
+<tbody>
+<tr><td>K (capacidad por tren)</td><td>estructura</td><td>Realismo del material rodante</td><td class="n">~2.500 pax</td></tr>
+<tr><td>Q (demanda del corredor)</td><td>estructura</td><td>La ciudad que se quiere representar</td><td class="n">—</td></tr>
+<tr><td>w<sub>espera</sub></td><td>conducta</td><td>Norma SNI (×2) y rango empírico</td><td class="n">2,5</td></tr>
+<tr><td>|β<sub>t</sub>| (escala del logit)</td><td>conducta</td><td><strong>La diversidad modal observada</strong>: escalas mayores producen repartos degenerados</td><td class="n">~0,055 util/min</td></tr>
+</tbody></table>
+<p class="pie-tabla">Con el default vigente el producto vale ~0,15–0,20; empujando TODO al techo
+a la vez llega a ~0,7. Para cruzar 1 el único margen restante es K/Q.</p></div>
+
+<p><strong>Y ahí está el resultado de los dos regímenes, medido:</strong> al forzar K/Q por
+sobre el umbral (densidad 400 hab/km, K=2.500, piso de frecuencia casi nulo — un tren de
+cercanías con intervalos de una hora), el equilibrio interior del metro <em>deja de existir
+antes</em> de que la condición opere: colapsa solo a ~3% de participación con esperas de 150
+minutos, independiente de cuántas pistas tenga la vía. Ya no queda nada que la ampliación
+pueda degradar. Bajo logit el espacio de parámetros se parte, entonces, en dos regiones —
+<em>metro estable</em> (producto &lt; 1, la ganancia retenida siempre domina) y <em>metro
+inexistente</em> — y la paradoja vive exactamente en el filo entre ambas, donde ninguna
+configuración cae. Por eso 0 apariciones en ~40 corridas logit.</p>
+
+<p><strong>Wardrop escapa de la condición</strong> porque el arbitraje elimina el techo de la
+escala: sin gustos no observados, el migrante marginal es indiferente (su ganancia retenida es
+cero) y la pérdida de los que quedan en el metro no tiene contrapeso que superar. La condición
+se reduce a la clásica — c'<sub>T</sub> &lt; 0 con ambos modos en uso — que es una región
+abierta, no un filo. La transición metro-vivo → metro-muerto ocurre además <em>gradualmente</em>
+al mover pistas, que es precisamente la espiral observable de §5.2.</p>
+
+<div class="aviso">
+<p><strong>El VST no entra en la condición — elige qué tan visible es el daño, no si
+ocurre.</strong> El valor social del tiempo se aplica <em>después</em> de resolver el
+equilibrio: no mueve la elección de nadie. Diferenciarlo por estrato jugaría además en contra
+de la visibilidad: la pérdida genuina la concentran los cautivos del estrato bajo, cuyo tiempo
+valdría $1.600/h con valoración conductual contra los $6.200/h de las ganancias de los
+conductores del estrato alto. El VST único del SNI ($3.338/h), al re-ponderar hacia arriba el
+tiempo de los pobres, es el instrumento que mejor expone la paradoja — un buen ejemplo de por
+qué la norma desestima la distinción por ingreso «aduciendo regresividad». El VoT
+<em>conductual</em> por estrato (β<sub>t</sub>/β<sub>c</sub>), que sí entra al modelo, tampoco
+aparece en la condición: mueve dónde queda la frontera modal, no la escala — medido en §5.3
+(VoT ±30%: cero paradojas bajo logit).</p>
+</div>
+
 <div class="aviso">
 <p><strong>Metodología — los tres falsos positivos que esta búsqueda descartó antes de llegar
 al resultado.</strong> La medida de bienestar decide el veredicto, y las intuitivas engañan:</p>
@@ -643,8 +710,11 @@ cuarta pista dejan a la ciudad peor que con una sola.</li>
 <li><strong>Es una propiedad del supuesto de arbitraje, no de la congestión.</strong> Cero
 apariciones bajo logit (montecarlo y expected) en toda la búsqueda y en las 8 variantes de
 sensibilización; frecuentes bajo Wardrop. El mismo colapso del metro que bajo Wardrop empeora a
-la ciudad, bajo logit la «mejora» — cada migrante retiene una ganancia subjetiva. Comparar
-ambos mundos con un botón es el mejor uso docente del hallazgo.</li>
+la ciudad, bajo logit la «mejora» — cada migrante retiene una ganancia subjetiva. La condición cerrada
+de §4.1 (30·K·w·|β<sub>t</sub>|/Q &gt; 1) explica por qué bajo logit no existe configuración
+defendible que la produzca: los factores conductuales tienen techo y el estructural destruye
+el metro antes de servir. Comparar ambos mundos con un botón es el mejor uso docente del
+hallazgo.</li>
 <li><strong>El default nuevo la hace posible; el antiguo la hacía imposible.</strong> Con
 K=300 la frecuencia era ~21 tph y la espera 1,4 min: zona plana de la economía de escala, donde
 ninguna palanca del metro mordía. Con K=1.000 (capacidad realista) y frec<sub>min</sub>=2 el
