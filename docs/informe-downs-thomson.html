@@ -408,14 +408,18 @@ minutos-equivalentes (mayor = mejor); costo social = tiempo al VST del SNI (espe
 <th class="n">Costo social ($/viaje)</th><th></th></tr></thead>
 <tbody>
 <tr><td class="n">1</td><td class="n">15,5</td><td class="n">39,3</td><td class="n">7,1</td><td class="n">4,5</td><td class="n">−34,17</td><td class="n">2.054</td><td></td></tr>
-<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">−34,08</td><td class="n">2.171</td><td>la 2ª pista mejora</td></tr>
+<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">−34,08</td><td class="n">2.171</td><td>limítrofe: +0,09 aquí, −0,16 en la variante f<sub>min</sub>=1</td></tr>
 <tr class="destacada"><td class="n">3</td><td class="n">27,3</td><td class="n">28,7</td><td class="n">5,2</td><td class="n">6,1</td><td class="n">−34,34</td><td class="n">2.221</td><td>la 3ª empeora bajo el nivel de 1</td></tr>
 <tr><td class="n">4</td><td class="n">29,7</td><td class="n">26,2</td><td class="n">4,7</td><td class="n">6,6</td><td class="n">−34,30</td><td class="n">2.240</td><td>aún peor que 1 pista</td></tr>
 <tr><td class="n">6</td><td class="n">30,7</td><td class="n">25,5</td><td class="n">4,6</td><td class="n">6,8</td><td class="n">−33,89</td><td class="n">2.232</td><td>recupera</td></tr>
 <tr><td class="n">8</td><td class="n">31,3</td><td class="n">24,4</td><td class="n">4,4</td><td class="n">6,9</td><td class="n">−33,79</td><td class="n">2.233</td><td>supera</td></tr>
 </tbody></table>
-<p class="pie-tabla">La segunda pista mejora; la tercera y la cuarta dejan a la ciudad
-<strong>peor que con una sola</strong>; hay que llegar a ~6 para recuperar. La fuga a
+<p class="pie-tabla">En bienestar, la segunda pista es <strong>limítrofe</strong> (mejora
+marginal aquí; empeora en la variante con piso de frecuencia 1 — el signo queda dentro del
+margen de los equilibrios múltiples de Wardrop); en costo social ya está peor, aunque esa alza
+temprana es mayormente dinero (+$168) con el componente de tiempo cayendo (−$50): transferencia,
+no paradoja. Lo robusto en ambas configuraciones: la tercera y la cuarta dejan a la ciudad
+<strong>peor que con una sola</strong>, y hay que llegar a ~6 para recuperar. La fuga a
 bici+caminata es ≈0: la sustitución es auto↔metro, el mecanismo correcto. Bajo
 <code>expected</code> y <code>montecarlo</code>, en cambio, el bienestar mejora y el costo
 social <em>baja</em> monótonamente (2.182 → 2.121): cero paradojas.</p></div>
@@ -705,8 +709,9 @@ uv run python scripts/diagnostico_calibracion.py  # los betas en minutos-equival
 <ol>
 <li><strong>La paradoja de Downs-Thomson se observa en la ciudad por defecto del
 simulador</strong> — tres estratos, cuatro modos, calibración vigente — y reproducirla toma un
-solo cambio en la interfaz: método de asignación Wardrop, y barrer pistas. La tercera y la
-cuarta pista dejan a la ciudad peor que con una sola.</li>
+solo cambio en la interfaz: método de asignación Wardrop, y barrer pistas. La segunda pista
+es limítrofe (su signo depende del equilibrio en que se aterrice); la tercera y la cuarta dejan
+a la ciudad robustamente peor que con una sola.</li>
 <li><strong>Es una propiedad del supuesto de arbitraje, no de la congestión.</strong> Cero
 apariciones bajo logit (montecarlo y expected) en toda la búsqueda y en las 8 variantes de
 sensibilización; frecuentes bajo Wardrop. El mismo colapso del metro que bajo Wardrop empeora a
