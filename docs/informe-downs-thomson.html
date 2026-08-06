@@ -96,9 +96,12 @@
   <p class="bajada">Resultado de una búsqueda sistemática sobre 10 escenarios × 3 métodos de
   equilibrio × barridos de capacidad vial: la paradoja <strong>se observa en el simulador</strong>,
   aparece únicamente bajo elección determinística (Wardrop) con el metro operando en la zona
-  empinada de su economía de escala, y es reproducible desde la interfaz en cuatro corridas.</p>
+  empinada de su economía de escala, y — tras mover el default a trenes de capacidad realista —
+  es reproducible desde la interfaz cambiando un solo control. Incluye la sensibilización de la
+  calibración en rangos realistas y la evolución del costo social agregado y por estrato.</p>
   <div class="meta">Agosto 2026 · rama <code>ciudad-equilibrio-mejoras</code> · evidencia:
-  <code>scripts/buscar_downs_thomson.py</code> · verificación: max_iter=120, tol=0,02</div>
+  <code>scripts/buscar_downs_thomson.py</code> y <code>scripts/datos_informe.py</code> ·
+  verificación: max_iter=120, tol=0,02 · default vigente: K=1.000, frec<sub>min</sub>=2</div>
 </header>
 
 <!-- ================================================================ -->
@@ -165,9 +168,14 @@ se promedian con peso 1/(n+1) hasta que el máximo cambio de tiempo cae bajo la 
 <thead><tr><th>Método</th><th>Qué hace</th><th>Qué supone</th></tr></thead>
 <tbody>
 <tr><td><code>montecarlo</code></td><td>Sortea el modo de cada agente según P<sub>m</sub></td>
-<td rowspan="2">Equilibrio <strong>estocástico</strong> (SUE): hay gustos no observados; en el
-óptimo los modos usados tienen costos <em>distintos</em> y la brecha la absorbe el gusto.</td></tr>
-<tr><td><code>expected</code></td><td>Asigna la fracción P<sub>m</sub> de cada grupo (determinista, sin ruido)</td></tr>
+<td>Equilibrio <strong>estocástico</strong> (SUE) con ruido de muestreo: además de los gustos no
+observados del logit, agrega la variabilidad de sortear agentes enteros.</td></tr>
+<tr><td><code>expected</code></td><td>Asigna la fracción P<sub>m</sub> de cada grupo (determinista, sin ruido)</td>
+<td><strong>El mismo supuesto conductual que montecarlo</strong> — logit con gustos no observados,
+costos NO igualados en el óptimo — pero cargando la <em>esperanza</em> del sorteo:
+es el límite de montecarlo con infinitos agentes por grupo. Determinista y suave; por eso es el
+default de la app. La diferencia con montecarlo es numérica; la diferencia con
+<code>wardrop</code> es de supuesto.</td></tr>
 <tr><td><code>wardrop</code></td><td>Asigna <em>todo</em> el grupo al modo de mayor utilidad</td>
 <td>Equilibrio <strong>determinístico</strong> (UE): sin heterogeneidad de gustos, los usuarios
 arbitran hasta igualar costos. Es el límite del logit cuando la escala de los β crece.</td></tr>
@@ -205,25 +213,33 @@ del auto emerge del valor del tiempo y la disponibilidad, no de gustos impuestos
 <tr><td>Estacionamiento (costo esperado)</td><td class="n">$2.000</td></tr>
 <tr><td>Tarifa metro / bencina</td><td class="n">$800 · $120/km</td></tr>
 <tr><td>Pistas por sentido</td><td class="n">2</td></tr>
-<tr><td>Capacidad por tren K</td><td class="n">300 pax</td></tr>
-<tr><td>Frecuencia (mín–máx)</td><td class="n">6 – 40 tph</td></tr>
+<tr><td>Capacidad por tren K</td><td class="n"><strong>1.000 pax</strong> (antes 300)</td></tr>
+<tr><td>Frecuencia (mín–máx)</td><td class="n"><strong>2</strong> – 40 tph (antes 6–40)</td></tr>
 <tr><td>Estaciones · detención</td><td class="n">10 · 30 s c/u</td></tr>
 <tr><td>Capacidad ciclovía</td><td class="n">2.500 bici/h</td></tr>
 </tbody></table></div>
 </div>
 </div>
 
-<h3>Línea base (defaults de la app, asignación <code>expected</code>)</h3>
+<h3>El cambio de default que habilita la sensibilidad (agosto 2026)</h3>
+<p>Con la calibración anterior (K=300) la frecuencia endógena quedaba en ~21 tph y la espera en
+1,4 min: la zona <em>plana</em> de la economía de escala, donde ni las palancas del metro ni la
+paradoja pueden morder. El default se movió a <strong>K=1.000 pax</strong> — capacidad realista
+de un tren de metro — lo que deja la frecuencia en ~6 tph y la espera en ~5 min: zona empinada.
+Eso obligó a bajar <strong>frec<sub>min</sub> de 6 a 2</strong>: con el piso en 6, la frecuencia
+demandada (~5–7) quedaría recortada justo donde vive el efecto Mohring y el metro sería
+insensible a la pérdida de pasajeros. El resto de la calibración ya estaba en zona sensible
+(corredor en v/c ≈ 1,3 con 2 pistas; parking con elasticidad activa; bici bajo su techo).</p>
+
+<h3>Línea base (defaults de la app, asignación <code>expected</code>, 2 pistas)</h3>
 <div class="envoltorio-tabla"><table>
-<thead><tr><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th>
-<th class="n">Caminata</th><th class="n">Teletrabajo</th><th class="n">v/c corredor</th>
-<th class="n">f<sub>op</sub> metro</th></tr></thead>
-<tbody><tr><td class="n">15,4%</td><td class="n">37,0%</td><td class="n">21,4%</td>
-<td class="n">6,8%</td><td class="n">19,4%</td><td class="n">1,25</td><td class="n">20,9 tph</td></tr></tbody>
+<thead><tr><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici + Caminata</th>
+<th class="n">Teletrabajo</th><th class="n">f<sub>op</sub> metro</th><th class="n">Espera</th></tr></thead>
+<tbody><tr><td class="n">16,4%</td><td class="n">34,8%</td><td class="n">29,4%</td>
+<td class="n">19,4%</td><td class="n">5,9 tph</td><td class="n">5,2 min</td></tr></tbody>
 </table>
-<p class="pie-tabla">Reproducir: <code>uv run python scripts/auditoria_transporte.py</code>.
-Con K=300 el metro opera a frecuencia alta y espera de ~1,4 min: la zona <em>plana</em> de su
-economía de escala — relevante para lo que sigue.</p></div>
+<p class="pie-tabla">Reproducir: <code>uv run python scripts/auditoria_transporte.py</code> y
+<code>scripts/datos_informe.py</code> (que genera todas las tablas y gráficos de este informe).</p></div>
 
 <!-- ================================================================ -->
 <h2><span class="num">4</span>La paradoja: teoría y condiciones</h2>
@@ -249,9 +265,10 @@ El logit deja al usuario del modo mejorado una ganancia sin arbitrar. Condición
 el MNL: P<sub>metro</sub>·w<sub>esp</sub>·espera·|β<sub>t</sub>| &gt; 1; con valores
 defendibles alcanza a lo más <strong>0,37</strong>.</td></tr>
 <tr><td><strong>C4</strong></td><td>Metro en la zona empinada de su economía de escala</td>
-<td>Con K=300 (f<sub>op</sub>≈21, espera 1,4 min) <em>no aparece ni bajo Wardrop</em>: la curva
-es plana. Con K=1.000 (f<sub>op</sub> 4–7, espera 4–8 min) aparece. Un piso de frecuencia alto
-la mata: impide que la frecuencia caiga.</td></tr>
+<td>Con K=300 (el default <em>anterior</em>: f<sub>op</sub>≈21, espera 1,4 min) <em>no aparece
+ni bajo Wardrop</em>: la curva es plana. Con K=1.000 (f<sub>op</sub> 4–7, espera 4–8 min)
+aparece — por eso el default se movió ahí. Un piso de frecuencia alto la mata: impide que la
+frecuencia caiga.</td></tr>
 <tr><td><strong>C3</strong></td><td>Homogeneidad de los decisores</td>
 <td>Wardrop iguala costos entre las alternativas de <em>un</em> decisor, no entre decisores.
 Con 3 estratos y 201 distancias la caída es −0,6 min; con población homogénea concentrada a
@@ -308,27 +325,210 @@ los hallazgos se reverificaron con max_iter=120 y tolerancia 0,02.</p>
 <td>—</td><td><span class="etiqueta si">paradoja</span> −5,0 min</td></tr>
 </tbody></table>
 <p class="pie-tabla">«no» = el bienestar emparejado sube monótonamente al agregar pistas.
-Montecarlo replica a expected con ruido (verificado en E01). Magnitudes = peor tramo.</p></div>
+Montecarlo replica a expected con ruido (verificado en E01). Magnitudes = peor tramo.
+<strong>Tras este estudio, la configuración de E02 se convirtió en el default de la app</strong>
+(K=1.000, frec<sub>min</sub>=2): E01 documenta la calibración anterior.</p></div>
 
-<h3>5.1 El resultado central: la ciudad realista (E02, verificado fino)</h3>
-<p>Tres estratos, cuatro modos, calibración vigente; solo se cambió el metro a trenes de
-tamaño realista (K=1.000 en vez de 300) con piso de frecuencia bajo, y la asignación a
-Wardrop. Bienestar = utilidad máxima media en minutos-equivalentes (mayor = mejor):</p>
+<h3>5.1 El resultado central: la ciudad por defecto, verificado fino</h3>
+<p>Con el default vigente (tres estratos, cuatro modos, K=1.000, frec<sub>min</sub>=2), método
+<strong>Wardrop</strong>, max_iter=120 y tolerancia 0,02. Bienestar = utilidad máxima media en
+minutos-equivalentes (mayor = mejor); costo social = tiempo al VST del SNI (espera y acceso ×2)
++ gasto monetario, por viajero:</p>
 
 <div class="envoltorio-tabla"><table>
 <thead><tr><th class="n">Pistas</th><th class="n">Auto %</th><th class="n">Metro %</th>
-<th class="n">f<sub>op</sub></th><th class="n">Espera (min)</th><th class="n">Bienestar (min)</th><th></th></tr></thead>
+<th class="n">f<sub>op</sub></th><th class="n">Espera (min)</th><th class="n">Bienestar (min)</th>
+<th class="n">Costo social ($/viaje)</th><th></th></tr></thead>
 <tbody>
-<tr><td class="n">1</td><td class="n">15,7</td><td class="n">39,1</td><td class="n">7,0</td><td class="n">4,7</td><td class="n">−34,62</td><td></td></tr>
-<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,0</td><td class="n">5,9</td><td class="n">5,8</td><td class="n">−34,79</td><td>cae</td></tr>
-<tr class="destacada"><td class="n">3</td><td class="n">28,2</td><td class="n">27,3</td><td class="n">4,9</td><td class="n">6,9</td><td class="n">−35,25</td><td>mínimo</td></tr>
-<tr><td class="n">4</td><td class="n">29,8</td><td class="n">25,9</td><td class="n">4,7</td><td class="n">7,2</td><td class="n">−34,99</td><td>aún peor que 1 pista</td></tr>
-<tr><td class="n">6</td><td class="n">31,3</td><td class="n">24,8</td><td class="n">4,5</td><td class="n">7,4</td><td class="n">−34,50</td><td>≈ recupera</td></tr>
-<tr><td class="n">8</td><td class="n">31,4</td><td class="n">24,7</td><td class="n">4,4</td><td class="n">7,4</td><td class="n">−34,28</td><td>supera</td></tr>
+<tr><td class="n">1</td><td class="n">15,5</td><td class="n">39,3</td><td class="n">7,1</td><td class="n">4,5</td><td class="n">−34,17</td><td class="n">2.054</td><td></td></tr>
+<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">−34,08</td><td class="n">2.171</td><td>la 2ª pista mejora</td></tr>
+<tr class="destacada"><td class="n">3</td><td class="n">27,3</td><td class="n">28,7</td><td class="n">5,2</td><td class="n">6,1</td><td class="n">−34,34</td><td class="n">2.221</td><td>la 3ª empeora bajo el nivel de 1</td></tr>
+<tr><td class="n">4</td><td class="n">29,7</td><td class="n">26,2</td><td class="n">4,7</td><td class="n">6,6</td><td class="n">−34,30</td><td class="n">2.240</td><td>aún peor que 1 pista</td></tr>
+<tr><td class="n">6</td><td class="n">30,7</td><td class="n">25,5</td><td class="n">4,6</td><td class="n">6,8</td><td class="n">−33,89</td><td class="n">2.232</td><td>recupera</td></tr>
+<tr><td class="n">8</td><td class="n">31,3</td><td class="n">24,4</td><td class="n">4,4</td><td class="n">6,9</td><td class="n">−33,79</td><td class="n">2.233</td><td>supera</td></tr>
 </tbody></table>
-<p class="pie-tabla">Triplicar la vialidad (1→3) deja a la ciudad <strong>peor</strong>; hay que
-llegar a ~6 pistas por sentido para recuperar el bienestar inicial. La fuga a bici+caminata es
-≈0 (25,7% → 24,5%): la sustitución es auto↔metro, el mecanismo correcto.</p></div>
+<p class="pie-tabla">La segunda pista mejora; la tercera y la cuarta dejan a la ciudad
+<strong>peor que con una sola</strong>; hay que llegar a ~6 para recuperar. La fuga a
+bici+caminata es ≈0: la sustitución es auto↔metro, el mecanismo correcto. Bajo
+<code>expected</code> y <code>montecarlo</code>, en cambio, el bienestar mejora y el costo
+social <em>baja</em> monótonamente (2.182 → 2.121): cero paradojas.</p></div>
+
+<h3>5.1b Costo social agregado y por estrato — gráficos</h3>
+<div class="grafico"><svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" style="max-width:100%;height:auto;font-family:Segoe UI,system-ui,sans-serif">
+<text x="62" y="18" font-size="13" font-weight="600" fill="#1a1a1a">Costo social por viajero según capacidad vial — los tres equilibrios</text>
+<line x1="62" y1="300.0" x2="624" y2="300.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="303.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,032</text>
+<line x1="62" y1="233.5" x2="624" y2="233.5" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="237.0" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,089</text>
+<line x1="62" y1="167.0" x2="624" y2="167.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="170.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,147</text>
+<line x1="62" y1="100.5" x2="624" y2="100.5" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="104.0" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,204</text>
+<line x1="62" y1="34.0" x2="624" y2="34.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="37.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,262</text>
+<text x="62.0" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">1</text>
+<text x="142.3" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">2</text>
+<text x="222.6" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">3</text>
+<text x="302.9" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">4</text>
+<text x="463.4" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">6</text>
+<text x="624.0" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">8</text>
+<text x="343" y="334" font-size="11" text-anchor="middle" fill="#444">pistas por sentido</text>
+<text x="14" y="167" font-size="11" text-anchor="middle" fill="#444" transform="rotate(-90 14 167)">costo social ($/viaje)</text>
+<path d="M62.0,130.4 L142.3,170.1 L222.6,188.0 L302.9,193.4 L463.4,198.0 L624.0,202.1" fill="none" stroke="#8a8a8a" stroke-width="2.2" stroke-dasharray="5 4"/>
+<circle cx="62.0" cy="130.4" r="2.6" fill="#8a8a8a"/>
+<circle cx="142.3" cy="170.1" r="2.6" fill="#8a8a8a"/>
+<circle cx="222.6" cy="188.0" r="2.6" fill="#8a8a8a"/>
+<circle cx="302.9" cy="193.4" r="2.6" fill="#8a8a8a"/>
+<circle cx="463.4" cy="198.0" r="2.6" fill="#8a8a8a"/>
+<circle cx="624.0" cy="202.1" r="2.6" fill="#8a8a8a"/>
+<text x="622.0" y="195.1" font-size="10.5" text-anchor="end" fill="#8a8a8a" font-weight="600">montecarlo</text>
+<path d="M62.0,126.4 L142.3,167.1 L222.6,183.0 L302.9,189.7 L463.4,195.4 L624.0,197.4" fill="none" stroke="#2e6e4e" stroke-width="2.2"/>
+<circle cx="62.0" cy="126.4" r="2.6" fill="#2e6e4e"/>
+<circle cx="142.3" cy="167.1" r="2.6" fill="#2e6e4e"/>
+<circle cx="222.6" cy="183.0" r="2.6" fill="#2e6e4e"/>
+<circle cx="302.9" cy="189.7" r="2.6" fill="#2e6e4e"/>
+<circle cx="463.4" cy="195.4" r="2.6" fill="#2e6e4e"/>
+<circle cx="624.0" cy="197.4" r="2.6" fill="#2e6e4e"/>
+<text x="622.0" y="190.4" font-size="10.5" text-anchor="end" fill="#2e6e4e" font-weight="600">expected</text>
+<path d="M62.0,274.3 L142.3,138.5 L222.6,80.7 L302.9,59.7 L463.4,68.4 L624.0,67.1" fill="none" stroke="#b4532a" stroke-width="2.2"/>
+<circle cx="62.0" cy="274.3" r="2.6" fill="#b4532a"/>
+<circle cx="142.3" cy="138.5" r="2.6" fill="#b4532a"/>
+<circle cx="222.6" cy="80.7" r="2.6" fill="#b4532a"/>
+<circle cx="302.9" cy="59.7" r="2.6" fill="#b4532a"/>
+<circle cx="463.4" cy="68.4" r="2.6" fill="#b4532a"/>
+<circle cx="624.0" cy="67.1" r="2.6" fill="#b4532a"/>
+<text x="622.0" y="60.1" font-size="10.5" text-anchor="end" fill="#b4532a" font-weight="600">wardrop</text>
+</svg></div>
+<div class="grafico"><svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" style="max-width:100%;height:auto;font-family:Segoe UI,system-ui,sans-serif">
+<text x="62" y="18" font-size="13" font-weight="600" fill="#1a1a1a">Costo social por estrato — Wardrop (equilibrio determinístico)</text>
+<line x1="62" y1="300.0" x2="624" y2="300.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="303.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">1,625</text>
+<line x1="62" y1="233.5" x2="624" y2="233.5" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="237.0" font-size="10.5" text-anchor="end" fill="#6b6b6b">1,859</text>
+<line x1="62" y1="167.0" x2="624" y2="167.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="170.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,093</text>
+<line x1="62" y1="100.5" x2="624" y2="100.5" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="104.0" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,327</text>
+<line x1="62" y1="34.0" x2="624" y2="34.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="37.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,561</text>
+<text x="62.0" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">1</text>
+<text x="142.3" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">2</text>
+<text x="222.6" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">3</text>
+<text x="302.9" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">4</text>
+<text x="463.4" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">6</text>
+<text x="624.0" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">8</text>
+<text x="343" y="334" font-size="11" text-anchor="middle" fill="#444">pistas por sentido</text>
+<text x="14" y="167" font-size="11" text-anchor="middle" fill="#444" transform="rotate(-90 14 167)">costo social ($/viaje)</text>
+<path d="M62.0,59.7 L142.3,94.0 L222.6,114.8 L302.9,129.0 L463.4,143.7 L624.0,148.7" fill="none" stroke="#b4532a" stroke-width="2.2"/>
+<circle cx="62.0" cy="59.7" r="2.6" fill="#b4532a"/>
+<circle cx="142.3" cy="94.0" r="2.6" fill="#b4532a"/>
+<circle cx="222.6" cy="114.8" r="2.6" fill="#b4532a"/>
+<circle cx="302.9" cy="129.0" r="2.6" fill="#b4532a"/>
+<circle cx="463.4" cy="143.7" r="2.6" fill="#b4532a"/>
+<circle cx="624.0" cy="148.7" r="2.6" fill="#b4532a"/>
+<text x="622.0" y="141.7" font-size="10.5" text-anchor="end" fill="#b4532a" font-weight="600">estrato alto</text>
+<path d="M62.0,274.3 L142.3,199.6 L222.6,174.2 L302.9,163.7 L463.4,166.6 L624.0,167.2" fill="none" stroke="#4a6fa5" stroke-width="2.2"/>
+<circle cx="62.0" cy="274.3" r="2.6" fill="#4a6fa5"/>
+<circle cx="142.3" cy="199.6" r="2.6" fill="#4a6fa5"/>
+<circle cx="222.6" cy="174.2" r="2.6" fill="#4a6fa5"/>
+<circle cx="302.9" cy="163.7" r="2.6" fill="#4a6fa5"/>
+<circle cx="463.4" cy="166.6" r="2.6" fill="#4a6fa5"/>
+<circle cx="624.0" cy="167.2" r="2.6" fill="#4a6fa5"/>
+<text x="622.0" y="160.2" font-size="10.5" text-anchor="end" fill="#4a6fa5" font-weight="600">estrato medio</text>
+<path d="M62.0,93.0 L142.3,89.2 L222.6,75.9 L302.9,70.1 L463.4,66.0 L624.0,62.2" fill="none" stroke="#2e6e4e" stroke-width="2.2"/>
+<circle cx="62.0" cy="93.0" r="2.6" fill="#2e6e4e"/>
+<circle cx="142.3" cy="89.2" r="2.6" fill="#2e6e4e"/>
+<circle cx="222.6" cy="75.9" r="2.6" fill="#2e6e4e"/>
+<circle cx="302.9" cy="70.1" r="2.6" fill="#2e6e4e"/>
+<circle cx="463.4" cy="66.0" r="2.6" fill="#2e6e4e"/>
+<circle cx="624.0" cy="62.2" r="2.6" fill="#2e6e4e"/>
+<text x="622.0" y="55.2" font-size="10.5" text-anchor="end" fill="#2e6e4e" font-weight="600">estrato bajo</text>
+<path d="M62.0,178.1 L142.3,144.8 L222.6,130.6 L302.9,125.4 L463.4,127.5 L624.0,127.2" fill="none" stroke="#1a1a1a" stroke-width="2.2" stroke-dasharray="5 4"/>
+<circle cx="62.0" cy="178.1" r="2.6" fill="#1a1a1a"/>
+<circle cx="142.3" cy="144.8" r="2.6" fill="#1a1a1a"/>
+<circle cx="222.6" cy="130.6" r="2.6" fill="#1a1a1a"/>
+<circle cx="302.9" cy="125.4" r="2.6" fill="#1a1a1a"/>
+<circle cx="463.4" cy="127.5" r="2.6" fill="#1a1a1a"/>
+<circle cx="624.0" cy="127.2" r="2.6" fill="#1a1a1a"/>
+<text x="622.0" y="120.2" font-size="10.5" text-anchor="end" fill="#1a1a1a" font-weight="600">ciudad</text>
+</svg></div>
+<div class="grafico"><svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" style="max-width:100%;height:auto;font-family:Segoe UI,system-ui,sans-serif">
+<text x="62" y="18" font-size="13" font-weight="600" fill="#1a1a1a">Costo social por estrato — Expected (equilibrio logit)</text>
+<line x1="62" y1="300.0" x2="624" y2="300.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="303.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">1,524</text>
+<line x1="62" y1="233.5" x2="624" y2="233.5" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="237.0" font-size="10.5" text-anchor="end" fill="#6b6b6b">1,827</text>
+<line x1="62" y1="167.0" x2="624" y2="167.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="170.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,130</text>
+<line x1="62" y1="100.5" x2="624" y2="100.5" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="104.0" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,433</text>
+<line x1="62" y1="34.0" x2="624" y2="34.0" stroke="#d8d4cc" stroke-width="0.7"/>
+<text x="56" y="37.5" font-size="10.5" text-anchor="end" fill="#6b6b6b">2,736</text>
+<text x="62.0" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">1</text>
+<text x="142.3" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">2</text>
+<text x="222.6" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">3</text>
+<text x="302.9" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">4</text>
+<text x="463.4" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">6</text>
+<text x="624.0" y="316" font-size="10.5" text-anchor="middle" fill="#6b6b6b">8</text>
+<text x="343" y="334" font-size="11" text-anchor="middle" fill="#444">pistas por sentido</text>
+<text x="14" y="167" font-size="11" text-anchor="middle" fill="#444" transform="rotate(-90 14 167)">costo social ($/viaje)</text>
+<path d="M62.0,254.8 L142.3,265.8 L222.6,270.3 L302.9,272.2 L463.4,273.7 L624.0,274.3" fill="none" stroke="#b4532a" stroke-width="2.2"/>
+<circle cx="62.0" cy="254.8" r="2.6" fill="#b4532a"/>
+<circle cx="142.3" cy="265.8" r="2.6" fill="#b4532a"/>
+<circle cx="222.6" cy="270.3" r="2.6" fill="#b4532a"/>
+<circle cx="302.9" cy="272.2" r="2.6" fill="#b4532a"/>
+<circle cx="463.4" cy="273.7" r="2.6" fill="#b4532a"/>
+<circle cx="624.0" cy="274.3" r="2.6" fill="#b4532a"/>
+<text x="622.0" y="267.3" font-size="10.5" text-anchor="end" fill="#b4532a" font-weight="600">estrato alto</text>
+<path d="M62.0,194.2 L142.3,203.6 L222.6,207.4 L302.9,209.1 L463.4,210.4 L624.0,210.9" fill="none" stroke="#4a6fa5" stroke-width="2.2"/>
+<circle cx="62.0" cy="194.2" r="2.6" fill="#4a6fa5"/>
+<circle cx="142.3" cy="203.6" r="2.6" fill="#4a6fa5"/>
+<circle cx="222.6" cy="207.4" r="2.6" fill="#4a6fa5"/>
+<circle cx="302.9" cy="209.1" r="2.6" fill="#4a6fa5"/>
+<circle cx="463.4" cy="210.4" r="2.6" fill="#4a6fa5"/>
+<circle cx="624.0" cy="210.9" r="2.6" fill="#4a6fa5"/>
+<text x="622.0" y="203.9" font-size="10.5" text-anchor="end" fill="#4a6fa5" font-weight="600">estrato medio</text>
+<path d="M62.0,59.7 L142.3,63.8 L222.6,65.0 L302.9,65.6 L463.4,66.1 L624.0,66.3" fill="none" stroke="#2e6e4e" stroke-width="2.2"/>
+<circle cx="62.0" cy="59.7" r="2.6" fill="#2e6e4e"/>
+<circle cx="142.3" cy="63.8" r="2.6" fill="#2e6e4e"/>
+<circle cx="222.6" cy="65.0" r="2.6" fill="#2e6e4e"/>
+<circle cx="302.9" cy="65.6" r="2.6" fill="#2e6e4e"/>
+<circle cx="463.4" cy="66.1" r="2.6" fill="#2e6e4e"/>
+<circle cx="624.0" cy="66.3" r="2.6" fill="#2e6e4e"/>
+<text x="622.0" y="59.3" font-size="10.5" text-anchor="end" fill="#2e6e4e" font-weight="600">estrato bajo</text>
+<path d="M62.0,155.6 L142.3,163.3 L222.6,166.3 L302.9,167.6 L463.4,168.7 L624.0,169.1" fill="none" stroke="#1a1a1a" stroke-width="2.2" stroke-dasharray="5 4"/>
+<circle cx="62.0" cy="155.6" r="2.6" fill="#1a1a1a"/>
+<circle cx="142.3" cy="163.3" r="2.6" fill="#1a1a1a"/>
+<circle cx="222.6" cy="166.3" r="2.6" fill="#1a1a1a"/>
+<circle cx="302.9" cy="167.6" r="2.6" fill="#1a1a1a"/>
+<circle cx="463.4" cy="168.7" r="2.6" fill="#1a1a1a"/>
+<circle cx="624.0" cy="169.1" r="2.6" fill="#1a1a1a"/>
+<text x="622.0" y="162.1" font-size="10.5" text-anchor="end" fill="#1a1a1a" font-weight="600">ciudad</text>
+</svg></div>
+
+<p class="pie-tabla" style="max-width:76ch">Generados por
+<code>scripts/datos_informe.py</code> con los ponderadores del SNI 2026 (VST $3.338/h; espera y
+acceso ×2; bici y caminata a VST ×1 — convención declarada: la tabla del SNI cubre las etapas
+del transporte público). Dinero a valor nominal.</p>
+
+<div class="aviso">
+<p><strong>Lectura distributiva (y una advertencia de composición).</strong> Bajo Wardrop el
+costo social agregado sube de $2.054 a $2.240 entre 1 y 4 pistas, pero la descomposición
+importa:</p>
+<ul>
+<li>El <strong>estrato alto</strong> (conductores incumbentes) <em>gana</em>: $2.471 → $2.227.</li>
+<li>El <strong>estrato medio</strong> (los que se cambian) sube $1.716 → $2.105, mayormente por
+<em>dinero</em> que elige gastar (estacionamiento y bencina) — en evaluación social buena parte
+es transferencia, no pérdida de recursos.</li>
+<li>El <strong>estrato bajo</strong> (cautivos del metro: 25% de disponibilidad de auto) sube
+$2.354 → $2.434 por <em>tiempo puro</em> — la espera, valorada ×2 por la norma. Este es el daño
+Downs-Thomson genuino: lo pagan los que no pueden migrar.</li>
+</ul>
+<p>En el agregado, el componente de tiempo cae ($1.234 → $1.133) y el de dinero sube
+($820 → $1.142): quien solo mire el agregado puede atribuir a congestión lo que es
+transferencia. El bienestar emparejado —que sí neta gustos y dinero contra lo elegido— cae en
+el tramo 2→4: la paradoja es real, y su incidencia es regresiva.</p>
+</div>
 
 <h3>5.2 La forma fuerte: espiral de muerte del metro (E08–E09)</h3>
 <p>En los escenarios homogéneos concentrados la paradoja toma la forma que Mogridge describió
@@ -347,7 +547,31 @@ determinístico disiparía. La paradoja no es un hecho de la congestión: es un 
 <em>supuesto de comportamiento</em>. Esa es la lección para el aula.</p>
 </div>
 
-<h3>5.3 Advertencias de interpretación</h3>
+<h3>5.3 Sensibilización de la calibración: ¿cambian las conclusiones?</h3>
+<p>Sobre el default se movieron los parámetros de demanda dentro de rangos realistas, uno a la
+vez, repitiendo el barrido de pistas (1–4) bajo ambos equilibrios con el detector de mecanismo
+completo (<code>scripts/datos_informe.py</code>):</p>
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Variante</th><th>Expected (logit)</th><th>Wardrop</th></tr></thead>
+<tbody>
+<tr><td>Espera/viaje 1,5× (piso empírico)</td><td>sin paradoja</td><td>sin paradoja</td></tr>
+<tr><td>Espera/viaje 2,5× (techo empírico)</td><td>sin paradoja</td><td><span class="etiqueta si">paradoja</span> −1,11 min</td></tr>
+<tr><td>Valor del tiempo +30%</td><td>sin paradoja</td><td>sin paradoja</td></tr>
+<tr><td>Valor del tiempo −30%</td><td>sin paradoja</td><td><span class="etiqueta si">paradoja</span> −0,12 min</td></tr>
+<tr><td>ASC del auto +10 min</td><td>sin paradoja</td><td><span class="etiqueta si">paradoja</span> −0,22 min</td></tr>
+<tr><td>ASC del auto +30 min</td><td>sin paradoja</td><td>sin paradoja</td></tr>
+<tr><td>Escala del logit ×1,5 (menos ruido)</td><td>sin paradoja</td><td><span class="etiqueta si">paradoja</span> −0,22 min</td></tr>
+<tr><td>Escala del logit ×0,75 (más ruido)</td><td>sin paradoja</td><td><span class="etiqueta si">paradoja</span> −0,22 min</td></tr>
+</tbody></table>
+<p class="pie-tabla">Bajo logit: <strong>0 de 8</strong> — la conclusión «sin arbitraje no hay
+paradoja» es robusta al abanico realista completo. Bajo Wardrop: <strong>5 de 8</strong> — la
+paradoja es frecuente pero no universal: desaparece cuando la espera pesa poco (1,5×, el canal
+de Mohring se debilita — condición C4) o cuando la frontera modal queda lejos (ASC +30: el auto
+ya domina y la vía adicional no drena al metro). Que la espera pese 2,5× la <em>triplica</em>:
+el ponderador de la espera es el parámetro al que la conclusión es más sensible, y su valor
+normativo (×2, SNI) está justo en la zona donde la paradoja existe.</p></div>
+
+<h3>5.4 Advertencias de interpretación</h3>
 <ul>
 <li><strong>Equilibrios múltiples bajo Wardrop:</strong> la carga todo-o-nada puede aterrizar
 en puntos fijos distintos ante cambios menores (está advertido en la interfaz). Para
@@ -364,12 +588,12 @@ paradoja, no la ayudaría.</li>
 <h2><span class="num">6</span>Reproducción en el simulador (módulo Transporte)</h2>
 
 <p class="aviso ok" style="display:block"><strong>Receta de aula — 4 corridas, ~3 minutos.</strong>
-Todo con controles visibles de la interfaz; no requiere tocar la calibración.</p>
+Todo con controles visibles de la interfaz. Desde el cambio de default (K=1.000,
+frec<sub>min</sub>=2) el metro ya viene configurado: solo hay que cambiar el método.</p>
 
-<div class="paso"><span class="n-paso">1</span><strong>Configurar el metro y el método.</strong>
-En <em>Oferta · Metro</em>: capacidad tren <strong>1.000 pax</strong>, frec. mínima
-<strong>2 tph</strong> (resto en default). En <em>Equilibrio</em>: método de asignación
-<strong>Wardrop</strong>.</div>
+<div class="paso"><span class="n-paso">1</span><strong>Elegir el método.</strong>
+En <em>Equilibrio</em>: método de asignación <strong>Wardrop</strong>. (Todo lo demás queda en
+default.)</div>
 <div class="paso"><span class="n-paso">2</span><strong>Correr la base.</strong> En
 <em>Oferta · Auto</em>: <strong>1 pista</strong> por sentido. Simular equilibrio y
 <strong>«Fijar como referencia»</strong>.</div>
@@ -384,21 +608,19 @@ adicional: el metro pierde participación, su frecuencia cae, la espera sube —
 <div class="envoltorio-tabla"><table>
 <thead><tr><th class="n">Pistas</th><th class="n">Auto %</th><th class="n">Metro %</th>
 <th class="n">f<sub>op</sub> (tph)</th><th class="n">Espera (min)</th>
-<th class="n">Tiempo físico medio</th><th class="n">CG percibido (min-eq)</th></tr></thead>
+<th class="n">Costo social ($/viaje)</th></tr></thead>
 <tbody>
-<tr><td class="n">1</td><td class="n">15,5</td><td class="n">39,3</td><td class="n">7,1</td><td class="n">4,5</td><td class="n">17,6</td><td class="n">39,5</td></tr>
-<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">17,2</td><td class="n">41,5</td></tr>
-<tr><td class="n">3</td><td class="n">27,3</td><td class="n">28,7</td><td class="n">5,2</td><td class="n">6,1</td><td class="n">17,0</td><td class="n">42,4</td></tr>
-<tr class="destacada"><td class="n">4</td><td class="n">29,7</td><td class="n">26,2</td><td class="n">4,7</td><td class="n">6,6</td><td class="n">16,6</td><td class="n">42,7</td></tr>
+<tr><td class="n">1</td><td class="n">15,5</td><td class="n">39,3</td><td class="n">7,1</td><td class="n">4,5</td><td class="n">2.054</td></tr>
+<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">2.171</td></tr>
+<tr><td class="n">3</td><td class="n">27,3</td><td class="n">28,7</td><td class="n">5,2</td><td class="n">6,1</td><td class="n">2.221</td></tr>
+<tr class="destacada"><td class="n">4</td><td class="n">29,7</td><td class="n">26,2</td><td class="n">4,7</td><td class="n">6,6</td><td class="n">2.240</td></tr>
 </tbody></table>
-<p class="pie-tabla">Costo generalizado percibido = tiempo ponderado (espera y acceso ×2, etc.)
-+ dinero convertido al valor del tiempo de cada estrato, en <strong>minutos-equivalentes por
-viajero</strong>. La métrica «costo generalizado percibido» de la tabla de resultados de la app
-está construida sobre este mismo objeto (expresado en $), por lo que el alza se ve en pantalla.
-Nótese la divergencia deliberadamente instructiva: el <em>tiempo físico medio baja</em>
-(composición: los que migran suman minutos de auto menos penosos) mientras el <em>costo
-generalizado sube</em>. Discutir esa divergencia en clase <strong>es</strong> la lección de
-bienestar.</p></div>
+<p class="pie-tabla">Costo social calculado por <code>scripts/datos_informe.py</code> con los
+ponderadores del SNI. En pantalla, el estudiante ve los mismos síntomas en la tabla de
+resultados: la participación del metro cae, su frecuencia baja, la espera sube, y el «costo
+generalizado social» (que la app valora al VST del SNI) sube — mientras el tiempo físico medio
+<em>baja</em>. Esa divergencia es composición, y discutirla en clase <strong>es</strong> la
+lección de bienestar.</p></div>
 
 <p>Para contraste inmediato: repetir la secuencia con método <code>Flujos esperados</code> —
 el costo generalizado deja de subir y el fenómeno desaparece. Un solo botón separa el mundo
@@ -414,24 +636,33 @@ uv run python scripts/diagnostico_calibracion.py  # los betas en minutos-equival
 <h2><span class="num">7</span>Conclusiones</h2>
 
 <ol>
-<li><strong>La paradoja de Downs-Thomson se observa en el simulador</strong>, incluida la
-ciudad realista de tres estratos y cuatro modos, y es reproducible desde la interfaz en
-cuatro corridas.</li>
+<li><strong>La paradoja de Downs-Thomson se observa en la ciudad por defecto del
+simulador</strong> — tres estratos, cuatro modos, calibración vigente — y reproducirla toma un
+solo cambio en la interfaz: método de asignación Wardrop, y barrer pistas. La tercera y la
+cuarta pista dejan a la ciudad peor que con una sola.</li>
 <li><strong>Es una propiedad del supuesto de arbitraje, no de la congestión.</strong> Cero
-apariciones bajo logit en toda la búsqueda; ocho bajo Wardrop. El mismo colapso del metro que
-bajo Wardrop empeora a la ciudad, bajo logit la «mejora» — porque cada migrante retiene una
-ganancia subjetiva. Comparar ambos mundos con un botón es el mejor uso docente del hallazgo.</li>
-<li><strong>Necesita al metro en la zona empinada de su economía de escala.</strong> Con la
-calibración por defecto (K=300, espera 1,4 min) la curva es plana y no hay paradoja posible:
-no es un defecto, es una ciudad con metro de alta frecuencia. Trenes grandes y piso de
-frecuencia bajo la exponen.</li>
-<li><strong>La heterogeneidad amortigua.</strong> Estratos, distancias y modos alternativos
-convierten la espiral de muerte de los modelos de pizarra en una caída modesta (−0,6 min). Eso
-también es contenido docente: por qué las paradojas de libro rara vez se ven puras en
-ciudades reales.</li>
+apariciones bajo logit (montecarlo y expected) en toda la búsqueda y en las 8 variantes de
+sensibilización; frecuentes bajo Wardrop. El mismo colapso del metro que bajo Wardrop empeora a
+la ciudad, bajo logit la «mejora» — cada migrante retiene una ganancia subjetiva. Comparar
+ambos mundos con un botón es el mejor uso docente del hallazgo.</li>
+<li><strong>El default nuevo la hace posible; el antiguo la hacía imposible.</strong> Con
+K=300 la frecuencia era ~21 tph y la espera 1,4 min: zona plana de la economía de escala, donde
+ninguna palanca del metro mordía. Con K=1.000 (capacidad realista) y frec<sub>min</sub>=2 el
+metro queda en la zona empinada (~6 tph, espera ~5 min) y tanto sus palancas como la paradoja
+responden. El cambio es además el que vuelve la ciudad por defecto <em>sensible a escenarios</em>
+en general.</li>
+<li><strong>La conclusión es robusta a la calibración en rangos realistas.</strong> 0/8
+variantes con paradoja bajo logit; 5/8 bajo Wardrop. El parámetro decisivo es el ponderador de
+la espera: con 1,5× desaparece, con 2,5× se triplica. El valor normativo (×2, SNI 2026) está
+dentro de la zona donde la paradoja existe.</li>
+<li><strong>La incidencia es regresiva, y los gráficos por estrato lo muestran.</strong> Los
+conductores incumbentes (estrato alto) ganan; los que migran (medio) suben su costo sobre todo
+por dinero que eligen gastar; los cautivos del metro (bajo) pierden por tiempo puro de espera.
+El daño genuino de la paradoja lo paga quien no puede migrar.</li>
 <li><strong>La medida de bienestar decide el veredicto.</strong> Tiempo físico y costo
-tiempo+dinero producen falsos positivos y falsos negativos por composición; las medidas
-emparejadas (logsum / utilidad máxima) son las únicas concluyentes.</li>
+tiempo+dinero producen falsos positivos y negativos por composición; en el costo social
+agregado hay que separar tiempo de dinero (transferencias). Las medidas emparejadas
+(logsum / utilidad máxima) son las únicas concluyentes.</li>
 <li><strong>Braess no es representable</strong> (corredor único, sin elección de ruta) y la
 <strong>demanda inducida está apagada</strong> (teletrabajo exógeno): las otras dos paradojas
 clásicas quedan fuera del alcance actual por diseño.</li>
@@ -439,6 +670,7 @@ clásicas quedan fuera del alcance actual por diseño.</li>
 
 <footer>
 <p><strong>Trazabilidad.</strong> Evidencia y detector: <code>packages/titirilquen_core/scripts/buscar_downs_thomson.py</code> ·
+tablas, gráficos y sensibilización: <code>scripts/datos_informe.py</code> ·
 estado del proyecto: <code>docs/CONTINUAR.md</code> · implementación Wardrop: commit <code>321bd07</code> ·
 búsqueda sistemática: <code>0e48a70</code> · calibración: commits <code>807c78a…ea4a05b</code>.
 Paper original (<code>reference/overleaf_original/main.tex</code>): logit multinomial puro, sin mención de la

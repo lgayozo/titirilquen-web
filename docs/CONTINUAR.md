@@ -75,7 +75,9 @@ significado de las ASC y de las penalizaciones.
 | `tiempo_detencion_min` | 0,5 (30 s) | Nuevo. Sin él, agregar estaciones acortaba el acceso sin costo alguno |
 | `num_pistas` | 2 | Deja el corredor en v/c 0,97, la rodilla de la BPR |
 | `capacidad_pista` bici | 2.500 bici/h | Flujo de saturación realista |
-| `frec_max` | 40 tph | Con 30 la frecuencia quedaba topada y el Mohring agotado |
+| `capacidad_tren` | **1.000 pax** | Antes 300. Capacidad realista, y pone al metro en la zona EMPINADA de su economía de escala (f_op ~6, espera ~5 min): sus palancas y Downs-Thomson responden |
+| `frec_min` | **2 tph** | Antes 6. Con K=1.000 la frecuencia demandada es ~5–7: un piso de 6 la recortaría justo donde vive el Mohring |
+| `frec_max` | 40 tph | No muerde con K=1.000 (f_teórica ~6) |
 | `tolerance` | 0,1 | Igual en core y frontend |
 
 ### 2.3 Valores de norma (no calibración)
@@ -197,10 +199,10 @@ paradoja: era un objetivo nuestro, no una promesa de los autores.
 | **C1 — terceros modos diluyen** | Sólo auto+metro la refuerza; con 4 modos igual aparece si C2+C4 se cumplen (E02) |
 | **C5 — dinero y ASC desplazan la frontera** | dinero=0 y ASC=0 la refuerzan, pero no son necesarios |
 
-### La receta de aula (módulo de transporte, todo alcanzable en la UI)
+### La receta de aula (módulo de transporte)
 
-Asignación **Wardrop** · capacidad tren **1.000 pax** · frec. mínima **2** ·
-resto en default. Barrer pistas 1→4:
+Desde el cambio de default (K=1.000, frec_min=2) el metro ya viene listo:
+**solo elegir método Wardrop** y barrer pistas 1→4:
 
 ```
 pistas   auto%  metro%   f_op  espera  cg percibido

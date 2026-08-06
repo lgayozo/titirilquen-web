@@ -32,12 +32,12 @@
    },
    "train": {
     "v_tren_kmh": 35,
-    "capacidad_tren": 300,
+    "capacidad_tren": 1000,
     "num_estaciones": 10,
     "v_caminata_kmh": 4.8,
     "tasa_carga": 6.0,
     "tiempo_detencion_min": 0.5,
-    "frec_min": 6,
+    "frec_min": 2,
     "frec_max": 40,
     "anden_alpha": 0.5,
     "anden_beta": 4.0

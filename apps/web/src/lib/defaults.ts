@@ -144,17 +144,18 @@ export const defaultSimulationConfig: SimulationConfig = {
     },
     train: {
       v_tren_kmh: 35,
-      // Calibrado a la escala de demanda del modelo para que la frecuencia
-      // endógena sea responsiva y el efecto Mohring sea visible (antes 1200
-      // dejaba f clavada en f_min — ver docs/VERIFICACION_TRANSPORTE.md H1).
-      capacidad_tren: 300,
+      // 1000 (antes 300): capacidad realista de un tren de metro, y pone al
+      // metro en la zona EMPINADA de su economía de escala (f_op ~5-7 tph,
+      // espera ~4-6 min): sus palancas muerden y Downs-Thomson es observable
+      // bajo Wardrop. Ver el comentario del core y el informe docente.
+      capacidad_tren: 1000,
       num_estaciones: 10,
       v_caminata_kmh: 4.8,
       tasa_carga: 6,
       tiempo_detencion_min: 0.5,
-      // Rango realista de metro: ~10 min (valle) a ~2 min (punta) de intervalo.
-      // El rango amplio fortalece el efecto Mohring (ver DISCREPANCIES D-18).
-      frec_min: 6,
+      // 2 (antes 6): con K=1000 la frecuencia demandada es ~5-7 tph; un piso
+      // de 6 la recortaría justo donde vive el efecto Mohring.
+      frec_min: 2,
       // 40 (antes 30): con 30 la frecuencia quedaba topada y el efecto Mohring
       // agotado en el default. Con 40 queda interior y responde a la demanda.
       frec_max: 40,

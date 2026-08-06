@@ -226,11 +226,14 @@ class TrainSupplyParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     v_tren_kmh: float = 35
-    # Capacidad por tren a la escala de demanda del modelo. Calibrada para que la
-    # frecuencia endógena f_op = clip(carga_pico/cap_tren, f_min, f_max) sea
-    # responsiva en el rango de uso (antes 1200 dejaba f clavada en f_min y el
-    # efecto Möhring inactivo — ver docs/VERIFICACION_TRANSPORTE.md, H1).
-    capacidad_tren: int = 300
+    # 1000 (antes 300): capacidad realista de un tren de metro. Ademas de
+    # realismo, pone al metro en la zona EMPINADA de su economia de escala
+    # (f_op = carga/K queda en ~5-7 tph, espera ~4-6 min): ahi las palancas del
+    # metro muerden y la paradoja de Downs-Thomson es observable bajo Wardrop
+    # (ver scripts/buscar_downs_thomson.py y docs/informe-downs-thomson.html).
+    # Con 300 la frecuencia era ~21 tph y la espera 1.4 min: curva plana, metro
+    # insensible a todo.
+    capacidad_tren: int = 1000
     num_estaciones: int = Field(default=10, ge=2)
     v_caminata_kmh: float = 4.8
     tasa_carga: float = 6.0
@@ -246,12 +249,11 @@ class TrainSupplyParams(BaseModel):
     # de escala del metro, que juega en contra del efecto Möhring; es una
     # decisión de modelación aparte, no un simple refinamiento.
     tiempo_detencion_min: float = Field(default=0.5, ge=0)
-    # Rango de frecuencia operativa (trenes/h). Valores realistas de metro:
-    # frec_min≈6 ⇒ ~10 min de intervalo (valle); frec_max≈30 ⇒ ~2 min (punta).
-    # El rango amplio fortalece el efecto Mohring: al perder demanda la
-    # frecuencia cae más y la espera (=30/f) sube con pendiente -30/f^2, más
-    # pronunciada a baja frecuencia. Ver docs/DISCREPANCIES.md (D-18).
-    frec_min: float = 6
+    # 2 (antes 6): con K=1000 la frecuencia demandada queda en ~5-7 tph, y un
+    # piso de 6 la dejaria RECORTADA justo donde vive el efecto Mohring — al
+    # perder pasajeros la frecuencia no podria caer y el metro seria insensible.
+    # El piso de 2 (intervalo maximo 30 min) solo actua como resguardo extremo.
+    frec_min: float = 2
     # 40 (antes 30): con 30 la frecuencia demandada quedaba justo en el tope,
     # asi que f_op estaba RECORTADA y el efecto Mohring agotado en el default
     # (mas demanda ya no traia mas trenes). Con 40 la frecuencia queda interior

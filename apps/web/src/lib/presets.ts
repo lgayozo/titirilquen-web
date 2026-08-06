@@ -49,7 +49,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     bencina: 120,
     cap_bici: 2500,
     frec_max: 40,
-    cap_tren: 300,
+    cap_tren: 1000,
     factor_flota: 1.0,
   },
   "TP Gratis": {
@@ -60,7 +60,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     bencina: 120,
     cap_bici: 2500,
     frec_max: 50,
-    cap_tren: 300,
+    cap_tren: 1000,
   },
   "Tarificación Vial": {
     tarifa: 800,
@@ -68,7 +68,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
-    cap_tren: 300,
+    cap_tren: 1000,
     cap_bici: 2500,
     frec_max: 40,
   },
@@ -78,7 +78,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 3,
     num_estaciones: 8,
     bencina: 100,
-    cap_tren: 250,
+    cap_tren: 800,
     cap_bici: 1250,
     frec_max: 6,
   },
@@ -89,7 +89,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     cap_bici: 5000,
     frec_max: 40,
     bencina: 120,
-    cap_tren: 300,
+    cap_tren: 1000,
     num_estaciones: 10,
   },
   "Vehículos híbridos": {
@@ -98,7 +98,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     tarifa: 800,
     parking: 2000,
     frec_max: 40,
-    cap_tren: 300,
+    cap_tren: 1000,
     num_estaciones: 10,
     cap_bici: 2500,
     // AHORA sí reduce la emisión por km: antes solo abarataba la bencina, o sea
@@ -109,7 +109,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     tarifa: 400,
     num_estaciones: 20,
     frec_max: 50,
-    cap_tren: 300,
+    cap_tren: 1000,
     parking: 2000,
     bencina: 120,
     num_pistas: 2,
@@ -122,7 +122,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     parking: 2000,
     bencina: 120,
     frec_max: 40,
-    cap_tren: 300,
+    cap_tren: 1000,
     // Faltaba (7 de 8 claves): sin esto la política heredaba el valor vigente y
     // no era reproducible. 10 = default. Espejo de presets.py.
     num_estaciones: 10,

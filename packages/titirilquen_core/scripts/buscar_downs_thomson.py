@@ -129,11 +129,14 @@ def config_de(escenario: dict, metodo: str, pistas: int):
             update={"costo_parking": 0.0, "costo_tarifa_metro": 0.0, "costo_combustible_km": 0.0}
         )
 
-    train = s.supply.train.model_copy(
+    # Sin override, cada campo cae al DEFAULT VIGENTE del core (no a un valor
+    # congelado aca): asi el escenario {} siempre es la app tal cual esta.
+    tr0 = s.supply.train
+    train = tr0.model_copy(
         update={
-            "capacidad_tren": escenario.get("k", 300),
-            "frec_min": escenario.get("fmin", 6.0),
-            "frec_max": escenario.get("fmax", 40.0),
+            "capacidad_tren": escenario.get("k", tr0.capacidad_tren),
+            "frec_min": escenario.get("fmin", tr0.frec_min),
+            "frec_max": escenario.get("fmax", tr0.frec_max),
         }
     )
     upd_top: dict = {
