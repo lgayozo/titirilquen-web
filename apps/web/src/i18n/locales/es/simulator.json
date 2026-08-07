@@ -795,7 +795,11 @@
     "meta": "ciudad completa",
     "recaudacion": "Recaudación (estacionamiento + tarifa)",
     "recaudacion_nota": "(transferencias; la bencina no entra: es consumo de recursos)",
-    "bienestar": "Bienestar social = excedente + recaudación",
-    "bienestar_nota": "(no descuenta el costo del operador del metro — ver docs)"
+    "bienestar": "Bienestar social = excedente + recaudación − costo operador",
+    "bienestar_nota": "(el costo por tren-km es provisorio; ver docs)",
+    "costo_operador": "Costo de operación del metro",
+    "costo_operador_nota": "({{km}} tren-km/h · costo por tren-km PROVISORIO)",
+    "subsidio": "Subsidio requerido (costo − tarifa)",
+    "subsidio_nota": "(negativo ⇒ el servicio se autofinancia)"
   }
 }

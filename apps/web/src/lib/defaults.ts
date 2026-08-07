@@ -152,6 +152,10 @@ export const defaultSimulationConfig: SimulationConfig = {
       num_estaciones: 10,
       v_caminata_kmh: 4.8,
       tasa_carga: 6,
+      // PROVISORIO, pendiente de fuente. Ver el comentario del core: el modelo
+      // es solo hora punta (sin valle ni vacíos), así que su carga por tren-km
+      // es mayor que la de un sistema real.
+      costo_operacion_tren_km: 12000,
       tiempo_detencion_min: 0.5,
       // 2 (antes 6): con K=1000 la frecuencia demandada es ~5-7 tph; un piso
       // de 6 la recortaría justo donde vive el efecto Mohring.

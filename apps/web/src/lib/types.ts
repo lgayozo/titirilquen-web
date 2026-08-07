@@ -100,6 +100,9 @@ export interface TrainSupplyParams {
   num_estaciones: number;
   v_caminata_kmh: number;
   tasa_carga: number;
+  /** PROVISORIO: costo de operación por tren-km ($). Habilita costo del
+   *  operador, subsidio y autofinanciamiento. Ver el comentario del core. */
+  costo_operacion_tren_km: number;
   /** Detención en cada estación intermedia (min). Sin esto, agregar estaciones
    *  acortaba el acceso sin costo alguno en tiempo de viaje. */
   tiempo_detencion_min: number;

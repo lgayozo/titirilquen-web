@@ -71,6 +71,14 @@ export interface Agregados {
   recaudacionParkingClp: number;
   /** Recaudación por tarifa del metro ($). También transferencia. */
   recaudacionTarifaClp: number;
+  /** Tren-km por hora del servicio (f_op · largo de línea · 2). */
+  trenKmHora: number;
+  /** Costo de operación del metro ($) = tren-km · costo por tren-km. A
+   *  diferencia de la tarifa, este SÍ es consumo de recursos. */
+  costoOperadorClp: number;
+  /** Subsidio requerido ($) = costo del operador − recaudación por tarifa.
+   *  Negativo ⇒ el servicio genera superávit. */
+  subsidioMetroClp: number;
   /**
    * Bienestar social = excedente del consumidor + recaudación.
    *
@@ -79,13 +87,10 @@ export interface Agregados {
    * estacionamiento bajaba el excedente sin acreditar que la ciudad recauda,
    * así que toda tarificación parecía empeorar el bienestar.
    *
-   * INCOMPLETO a propósito y hay que decirlo: falta restar el COSTO DEL
-   * OPERADOR del metro, que este modelo no representa (no hay costo por
-   * tren-km). Mientras la frecuencia no cambie eso es una constante y no
-   * afecta al Δ; pero la frecuencia acá es endógena (f = carga/K), así que
-   * un escenario que mueva la demanda del metro SÍ mueve el costo operacional
-   * y este indicador lo omite. Con ese costo se podría además responder si el
-   * sector se autofinancia.
+   * Descuenta el COSTO DEL OPERADOR del metro, que importa porque la
+   * frecuencia acá es endógena (f = carga/K): un escenario que mueva la
+   * demanda del metro mueve el costo operacional. El costo por tren-km es
+   * PROVISORIO — ver el comentario del core.
    */
   bienestarSocialClp: number;
 }
@@ -252,6 +257,13 @@ export function calcularAgregados(
     }
   }
 
+  // Tren-km del servicio. Se deriva de las emisiones del metro en vez de
+  // recalcular `f_op · span · 2` acá: esa fórmula vive en `emissions.py` del
+  // core y duplicarla en TS es justo el tipo de espejo que se desincroniza.
+  const factorEm = cfg.demand.globales.factor_emision_metro_tren_km;
+  const trenKm = factorEm > 0 ? (result.emisiones_metro_kg ?? 0) / factorEm : 0;
+  const costoOperador = trenKm * cfg.supply.train.costo_operacion_tren_km;
+
   const logsum: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };
   const excedente: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };
   let excedenteTotal = 0;
@@ -278,7 +290,10 @@ export function calcularAgregados(
     excedenteTotalClp: excedenteTotal,
     recaudacionParkingClp: recParking,
     recaudacionTarifaClp: recTarifa,
-    bienestarSocialClp: excedenteTotal + recParking + recTarifa,
+    trenKmHora: trenKm,
+    costoOperadorClp: costoOperador,
+    subsidioMetroClp: costoOperador - recTarifa,
+    bienestarSocialClp: excedenteTotal + recParking + recTarifa - costoOperador,
   };
 }
 

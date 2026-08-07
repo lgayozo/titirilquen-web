@@ -142,6 +142,21 @@ acceso al metro, `b_tiempo_caminata` para el modo). Es cambio de schema + los
 cuatro espejos, pero resuelve un defecto ya documentado y permite aplicar la
 norma exactamente.
 
+### 4.1b Necesita fuente: costo de operación del metro
+
+`supply.train.costo_operacion_tren_km` se agregó con default **PROVISORIO de
+$12.000/tren-km** (orden de magnitud de metro pesado real). Habilita el costo
+del operador, el subsidio y el autofinanciamiento en la tabla de resultados.
+
+**Lo que hay que saber al leerlo:** con ese valor el metro del modelo sale
+**holgadamente superavitario** (202 tren-km/h ⇒ costo $2,4 M contra $8,9 M de
+tarifa, subsidio −$6,5 M). No es un resultado: es artefacto del alcance. El
+modelo representa SOLO la hora punta, sin valle ni recorridos en vacío, así que
+su carga por tren-km es varias veces la de un sistema real — que sí necesita
+subsidio porque paga la operación de las horas flacas. Para que el indicador de
+autofinanciamiento sea interpretable hay que ajustar el costo por tren-km a un
+valor «equivalente punta» que absorba el resto del día, o modelar el valle.
+
 ### 4.2 Necesita un dato externo
 
 **Reajuste completo de las ASC.** Las actuales (+20 / 0 / −18) se eligieron para

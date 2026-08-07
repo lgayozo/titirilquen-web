@@ -237,6 +237,17 @@ class TrainSupplyParams(BaseModel):
     num_estaciones: int = Field(default=10, ge=2)
     v_caminata_kmh: float = 4.8
     tasa_carga: float = 6.0
+    # PROVISORIO — pendiente de fuente. Costo de operación por tren-km ($), con
+    # tren-km/h = f_op · largo de línea · 2 (misma definición que usa
+    # `emissions.py`). Habilita el costo del operador, el subsidio
+    # (= costo − recaudación por tarifa) y la pregunta de autofinanciamiento.
+    #
+    # OJO al interpretarlo: este modelo representa SOLO la hora punta, sin valle
+    # ni recorridos en vacío, así que su carga por tren-km es varias veces la de
+    # un sistema real. Con un valor por tren-km realista, el metro del modelo
+    # sale holgadamente superavitario — y eso es un artefacto del alcance, no un
+    # resultado. Ver docs/CONTINUAR.md.
+    costo_operacion_tren_km: float = Field(default=12000, ge=0)
     # Detención en cada estación INTERMEDIA entre la de subida y el CBD. Sin
     # esto, agregar estaciones acortaba el acceso a caminar SIN ningún costo en
     # tiempo de viaje: un almuerzo gratis que hacía monótonamente buena la

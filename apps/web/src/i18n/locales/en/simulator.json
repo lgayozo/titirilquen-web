@@ -795,7 +795,11 @@
     "meta": "city-wide",
     "recaudacion": "Revenue (parking + fare)",
     "recaudacion_nota": "(transfers; fuel excluded: it is real resource use)",
-    "bienestar": "Social welfare = surplus + revenue",
-    "bienestar_nota": "(does not net out metro operator cost — see docs)"
+    "bienestar": "Social welfare = surplus + revenue − operating cost",
+    "bienestar_nota": "(cost per train-km is provisional; see docs)",
+    "costo_operador": "Metro operating cost",
+    "costo_operador_nota": "({{km}} train-km/h · PROVISIONAL cost per train-km)",
+    "subsidio": "Required subsidy (cost − fare revenue)",
+    "subsidio_nota": "(negative ⇒ the service self-finances)"
   }
 }

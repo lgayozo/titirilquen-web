@@ -106,6 +106,22 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       nota: t("agg.recaudacion_nota"),
     },
     {
+      label: t("agg.costo_operador"),
+      actual: agg.costoOperadorClp,
+      ref: aggRef?.costoOperadorClp ?? null,
+      fmt: fmtMoney,
+      menorEsMejor: true,
+      nota: t("agg.costo_operador_nota", { km: Math.round(agg.trenKmHora) }),
+    },
+    {
+      label: t("agg.subsidio"),
+      actual: agg.subsidioMetroClp,
+      ref: aggRef?.subsidioMetroClp ?? null,
+      fmt: fmtMoney,
+      menorEsMejor: true,
+      nota: t("agg.subsidio_nota"),
+    },
+    {
       label: t("agg.bienestar"),
       actual: agg.bienestarSocialClp,
       ref: aggRef?.bienestarSocialClp ?? null,

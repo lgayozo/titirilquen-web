@@ -36,6 +36,7 @@
     "num_estaciones": 10,
     "v_caminata_kmh": 4.8,
     "tasa_carga": 6.0,
+    "costo_operacion_tren_km": 12000,
     "tiempo_detencion_min": 0.5,
     "frec_min": 2,
     "frec_max": 40,
