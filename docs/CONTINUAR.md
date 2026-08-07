@@ -75,7 +75,7 @@ significado de las ASC y de las penalizaciones.
 | `tiempo_detencion_min` | 0,5 (30 s) | Nuevo. Sin él, agregar estaciones acortaba el acceso sin costo alguno |
 | `num_pistas` | 2 | Deja el corredor en v/c 0,97, la rodilla de la BPR |
 | `capacidad_pista` bici | 2.500 bici/h | Flujo de saturación realista |
-| `capacidad_tren` | **1.000 pax** | Antes 300. Capacidad realista, y pone al metro en la zona EMPINADA de su economía de escala (f_op ~6, espera ~5 min): sus palancas y Downs-Thomson responden |
+| `capacidad_tren` | **1.000 pax** | Antes 300. Capacidad realista, y pone al metro en la zona EMPINADA de su economía de escala (f_op ~6, espera ~5 min): sus palancas y Downs-Thomson responden. Es una **elección de régimen**, no solo realismo — ver §4.1c |
 | `frec_min` | **2 tph** | Antes 6. Con K=1.000 la frecuencia demandada es ~5–7: un piso de 6 la recortaría justo donde vive el Mohring |
 | `frec_max` | 40 tph | No muerde con K=1.000 (f_teórica ~6) |
 | `tolerance` | 0,1 | Igual en core y frontend |
@@ -167,13 +167,103 @@ operar el día completo, por viaje, que si todo el día tuviera la carga de la
 punta.** 2,0 es razonable (la punta concentra ~10–12% de los viajes mientras el
 servicio corre ~18 h).
 
-**Lo que hay que saber al leer el indicador:** con los defaults el metro sigue
-saliendo superavitario (202 tren-km/h ⇒ costo $4,8 M contra $8,9 M de tarifa,
-subsidio −$4,0 M). Haría falta un factor de **~3,7** para que requiera subsidio.
-La diferencia restante NO es del factor: son dos rasgos del modelo — los viajes
-son cortos (~5 km en una ciudad de 20, porque la demanda se concentra junto al
-CBD) y la tarifa es plana, así que el ingreso por pax-km sale alto respecto de
-un sistema real. Ambos parámetros son sliders en «Oferta · Metro».
+**Lo que hay que saber al leer el indicador:** con los defaults el metro sale
+superavitario y haría falta un factor de **~3,7** para que requiera subsidio —
+fuera del rango físico del parámetro. Eso hizo sospechar de una mala
+calibración, pero **medido no lo es**: el signo depende de la FORMA URBANA. El
+costo escala con `f · largo · 2` (tren-km) mientras una tarifa plana no escala
+con la distancia.
+
+| ciudad | metro % | tren-km/h | costo operación | tarifa | subsidio |
+|---|---|---|---|---|---|
+| Compacta 8 km | 15,0 | 32 | $0,77 M | $4,31 M | **−$3,54 M** superávit |
+| Base 20 km | 34,7 | 235 | $5,63 M | $10,01 M | **−$4,38 M** superávit |
+| Dispersa 40 km | 49,6 | 700 | $16,81 M | $14,29 M | **+$2,52 M** requiere subsidio |
+
+El metro *gana* participación al dispersarse (caminata y bici se vuelven
+infactibles) y **aun así** deja de financiarse: los tren-km crecen más rápido
+que los pasajeros. Ésa es la economía de la dispersión urbana, y emerge del
+modelo sin imponerla.
+
+**No cambiar el default para «mostrar el subsidio».** El signo de la base está a
+solo **1,8×** de darse vuelta (factor 3,6 o $21.400/tren-km), o sea dentro de la
+incertidumbre de dos parámetros provisorios; mientras que la dependencia de la
+forma urbana es un factor **22×** en tren-km que ninguna incertidumbre revierte.
+Fijar el default por decreto congelaría el resultado incierto y descartaría el
+robusto. El contraste entre presets es el que enseña. Ambos parámetros son
+sliders en «Oferta · Metro».
+
+### 4.1c Escala de la ciudad vs. `capacidad_tren`: el trade-off con Downs-Thomson
+
+**Procedencia del default original.** El `main.tex` original **no imprime** el
+bloque numérico de oferta de tren (solo `CONFIG_DEMANDA`); `K` aparece como
+argumento de `oferta_tren` sin valor. El **K = 1200** está atestiguado en
+nuestra propia nota de revisión **R-6** del `overleaf_modificado`, que lo cita
+como la capacidad original: «con la capacidad original ($K=1200$) la frecuencia
+quedaba fija en $f_{min}$ para toda demanda alcanzable y el efecto era
+inobservable». Para certeza sobre el 1200 hay que mirar el código original, no
+el paper.
+
+Bajamos K a 300 por eso, y después lo subimos a 1000 — casi de vuelta en el
+original. **Lo que evitó repetir la falla no fue K sino bajar `frec_min` de 6 a
+2:** la frecuencia teórica del default es 5,9 tph, así que con el piso viejo
+habría quedado recortada, exactamente el problema del original.
+
+**El metro tiene dos canales de deterioro y solo uno está operativo:**
+
+| canal | fórmula | estado en el default |
+|---|---|---|
+| **Mohring** (frecuencia) | `f = L_max/K`, `espera = 30/f` | **vivo** — f interior, espera 4,1→6,0 min según pistas |
+| **Andén** (hacinamiento) | `ρ = L_max/(f_max·K)`, `×(1+α·ρ^β)` | **muerto** — ρ = 0,15 ⇒ factor 1,0002 (+0,03%) |
+
+Con `f_max·K = 40.000 pax/h/sentido` y carga máxima 5.865, el sistema opera al
+15% de su capacidad: la BPR de andén es decorativa.
+
+**Cuánta población haría falta** (largo 20 km, σ 0,50, resto del default):
+
+| densidad | población | metro % | L_max | f teórica | f_op | intervalo | ρ andén | espera |
+|---|---|---|---|---|---|---|---|---|
+| 1.800 | 36.000 | 34,7 | 5.865 | 5,9 | 5,9 | 10,2 min | 0,15 | 4,7 min |
+| 3.600 | 72.000 | 43,6 | 14.894 | 14,9 | 14,9 | 4,0 min | 0,37 | 1,9 min |
+| **7.200** | **144.000** | 49,9 | 34.244 | 34,2 | 34,2 | 1,8 min | **0,86** | 0,9 min |
+| 14.400 | 288.000 | 52,5 | 72.038 | 72,0 | 40,0 ⚠ | 1,5 min | 1,80 | 1,9 min |
+| 57.600 | 1.152.000 | 39,0 | 207.307 | 207,3 | 40,0 ⚠ | 1,5 min | 5,18 | 129,8 min |
+
+~144.000 (4× la actual) es donde K=1000 es un metro de verdad: 34 tph y el
+andén aportando +27% a la espera. Sobre eso `f_op` topa en `f_max`.
+
+**Pero subir la población MATA Downs-Thomson** (wardrop, barrido de pistas):
+
+| pistas | 36.000 hab: metro % | espera | 144.000 hab: metro % | espera |
+|---|---|---|---|---|
+| 1 | 39,3 | 4,1 min | 59,2 | 1,1 min |
+| 2 | 33,0 | 5,0 min | 57,3 | 1,1 min |
+| 3 | 28,1 | 5,6 min | 54,8 | 1,2 min |
+| 4 | 26,1 | **6,0 min** | 53,1 | **1,2 min** |
+
+Tres pistas le cuestan **+1,9 min** de espera al usuario de metro en la ciudad
+chica y **+0,1 min** en la grande. La razón es la identidad ya derivada,
+**`espera = 30K/L_max`**: más demanda ⇒ menos espera ⇒ **nada que degradar**. La
+pendiente del Mohring, `∂t_e/∂f = −30/f²`, vale 0,86 min/tph a f = 5,9 y 0,026 a
+f = 34,2 — **33× más plana**.
+
+**Consecuencia de diseño.** Los dos regímenes son mutuamente excluyentes y K=1000
+no es solo «realismo del tren», es **una elección de régimen**: un tren de 1.000
+pax en una ciudad de 36.000 personas está deliberadamente sobredimensionado
+respecto de su demanda, y eso es lo que produce la espera larga de la que vive
+el fenómeno. Bajar K a 300 lo mataría por el otro lado (`30·300/5.865 ≈ 1,5 min`).
+Por eso **no se sube la población del default**; el régimen opuesto se expone
+como preset.
+
+**Preset «Metrópolis»** (`CITY_PRESETS`): misma geometría que Base (20 km,
+σ 0,50) con 144.000 habitantes. Es el **único preset que rompe la
+iso-población**, y a propósito: los otros tres aíslan *forma* manteniendo fija
+la escala, y éste aísla *escala* manteniendo fija la forma. Detalle de
+implementación en `PresetGallery.tsx::applyCity`: los presets que declaran
+`poblacion` (Base y Metrópolis) fijan ΣH escalando los estratos; Compacta y
+Dispersa NO la declaran, así comparan forma a la población que el usuario tenga.
+Base la declara para que el viaje de vuelta funcione — sin eso, volver de
+Metrópolis dejaba la geometría de Base con 144.000 habitantes.
 
 ### 4.2 Necesita un dato externo
 

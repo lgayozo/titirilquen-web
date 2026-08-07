@@ -178,10 +178,15 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
 
   // La ciudad activa se identifica por las dos dimensiones de forma que el
   // preset fija (largo y σ); la densidad no, porque es derivada (ver applyCity).
+  // Si además declara `poblacion` (los de ESCALA) hay que compararla: Base y
+  // Metrópolis comparten geometría y sin esto el `.find` devolvería siempre el
+  // primero, mostrando «Base» en una ciudad de 144.000 habitantes.
+  const sumaHActual = landUse.H_por_estrato.reduce((a, b) => a + b, 0);
   const activeCity = cities.find(
     ([, v]) =>
       config.city.largo_ciudad_km === v.largo_ciudad &&
-      (v.sigma === undefined || landUse.oferta_sigma_frac === v.sigma),
+      (v.sigma === undefined || landUse.oferta_sigma_frac === v.sigma) &&
+      (v.poblacion === undefined || Math.round(sumaHActual) === v.poblacion),
   )?.[0];
 
   const activePolicy = policies.find(([, v]) =>
@@ -204,25 +209,43 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
    * El campo `densidad` de CITY_PRESETS lo sigue usando el módulo acoplado
    * (applyJointPreset), donde las poblaciones difieren a propósito por
    * estabilidad numérica del loop exterior (D-24).
+   *
+   * EXCEPCIÓN — presets de ESCALA (`poblacion` declarada): «Metrópolis» existe
+   * justamente para mover la población, así que fija ΣH escalando los estratos
+   * y conservando sus proporciones. «Base» también la declara para que el viaje
+   * de vuelta funcione: sin eso, volver de Metrópolis dejaba la geometría de
+   * Base con 144.000 habitantes. Compacta y Dispersa NO la declaran a
+   * propósito: comparan forma a la población que el usuario tenga.
    */
   const applyCity = (name: string) => {
     const p = CITY_PRESETS[name];
     if (!p?.largo_ciudad) return;
     const largo = p.largo_ciudad;
     const sumaH = landUse.H_por_estrato.reduce((a, b) => a + b, 0);
+    const sumaFinal = p.poblacion ?? sumaH;
     setConfig((c) => ({
       ...c,
       city: {
         ...c.city,
         largo_ciudad_km: largo,
-        densidad_hab_km: densidadDerivadaHabKm(sumaH, largo),
+        densidad_hab_km: densidadDerivadaHabKm(sumaFinal, largo),
       },
     }));
     // La concentración de la oferta (σ) es la segunda dimensión de la forma:
-    // sin ella el preset movía la mitad del efecto. No toca la población.
-    if (p.sigma !== undefined) {
-      setLandUse((lu) => ({ ...lu, oferta_sigma_frac: p.sigma! }));
-    }
+    // sin ella el preset movía la mitad del efecto.
+    setLandUse((lu) => {
+      const next = p.sigma !== undefined ? { ...lu, oferta_sigma_frac: p.sigma } : lu;
+      if (p.poblacion === undefined || sumaH <= 0) return next;
+      // `H_por_estrato` es `tuple[int, int, int]` en Pydantic: hay que entregar
+      // enteros. El tercero absorbe el residuo para que ΣH dé EXACTO — si no,
+      // el redondeo movería la suma y `activeCity` no reconocería su propio
+      // preset.
+      const k = p.poblacion / sumaH;
+      const [h1, h2] = next.H_por_estrato;
+      const a = Math.round(h1 * k);
+      const b = Math.round(h2 * k);
+      return { ...next, H_por_estrato: [a, b, p.poblacion - a - b] };
+    });
   };
 
   const applyPolicy = (name: string) => {

@@ -15,6 +15,10 @@ class CityPreset(TypedDict, total=False):
     # la otra dimensión de «forma urbana» además de la extensión — dónde vive la
     # gente DENTRO de la ciudad. Sin ella el preset movía la mitad del efecto.
     sigma: float
+    # Población total (ΣH). Presente solo en los presets que fijan la ESCALA;
+    # si falta, el preset conserva la población vigente (iso-población). Ver el
+    # bloque de CITY_PRESETS.
+    poblacion: int
 
 
 class PolicyPreset(TypedDict, total=False):
@@ -44,8 +48,25 @@ CITY_PRESETS: dict[str, CityPreset] = {
     # sea cual sea el largo, así que responde a población/precios/capacidad y no
     # a la forma.
     "Compacta": {"largo_ciudad": 8, "densidad": 4500, "sigma": 0.30},
-    "Base": {"largo_ciudad": 20, "densidad": 1800, "sigma": 0.50},
+    "Base": {"largo_ciudad": 20, "densidad": 1800, "sigma": 0.50, "poblacion": 36_000},
     "Dispersa": {"largo_ciudad": 40, "densidad": 900, "sigma": 0.90},
+    # ESCALA, no forma: misma geometría que Base (20 km, sigma 0.50) con 4x la
+    # población. Es el único preset que rompe la iso-población de arriba, y a
+    # propósito: aísla la dimensión que los otros tres mantienen fija.
+    #
+    # Régimen opuesto al default. Medido (wardrop, barrido de pistas 1->4):
+    #   36.000 hab  -> f_op 7.1->4.7 tph, espera 4.1->6.0 min  (Mohring empinado)
+    #  144.000 hab  -> f_op 40.0->38.3 tph, espera 1.1->1.2 min (Mohring plano)
+    # porque espera = 30K/L_max: mas demanda => menos espera => nada que
+    # degradar. Downs-Thomson NO se observa acá; lo que muerde es el andén
+    # (rho = L_max/(f_max*K) pasa de 0.15 a 0.86, +27% sobre la espera).
+    # Ver docs/CONTINUAR.md §4.1c.
+    "Metrópolis": {
+        "largo_ciudad": 20,
+        "densidad": 7200,
+        "sigma": 0.50,
+        "poblacion": 144_000,
+    },
 }
 
 # REGLA GENERAL: los presets declaran valores ABSOLUTOS, no diffs. Cada vez que

@@ -11,6 +11,9 @@ export interface CityPresetValues {
   /** Concentración de la oferta de vivienda (σ): la otra dimensión de la forma
    *  urbana — dónde vive la gente dentro de la ciudad. */
   sigma?: number;
+  /** Población total (ΣH). Solo en los presets que fijan la ESCALA; si falta,
+   *  el preset conserva la población vigente (iso-población). */
+  poblacion?: number;
 }
 
 export interface PolicyPresetValues {
@@ -33,8 +36,13 @@ export interface PolicyPresetValues {
 export const CITY_PRESETS: Record<string, CityPresetValues> = {
   Personalizado: {},
   Compacta: { largo_ciudad: 8, densidad: 4500, sigma: 0.3 },
-  Base: { largo_ciudad: 20, densidad: 1800, sigma: 0.5 },
+  Base: { largo_ciudad: 20, densidad: 1800, sigma: 0.5, poblacion: 36_000 },
   Dispersa: { largo_ciudad: 40, densidad: 900, sigma: 0.9 },
+  // ESCALA, no forma: misma geometría que Base con 4× la población. Único
+  // preset que rompe la iso-población, y a propósito. Régimen opuesto al
+  // default: espera = 30K/L_max cae de ~5 a ~1 min, el Mohring se aplana y
+  // Downs-Thomson desaparece; lo que muerde es el andén. Ver presets.py.
+  "Metrópolis": { largo_ciudad: 20, densidad: 7200, sigma: 0.5, poblacion: 144_000 },
 };
 
 export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
