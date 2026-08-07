@@ -144,18 +144,36 @@ norma exactamente.
 
 ### 4.1b Necesita fuente: costo de operación del metro
 
-`supply.train.costo_operacion_tren_km` se agregó con default **PROVISORIO de
-$12.000/tren-km** (orden de magnitud de metro pesado real). Habilita el costo
-del operador, el subsidio y el autofinanciamiento en la tabla de resultados.
+Dos parámetros nuevos en `supply.train`, ambos con default **PROVISORIO**, que
+habilitan el costo del operador, el subsidio y el autofinanciamiento en la tabla
+de resultados:
 
-**Lo que hay que saber al leerlo:** con ese valor el metro del modelo sale
-**holgadamente superavitario** (202 tren-km/h ⇒ costo $2,4 M contra $8,9 M de
-tarifa, subsidio −$6,5 M). No es un resultado: es artefacto del alcance. El
-modelo representa SOLO la hora punta, sin valle ni recorridos en vacío, así que
-su carga por tren-km es varias veces la de un sistema real — que sí necesita
-subsidio porque paga la operación de las horas flacas. Para que el indicador de
-autofinanciamiento sea interpretable hay que ajustar el costo por tren-km a un
-valor «equivalente punta» que absorba el resto del día, o modelar el valle.
+| Parámetro | Default | Qué es |
+|---|---|---|
+| `costo_operacion_tren_km` | $12.000 | Costo por tren-km (orden de magnitud de metro pesado real) |
+| `factor_dia_punta` | 2,0 | Lleva el costo de la punta a base comparable con el ingreso |
+
+**Por qué hace falta el factor.** El autofinanciamiento compara costo DIARIO
+contra ingreso DIARIO, y el modelo entrega solo la hora punta:
+
+```
+autofinancia  <=>  costo_punta · (R_costo / R_ingreso) <= ingreso_punta
+```
+
+con `R_costo` = tren-km del día / tren-km de la punta y `R_ingreso` = viajes del
+día / viajes de la punta. Fuera de punta el servicio circula más vacío, así que
+`R_costo > R_ingreso` y el factor es > 1. En una frase: **cuánto más caro sale
+operar el día completo, por viaje, que si todo el día tuviera la carga de la
+punta.** 2,0 es razonable (la punta concentra ~10–12% de los viajes mientras el
+servicio corre ~18 h).
+
+**Lo que hay que saber al leer el indicador:** con los defaults el metro sigue
+saliendo superavitario (202 tren-km/h ⇒ costo $4,8 M contra $8,9 M de tarifa,
+subsidio −$4,0 M). Haría falta un factor de **~3,7** para que requiera subsidio.
+La diferencia restante NO es del factor: son dos rasgos del modelo — los viajes
+son cortos (~5 km en una ciudad de 20, porque la demanda se concentra junto al
+CBD) y la tarifa es plana, así que el ingreso por pax-km sale alto respecto de
+un sistema real. Ambos parámetros son sliders en «Oferta · Metro».
 
 ### 4.2 Necesita un dato externo
 

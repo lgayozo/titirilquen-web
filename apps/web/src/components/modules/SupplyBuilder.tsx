@@ -220,6 +220,26 @@ export function SupplyBuilder({
           onChange={(v) => setSupply("train", { num_estaciones: v })}
         />
         <LabeledSlider
+          label={t("supply_params.train.costo_operacion")}
+          value={train.costo_operacion_tren_km}
+          min={0}
+          max={40000}
+          step={1000}
+          format={(v) => `$${v.toLocaleString("es-CL")}`}
+          hint={t("supply_params.train.costo_operacion_hint")}
+          onChange={(v) => setSupply("train", { costo_operacion_tren_km: v })}
+        />
+        <LabeledSlider
+          label={t("supply_params.train.factor_dia_punta")}
+          value={train.factor_dia_punta}
+          min={1}
+          max={6}
+          step={0.1}
+          format={(v) => `× ${v.toFixed(1)}`}
+          hint={t("supply_params.train.factor_dia_punta_hint")}
+          onChange={(v) => setSupply("train", { factor_dia_punta: v })}
+        />
+        <LabeledSlider
           label={t("supply_params.train.tiempo_detencion")}
           value={train.tiempo_detencion_min}
           min={0}

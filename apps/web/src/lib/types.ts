@@ -103,6 +103,10 @@ export interface TrainSupplyParams {
   /** PROVISORIO: costo de operación por tren-km ($). Habilita costo del
    *  operador, subsidio y autofinanciamiento. Ver el comentario del core. */
   costo_operacion_tren_km: number;
+  /** Factor DÍA/PUNTA: cuánto más caro sale operar el día completo, por viaje,
+   *  que si todo el día tuviera la carga de la punta. >1 porque fuera de punta
+   *  el servicio circula más vacío. Ver el comentario del core. */
+  factor_dia_punta: number;
   /** Detención en cada estación intermedia (min). Sin esto, agregar estaciones
    *  acortaba el acceso sin costo alguno en tiempo de viaje. */
   tiempo_detencion_min: number;

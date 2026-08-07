@@ -248,6 +248,26 @@ class TrainSupplyParams(BaseModel):
     # sale holgadamente superavitario — y eso es un artefacto del alcance, no un
     # resultado. Ver docs/CONTINUAR.md.
     costo_operacion_tren_km: float = Field(default=12000, ge=0)
+    # Factor DÍA/PUNTA para que el subsidio y el autofinanciamiento signifiquen
+    # algo. El autofinanciamiento compara costo DIARIO contra ingreso DIARIO,
+    # pero este modelo entrega solo la hora punta. Escalando:
+    #
+    #   autofinancia  <=>  costo_punta · (R_costo / R_ingreso) <= ingreso_punta
+    #
+    # con R_costo = tren-km del día / tren-km de la punta y R_ingreso = viajes
+    # del día / viajes de la punta. Como el servicio fuera de punta circula más
+    # vacío, R_costo > R_ingreso y el factor es > 1. En una sola frase: cuánto
+    # más caro sale operar el día completo, POR VIAJE, que si todo el día
+    # tuviera la carga de la punta.
+    #
+    # 2.0 es un orden de magnitud razonable (la punta concentra ~10-12% de los
+    # viajes del día mientras el servicio corre ~18 h), pero es PROVISORIO como
+    # el costo por tren-km. Con los defaults el metro igual sale superavitario:
+    # haría falta ~3.7 para que requiera subsidio. La diferencia restante no es
+    # del factor sino de dos rasgos del modelo — los viajes son cortos (~5 km en
+    # una ciudad de 20, porque la demanda se concentra junto al CBD) y la tarifa
+    # es plana, así que el ingreso por pax-km sale alto. Ver docs/CONTINUAR.md.
+    factor_dia_punta: float = Field(default=2.0, gt=0)
     # Detención en cada estación INTERMEDIA entre la de subida y el CBD. Sin
     # esto, agregar estaciones acortaba el acceso a caminar SIN ningún costo en
     # tiempo de viaje: un almuerzo gratis que hacía monótonamente buena la

@@ -73,8 +73,8 @@ export interface Agregados {
   recaudacionTarifaClp: number;
   /** Tren-km por hora del servicio (f_op · largo de línea · 2). */
   trenKmHora: number;
-  /** Costo de operación del metro ($) = tren-km · costo por tren-km. A
-   *  diferencia de la tarifa, este SÍ es consumo de recursos. */
+  /** Costo de operación del metro ($) = tren-km · costo por tren-km · factor
+   *  día/punta. A diferencia de la tarifa, este SÍ es consumo de recursos. */
   costoOperadorClp: number;
   /** Subsidio requerido ($) = costo del operador − recaudación por tarifa.
    *  Negativo ⇒ el servicio genera superávit. */
@@ -262,7 +262,13 @@ export function calcularAgregados(
   // core y duplicarla en TS es justo el tipo de espejo que se desincroniza.
   const factorEm = cfg.demand.globales.factor_emision_metro_tren_km;
   const trenKm = factorEm > 0 ? (result.emisiones_metro_kg ?? 0) / factorEm : 0;
-  const costoOperador = trenKm * cfg.supply.train.costo_operacion_tren_km;
+  // El factor día/punta lleva el costo de la hora punta a base comparable con
+  // el ingreso: sin él, el autofinanciamiento se lee sobre una hora que es la
+  // más cargada del día y sale optimista por construcción.
+  const costoOperador =
+    trenKm *
+    cfg.supply.train.costo_operacion_tren_km *
+    cfg.supply.train.factor_dia_punta;
 
   const logsum: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };
   const excedente: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };

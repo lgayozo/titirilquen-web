@@ -77,7 +77,11 @@
       "freq_clip_libre": "Frecuencia libre en {{op}} tph: la fija la demanda (carga/capacidad del tren). Ningún tope está mordiendo, así que mover mínima o máxima no cambia nada hasta cruzar ese valor.",
       "anden_hint": "Congestión de andén (BPR): castiga la espera cuando la carga supera la capacidad a frecuencia máxima (v/c>1).",
       "tiempo_detencion": "Detención por estación",
-      "num_estaciones_hint": "Más estaciones acortan el acceso a pie pero alargan el viaje: el tren para en cada una. Existe un óptimo intermedio."
+      "num_estaciones_hint": "Más estaciones acortan el acceso a pie pero alargan el viaje: el tren para en cada una. Existe un óptimo intermedio.",
+      "costo_operacion": "Costo de operación ($/tren-km)",
+      "costo_operacion_hint": "PROVISORIO, pendiente de fuente. Habilita el costo del operador, el subsidio y el autofinanciamiento en la tabla de resultados.",
+      "factor_dia_punta": "Factor día/punta",
+      "factor_dia_punta_hint": "El autofinanciamiento compara costo DIARIO contra ingreso DIARIO, pero el modelo simula solo la hora punta. Este factor es cuánto más caro sale operar el día completo, por viaje, que si todo el día tuviera la carga de la punta. Fuera de punta el servicio va más vacío, por eso es mayor que 1."
     }
   },
   "equilibrium": {
@@ -798,7 +802,7 @@
     "bienestar": "Bienestar social = excedente + recaudación − costo operador",
     "bienestar_nota": "(el costo por tren-km es provisorio; ver docs)",
     "costo_operador": "Costo de operación del metro",
-    "costo_operador_nota": "({{km}} tren-km/h · costo por tren-km PROVISORIO)",
+    "costo_operador_nota": "({{km}} tren-km/h · ×{{f}} día/punta · valores PROVISORIOS)",
     "subsidio": "Subsidio requerido (costo − tarifa)",
     "subsidio_nota": "(negativo ⇒ el servicio se autofinancia)"
   }

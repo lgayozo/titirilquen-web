@@ -77,7 +77,11 @@
       "freq_clip_libre": "Frequency free at {{op}} tph: demand sets it (load / train capacity). Neither cap is binding, so moving the minimum or maximum changes nothing until it crosses that value.",
       "anden_hint": "Platform congestion (BPR): penalizes waiting once load exceeds the max-frequency capacity (v/c>1).",
       "tiempo_detencion": "Dwell per station",
-      "num_estaciones_hint": "More stations shorten the walk to the platform but lengthen the ride: the train stops at each one. There is an interior optimum."
+      "num_estaciones_hint": "More stations shorten the walk to the platform but lengthen the ride: the train stops at each one. There is an interior optimum.",
+      "costo_operacion": "Operating cost ($/train-km)",
+      "costo_operacion_hint": "PROVISIONAL, pending a source. Enables operator cost, subsidy and self-financing in the results table.",
+      "factor_dia_punta": "Day/peak factor",
+      "factor_dia_punta_hint": "Self-financing compares DAILY cost against DAILY revenue, but the model simulates only the peak hour. This factor is how much more expensive it is to run the whole day, per trip, than if the whole day had the peak's load. Off-peak service runs emptier, hence greater than 1."
     }
   },
   "equilibrium": {
@@ -798,7 +802,7 @@
     "bienestar": "Social welfare = surplus + revenue − operating cost",
     "bienestar_nota": "(cost per train-km is provisional; see docs)",
     "costo_operador": "Metro operating cost",
-    "costo_operador_nota": "({{km}} train-km/h · PROVISIONAL cost per train-km)",
+    "costo_operador_nota": "({{km}} train-km/h · ×{{f}} day/peak · PROVISIONAL values)",
     "subsidio": "Required subsidy (cost − fare revenue)",
     "subsidio_nota": "(negative ⇒ the service self-finances)"
   }
