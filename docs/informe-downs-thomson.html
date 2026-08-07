@@ -399,20 +399,21 @@ Montecarlo replica a expected con ruido (verificado en E01). Magnitudes = peor t
 <h3>5.1 El resultado central: la ciudad por defecto, verificado fino</h3>
 <p>Con el default vigente (tres estratos, cuatro modos, K=1.000, frec<sub>min</sub>=2), método
 <strong>Wardrop</strong>, max_iter=120 y tolerancia 0,02. Bienestar = utilidad máxima media en
-minutos-equivalentes (mayor = mejor); costo social = tiempo al VST del SNI (espera y acceso ×2)
-+ gasto monetario, por viajero:</p>
+minutos-equivalentes (mayor = mejor). El <strong>CG social es un costo GENERALIZADO</strong>:
+la columna «Tiempo valorado» (minutos convertidos a $ al VST del SNI, con espera y acceso ×2)
+más la columna «Dinero» (gasto monetario nominal), por viajero:</p>
 
 <div class="envoltorio-tabla"><table>
 <thead><tr><th class="n">Pistas</th><th class="n">Auto %</th><th class="n">Metro %</th>
 <th class="n">f<sub>op</sub></th><th class="n">Espera (min)</th><th class="n">Bienestar (min)</th>
-<th class="n">Costo social ($/viaje)</th><th></th></tr></thead>
+<th class="n">Tiempo valorado ($)</th><th class="n">Dinero ($)</th><th class="n">CG social ($/viaje)</th><th></th></tr></thead>
 <tbody>
-<tr><td class="n">1</td><td class="n">15,5</td><td class="n">39,3</td><td class="n">7,1</td><td class="n">4,5</td><td class="n">−34,17</td><td class="n">2.054</td><td></td></tr>
-<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">−34,08</td><td class="n">2.171</td><td>limítrofe: +0,09 aquí, −0,16 en la variante f<sub>min</sub>=1</td></tr>
-<tr class="destacada"><td class="n">3</td><td class="n">27,3</td><td class="n">28,7</td><td class="n">5,2</td><td class="n">6,1</td><td class="n">−34,34</td><td class="n">2.221</td><td>la 3ª empeora bajo el nivel de 1</td></tr>
-<tr><td class="n">4</td><td class="n">29,7</td><td class="n">26,2</td><td class="n">4,7</td><td class="n">6,6</td><td class="n">−34,30</td><td class="n">2.240</td><td>aún peor que 1 pista</td></tr>
-<tr><td class="n">6</td><td class="n">30,7</td><td class="n">25,5</td><td class="n">4,6</td><td class="n">6,8</td><td class="n">−33,89</td><td class="n">2.232</td><td>recupera</td></tr>
-<tr><td class="n">8</td><td class="n">31,3</td><td class="n">24,4</td><td class="n">4,4</td><td class="n">6,9</td><td class="n">−33,79</td><td class="n">2.233</td><td>supera</td></tr>
+<tr><td class="n">1</td><td class="n">15,5</td><td class="n">39,3</td><td class="n">7,1</td><td class="n">4,5</td><td class="n">−34,17</td><td class="n">1.234</td><td class="n">820</td><td class="n">2.054</td><td></td></tr>
+<tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">−34,08</td><td class="n">1.184</td><td class="n">988</td><td class="n">2.171</td><td>limítrofe: +0,09 aquí, −0,16 en la variante f<sub>min</sub>=1</td></tr>
+<tr class="destacada"><td class="n">3</td><td class="n">27,3</td><td class="n">28,7</td><td class="n">5,2</td><td class="n">6,1</td><td class="n">−34,34</td><td class="n">1.162</td><td class="n">1.059</td><td class="n">2.221</td><td>la 3ª empeora bajo el nivel de 1</td></tr>
+<tr><td class="n">4</td><td class="n">29,7</td><td class="n">26,2</td><td class="n">4,7</td><td class="n">6,6</td><td class="n">−34,30</td><td class="n">1.133</td><td class="n">1.106</td><td class="n">2.240</td><td>aún peor que 1 pista</td></tr>
+<tr><td class="n">6</td><td class="n">30,7</td><td class="n">25,5</td><td class="n">4,6</td><td class="n">6,8</td><td class="n">−33,89</td><td class="n">1.101</td><td class="n">1.131</td><td class="n">2.232</td><td>recupera</td></tr>
+<tr><td class="n">8</td><td class="n">31,3</td><td class="n">24,4</td><td class="n">4,4</td><td class="n">6,9</td><td class="n">−33,79</td><td class="n">1.091</td><td class="n">1.142</td><td class="n">2.233</td><td>supera</td></tr>
 </tbody></table>
 <p class="pie-tabla">En bienestar, la segunda pista es <strong>limítrofe</strong> (mejora
 marginal aquí; empeora en la variante con piso de frecuencia 1 — el signo queda dentro del
@@ -679,15 +680,15 @@ adicional: el metro pierde participación, su frecuencia cae, la espera sube —
 <div class="envoltorio-tabla"><table>
 <thead><tr><th class="n">Pistas</th><th class="n">Auto %</th><th class="n">Metro %</th>
 <th class="n">f<sub>op</sub> (tph)</th><th class="n">Espera (min)</th>
-<th class="n">Costo social ($/viaje)</th></tr></thead>
+<th class="n">CG social ($/viaje)</th></tr></thead>
 <tbody>
 <tr><td class="n">1</td><td class="n">15,5</td><td class="n">39,3</td><td class="n">7,1</td><td class="n">4,5</td><td class="n">2.054</td></tr>
 <tr><td class="n">2</td><td class="n">23,3</td><td class="n">33,3</td><td class="n">6,0</td><td class="n">5,3</td><td class="n">2.171</td></tr>
 <tr><td class="n">3</td><td class="n">27,3</td><td class="n">28,7</td><td class="n">5,2</td><td class="n">6,1</td><td class="n">2.221</td></tr>
 <tr class="destacada"><td class="n">4</td><td class="n">29,7</td><td class="n">26,2</td><td class="n">4,7</td><td class="n">6,6</td><td class="n">2.240</td></tr>
 </tbody></table>
-<p class="pie-tabla">Costo social calculado por <code>scripts/datos_informe.py</code> con los
-ponderadores del SNI. En pantalla, el estudiante ve los mismos síntomas en la tabla de
+<p class="pie-tabla">CG social = costo generalizado (tiempo valorado al VST del SNI + dinero),
+calculado por <code>scripts/datos_informe.py</code>. En pantalla, el estudiante ve los mismos síntomas en la tabla de
 resultados: la participación del metro cae, su frecuencia baja, la espera sube, y el «costo
 generalizado social» (que la app valora al VST del SNI) sube — mientras el tiempo físico medio
 <em>baja</em>. Esa divergencia es composición, y discutirla en clase <strong>es</strong> la
