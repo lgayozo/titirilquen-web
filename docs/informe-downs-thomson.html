@@ -420,10 +420,39 @@ marginal aquí; empeora en la variante con piso de frecuencia 1 — el signo que
 margen de los equilibrios múltiples de Wardrop); en costo social ya está peor, aunque esa alza
 temprana es mayormente dinero (+$168) con el componente de tiempo cayendo (−$50): transferencia,
 no paradoja. Lo robusto en ambas configuraciones: la tercera y la cuarta dejan a la ciudad
-<strong>peor que con una sola</strong>, y hay que llegar a ~6 para recuperar. La fuga a
+<strong>peor que con una sola</strong>, y hay que llegar a ~6 para recuperar.
+<br><strong>Dos notas de lectura.</strong> (i) El bienestar tiene <em>nivel con cero
+arbitrario</em> (incluye las ASC): solo las diferencias entre filas son interpretables, el
+signo no significa nada, y NO es comparable entre métodos (logsum y máximo son objetos
+distintos). (ii) El alza del CG social <em>contiene</em> la paradoja pero la sobreestima:
+entre 1 y 4 pistas el dinero aporta +$286 (mayormente transferencia de los nuevos conductores)
+y el tiempo valorado resta −$101. La firma genuina es la caída del bienestar bajo el nivel de
+1 pista y el alza por tiempo puro del estrato bajo (los cautivos). La fuga a
 bici+caminata es ≈0: la sustitución es auto↔metro, el mecanismo correcto. Bajo
 <code>expected</code> y <code>montecarlo</code>, en cambio, el bienestar mejora y el costo
 social <em>baja</em> monótonamente (2.182 → 2.121): cero paradojas.</p></div>
+
+<h3>5.1a La misma tabla bajo <code>expected</code> (logit): el contrafactual</h3>
+<div class="envoltorio-tabla"><table>
+<thead><tr><th class="n">Pistas</th><th class="n">Auto %</th><th class="n">Metro %</th>
+<th class="n">f<sub>op</sub></th><th class="n">Espera (min)</th><th class="n">Bienestar (min)</th>
+<th class="n">Tiempo valorado ($)</th><th class="n">Dinero ($)</th>
+<th class="n">CG social ($/viaje)</th></tr></thead>
+<tbody>
+<tr><td class="n">1</td><td class="n">14,2</td><td class="n">36,4</td><td class="n">6,1</td><td class="n">5,0</td><td class="n">−9,12</td><td class="n">1.405</td><td class="n">777</td><td class="n">2.182</td></tr>
+<tr><td class="n">2</td><td class="n">16,4</td><td class="n">34,8</td><td class="n">5,9</td><td class="n">5,2</td><td class="n">−7,62</td><td class="n">1.322</td><td class="n">825</td><td class="n">2.147</td></tr>
+<tr><td class="n">3</td><td class="n">17,0</td><td class="n">34,4</td><td class="n">5,8</td><td class="n">5,3</td><td class="n">−7,24</td><td class="n">1.294</td><td class="n">839</td><td class="n">2.133</td></tr>
+<tr><td class="n">4</td><td class="n">17,2</td><td class="n">34,2</td><td class="n">5,8</td><td class="n">5,3</td><td class="n">−7,08</td><td class="n">1.282</td><td class="n">845</td><td class="n">2.127</td></tr>
+<tr><td class="n">6</td><td class="n">17,4</td><td class="n">34,1</td><td class="n">5,8</td><td class="n">5,3</td><td class="n">−6,96</td><td class="n">1.273</td><td class="n">849</td><td class="n">2.122</td></tr>
+<tr><td class="n">8</td><td class="n">17,5</td><td class="n">34,1</td><td class="n">5,8</td><td class="n">5,3</td><td class="n">−6,92</td><td class="n">1.270</td><td class="n">850</td><td class="n">2.121</td></tr>
+</tbody></table>
+<p class="pie-tabla">Misma ciudad, mismo barrido, otro supuesto de elección — y todo se invierte:
+el bienestar mejora monótonamente, el CG social <strong>baja</strong> monótonamente
+($2.182 → $2.121: el tiempo cae −$135 y domina al alza de dinero +$73), la espera apenas se
+mueve (5,0 → 5,3) porque el trasvase modal está amortiguado (el metro pierde 2,3 pp contra los
+15 pp de Wardrop). El logit deja a cada migrante una ganancia retenida que amortigua el lazo —
+§4.1. Los niveles de bienestar NO son comparables con la tabla anterior (objetos y ceros
+distintos); las direcciones sí.</p></div>
 
 <h3>5.1b Costo social agregado y por estrato — gráficos</h3>
 <div class="grafico"><svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" style="max-width:100%;height:auto;font-family:Segoe UI,system-ui,sans-serif">
