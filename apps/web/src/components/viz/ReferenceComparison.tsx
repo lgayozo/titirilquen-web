@@ -94,6 +94,26 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       menorEsMejor: true,
       nota: t("agg.cg_social_nota", { vot: fmtMoney(votSocial) }),
     },
+    {
+      label: t("agg.recaudacion"),
+      actual: agg.recaudacionParkingClp + agg.recaudacionTarifaClp,
+      ref:
+        aggRef == null
+          ? null
+          : aggRef.recaudacionParkingClp + aggRef.recaudacionTarifaClp,
+      fmt: fmtMoney,
+      menorEsMejor: false,
+      nota: t("agg.recaudacion_nota"),
+    },
+    {
+      label: t("agg.bienestar"),
+      actual: agg.bienestarSocialClp,
+      ref: aggRef?.bienestarSocialClp ?? null,
+      fmt: fmtMoney,
+      menorEsMejor: false,
+      comparable: lsOk,
+      nota: t("agg.bienestar_nota"),
+    },
     ...STRATA.map((h) => ({
       label: t("agg.excedente_estrato", { h: t(`strata.${estratoKey(h)}`) }),
       actual: agg.excedentePorEstratoClp[h],

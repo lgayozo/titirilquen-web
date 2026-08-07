@@ -792,6 +792,10 @@
     "unpin": "Clear reference",
     "pinned": "Reference pinned",
     "title": "Aggregates and comparison",
-    "meta": "city-wide"
+    "meta": "city-wide",
+    "recaudacion": "Revenue (parking + fare)",
+    "recaudacion_nota": "(transfers; fuel excluded: it is real resource use)",
+    "bienestar": "Social welfare = surplus + revenue",
+    "bienestar_nota": "(does not net out metro operator cost — see docs)"
   }
 }

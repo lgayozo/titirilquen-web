@@ -62,6 +62,32 @@ export interface Agregados {
   /** Logsum medio por estrato (utiles) y su equivalente en $ (÷ λ_h). */
   logsumPorEstrato: Record<StratumId, number>;
   excedentePorEstratoClp: Record<StratumId, number>;
+  /** Viajeros de cada estrato (para pasar de excedente MEDIO a total). */
+  viajerosPorEstrato: Record<StratumId, number>;
+  /** Σ_h viajeros_h · excedente_h. Cero arbitrario: solo el Δ es interpretable. */
+  excedenteTotalClp: number;
+  /** Recaudación por estacionamiento ($). Es TRANSFERENCIA, no costo de
+   *  recursos: alguien la recibe. La bencina NO entra — esa sí se consume. */
+  recaudacionParkingClp: number;
+  /** Recaudación por tarifa del metro ($). También transferencia. */
+  recaudacionTarifaClp: number;
+  /**
+   * Bienestar social = excedente del consumidor + recaudación.
+   *
+   * Es la función objetivo estándar en evaluación social de políticas de
+   * precio, y sin ella el simulador estaba SESGADO contra ellas: subir el
+   * estacionamiento bajaba el excedente sin acreditar que la ciudad recauda,
+   * así que toda tarificación parecía empeorar el bienestar.
+   *
+   * INCOMPLETO a propósito y hay que decirlo: falta restar el COSTO DEL
+   * OPERADOR del metro, que este modelo no representa (no hay costo por
+   * tren-km). Mientras la frecuencia no cambie eso es una constante y no
+   * afecta al Δ; pero la frecuencia acá es endógena (f = carga/K), así que
+   * un escenario que mueva la demanda del metro SÍ mueve el costo operacional
+   * y este indicador lo omite. Con ese costo se podría además responder si el
+   * sector se autofinancia.
+   */
+  bienestarSocialClp: number;
 }
 
 /** Tiempo de cada modo en la celda `i`, en minutos. La caminata no va acá: es
@@ -161,6 +187,8 @@ export function calcularAgregados(
   let cgSocial = 0;
   const lsSum: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };
   const lsN: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };
+  let recParking = 0;
+  let recTarifa = 0;
 
   // `demanda_estrato[h][modo][celda]` es la demanda esperada desagregada. Sin
   // ella no se puede aplicar un VoT por estrato: el snapshot agregado solo trae
@@ -191,6 +219,10 @@ export function calcularAgregados(
         viajeros += d;
         cgPercibido += d * ((minutos / 60) * vot[h] + dinero);
         cgSocial += d * ((minutos / 60) * votSocialClpHora + dinero);
+        // Solo las TRANSFERENCIAS son recaudación. La bencina se excluye a
+        // propósito: es consumo real de recursos, no ingreso de nadie.
+        if (modo === "Auto") recParking += d * cfg.demand.globales.costo_parking;
+        if (modo === "Metro") recTarifa += d * cfg.demand.globales.costo_tarifa_metro;
       }
 
       // Logsum de la celda para este estrato. Se pondera por la demanda del
@@ -222,11 +254,15 @@ export function calcularAgregados(
 
   const logsum: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };
   const excedente: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };
+  let excedenteTotal = 0;
   for (const h of STRATA) {
     logsum[h] = lsN[h] > 0 ? lsSum[h] / lsN[h] : 0;
     // λ_h = −β_costo (utilidad marginal del ingreso): pasa utiles a $.
     const lambda = -cfg.demand.estratos[h].betas.b_costo;
     excedente[h] = lambda > 0 ? logsum[h] / lambda : 0;
+    // `lsN[h]` ya es el total de viajeros del estrato (se acumuló celda a
+    // celda), así que sirve para pasar del excedente MEDIO al total.
+    excedenteTotal += excedente[h] * lsN[h];
   }
 
   return {
@@ -238,6 +274,11 @@ export function calcularAgregados(
     votPorEstratoClpHora: vot,
     logsumPorEstrato: logsum,
     excedentePorEstratoClp: excedente,
+    viajerosPorEstrato: { 1: lsN[1], 2: lsN[2], 3: lsN[3] },
+    excedenteTotalClp: excedenteTotal,
+    recaudacionParkingClp: recParking,
+    recaudacionTarifaClp: recTarifa,
+    bienestarSocialClp: excedenteTotal + recParking + recTarifa,
   };
 }
 

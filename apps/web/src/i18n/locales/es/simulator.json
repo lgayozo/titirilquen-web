@@ -792,6 +792,10 @@
     "unpin": "Quitar referencia",
     "pinned": "Referencia fijada",
     "title": "Agregados y comparación",
-    "meta": "ciudad completa"
+    "meta": "ciudad completa",
+    "recaudacion": "Recaudación (estacionamiento + tarifa)",
+    "recaudacion_nota": "(transferencias; la bencina no entra: es consumo de recursos)",
+    "bienestar": "Bienestar social = excedente + recaudación",
+    "bienestar_nota": "(no descuenta el costo del operador del metro — ver docs)"
   }
 }
