@@ -24,7 +24,11 @@ Este proyecto es un **trabajo derivado** del simulador **Titirilquen** original:
 
 ## Cambios y agregados respecto al original
 
-Los detalles están en [`docs/DISCREPANCIES.md`](docs/DISCREPANCIES.md). Resumen:
+La comparación cuantitativa contra el original —qué se modela igual, qué
+cambió en la calibración y cuánto mueve los resultados— está en
+[`docs/COMPARACION_ORIGINAL.md`](docs/COMPARACION_ORIGINAL.md), reproducible
+con `scripts/comparar_original.py`. Las divergencias código ↔ Overleaf están en
+[`docs/DISCREPANCIES.md`](docs/DISCREPANCIES.md). Resumen:
 
 - Reestructurado en paquete Python tipado con Pydantic v2
 - Frontend nuevo React/TypeScript con Vite (reemplaza la UI Streamlit)
