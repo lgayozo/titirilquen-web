@@ -100,15 +100,30 @@ export function calcularUtilidades({
     betas.b_tiempo_espera * tt.tren_espera +
     betas.b_tiempo_acceso * tt.tren_acceso;
   const vCMetro = betas.b_costo * cMetro;
-  const metro: UtilityBreakdown = {
-    modo: "Metro",
-    asc: betas.asc_metro,
-    v_tiempo: vTMetro,
-    v_costo: vCMetro,
-    v_penalizaciones: 0,
-    valor: betas.asc_metro + vTMetro + vCMetro,
-    feasible: true,
-  };
+  // Espejo de `calcular_utilidades`: sin tramo en tren no hay viaje en metro.
+  // `tren_viaje == 0` ⇒ la estación más cercana es la del CBD (el destino), así
+  // que "tomar el metro" sería caminar hasta el destino sin subirse a nada —
+  // caso que además esquivaba el corte de 30 min de la caminata.
+  const metro: UtilityBreakdown =
+    tt.tren_viaje <= 0
+      ? {
+          modo: "Metro",
+          asc: 0,
+          v_tiempo: 0,
+          v_costo: 0,
+          v_penalizaciones: 0,
+          valor: UTIL_IMPOSIBLE,
+          feasible: false,
+        }
+      : {
+          modo: "Metro",
+          asc: betas.asc_metro,
+          v_tiempo: vTMetro,
+          v_costo: vCMetro,
+          v_penalizaciones: 0,
+          valor: betas.asc_metro + vTMetro + vCMetro,
+          feasible: true,
+        };
 
   // Bici
   let bici: UtilityBreakdown;

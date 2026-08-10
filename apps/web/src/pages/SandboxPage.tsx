@@ -1,7 +1,12 @@
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CityStrip } from "@/components/CityStrip";
+import {
+  CityStrip,
+  MODE_CUTOFF_MIN,
+  type CityView,
+  type SingleMode,
+} from "@/components/CityStrip";
 import { CalibrationPanel } from "@/components/modules/CalibrationPanel";
 import { EconomyBuilder } from "@/components/modules/EconomyBuilder";
 import { PresetGallery } from "@/components/modules/PresetGallery";
@@ -45,16 +50,17 @@ type HeatMode =
   | "espera"
   | "ciudad";
 
-/** Opciones del toggle de la Figura 1, en orden. "ciudad" vuelve a la vista de
- *  ciudad (uso de suelo + infraestructura) sin perder los resultados. */
+/** Opciones del toggle con resultados. "todos" primero porque ahora es el
+ *  default: la figura dibuja SIEMPRE los cuatro modos y el toggle elige cuál
+ *  resaltar, no cuál mostrar. "ciudad" salió de acá — es un insumo, no un
+ *  resultado, y vive en el bloque de ciudad. */
 const VIEW_OPTIONS: readonly HeatMode[] = [
+  "todos",
   "auto",
   "metro",
   "bici",
   "caminata",
-  "todos",
   "espera",
-  "ciudad",
 ];
 
 /** Vistas disponibles ANTES de simular. Las demás leen el perfil de tiempos de
@@ -66,12 +72,8 @@ const PRE_VIEW_OPTIONS: readonly HeatMode[] = ["ciudad"];
 type FlowMode = "auto" | "bici" | "metro" | "caminata";
 const FLOW_MODES: readonly FlowMode[] = ["auto", "bici", "metro", "caminata"];
 
-/** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
- *  elegible. Ver demand/utility.py — caminata > 30, bici > 45. */
-const MODE_CUTOFF: Partial<Record<HeatMode, number>> = {
-  caminata: 30,
-  bici: 45,
-};
+// El umbral de factibilidad por modo lo exporta CityStrip (`MODE_CUTOFF_MIN`):
+// es un parámetro del modelo, no de la página, y tenerlo dos veces derivaba.
 
 export function SandboxPage() {
   const { t } = useTranslation("simulator");
@@ -109,7 +111,7 @@ export function SandboxPage() {
     [stage, config, configUsed],
   );
 
-  const [heatMode, setHeatMode] = useState<HeatMode>("auto");
+  const [heatMode, setHeatMode] = useState<HeatMode>("todos");
   const [flowMode, setFlowMode] = useState<FlowMode>("auto");
 
   const viewLabel = (m: HeatMode) =>
@@ -139,6 +141,17 @@ export function SandboxPage() {
   // booleano derivado, además, deja que TypeScript estreche `effHeatMode` a
   // `CityView` en la rama de abajo (CityStrip no acepta "ciudad").
   const showCiudad = effHeatMode === "ciudad";
+
+  // La figura de tiempos dibuja SIEMPRE los cuatro modos; el toggle pasa de
+  // "qué serie veo" a "qué serie resalto". Así comparar auto contra metro en la
+  // periferia deja de exigir alternar entre dos vistas y recordar el número.
+  // "Espera tren" es la excepción: no es un modo sino una componente del tiempo
+  // del metro, y conserva su propia vista de barras.
+  const esEspera = effHeatMode === "espera";
+  const stripMode: CityView = esEspera ? "espera" : "todos";
+  const stripHighlight = (["auto", "metro", "bici", "caminata"] as const).find(
+    (m) => m === effHeatMode,
+  ) as SingleMode | undefined;
 
   // Composición de estratos por celda para la imagen inicial de la ciudad,
   // derivada de Uso de Suelo: si hay un resultado de suelo con geometría
@@ -278,6 +291,72 @@ export function SandboxPage() {
 
   // El título tiene que decir QUÉ magnitud se grafica: para caminata sigue
   // siendo demanda originada, y llamarla "flujo del corredor" sería mentir.
+  // Uso de suelo ARRIBA, plano ABAJO, con el mismo margen izquierdo: la base de
+  // las barras se apoya sobre la infraestructura y la celda i cae en la misma
+  // columna en ambas. Antes de simular es la vista principal; después vive
+  // plegado, porque es el insumo del equilibrio y no su resultado.
+  const bloqueCiudad = (
+    <>
+      {landUseCity.comp && (
+        <ExportableFigure
+          name="ciudad-uso-suelo"
+          title={t("sandbox.land_use_city_heading")}
+          description={t("sandbox.land_use_city_desc", {
+            length: config.city.largo_ciudad_km,
+            cells: config.city.n_celdas,
+          })}
+          exportSize={{ width: 1200, height: 320 }}
+        >
+          <StratumDistribution
+            composition={landUseCity.comp}
+            height={230}
+            largoKm={config.city.largo_ciudad_km}
+            xLayout={CITY_PREVIEW_X_LAYOUT}
+          />
+        </ExportableFigure>
+      )}
+      <ExportableFigure
+        name="plano-ciudad"
+        title={t("preview.heading")}
+        description={t("preview.export_desc")}
+        exportSize={{ width: 1200, height: 360 }}
+      >
+        <CityPreview config={config} />
+      </ExportableFigure>
+      <p className="kpi-caption" style={{ marginTop: 6 }}>
+        {landUseCity.comp
+          ? `${t("sandbox.city_view_caption")} ${
+              landUseCity.isPost
+                ? t("sandbox.land_use_city_caption_post")
+                : t("sandbox.land_use_city_caption_pre")
+            }`
+          : t("sandbox.land_use_city_caption_none")}
+      </p>
+    </>
+  );
+
+  const cintaTiempos = () => (
+    <CityStrip
+      nCeldas={cfgRes.city.n_celdas}
+      largoKm={cfgRes.city.largo_ciudad_km}
+      pendientePct={cfgRes.city.pendiente_porcentaje}
+      modeProfile={profile}
+      heatMode={stripMode}
+      highlight={stripHighlight ?? null}
+      cutoffMin={stripHighlight ? MODE_CUTOFF_MIN[stripHighlight] : undefined}
+      cutoffLabel={
+        stripHighlight && MODE_CUTOFF_MIN[stripHighlight] != null
+          ? t("sandbox.cutoff_label", {
+              min: MODE_CUTOFF_MIN[stripHighlight],
+            })
+          : undefined
+      }
+      estacionesKm={result?.estaciones_km ?? undefined}
+      shareEstratos={cfgRes.city.share_estratos}
+      iterationToken={lastIter?.iter ?? -1}
+    />
+  );
+
   const flowTitle = flowData
     ? t(
         flowData.esCorredor ? "sandbox.corridor_flow" : "sandbox.origin_demand",
@@ -314,7 +393,7 @@ export function SandboxPage() {
   const handleRun = async () => {
     // Si el toggle quedó en la vista estática de ciudad, volver a una vista de
     // resultados para no tapar la convergencia en vivo.
-    if (heatMode === "ciudad") setHeatMode("auto");
+    if (heatMode === "ciudad") setHeatMode("todos");
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     startRun(config.max_iter);
@@ -942,48 +1021,7 @@ export function SandboxPage() {
             </div>
 
             {showCiudad ? (
-              <>
-                {/* Uso de suelo ARRIBA, plano ABAJO, con el mismo margen
-                    izquierdo: la base de las barras se apoya sobre la
-                    infraestructura y la celda i cae en la misma columna en
-                    ambas. Siguen siendo dos ExportableFigure porque cada una se
-                    exporta por separado. */}
-                {landUseCity.comp && (
-                  <ExportableFigure
-                    name="ciudad-uso-suelo"
-                    title={t("sandbox.land_use_city_heading")}
-                    description={t("sandbox.land_use_city_desc", {
-                      length: config.city.largo_ciudad_km,
-                      cells: config.city.n_celdas,
-                    })}
-                    exportSize={{ width: 1200, height: 320 }}
-                  >
-                    <StratumDistribution
-                      composition={landUseCity.comp}
-                      height={230}
-                      largoKm={config.city.largo_ciudad_km}
-                      xLayout={CITY_PREVIEW_X_LAYOUT}
-                    />
-                  </ExportableFigure>
-                )}
-                <ExportableFigure
-                  name="plano-ciudad"
-                  title={t("preview.heading")}
-                  description={t("preview.export_desc")}
-                  exportSize={{ width: 1200, height: 360 }}
-                >
-                  <CityPreview config={config} />
-                </ExportableFigure>
-                <p className="kpi-caption" style={{ marginTop: 6 }}>
-                  {landUseCity.comp
-                    ? `${t("sandbox.city_view_caption")} ${
-                        landUseCity.isPost
-                          ? t("sandbox.land_use_city_caption_post")
-                          : t("sandbox.land_use_city_caption_pre")
-                      }`
-                    : t("sandbox.land_use_city_caption_none")}
-                </p>
-              </>
+              bloqueCiudad
             ) : (
               <ExportableFigure
                 name={`ciudad-${effHeatMode}`}
@@ -995,25 +1033,21 @@ export function SandboxPage() {
                 })}
                 exportSize={{ width: 1200, height: 200 }}
               >
-                <CityStrip
-                  nCeldas={cfgRes.city.n_celdas}
-                  largoKm={cfgRes.city.largo_ciudad_km}
-                  pendientePct={cfgRes.city.pendiente_porcentaje}
-                  modeProfile={profile}
-                  heatMode={effHeatMode}
-                  cutoffMin={MODE_CUTOFF[effHeatMode]}
-                  cutoffLabel={
-                    MODE_CUTOFF[effHeatMode] != null
-                      ? t("sandbox.cutoff_label", {
-                          min: MODE_CUTOFF[effHeatMode],
-                        })
-                      : undefined
-                  }
-                  estacionesKm={result?.estaciones_km ?? undefined}
-                  shareEstratos={cfgRes.city.share_estratos}
-                  iterationToken={lastIter?.iter ?? -1}
-                />
+                {cintaTiempos()}
               </ExportableFigure>
+            )}
+
+            {/* La ciudad y el plano siguen alcanzables después de simular, pero
+                PLEGADOS: son el insumo, no el resultado, y desplegados empujan
+                los KPI y el veredicto fuera de la primera pantalla. `details`
+                nativo, así que abre con teclado y se anuncia a lectores. */}
+            {hasData && (
+              <SidebarSection
+                title={t("sandbox.city_view_heading")}
+                className="mt-3"
+              >
+                {bloqueCiudad}
+              </SidebarSection>
             )}
 
             <div className="ribbon-legend">

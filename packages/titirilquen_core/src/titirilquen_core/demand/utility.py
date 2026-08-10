@@ -108,9 +108,20 @@ def calcular_utilidades(
     )
     v_c_metro = betas.b_costo * c_metro
     v_metro = asc_metro + v_t_metro + v_c_metro
-    metro_breakdown = UtilityBreakdown(
-        "Metro", v_metro, asc_metro, v_t_metro, v_c_metro, feasible=True
-    )
+    # Sin tramo en tren no hay viaje en metro. `tren_viaje == 0` significa que la
+    # estación más cercana es la del CBD, o sea el destino: "tomar el metro"
+    # sería caminar hasta donde uno va y no subirse a nada. Ese caso entraba como
+    # factible y esquivaba el corte de 30 min de la caminata, porque el acceso no
+    # tiene umbral: con 3 estaciones (espaciado 10 km) la celda a 15 km asignaba
+    # 10,9% de sus viajes a un "metro" de 62 min de caminata y 0 min de tren, y
+    # la banda 12-15 km rondaba 11-17%. La caminata pura de esa misma distancia
+    # estaba prohibida. Ver también `paradas_intermedias` en supply/train.py.
+    if tiempos.tren_viaje <= 0:
+        metro_breakdown = UtilityBreakdown("Metro", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
+    else:
+        metro_breakdown = UtilityBreakdown(
+            "Metro", v_metro, asc_metro, v_t_metro, v_c_metro, feasible=True
+        )
 
     # BICI — penalizaciones aditivas escalonadas (ver D-02)
     if tiempos.bici_total > 45:

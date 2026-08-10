@@ -140,6 +140,7 @@
   "sandbox": {
     "city_heading": "City",
     "city_strip_aria": "Linear city",
+    "strip_tooltip_pos": "{{km}} km · {{dist}} km from CBD",
     "city_strip_y_time": "Time · min",
     "city_strip_y_wait": "Wait · min",
     "modal_split_last": "Modal split (last iteration)",

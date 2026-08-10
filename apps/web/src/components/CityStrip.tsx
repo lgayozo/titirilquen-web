@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 
-type SingleMode = "auto" | "metro" | "bici" | "caminata";
+export type SingleMode = "auto" | "metro" | "bici" | "caminata";
 /** Vistas de la figura: un modo individual, todos los modos a la vez, o el
  *  tiempo de espera del tren por estación. */
 export type CityView = SingleMode | "todos" | "espera";
@@ -35,6 +35,9 @@ interface CityStripProps {
   estacionesKm?: readonly number[];
   /** Cuando cambia este token, se dispara un flash visual (para indicar "nueva iteración"). */
   iterationToken?: number | string;
+  /** Modo a resaltar en la vista "todos"; los otros se atenúan. Deja de hacer
+   *  falta cambiar de figura para comparar dos modos. */
+  highlight?: SingleMode | null;
   className?: string;
   height?: number;
 }
@@ -56,6 +59,15 @@ const ALL_MODES: ReadonlyArray<{ mode: SingleMode; key: keyof ModeTimes }> = [
   { mode: "bici", key: "t_bici" },
   { mode: "caminata", key: "t_caminata" },
 ];
+
+/** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
+ *  elegible. Ver `demand/utility.py` — caminata > 30, bici > 45. Se exporta
+ *  para que la página no lo repita: es un parámetro del modelo, no de la
+ *  figura, y dos copias derivan. */
+export const MODE_CUTOFF_MIN: Partial<Record<string, number>> = {
+  caminata: 30,
+  bici: 45,
+};
 
 const KEY_BY_MODE: Record<SingleMode, keyof ModeTimes> = {
   auto: "t_auto",
@@ -82,6 +94,7 @@ export function CityStrip({
   cutoffLabel,
   estacionesKm,
   iterationToken,
+  highlight = null,
   className,
   height = 160,
 }: CityStripProps) {
@@ -94,7 +107,9 @@ export function CityStrip({
     : MODE_COLOR[(heatMode as SingleMode) ?? "auto"];
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const [W, setW] = useState(600);
+  const [hover, setHover] = useState<number | null>(null);
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
@@ -167,6 +182,7 @@ export function CityStrip({
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
       <svg
+        ref={svgRef}
         width={W}
         height={H}
         viewBox={`0 0 ${W} ${H}`}
@@ -286,19 +302,25 @@ export function CityStrip({
 
         {/* Líneas (vista "todos") — una por modo */}
         {lines &&
-          lines.map((l) => (
-            <polyline
-              key={l.mode}
-              points={l.values
-                .map((v, i) => `${xOfCell(i)},${yOf(v)}`)
-                .join(" ")}
-              fill="none"
-              stroke={l.color}
-              strokeWidth={1.6}
-              strokeLinejoin="round"
-              opacity={0.95}
-            />
-          ))}
+          lines.map((l) => {
+            // Con un modo resaltado los demás se atenúan pero NO desaparecen:
+            // el punto de la vista es comparar, y para eso el resto tiene que
+            // seguir siendo legible.
+            const on = !highlight || highlight === l.mode;
+            return (
+              <polyline
+                key={l.mode}
+                points={l.values
+                  .map((v, i) => `${xOfCell(i)},${yOf(v)}`)
+                  .join(" ")}
+                fill="none"
+                stroke={l.color}
+                strokeWidth={on ? 2.1 : 1.1}
+                strokeLinejoin="round"
+                opacity={on ? 0.95 : 0.32}
+              />
+            );
+          })}
 
         {/* Baseline del plot (eje X visual) */}
         <line
@@ -376,7 +398,107 @@ export function CityStrip({
         >
           {largoKm.toFixed(0)} KM
         </text>
+
+        {/* Guía del cursor */}
+        {hover != null && hover >= 0 && hover < nCeldas && (
+          <line
+            x1={xOfCell(hover)}
+            y1={yTop}
+            x2={xOfCell(hover)}
+            y2={yFloor}
+            stroke="var(--ink)"
+            strokeWidth={0.8}
+            opacity={0.55}
+          />
+        )}
+
+        {/* Capa de captura: una sola, encima de todo. Con 201 celdas poner un
+            handler por barra serían 201 listeners para un dato que se deduce
+            de la coordenada x. */}
+        {modeProfile && (
+          <rect
+            x={MARGIN.left}
+            y={yTop}
+            width={plotW}
+            height={plotH}
+            fill="transparent"
+            onMouseMove={(e) => {
+              const svg = svgRef.current;
+              if (!svg) return;
+              const r = svg.getBoundingClientRect();
+              const xView = ((e.clientX - r.left) * W) / Math.max(r.width, 1);
+              const i = Math.floor((xView - MARGIN.left) / barW);
+              setHover(i >= 0 && i < nCeldas ? i : null);
+            }}
+            onMouseLeave={() => setHover(null)}
+          />
+        )}
       </svg>
+
+      {/* Tooltip: los CUATRO modos a la vez en la ubicación del cursor. Antes
+          había que alternar de vista y recordar el número para comparar dos
+          modos; eso era lo más caro de la figura. */}
+      {modeProfile && hover != null && modeProfile[hover] && (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{
+            left: Math.min(Math.max(xOfCell(hover), 96), Math.max(W - 96, 96)),
+            top: yTop + 2,
+            transform: "translateX(-50%)",
+            background: "var(--paper)",
+            border: "1px solid var(--rule)",
+            padding: "6px 8px",
+            fontFamily: "var(--font-fig)",
+            fontSize: 10,
+            lineHeight: 1.5,
+            whiteSpace: "nowrap",
+            color: "var(--ink)",
+          }}
+        >
+          <div style={{ color: "var(--muted)" }}>
+            {t("sandbox.strip_tooltip_pos", {
+              km: (((hover + 0.5) / nCeldas) * largoKm).toFixed(1),
+              dist: ((Math.abs(cbdIdx - hover) / nCeldas) * largoKm).toFixed(1),
+            })}
+          </div>
+          {ALL_MODES.map(({ mode, key }) => {
+            const v = modeProfile[hover]![key];
+            const corte = MODE_CUTOFF_MIN[mode];
+            const infeasible = corte != null && v > corte;
+            return (
+              <div key={mode} className="flex items-center gap-1.5">
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    background: MODE_COLOR[mode],
+                    display: "inline-block",
+                    opacity: infeasible ? 0.35 : 1,
+                  }}
+                />
+                <span
+                  style={{
+                    color: infeasible ? "var(--muted)" : "var(--ink-2)",
+                    textDecoration: infeasible ? "line-through" : undefined,
+                  }}
+                >
+                  {t(`modes.${mode}`)}
+                </span>
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    fontVariantNumeric: "tabular-nums",
+                    color: infeasible ? "var(--muted)" : "var(--ink)",
+                    fontWeight: highlight === mode ? 600 : 400,
+                  }}
+                >
+                  {v.toFixed(1)} min
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
