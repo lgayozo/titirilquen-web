@@ -1,6 +1,9 @@
 # Dónde retomar — Titirilquen
 
-Estado al cierre de la sesión de agosto 2026. Rama: **`ciudad-equilibrio-mejoras`**.
+Estado al 2026-08-10. Rama: **`ciudad-equilibrio-mejoras`**, muy por delante de
+`main` y **sin divergencia**: `main` es ancestro directo, así que el merge sería
+un fast-forward. Todo pusheado. Para ver cuánto:
+`git rev-list --left-right --count origin/main...HEAD`.
 
 ```bash
 git clone https://github.com/lgayozo/titirilquen-web.git
@@ -19,7 +22,7 @@ npm run dev --workspace @titirilquen/web        # frontend (Pyodide, sin backend
 Verificación completa antes de cualquier commit:
 
 ```bash
-cd packages/titirilquen_core && uv run pytest -q          # 54 tests
+cd packages/titirilquen_core && uv run pytest -q          # 60 tests
 cd apps/web && npm run typecheck && npm run test:e2e:fast # 33 e2e
 ```
 
@@ -39,6 +42,20 @@ cd packages/titirilquen_core && uv run python tests/test_contract_frontend.py
 > **Windows**: `uv` se instaló por winget y **no queda en el PATH**. Está en
 > `%LOCALAPPDATA%\Microsoft\WinGet\Packages\astral-sh.uv_*\uv.exe`. En PowerShell:
 > `$env:Path = "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe;$env:Path"`
+
+### 1.1 Qué NO viaja en el repo
+
+Al clonar en otra máquina, esto hay que reponerlo — está todo en `.gitignore`:
+
+| Falta | Consecuencia |
+|---|---|
+| `.venv/` | Recrear el entorno de Python (`uv sync` o `uv run` lo crea al vuelo) |
+| `uv.lock` | **No hay lock**: las versiones no son idénticas entre máquinas. Es deliberado y está justificado en el propio `.gitignore` (el core es librería con cotas abiertas y ningún deploy lo consume) |
+| `reference/` | El Overleaf/repo original. Sin él **`comparar_original.py` no corre**; es el único script no reproducible del otro lado |
+| `.claude/` | Config local del preview (`launch.json`). Trivial de recrear |
+
+El **wheel de Pyodide sí está versionado**, así que el frontend arranca sin
+compilar nada de Python.
 
 ---
 
@@ -93,10 +110,16 @@ precio social del combustible 760 $/l para automóvil.
 
 ### 2.4 Línea base
 
-**auto 15,38 · metro 36,99 · bici 21,43 · caminata 6,75 · tele 19,44 ·
-v/c 1,25 · t_auto 23,7 min · f_op 20,9 tph** (expected, seed 42, tol 0,1)
+**auto 16,95 · metro 32,79 · bici 22,84 · caminata 7,98 · tele 19,44 ·
+v/c 1,38 · t_auto 24,6 min · f_op 5,9 tph · CO₂ 6.178 kg/h · 7 iter**
+(expected, seed 42, tol 0,1). Medido el 2026-08-10.
 
 Reproducir: `uv run python scripts/auditoria_transporte.py`
+
+> El metro baja de 36,99 a 32,79 respecto de la medición anterior por el arreglo
+> de `84913c0`: dejó de contarse como viaje en metro el caso sin tramo en tren
+> (ver §4.5). El teletrabajo no se mueve, como corresponde: se decide antes de
+> la elección de modo.
 
 > **Errata**: las líneas base reportadas en los commits `9854f6d..ea4a05b`
 > (auto 15,41 → 12,16 → 11,87 → 12,10) se midieron con la `H` de la auditoría
@@ -298,9 +321,59 @@ excedente logsum. El costo generalizado percibido sí muestra el fenómeno (ver
 
 ### 4.4 Deuda de documentación
 
-Las tablas de `AUDITORIA_TRANSPORTE.md` y `ANALISIS_SENSIBILIDAD.md` se midieron
-con calibraciones anteriores. **Las direcciones y veredictos valen; las
-magnitudes no.**
+`AUDITORIA_TRANSPORTE.md` se midió con calibraciones anteriores. **Las
+direcciones y veredictos valen; las magnitudes no.**
+
+`ANALISIS_SENSIBILIDAD.md` se actualizó parcialmente el 2026-08-10 (barrido de
+`sensibilidad.py`, línea base y fila `assignment`). **Siguen sin re-medir** sus
+tablas de `frec_max` y `cap_bici`.
+
+`COMPARACION_ORIGINAL.md` §4.1 tiene repartos modales anteriores al arreglo del
+metro sin tramo en tren. Se regenera con `scripts/comparar_original.py`, que
+**necesita `reference/`** — y ese directorio está en `.gitignore`, así que no
+viaja entre máquinas: hay que reponerlo a mano desde el repo original.
+
+---
+
+### 4.5 Frontend del módulo de transporte — dónde quedó
+
+Sesión del 2026-08-10, commits `3e32bbe`, `2b07d85`, `2b803d9`, `84913c0`,
+`6d70b00`. Lo hecho está en esos mensajes; acá va **lo que falta**.
+
+**Cambió el modelo, no solo la presentación.** `84913c0` marca el metro
+infeasible cuando `tren_viaje <= 0` (la estación más cercana es la del CBD, o
+sea el destino: caminar hasta el destino sin subirse a nada). Antes eso era
+factible y además esquivaba el corte de 30 min de la caminata. Efecto: metro de
+36,99 a 32,79 en la línea base; con 3 estaciones, las celdas a 12/14/15 km
+pasaban de 16,9/15,6/10,9% de metro a 0%.
+
+Pendientes, en orden de valor:
+
+1. **Figuras que faltan.** El modelo calcula y la UI no grafica: los **tiempos
+   por modo y ubicación** como figura propia (hoy solo viven en la cinta del
+   hero) y la **evolución del reparto modal por iteración** — `iteraciones[]`
+   guarda el `modal_split` de cada paso y la traza solo grafica el residuo. Esa
+   segunda es la que muestra el trasvase y la diferencia entre logit y Wardrop,
+   o sea la parte pedagógica de Downs-Thomson (§5).
+
+2. **La animación de FIG. 01 nunca se vio correr.** `CorridorFlowFigure` anima la
+   acumulación del flujo del corredor con un barrido de periferia a CBD. Su
+   matemática está verificada (`acumulacionParcial` reproduce
+   `flujos_auto_veh_h` con error 0), pero la reproducción no: `requestAnimationFrame`
+   entrega 0 frames con el panel del navegador oculto. **Hay que abrirlo y
+   mirarla.**
+
+3. **`SidebarSection` se usa fuera del sidebar.** El bloque plegable de ciudad y
+   plano en `SandboxPage` lo reutiliza. Funciona y es accesible (`details`
+   nativo), pero el nombre miente; conviene renombrarlo a `CollapsibleSection`.
+
+4. **Formato.** 51 archivos con drift real de prettier (más 14 que solo difieren
+   por CRLF y que git normaliza con `autocrlf=true`, o sea no son problema). Si
+   se ordena, va en un commit dedicado y conviene fijar un `.prettierrc`: hoy no
+   hay, así que el estilo depende de la versión instalada.
+
+5. **`main` quedó muy atrás.** Sin divergencia; es fast-forward cuando se decida
+   (ver la cabecera de este documento).
 
 ---
 
@@ -446,6 +519,14 @@ De más reciente a más antigua:
 
 | Commit | Qué |
 |---|---|
+| `6d70b00` | El umbral de sensibilidad se indexa por v/c, no por densidad |
+| `84913c0` | Sin tramo en tren no hay viaje en metro + cinta de tiempos interactiva |
+| `2b803d9` | El v/c del metro se llamaba «Frecuencia metro» y no es una frecuencia |
+| `2b07d85` | Cada cifra del resultado en un solo lugar (deduplicación) |
+| `3e32bbe` | FIG. 02 mostraba la magnitud equivocada; la convergencia no se validaba |
+| `4598f1d` | Traducir las cadenas de interfaz que seguían escritas en el código |
+| `4a3a578` | Inspector de utilidad en sync con el core; vista de ciudad unificada |
+| `49872c8` | Comparación reproducible contra el simulador original |
 | `0f8c6bf` | Valor social del tiempo desde los Precios Sociales 2026 del SNI |
 | `3ac28b2` | ASC sin gradiente de ingreso: auto +20, caminata 0 |
 | `a796d4c` | Disponibilidad de auto a 0,90 / 0,60 / 0,25 |
