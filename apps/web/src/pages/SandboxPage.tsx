@@ -359,7 +359,6 @@ export function SandboxPage() {
         { label: t("kpi.walk_pct"), value: "—" },
         { label: t("kpi.tele_pct"), value: "—" },
         { label: t("kpi.frequency"), value: "—" },
-        { label: t("kpi.residual"), value: "—" },
         { label: t("kpi.co2"), value: "—" },
       ];
     }
@@ -422,14 +421,9 @@ export function SandboxPage() {
               })
             : undefined,
       },
-      {
-        label: t("kpi.residual"),
-        value:
-          lastIter.residuo == null || !isFinite(lastIter.residuo)
-            ? "—"
-            : lastIter.residuo.toFixed(3),
-        unit: "min",
-      },
+      // El residuo salió de acá: es el diagnóstico de convergencia y lo dice el
+      // veredicto del primer panel, con su tolerancia al lado. Suelto en la
+      // tira pesaba lo mismo que el CO₂ y no significaba nada por sí solo.
       {
         label: t("kpi.co2"),
         value:
@@ -446,16 +440,9 @@ export function SandboxPage() {
     ];
   }, [result, lastIter, t]);
 
-  const kpiCaption = useMemo(() => {
-    if (!result || !lastIter) return null;
-    const totalIters = result.iteraciones.length;
-    const base = t("kpi.last_iteration", {
-      n: lastIter.iter + 1,
-      total: totalIters,
-    });
-    const status = result.converged ? t("kpi.converged") : t("kpi.maxiter");
-    return `${base} · ${status}`;
-  }, [result, lastIter, t]);
+  // El caption "última iteración N/M · convergió" se eliminó: el panel de
+  // veredicto, que ahora abre los resultados, dice las dos cosas y además
+  // contra qué tolerancia. Era la tercera aparición del mismo dato.
 
   // Veredicto de convergencia. El panel afirmaba "Equilibrio alcanzado" de
   // forma incondicional, incluso cuando la corrida agotaba las iteraciones sin
@@ -1068,8 +1055,8 @@ export function SandboxPage() {
           </div>
         </div>
 
-        {/* KPIs */}
-        {kpiCaption && <div className="kpi-caption">{kpiCaption}</div>}
+        {/* KPIs — el resultado en una línea: viajes, reparto modal, frecuencia
+            y CO₂. Convergencia y residuo los dice el veredicto. */}
         <KPIStrip items={kpis} />
 
         {/* Hint row — guía pedagógica (solo antes de la primera corrida: tras
