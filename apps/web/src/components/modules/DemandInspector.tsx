@@ -2,7 +2,11 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { UtilityBreakdown } from "@/components/viz/UtilityBreakdown";
-import type { IterationSnapshot, SimulationConfig, StratumId } from "@/lib/types";
+import type {
+  IterationSnapshot,
+  SimulationConfig,
+  StratumId,
+} from "@/lib/types";
 import { calcularUtilidades } from "@/lib/utility";
 
 interface DemandInspectorProps {
@@ -19,7 +23,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
 
   const cbdIdx = Math.floor(config.city.n_celdas / 2);
   const [celda, setCelda] = useState(
-    Math.max(0, cbdIdx - Math.floor(config.city.n_celdas / 4))
+    Math.max(0, cbdIdx - Math.floor(config.city.n_celdas / 4)),
   );
   const [estrato, setEstrato] = useState<StratumId>(2);
   const [tieneAuto, setTieneAuto] = useState(true);
@@ -50,8 +54,16 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
         tieneAuto,
         config: config.demand,
         tiempos,
+        modosHabilitados: config.modos_habilitados,
       }),
-    [estrato, distKm, tieneAuto, config.demand, tiempos]
+    [
+      estrato,
+      distKm,
+      tieneAuto,
+      config.demand,
+      tiempos,
+      config.modos_habilitados,
+    ],
   );
 
   return (
@@ -141,11 +153,30 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
       <UtilityBreakdown utilities={utilities} />
 
       <p className="font-fig text-[10px] uppercase tracking-[0.06em] text-muted">
-        {lastIter ? t("demand_inspector.hint_with_sim") : t("demand_inspector.hint_no_sim")}
+        {lastIter
+          ? t("demand_inspector.hint_with_sim")
+          : t("demand_inspector.hint_no_sim")}
       </p>
-      <p className="text-[11px] leading-snug text-muted" style={{ marginTop: -6 }}>
+      <p
+        className="text-[11px] leading-snug text-muted"
+        style={{ marginTop: -6 }}
+      >
         {t("demand_inspector.interpretation")}
       </p>
+
+      {/* P siempre es logit, incluso con `assignment: "wardrop"`: el inspector
+          existe para leer la función de utilidad, y Wardrop es el límite del
+          logit cuando la escala crece. Pero entonces la P de acá NO es el
+          reparto que produjo la corrida, así que hay que decirlo. Con
+          "montecarlo" y "expected" sí coinciden y no se advierte nada. */}
+      {config.assignment === "wardrop" && (
+        <p
+          className="text-[11px] leading-snug"
+          style={{ marginTop: -6, color: "var(--s1)" }}
+        >
+          {t("demand_inspector.wardrop_notice")}
+        </p>
+      )}
     </div>
   );
 }

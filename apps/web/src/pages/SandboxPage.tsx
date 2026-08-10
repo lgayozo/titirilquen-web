@@ -13,7 +13,10 @@ import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { SidebarSection } from "@/components/ui/SidebarSection";
-import { CityPreview } from "@/components/viz/CityPreview";
+import {
+  CITY_PREVIEW_X_LAYOUT,
+  CityPreview,
+} from "@/components/viz/CityPreview";
 import { ConvergenceTrace } from "@/components/viz/ConvergenceTrace";
 import { FlowProfile } from "@/components/viz/FlowProfile";
 import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
@@ -39,11 +42,10 @@ type HeatMode =
   | "caminata"
   | "todos"
   | "espera"
-  | "plano"
-  | "suelo";
+  | "ciudad";
 
-/** Opciones del toggle de la Figura 1, en orden. "plano" vuelve a la vista de
- *  infraestructura (CityPreview) sin perder los resultados. */
+/** Opciones del toggle de la Figura 1, en orden. "ciudad" vuelve a la vista de
+ *  ciudad (uso de suelo + infraestructura) sin perder los resultados. */
 const VIEW_OPTIONS: readonly HeatMode[] = [
   "auto",
   "metro",
@@ -51,9 +53,13 @@ const VIEW_OPTIONS: readonly HeatMode[] = [
   "caminata",
   "todos",
   "espera",
-  "plano",
-  "suelo",
+  "ciudad",
 ];
+
+/** Vistas disponibles ANTES de simular. Las demás leen el perfil de tiempos de
+ *  la última iteración, que todavía no existe: sin datos solo se sostiene la
+ *  vista de ciudad, que no depende del equilibrio. */
+const PRE_VIEW_OPTIONS: readonly HeatMode[] = ["ciudad"];
 
 /** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
  *  elegible. Ver demand/utility.py — caminata > 30, bici > 45. */
@@ -110,22 +116,28 @@ export function SandboxPage() {
       ? t("sandbox.view_all")
       : m === "espera"
         ? t("sandbox.view_wait")
-        : m === "plano"
-          ? t("preview.tab")
-          : m === "suelo"
-            ? t("sandbox.view_land_use")
-            : t(`modes.${m}`);
+        : m === "ciudad"
+          ? t("sandbox.view_city")
+          : t(`modes.${m}`);
 
   const lastIter = liveIterations.at(-1) ?? result?.iteraciones.at(-1);
   // Antes de la primera iteración no hay perfil de tiempos: el hero muestra el
   // "plano" (CityPreview) en vez de la cinta de tiempos (CityStrip). Con
   // resultados, la pestaña "plano" del toggle vuelve a esa misma vista.
   const hasData = lastIter != null;
-  // La ciudad como la define Uso de Suelo: se muestra antes de simular y,
-  // después, cuando el toggle está en "suelo" (así la ciudad-input no
-  // desaparece). "plano" vuelve a la vista de infraestructura.
-  const showLandUseCity = !hasData || heatMode === "suelo";
-  const showInfraPlano = hasData && heatMode === "plano";
+  // Vista efectiva de la cinta. Sin datos, las vistas de resultados no tienen
+  // qué dibujar, así que se cae al plano de infraestructura salvo que el
+  // usuario haya pedido explícitamente la de uso de suelo. Es derivado y no
+  // estado: así el toggle conserva la vista de resultados elegida y volver a
+  // ella tras simular no requiere un efecto que la reescriba.
+  const effHeatMode: HeatMode = hasData ? heatMode : "ciudad";
+  const viewOptions = hasData ? VIEW_OPTIONS : PRE_VIEW_OPTIONS;
+  // Uso de suelo (quién habita) e infraestructura (qué se construyó) se leen
+  // juntas: son los dos insumos del equilibrio y comparten el eje x, así que
+  // separarlas en dos pestañas obligaba a alternar para comparar. Un solo
+  // booleano derivado, además, deja que TypeScript estreche `effHeatMode` a
+  // `CityView` en la rama de abajo (CityStrip no acepta "ciudad").
+  const showCiudad = effHeatMode === "ciudad";
 
   // Composición de estratos por celda para la imagen inicial de la ciudad,
   // derivada de Uso de Suelo: si hay un resultado de suelo con geometría
@@ -244,9 +256,9 @@ export function SandboxPage() {
   const abortRef = useRef<AbortController | null>(null);
 
   const handleRun = async () => {
-    // Si el toggle quedó en una vista estática ("plano"/"suelo"), volver a una
-    // vista de resultados para no tapar la convergencia en vivo.
-    if (heatMode === "plano" || heatMode === "suelo") setHeatMode("auto");
+    // Si el toggle quedó en la vista estática de ciudad, volver a una vista de
+    // resultados para no tapar la convergencia en vivo.
+    if (heatMode === "ciudad") setHeatMode("auto");
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     startRun(config.max_iter);
@@ -846,77 +858,79 @@ export function SandboxPage() {
           <div className="ribbon-wrap">
             <div className="mb-2 flex items-center justify-between">
               <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-                {showLandUseCity
-                  ? t("sandbox.land_use_city_heading")
-                  : showInfraPlano
-                    ? t("preview.heading")
-                    : t("sandbox.city_heading")}
+                {showCiudad
+                  ? t("sandbox.city_view_heading")
+                  : t("sandbox.city_heading")}
               </span>
-              {hasData ? (
+              {/* Con una sola vista disponible el selector no ofrece nada que
+                  elegir: antes de simular sobra. */}
+              {viewOptions.length > 1 && (
                 <div className="seg">
-                  {VIEW_OPTIONS.map((m) => (
+                  {viewOptions.map((m) => (
                     <button
                       key={m}
                       type="button"
                       onClick={() => setHeatMode(m)}
-                      className={heatMode === m ? "active" : ""}
+                      className={effHeatMode === m ? "active" : ""}
                     >
                       {viewLabel(m)}
                     </button>
                   ))}
                 </div>
-              ) : (
-                <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-                  {t("preview.meta")}
-                </span>
               )}
             </div>
 
-            {showLandUseCity ? (
+            {showCiudad ? (
               <>
-                <ExportableFigure
-                  name="ciudad-uso-suelo"
-                  title={t("sandbox.land_use_city_heading")}
-                  description={t("sandbox.land_use_city_desc", {
-                    length: config.city.largo_ciudad_km,
-                    cells: config.city.n_celdas,
-                  })}
-                  exportSize={{ width: 1200, height: 320 }}
-                >
-                  {landUseCity.comp ? (
+                {/* Uso de suelo ARRIBA, plano ABAJO, con el mismo margen
+                    izquierdo: la base de las barras se apoya sobre la
+                    infraestructura y la celda i cae en la misma columna en
+                    ambas. Siguen siendo dos ExportableFigure porque cada una se
+                    exporta por separado. */}
+                {landUseCity.comp && (
+                  <ExportableFigure
+                    name="ciudad-uso-suelo"
+                    title={t("sandbox.land_use_city_heading")}
+                    description={t("sandbox.land_use_city_desc", {
+                      length: config.city.largo_ciudad_km,
+                      cells: config.city.n_celdas,
+                    })}
+                    exportSize={{ width: 1200, height: 320 }}
+                  >
                     <StratumDistribution
                       composition={landUseCity.comp}
                       height={230}
+                      largoKm={config.city.largo_ciudad_km}
+                      xLayout={CITY_PREVIEW_X_LAYOUT}
                     />
-                  ) : (
-                    <CityPreview config={config} />
-                  )}
+                  </ExportableFigure>
+                )}
+                <ExportableFigure
+                  name="plano-ciudad"
+                  title={t("preview.heading")}
+                  description={t("preview.export_desc")}
+                  exportSize={{ width: 1200, height: 360 }}
+                >
+                  <CityPreview config={config} />
                 </ExportableFigure>
                 <p className="kpi-caption" style={{ marginTop: 6 }}>
                   {landUseCity.comp
-                    ? landUseCity.isPost
-                      ? t("sandbox.land_use_city_caption_post")
-                      : t("sandbox.land_use_city_caption_pre")
+                    ? `${t("sandbox.city_view_caption")} ${
+                        landUseCity.isPost
+                          ? t("sandbox.land_use_city_caption_post")
+                          : t("sandbox.land_use_city_caption_pre")
+                      }`
                     : t("sandbox.land_use_city_caption_none")}
                 </p>
               </>
-            ) : heatMode === "plano" ? (
-              <ExportableFigure
-                name="plano-ciudad"
-                title={t("preview.heading")}
-                description={t("preview.export_desc")}
-                exportSize={{ width: 1200, height: 360 }}
-              >
-                <CityPreview config={config} />
-              </ExportableFigure>
             ) : (
               <ExportableFigure
-                name={`ciudad-${heatMode}`}
-                title={`${t("sandbox.city_heading")} — ${viewLabel(heatMode)}`}
+                name={`ciudad-${effHeatMode}`}
+                title={`${t("sandbox.city_heading")} — ${viewLabel(effHeatMode)}`}
                 description={t("sandbox.city_figure_desc", {
                   length: cfgRes.city.largo_ciudad_km,
                   cells: cfgRes.city.n_celdas,
-                  mode: viewLabel(heatMode),
+                  mode: viewLabel(effHeatMode),
                 })}
                 exportSize={{ width: 1200, height: 200 }}
               >
@@ -925,12 +939,12 @@ export function SandboxPage() {
                   largoKm={cfgRes.city.largo_ciudad_km}
                   pendientePct={cfgRes.city.pendiente_porcentaje}
                   modeProfile={profile}
-                  heatMode={heatMode}
-                  cutoffMin={MODE_CUTOFF[heatMode]}
+                  heatMode={effHeatMode}
+                  cutoffMin={MODE_CUTOFF[effHeatMode]}
                   cutoffLabel={
-                    MODE_CUTOFF[heatMode] != null
+                    MODE_CUTOFF[effHeatMode] != null
                       ? t("sandbox.cutoff_label", {
-                          min: MODE_CUTOFF[heatMode],
+                          min: MODE_CUTOFF[effHeatMode],
                         })
                       : undefined
                   }
@@ -957,9 +971,9 @@ export function SandboxPage() {
                     {
                       "--c": c,
                       opacity:
-                        heatMode === "todos" ||
-                        heatMode === m ||
-                        (heatMode === "espera" && m === "metro")
+                        effHeatMode === "todos" ||
+                        effHeatMode === m ||
+                        (effHeatMode === "espera" && m === "metro")
                           ? 1
                           : 0.4,
                     } as React.CSSProperties

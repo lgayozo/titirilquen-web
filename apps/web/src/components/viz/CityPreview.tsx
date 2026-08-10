@@ -12,6 +12,20 @@ interface CityPreviewProps {
 
 const MARGIN = { top: 30, right: 16, bottom: 34, left: 130 };
 
+/** Ancho mínimo del SVG: bajo esto la figura deja de encoger y desborda. */
+const MIN_W = 420;
+
+/** Geometría horizontal del área de dibujo. La exporta para que las figuras que
+ *  se apilan sobre el plano (StratumDistribution en la vista de ciudad) alineen
+ *  su eje x con el de acá. Van los tres datos: con distinto margen derecho el
+ *  ancho útil difiere y el eje deriva, y con distinto `minWidth` se desalinean
+ *  justo cuando el contenedor es más angosto que el piso de una de las dos. */
+export const CITY_PREVIEW_X_LAYOUT = {
+  marginLeft: MARGIN.left,
+  marginRight: MARGIN.right,
+  minWidth: MIN_W,
+};
+
 /**
  * Posiciones (km) de las estaciones de metro, replicando el cálculo del core
  * (`supply/train.py`): estaciones equidistantes a paso `L/num_estaciones`,
@@ -52,7 +66,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
-    const update = () => setW(Math.max(420, el.clientWidth));
+    const update = () => setW(Math.max(MIN_W, el.clientWidth));
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);

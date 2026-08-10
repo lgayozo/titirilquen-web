@@ -144,7 +144,6 @@
     "cutoff_label": "{{min}} min · infeasible →",
     "view_all": "All modes",
     "view_wait": "Train wait",
-    "view_land_use": "Land use",
     "trips_by_stratum": "Mode split by stratum",
     "trips_by_car_ownership": "Car ownership by stratum",
     "utility_scatter": "Utility dispersion",
@@ -161,6 +160,9 @@
     "avg_utility_by_stratum": "Avg utility by stratum",
     "co2_profile": "CO₂ by location",
     "utility_caveat": "Utilities are in each stratum's own utils (different ASC and β): comparing heights ACROSS strata is not valid — only within a stratum and across modes.",
+    "view_city": "City",
+    "city_view_heading": "City · land use and infrastructure",
+    "city_view_caption": "Above, who lives in each cell (land use); below, what was built on it (supply). They share the position axis, so the same cell falls in the same column in both figures. These are the two inputs to the equilibrium.",
     "land_use_city_heading": "City · Land Use",
     "land_use_city_desc": "Household distribution by stratum along the {{length}} km linear city ({{cells}} cells), as defined by the Land Use module. CBD at center.",
     "land_use_city_caption_post": "Equilibrium composition from the Land Use module (S·Q). This is the city that feeds the transport simulation.",
@@ -237,11 +239,11 @@
   },
   "hints": {
     "demand_title": "Demand",
-    "demand_body": "Each cell has three strata (High / Mid / Low). Active workers choose a mode via a multinomial logit over expected times and costs.",
+    "demand_body": "Each cell has three strata (High / Mid / Low). Telework is decided beforehand and does not travel; everyone else chooses among the enabled modes that are feasible for them (walking ≤ 30 min, cycling ≤ 45 min, car only with ownership). By default the split is a multinomial logit over times and costs; under Wardrop assignment it is deterministic and the whole group goes to the highest-utility mode.",
     "supply_title": "Supply",
-    "supply_body": "Cars use a BPR delay curve; bike lanes use a similar volume/capacity function; metro has endogenous frequency on the critical link with wait amplified by saturation.",
+    "supply_body": "Car: capacity from Greenshields (lane width reduces it) and BPR delay accumulated toward the CBD. Bike: same volume/capacity form, corrected for slope and floored at walking time. Metro: frequency endogenous to the critical link (capped by frec_min/frec_max), half-headway wait amplified by platform saturation, and intermediate stops inside the in-vehicle time — more stations shorten access but lengthen the ride.",
     "equilibrium_title": "Equilibrium",
-    "equilibrium_body": "MSA iterations alternate demand ↔ supply until travel times stabilize. Convergence is shown in the residual figure."
+    "equilibrium_body": "MSA alternates demand ↔ supply averaging travel times with step 1/k, which damps the oscillation of iterating without averaging. The residual is the largest time change in any mode and cell; it converges when that stays below tolerance for 2 consecutive iterations (with tolerance 0 it runs to the iteration cap)."
   },
   "sections_sidebar": {
     "infra": "Infrastructure",
@@ -296,7 +298,8 @@
     "stratum_label_1": "1 — High",
     "stratum_label_2": "2 — Middle",
     "stratum_label_3": "3 — Low",
-    "interpretation": "P = choice probability of THIS agent (not the system's mode share). V is in utils: only differences across modes matter — ~1 util of advantage ≈ 2.7× more likely.",
+    "interpretation": "V = the mode's systematic utility, the observed part of U = V + ε. It is in utils: only differences across modes matter — ~1 util of advantage ≈ 2.7× more likely. P = choice probability of THIS agent (not the system's mode share).",
+    "wardrop_notice": "Wardrop assignment is active: the simulation sends the WHOLE group to the mode with the highest V, with no splitting. These P values are the logit ones — use them to read the utility function, not to anticipate this run's mode split.",
     "position_value": "{{pos}} km · {{dist}} km from CBD",
     "cbd_center": "▲ CBD ({{km}} km)"
   },
@@ -305,6 +308,8 @@
     "breakdown": "Breakdown",
     "v": "V",
     "p": "P",
+    "v_title": "V — the mode's systematic utility, in utils",
+    "p_title": "P — choice probability of this agent",
     "asc": "ASC",
     "beta_tiempo": "β·Time",
     "beta_costo": "β·Cost",
@@ -312,6 +317,9 @@
     "infeasible": "infeasible"
   },
   "stratum_distribution": {
+    "y_axis": "Households per cell",
+    "tooltip_pos": "{{km}} km · {{dist}} km from CBD",
+    "tooltip_total": "{{n}} households in the cell",
     "left_periphery": "Left periphery",
     "cbd": "CBD",
     "right_periphery": "Right periphery"
@@ -752,15 +760,13 @@
     "spec_bici": "{{cap}} bike/h",
     "strata_aria": "Stratum composition (high · middle · low)",
     "heading": "City blueprint",
-    "meta": "supply · demand · pre-equilibrium",
     "caption": "Monocentric linear city of {{length}} km divided into {{cells}} cells (Δx ≈ {{dx}} m). Each cell is a trip origin toward the central CBD. Population ({{pop}} travellers) and its composition are defined in Land Use: each cell's density is derived from the strata living in it.",
     "caption_no_pop": "Monocentric linear city of {{length}} km divided into {{cells}} cells (Δx ≈ {{dx}} m). Each cell is a trip origin toward the central CBD. Population and its composition are defined in Land Use (per-stratum density → per-cell); run Land Use to see the profile.",
     "export_desc": "City blueprint before running: infrastructure (supply) and trip origins (demand).",
     "demand_label": "Origins",
     "spec_demand": "{{dens}} pop/km · ≈{{cuadra}}/block",
     "spec_demand_mean": "mean {{dens}} pop/km (per-cell profile in Land Use)",
-    "spec_demand_land_use": "defined in Land Use",
-    "tab": "Blueprint"
+    "spec_demand_land_use": "defined in Land Use"
   },
   "panel_meta": {
     "modes_all": "car · metro · bike · walk",

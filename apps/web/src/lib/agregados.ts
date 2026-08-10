@@ -109,9 +109,10 @@ function tiemposDeCelda(snap: IterationSnapshot, i: number): TiemposObservados {
 
 /** `ln Σ_m e^{V_m}` sobre los modos FACTIBLES y HABILITADOS.
  *
- * El filtro por `modos_habilitados` se hace acá porque el espejo TS de
- * `calcular_utilidades` no lo aplica (el core sí): sin él, deshabilitar un modo
- * no cambiaría el logsum y el excedente quedaría inflado. */
+ * `calcularUtilidades` ya marca infeasible todo lo que quede fuera de
+ * `modos_habilitados` (igual que el core), así que basta filtrar por `feasible`:
+ * sin ese filtro, deshabilitar un modo no cambiaría el logsum y el excedente
+ * quedaría inflado. */
 function logsumDeCelda(
   h: StratumId,
   distKm: number,
@@ -125,10 +126,9 @@ function logsumDeCelda(
     tieneAuto,
     config: cfg.demand,
     tiempos,
+    modosHabilitados: cfg.modos_habilitados,
   });
-  const habilitados = new Set<Modo>(cfg.modos_habilitados);
-  const vs = MODOS.filter((m) => habilitados.has(m))
-    .map((m) => utils[m])
+  const vs = MODOS.map((m) => utils[m])
     .filter((u) => u?.feasible)
     .map((u) => u!.valor)
     .filter((v) => Number.isFinite(v));
@@ -226,8 +226,10 @@ export function calcularAgregados(
         cgSocial += d * ((minutos / 60) * votSocialClpHora + dinero);
         // Solo las TRANSFERENCIAS son recaudación. La bencina se excluye a
         // propósito: es consumo real de recursos, no ingreso de nadie.
-        if (modo === "Auto") recParking += d * cfg.demand.globales.costo_parking;
-        if (modo === "Metro") recTarifa += d * cfg.demand.globales.costo_tarifa_metro;
+        if (modo === "Auto")
+          recParking += d * cfg.demand.globales.costo_parking;
+        if (modo === "Metro")
+          recTarifa += d * cfg.demand.globales.costo_tarifa_metro;
       }
 
       // Logsum de la celda para este estrato. Se pondera por la demanda del

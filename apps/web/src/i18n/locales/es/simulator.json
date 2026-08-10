@@ -144,7 +144,6 @@
     "cutoff_label": "{{min}} min · no factible →",
     "view_all": "Todos",
     "view_wait": "Espera tren",
-    "view_land_use": "Uso de suelo",
     "trips_by_stratum": "Reparto de viajes por estrato",
     "trips_by_car_ownership": "Tenencia de auto por estrato",
     "utility_scatter": "Dispersión de utilidades",
@@ -161,6 +160,9 @@
     "avg_utility_by_stratum": "Utilidad media por estrato",
     "co2_profile": "CO₂ por ubicación",
     "utility_caveat": "Las utilidades están en utiles propios de cada estrato (ASC y β distintos): comparar alturas ENTRE estratos no es válido — solo dentro de cada estrato y entre modos.",
+    "view_city": "Ciudad",
+    "city_view_heading": "Ciudad · uso de suelo e infraestructura",
+    "city_view_caption": "Arriba, quién habita cada celda (uso de suelo); abajo, qué se construyó sobre ella (oferta). Comparten el eje de posición, así que una misma celda cae en la misma columna en ambas figuras. Son los dos insumos del equilibrio.",
     "land_use_city_heading": "Ciudad · Uso de Suelo",
     "land_use_city_desc": "Distribución de hogares por estrato a lo largo de la ciudad lineal de {{length}} km ({{cells}} celdas), como la define el módulo de Uso de Suelo. CBD al centro.",
     "land_use_city_caption_post": "Composición de equilibrio del módulo de Uso de Suelo (S·Q). Esta es la ciudad que alimenta la simulación de transporte.",
@@ -237,11 +239,11 @@
   },
   "hints": {
     "demand_title": "Demanda",
-    "demand_body": "Cada celda se divide en 3 estratos (Alto / Medio / Bajo). Los trabajadores activos eligen modo mediante un logit multinomial sobre tiempos y costos esperados.",
+    "demand_body": "Cada celda se divide en 3 estratos (Alto / Medio / Bajo). El teletrabajo se decide antes y no viaja; el resto elige entre los modos habilitados que le resulten factibles (caminata ≤ 30 min, bici ≤ 45 min, auto solo con tenencia). Por defecto el reparto es un logit multinomial sobre tiempos y costos; con asignación Wardrop es determinístico y todo el grupo va al modo de mayor utilidad.",
     "supply_title": "Oferta",
-    "supply_body": "Auto usa una curva BPR; las ciclovías aplican una función similar de volumen/capacidad; el metro tiene frecuencia endógena al tramo crítico con espera amplificada por saturación.",
+    "supply_body": "Auto: capacidad por Greenshields (el ancho de pista la reduce) y demora BPR acumulada hacia el CBD. Bici: misma forma volumen/capacidad, corregida por pendiente y acotada por abajo al tiempo de caminata. Metro: frecuencia endógena al tramo crítico (topada por frec_min/frec_max), espera de medio intervalo amplificada por saturación de andén, y detenciones intermedias dentro del tiempo a bordo — más estaciones acortan el acceso pero alargan el viaje.",
     "equilibrium_title": "Equilibrio",
-    "equilibrium_body": "Las iteraciones del MSA alternan demanda ↔ oferta hasta que los tiempos se estabilizan. La convergencia se muestra en la figura de residuo."
+    "equilibrium_body": "El MSA alterna demanda ↔ oferta promediando los tiempos con paso 1/k, lo que amortigua la oscilación de iterar sin promediar. El residuo es el máximo cambio de tiempo en cualquier modo y celda; converge cuando queda bajo la tolerancia en 2 iteraciones seguidas (con tolerancia 0 corre hasta el tope de iteraciones)."
   },
   "sections_sidebar": {
     "infra": "Infraestructura",
@@ -296,7 +298,8 @@
     "stratum_label_1": "1 — Alto",
     "stratum_label_2": "2 — Medio",
     "stratum_label_3": "3 — Bajo",
-    "interpretation": "P = probabilidad de elección de ESTE agente (no el reparto modal del sistema). V está en utiles: solo las diferencias entre modos importan — ~1 util de ventaja ≈ 2.7× más probable.",
+    "interpretation": "V = utilidad sistemática del modo, la parte observable de U = V + ε. Está en útiles: solo las diferencias entre modos importan — ~1 útil de ventaja ≈ 2.7× más probable. P = probabilidad de elección de ESTE agente (no el reparto modal del sistema).",
+    "wardrop_notice": "Asignación Wardrop activa: la simulación manda TODO el grupo al modo de mayor V, sin repartir. Estas P son las del logit — sirven para leer la función de utilidad, no para anticipar el reparto de esta corrida.",
     "position_value": "{{pos}} km · a {{dist}} km del CBD",
     "cbd_center": "▲ CBD ({{km}} km)"
   },
@@ -305,6 +308,8 @@
     "breakdown": "Descomposición",
     "v": "V",
     "p": "P",
+    "v_title": "V — utilidad sistemática del modo, en útiles",
+    "p_title": "P — probabilidad de elección de este agente",
     "asc": "ASC",
     "beta_tiempo": "β·Tiempo",
     "beta_costo": "β·Costo",
@@ -314,7 +319,10 @@
   "stratum_distribution": {
     "left_periphery": "Periferia izquierda",
     "cbd": "CBD",
-    "right_periphery": "Periferia derecha"
+    "right_periphery": "Periferia derecha",
+    "y_axis": "Hogares por celda",
+    "tooltip_pos": "{{km}} km · a {{dist}} km del CBD",
+    "tooltip_total": "{{n}} hogares en la celda"
   },
   "land_use": {
     "title": "Uso de suelo",
@@ -752,15 +760,13 @@
     "spec_bici": "{{cap}} bici/h",
     "strata_aria": "Composición de estratos (alto · medio · bajo)",
     "heading": "Plano de la ciudad",
-    "meta": "oferta · demanda · pre-equilibrio",
     "caption": "Ciudad lineal monocéntrica de {{length}} km dividida en {{cells}} celdas (Δx ≈ {{dx}} m). Cada celda es un origen de viajes hacia el CBD central. La población ({{pop}} viajeros) y su composición las define Uso de Suelo: la densidad de cada celda se deriva de los estratos que la habitan.",
     "caption_no_pop": "Ciudad lineal monocéntrica de {{length}} km dividida en {{cells}} celdas (Δx ≈ {{dx}} m). Cada celda es un origen de viajes hacia el CBD central. La población y su composición las define Uso de Suelo (densidad por estrato → por celda); corre Uso de Suelo para ver el perfil.",
     "export_desc": "Plano de la ciudad antes de simular: infraestructura (oferta) y orígenes de viaje (demanda).",
     "demand_label": "Orígenes",
     "spec_demand": "{{dens}} hab/km · ≈{{cuadra}}/cuadra",
     "spec_demand_mean": "media {{dens}} hab/km (perfil por celda en Uso de Suelo)",
-    "spec_demand_land_use": "definida en Uso de Suelo",
-    "tab": "Plano"
+    "spec_demand_land_use": "definida en Uso de Suelo"
   },
   "panel_meta": {
     "modes_all": "auto · metro · bici · caminata",

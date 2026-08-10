@@ -3,7 +3,10 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { Modo } from "@/lib/types";
-import { probabilidadesLogit, type UtilityBreakdown as UB } from "@/lib/utility";
+import {
+  probabilidadesLogit,
+  type UtilityBreakdown as UB,
+} from "@/lib/utility";
 
 interface UtilityBreakdownProps {
   utilities: Record<Modo, UB>;
@@ -17,6 +20,11 @@ const MODE_COLORS: Record<Modo, string> = {
   Caminata: "var(--walk)",
   Teletrabajo: "var(--tele)",
 };
+
+/** Modos que muestra la tabla, en orden. A nivel de módulo: es constante, y
+ *  dentro del componente se recreaba en cada render (y quedaba fuera de las
+ *  dependencias del `useMemo` que la recorre). */
+const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
 
 const COMPONENT_COLORS = {
   asc: "var(--muted)",
@@ -35,17 +43,18 @@ const COMPONENT_COLORS = {
  * Filas compactas (32px) para que la tabla entera case visualmente con
  * figuras en paralelo (ej. FIG. 6).
  */
-export function UtilityBreakdown({ utilities, className }: UtilityBreakdownProps) {
+export function UtilityBreakdown({
+  utilities,
+  className,
+}: UtilityBreakdownProps) {
   const { t } = useTranslation("simulator");
   const probs = useMemo(() => probabilidadesLogit(utilities), [utilities]);
-
-  const modes: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
 
   // Normalización: máximo entre la suma positiva y la suma negativa de
   // cualquier modo feasible. Cada mitad de la barra (± 50%) usa este tope.
   const { maxAbsSide } = useMemo(() => {
     let max = 0.1;
-    for (const modo of modes) {
+    for (const modo of MODES) {
       const u = utilities[modo];
       if (!u.feasible) continue;
       const sumPos =
@@ -73,15 +82,21 @@ export function UtilityBreakdown({ utilities, className }: UtilityBreakdownProps
       >
         <span>{t("utility_breakdown.mode")}</span>
         <span>{t("utility_breakdown.breakdown")}</span>
-        <span className="text-right">{t("utility_breakdown.v")}</span>
-        <span className="text-right">{t("utility_breakdown.p")}</span>
+        {/* V y P sueltas no dicen nada: la glosa larga va en el pie del
+            inspector, y acá el título las identifica en el punto de uso. */}
+        <span className="text-right" title={t("utility_breakdown.v_title")}>
+          {t("utility_breakdown.v")}
+        </span>
+        <span className="text-right" title={t("utility_breakdown.p_title")}>
+          {t("utility_breakdown.p")}
+        </span>
       </div>
 
       <div className="flex flex-col">
-        {modes.map((modo) => {
+        {MODES.map((modo) => {
           const u = utilities[modo];
           const p = probs[modo] ?? 0;
-          const isLast = modo === modes[modes.length - 1];
+          const isLast = modo === MODES[MODES.length - 1];
           const rowStyle = {
             gridTemplateColumns: GRID,
             borderColor: "var(--rule)",
@@ -93,7 +108,7 @@ export function UtilityBreakdown({ utilities, className }: UtilityBreakdownProps
                 key={modo}
                 className={cn(
                   "grid items-center gap-3 py-2 opacity-45",
-                  !isLast && "border-b"
+                  !isLast && "border-b",
                 )}
                 style={rowStyle}
               >
@@ -106,7 +121,9 @@ export function UtilityBreakdown({ utilities, className }: UtilityBreakdownProps
                 <span className="font-fig text-[10px] italic text-muted">
                   {t("utility_breakdown.infeasible")}
                 </span>
-                <span className="text-right font-fig text-[12px] tabular-nums">—</span>
+                <span className="text-right font-fig text-[12px] tabular-nums">
+                  —
+                </span>
                 <span className="text-right font-fig text-[13px] font-semibold tabular-nums text-muted">
                   0%
                 </span>
@@ -117,7 +134,10 @@ export function UtilityBreakdown({ utilities, className }: UtilityBreakdownProps
           return (
             <div
               key={modo}
-              className={cn("grid items-center gap-3 py-2", !isLast && "border-b")}
+              className={cn(
+                "grid items-center gap-3 py-2",
+                !isLast && "border-b",
+              )}
               style={rowStyle}
             >
               <span
@@ -145,9 +165,18 @@ export function UtilityBreakdown({ utilities, className }: UtilityBreakdownProps
         className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t pt-2 font-fig text-[10px] uppercase tracking-[0.06em] text-muted"
         style={{ borderColor: "var(--rule)" }}
       >
-        <Swatch color={COMPONENT_COLORS.asc} label={t("utility_breakdown.asc")} />
-        <Swatch color={COMPONENT_COLORS.v_tiempo} label={t("utility_breakdown.beta_tiempo")} />
-        <Swatch color={COMPONENT_COLORS.v_costo} label={t("utility_breakdown.beta_costo")} />
+        <Swatch
+          color={COMPONENT_COLORS.asc}
+          label={t("utility_breakdown.asc")}
+        />
+        <Swatch
+          color={COMPONENT_COLORS.v_tiempo}
+          label={t("utility_breakdown.beta_tiempo")}
+        />
+        <Swatch
+          color={COMPONENT_COLORS.v_costo}
+          label={t("utility_breakdown.beta_costo")}
+        />
         <Swatch
           color={COMPONENT_COLORS.v_penalizaciones}
           label={t("utility_breakdown.penalizaciones")}
@@ -166,7 +195,11 @@ function UtilityBar({ u, maxAbsSide }: { u: UB; maxAbsSide: number }) {
     { key: "asc", v: u.asc, color: COMPONENT_COLORS.asc },
     { key: "v_tiempo", v: u.v_tiempo, color: COMPONENT_COLORS.v_tiempo },
     { key: "v_costo", v: u.v_costo, color: COMPONENT_COLORS.v_costo },
-    { key: "v_penalizaciones", v: u.v_penalizaciones, color: COMPONENT_COLORS.v_penalizaciones },
+    {
+      key: "v_penalizaciones",
+      v: u.v_penalizaciones,
+      color: COMPONENT_COLORS.v_penalizaciones,
+    },
   ].filter((p) => p.v !== 0);
 
   const negs = parts.filter((p) => p.v < 0);
@@ -225,7 +258,11 @@ function UtilityBar({ u, maxAbsSide }: { u: UB; maxAbsSide: number }) {
 function Swatch({ color, label }: { color: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <span className="inline-block h-2 w-3" style={{ backgroundColor: color }} aria-hidden />
+      <span
+        className="inline-block h-2 w-3"
+        style={{ backgroundColor: color }}
+        aria-hidden
+      />
       <span>{label}</span>
     </span>
   );
