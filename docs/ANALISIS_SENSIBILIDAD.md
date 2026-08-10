@@ -41,8 +41,13 @@ pasó de 0.20 a **2.05 pp** (13×) y el v/c default de 0.27 a **0.95**.
 
 - Baseline: defaults de la UI — 201 celdas, 20 km, seed 42, `expected`,
   tolerance 0.1, betas de `defaults.ts`. Población según la ruta indicada.
-- Reparto modal baseline (10.000 hab, ruta core): auto 11.79% · metro 48.40% ·
-  bici 18.26% · caminata 7.13% · teletrabajo 14.42%.
+- Reparto modal baseline (10.000 hab = 500 hab/km, 2 pistas, ruta core), medido
+  el 2026-08-10: auto 20.16% · metro 20.41% · bici 33.62% · caminata 6.50% ·
+  teletrabajo 19.31%, sobre 9.950 agentes. El teletrabajo va en el denominador.
+  **Es una foto de la calibración vigente, no un invariante**: caduca con cada
+  recalibración. Las cifras anteriores (metro 48.40%) quedaron obsoletas tras la
+  recalibración de betas, la subida de motorización y el arreglo del metro sin
+  tramo en tren.
 - Reproducir: `cd packages/titirilquen_core && uv run python scripts/sensibilidad.py`
   (sale 1 si los umbrales esperados no se cumplen — sirve de regresión).
 - Nota de rutas de población: el core/API usan `generar_poblacion` (densidad
@@ -91,24 +96,48 @@ en utiles (estrato 2): b_t·Δ = −0.0331·0.41 = −0.014, frente a |V| ≈ 1.
 Para v/c = 1 hacen falta ~4.430 viajes en auto ≈ 37.500 agentes ≈ **1.875 hab/km**.
 El preset «Base» del propio repo define **1800**; el default de la UI era 500.
 
-Barrido medido (salida de `scripts/sensibilidad.py`, post-fix S-01):
+Barrido medido (salida de `scripts/sensibilidad.py`, 2026-08-10):
 
 | densidad (hab/km) | pistas | % auto | v/c corredor | t_auto máx (min) | convergió |
 |---|---|---|---|---|---|
-| 500 | 1 | 11.63 | 0.53 | 20.8 | sí |
-| 500 | 2 | 11.79 | 0.27 | 19.6 | sí |
-| 500 | 3 | 11.82 | 0.18 | 19.3 | sí |
-| 500 | 4 | 11.83 | 0.14 | 19.3 | sí |
-| 500 | 5 | 11.83 | 0.11 | 19.2 | sí |
-| 500 | 6 | 11.83 | 0.09 | 19.2 | sí |
-| 1800 | 1 | 10.29 | 1.67 | 34.5 | sí |
-| 1800 | 2 | 11.72 | 0.95 | 24.3 | sí |
-| 1800 | 3 | 12.09 | 0.66 | 21.6 | sí |
-| 1800 | 4 | 12.24 | 0.50 | 20.6 | sí |
-| 1800 | 5 | 12.31 | 0.40 | 20.1 | sí |
-| 1800 | 6 | 12.34 | 0.34 | 19.8 | sí |
+| 200 | 1 | 19.72 | 0.37 | 19.9 | sí |
+| 200 | 2 | 19.83 | 0.18 | 19.3 | sí |
+| 200 | 3 | 19.85 | 0.12 | 19.2 | sí |
+| 200 | 4 | 19.86 | 0.09 | 19.2 | sí |
+| 200 | 5 | 19.86 | 0.07 | 19.2 | sí |
+| 200 | 6 | 19.87 | 0.06 | 19.2 | sí |
+| 500 | 1 | 19.46 | 0.88 | 23.5 | sí |
+| 500 | 2 | 20.16 | 0.46 | 20.3 | sí |
+| 500 | 3 | 20.29 | 0.31 | 19.7 | sí |
+| 500 | 4 | 20.34 | 0.23 | 19.4 | sí |
+| 500 | 5 | 20.36 | 0.19 | 19.3 | sí |
+| 500 | 6 | 20.38 | 0.15 | 19.3 | sí |
+| 1800 | 1 | 13.28 | 2.16 | 43.9 | sí |
+| 1800 | 2 | 16.81 | 1.37 | 30.3 | sí |
+| 1800 | 3 | 18.17 | 0.99 | 25.0 | sí |
+| 1800 | 4 | 18.77 | 0.77 | 22.7 | sí |
+| 1800 | 5 | 19.08 | 0.62 | 21.5 | sí |
+| 1800 | 6 | 19.25 | 0.53 | 20.8 | sí |
 
-Δ% auto (pistas 1→6): **0.20 pp** con 500 · **2.05 pp** con 1800 (13×).
+Δ% auto (pistas 1→6): **0.15 pp** con 200 (v/c 0.37) · **0.92 pp** con 500
+(v/c 0.88) · **5.97 pp** con 1800 (v/c 2.16).
+
+El umbral de regresión se evalúa contra el **v/c medido con 1 pista**, no contra
+la densidad: con v/c < 0.5 se exige Δ < 0.5 pp; con v/c > 1.0 se exige
+Δ > 1.5 pp; entre medio hay zona gris sin umbral, porque la rodilla de la BPR no
+tiene un corte nítido. El script además falla si el barrido deja de cubrir
+alguno de los dos regímenes, para que no quede verde sin verificar nada.
+
+> **Por qué el umbral se redefinió.** La versión anterior exigía "con 500 hab/km
+> la oferta no debe mover el reparto". Eso era cierto cuando esa densidad daba
+> v/c 0.28 con 1 pista, pero `9854f6d` subió la motorización (`prob_auto`
+> 0.90/0.60/0.30 → 0.95/0.75/0.45) y corrió la mezcla de estratos a
+> (0.20/0.50/0.30): la misma densidad pasó a v/c 0.92, o sea a la rodilla de la
+> BPR, donde la oferta **sí** mueve el reparto. El test marcaba "falla" cuando lo
+> que había caducado era su premisa. La relación v/c → Δpp es monótona y estable
+> (0.28→0.08 · 0.37→0.15 · 0.54→0.36 · 0.71→0.61 · 0.88→0.92 · 2.16→5.97), así
+> que indexar por v/c sobrevive a recalibraciones. Se agregó 200 hab/km al
+> barrido para que el régimen de flujo libre siga cubierto.
 
 Fix aplicado: `defaults.ts` 500→1800 y `H_por_estrato` [3600, 14400, 18000]
 (ΣH = 36.000); slider de densidad media hasta 3000; divergencia intencional
@@ -146,7 +175,7 @@ cambio del share del modo correspondiente en puntos porcentuales.
 | `share_estratos` | extremos | auto 3.8↔41.2% | ídem |
 | `max_iter` | 1→60 | converge en 8-12 | no binding |
 | `tolerance` | 0→5 | corta 20→4 iters | el corte real |
-| `assignment` | mc/expected | 11.33 vs 11.79% auto | sensible leve |
+| `assignment` | mc/expected/wardrop | 19.93 vs 20.16 vs **31.08**% auto | leve entre mc y expected; **fuerte** con wardrop |
 | `seed` | — | nada con `expected` + ruta suelo (determinista) | condicional |
 
 ### Oferta auto (post S-03, evaluada a 1800 hab/km)

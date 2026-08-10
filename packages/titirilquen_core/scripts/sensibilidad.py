@@ -2,9 +2,17 @@
 
 Barre densidad x num_pistas y reporta el reparto modal del auto y el v/c del
 corredor. Evidencia de docs/ANALISIS_SENSIBILIDAD.md (S-01/S-03) y test de
-regresión manual: con la escala liviana (500 hab/km) la BPR del auto no muerde
-(Δpp < 0.5 entre 1 y 6 pistas); con la escala del preset Base (1800 hab/km)
-sí (Δpp > 1.5, v/c > 0.8).
+regresión manual.
+
+Lo que verifica: **la respuesta del reparto a la oferta vial depende del v/c,
+no de la densidad**. Con el corredor descongestionado (v/c < 0.5 con 1 pista)
+agregar pistas no mueve el reparto (Δpp < 0.5 entre 1 y 6 pistas); con el
+corredor en o sobre capacidad (v/c > 1.0) sí lo mueve (Δpp > 1.5). Entre medio
+hay zona gris sin umbral, porque la rodilla de la BPR no tiene un corte nítido.
+
+Las densidades del barrido son solo la forma de LLEGAR a esos regímenes; el
+umbral se evalúa contra el v/c medido. Antes estaba atado a densidades fijas y
+caducó al recalibrar la motorización (ver el comentario de VC_LIBRE).
 
 Correr desde packages/titirilquen_core:
 
@@ -28,8 +36,30 @@ from titirilquen_core.config import (
 from titirilquen_core.equilibrium.msa import run_msa
 from titirilquen_core.presets import DEFAULT_STRATA
 
-DENSIDADES = (500.0, 1800.0)
+DENSIDADES = (200.0, 500.0, 1800.0)
 PISTAS = (1, 2, 3, 4, 5, 6)
+
+# El invariante que este script verifica es FÍSICO y depende del v/c, no de la
+# densidad: bajo la rodilla de la BPR agregar pistas no mueve el reparto, sobre
+# ella sí. Atarlo a "500 hab/km" lo hizo caducar en cuanto cambió la
+# calibración: 9854f6d subió la motorización (prob_auto 0,90/0,60/0,30 →
+# 0,95/0,75/0,45) y corrió la mezcla de estratos a (0,20/0,50/0,30), con lo que
+# esa misma densidad pasó de v/c 0,60 a 0,92 — de flujo libre a la rodilla. El
+# umbral marcaba "falla" cuando en realidad la premisa del test había caducado.
+#
+# Medido (v/c con 1 pista → Δpp entre 1 y 6 pistas): 0,28 → 0,08 · 0,37 → 0,15
+# · 0,54 → 0,36 · 0,71 → 0,61 · 0,87 → 0,92 · 2,16 → 5,97. Monótono, que es
+# justamente lo que justifica indexar por v/c.
+VC_LIBRE = 0.5
+"""Bajo este v/c el corredor está descongestionado: la oferta no debería mover
+el reparto."""
+VC_SATURADO = 1.0
+"""Sobre este v/c el corredor opera en o sobre capacidad: la oferta sí debería
+moverlo."""
+DELTA_PLANO = 0.5
+"""pp de %auto entre 1 y 6 pistas que se consideran "no mover el reparto"."""
+DELTA_MUERDE = 1.5
+"""pp de %auto que se consideran una respuesta clara a la oferta."""
 
 # Los defaults de demanda son `presets.DEFAULT_STRATA`, que es tambien la
 # fuente del espejo TS (apps/web/src/lib/defaults.ts, con paridad verificada
@@ -92,6 +122,8 @@ def main() -> int:
         )
 
     ok = True
+    cubre_libre = False
+    cubre_saturado = False
     for d in DENSIDADES:
         sub = [f for f in filas if f["densidad"] == d]
         delta_pp = max(f["pct_auto"] for f in sub) - min(f["pct_auto"] for f in sub)
@@ -100,12 +132,45 @@ def main() -> int:
             f"\ndensidad {d:.0f}: Δ% auto (pistas 1→6) = {delta_pp:.2f} pp"
             f" · v/c con 1 pista = {vc_1pista:.2f}"
         )
-        if d == 500.0 and delta_pp >= 0.5:
-            print("  FALLO: con 500 hab/km la oferta no debería mover el reparto (Δpp < 0.5)")
-            ok = False
-        if d == 1800.0 and (delta_pp <= 1.5 or vc_1pista <= 0.8):
-            print("  FALLO: con 1800 hab/km la BPR debería morder (Δpp > 1.5 y v/c > 0.8)")
-            ok = False
+        # El régimen lo decide el v/c MEDIDO, no la densidad con la que se
+        # generó: así el test sobrevive a recalibraciones de motorización.
+        if vc_1pista < VC_LIBRE:
+            cubre_libre = True
+            if delta_pp >= DELTA_PLANO:
+                print(
+                    f"  FALLO: con v/c {vc_1pista:.2f} < {VC_LIBRE} el corredor está libre"
+                    f" y la oferta no debería mover el reparto (Δpp < {DELTA_PLANO})"
+                )
+                ok = False
+        elif vc_1pista > VC_SATURADO:
+            cubre_saturado = True
+            if delta_pp <= DELTA_MUERDE:
+                print(
+                    f"  FALLO: con v/c {vc_1pista:.2f} > {VC_SATURADO} la BPR debería morder"
+                    f" (Δpp > {DELTA_MUERDE})"
+                )
+                ok = False
+        else:
+            print(
+                f"  (zona gris: {VC_LIBRE} ≤ v/c ≤ {VC_SATURADO}, sin umbral —"
+                " la rodilla de la BPR no tiene un corte nítido)"
+            )
+
+    # Sin esto el test podría quedar verde sin verificar nada: si una
+    # recalibración empuja TODAS las densidades a la zona gris, no se evalúa
+    # ningún umbral y el silencio se leería como éxito.
+    if not cubre_libre:
+        print(
+            f"\nFALLO: ninguna densidad del barrido queda bajo v/c {VC_LIBRE};"
+            " el régimen de flujo libre dejó de estar cubierto. Bajá DENSIDADES."
+        )
+        ok = False
+    if not cubre_saturado:
+        print(
+            f"\nFALLO: ninguna densidad del barrido supera v/c {VC_SATURADO};"
+            " el régimen saturado dejó de estar cubierto. Subí DENSIDADES."
+        )
+        ok = False
 
     print(
         "\nOK: sensibilidad conforme a lo esperado" if ok else "\nFALLO en los umbrales esperados"
