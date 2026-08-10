@@ -7,6 +7,10 @@ interface BPRCurveProps {
   beta: number;
   /** Posición del operating point sobre la curva (q/C). */
   operatingRatio?: number | null;
+  /** Nombre accesible de la figura. Lo entrega quien la usa porque el
+   *  componente se reutiliza para auto y bici: con un rótulo fijo, las dos
+   *  curvas de la misma página quedaban con el mismo nombre. */
+  label: string;
   className?: string;
 }
 
@@ -15,7 +19,13 @@ interface BPRCurveProps {
  * dispara al superar la capacidad. El "operating point" marca dónde opera
  * el sistema con la demanda actual.
  */
-export function BPRCurve({ alpha, beta, operatingRatio = null, className }: BPRCurveProps) {
+export function BPRCurve({
+  alpha,
+  beta,
+  operatingRatio = null,
+  label,
+  className,
+}: BPRCurveProps) {
   const points = useMemo(() => {
     const N = 100;
     const maxRatio = 1.6;
@@ -36,18 +46,22 @@ export function BPRCurve({ alpha, beta, operatingRatio = null, className }: BPRC
   const plotH = svgH - pad.top - pad.bottom;
 
   const xScale = (q: number) => pad.left + (q / xMax) * plotW;
-  const yScale = (t: number) => pad.top + plotH - (Math.min(t, yMax) / yMax) * plotH;
+  const yScale = (t: number) =>
+    pad.top + plotH - (Math.min(t, yMax) / yMax) * plotH;
 
-  const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${xScale(p.q)},${yScale(p.t)}`).join(" ");
+  const path = points
+    .map((p, i) => `${i === 0 ? "M" : "L"}${xScale(p.q)},${yScale(p.t)}`)
+    .join(" ");
 
-  const opT = operatingRatio != null ? 1 + alpha * Math.pow(operatingRatio, beta) : null;
+  const opT =
+    operatingRatio != null ? 1 + alpha * Math.pow(operatingRatio, beta) : null;
 
   return (
     <svg
       viewBox={`0 0 ${svgW} ${svgH}`}
       className={cn("block w-full", className)}
       role="img"
-      aria-label="Curva BPR"
+      aria-label={label}
     >
       {/* Capacity = 1 line */}
       <line
@@ -88,7 +102,11 @@ export function BPRCurve({ alpha, beta, operatingRatio = null, className }: BPRC
         strokeWidth={0.5}
       />
 
-      <path d={path} className="fill-none stroke-slate-900 dark:stroke-slate-100" strokeWidth={1.2} />
+      <path
+        d={path}
+        className="fill-none stroke-slate-900 dark:stroke-slate-100"
+        strokeWidth={1.2}
+      />
 
       {opT != null && (
         <g>
@@ -104,7 +122,13 @@ export function BPRCurve({ alpha, beta, operatingRatio = null, className }: BPRC
       )}
 
       {/* Axis labels */}
-      <text x={pad.left + plotW / 2} y={svgH - 4} fontSize={7} textAnchor="middle" className="fill-slate-500">
+      <text
+        x={pad.left + plotW / 2}
+        y={svgH - 4}
+        fontSize={7}
+        textAnchor="middle"
+        className="fill-slate-500"
+      >
         q / C
       </text>
       <text

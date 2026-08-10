@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 
@@ -84,10 +85,13 @@ export function CityStrip({
   className,
   height = 160,
 }: CityStripProps) {
+  const { t } = useTranslation("simulator");
   const cbdIdx = Math.floor(nCeldas / 2);
   const isAll = heatMode === "todos";
   const isEspera = heatMode === "espera";
-  const singleColor = isEspera ? MODE_COLOR.metro : MODE_COLOR[(heatMode as SingleMode) ?? "auto"];
+  const singleColor = isEspera
+    ? MODE_COLOR.metro
+    : MODE_COLOR[(heatMode as SingleMode) ?? "auto"];
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(600);
@@ -131,7 +135,9 @@ export function CityStrip({
       const max = Math.max(...ls.flatMap((l) => l.values), 0.1);
       return { lines: ls, barValues: null, maxValue: max };
     }
-    const key: keyof ModeTimes = isEspera ? "t_espera" : KEY_BY_MODE[heatMode as SingleMode];
+    const key: keyof ModeTimes = isEspera
+      ? "t_espera"
+      : KEY_BY_MODE[heatMode as SingleMode];
     const values = modeProfile.map((p) => p[key]);
     const max = Math.max(...values, 0.1);
     return { lines: null, barValues: values, maxValue: max };
@@ -154,7 +160,9 @@ export function CityStrip({
   const fmt = (v: number) => (v >= 10 ? v.toFixed(0) : v.toFixed(1));
 
   const showStations =
-    !!estacionesKm && estacionesKm.length > 0 && (isAll || isEspera || heatMode === "metro");
+    !!estacionesKm &&
+    estacionesKm.length > 0 &&
+    (isAll || isEspera || heatMode === "metro");
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
@@ -162,7 +170,10 @@ export function CityStrip({
         width={W}
         height={H}
         viewBox={`0 0 ${W} ${H}`}
-        className={cn("block transition-colors", flash && "animate-iteration-flash")}
+        className={cn(
+          "block transition-colors",
+          flash && "animate-iteration-flash",
+        )}
         style={{
           display: "block",
           maxWidth: "100%",
@@ -170,7 +181,7 @@ export function CityStrip({
           border: `1px solid ${flash ? "var(--accent)" : "var(--rule)"}`,
         }}
         role="img"
-        aria-label="Ciudad lineal"
+        aria-label={t("sandbox.city_strip_aria")}
       >
         {/* Grid horizontales + etiquetas Y */}
         {yTicks.map((v, i) => {
@@ -208,7 +219,9 @@ export function CityStrip({
           transform="rotate(-90)"
           className="label"
         >
-          {isEspera ? "ESPERA · MIN" : "TIEMPO · MIN"}
+          {isEspera
+            ? t("sandbox.city_strip_y_wait")
+            : t("sandbox.city_strip_y_time")}
         </text>
 
         {/* Marcadores de estación (posición km) */}
@@ -268,7 +281,7 @@ export function CityStrip({
                 height={0.5}
                 fill="var(--rule)"
               />
-            )
+            ),
           )}
 
         {/* Líneas (vista "todos") — una por modo */}
@@ -276,7 +289,9 @@ export function CityStrip({
           lines.map((l) => (
             <polyline
               key={l.mode}
-              points={l.values.map((v, i) => `${xOfCell(i)},${yOf(v)}`).join(" ")}
+              points={l.values
+                .map((v, i) => `${xOfCell(i)},${yOf(v)}`)
+                .join(" ")}
               fill="none"
               stroke={l.color}
               strokeWidth={1.6}

@@ -23,12 +23,17 @@ export function ScenarioToolbar() {
   const coupledPoblacion = useLandUseStore((s) => s.coupledPoblacion);
   const coupledOuterMaxIter = useLandUseStore((s) => s.coupledOuterMaxIter);
   const setCoupledPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
-  const setCoupledOuterMaxIter = useLandUseStore((s) => s.setCoupledOuterMaxIter);
+  const setCoupledOuterMaxIter = useLandUseStore(
+    (s) => s.setCoupledOuterMaxIter,
+  );
 
   // El escenario completo: transporte + suelo + preferencias del acoplado.
   const scenarioExtras = () => ({
     land_use: landUse,
-    coupled: { poblacion: coupledPoblacion, outer_max_iter: coupledOuterMaxIter },
+    coupled: {
+      poblacion: coupledPoblacion,
+      outer_max_iter: coupledOuterMaxIter,
+    },
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
@@ -62,7 +67,10 @@ export function ScenarioToolbar() {
 
   const onShare = async () => {
     const url = new URL(window.location.href);
-    url.searchParams.set("s", scenarioToUrlParam({ config, ...scenarioExtras() }));
+    url.searchParams.set(
+      "s",
+      scenarioToUrlParam({ config, ...scenarioExtras() }),
+    );
     url.hash = "";
     const link = url.toString();
     try {
@@ -75,9 +83,21 @@ export function ScenarioToolbar() {
   };
 
   return (
-    <div className="seg" role="toolbar" aria-label="Scenario">
-      <ToolbarButton onClick={onImportClick} icon={<Upload className="h-3 w-3" aria-hidden />} label={t("actions.import")} />
-      <ToolbarButton onClick={onExport} icon={<Download className="h-3 w-3" aria-hidden />} label={t("actions.export")} />
+    <div
+      className="seg"
+      role="toolbar"
+      aria-label={t("actions.scenario_toolbar")}
+    >
+      <ToolbarButton
+        onClick={onImportClick}
+        icon={<Upload className="h-3 w-3" aria-hidden />}
+        label={t("actions.import")}
+      />
+      <ToolbarButton
+        onClick={onExport}
+        icon={<Download className="h-3 w-3" aria-hidden />}
+        label={t("actions.export")}
+      />
       <ToolbarButton
         onClick={onShare}
         icon={
@@ -98,7 +118,11 @@ export function ScenarioToolbar() {
         className="hidden"
       />
       {error && (
-        <span className="ml-1 text-[10px]" style={{ color: "var(--metro)" }} title={error}>
+        <span
+          className="ml-1 text-[10px]"
+          style={{ color: "var(--metro)" }}
+          title={error}
+        >
           ⚠
         </span>
       )}

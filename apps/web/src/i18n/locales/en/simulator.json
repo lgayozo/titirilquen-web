@@ -135,6 +135,9 @@
   },
   "sandbox": {
     "city_heading": "City",
+    "city_strip_aria": "Linear city",
+    "city_strip_y_time": "Time · min",
+    "city_strip_y_wait": "Wait · min",
     "modal_split_last": "Modal split (last iteration)",
     "flow_per_cell": "{{mode}} — demand per cell",
     "mode_share_by_location": "Modal split by location",
@@ -317,7 +320,9 @@
     "infeasible": "infeasible"
   },
   "stratum_distribution": {
+    "aria": "Spatial distribution of households by stratum",
     "y_axis": "Households per cell",
+    "y_axis_short": "Households",
     "tooltip_pos": "{{km}} km · {{dist}} km from CBD",
     "tooltip_total": "{{n}} households in the cell",
     "left_periphery": "Left periphery",
@@ -328,6 +333,7 @@
     "title": "Land use",
     "section_poblacion": "Population",
     "section_forma": "City shape",
+    "shape_aria": "City shape — housing supply",
     "section_bidrent": "Bid parameters (bid-rent)",
     "section_bidrent_short": "bid",
     "proporciones": "Strata proportions",
@@ -679,6 +685,7 @@
     "title": "Road network · saturation by segment",
     "aria": "Linear city road network with auto, metro and bike",
     "x_axis": "Position (km)",
+    "periphery": "Periphery",
     "flow": "Flow",
     "capacity": "Capacity",
     "vc": "v/c",

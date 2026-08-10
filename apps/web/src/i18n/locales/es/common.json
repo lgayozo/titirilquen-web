@@ -36,7 +36,8 @@
     "remove": "Eliminar",
     "use_sandbox": "Usar configuración actual",
     "new_run": "Nueva simulación",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "scenario_toolbar": "Escenario"
   },
   "engine": {
     "label": "Motor",

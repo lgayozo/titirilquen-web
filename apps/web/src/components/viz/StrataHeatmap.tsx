@@ -187,7 +187,7 @@ export function StrataHeatmap({
           CBD
         </text>
         <text x={MARGIN.left} y={H - 6} textAnchor="start" className="label">
-          PERIFERIA
+          {t("network.periphery")}
         </text>
         <text
           x={MARGIN.left + plotW}
@@ -195,7 +195,7 @@ export function StrataHeatmap({
           textAnchor="end"
           className="label"
         >
-          PERIFERIA
+          {t("network.periphery")}
         </text>
       </svg>
 
@@ -215,7 +215,10 @@ export function StrataHeatmap({
           </div>
           {STRATUM_KEYS.map((key, h) => (
             <div key={key} className="nt-row">
-              <span className="nt-label" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <span
+                className="nt-label"
+                style={{ display: "flex", gap: 6, alignItems: "center" }}
+              >
                 <span
                   style={{
                     width: 8,

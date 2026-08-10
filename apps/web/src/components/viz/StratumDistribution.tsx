@@ -186,7 +186,7 @@ export function StratumDistribution({
           background: "var(--paper-2)",
         }}
         role="img"
-        aria-label="Distribución espacial de hogares por estrato"
+        aria-label={t("stratum_distribution.aria")}
       >
         {/* Marco dibujado DENTRO del viewBox, no con `border` de CSS: con
             box-sizing:border-box el borde le come 2px al área de contenido
@@ -209,7 +209,9 @@ export function StratumDistribution({
           transform="rotate(-90)"
           className="label"
         >
-          {conEjes ? t("stratum_distribution.y_axis") : "HOGARES"}
+          {conEjes
+            ? t("stratum_distribution.y_axis")
+            : t("stratum_distribution.y_axis_short")}
         </text>
 
         {/* Eje Y: línea, ticks y valores */}
@@ -361,7 +363,7 @@ export function StratumDistribution({
               textAnchor="start"
               className="label"
             >
-              PERIFERIA
+              {t("network.periphery")}
             </text>
             <text
               x={MARGIN.left + plotW}
@@ -369,7 +371,7 @@ export function StratumDistribution({
               textAnchor="end"
               className="label"
             >
-              PERIFERIA
+              {t("network.periphery")}
             </text>
           </>
         )}

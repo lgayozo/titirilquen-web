@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { cityShapeWeights } from "@/lib/citySupply";
 import { cn } from "@/lib/cn";
@@ -30,6 +31,7 @@ export function CityShapePreview({
   formaParam,
   className,
 }: CityShapePreviewProps) {
+  const { t } = useTranslation("simulator");
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(800);
 
@@ -69,7 +71,7 @@ export function CityShapePreview({
           border: "1px solid var(--rule)",
         }}
         role="img"
-        aria-label="Forma de la ciudad — oferta de vivienda"
+        aria-label={t("land_use.shape_aria")}
       >
         {/* Eje Y (rótulo) */}
         <text
@@ -135,7 +137,7 @@ export function CityShapePreview({
 
         {/* Etiquetas X */}
         <text x={MARGIN.left} y={H - 8} textAnchor="start" className="label">
-          PERIFERIA
+          {t("network.periphery")}
         </text>
         <text
           x={MARGIN.left + plotW}
@@ -143,7 +145,7 @@ export function CityShapePreview({
           textAnchor="end"
           className="label"
         >
-          PERIFERIA
+          {t("network.periphery")}
         </text>
       </svg>
     </div>

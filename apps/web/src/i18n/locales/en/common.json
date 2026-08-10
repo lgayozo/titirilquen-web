@@ -36,7 +36,8 @@
     "remove": "Remove",
     "use_sandbox": "Use current configuration",
     "new_run": "New simulation",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "scenario_toolbar": "Scenario"
   },
   "engine": {
     "label": "Engine",

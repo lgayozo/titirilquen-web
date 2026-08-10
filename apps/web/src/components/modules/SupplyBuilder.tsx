@@ -154,6 +154,7 @@ export function SupplyBuilder({
           alpha={car.alpha_bpr}
           beta={car.beta_bpr}
           operatingRatio={operatingRatios?.car ?? null}
+          label={t("supply_builder.bpr_curve_auto")}
         />
       </SidebarSection>
 
@@ -184,6 +185,7 @@ export function SupplyBuilder({
           alpha={bike.alpha_bpr}
           beta={bike.beta_bpr}
           operatingRatio={operatingRatios?.bike ?? null}
+          label={t("supply_builder.bpr_curve_bike")}
         />
       </SidebarSection>
 
