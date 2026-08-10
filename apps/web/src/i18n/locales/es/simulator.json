@@ -211,7 +211,7 @@
     "csv_category": "categoria",
     "csv_value": "valor",
     "csv_unit": "unidad",
-    "vc_metro": "Frecuencia metro",
+    "vc_metro": "v/c metro",
     "vc_metro_sub": "demanda/oferta · 1 = se ajusta",
     "network_load": "Carga de la red",
     "network_load_note": "Auto y bici: flujo máximo del corredor sobre la capacidad; >1 ⇒ opera sobre capacidad. El metro es distinto: ajusta la frecuencia a la demanda (f_op = carga/K), así que su cociente vale 1 salvo que el tope frec_max o el piso frec_min esté activo — >1 significa frecuencia insuficiente, no hacinamiento (el modelo no penaliza el hacinamiento en vehículo). Los tres responden a población, precios y capacidad, NO al largo de la ciudad: en una ciudad monocéntrica el tramo junto al CBD carga aproximadamente la mitad de los viajes sea cual sea la extensión."

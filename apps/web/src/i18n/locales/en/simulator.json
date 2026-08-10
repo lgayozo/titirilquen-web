@@ -211,7 +211,7 @@
     "csv_category": "category",
     "csv_value": "value",
     "csv_unit": "unit",
-    "vc_metro": "Metro frequency",
+    "vc_metro": "v/c metro",
     "vc_metro_sub": "demand/supply · 1 = adjusts",
     "network_load": "Network load",
     "network_load_note": "Car and bike: peak corridor flow over capacity; >1 means running above capacity. Metro differs: frequency adapts to demand (f_op = load/K), so its ratio is 1 unless the frec_max ceiling or frec_min floor binds — >1 means insufficient frequency, not crowding (the model has no in-vehicle crowding penalty). All three respond to population, prices and capacity, NOT to city length: in a monocentric city the section next to the CBD carries about half the trips regardless of extent."
