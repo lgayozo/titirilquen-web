@@ -10,9 +10,15 @@ interface FlowProfileProps {
   /** Tope máximo para el eje Y (comparte escala entre paneles). Si no se
    *  entrega, se usa el propio máximo del vector. */
   yMax?: number | null;
-  /** Capacidad del corredor — se muestra como pill informativa, NO como línea
-   *  sobre la escala (está en unidad distinta: total vs por celda). */
-  capacityHint?: string;
+  /** Capacidad del corredor, en la MISMA unidad que `flows`. Se dibuja como
+   *  línea sobre la escala y el encabezado pasa a mostrar v/c.
+   *
+   *  Antes esto era una pill de texto porque la serie graficada era la demanda
+   *  ORIGINADA por celda, que no es comparable con una capacidad de corredor
+   *  (difieren ~60×). Con `flows` = flujo acumulado del corredor sí lo es. */
+  capacity?: number | null;
+  /** Unidad de la capacidad para la etiqueta de la línea (ej. "veh/h"). */
+  capacityLabel?: string;
   /** Formateo de valores (encabezado "max" y ticks Y). Default: redondeo entero. */
   valueFmt?: (v: number) => string;
   height?: number;
@@ -40,7 +46,8 @@ export function FlowProfile({
   label,
   color = "var(--ink)",
   yMax = null,
-  capacityHint,
+  capacity = null,
+  capacityLabel,
   valueFmt = (v: number) => String(Math.round(v)),
   height = 120,
   className,
@@ -65,7 +72,10 @@ export function FlowProfile({
 
   const localMax = useMemo(() => Math.max(...flows, 1), [flows]);
 
-  const scale = yMax != null ? Math.max(yMax, 1) : localMax;
+  // La capacidad entra en la escala: si el flujo queda por debajo, la línea
+  // igual tiene que caber en el gráfico; si lo supera, se ve por cuánto.
+  const base = yMax != null ? Math.max(yMax, 1) : localMax;
+  const scale = Math.max(base, capacity ?? 0, 1);
   const effectiveMax = yMax ?? localMax;
   const ticks = [0, scale / 2, scale];
   // Una barra por celda, igual que StratumDistribution/CityStrip. Con 201
@@ -94,7 +104,7 @@ export function FlowProfile({
           </text>
         )}
         <text x={MARGIN.left + plotW} y={11} textAnchor="end" className="label" style={{ fontVariantNumeric: "tabular-nums" }}>
-          {`max ${valueFmt(localMax)}${capacityHint ? ` · cap ${capacityHint}` : ""}`}
+          {`max ${valueFmt(localMax)}${capacity ? ` · v/c ${(localMax / capacity).toFixed(2)}` : ""}`}
         </text>
 
         {/* Grid + etiquetas Y */}
@@ -154,6 +164,32 @@ export function FlowProfile({
             />
           );
         })}
+
+        {/* Capacidad: línea sobre la MISMA escala que las barras, así el cruce
+            v/c = 1 se lee de un vistazo en vez de tener que comparar cifras. */}
+        {capacity != null && capacity > 0 && (
+          <g>
+            <line
+              x1={MARGIN.left}
+              y1={yFloor - (capacity / scale) * plotH}
+              x2={MARGIN.left + plotW}
+              y2={yFloor - (capacity / scale) * plotH}
+              stroke="var(--s1)"
+              strokeWidth={1.2}
+              strokeDasharray="5 3"
+            />
+            <text
+              x={MARGIN.left + plotW - 2}
+              y={yFloor - (capacity / scale) * plotH - 3}
+              textAnchor="end"
+              className="label"
+              fill="var(--s1)"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {`cap ${valueFmt(capacity)}${capacityLabel ? ` ${capacityLabel}` : ""}`}
+            </text>
+          </g>
+        )}
 
         {/* Baseline */}
         <line x1={MARGIN.left} y1={yFloor} x2={MARGIN.left + plotW} y2={yFloor} stroke="var(--ink)" strokeWidth={0.8} />

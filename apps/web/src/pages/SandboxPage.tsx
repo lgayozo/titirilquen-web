@@ -18,6 +18,7 @@ import {
   CityPreview,
 } from "@/components/viz/CityPreview";
 import { ConvergenceTrace } from "@/components/viz/ConvergenceTrace";
+import { CorridorFlowFigure } from "@/components/viz/CorridorFlowFigure";
 import { FlowProfile } from "@/components/viz/FlowProfile";
 import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
 import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
@@ -61,12 +62,12 @@ const VIEW_OPTIONS: readonly HeatMode[] = [
  *  vista de ciudad, que no depende del equilibrio. */
 const PRE_VIEW_OPTIONS: readonly HeatMode[] = ["ciudad"];
 
-/** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
- *  elegible. Ver demand/utility.py — caminata > 30, bici > 45. */
-/** Modos del panel de flujos por celda (FIG. 02), en orden. */
+/** Modos del panel de carga del corredor (FIG. 02), en orden. */
 type FlowMode = "auto" | "bici" | "metro" | "caminata";
 const FLOW_MODES: readonly FlowMode[] = ["auto", "bici", "metro", "caminata"];
 
+/** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
+ *  elegible. Ver demand/utility.py — caminata > 30, bici > 45. */
 const MODE_CUTOFF: Partial<Record<HeatMode, number>> = {
   caminata: 30,
   bici: 45,
@@ -196,38 +197,93 @@ export function SandboxPage() {
 
   // Datos del panel de flujos. La escala Y es el máximo GLOBAL entre modos:
   // cambiar de modo no debe reescalar el eje o la comparación visual engaña.
+  // Serie del panel de flujos: el flujo ACUMULADO del corredor, que es lo que
+  // se compara contra la capacidad. Antes se graficaba la demanda originada por
+  // celda junto a una capacidad de corredor —magnitudes que difieren ~60×—, así
+  // que un corredor saturado se leía como vacío.
   const flowData = useMemo(() => {
     if (!lastIter || !result) return null;
-    const globalMax = Math.max(
-      ...lastIter.demanda_auto,
-      ...lastIter.demanda_bici,
-      ...lastIter.demanda_metro,
-      ...lastIter.demanda_caminata,
-      1,
-    );
+    const N = cfgRes.city.n_celdas;
+    const largo = cfgRes.city.largo_ciudad_km;
+
+    // `carga_metro` viene por TRAMO interestación (n_estaciones − 1 valores),
+    // no por celda. Se remuestrea a la grilla para dibujarlo en el mismo eje de
+    // km; queda como escalón, que es exactamente lo que es.
+    const cargaMetroPorCelda = (): number[] | null => {
+      const carga = result.carga_metro;
+      const est = result.estaciones_km;
+      if (!carga?.length || !est?.length) return null;
+      return Array.from({ length: N }, (_, i) => {
+        const km = ((i + 0.5) / N) * largo;
+        let j = 0;
+        while (j < carga.length - 1 && km >= (est[j + 1] ?? largo)) j++;
+        return carga[j] ?? 0;
+      });
+    };
+
+    const fOp = lastIter.frecuencia_metro;
+    const capTren = cfgRes.supply.train.capacidad_tren;
+    const capBici = cfgRes.supply.bike.capacidad_pista;
+
     const porModo: Record<
       FlowMode,
-      { flows: number[]; color: string; cap?: string }
+      {
+        flujo: number[];
+        // Solo se anima donde el flujo ES el cumsum por celda de la demanda
+        // (auto y bici, verificado con error 0). La carga del metro se acumula
+        // por estación, no por celda, así que animarla mentiría.
+        demanda: number[] | null;
+        capacidad: number | null;
+        capacidadLabel?: string;
+        color: string;
+        esCorredor: boolean;
+      }
     > = {
       auto: {
-        flows: lastIter.demanda_auto,
+        flujo: result.flujos_auto_veh_h ?? lastIter.demanda_auto,
+        demanda: result.flujos_auto_veh_h ? lastIter.demanda_auto : null,
+        capacidad: result.capacidad_auto > 0 ? result.capacidad_auto : null,
+        capacidadLabel: "veh/h",
         color: "var(--auto)",
-        cap: `${Math.round(result.capacidad_auto)} veh/h corredor`,
+        esCorredor: !!result.flujos_auto_veh_h,
       },
       bici: {
-        flows: lastIter.demanda_bici,
+        flujo: result.flujos_bici_veh_h ?? lastIter.demanda_bici,
+        demanda: result.flujos_bici_veh_h ? lastIter.demanda_bici : null,
+        capacidad: capBici > 0 ? capBici : null,
+        capacidadLabel: "bici/h",
         color: "var(--bici)",
-        cap: `${cfgRes.supply.bike.capacidad_pista} bici/h`,
+        esCorredor: !!result.flujos_bici_veh_h,
       },
       metro: {
-        flows: lastIter.demanda_metro,
+        flujo: cargaMetroPorCelda() ?? lastIter.demanda_metro,
+        demanda: null,
+        capacidad: fOp > 0 && capTren > 0 ? fOp * capTren : null,
+        capacidadLabel: "pax/h",
         color: "var(--metro)",
-        cap: `${cfgRes.supply.train.capacidad_tren} pax/tren`,
+        esCorredor: !!result.carga_metro?.length,
       },
-      caminata: { flows: lastIter.demanda_caminata, color: "var(--walk)" },
+      // La caminata no usa un corredor con capacidad compartida: la única serie
+      // con sentido es dónde nacen los viajes, y va rotulada como tal.
+      caminata: {
+        flujo: lastIter.demanda_caminata,
+        demanda: null,
+        capacidad: null,
+        color: "var(--walk)",
+        esCorredor: false,
+      },
     };
-    return { ...porModo[flowMode], globalMax };
+    return porModo[flowMode];
   }, [lastIter, result, cfgRes, flowMode]);
+
+  // El título tiene que decir QUÉ magnitud se grafica: para caminata sigue
+  // siendo demanda originada, y llamarla "flujo del corredor" sería mentir.
+  const flowTitle = flowData
+    ? t(
+        flowData.esCorredor ? "sandbox.corridor_flow" : "sandbox.origin_demand",
+        { mode: t(`modes.${flowMode}`) },
+      )
+    : "";
 
   // v/c del equilibrio = flujo máximo ACUMULADO del corredor / capacidad.
   // La demanda originada por celda (demanda_auto[i]) NO sirve de numerador:
@@ -400,6 +456,24 @@ export function SandboxPage() {
     const status = result.converged ? t("kpi.converged") : t("kpi.maxiter");
     return `${base} · ${status}`;
   }, [result, lastIter, t]);
+
+  // Veredicto de convergencia. El panel afirmaba "Equilibrio alcanzado" de
+  // forma incondicional, incluso cuando la corrida agotaba las iteraciones sin
+  // converger: el alumno no tenía cómo saber que lo que leía no era un
+  // equilibrio. Con `tolerance = 0` el core nunca corta por residuo (corre
+  // max_iter fijas), así que ese caso se dice aparte.
+  const convergencia = useMemo(() => {
+    if (!result || !lastIter) return null;
+    const res = lastIter.residuo;
+    return {
+      ok: result.converged,
+      sinCriterio: !(cfgRes.tolerance > 0),
+      res: res == null || !isFinite(res) ? null : res,
+      tol: cfgRes.tolerance,
+      usadas: lastIter.iter + 1,
+      total: cfgRes.max_iter,
+    };
+  }, [result, lastIter, cfgRes]);
 
   // Grupos de agentes para las figuras de reparto por estrato y tenencia.
   const STRATUM_KEY = ["alto", "medio", "bajo"] as const;
@@ -1037,52 +1111,65 @@ export function SandboxPage() {
           </div>
         )}
 
-        {/* Grid de paneles FIG. NN */}
+        {/* Grid de resultados. El orden ES la jerarquía: primero VALIDAR que la
+            corrida convergió —sin eso ningún número de abajo es un equilibrio—,
+            después los agregados, que son con lo que se comparan escenarios, y
+            recién ahí el diagnóstico de red. Lo desagregado por estrato cierra.
+
+            Los tres primeros paneles van SIN número de figura: son el resultado,
+            no ilustraciones. Así la secuencia FIG. 00-05 queda contigua en vez
+            de partida por dos tablas intercaladas. */}
         {liveIterations.length > 0 && (
           <div className="panel-grid">
-            {lastIter && result && (
+            {/* 1. VALIDACIÓN */}
+            {convergencia && (
               <Panel
-                n="00"
-                title={t("network.title")}
-                meta={t("panel_meta.modes_all")}
+                title={
+                  convergencia.ok
+                    ? t("equilibrium.converged")
+                    : t("equilibrium.not_converged")
+                }
+                meta="MSA"
                 cls="col-12"
               >
-                <NetworkDiagram
-                  snapshot={lastIter}
-                  result={result}
-                  config={config}
-                />
+                <p
+                  className="mb-2 text-[11px] leading-snug"
+                  style={{
+                    color: convergencia.ok ? "var(--ink-2)" : "var(--s1)",
+                  }}
+                >
+                  {convergencia.sinCriterio
+                    ? t("equilibrium.verdict_no_tol", {
+                        total: convergencia.total,
+                        res: convergencia.res?.toFixed(3) ?? "—",
+                      })
+                    : convergencia.ok
+                      ? t("equilibrium.verdict_ok", {
+                          n: convergencia.usadas,
+                          total: convergencia.total,
+                          res: convergencia.res?.toFixed(3) ?? "—",
+                          // 3 decimales como el residuo: con toFixed(2) una
+                          // tolerancia de 0,001 se imprimía "0.00" y se leía
+                          // como si no hubiera criterio.
+                          tol: convergencia.tol.toFixed(3),
+                        })
+                      : t("equilibrium.verdict_fail", {
+                          total: convergencia.total,
+                          res: convergencia.res?.toFixed(3) ?? "—",
+                          // 3 decimales como el residuo: con toFixed(2) una
+                          // tolerancia de 0,001 se imprimía "0.00" y se leía
+                          // como si no hubiera criterio.
+                          tol: convergencia.tol.toFixed(3),
+                        })}
+                </p>
+                <ConvergenceTrace iterations={liveIterations} />
               </Panel>
             )}
 
-            <Panel
-              n="01"
-              title={t("equilibrium.converged")}
-              meta="MSA"
-              cls="col-12"
-            >
-              <ConvergenceTrace iterations={liveIterations} />
-            </Panel>
-
-            {/* La tabla va inmediatamente después de la convergencia: es el
-                RESULTADO del equilibrio. Los gráficos que lo desagregan vienen
-                después. Antes cerraba la página, así que había que recorrer 13
-                figuras para llegar al número.
-
-                SIN `n`: no es una figura, es el resultado. Numerarla corría toda
-                la secuencia de figuras en uno (los flujos quedaban en 03-06). */}
-            {transportMetrics && (
-              <Panel
-                title={t("metrics_table.title")}
-                meta={t("metrics_table.meta")}
-                cls="col-12"
-              >
-                <TransportMetricsTable data={transportMetrics} />
-              </Panel>
-            )}
-
-            {/* Agregados de ciudad completa + delta contra la corrida fijada.
-                Permite comparar dos escenarios sin salir del módulo. */}
+            {/* 2. AGREGADOS — el panel más importante una vez validada la
+                corrida: es la tabla con la que se comparan escenarios (fijar
+                una corrida de referencia y leer el delta). Por eso va apenas
+                debajo del veredicto y no en el puesto 4 de 10. */}
             {result && configUsed && (
               <Panel
                 title={t("agg.title")}
@@ -1116,6 +1203,34 @@ export function SandboxPage() {
               </Panel>
             )}
 
+            {/* 3. Métricas del sistema: acompaña a los agregados, mismo nivel
+                de lectura (ciudad completa). */}
+            {transportMetrics && (
+              <Panel
+                title={t("metrics_table.title")}
+                meta={t("metrics_table.meta")}
+                cls="col-12"
+              >
+                <TransportMetricsTable data={transportMetrics} />
+              </Panel>
+            )}
+
+            {/* 4. DIAGNÓSTICO DE RED — de acá para abajo empiezan las figuras. */}
+            {lastIter && result && (
+              <Panel
+                n="00"
+                title={t("network.title")}
+                meta={t("panel_meta.modes_all")}
+                cls="col-12"
+              >
+                <NetworkDiagram
+                  snapshot={lastIter}
+                  result={result}
+                  config={config}
+                />
+              </Panel>
+            )}
+
             {/* UN panel de flujos con selector de modo, en vez de cuatro paneles
                 que repetían la misma forma. El profesor reportó que tanto
                 gráfico marea; cuatro figuras para una sola lectura es
@@ -1123,10 +1238,8 @@ export function SandboxPage() {
                 cambiar de modo no engañe con auto-scale. */}
             {lastIter && result && flowData && (
               <Panel
-                n="02"
-                title={t("sandbox.flow_per_cell", {
-                  mode: t(`modes.${flowMode}`),
-                })}
+                n="01"
+                title={flowTitle}
                 meta={
                   <div className="flex flex-wrap gap-1">
                     {FLOW_MODES.map((m) => (
@@ -1150,17 +1263,18 @@ export function SandboxPage() {
               >
                 <ExportableFigure
                   name={`flujo-${flowMode}`}
-                  title={t("sandbox.flow_per_cell", {
-                    mode: t(`modes.${flowMode}`),
-                  })}
+                  title={flowTitle}
                   exportSize={{ width: 1000, height: 200 }}
                 >
-                  <FlowProfile
-                    flows={flowData.flows}
-                    largoKm={cfgRes.city.largo_ciudad_km}
+                  {/* El botón de la animación es HTML, y ExportableFigure
+                      captura el primer <svg>: no sale en la exportación. */}
+                  <CorridorFlowFigure
+                    flujo={flowData.flujo}
+                    demanda={flowData.demanda}
+                    capacidad={flowData.capacidad}
+                    capacidadLabel={flowData.capacidadLabel}
                     color={flowData.color}
-                    yMax={flowData.globalMax}
-                    capacityHint={flowData.cap}
+                    largoKm={cfgRes.city.largo_ciudad_km}
                   />
                 </ExportableFigure>
               </Panel>
@@ -1168,7 +1282,7 @@ export function SandboxPage() {
 
             {result && result.emisiones_perfil_kg && (
               <Panel
-                n="03"
+                n="02"
                 title={t("sandbox.co2_profile")}
                 meta={t("panel_meta.co2")}
                 cls="col-12"
@@ -1193,7 +1307,7 @@ export function SandboxPage() {
             {result && result.agentes.length > 0 && (
               <>
                 <Panel
-                  n="04"
+                  n="03"
                   title={t("sandbox.trips_by_stratum")}
                   meta={t("panel_meta.share_stratum")}
                   cls="col-6"
@@ -1208,7 +1322,7 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="05"
+                  n="04"
                   title={t("sandbox.mode_share_by_location")}
                   meta="stacked · 100%"
                   cls="col-5"
@@ -1235,7 +1349,7 @@ export function SandboxPage() {
 
                 {modeShareByStratum && (
                   <Panel
-                    n="06"
+                    n="05"
                     title={t("sandbox.mode_share_by_location_stratum")}
                     meta={t("sandbox.mode_share_stratum_meta")}
                     cls="col-12"
@@ -1285,7 +1399,7 @@ export function SandboxPage() {
             tiempos de flujo libre; después, los de la última iteración. */}
         <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
           <Panel
-            n="07"
+            n="06"
             title={t("demand_inspector.title")}
             meta={
               lastIter
