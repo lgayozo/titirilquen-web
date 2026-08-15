@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Auditoría del método determinístico (todo-o-nada)</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --logit: #2f6690; --det: #b4532a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 3px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 620px;
+  }
+  blockquote {
+    margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
+    color: var(--ink-2); font-style: italic; max-width: 72ch;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso p { margin: 4px 0; }
+  .etiqueta {
+    display: inline-block; font-family: "Segoe UI", system-ui, sans-serif; font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 1px 8px;
+    border-radius: 3px; margin-right: 6px;
+  }
+  .etiqueta.si { background: #e7d9d0; color: var(--accent); }
+  .etiqueta.no { background: #e2e8e3; color: var(--ok); }
+  .etiqueta.neutra { background: #e4e2dd; color: var(--ink-2); }
+  figure { margin: 18px 0; }
+  figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; max-width: 76ch; }
+  .leyenda { font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; margin: 4px 0 0; }
+  .leyenda span { margin-right: 14px; }
+  .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 4px; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, figure { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Simulador educativo de transporte urbano · Auditoría técnica</div>
+  <h1>El método determinístico (todo-o-nada): formulación, prueba y qué lo separa del logit</h1>
+  <p class="bajada">Auditoría completa de la tercera opción de asignación del simulador — la que
+  hasta esta revisión se llamaba «Wardrop». Se contrasta su formulación contra la definición
+  formal del equilibrio de usuario, se mide su comportamiento sobre la ciudad calibrada, se
+  sensibiliza en cuatro dimensiones y se identifican las discrepancias con la teoría. La
+  conclusión corta: <strong>la implementación es correcta, el nombre no lo era</strong>, y el
+  método no produce un equilibrio de Wardrop sino el límite de baja varianza del logit.</p>
+  <div class="meta">15 de agosto de 2026 · rama <code>ciudad-equilibrio-mejoras</code> ·
+  evidencia: <code>scripts/auditoria_wardrop.py</code> y <code>scripts/informe_wardrop.py</code> ·
+  datos: <code>docs/_datos_informe/wardrop.json</code> ·
+  referencia: Boyles, Lownes &amp; Unnikrishnan, <em>Transportation Network Analysis</em></div>
+</header>
+
+<!-- ================================================================ -->
+<h2><span class="num">1</span>Qué hace el algoritmo</h2>
+
+<p>La función <code>probabilidades_wardrop</code> (en <code>demand/choice.py</code>) recibe las
+utilidades de los modos de un grupo y devuelve un vector de probabilidades degenerado: toda la
+masa al modo de mayor utilidad, repartida en partes iguales si hay empate exacto.</p>
+
+<pre><code>feasibles = [m for m, u in utilidades.items() if u.feasible]
+mejor     = max(utilidades[m].valor for m in feasibles)
+empatados = [m for m in feasibles if utilidades[m].valor &gt;= mejor - 1e-12]
+out[m]    = 1.0 / len(empatados)   para m en empatados</code></pre>
+
+<p>Un «grupo» es la unidad de decisión del simulador: la tripleta
+<strong>(estrato, celda de origen, tenencia de auto)</strong>. Todos sus miembros enfrentan los
+mismos tiempos y los mismos coeficientes, así que eligen igual. En la ciudad por defecto hay
+<strong>942 grupos</strong> que reúnen <strong>29.002 viajeros</strong>.</p>
+
+<p>Es exactamente el límite del logit multinomial cuando la escala de los coeficientes crece:</p>
+
+<div class="ecuacion">
+P<sub>m</sub> = e<sup>λV<sub>m</sub></sup> ⁄ Σ<sub>k</sub> e<sup>λV<sub>k</sub></sup>
+&nbsp;&nbsp;⟶&nbsp;&nbsp; 1{m = argmax V}&nbsp;&nbsp; cuando λ → ∞
+</div>
+
+<p>Es decir, no es un modelo distinto: es el mismo modelo con varianza cero en la parte no
+observada de la utilidad. Cuando λ → ∞ la componente aleatoria de Gumbel se vuelve despreciable
+frente a la sistemática, y el decisor se comporta como un maximizador perfecto sin gustos
+idiosincráticos. La §6 lo verifica numéricamente sobre el equilibrio completo.</p>
+
+<div class="aviso">
+<p><strong>Nota sobre el nombre.</strong> El valor del schema sigue siendo
+<code>assignment: "wardrop"</code> — cambiarlo rompería los escenarios <code>.ttrq.json</code>
+guardados y los enlaces <code>?s=</code>, porque la configuración se valida con
+<code>extra="forbid"</code>. La etiqueta visible en la interfaz pasó a
+<em>«Determinístico (todo-o-nada)»</em>. La §3 explica por qué el nombre anterior era incorrecto.</p>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">2</span>Los datos reales usados</h2>
+
+<p>Todas las mediciones de este informe corren sobre la <strong>ciudad por defecto</strong> del
+simulador, que es la que ve el alumno al abrir el módulo de transporte. Sin escenarios
+estilizados ni poblaciones sintéticas.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Dimensión</th><th>Valor</th><th>Procedencia</th></tr></thead>
+<tbody>
+<tr><td>Geometría</td><td>20 km · 201 celdas (Δx ≈ 100 m) · CBD central</td><td>Default de la app</td></tr>
+<tr><td>Población</td><td>36.000 hogares (1.800 hab/km), perfil normal σ = 0,5</td><td>Módulo de uso de suelo, localización de equilibrio</td></tr>
+<tr><td>Estratos</td><td>20 % / 50 % / 30 % (alto / medio / bajo)</td><td>Recalibración agosto 2026</td></tr>
+<tr><td>Valor del tiempo</td><td>$6.200 / $3.100 / $1.600 por hora</td><td>Fijado por el equipo</td></tr>
+<tr><td>Ponderador de espera</td><td>2,0 en los tres estratos</td><td>Precios Sociales 2026 del SNI</td></tr>
+<tr><td>Metro</td><td>K = 1.000 pax · 10 estaciones · frec. 2–40 tr/h</td><td>Default vigente</td></tr>
+<tr><td>Vialidad</td><td>2 pistas por sentido · BPR α = 0,8, β = 2</td><td>Default vigente</td></tr>
+<tr><td>Equilibrio</td><td>MSA, paso 1/(it+1), tolerancia 0,1 min, máx. 20 iteraciones, semilla 42</td><td>Default vigente</td></tr>
+</tbody></table>
+<p class="pie-tabla">Los repartos modales de este informe se expresan como porcentaje de los
+<strong>viajes físicos</strong> (los cuatro modos), dejando el teletrabajo fuera del denominador.
+Para leerlos contra la línea base documentada —que sí lo incluye— hay que multiplicar por
+0,8056: por ejemplo, el 21,04 % de auto de la tabla equivale al 16,95 % de la línea base.</p></div>
+
+<!-- ================================================================ -->
+<h2><span class="num">3</span>Lo que el método no es: el principio de Wardrop</h2>
+
+<p>El nombre original prometía una propiedad concreta. El docstring afirmaba que
+«el punto fijo es un equilibrio de Wardrop: todo modo usado termina con el mismo costo
+generalizado». La definición formal, en cambio, es esta:</p>
+
+<blockquote>Every used route connecting an origin and destination has equal and minimal travel
+time. <span style="font-style:normal">— <em>Transportation Network Analysis</em>, Corollary 4.1,
+p. 89</span></blockquote>
+
+<p>El texto aclara inmediatamente después que rutas usadas que conectan <strong>pares
+origen-destino distintos</strong> pueden tener tiempos distintos. La condición es
+<em>intra</em> par OD, no poblacional. En el simulador cada celda es un origen distinto y cada
+estrato una clase de usuario distinta, de modo que la afirmación agregada no se sigue de la
+definición. Se midió, y no se cumple.</p>
+
+<h3>Prueba A — dispersión del costo generalizado entre grupos</h3>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Método</th><th class="n">Media</th><th class="n">Desv. estándar</th><th class="n">Mínimo</th><th class="n">Máximo</th></tr></thead>
+<tbody>
+<tr class="destacada"><td>Determinístico</td><td class="n">34,63</td><td class="n">15,29</td><td class="n">−14,55</td><td class="n">67,42</td></tr>
+<tr><td>Logit (flujos esperados)</td><td class="n">34,20</td><td class="n">15,67</td><td class="n">−14,55</td><td class="n">66,66</td></tr>
+</tbody></table>
+<p class="pie-tabla">Costo generalizado del modo elegido, en minutos-equivalentes
+(<code>utilidad / b_tiempo_viaje</code>), ponderado por viajeros. Los valores negativos
+corresponden a grupos junto al CBD, donde la constante del auto (+20 min de ventaja) supera al
+tiempo de viaje.</p></div>
+
+<p>Si el arbitraje fuera poblacional, esa desviación sería cero. Es de 15,3 minutos sobre una
+media de 34,6 — un coeficiente de variación del 44 %. Y el dato decisivo:
+<strong>pasar de logit a determinístico apenas la mueve</strong>, de 15,67 a 15,29, un 2 %. Si el
+método produjera un equilibrio de Wardrop, la dispersión tendría que colapsar.</p>
+
+<h3>Prueba B — costo generalizado por modo usado</h3>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Modo</th><th class="n">Costo generalizado (min-equiv)</th><th class="n">Viajeros</th></tr></thead>
+<tbody>
+<tr><td>Caminata</td><td class="n">12,10</td><td class="n">2.344</td></tr>
+<tr><td>Auto</td><td class="n">25,03</td><td class="n">8.384</td></tr>
+<tr><td>Bicicleta</td><td class="n">37,58</td><td class="n">6.388</td></tr>
+<tr><td>Metro</td><td class="n">44,26</td><td class="n">11.886</td></tr>
+</tbody></table>
+<p class="pie-tabla">Bajo el método determinístico, en el equilibrio de la ciudad por defecto.</p></div>
+
+<p>Los cuatro modos están usados simultáneamente y sus costos difieren en hasta
+<strong>32,2 minutos</strong>. Bajo la condición de Wardrop agregada tendrían que coincidir.</p>
+
+<h3>Prueba C — distancia a la indiferencia</h3>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Brecha con el segundo mejor modo</th><th class="n">Determinístico</th><th class="n">Logit</th></tr></thead>
+<tbody>
+<tr><td>menos de 0,1 min</td><td class="n">2,8 %</td><td class="n">1,2 %</td></tr>
+<tr><td>menos de 0,5 min</td><td class="n">8,6 %</td><td class="n">4,1 %</td></tr>
+<tr><td>menos de 1,0 min</td><td class="n">14,9 %</td><td class="n">6,4 %</td></tr>
+<tr><td>menos de 5,0 min</td><td class="n">43,5 %</td><td class="n">34,7 %</td></tr>
+<tr class="destacada"><td>Brecha media</td><td class="n">8,74 min</td><td class="n">10,93 min</td></tr>
+</tbody></table>
+<p class="pie-tabla">Porcentaje de viajeros cuyo grupo está a menos de X de cambiar de modo.</p></div>
+
+<p>Aquí está la explicación estructural: <strong>el 91 % de los viajeros está en una esquina
+estricta</strong>. Cada grupo usa un solo modo, con ventaja clara sobre el siguiente. Un par
+origen-destino con una sola alternativa usada satisface la condición de Wardrop
+<em>al vacío</em> — es el caso que el propio libro discute en la p. 92, donde la solución es
+<code>h₁ = 0, h₂ = 7000</code> y «path 1 is not used, so it is fine for its travel time to not
+equal that of path 2».</p>
+
+<div class="aviso">
+<p><span class="etiqueta si">Hallazgo 1</span> El reparto modal interior que se observa en el
+agregado es <strong>composición entre 942 grupos heterogéneos</strong>, no arbitraje. Ningún
+viajero está igualando costos con nadie. El docstring que afirmaba lo contrario fue corregido;
+el mensaje del commit que introdujo el método (<code>321bd07</code>) ya decía lo correcto:
+«Wardrop iguala costos entre las alternativas de UN decisor, no ENTRE decisores».</p>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">4</span>Por qué no se igualan los costos dentro de un par OD</h2>
+
+<p>La pregunta natural es si eso se podría arreglar: ¿por qué no resolver, para cada grupo, el
+reparto que iguala los costos de sus modos usados? En el ejemplo del libro (p. 91) eso funciona
+porque el flujo aparece a ambos lados de la ecuación de equilibrio,
+<code>t₁(h₁) = t₂(7000 − h₁)</code>, y hay solución interior.</p>
+
+<p>Se midió el término equivalente: se muda cada grupo <strong>entero</strong> a su segundo mejor
+modo y se compara cuánto encarece ese modo (Δcosto) contra la brecha que habría que cerrar. El
+reparto interior existe si <code>razón = Δcosto / brecha ≥ 1</code>.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Franja</th><th class="n">Razón media</th><th>Lectura</th></tr></thead>
+<tbody>
+<tr class="destacada"><td>Marginales (brecha &lt; 1 min)</td><td class="n">1,168</td><td>La igualación <strong>sí</strong> es alcanzable</td></tr>
+<tr><td>Todos los grupos</td><td class="n">0,218 <span class="mono">(mediana 0,004)</span></td><td>El grupo típico no puede</td></tr>
+<tr><td>Lejanos (brecha ≥ 5 min)</td><td class="n">0,019</td><td>50 veces menos de lo necesario</td></tr>
+</tbody></table>
+<p class="pie-tabla">Sobre los 822 grupos cuyo segundo mejor modo es congestionable (24.572
+viajeros). Sólo el 5,4 % de los viajeros alcanza razón ≥ 1; el 11,9 % pasa de 0,5.</p></div>
+
+<p>El resultado <strong>contradice la explicación intuitiva</strong> de que los grupos son
+demasiado pequeños para influir en su propio costo. Para la franja marginal no lo son: un grupo
+de 98 viajeros mueve el tiempo de la bicicleta en su celda unos 0,5 minutos, que es justamente su
+brecha. La lectura correcta tiene dos mitades:</p>
+
+<ol>
+<li><strong>Para la franja marginal existe un reparto interior que iguala</strong>, y el
+todo-o-nada lo desaprovecha: manda al grupo completo a una esquina que después oscila. Ese es el
+hueco genuino del método, y se manifiesta en la §7.</li>
+<li><strong>Para el resto no existe</strong>, y eso es correcto, no un defecto: un grupo a 15 km
+del CBD tiene una brecha de 8 a 15 minutos y capacidad de mover 0,02 de eso. La diferencia es
+real —otra distancia, otro valor del tiempo—, no ruido que convenga suavizar. Es precisamente lo
+que aporta un modelo espacial con estratos.</li>
+</ol>
+
+<p>Y la limitación de fondo: <strong>el problema no es separable</strong>. El costo del auto en la
+celda 73 depende del flujo acumulado que pasa por ella, que incluye a todas las celdas entre ella
+y el CBD. Igualar dentro de cada par OD exigiría resolver los 822 simultáneamente, que es lo que
+hace un algoritmo de asignación de verdad (Frank-Wolfe, gradient projection; §6.2–6.3 del libro)
+sobre la formulación de Beckmann. Y no se puede aplicar aquí, por la razón de la §5.</p>
+
+<!-- ================================================================ -->
+<h2><span class="num">5</span>Existencia, unicidad y por qué la paradoja es posible</h2>
+
+<p>El libro da dos resultados que delimitan exactamente dónde está parado el simulador.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Resultado</th><th>Hipótesis</th><th>¿Se cumple aquí?</th></tr></thead>
+<tbody>
+<tr><td><strong>Prop. 5.1</strong> — existencia (p. 120)</td><td>Funciones de costo continuas</td>
+<td><span class="etiqueta no">Sí</span> Los topes <code>frec_min</code>/<code>frec_max</code>
+introducen quiebres, pero la función sigue siendo continua</td></tr>
+<tr class="destacada"><td><strong>Prop. 5.2</strong> — unicidad (p. 120)</td>
+<td>Costos diferenciables y <strong>estrictamente crecientes</strong> en el flujo</td>
+<td><span class="etiqueta si">No</span> El metro tiene <code>espera = 30·K / carga</code>,
+<strong>decreciente</strong> en su propia demanda</td></tr>
+</tbody></table></div>
+
+<p>La demostración de unicidad requiere que el hessiano de la función de Beckmann sea definido
+positivo, y eso exige costos crecientes (diagonal positiva) y separables (fuera de la diagonal
+cero). El efecto Mohring —más pasajeros, más frecuencia, menos espera— rompe la primera
+condición. El propio libro advierte el punto en general (p. 104): los distintos enunciados del
+principio «agree in the standard case of continuous, increasing […] separable» link performance
+functions, «but the equilibria can differ if these assumptions are violated».</p>
+
+<div class="aviso">
+<p><span class="etiqueta si">Hallazgo 2</span> <strong>La multiplicidad de equilibrios no es una
+rareza del todo-o-nada: está predicha por la teoría.</strong> Hasta esta auditoría figuraba como
+una advertencia empírica en la interfaz. Ahora tiene causa: la hipótesis de la Proposición 5.2 no
+se cumple. Y no es algo a corregir — <strong>es la condición que hace posible
+Downs-Thomson</strong>. Sin el efecto Mohring no hay paradoja que enseñar.</p>
+</div>
+
+<!-- ================================================================ -->
+<h2><span class="num">6</span>Qué diferencia hay con el logit</h2>
+
+<p>Ésta es la pregunta central para el uso docente, porque el simulador ofrece los dos y el alumno
+tiene que entender que <strong>la diferencia no es de precisión sino de supuesto</strong>. Ambos
+son el mismo modelo de utilidad aleatoria; lo que cambia es cuánta varianza se le atribuye a la
+parte no observada.</p>
+
+<h3>6.1 Son la misma familia: el logit converge al determinístico</h3>
+
+<p>Se escalaron todos los términos de la utilidad —betas, constantes específicas y penalizaciones
+físicas— por un factor creciente, corriendo el equilibrio completo en cada paso.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Escala</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th><th class="n">Distancia al determinístico</th></tr></thead>
+<tbody>
+<tr><td>Logit ×1</td><td class="n">21,04</td><td class="n">40,71</td><td class="n">28,35</td><td class="n">9,90</td><td class="n">7,86 pp</td></tr>
+<tr><td>Logit ×2</td><td class="n">23,37</td><td class="n">39,38</td><td class="n">27,47</td><td class="n">9,78</td><td class="n">5,31 pp</td></tr>
+<tr><td>Logit ×5</td><td class="n">26,15</td><td class="n">36,80</td><td class="n">27,00</td><td class="n">10,04</td><td class="n">2,64 pp</td></tr>
+<tr><td>Logit ×10</td><td class="n">27,85</td><td class="n">34,73</td><td class="n">26,91</td><td class="n">10,51</td><td class="n">1,66 pp</td></tr>
+<tr><td>Logit ×20</td><td class="n">29,16</td><td class="n">33,14</td><td class="n">26,82</td><td class="n">10,88</td><td class="n">1,04 pp</td></tr>
+<tr><td>Logit ×50</td><td class="n">28,27</td><td class="n">41,24</td><td class="n">21,94</td><td class="n">8,55</td><td class="n">0,64 pp</td></tr>
+<tr class="destacada"><td>Determinístico</td><td class="n">28,91</td><td class="n">41,22</td><td class="n">21,78</td><td class="n">8,08</td><td class="n">—</td></tr>
+</tbody></table>
+<p class="pie-tabla">Distancia = máxima diferencia absoluta de participación entre los cuatro
+modos, en puntos porcentuales. Las corridas escaladas usan <code>max_iter = 60</code> porque al
+crecer la escala el reparto se vuelve casi todo-o-nada y necesita tantas iteraciones como el
+determinístico.</p></div>
+
+<p>La convergencia es monótona y confirma sobre el <em>equilibrio completo</em> lo que el test
+<code>test_es_el_limite_del_logit_al_escalar_las_utilidades</code> verifica sobre la función pura.
+Que no llegue exactamente a cero es esperable: la tolerancia corta en 0,1 min y, por la §5, el
+punto fijo no tiene por qué ser único.</p>
+
+<h3>6.2 La diferencia que importa: la elasticidad de la política</h3>
+
+<p>El contraste se ve mejor barriendo la capacidad vial de 1 a 6 pistas por sentido, que es la
+receta docente de Downs-Thomson.</p>
+
+<figure>
+<svg viewBox="0 0 620 250" width="100%" role="img" aria-label="Participación del metro según número de pistas, bajo logit y bajo determinístico">
+  <line x1="60" y1="210" x2="580" y2="210" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="60" y1="30" x2="60" y2="210" stroke="#1a1a1a" stroke-width="1"/>
+  <g font-family="Segoe UI, sans-serif" font-size="10" fill="#6b6b6b">
+    <text x="52" y="213" text-anchor="end">30</text>
+    <text x="52" y="123" text-anchor="end">39</text>
+    <text x="52" y="33" text-anchor="end">48</text>
+    <text x="60" y="228" text-anchor="middle">1</text>
+    <text x="164" y="228" text-anchor="middle">2</text>
+    <text x="268" y="228" text-anchor="middle">3</text>
+    <text x="372" y="228" text-anchor="middle">4</text>
+    <text x="476" y="228" text-anchor="middle">5</text>
+    <text x="580" y="228" text-anchor="middle">6</text>
+    <text x="320" y="245" text-anchor="middle">pistas por sentido</text>
+    <text x="18" y="120" text-anchor="middle" transform="rotate(-90 18 120)">% metro</text>
+  </g>
+  <line x1="60" y1="120" x2="580" y2="120" stroke="#d8d4cc" stroke-dasharray="2 3"/>
+  <polyline fill="none" stroke="#2f6690" stroke-width="2.2"
+    points="60,85 164,102.9 268,107.4 372,111.8 476,112.7 580,113.2"/>
+  <polyline fill="none" stroke="#b4532a" stroke-width="2.2"
+    points="60,33 164,97.8 268,165.3 372,186.5 476,193.5 580,200.1"/>
+  <g fill="#2f6690"><circle cx="60" cy="85" r="3"/><circle cx="164" cy="102.9" r="3"/><circle cx="268" cy="107.4" r="3"/><circle cx="372" cy="111.8" r="3"/><circle cx="476" cy="112.7" r="3"/><circle cx="580" cy="113.2" r="3"/></g>
+  <g fill="#b4532a"><circle cx="60" cy="33" r="3"/><circle cx="164" cy="97.8" r="3"/><circle cx="268" cy="165.3" r="3"/><circle cx="372" cy="186.5" r="3"/><circle cx="476" cy="193.5" r="3"/><circle cx="580" cy="200.1" r="3"/></g>
+</svg>
+<p class="leyenda"><span><span class="swatch" style="background:#2f6690"></span>Logit</span>
+<span><span class="swatch" style="background:#b4532a"></span>Determinístico</span></p>
+<figcaption>Figura 1. Participación del metro al agregar capacidad vial. El logit pierde 2,8
+puntos entre 1 y 6 pistas; el determinístico pierde 16,7. Mismo modelo de utilidad, misma ciudad,
+misma calibración: sólo cambia el supuesto sobre la varianza no observada.</figcaption>
+</figure>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Pistas</th><th class="n">Metro logit</th><th class="n">Metro determ.</th><th class="n">Espera logit</th><th class="n">Espera determ.</th><th class="n">CG logit</th><th class="n">CG determ.</th></tr></thead>
+<tbody>
+<tr><td>1</td><td class="n">42,50</td><td class="n">47,70</td><td class="n">5,00</td><td class="n">4,80</td><td class="n">35,74</td><td class="n">34,73</td></tr>
+<tr><td>2</td><td class="n">40,71</td><td class="n">41,22</td><td class="n">5,28</td><td class="n">5,65</td><td class="n">34,20</td><td class="n">34,63</td></tr>
+<tr class="destacada"><td>3</td><td class="n">40,26</td><td class="n">34,47</td><td class="n">5,30</td><td class="n">6,48</td><td class="n">33,54</td><td class="n">34,70</td></tr>
+<tr><td>4</td><td class="n">39,82</td><td class="n">32,35</td><td class="n">5,33</td><td class="n">6,83</td><td class="n">33,28</td><td class="n">34,49</td></tr>
+<tr><td>5</td><td class="n">39,73</td><td class="n">31,65</td><td class="n">5,34</td><td class="n">6,95</td><td class="n">33,15</td><td class="n">34,24</td></tr>
+<tr><td>6</td><td class="n">39,68</td><td class="n">30,99</td><td class="n">5,34</td><td class="n">7,04</td><td class="n">33,07</td><td class="n">34,09</td></tr>
+</tbody></table>
+<p class="pie-tabla">Participación en % de viajes físicos; espera del metro y costo generalizado
+percibido medio (CG) en minutos-equivalentes. El CG es la medida de bienestar
+<em>emparejada</em> con el determinístico — bajo logit la correcta es el logsum, así que las
+columnas de CG se comparan <strong>en dirección dentro de cada método</strong>, no en nivel entre
+métodos.</p></div>
+
+<h3>6.3 El resultado que sólo aparece en un lado</h3>
+
+<figure>
+<svg viewBox="0 0 620 230" width="100%" role="img" aria-label="Costo generalizado percibido bajo el método determinístico según número de pistas">
+  <line x1="60" y1="210" x2="580" y2="210" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="60" y1="30" x2="60" y2="210" stroke="#1a1a1a" stroke-width="1"/>
+  <g font-family="Segoe UI, sans-serif" font-size="10" fill="#6b6b6b">
+    <text x="52" y="213" text-anchor="end">33,9</text>
+    <text x="52" y="123" text-anchor="end">34,4</text>
+    <text x="52" y="33" text-anchor="end">34,9</text>
+    <text x="60" y="228" text-anchor="middle">1</text>
+    <text x="164" y="228" text-anchor="middle">2</text>
+    <text x="268" y="228" text-anchor="middle">3</text>
+    <text x="372" y="228" text-anchor="middle">4</text>
+    <text x="476" y="228" text-anchor="middle">5</text>
+    <text x="580" y="228" text-anchor="middle">6</text>
+  </g>
+  <polyline fill="none" stroke="#b4532a" stroke-width="2.2"
+    points="60,60.6 164,78.6 268,66.0 372,103.8 476,148.8 580,175.8"/>
+  <g fill="#b4532a"><circle cx="60" cy="60.6" r="3"/><circle cx="164" cy="78.6" r="3.5"/><circle cx="268" cy="66.0" r="3.5"/><circle cx="372" cy="103.8" r="3"/><circle cx="476" cy="148.8" r="3"/><circle cx="580" cy="175.8" r="3"/></g>
+  <path d="M164,78.6 L268,66.0" stroke="#b4532a" stroke-width="4" fill="none"/>
+  <text x="216" y="52" font-family="Segoe UI, sans-serif" font-size="11" fill="#b4532a" text-anchor="middle">empeora</text>
+  <line x1="60" y1="60.6" x2="580" y2="60.6" stroke="#6b6b6b" stroke-dasharray="3 3" stroke-width="0.8"/>
+  <text x="576" y="56" font-family="Segoe UI, sans-serif" font-size="9.5" fill="#6b6b6b" text-anchor="end">nivel de 1 pista</text>
+</svg>
+<figcaption>Figura 2. Costo generalizado percibido bajo el método determinístico (escala ampliada;
+menos es mejor). Entre 2 y 3 pistas <strong>sube</strong> de 34,63 a 34,70: agregar capacidad vial
+empeora a la población. Recién con 4 pistas se mejora respecto de 1 pista. Bajo logit la misma
+curva baja monótonamente de 35,74 a 33,07, sin ningún tramo adverso.</figcaption>
+</figure>
+
+<p>Ésa es la paradoja de Downs-Thomson, medida sobre la ciudad calibrada y visible en la tabla de
+resultados de la aplicación. El mecanismo, sin embargo, <strong>no es el arbitraje</strong> que se
+le atribuía. Con el todo-o-nada, los grupos que estaban cerca de su umbral de indiferencia saltan
+<em>enteros</em> al auto cuando la pista nueva lo mejora; el metro pierde pasajeros, su frecuencia
+cae de 5,98 a 5,00 tr/h y la espera sube de 5,65 a 6,48 minutos. Quienes se quedan pagan esa
+espera. El 8,6 % de viajeros a menos de 0,5 minutos de la indiferencia (§3, prueba C) es
+exactamente la reserva que puede saltar.</p>
+
+<p>Bajo logit ese trasvase existe, pero es fraccional y mucho menor: cada grupo mueve una porción
+de su masa proporcional a la mejora, la frecuencia del metro apenas baja de 5,90 a 5,75 tr/h y la
+espera sube 0,06 minutos en total. La ganancia vial no se disipa.</p>
+
+<h3>6.4 Resumen del contraste</h3>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Dimensión</th><th>Logit (Monte Carlo / flujos esperados)</th><th>Determinístico (todo-o-nada)</th></tr></thead>
+<tbody>
+<tr><td>Tipo de equilibrio</td><td>Estocástico (SUE): nadie <em>cree</em> poder mejorar</td><td>Determinístico degenerado: nadie puede mejorar, con una sola alternativa usada por grupo</td></tr>
+<tr><td>Reparto del grupo</td><td>Fraccional y continuo entre los modos factibles</td><td>Esquina: el 100 % al mejor modo</td></tr>
+<tr><td>Supuesto conductual</td><td>Gustos no observados con varianza positiva</td><td>Homogeneidad perfecta dentro del grupo</td></tr>
+<tr><td>Respuesta a la política (1→6 pistas)</td><td>El metro cae 2,8 pp</td><td>El metro cae 16,7 pp — <strong>seis veces más</strong></td></tr>
+<tr><td>Downs-Thomson</td><td>No aparece: el CG baja monótonamente</td><td>Aparece entre 2 y 3 pistas</td></tr>
+<tr><td>Iteraciones a convergencia</td><td>7 a 11</td><td>14 a 17</td></tr>
+<tr><td>Estabilidad final</td><td>0 % de viajeros cambiando de modo</td><td>0,6 – 0,9 % aún rotando en la iteración 35</td></tr>
+<tr><td>Medida de bienestar</td><td>Logsum (excedente del consumidor)</td><td>Utilidad máxima media</td></tr>
+<tr><td>Sensibilidad al corte</td><td>Metro varía 0,18 pp entre tolerancias</td><td>Metro varía 0,51 pp</td></tr>
+</tbody></table></div>
+
+<p>Dicho de una vez: el logit es la formulación <strong>apropiada</strong> para un modelo de
+elección de modo con usuarios heterogéneos, y el determinístico es su caso límite. El valor
+docente del segundo no es que sea más realista —no lo es—, sino que <strong>aísla el
+mecanismo</strong>: al eliminar la dispersión de gustos deja ver un fenómeno de equilibrio que el
+logit amortigua hasta hacerlo invisible.</p>
+
+<!-- ================================================================ -->
+<h2><span class="num">7</span>Sensibilidad y anomalías</h2>
+
+<h3>7.1 El MSA promedia la variable equivocada</h3>
+
+<p>El algoritmo estándar (§6.2, p. 159) promedia <strong>flujos</strong> y recalcula los tiempos
+desde el flujo promediado: <code>x ← λx* + (1−λ)x</code>, luego <code>t = c(x)</code>. El
+simulador promedia <strong>tiempos</strong> y recalcula los flujos frescos en cada iteración. La
+justificación de convergencia —que <code>x*−x</code> es una dirección de descenso de la función de
+Beckmann (p. 160)— se apoya en promediar la variable primal, de modo que no cubre el esquema
+actual.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Método · esquema</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th><th class="n">Iteraciones</th></tr></thead>
+<tbody>
+<tr><td>Logit · tiempos (actual)</td><td class="n">21,04</td><td class="n">40,71</td><td class="n">28,35</td><td class="n">9,90</td><td class="n">7</td></tr>
+<tr><td>Logit · flujos (estándar)</td><td class="n">21,46</td><td class="n">40,27</td><td class="n">28,42</td><td class="n">9,86</td><td class="n">7</td></tr>
+<tr><td>Determinístico · tiempos</td><td class="n">28,91</td><td class="n">41,22</td><td class="n">21,78</td><td class="n">8,08</td><td class="n">16</td></tr>
+<tr class="destacada"><td>Determinístico · flujos</td><td class="n">29,27</td><td class="n">39,57</td><td class="n">21,97</td><td class="n">9,19</td><td class="n">11</td></tr>
+</tbody></table>
+<p class="pie-tabla">Máxima diferencia de reparto: 0,44 pp bajo logit, 1,66 pp bajo determinístico.
+Implementado tras la bandera <code>promediar_flujos</code>, que no es campo del schema y ninguna
+ruta de producción activa.</p></div>
+
+<div class="aviso ok">
+<p><span class="etiqueta no">Verificado</span> <strong>El punto fijo es esencialmente el
+mismo.</strong> El esquema actual no produce un equilibrio distinto, sólo una trayectoria
+distinta, y la calibración de agosto de 2026 no está comprometida. El esquema estándar converge
+en 11 iteraciones en vez de 16, como predice la teoría. Salvedad: 1,66 pp es del mismo orden que
+los efectos finos de la §6.3, así que para lecturas al límite el esquema sí importa.</p>
+</div>
+
+<h3>7.2 Anomalía: rotación residual bajo el método determinístico</h3>
+
+<p>Se midió, iteración a iteración, qué porcentaje de viajeros pertenece a un grupo que
+<em>cambia</em> de modo preferido respecto de la iteración anterior. En un equilibrio esa cifra
+debe ir a cero.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Método</th><th class="n">Pico (iter. 1)</th><th class="n">Iteraciones 34–37</th><th class="n">Iteraciones 38–40</th></tr></thead>
+<tbody>
+<tr><td>Logit</td><td class="n">12,41 %</td><td class="n">0,00 %</td><td class="n">0,00 %</td></tr>
+<tr class="destacada"><td>Determinístico</td><td class="n">22,89 %</td><td class="n">0,62 – 0,85 %</td><td class="n">0,00 %</td></tr>
+</tbody></table>
+<p class="pie-tabla">Corrida con <code>tolerance = 0</code> y <code>max_iter = 40</code> para ver
+la serie completa sin corte anticipado.</p></div>
+
+<div class="aviso">
+<p><span class="etiqueta si">Hallazgo 3</span> Bajo el método determinístico persiste una franja
+de <strong>0,6 a 0,9 % de los viajeros que sigue rotando de modo hasta la iteración 37</strong>,
+mientras que bajo logit la rotación se apaga mucho antes. Esa franja es exactamente la marginal
+identificada en la §4: los grupos con razón ≥ 1, para los que existe un reparto interior que el
+todo-o-nada no puede representar. No pueden quedarse quietos porque su mejor respuesta alterna
+entre dos modos. El promediado del MSA los deja en un flujo intermedio, que es una buena
+aproximación del reparto interior que correspondería — pero por promedio de estados
+oscilantes, no por resolver la condición.</p>
+</div>
+
+<p>Es una anomalía menor en magnitud y explicada en su origen, pero conviene tenerla presente:
+significa que el «equilibrio» que reporta el método determinístico es, para esa franja, un
+promedio temporal y no un punto fijo. Es también el origen de la sensibilidad al corte.</p>
+
+<h3>7.3 Sensibilidad al criterio de corte</h3>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Tolerancia</th><th class="n">Logit: metro</th><th class="n">Logit: iter.</th><th class="n">Determ.: metro</th><th class="n">Determ.: iter.</th></tr></thead>
+<tbody>
+<tr><td>0,5 min</td><td class="n">40,68</td><td class="n">6</td><td class="n">40,87</td><td class="n">11</td></tr>
+<tr class="destacada"><td>0,1 min <span class="mono">(default)</span></td><td class="n">40,71</td><td class="n">7</td><td class="n">41,22</td><td class="n">16</td></tr>
+<tr><td>0,02 min</td><td class="n">40,53</td><td class="n">16</td><td class="n">41,38</td><td class="n">39</td></tr>
+<tr><td>sin criterio</td><td class="n">40,60</td><td class="n">60</td><td class="n">41,38</td><td class="n">60</td></tr>
+</tbody></table></div>
+
+<p>Bajo logit el reparto varía 0,18 pp entre criterios, sin dirección clara: es ruido de corte.
+Bajo determinístico varía 0,51 pp y es <strong>monótono</strong> — el metro sube hacia su valor
+asintótico de 41,38, y la tolerancia por defecto lo deja 0,16 pp corto. Con tolerancia 0,02 hacen
+falta <strong>39 iteraciones</strong>.</p>
+
+<div class="aviso">
+<p><span class="etiqueta si">Hallazgo 4 · operativo</span> El default de la aplicación es
+<code>max_iter = 20</code>. Bajo el método determinístico las corridas del barrido consumen entre
+14 y 17, un margen de 3 a 6 iteraciones. <strong>Si el alumno baja la tolerancia sin subir el
+máximo de iteraciones, la corrida se corta sin converger</strong> y la interfaz lo reporta como
+no convergida. Conviene advertirlo en el material docente, o subir el tope cuando el método
+seleccionado es el determinístico.</p>
+</div>
+
+<h3>7.4 Un falso positivo que conviene dejar documentado</h3>
+
+<p>La primera versión del experimento de la §6.1 mostró que el logit escalado <em>se alejaba</em>
+del determinístico al aumentar la escala (7,86 → 5,68 → 5,22 → 6,49 → 8,08 pp), lo que habría
+sido una contradicción seria con la teoría. No lo era: el bucle de escalado recorría los campos
+numéricos del objeto de coeficientes y <strong>omitía <code>penalizaciones_fisicas</code></strong>,
+que es un sub-objeto anidado. Al multiplicar el resto por 20 y dejar las penalizaciones intactas,
+el experimento no re-escalaba el logit sino que cambiaba el modelo. Corregido el escalado para
+que baje a los sub-objetos, la convergencia es monótona.</p>
+
+<p>Se documenta porque el modo de fallo es genérico y probable de repetirse: cualquier
+manipulación programática de la configuración que asuma una estructura plana va a saltarse los
+objetos anidados en silencio. Es la misma familia de la «trampa de los espejos» ya registrada en
+la documentación del proyecto.</p>
+
+<!-- ================================================================ -->
+<h2><span class="num">8</span>Conclusión sobre la implementación</h2>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Aspecto</th><th>Veredicto</th></tr></thead>
+<tbody>
+<tr><td>Función <code>probabilidades_wardrop</code></td><td><span class="etiqueta no">Correcta</span> Argmax sobre modos factibles, empates repartidos, seis pruebas unitarias. El reparto equitativo en empates es admisible según el libro (p. 162)</td></tr>
+<tr><td>Límite del logit</td><td><span class="etiqueta no">Verificado</span> Converge monótonamente sobre el equilibrio completo, hasta 0,64 pp con escala ×50</td></tr>
+<tr><td>Nombre «Wardrop»</td><td><span class="etiqueta si">Era incorrecto</span> Prometía una igualación de costos que el modelo no produce. Corregido a «determinístico (todo-o-nada)» en la interfaz</td></tr>
+<tr><td>Esquema del MSA</td><td><span class="etiqueta neutra">No estándar</span> Promedia costos en vez de flujos; el punto fijo coincide dentro de 1,66 pp, pero sin la garantía de convergencia del algoritmo canónico</td></tr>
+<tr><td>Unicidad del equilibrio</td><td><span class="etiqueta si">No garantizada</span> Y no puede estarlo: el efecto Mohring viola la hipótesis de la Prop. 5.2</td></tr>
+<tr><td>Estabilidad del punto final</td><td><span class="etiqueta neutra">Parcial</span> 0,6–0,9 % de viajeros rotando hasta la iteración 37; el resto estable</td></tr>
+<tr><td>Cobertura de pruebas</td><td><span class="etiqueta si">Incompleta</span> Las seis pruebas cubren la función pura; ninguna verifica una propiedad del equilibrio</td></tr>
+</tbody></table></div>
+
+<p><strong>La implementación hace bien lo que hace.</strong> No se encontró ningún defecto de
+cálculo: el reparto degenerado es correcto, el filtrado de modos infactibles es correcto, el
+tratamiento de empates es correcto y defendible, y el método es demostrablemente el límite del
+logit sobre el equilibrio completo y no sólo sobre la función de elección.</p>
+
+<p><strong>Lo que estaba mal era la interpretación.</strong> Llamarlo «Wardrop» hacía una promesa
+verificable —costos generalizados iguales entre modos usados— que el modelo incumple por 32
+minutos. La causa no es un error de programación sino una diferencia de nivel: el principio de
+Wardrop es una condición <em>dentro</em> de un par origen-destino, y este simulador tiene 942
+pares con poblaciones, distancias y valores del tiempo distintos. En esa estructura, un método
+todo-o-nada satisface la condición trivialmente y el reparto agregado que se observa es
+composición, no arbitraje.</p>
+
+<p><strong>Lo que queda abierto</strong>, en orden de valor:</p>
+
+<ol>
+<li><strong>Pruebas de la propiedad de equilibrio.</strong> Hoy ninguna prueba automatizada
+verificaría una regresión en el comportamiento del equilibrio determinístico. Una prueba que fije
+la rotación residual y la distancia al límite del logit protegería lo que esta auditoría midió a
+mano.</li>
+<li><strong>El tope de iteraciones bajo el método determinístico</strong> (hallazgo 4): 20 es
+apretado y se vuelve insuficiente si se baja la tolerancia.</li>
+<li><strong>El esquema del MSA.</strong> Cambiar a promediado de flujos alinearía el algoritmo con
+el estándar y ganaría cinco iteraciones, a costa de mover los tres métodos entre 0,3 y 1,7 pp.
+Es una decisión de proyecto, no técnica: obliga a re-verificar la calibración.</li>
+<li><strong>Representar el reparto interior de la franja marginal.</strong> Es el único hueco
+conceptual real: para el 5–12 % de viajeros existe un reparto que iguala costos y el todo-o-nada
+no puede expresarlo. Resolverlo bien exige un algoritmo sobre la formulación de Beckmann, que a su
+vez requiere costos monótonos — que es justo lo que el efecto Mohring impide. <strong>No se puede
+tener el fenómeno y el algoritmo con garantías al mismo tiempo</strong>, y para un simulador cuyo
+objetivo es mostrar la paradoja, quedarse con el fenómeno es la elección correcta.</li>
+</ol>
+
+<div class="aviso ok">
+<p><strong>Recomendación docente.</strong> Presentar el método como lo que es: el logit con
+varianza cero. El alumno debería poder responder por qué el metro cae seis veces más al agregar
+pistas bajo un supuesto que bajo el otro, y entender que la diferencia no está en los datos sino
+en cuánta heterogeneidad no observada se le atribuye a la población. Enseñar el principio de
+Wardrop como concepto de referencia —enunciado por par origen-destino— y mostrar con la prueba B
+por qué esta ciudad no lo satisface a nivel agregado.</p>
+</div>
+
+<footer>
+Titirilquen · Auditoría del método determinístico · 15 de agosto de 2026 ·
+Reproducible con <code>uv run python scripts/auditoria_wardrop.py</code> y
+<code>uv run python scripts/informe_wardrop.py</code> desde
+<code>packages/titirilquen_core</code>.<br>
+Referencia principal: S. D. Boyles, N. E. Lownes y A. Unnikrishnan,
+<em>Transportation Network Analysis</em>, Volume I — citas por página de la edición en
+<code>reference/</code>. El principio de equilibrio de usuario se atribuye a Wardrop (1952);
+la formulación general del problema de asignación estática, a Beckmann et al. (1956).
+</footer>
+
+</div>
+</body>
+</html>

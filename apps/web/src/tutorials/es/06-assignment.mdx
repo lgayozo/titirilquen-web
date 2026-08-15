@@ -1,0 +1,109 @@
+---
+slug: assignment
+order: 6
+title: Métodos de asignación
+tagline: Logit, flujos esperados y todo-o-nada
+---
+
+# 5. Métodos de asignación
+
+El equilibrio del capítulo anterior necesita, en cada iteración, repartir a cada grupo de viajeros entre los modos disponibles. El simulador ofrece **tres formas de hacerlo**, y la elección no es un detalle numérico: cambia el supuesto sobre cómo deciden las personas, y con él los resultados.
+
+| Método | Qué hace con un grupo de $n$ viajeros |
+| --- | --- |
+| **Monte Carlo** | Sortea el modo de cada viajero con las probabilidades logit |
+| **Flujos esperados** | Reparte $n \cdot P_m$ viajeros a cada modo $m$ (sin sorteo) |
+| **Determinístico** | Manda los $n$ al modo de mayor utilidad |
+
+Los dos primeros son el **mismo modelo**: flujos esperados es el valor esperado de Monte Carlo, sin ruido de muestreo. El tercero es distinto, y es el que vale la pena entender.
+
+## El determinístico es el logit con varianza cero
+
+En el capítulo de demanda, la probabilidad de elegir el modo $m$ sale del logit multinomial:
+
+$$
+P_m = \frac{e^{\lambda V_m}}{\sum_k e^{\lambda V_k}}
+$$
+
+donde $V_m$ es la utilidad sistemática —lo que el modelo observa: tiempos, costos, constantes— y $\lambda$ escala la importancia relativa de lo observado frente a lo **no** observado (el gusto idiosincrático de cada persona, que el modelador no ve).
+
+Cuando $\lambda$ crece, la parte no observada se vuelve despreciable y el logit se concentra en el mejor modo:
+
+$$
+P_m \;\longrightarrow\; \mathbb{1}\{m = \arg\max_k V_k\} \qquad \text{cuando } \lambda \to \infty
+$$
+
+Ése es exactamente el método determinístico. No es un modelo rival del logit: es su **caso límite**, el de una población perfectamente homogénea dentro de cada grupo.
+
+Se puede comprobar en el simulador. Multiplicando todos los coeficientes de la utilidad por un factor creciente —lo que equivale a subir $\lambda$— el reparto del logit se acerca al determinístico de forma monótona:
+
+| Escala de los coeficientes | Distancia al determinístico |
+| --- | --- |
+| ×1 | 7,86 pp |
+| ×5 | 2,64 pp |
+| ×20 | 1,04 pp |
+| ×50 | 0,64 pp |
+
+## Por qué importa: el mismo modelo, dos elasticidades
+
+Un grupo del simulador es la tripleta **(estrato, celda de origen, tenencia de auto)**: personas que enfrentan los mismos tiempos y tienen los mismos coeficientes. En la ciudad por defecto hay 942 grupos.
+
+Bajo logit, cuando una política mejora un modo, cada grupo mueve **una fracción** de su masa. Bajo determinístico, el grupo se mueve **entero** o no se mueve. Agregado sobre 942 grupos, eso cambia la respuesta del sistema por un factor grande.
+
+Agregando pistas de 1 a 6, la participación del metro:
+
+| Pistas por sentido | Metro, logit | Metro, determinístico |
+| --- | --- | --- |
+| 1 | 42,50 % | 47,70 % |
+| 2 | 40,71 % | 41,22 % |
+| 3 | 40,26 % | 34,47 % |
+| 6 | 39,68 % | 30,99 % |
+
+El logit pierde 2,8 puntos; el determinístico pierde 16,7. **Misma ciudad, misma calibración, mismos datos**: sólo cambia cuánta heterogeneidad no observada se le atribuye a la población.
+
+## El fenómeno que sólo aparece de un lado
+
+Ese trasvase más brusco tiene una consecuencia que vale el capítulo entero. Al perder pasajeros, el metro reduce su frecuencia —menos demanda, menos trenes— y la espera sube. Bajo el método determinístico, entre 2 y 3 pistas:
+
+- la frecuencia cae de 5,98 a 5,00 trenes/hora,
+- la espera sube de 5,65 a 6,48 minutos,
+- y el **costo generalizado percibido medio sube** de 34,63 a 34,70 minutos-equivalentes.
+
+Es decir: **agregar capacidad vial empeoró a la población**. Ésa es la paradoja de Downs-Thomson, y se puede reproducir desde la interfaz eligiendo el método determinístico y moviendo el control de pistas.
+
+Bajo logit, la misma curva de costo generalizado baja monótonamente de 35,74 a 33,07: la paradoja no aparece. El trasvase fraccional del logit es demasiado suave para que la degradación del metro alcance a superar la mejora del auto.
+
+## Una advertencia importante sobre el nombre
+
+Al método determinístico se le suele llamar «Wardrop», por el **principio de equilibrio de usuario** (Wardrop, 1952). Ese principio dice:
+
+> Toda ruta usada que conecta un origen con un destino tiene tiempo de viaje igual y mínimo.
+
+La palabra clave es **«que conecta un origen con un destino»**: la igualdad se exige *dentro* de un par origen-destino. Rutas usadas de pares distintos pueden tener tiempos distintos.
+
+En esta ciudad cada celda es un origen distinto y cada estrato una clase de usuario distinta, así que la condición **no dice nada sobre el agregado**. Y efectivamente no se cumple: en el equilibrio determinístico de la ciudad por defecto, los cuatro modos están usados a la vez con costos generalizados que difieren en hasta 32 minutos.
+
+| Modo usado | Costo generalizado (min-equiv) |
+| --- | --- |
+| Caminata | 12,10 |
+| Auto | 25,03 |
+| Bicicleta | 37,58 |
+| Metro | 44,26 |
+
+La razón es que cada grupo pone toda su masa en **un solo** modo. Un par origen-destino con una sola alternativa usada cumple la condición trivialmente: no hay dos rutas usadas que comparar. El reparto modal que se observa en el agregado es **composición** entre 942 grupos que deciden distinto, no arbitraje entre viajeros.
+
+Por eso la interfaz lo llama «determinístico (todo-o-nada)» y no «Wardrop».
+
+## Multiplicidad de equilibrios
+
+Bajo el método determinístico, dos configuraciones parecidas pueden aterrizar en repartos levemente distintos. No es un defecto de programación: la unicidad del equilibrio de usuario exige que el costo de cada modo sea **estrictamente creciente** en su propio flujo, y el metro hace lo contrario —más pasajeros, más frecuencia, menos espera. Es el mismo efecto Mohring que hace posible Downs-Thomson.
+
+Dicho de otro modo: **el fenómeno que el capítulo enseña y la falta de unicidad son la misma cosa vista dos veces.** Para comparar escenarios, usar siempre el mismo barrido desde la misma configuración inicial.
+
+## Cuál usar
+
+- **Flujos esperados** — el default, y el apropiado para casi todo. Es el modelo de elección discreta estándar con población heterogénea, sin ruido de muestreo.
+- **Monte Carlo** — cuando interesa ver la variabilidad del muestreo, o para ilustrar que el reparto esperado es un promedio de realizaciones.
+- **Determinístico** — para aislar mecanismos de equilibrio. Al eliminar la dispersión de gustos deja ver fenómenos que el logit amortigua. Es más nítido, no más realista.
+
+Dos cosas prácticas: el determinístico necesita más iteraciones para converger (14 a 17, contra 7 a 11 del logit), así que conviene subir el tope de iteraciones si además se baja la tolerancia. Y bajo determinístico la medida de bienestar emparejada es la utilidad máxima media, no el excedente logsum que muestra la tabla de resultados.
