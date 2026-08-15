@@ -363,14 +363,19 @@ Pendientes, en orden de valor:
    entrega 0 frames con el panel del navegador oculto. **Hay que abrirlo y
    mirarla.**
 
-3. **`SidebarSection` se usa fuera del sidebar.** El bloque plegable de ciudad y
-   plano en `SandboxPage` lo reutiliza. Funciona y es accesible (`details`
-   nativo), pero el nombre miente; conviene renombrarlo a `CollapsibleSection`.
+3. ~~**`SidebarSection` se usa fuera del sidebar.**~~ **Hecho** (`f924c07`):
+   renombrado a `CollapsibleSection`. Las clases CSS siguen siendo
+   `sidebar-section*` a propósito — cambiarlas es tocar estilos, no nombres.
 
-4. **Formato.** 51 archivos con drift real de prettier (más 14 que solo difieren
-   por CRLF y que git normaliza con `autocrlf=true`, o sea no son problema). Si
-   se ordena, va en un commit dedicado y conviene fijar un `.prettierrc`: hoy no
-   hay, así que el estilo depende de la versión instalada.
+4. ~~**Formato.**~~ **Hecho** (`3797dee`): `.prettierrc` con las opciones
+   explícitas (el drift venía de no tener config y depender de la versión del
+   binario) y prettier pasado sobre 55 archivos del web. El alcance lo manda
+   `.prettierignore`, no el glob del script, así vale también para el editor.
+   **Queda afuera `*.md`**: prettier expande cada tabla al ancho de su columna
+   más larga — 184 líneas cambiadas solo en este documento, con filas de 200+
+   caracteres. Y también `apps/web/e2e/fixtures` y `docs/_datos_informe`, que
+   los escribe Python con `json.dumps(..., indent=1)`: reformatearlos los deja
+   sucios hasta que el generador los revierte.
 
 5. **`main` quedó muy atrás.** Sin divergencia; es fast-forward cuando se decida
    (ver la cabecera de este documento).
