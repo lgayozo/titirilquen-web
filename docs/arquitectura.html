@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Mapa de arquitectura</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --py: #2f6690; --ts: #b4532a; --doc: #6b6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 1040px; margin: 0 auto; padding: 40px 24px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 16px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 12px; max-width: 66ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 40px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 15.5px; margin: 24px 0 4px; font-weight: 600; }
+  h4 { font-size: 13px; margin: 18px 0 2px; font-weight: 600; font-family: "Segoe UI", sans-serif;
+       letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  p { margin: 8px 0; max-width: 78ch; }
+  ul, ol { max-width: 78ch; margin: 8px 0; padding-left: 24px; }
+  li { margin: 2px 0; }
+  code, .mono, .ruta {
+    font-family: "Consolas", "Courier New", monospace; font-size: .86em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  .ruta { white-space: nowrap; }
+  .ruta.py { color: var(--py); }
+  .ruta.ts { color: var(--ts); }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 6px; font-size: 13px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 10.5px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 8px 4px; position: sticky; top: 0;
+    background: var(--paper);
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 4px 8px; vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: var(--paper-2); }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 78ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 80ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso p { margin: 4px 0; }
+  .etiqueta {
+    display: inline-block; font-family: "Segoe UI", system-ui, sans-serif; font-size: 10px;
+    letter-spacing: .06em; text-transform: uppercase; font-weight: 700; padding: 1px 6px;
+    border-radius: 3px; margin-right: 5px; white-space: nowrap;
+  }
+  .etiqueta.py { background: #dce6ee; color: var(--py); }
+  .etiqueta.ts { background: #eedfd6; color: var(--ts); }
+  .etiqueta.doc { background: #e4e2dd; color: var(--doc); }
+  .etiqueta.esp { background: #f3e0c8; color: #8a5a12; }
+  /* buscador */
+  .buscador {
+    position: sticky; top: 0; z-index: 20; background: var(--paper);
+    border-bottom: 1px solid var(--rule); padding: 10px 0; margin: 0 0 8px;
+  }
+  .buscador input {
+    width: 100%; font-family: "Consolas", monospace; font-size: 14px; padding: 9px 12px;
+    border: 1px solid var(--rule); background: var(--paper-2); color: var(--ink); border-radius: 3px;
+  }
+  .buscador input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .conteo { font-family: "Segoe UI", sans-serif; font-size: 11px; color: var(--muted); margin-top: 5px; }
+  tr.oculta { display: none; }
+  mark { background: #f6e2ba; color: inherit; padding: 0 1px; }
+  /* toc */
+  nav.toc {
+    background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 16px; margin: 18px 0 0;
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12.5px;
+  }
+  nav.toc ol { columns: 2; column-gap: 30px; margin: 0; padding-left: 18px; }
+  nav.toc a { color: var(--ink-2); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  .arbol {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.65;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 14px 16px; overflow-x: auto; margin: 12px 0; white-space: pre;
+  }
+  .arbol .c { color: var(--muted); }
+  footer { margin-top: 52px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print { .buscador { position: static; } .pagina { max-width: none; padding: 0; } }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Simulador educativo de transporte urbano</div>
+  <h1>Mapa de arquitectura: dónde vive cada cosa</h1>
+  <p class="bajada">Inventario completo y navegable del repositorio: los 4.035 renglones del núcleo
+  científico en Python, los ~17.000 del frontend, la API, los tests y los scripts de auditoría.
+  Pensado para responder dos preguntas rápido: <em>«¿dónde está implementado X?»</em> y
+  <em>«¿qué se rompe si toco Y?»</em>.</p>
+  <div class="meta">15 de agosto de 2026 · rama <code>ciudad-equilibrio-mejoras</code> ·
+  reemplaza a <code>docs/ARCHITECTURE.md</code>, que quedó en el commit inicial (abril 2026) y no
+  conoce el módulo acoplado, las métricas de equilibrio ni los presets</div>
+</header>
+
+<nav class="toc">
+<ol>
+  <li><a href="#buscar">Buscador: concepto → archivo:línea</a></li>
+  <li><a href="#vistazo">El sistema de un vistazo</a></li>
+  <li><a href="#core">El núcleo científico (Python)</a></li>
+  <li><a href="#frontend">El frontend (TypeScript/React)</a></li>
+  <li><a href="#api">La API (FastAPI)</a></li>
+  <li><a href="#espejos">Los espejos: la zona de peligro</a></li>
+  <li><a href="#flujo">Flujo de una simulación, paso a paso</a></li>
+  <li><a href="#verificar">Tests, scripts y cómo verificar</a></li>
+</ol>
+</nav>
+
+<!-- ================================================================ -->
+<h2 id="buscar"><span class="num">1</span>Buscador: concepto → archivo:línea</h2>
+
+<p>Escribe un concepto, un nombre de función o un archivo. Filtra la tabla completa —es el índice
+maestro de todo lo implementado— y basta con un fragmento: <code>todo-o-nada</code>,
+<code>BPR</code>, <code>bid-rent</code>, <code>logit</code>, <code>msa</code>,
+<code>emisiones</code>, <code>wheel</code>.</p>
+
+<div class="buscador">
+  <input id="q" type="search" placeholder="Buscar… (p. ej. «todo-o-nada», «BPR», «espejo», «frecuencia»)" autocomplete="off">
+  <div class="conteo" id="conteo"></div>
+</div>
+
+<div class="envoltorio-tabla"><table id="indice">
+<thead><tr><th>Qué</th><th>Dónde</th><th>Lín.</th><th>Notas</th></tr></thead>
+<tbody>
+<tr><td><span class="etiqueta py">py</span><strong>Todo-o-nada / determinístico</strong> (ex «Wardrop»)</td><td class="ruta py">demand/choice.py</td><td class="n">44</td><td><code>probabilidades_wardrop</code> — argmax sobre modos factibles, empates en partes iguales</td></tr>
+<tr><td><span class="etiqueta py">py</span>Logit multinomial (elección de modo)</td><td class="ruta py">demand/choice.py</td><td class="n">19</td><td><code>probabilidades_logit</code> — resta el máximo antes de exponenciar</td></tr>
+<tr><td><span class="etiqueta py">py</span>Sorteo de modo (Monte Carlo)</td><td class="ruta py">demand/choice.py</td><td class="n">100</td><td><code>elegir_modo</code></td></tr>
+<tr><td><span class="etiqueta py">py</span>Función de utilidad por modo</td><td class="ruta py">demand/utility.py</td><td class="n">60</td><td><code>calcular_utilidades</code> — cortes de factibilidad: caminata 30 min, bici 45 min</td></tr>
+<tr><td><span class="etiqueta py">py</span>Descomposición de utilidad (ASC/tiempo/costo)</td><td class="ruta py">demand/utility.py</td><td class="n">38</td><td><code>UtilityBreakdown</code></td></tr>
+<tr><td><span class="etiqueta py">py</span>Tiempos observados por celda</td><td class="ruta py">demand/utility.py</td><td class="n">23</td><td><code>TiemposObservados</code></td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Loop MSA</strong> (el corazón del equilibrio)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">363</td><td><code>_iter_loop</code> — promedia TIEMPOS; bandera <code>promediar_flujos</code> para el esquema estándar</td></tr>
+<tr><td><span class="etiqueta py">py</span>Entrada pública del MSA</td><td class="ruta py">equilibrium/msa.py</td><td class="n">267</td><td><code>iter_msa</code> · <code>run_msa</code> (570) · <code>iter_msa_desde_suelo</code> (292)</td></tr>
+<tr><td><span class="etiqueta py">py</span>Asignación de demanda por grupo</td><td class="ruta py">equilibrium/msa.py</td><td class="n">165</td><td><code>_correr_iteracion</code> — elige montecarlo / esperados / determinístico</td></tr>
+<tr><td><span class="etiqueta py">py</span>Definición de «grupo»</td><td class="ruta py">equilibrium/msa.py</td><td class="n">109</td><td><code>_GrupoDemanda</code> = (estrato, celda, tenencia de auto). 942 en la ciudad default</td></tr>
+<tr><td><span class="etiqueta py">py</span>Snapshot por iteración</td><td class="ruta py">equilibrium/msa.py</td><td class="n">41</td><td><code>IterationSnapshot</code> — lo que viaja al frontend en vivo</td></tr>
+<tr><td><span class="etiqueta py">py</span>Resultado completo de la corrida</td><td class="ruta py">equilibrium/msa.py</td><td class="n">64</td><td><code>ConvergenceTrace</code></td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>BPR + Greenshields</strong> (oferta vial)</td><td class="ruta py">supply/car.py</td><td class="n">36</td><td><code>demora_auto_tramo</code> — capacidad por Greenshields, demora acumulada hacia el CBD</td></tr>
+<tr><td><span class="etiqueta py">py</span>Oferta de bicicleta (BPR + pendiente)</td><td class="ruta py">supply/bike.py</td><td class="n">32</td><td><code>demora_bici_tramo</code> — acotada por abajo al tiempo de caminata</td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Oferta de metro</strong> (frecuencia endógena)</td><td class="ruta py">supply/train.py</td><td class="n">34</td><td><code>oferta_tren</code> — <code>f = clip(carga/K, frec_min, frec_max)</code>, espera = 30/f</td></tr>
+<tr><td><span class="etiqueta py">py</span>Efecto Mohring / economía de escala del metro</td><td class="ruta py">supply/train.py</td><td class="n">34</td><td>Dentro de <code>oferta_tren</code>: más demanda ⇒ más frecuencia ⇒ menos espera</td></tr>
+<tr><td><span class="etiqueta py">py</span>Emisiones de CO₂</td><td class="ruta py">emissions.py</td><td class="n">43</td><td><code>calcular_emisiones</code> · factor del auto en la 29</td></tr>
+<tr><td><span class="etiqueta py">py</span>Generación de población sintética</td><td class="ruta py">population.py</td><td class="n">32</td><td><code>generar_poblacion</code> · desde uso de suelo: 93 y 155</td></tr>
+<tr><td><span class="etiqueta py">py</span>Agente individual</td><td class="ruta py">population.py</td><td class="n">22</td><td><code>Agente</code> — estrato, celda, tenencia de auto, teletrabajo</td></tr>
+<tr><td><span class="etiqueta py">py</span>Ciudad lineal (geometría)</td><td class="ruta py">city.py</td><td class="n">15</td><td><code>CiudadLineal</code> — n_celdas, largo, CBD al centro, ancho de celda</td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Configuración</strong> (fuente de verdad)</td><td class="ruta py">config.py</td><td class="n">311</td><td><code>SimulationConfig</code> — <code>extra="forbid"</code>: quitar un campo rompe escenarios guardados</td></tr>
+<tr><td><span class="etiqueta py">py</span>Coeficientes del logit por estrato</td><td class="ruta py">config.py</td><td class="n">40</td><td><code>StratumBetas</code> · penalizaciones físicas en la 23 (sub-objeto anidado)</td></tr>
+<tr><td><span class="etiqueta py">py</span>Parámetros de oferta</td><td class="ruta py">config.py</td><td class="n">303</td><td><code>SupplyConfig</code> → bici 190 · auto 203 · tren 225</td></tr>
+<tr><td><span class="etiqueta py">py</span>Presets de ciudad y política</td><td class="ruta py">presets.py</td><td class="n">11</td><td><code>CityPreset</code> · <code>PolicyPreset</code> (24). Declaran valores ABSOLUTOS, no diffs</td></tr>
+<tr><td><span class="etiqueta py">py</span>Betas por defecto de los 3 estratos</td><td class="ruta py">presets.py</td><td class="n">—</td><td><code>DEFAULT_STRATA</code> — el contrato golden NO lo cubre</td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Bid-rent / subasta de suelo</strong></td><td class="ruta py">land_use/equilibrium.py</td><td class="n">158</td><td><code>solve_logit</code> — el único solver que existe (no hay heteroscedástico)</td></tr>
+<tr><td><span class="etiqueta py">py</span>Resultado del uso de suelo</td><td class="ruta py">land_use/equilibrium.py</td><td class="n">33</td><td><code>LandUseResult</code> — matriz <code>Q[h,i]</code></td></tr>
+<tr><td><span class="etiqueta py">py</span>Oferta de vivienda S(i)</td><td class="ruta py">land_use/supply.py</td><td class="n">59</td><td><code>generar_oferta</code> — formas: normal, meseta, valle, bimodal</td></tr>
+<tr><td><span class="etiqueta py">py</span>Asignación de hogares a parcelas</td><td class="ruta py">land_use/allocation.py</td><td class="n">13</td><td><code>asignar_hogares_simple</code> — mayor residuo, Σ exacto</td></tr>
+<tr><td><span class="etiqueta py">py</span>Orquestador del uso de suelo</td><td class="ruta py">land_use/ciudad.py</td><td class="n">41</td><td><code>LandUseCity.build</code></td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Loop acoplado suelo ↔ transporte</strong></td><td class="ruta py">coupled.py</td><td class="n">215</td><td><code>iter_coupled</code> · <code>run_coupled</code> (310) — amortiguación θ = 1/(n+1)</td></tr>
+<tr><td><span class="etiqueta py">py</span>Métricas del equilibrio conjunto</td><td class="ruta py">coupled_metrics.py</td><td class="n">314</td><td><code>compute_equilibrium_metrics</code> — excedente, recaudación, bienestar social</td></tr>
+<tr><td><span class="etiqueta ts">ts</span><strong>Worker de Pyodide</strong> (motor local)</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">—</td><td>Instala el wheel con micropip; <code>_trace_to_py</code> en la 155 serializa el trace</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Wrapper del motor local</td><td class="ruta ts">lib/pyodide-engine.ts</td><td class="n">—</td><td>Misma firma que <code>lib/api.ts</code>: <code>simulateStream(config, onIteration)</code></td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Cliente REST + SSE (motor api)</td><td class="ruta ts">lib/api.ts</td><td class="n">—</td><td>V2 (suelo y acoplado) en <code>lib/api-v2.ts</code></td></tr>
+<tr><td><span class="etiqueta esp">espejo</span>Tipos TS de la configuración</td><td class="ruta ts">lib/types.ts</td><td class="n">—</td><td>Espejo a mano de <code>config.py</code>; V2 en <code>lib/types-v2.ts</code></td></tr>
+<tr><td><span class="etiqueta esp">espejo</span>Utilidad en TS (inspector)</td><td class="ruta ts">lib/utility.ts</td><td class="n">47</td><td><code>calcularUtilidades</code> · <code>probabilidadesLogit</code> (225)</td></tr>
+<tr><td><span class="etiqueta esp">espejo</span>Oferta de vivienda en TS</td><td class="ruta ts">lib/citySupply.ts</td><td class="n">76</td><td><code>supplyVector</code> — espejo de <code>land_use/supply.py</code>, con test de contrato</td></tr>
+<tr><td><span class="etiqueta esp">espejo</span>Presets en TS</td><td class="ruta ts">lib/presets.ts</td><td class="n">—</td><td>Espejo de <code>presets.py</code></td></tr>
+<tr><td><span class="etiqueta esp">espejo</span>Defaults en TS</td><td class="ruta ts">lib/defaults.ts</td><td class="n">—</td><td><code>baseBetas</code> — puede desincronizarse de <code>DEFAULT_STRATA</code> sin aviso</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Serialización de escenarios</td><td class="ruta ts">lib/serialization.ts</td><td class="n">—</td><td>Archivo <code>.ttrq.json</code> y share por <code>?s=</code> (base64url)</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Store de la simulación</td><td class="ruta ts">store/simulationStore.ts</td><td class="n">51</td><td><code>useSimulationStore</code> — <code>startRun</code>, <code>pushIteration</code>, <code>finishRun</code></td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Detección de resultado obsoleto</td><td class="ruta ts">store/simulationStore.ts</td><td class="n">139</td><td><code>isResultStale</code> · equivalente de suelo en <code>landUseStore.ts:144</code></td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Store de uso de suelo / acoplado</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">71</td><td><code>useLandUseStore</code></td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Store de comparación</td><td class="ruta ts">store/compareStore.ts</td><td class="n">142</td><td><code>useCompareStore</code> — hasta 4 escenarios, 3 lentes</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Página de transporte (la más grande)</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">—</td><td>1.438 líneas · sidebar de controles + secuencia FIG. 00-06</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Selector de método de asignación</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">881</td><td>Los tres botones; el hint en la 894</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Cinta de tiempos por modo y ubicación</td><td class="ruta ts">components/CityStrip.tsx</td><td class="n">87</td><td>Figura del hero, exportable; cortes de factibilidad en la 67</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Traza de convergencia</td><td class="ruta ts">components/viz/ConvergenceTrace.tsx</td><td class="n">79</td><td>Residuo + reparto modal por iteración</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Flujo acumulado del corredor</td><td class="ruta ts">components/viz/CorridorFlowFigure.tsx</td><td class="n">36</td><td><code>acumulacionParcial</code> — animación de 1.800 ms</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Panel de calibración (los 42 betas)</td><td class="ruta ts">components/modules/CalibrationPanel.tsx</td><td class="n">—</td><td>Editable desde la UI</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Tabla de resultados de transporte</td><td class="ruta ts">components/viz/TransportMetricsTable.tsx</td><td class="n">—</td><td>Reparto, costos, subsidio, autofinanciamiento</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Tutoriales (MDX por idioma)</td><td class="ruta ts">tutorials/manifest.ts</td><td class="n">90</td><td><code>TUTORIAL_TOC_ES</code> · <code>TUTORIAL_TOC_EN</code> (136). 8 capítulos</td></tr>
+<tr><td><span class="etiqueta py">py</span>Endpoints de la API</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">55</td><td><code>/health</code> 55 · <code>/simulate</code> 69 · <code>/simulate/stream</code> 75 · <code>/land-use/solve</code> 100 · <code>/coupled/solve</code> 126 · <code>/coupled/stream</code> 142</td></tr>
+<tr><td><span class="etiqueta esp">espejo</span>Serialización del trace (servidor)</td><td class="ruta py">apps/api/src/api/serialization.py</td><td class="n">79</td><td><code>trace_to_dict</code> — gemelo de <code>_trace_to_py</code> del worker</td></tr>
+<tr><td><span class="etiqueta doc">doc</span>Auditoría del todo-o-nada</td><td class="ruta">docs/informe-wardrop.html</td><td class="n">—</td><td>Formulación, pruebas, sensibilidad, contraste con logit</td></tr>
+<tr><td><span class="etiqueta doc">doc</span>Informe de Downs-Thomson</td><td class="ruta">docs/informe-downs-thomson.html</td><td class="n">—</td><td>Condiciones y receta reproducible</td></tr>
+<tr><td><span class="etiqueta doc">doc</span>Estado y pendientes del proyecto</td><td class="ruta">docs/CONTINUAR.md</td><td class="n">—</td><td>Calibración vigente, §5 Downs-Thomson, §7 trampas conocidas</td></tr>
+<tr><td><span class="etiqueta doc">doc</span>Wheel de Pyodide (artefacto)</td><td class="ruta">apps/web/public/pyodide/</td><td class="n">—</td><td>Versionado en git. <strong>Recompilar tras tocar el core</strong></td></tr>
+</tbody>
+</table></div>
+
+<!-- ================================================================ -->
+<h2 id="vistazo"><span class="num">2</span>El sistema de un vistazo</h2>
+
+<p>La idea rectora del repositorio: <strong>un solo núcleo científico en Python que corre en dos
+runtimes</strong>. El mismo código —el mismo <em>wheel</em>, de hecho— se ejecuta en el servidor
+FastAPI y dentro del navegador vía Pyodide. El frontend no sabe cuál está usando.</p>
+
+<figure>
+<svg viewBox="0 0 900 400" width="100%" role="img" aria-label="Diagrama de capas del simulador">
+  <defs>
+    <marker id="f" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#444"/>
+    </marker>
+  </defs>
+  <g font-family="Segoe UI, sans-serif" font-size="12">
+    <!-- navegador -->
+    <rect x="20" y="20" width="390" height="230" fill="#f6f4ef" stroke="#d8d4cc"/>
+    <text x="32" y="38" font-size="11" letter-spacing="1.5" fill="#6b6b6b">NAVEGADOR</text>
+    <rect x="36" y="50" width="358" height="52" fill="#fff" stroke="#b4532a"/>
+    <text x="46" y="70" font-weight="600">React + Zustand</text>
+    <text x="46" y="88" font-size="11" fill="#444">pages · components/viz · store</text>
+    <rect x="36" y="112" width="358" height="46" fill="#fff" stroke="#b4532a"/>
+    <text x="46" y="131" font-weight="600">Abstracción de motor</text>
+    <text x="46" y="148" font-size="11" fill="#444">lib/pyodide-engine.ts · lib/api.ts — misma firma</text>
+    <rect x="36" y="168" width="358" height="64" fill="#fff" stroke="#2f6690"/>
+    <text x="46" y="188" font-weight="600">Web Worker · Pyodide</text>
+    <text x="46" y="205" font-size="11" fill="#444">micropip instala el wheel</text>
+    <text x="46" y="221" font-size="11" fill="#2f6690">titirilquen_core (Python en WASM)</text>
+    <!-- servidor -->
+    <rect x="500" y="20" width="380" height="130" fill="#f6f4ef" stroke="#d8d4cc"/>
+    <text x="512" y="38" font-size="11" letter-spacing="1.5" fill="#6b6b6b">SERVIDOR (opcional)</text>
+    <rect x="516" y="50" width="348" height="46" fill="#fff" stroke="#2f6690"/>
+    <text x="526" y="69" font-weight="600">FastAPI</text>
+    <text x="526" y="86" font-size="11" fill="#444">/simulate · /simulate/stream · /coupled/*</text>
+    <rect x="516" y="104" width="348" height="34" fill="#fff" stroke="#2f6690"/>
+    <text x="526" y="126" font-size="11" fill="#2f6690">titirilquen_core (el mismo paquete)</text>
+    <!-- core -->
+    <rect x="180" y="285" width="540" height="95" fill="#fff" stroke="#2f6690" stroke-width="2"/>
+    <text x="200" y="308" font-weight="600" fill="#2f6690">NÚCLEO CIENTÍFICO · packages/titirilquen_core</text>
+    <text x="200" y="328" font-size="11.5" fill="#444">city · config · population · presets · emissions</text>
+    <text x="200" y="345" font-size="11.5" fill="#444">demand/ (utility, choice) · supply/ (car, bike, train)</text>
+    <text x="200" y="362" font-size="11.5" fill="#444">equilibrium/msa · land_use/ · coupled · coupled_metrics</text>
+    <!-- flechas -->
+    <line x1="215" y1="102" x2="215" y2="110" stroke="#444" marker-end="url(#f)"/>
+    <line x1="215" y1="158" x2="215" y2="166" stroke="#444" marker-end="url(#f)"/>
+    <line x1="394" y1="135" x2="514" y2="80" stroke="#444" stroke-dasharray="4 3" marker-end="url(#f)"/>
+    <text x="432" y="100" font-size="10" fill="#6b6b6b">SSE (si engine="api")</text>
+    <line x1="215" y1="232" x2="215" y2="283" stroke="#2f6690" marker-end="url(#f)"/>
+    <line x1="690" y1="138" x2="690" y2="283" stroke="#2f6690" marker-end="url(#f)"/>
+    <text x="700" y="215" font-size="10" fill="#6b6b6b">import</text>
+    <text x="228" y="262" font-size="10" fill="#6b6b6b">mismo wheel</text>
+  </g>
+</svg>
+<p class="pie-tabla">Con <code>VITE_API_BASE="disabled"</code> la mitad derecha desaparece y el
+simulador es 100 % estático. Es el modo en que se despliega hoy.</p>
+</figure>
+
+<h3>Los cinco módulos conceptuales</h3>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Módulo</th><th>Qué resuelve</th><th>Vive en</th><th>Página</th></tr></thead>
+<tbody>
+<tr><td><strong>Ciudad</strong></td><td>Geometría 1D y discretización</td><td class="ruta py">city.py</td><td>—</td></tr>
+<tr><td><strong>Oferta</strong></td><td>Tiempos de viaje dada la demanda</td><td class="ruta py">supply/{car,bike,train}.py</td><td>Transporte</td></tr>
+<tr><td><strong>Demanda</strong></td><td>Utilidad y elección de modo</td><td class="ruta py">demand/{utility,choice}.py</td><td>Transporte</td></tr>
+<tr><td><strong>Equilibrio</strong></td><td>Punto fijo oferta ↔ demanda (MSA)</td><td class="ruta py">equilibrium/msa.py</td><td>Transporte</td></tr>
+<tr><td><strong>Uso de suelo</strong></td><td>Dónde vive cada estrato (bid-rent)</td><td class="ruta py">land_use/</td><td>Uso de suelo</td></tr>
+<tr><td><strong>Acoplado</strong></td><td>Punto fijo conjunto suelo ↔ transporte</td><td class="ruta py">coupled.py</td><td>Ciudad en equilibrio</td></tr>
+</tbody></table></div>
+
+<!-- ================================================================ -->
+<h2 id="core"><span class="num">3</span>El núcleo científico (Python)</h2>
+
+<p>4.035 líneas, Python puro sobre numpy · scipy · pydantic. <strong>Toda la matemática vive
+aquí y sólo aquí.</strong></p>
+
+<div class="arbol">packages/titirilquen_core/
+├── src/titirilquen_core/
+│   ├── config.py            <span class="c">362 · esquemas Pydantic — FUENTE DE VERDAD de la configuración</span>
+│   ├── city.py               <span class="c">43 · CiudadLineal: n_celdas, largo, CBD al centro</span>
+│   ├── population.py        <span class="c">211 · generador de agentes (estrato, celda, auto, teletrabajo)</span>
+│   ├── presets.py           <span class="c">325 · presets de ciudad y política + DEFAULT_STRATA</span>
+│   ├── emissions.py          <span class="c">95 · CO₂ por tramo (auto por veh-km, metro por tren-km)</span>
+│   ├── demand/
+│   │   ├── utility.py       <span class="c">175 · utilidad por modo + cortes de factibilidad</span>
+│   │   └── choice.py        <span class="c">121 · logit · TODO-O-NADA · sorteo Monte Carlo</span>
+│   ├── supply/
+│   │   ├── car.py            <span class="c">95 · Greenshields (capacidad) + BPR (demora acumulada)</span>
+│   │   ├── bike.py           <span class="c">97 · BPR con pendiente, piso en el tiempo de caminata</span>
+│   │   └── train.py         <span class="c">148 · frecuencia endógena, espera, acceso, detenciones</span>
+│   ├── equilibrium/
+│   │   └── msa.py           <span class="c">681 · EL LOOP. El archivo más grande y más importante</span>
+│   ├── land_use/
+│   │   ├── supply.py        <span class="c">197 · oferta de vivienda S(i): normal, meseta, valle, bimodal</span>
+│   │   ├── equilibrium.py   <span class="c">209 · subasta logit sobre la puja (solve_logit)</span>
+│   │   ├── allocation.py     <span class="c">83 · reparto de hogares por mayor residuo</span>
+│   │   ├── ciudad.py        <span class="c">158 · orquestador LandUseCity</span>
+│   │   └── config.py        <span class="c">113 · esquemas del módulo de suelo</span>
+│   ├── coupled.py           <span class="c">335 · loop exterior suelo ↔ transporte</span>
+│   └── coupled_metrics.py   <span class="c">480 · excedente, recaudación, bienestar social</span>
+├── tests/                   <span class="c">12 archivos · 60 tests</span>
+└── scripts/                 <span class="c">auditorías y diagnósticos reproducibles</span></div>
+
+<h3>Grafo de dependencias</h3>
+
+<p>Ningún ciclo. Las hojas no importan nada del propio paquete y se pueden leer aisladas; el
+<code>msa.py</code> es el que amarra todo.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Módulo</th><th>Depende de</th></tr></thead>
+<tbody>
+<tr><td class="ruta py">city.py · config.py · presets.py · emissions.py</td><td><em>nada</em> — hojas</td></tr>
+<tr><td class="ruta py">supply/car.py · supply/bike.py · supply/train.py</td><td><em>nada</em> — hojas puras (sólo numpy)</td></tr>
+<tr><td class="ruta py">land_use/supply.py · land_use/equilibrium.py · land_use/allocation.py</td><td><em>nada</em> — hojas</td></tr>
+<tr><td class="ruta py">demand/utility.py</td><td>city · config</td></tr>
+<tr><td class="ruta py">demand/choice.py</td><td>demand.utility</td></tr>
+<tr><td class="ruta py">land_use/ciudad.py</td><td>land_use.{allocation, config, equilibrium, supply}</td></tr>
+<tr><td class="ruta py">population.py</td><td>city · config · land_use.ciudad</td></tr>
+<tr><td class="ruta py"><strong>equilibrium/msa.py</strong></td><td>city · config · demand.* · supply.* · land_use.* · population · emissions</td></tr>
+<tr><td class="ruta py">coupled_metrics.py</td><td>city · config · demand.utility · equilibrium.msa · land_use.* · supply.*</td></tr>
+<tr><td class="ruta py">coupled.py</td><td>city · config · coupled_metrics · demand.utility · equilibrium.msa · land_use.* · population</td></tr>
+</tbody></table>
+<p class="pie-tabla">Consecuencia práctica: tocar <code>supply/train.py</code> no puede romper el
+uso de suelo, pero tocar <code>config.py</code> puede romperlo todo — y además los cuatro espejos
+en TypeScript.</p></div>
+
+<!-- ================================================================ -->
+<h2 id="frontend"><span class="num">4</span>El frontend (TypeScript / React)</h2>
+
+<p>~17.000 líneas. Vite + React + Zustand + Recharts + MDX. <strong>No contiene matemática del
+modelo</strong>, con la excepción documentada de los espejos de la §6.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Carpeta</th><th class="n">Arch.</th><th class="n">Líneas</th><th>Qué contiene</th></tr></thead>
+<tbody>
+<tr><td class="ruta ts">pages/</td><td class="n">6</td><td class="n">3.383</td><td>Una por ruta. <code>SandboxPage</code> (1.438) es la de transporte</td></tr>
+<tr><td class="ruta ts">components/viz/</td><td class="n">24</td><td class="n">6.399</td><td>Todas las figuras y tablas de resultados</td></tr>
+<tr><td class="ruta ts">lib/</td><td class="n">18</td><td class="n">2.898</td><td>Motores, tipos, serialización, espejos, KPIs, export</td></tr>
+<tr><td class="ruta ts">components/modules/</td><td class="n">7</td><td class="n">1.740</td><td>Los paneles de control del sidebar</td></tr>
+<tr><td class="ruta ts">components/compare/</td><td class="n">6</td><td class="n">1.381</td><td>Comparación de hasta 4 escenarios</td></tr>
+<tr><td class="ruta ts">components/</td><td class="n">8</td><td class="n">1.219</td><td>Layout, topbar, CityStrip, estado de la corrida</td></tr>
+<tr><td class="ruta ts">store/</td><td class="n">4</td><td class="n">650</td><td>Zustand: simulación, uso de suelo, comparación, tema</td></tr>
+<tr><td class="ruta ts">tutorials/</td><td class="n">3 + 16 MDX</td><td class="n">434</td><td>Manifiesto, componentes MDX y escenarios de actividades</td></tr>
+<tr><td class="ruta ts">components/ui/</td><td class="n">6</td><td class="n">342</td><td>Primitivos: panel, sección plegable, slider, figura exportable</td></tr>
+<tr><td class="ruta ts">workers/</td><td class="n">1</td><td class="n">390</td><td>El worker de Pyodide</td></tr>
+</tbody></table></div>
+
+<h3>Rutas</h3>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Ruta</th><th>Página</th><th>Qué hace</th></tr></thead>
+<tbody>
+<tr><td><code>/</code> · <code>/tutorial/:slug</code></td><td class="ruta ts">TutorialPage.tsx</td><td>Los 8 capítulos MDX, por idioma</td></tr>
+<tr><td><code>/sandbox</code></td><td class="ruta ts">SandboxPage.tsx</td><td><strong>Transporte</strong>: controles + MSA en vivo + figuras</td></tr>
+<tr><td><code>/land-use</code></td><td class="ruta ts">LandUsePage.tsx</td><td>Bid-rent, densidad, precio del suelo</td></tr>
+<tr><td><code>/coupled</code></td><td class="ruta ts">CoupledPage.tsx</td><td><strong>Ciudad en equilibrio</strong>: loop exterior con/sin feedback</td></tr>
+<tr><td><code>/compare</code></td><td class="ruta ts">ComparePage.tsx</td><td>Hasta 4 escenarios en 3 lentes</td></tr>
+<tr><td><code>/about</code></td><td class="ruta ts">AboutPage.tsx</td><td>Créditos y licencia</td></tr>
+</tbody></table>
+<p class="pie-tabla">Definidas en <code class="ruta ts">main.tsx:32</code>.</p></div>
+
+<!-- ================================================================ -->
+<h2 id="api"><span class="num">5</span>La API (FastAPI)</h2>
+
+<p>265 líneas en total: es una capa fina sobre el core. Sólo hace falta con
+<code>engine: "api"</code>; el frontend funciona sin ella.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Endpoint</th><th class="n">Lín.</th><th>Devuelve</th></tr></thead>
+<tbody>
+<tr><td><code>GET /health</code></td><td class="n">55</td><td>Chequeo de vida (Fly.io)</td></tr>
+<tr><td><code>GET /presets</code></td><td class="n">60</td><td>Presets de ciudad y política del core</td></tr>
+<tr><td><code>POST /simulate</code></td><td class="n">69</td><td>Corrida completa, una respuesta</td></tr>
+<tr><td><code>POST /simulate/stream</code></td><td class="n">75</td><td><strong>SSE</strong>: una iteración del MSA a la vez</td></tr>
+<tr><td><code>POST /land-use/solve</code></td><td class="n">100</td><td>Equilibrio de suelo aislado</td></tr>
+<tr><td><code>POST /coupled/solve</code> · <code>/coupled/stream</code></td><td class="n">126 · 142</td><td>Loop acoplado, completo o por iteración exterior</td></tr>
+</tbody></table></div>
+
+<!-- ================================================================ -->
+<h2 id="espejos"><span class="num">6</span>Los espejos: la zona de peligro</h2>
+
+<div class="aviso">
+<p><strong>Ésta es la sección que hay que leer antes de tocar el core.</strong> Hay lógica
+duplicada a mano entre Python y TypeScript. Nada avisa cuando se desincroniza, salvo donde existe
+un test de contrato.</p>
+</div>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Concepto</th><th>Original (Python)</th><th>Espejo (TS)</th><th>¿Protegido?</th></tr></thead>
+<tbody>
+<tr><td>Esquema de configuración</td><td class="ruta py">config.py</td><td class="ruta ts">lib/types.ts · types-v2.ts</td><td>Parcial — <code>contract.spec.ts</code> compara estructura y defaults</td></tr>
+<tr><td>Función de utilidad</td><td class="ruta py">demand/utility.py</td><td class="ruta ts">lib/utility.ts</td><td><strong>No</strong> — sólo alimenta el inspector</td></tr>
+<tr><td>Oferta de vivienda S(i)</td><td class="ruta py">land_use/supply.py</td><td class="ruta ts">lib/citySupply.ts</td><td>Sí — <code>contract.spec.ts</code> con fixture golden</td></tr>
+<tr><td>Presets</td><td class="ruta py">presets.py</td><td class="ruta ts">lib/presets.ts</td><td><strong>No</strong></td></tr>
+<tr><td><strong>Los 42 betas</strong></td><td class="ruta py">presets.py <code>DEFAULT_STRATA</code></td><td class="ruta ts">lib/defaults.ts <code>baseBetas</code></td><td><strong>No</strong> — hueco conocido y pendiente</td></tr>
+<tr><td>Serialización del trace</td><td class="ruta py">api/serialization.py:79</td><td class="ruta ts">workers/pyodide.worker.ts:155</td><td><strong>No</strong> — dos gemelos que deben moverse juntos</td></tr>
+</tbody></table></div>
+
+<h4>Las cinco trampas que ya mordieron</h4>
+<ol>
+<li><strong>El wheel viejo.</strong> Tras tocar el core hay que recompilarlo o Pyodide sigue
+corriendo el código anterior. En esta máquina: <code>uv build --wheel</code> y copiar el
+<code>.whl</code> a <code>apps/web/public/pyodide/</code>.</li>
+<li><strong>Presets con valores absolutos.</strong> Declaran valores, no diferencias: al recalibrar
+un default hay que moverlos, o aplicar una política revierte ese parámetro en silencio. Ya pasó
+cuatro veces.</li>
+<li><strong>Una tercera copia de los betas</strong> vivía en un script de auditoría y midió
+valores viejos sin avisar. Eliminada, pero el patrón vuelve.</li>
+<li><strong><code>model_copy(update=…)</code> de Pydantic no valida</strong>: una clave inexistente
+se cuela como atributo suelto y el barrido reporta «inerte» un parámetro que no se está moviendo.
+Los scripts llevan un guard.</li>
+<li><strong>Sub-objetos anidados.</strong> Cualquier recorrido de la configuración que asuma
+estructura plana se salta <code>penalizaciones_fisicas</code> en silencio. Produjo una falsa
+anomalía en la auditoría del todo-o-nada.</li>
+</ol>
+
+<div class="aviso ok">
+<p><strong><code>extra="forbid"</code>.</strong> Agregar un campo nuevo con default es seguro;
+<em>quitar</em> o <em>renombrar</em> uno rompe la importación de escenarios <code>.ttrq.json</code>
+ya guardados y los enlaces <code>?s=</code>. Es la razón por la que el método determinístico
+conserva el valor <code>"wardrop"</code> en el esquema.</p>
+</div>
+
+<!-- ================================================================ -->
+<h2 id="flujo"><span class="num">7</span>Flujo de una simulación, paso a paso</h2>
+
+<p>Qué ocurre exactamente cuando el alumno aprieta «Simular equilibrio», con el archivo de cada
+paso.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th class="n">#</th><th>Paso</th><th>Dónde</th></tr></thead>
+<tbody>
+<tr><td class="n">1</td><td>Los sliders escriben en el <code>SimulationConfig</code> del store</td><td class="ruta ts">components/modules/* → store/simulationStore.ts</td></tr>
+<tr><td class="n">2</td><td><code>startRun</code> elige motor: <code>local</code> (default) o <code>api</code></td><td class="ruta ts">store/simulationStore.ts:51</td></tr>
+<tr><td class="n">3</td><td>La config se serializa y cruza al Web Worker</td><td class="ruta ts">lib/pyodide-engine.ts → workers/pyodide.worker.ts</td></tr>
+<tr><td class="n">4</td><td>Pydantic valida y construye la ciudad</td><td class="ruta py">config.py:311 → city.py:15</td></tr>
+<tr><td class="n">5</td><td>Se resuelve el uso de suelo y de ahí sale la población</td><td class="ruta py">land_use/ciudad.py:41 → population.py:155</td></tr>
+<tr><td class="n">6</td><td>Los agentes se agrupan en (estrato, celda, auto)</td><td class="ruta py">equilibrium/msa.py:122</td></tr>
+<tr><td class="n">7</td><td><strong>Iteración:</strong> cada grupo calcula utilidades…</td><td class="ruta py">demand/utility.py:60</td></tr>
+<tr><td class="n">8</td><td>…y se reparte según el método elegido</td><td class="ruta py">demand/choice.py:19 · <strong>44</strong> · 100</td></tr>
+<tr><td class="n">9</td><td>La demanda resultante entra a las tres ofertas</td><td class="ruta py">supply/car.py:36 · bike.py:32 · train.py:34</td></tr>
+<tr><td class="n">10</td><td>Los tiempos nuevos se promedian con el paso 1/(it+1)</td><td class="ruta py">equilibrium/msa.py:363</td></tr>
+<tr><td class="n">11</td><td>Se emite un <code>IterationSnapshot</code> y se evalúa el residuo</td><td class="ruta py">equilibrium/msa.py:41</td></tr>
+<tr><td class="n">12</td><td>El snapshot se serializa y vuelve al hilo principal</td><td class="ruta ts">workers/pyodide.worker.ts:155</td></tr>
+<tr><td class="n">13</td><td><code>pushIteration</code> actualiza el store y React repinta <strong>en vivo</strong></td><td class="ruta ts">store/simulationStore.ts</td></tr>
+<tr><td class="n">14</td><td>Al converger, <code>finishRun</code> guarda el resultado completo</td><td class="ruta ts">store/simulationStore.ts</td></tr>
+<tr><td class="n">15</td><td>Las figuras y tablas leen del store</td><td class="ruta ts">components/viz/*</td></tr>
+</tbody></table>
+<p class="pie-tabla">Los pasos 7 a 11 se repiten hasta que el residuo baja de la tolerancia
+durante dos iteraciones consecutivas, o hasta agotar <code>max_iter</code>. Con el motor
+<code>api</code> los pasos 4-11 ocurren en el servidor y el 12 es un evento SSE.</p></div>
+
+<!-- ================================================================ -->
+<h2 id="verificar"><span class="num">8</span>Tests, scripts y cómo verificar</h2>
+
+<h3>Tests</h3>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Suite</th><th>Qué cubre</th><th>Comando</th></tr></thead>
+<tbody>
+<tr><td><strong>60 tests del core</strong><br><span class="mono">tests/test_*.py</span></td><td>Oferta (auto, bici, tren), demanda, todo-o-nada, uso de suelo, acoplado, métricas, emisiones, contrato con el frontend</td><td class="mono">uv run --extra dev pytest -q</td></tr>
+<tr><td><strong>33 e2e</strong><br><span class="mono">apps/web/e2e/</span></td><td>Humo de navegación, tema e idioma, export/share de escenarios, contrato TS↔Python</td><td class="mono">npm run test:e2e:fast</td></tr>
+<tr><td><span class="mono">simulation.spec.ts</span></td><td>Marcado <code>@slow</code>: corre el MSA real en Pyodide, necesita red (CDN)</td><td class="mono">npm run test:e2e</td></tr>
+<tr><td>Tipos y estilo</td><td>—</td><td class="mono">npm run typecheck · ruff check</td></tr>
+</tbody></table>
+<p class="pie-tabla">No hay tests unitarios ni de componente en el frontend: la red de seguridad
+de ese lado es el typecheck más los e2e.</p></div>
+
+<h3>Scripts de auditoría</h3>
+
+<p>Todos desde <code>packages/titirilquen_core</code>, con <code>uv run python scripts/&lt;x&gt;.py</code>.
+Son la memoria reproducible del proyecto: cada número de los informes sale de uno de ellos.</p>
+
+<div class="envoltorio-tabla"><table>
+<thead><tr><th>Script</th><th>Qué responde</th></tr></thead>
+<tbody>
+<tr><td class="mono">diagnostico_calibracion.py</td><td>Los 42 betas en minutos-equivalentes: razones, valor del tiempo, penalizaciones</td></tr>
+<tr><td class="mono">auditoria_transporte.py</td><td>Barrido de todos los parámetros de transporte: dirección y magnitud</td></tr>
+<tr><td class="mono">auditoria_suelo.py</td><td>Ídem para uso de suelo</td></tr>
+<tr><td class="mono">auditoria_wardrop.py</td><td>El método determinístico contra la definición formal: 4 cortes + esquemas de MSA</td></tr>
+<tr><td class="mono">informe_wardrop.py</td><td>Genera <code>docs/_datos_informe/wardrop.json</code> para el informe HTML</td></tr>
+<tr><td class="mono">buscar_downs_thomson.py</td><td>Búsqueda sistemática de la paradoja en 10 escenarios</td></tr>
+<tr><td class="mono">paradojas.py</td><td>Downs-Thomson y Braess por número de pistas</td></tr>
+<tr><td class="mono">diagnostico_elasticidades.py</td><td>Elasticidades arco, techo de la bici, capacidad de tren</td></tr>
+<tr><td class="mono">sensibilidad.py</td><td>Barrido densidad × pistas</td></tr>
+<tr><td class="mono">comparar_original.py</td><td>Contraste contra el simulador original — <strong>necesita <code>reference/</code></strong>, que no viaja en git</td></tr>
+<tr><td class="mono">datos_informe.py</td><td>Genera los datos del informe de Downs-Thomson</td></tr>
+</tbody></table></div>
+
+<h3>Verificación completa antes de un commit</h3>
+
+<pre style="font-family:Consolas,monospace;font-size:12.5px;background:var(--paper-2);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:12px 14px;overflow-x:auto;">cd packages/titirilquen_core &amp;&amp; uv run --extra dev pytest -q      <span style="color:#6b6b6b"># 60 tests</span>
+cd apps/web &amp;&amp; npm run typecheck &amp;&amp; npm run test:e2e:fast        <span style="color:#6b6b6b"># tipos + 33 e2e</span>
+
+<span style="color:#6b6b6b"># Si tocaste el core, además:</span>
+cd packages/titirilquen_core &amp;&amp; uv build --wheel
+cp dist/titirilquen_core-0.1.0-py3-none-any.whl ../../apps/web/public/pyodide/
+
+<span style="color:#6b6b6b"># Si cambiaste un default del core, además:</span>
+uv run python tests/test_contract_frontend.py                     <span style="color:#6b6b6b"># regenera el golden</span></pre>
+
+<footer>
+Titirilquen · Mapa de arquitectura · 15 de agosto de 2026 · rama
+<code>ciudad-equilibrio-mejoras</code>.<br>
+Los números de línea corresponden al estado del repositorio en esa fecha y envejecen: para
+localizar algo con certeza, buscar el nombre de la función en vez de saltar a la línea.
+Licencia GPL-3.0-or-later; ver <code>NOTICE.md</code> para la atribución a los autores originales.
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var q = document.getElementById("q");
+  var tabla = document.getElementById("indice");
+  var filas = Array.prototype.slice.call(tabla.tBodies[0].rows);
+  var conteo = document.getElementById("conteo");
+  var textos = filas.map(function (f) { return f.textContent.toLowerCase(); });
+  // Normaliza acentos para que "asignacion" encuentre "asignación".
+  function norm(s) {
+    return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+  var normalizados = textos.map(norm);
+  function filtrar() {
+    var t = norm(q.value.trim().toLowerCase());
+    var visibles = 0;
+    filas.forEach(function (f, i) {
+      var ok = t === "" || normalizados[i].indexOf(t) !== -1;
+      f.classList.toggle("oculta", !ok);
+      if (ok) visibles++;
+    });
+    conteo.textContent =
+      t === ""
+        ? filas.length + " entradas en el índice"
+        : visibles + " de " + filas.length + " coinciden con «" + q.value.trim() + "»";
+  }
+  q.addEventListener("input", filtrar);
+  filtrar();
+})();
+</script>
+</body>
+</html>
