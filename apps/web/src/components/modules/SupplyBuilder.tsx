@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { BPRCurve } from "@/components/viz/BPRCurve";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import type { SimulationConfig } from "@/lib/types";
 
 interface SupplyBuilderProps {
@@ -67,7 +67,7 @@ export function SupplyBuilder({
 
   return (
     <>
-      <SidebarSection
+      <CollapsibleSection
         title={`${t("sections.supply")} · ${t("modes.auto")}`}
         meta={`${car.num_pistas} × ${car.v_max_kmh} km/h`}
         defaultOpen={false}
@@ -156,9 +156,9 @@ export function SupplyBuilder({
           operatingRatio={operatingRatios?.car ?? null}
           label={t("supply_builder.bpr_curve_auto")}
         />
-      </SidebarSection>
+      </CollapsibleSection>
 
-      <SidebarSection
+      <CollapsibleSection
         title={`${t("sections.supply")} · ${t("modes.bici")}`}
         meta={`${bike.capacidad_pista} ${t("supply_params.bike.unit")}`}
         defaultOpen={false}
@@ -187,9 +187,9 @@ export function SupplyBuilder({
           operatingRatio={operatingRatios?.bike ?? null}
           label={t("supply_builder.bpr_curve_bike")}
         />
-      </SidebarSection>
+      </CollapsibleSection>
 
-      <SidebarSection
+      <CollapsibleSection
         title={`${t("sections.supply")} · ${t("modes.metro")}`}
         meta={`${train.num_estaciones} st`}
         defaultOpen={false}
@@ -307,7 +307,7 @@ export function SupplyBuilder({
         <p className="text-[10px] text-muted">
           {t("supply_params.train.anden_hint")}
         </p>
-      </SidebarSection>
+      </CollapsibleSection>
     </>
   );
 }

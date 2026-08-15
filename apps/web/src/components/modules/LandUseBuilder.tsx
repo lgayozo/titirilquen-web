@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import type { LandUseConfig } from "@/lib/types-v2";
 
 interface LandUseBuilderProps {
@@ -66,7 +66,7 @@ export function LandUseBuilder({
   return (
     <>
       {/* ---- POBLACIÓN: proporciones (mezcla) + densidad por estrato ---- */}
-      <SidebarSection
+      <CollapsibleSection
         title={t("land_use.section_poblacion")}
         meta={`≈ ${Math.round(totalH).toLocaleString()}`}
       >
@@ -116,10 +116,10 @@ export function LandUseBuilder({
             dens: Math.round(densMedia),
           })}
         </p>
-      </SidebarSection>
+      </CollapsibleSection>
 
       {/* ---- FORMA DE LA CIUDAD: perfil de oferta de vivienda ---- */}
-      <SidebarSection
+      <CollapsibleSection
         title={t("land_use.section_forma")}
         meta={t(`land_use.forma_${config.forma}`)}
       >
@@ -173,10 +173,10 @@ export function LandUseBuilder({
             onChange={(v) => onChange((c) => ({ ...c, forma_param: v }))}
           />
         )}
-      </SidebarSection>
+      </CollapsibleSection>
 
       {/* ---- PARÁMETROS DE PUJA (bid-rent): sensibilidades del estrato ---- */}
-      <SidebarSection
+      <CollapsibleSection
         title={t("land_use.section_bidrent")}
         meta={`β=${config.beta.toFixed(1)}`}
         defaultOpen={false}
@@ -192,13 +192,13 @@ export function LandUseBuilder({
         <p className="mt-1 text-[10px] text-muted">
           {t("land_use.bidrent_hint")}
         </p>
-      </SidebarSection>
+      </CollapsibleSection>
 
       {[0, 1, 2].map((i) => {
         const idx = i as 0 | 1 | 2;
         const s = config.estratos[idx];
         return (
-          <SidebarSection
+          <CollapsibleSection
             key={i}
             title={`${labels[idx]} · ${t("land_use.section_bidrent_short")}`}
             meta={`α=${s.alpha}`}
@@ -240,7 +240,7 @@ export function LandUseBuilder({
               hint={t("land_use.lambda_artifact_logit")}
               onChange={(v) => setStratum(idx, { lambda: v })}
             />
-          </SidebarSection>
+          </CollapsibleSection>
         );
       })}
     </>

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { votClpHora } from "@/lib/agregados";
 import { defaultSimulationConfig } from "@/lib/defaults";
 import type {
@@ -225,7 +225,7 @@ export function CalibrationPanel({ config, onChange }: Props) {
   });
 
   return (
-    <SidebarSection
+    <CollapsibleSection
       title={t("calibration.title")}
       meta={votTodos.join(" · ")}
     >
@@ -367,6 +367,6 @@ export function CalibrationPanel({ config, onChange }: Props) {
       >
         {t("calibration.reset")}
       </button>
-    </SidebarSection>
+    </CollapsibleSection>
   );
 }

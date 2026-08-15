@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { defaultLandUseConfig } from "@/lib/api-v2";
 import { densidadDerivadaHabKm } from "@/lib/citySupply";
 import { cn } from "@/lib/cn";
@@ -292,7 +292,7 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
       ).length;
 
   return (
-    <SidebarSection
+    <CollapsibleSection
       title={t("presets.title")}
       meta={(esCiudad ? activeCity : activePolicy) || t("presets.custom")}
       defaultOpen
@@ -351,7 +351,7 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
           ? t("presets.diff_hint", { n: nCambios })
           : t("presets.no_diff_hint")}
       </p>
-    </SidebarSection>
+    </CollapsibleSection>
   );
 }
 

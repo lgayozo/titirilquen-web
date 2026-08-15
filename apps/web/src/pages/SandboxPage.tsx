@@ -17,7 +17,7 @@ import { DemandInspector } from "@/components/modules/DemandInspector";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import {
   CITY_PREVIEW_X_LAYOUT,
   CityPreview,
@@ -796,7 +796,7 @@ export function SandboxPage() {
         <PresetGallery variant="policy" />
         {/* La ciudad (largo, celdas, pendiente, teletrabajo, densidad y estratos)
             se define en Uso de Suelo y alimenta esta simulación. */}
-        <SidebarSection
+        <CollapsibleSection
           title={t("sections.city")}
           meta={t("city_params.meta", {
             km: config.city.largo_ciudad_km,
@@ -806,7 +806,7 @@ export function SandboxPage() {
           <p className="text-[11px] leading-snug text-muted">
             {t("city_params.defined_in_land_use")}
           </p>
-        </SidebarSection>
+        </CollapsibleSection>
         <SupplyBuilder
           config={config}
           onChange={setConfig}
@@ -826,7 +826,7 @@ export function SandboxPage() {
             modal. Hasta ahora no eran visibles en ninguna parte. */}
         <CalibrationPanel config={config} onChange={setConfig} />
 
-        <SidebarSection
+        <CollapsibleSection
           title={t("sections.equilibrium")}
           meta={`${config.max_iter} iter`}
           defaultOpen={false}
@@ -928,7 +928,7 @@ export function SandboxPage() {
               {t("equilibrium.modos_hint")}
             </p>
           </div>
-        </SidebarSection>
+        </CollapsibleSection>
 
         {(stage === "done" || stage === "error") && (
           <button
@@ -1042,12 +1042,12 @@ export function SandboxPage() {
                 los KPI y el veredicto fuera de la primera pantalla. `details`
                 nativo, así que abre con teclado y se anuncia a lectores. */}
             {hasData && (
-              <SidebarSection
+              <CollapsibleSection
                 title={t("sandbox.city_view_heading")}
                 className="mt-3"
               >
                 {bloqueCiudad}
-              </SidebarSection>
+              </CollapsibleSection>
             )}
 
             <div className="ribbon-legend">

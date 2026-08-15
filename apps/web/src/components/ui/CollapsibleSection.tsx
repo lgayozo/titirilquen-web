@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/cn";
 
-interface SidebarSectionProps {
+interface CollapsibleSectionProps {
   title: string;
   /** Si se entrega, aparece en mono al lado del título (hint o stat). */
   meta?: string;
@@ -13,18 +13,20 @@ interface SidebarSectionProps {
 }
 
 /**
- * Sección desplegable editorial para el sidebar. Usa `<details>` nativo —
+ * Sección desplegable editorial. Nació en el sidebar y se llamaba por él, pero
+ * el bloque de ciudad y plano de `SandboxPage` la usa en el cuerpo: el nombre
+ * describe la forma (plegable), no el lugar. Usa `<details>` nativo —
  * accesible con teclado (Enter/Space) y lectores de pantalla (se anuncia
  * automáticamente el estado expandido/colapsado). Se estiliza el summary para
  * que luzca como el h3 editorial + chevron rotatorio.
  */
-export function SidebarSection({
+export function CollapsibleSection({
   title,
   meta,
   defaultOpen = false,
   children,
   className,
-}: SidebarSectionProps) {
+}: CollapsibleSectionProps) {
   return (
     <details className={cn("sidebar-section", className)} open={defaultOpen}>
       <summary>

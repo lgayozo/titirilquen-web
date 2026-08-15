@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import type { SimulationConfig } from "@/lib/types";
 
 interface EconomyBuilderProps {
@@ -37,7 +37,7 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
   const fmtCurrencyPerKm = (v: number) => `$${v.toLocaleString("es-CL")}/km`;
 
   return (
-    <SidebarSection
+    <CollapsibleSection
       title={t("sections_sidebar.economy")}
       meta={`$${costo_tarifa_metro} · $${costo_parking}`}
     >
@@ -69,6 +69,6 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         hint={t("economy_params.bencina_hint")}
         onChange={(v) => setGlobal({ costo_combustible_km: v })}
       />
-    </SidebarSection>
+    </CollapsibleSection>
   );
 }

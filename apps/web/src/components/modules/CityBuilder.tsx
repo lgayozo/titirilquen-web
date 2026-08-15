@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { densidadDerivadaHabKm } from "@/lib/citySupply";
 import type { SimulationConfig } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
@@ -23,7 +23,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
 
   return (
     <>
-      <SidebarSection
+      <CollapsibleSection
         title={t("sections.city")}
         meta={t("city_params.meta", {
           km: config.city.largo_ciudad_km,
@@ -83,7 +83,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           hint={t("city_params.teletrabajo_hint")}
           onChange={(v) => setCity({ teletrabajo_factor: v })}
         />
-      </SidebarSection>
+      </CollapsibleSection>
     </>
   );
 }
