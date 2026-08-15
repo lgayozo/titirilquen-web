@@ -10,8 +10,9 @@ Portado y extendido desde `titirilquen-repo/app.py:470-524`. Cambios:
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Iterator, Literal
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -19,8 +20,8 @@ from numpy.typing import NDArray
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, SimulationConfig, StratumId
 from titirilquen_core.demand.choice import probabilidades_logit, probabilidades_wardrop
-from titirilquen_core.emissions import calcular_emisiones
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
+from titirilquen_core.emissions import calcular_emisiones
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.supply import generar_oferta
@@ -293,6 +294,7 @@ def iter_msa_desde_suelo(
     land_use_config: LandUseConfig,
     trace: ConvergenceTrace | None = None,
     localizacion: Literal["equilibrio", "original"] = "equilibrio",
+    promediar_flujos: bool = False,
 ) -> Iterator[IterationSnapshot]:
     """Igual que :func:`iter_msa` pero la población se deriva del **uso de suelo**
     (opción A del feed suelo→transporte): los `S_i` hogares que la ciudad ofrece
@@ -355,7 +357,7 @@ def iter_msa_desde_suelo(
         demand_config=sim.demand,
         teletrabajo_factor=sim.city.teletrabajo_factor,
     )
-    yield from _iter_loop(sim, ciudad, agentes, rng, trace)
+    yield from _iter_loop(sim, ciudad, agentes, rng, trace, promediar_flujos)
 
 
 def _iter_loop(
@@ -364,13 +366,33 @@ def _iter_loop(
     agentes: list[Agente],
     rng: np.random.Generator,
     trace: ConvergenceTrace | None = None,
+    promediar_flujos: bool = False,
 ) -> Iterator[IterationSnapshot]:
     """Loop MSA sobre una **población ya construida** (compartido por `iter_msa`
-    y el loop acoplado). Si se pasa `trace`, lo popula por completo."""
+    y el loop acoplado). Si se pasa `trace`, lo popula por completo.
+
+    `promediar_flujos` cambia CUÁL variable promedia el MSA, y existe solo para
+    medir: el default (`False`) es el comportamiento histórico y ninguna ruta de
+    producción lo activa. No es un campo del schema a propósito — moverlo ahí
+    obligaría a tocar los espejos TS, el golden y los escenarios guardados.
+
+      * `False` — promedia los TIEMPOS: `t <- f·c(x(t)) + (1−f)·t`, y los flujos
+        se recalculan frescos cada iteración desde los tiempos promediados.
+      * `True` — promedia los FLUJOS y recalcula los tiempos desde el flujo
+        promediado: `x <- f·x* + (1−f)·x`, `t = c(x)`. Es el algoritmo estándar
+        (Boyles, Lownes & Unnikrishnan, "Transportation Network Analysis", §6.2
+        p. 159), y el único para el que vale el argumento de convergencia: con
+        `x*` todo-o-nada, `x*−x` es dirección de descenso de la función de
+        Beckmann (p. 160), y eso se apoya en promediar la variable primal.
+
+    El paso `f = 1/(it+1)` es el mismo en ambos, e incluye la inicialización
+    `x <- x*` de la iteración 0 (con `it=0`, `f=1`).
+    """
     grupos, n_tele = _agrupar_agentes(agentes)
     if trace is not None:
         trace.agentes = agentes
 
+    d_ac: tuple[NDArray[np.float64], ...] | None = None
     tiempos_actuales: list[TiemposObservados] | None = None
     t_auto_ac = np.zeros(ciudad.n_celdas)
     t_bici_ac = np.zeros(ciudad.n_celdas)
@@ -395,6 +417,20 @@ def _iter_loop(
             sim.modos_habilitados,
             sim.assignment == "wardrop",
         )
+
+        if promediar_flujos:
+            # `d_*` recién salido de `_correr_iteracion` es el target x*: la
+            # asignación a los tiempos actuales. Se promedia ACÁ, antes de las
+            # funciones de oferta, para que los tiempos salgan del flujo
+            # promediado y no al revés.
+            f_x = 1.0 / (it + 1)
+            nuevos = (d_auto, d_metro, d_bici, d_caminata)
+            d_ac = (
+                nuevos
+                if d_ac is None
+                else tuple(f_x * n + (1 - f_x) * a for n, a in zip(nuevos, d_ac, strict=True))
+            )
+            d_auto, d_metro, d_bici, d_caminata = d_ac
 
         car_p = sim.supply.car
         bike_p = sim.supply.bike
@@ -448,7 +484,11 @@ def _iter_loop(
             t_tren_v_ac = train_result.t_viaje_min.copy()
             residuo = float("inf")
         else:
-            f = 1.0 / (it + 1)
+            # Con `promediar_flujos` el suavizado ya ocurrió sobre `d_*`, así que
+            # los tiempos se toman tal como salen de la oferta (f = 1). Promediar
+            # las dos variables amortiguaría dos veces y frenaría la convergencia
+            # sin cambiar el punto fijo. El residuo se sigue midiendo igual.
+            f = 1.0 if promediar_flujos else 1.0 / (it + 1)
             old_auto = t_auto_ac.copy()
             old_bici = t_bici_ac.copy()
             old_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac

@@ -507,14 +507,88 @@ distintos enunciados del principio «agree in the standard case of continuous,
 increasing […] separable» link performance functions, «but the equilibria can
 differ if these assumptions are violated».
 
-**Pendiente que abrió esta auditoría**: el MSA promedia **tiempos**
-(`msa.py`, `t_auto_ac = f·t_nuevo + (1−f)·t_ac`), mientras que el algoritmo
-estándar promedia **flujos** y recalcula los tiempos desde el flujo promediado
-(§6.2, p. 159). El punto fijo sigue siendo un equilibrio legítimo, pero la
-justificación de convergencia del MSA —que `x*−x` es dirección de descenso de la
-función de Beckmann, p. 160— se apoya en promediar la variable primal, así que
-no cubre nuestro esquema. Cambiarlo movería los **tres** métodos y toda la
-calibración de agosto: medir primero detrás de una bandera, no tocar el default.
+#### El MSA promedia la variable equivocada — medido, y casi no importa
+
+El MSA promedia **tiempos** (`msa.py`, `t_auto_ac = f·t_nuevo + (1−f)·t_ac`),
+mientras que el algoritmo estándar promedia **flujos** y recalcula los tiempos
+desde el flujo promediado (§6.2, p. 159). La justificación de convergencia —que
+`x*−x` es dirección de descenso de la función de Beckmann (p. 160)— se apoya en
+promediar la variable primal, así que no cubre nuestro esquema.
+
+Está implementado detrás de `promediar_flujos` en `_iter_loop` /
+`iter_msa_desde_suelo`. **No es un campo del schema a propósito**: moverlo ahí
+obligaría a tocar los espejos TS, el golden y los escenarios guardados. Ninguna
+ruta de producción lo activa; el default es el comportamiento histórico y
+reproduce la línea base al segundo decimal.
+
+Reparto en % sobre los cuatro modos (sin teletrabajo en el denominador):
+
+| método · esquema | auto | metro | bici | caminata | v/c | iter |
+|---|---|---|---|---|---|---|
+| expected · tiempos | 21,04 | 40,71 | 28,35 | 9,90 | 1,38 | 7 |
+| expected · flujos | 21,46 | 40,27 | 28,42 | 9,86 | 1,41 | 7 |
+| wardrop · tiempos | 28,91 | 41,22 | 21,78 | 8,08 | 1,89 | **16** |
+| wardrop · flujos | 29,27 | 39,57 | 21,97 | 9,19 | 1,92 | **11** |
+| montecarlo · tiempos | 21,29 | 40,33 | 28,29 | 10,09 | 1,40 | 7 |
+| montecarlo · flujos | 21,33 | 40,53 | 28,39 | 9,75 | 1,40 | 11 |
+
+**Máxima diferencia de reparto: 0,44 pp bajo logit, 1,66 pp bajo determinístico.**
+O sea: el punto fijo es esencialmente el mismo y el esquema actual no está
+produciendo un equilibrio distinto, sólo una trayectoria distinta. **La
+calibración de agosto no está comprometida.** Sí conviene tener presente que
+1,66 pp es del mismo orden que los efectos finos de §5 (el metro cae ~5 pp entre
+2 y 3 pistas), así que para lecturas al límite el esquema importa.
+
+Dato a favor del estándar: bajo determinístico converge en **11 iteraciones en
+vez de 16**, como predice la teoría. No se cambió el default — es decisión de
+Leandro, y mover los tres métodos por 0,4 pp no se justifica solo.
+
+#### Por qué no se igualan costos dentro de cada par OD (corte D)
+
+La igualación necesita que el reparto de un par OD mueva **los costos que ese
+par OD enfrenta** — el término que en el ejemplo del libro (p. 91) hace que
+`t1(h1) = t2(7000−h1)` tenga solución interior. Medido: se muda el grupo ENTERO
+a su segundo mejor modo y se compara cuánto encarece ese modo (Δcosto) contra la
+brecha que habría que cerrar. `razon = Δcosto / brecha`; el reparto interior
+existe si `razon >= 1`.
+
+Sobre los 822 grupos con destino congestionable (24.572 agentes):
+
+| franja | razón media |
+|---|---|
+| **marginales** (brecha < 1 min) | **1,168** |
+| todos | 0,218 (mediana **0,004**) |
+| **lejanos** (brecha ≥ 5 min) | **0,019** |
+
+Sólo el 5,4% de los agentes tiene `razon >= 1`; el 11,9% pasa de 0,5.
+
+La lectura correcta tiene dos mitades, y la primera **contradice la intuición de
+que los grupos son demasiado chicos**:
+
+1. **Para la franja marginal la igualación SÍ es alcanzable** (razón 1,17): un
+   grupo de ~98 agentes mueve el costo de la bici en su celda ~0,5 min, que es
+   justo su brecha. Ahí existe un reparto interior que iguala, y el todo-o-nada
+   lo pasa por alto: manda el grupo entero a una esquina que oscila. **Eso es el
+   hueco real**, y explica las 16 iteraciones contra 11.
+2. **Para el resto no existe reparto interior**, y no por el algoritmo: un grupo
+   a 15 km del CBD tiene una brecha de 8-15 min y poder para mover 0,02 de eso.
+   Ningún reparto lo iguala. Eso **es correcto y deseable** — es lo que hace un
+   modelo espacial con estratos: la heterogeneidad es real, no ruido a suavizar.
+
+**Y la limitación de fondo, que es la misma de siempre:** no se puede igualar par
+por par, porque el problema **no es separable**. El costo del auto en la celda 73
+depende del flujo ACUMULADO que pasa por ella, que incluye a todas las celdas
+entre ella y el CBD. Igualar dentro de cada par OD exige resolver los 822
+simultáneamente — que es exactamente lo que hace un algoritmo de equilibrio de
+verdad (Frank-Wolfe, gradient projection; §6.2-6.3) sobre la formulación de
+Beckmann. Y no se puede aplicar acá porque **el metro viola la monotonía**
+(`espera = 30K/carga`, decreciente) y sin eso el problema de Beckmann no es
+convexo (Prop. 5.2, p. 120).
+
+O sea: la razón última por la que no igualamos costos por par OD es la misma que
+hace posible Downs-Thomson. El efecto Mohring rompe la convexidad, y sin
+convexidad no hay algoritmo de equilibrio con garantías. **Se puede tener el
+fenómeno o el algoritmo con garantías, no los dos.**
 
 > **Dos falsos positivos que ya se descartaron**, por si reaparecen: el tiempo
 > físico medio puede SUBIR y el costo generalizado tiempo+dinero también, sin que
