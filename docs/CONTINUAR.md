@@ -347,21 +347,37 @@ factible y además esquivaba el corte de 30 min de la caminata. Efecto: metro de
 36,99 a 32,79 en la línea base; con 3 estaciones, las celdas a 12/14/15 km
 pasaban de 16,9/15,6/10,9% de metro a 0%.
 
-Pendientes, en orden de valor:
+Pendientes, en orden de valor. **Los cuatro primeros están cerrados**: los dos
+últimos se hicieron, y los dos primeros nunca fueron pendientes — se escribieron
+desde los mensajes de commit sin volver a correr la app, y la app ya los tenía.
+La lección se generaliza: **esta lista se verifica en pantalla antes de
+escribirla**, porque un pendiente falso cuesta una sesión entera.
 
-1. **Figuras que faltan.** El modelo calcula y la UI no grafica: los **tiempos
-   por modo y ubicación** como figura propia (hoy solo viven en la cinta del
-   hero) y la **evolución del reparto modal por iteración** — `iteraciones[]`
-   guarda el `modal_split` de cada paso y la traza solo grafica el residuo. Esa
-   segunda es la que muestra el trasvase y la diferencia entre logit y Wardrop,
-   o sea la parte pedagógica de Downs-Thomson (§5).
+1. ~~**Figuras que faltan.**~~ **Las dos ya existían**; este punto se escribió
+   desde los mensajes de commit sin volver a abrir la app. Medido el 2026-08-15:
 
-2. **La animación de FIG. 01 nunca se vio correr.** `CorridorFlowFigure` anima la
-   acumulación del flujo del corredor con un barrido de periferia a CBD. Su
-   matemática está verificada (`acumulacionParcial` reproduce
-   `flujos_auto_veh_h` con error 0), pero la reproducción no: `requestAnimationFrame`
-   entrega 0 frames con el panel del navegador oculto. **Hay que abrirlo y
-   mirarla.**
+   - **Evolución del reparto modal por iteración**: `ConvergenceTrace` dibuja un
+     `AreaChart` apilado con los cinco modos al lado del residuo, rotulado
+     «modal split por iteración». No es reciente — entró en `95944d3`. Era falso
+     que «la traza solo grafica el residuo».
+   - **Tiempos por modo y ubicación**: la cinta del hero (`CityStrip`) ya va
+     envuelta en `ExportableFigure` (`SandboxPage.tsx`, el botón «Exportar
+     figura: Ciudad — Todos» está en el DOM), con selector
+     Todos/Auto/Metro/Bici/Caminata/Espera tren, tooltip de los cuatro modos a
+     la vez, línea de corte de factibilidad y marcadores de estación.
+
+   Lo único que sigue en pie es que esa cinta **no tiene número de figura** ni
+   lugar en la secuencia FIG. 00-06: vive en el hero. Promoverla es decisión de
+   diseño, no un hueco del modelo — o el hero se queda sin figura, o queda
+   repetida.
+
+2. ~~**La animación de FIG. 01 nunca se vio correr.**~~ **Corre.** Verificada el
+   2026-08-15 con el panel del navegador visible, instrumentando la suma de
+   alturas de las barras: 316 → 603 → 1.149 → 2.143 → 3.711 → 5.973 → 8.897 px
+   en 1,75 s (`DURACION_MS = 1800`), cierra en el valor final exacto (9.368) y
+   el botón queda deshabilitado durante el barrido. `requestAnimationFrame`
+   entrega frames sin problema; los 0 frames de la nota anterior eran el panel
+   oculto, no un defecto del componente.
 
 3. ~~**`SidebarSection` se usa fuera del sidebar.**~~ **Hecho** (`f924c07`):
    renombrado a `CollapsibleSection`. Las clases CSS siguen siendo
