@@ -29,7 +29,13 @@ const MODE_VAR: Record<string, string> = {
   Teletrabajo: "var(--tele)",
 };
 
-const MODE_ORDER = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"] as const;
+const MODE_ORDER = [
+  "Auto",
+  "Metro",
+  "Bici",
+  "Caminata",
+  "Teletrabajo",
+] as const;
 
 const AXIS_STYLE = {
   fontFamily: "var(--font-fig)",
@@ -70,7 +76,10 @@ const TOOLTIP_STYLE: React.CSSProperties = {
   color: "var(--ink)",
 };
 
-export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProps) {
+export function ConvergenceTrace({
+  iterations,
+  className,
+}: ConvergenceTraceProps) {
   const { t } = useTranslation("simulator");
 
   const data = useMemo(
@@ -85,7 +94,7 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
         Teletrabajo: it.modal_split.Teletrabajo ?? 0,
         frec: it.frecuencia_metro,
       })),
-    [iterations]
+    [iterations],
   );
 
   if (data.length === 0) return null;
@@ -96,10 +105,14 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
   // 0.030 → 0.03) para que no invadan la etiqueta rotada del eje Y.
   const fmtResidualTick = (v: number) => String(Number(v.toFixed(3)));
   const fmtTrips = (v: number | string) =>
-    typeof v === "number" ? `${v.toLocaleString()} ${t("convergence.trips_unit")}` : String(v);
+    typeof v === "number"
+      ? `${v.toLocaleString()} ${t("convergence.trips_unit")}`
+      : String(v);
   // Ticks compactos (10000 → "10k") para que no invadan la etiqueta del eje Y.
   const fmtTickCompact = (v: number) =>
-    Math.abs(v) >= 1000 ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `${v}`;
+    Math.abs(v) >= 1000
+      ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k`
+      : `${v}`;
 
   return (
     <div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2", className)}>
@@ -110,8 +123,15 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
         </p>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
-            <LineChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
-              <CartesianGrid strokeDasharray="2 3" stroke="var(--rule)" opacity={0.6} />
+            <LineChart
+              data={data}
+              margin={{ top: 8, right: 16, bottom: 4, left: 8 }}
+            >
+              <CartesianGrid
+                strokeDasharray="2 3"
+                stroke="var(--rule)"
+                opacity={0.6}
+              />
               <XAxis
                 dataKey="iter"
                 stroke="var(--muted)"
@@ -131,7 +151,11 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                   angle: -90,
                   position: "insideLeft",
                   offset: 0,
-                  style: { ...AXIS_STYLE, fill: "var(--muted)", textAnchor: "middle" },
+                  style: {
+                    ...AXIS_STYLE,
+                    fill: "var(--muted)",
+                    textAnchor: "middle",
+                  },
                 }}
               />
               <Tooltip
@@ -159,8 +183,15 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
         <p style={PANEL_SUB}>{t("convergence.modal_split_sub")}</p>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
-            <AreaChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
-              <CartesianGrid strokeDasharray="2 3" stroke="var(--rule)" opacity={0.6} />
+            <AreaChart
+              data={data}
+              margin={{ top: 8, right: 16, bottom: 4, left: 8 }}
+            >
+              <CartesianGrid
+                strokeDasharray="2 3"
+                stroke="var(--rule)"
+                opacity={0.6}
+              />
               <XAxis
                 dataKey="iter"
                 stroke="var(--muted)"
@@ -180,7 +211,11 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                   angle: -90,
                   position: "insideLeft",
                   offset: 12,
-                  style: { ...AXIS_STYLE, fill: "var(--muted)", textAnchor: "middle" },
+                  style: {
+                    ...AXIS_STYLE,
+                    fill: "var(--muted)",
+                    textAnchor: "middle",
+                  },
                 }}
               />
               <Tooltip

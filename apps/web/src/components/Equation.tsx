@@ -12,7 +12,10 @@ interface EquationProps {
 export function Equation({ tex, display = false, className }: EquationProps) {
   const html = useMemo(() => {
     try {
-      return katex.renderToString(tex, { displayMode: display, throwOnError: false });
+      return katex.renderToString(tex, {
+        displayMode: display,
+        throwOnError: false,
+      });
     } catch {
       return tex;
     }
@@ -20,7 +23,10 @@ export function Equation({ tex, display = false, className }: EquationProps) {
 
   return (
     <span
-      className={cn(display ? "block my-2 text-center" : "inline-block", className)}
+      className={cn(
+        display ? "block my-2 text-center" : "inline-block",
+        className,
+      )}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

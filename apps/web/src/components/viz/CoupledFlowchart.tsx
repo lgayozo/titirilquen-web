@@ -1,7 +1,11 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Flowchart, type FlowEdge, type FlowNode } from "@/components/viz/Flowchart";
+import {
+  Flowchart,
+  type FlowEdge,
+  type FlowNode,
+} from "@/components/viz/Flowchart";
 
 const CENTER_X = 220;
 const NODE_W = 300;
@@ -59,7 +63,10 @@ export function CoupledFlowchart() {
         tooltip: {
           title: t("flowchart.coupled.assign_title"),
           description: t("flowchart.coupled.assign_desc"),
-          ref: { path: "land_use/allocation.py", label: "asignar_hogares_simple" },
+          ref: {
+            path: "land_use/allocation.py",
+            label: "asignar_hogares_simple",
+          },
         },
       },
       {
@@ -107,7 +114,7 @@ export function CoupledFlowchart() {
         },
       },
     ],
-    [t]
+    [t],
   );
 
   const edges: FlowEdge[] = useMemo(() => {
@@ -139,7 +146,14 @@ export function CoupledFlowchart() {
     ];
   }, [t]);
 
-  const playback = ["config", "landuse", "assign", "transport", "check", "done"];
+  const playback = [
+    "config",
+    "landuse",
+    "assign",
+    "transport",
+    "check",
+    "done",
+  ];
 
   return (
     <Flowchart

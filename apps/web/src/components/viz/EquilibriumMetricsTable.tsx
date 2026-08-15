@@ -2,10 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { ModalShareBars } from "@/components/viz/ModalShareBars";
 import { cn } from "@/lib/cn";
-import type {
-  EquilibriumMetrics,
-  StratumMetrics,
-} from "@/lib/types-v2";
+import type { EquilibriumMetrics, StratumMetrics } from "@/lib/types-v2";
 
 interface Props {
   /** Métricas del equilibrio final (última iteración exterior). */
@@ -60,12 +57,43 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
     fmt: (v: number) => string;
     noDelta?: boolean;
   }[] = [
-    { key: "hogares", label: t("eqt.hogares"), get: (s) => s.n_hogares, fmt: fmtInt, noDelta: true },
-    { key: "dist", label: t("eqt.dist"), get: (s) => s.dist_media_cbd_km, fmt: fmtKm },
-    { key: "tiempo", label: t("eqt.tiempo"), get: (s) => s.tiempo_medio_min, fmt: fmtMin },
-    { key: "costo", label: t("eqt.costo"), get: (s) => s.costo_medio_clp, fmt: fmtMoney },
-    { key: "carga", label: t("eqt.carga"), get: (s) => s.carga_costo_ingreso, fmt: fmtPct },
-    { key: "cs", label: t("eqt.cs"), get: (s) => s.delta_excedente_clp, fmt: fmtMoney },
+    {
+      key: "hogares",
+      label: t("eqt.hogares"),
+      get: (s) => s.n_hogares,
+      fmt: fmtInt,
+      noDelta: true,
+    },
+    {
+      key: "dist",
+      label: t("eqt.dist"),
+      get: (s) => s.dist_media_cbd_km,
+      fmt: fmtKm,
+    },
+    {
+      key: "tiempo",
+      label: t("eqt.tiempo"),
+      get: (s) => s.tiempo_medio_min,
+      fmt: fmtMin,
+    },
+    {
+      key: "costo",
+      label: t("eqt.costo"),
+      get: (s) => s.costo_medio_clp,
+      fmt: fmtMoney,
+    },
+    {
+      key: "carga",
+      label: t("eqt.carga"),
+      get: (s) => s.carga_costo_ingreso,
+      fmt: fmtPct,
+    },
+    {
+      key: "cs",
+      label: t("eqt.cs"),
+      get: (s) => s.delta_excedente_clp,
+      fmt: fmtMoney,
+    },
   ];
 
   return (
@@ -74,8 +102,20 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
     >
       {/* ---- Por estrato ---- */}
-      <div style={{ padding: "10px 14px 6px", borderBottom: "1px solid var(--rule)" }}>
-        <div style={{ ...fig(10, "var(--accent)"), fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>
+      <div
+        style={{
+          padding: "10px 14px 6px",
+          borderBottom: "1px solid var(--rule)",
+        }}
+      >
+        <div
+          style={{
+            ...fig(10, "var(--accent)"),
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+          }}
+        >
           {t("eqt.per_stratum_header")}
         </div>
         {E0 && (
@@ -95,13 +135,41 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
         >
           <thead>
             <tr>
-              <th style={{ ...fig(10), textAlign: "left", padding: "8px 14px", textTransform: "uppercase" }}>
+              <th
+                style={{
+                  ...fig(10),
+                  textAlign: "left",
+                  padding: "8px 14px",
+                  textTransform: "uppercase",
+                }}
+              >
                 {t("eqt.metric_col")}
               </th>
               {stratumLabels.map((lbl, i) => (
-                <th key={i} style={{ ...fig(11, "var(--ink)"), textAlign: "right", padding: "8px 14px", fontWeight: 600 }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                    <span style={{ width: 8, height: 8, background: `var(--s${i + 1})`, display: "inline-block" }} />
+                <th
+                  key={i}
+                  style={{
+                    ...fig(11, "var(--ink)"),
+                    textAlign: "right",
+                    padding: "8px 14px",
+                    fontWeight: 600,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        background: `var(--s${i + 1})`,
+                        display: "inline-block",
+                      }}
+                    />
                     {lbl}
                   </span>
                 </th>
@@ -111,10 +179,23 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           <tbody>
             {rows.map((row) => (
               <tr key={row.key} style={{ borderTop: "1px solid var(--rule)" }}>
-                <td style={{ ...fig(11, "var(--muted)"), padding: "7px 14px", textAlign: "left" }}>
+                <td
+                  style={{
+                    ...fig(11, "var(--muted)"),
+                    padding: "7px 14px",
+                    textAlign: "left",
+                  }}
+                >
                   {row.label}
                   {row.noDelta && (
-                    <span style={{ ...fig(8.5, "var(--accent)"), marginLeft: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    <span
+                      style={{
+                        ...fig(8.5, "var(--accent)"),
+                        marginLeft: 6,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
                       {t("eqt.input_badge")}
                     </span>
                   )}
@@ -123,9 +204,18 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
                   const v = row.get(s);
                   const base = !row.noDelta && E0?.[i] ? row.get(E0[i]!) : null;
                   return (
-                    <td key={i} style={{ padding: "7px 14px", textAlign: "right" }}>
-                      <div style={{ ...fig(12, "var(--ink)"), fontWeight: 500 }}>{row.fmt(v)}</div>
-                      {base != null && <DeltaTag curr={v} base={base} fmt={row.fmt} />}
+                    <td
+                      key={i}
+                      style={{ padding: "7px 14px", textAlign: "right" }}
+                    >
+                      <div
+                        style={{ ...fig(12, "var(--ink)"), fontWeight: 500 }}
+                      >
+                        {row.fmt(v)}
+                      </div>
+                      {base != null && (
+                        <DeltaTag curr={v} base={base} fmt={row.fmt} />
+                      )}
                     </td>
                   );
                 })}
@@ -136,71 +226,182 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       </div>
 
       {/* ---- Reparto modal (barras anchas, legibles) ---- */}
-      <div style={{ padding: "10px 14px 6px", borderTop: "1px solid var(--rule)" }}>
-        <div style={{ ...fig(10, "var(--accent)"), fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>
+      <div
+        style={{ padding: "10px 14px 6px", borderTop: "1px solid var(--rule)" }}
+      >
+        <div
+          style={{
+            ...fig(10, "var(--accent)"),
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+          }}
+        >
           {t("eqt.modal")}
         </div>
       </div>
       <div style={{ padding: "4px 14px 12px" }}>
         <ModalShareBars
           rows={[
-            ...E.map((s, i) => ({ label: stratumLabels[i] ?? `E${i + 1}`, reparto: s.reparto_modal })),
+            ...E.map((s, i) => ({
+              label: stratumLabels[i] ?? `E${i + 1}`,
+              reparto: s.reparto_modal,
+            })),
             { label: t("eqt.modal_system"), reparto: sys.reparto_modal },
           ]}
         />
       </div>
 
       {/* ---- Sistema ---- */}
-      <div style={{ padding: "10px 14px 6px", borderTop: "1px solid var(--rule)", borderBottom: "1px solid var(--rule)" }}>
-        <div style={{ ...fig(10, "var(--accent)"), fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>
+      <div
+        style={{
+          padding: "10px 14px 6px",
+          borderTop: "1px solid var(--rule)",
+          borderBottom: "1px solid var(--rule)",
+        }}
+      >
+        <div
+          style={{
+            ...fig(10, "var(--accent)"),
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+          }}
+        >
           {t("eqt.system_header")}
         </div>
       </div>
       {/* Grilla fija 4×2 (8 stats): balanceada siempre — con auto-fill, en
           anchos intermedios quedaba una fila de 7 + 1 huérfano. */}
       <div className="eqt-sys-grid">
-        <Stat label={t("eqt.convergence")}
+        <Stat
+          label={t("eqt.convergence")}
           value={sys.convergio_exterior ? t("eqt.converged") : t("eqt.maxiter")}
           sub={t("eqt.conv_sub", {
             n: sys.iteraciones_exteriores,
-            res: sys.residual_final_min == null ? "—" : sys.residual_final_min.toFixed(2),
+            res:
+              sys.residual_final_min == null
+                ? "—"
+                : sys.residual_final_min.toFixed(2),
           })}
-          good={sys.convergio_exterior} />
-        <Stat label={t("eqt.sys_time")} value={fmtMin(sys.tiempo_medio_min)} sub={t("eqt.sys_time_sub")} />
-        <Stat label={t("eqt.freq")} value={`${sys.frecuencia_metro.toFixed(1)}`} sub={t("eqt.freq_sub")} />
-        <Stat label={t("eqt.emissions")} value={`${fmtInt(sys.emisiones_total_kg)}`} sub={t("eqt.emissions_sub")} />
-        <Stat label={t("eqt.theil")} value={sys.segregacion_theil.toFixed(3)} sub={t("eqt.theil_sub")} />
-        <Stat label={t("eqt.welfare_total")} value={fmtMoney(sys.delta_bienestar_total_clp)} sub={t("eqt.welfare_total_sub")} />
-        <Stat label={t("eqt.regress_time")} value={fmtRatio(sys.ratio_tiempo_bajo_alto)} sub={t("eqt.regress_time_sub")}
-          warn={(sys.ratio_tiempo_bajo_alto ?? 0) > 1} />
-        <Stat label={t("eqt.regress_burden")} value={fmtRatio(sys.ratio_carga_bajo_alto)} sub={t("eqt.regress_burden_sub")}
-          warn={(sys.ratio_carga_bajo_alto ?? 0) > 1} />
+          good={sys.convergio_exterior}
+        />
+        <Stat
+          label={t("eqt.sys_time")}
+          value={fmtMin(sys.tiempo_medio_min)}
+          sub={t("eqt.sys_time_sub")}
+        />
+        <Stat
+          label={t("eqt.freq")}
+          value={`${sys.frecuencia_metro.toFixed(1)}`}
+          sub={t("eqt.freq_sub")}
+        />
+        <Stat
+          label={t("eqt.emissions")}
+          value={`${fmtInt(sys.emisiones_total_kg)}`}
+          sub={t("eqt.emissions_sub")}
+        />
+        <Stat
+          label={t("eqt.theil")}
+          value={sys.segregacion_theil.toFixed(3)}
+          sub={t("eqt.theil_sub")}
+        />
+        <Stat
+          label={t("eqt.welfare_total")}
+          value={fmtMoney(sys.delta_bienestar_total_clp)}
+          sub={t("eqt.welfare_total_sub")}
+        />
+        <Stat
+          label={t("eqt.regress_time")}
+          value={fmtRatio(sys.ratio_tiempo_bajo_alto)}
+          sub={t("eqt.regress_time_sub")}
+          warn={(sys.ratio_tiempo_bajo_alto ?? 0) > 1}
+        />
+        <Stat
+          label={t("eqt.regress_burden")}
+          value={fmtRatio(sys.ratio_carga_bajo_alto)}
+          sub={t("eqt.regress_burden_sub")}
+          warn={(sys.ratio_carga_bajo_alto ?? 0) > 1}
+        />
       </div>
 
       {/* ---- Caveat ---- */}
-      <div style={{ padding: "10px 14px", borderTop: "1px solid var(--rule)", ...fig(10.5, "var(--muted)"), lineHeight: 1.5 }}>
+      <div
+        style={{
+          padding: "10px 14px",
+          borderTop: "1px solid var(--rule)",
+          ...fig(10.5, "var(--muted)"),
+          lineHeight: 1.5,
+        }}
+      >
         ⚠ {t("eqt.caveat")}
       </div>
     </div>
   );
 }
 
-function DeltaTag({ curr, base, fmt }: { curr: number; base: number; fmt: (v: number) => string }) {
+function DeltaTag({
+  curr,
+  base,
+  fmt,
+}: {
+  curr: number;
+  base: number;
+  fmt: (v: number) => string;
+}) {
   const d = curr - base;
   if (Math.abs(d) < 1e-9) return <div style={fig(10, "var(--muted)")}>→</div>;
   const arrow = d > 0 ? "↑" : "↓";
   const signed = (d > 0 ? "+" : "") + fmt(d).replace("$", "$");
-  return <div style={fig(10, "var(--ink-2)")}>{arrow} {signed}</div>;
+  return (
+    <div style={fig(10, "var(--ink-2)")}>
+      {arrow} {signed}
+    </div>
+  );
 }
 
 function Stat({
-  label, value, sub, good, warn,
-}: { label: string; value: string; sub?: string; good?: boolean; warn?: boolean }) {
+  label,
+  value,
+  sub,
+  good,
+  warn,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  good?: boolean;
+  warn?: boolean;
+}) {
   const valColor = good ? "var(--bici)" : warn ? "var(--accent)" : "var(--ink)";
   return (
-    <div style={{ padding: "12px 14px", borderRight: "1px solid var(--rule)", borderTop: "1px solid var(--rule)" }}>
-      <div style={{ ...fig(9.5), textTransform: "uppercase", letterSpacing: "0.1em" }}>{label}</div>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 19, fontWeight: 600, color: valColor, fontVariantNumeric: "tabular-nums", lineHeight: 1.2, marginTop: 3 }}>
+    <div
+      style={{
+        padding: "12px 14px",
+        borderRight: "1px solid var(--rule)",
+        borderTop: "1px solid var(--rule)",
+      }}
+    >
+      <div
+        style={{
+          ...fig(9.5),
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 19,
+          fontWeight: 600,
+          color: valColor,
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1.2,
+          marginTop: 3,
+        }}
+      >
         {value}
       </div>
       {sub && <div style={{ ...fig(9.5), marginTop: 2 }}>{sub}</div>}

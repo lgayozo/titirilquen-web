@@ -32,7 +32,14 @@ const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
  *  - Residuo con tendencia ↓ (converging, bici-green) / ↑ (diverging, accent)
  *  - Barra de progreso fina
  */
-export function RunStatus({ current, total, lastIter, stage, engine, className }: RunStatusProps) {
+export function RunStatus({
+  current,
+  total,
+  lastIter,
+  stage,
+  engine,
+  className,
+}: RunStatusProps) {
   const { t } = useTranslation("simulator");
   const [flash, setFlash] = useState(false);
   const prevIter = useRef(-1);
@@ -76,12 +83,12 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
     residual == null
       ? null
       : prevResidual.current == null
-      ? null
-      : residual < prevResidual.current - 1e-6
-      ? "down"
-      : residual > prevResidual.current + 1e-6
-      ? "up"
-      : "same";
+        ? null
+        : residual < prevResidual.current - 1e-6
+          ? "down"
+          : residual > prevResidual.current + 1e-6
+            ? "up"
+            : "same";
   if (residual != null && prevResidual.current !== residual) {
     prevResidual.current = residual;
   }
@@ -94,26 +101,23 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
     stage === "done"
       ? "var(--bici)"
       : stage === "error"
-      ? "var(--metro)"
-      : "var(--accent)";
+        ? "var(--metro)"
+        : "var(--accent)";
 
   return (
     <div
       role="status"
       aria-live="polite"
       aria-busy={stage === "running" || stage === "booting"}
-      className={cn(
-        "run-status",
-        flash && "run-status--flash",
-        className
-      )}
+      className={cn("run-status", flash && "run-status--flash", className)}
     >
       <div className="run-status-head">
         <div className="run-status-phase">
           <span
             className={cn(
               "run-status-dot",
-              (stage === "running" || stage === "booting") && "animate-pulse-dot"
+              (stage === "running" || stage === "booting") &&
+                "animate-pulse-dot",
             )}
             style={{ backgroundColor: dotColor }}
             aria-hidden
@@ -126,7 +130,9 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
 
         {residual != null && (
           <div className="run-status-residual">
-            <div className="run-status-residual-label">{t("equilibrium.residual")}</div>
+            <div className="run-status-residual-label">
+              {t("equilibrium.residual")}
+            </div>
             <div className="run-status-residual-value">
               <span className="num">{residual.toFixed(3)}</span>
               {trend === "down" && (
@@ -159,7 +165,10 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
         aria-valuemax={total}
         className="run-status-progress"
       >
-        <div className="run-status-progress-fill" style={{ width: `${pct}%` }} />
+        <div
+          className="run-status-progress-fill"
+          style={{ width: `${pct}%` }}
+        />
       </div>
 
       {lastIter && totalAgents > 0 && (
@@ -185,7 +194,9 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
                   title={`${t(`modes.${m.toLowerCase()}`)}: ${n} (${w.toFixed(1)}%)`}
                 >
                   {w > 7 && (
-                    <span className="run-status-split-label">{w.toFixed(0)}%</span>
+                    <span className="run-status-split-label">
+                      {w.toFixed(0)}%
+                    </span>
                   )}
                 </div>
               );

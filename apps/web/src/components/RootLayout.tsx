@@ -36,7 +36,9 @@ export function RootLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const setLandUseConfig = useLandUseStore((s) => s.setConfig);
   const setCoupledPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
-  const setCoupledOuterMaxIter = useLandUseStore((s) => s.setCoupledOuterMaxIter);
+  const setCoupledOuterMaxIter = useLandUseStore(
+    (s) => s.setCoupledOuterMaxIter,
+  );
 
   useEffect(() => {
     const stateParam = searchParams.get("s");
@@ -140,7 +142,11 @@ export function RootLayout() {
         </div>
       )}
 
-      <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto overflow-x-hidden">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 overflow-y-auto overflow-x-hidden"
+      >
         <Outlet />
       </main>
 

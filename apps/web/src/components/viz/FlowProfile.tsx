@@ -93,7 +93,12 @@ export function FlowProfile({
         height={H}
         viewBox={`0 0 ${W} ${H}`}
         className="block"
-        style={{ display: "block", maxWidth: "100%", background: "var(--paper-2)", border: "1px solid var(--rule)" }}
+        style={{
+          display: "block",
+          maxWidth: "100%",
+          background: "var(--paper-2)",
+          border: "1px solid var(--rule)",
+        }}
         role="img"
         aria-label={label ?? "flujo"}
       >
@@ -103,7 +108,13 @@ export function FlowProfile({
             {label}
           </text>
         )}
-        <text x={MARGIN.left + plotW} y={11} textAnchor="end" className="label" style={{ fontVariantNumeric: "tabular-nums" }}>
+        <text
+          x={MARGIN.left + plotW}
+          y={11}
+          textAnchor="end"
+          className="label"
+          style={{ fontVariantNumeric: "tabular-nums" }}
+        >
           {`max ${valueFmt(localMax)}${capacity ? ` · v/c ${(localMax / capacity).toFixed(2)}` : ""}`}
         </text>
 
@@ -192,13 +203,26 @@ export function FlowProfile({
         )}
 
         {/* Baseline */}
-        <line x1={MARGIN.left} y1={yFloor} x2={MARGIN.left + plotW} y2={yFloor} stroke="var(--ink)" strokeWidth={0.8} />
+        <line
+          x1={MARGIN.left}
+          y1={yFloor}
+          x2={MARGIN.left + plotW}
+          y2={yFloor}
+          stroke="var(--ink)"
+          strokeWidth={0.8}
+        />
 
         {/* Etiquetas X */}
         <text x={MARGIN.left} y={H - 5} textAnchor="start" className="label">
           0 KM
         </text>
-        <text x={cbdX} y={H - 5} textAnchor="middle" className="label" fill="var(--accent)">
+        <text
+          x={cbdX}
+          y={H - 5}
+          textAnchor="middle"
+          className="label"
+          fill="var(--accent)"
+        >
           CBD
         </text>
         <text

@@ -14,7 +14,11 @@ import {
   applyJointPreset,
   describePresetParams,
 } from "@/lib/joint-presets";
-import type { CoupledResult, LandUseConfig, OuterIteration } from "@/lib/types-v2";
+import type {
+  CoupledResult,
+  LandUseConfig,
+  OuterIteration,
+} from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
@@ -78,7 +82,7 @@ export function CoupledPage() {
       isCustom || !preset
         ? { sim: simStore, landUse: luStore }
         : applyJointPreset(preset),
-    [isCustom, preset, simStore, luStore]
+    [isCustom, preset, simStore, luStore],
   );
 
   // Escala de demanda: re-escala H_por_estrato a la población elegida,
@@ -87,11 +91,9 @@ export function CoupledPage() {
   const landUseEff = useMemo<LandUseConfig>(() => {
     const H = landUse.H_por_estrato;
     const sum = H.reduce((a, b) => a + b, 0) || 1;
-    const scaled = H.map((h) => Math.max(1, Math.round((poblacion * h) / sum))) as [
-      number,
-      number,
-      number,
-    ];
+    const scaled = H.map((h) =>
+      Math.max(1, Math.round((poblacion * h) / sum)),
+    ) as [number, number, number];
     return { ...landUse, H_por_estrato: scaled };
   }, [landUse, poblacion]);
 
@@ -104,9 +106,14 @@ export function CoupledPage() {
     startCoupled({ sim, landUse: landUseEff, outerMaxIter });
     try {
       await solveCoupledStream(
-        { sim, land_use: landUseEff, outer_max_iter: outerMaxIter, outer_tol: 1.0 },
+        {
+          sim,
+          land_use: landUseEff,
+          outer_max_iter: outerMaxIter,
+          outer_tol: 1.0,
+        },
         (it) => pushOuterIter(it),
-        ctrl.signal
+        ctrl.signal,
       );
       finishCoupled();
     } catch (e) {
@@ -129,7 +136,7 @@ export function CoupledPage() {
       snapshot != null &&
       JSON.stringify({ sim, landUse: landUseEff, outerMaxIter }) !==
         JSON.stringify(snapshot),
-    [stage, snapshot, sim, landUseEff, outerMaxIter]
+    [stage, snapshot, sim, landUseEff, outerMaxIter],
   );
 
   const first = iters[0] ?? null;
@@ -137,7 +144,12 @@ export function CoupledPage() {
 
   // Resultado en forma de CoupledResult para los componentes de trayectoria.
   const result: CoupledResult | null = iters.length
-    ? { converged: stage === "done", iterations: iters, final_parcelas: [], S: null }
+    ? {
+        converged: stage === "done",
+        iterations: iters,
+        final_parcelas: [],
+        S: null,
+      }
     : null;
 
   // Palancas del escenario, para el KPIStrip de parámetros.
@@ -161,8 +173,12 @@ export function CoupledPage() {
       } as KPI,
     }));
     return {
-      kpisCityLand: all.filter((x) => x.group !== "transport").map((x) => x.kpi),
-      kpisTransport: all.filter((x) => x.group === "transport").map((x) => x.kpi),
+      kpisCityLand: all
+        .filter((x) => x.group !== "transport")
+        .map((x) => x.kpi),
+      kpisTransport: all
+        .filter((x) => x.group === "transport")
+        .map((x) => x.kpi),
     };
   }, [sim, landUseEff, tS]);
 
@@ -180,9 +196,9 @@ export function CoupledPage() {
         CBD,
         landUseEff.oferta_sigma_frac,
         landUseEff.forma_param,
-        landUseEff.H_por_estrato.reduce((a, b) => a + b, 0)
+        landUseEff.H_por_estrato.reduce((a, b) => a + b, 0),
       ),
-    [landUseEff, L, CBD]
+    [landUseEff, L, CBD],
   );
 
   return (
@@ -191,22 +207,30 @@ export function CoupledPage() {
       <aside className="sidebar">
         <p className="coupled-sidebar-info">{tS("coupled.lede")}</p>
 
-        <div className="coupled-source-label">{tS("coupled.source_custom_label")}</div>
+        <div className="coupled-source-label">
+          {tS("coupled.source_custom_label")}
+        </div>
         <div className="coupled-scenario-list">
           <button
             type="button"
             className={`coupled-preset compact ${isCustom ? "active" : ""}`}
             onClick={() => selectSource(CUSTOM)}
           >
-            <div className="coupled-preset-title">{tS("coupled.custom_title")}</div>
-            <div className="coupled-preset-desc">{tS("coupled.custom_desc")}</div>
+            <div className="coupled-preset-title">
+              {tS("coupled.custom_title")}
+            </div>
+            <div className="coupled-preset-desc">
+              {tS("coupled.custom_desc")}
+            </div>
             <div className="coupled-preset-tags">
               <span>{tS("coupled.custom_tag")}</span>
             </div>
           </button>
         </div>
 
-        <div className="coupled-source-label">{tS("coupled.source_preset_label")}</div>
+        <div className="coupled-source-label">
+          {tS("coupled.source_preset_label")}
+        </div>
         <div className="coupled-scenario-list">
           {JOINT_PRESETS.map((p) => (
             <button
@@ -289,7 +313,10 @@ export function CoupledPage() {
         )}
 
         {error && (
-          <div className="callout" style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}>
+          <div
+            className="callout"
+            style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}
+          >
             <strong>{tS("coupled.error")}:</strong> {error}
           </div>
         )}
@@ -375,7 +402,9 @@ export function CoupledPage() {
                   meta={tS("coupled.convergence_meta")}
                   cls="col-12"
                 >
-                  <p className="coupled-panel-hint">{tS("coupled.convergence_hint")}</p>
+                  <p className="coupled-panel-hint">
+                    {tS("coupled.convergence_hint")}
+                  </p>
                   <OuterTrajectory result={result} />
                 </Panel>
               </div>
@@ -432,7 +461,14 @@ interface ComparisonProps {
   iters: number;
 }
 
-function Comparison({ first, last, supply, tS, stage, iters }: ComparisonProps) {
+function Comparison({
+  first,
+  last,
+  supply,
+  tS,
+  stage,
+  iters,
+}: ComparisonProps) {
   // Distribución = oferta S × asignación Q (respeta la forma de la ciudad).
   // Composición ESPERADA en floats (S·Q sin redondear): el redondeo entero por
   // celda producía una "peineta" entre celdas contiguas con pocos hogares.
@@ -448,7 +484,9 @@ function Comparison({ first, last, supply, tS, stage, iters }: ComparisonProps) 
         meta={tS("coupled.iter_n", { n: first.outer_iter + 1 })}
         cls="col-6"
       >
-        <p className="coupled-panel-hint">{tS("coupled.without_feedback_hint")}</p>
+        <p className="coupled-panel-hint">
+          {tS("coupled.without_feedback_hint")}
+        </p>
         <StratumDistribution composition={firstComposition} />
       </Panel>
 
@@ -492,18 +530,25 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
   const bajo = eL.length - 1;
 
   const dSeg =
-    last.metrics.sistema.segregacion_theil - first.metrics.sistema.segregacion_theil;
+    last.metrics.sistema.segregacion_theil -
+    first.metrics.sistema.segregacion_theil;
 
   // Equidad: carga mensual costo/ingreso (adimensional ⇒ comparable entre
   // estratos), en puntos porcentuales.
   const dCargaAlto =
-    ((eL[alto]?.carga_costo_ingreso ?? 0) - (eF[alto]?.carga_costo_ingreso ?? 0)) * 100;
+    ((eL[alto]?.carga_costo_ingreso ?? 0) -
+      (eF[alto]?.carga_costo_ingreso ?? 0)) *
+    100;
   const dCargaBajo =
-    ((eL[bajo]?.carga_costo_ingreso ?? 0) - (eF[bajo]?.carga_costo_ingreso ?? 0)) * 100;
+    ((eL[bajo]?.carga_costo_ingreso ?? 0) -
+      (eF[bajo]?.carga_costo_ingreso ?? 0)) *
+    100;
 
   // Accesibilidad: tiempo medio de viaje experimentado por estrato (min).
-  const dTAlto = (eL[alto]?.tiempo_medio_min ?? 0) - (eF[alto]?.tiempo_medio_min ?? 0);
-  const dTBajo = (eL[bajo]?.tiempo_medio_min ?? 0) - (eF[bajo]?.tiempo_medio_min ?? 0);
+  const dTAlto =
+    (eL[alto]?.tiempo_medio_min ?? 0) - (eF[alto]?.tiempo_medio_min ?? 0);
+  const dTBajo =
+    (eL[bajo]?.tiempo_medio_min ?? 0) - (eF[bajo]?.tiempo_medio_min ?? 0);
 
   const highlights: Array<{ title: string; body: string }> = [];
 
@@ -511,8 +556,10 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
     highlights.push({
       title: tS("coupled.interp.segregation_title"),
       body: tS(
-        dSeg > 0 ? "coupled.interp.segregation_up" : "coupled.interp.segregation_down",
-        { delta: Math.abs(dSeg).toFixed(3) }
+        dSeg > 0
+          ? "coupled.interp.segregation_up"
+          : "coupled.interp.segregation_down",
+        { delta: Math.abs(dSeg).toFixed(3) },
       ),
     });
   }
@@ -521,12 +568,14 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
     highlights.push({
       title: tS("coupled.interp.welfare_title"),
       body: tS(
-        regresivo ? "coupled.interp.welfare_regressive" : "coupled.interp.welfare_progressive",
+        regresivo
+          ? "coupled.interp.welfare_regressive"
+          : "coupled.interp.welfare_progressive",
         {
           alto: fmt(dCargaAlto, 1),
           bajo: fmt(dCargaBajo, 1),
           cargaBajo: ((eL[bajo]?.carga_costo_ingreso ?? 0) * 100).toFixed(1),
-        }
+        },
       ),
     });
   }

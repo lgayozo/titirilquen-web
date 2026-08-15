@@ -58,7 +58,10 @@ export function UtilityScatter({
 
   const { points, yMin, yMax, shown, total } = useMemo(() => {
     const pts = agents.filter(
-      (a) => a.modo_elegido && a.modo_elegido !== "Teletrabajo" && isFinite(a.utilidad_elegida)
+      (a) =>
+        a.modo_elegido &&
+        a.modo_elegido !== "Teletrabajo" &&
+        isFinite(a.utilidad_elegida),
     );
     const stride = Math.max(1, Math.ceil(pts.length / maxPoints));
     const sampled = pts.filter((_, i) => i % stride === 0);
@@ -75,7 +78,13 @@ export function UtilityScatter({
       yLo = 0;
       yHi = 1;
     }
-    return { points: mapped, yMin: yLo, yMax: yHi, shown: mapped.length, total: pts.length };
+    return {
+      points: mapped,
+      yMin: yLo,
+      yMax: yHi,
+      shown: mapped.length,
+      total: pts.length,
+    };
   }, [agents, cellKm, maxPoints]);
 
   const H = height;
@@ -99,7 +108,12 @@ export function UtilityScatter({
         height={H}
         viewBox={`0 0 ${W} ${H}`}
         className="block"
-        style={{ display: "block", maxWidth: "100%", background: "var(--paper-2)", border: "1px solid var(--rule)" }}
+        style={{
+          display: "block",
+          maxWidth: "100%",
+          background: "var(--paper-2)",
+          border: "1px solid var(--rule)",
+        }}
         role="img"
         aria-label={t("sandbox.utility_scatter")}
       >
@@ -134,7 +148,9 @@ export function UtilityScatter({
             key={`x-${i}`}
             x={xOf(v)}
             y={H - 8}
-            textAnchor={i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle"}
+            textAnchor={
+              i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle"
+            }
             className="label"
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
@@ -144,11 +160,25 @@ export function UtilityScatter({
 
         {/* Puntos */}
         {points.map((p, i) => (
-          <circle key={i} cx={xOf(p.x)} cy={yOf(p.y)} r={1.6} fill={MODE_COLORS[p.mode]} opacity={0.5} />
+          <circle
+            key={i}
+            cx={xOf(p.x)}
+            cy={yOf(p.y)}
+            r={1.6}
+            fill={MODE_COLORS[p.mode]}
+            opacity={0.5}
+          />
         ))}
 
         {/* Ejes */}
-        <line x1={MARGIN.left} y1={MARGIN.top} x2={MARGIN.left} y2={MARGIN.top + plotH} stroke="var(--ink)" strokeWidth={0.8} />
+        <line
+          x1={MARGIN.left}
+          y1={MARGIN.top}
+          x2={MARGIN.left}
+          y2={MARGIN.top + plotH}
+          stroke="var(--ink)"
+          strokeWidth={0.8}
+        />
         <line
           x1={MARGIN.left}
           y1={MARGIN.top + plotH}
@@ -169,15 +199,32 @@ export function UtilityScatter({
           strokeDasharray="3 3"
           opacity={0.8}
         />
-        <text x={cbdX} y={MARGIN.top - 2} textAnchor="middle" className="label" fill="var(--accent)">
+        <text
+          x={cbdX}
+          y={MARGIN.top - 2}
+          textAnchor="middle"
+          className="label"
+          fill="var(--accent)"
+        >
           CBD
         </text>
 
         {/* Títulos de eje */}
-        <text x={-MARGIN.top - plotH / 2} y={12} textAnchor="middle" transform="rotate(-90)" className="label">
+        <text
+          x={-MARGIN.top - plotH / 2}
+          y={12}
+          textAnchor="middle"
+          transform="rotate(-90)"
+          className="label"
+        >
           {t("sandbox.utility_axis")}
         </text>
-        <text x={MARGIN.left + plotW / 2} y={H - 8} textAnchor="middle" className="label">
+        <text
+          x={MARGIN.left + plotW / 2}
+          y={H - 8}
+          textAnchor="middle"
+          className="label"
+        >
           {t("sandbox.position_axis")}
         </text>
       </svg>
@@ -185,13 +232,20 @@ export function UtilityScatter({
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-fig text-[10px] uppercase tracking-[0.04em]">
         {TRAVEL_MODES.map((m) => (
           <span key={m} className="flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: MODE_COLORS[m] }} aria-hidden />
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: MODE_COLORS[m] }}
+              aria-hidden
+            />
             <span className="text-ink-2">{t(`modes.${m.toLowerCase()}`)}</span>
           </span>
         ))}
         {shown < total && (
           <span className="ml-auto normal-case tracking-normal text-muted">
-            {t("sandbox.sample_note", { shown: shown.toLocaleString(), total: total.toLocaleString() })}
+            {t("sandbox.sample_note", {
+              shown: shown.toLocaleString(),
+              total: total.toLocaleString(),
+            })}
           </span>
         )}
       </div>

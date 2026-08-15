@@ -8,7 +8,15 @@ interface PanelProps {
   title: string;
   meta?: ReactNode;
   /** Columnas en el grid de 12 (col-4 | col-5 | col-6 | col-7 | col-8 | col-12). */
-  cls?: "col-3" | "col-4" | "col-5" | "col-6" | "col-7" | "col-8" | "col-9" | "col-12";
+  cls?:
+    | "col-3"
+    | "col-4"
+    | "col-5"
+    | "col-6"
+    | "col-7"
+    | "col-8"
+    | "col-9"
+    | "col-12";
   children: ReactNode;
   className?: string;
 }
@@ -17,7 +25,14 @@ interface PanelProps {
  * Panel editorial: caja con borde, header con "FIG. NN" + título serif + meta
  * en mono, separador inferior y body padded. Usa el grid de 12 columnas.
  */
-export function Panel({ n, title, meta, cls = "col-6", children, className }: PanelProps) {
+export function Panel({
+  n,
+  title,
+  meta,
+  cls = "col-6",
+  children,
+  className,
+}: PanelProps) {
   return (
     <div className={cn("panel", cls, className)}>
       <div className="panel-head">

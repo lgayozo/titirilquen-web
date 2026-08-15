@@ -68,7 +68,8 @@ export async function solveCoupledStream(
   onOuter: (it: OuterIteration) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  if (engineIsLocal()) return pyodideEngine.solveCoupledStream(req, onOuter, signal);
+  if (engineIsLocal())
+    return pyodideEngine.solveCoupledStream(req, onOuter, signal);
   const r = await fetch(`${API_BASE}/coupled/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

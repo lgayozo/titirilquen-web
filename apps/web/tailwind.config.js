@@ -52,7 +52,10 @@ export default {
           "50%": { opacity: "0.9", transform: "scaleY(1)" },
         },
         "iteration-flash": {
-          "0%": { boxShadow: "0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent)" },
+          "0%": {
+            boxShadow:
+              "0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent)",
+          },
           "100%": { boxShadow: "0 0 0 12px transparent" },
         },
         "pulse-dot": {

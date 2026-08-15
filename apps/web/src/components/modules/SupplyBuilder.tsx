@@ -31,7 +31,10 @@ function estadoFrecuencia(
 ): { caso: "max" | "min" | "libre"; op: string; teo: string } | null {
   if (!freq || freq.operativa <= 0) return null;
   const EPS = 1e-6;
-  const cifras = { op: freq.operativa.toFixed(1), teo: freq.teorica.toFixed(1) };
+  const cifras = {
+    op: freq.operativa.toFixed(1),
+    teo: freq.teorica.toFixed(1),
+  };
   if (freq.teorica > frecMax + EPS) return { caso: "max", ...cifras };
   if (freq.teorica < frecMin - EPS) return { caso: "min", ...cifras };
   return { caso: "libre", ...cifras };
@@ -41,7 +44,8 @@ function estadoFrecuencia(
  * (q_max = k_j·v_l/4, con el factor de ancho escalonado). Solo para el hint
  * del sidebar — la matemática vive en el core. */
 function capGreenshields(car: SimulationConfig["supply"]["car"]): number {
-  const fa = car.ancho_pista_m >= 3.5 ? 1.0 : car.ancho_pista_m >= 3 ? 0.9 : 0.75;
+  const fa =
+    car.ancho_pista_m >= 3.5 ? 1.0 : car.ancho_pista_m >= 3 ? 0.9 : 0.75;
   const kJam = 1000 / (car.largo_vehiculo_m + car.gap_m);
   return Math.round((kJam * car.v_max_kmh * fa) / 4);
 }
@@ -280,9 +284,14 @@ export function SupplyBuilder({
           return (
             <p
               className="text-[10px]"
-              style={{ color: f.caso === "libre" ? "var(--muted)" : "var(--accent)" }}
+              style={{
+                color: f.caso === "libre" ? "var(--muted)" : "var(--accent)",
+              }}
             >
-              {t(`supply_params.train.freq_clip_${f.caso}`, { op: f.op, teo: f.teo })}
+              {t(`supply_params.train.freq_clip_${f.caso}`, {
+                op: f.op,
+                teo: f.teo,
+              })}
             </p>
           );
         })()}

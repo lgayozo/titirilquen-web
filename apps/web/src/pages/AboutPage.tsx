@@ -41,7 +41,9 @@ export function AboutPage() {
       </header>
 
       <section className="about-section">
-        <div className="about-section-head">{t("about.sections.authorship")}</div>
+        <div className="about-section-head">
+          {t("about.sections.authorship")}
+        </div>
         <h3>{t("about.authorship.heading")}</h3>
         <p>{t("about.authorship.body")}</p>
         <div className="authors-grid">

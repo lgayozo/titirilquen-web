@@ -170,9 +170,10 @@ export function describePresetParams(
 }
 
 /** Aplica un preset y retorna el par {sim, landUse} listo para correr. */
-export function applyJointPreset(
-  preset: JointPreset
-): { sim: SimulationConfig; landUse: LandUseConfig } {
+export function applyJointPreset(preset: JointPreset): {
+  sim: SimulationConfig;
+  landUse: LandUseConfig;
+} {
   const city = CITY_PRESETS[preset.city] ?? {};
   const pol = POLICY_PRESETS[preset.policy] ?? {};
 
@@ -180,7 +181,9 @@ export function applyJointPreset(
     ...defaultSimulationConfig,
     city: {
       ...defaultSimulationConfig.city,
-      ...(city.largo_ciudad !== undefined && { largo_ciudad_km: city.largo_ciudad }),
+      ...(city.largo_ciudad !== undefined && {
+        largo_ciudad_km: city.largo_ciudad,
+      }),
       ...(city.densidad !== undefined && { densidad_hab_km: city.densidad }),
     },
     supply: {
@@ -195,7 +198,9 @@ export function applyJointPreset(
       },
       train: {
         ...defaultSimulationConfig.supply.train,
-        ...(pol.num_estaciones !== undefined && { num_estaciones: pol.num_estaciones }),
+        ...(pol.num_estaciones !== undefined && {
+          num_estaciones: pol.num_estaciones,
+        }),
         ...(pol.frec_max !== undefined && { frec_max: pol.frec_max }),
         ...(pol.cap_tren !== undefined && { capacidad_tren: pol.cap_tren }),
       },
@@ -207,7 +212,9 @@ export function applyJointPreset(
         ...(pol.tarifa !== undefined && { costo_tarifa_metro: pol.tarifa }),
         ...(pol.parking !== undefined && { costo_parking: pol.parking }),
         ...(pol.bencina !== undefined && { costo_combustible_km: pol.bencina }),
-        ...(pol.factor_flota !== undefined && { factor_flota_auto: pol.factor_flota }),
+        ...(pol.factor_flota !== undefined && {
+          factor_flota_auto: pol.factor_flota,
+        }),
       },
     },
   };

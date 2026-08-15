@@ -25,7 +25,13 @@ const MARGIN = { top: 16, right: 10, bottom: 28, left: 36 };
  * hacia arriba (positivos) o hacia abajo (negativos). Cada barra rotula su
  * valor y su categoría.
  */
-export function StatBars({ bars, unit, decimals = 1, height = 190, className }: StatBarsProps) {
+export function StatBars({
+  bars,
+  unit,
+  decimals = 1,
+  height = 190,
+  className,
+}: StatBarsProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(360);
   useEffect(() => {
@@ -47,7 +53,10 @@ export function StatBars({ bars, unit, decimals = 1, height = 190, className }: 
     const mx = Math.max(0, ...vals);
     const mn = Math.min(0, ...vals);
     const span = mx - mn || 1;
-    return { lo: mn - (mn < 0 ? span * 0.1 : 0), hi: mx + (mx > 0 ? span * 0.14 : 0) };
+    return {
+      lo: mn - (mn < 0 ? span * 0.1 : 0),
+      hi: mx + (mx > 0 ? span * 0.14 : 0),
+    };
   }, [bars]);
 
   const span = hi - lo || 1;
@@ -66,7 +75,12 @@ export function StatBars({ bars, unit, decimals = 1, height = 190, className }: 
         height={H}
         viewBox={`0 0 ${W} ${H}`}
         className="block"
-        style={{ display: "block", maxWidth: "100%", background: "var(--paper-2)", border: "1px solid var(--rule)" }}
+        style={{
+          display: "block",
+          maxWidth: "100%",
+          background: "var(--paper-2)",
+          border: "1px solid var(--rule)",
+        }}
         role="img"
       >
         {/* Línea de cero / baseline */}
@@ -94,7 +108,9 @@ export function StatBars({ bars, unit, decimals = 1, height = 190, className }: 
                 height={h}
                 fill={b.color}
                 opacity={0.85}
-                style={{ transition: "y 400ms ease-out, height 400ms ease-out" }}
+                style={{
+                  transition: "y 400ms ease-out, height 400ms ease-out",
+                }}
               />
               <text
                 x={cx}

@@ -42,7 +42,12 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
   // preset que rompe la iso-población, y a propósito. Régimen opuesto al
   // default: espera = 30K/L_max cae de ~5 a ~1 min, el Mohring se aplana y
   // Downs-Thomson desaparece; lo que muerde es el andén. Ver presets.py.
-  "Metrópolis": { largo_ciudad: 20, densidad: 7200, sigma: 0.5, poblacion: 144_000 },
+  Metrópolis: {
+    largo_ciudad: 20,
+    densidad: 7200,
+    sigma: 0.5,
+    poblacion: 144_000,
+  },
 };
 
 export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {

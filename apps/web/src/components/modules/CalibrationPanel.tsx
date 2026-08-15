@@ -48,7 +48,12 @@ const STRATA: StratumId[] = [1, 2, 3];
 /** Claves de `StratumBetas` que son escalares (excluye el sub-objeto). */
 type BetaKey = Exclude<keyof StratumBetas, "penalizaciones_fisicas">;
 
-const ASC_KEYS: BetaKey[] = ["asc_auto", "asc_metro", "asc_bici", "asc_caminata"];
+const ASC_KEYS: BetaKey[] = [
+  "asc_auto",
+  "asc_metro",
+  "asc_bici",
+  "asc_caminata",
+];
 const TIEMPO_KEYS: BetaKey[] = [
   "b_tiempo_viaje",
   "b_tiempo_espera",
@@ -344,7 +349,9 @@ export function CalibrationPanel({ config, onChange }: Props) {
           label={t("calibration.p.prob_auto")}
           value={s.prob_auto}
           step={0.05}
-          onChange={(v) => setStratum({ prob_auto: Math.min(1, Math.max(0, v)) })}
+          onChange={(v) =>
+            setStratum({ prob_auto: Math.min(1, Math.max(0, v)) })
+          }
         />
         <NumberField
           label={t("calibration.p.prob_teletrabajo")}

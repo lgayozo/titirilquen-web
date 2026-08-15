@@ -39,7 +39,11 @@ export interface StratumConfig {
   prob_auto: number;
   prob_jornada_flexible?: number;
   prob_part_time?: number;
-  jornada?: { horas_rigido: number; horas_flexible: number; horas_part_time: number };
+  jornada?: {
+    horas_rigido: number;
+    horas_flexible: number;
+    horas_part_time: number;
+  };
   betas: StratumBetas;
 }
 

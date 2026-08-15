@@ -234,7 +234,8 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
     // La concentración de la oferta (σ) es la segunda dimensión de la forma:
     // sin ella el preset movía la mitad del efecto.
     setLandUse((lu) => {
-      const next = p.sigma !== undefined ? { ...lu, oferta_sigma_frac: p.sigma } : lu;
+      const next =
+        p.sigma !== undefined ? { ...lu, oferta_sigma_frac: p.sigma } : lu;
       if (p.poblacion === undefined || sumaH <= 0) return next;
       // `H_por_estrato` es `tuple[int, int, int]` en Pydantic: hay que entregar
       // enteros. El tercero absorbe el residuo para que ΣH dé EXACTO — si no,

@@ -69,8 +69,12 @@ export function ModalShareBars({ rows, className }: ModalShareBarsProps) {
   const data = useMemo(
     () =>
       rows.map((r) => {
-        const total = MODE_ORDER.reduce((s, m) => s + (r.reparto[m] ?? 0), 0) || 1;
-        return { label: r.label, shares: MODE_ORDER.map((m) => (r.reparto[m] ?? 0) / total) };
+        const total =
+          MODE_ORDER.reduce((s, m) => s + (r.reparto[m] ?? 0), 0) || 1;
+        return {
+          label: r.label,
+          shares: MODE_ORDER.map((m) => (r.reparto[m] ?? 0) / total),
+        };
       }),
     [rows],
   );
@@ -115,7 +119,14 @@ export function ModalShareBars({ rows, className }: ModalShareBarsProps) {
                 cursor += w;
                 return (
                   <g key={m}>
-                    <rect x={x} y={y} width={w} height={ROW_H} fill={MODE_COLOR[m]} opacity={0.92}>
+                    <rect
+                      x={x}
+                      y={y}
+                      width={w}
+                      height={ROW_H}
+                      fill={MODE_COLOR[m]}
+                      opacity={0.92}
+                    >
                       <title>{`${t(`eqt.mode_${m.toLowerCase()}`)}: ${(share * 100).toFixed(1)}%`}</title>
                     </rect>
                     {w > 30 && (
@@ -123,7 +134,11 @@ export function ModalShareBars({ rows, className }: ModalShareBarsProps) {
                         x={x + w / 2}
                         y={y + ROW_H / 2 + 4}
                         textAnchor="middle"
-                        style={{ fontFamily: "var(--font-fig)", fontSize: 10, fill: "var(--paper)" }}
+                        style={{
+                          fontFamily: "var(--font-fig)",
+                          fontSize: 10,
+                          fill: "var(--paper)",
+                        }}
                       >
                         {(share * 100).toFixed(0)}%
                       </text>

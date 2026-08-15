@@ -110,7 +110,12 @@ export function ModeShareByLocation({
         height={H}
         viewBox={`0 0 ${W} ${H}`}
         className="block"
-        style={{ display: "block", maxWidth: "100%", background: "var(--paper-2)", border: "1px solid var(--rule)" }}
+        style={{
+          display: "block",
+          maxWidth: "100%",
+          background: "var(--paper-2)",
+          border: "1px solid var(--rule)",
+        }}
         role="img"
       >
         {/* Grid + etiquetas Y (% si normalizado) */}
@@ -129,7 +134,12 @@ export function ModeShareByLocation({
                 opacity={0.6}
               />
               {normalize && (
-                <text x={MARGIN.left - 5} y={y + 3} textAnchor="end" className="label">
+                <text
+                  x={MARGIN.left - 5}
+                  y={y + 3}
+                  textAnchor="end"
+                  className="label"
+                >
                   {pct}
                 </text>
               )}
@@ -169,19 +179,52 @@ export function ModeShareByLocation({
         })}
 
         {/* CBD vertical */}
-        <line x1={cbdX} y1={yTop} x2={cbdX} y2={yFloor} stroke="var(--accent)" strokeWidth={0.8} strokeDasharray="2 2" opacity={0.7} />
+        <line
+          x1={cbdX}
+          y1={yTop}
+          x2={cbdX}
+          y2={yFloor}
+          stroke="var(--accent)"
+          strokeWidth={0.8}
+          strokeDasharray="2 2"
+          opacity={0.7}
+        />
 
         {/* Baseline */}
-        <line x1={MARGIN.left} y1={yFloor} x2={MARGIN.left + plotW} y2={yFloor} stroke="var(--ink)" strokeWidth={0.8} />
+        <line
+          x1={MARGIN.left}
+          y1={yFloor}
+          x2={MARGIN.left + plotW}
+          y2={yFloor}
+          stroke="var(--ink)"
+          strokeWidth={0.8}
+        />
 
         {/* Etiquetas X */}
-        <text x={MARGIN.left} y={yFloor + 13} textAnchor="start" className="label">
+        <text
+          x={MARGIN.left}
+          y={yFloor + 13}
+          textAnchor="start"
+          className="label"
+        >
           0 KM
         </text>
-        <text x={cbdX} y={yFloor + 13} textAnchor="middle" className="label" fill="var(--accent)">
+        <text
+          x={cbdX}
+          y={yFloor + 13}
+          textAnchor="middle"
+          className="label"
+          fill="var(--accent)"
+        >
           CBD
         </text>
-        <text x={MARGIN.left + plotW} y={yFloor + 13} textAnchor="end" className="label" style={{ fontVariantNumeric: "tabular-nums" }}>
+        <text
+          x={MARGIN.left + plotW}
+          y={yFloor + 13}
+          textAnchor="end"
+          className="label"
+          style={{ fontVariantNumeric: "tabular-nums" }}
+        >
           {largoKm.toFixed(0)} KM
         </text>
 
@@ -193,7 +236,13 @@ export function ModeShareByLocation({
             const ly = yFloor + MARGIN.bottom + 12;
             return (
               <g key={`lg-${m}`} transform={`translate(${x}, ${ly})`}>
-                <rect x={0} y={-7} width={10} height={8} fill={MODE_COLORS[m]} />
+                <rect
+                  x={0}
+                  y={-7}
+                  width={10}
+                  height={8}
+                  fill={MODE_COLORS[m]}
+                />
                 <text x={14} y={0} className="label">
                   {t(`modes.${m.toLowerCase()}`)}
                 </text>

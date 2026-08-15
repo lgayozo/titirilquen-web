@@ -22,7 +22,7 @@ test.describe("simulación end-to-end @slow", () => {
     // grid de resultados aparece con la corrida — verificamos este último).
     await expect(kpiValues.nth(1)).toContainText("%");
     await expect(
-      page.locator(".panel-grid", { hasText: "Red vial" })
+      page.locator(".panel-grid", { hasText: "Red vial" }),
     ).toBeVisible();
   });
 });

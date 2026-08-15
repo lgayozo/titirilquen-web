@@ -69,7 +69,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
         const total = MODE_ORDER.reduce((s, m) => s + counts[m], 0);
         return { ...g, counts, total };
       }),
-    [groups]
+    [groups],
   );
 
   const barX = LABEL_W;
@@ -103,13 +103,26 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                 {r.label}
               </text>
               {r.tag && (
-                <text x={LABEL_W - 8} y={y + ROW_H / 2 + 10} textAnchor="end" className="label">
+                <text
+                  x={LABEL_W - 8}
+                  y={y + ROW_H / 2 + 10}
+                  textAnchor="end"
+                  className="label"
+                >
                   {r.tag}
                 </text>
               )}
 
               {/* Fondo de la barra */}
-              <rect x={barX} y={y} width={barW} height={ROW_H} fill="var(--paper-2)" stroke="var(--rule)" strokeWidth={1} />
+              <rect
+                x={barX}
+                y={y}
+                width={barW}
+                height={ROW_H}
+                fill="var(--paper-2)"
+                stroke="var(--rule)"
+                strokeWidth={1}
+              />
 
               {/* Segmentos apilados */}
               {r.total > 0 &&
@@ -121,7 +134,14 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                   cursor += w;
                   return (
                     <g key={m}>
-                      <rect x={x} y={y} width={w} height={ROW_H} fill={MODE_COLORS[m]} opacity={0.92}>
+                      <rect
+                        x={x}
+                        y={y}
+                        width={w}
+                        height={ROW_H}
+                        fill={MODE_COLORS[m]}
+                        opacity={0.92}
+                      >
                         <title>{`${t(`modes.${m.toLowerCase()}`)}: ${r.counts[m].toLocaleString()} (${(share * 100).toFixed(1)}%)`}</title>
                       </rect>
                       {w > 26 && (
@@ -129,7 +149,11 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                           x={x + w / 2}
                           y={y + ROW_H / 2 + 3}
                           textAnchor="middle"
-                          style={{ fontFamily: "var(--font-fig)", fontSize: 9, fill: "var(--paper)" }}
+                          style={{
+                            fontFamily: "var(--font-fig)",
+                            fontSize: 9,
+                            fill: "var(--paper)",
+                          }}
                         >
                           {(share * 100).toFixed(0)}%
                         </text>

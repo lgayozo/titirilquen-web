@@ -36,7 +36,9 @@ function slugFromPath(path: string): string {
   return base.replace(/^\d+-/, "").replace(/\.mdx$/, "");
 }
 
-function buildEntries(modules: Record<string, () => Promise<MdxModule>>): TutorialEntry[] {
+function buildEntries(
+  modules: Record<string, () => Promise<MdxModule>>,
+): TutorialEntry[] {
   const raw = Object.entries(modules).map(([path, loader]) => ({
     path,
     slug: slugFromPath(path),
@@ -57,7 +59,9 @@ function buildEntries(modules: Record<string, () => Promise<MdxModule>>): Tutori
         // Actualizar meta en caliente si el MDX declara frontmatter
         const frontSlug = mod.frontmatter.slug ?? slug;
         if (frontSlug !== slug) {
-          console.warn(`[tutorials] slug frontmatter "${frontSlug}" != path "${slug}" en ${path}`);
+          console.warn(
+            `[tutorials] slug frontmatter "${frontSlug}" != path "${slug}" en ${path}`,
+          );
         }
       }
       return { default: mod.default };
@@ -84,21 +88,76 @@ export const tutorialsByLang: Record<"es" | "en", TutorialEntry[]> = {
  * Los títulos deben coincidir con el frontmatter de cada archivo.
  */
 export const TUTORIAL_TOC_ES: readonly TutorialMeta[] = [
-  { slug: "intro", order: 1, title: "Bienvenida", tagline: "Por qué ciudad lineal" },
-  { slug: "city", order: 2, title: "Ciudad", tagline: "Discretización y población" },
-  { slug: "supply", order: 3, title: "Oferta", tagline: "BPR, Greenshields, metro" },
+  {
+    slug: "intro",
+    order: 1,
+    title: "Bienvenida",
+    tagline: "Por qué ciudad lineal",
+  },
+  {
+    slug: "city",
+    order: 2,
+    title: "Ciudad",
+    tagline: "Discretización y población",
+  },
+  {
+    slug: "supply",
+    order: 3,
+    title: "Oferta",
+    tagline: "BPR, Greenshields, metro",
+  },
   { slug: "demand", order: 4, title: "Demanda", tagline: "Utilidad + logit" },
-  { slug: "equilibrium", order: 5, title: "Equilibrio", tagline: "MSA + loop acoplado" },
-  { slug: "land-use", order: 6, title: "Uso de suelo", tagline: "Bid-rent + subasta logit" },
-  { slug: "experimenting", order: 7, title: "Experimentar", tagline: "Presets y actividades" },
+  {
+    slug: "equilibrium",
+    order: 5,
+    title: "Equilibrio",
+    tagline: "MSA + loop acoplado",
+  },
+  {
+    slug: "land-use",
+    order: 6,
+    title: "Uso de suelo",
+    tagline: "Bid-rent + subasta logit",
+  },
+  {
+    slug: "experimenting",
+    order: 7,
+    title: "Experimentar",
+    tagline: "Presets y actividades",
+  },
 ] as const;
 
 export const TUTORIAL_TOC_EN: readonly TutorialMeta[] = [
   { slug: "intro", order: 1, title: "Welcome", tagline: "Why a linear city" },
-  { slug: "city", order: 2, title: "City", tagline: "Discretization and population" },
-  { slug: "supply", order: 3, title: "Supply", tagline: "BPR, Greenshields, metro" },
+  {
+    slug: "city",
+    order: 2,
+    title: "City",
+    tagline: "Discretization and population",
+  },
+  {
+    slug: "supply",
+    order: 3,
+    title: "Supply",
+    tagline: "BPR, Greenshields, metro",
+  },
   { slug: "demand", order: 4, title: "Demand", tagline: "Utility + logit" },
-  { slug: "equilibrium", order: 5, title: "Equilibrium", tagline: "MSA + coupled loop" },
-  { slug: "land-use", order: 6, title: "Land use", tagline: "Bid-rent + logit auction" },
-  { slug: "experimenting", order: 7, title: "Experiment", tagline: "Presets and activities" },
+  {
+    slug: "equilibrium",
+    order: 5,
+    title: "Equilibrium",
+    tagline: "MSA + coupled loop",
+  },
+  {
+    slug: "land-use",
+    order: 6,
+    title: "Land use",
+    tagline: "Bid-rent + logit auction",
+  },
+  {
+    slug: "experimenting",
+    order: 7,
+    title: "Experiment",
+    tagline: "Presets and activities",
+  },
 ] as const;

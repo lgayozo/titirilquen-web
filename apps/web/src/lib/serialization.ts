@@ -56,7 +56,11 @@ function migrateConfig(config: SimulationConfig): SimulationConfig {
   // con el valor que tenía el coeficiente único, que es exactamente lo que ese
   // escenario usaba para el acceso: la migración conserva su comportamiento.
   const estratos = (
-    config as unknown as { demand?: { estratos?: Record<string, { betas?: Record<string, unknown> }> } }
+    config as unknown as {
+      demand?: {
+        estratos?: Record<string, { betas?: Record<string, unknown> }>;
+      };
+    }
   ).demand?.estratos;
   if (estratos) {
     for (const s of Object.values(estratos)) {
@@ -66,8 +70,9 @@ function migrateConfig(config: SimulationConfig): SimulationConfig {
       }
     }
   }
-  const globales = (config as unknown as { demand?: { globales?: Record<string, unknown> } })
-    .demand?.globales;
+  const globales = (
+    config as unknown as { demand?: { globales?: Record<string, unknown> } }
+  ).demand?.globales;
   if (globales && "factor_emision_auto" in globales) {
     // Era un parámetro HUÉRFANO (0.18, nadie lo leía): las emisiones salían de
     // la curva COPERT. Se reemplaza por `factor_flota_auto`, un multiplicador
@@ -132,7 +137,9 @@ export function parseTtrqJson(raw: string): TtrqFile {
   try {
     data = JSON.parse(raw);
   } catch (e) {
-    throw new Error(`Archivo no es JSON válido: ${e instanceof Error ? e.message : String(e)}`);
+    throw new Error(
+      `Archivo no es JSON válido: ${e instanceof Error ? e.message : String(e)}`,
+    );
   }
   if (typeof data !== "object" || data === null) {
     throw new Error("El archivo no contiene un objeto JSON.");
@@ -140,7 +147,7 @@ export function parseTtrqJson(raw: string): TtrqFile {
   const obj = data as Record<string, unknown>;
   if (obj.$schema !== TTRQ_SCHEMA && obj.$schema !== TTRQ_SCHEMA_V1) {
     throw new Error(
-      `Esquema desconocido: ${String(obj.$schema)}. Esperado: "${TTRQ_SCHEMA}" (o v1).`
+      `Esquema desconocido: ${String(obj.$schema)}. Esperado: "${TTRQ_SCHEMA}" (o v1).`,
     );
   }
   if (typeof obj.config !== "object" || obj.config === null) {
@@ -160,7 +167,8 @@ function base64UrlEncode(s: string): string {
 }
 
 function base64UrlDecode(s: string): string {
-  const padded = s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
+  const padded =
+    s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
   return decodeURIComponent(escape(atob(padded)));
 }
 
@@ -190,7 +198,11 @@ export function configToUrlParam(config: SimulationConfig): string {
   return scenarioToUrlParam({ config });
 }
 
-export function downloadFile(filename: string, content: string, mime = "application/json"): void {
+export function downloadFile(
+  filename: string,
+  content: string,
+  mime = "application/json",
+): void {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

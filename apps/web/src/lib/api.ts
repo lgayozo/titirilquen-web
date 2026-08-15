@@ -2,7 +2,9 @@ import type { SimulationConfig, SimulationResult } from "@/lib/types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api";
 
-export async function runSimulation(config: SimulationConfig): Promise<SimulationResult> {
+export async function runSimulation(
+  config: SimulationConfig,
+): Promise<SimulationResult> {
   const r = await fetch(`${API_BASE}/simulate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -20,7 +22,7 @@ export type IterationEvent = SimulationResult["iteraciones"][number];
 export async function runSimulationStream(
   config: SimulationConfig,
   onIteration: (it: IterationEvent) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<void> {
   const r = await fetch(`${API_BASE}/simulate/stream`, {
     method: "POST",

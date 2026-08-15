@@ -11,7 +11,11 @@
  * como opción nuclear que sí termina el worker.
  */
 
-import type { IterationSnapshot, SimulationConfig, SimulationResult } from "@/lib/types";
+import type {
+  IterationSnapshot,
+  SimulationConfig,
+  SimulationResult,
+} from "@/lib/types";
 import type {
   CoupledRequest,
   LandUseConfig,
@@ -44,7 +48,12 @@ type WorkerInMsg =
   | {
       id: string;
       type: "landUseSolve";
-      req: { L: number; CBD: number; largo_km: number; land_use: LandUseConfig };
+      req: {
+        L: number;
+        CBD: number;
+        largo_km: number;
+        land_use: LandUseConfig;
+      };
     }
   | { id: string; type: "coupledStream"; req: CoupledRequest }
   | { id: string; type: "cancel"; targetId: string };
@@ -55,33 +64,44 @@ function abortError(): Error {
 
 /** Omit distributivo: aplica Omit a cada miembro de la unión (el Omit normal
  * colapsa la unión y pierde los campos específicos de cada mensaje). */
-type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
+  ? Omit<T, K>
+  : never;
 
 class PyodideEngine {
   private worker: Worker | null = null;
   private ready: Promise<void> | null = null;
   private nextId = 0;
   /** Corridas en vuelo: cómo rechazarlas y desuscribir sus listeners. */
-  private pending = new Map<string, { reject: (e: Error) => void; cleanup: () => void }>();
+  private pending = new Map<
+    string,
+    { reject: (e: Error) => void; cleanup: () => void }
+  >();
   /** Etapa del boot en curso (null cuando terminó) — para el indicador F-03. */
   private bootStage: BootStage | null = null;
   private bootListeners = new Set<() => void>();
 
   private ensureWorker(): Worker {
     if (!this.worker) {
-      this.worker = new Worker(new URL("../workers/pyodide.worker.ts", import.meta.url), {
-        type: "module",
-      });
+      this.worker = new Worker(
+        new URL("../workers/pyodide.worker.ts", import.meta.url),
+        {
+          type: "module",
+        },
+      );
       // Listener persistente del progreso de boot (id "boot", broadcast).
-      this.worker.addEventListener("message", (ev: MessageEvent<WorkerOutMsg>) => {
-        if (ev.data.type === "bootStage") {
-          this.bootStage = ev.data.stage;
-          this.bootListeners.forEach((cb) => cb());
-        } else if (ev.data.type === "ready") {
-          this.bootStage = null;
-          this.bootListeners.forEach((cb) => cb());
-        }
-      });
+      this.worker.addEventListener(
+        "message",
+        (ev: MessageEvent<WorkerOutMsg>) => {
+          if (ev.data.type === "bootStage") {
+            this.bootStage = ev.data.stage;
+            this.bootListeners.forEach((cb) => cb());
+          } else if (ev.data.type === "ready") {
+            this.bootStage = null;
+            this.bootListeners.forEach((cb) => cb());
+          }
+        },
+      );
     }
     return this.worker;
   }
@@ -168,7 +188,10 @@ class PyodideEngine {
     });
   }
 
-  async simulate(config: SimulationConfig, signal?: AbortSignal): Promise<SimulationResult> {
+  async simulate(
+    config: SimulationConfig,
+    signal?: AbortSignal,
+  ): Promise<SimulationResult> {
     return this.request<SimulationResult>(
       { type: "simulate", config },
       (data, resolve, reject) => {

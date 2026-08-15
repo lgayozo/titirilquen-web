@@ -91,6 +91,7 @@ export function formatDelta(curr: number | null, base: number | null): string {
   const d = curr - base;
   const sign = d > 0 ? "+" : "";
   const abs = Math.abs(d);
-  const fmt = abs >= 100 ? d.toFixed(0) : abs >= 1 ? d.toFixed(2) : d.toFixed(3);
+  const fmt =
+    abs >= 100 ? d.toFixed(0) : abs >= 1 ? d.toFixed(2) : d.toFixed(3);
   return `${sign}${fmt}`;
 }

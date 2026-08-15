@@ -43,7 +43,14 @@ test.describe("contrato citySupply ↔ supply.py", () => {
 
   for (const c of cases) {
     test(`forma=${c.forma} L=${c.L} σ=${c.sigma_frac}`, () => {
-      const S = supplyVector(c.forma, c.L, c.CBD, c.sigma_frac, c.forma_param, c.N);
+      const S = supplyVector(
+        c.forma,
+        c.L,
+        c.CBD,
+        c.sigma_frac,
+        c.forma_param,
+        c.N,
+      );
       expect(S).toEqual(c.S);
     });
   }
@@ -87,7 +94,10 @@ function flatten(obj: unknown, prefix = "", out: Record<string, unknown> = {}) {
 }
 
 test.describe("paridad de defaults TS ↔ Pydantic", () => {
-  const golden = read("defaults-golden.json").defaults as Record<string, unknown>;
+  const golden = read("defaults-golden.json").defaults as Record<
+    string,
+    unknown
+  >;
   const ts = {
     city: defaultSimulationConfig.city,
     supply: defaultSimulationConfig.supply,

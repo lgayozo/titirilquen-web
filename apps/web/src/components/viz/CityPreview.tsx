@@ -102,13 +102,12 @@ export function CityPreview({ config, className }: CityPreviewProps) {
       ? luResult.densidad_celda
       : null;
   const densidadMediaKm = densidadCelda
-    ? densidadCelda.reduce((a, b) => a + b, 0) / Math.max(densidadCelda.length, 1)
+    ? densidadCelda.reduce((a, b) => a + b, 0) /
+      Math.max(densidadCelda.length, 1)
     : null;
   // Población = Σ_i densidad_celda(i)·Δx (exacta) cuando hay resultado de suelo.
   const poblacion = densidadCelda
-    ? Math.round(
-        densidadCelda.reduce((a, b) => a + b, 0) * (largoKm / nCeldas),
-      )
+    ? Math.round(densidadCelda.reduce((a, b) => a + b, 0) * (largoKm / nCeldas))
     : null;
 
   const H = 320;

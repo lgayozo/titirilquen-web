@@ -30,7 +30,6 @@ export function LandUseBuilder({
       return { ...c, estratos: next };
     });
 
-
   // Proporciones π_h = H_h/ΣH (la mezcla) y ESCALA de población (ΣH). La
   // «densidad media» es una vista de la escala: densidad_media = ΣH / largo.
   // Mover la densidad reescala ΣH (y con ella la oferta S y la densidad por
@@ -61,7 +60,11 @@ export function LandUseBuilder({
   const setDensidadMedia = (dm: number) =>
     writeH(pi, Math.max(3, Math.round(dm * largoKm)));
 
-  const labels = [t("strata.alto"), t("strata.medio"), t("strata.bajo")] as const;
+  const labels = [
+    t("strata.alto"),
+    t("strata.medio"),
+    t("strata.bajo"),
+  ] as const;
 
   return (
     <>

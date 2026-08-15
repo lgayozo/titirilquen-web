@@ -14,7 +14,11 @@
  *   { id, type: "error", message }
  */
 
-import type { IterationSnapshot, SimulationConfig, SimulationResult } from "@/lib/types";
+import type {
+  IterationSnapshot,
+  SimulationConfig,
+  SimulationResult,
+} from "@/lib/types";
 import type {
   CoupledRequest,
   LandUseConfig,
@@ -99,7 +103,9 @@ async function init(): Promise<void> {
   // Pyodide distribuye para contextos ESM. `@vite-ignore` evita que Vite
   // intente resolver/bundlear la URL remota.
   post({ id: "boot", type: "bootStage", stage: "runtime" });
-  const mod = (await import(/* @vite-ignore */ `${PYODIDE_CDN}pyodide.mjs`)) as {
+  const mod = (await import(
+    /* @vite-ignore */ `${PYODIDE_CDN}pyodide.mjs`
+  )) as {
     loadPyodide: LoadPyodide;
   };
   const py = await mod.loadPyodide({ indexURL: PYODIDE_CDN });
@@ -110,8 +116,10 @@ async function init(): Promise<void> {
 
   // Descargar y registrar el wheel del core.
   post({ id: "boot", type: "bootStage", stage: "wheel" });
-  const whlUrl = new URL("/pyodide/titirilquen_core-0.1.0-py3-none-any.whl", self.location.origin)
-    .toString();
+  const whlUrl = new URL(
+    "/pyodide/titirilquen_core-0.1.0-py3-none-any.whl",
+    self.location.origin,
+  ).toString();
 
   await py.runPythonAsync(`
 import micropip
@@ -273,7 +281,11 @@ def coupled_iter_from_json(req_json: str):
 
 function jsFromPy(value: unknown): unknown {
   if (value && typeof (value as { toJs?: unknown }).toJs === "function") {
-    const obj = (value as { toJs: (opts: { dict_converter: typeof Object.fromEntries }) => unknown }).toJs({
+    const obj = (
+      value as {
+        toJs: (opts: { dict_converter: typeof Object.fromEntries }) => unknown;
+      }
+    ).toJs({
       dict_converter: Object.fromEntries,
     });
     if (typeof (value as { destroy?: unknown }).destroy === "function") {
@@ -299,7 +311,9 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
       return;
     }
     if (msg.type === "simulate") {
-      const result = jsFromPy(simulateFn!(JSON.stringify(msg.config))) as SimulationResult;
+      const result = jsFromPy(
+        simulateFn!(JSON.stringify(msg.config)),
+      ) as SimulationResult;
       post({ id: msg.id, type: "done", result });
       return;
     }
@@ -341,7 +355,7 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
     }
     if (msg.type === "landUseSolve") {
       const result = jsFromPy(
-        landUseSolveFn!(JSON.stringify(msg.req))
+        landUseSolveFn!(JSON.stringify(msg.req)),
       ) as LandUseSolveResponse;
       post({ id: msg.id, type: "landUseDone", result });
       return;

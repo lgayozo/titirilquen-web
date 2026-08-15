@@ -39,9 +39,10 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           unit="km"
           hint={t("city_params.largo_hint", {
             pob: sumaH.toLocaleString("es-CL"),
-            rho: densidadDerivadaHabKm(sumaH, config.city.largo_ciudad_km).toLocaleString(
-              "es-CL",
-            ),
+            rho: densidadDerivadaHabKm(
+              sumaH,
+              config.city.largo_ciudad_km,
+            ).toLocaleString("es-CL"),
           })}
           onChange={(v) =>
             // Cambiar el largo con población fija ⇒ la densidad se recalcula.

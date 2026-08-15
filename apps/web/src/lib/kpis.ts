@@ -3,7 +3,12 @@
  * Incluye desgloses por **modo** y por **tipo de usuario (estrato)**.
  */
 
-import type { AgentRecord, Modo, SimulationResult, StratumId } from "@/lib/types";
+import type {
+  AgentRecord,
+  Modo,
+  SimulationResult,
+  StratumId,
+} from "@/lib/types";
 
 export interface StratumKPIs {
   /** Agentes del estrato. */
@@ -47,13 +52,17 @@ function modeTimeFor(
   celda: number,
   snap: SimulationResult["iteraciones"][number],
   distCbdKm: number,
-  vCaminata: number
+  vCaminata: number,
 ): number {
   switch (modo) {
     case "Auto":
       return snap.t_auto[celda] ?? 0;
     case "Metro":
-      return (snap.t_tren_acceso[celda] ?? 0) + (snap.t_tren_espera[celda] ?? 0) + (snap.t_tren_viaje[celda] ?? 0);
+      return (
+        (snap.t_tren_acceso[celda] ?? 0) +
+        (snap.t_tren_espera[celda] ?? 0) +
+        (snap.t_tren_viaje[celda] ?? 0)
+      );
     case "Bici":
       return snap.t_bici[celda] ?? 0;
     case "Caminata":
@@ -84,7 +93,16 @@ export function computeKPIs(
   const cellWidthKm = largoKm / nCeldas;
 
   // Acumuladores por estrato.
-  const stratumAgg: Record<StratumId, { n: number; timeSum: number; utilSum: number; travelN: number; modes: Record<Modo, number> }> = {
+  const stratumAgg: Record<
+    StratumId,
+    {
+      n: number;
+      timeSum: number;
+      utilSum: number;
+      travelN: number;
+      modes: Record<Modo, number>;
+    }
+  > = {
     1: { n: 0, timeSum: 0, utilSum: 0, travelN: 0, modes: zeroModes() },
     2: { n: 0, timeSum: 0, utilSum: 0, travelN: 0, modes: zeroModes() },
     3: { n: 0, timeSum: 0, utilSum: 0, travelN: 0, modes: zeroModes() },
@@ -94,7 +112,9 @@ export function computeKPIs(
   for (const a of agentes) {
     const m = (a.modo_elegido ?? "Teletrabajo") as Modo;
     const distKm = Math.abs(a.celda_origen - cbdIdx) * cellWidthKm;
-    const t = lastIter ? modeTimeFor(m, a.celda_origen, lastIter, distKm, vCaminata) : 0;
+    const t = lastIter
+      ? modeTimeFor(m, a.celda_origen, lastIter, distKm, vCaminata)
+      : 0;
 
     modal_share[m] += 1;
     if (lastIter) {
@@ -122,18 +142,21 @@ export function computeKPIs(
     modal_share[m] = total > 0 ? modal_share[m] / total : 0;
   }
 
-  const by_stratum = STRATA.reduce<Record<StratumId, StratumKPIs>>((acc, s) => {
-    const sg = stratumAgg[s];
-    const share = zeroModes();
-    for (const m of MODES) share[m] = sg.n > 0 ? sg.modes[m] / sg.n : 0;
-    acc[s] = {
-      n: sg.n,
-      mean_time_min: sg.travelN > 0 ? sg.timeSum / sg.travelN : 0,
-      mean_utility: sg.travelN > 0 ? sg.utilSum / sg.travelN : 0,
-      modal_share: share,
-    };
-    return acc;
-  }, {} as Record<StratumId, StratumKPIs>);
+  const by_stratum = STRATA.reduce<Record<StratumId, StratumKPIs>>(
+    (acc, s) => {
+      const sg = stratumAgg[s];
+      const share = zeroModes();
+      for (const m of MODES) share[m] = sg.n > 0 ? sg.modes[m] / sg.n : 0;
+      acc[s] = {
+        n: sg.n,
+        mean_time_min: sg.travelN > 0 ? sg.timeSum / sg.travelN : 0,
+        mean_utility: sg.travelN > 0 ? sg.utilSum / sg.travelN : 0,
+        modal_share: share,
+      };
+      return acc;
+    },
+    {} as Record<StratumId, StratumKPIs>,
+  );
 
   // v/c del corredor: flujo acumulado hacia el CBD (no demanda originada).
   const vc_auto =

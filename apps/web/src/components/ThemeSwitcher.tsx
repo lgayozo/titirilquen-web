@@ -28,7 +28,10 @@ export function ThemeSwitcher() {
 
   // Un solo botón que cicla paper → journal → dark: tres targets menos en el
   // topbar. El título anuncia el tema actual y el siguiente.
-  const idx = Math.max(0, OPTIONS.findIndex((o) => o.value === theme));
+  const idx = Math.max(
+    0,
+    OPTIONS.findIndex((o) => o.value === theme),
+  );
   const current = OPTIONS[idx]!;
   const next = OPTIONS[(idx + 1) % OPTIONS.length]!;
   const Icon = current.icon;

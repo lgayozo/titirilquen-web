@@ -149,6 +149,7 @@ export function isLandUseStale(s: {
   liveLargoKm: number;
 }): boolean {
   if (s.stage !== "done" || s.runContext == null) return false;
-  if (s.runContext.L !== s.liveL || s.runContext.largoKm !== s.liveLargoKm) return true;
+  if (s.runContext.L !== s.liveL || s.runContext.largoKm !== s.liveLargoKm)
+    return true;
   return JSON.stringify(s.config) !== JSON.stringify(s.runContext.config);
 }

@@ -19,14 +19,21 @@ declare global {
   }
 }
 
-async function seedMaxIter(page: import("@playwright/test").Page, value: number) {
+async function seedMaxIter(
+  page: import("@playwright/test").Page,
+  value: number,
+) {
   await page.evaluate((v) => {
-    window.__stores.simulation.getState().setConfig((c) => ({ ...c, max_iter: v }));
+    window.__stores.simulation
+      .getState()
+      .setConfig((c) => ({ ...c, max_iter: v }));
   }, value);
 }
 
 test.describe("escenarios: exportar y compartir", () => {
-  test("exporta la config como .ttrq.json con el schema correcto", async ({ page }) => {
+  test("exporta la config como .ttrq.json con el schema correcto", async ({
+    page,
+  }) => {
     await page.goto("/sandbox");
     await seedMaxIter(page, 17);
 
@@ -48,7 +55,10 @@ test.describe("escenarios: exportar y compartir", () => {
     expect(file.coupled?.poblacion).toBeGreaterThan(0);
   });
 
-  test("compartir genera un link ?s= que restaura la config", async ({ page, context }) => {
+  test("compartir genera un link ?s= que restaura la config", async ({
+    page,
+    context,
+  }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto("/sandbox");
     await seedMaxIter(page, 19);
@@ -59,7 +69,7 @@ test.describe("escenarios: exportar y compartir", () => {
 
     await page.goto(link);
     const restored = await page.evaluate(
-      () => window.__stores.simulation.getState().config.max_iter
+      () => window.__stores.simulation.getState().config.max_iter,
     );
     expect(restored).toBe(19);
   });

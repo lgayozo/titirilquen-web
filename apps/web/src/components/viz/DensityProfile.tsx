@@ -138,7 +138,12 @@ export function DensityProfile({
         >
           CBD
         </text>
-        <text className="label" x={MARGIN.left + plotW} y={H - 6} textAnchor="end">
+        <text
+          className="label"
+          x={MARGIN.left + plotW}
+          y={H - 6}
+          textAnchor="end"
+        >
           L
         </text>
 

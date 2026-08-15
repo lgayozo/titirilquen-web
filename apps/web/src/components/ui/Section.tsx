@@ -15,7 +15,13 @@ interface SectionProps {
  * Sección colapsable estilo editorial: header con título en mayúsculas/mono
  * sobre una línea de regla inferior (como capítulos en un journal).
  */
-export function Section({ title, subtitle, defaultOpen = true, className, children }: SectionProps) {
+export function Section({
+  title,
+  subtitle,
+  defaultOpen = true,
+  className,
+  children,
+}: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -28,7 +34,11 @@ export function Section({ title, subtitle, defaultOpen = true, className, childr
       >
         <span>
           {title}
-          {subtitle && <span className="ml-2 normal-case tracking-normal text-ink-2/70">· {subtitle}</span>}
+          {subtitle && (
+            <span className="ml-2 normal-case tracking-normal text-ink-2/70">
+              · {subtitle}
+            </span>
+          )}
         </span>
         {open ? (
           <ChevronDown className="h-3 w-3" aria-hidden />

@@ -34,7 +34,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
         iter: it.outer_iter + 1,
         residual: it.T_residual == null ? null : it.T_residual,
       })),
-    [result.iterations]
+    [result.iterations],
   );
 
   if (result.iterations.length === 0) {
@@ -45,8 +45,15 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
     <div className={cn(className)}>
       <div style={{ width: "100%", height: 200 }}>
         <ResponsiveContainer>
-          <LineChart data={residualData} margin={{ top: 8, right: 16, bottom: 4, left: 4 }}>
-            <CartesianGrid strokeDasharray="2 3" stroke="var(--rule)" opacity={0.6} />
+          <LineChart
+            data={residualData}
+            margin={{ top: 8, right: 16, bottom: 4, left: 4 }}
+          >
+            <CartesianGrid
+              strokeDasharray="2 3"
+              stroke="var(--rule)"
+              opacity={0.6}
+            />
             <XAxis
               dataKey="iter"
               stroke="var(--muted)"
@@ -58,7 +65,11 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
                 value: t("convergence.iter"),
                 position: "insideBottom",
                 offset: -2,
-                style: { fontFamily: "var(--font-fig)", fontSize: 10, fill: "var(--muted)" },
+                style: {
+                  fontFamily: "var(--font-fig)",
+                  fontSize: 10,
+                  fill: "var(--muted)",
+                },
               }}
             />
             <YAxis
@@ -73,7 +84,12 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
                 angle: -90,
                 position: "insideLeft",
                 offset: 12,
-                style: { fontFamily: "var(--font-fig)", fontSize: 10, fill: "var(--muted)", textAnchor: "middle" },
+                style: {
+                  fontFamily: "var(--font-fig)",
+                  fontSize: 10,
+                  fill: "var(--muted)",
+                  textAnchor: "middle",
+                },
               }}
             />
             <Tooltip
