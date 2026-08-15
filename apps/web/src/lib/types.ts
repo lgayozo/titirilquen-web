@@ -134,11 +134,15 @@ export interface SimulationConfig {
   max_iter: number;
   tolerance: number;
   seed: number | null;
-  /** Método de asignación de demanda: Monte Carlo (sorteo por agente) o
-   *  flujos esperados (probabilidades logit, determinista). */
-  /** `montecarlo` y `expected` son equilibrio ESTOCÁSTICO (logit): los modos
-   *  usados terminan con costos distintos y la brecha la absorbe el gusto.
-   *  `wardrop` es DETERMINÍSTICO: cada grupo va al modo de mayor utilidad. */
+  /** Método de asignación de demanda. `montecarlo` (sorteo por agente) y
+   *  `expected` (flujos esperados) reparten al grupo con las probabilidades
+   *  logit; `wardrop` lo manda ENTERO al modo de mayor utilidad.
+   *
+   *  El valor `wardrop` es el nombre histórico de la opción y se conserva
+   *  porque cambiarlo rompería los `.ttrq.json` guardados y los links `?s=`
+   *  (`extra="forbid"`). La etiqueta visible es «determinístico»: el método NO
+   *  produce igualación de costos entre modos — ver el docstring de
+   *  `probabilidades_wardrop` en el core y `scripts/auditoria_wardrop.py`. */
   assignment: "montecarlo" | "expected" | "wardrop";
   /** Modos disponibles en el set de elección antes de correr el equilibrio.
    *  Los modos excluidos se tratan como infeasibles (utilidad −∞). El

@@ -460,6 +460,62 @@ distancias) impide el arbitraje poblacional incluso bajo Wardrop — por eso la
 versión realista muestra una caída modesta y las homogéneas la espiral
 completa.
 
+#### Auditoría del 2026-08-15: el mecanismo no es arbitraje
+
+La intuición de arriba sobrevive, pero **el nombre del mecanismo estaba mal**, y
+el docstring del core llegaba a afirmar que el punto fijo era un equilibrio de
+Wardrop con «todo modo usado al mismo costo generalizado». Es falso. Medido con
+`scripts/auditoria_wardrop.py` sobre la base default (942 grupos, 29.002
+agentes, converge en 16 iteraciones):
+
+| corte | resultado |
+|---|---|
+| costo generalizado del modo elegido, entre grupos | media 34,6 min, **desv. est. 15,3** (sería ~0 con arbitraje poblacional) |
+| ídem, bajo `expected` | desv. est. 15,7 — pasar a determinístico **casi no la mueve** |
+| costo por modo usado | caminata 12,1 · auto 25,0 · bici 37,6 · metro 44,3 — **32 min de diferencia** entre modos usados a la vez |
+| distancia a la indiferencia | **91% de los agentes** a más de 0,5 min; sólo 2,8% a menos de 0,1 |
+
+La razón es estructural: con todo-o-nada cada grupo pone el 100% de su masa en
+**un** modo, y un par origen-destino con una sola alternativa usada satisface la
+condición **al vacío**. El principio, en su enunciado formal, es por par OD:
+
+> *Every used route connecting an origin and destination has equal and minimal
+> travel time.* — Boyles, Lownes & Unnikrishnan, «Transportation Network
+> Analysis», Corollary 4.1, p. 89
+
+con la aclaración explícita de que rutas usadas de pares OD **distintos** pueden
+tener tiempos distintos. Acá cada celda es un origen y cada estrato una clase,
+así que el reparto agregado es **composición entre 942 grupos**, no arbitraje.
+
+**Reformulación del mecanismo**: al agregar pistas, los grupos que estaban cerca
+de su umbral de indiferencia saltan ENTEROS de modo, en vez de trasvasar una
+fracción como haría el logit. El 8,6% de agentes a menos de 0,5 min de la
+indiferencia es la reserva que puede saltar. La paradoja aparece cuando ese
+salto degrada al metro (Mohring) más de lo que la pista mejora al auto. La
+etiqueta de la UI pasó a «determinístico (todo-o-nada)»; el valor `"wardrop"`
+del schema se conserva por compatibilidad de escenarios guardados.
+
+**Y la multiplicidad de equilibrios tiene explicación teórica**, no es una
+rareza empírica del todo-o-nada: la unicidad del equilibrio de usuario exige
+funciones de costo **estrictamente crecientes** en el flujo (Proposición 5.2,
+p. 120 — la prueba necesita el Hessiano de Beckmann definido positivo). El metro
+tiene `espera = 30·K / carga`, **decreciente** en su propia demanda. Viola la
+hipótesis, así que la unicidad no está garantizada. La existencia sí (Prop. 5.1,
+p. 120, sólo pide continuidad). No es un defecto a corregir: **es la condición
+que hace posible Downs-Thomson**. El libro lo advierte en general (p. 104): los
+distintos enunciados del principio «agree in the standard case of continuous,
+increasing […] separable» link performance functions, «but the equilibria can
+differ if these assumptions are violated».
+
+**Pendiente que abrió esta auditoría**: el MSA promedia **tiempos**
+(`msa.py`, `t_auto_ac = f·t_nuevo + (1−f)·t_ac`), mientras que el algoritmo
+estándar promedia **flujos** y recalcula los tiempos desde el flujo promediado
+(§6.2, p. 159). El punto fijo sigue siendo un equilibrio legítimo, pero la
+justificación de convergencia del MSA —que `x*−x` es dirección de descenso de la
+función de Beckmann, p. 160— se apoya en promediar la variable primal, así que
+no cubre nuestro esquema. Cambiarlo movería los **tres** métodos y toda la
+calibración de agosto: medir primero detrás de una bandera, no tocar el default.
+
 > **Dos falsos positivos que ya se descartaron**, por si reaparecen: el tiempo
 > físico medio puede SUBIR y el costo generalizado tiempo+dinero también, sin que
 > haya paradoja. Son efectos de composición — quien se cambia de modo

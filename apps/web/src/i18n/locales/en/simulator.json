@@ -108,8 +108,8 @@
     "verdict_no_tol": "No convergence criterion (tolerance 0): it ran the fixed {{total}} iterations and stopped by count, not because travel times settled. The final residual is {{res}} min.",
     "booting_pyodide": "Initializing Pyodide in the browser (first run takes ~10–20s)…",
     "assignment_montecarlo": "Monte Carlo",
-    "assignment_wardrop": "Wardrop",
-    "assignment_hint_wardrop": "DETERMINISTIC choice: each group goes entirely to the highest-utility mode, with no taste heterogeneity. It is the logit limit as the coefficient scale grows. Careful: all-or-nothing loading can have multiple equilibria — two similar setups may land on different splits."
+    "assignment_wardrop": "Deterministic (all-or-nothing)",
+    "assignment_hint_wardrop": "DETERMINISTIC choice: each group goes entirely to the highest-utility mode, with no taste heterogeneity. It is the logit limit as the coefficient scale grows. It does NOT equalize costs across modes: on the default city all four modes are used at once with costs differing by up to 32 min, and 91% of groups sit far from indifference (scripts/auditoria_wardrop.py). What changes is that the marginal group switches AS A WHOLE. Careful: it can have multiple equilibria, because the metro's waiting time falls as it gains demand, violating the increasing-cost condition that guarantees uniqueness."
   },
   "run_status": {
     "booting_pyodide": "Initializing Pyodide…",
@@ -242,7 +242,7 @@
   },
   "hints": {
     "demand_title": "Demand",
-    "demand_body": "Each cell has three strata (High / Mid / Low). Telework is decided beforehand and does not travel; everyone else chooses among the enabled modes that are feasible for them (walking ≤ 30 min, cycling ≤ 45 min, car only with ownership). By default the split is a multinomial logit over times and costs; under Wardrop assignment it is deterministic and the whole group goes to the highest-utility mode.",
+    "demand_body": "Each cell has three strata (High / Mid / Low). Telework is decided beforehand and does not travel; everyone else chooses among the enabled modes that are feasible for them (walking ≤ 30 min, cycling ≤ 45 min, car only with ownership). By default the split is a multinomial logit over times and costs; under deterministic assignment the whole group goes to the highest-utility mode.",
     "supply_title": "Supply",
     "supply_body": "Car: capacity from Greenshields (lane width reduces it) and BPR delay accumulated toward the CBD. Bike: same volume/capacity form, corrected for slope and floored at walking time. Metro: frequency endogenous to the critical link (capped by frec_min/frec_max), half-headway wait amplified by platform saturation, and intermediate stops inside the in-vehicle time — more stations shorten access but lengthen the ride.",
     "equilibrium_title": "Equilibrium",
@@ -302,7 +302,7 @@
     "stratum_label_2": "2 — Middle",
     "stratum_label_3": "3 — Low",
     "interpretation": "V = the mode's systematic utility, the observed part of U = V + ε. It is in utils: only differences across modes matter — ~1 util of advantage ≈ 2.7× more likely. P = choice probability of THIS agent (not the system's mode share).",
-    "wardrop_notice": "Wardrop assignment is active: the simulation sends the WHOLE group to the mode with the highest V, with no splitting. These P values are the logit ones — use them to read the utility function, not to anticipate this run's mode split.",
+    "wardrop_notice": "Deterministic assignment is active: the simulation sends the WHOLE group to the mode with the highest V, with no splitting. These P values are the logit ones — use them to read the utility function, not to anticipate this run's mode split.",
     "position_value": "{{pos}} km · {{dist}} km from CBD",
     "cbd_center": "▲ CBD ({{km}} km)"
   },
