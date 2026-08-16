@@ -66,6 +66,13 @@ def demanda_sintetica() -> DemandConfig:
     return _demanda_sintetica()
 
 
+@pytest.fixture(scope="module")
+def demanda_sintetica_modulo() -> DemandConfig:
+    """La misma, con alcance de módulo — para fixtures que corren una
+    simulación una sola vez y la comparten entre tests."""
+    return _demanda_sintetica()
+
+
 @pytest.fixture
 def hacer_demanda_sintetica():
     """La misma, parametrizable — para los tests que mueven las probabilidades."""

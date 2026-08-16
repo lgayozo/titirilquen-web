@@ -31,9 +31,9 @@ from titirilquen_core import (
 )
 from titirilquen_core.coupled import iter_coupled
 
-from api.serialization import (
+from titirilquen_core.serializacion import (
     coupled_result_to_dict,
-    land_use_result_to_dict,
+    land_use_city_to_dict,
     outer_iteration_to_dict,
     trace_to_dict,
 )
@@ -93,15 +93,7 @@ def land_use_solve(req: LandUseOnlyRequest) -> dict[str, object]:
     city = LandUseCity.build(
         L=req.L, CBD=req.CBD, cfg=req.land_use, ancho_celda_km=req.largo_km / req.L
     )
-    assert city.result is not None
-    return {
-        "L": city.L,
-        "CBD": city.cbd_index,
-        "S": city.S.tolist(),
-        "parcelas": city.parcelas,
-        "densidad_celda": city.densidad_por_celda().tolist(),
-        "result": land_use_result_to_dict(city.result),
-    }
+    return land_use_city_to_dict(city)
 
 
 class CoupledRequest(BaseModel):

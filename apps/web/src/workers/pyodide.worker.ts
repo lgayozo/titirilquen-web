@@ -128,60 +128,23 @@ await micropip.install(${JSON.stringify(whlUrl)})
 
 from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
 from titirilquen_core.coupled import iter_coupled
-from titirilquen_core.coupled_metrics import equilibrium_metrics_to_dict
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa, iter_msa_desde_suelo
 import json
-import numpy as np
 
-def _snap_to_py(snap):
-    return {
-        "iter": snap.iter,
-        "f_msa": snap.f_msa,
-        "modal_split": snap.modal_split,
-        "t_auto": snap.t_auto.tolist(),
-        "t_bici": snap.t_bici.tolist(),
-        "t_tren_acceso": snap.t_tren_acceso.tolist(),
-        "t_tren_espera": snap.t_tren_espera.tolist(),
-        "t_tren_viaje": snap.t_tren_viaje.tolist(),
-        "demanda_auto": snap.demanda_auto.tolist(),
-        "demanda_metro": snap.demanda_metro.tolist(),
-        "demanda_bici": snap.demanda_bici.tolist(),
-        "demanda_caminata": snap.demanda_caminata.tolist(),
-        "frecuencia_metro": snap.frecuencia_metro,
-        "frecuencia_teorica_metro": snap.frecuencia_teorica_metro,
-        "residuo": None if snap.residuo == float("inf") else snap.residuo,
-    }
-
-def _trace_to_py(trace):
-    return {
-        "converged": trace.converged,
-        "capacidad_auto": trace.capacidad_auto,
-        "v_libre_auto": trace.v_libre_auto,
-        "alpha_auto_bpr": trace.alpha_auto_bpr,
-        "beta_auto_bpr": trace.beta_auto_bpr,
-        "carga_metro": None if trace.carga_metro is None else trace.carga_metro.tolist(),
-        "estaciones_km": None if trace.estaciones_km is None else trace.estaciones_km.tolist(),
-        "flujos_auto_veh_h": None if trace.flujos_auto_veh_h is None else trace.flujos_auto_veh_h.tolist(),
-        "flujos_bici_veh_h": None if trace.flujos_bici_veh_h is None else trace.flujos_bici_veh_h.tolist(),
-        "emisiones_total_kg": trace.emisiones_total_kg,
-        "emisiones_auto_kg": trace.emisiones_auto_kg,
-        "emisiones_metro_kg": trace.emisiones_metro_kg,
-        "emisiones_perfil_kg": None if trace.emisiones_perfil_kg is None else trace.emisiones_perfil_kg.tolist(),
-        "demanda_estrato": None if trace.demanda_estrato is None else trace.demanda_estrato.tolist(),
-        "iteraciones": [_snap_to_py(s) for s in trace.iteraciones],
-        "agentes": [
-            {
-                "id": a.id, "celda_origen": a.celda_origen, "estrato": a.estrato,
-                "teletrabaja": a.teletrabaja, "tiene_auto": a.tiene_auto,
-                "modo_elegido": a.modo_elegido, "utilidad_elegida": a.utilidad_elegida,
-            }
-            for a in trace.agentes
-        ],
-    }
+# La forma del resultado la define el CORE, en titirilquen_core.serializacion.
+# Antes estaba reescrita acá dentro, en un string que ninguna herramienta
+# revisa; divergió del gemelo de la API y el frontend terminó mostrando ceros.
+# Este bloque ya solo es el pegamento entre el worker y el núcleo.
+from titirilquen_core.serializacion import (
+    iteration_to_dict,
+    land_use_city_to_dict,
+    outer_iteration_to_dict,
+    trace_to_dict,
+)
 
 def simulate_from_json(config_json: str):
     cfg = SimulationConfig.model_validate_json(config_json)
-    return _trace_to_py(run_msa(cfg))
+    return trace_to_dict(run_msa(cfg))
 
 # Streaming en una sola corrida: iter_msa popula el trace completo mientras
 # emite los snapshots. Tras agotar el generador, last_trace_to_py() devuelve el
@@ -193,7 +156,7 @@ def iter_from_json(config_json: str):
     trace = ConvergenceTrace()
     _LAST_TRACE["trace"] = None
     for snap in iter_msa(cfg, trace):
-        yield _snap_to_py(snap)
+        yield iteration_to_dict(snap)
     _LAST_TRACE["trace"] = trace
 
 def iter_from_json_suelo(req_json: str):
@@ -206,31 +169,12 @@ def iter_from_json_suelo(req_json: str):
     trace = ConvergenceTrace()
     _LAST_TRACE["trace"] = None
     for snap in iter_msa_desde_suelo(cfg, lu, trace, localizacion=localizacion):
-        yield _snap_to_py(snap)
+        yield iteration_to_dict(snap)
     _LAST_TRACE["trace"] = trace
 
 def last_trace_to_py():
     t = _LAST_TRACE["trace"]
-    return None if t is None else _trace_to_py(t)
-
-def _land_use_result_to_py(res):
-    return {
-        "u": res.u.tolist(),
-        "p": res.p.tolist(),
-        "Q": res.Q.tolist(),
-        "converged": res.converged,
-        "iterations": res.iterations,
-    }
-
-def _outer_iter_to_py(outer):
-    return {
-        "outer_iter": outer.outer_iter,
-        "land_use": _land_use_result_to_py(outer.land_use),
-        "transport": _trace_to_py(outer.transport),
-        "T_matrix": outer.T_matrix.tolist(),
-        "T_residual": None if outer.T_residual == float("inf") else outer.T_residual,
-        "metrics": equilibrium_metrics_to_dict(outer.metrics),
-    }
+    return None if t is None else trace_to_dict(t)
 
 def land_use_solve_from_json(req_json: str):
     req = json.loads(req_json)
@@ -238,15 +182,7 @@ def land_use_solve_from_json(req_json: str):
     L = int(req["L"])
     largo_km = float(req.get("largo_km", 20.0))
     city = LandUseCity.build(L=L, CBD=int(req["CBD"]), cfg=cfg, ancho_celda_km=largo_km / L)
-    assert city.result is not None
-    return {
-        "L": city.L,
-        "CBD": city.cbd_index,
-        "S": city.S.tolist(),
-        "parcelas": city.parcelas,
-        "densidad_celda": city.densidad_por_celda().tolist(),
-        "result": _land_use_result_to_py(city.result),
-    }
+    return land_use_city_to_dict(city)
 
 def coupled_iter_from_json(req_json: str):
     req = json.loads(req_json)
@@ -260,7 +196,7 @@ def coupled_iter_from_json(req_json: str):
         outer_max_iter=outer_max_iter,
         outer_tol=outer_tol,
     ):
-        yield _outer_iter_to_py(outer)
+        yield outer_iteration_to_dict(outer)
 `);
 
   const globals = py.pyimport("__main__") as {
