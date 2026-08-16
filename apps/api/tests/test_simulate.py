@@ -11,7 +11,11 @@ def _config_pequeno() -> dict:
         "city": {
             "n_celdas": 51,
             "largo_ciudad_km": 5,
-            "densidad_por_celda": 5,
+            # Era `densidad_por_celda: 5`, campo renombrado en D-28. La
+            # conversión documentada es hab/celda x (n_celdas-1) / largo_km:
+            # 5 x 50 / 5 = 50 hab/km. El test llevaba meses en 422 porque
+            # `apps/api/tests` no está en `testpaths` y nadie lo corría.
+            "densidad_hab_km": 50,
             "share_estratos": [0.1, 0.4, 0.5],
         },
         "supply": {},

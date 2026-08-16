@@ -16,7 +16,9 @@ from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.equilibrium import LandUseResult
 
 
-def _to_list(arr: np.ndarray | None) -> list[float] | None:
+def _to_list(arr: np.ndarray | None) -> list[Any] | None:
+    """`tolist()` es recursivo, así que sirve igual para 1-D que para el array
+    3-D de `demanda_estrato` [estrato, modo, celda]."""
     if arr is None:
         return None
     return arr.tolist()
@@ -91,6 +93,11 @@ def trace_to_dict(trace: ConvergenceTrace) -> dict[str, Any]:
         "emisiones_auto_kg": trace.emisiones_auto_kg,
         "emisiones_metro_kg": trace.emisiones_metro_kg,
         "emisiones_perfil_kg": _to_list(trace.emisiones_perfil_kg),
+        # Faltaba, y el worker de Pyodide sí lo emitía: por la ruta `api` el
+        # frontend recibía `undefined` y `agregados.ts` devolvía TODOS los KPIs
+        # de bienestar en cero, sin error visible. Es el motivo por el que este
+        # archivo y su gemelo del worker se unifican en el core.
+        "demanda_estrato": _to_list(trace.demanda_estrato),
         "iteraciones": [iteration_to_dict(s) for s in trace.iteraciones],
         "agentes": [
             {

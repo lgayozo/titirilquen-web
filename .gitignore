@@ -44,5 +44,8 @@ playwright-report/
 .playwright/
 blob-report/
 
-# Material de referencia local (Overleaf original) — no versionar
+# Material de referencia local (Overleaf original, papers, libros) — no
+# versionar. El .rar es el mismo material comprimido para moverlo entre
+# máquinas, ya que el directorio no viaja en git.
 reference/
+reference.rar

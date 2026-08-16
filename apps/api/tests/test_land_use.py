@@ -35,7 +35,8 @@ def test_coupled_solve() -> None:
                 "city": {
                     "n_celdas": 51,
                     "largo_ciudad_km": 5,
-                    "densidad_por_celda": 1,
+                    # Ver la nota de test_simulate.py: 1 hab/celda x 50 / 5 km.
+                    "densidad_hab_km": 10,
                     "share_estratos": [0.1, 0.4, 0.5],
                 },
                 "supply": {},

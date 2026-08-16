@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 /**
  * Re-compila el wheel de `titirilquen_core` y lo deja en `public/pyodide/`.
- * Ejecutar tras cualquier cambio en el paquete Python.
+ * Ejecutar tras CUALQUIER cambio en el paquete Python: si no, el motor de
+ * Pyodide sigue corriendo el código anterior.
  *
- * Robusto frente a entornos sin `python` en el PATH: detecta el intérprete
- * (override con `PYTHON=...`), asegura el paquete `build`, y solo elimina el
- * wheel previo DESPUÉS de compilar con éxito (así un fallo no deja a Pyodide
- * sin asset).
+ * Usa `uv`, que es el gestor de entornos del repo (los tests y los scripts de
+ * auditoría se corren con `uv run`). La versión anterior de este script
+ * buscaba un intérprete suelto en el PATH e intentaba `pip install build`,
+ * lo que en macOS falla contra PEP 668 ("externally-managed-environment") y
+ * dejaba el flujo documentado sin funcionar. `uv build` no necesita nada
+ * instalado: resuelve el backend de build en un entorno efímero.
+ *
+ * El wheel previo se borra SOLO después de compilar con éxito, para que un
+ * fallo no deje a Pyodide sin asset.
  */
 import { execSync } from "node:child_process";
 import { existsSync, readdirSync, rmSync, statSync } from "node:fs";
@@ -23,52 +29,38 @@ if (!existsSync(CORE_PKG)) {
   process.exit(1);
 }
 
-/** Primer intérprete de Python que responde a `--version`. */
-function resolvePython() {
-  const candidates = [process.env.PYTHON, "python3", "python", "py -3"].filter(
-    Boolean,
-  );
-  for (const cmd of candidates) {
-    try {
-      execSync(`${cmd} --version`, { stdio: "ignore" });
-      return cmd;
-    } catch {
-      // probar el siguiente
-    }
-  }
-  return null;
-}
-
-const PY = resolvePython();
-if (!PY) {
+const UV = process.env.UV ?? "uv";
+try {
+  execSync(`${UV} --version`, { stdio: "ignore" });
+} catch {
   console.error(
-    "No se encontró un intérprete de Python. Instalá Python 3.11+ o indicá la ruta con PYTHON=/ruta/al/python.",
+    `No se encontró '${UV}'. Este repo usa uv para todo lo de Python.\n` +
+      "  macOS/Linux:  curl -LsSf https://astral.sh/uv/install.sh | sh\n" +
+      "  Windows:      winget install astral-sh.uv\n" +
+      "Si lo tenés en otra ruta: UV=/ruta/a/uv npm run build:core-wheel",
   );
   process.exit(1);
 }
 
-// Asegurar el paquete `build` (no viene con `pip install -e ".[dev]"`).
-try {
-  execSync(`${PY} -c "import build"`, { stdio: "ignore" });
-} catch {
-  console.log("El paquete 'build' no está; instalándolo…");
-  try {
-    execSync(`${PY} -m pip install build`, { stdio: "inherit" });
-  } catch {
-    console.error(
-      `No se pudo instalar 'build'. Instalalo a mano: ${PY} -m pip install build`,
-    );
-    process.exit(1);
-  }
-}
-
-console.log(`Compilando wheel de titirilquen_core (con ${PY})…`);
-execSync(`${PY} -m build --wheel --outdir "${OUT_DIR}"`, {
+console.log("Compilando wheel de titirilquen_core con uv…");
+execSync(`${UV} build --wheel --out-dir "${OUT_DIR}"`, {
   cwd: CORE_PKG,
   stdio: "inherit",
 });
 
-// Conservar solo el wheel recién generado (el más nuevo); borrar versiones viejas.
+// `uv build` deja un `.gitignore` con `*` en el directorio de salida, pensado
+// para un `dist/` que no se versiona. Acá el wheel SÍ va al repo (es el asset
+// que sirve Pyodide), y ese archivo es una trampa silenciosa: se ignora a sí
+// mismo, así que no aparece en `git status`, y en un clon limpio haría que el
+// wheel recién compilado fuera invisible para git.
+const UV_GITIGNORE = resolve(OUT_DIR, ".gitignore");
+if (existsSync(UV_GITIGNORE)) {
+  rmSync(UV_GITIGNORE);
+}
+
+// Conservar solo el wheel recién generado; borrar versiones viejas. Importa
+// cuando cambia el número de versión: sin esto quedarían dos .whl y el worker
+// tomaría el que dice su constante, no el nuevo.
 const wheels = readdirSync(OUT_DIR)
   .filter((f) => f.endsWith(".whl"))
   .map((f) => ({ f, mtime: statSync(resolve(OUT_DIR, f)).mtimeMs }))
@@ -81,6 +73,7 @@ if (wheels.length === 0) {
 
 for (const stale of wheels.slice(1)) {
   rmSync(resolve(OUT_DIR, stale.f));
+  console.log(`  (borrado el wheel viejo ${stale.f})`);
 }
 
 console.log(`Wheel listo: public/pyodide/${wheels[0].f}`);
