@@ -38,17 +38,17 @@ def probabilidades_logit(utilidades: dict[Modo, UtilityBreakdown]) -> dict[Modo,
 
 
 _TOL_EMPATE = 1e-12
-"""Tolerancia para considerar empatadas dos utilidades en `probabilidades_wardrop`."""
+"""Tolerancia para considerar empatadas dos utilidades en `probabilidades_todo_o_nada`."""
 
 
-def probabilidades_wardrop(utilidades: dict[Modo, UtilityBreakdown]) -> dict[Modo, float]:
+def probabilidades_todo_o_nada(utilidades: dict[Modo, UtilityBreakdown]) -> dict[Modo, float]:
     """Elección DETERMINÍSTICA: toda la probabilidad al modo de mayor utilidad.
 
     Es el límite del logit cuando la escala de los coeficientes tiende a
     infinito, o sea cuando la heterogeneidad de gustos no observada se desvanece.
 
     **NO produce un equilibrio de Wardrop en el sentido agregado**, y el valor
-    `"wardrop"` del schema es sólo el nombre histórico de la opción (se mantiene
+    `"todo_o_nada"` del schema es sólo el nombre histórico de la opción (se mantiene
     porque cambiarlo rompería los escenarios `.ttrq.json` ya guardados). El
     principio de equilibrio de usuario, en su enunciado formal —Boyles, Lownes &
     Unnikrishnan, "Transportation Network Analysis", Corollary 4.1, p. 89— dice:

@@ -17,13 +17,23 @@ from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 
 def _demand_config() -> DemandConfig:
     penal = PhysicalPenalties(
-        bici_10=-0.09, bici_20=-0.15, bici_30=-0.5,
-        walk_5=-0.09, walk_15=-0.18, walk_25=-0.4,
+        bici_10=-0.09,
+        bici_20=-0.15,
+        bici_30=-0.5,
+        walk_5=-0.09,
+        walk_15=-0.18,
+        walk_25=-0.4,
     )
     betas = StratumBetas(
-        asc_auto=1.5, asc_metro=-0.2, asc_bici=-0.9, asc_caminata=-0.5,
-        b_tiempo_viaje=-0.055, b_costo=-0.00008,
-        b_tiempo_espera=-0.05, b_tiempo_acceso=-0.15, b_tiempo_caminata=-0.15,
+        asc_auto=1.5,
+        asc_metro=-0.2,
+        asc_bici=-0.9,
+        asc_caminata=-0.5,
+        b_tiempo_viaje=-0.055,
+        b_costo=-0.00008,
+        b_tiempo_espera=-0.05,
+        b_tiempo_acceso=-0.15,
+        b_tiempo_caminata=-0.15,
         penalizaciones_fisicas=penal,
     )
     s = StratumConfig(prob_teletrabajo=0.2, prob_auto=0.6, betas=betas)
@@ -74,7 +84,12 @@ def test_reparto_modal_suma_uno() -> None:
     for sm in m.por_estrato:
         assert abs(sum(sm.reparto_modal.values()) - 1.0) < 1e-9
         assert set(sm.reparto_modal) == {
-            "Auto", "Metro", "Bici", "Caminata", "Teletrabajo", "Varado",
+            "Auto",
+            "Metro",
+            "Bici",
+            "Caminata",
+            "Teletrabajo",
+            "Varado",
         }
     assert abs(sum(m.sistema.reparto_modal.values()) - 1.0) < 1e-9
 

@@ -199,8 +199,7 @@ def main() -> None:
         + [(f"frec_min {f}", *con_train(frec_min=f)) for f in (2, 6, 15)]
         + [(f"frec_max {f}", *con_train(frec_max=f)) for f in (10, 30, 60)]
         + [(f"anden_alpha {a}", *con_train(anden_alpha=a)) for a in (0.0, 0.5, 3.0)]
-        + [(f"anden_beta {a}", *con_train(anden_beta=a)) for a in (1.0, 4.0, 8.0)]
-        + [(f"tasa_carga {c}", *con_train(tasa_carga=c)) for c in (6, 100)],
+        + [(f"anden_beta {a}", *con_train(anden_beta=a)) for a in (1.0, 4.0, 8.0)],
     )
 
     barrer(

@@ -19,7 +19,6 @@ BASE = {
     "v_tren_kmh": 35.0,
     "num_estaciones": 10,
     "v_caminata_kmh": 4.8,
-    "tasa_carga": 6.0,
     "anden_alpha": 0.5,
     "anden_beta": 4.0,
 }

@@ -73,8 +73,10 @@ const ALLOWED: Record<string, { py: unknown; ts: unknown }> = {
   // docs/ANALISIS_SENSIBILIDAD.md, reproducible con scripts/sensibilidad.py.
   "city.densidad_hab_km": { py: 500, ts: 1800 },
   // Población de suelo: el core conserva la escala del paper (99.900); el
-  // frontend usa 36.000 (= 1800 hab/km × 20 km, shares 10/40/50) en sync con
-  // city.densidad_hab_km.
+  // frontend usa 36.000 (= 1800 hab/km × 20 km, shares 20/50/30) en sync con
+  // city.densidad_hab_km. (El comentario decía 10/40/50, la mezcla anterior a
+  // la recalibración de agosto de 2026; los números de abajo siempre fueron
+  // los correctos.)
   "land_use.H_por_estrato.0": { py: 33300, ts: 7200 },
   "land_use.H_por_estrato.1": { py: 33300, ts: 18000 },
   "land_use.H_por_estrato.2": { py: 33300, ts: 10800 },

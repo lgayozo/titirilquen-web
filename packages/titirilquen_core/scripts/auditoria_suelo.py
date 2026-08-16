@@ -274,13 +274,9 @@ def main() -> None:
     # Hubo un barrido «10. solver» comparando dos metodos. El segundo decia
     # corregir el lambda heterogeneo y solo lo dejaba inerte: se elimino del
     # core (AU-07), y con el este barrido.
-    barrer(
-        "10. vestigiales (densidad_max/min) — deben ser INERTES",
-        [
-            ("base 800/200", base_cfg()),
-            ("9999/1", base_cfg(densidad_max=9999.0, densidad_min=1.0)),
-        ],
-    )
+    # El barrido «10. vestigiales» verificaba que densidad_max/min fueran
+    # inertes. Lo eran, y por eso los campos ya no existen: no hay nada que
+    # barrer.
 
 
 if __name__ == "__main__":

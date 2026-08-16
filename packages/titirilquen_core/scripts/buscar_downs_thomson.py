@@ -221,23 +221,27 @@ def corre(escenario: dict, metodo: str, pistas: int) -> dict:
             if tr.flujos_auto_veh_h is not None and tr.capacidad_auto
             else 0.0
         ),
-        "w": w_mx if metodo == "wardrop" else w_ls,
+        "w": w_mx if metodo == "todo_o_nada" else w_ls,
         "conv": tr.converged,
     }
 
 
 ESCENARIOS: list[tuple[str, dict, tuple[str, ...]]] = [
-    ("E01 base actual (4 modos, 3 estratos)", {}, ("montecarlo", "expected", "wardrop")),
-    ("E02 base, metro K=1000 f1/200", {"k": 1000, "fmin": 1, "fmax": 200}, ("expected", "wardrop")),
+    ("E01 base actual (4 modos, 3 estratos)", {}, ("montecarlo", "expected", "todo_o_nada")),
+    (
+        "E02 base, metro K=1000 f1/200",
+        {"k": 1000, "fmin": 1, "fmax": 200},
+        ("expected", "todo_o_nada"),
+    ),
     (
         "E03 solo A+M, K=1000",
         {"solo_am": True, "k": 1000, "fmin": 1, "fmax": 200},
-        ("expected", "wardrop"),
+        ("expected", "todo_o_nada"),
     ),
     (
         "E04 homogenea, solo A+M, K=1000",
         {"homogeneo": True, "prob_auto": 1.0, "solo_am": True, "k": 1000, "fmin": 1, "fmax": 200},
-        ("expected", "wardrop"),
+        ("expected", "todo_o_nada"),
     ),
     (
         "E05 E04 + dinero cero",
@@ -250,7 +254,7 @@ ESCENARIOS: list[tuple[str, dict, tuple[str, ...]]] = [
             "fmin": 1,
             "fmax": 200,
         },
-        ("expected", "wardrop"),
+        ("expected", "todo_o_nada"),
     ),
     (
         "E06 E05 + K=2500",
@@ -263,7 +267,7 @@ ESCENARIOS: list[tuple[str, dict, tuple[str, ...]]] = [
             "fmin": 1,
             "fmax": 200,
         },
-        ("expected", "wardrop"),
+        ("expected", "todo_o_nada"),
     ),
     (
         "E07 bimodal concentrada + E05",
@@ -277,7 +281,7 @@ ESCENARIOS: list[tuple[str, dict, tuple[str, ...]]] = [
             "fmin": 1,
             "fmax": 200,
         },
-        ("expected", "wardrop"),
+        ("expected", "todo_o_nada"),
     ),
     (
         "E08 bimodal + K=2500",
@@ -291,7 +295,7 @@ ESCENARIOS: list[tuple[str, dict, tuple[str, ...]]] = [
             "fmin": 1,
             "fmax": 200,
         },
-        ("expected", "wardrop"),
+        ("expected", "todo_o_nada"),
     ),
     (
         "E09 E08 + ASC cero (clasico puro)",
@@ -306,7 +310,7 @@ ESCENARIOS: list[tuple[str, dict, tuple[str, ...]]] = [
             "fmin": 1,
             "fmax": 200,
         },
-        ("expected", "wardrop"),
+        ("expected", "todo_o_nada"),
     ),
     (
         "E10 E09 con cautivos (prob_auto .7)",
@@ -321,7 +325,7 @@ ESCENARIOS: list[tuple[str, dict, tuple[str, ...]]] = [
             "fmin": 1,
             "fmax": 200,
         },
-        ("wardrop",),
+        ("todo_o_nada",),
     ),
 ]
 

@@ -1,6 +1,6 @@
-"""Audita el equilibrio bajo `assignment="wardrop"` contra la definicion formal.
+"""Audita el equilibrio bajo `assignment="todo_o_nada"` contra la definicion formal.
 
-La pregunta la instala el docstring de `probabilidades_wardrop`, que afirma:
+La pregunta la instala el docstring de `probabilidades_todo_o_nada`, que afirma:
 "el punto fijo es un equilibrio de Wardrop: todo modo usado termina con el mismo
 costo generalizado". La definicion formal (Boyles, Lownes & Unnikrishnan,
 "Transportation Network Analysis", Corollary 4.1, p. 89) dice:
@@ -106,7 +106,7 @@ def compara_msa() -> None:
     print(f"{'=' * 78}")
     cols = ("Auto", "Metro", "Bici", "Caminata", "vc", "f_op", "t_auto", "iters", "residuo")
     print(f"{'metodo · esquema':28s}" + "".join(f"{c:>9s}" for c in cols))
-    for metodo in ("expected", "wardrop", "montecarlo"):
+    for metodo in ("expected", "todo_o_nada", "montecarlo"):
         base = None
         for flujos in (False, True):
             r = resumen(corre(metodo, flujos)[0])
@@ -249,7 +249,6 @@ def _oferta(sim, ciudad, d_auto, d_metro, d_bici):
         capacidad_tren=train_p.capacidad_tren,
         num_estaciones=train_p.num_estaciones,
         v_caminata_kmh=train_p.v_caminata_kmh,
-        tasa_carga=train_p.tasa_carga,
         tiempo_detencion_min=train_p.tiempo_detencion_min,
         frec_min=train_p.frec_min,
         frec_max=train_p.frec_max,
@@ -389,8 +388,8 @@ def poder_de_mercado(tr: ConvergenceTrace, sim) -> None:
 
 
 if __name__ == "__main__":
-    for metodo in ("wardrop", "expected"):
+    for metodo in ("todo_o_nada", "expected"):
         reporta(metodo.upper(), cortes(*corre(metodo)))
     compara_msa()
-    tr_w, sim_w = corre("wardrop")
+    tr_w, sim_w = corre("todo_o_nada")
     poder_de_mercado(tr_w, sim_w)

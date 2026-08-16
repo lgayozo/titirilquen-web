@@ -110,7 +110,7 @@ def corre(esc: dict, metodo: str, pistas: int, max_iter=120, tol=0.02) -> dict:
         "otros": 100 * (sp.get("Bici", 0) + sp.get("Caminata", 0)) / t,
         "f_op": last.frecuencia_metro,
         "espera": float(last.t_tren_espera.max()),
-        "w": w_mx if metodo == "wardrop" else w_ls,
+        "w": w_mx if metodo == "todo_o_nada" else w_ls,
         "cs": costo_social(sim, tr),
         "conv": tr.converged,
     }
@@ -186,7 +186,7 @@ def main() -> None:
 
     # ---------------- 1. barrido central sobre el default
     datos: dict = {"pistas": pistas_barrido, "metodos": {}}
-    for metodo in ("montecarlo", "expected", "wardrop"):
+    for metodo in ("montecarlo", "expected", "todo_o_nada"):
         filas = [corre({}, metodo, p) for p in pistas_barrido]
         datos["metodos"][metodo] = filas
         print(f"\n### default · {metodo}")
@@ -207,7 +207,7 @@ def main() -> None:
     colores_m = {
         "montecarlo": ("#8a8a8a", "5 4"),
         "expected": ("#2e6e4e", ""),
-        "wardrop": ("#b4532a", ""),
+        "todo_o_nada": ("#b4532a", ""),
     }
     g1 = svg_lineas(
         "Costo social por viajero según capacidad vial — los tres equilibrios",
@@ -215,7 +215,7 @@ def main() -> None:
         pistas_barrido,
         [
             (m, colores_m[m][0], colores_m[m][1], [r["cs"]["ciudad"] for r in datos["metodos"][m]])
-            for m in ("montecarlo", "expected", "wardrop")
+            for m in ("montecarlo", "expected", "todo_o_nada")
         ],
     )
     col_h = {
@@ -228,10 +228,17 @@ def main() -> None:
         "costo social ($/viaje)",
         pistas_barrido,
         [
-            (nom, c, "", [r["cs"][k] for r in datos["metodos"]["wardrop"]])
+            (nom, c, "", [r["cs"][k] for r in datos["metodos"]["todo_o_nada"]])
             for k, (nom, c) in col_h.items()
         ]
-        + [("ciudad", "#1a1a1a", "5 4", [r["cs"]["ciudad"] for r in datos["metodos"]["wardrop"]])],
+        + [
+            (
+                "ciudad",
+                "#1a1a1a",
+                "5 4",
+                [r["cs"]["ciudad"] for r in datos["metodos"]["todo_o_nada"]],
+            )
+        ],
     )
     g3 = svg_lineas(
         "Costo social por estrato — Expected (equilibrio logit)",
@@ -263,12 +270,12 @@ def main() -> None:
     ]
     p4 = [1, 2, 3, 4]
     print("\n\n### SENSIBILIZACION DE LA CALIBRACION (default K=1000)")
-    print(f"{'variante':<34}{'expected':<26}{'wardrop':<26}")
+    print(f"{'variante':<34}{'expected':<26}{'todo_o_nada':<26}")
     print("-" * 86)
     resumen = []
     for nombre, mods in variantes:
         celda = {}
-        for metodo in ("expected", "wardrop"):
+        for metodo in ("expected", "todo_o_nada"):
             filas = [corre_variante(mods, metodo, p) for p in p4]
             tramos = []
             for a, b in itertools.pairwise(filas):
@@ -282,9 +289,9 @@ def main() -> None:
                 ):
                     tramos.append(d_w)
             celda[metodo] = f"PARADOJA ({min(tramos):+.2f} min)" if tramos else "sin paradoja"
-        print(f"{nombre:<34}{celda['expected']:<26}{celda['wardrop']:<26}")
+        print(f"{nombre:<34}{celda['expected']:<26}{celda['todo_o_nada']:<26}")
         resumen.append((nombre, celda))
-    datos["sensibilidad"] = [(n, c["expected"], c["wardrop"]) for n, c in resumen]
+    datos["sensibilidad"] = [(n, c["expected"], c["todo_o_nada"]) for n, c in resumen]
     (SALIDA / "datos.json").write_text(json.dumps(datos, indent=1), encoding="utf-8")
     print(f"\nEscrito: {SALIDA / 'graficos.html'} y datos.json")
 
@@ -335,7 +342,7 @@ def corre_variante(mods: dict, metodo: str, pistas: int) -> dict:
         "metro": 100 * sp.get("Metro", 0) / t,
         "otros": 100 * (sp.get("Bici", 0) + sp.get("Caminata", 0)) / t,
         "espera": float(last.t_tren_espera.max()),
-        "w": w_mx if metodo == "wardrop" else w_ls,
+        "w": w_mx if metodo == "todo_o_nada" else w_ls,
     }
 
 

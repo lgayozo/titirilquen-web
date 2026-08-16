@@ -234,7 +234,6 @@ def _tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[Tiem
         capacidad_tren=train_p.capacidad_tren,
         num_estaciones=train_p.num_estaciones,
         v_caminata_kmh=train_p.v_caminata_kmh,
-        tasa_carga=train_p.tasa_carga,
         tiempo_detencion_min=train_p.tiempo_detencion_min,
         frec_min=train_p.frec_min,
         frec_max=train_p.frec_max,

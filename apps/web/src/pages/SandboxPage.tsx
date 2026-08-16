@@ -878,7 +878,7 @@ export function SandboxPage() {
               {t("equilibrium.assignment")}
             </div>
             <div className="seg" style={{ width: "100%" }}>
-              {(["montecarlo", "expected", "wardrop"] as const).map((m) => (
+              {(["montecarlo", "expected", "todo_o_nada"] as const).map((m) => (
                 <button
                   key={m}
                   type="button"

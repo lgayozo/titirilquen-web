@@ -37,13 +37,6 @@ export interface StratumBetas {
 export interface StratumConfig {
   prob_teletrabajo: number;
   prob_auto: number;
-  prob_jornada_flexible?: number;
-  prob_part_time?: number;
-  jornada?: {
-    horas_rigido: number;
-    horas_flexible: number;
-    horas_part_time: number;
-  };
   betas: StratumBetas;
 }
 
@@ -103,7 +96,6 @@ export interface TrainSupplyParams {
   capacidad_tren: number;
   num_estaciones: number;
   v_caminata_kmh: number;
-  tasa_carga: number;
   /** PROVISORIO: costo de operación por tren-km ($). Habilita costo del
    *  operador, subsidio y autofinanciamiento. Ver el comentario del core. */
   costo_operacion_tren_km: number;
@@ -136,14 +128,13 @@ export interface SimulationConfig {
   seed: number | null;
   /** Método de asignación de demanda. `montecarlo` (sorteo por agente) y
    *  `expected` (flujos esperados) reparten al grupo con las probabilidades
-   *  logit; `wardrop` lo manda ENTERO al modo de mayor utilidad.
+   *  logit; `todo_o_nada` lo manda ENTERO al modo de mayor utilidad.
    *
-   *  El valor `wardrop` es el nombre histórico de la opción y se conserva
-   *  porque cambiarlo rompería los `.ttrq.json` guardados y los links `?s=`
-   *  (`extra="forbid"`). La etiqueta visible es «determinístico»: el método NO
-   *  produce igualación de costos entre modos — ver el docstring de
-   *  `probabilidades_wardrop` en el core y `scripts/auditoria_wardrop.py`. */
-  assignment: "montecarlo" | "expected" | "wardrop";
+   *  Se llamó `wardrop` hasta agosto de 2026. El nombre prometía una condición
+   *  de equilibrio de usuario que este modelo no cumple: los cuatro modos se
+   *  usan a la vez con costos que difieren hasta 32 min
+   *  (`scripts/auditoria_wardrop.py`). */
+  assignment: "montecarlo" | "expected" | "todo_o_nada";
   /** Modos disponibles en el set de elección antes de correr el equilibrio.
    *  Los modos excluidos se tratan como infeasibles (utilidad −∞). El
    *  teletrabajo no es elegible (se decide antes de la elección de modo). */

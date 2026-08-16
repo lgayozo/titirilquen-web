@@ -135,7 +135,7 @@ def cg_medio(tr: ConvergenceTrace, sim) -> float:
 
 def barrido_pistas() -> list[dict]:
     filas = []
-    for metodo in ("expected", "wardrop"):
+    for metodo in ("expected", "todo_o_nada"):
         for pistas in range(1, 7):
             sim = base_sim()
             sim.assignment = metodo
@@ -151,7 +151,7 @@ def barrido_pistas() -> list[dict]:
 def estabilidad() -> list[dict]:
     """Cuantos grupos cambian de modo entre iteraciones consecutivas."""
     out = []
-    for metodo in ("expected", "wardrop"):
+    for metodo in ("expected", "todo_o_nada"):
         sim = base_sim()
         sim.assignment = metodo
         sim.max_iter = 40
@@ -204,7 +204,7 @@ def escala_betas() -> list[dict]:
     `test_es_el_limite_del_logit_al_escalar_las_utilidades` en la funcion pura,
     pero medido sobre el EQUILIBRIO, donde ademas hay retroalimentacion."""
     ref = reparto(corre(_sim_wardrop()))
-    filas = [{"escala": None, "metodo": "wardrop", **ref}]
+    filas = [{"escala": None, "metodo": "todo_o_nada", **ref}]
     for c in (1, 2, 5, 10, 20, 50):
         sim = base_sim()
         sim.assignment = "expected"
@@ -223,13 +223,13 @@ def escala_betas() -> list[dict]:
 
 def _sim_wardrop():
     sim = base_sim()
-    sim.assignment = "wardrop"
+    sim.assignment = "todo_o_nada"
     return sim
 
 
 def sensibilidad_corte() -> list[dict]:
     filas = []
-    for metodo in ("expected", "wardrop"):
+    for metodo in ("expected", "todo_o_nada"):
         for tol, mi in ((0.5, 20), (0.1, 20), (0.02, 60), (0.0, 60)):
             sim = base_sim()
             sim.assignment = metodo
@@ -243,7 +243,7 @@ def sensibilidad_corte() -> list[dict]:
 
 def esquemas_msa() -> list[dict]:
     filas = []
-    for metodo in ("expected", "wardrop", "montecarlo"):
+    for metodo in ("expected", "todo_o_nada", "montecarlo"):
         for flujos in (False, True):
             sim = base_sim()
             sim.assignment = metodo

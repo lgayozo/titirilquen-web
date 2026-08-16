@@ -138,11 +138,15 @@ frente a la sistemática, y el decisor se comporta como un maximizador perfecto 
 idiosincráticos. La §6 lo verifica numéricamente sobre el equilibrio completo.</p>
 
 <div class="aviso">
-<p><strong>Nota sobre el nombre.</strong> El valor del schema sigue siendo
-<code>assignment: "wardrop"</code> — cambiarlo rompería los escenarios <code>.ttrq.json</code>
-guardados y los enlaces <code>?s=</code>, porque la configuración se valida con
-<code>extra="forbid"</code>. La etiqueta visible en la interfaz pasó a
-<em>«Determinístico (todo-o-nada)»</em>. La §3 explica por qué el nombre anterior era incorrecto.</p>
+<p><strong>Nota sobre el nombre.</strong> Cuando se escribió este informe el valor del
+esquema seguía siendo <code>assignment: "wardrop"</code>, porque cambiarlo rompía los
+escenarios <code>.ttrq.json</code> guardados y los enlaces <code>?s=</code>
+(<code>extra="forbid"</code> rechaza cualquier clave que sobre). En la cirugía de
+arquitectura de agosto de 2026 se decidió romper esa compatibilidad de una sola vez, así que
+hoy el valor es <code>assignment: "todo_o_nada"</code> y la función del núcleo se llama
+<code>probabilidades_todo_o_nada</code>. La etiqueta de la interfaz —
+<em>«Determinístico (todo-o-nada)»</em>— no cambió. La §3 explica por qué el nombre anterior
+era incorrecto.</p>
 </div>
 
 <!-- ================================================================ -->

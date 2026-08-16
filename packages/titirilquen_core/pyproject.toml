@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "titirilquen_core"
-version = "0.1.0"
+version = "0.2.0"
 description = "Núcleo científico del simulador Titirilquen — oferta, demanda y equilibrio de transporte sobre ciudad lineal monocéntrica"
 readme = "README.md"
 requires-python = ">=3.11"

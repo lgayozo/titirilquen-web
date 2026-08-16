@@ -151,7 +151,6 @@ export const defaultSimulationConfig: SimulationConfig = {
       capacidad_tren: 1000,
       num_estaciones: 10,
       v_caminata_kmh: 4.8,
-      tasa_carga: 6,
       // PROVISORIO, pendiente de fuente. Ver el comentario del core: el modelo
       // es solo hora punta (sin valle ni vacíos), así que su carga por tren-km
       // es mayor que la de un sistema real.
@@ -191,11 +190,6 @@ export const defaultLandUseConfig: LandUseConfig = {
   // ΣH = 36.000 = 1800 hab/km × 20 km (la «densidad media» default de la UI;
   // shares 20/50/30). En sync con city.share_estratos — la app puebla desde acá.
   H_por_estrato: [7200, 18000, 10800],
-  // VESTIGIAL: la densidad por celda ahora es S/Δx (consecuencia de la oferta);
-  // estos campos ya no fijan la densidad. Se conservan por compat de
-  // serialización. La escala de población la fija H_por_estrato (UI: «densidad media»).
-  densidad_max: 800,
-  densidad_min: 200,
   // Unidades físicas (D-26/D-27): α en utiles/min, ρ en utiles/(hogar/km),
   // y en $/mes. Calibración equivalente a la antigua en 201 celdas / 20 km.
   estratos: [

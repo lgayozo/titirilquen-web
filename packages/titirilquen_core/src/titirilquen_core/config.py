@@ -67,25 +67,21 @@ class StratumBetas(BaseModel):
     penalizaciones_fisicas: PhysicalPenalties
 
 
-class JornadaHoras(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    horas_rigido: float = 9.0
-    horas_flexible: float = 8.0
-    horas_part_time: float = 4.0
-
-
 class StratumConfig(BaseModel):
-    """Configuración por estrato. Inactiva por defecto: jornada/part_time sólo afectan
-    metadatos de agentes, no la utilidad (ver D-07)."""
+    """Configuración por estrato: quién es y cómo valora el viaje.
+
+    Tuvo también `prob_jornada_flexible`, `prob_part_time` y una `jornada` con
+    horas por tipo de contrato. Se retiraron en la limpieza de agosto de 2026:
+    ningún módulo del núcleo los leía (D-07 ya lo declaraba: "sólo afectan
+    metadatos de agentes"), y ni siquiera eso — `Agente` no tiene campos de
+    jornada. Eran ocho números por estrato que el frontend mostraba y nadie
+    usaba. Si algún día la jornada entra al modelo, entra con su ecuación.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     prob_teletrabajo: float = Field(ge=0, le=1)
     prob_auto: float = Field(ge=0, le=1)
-    prob_jornada_flexible: float = Field(default=0.3, ge=0, le=1)
-    prob_part_time: float = Field(default=0.1, ge=0, le=1)
-    jornada: JornadaHoras = Field(default_factory=JornadaHoras)
     betas: StratumBetas
 
 
@@ -236,7 +232,6 @@ class TrainSupplyParams(BaseModel):
     capacidad_tren: int = 1000
     num_estaciones: int = Field(default=10, ge=2)
     v_caminata_kmh: float = 4.8
-    tasa_carga: float = 6.0
     # PROVISORIO — pendiente de fuente. Costo de operación por tren-km ($), con
     # tren-km/h = f_op · largo de línea · 2 (misma definición que usa
     # `emissions.py`). Habilita el costo del operador, el subsidio
@@ -276,7 +271,7 @@ class TrainSupplyParams(BaseModel):
     # enseñar. 0.5 min = 30 s por parada.
     #
     # Es una detención FIJA. Un dwell que crezca con los pasajeros que suben
-    # (para eso está reservado `tasa_carga`, hoy sin uso) sería una DESECONOMÍA
+    # sería una DESECONOMÍA
     # de escala del metro, que juega en contra del efecto Möhring; es una
     # decisión de modelación aparte, no un simple refinamiento.
     tiempo_detencion_min: float = Field(default=0.5, ge=0)
@@ -329,19 +324,23 @@ class SimulationConfig(BaseModel):
     # residual».
     tolerance: float = Field(default=0.1, ge=0)
     seed: int | None = None
-    assignment: Literal["montecarlo", "expected", "wardrop"] = Field(
+    assignment: Literal["montecarlo", "expected", "todo_o_nada"] = Field(
         default="montecarlo",
         description=(
             "Método de asignación de demanda. 'montecarlo' sortea el modo de cada "
-            "agente (estocástico); 'expected' usa los flujos esperados = "
-            "probabilidades logit (determinista, sin ruido entre iteraciones); "
-            "'wardrop' asigna TODO el grupo al modo de mayor utilidad "
-            "(determinístico, sin heterogeneidad de gustos). "
-            "Los dos primeros son equilibrio estocástico (SUE): en el óptimo los "
-            "modos usados tienen costos DISTINTOS y la brecha la absorbe el gusto. "
-            "'wardrop' es equilibrio determinístico (UE): los usuarios arbitran "
-            "hasta IGUALAR costos. Esa diferencia decide si se observa la paradoja "
-            "de Downs-Thomson — ver docs/CONTINUAR.md §5."
+            "agente; 'expected' usa los flujos esperados = probabilidades logit "
+            "(el mismo modelo sin ruido de muestreo); 'todo_o_nada' manda al "
+            "grupo ENTERO al modo de mayor utilidad. "
+            "Los tres son el mismo modelo de utilidad aleatoria: 'todo_o_nada' es "
+            "el límite del logit cuando la escala de los coeficientes crece, o sea "
+            "con varianza cero en la parte no observada. "
+            "NO produce igualación de costos entre modos — medido en "
+            "scripts/auditoria_wardrop.py: los cuatro modos se usan a la vez con "
+            "costos que difieren hasta 32 min. Lo que cambia es que el grupo "
+            "marginal salta entero en vez de trasvasar una fracción, y de ahí que "
+            "sólo con este método aparezca Downs-Thomson (docs/CONTINUAR.md §5). "
+            "Se llamó 'wardrop' hasta agosto de 2026; el nombre prometía una "
+            "condición de equilibrio de usuario que este modelo no cumple."
         ),
     )
     modos_habilitados: tuple[Modo, ...] = Field(

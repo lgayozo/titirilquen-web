@@ -104,8 +104,12 @@
     "verdict_no_tol": "Sin criterio de convergencia (tolerancia 0): corrió las {{total}} iteraciones fijas y se detuvo por conteo, no porque los tiempos se estabilizaran. El residuo final es {{res}} min.",
     "booting_pyodide": "Inicializando Pyodide en el navegador (primera vez ~10–20s)…",
     "assignment_montecarlo": "Monte Carlo",
-    "assignment_wardrop": "Determinístico (todo-o-nada)",
-    "assignment_hint_wardrop": "Elección DETERMINÍSTICA: cada grupo va entero al modo de mayor utilidad, sin heterogeneidad de gustos. Es el límite del logit cuando la escala de los coeficientes crece. NO iguala costos entre modos: con la base default los cuatro modos se usan a la vez con costos que difieren hasta 32 min, y el 91% de los grupos está lejos de la indiferencia (scripts/auditoria_wardrop.py). Lo que cambia es que el grupo marginal salta ENTERO. Ojo: puede tener equilibrios múltiples, porque el metro abarata su espera al ganar demanda y eso viola la condición de costos crecientes que garantiza la unicidad."
+    "assignment_todo_o_nada": "Determinístico (todo-o-nada)",
+    "assignment_hint_todo_o_nada": "Elección DETERMINÍSTICA: cada grupo va entero al modo de mayor utilidad, sin heterogeneidad de gustos. Es el límite del logit cuando la escala de los coeficientes crece. NO iguala costos entre modos: con la base default los cuatro modos se usan a la vez con costos que difieren hasta 32 min, y el 91% de los grupos está lejos de la indiferencia (scripts/auditoria_wardrop.py). Lo que cambia es que el grupo marginal salta ENTERO. Ojo: puede tener equilibrios múltiples, porque el metro abarata su espera al ganar demanda y eso viola la condición de costos crecientes que garantiza la unicidad.",
+    "modo_auto": "Auto",
+    "modo_metro": "Metro",
+    "modo_bici": "Bici",
+    "modo_caminata": "Caminata"
   },
   "run_status": {
     "booting_pyodide": "Inicializando Pyodide…",
@@ -298,9 +302,9 @@
     "stratum_label_2": "2 — Medio",
     "stratum_label_3": "3 — Bajo",
     "interpretation": "V = utilidad sistemática del modo, la parte observable de U = V + ε. Está en útiles: solo las diferencias entre modos importan — ~1 útil de ventaja ≈ 2.7× más probable. P = probabilidad de elección de ESTE agente (no el reparto modal del sistema).",
-    "wardrop_notice": "Asignación determinística activa: la simulación manda TODO el grupo al modo de mayor V, sin repartir. Estas P son las del logit — sirven para leer la función de utilidad, no para anticipar el reparto de esta corrida.",
     "position_value": "{{pos}} km · a {{dist}} km del CBD",
-    "cbd_center": "▲ CBD ({{km}} km)"
+    "cbd_center": "▲ CBD ({{km}} km)",
+    "todo_o_nada_notice": "Asignación determinística activa: la simulación manda TODO el grupo al modo de mayor V, sin repartir. Estas P son las del logit — sirven para leer la función de utilidad, no para anticipar el reparto de esta corrida."
   },
   "utility_breakdown": {
     "mode": "Modo",

@@ -48,9 +48,9 @@ test.describe("escenarios: exportar y compartir", () => {
     for await (const chunk of stream) chunks.push(chunk as Buffer);
     const file = JSON.parse(Buffer.concat(chunks).toString("utf-8"));
 
-    expect(file.$schema).toBe("titirilquen-scenario/v2");
+    expect(file.$schema).toBe("titirilquen-scenario/v3");
     expect(file.config.max_iter).toBe(17);
-    // v2: el escenario incluye también el suelo y las preferencias del acoplado.
+    // El escenario incluye también el suelo y las preferencias del acoplado.
     expect(file.land_use).toBeDefined();
     expect(file.coupled?.poblacion).toBeGreaterThan(0);
   });

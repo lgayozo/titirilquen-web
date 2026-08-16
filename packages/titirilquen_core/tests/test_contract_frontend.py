@@ -40,13 +40,18 @@ def _supply_cases() -> list[dict]:
     cases = []
     for forma in FORMAS:
         for L, CBD, N, sigma, param in SUPPLY_CASES:
-            S = generar_oferta(forma=forma, I=L, N=N, CBD=CBD,
-                               sigma_frac=sigma, forma_param=param)
-            cases.append({
-                "forma": forma, "L": L, "CBD": CBD, "N": N,
-                "sigma_frac": sigma, "forma_param": param,
-                "S": [int(x) for x in S],
-            })
+            S = generar_oferta(forma=forma, I=L, N=N, CBD=CBD, sigma_frac=sigma, forma_param=param)
+            cases.append(
+                {
+                    "forma": forma,
+                    "L": L,
+                    "CBD": CBD,
+                    "N": N,
+                    "sigma_frac": sigma,
+                    "forma_param": param,
+                    "S": [int(x) for x in S],
+                }
+            )
     return cases
 
 
@@ -94,10 +99,24 @@ if __name__ == "__main__":
     # Regenera los fixtures (correr tras un cambio DELIBERADO del core).
     FIXTURES.mkdir(parents=True, exist_ok=True)
     (FIXTURES / "supply-golden.json").write_text(
-        json.dumps({"_": "Generado por el core Python (fuente de verdad). NO editar a mano; "
-                         "regenerar con: uv run --extra dev python tests/test_contract_frontend.py",
-                    "cases": _supply_cases()}, indent=1) + "\n", encoding="utf-8")
+        json.dumps(
+            {
+                "_": "Generado por el core Python (fuente de verdad). NO editar a mano; "
+                "regenerar con: uv run --extra dev python tests/test_contract_frontend.py",
+                "cases": _supply_cases(),
+            },
+            indent=1,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (FIXTURES / "defaults-golden.json").write_text(
-        json.dumps({"_": "Defaults Pydantic del core. NO editar a mano.",
-                    "defaults": _defaults()}, indent=1, default=list) + "\n", encoding="utf-8")
+        json.dumps(
+            {"_": "Defaults Pydantic del core. NO editar a mano.", "defaults": _defaults()},
+            indent=1,
+            default=list,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     print("fixtures regenerados en", FIXTURES)

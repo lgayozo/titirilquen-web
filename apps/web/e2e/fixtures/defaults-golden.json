@@ -35,7 +35,6 @@
     "capacidad_tren": 1000,
     "num_estaciones": 10,
     "v_caminata_kmh": 4.8,
-    "tasa_carga": 6.0,
     "costo_operacion_tren_km": 12000,
     "factor_dia_punta": 2.0,
     "tiempo_detencion_min": 0.5,
@@ -74,8 +73,6 @@
     33300,
     33300
    ],
-   "densidad_max": 800.0,
-   "densidad_min": 200.0,
    "estratos": [
     {
      "y": 3500000.0,

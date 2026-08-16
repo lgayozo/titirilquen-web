@@ -1,28 +1,38 @@
 /**
  * Import/export de escenarios del simulador.
  *
- * Formato de archivo `.ttrq.json` (v2 — el v1 sigue siendo importable):
+ * Formato de archivo `.ttrq.json`:
  * ```json
  * {
- *   "$schema": "titirilquen-scenario/v2",
+ *   "$schema": "titirilquen-scenario/v3",
  *   "name": "Mi escenario",
  *   "config": { ...SimulationConfig },
  *   "land_use": { ...LandUseConfig },          // opcional
  *   "coupled": { "poblacion": 25000, "outer_max_iter": 12 }  // opcional
  * }
  * ```
- * v1 (`titirilquen-scenario/v1`) solo trae `config` (transporte).
+ * URL-state: `?s=<base64url(JSON)>` con el mismo objeto.
  *
- * URL-state: `?s=<base64url(JSON)>`. v2 codifica el escenario completo
- * `{config, land_use?, coupled?}`; los links viejos (config plano) se siguen
- * aceptando.
+ * SIN MIGRACIONES, a propósito
+ * ----------------------------
+ * Hubo aquí cinco migraciones que rellenaban o descartaban campos para que un
+ * escenario viejo siguiera validando contra el core (`extra="forbid"` rechaza
+ * cualquier clave que sobre). Se retiraron en agosto de 2026 junto con la
+ * limpieza del esquema: mantenerlas obliga a arrastrar para siempre la
+ * historia de cada parámetro que alguna vez existió, y este es un simulador
+ * educativo cuyos escenarios se rehacen en minutos, no un sistema con datos
+ * que no se pueden perder.
+ *
+ * La consecuencia es explícita: un archivo o link anterior a v3 falla al
+ * importarse, con un mensaje que dice por qué. Si algún día hay escenarios que
+ * de verdad importe conservar, la decisión se revisa — y entonces el lugar
+ * correcto es un migrador versionado, no cinco parches sueltos.
  */
 
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 
-export const TTRQ_SCHEMA_V1 = "titirilquen-scenario/v1";
-export const TTRQ_SCHEMA = "titirilquen-scenario/v2";
+export const TTRQ_SCHEMA = "titirilquen-scenario/v3";
 export const TTRQ_EXT = ".ttrq.json";
 
 export interface CoupledPrefs {
@@ -37,84 +47,9 @@ export interface ScenarioPayload {
 }
 
 export interface TtrqFile extends ScenarioPayload {
-  $schema: typeof TTRQ_SCHEMA | typeof TTRQ_SCHEMA_V1;
+  $schema: typeof TTRQ_SCHEMA;
   name?: string;
   description?: string;
-}
-
-/** Migraciones de compatibilidad sobre el `config` importado: descarta campos
- * que existieron en versiones anteriores (el core los rechaza con
- * `extra="forbid"`). Muta y devuelve el mismo objeto. */
-function migrateConfig(config: SimulationConfig): SimulationConfig {
-  const city = (config as unknown as { city?: Record<string, unknown> }).city;
-  if (city && "ingresos_estratos" in city) {
-    delete city.ingresos_estratos; // parámetro muerto, eliminado del core (A3)
-  }
-  // `b_tiempo_acceso` se separó de `b_tiempo_caminata` (ago-2026): antes un solo
-  // coeficiente pesaba el acceso al metro Y el modo caminata completo. Es campo
-  // REQUERIDO en el core, así que un escenario viejo sin él no valida. Se rellena
-  // con el valor que tenía el coeficiente único, que es exactamente lo que ese
-  // escenario usaba para el acceso: la migración conserva su comportamiento.
-  const estratos = (
-    config as unknown as {
-      demand?: {
-        estratos?: Record<string, { betas?: Record<string, unknown> }>;
-      };
-    }
-  ).demand?.estratos;
-  if (estratos) {
-    for (const s of Object.values(estratos)) {
-      const b = s?.betas;
-      if (b && !("b_tiempo_acceso" in b) && "b_tiempo_caminata" in b) {
-        b.b_tiempo_acceso = b.b_tiempo_caminata;
-      }
-    }
-  }
-  const globales = (
-    config as unknown as { demand?: { globales?: Record<string, unknown> } }
-  ).demand?.globales;
-  if (globales && "factor_emision_auto" in globales) {
-    // Era un parámetro HUÉRFANO (0.18, nadie lo leía): las emisiones salían de
-    // la curva COPERT. Se reemplaza por `factor_flota_auto`, un multiplicador
-    // adimensional sobre esa curva. No hay conversión posible —el valor viejo
-    // no tenía efecto ni unidades comparables—, así que se adopta el default.
-    delete globales.factor_emision_auto;
-    if (!("factor_flota_auto" in globales)) {
-      globales.factor_flota_auto = 1;
-    }
-  }
-  if (globales && "factor_emision_metro" in globales) {
-    // D-29: el metro emite por tren-km, no por pax·km. No hay conversión
-    // automática (requiere el factor de carga); se adopta el default nuevo.
-    delete globales.factor_emision_metro;
-    if (!("factor_emision_metro_tren_km" in globales)) {
-      globales.factor_emision_metro_tren_km = 2.5;
-    }
-  }
-  if (city && "densidad_por_celda" in city && !("densidad_hab_km" in city)) {
-    // D-28: la densidad pasó de hab/celda a hab/km. Conversión fiel: preserva
-    // la población total que tenía el escenario (densidad·(N−1)/largo).
-    const n = Number(city.n_celdas) || 201;
-    const largo = Number(city.largo_ciudad_km) || 20;
-    const dpc = Number(city.densidad_por_celda) || 50;
-    city.densidad_hab_km = Math.max(1, Math.round((dpc * (n - 1)) / largo));
-    delete city.densidad_por_celda;
-  }
-  return config;
-}
-
-/** Migraciones sobre el `land_use` importado. Mismo motivo que `migrateConfig`:
- * el core valida con `extra="forbid"`, así que un campo eliminado hace fallar
- * la importación de escenarios guardados. Muta y devuelve el mismo objeto. */
-function migrateLandUse(landUse: LandUseConfig): LandUseConfig {
-  const lu = landUse as unknown as Record<string, unknown>;
-  if ("solver" in lu) {
-    // El campo ofrecía un segundo solver como «corrección» del λ heterogéneo y
-    // no lo era: dejaba λ inerte. Se eliminó del core; queda un único solver
-    // (logit), con su limitación de λ documentada y sin corregir (D-08).
-    delete lu.solver;
-  }
-  return landUse;
 }
 
 export function serializeToJson(
@@ -145,18 +80,18 @@ export function parseTtrqJson(raw: string): TtrqFile {
     throw new Error("El archivo no contiene un objeto JSON.");
   }
   const obj = data as Record<string, unknown>;
-  if (obj.$schema !== TTRQ_SCHEMA && obj.$schema !== TTRQ_SCHEMA_V1) {
+  if (obj.$schema !== TTRQ_SCHEMA) {
     throw new Error(
-      `Esquema desconocido: ${String(obj.$schema)}. Esperado: "${TTRQ_SCHEMA}" (o v1).`,
+      `Este escenario es de una versión anterior del simulador ` +
+        `(${String(obj.$schema)}; se espera "${TTRQ_SCHEMA}") y ya no se puede ` +
+        `importar. El esquema cambió en agosto de 2026: se retiraron parámetros ` +
+        `que ningún cálculo leía. Vuelve a exportarlo desde la versión actual.`,
     );
   }
   if (typeof obj.config !== "object" || obj.config === null) {
     throw new Error("El archivo no contiene un `config` válido.");
   }
-  const file = obj as unknown as TtrqFile;
-  migrateConfig(file.config);
-  if (file.land_use) migrateLandUse(file.land_use);
-  return file;
+  return obj as unknown as TtrqFile;
 }
 
 function base64UrlEncode(s: string): string {
@@ -177,20 +112,18 @@ export function scenarioToUrlParam(payload: ScenarioPayload): string {
   return base64UrlEncode(JSON.stringify(payload));
 }
 
-/** Decodifica `?s=`. Acepta el formato v2 `{config, land_use?, coupled?}` y el
- * legado (un `SimulationConfig` plano, reconocible por su clave `city`). */
+/** Decodifica `?s=` — formato `{config, land_use?, coupled?}`.
+ *
+ * Los links generados antes de agosto de 2026 llevan campos que el core ya no
+ * acepta (`extra="forbid"`), así que fallarán al validar. Es deliberado: ver
+ * la nota sobre migraciones más arriba. */
 export function scenarioFromUrlParam(param: string): ScenarioPayload {
   const raw = base64UrlDecode(param);
   const data = JSON.parse(raw) as Record<string, unknown>;
-  if (typeof data.config === "object" && data.config !== null) {
-    const payload = data as unknown as ScenarioPayload;
-    migrateConfig(payload.config);
-    if (payload.land_use) migrateLandUse(payload.land_use);
-    return payload;
+  if (typeof data.config !== "object" || data.config === null) {
+    throw new Error("El link no contiene un escenario válido.");
   }
-  // Legado: el JSON ES el SimulationConfig.
-  const config = migrateConfig(data as unknown as SimulationConfig);
-  return { config };
+  return data as unknown as ScenarioPayload;
 }
 
 export function downloadFile(

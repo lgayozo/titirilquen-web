@@ -104,8 +104,12 @@
     "verdict_no_tol": "No convergence criterion (tolerance 0): it ran the fixed {{total}} iterations and stopped by count, not because travel times settled. The final residual is {{res}} min.",
     "booting_pyodide": "Initializing Pyodide in the browser (first run takes ~10–20s)…",
     "assignment_montecarlo": "Monte Carlo",
-    "assignment_wardrop": "Deterministic (all-or-nothing)",
-    "assignment_hint_wardrop": "DETERMINISTIC choice: each group goes entirely to the highest-utility mode, with no taste heterogeneity. It is the logit limit as the coefficient scale grows. It does NOT equalize costs across modes: on the default city all four modes are used at once with costs differing by up to 32 min, and 91% of groups sit far from indifference (scripts/auditoria_wardrop.py). What changes is that the marginal group switches AS A WHOLE. Careful: it can have multiple equilibria, because the metro's waiting time falls as it gains demand, violating the increasing-cost condition that guarantees uniqueness."
+    "assignment_todo_o_nada": "Deterministic (all-or-nothing)",
+    "assignment_hint_todo_o_nada": "DETERMINISTIC choice: each group goes entirely to the highest-utility mode, with no taste heterogeneity. It is the logit limit as the coefficient scale grows. It does NOT equalize costs across modes: on the default city all four modes are used at once with costs differing by up to 32 min, and 91% of groups sit far from indifference (scripts/auditoria_wardrop.py). What changes is that the marginal group switches AS A WHOLE. Careful: it can have multiple equilibria, because the metro's waiting time falls as it gains demand, violating the increasing-cost condition that guarantees uniqueness.",
+    "modo_auto": "Car",
+    "modo_metro": "Metro",
+    "modo_bici": "Bike",
+    "modo_caminata": "Walk"
   },
   "run_status": {
     "booting_pyodide": "Initializing Pyodide…",
@@ -298,9 +302,9 @@
     "stratum_label_2": "2 — Middle",
     "stratum_label_3": "3 — Low",
     "interpretation": "V = the mode's systematic utility, the observed part of U = V + ε. It is in utils: only differences across modes matter — ~1 util of advantage ≈ 2.7× more likely. P = choice probability of THIS agent (not the system's mode share).",
-    "wardrop_notice": "Deterministic assignment is active: the simulation sends the WHOLE group to the mode with the highest V, with no splitting. These P values are the logit ones — use them to read the utility function, not to anticipate this run's mode split.",
     "position_value": "{{pos}} km · {{dist}} km from CBD",
-    "cbd_center": "▲ CBD ({{km}} km)"
+    "cbd_center": "▲ CBD ({{km}} km)",
+    "todo_o_nada_notice": "Deterministic assignment is active: the simulation sends the WHOLE group to the mode with the highest V, with no splitting. These P values are the logit ones — use them to read the utility function, not to anticipate this run's mode split."
   },
   "utility_breakdown": {
     "mode": "Mode",

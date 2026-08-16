@@ -117,7 +117,7 @@ async function init(): Promise<void> {
   // Descargar y registrar el wheel del core.
   post({ id: "boot", type: "bootStage", stage: "wheel" });
   const whlUrl = new URL(
-    "/pyodide/titirilquen_core-0.1.0-py3-none-any.whl",
+    "/pyodide/titirilquen_core-0.2.0-py3-none-any.whl",
     self.location.origin,
   ).toString();
 

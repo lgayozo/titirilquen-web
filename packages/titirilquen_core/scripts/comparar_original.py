@@ -231,7 +231,7 @@ def defaults(cfg_orig: dict) -> None:
     seccion("2d. DEFAULTS DE OFERTA Y CIUDAD")
     sup = SupplyConfig()
     d_orig = cfg_orig["defaults"]
-    # frec_min y tasa_carga van hardcodeados en la llamada a oferta_tren del
+    # frec_min va hardcodeado en la llamada a oferta_tren del
     # original (app.py:~499), no en el dict de defaults.
     filas = [
         ("capacidad_tren (pax)", d_orig["cap_tren"], sup.train.capacidad_tren),

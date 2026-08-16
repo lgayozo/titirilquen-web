@@ -47,21 +47,12 @@ class LandUseConfig(BaseModel):
         default=(33300, 33300, 33300),
         description="Número de hogares por estrato (alto, medio, bajo)",
     )
-    # VESTIGIAL: la densidad por celda ahora es una CONSECUENCIA de la oferta
-    # (dens = S/Δx, ver LandUseCity.densidad_por_celda); estos campos ya no fijan
-    # la densidad. Se conservan (default 800/200) por compatibilidad de
-    # serialización con escenarios guardados. La escala de población la fija
-    # H_por_estrato (el frontend la deriva de una «densidad media»).
-    densidad_max: float = Field(
-        default=800.0,
-        gt=0,
-        description="Vestigial (no usado): la densidad es S/Δx. Ver densidad_por_celda.",
-    )
-    densidad_min: float = Field(
-        default=200.0,
-        gt=0,
-        description="Vestigial (no usado): la densidad es S/Δx. Ver densidad_por_celda.",
-    )
+    # Hubo aquí un par `densidad_max` / `densidad_min` que se conservaba "por
+    # compatibilidad de serialización" y que el propio `description` declaraba
+    # vestigial: la densidad por celda es una CONSECUENCIA de la oferta
+    # (dens = S/Δx, ver `LandUseCity.densidad_por_celda`), no un parámetro. La
+    # escala de población la fija `H_por_estrato`. Se retiraron al romper la
+    # compatibilidad de escenarios en agosto de 2026.
     # Calibración en unidades físicas (D-26), equivalente a la antigua
     # (α=1.3/1.2/1.1 por celda, ρ=1 por hogar/celda) en la grilla de referencia
     # del frontend (201 celdas / 20 km): α' ≈ α·(celdas/km)/2 ≈ α·5, ρ' = ρ·Δx ≈ 0.1.

@@ -26,8 +26,6 @@ export interface LandUseConfig {
   /** VESTIGIAL (no usado): la densidad por celda ahora es S/Δx, consecuencia de
    *  la oferta. Se conservan por compat de serialización; la escala de población
    *  la fija H_por_estrato. */
-  densidad_max: number;
-  densidad_min: number;
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   beta: number;
   tol: number;
