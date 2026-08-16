@@ -193,11 +193,6 @@ export function scenarioFromUrlParam(param: string): ScenarioPayload {
   return { config };
 }
 
-/** @deprecated usar `scenarioToUrlParam` (links legados siguen decodificando). */
-export function configToUrlParam(config: SimulationConfig): string {
-  return scenarioToUrlParam({ config });
-}
-
 export function downloadFile(
   filename: string,
   content: string,

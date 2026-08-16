@@ -7,8 +7,6 @@
  * espaciales individuales no revelan directamente.
  */
 
-import type { StratumId } from "@/lib/types";
-
 // ---------------------------------------------------------------------------
 // Segregación — índice H de Theil (información mutua relativa)
 // ---------------------------------------------------------------------------
@@ -73,25 +71,4 @@ export function theilSegregation(Q: readonly (readonly number[])[]): number {
   }
 
   return 1 - weighted / E;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-export const STRATUM_NAMES: Record<StratumId, string> = {
-  1: "alto",
-  2: "medio",
-  3: "bajo",
-};
-
-/** Formato compacto de un delta con signo (para mostrar Δ entre iteraciones). */
-export function formatDelta(curr: number | null, base: number | null): string {
-  if (curr == null || base == null) return "—";
-  const d = curr - base;
-  const sign = d > 0 ? "+" : "";
-  const abs = Math.abs(d);
-  const fmt =
-    abs >= 100 ? d.toFixed(0) : abs >= 1 ? d.toFixed(2) : d.toFixed(3);
-  return `${sign}${fmt}`;
 }

@@ -125,9 +125,7 @@ export function smoothSupply(
 /**
  * Composición ESPERADA por celda en floats: comp[i][h] = S_i · Q[h][i] (hogares
  * esperados del estrato h en la celda i, **sin redondear**). A diferencia de
- * `reconstructParcelas` (que redondea a enteros y produce una "peineta" entre
- * celdas contiguas con pocos hogares) y de la asignación estocástica del core,
- * esto es pseudocontinuo: deriva directo de la composición de equilibrio Q. La
+ * la asignación estocástica del core, esto es pseudocontinuo: deriva directo de la composición de equilibrio Q. La
  * suma por celda sigue siendo S_i (Σ_h Q[h][i] = 1), así que la envolvente
  * coincide con la oferta. Formato para el prop `composition` de
  * `StratumDistribution`.
@@ -145,25 +143,4 @@ export function expectedComposition(
     }
   }
   return comp;
-}
-
-export function reconstructParcelas(
-  Q: readonly (readonly number[])[],
-  S: readonly number[],
-): number[][] {
-  // Validez post-D-25: Q sigue siendo columna-estocástica (Σ_h Q[h][i] = 1;
-  // la ponderación H_h vive DENTRO de la normalización), así que S_i·Q[h][i]
-  // = hogares esperados del estrato h en i. El redondeo por celda puede no
-  // sumar S_i exacto — aceptable: esta reconstrucción es solo para las
-  // figuras (la asignación real la hace el core).
-  const nStrata = Q.length;
-  const I = S.length;
-  const parcelas: number[][] = Array.from({ length: I }, () => []);
-  for (let i = 0; i < I; i++) {
-    for (let h = 0; h < nStrata; h++) {
-      const cnt = Math.round((S[i] ?? 0) * (Q[h]?.[i] ?? 0));
-      for (let k = 0; k < cnt; k++) parcelas[i]!.push(h + 1);
-    }
-  }
-  return parcelas;
 }

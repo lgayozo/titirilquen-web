@@ -29,7 +29,7 @@ import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
 import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
 import { NetworkDiagram } from "@/components/viz/NetworkDiagram";
 import { ReferenceComparison } from "@/components/viz/ReferenceComparison";
-import type { StatBar } from "@/components/viz/StatBars";
+import type { StatBar } from "@/lib/tipos-ui";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import {
   TransportMetricsTable,

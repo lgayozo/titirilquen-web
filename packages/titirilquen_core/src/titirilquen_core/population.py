@@ -15,7 +15,6 @@ import numpy as np
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, StratumId
-from titirilquen_core.land_use.ciudad import LandUseCity
 
 
 @dataclass
@@ -90,50 +89,6 @@ def generar_poblacion(
     ]
 
 
-def generar_poblacion_desde_land_use(
-    *,
-    land_use_city: LandUseCity,
-    demand_config: DemandConfig,
-    teletrabajo_factor: float = 1.0,
-    rng: np.random.Generator | None = None,
-) -> list[Agente]:
-    """Genera agentes respetando la asignación espacial del uso de suelo.
-
-    Cada hogar en `land_use_city.parcelas[i]` se convierte en un agente en la
-    celda `i`. Los atributos teletrabajo/auto se sortean según la config del
-    estrato. Los hogares en el CBD se omiten (no trabajan yendo hacia sí
-    mismos).
-    """
-    if rng is None:
-        rng = np.random.default_rng()
-
-    agentes: list[Agente] = []
-    id_counter = 1
-    estratos_valid: tuple[StratumId, ...] = (1, 2, 3)
-
-    for i, parcela in enumerate(land_use_city.parcelas):
-        if i == land_use_city.cbd_index:
-            continue
-        for h in parcela:
-            if h not in (1, 2, 3):
-                continue
-            estrato: StratumId = estratos_valid[h - 1]
-            s = demand_config.estratos[estrato]
-            prob_tele = min(1.0, s.prob_teletrabajo * teletrabajo_factor)
-            agentes.append(
-                Agente(
-                    id=id_counter,
-                    celda_origen=i,
-                    estrato=estrato,
-                    teletrabaja=bool(rng.random() < prob_tele),
-                    tiene_auto=bool(rng.random() < s.prob_auto),
-                )
-            )
-            id_counter += 1
-
-    return agentes
-
-
 def _mayor_residuo(target: np.ndarray, total: int) -> np.ndarray:
     """Redondea `target` (que suma ~`total`) a enteros que suman EXACTO `total`,
     por el método del mayor residuo. Determinista."""
@@ -160,7 +115,12 @@ def generar_poblacion_desde_land_use_det(
     demand_config: DemandConfig,
     teletrabajo_factor: float = 1.0,
 ) -> list[Agente]:
-    """Versión **determinista** (sin rng) de `generar_poblacion_desde_land_use`.
+    """Genera la población a partir del uso de suelo, de forma **determinista**.
+
+    Existió una variante estocástica (`generar_poblacion_desde_land_use`, que
+    remuestreaba con `rng`); se retiró por no tener llamadores: el piso de ruido
+    del remuestreo impedía que el loop acoplado convergiera (D-14), así que en
+    la práctica siempre se usó esta.
 
     Reparte los `S_i` hogares de cada celda entre estratos por **mayor residuo**
     sobre `S_i·Q[:,i]` (Σ_h = S_i exacto), y fija teletrabajo/auto por conteos

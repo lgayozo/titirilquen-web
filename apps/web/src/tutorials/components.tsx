@@ -76,23 +76,6 @@ export function OverleafRef({ sec, tag }: OverleafRefProps) {
   );
 }
 
-interface DocLinkProps {
-  path: string;
-  children: React.ReactNode;
-}
-
-export function DocLink({ path, children }: DocLinkProps) {
-  return (
-    <a
-      href={`https://github.com/lehyt2163/Titirilquen${path}`}
-      target="_blank"
-      rel="noreferrer"
-    >
-      {children}
-    </a>
-  );
-}
-
 interface LoadScenarioProps {
   /** Id en TUTORIAL_SCENARIOS (src/tutorials/scenarios.ts). */
   id: string;
@@ -123,7 +106,6 @@ export function LoadScenario({ id, children }: LoadScenarioProps) {
 export const mdxComponents = {
   Callout,
   NextStep,
-  DocLink,
   OverleafRef,
   LoadScenario,
   MSAFlowchart,

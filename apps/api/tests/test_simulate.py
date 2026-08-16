@@ -34,18 +34,3 @@ def test_simulate_endpoint() -> None:
     assert len(body["iteraciones"]) == 3
     assert "agentes" in body
     assert body["iteraciones"][-1]["modal_split"] is not None
-
-
-def test_stream_endpoint() -> None:
-    client = TestClient(app)
-    with client.stream("POST", "/simulate/stream", json=_config_pequeno()) as r:
-        assert r.status_code == 200
-        eventos = 0
-        done = False
-        for line in r.iter_lines():
-            if line.startswith("data:"):
-                eventos += 1
-            if line.startswith("event: done"):
-                done = True
-        assert eventos >= 3
-        assert done

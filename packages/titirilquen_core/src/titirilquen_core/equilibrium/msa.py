@@ -89,19 +89,6 @@ class ConvergenceTrace:
     demanda_estrato: NDArray[np.float64] | None = None
 
 
-def _tiempos_de_snapshot(snap: IterationSnapshot, n_celdas: int) -> list[TiemposObservados]:
-    return [
-        TiemposObservados(
-            auto_total=float(snap.t_auto[i]),
-            bici_total=float(snap.t_bici[i]),
-            tren_acceso=float(snap.t_tren_acceso[i]),
-            tren_espera=float(snap.t_tren_espera[i]),
-            tren_viaje=float(snap.t_tren_viaje[i]),
-        )
-        for i in range(n_celdas)
-    ]
-
-
 _MODOS: tuple[str, ...] = ("Auto", "Metro", "Bici", "Caminata")
 
 
