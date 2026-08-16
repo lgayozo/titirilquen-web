@@ -15,9 +15,16 @@ authors = [
     { name = "Fernando Castillo" },
     { name = "Angelo Guevara" },
 ]
+# OJO con el piso de pydantic: NO lo suba sin verificar en el navegador.
+# Pyodide 0.26.4 trae pydantic 2.7.0 precompilado, y el worker lo instala con
+# `micropip.install("pydantic")` ANTES del wheel del core. Si el core pide una
+# version mayor, micropip aborta con "Requested pydantic>=X, but pydantic==2.7.0
+# is already installed" y el motor por defecto del simulador deja de arrancar.
+# Ningun test lo detecta: todos corren en CPython. Paso en la fase F4 de la
+# cirugia de agosto de 2026, al "alinear" versiones entre el core y la API.
 dependencies = [
     "numpy>=1.26",
-    "pydantic>=2.8",
+    "pydantic>=2.7",
     "scipy>=1.12",
 ]
 

@@ -45,6 +45,7 @@ from types import UnionType
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
 
 from titirilquen_core import constantes
+from titirilquen_core.bienestar import AgregadosDict
 from titirilquen_core.config import SimulationConfig
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.presets import (
@@ -220,6 +221,7 @@ def emite_trace() -> str:
     ]
     for td in (
         AgenteDict,
+        AgregadosDict,
         SnapshotDict,
         TraceDict,
         LandUseResultDict,

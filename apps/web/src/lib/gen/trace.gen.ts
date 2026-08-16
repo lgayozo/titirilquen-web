@@ -16,6 +16,26 @@ export interface AgenteDict {
   utilidad_elegida: number;
 }
 
+/** Indicadores de ciudad completa para la tabla de resultados. */
+export interface AgregadosDict {
+  tiempo_total_min: number;
+  viajeros: number;
+  tiempo_medio_min: number;
+  costo_generalizado_percibido_clp: number;
+  costo_generalizado_social_clp: number;
+  vot_por_estrato_clp_hora: Record<"1" | "2" | "3", number>;
+  logsum_por_estrato: Record<"1" | "2" | "3", number>;
+  excedente_por_estrato_clp: Record<"1" | "2" | "3", number>;
+  viajeros_por_estrato: Record<"1" | "2" | "3", number>;
+  excedente_total_clp: number;
+  recaudacion_parking_clp: number;
+  recaudacion_tarifa_clp: number;
+  tren_km_hora: number;
+  costo_operador_clp: number;
+  subsidio_metro_clp: number;
+  bienestar_social_clp: number;
+}
+
 /** Estado de la red al final de una iteración del MSA. */
 export interface SnapshotDict {
   iter: number;
@@ -53,6 +73,7 @@ export interface TraceDict {
   demanda_estrato: number[][][] | null;
   iteraciones: SnapshotDict[];
   agentes: AgenteDict[];
+  agregados: AgregadosDict | null;
 }
 
 /** Equilibrio de pujas: utilidades, precios y composición por celda. */

@@ -1,11 +1,7 @@
 import { useTranslation } from "react-i18next";
 
-import {
-  calcularAgregados,
-  logsumComparable,
-  VOT_SOCIAL_CLP_HORA,
-  type Agregados,
-} from "@/lib/agregados";
+import { agregadosDe, logsumComparable, type Agregados } from "@/lib/agregados";
+import { VOT_SOCIAL_CLP_HORA } from "@/lib/gen/constantes.gen";
 import type {
   SimulationConfig,
   SimulationResult,
@@ -52,11 +48,10 @@ interface FilaAgg {
 
 export function ReferenceComparison({ config, result, reference }: Props) {
   const { t } = useTranslation("simulator");
-  const votSocial = VOT_SOCIAL_CLP_HORA;
-  const agg = calcularAgregados(result, config, votSocial);
-  const aggRef = reference
-    ? calcularAgregados(reference.result, reference.config, votSocial)
-    : null;
+  // Los agregados los calcula el núcleo y vienen en el resultado; acá sólo se
+  // leen y se restan contra la referencia que el usuario haya fijado.
+  const agg = agregadosDe(result);
+  const aggRef = reference ? agregadosDe(reference.result) : null;
   if (!agg) return null;
 
   // El logsum solo es comparable con el MISMO choice set: con distinto conjunto
@@ -66,68 +61,68 @@ export function ReferenceComparison({ config, result, reference }: Props) {
   const filas: FilaAgg[] = [
     {
       label: t("agg.tiempo_total"),
-      actual: agg.tiempoTotalMin,
-      ref: aggRef?.tiempoTotalMin ?? null,
+      actual: agg.tiempo_total_min,
+      ref: aggRef?.tiempo_total_min ?? null,
       fmt: fmtMiles,
       menorEsMejor: true,
     },
     {
       label: t("agg.tiempo_medio"),
-      actual: agg.tiempoMedioMin,
-      ref: aggRef?.tiempoMedioMin ?? null,
+      actual: agg.tiempo_medio_min,
+      ref: aggRef?.tiempo_medio_min ?? null,
       fmt: fmtMin,
       menorEsMejor: true,
     },
     {
       label: t("agg.cg_percibido"),
-      actual: agg.costoGeneralizadoPercibidoClp,
-      ref: aggRef?.costoGeneralizadoPercibidoClp ?? null,
+      actual: agg.costo_generalizado_percibido_clp,
+      ref: aggRef?.costo_generalizado_percibido_clp ?? null,
       fmt: fmtMoney,
       menorEsMejor: true,
       nota: t("agg.cg_percibido_nota"),
     },
     {
       label: t("agg.cg_social"),
-      actual: agg.costoGeneralizadoSocialClp,
-      ref: aggRef?.costoGeneralizadoSocialClp ?? null,
+      actual: agg.costo_generalizado_social_clp,
+      ref: aggRef?.costo_generalizado_social_clp ?? null,
       fmt: fmtMoney,
       menorEsMejor: true,
-      nota: t("agg.cg_social_nota", { vot: fmtMoney(votSocial) }),
+      nota: t("agg.cg_social_nota", { vot: fmtMoney(VOT_SOCIAL_CLP_HORA) }),
     },
     {
       label: t("agg.recaudacion"),
-      actual: agg.recaudacionParkingClp + agg.recaudacionTarifaClp,
+      actual: agg.recaudacion_parking_clp + agg.recaudacion_tarifa_clp,
       ref:
         aggRef == null
           ? null
-          : aggRef.recaudacionParkingClp + aggRef.recaudacionTarifaClp,
+          : aggRef.recaudacion_parking_clp + aggRef.recaudacion_tarifa_clp,
       fmt: fmtMoney,
       menorEsMejor: false,
       nota: t("agg.recaudacion_nota"),
     },
     {
       label: t("agg.costo_operador"),
-      actual: agg.costoOperadorClp,
-      ref: aggRef?.costoOperadorClp ?? null,
+      actual: agg.costo_operador_clp,
+      ref: aggRef?.costo_operador_clp ?? null,
       fmt: fmtMoney,
       menorEsMejor: true,
       nota: t("agg.costo_operador_nota", {
-        km: Math.round(agg.trenKmHora),
+        km: Math.round(agg.tren_km_hora),
         f: config.supply.train.factor_dia_punta,
       }),
     },
     {
       label: t("agg.subsidio"),
-      actual: agg.subsidioMetroClp,
-      ref: aggRef?.subsidioMetroClp ?? null,
+      actual: agg.subsidio_metro_clp,
+      ref: aggRef?.subsidio_metro_clp ?? null,
       fmt: fmtMoney,
       menorEsMejor: true,
       nota: t("agg.subsidio_nota"),
     },
     {
       label: t("agg.bienestar"),
-      actual: agg.bienestarSocialClp,
-      ref: aggRef?.bienestarSocialClp ?? null,
+      actual: agg.bienestar_social_clp,
+      ref: aggRef?.bienestar_social_clp ?? null,
       fmt: fmtMoney,
       menorEsMejor: false,
       comparable: lsOk,
@@ -135,8 +130,9 @@ export function ReferenceComparison({ config, result, reference }: Props) {
     },
     ...STRATA.map((h) => ({
       label: t("agg.excedente_estrato", { h: t(`strata.${estratoKey(h)}`) }),
-      actual: agg.excedentePorEstratoClp[h],
-      ref: aggRef?.excedentePorEstratoClp[h] ?? null,
+      actual: agg.excedente_por_estrato_clp[String(h) as "1" | "2" | "3"],
+      ref:
+        aggRef?.excedente_por_estrato_clp[String(h) as "1" | "2" | "3"] ?? null,
       fmt: fmtMoney,
       menorEsMejor: false,
       comparable: lsOk,
@@ -210,9 +206,9 @@ export function ReferenceComparison({ config, result, reference }: Props) {
 
       <p className="mt-2 text-[10px] leading-snug text-[var(--muted)]">
         {t("agg.vot_hint", {
-          alto: fmtMoney(agg.votPorEstratoClpHora[1]),
-          medio: fmtMoney(agg.votPorEstratoClpHora[2]),
-          bajo: fmtMoney(agg.votPorEstratoClpHora[3]),
+          alto: fmtMoney(agg.vot_por_estrato_clp_hora["1"]),
+          medio: fmtMoney(agg.vot_por_estrato_clp_hora["2"]),
+          bajo: fmtMoney(agg.vot_por_estrato_clp_hora["3"]),
         })}
       </p>
       {!lsOk && (

@@ -29,7 +29,8 @@ from typing import Any, TypedDict
 
 import numpy as np
 
-from titirilquen_core.config import ModoElegido
+from titirilquen_core.bienestar import AgregadosDict, calcular_agregados
+from titirilquen_core.config import ModoElegido, SimulationConfig
 from titirilquen_core.coupled import CoupledResult, OuterIteration
 from titirilquen_core.coupled_metrics import equilibrium_metrics_to_dict
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
@@ -101,6 +102,9 @@ class TraceDict(TypedDict):
     demanda_estrato: list[list[list[float]]] | None
     iteraciones: list[SnapshotDict]
     agentes: list[AgenteDict]
+    #: Indicadores de bienestar de la ciudad completa. `None` cuando se
+    #: serializa sin la configuración (no se pueden calcular sin ella).
+    agregados: AgregadosDict | None
 
 
 class LandUseResultDict(TypedDict):
@@ -194,7 +198,13 @@ def iteration_to_dict(snap: IterationSnapshot) -> SnapshotDict:
     }
 
 
-def trace_to_dict(trace: ConvergenceTrace) -> TraceDict:
+def trace_to_dict(trace: ConvergenceTrace, cfg: SimulationConfig | None = None) -> TraceDict:
+    """La corrida completa, lista para cruzar al frontend.
+
+    `cfg` es opcional sólo por comodidad de los llamadores internos: sin ella no
+    se pueden calcular los agregados de bienestar, que dependen de precios y
+    coeficientes. Todas las rutas de producción la pasan.
+    """
     return {
         "converged": trace.converged,
         "capacidad_auto": trace.capacidad_auto,
@@ -212,6 +222,7 @@ def trace_to_dict(trace: ConvergenceTrace) -> TraceDict:
         "demanda_estrato": _lista(trace.demanda_estrato),
         "iteraciones": [iteration_to_dict(s) for s in trace.iteraciones],
         "agentes": [agente_to_dict(a) for a in trace.agentes],
+        "agregados": None if cfg is None else calcular_agregados(cfg, trace),
     }
 
 

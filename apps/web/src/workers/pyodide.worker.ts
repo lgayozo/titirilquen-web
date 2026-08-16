@@ -144,17 +144,18 @@ from titirilquen_core.serializacion import (
 
 def simulate_from_json(config_json: str):
     cfg = SimulationConfig.model_validate_json(config_json)
-    return trace_to_dict(run_msa(cfg))
+    return trace_to_dict(run_msa(cfg), cfg)
 
 # Streaming en una sola corrida: iter_msa popula el trace completo mientras
 # emite los snapshots. Tras agotar el generador, last_trace_to_py() devuelve el
 # resultado final (agentes/emisiones) SIN volver a correr la simulación.
-_LAST_TRACE = {"trace": None}
+_LAST_TRACE = {"trace": None, "cfg": None}
 
 def iter_from_json(config_json: str):
     cfg = SimulationConfig.model_validate_json(config_json)
     trace = ConvergenceTrace()
     _LAST_TRACE["trace"] = None
+    _LAST_TRACE["cfg"] = cfg
     for snap in iter_msa(cfg, trace):
         yield iteration_to_dict(snap)
     _LAST_TRACE["trace"] = trace
@@ -168,13 +169,14 @@ def iter_from_json_suelo(req_json: str):
     localizacion = req.get("localizacion", "equilibrio")
     trace = ConvergenceTrace()
     _LAST_TRACE["trace"] = None
+    _LAST_TRACE["cfg"] = cfg
     for snap in iter_msa_desde_suelo(cfg, lu, trace, localizacion=localizacion):
         yield iteration_to_dict(snap)
     _LAST_TRACE["trace"] = trace
 
 def last_trace_to_py():
     t = _LAST_TRACE["trace"]
-    return None if t is None else trace_to_dict(t)
+    return None if t is None else trace_to_dict(t, _LAST_TRACE["cfg"])
 
 def land_use_solve_from_json(req_json: str):
     req = json.loads(req_json)

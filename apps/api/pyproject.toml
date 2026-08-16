@@ -11,7 +11,8 @@ license = { text = "GPL-3.0-or-later" }
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
-    "pydantic>=2.8",
+    # Atado al piso del core, que a su vez lo fija Pyodide (ver su pyproject).
+    "pydantic>=2.7",
     "titirilquen_core",
 ]
 

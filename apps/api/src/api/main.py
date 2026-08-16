@@ -67,7 +67,7 @@ def health() -> dict[str, str]:
 @app.post("/simulate")
 def simulate(config: SimulationConfig) -> dict[str, object]:
     trace = run_msa(config)
-    return trace_to_dict(trace)
+    return trace_to_dict(trace, config)
 
 
 # ---------------------------------------------------------------------------
