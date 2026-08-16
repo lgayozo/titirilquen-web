@@ -19,6 +19,11 @@ Modo = Literal["Auto", "Metro", "Bici", "Caminata"]
 elección antes de correr el equilibrio. El teletrabajo no es un modo elegible:
 se decide antes (prob_teletrabajo) y no se ve afectado por esta selección."""
 
+ModoElegido = Literal["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"]
+"""Lo que un agente termina teniendo asignado. A diferencia de `Modo`, incluye
+el teletrabajo; y donde se usa admite `None`, para el agente varado — aquel al
+que ningún modo le resultó factible."""
+
 
 class PhysicalPenalties(BaseModel):
     """Penalizaciones aditivas escalonadas (step) para bici y caminata.

@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 /**
- * Re-compila el wheel de `titirilquen_core` y lo deja en `public/pyodide/`.
- * Ejecutar tras CUALQUIER cambio en el paquete Python: si no, el motor de
- * Pyodide sigue corriendo el código anterior.
+ * Sincroniza TODO lo que el frontend deriva del núcleo Python. Ejecutar tras
+ * cualquier cambio en el paquete: si no, el navegador sigue corriendo el
+ * código anterior y los tipos generados quedan mintiendo.
+ *
+ *   1. Recompila el wheel que instala Pyodide (`public/pyodide/`).
+ *   2. Genera el contrato TypeScript (`src/lib/gen/`).
+ *   3. Regenera los fixtures golden del contrato (`e2e/fixtures/`).
  *
  * Usa `uv`, que es el gestor de entornos del repo (los tests y los scripts de
  * auditoría se corren con `uv run`). La versión anterior de este script
@@ -76,4 +80,22 @@ for (const stale of wheels.slice(1)) {
   console.log(`  (borrado el wheel viejo ${stale.f})`);
 }
 
-console.log(`Wheel listo: public/pyodide/${wheels[0].f}`);
+console.log(`  wheel: public/pyodide/${wheels[0].f}`);
+
+// 2. Contrato TypeScript generado desde Pydantic.
+console.log("Generando el contrato TypeScript…");
+execSync(`${UV} run python tools/genera_contrato.py`, {
+  cwd: CORE_PKG,
+  stdio: "inherit",
+});
+
+// 3. Fixtures golden: pinean las formas de oferta del core para que el espejo
+//    de `citySupply.ts` no pueda driftar en silencio.
+console.log("Regenerando fixtures golden…");
+execSync(`${UV} run --extra dev python tests/test_contract_frontend.py`, {
+  cwd: CORE_PKG,
+  stdio: "inherit",
+});
+
+console.log("\nNúcleo sincronizado. Si `git status` muestra cambios en");
+console.log("src/lib/gen o e2e/fixtures, van en el mismo commit que el core.");

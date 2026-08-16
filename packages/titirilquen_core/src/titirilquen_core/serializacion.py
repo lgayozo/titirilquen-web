@@ -29,6 +29,7 @@ from typing import Any, TypedDict
 
 import numpy as np
 
+from titirilquen_core.config import ModoElegido
 from titirilquen_core.coupled import CoupledResult, OuterIteration
 from titirilquen_core.coupled_metrics import equilibrium_metrics_to_dict
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
@@ -48,8 +49,10 @@ class AgenteDict(TypedDict):
     estrato: int
     teletrabaja: bool
     tiene_auto: bool
-    modo_elegido: str | None
-    utilidad_elegida: float | None
+    #: `None` para un agente varado: ninguno de sus modos resultó factible.
+    modo_elegido: ModoElegido | None
+    #: Nunca falta — arranca en 0.0 y el teletrabajador se queda en 0.0.
+    utilidad_elegida: float
 
 
 class SnapshotDict(TypedDict):

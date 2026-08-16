@@ -28,15 +28,15 @@ from titirilquen_core.coupled_metrics import (
     EquilibriumMetrics,
     compute_equilibrium_metrics,
 )
-from titirilquen_core.equilibrium.msa import (
-    ConvergenceTrace,
-    IterationSnapshot,
-    run_msa_con_poblacion,
-)
 from titirilquen_core.demand.utility import (
     UTIL_IMPOSIBLE,
     TiemposObservados,
     calcular_utilidades,
+)
+from titirilquen_core.equilibrium.msa import (
+    ConvergenceTrace,
+    IterationSnapshot,
+    run_msa_con_poblacion,
 )
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig

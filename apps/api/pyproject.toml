@@ -27,3 +27,12 @@ packages = ["src/api"]
 
 [tool.uv.sources]
 titirilquen_core = { path = "../../packages/titirilquen_core", editable = true }
+
+[tool.ruff]
+# Misma configuración que el core: sin esto la API se lintea con los defaults
+# (88 columnas) y el mismo código se formatea distinto según dónde viva.
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF"]

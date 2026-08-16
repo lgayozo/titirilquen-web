@@ -11,21 +11,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
-      - name: Install (core primero, luego api que depende de él)
+          enable-cache: true
+      - name: Ruff
         run: |
-          python -m pip install --upgrade pip
-          pip install -e "packages/titirilquen_core[dev]"
-          pip install -e "apps/api[dev]"
-      - name: Ruff (no bloqueante)
-        continue-on-error: true
-        run: ruff check packages/titirilquen_core apps/api
+          uvx ruff check packages/titirilquen_core
+          uvx ruff format --check packages/titirilquen_core
       - name: Pytest — core
-        run: pytest packages/titirilquen_core
+        working-directory: packages/titirilquen_core
+        run: uv run --extra dev pytest
       - name: Pytest — api
-        run: pytest apps/api
+        working-directory: apps/api
+        run: uv run --extra dev pytest
+
+  contrato:
+    name: Contrato generado al día
+    runs-on: ubuntu-latest
+    # El frontend deriva del núcleo tres artefactos versionados: el wheel que
+    # instala Pyodide, los tipos/defaults/presets de `src/lib/gen/` y los
+    # fixtures golden. Se commitean, así que pueden quedar viejos. Este job los
+    # regenera y exige que no cambie nada: si cambia, alguien tocó el core sin
+    # correr `npm run sync:core`.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: Regenerar todo lo derivado del núcleo
+        run: npm run sync:core --workspace @titirilquen/web
+      - name: Exigir que no haya cambios
+        run: |
+          if ! git diff --exit-code --stat; then
+            echo ""
+            echo "::error::Hay artefactos derivados del núcleo sin regenerar."
+            echo "Corré 'npm run sync:core' y commiteá el resultado junto al cambio del core."
+            exit 1
+          fi
 
   web:
     name: Web (typecheck + lint + build + e2e)
@@ -41,6 +68,8 @@ jobs:
         run: npm run typecheck --workspace @titirilquen/web
       - name: Lint
         run: npm run lint --workspace @titirilquen/web
+      - name: Formato
+        run: npm run format:check
       - name: Build (tsc + vite)
         run: npm run build --workspace @titirilquen/web
       - name: Instalar navegador Playwright

@@ -19,9 +19,7 @@ from collections.abc import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-
 from pydantic import BaseModel, Field
-
 from titirilquen_core import (
     LandUseCity,
     LandUseConfig,
@@ -30,7 +28,6 @@ from titirilquen_core import (
     run_msa,
 )
 from titirilquen_core.coupled import iter_coupled
-
 from titirilquen_core.serializacion import (
     coupled_result_to_dict,
     land_use_city_to_dict,

@@ -5,23 +5,23 @@ import { fileURLToPath } from "node:url";
 import { test, expect } from "@playwright/test";
 
 import { supplyVector } from "../src/lib/citySupply";
-import {
-  defaultLandUseConfig,
-  defaultSimulationConfig,
-} from "../src/lib/defaults";
 
 /**
- * Contrato anti-drift core ↔ frontend (Fase 5). Corre en Node (sin browser):
+ * Contrato anti-drift core ↔ frontend. Corre en Node (sin browser).
  *
- * 1. `citySupply.ts` duplica deliberadamente las formas de oferta del core
- *    (preview a 60fps); este test lo compara contra el fixture golden generado
- *    por Python. Si el core cambia, pytest falla primero y el fixture se
- *    regenera (`uv run --extra dev python tests/test_contract_frontend.py`);
- *    si ESTE test falla con fixtures vigentes, el espejo TS driftó.
+ * Queda UN espejo que vigilar: `citySupply.ts` reimplementa a mano las formas
+ * de oferta del núcleo para poder redibujar la vista previa a 60 fps sin
+ * cruzar al worker. Este test lo compara contra el fixture golden que genera
+ * Python. Si el core cambia, pytest falla primero y el fixture se regenera
+ * (`uv run --extra dev python tests/test_contract_frontend.py`); si ESTE test
+ * falla con fixtures vigentes, el espejo TS driftó.
  *
- * 2. Paridad de defaults TS ↔ Pydantic: misma estructura de claves (detecta
- *    renames como ingresos_estratos/densidad_hab_km/factor_emision_*) y mismos
- *    valores salvo las divergencias INTENCIONALES listadas abajo.
+ * La paridad de DEFAULTS vivía también acá, con una lista de divergencias
+ * permitidas que funcionaba como salvoconducto para el drift. Ya no hace
+ * falta: los defaults del frontend se generan desde Pydantic
+ * (`lib/gen/defaults.gen.ts`) y las diferencias deliberadas son código a la
+ * vista en `lib/overrides.ts`. Que los generados estén al día lo verifica el
+ * CI con `npm run sync:core && git diff --exit-code`.
  */
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
@@ -54,91 +54,4 @@ test.describe("contrato citySupply ↔ supply.py", () => {
       expect(S).toEqual(c.S);
     });
   }
-});
-
-/** Divergencias intencionales y documentadas entre los defaults Pydantic (py)
- * y los del frontend (ts). Cualquier OTRA diferencia es drift y falla. */
-const ALLOWED: Record<string, { py: unknown; ts: unknown }> = {
-  // El frontend usa una grilla liviana por interactividad; el core conserva la
-  // resolución del modelo original.
-  "city.n_celdas": { py: 1001, ts: 201 },
-  // El frontend fija la semilla para reproducibilidad de la demo.
-  "sim.seed": { py: null, ts: 42 },
-  // El frontend asigna por flujos esperados (determinista, curvas de demanda
-  // continuas); el core conserva la multinomial Monte Carlo del original.
-  "sim.assignment": { py: "montecarlo", ts: "expected" },
-  // Escala de población: el core conserva la liviana original (500 hab/km);
-  // el frontend usa la del preset «Base» (1800) para que la congestión BPR del
-  // auto sea visible y la oferta mueva el equilibrio — S-03 de
-  // docs/ANALISIS_SENSIBILIDAD.md, reproducible con scripts/sensibilidad.py.
-  "city.densidad_hab_km": { py: 500, ts: 1800 },
-  // Población de suelo: el core conserva la escala del paper (99.900); el
-  // frontend usa 36.000 (= 1800 hab/km × 20 km, shares 20/50/30) en sync con
-  // city.densidad_hab_km. (El comentario decía 10/40/50, la mezcla anterior a
-  // la recalibración de agosto de 2026; los números de abajo siempre fueron
-  // los correctos.)
-  "land_use.H_por_estrato.0": { py: 33300, ts: 7200 },
-  "land_use.H_por_estrato.1": { py: 33300, ts: 18000 },
-  "land_use.H_por_estrato.2": { py: 33300, ts: 10800 },
-  // Punto fijo del suelo: presupuesto menor en el navegador.
-  "land_use.max_iter": { py: 10000, ts: 2000 },
-};
-
-function flatten(obj: unknown, prefix = "", out: Record<string, unknown> = {}) {
-  if (obj !== null && typeof obj === "object") {
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-      flatten(v, prefix ? `${prefix}.${k}` : k, out);
-    }
-  } else {
-    out[prefix] = obj;
-  }
-  return out;
-}
-
-test.describe("paridad de defaults TS ↔ Pydantic", () => {
-  const golden = read("defaults-golden.json").defaults as Record<
-    string,
-    unknown
-  >;
-  const ts = {
-    city: defaultSimulationConfig.city,
-    supply: defaultSimulationConfig.supply,
-    globales: defaultSimulationConfig.demand.globales,
-    sim: {
-      max_iter: defaultSimulationConfig.max_iter,
-      tolerance: defaultSimulationConfig.tolerance,
-      seed: defaultSimulationConfig.seed,
-      assignment: defaultSimulationConfig.assignment,
-      modos_habilitados: defaultSimulationConfig.modos_habilitados,
-    },
-    land_use: defaultLandUseConfig,
-  };
-
-  const flatPy = flatten(golden);
-  const flatTs = flatten(ts);
-
-  test("misma estructura de claves (detecta renames)", () => {
-    const pyKeys = Object.keys(flatPy).sort();
-    const tsKeys = Object.keys(flatTs).sort();
-    expect(tsKeys).toEqual(pyKeys);
-  });
-
-  test("mismos valores salvo divergencias intencionales", () => {
-    const diffs: string[] = [];
-    for (const key of Object.keys(flatPy)) {
-      const py = flatPy[key];
-      const tsV = flatTs[key];
-      const allowed = ALLOWED[key];
-      if (allowed) {
-        if (py !== allowed.py || tsV !== allowed.ts) {
-          diffs.push(
-            `${key}: divergencia permitida desactualizada (py=${py}, ts=${tsV}, esperado py=${allowed.py}, ts=${allowed.ts})`,
-          );
-        }
-      } else if (py !== tsV) {
-        diffs.push(`${key}: py=${py} ≠ ts=${tsV}`);
-      }
-    }
-    expect(diffs, diffs.join("\n")).toEqual([]);
-  });
 });

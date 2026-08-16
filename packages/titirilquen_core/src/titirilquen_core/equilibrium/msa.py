@@ -19,6 +19,7 @@ from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, SimulationConfig, StratumId
+from titirilquen_core.constantes import MODOS
 from titirilquen_core.demand.choice import probabilidades_logit, probabilidades_todo_o_nada
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.emissions import calcular_emisiones
@@ -89,7 +90,8 @@ class ConvergenceTrace:
     demanda_estrato: NDArray[np.float64] | None = None
 
 
-_MODOS: tuple[str, ...] = ("Auto", "Metro", "Bici", "Caminata")
+#: Alias local del orden canónico (`titirilquen_core.constantes.MODOS`).
+_MODOS = MODOS
 
 
 @dataclass

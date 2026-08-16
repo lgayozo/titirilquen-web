@@ -280,6 +280,14 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
           ...(p.tarifa !== undefined && { costo_tarifa_metro: p.tarifa }),
           ...(p.parking !== undefined && { costo_parking: p.parking }),
           ...(p.bencina !== undefined && { costo_combustible_km: p.bencina }),
+          // Faltaba: el preset lo declaraba y la tabla de la tarjeta lo
+          // mostraba, pero nunca llegaba a la config. «Vehículos híbridos»
+          // —cuyo único punto es una flota que emite menos— sólo abarataba la
+          // bencina, así que en vez de bajar el CO₂ lo SUBÍA: más viajes en
+          // auto con la misma emisión por km.
+          ...(p.factor_flota !== undefined && {
+            factor_flota_auto: p.factor_flota,
+          }),
         },
       },
     }));

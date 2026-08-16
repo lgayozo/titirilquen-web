@@ -16,7 +16,6 @@ from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult, solve_logit
 from titirilquen_core.land_use.supply import generar_oferta
 
-
 V_REF_KMH = 30.0
 """Velocidad de referencia del baseline "sin transporte": el T por defecto es
 el tiempo a flujo libre a esta velocidad. Misma convención que el arranque del

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from titirilquen_core.land_use.supply import FormaOferta

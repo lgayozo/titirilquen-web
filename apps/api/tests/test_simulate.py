@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+from titirilquen_core.presets import DEFAULT_STRATA
 
 from api.main import app
-from titirilquen_core.presets import DEFAULT_STRATA
 
 
 def _config_pequeno() -> dict:

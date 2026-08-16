@@ -19,3 +19,9 @@ docs/_datos_informe
 # tests/test_contract_frontend.py con `json.dumps(..., indent=1)` y llevan
 # "NO editar a mano" adentro. Mismo caso que el anterior.
 apps/web/e2e/fixtures
+
+# Los capítulos del tutorial (.mdx) y los informes (.html) se escriben a mano,
+# con SVG inline y tablas alineadas. Nunca pasaron por prettier y reformatearlos
+# ahora sería un diff enorme sin ganancia.
+*.mdx
+*.html

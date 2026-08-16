@@ -1,197 +1,37 @@
 /**
- * Tipos espejo de los esquemas Pydantic de `titirilquen_core/config.py`.
+ * Tipos del dominio del frontend.
  *
- * TODO (fase posterior): reemplazar por generación automática vía
- * `datamodel-codegen` o `pydantic-to-typescript` en el package shared-types.
+ * Las formas que vienen del núcleo —configuración, presets, resultados— se
+ * GENERAN desde Pydantic en `lib/gen/` y se re-exportan acá para no tocar los
+ * imports de media aplicación. Este archivo era una transcripción a mano de
+ * 14 interfaces; lo que queda escrito son los tipos que sólo existen en el
+ * frontend.
  */
 
-export type StratumId = 1 | 2 | 3;
+export type {
+  BikeSupplyParams,
+  CarSupplyParams,
+  CityConfig,
+  DemandConfig,
+  GlobalConfig,
+  LandUseConfig,
+  PhysicalPenalties,
+  SimulationConfig,
+  StratumBetas,
+  StratumConfig,
+  StratumId,
+  SupplyConfig,
+  TrainSupplyParams,
+} from "@/lib/gen/tipos.gen";
+
+export type {
+  AgenteDict as AgentRecord,
+  SnapshotDict as IterationSnapshot,
+  TraceDict as SimulationResult,
+} from "@/lib/gen/trace.gen";
+
+/** Todos los modos, incluido el teletrabajo (que no es elegible: se decide
+ *  antes de la elección de modo). */
 export type Modo = "Auto" | "Metro" | "Bici" | "Caminata" | "Teletrabajo";
 
-export interface PhysicalPenalties {
-  bici_10: number;
-  bici_20: number;
-  bici_30: number;
-  walk_5: number;
-  walk_15: number;
-  walk_25: number;
-}
-
-export interface StratumBetas {
-  asc_auto: number;
-  asc_metro: number;
-  asc_bici: number;
-  asc_caminata: number;
-  b_tiempo_viaje: number;
-  b_costo: number;
-  b_tiempo_espera: number;
-  /** Acceso caminando a la estación de metro. Valor de norma: ponderador 2 del
-   *  SNI (Precios Sociales 2026, Tabla 2.1). */
-  b_tiempo_acceso: number;
-  /** Modo caminata completo. NO cubierto por la tabla del SNI, que habla del
-   *  tramo caminado de un viaje en transporte público. */
-  b_tiempo_caminata: number;
-  penalizaciones_fisicas: PhysicalPenalties;
-}
-
-export interface StratumConfig {
-  prob_teletrabajo: number;
-  prob_auto: number;
-  betas: StratumBetas;
-}
-
-export interface GlobalConfig {
-  v_auto: number;
-  v_metro: number;
-  v_bici: number;
-  v_caminata: number;
-  costo_combustible_km: number;
-  costo_tarifa_metro: number;
-  costo_parking: number;
-  /** Multiplicador adimensional sobre la curva COPERT de emisión del auto:
-   *  1 = flota de referencia, ~0.7 híbrida, ~0.15 eléctrica. Reemplaza al
-   *  antiguo `factor_emision_auto`, que era un parámetro huérfano. */
-  factor_flota_auto: number;
-  /** kg CO₂ por tren-km (D-29): emisión por servicio, no por pasajero. */
-  factor_emision_metro_tren_km: number;
-}
-
-export interface DemandConfig {
-  globales: GlobalConfig;
-  estratos: Record<StratumId, StratumConfig>;
-}
-
-export interface CityConfig {
-  n_celdas: number;
-  largo_ciudad_km: number;
-  /** Densidad física (hab/km): población = densidad × largo (D-28). */
-  densidad_hab_km: number;
-  pendiente_porcentaje: number;
-  teletrabajo_factor: number;
-  share_estratos: [number, number, number];
-}
-
-export interface BikeSupplyParams {
-  v_media_kmh: number;
-  capacidad_pista: number;
-  alpha_bpr: number;
-  beta_bpr: number;
-}
-
-export interface CarSupplyParams {
-  v_max_kmh: number;
-  ancho_pista_m: number;
-  largo_vehiculo_m: number;
-  gap_m: number;
-  num_pistas: number;
-  alpha_bpr: number;
-  beta_bpr: number;
-  /** Capacidad por pista (veh/h). null ⇒ Greenshields (C ∝ v_libre); un valor
-   *  explícito desacopla capacidad de velocidad — S-04. */
-  capacidad_pista: number | null;
-}
-
-export interface TrainSupplyParams {
-  v_tren_kmh: number;
-  capacidad_tren: number;
-  num_estaciones: number;
-  v_caminata_kmh: number;
-  /** PROVISORIO: costo de operación por tren-km ($). Habilita costo del
-   *  operador, subsidio y autofinanciamiento. Ver el comentario del core. */
-  costo_operacion_tren_km: number;
-  /** Factor DÍA/PUNTA: cuánto más caro sale operar el día completo, por viaje,
-   *  que si todo el día tuviera la carga de la punta. >1 porque fuera de punta
-   *  el servicio circula más vacío. Ver el comentario del core. */
-  factor_dia_punta: number;
-  /** Detención en cada estación intermedia (min). Sin esto, agregar estaciones
-   *  acortaba el acceso sin costo alguno en tiempo de viaje. */
-  tiempo_detencion_min: number;
-  frec_min: number;
-  frec_max: number;
-  /** BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), ρ = carga/(frec_max·K). */
-  anden_alpha: number;
-  anden_beta: number;
-}
-
-export interface SupplyConfig {
-  bike: BikeSupplyParams;
-  car: CarSupplyParams;
-  train: TrainSupplyParams;
-}
-
-export interface SimulationConfig {
-  city: CityConfig;
-  supply: SupplyConfig;
-  demand: DemandConfig;
-  max_iter: number;
-  tolerance: number;
-  seed: number | null;
-  /** Método de asignación de demanda. `montecarlo` (sorteo por agente) y
-   *  `expected` (flujos esperados) reparten al grupo con las probabilidades
-   *  logit; `todo_o_nada` lo manda ENTERO al modo de mayor utilidad.
-   *
-   *  Se llamó `wardrop` hasta agosto de 2026. El nombre prometía una condición
-   *  de equilibrio de usuario que este modelo no cumple: los cuatro modos se
-   *  usan a la vez con costos que difieren hasta 32 min
-   *  (`scripts/auditoria_wardrop.py`). */
-  assignment: "montecarlo" | "expected" | "todo_o_nada";
-  /** Modos disponibles en el set de elección antes de correr el equilibrio.
-   *  Los modos excluidos se tratan como infeasibles (utilidad −∞). El
-   *  teletrabajo no es elegible (se decide antes de la elección de modo). */
-  modos_habilitados: ModoTransporte[];
-}
-
 export type ModoTransporte = Exclude<Modo, "Teletrabajo">;
-
-export interface IterationSnapshot {
-  iter: number;
-  f_msa: number;
-  modal_split: Record<string, number>;
-  t_auto: number[];
-  t_bici: number[];
-  t_tren_acceso: number[];
-  t_tren_espera: number[];
-  t_tren_viaje: number[];
-  demanda_auto: number[];
-  demanda_metro: number[];
-  demanda_bici: number[];
-  demanda_caminata: number[];
-  frecuencia_metro: number;
-  /** Frecuencia sin recortar (`carga/K`). Si difiere de `frecuencia_metro`, un
-   *  tope (`frec_min`/`frec_max`) está mordiendo — ver AT-08/AT-09. */
-  frecuencia_teorica_metro: number;
-  residuo: number | null;
-}
-
-export interface AgentRecord {
-  id: number;
-  celda_origen: number;
-  estrato: StratumId;
-  teletrabaja: boolean;
-  tiene_auto: boolean;
-  modo_elegido: Modo | null;
-  utilidad_elegida: number;
-}
-
-export interface SimulationResult {
-  converged: boolean;
-  capacidad_auto: number;
-  v_libre_auto: number;
-  alpha_auto_bpr: number;
-  beta_auto_bpr: number;
-  carga_metro: number[] | null;
-  estaciones_km: number[] | null;
-  /** Flujo acumulado por corredor hacia el CBD del estado final (veh/h y bici/h
-   *  por celda). Numerador correcto del v/c — la demanda originada no lo es. */
-  flujos_auto_veh_h: number[] | null;
-  flujos_bici_veh_h: number[] | null;
-  emisiones_total_kg: number;
-  emisiones_auto_kg: number;
-  emisiones_metro_kg: number;
-  emisiones_perfil_kg: number[] | null;
-  /** Demanda esperada por [estrato 0..2][modo Auto|Metro|Bici|Caminata][celda].
-   *  Para el reparto modal espacial por estrato (Fig. 9 desagregada). */
-  demanda_estrato: number[][][] | null;
-  iteraciones: IterationSnapshot[];
-  agentes: AgentRecord[];
-}

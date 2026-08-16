@@ -11,6 +11,7 @@ from typing import Literal
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, StratumId
+from titirilquen_core.constantes import CORTE_BICI_MIN, CORTE_CAMINATA_MIN
 
 Modo = Literal["Auto", "Metro", "Bici", "Caminata"]
 
@@ -124,7 +125,7 @@ def calcular_utilidades(
         )
 
     # BICI — penalizaciones aditivas escalonadas (ver D-02)
-    if tiempos.bici_total > 45:
+    if tiempos.bici_total > CORTE_BICI_MIN:
         bici_breakdown = UtilityBreakdown("Bici", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
     else:
         p = 0.0
@@ -142,7 +143,7 @@ def calcular_utilidades(
         )
 
     # CAMINATA — usa b_tiempo_caminata (no b_tiempo_viaje); ver D-03
-    if t_cam > 30:
+    if t_cam > CORTE_CAMINATA_MIN:
         cam_breakdown = UtilityBreakdown("Caminata", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
     else:
         p = 0.0

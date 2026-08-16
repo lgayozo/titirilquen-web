@@ -117,6 +117,9 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "cap_bici": 2500,
         "frec_max": 50,
         "cap_tren": 1000,
+        # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
+        # hibridos» dejaba la flota en 0.7 en silencio.
+        "factor_flota": 1.0,
     },
     "Tarificación Vial": {
         "tarifa": 800,
@@ -127,6 +130,9 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "cap_tren": 1000,
         "cap_bici": 2500,
         "frec_max": 40,
+        # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
+        # hibridos» dejaba la flota en 0.7 en silencio.
+        "factor_flota": 1.0,
     },
     "Pro-Auto": {
         "tarifa": 1000,
@@ -137,6 +143,9 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "cap_tren": 800,
         "cap_bici": 1250,
         "frec_max": 6,
+        # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
+        # hibridos» dejaba la flota en 0.7 en silencio.
+        "factor_flota": 1.0,
     },
     "Pro-Bici": {
         "tarifa": 800,
@@ -147,6 +156,9 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "bencina": 120,
         "cap_tren": 1000,
         "num_estaciones": 10,
+        # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
+        # hibridos» dejaba la flota en 0.7 en silencio.
+        "factor_flota": 1.0,
     },
     "Vehículos híbridos": {
         # AHORA sí reduce la emisión por km: antes solo abarataba la bencina, o
@@ -170,6 +182,9 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "bencina": 120,
         "num_pistas": 2,
         "cap_bici": 2500,
+        # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
+        # hibridos» dejaba la flota en 0.7 en silencio.
+        "factor_flota": 1.0,
     },
     "Ciclorrecreovía": {
         # `num_estaciones` faltaba (7 de 8 claves): la política heredaba el valor
@@ -184,6 +199,9 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "frec_max": 40,
         "cap_tren": 1000,
         "num_estaciones": 10,
+        # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
+        # hibridos» dejaba la flota en 0.7 en silencio.
+        "factor_flota": 1.0,
     },
 }
 
