@@ -257,8 +257,12 @@ def emite_defaults() -> str:
         + "\nimport type { SimulationConfig, LandUseConfig } from './tipos.gen';\n"
         + "\n/** Defaults del NÚCLEO. El frontend aplica encima sus divergencias\n"
         + " *  intencionales — ver `lib/overrides.ts`. */\n"
-        + f"export const DEFAULTS_CORE: SimulationConfig = {_literal(base.model_dump(by_alias=True))} as const;\n"
-        + f"\nexport const DEFAULTS_LAND_USE_CORE: LandUseConfig = {_literal(LandUseConfig().model_dump(by_alias=True))} as const;\n"
+        + "export const DEFAULTS_CORE: SimulationConfig = "
+        + _literal(base.model_dump(by_alias=True))
+        + " as const;\n"
+        + "\nexport const DEFAULTS_LAND_USE_CORE: LandUseConfig = "
+        + _literal(LandUseConfig().model_dump(by_alias=True))
+        + " as const;\n"
         + "\n/** Calibración vigente de los tres estratos (los 42 coeficientes del\n"
         + " *  logit). Era la mayor duplicación a mano del repo y la única sin test\n"
         + " *  de contrato. */\n"
@@ -289,8 +293,12 @@ def emite_presets() -> str:
         + _interfaz_typeddict(CityPreset, "CityPresetValues", "Parámetros de forma urbana.")
         + "\n"
         + _interfaz_typeddict(PolicyPreset, "PolicyPresetValues", "Parámetros de política.")
-        + f"\nexport const CITY_PRESETS: Record<string, CityPresetValues> = {_literal(CITY_PRESETS)};\n"
-        + f"\nexport const POLICY_PRESETS: Record<string, PolicyPresetValues> = {_literal(POLICY_PRESETS)};\n"
+        + "\nexport const CITY_PRESETS: Record<string, CityPresetValues> = "
+        + _literal(CITY_PRESETS)
+        + ";\n"
+        + "\nexport const POLICY_PRESETS: Record<string, PolicyPresetValues> = "
+        + _literal(POLICY_PRESETS)
+        + ";\n"
         + "\nexport type CityPresetName = keyof typeof CITY_PRESETS;\n"
         + "export type PolicyPresetName = keyof typeof POLICY_PRESETS;\n"
     )
@@ -303,7 +311,9 @@ def emite_constantes() -> str:
         + "\n/** Orden canónico de los modos: define el orden de las series en toda\n"
         + " *  figura y el layout del cubo `demanda_estrato`. */\n"
         + f"export const MODOS = {_literal(list(constantes.MODOS))} as const;\n"
-        + f"\nexport const MODOS_CON_TELETRABAJO = {_literal(list(constantes.MODOS_CON_TELETRABAJO))} as const;\n"
+        + "\nexport const MODOS_CON_TELETRABAJO = "
+        + _literal(list(constantes.MODOS_CON_TELETRABAJO))
+        + " as const;\n"
         + "\n/** Sobre estos tiempos el modo deja de ser una alternativa considerada\n"
         + " *  (min). Son supuestos del modelo de elección, no parámetros. */\n"
         + f"export const CORTE_CAMINATA_MIN = {constantes.CORTE_CAMINATA_MIN};\n"

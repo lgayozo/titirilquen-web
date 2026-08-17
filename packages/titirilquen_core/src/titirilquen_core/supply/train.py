@@ -78,10 +78,7 @@ def oferta_tren(
 
     idx_centro_est = int(np.argmin(np.abs(estaciones - x_centro_km)))
 
-    if num_s >= 2:
-        carga_por_tramo = np.zeros(num_s - 1)
-    else:
-        carga_por_tramo = np.zeros(0)
+    carga_por_tramo = np.zeros(num_s - 1) if num_s >= 2 else np.zeros(0)
     carga_al_salir_estacion = np.zeros(num_s)
 
     acum = 0.0

@@ -67,7 +67,7 @@ class LandUseCity:
         S: NDArray[np.int_] | None = None,
         T: NDArray[np.float64] | None = None,
         rng: np.random.Generator | None = None,
-    ) -> "LandUseCity":
+    ) -> LandUseCity:
         """Construye la ciudad, genera oferta si no se entrega, y resuelve equilibrio."""
         if rng is None:
             rng = np.random.default_rng()

@@ -28,12 +28,7 @@ Correr desde packages/titirilquen_core:
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent))
-
-from auditoria_transporte import base_lu, base_sim, corre
+from _comun import base_lu, base_sim, corre
 
 from titirilquen_core.config import SimulationConfig
 

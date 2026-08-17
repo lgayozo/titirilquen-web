@@ -52,7 +52,6 @@ from titirilquen_core.constantes import MODOS, VOT_SOCIAL_CLP_HORA
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.equilibrium.msa import ConvergenceTrace
 
-
 #: Los estratos como llegan al JSON. Las claves de un objeto JSON son strings,
 #: así que `dict[StratumId, ...]` de Python cruza como "1"/"2"/"3"; declararlo
 #: exacto le dice a TypeScript que están las tres y no hace falta chequear.

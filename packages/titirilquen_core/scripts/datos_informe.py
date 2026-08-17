@@ -26,14 +26,10 @@ from __future__ import annotations
 
 import itertools
 import json
-import sys
 from pathlib import Path
 
-import numpy as np
-
-sys.path.insert(0, str(Path(__file__).parent))
-
 import buscar_downs_thomson as bdt
+import numpy as np
 
 VST_H = 3338.0  # $/h-pax, SNI 2026, viaje urbano en vehiculo
 PONDERADOR_ESPERA = 2.0  # SNI Tabla 2.1

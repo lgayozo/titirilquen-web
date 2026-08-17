@@ -31,9 +31,7 @@ from titirilquen_core.population import (
     generar_poblacion,
     generar_poblacion_desde_land_use_det,
 )
-from titirilquen_core.supply.bike import demora_bici_tramo
-from titirilquen_core.supply.car import demora_auto_tramo
-from titirilquen_core.supply.train import oferta_tren
+from titirilquen_core.supply.oferta import resolver_oferta
 
 ModalSplit = dict[str, float]
 
@@ -423,49 +421,8 @@ def _iter_loop(
             )
             d_auto, d_metro, d_bici, d_caminata = d_ac
 
-        car_p = sim.supply.car
-        bike_p = sim.supply.bike
-        train_p = sim.supply.train
-
-        car_result = demora_auto_tramo(
-            ubicacion_centro_km=ciudad.cbd_km,
-            demanda=d_auto,
-            v_max_kmh=car_p.v_max_kmh,
-            ancho_pista_m=car_p.ancho_pista_m,
-            largo_vehiculo_m=car_p.largo_vehiculo_m,
-            gap_m=car_p.gap_m,
-            L_ciudad_km=ciudad.largo_total_km,
-            num_pistas=car_p.num_pistas,
-            alpha_bpr=car_p.alpha_bpr,
-            beta_bpr=car_p.beta_bpr,
-            capacidad_pista=car_p.capacidad_pista,
-        )
-        bike_result = demora_bici_tramo(
-            ubicacion_centro_km=ciudad.cbd_km,
-            capacidad=bike_p.capacidad_pista,
-            demanda=d_bici,
-            v_media=bike_p.v_media_kmh,
-            L_ciudad_km=ciudad.largo_total_km,
-            alpha=bike_p.alpha_bpr,
-            beta=bike_p.beta_bpr,
-            pendiente_porcentaje=sim.city.pendiente_porcentaje,
-            v_caminata=sim.demand.globales.v_caminata,
-        )
-        train_result = oferta_tren(
-            demanda=d_metro,
-            L_ciudad_km=ciudad.largo_total_km,
-            x_centro_km=ciudad.cbd_km,
-            v_tren_kmh=train_p.v_tren_kmh,
-            capacidad_tren=train_p.capacidad_tren,
-            num_estaciones=train_p.num_estaciones,
-            v_caminata_kmh=train_p.v_caminata_kmh,
-            tiempo_detencion_min=train_p.tiempo_detencion_min,
-            frec_min=train_p.frec_min,
-            frec_max=train_p.frec_max,
-            anden_alpha=train_p.anden_alpha,
-            anden_beta=train_p.anden_beta,
-        )
-
+        oferta = resolver_oferta(sim, ciudad, d_auto, d_bici, d_metro)
+        car_result, bike_result, train_result = oferta.auto, oferta.bici, oferta.tren
         if tiempos_actuales is None:
             t_auto_ac = car_result.t_usuarios_min.copy()
             t_bici_ac = bike_result.t_usuarios_min.copy()

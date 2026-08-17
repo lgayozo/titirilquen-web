@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from titirilquen_core.city import CiudadLineal
-from titirilquen_core.config import DemandConfig, StratumBetas, StratumConfig, PhysicalPenalties
-from titirilquen_core.demand.choice import probabilidades_logit, elegir_modo
+from titirilquen_core.config import DemandConfig, PhysicalPenalties, StratumBetas, StratumConfig
+from titirilquen_core.demand.choice import elegir_modo, probabilidades_logit
 from titirilquen_core.demand.utility import calcular_utilidades
 
 

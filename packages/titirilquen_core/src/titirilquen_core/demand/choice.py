@@ -24,14 +24,14 @@ def probabilidades_logit(utilidades: dict[Modo, UtilityBreakdown]) -> dict[Modo,
     """
     modos_feasibles = [m for m, u in utilidades.items() if u.feasible]
     if not modos_feasibles:
-        return {m: 0.0 for m in utilidades}
+        return dict.fromkeys(utilidades, 0.0)
 
     valores: NDArray[np.float64] = np.array([utilidades[m].valor for m in modos_feasibles])
     valores = valores - np.max(valores)
     exp_v = np.exp(valores)
     probs = exp_v / np.sum(exp_v)
 
-    out: dict[Modo, float] = {m: 0.0 for m in utilidades}
+    out: dict[Modo, float] = dict.fromkeys(utilidades, 0.0)
     for m, p in zip(modos_feasibles, probs, strict=True):
         out[m] = float(p)
     return out

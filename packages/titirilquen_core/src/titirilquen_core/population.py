@@ -55,7 +55,7 @@ def generar_poblacion(
         [i for i in range(ciudad.n_celdas) if i != ciudad.cbd_index], dtype=np.int64
     )
     objetivo_por_celda = densidad_hab_km * ciudad.ancho_celda_km
-    total = int(round(objetivo_por_celda * celdas_validas.size))
+    total = round(objetivo_por_celda * celdas_validas.size)
     if total <= 0:
         return []
     conteo_por_celda = _mayor_residuo(np.full(celdas_validas.size, objetivo_por_celda), total)
@@ -150,9 +150,9 @@ def generar_poblacion_desde_land_use_det(
             estrato: StratumId = estratos_valid[h]
             s = demand_config.estratos[estrato]
             prob_tele = min(1.0, s.prob_teletrabajo * teletrabajo_factor)
-            n_tele = int(round(n * prob_tele))
+            n_tele = round(n * prob_tele)
             n_work = n - n_tele
-            n_auto = int(round(n_work * s.prob_auto))
+            n_auto = round(n_work * s.prob_auto)
             for k in range(n):
                 tele = k < n_tele
                 # entre los trabajadores, los primeros `n_auto` tienen auto

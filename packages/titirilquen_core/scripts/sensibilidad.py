@@ -27,14 +27,14 @@ from __future__ import annotations
 
 import sys
 
+from _comun import demanda_ui
+
 from titirilquen_core.config import (
     CityConfig,
-    DemandConfig,
     SimulationConfig,
     SupplyConfig,
 )
 from titirilquen_core.equilibrium.msa import run_msa
-from titirilquen_core.presets import DEFAULT_STRATA
 
 DENSIDADES = (200.0, 500.0, 1800.0)
 PISTAS = (1, 2, 3, 4, 5, 6)
@@ -61,15 +61,16 @@ DELTA_PLANO = 0.5
 DELTA_MUERDE = 1.5
 """pp de %auto que se consideran una respuesta clara a la oferta."""
 
-# Los defaults de demanda son `presets.DEFAULT_STRATA`, que es tambien la
-# fuente del espejo TS (apps/web/src/lib/defaults.ts, con paridad verificada
-# por el test de contrato). Antes este modulo llevaba una TERCERA copia de
-# los 42 betas: en la recalibracion de ago-2026 quedo desincronizada y las
-# auditorias midieron la calibracion vieja sin avisar.
-
-
-def _demanda_ui() -> DemandConfig:
-    return DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
+# La calibracion sale de `presets.DEFAULT_STRATA`. Este modulo llego a llevar
+# una TERCERA copia de los 42 betas que quedo desincronizada en la
+# recalibracion de ago-2026: las auditorias midieron la calibracion vieja sin
+# avisar.
+#
+# Un comentario aca afirmaba que la paridad con el espejo TS estaba "verificada
+# por el test de contrato". Era FALSO: el golden solo cubria city, supply,
+# globales, sim y land_use — los betas quedaban afuera, que es justo el bloque
+# que habia driftado. Desde ago-2026 el lado TS se GENERA desde este mismo
+# dict (tools/genera_contrato.py), asi que ya no hay paridad que verificar.
 
 
 def _config(densidad: float, pistas: int) -> SimulationConfig:
@@ -78,7 +79,7 @@ def _config(densidad: float, pistas: int) -> SimulationConfig:
     cfg = SimulationConfig(
         city=CityConfig(n_celdas=201, largo_ciudad_km=20, densidad_hab_km=densidad),
         supply=SupplyConfig(),
-        demand=_demanda_ui(),
+        demand=demanda_ui(),
         max_iter=20,
         tolerance=0.1,
         seed=42,

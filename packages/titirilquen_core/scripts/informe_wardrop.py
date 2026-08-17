@@ -24,12 +24,9 @@ Experimentos:
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
-
-from auditoria_transporte import base_lu, base_sim
+from _comun import base_lu, base_sim
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades

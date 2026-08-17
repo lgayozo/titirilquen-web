@@ -49,9 +49,7 @@ from titirilquen_core.demand.utility import (
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult
-from titirilquen_core.supply.bike import demora_bici_tramo
-from titirilquen_core.supply.car import demora_auto_tramo
-from titirilquen_core.supply.train import oferta_tren
+from titirilquen_core.supply.oferta import resolver_red_vacia
 
 if TYPE_CHECKING:
     from titirilquen_core.config import StratumId
@@ -200,46 +198,8 @@ def _tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[Tiem
     """Tiempos por celda con la **red vacía** (demanda cero): BPR(0) en auto y
     bici, tren a frecuencia mínima con las mismas estaciones. Es el baseline del
     ΔCS — la misma infraestructura sin nadie usándola."""
-    zero = np.zeros(ciudad.n_celdas)
-    car_p, bike_p, train_p = sim.supply.car, sim.supply.bike, sim.supply.train
-    car0 = demora_auto_tramo(
-        ubicacion_centro_km=ciudad.cbd_km,
-        demanda=zero,
-        v_max_kmh=car_p.v_max_kmh,
-        ancho_pista_m=car_p.ancho_pista_m,
-        largo_vehiculo_m=car_p.largo_vehiculo_m,
-        gap_m=car_p.gap_m,
-        L_ciudad_km=ciudad.largo_total_km,
-        num_pistas=car_p.num_pistas,
-        alpha_bpr=car_p.alpha_bpr,
-        beta_bpr=car_p.beta_bpr,
-        capacidad_pista=car_p.capacidad_pista,
-    )
-    bike0 = demora_bici_tramo(
-        ubicacion_centro_km=ciudad.cbd_km,
-        capacidad=bike_p.capacidad_pista,
-        demanda=zero,
-        v_media=bike_p.v_media_kmh,
-        L_ciudad_km=ciudad.largo_total_km,
-        alpha=bike_p.alpha_bpr,
-        beta=bike_p.beta_bpr,
-        pendiente_porcentaje=sim.city.pendiente_porcentaje,
-        v_caminata=sim.demand.globales.v_caminata,
-    )
-    train0 = oferta_tren(
-        demanda=zero,
-        L_ciudad_km=ciudad.largo_total_km,
-        x_centro_km=ciudad.cbd_km,
-        v_tren_kmh=train_p.v_tren_kmh,
-        capacidad_tren=train_p.capacidad_tren,
-        num_estaciones=train_p.num_estaciones,
-        v_caminata_kmh=train_p.v_caminata_kmh,
-        tiempo_detencion_min=train_p.tiempo_detencion_min,
-        frec_min=train_p.frec_min,
-        frec_max=train_p.frec_max,
-        anden_alpha=train_p.anden_alpha,
-        anden_beta=train_p.anden_beta,
-    )
+    oferta = resolver_red_vacia(sim, ciudad)
+    car0, bike0, train0 = oferta.auto, oferta.bici, oferta.tren
     return [
         TiemposObservados(
             auto_total=float(car0.t_usuarios_min[i]),

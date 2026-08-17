@@ -25,14 +25,8 @@ Correr desde packages/titirilquen_core:
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 import numpy as np
-
-sys.path.insert(0, str(Path(__file__).parent))
-
-from auditoria_transporte import base_lu, base_sim
+from _comun import base_lu, base_sim
 
 from titirilquen_core.config import SimulationConfig
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from titirilquen_core.land_use import (
     LandUseCity,
@@ -20,18 +19,18 @@ def _toy_scenario(lam: np.ndarray):
     H = np.array([2000, 2000, 2000])
     S[0] += int(H.sum() - S.sum())
     T = np.tile(np.abs(idx - CBD).astype(float), (3, 1))
-    return dict(
-        H=H,
-        S=S,
-        y=np.array([120.0, 50.0, 10.0]),
-        T=T,
-        alpha=np.array([1.3, 1.2, 1.1]),
-        rho=np.array([1.0, 1.0, 1.0]),
-        lambda_h=lam,
-        beta=1.0,
-        tol=1e-9,
-        max_iter=20000,
-    )
+    return {
+        "H": H,
+        "S": S,
+        "y": np.array([120.0, 50.0, 10.0]),
+        "T": T,
+        "alpha": np.array([1.3, 1.2, 1.1]),
+        "rho": np.array([1.0, 1.0, 1.0]),
+        "lambda_h": lam,
+        "beta": 1.0,
+        "tol": 1e-9,
+        "max_iter": 20000,
+    }
 
 
 def test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho() -> None:

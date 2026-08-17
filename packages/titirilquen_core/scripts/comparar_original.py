@@ -30,11 +30,8 @@ import types
 from pathlib import Path
 
 import numpy as np
+from _comun import base_lu, base_sim
 from scipy.special import logsumexp
-
-sys.path.insert(0, str(Path(__file__).parent))
-
-from auditoria_transporte import base_lu, base_sim
 
 from titirilquen_core.config import SupplyConfig
 from titirilquen_core.equilibrium.msa import (
@@ -402,14 +399,14 @@ def bidrent(resolver_orig) -> None:
     rng = np.random.default_rng(7)
     n = 101
     cbd = n // 2
-    H = np.array([2000.0, 5000.0, 3000.0])  # noqa: N806
+    H = np.array([2000.0, 5000.0, 3000.0])
     lam = np.ones(3)
     # sum(S) DEBE igualar sum(H): las columnas de Q suman 1 (toda parcela se
     # llena), asi que con capacidad != demanda la conservacion es imposible
     # por construccion, para cualquier solver.
-    S = rng.integers(50, 200, n).astype(float)  # noqa: N806
-    S *= H.sum() / S.sum()  # noqa: N806
-    T = np.tile(np.abs(np.arange(n) - cbd).astype(float), (3, 1))  # noqa: N806
+    S = rng.integers(50, 200, n).astype(float)
+    S *= H.sum() / S.sum()
+    T = np.tile(np.abs(np.arange(n) - cbd).astype(float), (3, 1))
 
     stub = types.SimpleNamespace(T=T, S=S.copy(), H=H, y=Y_ORIG, L=n, u=None, p=None, Q=None)
     resolver_orig(stub, lam, ALPHA_ORIG, RHO_ORIG)
@@ -459,13 +456,13 @@ def bidrent(resolver_orig) -> None:
     for n_c in (51, 101, 201, 401):
         cbd_c = n_c // 2
         dx = LARGO_CIUDAD_KM / n_c
-        S_c = np.full(n_c, H.sum() / n_c)  # noqa: N806
-        T_celdas = np.tile(np.abs(np.arange(n_c) - cbd_c).astype(float), (3, 1))  # noqa: N806
+        S_c = np.full(n_c, H.sum() / n_c)
+        T_celdas = np.tile(np.abs(np.arange(n_c) - cbd_c).astype(float), (3, 1))
         st = types.SimpleNamespace(
             T=T_celdas, S=S_c.copy(), H=H, y=Y_ORIG, L=n_c, u=None, p=None, Q=None
         )
         resolver_orig(st, lam, ALPHA_ORIG, RHO_ORIG)
-        T_min = np.tile(np.abs(np.arange(n_c) - cbd_c) * dx / V_REF_KMH * 60.0, (3, 1))  # noqa: N806
+        T_min = np.tile(np.abs(np.arange(n_c) - cbd_c) * dx / V_REF_KMH * 60.0, (3, 1))
         r = solve_logit(
             H=H, S=S_c, y=Y_ORIG, T=T_min, alpha=ALPHA_ORIG, rho=RHO_ORIG, lambda_h=lam,
             beta=1.0, tol=1e-8, max_iter=10000, ancho_celda_km=dx,
@@ -522,7 +519,7 @@ def suelo_impacto() -> None:
     print("original, convertidos). Aisla la calibracion del codigo.\n")
     n, cbd = 201, 100
     dx = LARGO_CIUDAD_KM / n
-    H = (7200, 18000, 10800)  # noqa: N806
+    H = (7200, 18000, 10800)
     dx_orig = LARGO_CIUDAD_KM / L_ORIG
     k_alpha, k_rho = V_REF_KMH / (60 * dx_orig), dx_orig
 

@@ -295,7 +295,10 @@ class TrainSupplyParams(BaseModel):
     anden_alpha: float = Field(
         default=0.5,
         ge=0,
-        description="α de la BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), ρ = carga/(frec_max·K)",
+        description=(
+            "α de la BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), "
+            "ρ = carga/(frec_max·K)"
+        ),
     )
     anden_beta: float = Field(default=4.0, ge=0, description="β de la BPR de congestión de andén")
 

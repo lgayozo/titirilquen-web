@@ -49,3 +49,25 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF"]
+# Este es codigo de modelacion matematica y su notacion es parte de la
+# documentacion. Sin estas excepciones `ruff check` emite ~100 avisos de ruido
+# y deja de ser una senal: nadie lee un lint que siempre esta rojo.
+ignore = [
+    # α, β, ρ, λ, σ, − y ‖·‖ en docstrings y comentarios. Son los simbolos del
+    # modelo (BPR, logit, bid-rent); reemplazarlos por ASCII haria la
+    # documentacion mas dificil de cotejar con el Overleaf.
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    # Nombres como S (oferta de vivienda), L (largo), N (poblacion), Q (matriz
+    # de composicion), CBD, H (hogares). Son la notacion del paper y renombrarlos
+    # a minusculas rompe la correspondencia con las ecuaciones.
+    "N806",
+    "N803",
+    # Funciones cuyo nombre lleva un simbolo del modelo: _aggregate_T_expected,
+    # test_coupled_T_matrix_shape, F (la CDF de Gumbel).
+    "N802",
+    # `I` como numero de celdas, en land_use. Es la notacion del paper. OJO:
+    # esto tambien permite `l`, que si es mala practica — se confunde con 1.
+    "E741",
+]

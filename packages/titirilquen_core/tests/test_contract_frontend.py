@@ -92,8 +92,8 @@ def test_supply_golden_vigente() -> None:
     golden = _load("supply-golden.json")["cases"]
     live = _supply_cases()
     assert len(golden) == len(live)
-    for g, l in zip(golden, live):
-        assert g == l, f"forma={l['forma']} L={l['L']} σ={l['sigma_frac']}"
+    for g, vivo in zip(golden, live, strict=True):
+        assert g == vivo, f"forma={vivo['forma']} L={vivo['L']} σ={vivo['sigma_frac']}"
 
 
 def test_defaults_golden_vigente() -> None:
@@ -186,8 +186,10 @@ def test_utilidad_golden_vigente() -> None:
     golden = _load("utility-golden.json")["cases"]
     live = json.loads(json.dumps(_utilidad_casos()))
     assert len(golden) == len(live)
-    for g, l in zip(golden, live):
-        assert g == l, f"estrato={l['estrato']} celda={l['celda']} auto={l['tiene_auto']}"
+    for g, vivo in zip(golden, live, strict=True):
+        assert g == vivo, (
+            f"estrato={vivo['estrato']} celda={vivo['celda']} auto={vivo['tiene_auto']}"
+        )
 
 
 if __name__ == "__main__":
