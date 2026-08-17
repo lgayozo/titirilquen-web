@@ -1,5 +1,12 @@
 # Auditoría del módulo de TRANSPORTE — iteración 4 (agosto 2026)
 
+> **⚠ ARCHIVADO — agosto 2026.** El documento ya advertía que sus tablas se
+> midieron con `costo_parking = 6.000`. Esa advertencia **también** caducó: el
+> baseline que propone como corregido (auto 16,19 · metro 51,61) tampoco es el de
+> hoy (auto 16,95 · metro 32,79 · bici 22,84 · caminata 7,98). **Vigente:** volver
+> a correr `uv run python scripts/auditoria_transporte.py` desde
+> `packages/titirilquen_core`; el script sí está al día.
+
 Barrido de **todos** los parámetros de `SimulationConfig` por la misma ruta que
 usa la app (`iter_msa_desde_suelo`). Hallazgos con ID `AT-xx`.
 

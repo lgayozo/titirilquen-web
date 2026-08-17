@@ -113,7 +113,7 @@ factor = 1                  si ρ_s ≤ 1
 > Mohring es **medible** (espera baja al ganar pasajeros) pero **DT no emerge** con
 > parámetros realistas, porque la espera es una fracción chica del tiempo total de
 > metro (acceso + a bordo dominan) y la sustitución auto↔metro es modesta.
-> Ver DISCREPANCIES.md D‑18 y `VERIFICACION_TRANSPORTE.md` H1.
+> Ver DISCREPANCIES.md D‑18 y `archivo/VERIFICACION_TRANSPORTE.md` H1.
 
 ---
 
@@ -150,7 +150,7 @@ residual decrece monótonamente y la corrida es reproducible.
 ## 5. Uso de suelo — bid‑rent (`land_use/`, ver `Suelo.tex`)
 
 *Mapa: esta sección es la spec **as-built** del módulo. El historial de cómo se
-llegó está en [`CAMBIOS_USO_SUELO.md`](CAMBIOS_USO_SUELO.md); lo que falta reflejar
+llegó está en [`archivo/CAMBIOS_USO_SUELO.md`](archivo/CAMBIOS_USO_SUELO.md); lo que falta reflejar
 en el Overleaf, en [`OVERLEAF_CHANGES.md`](OVERLEAF_CHANGES.md) §C8–C9.*
 
 Modelo monocéntrico tipo Alonso‑Muth‑Mills.
@@ -164,7 +164,7 @@ Modelo monocéntrico tipo Alonso‑Muth‑Mills.
 > plazo… el sistema no tendría equilibrios»). La **densidad física es `S_i/Δx`**
 > (`Suelo.tex`: `S` tiene doble rol, capacidad + desamenidad vía `ρ_h`); el
 > gradiente de Clark de una versión intermedia del código era una **divergencia**,
-> ya revertida (ver `CAMBIOS_USO_SUELO.md` §Unificación en la oferta S). El **loop
+> ya revertida (ver `archivo/CAMBIOS_USO_SUELO.md` §Unificación en la oferta S). El **loop
 > acoplado (§6) tampoco endogeneiza la densidad**: acopla suelo↔transporte vía la
 > accesibilidad `T`, con `S` fija (`N_{hi} = S_i·Q_{hi}`).
 
@@ -194,7 +194,7 @@ u* = F(u*),   F(u)_h = (1/β)·ln( Σ_i S_i · e^{β(s_hi − u_h)} / Σ_g e^{β
 > **población agent-based** del transporte, donde cada agente necesita un estrato
 > y un modo concretos. Nunca graficar una sola muestra: introduce una "peineta"
 > entre celdas contiguas con pocos hogares que no es parte del equilibrio (ver
-> `CAMBIOS_USO_SUELO.md`). El loop acoplado usa asignación **esperada/determinista**
+> `archivo/CAMBIOS_USO_SUELO.md`). El loop acoplado usa asignación **esperada/determinista**
 > por la misma razón: el remuestreo dejaría un piso de residual que impide converger.
 
 **Un único solver** usa ese operador: **`logit`** (`s_hi = y_h + f_h(i)/λ_h`),
@@ -236,6 +236,7 @@ ruido). Persiste un piso de residual por el remuestreo estocástico de població
 
 ## Referencias
 - Martínez, F. *Microeconomic Modeling in Urban Science*, cap. 3–5 (uso de suelo).
-- Overleaf original en `reference/overleaf/` (no versionado).
+- Overleaf original en `reference/overleaf_original/` y versión modificada en
+  `reference/overleaf_modificado/` (ninguna versionada en git).
 - Divergencias código↔Overleaf y mejoras V2: [`DISCREPANCIES.md`](DISCREPANCIES.md);
   agenda de cambios al paper: [`OVERLEAF_CHANGES.md`](OVERLEAF_CHANGES.md).

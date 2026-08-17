@@ -10,6 +10,11 @@ es otra, y en tres puntos el original tenía errores que esta versión corrige.
 
 Agosto 2026 · rama `ciudad-equilibrio-mejoras` · original en `fe66d0b`.
 
+> **Cifras re-medidas el 2026-08-16** con `scripts/comparar_original.py`. El
+> bid-rent (§6.4) reproduce al decimal; la tabla de reparto modal (§4.1) se
+> movió ~1 pp respecto de la primera redacción, por la recalibración posterior
+> del núcleo, y está actualizada acá. Ninguna conclusión del documento cambia.
+
 ## Cómo reproducir estas cifras
 
 El código original **no está versionado** aquí (repo aparte, GPL-3.0). Clónalo a
@@ -157,10 +162,10 @@ mezcla de estratos también difieren.
 
 | Escenario | %auto | %metro | %bici | %camin | f_op |
 | --- | --- | --- | --- | --- | --- |
-| Actual (calibración 2026) | 16,4 | 34,8 | 22,4 | 7,0 | 5,9 |
-| Betas del original | 22,1 | 36,7 | 17,1 | 4,6 | 6,2 |
-| Metro del original (K=1200, fmin=10) | 15,8 | 36,0 | 21,9 | 6,9 | 10,0 |
-| Parking $6.000 (original) | 3,0 | 43,8 | 24,6 | 9,2 | 7,4 |
+| Actual (calibración 2026) | 17,0 | 32,7 | 23,0 | 8,0 | 5,9 |
+| Betas del original | 22,7 | 34,8 | 17,6 | 5,4 | 6,3 |
+| Metro del original (K=1200, fmin=10) | 16,4 | 33,9 | 22,4 | 7,8 | 10,0 |
+| Parking $6.000 (original) | 3,2 | 41,0 | 25,5 | 10,9 | 7,4 |
 
 > **Cuidado con la última fila.** El original tenía parking a $6.000 pero también
 > un `b_costo` ~6,6× más chico en magnitud. Los dos cambios se compensan en
@@ -197,7 +202,7 @@ que salga», es remover un tope que bloqueaba el canal causal.
   `b_tiempo_caminata`, mezclando el acceso a la estación con el modo caminata.
 - **Discretización**: `n_celdas` 1001 (hardcodeado) → 201 configurable.
 - **Asignación**: el original solo sorteaba modo por agente (Monte Carlo). Hoy
-  hay tres métodos: `montecarlo`, `expected` y `wardrop`.
+  hay tres métodos: `montecarlo`, `expected` y `todo_o_nada`.
 
 ## 6. Módulo Ciudad (uso de suelo)
 
@@ -315,10 +320,12 @@ de oferta sale dentado por el muestreo en vez de suave.
 Los ingresos son los que `app.py` **pasa** al instanciar `Ciudad` (línea 458), no
 los del default de la clase (`[100, 20, 4]`), que nunca se usan.
 
-**Lo que no cambió, y conviene saberlo:** la jornada laboral
-(`prob_jornada_flexible`, `prob_part_time`, horas de entrada/salida) se calcula
-pero **no entra en la utilidad** — ni en el original ni ahora. Es peso muerto
-heredado, no una regresión de esta versión; está registrado como D-07.
+**Peso muerto que sí se fue:** la jornada laboral (`prob_jornada_flexible`,
+`prob_part_time`, horas de entrada/salida) se calculaba pero **no entraba en la
+utilidad**, ni en el original ni acá — era herencia, no regresión (D-07). En la
+cirugía de arquitectura de agosto 2026 esos campos se **eliminaron del schema**:
+el reparto modal no se movió ni 0,1 pp, que es la demostración de que estaban
+muertos.
 
 **Pendiente:** el bid-rent no está verificado numéricamente contra el original al
 mismo nivel que el transporte. Es el siguiente ejercicio si hace falta.

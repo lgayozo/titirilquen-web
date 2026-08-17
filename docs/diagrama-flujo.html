@@ -164,7 +164,7 @@ const NODOS = [
   { id: "landuse-page", capa: 0, titulo: "LandUsePage (Uso de Suelo)", archivo: "apps/web/src/pages/LandUsePage.tsx",
     seccion: "usa §2", estado: "infra", refs: [],
     ecuacion: "CityBuilder (geometría, escribe simulationStore) + LandUseBuilder (H, forma, β, α, ρ)",
-    detalle: "El único lugar donde se edita la ciudad. Motor: solveLandUse de api-v2 " +
+    detalle: "El único lugar donde se edita la ciudad. Motor: resolverUsoDeSuelo de lib/api.ts " +
              "(pyodide o REST según engine).",
     conecta: ["lu-store", "sim-store"] },
   { id: "coupled-page", capa: 0, titulo: "CoupledPage (Ciudad en equilibrio)", archivo: "apps/web/src/pages/CoupledPage.tsx",
@@ -199,28 +199,31 @@ const NODOS = [
     ecuacion: "Scenario[] {config, landUse, población, 3 resultados por lente}",
     detalle: "Máx. 4 tarjetas. setScenario invalida los 3 resultados; renombrar no.",
     conecta: ["engine-pyodide"] },
-  { id: "espejos-ts", capa: 1, titulo: "Espejos TS de la config", archivo: "apps/web/src/lib/{types,types-v2,defaults,utility,serialization}.ts",
-    seccion: "espejo de §6.1", estado: "divergencia", refs: ["contract.spec.ts"],
-    ecuacion: "SimulationConfig Pydantic ⇄ espejo TS escrito a mano",
-    detalle: "La paridad la vigila e2e/contract.spec.ts con la lista ALLOWED de divergencias " +
-             "intencionales (n_celdas 1001/201, tolerance 0/0.1, assignment montecarlo/expected, " +
-             "densidad 500/1800, H_por_estrato). serialization.ts exporta .ttrq.json y ?s= (base64url).",
+  { id: "espejos-ts", capa: 1, titulo: "Contrato TS generado desde Pydantic", archivo: "apps/web/src/lib/gen/*.gen.ts · overrides.ts · serialization.ts",
+    seccion: "generado de §6.1", estado: "infra", refs: ["tools/genera_contrato.py"],
+    ecuacion: "SimulationConfig Pydantic → genera_contrato.py → src/lib/gen/ (NO editar a mano)",
+    detalle: "Desde F4 el espejo escrito a mano ya no existe: tipos, defaults, presets y " +
+             "constantes se generan con «npm run sync:core» y el CI falla si el diff no está " +
+             "vacío. Las divergencias intencionales web↔core (n_celdas 201, seed 42, expected, " +
+             "densidad 1800, H_por_estrato) están declaradas en overrides.ts. " +
+             "serialization.ts exporta .ttrq.json y ?s= (base64url).",
     conecta: [] },
 
   // Capa 3 — motor
   { id: "engine-pyodide", capa: 2, titulo: "Motor Pyodide (default)", archivo: "apps/web/src/lib/pyodide-engine.ts → workers/pyodide.worker.ts",
     seccion: "—", estado: "infra", refs: [],
     ecuacion: "micropip instala public/pyodide/titirilquen_core-*.whl → postMessage por iteración",
-    detalle: "El worker define _snap_to_py/_trace_to_py: espejo nº1 del trace. " +
-             "Gotcha: tras tocar el core hay que recompilar el wheel (npm run build:core-wheel) " +
+    detalle: "El worker ya no serializa: importa titirilquen_core.serializacion, la forma JSON " +
+             "única. Gotcha: tras tocar el core hay que correr «npm run sync:core» " +
              "o el navegador ejecuta código viejo.",
     conecta: ["msa", "lu-eq", "coupled"] },
-  { id: "engine-api", capa: 2, titulo: "Motor FastAPI (opcional)", archivo: "apps/web/src/lib/api.ts · apps/api/src/api/serialization.py",
-    seccion: "—", estado: "discrepancia", refs: [],
-    ecuacion: "REST + SSE (/simulate/stream, /land-use/solve, /coupled/*)",
-    detalle: "serialization.py es el espejo nº2 del trace y debe mantenerse en sync con el " +
-             "worker. Hoy omite demanda_estrato (la Fig. 9b quedaría vacía en modo api) — " +
-             "pendiente de sincronizar.",
+  { id: "engine-api", capa: 2, titulo: "Motor FastAPI (opcional)", archivo: "apps/web/src/lib/api.ts · apps/api/src/api/main.py",
+    seccion: "—", estado: "infra", refs: [],
+    ecuacion: "REST + SSE (/simulate, /land-use/solve, /coupled/*)",
+    detalle: "Ambos motores entran por lib/api.ts y comparten el serializador del núcleo. El " +
+             "espejo del trace que omitía demanda_estrato (KPIs de bienestar en 0 con engine=api) " +
+             "se eliminó en F2. Queda una diferencia real: /simulate no recibe uso de suelo, " +
+             "así que por esa ruta la población es la de densidad plana (C-02).",
     conecta: ["msa", "lu-eq", "coupled"] },
 
   // Capa 4 — core equilibrio
@@ -287,8 +290,7 @@ const NODOS = [
     detalle: "Frecuencia endógena (efecto Mohring, R-6). DISCREPANCIA VIVA: la calibración del " +
              "andén sigue pendiente de validar con los autores (B1/B2, prioridad #1 de reunión); " +
              "con defaults el factor vale 1.002 (+0.5 s) — inerte. capacidad_tren tiene signo " +
-             "invertido para el usuario (divide la frecuencia; no hay hacinamiento en vehículo). " +
-             "tasa_carga NO está implementado (línea «_ = tasa_carga»).",
+             "invertido para el usuario (divide la frecuencia; no hay hacinamiento en vehículo).",
     conecta: [] },
 
   // Capa 6 — uso de suelo
@@ -366,9 +368,9 @@ const CONTRADICCIONES = [
 ];
 
 const MUERTOS = [
-  { p: "tasa_carga", u: "supply/train.py:120", s: "«_ = tasa_carga» — no implementado; =100 da resultado byte a byte idéntico", e: "muerto" },
+  { p: "tasa_carga", u: "—", s: "estaba declarado sin implementar; ELIMINADO del schema en F3 (la línea base no se movió)", e: "eliminado" },
   { p: "factor_emision_auto", u: "config.py (globales)", s: "huérfano: la emisión usa la curva COPERT 2467.4·v^−0.699", e: "muerto" },
-  { p: "prob_jornada_flexible · prob_part_time · jornada.*", u: "config.py (estratos)", s: "nunca leídos por el core (D-07)", e: "muerto" },
+  { p: "prob_jornada_flexible · prob_part_time · jornada.*", u: "—", s: "nunca leídos por el core (D-07); ELIMINADOS del schema en F3", e: "eliminado" },
   { p: "frec_min / frec_max", u: "supply/train.py", s: "f_op = 7.69 cae en el interior de [6,30]; los presets «Máx Metro» (50) y «TP Gratis» (35) tocan un knob inerte", e: "inerte con defaults" },
   { p: "anden_alpha / anden_beta", u: "supply/train.py", s: "ρ = 0.256 → factor 1.002 (+0.5 s); α=0 y α=5 dan idéntico reparto", e: "inerte con defaults" },
   { p: "capacidad_tren", u: "supply/train.py", s: "signo invertido: divide la frecuencia (f = carga/K) sin hacinamiento — tren más grande ⇒ más espera", e: "signo invertido" },
@@ -480,7 +482,8 @@ MUERTOS.forEach(m => {
 });
 
 document.getElementById("pie").textContent =
-  "Generado en la iteración 2 (agosto 2026) sobre la rama ciudad-equilibrio-mejoras. " +
+  "Generado en la iteración 2 (agosto 2026) sobre la rama ciudad-equilibrio-mejoras; "
+  "las entradas de infraestructura se actualizaron el 2026-08-16 tras la cirugía de arquitectura. " +
   "Documento estático y autocontenido: sin dependencias externas, abre offline. " +
   "Fuente de verdad de las divergencias: docs/DISCREPANCIES.md · docs/OVERLEAF_CHANGES.md · " +
   "docs/MATHEMATICAL_MODEL.md. Los diffs de la revisión jun-2026 viven en " +

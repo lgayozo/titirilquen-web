@@ -1,9 +1,14 @@
 # Dónde retomar — Titirilquen
 
-Estado al 2026-08-10. Rama: **`ciudad-equilibrio-mejoras`**, muy por delante de
+Estado al 2026-08-16. Rama: **`ciudad-equilibrio-mejoras`**, muy por delante de
 `main` y **sin divergencia**: `main` es ancestro directo, así que el merge sería
-un fast-forward. Todo pusheado. Para ver cuánto:
+un fast-forward. Para ver cuánto:
 `git rev-list --left-right --count origin/main...HEAD`.
+
+> **Hay commits locales sin pushear** (la auditoría del método de asignación y la
+> cirugía de arquitectura `F0`–`F9`). Verificar con
+> `git log --oneline origin/ciudad-equilibrio-mejoras..HEAD` antes de asumir que
+> el remoto está al día. Lo que cambió la cirugía está en §9.
 
 ```bash
 git clone https://github.com/lgayozo/titirilquen-web.git
@@ -22,22 +27,22 @@ npm run dev --workspace @titirilquen/web        # frontend (Pyodide, sin backend
 Verificación completa antes de cualquier commit:
 
 ```bash
-cd packages/titirilquen_core && uv run pytest -q          # 60 tests
-cd apps/web && npm run typecheck && npm run test:e2e:fast # 33 e2e
+cd packages/titirilquen_core && uv run --extra dev pytest   # 105 tests
+cd apps/web && npm run typecheck && npm run test:e2e:fast   # 58 e2e
+npm run format:check                                        # desde la raíz
 ```
 
-**Si tocaste `titirilquen_core`, recompila el wheel** o Pyodide sigue corriendo
-código viejo:
+**Si tocaste `titirilquen_core`, sincroniza** o Pyodide sigue corriendo código
+viejo. Un solo comando recompila el wheel, regenera el contrato TypeScript
+(`apps/web/src/lib/gen/`) y los fixtures golden:
 
 ```bash
-cd apps/web && npm run build:core-wheel
+npm run sync:core --workspace @titirilquen/web
 ```
 
-Y **si cambiaste un default del core, regenera el fixture golden**:
-
-```bash
-cd packages/titirilquen_core && uv run python tests/test_contract_frontend.py
-```
+El CI lo corre y falla si el diff no queda vacío, así que olvidarlo se nota —
+pero recién en el CI, no en el navegador, donde simplemente verás resultados
+viejos sin ningún aviso.
 
 > **Windows**: `uv` se instaló por winget y **no queda en el PATH**. Está en
 > `%LOCALAPPDATA%\Microsoft\WinGet\Packages\astral-sh.uv_*\uv.exe`. En PowerShell:
@@ -142,6 +147,14 @@ Todos desde `packages/titirilquen_core`, con `uv run python scripts/<x>.py`:
 | `diagnostico_elasticidades.py` | Elasticidades arco, techo de la bici, capacidad de tren vs frecuencia |
 | `paradojas.py` | Downs-Thomson y Braess por número de pistas |
 | `sensibilidad.py` | Barrido densidad × pistas |
+| `auditoria_wardrop.py` | **¿El método `todo_o_nada` produce equilibrio de Wardrop?** Mide el gap de costo generalizado entre grupos |
+| `informe_wardrop.py` | Genera los datos de `docs/informe-wardrop.html` |
+| `buscar_downs_thomson.py` | Busca la región de parámetros donde la paradoja se observa |
+| `comparar_original.py` | Contraste numérico con el simulador original. **Necesita `reference/`**, que no viaja en el repo |
+| `datos_informe.py` | Datos de los informes HTML de `docs/` |
+
+Todos comparten `scripts/_comun.py` (construcción de configs, corrida, resumen y
+el guard `_valida()`); no copies el andamiaje de un script a otro.
 
 ---
 
@@ -255,7 +268,7 @@ Con `f_max·K = 40.000 pax/h/sentido` y carga máxima 5.865, el sistema opera al
 ~144.000 (4× la actual) es donde K=1000 es un metro de verdad: 34 tph y el
 andén aportando +27% a la espera. Sobre eso `f_op` topa en `f_max`.
 
-**Pero subir la población MATA Downs-Thomson** (wardrop, barrido de pistas):
+**Pero subir la población MATA Downs-Thomson** (`todo_o_nada`, barrido de pistas):
 
 | pistas | 36.000 hab: metro % | espera | 144.000 hab: metro % | espera |
 |---|---|---|---|---|
@@ -305,10 +318,15 @@ a +60 / +90 / +126 minutos sin alcanzar el objetivo, porque la congestión se
 autolimita y el techo de `prob_auto` ata. Ese resultado importa: dice que
 objetivos muy altos de auto exigen también más capacidad vial y más motorización.
 
-### 4.3 Hecho: Wardrop como tercer método de asignación
+### 4.3 Hecho: el todo-o-nada como tercer método de asignación
 
-Implementado (`321bd07`): `assignment ∈ {montecarlo, expected, wardrop}`.
-`probabilidades_wardrop` en `demand/choice.py` (todo el grupo al modo de mayor
+> Se llamó `wardrop` hasta agosto de 2026. La auditoría (§5 y
+> `docs/informe-wardrop.html`) mostró que **no produce un equilibrio de Wardrop**,
+> así que el valor del schema pasó a `todo_o_nada`, que es lo que el algoritmo
+> hace de verdad. Abajo se conserva la redacción original con el nombre nuevo.
+
+Implementado (`321bd07`): `assignment ∈ {montecarlo, expected, todo_o_nada}`.
+`probabilidades_todo_o_nada` en `demand/choice.py` (todo el grupo al modo de mayor
 utilidad, empates repartidos en partes iguales), carga fraccional como
 `expected`, selector en la UI con hint sobre equilibrios múltiples. Converge en
 12–15 iteraciones; 6 tests unitarios, incluido «es el límite del logit al
@@ -321,17 +339,20 @@ excedente logsum. El costo generalizado percibido sí muestra el fenómeno (ver
 
 ### 4.4 Deuda de documentación
 
-`AUDITORIA_TRANSPORTE.md` se midió con calibraciones anteriores. **Las
-direcciones y veredictos valen; las magnitudes no.**
+Buena parte se pagó el 2026-08-16 (fase `F9`): los nueve documentos caducos se
+movieron a **`docs/archivo/`**, cada uno con una nota al inicio que dice por qué
+caducó y qué lo reemplaza. Entre ellos `archivo/AUDITORIA_TRANSPORTE.md`, cuyas
+magnitudes ya no se reproducen.
 
-`ANALISIS_SENSIBILIDAD.md` se actualizó parcialmente el 2026-08-10 (barrido de
-`sensibilidad.py`, línea base y fila `assignment`). **Siguen sin re-medir** sus
-tablas de `frec_max` y `cap_bici`.
+`COMPARACION_ORIGINAL.md` **se regeneró**: §4.1 tenía repartos anteriores al
+arreglo del metro sin tramo en tren y ahora está re-medido (la §6.4 del bid-rent
+reproducía ya al decimal). Ojo: el script **necesita `reference/`** — ese
+directorio está en `.gitignore`, así que no viaja entre máquinas y hay que
+reponerlo a mano desde el repo original.
 
-`COMPARACION_ORIGINAL.md` §4.1 tiene repartos modales anteriores al arreglo del
-metro sin tramo en tren. Se regenera con `scripts/comparar_original.py`, que
-**necesita `reference/`** — y ese directorio está en `.gitignore`, así que no
-viaja entre máquinas: hay que reponerlo a mano desde el repo original.
+**Lo que sigue debiendo:** `ANALISIS_SENSIBILIDAD.md` se actualizó parcialmente
+el 2026-08-10 (barrido de `sensibilidad.py`, línea base y fila `assignment`), y
+sus tablas de `frec_max` y `cap_bici` **siguen sin re-medir**.
 
 ---
 
@@ -405,6 +426,12 @@ equilibrios × barrido de capacidad, mecanismo verificado en cada tramo, y los
 hallazgos reverificados con `max_iter=120` y `tol=0.02`). El paper original
 (`reference/overleaf_original/main.tex`) es logit puro y no menciona la
 paradoja: era un objetivo nuestro, no una promesa de los autores.
+
+> **Nota de nombre.** En esta sección «Wardrop» es el nombre que tenía entonces
+> el método hoy llamado `todo_o_nada`. La medición está más abajo («¿es Wardrop?
+> No»): el método NO produce un equilibrio de Wardrop, y por eso se renombró. Las
+> mediciones de la paradoja valen igual — dependen de que el grupo salte entero
+> de modo, no de que el equilibrio sea el de Wardrop.
 
 ### Las condiciones, medidas una a una
 
@@ -492,8 +519,11 @@ de su umbral de indiferencia saltan ENTEROS de modo, en vez de trasvasar una
 fracción como haría el logit. El 8,6% de agentes a menos de 0,5 min de la
 indiferencia es la reserva que puede saltar. La paradoja aparece cuando ese
 salto degrada al metro (Mohring) más de lo que la pista mejora al auto. La
-etiqueta de la UI pasó a «determinístico (todo-o-nada)»; el valor `"wardrop"`
-del schema se conserva por compatibilidad de escenarios guardados.
+etiqueta de la UI pasó a «determinístico (todo-o-nada)», y en la fase `F3` de la
+cirugía el valor del schema pasó de `"wardrop"` a `"todo_o_nada"`. La
+compatibilidad con escenarios guardados se rompió **a propósito** (decisión
+tomada al planificar la cirugía): un `.ttrq.json` anterior falla con un error
+explícito en vez de migrarse en silencio.
 
 **Y la multiplicidad de equilibrios tiene explicación teórica**, no es una
 rareza empírica del todo-o-nada: la unicidad del equilibrio de usuario exige
@@ -516,10 +546,13 @@ desde el flujo promediado (§6.2, p. 159). La justificación de convergencia —
 promediar la variable primal, así que no cubre nuestro esquema.
 
 Está implementado detrás de `promediar_flujos` en `_iter_loop` /
-`iter_msa_desde_suelo`. **No es un campo del schema a propósito**: moverlo ahí
-obligaría a tocar los espejos TS, el golden y los escenarios guardados. Ninguna
-ruta de producción lo activa; el default es el comportamiento histórico y
-reproduce la línea base al segundo decimal.
+`iter_msa_desde_suelo`. **No es un campo del schema a propósito**, pero la razón
+cambió: antes era que había que tocar a mano los espejos TS y el golden; hoy el
+contrato se genera solo (`sync:core`), así que exponerlo sería barato. Se deja
+fuera porque es una **decisión numérica interna**, no una palanca pedagógica:
+ponerla en la UI invita a comparar dos esquemas de promediado que deberían
+converger al mismo equilibrio. Ninguna ruta de producción lo activa; el default
+es el comportamiento histórico y reproduce la línea base al segundo decimal.
 
 Reparto en % sobre los cuatro modos (sin teletrabajo en el denominador):
 
@@ -527,8 +560,8 @@ Reparto en % sobre los cuatro modos (sin teletrabajo en el denominador):
 |---|---|---|---|---|---|---|
 | expected · tiempos | 21,04 | 40,71 | 28,35 | 9,90 | 1,38 | 7 |
 | expected · flujos | 21,46 | 40,27 | 28,42 | 9,86 | 1,41 | 7 |
-| wardrop · tiempos | 28,91 | 41,22 | 21,78 | 8,08 | 1,89 | **16** |
-| wardrop · flujos | 29,27 | 39,57 | 21,97 | 9,19 | 1,92 | **11** |
+| todo_o_nada · tiempos | 28,91 | 41,22 | 21,78 | 8,08 | 1,89 | **16** |
+| todo_o_nada · flujos | 29,27 | 39,57 | 21,97 | 9,19 | 1,92 | **11** |
 | montecarlo · tiempos | 21,29 | 40,33 | 28,29 | 10,09 | 1,40 | 7 |
 | montecarlo · flujos | 21,33 | 40,53 | 28,39 | 9,75 | 1,40 | 11 |
 
@@ -638,10 +671,11 @@ y este es un corredor único.
 
 ## 7. Trampas conocidas del repo
 
-- **El contrato NO cubre los 42 betas.** `defaults-golden.json` solo tiene `city`,
-  `globales`, `land_use`, `sim` y `supply`. `presets.py::DEFAULT_STRATA` y
-  `defaults.ts::baseBetas` pueden desincronizarse sin que nada avise. **Hay una
-  tarea pendiente para taparlo.**
+- ~~**El contrato NO cubre los 42 betas.**~~ **Resuelto en `F4`**: los tipos, los
+  defaults, los presets y las constantes se **generan** desde Pydantic a
+  `apps/web/src/lib/gen/`. Ya no hay dos listas de betas que puedan divergir,
+  hay una. Lo que sí hay que respetar: **no editar `src/lib/gen/`** (se
+  sobreescribe) y correr `sync:core` tras tocar el núcleo.
 - **Había una TERCERA copia de los betas** en `sensibilidad.py::_BETAS_UI`, que
   quedó atrás en la recalibración y las auditorías midieron valores viejos sin
   avisar. Ya se eliminó (ahora construye desde `DEFAULT_STRATA`), pero es el tipo
@@ -654,10 +688,20 @@ y este es un corredor único.
 - **`model_copy(update=...)` de Pydantic NO valida.** Una clave inexistente se
   cuela como atributo suelto y el barrido reporta «inerte» un parámetro que no se
   está moviendo. Los scripts de auditoría llevan un guard `_valida()`.
-- **El trace tiene DOS espejos**: `apps/web/src/workers/pyodide.worker.ts`
-  (`_trace_to_py`) y `apps/api/src/api/serialization.py` (`trace_to_dict`).
+- ~~**El trace tiene DOS espejos.**~~ **Resuelto en `F2`**: la forma JSON vive
+  una sola vez, en `titirilquen_core/serializacion.py`, y la usan tanto FastAPI
+  como el worker. Era el espejo más peligroso —uno de los dos vivía dentro de un
+  string de Python embebido en TypeScript, que ninguna herramienta revisa— y
+  estaba **desincronizado**: con `engine: "api"` los KPIs de bienestar salían
+  todos en 0, sin error.
+- **El espejo que queda es `utility.ts`.** Reimplementa el cálculo de utilidad
+  para el inspector didáctico, que necesita ser síncrono. Está pineado con
+  `e2e/fixtures/utility-golden.json` (27 casos): si diverge del núcleo, el test
+  falla. Lo mismo `citySupply.ts` con su golden de oferta.
 - **`extra="forbid"`**: quitar un campo del schema rompe la importación de
-  escenarios guardados. Agregar uno nuevo con default es seguro.
+  escenarios guardados. Agregar uno nuevo con default es seguro. Desde `F3` **no
+  hay migraciones**: un `.ttrq.json` de un schema anterior falla con un error
+  explícito, a propósito.
 - **No escribir archivos con acentos desde PowerShell.** `Get-Content` +
   `Set-Content` los codifica dos veces y deja el archivo en mojibake. Usar las
   herramientas de edición o Python con `encoding='utf-8'` explícito.
@@ -688,3 +732,67 @@ De más reciente a más antigua:
 | `c2813b2` | Diagnóstico de calibración: los betas en minutos-equivalentes |
 | `2a4c9f6` | Panel de calibración: los betas del logit, visibles y editables |
 | `a4d3970` | Documento de continuidad |
+
+---
+
+## 9. La cirugía de arquitectura (agosto 2026)
+
+Diez fases, `F0`–`F9`, sobre una auditoría que encontró: 2 bugs activos, 7
+espejos Python↔TS mantenidos a mano (5 sin ninguna red), ~800 líneas de código
+muerto, 5 campos de schema que nadie leía, 9 de 19 documentos caducos, y el
+build del wheel roto en Mac.
+
+| Fase | Commit | Qué cambió |
+|---|---|---|
+| `F0` | `2ec6a7e` | **Red de seguridad primero**: test de línea base, fixtures compartidas, bug de `demanda_estrato`, build por `uv` |
+| `F1` | `68f8f0a` | Borrar el código muerto **verificado** (componentes, funciones del núcleo, rutas de la API) |
+| `F2` | `6f97f9b` | Un solo serializador, en el núcleo (`serializacion.py`) |
+| `F3` | `104e33e` | Cirugía del schema: campos muertos fuera, `wardrop` → `todo_o_nada`, `$schema` a v3 |
+| `F4` | `fa3cadc` | **El contrato TypeScript se genera desde Python** (`tools/genera_contrato.py` → `src/lib/gen/`) |
+| `F5` | `0a5740a` | El bienestar se calcula en el núcleo (`bienestar.py`); `utility.ts` pineado con golden |
+| `F6` | `2000e7c` | Saneo del núcleo y de los scripts (`resolver_oferta`, `scripts/_comun.py`) |
+| `F7` | `217c59d` | Tests de los huecos que quedaban (16 sobre el equilibrio) |
+| `F8` | `ec2228e` | Una sola puerta al motor (`lib/api.ts`) y los modos en un solo lugar (`lib/modos.ts`) |
+| `F9` | este commit | Documentación: archivar lo caduco, arreglar enlaces, `CLAUDE.md` canónico |
+
+### Los invariantes que quedaron, y cómo no romperlos
+
+1. **La línea base no se mueve.** Auto 16,95 · metro 32,79 · bici 22,84 ·
+   caminata 7,98, seed 42, tol 0,1, en `tests/test_linea_base.py`. Un refactor
+   que la mueva más de 0,1 pp no era refactor.
+2. **El contrato se genera, no se escribe.** `sync:core` tras tocar el núcleo; el
+   CI lo verifica con `git diff --exit-code`. Las divergencias intencionales
+   web↔núcleo están declaradas y comentadas en `src/lib/overrides.ts`, no
+   escondidas en una lista dentro de un test.
+3. **Una sola puerta al motor.** `lib/api.ts`. Ninguna página decide si corre
+   local o contra la API, ni llama al worker directo.
+4. **La matemática vive solo en Python.** Si la UI necesita un número nuevo, se
+   calcula en el núcleo y se expone por `serializacion.py`.
+
+### Lo que se rompió a propósito
+
+Los `.ttrq.json` y los links `?s=` guardados **antes** de agosto 2026 ya no
+cargan: fallan con un error explícito. Fue una decisión al planificar (romper sin
+migración) y es lo que permitió borrar los campos muertos y renombrar el método
+sin arrastrar cinco funciones de migración.
+
+### Lo que deliberadamente NO se hizo
+
+No se unificaron las tres máquinas de estado de los stores, ni las dos semánticas
+de aplicar-preset, ni se reorganizó `viz/` en subcarpetas, ni se purgaron las
+~85 claves i18n huérfanas una a una, ni se optimizó el triple recorrido de grupos
+del MSA. Son rediseños o micro-optimizaciones, no espejos rompibles: el criterio
+fue tocar lo que puede desincronizarse en silencio y dejar quieto lo demás.
+
+### Dos lecciones que costaron caro
+
+- **Un grep de una clave i18n literal miente.** Varias se construyen por
+  interpolación (`` t(`equilibrium.modo_${m.toLowerCase()}`) ``). Borrar una
+  familia «huérfana» dejó los botones mostrando claves crudas, y lo detectó el
+  navegador, no la suite.
+- **Ningún test corre en Pyodide.** Alinear `pydantic>=2.8` en el núcleo dejó el
+  motor por defecto sin arrancar (Pyodide 0.26.4 trae 2.7.0 precompilado y
+  `micropip` aborta) con los 105 tests en verde. Lo que corre en el navegador se
+  verifica en el navegador.
+
+---

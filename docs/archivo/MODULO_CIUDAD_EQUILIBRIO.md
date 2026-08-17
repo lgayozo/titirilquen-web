@@ -1,5 +1,11 @@
 # Módulo "Ciudad en equilibrio" (loop acoplado suelo ↔ transporte)
 
+> **⚠ ARCHIVADO — agosto 2026.** Changelog de la tanda de junio 2026 sobre el
+> módulo acoplado; sus «pendientes» se resolvieron o cambiaron de forma.
+> **Vigente:** [`docs/arquitectura.html`](../arquitectura.html) para el módulo
+> acoplado y [`docs/DISCREPANCIES.md`](../DISCREPANCIES.md) para las decisiones de
+> modelo.
+
 Resumen del módulo, los cambios de esta tanda de trabajo (jun-2026) y lo que
 queda pendiente. Para el contexto general del repo ver `CLAUDE.md` y
 `docs/ARCHITECTURE.md`; las decisiones de modelo están en `docs/DISCREPANCIES.md`.

@@ -1,5 +1,11 @@
 # Análisis del flujo de comparación de escenarios — Iteración 2 (agosto 2026)
 
+> **⚠ ARCHIVADO — agosto 2026.** Diagnóstico y propuesta de la iteración 2, ya
+> ejecutada. El hallazgo que sigue vivo es **C-02** —con `engine: "api"` la
+> población es la de densidad plana, porque `/simulate` no recibe uso de suelo— y
+> está anotado donde importa, en `apps/web/src/lib/api.ts`. **Vigente:**
+> [`docs/CONTINUAR.md`](../CONTINUAR.md).
+
 Registro de problemas `C-xx` de ComparePage y propuesta de métricas pedagógicas.
 **Diagnóstico + propuesta; la implementación es de la iteración 3.**
 

@@ -1,5 +1,10 @@
 # Análisis pedagógico del frontend — Iteración 2 (agosto 2026)
 
+> **⚠ ARCHIVADO — agosto 2026.** Diagnóstico y propuesta de la iteración 2; la
+> implementación ya ocurrió y la cirugía de arquitectura movió o renombró buena
+> parte de los archivos que cita. **Vigente:**
+> [`docs/CONTINUAR.md`](../CONTINUAR.md).
+
 Registro de fricciones `F-xx` y propuesta de rediseño. **Este documento es
 diagnóstico + propuesta: nada de lo aquí descrito se implementa en la iteración 2.**
 La implementación (iteración 3) se prioriza tras revisión de Leandro.

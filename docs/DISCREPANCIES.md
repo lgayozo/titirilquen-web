@@ -3,7 +3,8 @@
 Este documento registra las divergencias entre el código fuente (`titirilquen-repo/`) y la documentación matemática en el Overleaf (`Titirilquen_overleaf/`). La política del proyecto es **tratar el código como fuente de verdad** y corregir la documentación matemática; este archivo preserva la trazabilidad de las decisiones.
 
 > **Nota (auditoría 2026-06):** el Overleaf original (`main.tex`, `Suelo.tex`) se
-> copió a `reference/overleaf/` (no versionado) y se auditó contra el core de esta
+> copió a `reference/overleaf_original/` (no versionado; la versión con los
+> cambios de este proyecto está en `reference/overleaf_modificado/`) y se auditó contra el core de esta
 > web. Hallazgos: la **config de demanda** (betas, costos, velocidades,
 > penalizaciones) y el flujo MSA (`f=1/(it+1)`, flujo‑libre iter 0 con
 > `t_acceso=10`, `t_espera=5`) son **fieles**. Se confirmaron D‑01/D‑02/D‑03/D‑05
@@ -445,7 +446,7 @@ guardados que lo traen se migran en `serialization.ts`.
 - **Acción**: documentar en el Overleaf el rango de frecuencia y la ausencia de
   DT como hallazgo del modelo.
 - **Refinamiento posterior (cap_tren, 2026-06)**: el experimento de verificación
-  (`VERIFICACION_TRANSPORTE.md`, H1) detectó que, pese al rango ampliado, con
+  (`archivo/VERIFICACION_TRANSPORTE.md`, H1) detectó que, pese al rango ampliado, con
   `capacidad_tren=1200` la frecuencia seguía **clavada en `f_min`** en todo
   escenario normal: el umbral de activación `f_min·cap_tren = 6·1200 = 7.200`
   pax/h supera la carga pico típica (~2.000). En consecuencia `frec_max` era un
@@ -508,7 +509,7 @@ guardados que lo traen se migran en `serialization.ts`.
 
 ## D-21 — Saturación de la ciclovía: techo de caminata plano (capacidad blanda)
 
-- **Contexto**: en la verificación (`VERIFICACION_TRANSPORTE.md`) se evaluó si el
+- **Contexto**: en la verificación (`archivo/VERIFICACION_TRANSPORTE.md`) se evaluó si el
   modelo de bici refleja correctamente la **saturación** de la ciclovía.
 - **Cómo está**: `t_tramo = min( t0·(1+α·(q/cap)^β),  t_caminata_tramo )`. El
   techo (D-15) acota el tiempo al de caminar el tramo. Es una capacidad

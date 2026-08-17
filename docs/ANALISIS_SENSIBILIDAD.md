@@ -175,7 +175,7 @@ cambio del share del modo correspondiente en puntos porcentuales.
 | `share_estratos` | extremos | auto 3.8↔41.2% | ídem |
 | `max_iter` | 1→60 | converge en 8-12 | no binding |
 | `tolerance` | 0→5 | corta 20→4 iters | el corte real |
-| `assignment` | mc/expected/wardrop | 19.93 vs 20.16 vs **31.08**% auto | leve entre mc y expected; **fuerte** con wardrop |
+| `assignment` | mc/expected/todo_o_nada | 19.93 vs 20.16 vs **31.08**% auto | leve entre mc y expected; **fuerte** con todo-o-nada |
 | `seed` | — | nada con `expected` + ruta suelo (determinista) | condicional |
 
 ### Oferta auto (post S-03, evaluada a 1800 hab/km)

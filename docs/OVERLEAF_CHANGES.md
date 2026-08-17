@@ -9,7 +9,8 @@ Este documento lista los cambios a revisar en el Overleaf original
 - Cada ítem referencia su entrada en [`DISCREPANCIES.md`](DISCREPANCIES.md) y la
   ubicación aproximada en el `.tex` (sección/ecuación; los números de línea son
   orientativos y pueden moverse).
-- El Overleaf se encuentra en `reference/overleaf/` (no versionado).
+- El Overleaf se encuentra en `reference/overleaf_original/` (no versionado);
+  `reference/overleaf_modificado/` tiene la versión con los cambios aplicados.
 
 Categorías:
 - **A. Correcciones de fidelidad** — el Overleaf está equivocado o es
@@ -69,7 +70,7 @@ coincida con el código (que ya es correcto). No implican cambios de código.
 | **C6** (D‑09) | **Parámetros físicos expuestos en la UI** (velocidades, anchos, α/β BPR, pendiente, etc.) que en el original estaban hardcodeados. | Mayormente expuestos en la web. |
 | **C7** | **Método de asignación opcional**: además del Monte Carlo del Overleaf (sorteo por agente con `random.choices`), se agregó **"flujos esperados"** (asignación fraccional por probabilidades logit), determinista y sin ruido entre iteraciones. Toggle en la UI; **pendiente decidir con el profesor cuál dejar definitivo**. | Implementado (`msa.py`, `SimulationConfig.assignment`). |
 | ~~**C8**~~ (D‑08) | **Retirado.** Documentaba como funcionalidad implementada una corrección del `λ_h` heterogéneo que **nunca existió** (ver B3). El tema sigue abierto y se discute en **B3**, no acá. | — |
-| **C9** | **Densidad como consecuencia de la oferta**: la app unifica la densidad por celda en `dens(i) = S_i/Δx` (población = oferta `S`), y las figuras de población, la densidad y el feed a transporte comparten esa única envolvente. La UI fija la **escala de población** con un slider «densidad media» (`ΣH = densidad_media · largo`, `H_h = π_h·ΣH`). **Reconciliación:** el `Suelo.tex` ya define la densidad física como `S_i/Δx` (doble rol de `S`), así que el modelo **ya coincide** — solo hay que (i) confirmar que NO hay un gradiente de densidad separado (el código tuvo una divergencia intermedia, «gradiente de Clark» con `densidad_max/min`, ya **revertida**), y (ii) opcionalmente documentar la parametrización de escala «densidad media». | Implementado (`ciudad.py:densidad_por_celda = S/Δx`, `population.py`, `LandUseBuilder`); ver `CAMBIOS_USO_SUELO.md` §Unificación en la oferta S. |
+| **C9** | **Densidad como consecuencia de la oferta**: la app unifica la densidad por celda en `dens(i) = S_i/Δx` (población = oferta `S`), y las figuras de población, la densidad y el feed a transporte comparten esa única envolvente. La UI fija la **escala de población** con un slider «densidad media» (`ΣH = densidad_media · largo`, `H_h = π_h·ΣH`). **Reconciliación:** el `Suelo.tex` ya define la densidad física como `S_i/Δx` (doble rol de `S`), así que el modelo **ya coincide** — solo hay que (i) confirmar que NO hay un gradiente de densidad separado (el código tuvo una divergencia intermedia, «gradiente de Clark» con `densidad_max/min`, ya **revertida**), y (ii) opcionalmente documentar la parametrización de escala «densidad media». | Implementado (`ciudad.py:densidad_por_celda = S/Δx`, `population.py`, `LandUseBuilder`); ver `archivo/CAMBIOS_USO_SUELO.md` §Unificación en la oferta S. |
 
 ### C8 — retirado
 

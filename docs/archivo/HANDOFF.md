@@ -1,5 +1,9 @@
 # Titirilquen Web — Handoff de continuidad
 
+> **⚠ ARCHIVADO — agosto 2026.** Duplicaba `docs/CONTINUAR.md` con cuatro meses de
+> retraso y ningún documento lo enlazaba. **Vigente:**
+> [`docs/CONTINUAR.md`](../CONTINUAR.md).
+
 > Documento para retomar el trabajo desde otra sesión. Captura TODO lo hecho hasta ahora, decisiones arquitectónicas, estado actual del código y qué falta.
 
 ---

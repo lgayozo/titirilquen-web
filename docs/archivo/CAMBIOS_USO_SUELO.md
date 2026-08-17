@@ -1,5 +1,10 @@
 # Cambios — Uso de Suelo como entrada de la ciudad
 
+> **⚠ ARCHIVADO — agosto 2026.** Registro cronológico que el propio documento
+> declara superado en varias secciones («varias fórmulas quedaron superadas»).
+> **Vigente:** [`docs/AUDITORIA_USO_SUELO.md`](../AUDITORIA_USO_SUELO.md), que está
+> medido y se reproduce con `scripts/auditoria_suelo.py`.
+
 Registro de las modificaciones para que el módulo de **Uso de Suelo** pase a ser
 el punto de entrada que define las características de la ciudad (forma, estratos y
 densidad) y alimente al módulo de **Transporte** (Sandbox).

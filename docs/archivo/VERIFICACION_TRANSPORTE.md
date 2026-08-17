@@ -1,5 +1,14 @@
 # Verificación del módulo Transporte — análisis crítico
 
+> **⚠ ARCHIVADO — agosto 2026.** Midió en un régimen que ya no existe: 101 celdas
+> y ≈8.000 viajeros con `seed=1`, contra los 201 celdas y 36.000 viajeros de hoy, y
+> sobre la calibración anterior a agosto 2026 (otros valores del tiempo y otros
+> ASC). Las magnitudes de las tablas no se reproducen. Se conserva porque las
+> **relaciones causales** que verifica —los signos, no los números— siguen siendo
+> las que el modelo debe cumplir. **Vigente:**
+> [`docs/informe-wardrop.html`](../informe-wardrop.html) y el test de línea base
+> (`packages/titirilquen_core/tests/test_linea_base.py`).
+
 > Experimento de verificación del núcleo `titirilquen_core` (oferta · demanda ·
 > equilibrio MSA), el mismo motor que corre la página **Transporte** vía Pyodide.
 > Fecha: 2026-06-04. Reproducible con `scripts/` ad-hoc (ver §Metodología).
