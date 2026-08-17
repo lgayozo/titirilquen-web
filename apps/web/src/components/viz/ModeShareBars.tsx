@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { AgentRecord, Modo } from "@/lib/types";
+import { COLOR_MODO, ORDEN_MODOS } from "@/lib/modos";
 
 /** Un grupo de agentes a comparar (un estrato, o estrato×tenencia, etc.). */
 export interface AgentGroup {
@@ -16,15 +17,6 @@ interface ModeShareBarsProps {
   groups: readonly AgentGroup[];
   className?: string;
 }
-
-const MODE_ORDER: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
-const MODE_COLORS: Record<Modo, string> = {
-  Auto: "var(--auto)",
-  Metro: "var(--metro)",
-  Bici: "var(--bici)",
-  Caminata: "var(--walk)",
-  Teletrabajo: "var(--tele)",
-};
 
 const LABEL_W = 84;
 const COUNT_W = 46;
@@ -66,7 +58,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
         for (const a of g.agents) {
           if (a.modo_elegido) counts[a.modo_elegido] += 1;
         }
-        const total = MODE_ORDER.reduce((s, m) => s + counts[m], 0);
+        const total = ORDEN_MODOS.reduce((s, m) => s + counts[m], 0);
         return { ...g, counts, total };
       }),
     [groups],
@@ -126,7 +118,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
 
               {/* Segmentos apilados */}
               {r.total > 0 &&
-                MODE_ORDER.map((m) => {
+                ORDEN_MODOS.map((m) => {
                   const share = r.counts[m] / r.total;
                   if (share <= 0) return null;
                   const w = share * barW;
@@ -139,10 +131,10 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                         y={y}
                         width={w}
                         height={ROW_H}
-                        fill={MODE_COLORS[m]}
+                        fill={COLOR_MODO[m]}
                         opacity={0.92}
                       >
-                        <title>{`${t(`modes.${m.toLowerCase()}`)}: ${r.counts[m].toLocaleString()} (${(share * 100).toFixed(1)}%)`}</title>
+                        <title>{`${t(`modes.${m.toLowerCase()}`)}: ${r.counts[m].toLocaleString("es-CL")} (${(share * 100).toFixed(1)}%)`}</title>
                       </rect>
                       {w > 26 && (
                         <text
@@ -170,18 +162,18 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                 className="label"
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
-                {r.total.toLocaleString()}
+                {r.total.toLocaleString("es-CL")}
               </text>
             </g>
           );
         })}
 
         {/* Leyenda */}
-        {MODE_ORDER.map((m, i) => {
-          const x = 2 + i * Math.min(104, (W - 6) / MODE_ORDER.length);
+        {ORDEN_MODOS.map((m, i) => {
+          const x = 2 + i * Math.min(104, (W - 6) / ORDEN_MODOS.length);
           return (
             <g key={`lg-${m}`} transform={`translate(${x}, ${legendY})`}>
-              <rect x={0} y={-7} width={10} height={8} fill={MODE_COLORS[m]} />
+              <rect x={0} y={-7} width={10} height={8} fill={COLOR_MODO[m]} />
               <text x={14} y={0} className="label">
                 {t(`modes.${m.toLowerCase()}`)}
               </text>

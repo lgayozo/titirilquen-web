@@ -36,7 +36,8 @@ import {
   type TransportMetricsData,
 } from "@/components/viz/TransportMetricsTable";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
-import { pyodideEngine } from "@/lib/pyodide-engine";
+import { simularTransporte } from "@/lib/api";
+import { calcularFlujo } from "@/lib/derivados";
 import type { Modo } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
 import { isResultStale, useSimulationStore } from "@/store/simulationStore";
@@ -214,80 +215,10 @@ export function SandboxPage() {
   // se compara contra la capacidad. Antes se graficaba la demanda originada por
   // celda junto a una capacidad de corredor —magnitudes que difieren ~60×—, así
   // que un corredor saturado se leía como vacío.
-  const flowData = useMemo(() => {
-    if (!lastIter || !result) return null;
-    const N = cfgRes.city.n_celdas;
-    const largo = cfgRes.city.largo_ciudad_km;
-
-    // `carga_metro` viene por TRAMO interestación (n_estaciones − 1 valores),
-    // no por celda. Se remuestrea a la grilla para dibujarlo en el mismo eje de
-    // km; queda como escalón, que es exactamente lo que es.
-    const cargaMetroPorCelda = (): number[] | null => {
-      const carga = result.carga_metro;
-      const est = result.estaciones_km;
-      if (!carga?.length || !est?.length) return null;
-      return Array.from({ length: N }, (_, i) => {
-        const km = ((i + 0.5) / N) * largo;
-        let j = 0;
-        while (j < carga.length - 1 && km >= (est[j + 1] ?? largo)) j++;
-        return carga[j] ?? 0;
-      });
-    };
-
-    const fOp = lastIter.frecuencia_metro;
-    const capTren = cfgRes.supply.train.capacidad_tren;
-    const capBici = cfgRes.supply.bike.capacidad_pista;
-
-    const porModo: Record<
-      FlowMode,
-      {
-        flujo: number[];
-        // Solo se anima donde el flujo ES el cumsum por celda de la demanda
-        // (auto y bici, verificado con error 0). La carga del metro se acumula
-        // por estación, no por celda, así que animarla mentiría.
-        demanda: number[] | null;
-        capacidad: number | null;
-        capacidadLabel?: string;
-        color: string;
-        esCorredor: boolean;
-      }
-    > = {
-      auto: {
-        flujo: result.flujos_auto_veh_h ?? lastIter.demanda_auto,
-        demanda: result.flujos_auto_veh_h ? lastIter.demanda_auto : null,
-        capacidad: result.capacidad_auto > 0 ? result.capacidad_auto : null,
-        capacidadLabel: "veh/h",
-        color: "var(--auto)",
-        esCorredor: !!result.flujos_auto_veh_h,
-      },
-      bici: {
-        flujo: result.flujos_bici_veh_h ?? lastIter.demanda_bici,
-        demanda: result.flujos_bici_veh_h ? lastIter.demanda_bici : null,
-        capacidad: capBici > 0 ? capBici : null,
-        capacidadLabel: "bici/h",
-        color: "var(--bici)",
-        esCorredor: !!result.flujos_bici_veh_h,
-      },
-      metro: {
-        flujo: cargaMetroPorCelda() ?? lastIter.demanda_metro,
-        demanda: null,
-        capacidad: fOp > 0 && capTren > 0 ? fOp * capTren : null,
-        capacidadLabel: "pax/h",
-        color: "var(--metro)",
-        esCorredor: !!result.carga_metro?.length,
-      },
-      // La caminata no usa un corredor con capacidad compartida: la única serie
-      // con sentido es dónde nacen los viajes, y va rotulada como tal.
-      caminata: {
-        flujo: lastIter.demanda_caminata,
-        demanda: null,
-        capacidad: null,
-        color: "var(--walk)",
-        esCorredor: false,
-      },
-    };
-    return porModo[flowMode];
-  }, [lastIter, result, cfgRes, flowMode]);
+  const flowData = useMemo(
+    () => calcularFlujo(result, lastIter, cfgRes, flowMode),
+    [result, lastIter, cfgRes, flowMode],
+  );
 
   // El título tiene que decir QUÉ magnitud se grafica: para caminata sigue
   // siendo demanda originada, y llamarla "flujo del corredor" sería mentir.
@@ -402,7 +333,7 @@ export function SandboxPage() {
       // resultado de Uso de Suelo con geometría concordante), la población usa
       // esa localización de equilibrio; si no, la original (mezcla uniforme).
       // Mismo criterio que la imagen inicial (landUseCity.isPost).
-      const final = await pyodideEngine.simulateStream(
+      const final = await simularTransporte(
         config,
         (snap) => pushIteration(snap),
         ctrl.signal,
@@ -446,11 +377,15 @@ export function SandboxPage() {
     const tot = total > 0 ? total : 1;
     const pct = (m: Modo) => `${(((modal[m] ?? 0) / tot) * 100).toFixed(1)}%`;
     const count = (m: Modo) =>
-      t("kpi.trips_subline", { n: Math.round(modal[m] ?? 0).toLocaleString() });
+      t("kpi.trips_subline", {
+        n: Math.round(modal[m] ?? 0).toLocaleString("es-CL"),
+      });
     return [
       {
         label: t("kpi.trips"),
-        value: Math.round(total - (modal.Teletrabajo ?? 0)).toLocaleString(),
+        value: Math.round(total - (modal.Teletrabajo ?? 0)).toLocaleString(
+          "es-CL",
+        ),
       },
       {
         label: t("kpi.auto_pct"),
@@ -481,7 +416,7 @@ export function SandboxPage() {
         value: pct("Teletrabajo"),
         color: "var(--tele)",
         delta: t("kpi.tele_subline", {
-          n: Math.round(modal.Teletrabajo ?? 0).toLocaleString(),
+          n: Math.round(modal.Teletrabajo ?? 0).toLocaleString("es-CL"),
         }),
       },
       {
@@ -507,13 +442,13 @@ export function SandboxPage() {
         label: t("kpi.co2"),
         value:
           result.emisiones_total_kg >= 100
-            ? Math.round(result.emisiones_total_kg).toLocaleString()
+            ? Math.round(result.emisiones_total_kg).toLocaleString("es-CL")
             : result.emisiones_total_kg.toFixed(1),
         unit: "kg/h",
         color: "var(--ink)",
         delta: t("kpi.co2_split", {
-          auto: Math.round(result.emisiones_auto_kg).toLocaleString(),
-          metro: Math.round(result.emisiones_metro_kg).toLocaleString(),
+          auto: Math.round(result.emisiones_auto_kg).toLocaleString("es-CL"),
+          metro: Math.round(result.emisiones_metro_kg).toLocaleString("es-CL"),
         }),
       },
     ];
@@ -556,6 +491,8 @@ export function SandboxPage() {
   // Estadísticas agregadas: el tiempo de viaje no está por agente, así que se
   // reconstruye combinando el snapshot final (tiempos por celda y modo) con la
   // celda/modo de cada agente. Teletrabajo se excluye (no viaja).
+  // Presentación: calcula promedios pero además rotula cada barra con i18n.
+  // Ver la nota de `lib/derivados`.
   const avgStats = useMemo(() => {
     const agents = result?.agentes;
     if (!agents || !lastIter) return null;
@@ -700,6 +637,8 @@ export function SandboxPage() {
 
   // Consolidado de métricas para la tabla final (sistema · reparto · estrato ·
   // modo). Reutiliza lo ya agregado (modal_split, avgStats, operatingRatios).
+  // Se queda acá y no en `lib/derivados`: arma las etiquetas de la tabla con
+  // i18n, así que depende del idioma activo. Es presentación, no cálculo.
   const transportMetrics = useMemo<TransportMetricsData | null>(() => {
     if (!result || !lastIter || !avgStats) return null;
     const modal = lastIter.modal_split;
@@ -1079,7 +1018,8 @@ export function SandboxPage() {
               ))}
               <span style={{ marginLeft: "auto", textTransform: "none" }}>
                 {t("hero.stats_line", {
-                  total: totalAgents > 0 ? totalAgents.toLocaleString() : "—",
+                  total:
+                    totalAgents > 0 ? totalAgents.toLocaleString("es-CL") : "—",
                   length: cfgRes.city.largo_ciudad_km,
                   stations: cfgRes.supply.train.num_estaciones,
                   lanes: cfgRes.supply.car.num_pistas,

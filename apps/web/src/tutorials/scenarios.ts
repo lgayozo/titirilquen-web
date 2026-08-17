@@ -6,7 +6,7 @@
  * MDX aplica el estado a los stores y navega al módulo correspondiente.
  */
 
-import { defaultLandUseConfig } from "@/lib/api-v2";
+import { defaultLandUseConfig } from "@/lib/defaults";
 import { defaultSimulationConfig } from "@/lib/defaults";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";

@@ -15,27 +15,12 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { IterationSnapshot } from "@/lib/types";
+import { COLOR_MODO, ORDEN_MODOS } from "@/lib/modos";
 
 interface ConvergenceTraceProps {
   iterations: readonly IterationSnapshot[];
   className?: string;
 }
-
-const MODE_VAR: Record<string, string> = {
-  Auto: "var(--auto)",
-  Metro: "var(--metro)",
-  Bici: "var(--bici)",
-  Caminata: "var(--walk)",
-  Teletrabajo: "var(--tele)",
-};
-
-const MODE_ORDER = [
-  "Auto",
-  "Metro",
-  "Bici",
-  "Caminata",
-  "Teletrabajo",
-] as const;
 
 const AXIS_STYLE = {
   fontFamily: "var(--font-fig)",
@@ -106,7 +91,7 @@ export function ConvergenceTrace({
   const fmtResidualTick = (v: number) => String(Number(v.toFixed(3)));
   const fmtTrips = (v: number | string) =>
     typeof v === "number"
-      ? `${v.toLocaleString()} ${t("convergence.trips_unit")}`
+      ? `${v.toLocaleString("es-CL")} ${t("convergence.trips_unit")}`
       : String(v);
   // Ticks compactos (10000 → "10k") para que no invadan la etiqueta del eje Y.
   const fmtTickCompact = (v: number) =>
@@ -231,14 +216,14 @@ export function ConvergenceTrace({
                   letterSpacing: "0.04em",
                 }}
               />
-              {MODE_ORDER.map((m) => (
+              {ORDEN_MODOS.map((m) => (
                 <Area
                   key={m}
                   type="monotone"
                   dataKey={m}
                   stackId="1"
-                  stroke={MODE_VAR[m]}
-                  fill={MODE_VAR[m]}
+                  stroke={COLOR_MODO[m]}
+                  fill={COLOR_MODO[m]}
                   fillOpacity={0.7}
                   isAnimationActive={false}
                 />

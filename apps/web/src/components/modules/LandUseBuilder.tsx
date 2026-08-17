@@ -71,7 +71,7 @@ export function LandUseBuilder({
       {/* ---- POBLACIÓN: proporciones (mezcla) + densidad por estrato ---- */}
       <CollapsibleSection
         title={t("land_use.section_poblacion")}
-        meta={`≈ ${Math.round(totalH).toLocaleString()}`}
+        meta={`≈ ${Math.round(totalH).toLocaleString("es-CL")}`}
       >
         <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
           {t("land_use.proporciones")}
@@ -115,7 +115,7 @@ export function LandUseBuilder({
 
         <p className="mt-2 text-[10px] text-muted">
           {t("land_use.poblacion_total_hint", {
-            total: Math.round(totalH).toLocaleString(),
+            total: Math.round(totalH).toLocaleString("es-CL"),
             dens: Math.round(densMedia),
           })}
         </p>

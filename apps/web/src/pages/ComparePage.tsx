@@ -14,13 +14,17 @@ import { ScenarioDiffTable } from "@/components/compare/ScenarioDiffTable";
 import { ScenarioFlowComparison } from "@/components/compare/ScenarioFlowComparison";
 import { Panel } from "@/components/ui/Panel";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
-import { runSimulation } from "@/lib/api";
-import { defaultLandUseConfig, solveCoupled, solveLandUse } from "@/lib/api-v2";
+
+import {
+  resolverAcoplado,
+  resolverUsoDeSuelo,
+  simularTransporte,
+} from "@/lib/api";
+import { defaultLandUseConfig } from "@/lib/defaults";
 import { expectedComposition } from "@/lib/citySupply";
 import { downloadCsv } from "@/lib/csv";
 import { computeKPIs, type ScenarioKPIs } from "@/lib/kpis";
 import { theilSegregation } from "@/lib/metrics";
-import { pyodideEngine } from "@/lib/pyodide-engine";
 import type { Modo } from "@/lib/types";
 import type { LandUseConfig, LandUseSolveResponse } from "@/lib/types-v2";
 import {
@@ -28,7 +32,6 @@ import {
   type CompareKind,
   type Scenario,
 } from "@/store/compareStore";
-import { useSimulationStore } from "@/store/simulationStore";
 
 const KINDS: CompareKind[] = ["transport", "land_use", "coupled"];
 
@@ -115,7 +118,6 @@ export function ComparePage() {
     setStatus(id, "running");
     try {
       if (k === "transport") {
-        const engine = useSimulationStore.getState().engine;
         // C-02: misma población y localización que el Sandbox. El motor recibe
         // el suelo de la tarjeta (puebla desde H_por_estrato) y la localización:
         // el snapshot capturado por «Usar Transporte actual» o, si vino de
@@ -127,22 +129,19 @@ export function ComparePage() {
           (sc.luResult.result?.Q?.length ?? 0) > 0
             ? "equilibrio"
             : "original");
-        const result =
-          engine === "api"
-            ? // El endpoint /simulate no recibe suelo: en modo api persiste la
-              // población de densidad plana (documentado en C-02).
-              await runSimulation(sc.config)
-            : await pyodideEngine.simulateStream(
-                sc.config,
-                () => {},
-                undefined,
-                sc.landUse ?? defaultLandUseConfig,
-                loc,
-              );
+        // Sin callback de iteración: acá interesa el resultado final, no la
+        // convergencia en vivo. Qué motor corre lo decide `lib/api`.
+        const result = await simularTransporte(
+          sc.config,
+          () => {},
+          undefined,
+          sc.landUse ?? defaultLandUseConfig,
+          loc,
+        );
         setTransportResult(id, result);
       } else if (k === "land_use") {
         const L = sc.config.city.n_celdas;
-        const r = await solveLandUse({
+        const r = await resolverUsoDeSuelo({
           L,
           CBD: Math.floor(L / 2),
           largo_km: sc.config.city.largo_ciudad_km,
@@ -154,7 +153,7 @@ export function ComparePage() {
           sc.landUse ?? defaultLandUseConfig,
           sc.poblacion,
         );
-        const res = await solveCoupled({
+        const res = await resolverAcoplado({
           sim: sc.config,
           land_use: lu,
           outer_max_iter: COMPARE_OUTER_MAX,

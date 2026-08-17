@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { defaultLandUseConfig } from "@/lib/api-v2";
+import { defaultLandUseConfig } from "@/lib/defaults";
 import type { SimulationConfig } from "@/lib/types";
 import type {
   LandUseConfig,

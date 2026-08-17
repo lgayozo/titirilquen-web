@@ -211,7 +211,9 @@ export function ScenarioCard({
           <span className="col-span-2">
             {tS("compare.scenario_card.parking_fare", {
               parking:
-                scenario.config.demand.globales.costo_parking.toLocaleString(),
+                scenario.config.demand.globales.costo_parking.toLocaleString(
+                  "es-CL",
+                ),
               fare: scenario.config.demand.globales.costo_tarifa_metro,
             })}
           </span>

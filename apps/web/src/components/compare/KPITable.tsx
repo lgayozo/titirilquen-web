@@ -104,9 +104,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.viajes_fisicos}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => v.toLocaleString()}
+              formatter={(v) => v.toLocaleString("es-CL")}
               deltaFormatter={(d) =>
-                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`
+                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
               }
             />
           </Section>
@@ -156,9 +156,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.co2_total}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => Math.round(v).toLocaleString()}
+              formatter={(v) => Math.round(v).toLocaleString("es-CL")}
               deltaFormatter={(d) =>
-                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`
+                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
               }
               invertedSign
             />
@@ -167,9 +167,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.co2_auto}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => Math.round(v).toLocaleString()}
+              formatter={(v) => Math.round(v).toLocaleString("es-CL")}
               deltaFormatter={(d) =>
-                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`
+                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
               }
               invertedSign
             />
@@ -178,9 +178,9 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.co2_metro}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => Math.round(v).toLocaleString()}
+              formatter={(v) => Math.round(v).toLocaleString("es-CL")}
               deltaFormatter={(d) =>
-                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString()}`
+                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
               }
               invertedSign
             />

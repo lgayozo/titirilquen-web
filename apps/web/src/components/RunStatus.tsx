@@ -175,7 +175,7 @@ export function RunStatus({
         <div className="run-status-split">
           <div className="run-status-split-head">
             <span>{t("sandbox.modal_split_last")}</span>
-            <span className="num">{totalAgents.toLocaleString()}</span>
+            <span className="num">{totalAgents.toLocaleString("es-CL")}</span>
           </div>
           <div
             className="run-status-split-bar"
@@ -214,7 +214,7 @@ export function RunStatus({
                     aria-hidden
                   />
                   <span className="name">{t(`modes.${m.toLowerCase()}`)}</span>
-                  <span className="num">{n.toLocaleString()}</span>
+                  <span className="num">{n.toLocaleString("es-CL")}</span>
                 </span>
               );
             })}

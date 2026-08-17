@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
-import { defaultLandUseConfig } from "@/lib/api-v2";
+import { defaultLandUseConfig } from "@/lib/defaults";
 import { densidadDerivadaHabKm } from "@/lib/citySupply";
 import { cn } from "@/lib/cn";
 import { defaultSimulationConfig } from "@/lib/defaults";

@@ -432,7 +432,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
                 length: largoKm,
                 cells: nCeldas,
                 dx: dxMetros,
-                pop: poblacion.toLocaleString(),
+                pop: poblacion.toLocaleString("es-CL"),
               })
             : t("preview.caption_no_pop", {
                 length: largoKm,

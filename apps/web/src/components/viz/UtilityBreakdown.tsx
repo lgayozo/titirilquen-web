@@ -7,19 +7,12 @@ import {
   probabilidadesLogit,
   type UtilityBreakdown as UB,
 } from "@/lib/utility";
+import { COLOR_MODO } from "@/lib/modos";
 
 interface UtilityBreakdownProps {
   utilities: Record<Modo, UB>;
   className?: string;
 }
-
-const MODE_COLORS: Record<Modo, string> = {
-  Auto: "var(--auto)",
-  Metro: "var(--metro)",
-  Bici: "var(--bici)",
-  Caminata: "var(--walk)",
-  Teletrabajo: "var(--tele)",
-};
 
 /** Modos que muestra la tabla, en orden. A nivel de módulo: es constante, y
  *  dentro del componente se recreaba en cada render (y quedaba fuera de las
@@ -114,7 +107,7 @@ export function UtilityBreakdown({
               >
                 <span
                   className="font-fig text-[11px] font-semibold uppercase tracking-[0.04em]"
-                  style={{ color: MODE_COLORS[modo] }}
+                  style={{ color: COLOR_MODO[modo] }}
                 >
                   {t(`modes.${modo.toLowerCase()}`)}
                 </span>
@@ -142,7 +135,7 @@ export function UtilityBreakdown({
             >
               <span
                 className="font-fig text-[11px] font-semibold uppercase tracking-[0.04em]"
-                style={{ color: MODE_COLORS[modo] }}
+                style={{ color: COLOR_MODO[modo] }}
               >
                 {t(`modes.${modo.toLowerCase()}`)}
               </span>

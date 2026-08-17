@@ -6,7 +6,7 @@
  * lugar de permutar parámetros uno por uno.
  */
 
-import { defaultLandUseConfig } from "@/lib/api-v2";
+import { defaultLandUseConfig } from "@/lib/defaults";
 import { defaultSimulationConfig } from "@/lib/defaults";
 import { CITY_PRESETS, POLICY_PRESETS } from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";

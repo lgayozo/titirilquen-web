@@ -7,7 +7,7 @@ import { CityShapePreview } from "@/components/viz/CityShapePreview";
 import { EquilibriumMetricsTable } from "@/components/viz/EquilibriumMetricsTable";
 import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
-import { solveCoupledStream } from "@/lib/api-v2";
+import { resolverAcopladoStream } from "@/lib/api";
 import { expectedComposition, supplyVector } from "@/lib/citySupply";
 import {
   JOINT_PRESETS,
@@ -105,7 +105,7 @@ export function CoupledPage() {
     abortRef.current = ctrl;
     startCoupled({ sim, landUse: landUseEff, outerMaxIter });
     try {
-      await solveCoupledStream(
+      await resolverAcopladoStream(
         {
           sim,
           land_use: landUseEff,

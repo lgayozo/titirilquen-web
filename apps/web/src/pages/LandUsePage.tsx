@@ -13,7 +13,7 @@ import { CityShapePreview } from "@/components/viz/CityShapePreview";
 import { DensityProfile } from "@/components/viz/DensityProfile";
 import { StrataHeatmap } from "@/components/viz/StrataHeatmap";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
-import { solveLandUse } from "@/lib/api-v2";
+import { resolverUsoDeSuelo } from "@/lib/api";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { theilSegregation } from "@/lib/metrics";
 import { isLandUseStale, useLandUseStore } from "@/store/landUseStore";
@@ -42,7 +42,7 @@ export function LandUsePage() {
   const handleRun = async () => {
     startRun({ L, CBD, largoKm: simConfig.city.largo_ciudad_km, config });
     try {
-      const r = await solveLandUse({
+      const r = await resolverUsoDeSuelo({
         L,
         CBD,
         largo_km: simConfig.city.largo_ciudad_km,

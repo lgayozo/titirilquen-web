@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { Modo } from "@/lib/types";
+import { COLOR_MODO } from "@/lib/modos";
 
 interface ModeShareByLocationProps {
   /** Flujo por celda de origen de cada modo de viaje. Con asignación
@@ -29,14 +30,6 @@ interface ModeShareByLocationProps {
 }
 
 const MODE_ORDER: Modo[] = ["Teletrabajo", "Caminata", "Bici", "Metro", "Auto"];
-const MODE_COLORS: Record<Modo, string> = {
-  Auto: "var(--auto)",
-  Metro: "var(--metro)",
-  Bici: "var(--bici)",
-  Caminata: "var(--walk)",
-  Teletrabajo: "var(--tele)",
-};
-
 const MARGIN = { top: 8, right: 10, bottom: 16, left: 34 };
 const LEGEND_H = 20;
 
@@ -167,7 +160,7 @@ export function ModeShareByLocation({
                     y={yCursor}
                     width={Math.max(barW * 0.84, 0.4)}
                     height={h}
-                    fill={MODE_COLORS[m]}
+                    fill={COLOR_MODO[m]}
                     opacity={0.92}
                   >
                     <title>{`${t(`modes.${m.toLowerCase()}`)} — bin ${i}: ${Math.round(count)} (${((count / total) * 100).toFixed(1)}%)`}</title>
@@ -236,13 +229,7 @@ export function ModeShareByLocation({
             const ly = yFloor + MARGIN.bottom + 12;
             return (
               <g key={`lg-${m}`} transform={`translate(${x}, ${ly})`}>
-                <rect
-                  x={0}
-                  y={-7}
-                  width={10}
-                  height={8}
-                  fill={MODE_COLORS[m]}
-                />
+                <rect x={0} y={-7} width={10} height={8} fill={COLOR_MODO[m]} />
                 <text x={14} y={0} className="label">
                   {t(`modes.${m.toLowerCase()}`)}
                 </text>

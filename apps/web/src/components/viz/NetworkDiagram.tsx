@@ -407,13 +407,13 @@ export function NetworkDiagram({
           </div>
           <Row
             label={t("network.flow")}
-            value={`${Math.round(hover.flow).toLocaleString()} ${t(`network.unit.${hover.mode}`)}`}
+            value={`${Math.round(hover.flow).toLocaleString("es-CL")} ${t(`network.unit.${hover.mode}`)}`}
           />
           {hover.mode !== "caminata" && (
             <>
               <Row
                 label={t("network.capacity")}
-                value={`${Math.round(hover.cap).toLocaleString()} ${t(`network.unit.${hover.mode}`)}`}
+                value={`${Math.round(hover.cap).toLocaleString("es-CL")} ${t(`network.unit.${hover.mode}`)}`}
               />
               <Row
                 label={t("network.vc")}
