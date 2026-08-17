@@ -12,8 +12,9 @@ de ese estrato a la vez — limitación conocida (D-08), no un efecto de
 comportamiento. No hay corrección implementada.
 
 Existió un campo `solver` con un segundo método presentado como la corrección:
-no lo era (dejaba λ inerte). Se eliminó junto con el campo; los escenarios
-guardados que lo traen se migran en el frontend (`serialization.ts`)."""
+no lo era (dejaba λ inerte). Se eliminó junto con el campo. Un escenario
+guardado que todavía lo traiga **no se migra**: falla al importar con un error
+explícito, decisión tomada al romper la compatibilidad en agosto de 2026."""
 
 
 class LandUseStratumConfig(BaseModel):
@@ -52,6 +53,12 @@ class LandUseConfig(BaseModel):
     # (dens = S/Δx, ver `LandUseCity.densidad_por_celda`), no un parámetro. La
     # escala de población la fija `H_por_estrato`. Se retiraron al romper la
     # compatibilidad de escenarios en agosto de 2026.
+    #
+    # OJO: ese comentario quedó pegado al campo de abajo en el espejo TypeScript
+    # y terminó rotulando `estratos` como «VESTIGIAL (no usado)», que es lo
+    # contrario de la verdad: `alpha` y `rho` son las dos palancas del bid-rent.
+    # El `description` de acá existe para que el JSDoc generado lo diga.
+    #
     # Calibración en unidades físicas (D-26), equivalente a la antigua
     # (α=1.3/1.2/1.1 por celda, ρ=1 por hogar/celda) en la grilla de referencia
     # del frontend (201 celdas / 20 km): α' ≈ α·(celdas/km)/2 ≈ α·5, ρ' = ρ·Δx ≈ 0.1.
@@ -61,7 +68,12 @@ class LandUseConfig(BaseModel):
             LandUseStratumConfig(y=3_500_000.0, alpha=6.5, rho=0.1),
             LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=0.1),
             LandUseStratumConfig(y=500_000.0, alpha=5.5, rho=0.1),
-        )
+        ),
+        description=(
+            "Parámetros de puja de los tres estratos (alto, medio, bajo). Son la "
+            "palanca principal del módulo: la diferencia de `alpha` entre estratos "
+            "es lo que produce el gradiente de localización de Alonso."
+        ),
     )
     beta: float = Field(default=1.0, gt=0, description="Parámetro de sensibilidad logit")
     tol: float = Field(default=1e-8, gt=0)

@@ -38,8 +38,12 @@ encima, a la vista.
 
 from __future__ import annotations
 
+import ast
+import inspect
 import json
 import subprocess
+import textwrap
+from itertools import pairwise
 from pathlib import Path
 from types import UnionType
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
@@ -47,6 +51,11 @@ from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
 from titirilquen_core import constantes
 from titirilquen_core.bienestar import AgregadosDict
 from titirilquen_core.config import SimulationConfig
+from titirilquen_core.coupled_metrics import (
+    EquilibriumMetrics,
+    StratumMetrics,
+    SystemMetrics,
+)
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.presets import (
     CITY_PRESETS,
@@ -75,6 +84,12 @@ CABECERA = """// GENERADO por packages/titirilquen_core/tools/genera_contrato.py
 #: Campos cuyo tipo de clave no sobrevive a JSON Schema (`dict[int, X]` pierde
 #: que la clave es un `StratumId`). Se restituye a mano, por nombre de campo.
 CLAVES_TIPADAS: dict[str, str] = {"estratos": "StratumId"}
+
+#: Campos cuya anotación Python es deliberadamente laxa porque describen un
+#: `asdict(...)`, y del lado TypeScript sí se puede nombrar la forma exacta.
+#: Sin esto, `metrics` saldría `Record<string, unknown>` y la página del módulo
+#: acoplado perdería el tipado de los ~20 indicadores que muestra.
+TIPOS_RESTITUIDOS: dict[str, str] = {"metrics": "EquilibriumMetrics"}
 
 
 # ---------------------------------------------------------------------------
@@ -212,29 +227,77 @@ def _tipo_desde_anotacion(anot: Any) -> str:
     return "unknown"
 
 
+def _docs_de_campos(cls: type) -> dict[str, str]:
+    """Docstrings de atributo (PEP 258) de una clase, leídos del código fuente.
+
+    Python no los guarda en ningún lado en tiempo de ejecución: un literal de
+    string suelto debajo de `campo: T` se evalúa y se descarta. Pero están en el
+    AST, y son exactamente donde este repositorio escribe las advertencias que
+    hacen falta para no malinterpretar un número («esto es eficiencia/DAP, NO
+    bienestar interpersonal»).
+
+    Sin esta función, generar los tipos costaría perder esos comentarios, que
+    era la única ventaja que le quedaba al espejo escrito a mano.
+    """
+    try:
+        arbol = ast.parse(textwrap.dedent(inspect.getsource(cls)))
+    except (OSError, TypeError, SyntaxError):
+        return {}
+
+    cuerpo = arbol.body[0].body  # type: ignore[attr-defined]
+    docs: dict[str, str] = {}
+    for anterior, nodo in pairwise(cuerpo):
+        if not (isinstance(anterior, ast.AnnAssign) and isinstance(anterior.target, ast.Name)):
+            continue
+        if (
+            isinstance(nodo, ast.Expr)
+            and isinstance(nodo.value, ast.Constant)
+            and isinstance(nodo.value.value, str)
+        ):
+            docs[anterior.target.id] = nodo.value.value
+    return docs
+
+
+def _interfaz_desde_anotaciones(cls: type) -> str:
+    """Emite una interfaz desde las anotaciones de un `TypedDict` o dataclass.
+
+    Sirve para los dos porque lo único que se necesita es `get_type_hints` más
+    los docs de campo. Las dataclasses de `coupled_metrics` entran acá tal cual:
+    su serialización es `asdict`, así que la dataclass **es** la forma JSON.
+    """
+    docs = _docs_de_campos(cls)
+    doc_clase = (cls.__doc__ or "").strip().split("\n")[0]
+    partes = [_jsdoc(doc_clase, ""), f"export interface {cls.__name__} {{\n"]
+    for campo, anot in get_type_hints(cls).items():
+        partes.append(_jsdoc(docs.get(campo)))
+        tipo = TIPOS_RESTITUIDOS.get(campo) or _tipo_desde_anotacion(anot)
+        partes.append(f"  {campo}: {tipo};\n")
+    partes.append("}\n")
+    return "".join(partes)
+
+
 def emite_trace() -> str:
     partes = [
         CABECERA,
         "\n// La forma de los resultados que el núcleo entrega al frontend, sea por\n"
         "// HTTP (FastAPI) o por postMessage (worker de Pyodide). Fuente: los\n"
-        "// TypedDict de titirilquen_core/serializacion.py.\n",
+        "// TypedDict de titirilquen_core/serializacion.py y las dataclasses de\n"
+        "// coupled_metrics.py, que se serializan con asdict().\n",
     ]
-    for td in (
+    for cls in (
         AgenteDict,
         AgregadosDict,
         SnapshotDict,
         TraceDict,
         LandUseResultDict,
         LandUseSolveDict,
+        StratumMetrics,
+        SystemMetrics,
+        EquilibriumMetrics,
         OuterIterationDict,
         CoupledResultDict,
     ):
-        doc = (td.__doc__ or "").strip().split("\n")[0]
-        partes.append("\n" + _jsdoc(doc, ""))
-        partes.append(f"export interface {td.__name__} {{\n")
-        for campo, anot in get_type_hints(td).items():
-            partes.append(f"  {campo}: {_tipo_desde_anotacion(anot)};\n")
-        partes.append("}\n")
+        partes.append("\n" + _interfaz_desde_anotaciones(cls))
     return "".join(partes)
 
 

@@ -1,134 +1,63 @@
 /**
- * Tipos V2 — uso de suelo + loop acoplado suelo↔transporte.
- * Espejo de los esquemas Pydantic en `titirilquen_core.land_use` y
- * `titirilquen_core.coupled`.
+ * Tipos de uso de suelo y del loop acoplado suelo ↔ transporte.
+ *
+ * Este archivo **era** un espejo escrito a mano de los esquemas Pydantic, y fue
+ * el último que quedó en pie. La cirugía de arquitectura de agosto de 2026
+ * generó el contrato desde Python, pero se detuvo en `SimulationConfig`: acá
+ * seguían declarados a mano `LandUseConfig` y `LandUseStratumConfig` —los
+ * mismos que el generador ya emitía en `gen/tipos.gen.ts`, o sea DOS veces— y
+ * las siete formas de resultado del acoplado.
+ *
+ * Nada fallaba: los campos coincidían. Pero siete archivos importaban la copia
+ * de acá y ninguna herramienta obligaba a que siguiera coincidiendo, que es la
+ * definición del problema que toda la cirugía vino a resolver.
+ *
+ * Hoy no queda ninguna declaración propia: sólo alias. Los nombres se conservan
+ * porque son los que usa la aplicación —el núcleo llama `…Dict` a lo que el
+ * frontend llama `LandUseResult`— y renombrarlos habría sido un diff enorme sin
+ * ganancia.
  */
 
-import type { SimulationConfig, SimulationResult } from "@/lib/types";
+export type { LandUseConfig, LandUseStratumConfig } from "@/lib/gen/tipos.gen";
 
-export interface LandUseStratumConfig {
-  y: number;
-  lambda: number;
-  alpha: number;
-  rho: number;
-}
+export type {
+  CoupledResultDict as CoupledResult,
+  EquilibriumMetrics,
+  LandUseResultDict as LandUseResult,
+  LandUseSolveDict as LandUseSolveResponse,
+  OuterIterationDict as OuterIteration,
+  StratumMetrics,
+  SystemMetrics,
+} from "@/lib/gen/trace.gen";
 
-export type FormaOferta =
-  | "normal"
-  | "uniforme"
-  | "exponencial"
-  | "meseta"
-  | "bimodal"
-  | "valle";
+import type { LandUseConfig, SimulationConfig } from "@/lib/types";
+import type { StratumMetrics } from "@/lib/gen/trace.gen";
 
-export interface LandUseConfig {
-  H_por_estrato: [number, number, number];
-  /** VESTIGIAL (no usado): la densidad por celda ahora es S/Δx, consecuencia de
-   *  la oferta. Se conservan por compat de serialización; la escala de población
-   *  la fija H_por_estrato. */
-  estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
-  beta: number;
-  tol: number;
-  max_iter: number;
-  /** Forma del perfil de oferta de vivienda a lo largo del corredor. */
-  forma: FormaOferta;
-  /** Ancho/dispersión de la oferta (σ como fracción de la semi‑ciudad).
-   *  Menor ⇒ ciudad compacta; mayor ⇒ dispersa. Default 0.5. */
-  oferta_sigma_frac: number;
-  /** 2º parámetro de la forma (fracción de la semi‑ciudad): separación de los
-   *  picos (bimodal). Ignorado en las demás formas. */
-  forma_param: number;
-}
+/**
+ * Las formas de la oferta de vivienda. Se deriva del campo en vez de
+ * re-escribir la lista: si el núcleo agrega una forma nueva, ésta la hereda.
+ */
+export type FormaOferta = LandUseConfig["forma"];
 
-export interface LandUseResult {
-  u: number[];
-  p: number[];
-  Q: number[][];
-  converged: boolean;
-  iterations: number;
-}
+/**
+ * Categorías del reparto modal. También derivada — las claves las fija
+ * `constantes.CategoriaModal` en Python.
+ */
+export type RepartoModal = StratumMetrics["reparto_modal"];
 
-export interface LandUseSolveResponse {
-  L: number;
-  CBD: number;
-  S: number[];
-  parcelas: number[][];
-  /** Perfil de densidad por celda (hab/km) = S_i/Δx, consecuencia de la oferta
-   *  (sigue la forma); 0 en celdas sin oferta (S≤0). */
-  densidad_celda: number[];
-  result: LandUseResult;
-}
-
-/** Categorías del reparto modal reportadas por estrato y sistema (suman 1). */
-export interface RepartoModal {
-  Auto: number;
-  Metro: number;
-  Bici: number;
-  Caminata: number;
-  Teletrabajo: number;
-  Varado: number;
-}
-
-/** Métricas de un estrato ("tipo de usuario") en el equilibrio. */
-export interface StratumMetrics {
-  estrato: number;
-  n_hogares: number;
-  dist_media_cbd_km: number;
-  tiempo_medio_min: number;
-  reparto_modal: RepartoModal;
-  costo_medio_clp: number;
-  /** Δ excedente del consumidor vs flujo libre ((logsum − logsum_ff) / −b_costo),
-   *  en $. Costo de bienestar de la congestión; ≤ 0. Eficiencia/DAP, NO
-   *  bienestar interpersonal (b_costo varía por estrato). */
-  delta_excedente_clp: number;
-  /** Costo de transporte / ingreso del estrato. Lente de equidad. */
-  carga_costo_ingreso: number;
-}
-
-/** Métricas del equilibrio agregado (todo el sistema). */
-export interface SystemMetrics {
-  convergio_exterior: boolean;
-  iteraciones_exteriores: number;
-  residual_final_min: number | null;
-  convergio_msa: boolean;
-  tiempo_total_pax_min: number;
-  tiempo_medio_min: number;
-  reparto_modal: RepartoModal;
-  frecuencia_metro: number;
-  emisiones_total_kg: number;
-  emisiones_auto_kg: number;
-  emisiones_metro_kg: number;
-  segregacion_theil: number;
-  /** Σ_h hogares_h · ΔCS_h ($): costo de bienestar agregado de la congestión. */
-  delta_bienestar_total_clp: number;
-  ratio_tiempo_bajo_alto: number | null;
-  ratio_carga_bajo_alto: number | null;
-}
-
-export interface EquilibriumMetrics {
-  por_estrato: StratumMetrics[];
-  sistema: SystemMetrics;
-}
-
-export interface OuterIteration {
-  outer_iter: number;
-  land_use: LandUseResult;
-  transport: SimulationResult;
-  T_matrix: number[][];
-  T_residual: number | null;
-  metrics: EquilibriumMetrics;
-}
-
-export interface CoupledResult {
-  converged: boolean;
-  iterations: OuterIteration[];
-  final_parcelas: number[][];
-  S: number[] | null;
-}
-
+/**
+ * Entrada del loop acoplado.
+ *
+ * Es la única forma de este archivo que no viene del generador, porque no es
+ * una salida del núcleo sino la petición que se le arma: vive como modelo
+ * Pydantic en `apps/api/src/api/main.py` y como argumento del worker. No es un
+ * espejo: sus dos campos con estructura son tipos generados, así que un cambio
+ * en el esquema llega solo. Los otros dos son números.
+ */
 export interface CoupledRequest {
   sim: SimulationConfig;
   land_use: LandUseConfig;
   outer_max_iter: number;
+  /** Tolerancia del loop exterior, en minutos. */
   outer_tol: number;
 }

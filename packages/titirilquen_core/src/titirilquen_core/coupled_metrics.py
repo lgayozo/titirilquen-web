@@ -41,6 +41,7 @@ from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
+from titirilquen_core.constantes import CATEGORIAS_MODALES, CategoriaModal
 from titirilquen_core.demand.utility import (
     UTIL_IMPOSIBLE,
     TiemposObservados,
@@ -60,7 +61,7 @@ el costo por viaje a carga mensual costo/ingreso (D-27)."""
 
 _MODOS_VIAJE: tuple[str, ...] = ("Auto", "Metro", "Bici", "Caminata")
 # Categorías reportadas en el reparto modal (suman 1 sobre todos los agentes).
-_CATEGORIAS_MODALES: tuple[str, ...] = (*_MODOS_VIAJE, "Teletrabajo", "Varado")
+_CATEGORIAS_MODALES: tuple[str, ...] = CATEGORIAS_MODALES
 
 
 @dataclass(frozen=True)
@@ -79,7 +80,7 @@ class StratumMetrics:
     tiempo_medio_min: float
     """Tiempo de viaje medio de los agentes que viajan (min)."""
 
-    reparto_modal: dict[str, float]
+    reparto_modal: dict[CategoriaModal, float]
     """Share por categoría (Auto/Metro/Bici/Caminata/Teletrabajo/Varado); suma 1."""
 
     costo_medio_clp: float
@@ -117,7 +118,7 @@ class SystemMetrics:
     tiempo_medio_min: float
     """Tiempo de viaje medio del sistema (min)."""
 
-    reparto_modal: dict[str, float]
+    reparto_modal: dict[CategoriaModal, float]
     """Reparto modal global (mismas categorías que por estrato; suma 1)."""
 
     frecuencia_metro: float
@@ -149,11 +150,21 @@ class EquilibriumMetrics:
     sistema: SystemMetrics
 
 
-def equilibrium_metrics_to_dict(m: EquilibriumMetrics) -> dict[str, Any]:
+#: El mismo reporte ya convertido a dicts por `asdict`. Es un alias y no un
+#: `TypedDict` a propósito: repetir los 20 campos acá sería reintroducir en
+#: Python el espejo que se acaba de cerrar en TypeScript. El contrato TS se
+#: genera desde las dataclasses de arriba, que son la única declaración.
+EquilibriumMetricsJSON = dict[str, Any]
+
+
+def equilibrium_metrics_to_dict(m: EquilibriumMetrics) -> EquilibriumMetricsJSON:
     """Serializa a un dict JSON-nativo (todos los campos son float/int/bool/str/dict).
 
-    Fuente única de la forma para la API y el worker Pyodide."""
-    return asdict(m)
+    Es `asdict` sin más: la forma JSON **es** la de la dataclass. Por eso
+    `tools/genera_contrato.py` emite las interfaces TypeScript desde estas
+    dataclasses y no desde una copia — no hay dónde divergir.
+    """
+    return cast("EquilibriumMetricsJSON", asdict(m))
 
 
 # ---------------------------------------------------------------------------

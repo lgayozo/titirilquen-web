@@ -32,7 +32,7 @@ import numpy as np
 from titirilquen_core.bienestar import AgregadosDict, calcular_agregados
 from titirilquen_core.config import ModoElegido, SimulationConfig
 from titirilquen_core.coupled import CoupledResult, OuterIteration
-from titirilquen_core.coupled_metrics import equilibrium_metrics_to_dict
+from titirilquen_core.coupled_metrics import EquilibriumMetricsJSON, equilibrium_metrics_to_dict
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.equilibrium import LandUseResult
@@ -50,10 +50,12 @@ class AgenteDict(TypedDict):
     estrato: int
     teletrabaja: bool
     tiene_auto: bool
-    #: `None` para un agente varado: ninguno de sus modos resultó factible.
+
     modo_elegido: ModoElegido | None
-    #: Nunca falta — arranca en 0.0 y el teletrabajador se queda en 0.0.
+    """`None` para un agente varado: ninguno de sus modos resultó factible."""
+
     utilidad_elegida: float
+    """Nunca falta — arranca en 0.0 y el teletrabajador se queda en 0.0."""
 
 
 class SnapshotDict(TypedDict):
@@ -77,8 +79,9 @@ class SnapshotDict(TypedDict):
     t_tren_viaje: list[float]
     frecuencia_metro: float
     frecuencia_teorica_metro: float
-    #: `None` en la primera iteración, donde el residuo es infinito.
+
     residuo: float | None
+    """`None` en la primera iteración, donde el residuo es infinito."""
 
 
 class TraceDict(TypedDict):
@@ -97,14 +100,17 @@ class TraceDict(TypedDict):
     emisiones_auto_kg: float
     emisiones_metro_kg: float
     emisiones_perfil_kg: list[float] | None
-    #: Demanda esperada por [estrato, modo, celda] — el cubo que alimenta el
-    #: reparto modal espacial por estrato y los agregados de bienestar.
+
     demanda_estrato: list[list[list[float]]] | None
+    """Demanda esperada por [estrato, modo, celda] — el cubo que alimenta el
+    reparto modal espacial por estrato y los agregados de bienestar."""
+
     iteraciones: list[SnapshotDict]
     agentes: list[AgenteDict]
-    #: Indicadores de bienestar de la ciudad completa. `None` cuando se
-    #: serializa sin la configuración (no se pueden calcular sin ella).
+
     agregados: AgregadosDict | None
+    """Indicadores de bienestar de la ciudad completa. `None` cuando se
+    serializa sin la configuración (no se pueden calcular sin ella)."""
 
 
 class LandUseResultDict(TypedDict):
@@ -123,8 +129,14 @@ class LandUseSolveDict(TypedDict):
     L: int
     CBD: int
     S: list[int]
-    parcelas: Any
+
+    parcelas: list[list[int]]
+    """Por celda, cuántos hogares de cada estrato quedaron asignados."""
+
     densidad_celda: list[float]
+    """Densidad por celda (hab/km) = S_i/Δx: es CONSECUENCIA de la oferta, no un
+    parámetro. 0 donde no hay oferta."""
+
     result: LandUseResultDict
 
 
@@ -136,7 +148,11 @@ class OuterIterationDict(TypedDict):
     transport: TraceDict
     T_matrix: list[list[float]]
     T_residual: float | None
-    metrics: dict[str, Any]
+
+    metrics: EquilibriumMetricsJSON
+    """Los indicadores del equilibrio. El alias es `dict[str, Any]`, así que del
+    lado TypeScript el tipo se restituye desde las dataclasses de
+    `coupled_metrics` — ver `TIPOS_RESTITUIDOS` en el generador."""
 
 
 class CoupledResultDict(TypedDict):
@@ -144,7 +160,7 @@ class CoupledResultDict(TypedDict):
 
     converged: bool
     iterations: list[OuterIterationDict]
-    final_parcelas: Any
+    final_parcelas: list[list[int]]
     S: list[int] | None
 
 

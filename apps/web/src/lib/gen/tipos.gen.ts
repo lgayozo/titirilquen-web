@@ -174,6 +174,11 @@ export interface LandUseStratumConfig {
 export interface LandUseConfig {
   /** Número de hogares por estrato (alto, medio, bajo) */
   H_por_estrato: [number, number, number];
+  /**
+   *  Parámetros de puja de los tres estratos (alto, medio, bajo). Son la
+   *  palanca principal del módulo: la diferencia de `alpha` entre estratos es
+   *  lo que produce el gradiente de localización de Alonso.
+   */
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   /** Parámetro de sensibilidad logit */
   beta: number;
