@@ -55,8 +55,9 @@ Tres medidas separadas a propósito, porque responden preguntas distintas:
    lecturas son válidas y responden preguntas distintas; lo que no puede haber
    es dos implementaciones de la matemática.
 
-   La página acoplada todavía calcula su propio logsum en `coupled_metrics.py` y
-   NO aplica este emparejamiento: quedó fuera del alcance a propósito.
+   Desde el 2026-08-17 la página acoplada usa la MISMA implementación
+   (`medidas_de_utilidad`) y el mismo emparejamiento (`medida_emparejada`), así
+   que las dos páginas no pueden contestar distinto la misma pregunta.
 """
 
 from __future__ import annotations
@@ -142,7 +143,22 @@ def _dinero_del_modo(modo: str, cfg: SimulationConfig, dist_km: float) -> float:
     return 0.0  # bici y caminata no cuestan dinero en el modelo
 
 
-def _medidas(
+#: Cuál medida de bienestar corresponde a cada método de asignación.
+MedidaBienestar = Literal["logsum", "utilidad_maxima"]
+
+
+def medida_emparejada(assignment: str) -> MedidaBienestar:
+    """La medida que corresponde al supuesto de comportamiento del método.
+
+    El logit describe un agente con término aleatorio Gumbel, cuyo `E[max]` es el
+    logsum; `todo_o_nada` uno determinístico, cuyo `E[max]` es el máximo a secas.
+    Vive acá —y no en cada consumidor— para que el Sandbox y la página acoplada
+    no puedan responder distinto a la misma pregunta.
+    """
+    return "utilidad_maxima" if assignment == "todo_o_nada" else "logsum"
+
+
+def medidas_de_utilidad(
     estrato: StratumId,
     celda: int,
     tiene_auto: bool,
@@ -150,7 +166,14 @@ def _medidas(
     cfg: SimulationConfig,
     tiempos: TiemposObservados,
 ) -> tuple[float, float] | None:
-    """`(ln Σ_m e^{V_m}, max_m V_m)` sobre los modos FACTIBLES.
+    """`(ln Σ_m e^{V_m}, max_m V_m)` sobre los modos FACTIBLES. `None` si no hay.
+
+    Es la ÚNICA implementación de estas dos fórmulas en el núcleo: la usan tanto
+    los agregados del Sandbox (`calcular_agregados`) como las métricas de la
+    página acoplada (`coupled_metrics`). Hasta agosto de 2026 el logsum estaba
+    escrito dos veces, y las dos copias ya habían empezado a separarse — una
+    filtraba por `isfinite` y la otra por `> UTIL_IMPOSIBLE`. Daban lo mismo, que
+    es exactamente como empieza un espejo roto.
 
     Las dos medidas salen del mismo set de utilidades a propósito: calcularlas
     por separado significaría llamar dos veces a `calcular_utilidades`, que es lo
@@ -246,8 +269,8 @@ def calcular_agregados(
             # quienes no tienen auto.
             p_auto = cfg.demand.estratos[h].prob_auto
             partes = [
-                (_medidas(h, i, True, ciudad, cfg, tiempos), p_auto),
-                (_medidas(h, i, False, ciudad, cfg, tiempos), 1 - p_auto),
+                (medidas_de_utilidad(h, i, True, ciudad, cfg, tiempos), p_auto),
+                (medidas_de_utilidad(h, i, False, ciudad, cfg, tiempos), 1 - p_auto),
             ]
             vivas = [(v, w) for v, w in partes if v is not None]
             peso = sum(w for _, w in vivas)
@@ -287,12 +310,7 @@ def calcular_agregados(
         excedente_total += excedente[str(h)] * n
         excedente_max_total += excedente_max[str(h)] * n
 
-    # El logit describe un agente con término aleatorio Gumbel y `todo_o_nada`
-    # uno determinístico: cada supuesto tiene su propio E[max]. Elegir acá —y no
-    # en la UI— mantiene la regla del lado de la matemática.
-    medida: Literal["logsum", "utilidad_maxima"] = (
-        "utilidad_maxima" if cfg.assignment == "todo_o_nada" else "logsum"
-    )
+    medida = medida_emparejada(cfg.assignment)
     excedente_emparejado = excedente_max_total if medida == "utilidad_maxima" else excedente_total
 
     return {

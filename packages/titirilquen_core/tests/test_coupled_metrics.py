@@ -107,3 +107,47 @@ def test_bienestar_total_es_suma_ponderada(corrida) -> None:
     m, _sim, _lu = corrida
     esperado = sum(sm.delta_excedente_clp * sm.n_hogares for sm in m.por_estrato)
     assert abs(m.sistema.delta_bienestar_total_clp - esperado) < 1e-3
+
+
+# ---------------------------------------------------------------------------
+# La medida del excedente sigue al método (emparejamiento con el Sandbox)
+# ---------------------------------------------------------------------------
+#
+# Esta página calculaba su propio logsum y no aplicaba el emparejamiento, así
+# que bajo `todo_o_nada` medía el bienestar con una regla distinta de la del
+# Sandbox para el mismo escenario. Nada lo detectaba: los dos números eran
+# plausibles.
+
+
+@pytest.mark.parametrize(
+    ("metodo", "esperada"),
+    [
+        ("montecarlo", "logsum"),
+        ("expected", "logsum"),
+        ("todo_o_nada", "utilidad_maxima"),
+    ],
+)
+def test_la_medida_sigue_al_metodo(
+    demanda_sintetica: DemandConfig, metodo: str, esperada: str
+) -> None:
+    sim = _sim_small(demanda_sintetica)
+    sim.assignment = metodo
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
+    assert res.iterations[-1].metrics.sistema.medida_bienestar == esperada
+
+
+def test_el_nucleo_decide_la_medida_una_sola_vez(demanda_sintetica: DemandConfig) -> None:
+    """La página acoplada y el Sandbox deben coincidir para la misma config.
+
+    Es el punto del refactor: una sola implementación (`medidas_de_utilidad`) y
+    un solo criterio (`medida_emparejada`). Si alguien reintroduce un logsum
+    local en `coupled_metrics`, este test no lo ve — pero sí ve que el criterio
+    se bifurque, que es como empezaría.
+    """
+    from titirilquen_core.bienestar import medida_emparejada
+
+    sim = _sim_small(demanda_sintetica)
+    sim.assignment = "todo_o_nada"
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
+    acoplada = res.iterations[-1].metrics.sistema.medida_bienestar
+    assert acoplada == medida_emparejada(sim.assignment)

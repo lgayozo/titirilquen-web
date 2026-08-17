@@ -366,9 +366,22 @@ el logsum bajo `todo_o_nada` no desplazaba el número: contaminaba el Δ, que es
 único interpretable.
 
 Cubierto por `tests/test_bienestar.py` (la desigualdad, su cota, el
-emparejamiento y la composición del bienestar social). **La página acoplada quedó
-afuera a propósito**: `coupled_metrics.py` tiene su propio logsum para el Δ
-contra la red vacía y sigue sin emparejar. Es el pendiente que deja este cambio.
+emparejamiento y la composición del bienestar social).
+
+**La página acoplada se emparejó el mismo día**, en un segundo paso. Tenía su
+propio `_logsum` para el Δ contra la red vacía, así que bajo `todo_o_nada` medía
+el bienestar con una regla distinta de la del Sandbox **para el mismo
+escenario**, y nada lo detectaba: los dos números eran plausibles. Las dos copias
+ya habían empezado a separarse —una filtraba por `isfinite`, la otra por
+`> UTIL_IMPOSIBLE`—, que es exactamente como empieza un espejo roto.
+
+Ahora hay **una sola implementación** (`bienestar.medidas_de_utilidad`) y **un
+solo criterio** (`bienestar.medida_emparejada`); `coupled_metrics` los importa y
+expone `sistema.medida_bienestar`, que la tabla usa para rotular. El
+emparejamiento se aplica a los **dos** términos del Δ —red real y red vacía—
+porque restar medidas distintas no daría un delta de nada. Cubierto por cuatro
+tests en `test_coupled_metrics.py` y verificado en el navegador: con `expected`
+el rótulo dice «(logsum)» y con `todo_o_nada`, «(utilidad máx.)».
 
 ### 4.4 Deuda de documentación
 
@@ -888,7 +901,18 @@ Un detector que nunca se probó contra el fallo es fe, no verificación. Se corr
 
 ### Lo que queda de este frente
 
-El job cubre el arranque y una corrida real, que es el 90% del valor. Lo que
-**no** cubre: versiones de Pyodide distintas de la pineada (`0.26.4`), y que el
-CDN cambie de comportamiento. Subir esa versión sigue siendo una operación
-manual y verificable sólo en el navegador.
+El job cubre el arranque y una corrida real, que es el 90% del valor. **Y cubre
+también el cambio de versión de Pyodide**, contra lo que decía la primera
+redacción de esta sección: el worker arma la URL del CDN desde
+`PYODIDE_VERSION`, así que un PR que suba esa constante corre el `@slow` contra
+la versión nueva y falla si el motor no arranca. Justamente el escenario del
+incidente de `pydantic`.
+
+Lo que sigue sin cubrir es el aviso **anticipado**: nadie prueba si una versión
+más nueva de Pyodide funcionaría antes de que alguien decida subirla. Eso pide un
+job aparte, programado, corriendo contra la última — útil sólo si se piensa
+actualizar seguido, y con la contra de que su rojo no correspondería a ningún
+cambio del repo. Sin decidir.
+
+La otra dependencia real es el CDN: si jsdelivr cae, el job se pone rojo sin
+culpa del código. Los `retries: 2` cubren el parpadeo, no una caída larga.

@@ -90,7 +90,12 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
     },
     {
       key: "cs",
-      label: t("eqt.cs"),
+      // Qué mide el Δ depende del método de asignación, y lo decide el núcleo
+      // (`sistema.medida_bienestar`): logsum bajo logit, utilidad máxima media
+      // bajo determinístico. Acá sólo se elige el rótulo.
+      label: t(
+        sys.medida_bienestar === "utilidad_maxima" ? "eqt.cs_max" : "eqt.cs",
+      ),
       get: (s) => s.delta_excedente_clp,
       fmt: fmtMoney,
     },

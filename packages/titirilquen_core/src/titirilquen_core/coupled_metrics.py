@@ -15,12 +15,16 @@ Reglas de procedencia de los datos (importante para interpretar):
 
 Caveats de unidades (ver discusión en DISCREPANCIES.md / OVERLEAF_CHANGES.md):
 
-- El **excedente del consumidor** (`delta_excedente_clp`) usa el logsum del
-  logit de modo, convertido a $ con la utilidad marginal del dinero **propia de
-  cada estrato** (`-b_costo_h`). Es comparable como *escala monetaria*
-  (eficiencia / disposición a pagar), **no** como bienestar interpersonal: cada
-  $1 vale distinto para un rico que para un pobre, y `b_costo` varía ~7.5 veces entre
-  estratos. Para la lectura distributiva usar `carga_costo_ingreso` y el tiempo.
+- El **excedente del consumidor** (`delta_excedente_clp`) usa el `E[max]` del
+  agente convertido a $ con la utilidad marginal del dinero **propia de cada
+  estrato** (`-b_costo_h`). Cuál `E[max]` depende del método de asignación y lo
+  decide `bienestar.medida_emparejada`: el logsum bajo los métodos logit, la
+  utilidad máxima bajo `todo_o_nada`, donde no hay término aleatorio que
+  promediar. El campo `sistema.medida_bienestar` dice cuál se usó. Es comparable
+  como *escala monetaria* (eficiencia / disposición a pagar), **no** como
+  bienestar interpersonal: cada $1 vale distinto para un rico que para un pobre,
+  y `b_costo` varía ~7.5 veces entre estratos. Para la lectura distributiva usar
+  `carga_costo_ingreso` y el tiempo.
 - Se reporta como **Δ contra la red vacía** (misma infraestructura con demanda
   cero: BPR(0) en auto/bici, tren a frecuencia mínima, mismas estaciones), no
   como nivel: el logsum incluye las ASC, así que el nivel absoluto tiene un
@@ -39,14 +43,15 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy as np
 from numpy.typing import NDArray
 
+from titirilquen_core.bienestar import (
+    MedidaBienestar,
+    medida_emparejada,
+    medidas_de_utilidad,
+)
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
 from titirilquen_core.constantes import CATEGORIAS_MODALES, CategoriaModal
-from titirilquen_core.demand.utility import (
-    UTIL_IMPOSIBLE,
-    TiemposObservados,
-    calcular_utilidades,
-)
+from titirilquen_core.demand.utility import TiemposObservados
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult
@@ -134,6 +139,12 @@ class SystemMetrics:
     delta_bienestar_total_clp: float
     """Σ_h n_hogares_h · ΔCS_h ($). Efecto agregado de bienestar de la demanda
     sobre la red (congestión vs Mohring), respecto a la red vacía."""
+
+    medida_bienestar: MedidaBienestar
+    """Con qué medida se calculó el ΔCS: `logsum` bajo los métodos logit,
+    `utilidad_maxima` bajo `todo_o_nada`. La decide el núcleo
+    (`bienestar.medida_emparejada`), igual que en el Sandbox, para que las dos
+    páginas no contesten distinto la misma pregunta."""
 
     ratio_tiempo_bajo_alto: float | None
     """Tiempo medio bajo / alto. >1 ⇒ los pobres viajan más (regresivo)."""
@@ -223,7 +234,7 @@ def _tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[Tiem
     ]
 
 
-def _logsum(
+def _utilidad_esperada(
     tiempos: TiemposObservados,
     *,
     estrato: int,
@@ -231,25 +242,28 @@ def _logsum(
     tiene_auto: bool,
     ciudad: CiudadLineal,
     sim: SimulationConfig,
+    medida: MedidaBienestar,
 ) -> float:
-    """Logsum (utiles) del logit de modo: ln Σ_m e^{V_m} sobre modos factibles."""
-    utils = calcular_utilidades(
-        estrato=estrato,  # type: ignore[arg-type]
-        celda_origen=celda,
-        tiene_auto=tiene_auto,
-        ciudad=ciudad,
-        config=sim.demand,
-        tiempos_observados=tiempos,
-        modos_habilitados=sim.modos_habilitados,
+    """`E[max]` del agente en útiles, en la medida que pida `medida`.
+
+    Delega en `bienestar.medidas_de_utilidad`, que es la única implementación de
+    las dos fórmulas en el núcleo. Antes este módulo tenía su propia copia del
+    logsum —con un filtro de factibilidad levemente distinto— y no aplicaba el
+    emparejamiento con el método de asignación, así que bajo `todo_o_nada` esta
+    página y el Sandbox medían el bienestar con reglas diferentes.
+    """
+    par = medidas_de_utilidad(
+        estrato,  # type: ignore[arg-type]
+        celda,
+        tiene_auto,
+        ciudad,
+        sim,
+        tiempos,
     )
-    vs = np.array(
-        [b.valor for b in utils.values() if b.feasible and b.valor > UTIL_IMPOSIBLE],
-        dtype=float,
-    )
-    if vs.size == 0:
+    if par is None:
         return float("nan")
-    m = float(vs.max())
-    return m + float(np.log(np.exp(vs - m).sum()))
+    logsum, maximo = par
+    return maximo if medida == "utilidad_maxima" else logsum
 
 
 def _theil(Q: np.ndarray) -> float:
@@ -329,7 +343,13 @@ def compute_equilibrium_metrics(
     total_ag = np.zeros(n_strata, dtype=int)
     cat_idx = {c: k for k, c in enumerate(_CATEGORIAS_MODALES)}
 
-    # Logsum depende solo de (estrato, celda, tiene_auto): memoizar.
+    # La medida del excedente la manda el método de asignación, igual que en el
+    # Sandbox: sin dispersión de gustos el E[max] del agente es el máximo, no el
+    # logsum. Se aplica a los DOS términos del Δ —red real y red vacía— porque
+    # restar medidas distintas no daría un delta de nada.
+    medida = medida_emparejada(sim.assignment)
+
+    # E[max] depende solo de (estrato, celda, tiene_auto): memoizar.
     # `cache_ff` es el baseline de red vacía del ΔCS (no depende del snapshot).
     cache_ls: dict[tuple[int, int, bool], float] = {}
     cache_ff: dict[tuple[int, int, bool], float] = {}
@@ -353,28 +373,30 @@ def compute_equilibrium_metrics(
         key = (a.estrato, i, a.tiene_auto)
         ls = cache_ls.get(key)
         if ls is None:
-            ls = _logsum(
+            ls = _utilidad_esperada(
                 tiempos_obs[i],
                 estrato=a.estrato,
                 celda=i,
                 tiene_auto=a.tiene_auto,
                 ciudad=ciudad,
                 sim=sim,
+                medida=medida,
             )
             cache_ls[key] = ls
         ls_ff = cache_ff.get(key)
         if ls_ff is None:
-            ls_ff = _logsum(
+            ls_ff = _utilidad_esperada(
                 tiempos_ff[i],
                 estrato=a.estrato,
                 celda=i,
                 tiene_auto=a.tiene_auto,
                 ciudad=ciudad,
                 sim=sim,
+                medida=medida,
             )
             cache_ff[key] = ls_ff
-        # ΔCS vs red vacía: el nivel del logsum tiene cero arbitrario (ASC);
-        # solo la diferencia es interpretable (congestión vs efecto Mohring).
+        # ΔCS vs red vacía: el nivel tiene cero arbitrario (ASC); solo la
+        # diferencia es interpretable (congestión vs efecto Mohring).
         if not np.isnan(ls) and not np.isnan(ls_ff):
             cs_sum[h] += (ls - ls_ff) / (-b_costo[h])
         viajan[h] += 1
@@ -443,6 +465,7 @@ def compute_equilibrium_metrics(
         emisiones_metro_kg=float(trace.emisiones_metro_kg),
         segregacion_theil=_theil(Q),
         delta_bienestar_total_clp=bienestar_total,
+        medida_bienestar=medida,
         ratio_tiempo_bajo_alto=ratio_t,
         ratio_carga_bajo_alto=ratio_carga,
     )

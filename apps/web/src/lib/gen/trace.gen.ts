@@ -178,6 +178,13 @@ export interface SystemMetrics {
    *  sobre la red (congestión vs Mohring), respecto a la red vacía.
    */
   delta_bienestar_total_clp: number;
+  /**
+   *  Con qué medida se calculó el ΔCS: `logsum` bajo los métodos logit,
+   *  `utilidad_maxima` bajo `todo_o_nada`. La decide el núcleo
+   *  (`bienestar.medida_emparejada`), igual que en el Sandbox, para que las dos
+   *  páginas no contesten distinto la misma pregunta.
+   */
+  medida_bienestar: "logsum" | "utilidad_maxima";
   /** Tiempo medio bajo / alto. >1 ⇒ los pobres viajan más (regresivo). */
   ratio_tiempo_bajo_alto: number | null;
   /** Carga (costo/ingreso) bajo / alto. >1 ⇒ el transporte pesa más al pobre. */
