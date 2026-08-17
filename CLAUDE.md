@@ -33,6 +33,13 @@ el resto es determinista y rápido. No hay tests unitarios/de componente del
 frontend: la red que protege la matemática es pytest, y la que protege el
 contrato Python↔TS son los goldens de `contract.spec.ts`.
 
+**El `@slow` es el único test que ejerce el runtime del navegador**, que es el
+motor por defecto de la app. El CI lo corre en su propio job (`pyodide`), aparte
+del job `web`, porque depende de un CDN externo y conviene distinguir un fallo de
+red de un fallo de la app. Cuando el motor no arranca, el test lo lee del **store**
+(`stage: "error"`), no de la consola: los errores de un Web Worker no llegan a
+`page.on("console")` —probado— y el store trae además el traceback de micropip.
+
 ## Arquitectura
 
 **Un núcleo Python, dos motores.** `titirilquen_core` es Python puro (numpy ·
@@ -106,7 +113,9 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
 - **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
   0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`
   aborte con `already installed` y el motor por defecto deja de arrancar. Ningún
-  test lo detecta: todos corren en CPython.
+  test en CPython lo detecta —pytest pasa entero—, pero desde el 2026-08-17 sí
+  lo detecta el job **`pyodide`** del CI, que corre el `@slow` en un navegador
+  real. Localmente: `cd apps/web && npx playwright test --grep @slow`.
 - **El núcleo matemático vive solo en Python.** No reimplementes la matemática en
   TS. Si necesitas un número nuevo en la UI, calcúlalo en el núcleo y expóntelo
   por `serializacion.py`.

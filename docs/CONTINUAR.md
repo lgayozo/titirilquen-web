@@ -834,9 +834,61 @@ fue tocar lo que puede desincronizarse en silencio y dejar quieto lo demás.
   interpolación (`` t(`equilibrium.modo_${m.toLowerCase()}`) ``). Borrar una
   familia «huérfana» dejó los botones mostrando claves crudas, y lo detectó el
   navegador, no la suite.
-- **Ningún test corre en Pyodide.** Alinear `pydantic>=2.8` en el núcleo dejó el
-  motor por defecto sin arrancar (Pyodide 0.26.4 trae 2.7.0 precompilado y
-  `micropip` aborta) con los 105 tests en verde. Lo que corre en el navegador se
-  verifica en el navegador.
+- ~~**Ningún test corre en Pyodide.**~~ **Cerrado el 2026-08-17.** Alinear
+  `pydantic>=2.8` en el núcleo dejó el motor por defecto sin arrancar (Pyodide
+  0.26.4 trae 2.7.0 precompilado y `micropip` aborta) con los 105 tests en verde.
+  Lo que corre en el navegador se verifica en el navegador — y ahora el CI lo
+  hace: job **`pyodide`**, que corre el `@slow` en un Chromium real. Ver §10.
 
 ---
+
+## 10. El motor por defecto, bajo CI (2026-08-17)
+
+El hueco que cerró: **el runtime que usa cada alumno era el único sin cobertura
+automática.** Los jobs de Python corren en CPython y el job `web` corre
+`test:e2e:fast`, que excluye `@slow` justamente porque necesita CDN. O sea que
+Pyodide —el motor por defecto— no lo tocaba nadie, y el incidente de `pydantic`
+demostró que su modo de falla es silencioso: suite entera en verde, app muerta.
+
+**No hizo falta un test nuevo.** `simulation.spec.ts` ya arrancaba Pyodide,
+instalaba el wheel, corría el MSA y verificaba los KPIs; lo que faltaba era un
+job que lo ejecutara. Va **separado** del job `web` porque depende de jsdelivr y
+conviene poder distinguir un fallo de red de un fallo de la app; los `retries: 2`
+de `playwright.config.ts` cubren el parpadeo.
+
+### Lo que sí hubo que arreglar: el fallo era mudo
+
+Antes, un motor que no arrancaba se manifestaba como **timeout de 170 s** contra
+un KPI que seguía en «—», con la causa real enterrada donde nadie la lee. Y un
+test que falla sin decir por qué termina desactivado.
+
+Se probó lo obvio primero —`page.on("console")` y `page.on("pageerror")`— y
+**capturaron cero errores** con el wheel bloqueado a propósito: lo que falla vive
+dentro de un Web Worker y no se propaga a la página. Vale anotarlo porque es
+contraintuitivo y es la trampa que haría inútil cualquier intento futuro de
+diagnosticar desde la consola.
+
+La vía que sí funciona es el **store**: el worker postea `{type:"error"}` al main
+thread, `failRun` lo deja en `stage: "error"` y de ahí sale el traceback de
+micropip completo. Medido: **7 s hasta el diagnóstico** contra 170 s de timeout.
+
+El éxito se sigue midiendo por el DOM (los KPIs, que es el contrato con el
+usuario) y el store se usa sólo para cortar temprano ante un fallo. Si
+`window.__stores` dejara de existir, el test no se rompe: pierde el diagnóstico
+rápido y vuelve a esperar el DOM.
+
+### Verificado, en los dos sentidos
+
+Un detector que nunca se probó contra el fallo es fe, no verificación. Se corrió:
+
+| Caso | Cómo | Resultado |
+|---|---|---|
+| Motor sano | `npx playwright test --grep @slow` | pasa en **9 s** |
+| Motor muerto | escondiendo el wheel de `public/pyodide/` | **falla en 7 s** con «El motor Pyodide no arrancó» y el traceback |
+
+### Lo que queda de este frente
+
+El job cubre el arranque y una corrida real, que es el 90% del valor. Lo que
+**no** cubre: versiones de Pyodide distintas de la pineada (`0.26.4`), y que el
+CDN cambie de comportamiento. Subir esa versión sigue siendo una operación
+manual y verificable sólo en el navegador.

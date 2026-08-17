@@ -78,3 +78,35 @@ jobs:
       - name: E2E (rápido, excluye @slow que requiere CDN/Pyodide)
         working-directory: apps/web
         run: npm run test:e2e:fast
+
+  pyodide:
+    name: Pyodide arranca de verdad
+    runs-on: ubuntu-latest
+    # El motor POR DEFECTO de la app es Pyodide, y hasta ahora no lo tocaba
+    # ningún job: los otros corren en CPython (pytest) o excluyen el test que
+    # necesita CDN (`test:e2e:fast`). O sea que el runtime que usa cada alumno
+    # era el único sin cobertura automática.
+    #
+    # No es hipotético. Alinear `pydantic>=2.8` en el núcleo dejó el motor sin
+    # arrancar —Pyodide 0.26.4 trae 2.7.0 precompilado y `micropip` aborta con
+    # "already installed"— con los 117 tests del core en verde. Lo que corre en
+    # el navegador se verifica en el navegador.
+    #
+    # Va separado del job `web` a propósito: depende de un CDN externo
+    # (jsdelivr), así que su modo de falla es distinto y conviene poder leerlo
+    # sin confundirlo con un fallo de la app. `retries: 2` de la config de
+    # Playwright cubre el parpadeo de red.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: Instalar navegador Playwright
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Smoke del motor Pyodide (@slow, descarga el runtime del CDN)
+        working-directory: apps/web
+        run: npx playwright test --grep @slow
