@@ -27,9 +27,25 @@ Tres medidas separadas a propósito, porque responden preguntas distintas:
      no un dato técnico, y en evaluación social se reemplaza por un valor de
      norma para no sesgar hacia proyectos que sirven a los de mayor ingreso.
 
-3. **Excedente del consumidor** vía logsum: `ln Σ_m e^{V_m}`, dividido por
-   λ = −β_costo para quedar en pesos. Reemplaza a la "utilidad media", que no
-   significa nada: promediar utilidades entre personas no es bienestar.
+3. **Excedente del consumidor**, en la medida que corresponda al método de
+   asignación. Ambas se dividen por λ = −β_costo para quedar en pesos, y ambas
+   reemplazan a la "utilidad media", que no significa nada: promediar utilidades
+   entre personas no es bienestar.
+
+   * *logsum*: `ln Σ_m e^{V_m}`. Es `E[max_m (V_m + ε_m)]` con ε Gumbel iid — o
+     sea, el bienestar del agente que el LOGIT describe (`montecarlo` y
+     `expected`).
+   * *utilidad máxima*: `max_m V_m`. Bajo `todo_o_nada` no hay ε: el agente toma
+     determinísticamente el mejor modo, y su `E[max]` es simplemente el máximo.
+
+   **No son intercambiables, y la diferencia no es un desplazamiento constante.**
+   Por log-sum-exp `ln Σ e^{V_m} ≥ max_m V_m`, con brecha acotada por
+   `ln(nº modos factibles)`: es el valor que el logit le atribuye a la dispersión
+   de gustos. Como el número de modos factibles cambia entre escenarios (una
+   política puede volver infactible la bici), la brecha también cambia, y usar el
+   logsum bajo `todo_o_nada` contamina justamente el Δ. De ahí `medida_bienestar`
+   — el núcleo dice cuál está emparejada con el método, y la UI no reimplementa
+   esa regla.
 
    **El nivel tiene cero arbitrario** (incluye las constantes específicas), así
    que sólo la DIFERENCIA contra otro escenario es interpretable. Este módulo
@@ -38,6 +54,9 @@ Tres medidas separadas a propósito, porque responden preguntas distintas:
    acoplada contra la red vacía (`coupled_metrics._tiempos_red_vacia`). Las dos
    lecturas son válidas y responden preguntas distintas; lo que no puede haber
    es dos implementaciones de la matemática.
+
+   La página acoplada todavía calcula su propio logsum en `coupled_metrics.py` y
+   NO aplica este emparejamiento: quedó fuera del alcance a propósito.
 """
 
 from __future__ import annotations
@@ -73,11 +92,20 @@ class AgregadosDict(TypedDict):
     #: Valor del tiempo conductual por estrato ($/hora) = β_t/β_c · 60.
     vot_por_estrato_clp_hora: dict[EstratoKey, float]
     #: Logsum medio por estrato (útiles) y su equivalente en pesos (÷ λ_h).
+    #: Emparejado con `montecarlo` y `expected`.
     logsum_por_estrato: dict[EstratoKey, float]
     excedente_por_estrato_clp: dict[EstratoKey, float]
+    #: Utilidad máxima media por estrato (útiles) y en pesos. Emparejada con
+    #: `todo_o_nada`, donde no hay término aleatorio que promediar.
+    util_maxima_por_estrato: dict[EstratoKey, float]
+    excedente_max_por_estrato_clp: dict[EstratoKey, float]
     viajeros_por_estrato: dict[EstratoKey, float]
     #: Σ_h viajeros_h · excedente_h. Cero arbitrario: sólo el Δ es interpretable.
     excedente_total_clp: float
+    excedente_max_total_clp: float
+    #: Cuál de las dos medidas corresponde al `assignment` de esta corrida. La
+    #: regla se decide acá y no en la UI: es matemática, no presentación.
+    medida_bienestar: Literal["logsum", "utilidad_maxima"]
     #: Recaudación de estacionamiento. Es TRANSFERENCIA, no consumo de recursos:
     #: alguien la recibe. La bencina NO entra — ésa sí se consume.
     recaudacion_parking_clp: float
@@ -88,7 +116,9 @@ class AgregadosDict(TypedDict):
     costo_operador_clp: float
     #: Costo del operador − recaudación por tarifa. Negativo ⇒ superávit.
     subsidio_metro_clp: float
-    #: Excedente + recaudación − costo del operador.
+    #: Excedente + recaudación − costo del operador, con el excedente **de la
+    #: medida emparejada** (`medida_bienestar`): sumarle recaudación a un logsum
+    #: bajo `todo_o_nada` mezclaría dos supuestos de comportamiento distintos.
     #:
     #: Es la función objetivo estándar en evaluación de políticas de precio, y
     #: sin ella el simulador estaba SESGADO contra ellas: subir el
@@ -112,15 +142,20 @@ def _dinero_del_modo(modo: str, cfg: SimulationConfig, dist_km: float) -> float:
     return 0.0  # bici y caminata no cuestan dinero en el modelo
 
 
-def _logsum(
+def _medidas(
     estrato: StratumId,
     celda: int,
     tiene_auto: bool,
     ciudad: CiudadLineal,
     cfg: SimulationConfig,
     tiempos: TiemposObservados,
-) -> float | None:
-    """`ln Σ_m e^{V_m}` sobre los modos FACTIBLES.
+) -> tuple[float, float] | None:
+    """`(ln Σ_m e^{V_m}, max_m V_m)` sobre los modos FACTIBLES.
+
+    Las dos medidas salen del mismo set de utilidades a propósito: calcularlas
+    por separado significaría llamar dos veces a `calcular_utilidades`, que es lo
+    caro de este módulo, y abriría la puerta a que una filtre por factibilidad y
+    la otra no.
 
     `calcular_utilidades` ya marca infactible lo que quede fuera de
     `modos_habilitados`, así que basta filtrar por `feasible`: sin ese filtro,
@@ -139,7 +174,8 @@ def _logsum(
     if not valores:
         return None
     mx = max(valores)
-    return mx + float(np.log(sum(np.exp(v - mx) for v in valores)))
+    logsum = mx + float(np.log(sum(np.exp(v - mx) for v in valores)))
+    return logsum, mx
 
 
 def calcular_agregados(
@@ -163,6 +199,7 @@ def calcular_agregados(
     tiempo_total = viajeros = cg_percibido = cg_social = 0.0
     rec_parking = rec_tarifa = 0.0
     ls_suma = dict.fromkeys(estratos, 0.0)
+    mx_suma = dict.fromkeys(estratos, 0.0)
     ls_n = dict.fromkeys(estratos, 0.0)
 
     for i in range(ciudad.n_celdas):
@@ -209,14 +246,16 @@ def calcular_agregados(
             # quienes no tienen auto.
             p_auto = cfg.demand.estratos[h].prob_auto
             partes = [
-                (_logsum(h, i, True, ciudad, cfg, tiempos), p_auto),
-                (_logsum(h, i, False, ciudad, cfg, tiempos), 1 - p_auto),
+                (_medidas(h, i, True, ciudad, cfg, tiempos), p_auto),
+                (_medidas(h, i, False, ciudad, cfg, tiempos), 1 - p_auto),
             ]
             vivas = [(v, w) for v, w in partes if v is not None]
             peso = sum(w for _, w in vivas)
             if peso > 0:
-                ls = sum(v * w for v, w in vivas) / peso
+                ls = sum(v[0] * w for v, w in vivas) / peso
+                mx = sum(v[1] * w for v, w in vivas) / peso
                 ls_suma[h] += ls * n_estrato
+                mx_suma[h] += mx * n_estrato
                 ls_n[h] += n_estrato
 
     # Tren-km del servicio. Se despeja de las emisiones del metro en vez de
@@ -233,13 +272,28 @@ def calcular_agregados(
 
     logsum: dict[str, float] = {}
     excedente: dict[str, float] = {}
+    util_max: dict[str, float] = {}
+    excedente_max: dict[str, float] = {}
     excedente_total = 0.0
+    excedente_max_total = 0.0
     for h in estratos:
-        logsum[str(h)] = ls_suma[h] / ls_n[h] if ls_n[h] > 0 else 0.0
+        n = ls_n[h]
+        logsum[str(h)] = ls_suma[h] / n if n > 0 else 0.0
+        util_max[str(h)] = mx_suma[h] / n if n > 0 else 0.0
         # λ_h = −β_costo (utilidad marginal del ingreso): pasa útiles a pesos.
         lam = -cfg.demand.estratos[h].betas.b_costo
         excedente[str(h)] = logsum[str(h)] / lam if lam > 0 else 0.0
-        excedente_total += excedente[str(h)] * ls_n[h]
+        excedente_max[str(h)] = util_max[str(h)] / lam if lam > 0 else 0.0
+        excedente_total += excedente[str(h)] * n
+        excedente_max_total += excedente_max[str(h)] * n
+
+    # El logit describe un agente con término aleatorio Gumbel y `todo_o_nada`
+    # uno determinístico: cada supuesto tiene su propio E[max]. Elegir acá —y no
+    # en la UI— mantiene la regla del lado de la matemática.
+    medida: Literal["logsum", "utilidad_maxima"] = (
+        "utilidad_maxima" if cfg.assignment == "todo_o_nada" else "logsum"
+    )
+    excedente_emparejado = excedente_max_total if medida == "utilidad_maxima" else excedente_total
 
     return {
         "tiempo_total_min": tiempo_total,
@@ -250,12 +304,16 @@ def calcular_agregados(
         "vot_por_estrato_clp_hora": {str(h): vot[h] for h in estratos},
         "logsum_por_estrato": logsum,
         "excedente_por_estrato_clp": excedente,
+        "util_maxima_por_estrato": util_max,
+        "excedente_max_por_estrato_clp": excedente_max,
         "viajeros_por_estrato": {str(h): ls_n[h] for h in estratos},
         "excedente_total_clp": excedente_total,
+        "excedente_max_total_clp": excedente_max_total,
+        "medida_bienestar": medida,
         "recaudacion_parking_clp": rec_parking,
         "recaudacion_tarifa_clp": rec_tarifa,
         "tren_km_hora": tren_km,
         "costo_operador_clp": costo_operador,
         "subsidio_metro_clp": costo_operador - rec_tarifa,
-        "bienestar_social_clp": excedente_total + rec_parking + rec_tarifa - costo_operador,
+        "bienestar_social_clp": excedente_emparejado + rec_parking + rec_tarifa - costo_operador,
     }

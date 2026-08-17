@@ -347,10 +347,28 @@ utilidad, empates repartidos en partes iguales), carga fraccional como
 12–15 iteraciones; 6 tests unitarios, incluido «es el límite del logit al
 escalar las utilidades».
 
-Follow-up de UI pendiente: bajo Wardrop la medida emparejada de bienestar es la
-utilidad máxima media, no el logsum — la tabla de resultados sigue mostrando el
-excedente logsum. El costo generalizado percibido sí muestra el fenómeno (ver
-§5), así que no es urgente.
+~~Follow-up de UI pendiente~~ **Hecho el 2026-08-17.** `bienestar.py` calcula
+ahora las dos medidas en el mismo recorrido y declara cuál corresponde al método
+en `medida_bienestar` (`logsum` bajo `montecarlo`/`expected`, `utilidad_maxima`
+bajo `todo_o_nada`). La regla vive en el núcleo, no en la UI.
+
+Lo que cambia en pantalla: la fila de excedente se rotula «Excedente (logsum)» o
+«Excedente (utilidad máx.)» según corresponda, con una nota que explica por qué;
+`bienestar_social_clp` usa el excedente emparejado —sumarle recaudación al
+logsum bajo determinístico mezclaría dos supuestos de comportamiento—; y si la
+corrida de referencia se hizo con otro método, se muestra el nivel pero **no** el
+Δ, porque restar dos definiciones distintas no da un delta de bienestar.
+
+Por qué importaba más de lo que parecía: por log-sum-exp `ln Σ e^{V_m} ≥ máx_m V_m`,
+con brecha acotada por `ln(nº modos factibles)`. Esa brecha **no es un nivel
+constante** —cambia cuando una política vuelve infactible un modo—, así que usar
+el logsum bajo `todo_o_nada` no desplazaba el número: contaminaba el Δ, que es lo
+único interpretable.
+
+Cubierto por `tests/test_bienestar.py` (la desigualdad, su cota, el
+emparejamiento y la composición del bienestar social). **La página acoplada quedó
+afuera a propósito**: `coupled_metrics.py` tiene su propio logsum para el Δ
+contra la red vacía y sigue sin emparejar. Es el pendiente que deja este cambio.
 
 ### 4.4 Deuda de documentación
 

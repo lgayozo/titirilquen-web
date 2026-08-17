@@ -58,6 +58,24 @@ export function ReferenceComparison({ config, result, reference }: Props) {
   // de modos cambia de escala y su diferencia deja de ser un excedente.
   const lsOk = reference ? logsumComparable(config, reference.config) : true;
 
+  // Cuál de las dos medidas de excedente corresponde al método de asignación lo
+  // decide el NÚCLEO (`medida_bienestar`): logsum bajo logit, utilidad máxima
+  // media bajo determinístico, donde no hay término aleatorio que promediar.
+  // Acá sólo se elige el campo y el rótulo; la regla no se reimplementa.
+  const usaMax = agg.medida_bienestar === "utilidad_maxima";
+  const excedentePorEstrato = usaMax
+    ? agg.excedente_max_por_estrato_clp
+    : agg.excedente_por_estrato_clp;
+  const excedenteRefPorEstrato = usaMax
+    ? aggRef?.excedente_max_por_estrato_clp
+    : aggRef?.excedente_por_estrato_clp;
+  // Dos corridas con métodos distintos miden el excedente con reglas distintas,
+  // así que su diferencia no es un delta de bienestar: es la brecha entre dos
+  // definiciones. Se muestra el nivel, no el delta.
+  const mismaMedida =
+    !aggRef || aggRef.medida_bienestar === agg.medida_bienestar;
+  const excedenteComparable = lsOk && mismaMedida;
+
   const filas: FilaAgg[] = [
     {
       label: t("agg.tiempo_total"),
@@ -125,17 +143,20 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       ref: aggRef?.bienestar_social_clp ?? null,
       fmt: fmtMoney,
       menorEsMejor: false,
-      comparable: lsOk,
+      // Lleva dentro el excedente de la medida emparejada, así que hereda su
+      // condición de comparabilidad.
+      comparable: excedenteComparable,
       nota: t("agg.bienestar_nota"),
     },
     ...STRATA.map((h) => ({
-      label: t("agg.excedente_estrato", { h: t(`strata.${estratoKey(h)}`) }),
-      actual: agg.excedente_por_estrato_clp[String(h) as "1" | "2" | "3"],
-      ref:
-        aggRef?.excedente_por_estrato_clp[String(h) as "1" | "2" | "3"] ?? null,
+      label: t(usaMax ? "agg.excedente_estrato_max" : "agg.excedente_estrato", {
+        h: t(`strata.${estratoKey(h)}`),
+      }),
+      actual: excedentePorEstrato[String(h) as "1" | "2" | "3"],
+      ref: excedenteRefPorEstrato?.[String(h) as "1" | "2" | "3"] ?? null,
       fmt: fmtMoney,
       menorEsMejor: false,
-      comparable: lsOk,
+      comparable: excedenteComparable,
     })),
   ];
 
@@ -211,9 +232,19 @@ export function ReferenceComparison({ config, result, reference }: Props) {
           bajo: fmtMoney(agg.vot_por_estrato_clp_hora["3"]),
         })}
       </p>
+      {usaMax && (
+        <p className="mt-1 text-[10px] leading-snug text-[var(--muted)]">
+          {t("agg.medida_utilidad_maxima")}
+        </p>
+      )}
       {!lsOk && (
         <p className="mt-1 text-[10px] leading-snug text-[var(--accent)]">
           {t("agg.logsum_incomparable")}
+        </p>
+      )}
+      {!mismaMedida && (
+        <p className="mt-1 text-[10px] leading-snug text-[var(--accent)]">
+          {t("agg.medida_incomparable")}
         </p>
       )}
     </div>

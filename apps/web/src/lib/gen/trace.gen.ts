@@ -29,8 +29,12 @@ export interface AgregadosDict {
   vot_por_estrato_clp_hora: Record<"1" | "2" | "3", number>;
   logsum_por_estrato: Record<"1" | "2" | "3", number>;
   excedente_por_estrato_clp: Record<"1" | "2" | "3", number>;
+  util_maxima_por_estrato: Record<"1" | "2" | "3", number>;
+  excedente_max_por_estrato_clp: Record<"1" | "2" | "3", number>;
   viajeros_por_estrato: Record<"1" | "2" | "3", number>;
   excedente_total_clp: number;
+  excedente_max_total_clp: number;
+  medida_bienestar: "logsum" | "utilidad_maxima";
   recaudacion_parking_clp: number;
   recaudacion_tarifa_clp: number;
   tren_km_hora: number;
