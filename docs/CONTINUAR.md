@@ -160,23 +160,38 @@ el guard `_valida()`); no copies el andamiaje de un script a otro.
 
 ## 4. Lo que quedó pendiente
 
-### 4.1 Decisión, con la fuente ya en mano
+### 4.1 ~~Decisión, con la fuente ya en mano~~ — HECHO
 
-**`b_tiempo_caminata`: 1,7× o 2,0×.** La Tabla 2.1 del SNI asigna ponderador **2**
-tanto a la espera como a la caminata. Nuestro 1,7× salió de razonamiento general,
-no de la norma. Pero hay una complicación estructural: `b_tiempo_caminata` pesa
-**dos cosas a la vez** — el acceso al metro Y el modo caminata completo
-(`demand/utility.py`, líneas 103 y 137). El SNI acota su ponderador 2 a los
-usuarios de transporte público, y en viajes combinados «solo el tramo de
-transporte público está afecto a ellos». O sea:
+> **Este punto llevaba once días cerrado cuando se escribió.** Se implementó el
+> 2026-08-05 en `ea4a05b` («Separar el peso del acceso al metro del peso del modo
+> caminata») y siguió figurando como pendiente hasta el 2026-08-17. Sexta mordida
+> de la trampa de los espejos, con la variante de §4.5: **un pendiente escrito
+> desde el razonamiento y no desde el código.** El texto de abajo describía
+> `demand/utility.py` líneas 103 y 137 como un solo coeficiente; hoy son dos
+> términos distintos.
 
-- El acceso al metro **debería** ir a 2,0 según la norma.
+**El problema que era.** La Tabla 2.1 del SNI asigna ponderador **2** tanto a la
+espera como a la caminata; nuestro 1,7× salió de razonamiento general, no de la
+norma. Y había una complicación estructural: `b_tiempo_caminata` pesaba **dos
+cosas a la vez** — el acceso al metro Y el modo caminata completo. El SNI acota
+su ponderador 2 a los usuarios de transporte público, y en viajes combinados
+«solo el tramo de transporte público está afecto a ellos». O sea:
+
+- El acceso al metro **debía** ir a 2,0 según la norma.
 - El modo caminata completo no está cubierto por la norma.
 
-Arreglo limpio: **separar el coeficiente en dos** (`b_tiempo_acceso` para el
-acceso al metro, `b_tiempo_caminata` para el modo). Es cambio de schema + los
-cuatro espejos, pero resuelve un defecto ya documentado y permite aplicar la
-norma exactamente.
+**Cómo quedó.** El coeficiente se separó en dos, y cada uno lleva su procedencia
+escrita en el schema (`config.py`, `TransportBetas`):
+
+| Coeficiente | Qué pesa | Valor | Procedencia |
+|---|---|---|---|
+| `b_tiempo_acceso` | Acceso caminando a la estación | **2,0 ×** viaje | **Norma**: SNI, Tabla 2.1 |
+| `b_tiempo_caminata` | El viaje entero a pie | **1,7 ×** viaje | **Juicio**: caminar todo el viaje es un modo elegido, no un tramo forzado |
+
+Separado en las seis capas, no solo en el núcleo: schema Pydantic
+(`config.py`) · fórmula (`demand/utility.py`, términos 108 y 157) · calibración
+de los tres estratos (`presets.py`) · contrato generado (`lib/gen/`) · el espejo
+`utility.ts` con su golden · el panel de calibración y las claves i18n ES/EN.
 
 ### 4.1b Necesita fuente: costo de operación del metro
 
@@ -352,7 +367,9 @@ reponerlo a mano desde el repo original.
 
 **Lo que sigue debiendo:** `ANALISIS_SENSIBILIDAD.md` se actualizó parcialmente
 el 2026-08-10 (barrido de `sensibilidad.py`, línea base y fila `assignment`), y
-sus tablas de `frec_max` y `cap_bici` **siguen sin re-medir**.
+sus tablas de `frec_max` y `cap_bici` **siguen sin re-medir**. Además quedó
+atrás respecto de `F3`: su fila `tasa_carga` todavía recomienda «implementar o
+quitar del schema», y ya se quitó.
 
 ---
 
@@ -388,9 +405,15 @@ escribirla**, porque un pendiente falso cuesta una sesión entera.
      la vez, línea de corte de factibilidad y marcadores de estación.
 
    Lo único que sigue en pie es que esa cinta **no tiene número de figura** ni
-   lugar en la secuencia FIG. 00-06: vive en el hero. Promoverla es decisión de
-   diseño, no un hueco del modelo — o el hero se queda sin figura, o queda
-   repetida.
+   lugar en la secuencia: vive en el hero. Promoverla es decisión de diseño, no
+   un hueco del modelo — o el hero se queda sin figura, o queda repetida.
+
+   > Al 2026-08-17 la secuencia es **FIG. 00-05**, no 00-06, y ya hay política
+   > explícita sobre qué lleva número: los tres primeros paneles (validación,
+   > agregados, red) van sin él a propósito, «son el resultado, no
+   > ilustraciones», para que la numeración quede contigua en vez de partida por
+   > tablas intercaladas. Está comentado en `SandboxPage.tsx` sobre el
+   > `panel-grid`.
 
 2. ~~**La animación de FIG. 01 nunca se vio correr.**~~ **Corre.** Verificada el
    2026-08-15 con el panel del navegador visible, instrumentando la suma de
@@ -662,8 +685,11 @@ y este es un corredor único.
 7. **El metro no cobraba las detenciones** (corregido en `39b0a86`). Agregar
    estaciones acortaba el acceso sin costo: densificar la red era monótonamente
    bueno. Ahora hay óptimo interior (~20 estaciones en 20 km).
-8. **`tasa_carga` sigue muerto.** Serviría para un dwell dependiente de los
-   pasajeros que suben — deseconomía de escala, decisión de modelación aparte.
+8. **`tasa_carga` estaba declarado sin implementar** — `train.py` se limitaba a
+   asignarlo a `_`. **Eliminado del schema en `F3`**, sin mover la línea base
+   (antes de eso decía acá «sigue muerto», que dejó de ser cierto). Serviría para
+   un dwell dependiente de los pasajeros que suben — deseconomía de escala,
+   decisión de modelación aparte.
 9. **La calibración original tenía la espera subvalorada** (0,91/0,73/1,00 contra
    el ponderador 2 del SNI) y gradientes de ingreso duplicados en las ASC.
 
