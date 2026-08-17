@@ -69,6 +69,7 @@
   .etiqueta.ts { background: #eedfd6; color: var(--ts); }
   .etiqueta.doc { background: #e4e2dd; color: var(--doc); }
   .etiqueta.esp { background: #f3e0c8; color: #8a5a12; }
+  .etiqueta.gen { background: #d9e8de; color: var(--ok); }
   /* buscador */
   .buscador {
     position: sticky; top: 0; z-index: 20; background: var(--paper);
@@ -107,13 +108,21 @@
 <header class="portada">
   <div class="kicker">Titirilquen · Simulador educativo de transporte urbano</div>
   <h1>Mapa de arquitectura: dónde vive cada cosa</h1>
-  <p class="bajada">Inventario completo y navegable del repositorio: los 4.035 renglones del núcleo
-  científico en Python, los ~17.000 del frontend, la API, los tests y los scripts de auditoría.
+  <p class="bajada">Inventario completo y navegable del repositorio: los 4.506 renglones del núcleo
+  científico en Python, los ~18.500 del frontend, la API, los tests y los scripts de auditoría.
   Pensado para responder dos preguntas rápido: <em>«¿dónde está implementado X?»</em> y
   <em>«¿qué se rompe si toco Y?»</em>.</p>
-  <div class="meta">15 de agosto de 2026 · rama <code>ciudad-equilibrio-mejoras</code> ·
+  <div class="meta">15 de agosto de 2026, actualizado el 16 tras la cirugía de arquitectura
+  (<code>F0</code>–<code>F9</code>) · rama <code>ciudad-equilibrio-mejoras</code> ·
   reemplaza a <code>docs/archivo/ARCHITECTURE.md</code>, que quedó en el commit inicial (abril 2026) y no
   conoce el módulo acoplado, las métricas de equilibrio ni los presets</div>
+  <div class="aviso ok" style="margin-top:14px">
+  <p><strong>Los punteros de este documento están verificados.</strong> Cada
+  «archivo:línea» del índice se comprueba contra el código con
+  <code>tools/verifica_mapa.py</code>, que corre dentro de <code>pytest</code>: si alguien mueve
+  una función y no actualiza esta tabla, el test falla. Antes de esta verificación, 22 de los
+  punteros ya habían quedado obsoletos en un mes.</p>
+  </div>
 </header>
 
 <nav class="toc">
@@ -123,7 +132,7 @@
   <li><a href="#core">El núcleo científico (Python)</a></li>
   <li><a href="#frontend">El frontend (TypeScript/React)</a></li>
   <li><a href="#api">La API (FastAPI)</a></li>
-  <li><a href="#espejos">Los espejos: la zona de peligro</a></li>
+  <li><a href="#espejos">La frontera Python ↔ TypeScript</a></li>
   <li><a href="#flujo">Flujo de una simulación, paso a paso</a></li>
   <li><a href="#verificar">Tests, scripts y cómo verificar</a></li>
 </ol>
@@ -145,65 +154,75 @@ maestro de todo lo implementado— y basta con un fragmento: <code>todo-o-nada</
 <div class="envoltorio-tabla"><table id="indice">
 <thead><tr><th>Qué</th><th>Dónde</th><th>Lín.</th><th>Notas</th></tr></thead>
 <tbody>
-<tr><td><span class="etiqueta py">py</span><strong>Todo-o-nada / determinístico</strong> (ex «Wardrop»)</td><td class="ruta py">demand/choice.py</td><td class="n">44</td><td><code>probabilidades_wardrop</code> — argmax sobre modos factibles, empates en partes iguales</td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Todo-o-nada / determinístico</strong> (ex «Wardrop»)</td><td class="ruta py">demand/choice.py</td><td class="n">44</td><td><code>probabilidades_todo_o_nada</code> — argmax sobre modos factibles, empates en partes iguales. Medido: <strong>no produce un equilibrio de Wardrop</strong></td></tr>
 <tr><td><span class="etiqueta py">py</span>Logit multinomial (elección de modo)</td><td class="ruta py">demand/choice.py</td><td class="n">19</td><td><code>probabilidades_logit</code> — resta el máximo antes de exponenciar</td></tr>
-<tr><td><span class="etiqueta py">py</span>Sorteo de modo (Monte Carlo)</td><td class="ruta py">demand/choice.py</td><td class="n">100</td><td><code>elegir_modo</code></td></tr>
-<tr><td><span class="etiqueta py">py</span>Función de utilidad por modo</td><td class="ruta py">demand/utility.py</td><td class="n">60</td><td><code>calcular_utilidades</code> — cortes de factibilidad: caminata 30 min, bici 45 min</td></tr>
-<tr><td><span class="etiqueta py">py</span>Descomposición de utilidad (ASC/tiempo/costo)</td><td class="ruta py">demand/utility.py</td><td class="n">38</td><td><code>UtilityBreakdown</code></td></tr>
-<tr><td><span class="etiqueta py">py</span>Tiempos observados por celda</td><td class="ruta py">demand/utility.py</td><td class="n">23</td><td><code>TiemposObservados</code></td></tr>
-<tr><td><span class="etiqueta py">py</span><strong>Loop MSA</strong> (el corazón del equilibrio)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">363</td><td><code>_iter_loop</code> — promedia TIEMPOS; bandera <code>promediar_flujos</code> para el esquema estándar</td></tr>
-<tr><td><span class="etiqueta py">py</span>Entrada pública del MSA</td><td class="ruta py">equilibrium/msa.py</td><td class="n">267</td><td><code>iter_msa</code> · <code>run_msa</code> (570) · <code>iter_msa_desde_suelo</code> (292)</td></tr>
-<tr><td><span class="etiqueta py">py</span>Asignación de demanda por grupo</td><td class="ruta py">equilibrium/msa.py</td><td class="n">165</td><td><code>_correr_iteracion</code> — elige montecarlo / esperados / determinístico</td></tr>
-<tr><td><span class="etiqueta py">py</span>Definición de «grupo»</td><td class="ruta py">equilibrium/msa.py</td><td class="n">109</td><td><code>_GrupoDemanda</code> = (estrato, celda, tenencia de auto). 942 en la ciudad default</td></tr>
-<tr><td><span class="etiqueta py">py</span>Snapshot por iteración</td><td class="ruta py">equilibrium/msa.py</td><td class="n">41</td><td><code>IterationSnapshot</code> — lo que viaja al frontend en vivo</td></tr>
-<tr><td><span class="etiqueta py">py</span>Resultado completo de la corrida</td><td class="ruta py">equilibrium/msa.py</td><td class="n">64</td><td><code>ConvergenceTrace</code></td></tr>
+<tr><td><span class="etiqueta py">py</span>Sorteo de modo (Monte Carlo)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">207</td><td><code>rng.multinomial</code> sobre las probabilidades del grupo; el sorteo por agente, <code>rng.choice</code> (249)</td></tr>
+<tr><td><span class="etiqueta py">py</span>Función de utilidad por modo</td><td class="ruta py">demand/utility.py</td><td class="n">61</td><td><code>calcular_utilidades</code> — cortes de factibilidad: caminata 30 min, bici 45 min</td></tr>
+<tr><td><span class="etiqueta py">py</span>Descomposición de utilidad (ASC/tiempo/costo)</td><td class="ruta py">demand/utility.py</td><td class="n">39</td><td><code>UtilityBreakdown</code></td></tr>
+<tr><td><span class="etiqueta py">py</span>Tiempos observados por celda</td><td class="ruta py">demand/utility.py</td><td class="n">24</td><td><code>TiemposObservados</code></td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Loop MSA</strong> (el corazón del equilibrio)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">352</td><td><code>_iter_loop</code> — promedia TIEMPOS; la bandera <code>promediar_flujos</code> conmuta al esquema estándar</td></tr>
+<tr><td><span class="etiqueta py">py</span>Entrada pública del MSA</td><td class="ruta py">equilibrium/msa.py</td><td class="n">256</td><td><code>iter_msa</code> · <code>run_msa</code> (517) · <code>iter_msa_desde_suelo</code> (281), que es la ruta que usa la app</td></tr>
+<tr><td><span class="etiqueta py">py</span>Asignación de demanda por grupo</td><td class="ruta py">equilibrium/msa.py</td><td class="n">152</td><td><code>_correr_iteracion</code> — elige montecarlo / esperados / determinístico</td></tr>
+<tr><td><span class="etiqueta py">py</span>Definición de «grupo»</td><td class="ruta py">equilibrium/msa.py</td><td class="n">96</td><td><code>_GrupoDemanda</code> = (estrato, celda, tenencia de auto). 942 en la ciudad default; se arman en <code>_agrupar_agentes</code> (109)</td></tr>
+<tr><td><span class="etiqueta py">py</span>Snapshot por iteración</td><td class="ruta py">equilibrium/msa.py</td><td class="n">40</td><td><code>IterationSnapshot</code> — lo que viaja al frontend en vivo</td></tr>
+<tr><td><span class="etiqueta py">py</span>Resultado completo de la corrida</td><td class="ruta py">equilibrium/msa.py</td><td class="n">63</td><td><code>ConvergenceTrace</code></td></tr>
 <tr><td><span class="etiqueta py">py</span><strong>BPR + Greenshields</strong> (oferta vial)</td><td class="ruta py">supply/car.py</td><td class="n">36</td><td><code>demora_auto_tramo</code> — capacidad por Greenshields, demora acumulada hacia el CBD</td></tr>
 <tr><td><span class="etiqueta py">py</span>Oferta de bicicleta (BPR + pendiente)</td><td class="ruta py">supply/bike.py</td><td class="n">32</td><td><code>demora_bici_tramo</code> — acotada por abajo al tiempo de caminata</td></tr>
-<tr><td><span class="etiqueta py">py</span><strong>Oferta de metro</strong> (frecuencia endógena)</td><td class="ruta py">supply/train.py</td><td class="n">34</td><td><code>oferta_tren</code> — <code>f = clip(carga/K, frec_min, frec_max)</code>, espera = 30/f</td></tr>
-<tr><td><span class="etiqueta py">py</span>Efecto Mohring / economía de escala del metro</td><td class="ruta py">supply/train.py</td><td class="n">34</td><td>Dentro de <code>oferta_tren</code>: más demanda ⇒ más frecuencia ⇒ menos espera</td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Oferta de metro</strong> (frecuencia endógena)</td><td class="ruta py">supply/train.py</td><td class="n">33</td><td><code>oferta_tren</code> — f = clip(carga/K, frec_min, frec_max), espera = 30/f</td></tr>
+<tr><td><span class="etiqueta py">py</span>Efecto Mohring / economía de escala del metro</td><td class="ruta py">supply/train.py</td><td class="n">33</td><td>Dentro de <code>oferta_tren</code>: más demanda ⇒ más frecuencia ⇒ menos espera</td></tr>
+<tr><td><span class="etiqueta py">py</span>Resolver las tres ofertas de una vez</td><td class="ruta py">supply/oferta.py</td><td class="n">38</td><td><code>resolver_oferta</code> — unificó 43 líneas de reenvío copiadas en tres sitios; <code>resolver_red_vacia</code> (93) da la referencia sin congestión</td></tr>
 <tr><td><span class="etiqueta py">py</span>Emisiones de CO₂</td><td class="ruta py">emissions.py</td><td class="n">43</td><td><code>calcular_emisiones</code> · factor del auto en la 29</td></tr>
-<tr><td><span class="etiqueta py">py</span>Generación de población sintética</td><td class="ruta py">population.py</td><td class="n">32</td><td><code>generar_poblacion</code> · desde uso de suelo: 93 y 155</td></tr>
-<tr><td><span class="etiqueta py">py</span>Agente individual</td><td class="ruta py">population.py</td><td class="n">22</td><td><code>Agente</code> — estrato, celda, tenencia de auto, teletrabajo</td></tr>
+<tr><td><span class="etiqueta py">py</span>Generación de población sintética</td><td class="ruta py">population.py</td><td class="n">31</td><td><code>generar_poblacion</code> · desde uso de suelo y determinista: <code>generar_poblacion_desde_land_use_det</code> (110)</td></tr>
+<tr><td><span class="etiqueta py">py</span>Agente individual</td><td class="ruta py">population.py</td><td class="n">21</td><td><code>Agente</code> — estrato, celda, tenencia de auto, teletrabajo</td></tr>
 <tr><td><span class="etiqueta py">py</span>Ciudad lineal (geometría)</td><td class="ruta py">city.py</td><td class="n">15</td><td><code>CiudadLineal</code> — n_celdas, largo, CBD al centro, ancho de celda</td></tr>
-<tr><td><span class="etiqueta py">py</span><strong>Configuración</strong> (fuente de verdad)</td><td class="ruta py">config.py</td><td class="n">311</td><td><code>SimulationConfig</code> — <code>extra="forbid"</code>: quitar un campo rompe escenarios guardados</td></tr>
-<tr><td><span class="etiqueta py">py</span>Coeficientes del logit por estrato</td><td class="ruta py">config.py</td><td class="n">40</td><td><code>StratumBetas</code> · penalizaciones físicas en la 23 (sub-objeto anidado)</td></tr>
-<tr><td><span class="etiqueta py">py</span>Parámetros de oferta</td><td class="ruta py">config.py</td><td class="n">303</td><td><code>SupplyConfig</code> → bici 190 · auto 203 · tren 225</td></tr>
-<tr><td><span class="etiqueta py">py</span>Presets de ciudad y política</td><td class="ruta py">presets.py</td><td class="n">11</td><td><code>CityPreset</code> · <code>PolicyPreset</code> (24). Declaran valores ABSOLUTOS, no diffs</td></tr>
-<tr><td><span class="etiqueta py">py</span>Betas por defecto de los 3 estratos</td><td class="ruta py">presets.py</td><td class="n">—</td><td><code>DEFAULT_STRATA</code> — el contrato golden NO lo cubre</td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>Configuración</strong> (fuente de verdad)</td><td class="ruta py">config.py</td><td class="n">314</td><td><code>SimulationConfig</code> — con extra="forbid". De acá se GENERAN los tipos TypeScript</td></tr>
+<tr><td><span class="etiqueta py">py</span>Coeficientes del logit por estrato</td><td class="ruta py">config.py</td><td class="n">45</td><td><code>StratumBetas</code> · <code>PhysicalPenalties</code> (28), el sub-objeto anidado que los recorridos planos se saltan en silencio</td></tr>
+<tr><td><span class="etiqueta py">py</span>Parámetros de oferta</td><td class="ruta py">config.py</td><td class="n">306</td><td><code>SupplyConfig</code> → <code>BikeSupplyParams</code> (191) · <code>CarSupplyParams</code> (204) · <code>TrainSupplyParams</code> (226)</td></tr>
+<tr><td><span class="etiqueta py">py</span>Presets de ciudad y política</td><td class="ruta py">presets.py</td><td class="n">37</td><td><code>CITY_PRESETS</code> · <code>POLICY_PRESETS</code> (94). Declaran valores ABSOLUTOS, no diffs</td></tr>
+<tr><td><span class="etiqueta py">py</span>Betas por defecto de los 3 estratos</td><td class="ruta py">presets.py</td><td class="n">258</td><td><code>DEFAULT_STRATA</code> — desde F4 es la ÚNICA copia: el TS se genera de acá</td></tr>
+<tr><td><span class="etiqueta py">py</span>Constantes compartidas</td><td class="ruta py">constantes.py</td><td class="n">19</td><td><code>MODOS</code> · <code>CORTE_CAMINATA_MIN</code> (27) · <code>CORTE_BICI_MIN</code> (30) · <code>VOT_SOCIAL_CLP_HORA</code> (38)</td></tr>
+<tr><td><span class="etiqueta py">py</span><strong>La forma JSON, declarada una sola vez</strong></td><td class="ruta py">serializacion.py</td><td class="n">201</td><td><code>trace_to_dict</code> — la usan la API y el worker. <code>TraceDict</code> (84) es además la fuente del tipo TS</td></tr>
+<tr><td><span class="etiqueta py">py</span>Agregados de bienestar</td><td class="ruta py">bienestar.py</td><td class="n">145</td><td><code>calcular_agregados</code> — excedente por logsum, valorado al VOT social. Eran 250 líneas de TS sin ningún test</td></tr>
 <tr><td><span class="etiqueta py">py</span><strong>Bid-rent / subasta de suelo</strong></td><td class="ruta py">land_use/equilibrium.py</td><td class="n">158</td><td><code>solve_logit</code> — el único solver que existe (no hay heteroscedástico)</td></tr>
-<tr><td><span class="etiqueta py">py</span>Resultado del uso de suelo</td><td class="ruta py">land_use/equilibrium.py</td><td class="n">33</td><td><code>LandUseResult</code> — matriz <code>Q[h,i]</code></td></tr>
+<tr><td><span class="etiqueta py">py</span>Resultado del uso de suelo</td><td class="ruta py">land_use/equilibrium.py</td><td class="n">33</td><td><code>LandUseResult</code> — matriz Q[h,i]</td></tr>
 <tr><td><span class="etiqueta py">py</span>Oferta de vivienda S(i)</td><td class="ruta py">land_use/supply.py</td><td class="n">59</td><td><code>generar_oferta</code> — formas: normal, meseta, valle, bimodal</td></tr>
 <tr><td><span class="etiqueta py">py</span>Asignación de hogares a parcelas</td><td class="ruta py">land_use/allocation.py</td><td class="n">13</td><td><code>asignar_hogares_simple</code> — mayor residuo, Σ exacto</td></tr>
-<tr><td><span class="etiqueta py">py</span>Orquestador del uso de suelo</td><td class="ruta py">land_use/ciudad.py</td><td class="n">41</td><td><code>LandUseCity.build</code></td></tr>
+<tr><td><span class="etiqueta py">py</span>Orquestador del uso de suelo</td><td class="ruta py">land_use/ciudad.py</td><td class="n">40</td><td><code>LandUseCity</code> — su método <code>build</code> arma la ciudad completa</td></tr>
 <tr><td><span class="etiqueta py">py</span><strong>Loop acoplado suelo ↔ transporte</strong></td><td class="ruta py">coupled.py</td><td class="n">215</td><td><code>iter_coupled</code> · <code>run_coupled</code> (310) — amortiguación θ = 1/(n+1)</td></tr>
-<tr><td><span class="etiqueta py">py</span>Métricas del equilibrio conjunto</td><td class="ruta py">coupled_metrics.py</td><td class="n">314</td><td><code>compute_equilibrium_metrics</code> — excedente, recaudación, bienestar social</td></tr>
-<tr><td><span class="etiqueta ts">ts</span><strong>Worker de Pyodide</strong> (motor local)</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">—</td><td>Instala el wheel con micropip; <code>_trace_to_py</code> en la 155 serializa el trace</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Wrapper del motor local</td><td class="ruta ts">lib/pyodide-engine.ts</td><td class="n">—</td><td>Misma firma que <code>lib/api.ts</code>: <code>simulateStream(config, onIteration)</code></td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Cliente REST + SSE (motor api)</td><td class="ruta ts">lib/api.ts</td><td class="n">—</td><td>V2 (suelo y acoplado) en <code>lib/api-v2.ts</code></td></tr>
-<tr><td><span class="etiqueta esp">espejo</span>Tipos TS de la configuración</td><td class="ruta ts">lib/types.ts</td><td class="n">—</td><td>Espejo a mano de <code>config.py</code>; V2 en <code>lib/types-v2.ts</code></td></tr>
-<tr><td><span class="etiqueta esp">espejo</span>Utilidad en TS (inspector)</td><td class="ruta ts">lib/utility.ts</td><td class="n">47</td><td><code>calcularUtilidades</code> · <code>probabilidadesLogit</code> (225)</td></tr>
-<tr><td><span class="etiqueta esp">espejo</span>Oferta de vivienda en TS</td><td class="ruta ts">lib/citySupply.ts</td><td class="n">76</td><td><code>supplyVector</code> — espejo de <code>land_use/supply.py</code>, con test de contrato</td></tr>
-<tr><td><span class="etiqueta esp">espejo</span>Presets en TS</td><td class="ruta ts">lib/presets.ts</td><td class="n">—</td><td>Espejo de <code>presets.py</code></td></tr>
-<tr><td><span class="etiqueta esp">espejo</span>Defaults en TS</td><td class="ruta ts">lib/defaults.ts</td><td class="n">—</td><td><code>baseBetas</code> — puede desincronizarse de <code>DEFAULT_STRATA</code> sin aviso</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Serialización de escenarios</td><td class="ruta ts">lib/serialization.ts</td><td class="n">—</td><td>Archivo <code>.ttrq.json</code> y share por <code>?s=</code> (base64url)</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Store de la simulación</td><td class="ruta ts">store/simulationStore.ts</td><td class="n">51</td><td><code>useSimulationStore</code> — <code>startRun</code>, <code>pushIteration</code>, <code>finishRun</code></td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Detección de resultado obsoleto</td><td class="ruta ts">store/simulationStore.ts</td><td class="n">139</td><td><code>isResultStale</code> · equivalente de suelo en <code>landUseStore.ts:144</code></td></tr>
+<tr><td><span class="etiqueta py">py</span>Métricas del equilibrio conjunto</td><td class="ruta py">coupled_metrics.py</td><td class="n">273</td><td><code>compute_equilibrium_metrics</code> — excedente, recaudación, bienestar social, Theil</td></tr>
+<tr><td><span class="etiqueta gen">gen</span><strong>Generador del contrato TypeScript</strong></td><td class="ruta py">packages/titirilquen_core/tools/genera_contrato.py</td><td class="n">350</td><td><code>main</code> — emite los cinco <code>.gen.ts</code>: <code>emite_tipos</code> (162) · <code>emite_trace</code> (215) · <code>emite_defaults</code> (250) · <code>emite_presets</code> (286) · <code>emite_constantes</code> (307)</td></tr>
+<tr><td><span class="etiqueta gen">gen</span>Verificador de <em>este</em> documento</td><td class="ruta py">packages/titirilquen_core/tools/verifica_mapa.py</td><td class="n">121</td><td><code>revisa</code> — comprueba cada archivo:línea de esta tabla contra el código. Corre dentro de pytest</td></tr>
+<tr><td><span class="etiqueta py">py</span>Andamiaje común de los scripts</td><td class="ruta py">packages/titirilquen_core/scripts/_comun.py</td><td class="n">52</td><td><code>base_sim</code> · <code>corre</code> (97) · <code>valida</code> (114), el guard contra el <code>model_copy</code> que no valida</td></tr>
+<tr><td><span class="etiqueta ts">ts</span><strong>Worker de Pyodide</strong> (motor local)</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">138</td><td>Instala el wheel con micropip (126) y ya NO serializa: importa <code>serializacion</code> del núcleo</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Wrapper del motor local</td><td class="ruta ts">lib/pyodide-engine.ts</td><td class="n">306</td><td><code>pyodideEngine</code> — instancia única; el ciclo de vida del worker lo manejan RootLayout y RunStatus</td></tr>
+<tr><td><span class="etiqueta ts">ts</span><strong>La única puerta al motor</strong></td><td class="ruta ts">lib/api.ts</td><td class="n">104</td><td><code>simularTransporte</code> · <code>resolverUsoDeSuelo</code> (135) · <code>resolverAcoplado</code> (153) · <code>resolverAcopladoStream</code> (175). Quién decide el motor: <code>motorLocal</code> (39)</td></tr>
+<tr><td><span class="etiqueta gen">gen</span><strong>Contrato TS generado</strong></td><td class="ruta ts">lib/gen/</td><td class="n">—</td><td>Cinco archivos, 730 líneas: tipos · trace · defaults · presets · constantes. <strong>No editar</strong>: los reescribe <code>sync</code>:core</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Divergencias intencionales web ↔ núcleo</td><td class="ruta ts">lib/overrides.ts</td><td class="n">29</td><td><code>defaultSimulationConfig</code> — n_celdas 201, seed 42, expected, densidad 1.800, ΣH. Escrito a mano y comentado uno por uno</td></tr>
+<tr><td><span class="etiqueta esp">espejo</span>Utilidad en TS (inspector didáctico)</td><td class="ruta ts">lib/utility.ts</td><td class="n">47</td><td><code>calcularUtilidades</code> · <code>probabilidadesLogit</code> (225). <strong>El único espejo que queda</strong>; pineado con utility-golden.json</td></tr>
+<tr><td><span class="etiqueta esp">espejo</span>Oferta de vivienda en TS</td><td class="ruta ts">lib/citySupply.ts</td><td class="n">76</td><td><code>supplyVector</code> — espejo de land_use/supply.py, pineado con supply-golden.json</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Orden, color y formato de los modos</td><td class="ruta ts">lib/modos.ts</td><td class="n">35</td><td><code>ORDEN_MODOS</code> · <code>COLOR_MODO</code> (48) · <code>LOCALE</code> (82), fijo en es-CL. Unificó 7 copias de la paleta y 6 del orden</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Cálculo derivado del resultado</td><td class="ruta ts">lib/derivados.ts</td><td class="n">24</td><td><code>calcularFlujo</code> — lo único de SandboxPage que era cálculo puro; el resto rotula con i18n</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Serialización de escenarios</td><td class="ruta ts">lib/serialization.ts</td><td class="n">35</td><td><code>TTRQ_SCHEMA</code> = titirilquen-scenario/v3. Sin migraciones: un archivo viejo falla con error explícito</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Store de la simulación</td><td class="ruta ts">store/simulationStore.ts</td><td class="n">51</td><td><code>useSimulationStore</code> — startRun, pushIteration, finishRun</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Detección de resultado obsoleto</td><td class="ruta ts">store/simulationStore.ts</td><td class="n">139</td><td><code>isResultStale</code> · el equivalente de suelo vive en landUseStore.ts</td></tr>
 <tr><td><span class="etiqueta ts">ts</span>Store de uso de suelo / acoplado</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">71</td><td><code>useLandUseStore</code></td></tr>
 <tr><td><span class="etiqueta ts">ts</span>Store de comparación</td><td class="ruta ts">store/compareStore.ts</td><td class="n">142</td><td><code>useCompareStore</code> — hasta 4 escenarios, 3 lentes</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Página de transporte (la más grande)</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">—</td><td>1.438 líneas · sidebar de controles + secuencia FIG. 00-06</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Selector de método de asignación</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">881</td><td>Los tres botones; el hint en la 894</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Cinta de tiempos por modo y ubicación</td><td class="ruta ts">components/CityStrip.tsx</td><td class="n">87</td><td>Figura del hero, exportable; cortes de factibilidad en la 67</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Traza de convergencia</td><td class="ruta ts">components/viz/ConvergenceTrace.tsx</td><td class="n">79</td><td>Residuo + reparto modal por iteración</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Página de transporte (la más grande)</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">—</td><td>1.378 líneas · sidebar de controles + secuencia FIG. 00-06</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Selector de método de asignación</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">820</td><td>Los tres botones (<code>montecarlo</code>, expected, todo_o_nada); el hint contextual en la 833</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Cinta de tiempos por modo y ubicación</td><td class="ruta ts">components/CityStrip.tsx</td><td class="n">87</td><td><code>CityStrip</code> — figura del hero, exportable, con cortes de factibilidad</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Traza de convergencia</td><td class="ruta ts">components/viz/ConvergenceTrace.tsx</td><td class="n">64</td><td><code>ConvergenceTrace</code> — residuo + reparto modal por iteración</td></tr>
 <tr><td><span class="etiqueta ts">ts</span>Flujo acumulado del corredor</td><td class="ruta ts">components/viz/CorridorFlowFigure.tsx</td><td class="n">36</td><td><code>acumulacionParcial</code> — animación de 1.800 ms</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Panel de calibración (los 42 betas)</td><td class="ruta ts">components/modules/CalibrationPanel.tsx</td><td class="n">—</td><td>Editable desde la UI</td></tr>
-<tr><td><span class="etiqueta ts">ts</span>Tabla de resultados de transporte</td><td class="ruta ts">components/viz/TransportMetricsTable.tsx</td><td class="n">—</td><td>Reparto, costos, subsidio, autofinanciamiento</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Panel de calibración (los 42 betas)</td><td class="ruta ts">components/modules/CalibrationPanel.tsx</td><td class="n">176</td><td><code>CalibrationPanel</code> — editable desde la UI</td></tr>
+<tr><td><span class="etiqueta ts">ts</span>Tabla de resultados de transporte</td><td class="ruta ts">components/viz/TransportMetricsTable.tsx</td><td class="n">73</td><td><code>TransportMetricsTable</code> — reparto, costos, subsidio, autofinanciamiento</td></tr>
 <tr><td><span class="etiqueta ts">ts</span>Tutoriales (MDX por idioma)</td><td class="ruta ts">tutorials/manifest.ts</td><td class="n">90</td><td><code>TUTORIAL_TOC_ES</code> · <code>TUTORIAL_TOC_EN</code> (136). 8 capítulos</td></tr>
-<tr><td><span class="etiqueta py">py</span>Endpoints de la API</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">55</td><td><code>/health</code> 55 · <code>/simulate</code> 69 · <code>/simulate/stream</code> 75 · <code>/land-use/solve</code> 100 · <code>/coupled/solve</code> 126 · <code>/coupled/stream</code> 142</td></tr>
-<tr><td><span class="etiqueta esp">espejo</span>Serialización del trace (servidor)</td><td class="ruta py">apps/api/src/api/serialization.py</td><td class="n">79</td><td><code>trace_to_dict</code> — gemelo de <code>_trace_to_py</code> del worker</td></tr>
+<tr><td><span class="etiqueta py">py</span>Endpoints de la API</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">53</td><td><code>health</code> · <code>simulate</code> (68) · <code>land_use_solve</code> (88) · <code>coupled_solve</code> (106) · <code>coupled_stream</code> (122)</td></tr>
+<tr><td><span class="etiqueta doc">doc</span><strong>La línea base del modelo</strong></td><td class="ruta">packages/titirilquen_core/tests/test_linea_base.py</td><td class="n">42</td><td><code>ESPERADO</code> — auto 16,95 · metro 32,79 · bici 22,84 · caminata 7,98. Si un refactor la mueve, no era refactor</td></tr>
 <tr><td><span class="etiqueta doc">doc</span>Auditoría del todo-o-nada</td><td class="ruta">docs/informe-wardrop.html</td><td class="n">—</td><td>Formulación, pruebas, sensibilidad, contraste con logit</td></tr>
 <tr><td><span class="etiqueta doc">doc</span>Informe de Downs-Thomson</td><td class="ruta">docs/informe-downs-thomson.html</td><td class="n">—</td><td>Condiciones y receta reproducible</td></tr>
-<tr><td><span class="etiqueta doc">doc</span>Estado y pendientes del proyecto</td><td class="ruta">docs/CONTINUAR.md</td><td class="n">—</td><td>Calibración vigente, §5 Downs-Thomson, §7 trampas conocidas</td></tr>
-<tr><td><span class="etiqueta doc">doc</span>Wheel de Pyodide (artefacto)</td><td class="ruta">apps/web/public/pyodide/</td><td class="n">—</td><td>Versionado en git. <strong>Recompilar tras tocar el core</strong></td></tr>
+<tr><td><span class="etiqueta doc">doc</span>Estado y pendientes del proyecto</td><td class="ruta">docs/CONTINUAR.md</td><td class="n">—</td><td>Calibración vigente, §5 Downs-Thomson, §7 trampas, §9 la cirugía de arquitectura</td></tr>
+<tr><td><span class="etiqueta doc">doc</span>Guía para agentes de código</td><td class="ruta">CLAUDE.md</td><td class="n">—</td><td>Documento canónico; AGENTS.md sólo apunta acá</td></tr>
+<tr><td><span class="etiqueta doc">doc</span>Documentos caducos</td><td class="ruta">docs/archivo/</td><td class="n">—</td><td>Ocho, cada uno con una nota que dice por qué caducó y qué lo reemplaza</td></tr>
+<tr><td><span class="etiqueta doc">doc</span>Wheel de Pyodide (artefacto)</td><td class="ruta">apps/web/public/pyodide/</td><td class="n">—</td><td>Versionado en git, v0.2.0. <strong>Correr sync:core tras tocar el núcleo</strong></td></tr>
 </tbody>
 </table></div>
 
@@ -229,8 +248,8 @@ FastAPI y dentro del navegador vía Pyodide. El frontend no sabe cuál está usa
     <text x="46" y="70" font-weight="600">React + Zustand</text>
     <text x="46" y="88" font-size="11" fill="#444">pages · components/viz · store</text>
     <rect x="36" y="112" width="358" height="46" fill="#fff" stroke="#b4532a"/>
-    <text x="46" y="131" font-weight="600">Abstracción de motor</text>
-    <text x="46" y="148" font-size="11" fill="#444">lib/pyodide-engine.ts · lib/api.ts — misma firma</text>
+    <text x="46" y="131" font-weight="600">lib/api.ts — la única puerta al motor</text>
+    <text x="46" y="148" font-size="11" fill="#444">decide local o api; ninguna página lo hace</text>
     <rect x="36" y="168" width="358" height="64" fill="#fff" stroke="#2f6690"/>
     <text x="46" y="188" font-weight="600">Web Worker · Pyodide</text>
     <text x="46" y="205" font-size="11" fill="#444">micropip instala el wheel</text>
@@ -240,15 +259,15 @@ FastAPI y dentro del navegador vía Pyodide. El frontend no sabe cuál está usa
     <text x="512" y="38" font-size="11" letter-spacing="1.5" fill="#6b6b6b">SERVIDOR (opcional)</text>
     <rect x="516" y="50" width="348" height="46" fill="#fff" stroke="#2f6690"/>
     <text x="526" y="69" font-weight="600">FastAPI</text>
-    <text x="526" y="86" font-size="11" fill="#444">/simulate · /simulate/stream · /coupled/*</text>
+    <text x="526" y="86" font-size="11" fill="#444">/simulate · /land-use/solve · /coupled/*</text>
     <rect x="516" y="104" width="348" height="34" fill="#fff" stroke="#2f6690"/>
     <text x="526" y="126" font-size="11" fill="#2f6690">titirilquen_core (el mismo paquete)</text>
     <!-- core -->
     <rect x="180" y="285" width="540" height="95" fill="#fff" stroke="#2f6690" stroke-width="2"/>
     <text x="200" y="308" font-weight="600" fill="#2f6690">NÚCLEO CIENTÍFICO · packages/titirilquen_core</text>
-    <text x="200" y="328" font-size="11.5" fill="#444">city · config · population · presets · emissions</text>
-    <text x="200" y="345" font-size="11.5" fill="#444">demand/ (utility, choice) · supply/ (car, bike, train)</text>
-    <text x="200" y="362" font-size="11.5" fill="#444">equilibrium/msa · land_use/ · coupled · coupled_metrics</text>
+    <text x="200" y="328" font-size="11.5" fill="#444">city · config · constantes · population · presets · emissions</text>
+    <text x="200" y="345" font-size="11.5" fill="#444">demand/ (utility, choice) · supply/ (car, bike, train, oferta)</text>
+    <text x="200" y="362" font-size="11.5" fill="#444">equilibrium/msa · land_use/ · coupled · serializacion · bienestar</text>
     <!-- flechas -->
     <line x1="215" y1="102" x2="215" y2="110" stroke="#444" marker-end="url(#f)"/>
     <line x1="215" y1="158" x2="215" y2="166" stroke="#444" marker-end="url(#f)"/>
@@ -264,7 +283,7 @@ FastAPI y dentro del navegador vía Pyodide. El frontend no sabe cuál está usa
 simulador es 100 % estático. Es el modo en que se despliega hoy.</p>
 </figure>
 
-<h3>Los cinco módulos conceptuales</h3>
+<h3>Los seis módulos conceptuales</h3>
 
 <div class="envoltorio-tabla"><table>
 <thead><tr><th>Módulo</th><th>Qué resuelve</th><th>Vive en</th><th>Página</th></tr></thead>
@@ -280,35 +299,44 @@ simulador es 100 % estático. Es el modo en que se despliega hoy.</p>
 <!-- ================================================================ -->
 <h2 id="core"><span class="num">3</span>El núcleo científico (Python)</h2>
 
-<p>4.035 líneas, Python puro sobre numpy · scipy · pydantic. <strong>Toda la matemática vive
-aquí y sólo aquí.</strong></p>
+<p>4.506 líneas, Python puro sobre numpy · scipy · pydantic. <strong>Toda la matemática vive
+aquí y sólo aquí.</strong> Los archivos marcados con <span class="etiqueta gen">nuevo</span> los
+introdujo la cirugía de arquitectura: son lógica que antes estaba duplicada en TypeScript o
+copiada dentro del propio núcleo.</p>
 
 <div class="arbol">packages/titirilquen_core/
 ├── src/titirilquen_core/
-│   ├── config.py            <span class="c">362 · esquemas Pydantic — FUENTE DE VERDAD de la configuración</span>
+│   ├── config.py            <span class="c">369 · esquemas Pydantic — FUENTE DE VERDAD de la configuración</span>
+│   ├── constantes.py         <span class="c">38 · NUEVO. MODOS, cortes de factibilidad, VOT social</span>
 │   ├── city.py               <span class="c">43 · CiudadLineal: n_celdas, largo, CBD al centro</span>
-│   ├── population.py        <span class="c">211 · generador de agentes (estrato, celda, auto, teletrabajo)</span>
-│   ├── presets.py           <span class="c">325 · presets de ciudad y política + DEFAULT_STRATA</span>
+│   ├── population.py        <span class="c">171 · generador de agentes (estrato, celda, auto, teletrabajo)</span>
+│   ├── presets.py           <span class="c">334 · presets de ciudad y política + DEFAULT_STRATA</span>
 │   ├── emissions.py          <span class="c">95 · CO₂ por tramo (auto por veh-km, metro por tren-km)</span>
+│   ├── serializacion.py     <span class="c">269 · NUEVO. La forma JSON: la usan la API y el worker</span>
+│   ├── bienestar.py         <span class="c">261 · NUEVO. Excedente y bienestar social (venía de agregados.ts)</span>
 │   ├── demand/
-│   │   ├── utility.py       <span class="c">175 · utilidad por modo + cortes de factibilidad</span>
-│   │   └── choice.py        <span class="c">121 · logit · TODO-O-NADA · sorteo Monte Carlo</span>
+│   │   ├── utility.py       <span class="c">176 · utilidad por modo + cortes de factibilidad</span>
+│   │   └── choice.py         <span class="c">97 · logit · TODO-O-NADA</span>
 │   ├── supply/
 │   │   ├── car.py            <span class="c">95 · Greenshields (capacidad) + BPR (demora acumulada)</span>
 │   │   ├── bike.py           <span class="c">97 · BPR con pendiente, piso en el tiempo de caminata</span>
-│   │   └── train.py         <span class="c">148 · frecuencia endógena, espera, acceso, detenciones</span>
+│   │   ├── train.py         <span class="c">143 · frecuencia endógena, espera, acceso, detenciones</span>
+│   │   └── oferta.py        <span class="c">101 · NUEVO. Resuelve las tres de una vez (eran 43 líneas ×3)</span>
 │   ├── equilibrium/
-│   │   └── msa.py           <span class="c">681 · EL LOOP. El archivo más grande y más importante</span>
+│   │   └── msa.py           <span class="c">630 · EL LOOP. El archivo más grande y más importante</span>
 │   ├── land_use/
-│   │   ├── supply.py        <span class="c">197 · oferta de vivienda S(i): normal, meseta, valle, bimodal</span>
+│   │   ├── supply.py        <span class="c">156 · oferta de vivienda S(i): normal, meseta, valle, bimodal</span>
 │   │   ├── equilibrium.py   <span class="c">209 · subasta logit sobre la puja (solve_logit)</span>
 │   │   ├── allocation.py     <span class="c">83 · reparto de hogares por mayor residuo</span>
-│   │   ├── ciudad.py        <span class="c">158 · orquestador LandUseCity</span>
-│   │   └── config.py        <span class="c">113 · esquemas del módulo de suelo</span>
+│   │   ├── ciudad.py        <span class="c">157 · orquestador LandUseCity</span>
+│   │   └── config.py        <span class="c">102 · esquemas del módulo de suelo</span>
 │   ├── coupled.py           <span class="c">335 · loop exterior suelo ↔ transporte</span>
-│   └── coupled_metrics.py   <span class="c">480 · excedente, recaudación, bienestar social</span>
-├── tests/                   <span class="c">12 archivos · 60 tests</span>
-└── scripts/                 <span class="c">auditorías y diagnósticos reproducibles</span></div>
+│   └── coupled_metrics.py   <span class="c">439 · excedente, recaudación, bienestar social</span>
+├── tools/
+│   ├── genera_contrato.py   <span class="c">371 · NUEVO. Emite src/lib/gen/*.gen.ts desde Pydantic</span>
+│   └── verifica_mapa.py     <span class="c">NUEVO. Verifica los punteros de ESTE documento</span>
+├── tests/                   <span class="c">17 archivos · 105 tests, incluida la línea base</span>
+└── scripts/                 <span class="c">11 auditorías reproducibles + _comun.py (andamiaje)</span></div>
 
 <h3>Grafo de dependencias</h3>
 
@@ -318,41 +346,46 @@ aquí y sólo aquí.</strong></p>
 <div class="envoltorio-tabla"><table>
 <thead><tr><th>Módulo</th><th>Depende de</th></tr></thead>
 <tbody>
-<tr><td class="ruta py">city.py · config.py · presets.py · emissions.py</td><td><em>nada</em> — hojas</td></tr>
+<tr><td class="ruta py">city.py · config.py · constantes.py · presets.py · emissions.py</td><td><em>nada</em> — hojas</td></tr>
 <tr><td class="ruta py">supply/car.py · supply/bike.py · supply/train.py</td><td><em>nada</em> — hojas puras (sólo numpy)</td></tr>
 <tr><td class="ruta py">land_use/supply.py · land_use/equilibrium.py · land_use/allocation.py</td><td><em>nada</em> — hojas</td></tr>
-<tr><td class="ruta py">demand/utility.py</td><td>city · config</td></tr>
+<tr><td class="ruta py">demand/utility.py</td><td>city · config · constantes</td></tr>
 <tr><td class="ruta py">demand/choice.py</td><td>demand.utility</td></tr>
+<tr><td class="ruta py">supply/oferta.py</td><td>city · config · supply.{car, bike, train}</td></tr>
 <tr><td class="ruta py">land_use/ciudad.py</td><td>land_use.{allocation, config, equilibrium, supply}</td></tr>
 <tr><td class="ruta py">population.py</td><td>city · config · land_use.ciudad</td></tr>
-<tr><td class="ruta py"><strong>equilibrium/msa.py</strong></td><td>city · config · demand.* · supply.* · land_use.* · population · emissions</td></tr>
+<tr><td class="ruta py"><strong>equilibrium/msa.py</strong></td><td>city · config · constantes · demand.* · supply.* · land_use.* · population · emissions</td></tr>
 <tr><td class="ruta py">coupled_metrics.py</td><td>city · config · demand.utility · equilibrium.msa · land_use.* · supply.*</td></tr>
 <tr><td class="ruta py">coupled.py</td><td>city · config · coupled_metrics · demand.utility · equilibrium.msa · land_use.* · population</td></tr>
+<tr><td class="ruta py">serializacion.py · bienestar.py</td><td>config · equilibrium.msa · land_use.* · coupled — son las <em>salidas</em>: nadie del núcleo las importa</td></tr>
 </tbody></table>
 <p class="pie-tabla">Consecuencia práctica: tocar <code>supply/train.py</code> no puede romper el
-uso de suelo, pero tocar <code>config.py</code> puede romperlo todo — y además los cuatro espejos
-en TypeScript.</p></div>
+uso de suelo, pero tocar <code>config.py</code> puede romperlo todo — y además, desde F4, cambia
+el TypeScript generado, así que hay que correr <code>sync:core</code> o el contrato queda viejo.</p></div>
 
 <!-- ================================================================ -->
 <h2 id="frontend"><span class="num">4</span>El frontend (TypeScript / React)</h2>
 
-<p>~17.000 líneas. Vite + React + Zustand + Recharts + MDX. <strong>No contiene matemática del
-modelo</strong>, con la excepción documentada de los espejos de la §6.</p>
+<p>~18.500 líneas. Vite + React + Zustand + Recharts + MDX. <strong>No contiene matemática del
+modelo</strong>, con la excepción documentada de los dos espejos de la §6.</p>
 
 <div class="envoltorio-tabla"><table>
 <thead><tr><th>Carpeta</th><th class="n">Arch.</th><th class="n">Líneas</th><th>Qué contiene</th></tr></thead>
 <tbody>
-<tr><td class="ruta ts">pages/</td><td class="n">6</td><td class="n">3.383</td><td>Una por ruta. <code>SandboxPage</code> (1.438) es la de transporte</td></tr>
-<tr><td class="ruta ts">components/viz/</td><td class="n">24</td><td class="n">6.399</td><td>Todas las figuras y tablas de resultados</td></tr>
-<tr><td class="ruta ts">lib/</td><td class="n">18</td><td class="n">2.898</td><td>Motores, tipos, serialización, espejos, KPIs, export</td></tr>
-<tr><td class="ruta ts">components/modules/</td><td class="n">7</td><td class="n">1.740</td><td>Los paneles de control del sidebar</td></tr>
-<tr><td class="ruta ts">components/compare/</td><td class="n">6</td><td class="n">1.381</td><td>Comparación de hasta 4 escenarios</td></tr>
-<tr><td class="ruta ts">components/</td><td class="n">8</td><td class="n">1.219</td><td>Layout, topbar, CityStrip, estado de la corrida</td></tr>
+<tr><td class="ruta ts">pages/</td><td class="n">6</td><td class="n">3.322</td><td>Una por ruta. <code>SandboxPage</code> (1.378) es la de transporte</td></tr>
+<tr><td class="ruta ts">components/viz/</td><td class="n">22</td><td class="n">5.964</td><td>Todas las figuras y tablas de resultados</td></tr>
+<tr><td class="ruta ts">lib/</td><td class="n">21</td><td class="n">2.350</td><td>El motor, tipos, serialización, modos, KPIs, export</td></tr>
+<tr><td class="ruta ts">components/modules/</td><td class="n">7</td><td class="n">1.748</td><td>Los paneles de control del sidebar</td></tr>
+<tr><td class="ruta ts">components/compare/</td><td class="n">6</td><td class="n">1.383</td><td>Comparación de hasta 4 escenarios</td></tr>
+<tr><td class="ruta ts">components/</td><td class="n">7</td><td class="n">1.186</td><td>Layout, topbar, CityStrip, estado de la corrida</td></tr>
+<tr><td class="ruta ts">lib/gen/</td><td class="n">5</td><td class="n">730</td><td><strong>Generado desde Pydantic.</strong> No editar: lo reescribe <code>sync:core</code></td></tr>
 <tr><td class="ruta ts">store/</td><td class="n">4</td><td class="n">650</td><td>Zustand: simulación, uso de suelo, comparación, tema</td></tr>
-<tr><td class="ruta ts">tutorials/</td><td class="n">3 + 16 MDX</td><td class="n">434</td><td>Manifiesto, componentes MDX y escenarios de actividades</td></tr>
-<tr><td class="ruta ts">components/ui/</td><td class="n">6</td><td class="n">342</td><td>Primitivos: panel, sección plegable, slider, figura exportable</td></tr>
-<tr><td class="ruta ts">workers/</td><td class="n">1</td><td class="n">390</td><td>El worker de Pyodide</td></tr>
-</tbody></table></div>
+<tr><td class="ruta ts">tutorials/</td><td class="n">3 + 16 MDX</td><td class="n">416</td><td>Manifiesto, componentes MDX y escenarios de actividades</td></tr>
+<tr><td class="ruta ts">workers/</td><td class="n">1</td><td class="n">328</td><td>El worker de Pyodide</td></tr>
+<tr><td class="ruta ts">components/ui/</td><td class="n">5</td><td class="n">290</td><td>Primitivos escritos a mano: panel, sección plegable, slider, figura exportable</td></tr>
+</tbody></table>
+<p class="pie-tabla">No hay librería de componentes: los cinco primitivos de <code>ui/</code> están
+escritos a mano sobre primitivas de Radix. El README decía «shadcn/ui», que era falso.</p></div>
 
 <h3>Rutas</h3>
 
@@ -371,48 +404,60 @@ modelo</strong>, con la excepción documentada de los espejos de la §6.</p>
 <!-- ================================================================ -->
 <h2 id="api"><span class="num">5</span>La API (FastAPI)</h2>
 
-<p>265 líneas en total: es una capa fina sobre el core. Sólo hace falta con
-<code>engine: "api"</code>; el frontend funciona sin ella.</p>
+<p><strong>136 líneas</strong>, la mitad que antes de la cirugía: es una capa fina sobre el núcleo.
+Sólo hace falta con <code>engine: "api"</code>; el frontend funciona sin ella. Ya no serializa
+nada por su cuenta — importa <code>titirilquen_core.serializacion</code>, igual que el worker.</p>
 
 <div class="envoltorio-tabla"><table>
 <thead><tr><th>Endpoint</th><th class="n">Lín.</th><th>Devuelve</th></tr></thead>
 <tbody>
-<tr><td><code>GET /health</code></td><td class="n">55</td><td>Chequeo de vida (Fly.io)</td></tr>
-<tr><td><code>GET /presets</code></td><td class="n">60</td><td>Presets de ciudad y política del core</td></tr>
-<tr><td><code>POST /simulate</code></td><td class="n">69</td><td>Corrida completa, una respuesta</td></tr>
-<tr><td><code>POST /simulate/stream</code></td><td class="n">75</td><td><strong>SSE</strong>: una iteración del MSA a la vez</td></tr>
-<tr><td><code>POST /land-use/solve</code></td><td class="n">100</td><td>Equilibrio de suelo aislado</td></tr>
-<tr><td><code>POST /coupled/solve</code> · <code>/coupled/stream</code></td><td class="n">126 · 142</td><td>Loop acoplado, completo o por iteración exterior</td></tr>
-</tbody></table></div>
+<tr><td><code>GET /health</code></td><td class="n">53</td><td>Chequeo de vida (Fly.io)</td></tr>
+<tr><td><code>POST /simulate</code></td><td class="n">67</td><td>Corrida completa, una respuesta</td></tr>
+<tr><td><code>POST /land-use/solve</code></td><td class="n">87</td><td>Equilibrio de suelo aislado</td></tr>
+<tr><td><code>POST /coupled/solve</code> · <code>/coupled/stream</code></td><td class="n">105 · 121</td><td>Loop acoplado, completo o por iteración exterior</td></tr>
+</tbody></table>
+<p class="pie-tabla">La cirugía borró dos endpoints que nadie llamaba: <code>GET /presets</code>
+—el frontend siempre usó su propia copia— y <code>POST /simulate/stream</code>, cuyo cliente TS
+existía pero jamás se invocó. Queda una diferencia real de comportamiento entre motores:
+<code>/simulate</code> no recibe uso de suelo, así que por esa ruta la población es la de densidad
+plana (C-02, anotado en <code>lib/api.ts</code>).</p></div>
 
 <!-- ================================================================ -->
-<h2 id="espejos"><span class="num">6</span>Los espejos: la zona de peligro</h2>
+<h2 id="espejos"><span class="num">6</span>La frontera Python ↔ TypeScript</h2>
 
-<div class="aviso">
-<p><strong>Ésta es la sección que hay que leer antes de tocar el core.</strong> Hay lógica
-duplicada a mano entre Python y TypeScript. Nada avisa cuando se desincroniza, salvo donde existe
-un test de contrato.</p>
-</div>
+<p>Hasta agosto de 2026 ésta era la sección peligrosa del repositorio: <strong>siete</strong> piezas
+de lógica duplicadas a mano entre los dos lenguajes, cinco de ellas sin ninguna red. La cirugía de
+arquitectura las atacó una por una. Vale la pena conservar el registro de qué era cada una, porque
+explica por qué el código está como está.</p>
 
 <div class="envoltorio-tabla"><table>
-<thead><tr><th>Concepto</th><th>Original (Python)</th><th>Espejo (TS)</th><th>¿Protegido?</th></tr></thead>
+<thead><tr><th>Qué se duplicaba</th><th>Cómo está hoy</th><th>Red</th></tr></thead>
 <tbody>
-<tr><td>Esquema de configuración</td><td class="ruta py">config.py</td><td class="ruta ts">lib/types.ts · types-v2.ts</td><td>Parcial — <code>contract.spec.ts</code> compara estructura y defaults</td></tr>
-<tr><td>Función de utilidad</td><td class="ruta py">demand/utility.py</td><td class="ruta ts">lib/utility.ts</td><td><strong>No</strong> — sólo alimenta el inspector</td></tr>
-<tr><td>Oferta de vivienda S(i)</td><td class="ruta py">land_use/supply.py</td><td class="ruta ts">lib/citySupply.ts</td><td>Sí — <code>contract.spec.ts</code> con fixture golden</td></tr>
-<tr><td>Presets</td><td class="ruta py">presets.py</td><td class="ruta ts">lib/presets.ts</td><td><strong>No</strong></td></tr>
-<tr><td><strong>Los 42 betas</strong></td><td class="ruta py">presets.py <code>DEFAULT_STRATA</code></td><td class="ruta ts">lib/defaults.ts <code>baseBetas</code></td><td><strong>No</strong> — hueco conocido y pendiente</td></tr>
-<tr><td>Serialización del trace</td><td class="ruta py">api/serialization.py:79</td><td class="ruta ts">workers/pyodide.worker.ts:155</td><td><strong>No</strong> — dos gemelos que deben moverse juntos</td></tr>
-</tbody></table></div>
+<tr><td>Esquema de simulación<br><span class="ruta py">config.py</span> → <span class="ruta ts">types.ts</span></td><td><strong>Generado.</strong> <code>genera_contrato.py</code> emite <code>lib/gen/tipos.gen.ts</code>; <code>types.ts</code> quedó como shim que re-exporta</td><td>Estructural — no hay dos copias que puedan divergir</td></tr>
+<tr><td>Esquemas de suelo y acoplado<br><span class="ruta py">land_use/config.py · coupled.py</span> → <span class="ruta ts">types-v2.ts</span></td><td><strong>Sigue a mano, y es el hueco que dejó la cirugía.</strong> <code>LandUseConfig</code> y <code>LandUseStratumConfig</code> están declarados <em>dos veces</em>: generados en <code>tipos.gen.ts</code> y escritos a mano en <code>types-v2.ts</code>. Hoy los campos coinciden, pero 7 archivos importan la copia a mano y nada obliga a que sigan iguales. Los tipos de resultado (<code>LandUseResult</code>, <code>OuterIteration</code>, <code>CoupledResult</code>) sólo existen a mano</td><td><strong>Ninguna</strong> — pendiente</td></tr>
+<tr><td>Defaults y los 42 betas<br><span class="ruta py">DEFAULT_STRATA</span> → <span class="ruta ts">baseBetas</span></td><td><strong>Generado</strong> a <code>defaults.gen.ts</code>. Las divergencias intencionales se declaran aparte, en <code>lib/overrides.ts</code></td><td>Estructural + el CI corre <code>sync:core</code> y falla si el diff no está vacío</td></tr>
+<tr><td>Presets (~77 valores)<br><span class="ruta py">presets.py</span> → <span class="ruta ts">presets.ts</span></td><td><strong>Generado</strong> a <code>presets.gen.ts</code></td><td>Ídem, más un test que exige que toda política declare el mismo conjunto de claves</td></tr>
+<tr><td>Serialización del trace<br><em>api/serialization.py</em> ≡ <em>_trace_to_py</em> (ambos eliminados)</td><td><strong>Eliminado.</strong> La forma vive una sola vez en <code>serializacion.py</code>; la API y el worker la importan</td><td>No hace falta: no hay segunda copia</td></tr>
+<tr><td>Bienestar y agregados<br><span class="ruta py">coupled_metrics.py</span> ≉ <span class="ruta ts">agregados.ts</span></td><td><strong>Movido al núcleo</strong> (<code>bienestar.py</code>). Eran 250 líneas de TS sin tests y con semántica distinta bajo el mismo nombre</td><td>pytest con valores pineados</td></tr>
+<tr><td>Utilidad por modo<br><span class="ruta py">demand/utility.py</span> → <span class="ruta ts">lib/utility.ts</span></td><td><strong>Sigue duplicada</strong>, a propósito: el inspector didáctico necesita ser síncrono y llamar al worker por cada movimiento de slider sería peor</td><td>Golden de 27 casos (<code>utility-golden.json</code>) que corre en los e2e</td></tr>
+<tr><td>Oferta de vivienda S(i)<br><span class="ruta py">land_use/supply.py</span> → <span class="ruta ts">citySupply.ts</span></td><td><strong>Sigue duplicada</strong>: la figura la redibuja en cada arrastre del slider, antes de resolver nada</td><td>Golden de 18 casos (<code>supply-golden.json</code>)</td></tr>
+</tbody></table>
+<p class="pie-tabla">Regla de decisión: se duplica sólo lo que la UI necesita <em>antes</em> de tener
+un resultado del motor, y todo lo duplicado va pineado con un golden. Todo lo demás se calcula en
+Python y viaja serializado. <strong>La fila de <code>types-v2.ts</code> es la excepción que todavía
+no cumple la regla</strong>: no está duplicada por necesidad sino porque el generador se detuvo en
+<code>SimulationConfig</code>. Cerrarla es extender <code>genera_contrato.py</code> a los esquemas
+de suelo y acoplado, y dejar <code>types-v2.ts</code> como shim.</p></div>
 
 <h4>Las cinco trampas que ya mordieron</h4>
 <ol>
-<li><strong>El wheel viejo.</strong> Tras tocar el core hay que recompilarlo o Pyodide sigue
-corriendo el código anterior. En esta máquina: <code>uv build --wheel</code> y copiar el
-<code>.whl</code> a <code>apps/web/public/pyodide/</code>.</li>
+<li><strong>El wheel viejo.</strong> Tras tocar el núcleo hay que correr
+<code>npm run sync:core --workspace @titirilquen/web</code> o Pyodide sigue ejecutando el código
+anterior. No lo hace el <code>dev</code>, ni el <code>build</code>, ni Vercel. El wheel va
+versionado en git justamente por eso.</li>
 <li><strong>Presets con valores absolutos.</strong> Declaran valores, no diferencias: al recalibrar
 un default hay que moverlos, o aplicar una política revierte ese parámetro en silencio. Ya pasó
-cuatro veces.</li>
+cuatro veces; la quinta fue <code>factor_flota</code>, que faltaba en 6 de las 8 políticas.</li>
 <li><strong>Una tercera copia de los betas</strong> vivía en un script de auditoría y midió
 valores viejos sin avisar. Eliminada, pero el patrón vuelve.</li>
 <li><strong><code>model_copy(update=…)</code> de Pydantic no valida</strong>: una clave inexistente
@@ -423,11 +468,22 @@ estructura plana se salta <code>penalizaciones_fisicas</code> en silencio. Produ
 anomalía en la auditoría del todo-o-nada.</li>
 </ol>
 
+<div class="aviso">
+<p><strong>Dos cosas que ningún test de acá detecta.</strong> Los 105 tests del núcleo corren en
+CPython, no en Pyodide: subir el piso de <code>pydantic</code> a <code>&gt;=2.8</code> dejó el motor
+por defecto sin arrancar —Pyodide 0.26.4 trae 2.7.0 precompilado y <code>micropip</code> aborta—
+con la suite entera en verde. Y varias claves de i18n se construyen por interpolación
+(<code>t(`equilibrium.modo_${m}`)</code>), así que un grep de la clave literal da cero y
+<strong>miente</strong>: borrar una familia «huérfana» dejó los botones mostrando claves crudas.</p>
+</div>
+
 <div class="aviso ok">
 <p><strong><code>extra="forbid"</code>.</strong> Agregar un campo nuevo con default es seguro;
 <em>quitar</em> o <em>renombrar</em> uno rompe la importación de escenarios <code>.ttrq.json</code>
-ya guardados y los enlaces <code>?s=</code>. Es la razón por la que el método determinístico
-conserva el valor <code>"wardrop"</code> en el esquema.</p>
+ya guardados y los enlaces <code>?s=</code>. En agosto de 2026 eso se hizo <strong>a
+propósito</strong>: se borraron cinco campos muertos y el método pasó de <code>"wardrop"</code> a
+<code>"todo_o_nada"</code>. El <code>$schema</code> subió a <code>v3</code> y no hay migraciones —
+un archivo anterior falla con un error explícito, que es mejor que abrirse con valores adivinados.</p>
 </div>
 
 <!-- ================================================================ -->
@@ -440,17 +496,17 @@ paso.</p>
 <thead><tr><th class="n">#</th><th>Paso</th><th>Dónde</th></tr></thead>
 <tbody>
 <tr><td class="n">1</td><td>Los sliders escriben en el <code>SimulationConfig</code> del store</td><td class="ruta ts">components/modules/* → store/simulationStore.ts</td></tr>
-<tr><td class="n">2</td><td><code>startRun</code> elige motor: <code>local</code> (default) o <code>api</code></td><td class="ruta ts">store/simulationStore.ts:51</td></tr>
+<tr><td class="n">2</td><td><code>simularTransporte</code> elige motor: <code>local</code> (default) o <code>api</code></td><td class="ruta ts">lib/api.ts:104</td></tr>
 <tr><td class="n">3</td><td>La config se serializa y cruza al Web Worker</td><td class="ruta ts">lib/pyodide-engine.ts → workers/pyodide.worker.ts</td></tr>
-<tr><td class="n">4</td><td>Pydantic valida y construye la ciudad</td><td class="ruta py">config.py:311 → city.py:15</td></tr>
-<tr><td class="n">5</td><td>Se resuelve el uso de suelo y de ahí sale la población</td><td class="ruta py">land_use/ciudad.py:41 → population.py:155</td></tr>
-<tr><td class="n">6</td><td>Los agentes se agrupan en (estrato, celda, auto)</td><td class="ruta py">equilibrium/msa.py:122</td></tr>
-<tr><td class="n">7</td><td><strong>Iteración:</strong> cada grupo calcula utilidades…</td><td class="ruta py">demand/utility.py:60</td></tr>
-<tr><td class="n">8</td><td>…y se reparte según el método elegido</td><td class="ruta py">demand/choice.py:19 · <strong>44</strong> · 100</td></tr>
-<tr><td class="n">9</td><td>La demanda resultante entra a las tres ofertas</td><td class="ruta py">supply/car.py:36 · bike.py:32 · train.py:34</td></tr>
-<tr><td class="n">10</td><td>Los tiempos nuevos se promedian con el paso 1/(it+1)</td><td class="ruta py">equilibrium/msa.py:363</td></tr>
-<tr><td class="n">11</td><td>Se emite un <code>IterationSnapshot</code> y se evalúa el residuo</td><td class="ruta py">equilibrium/msa.py:41</td></tr>
-<tr><td class="n">12</td><td>El snapshot se serializa y vuelve al hilo principal</td><td class="ruta ts">workers/pyodide.worker.ts:155</td></tr>
+<tr><td class="n">4</td><td>Pydantic valida y construye la ciudad</td><td class="ruta py">config.py:314 → city.py:15</td></tr>
+<tr><td class="n">5</td><td>Se resuelve el uso de suelo y de ahí sale la población</td><td class="ruta py">land_use/ciudad.py:40 → population.py:110</td></tr>
+<tr><td class="n">6</td><td>Los agentes se agrupan en (estrato, celda, auto)</td><td class="ruta py">equilibrium/msa.py:109</td></tr>
+<tr><td class="n">7</td><td><strong>Iteración:</strong> cada grupo calcula utilidades…</td><td class="ruta py">demand/utility.py:61</td></tr>
+<tr><td class="n">8</td><td>…y se reparte según el método elegido</td><td class="ruta py">demand/choice.py:19 · <strong>44</strong> · msa.py:207</td></tr>
+<tr><td class="n">9</td><td>La demanda resultante entra a las tres ofertas</td><td class="ruta py">supply/oferta.py:38 → car.py:36 · bike.py:32 · train.py:33</td></tr>
+<tr><td class="n">10</td><td>Los tiempos nuevos se promedian con el paso 1/(it+1)</td><td class="ruta py">equilibrium/msa.py:352</td></tr>
+<tr><td class="n">11</td><td>Se emite un <code>IterationSnapshot</code> y se evalúa el residuo</td><td class="ruta py">equilibrium/msa.py:40</td></tr>
+<tr><td class="n">12</td><td>El snapshot se serializa —en Python, no en el worker— y vuelve al hilo principal</td><td class="ruta py">serializacion.py:181</td></tr>
 <tr><td class="n">13</td><td><code>pushIteration</code> actualiza el store y React repinta <strong>en vivo</strong></td><td class="ruta ts">store/simulationStore.ts</td></tr>
 <tr><td class="n">14</td><td>Al converger, <code>finishRun</code> guarda el resultado completo</td><td class="ruta ts">store/simulationStore.ts</td></tr>
 <tr><td class="n">15</td><td>Las figuras y tablas leen del store</td><td class="ruta ts">components/viz/*</td></tr>
@@ -467,13 +523,18 @@ durante dos iteraciones consecutivas, o hasta agotar <code>max_iter</code>. Con 
 <div class="envoltorio-tabla"><table>
 <thead><tr><th>Suite</th><th>Qué cubre</th><th>Comando</th></tr></thead>
 <tbody>
-<tr><td><strong>60 tests del core</strong><br><span class="mono">tests/test_*.py</span></td><td>Oferta (auto, bici, tren), demanda, todo-o-nada, uso de suelo, acoplado, métricas, emisiones, contrato con el frontend</td><td class="mono">uv run --extra dev pytest -q</td></tr>
-<tr><td><strong>33 e2e</strong><br><span class="mono">apps/web/e2e/</span></td><td>Humo de navegación, tema e idioma, export/share de escenarios, contrato TS↔Python</td><td class="mono">npm run test:e2e:fast</td></tr>
+<tr><td><strong>105 tests del núcleo</strong><br><span class="mono">tests/test_*.py</span></td><td>Oferta (auto, bici, tren), demanda, todo-o-nada, uso de suelo, acoplado, métricas, emisiones, serialización, presets, bienestar</td><td class="mono">uv run --extra dev pytest</td></tr>
+<tr><td><strong>La línea base</strong><br><span class="mono">test_linea_base.py</span></td><td>La corrida por defecto de la app, pineada al 0,1 pp. Es la red que hace seguro refactorizar: si se mueve, el cambio no era estructural</td><td class="mono">(dentro de pytest)</td></tr>
+<tr><td><strong>Este documento</strong><br><span class="mono">test_mapa_arquitectura.py</span></td><td>Que cada «archivo:línea» del índice siga apuntando a donde dice</td><td class="mono">(dentro de pytest)</td></tr>
+<tr><td><strong>58 e2e</strong><br><span class="mono">apps/web/e2e/</span></td><td>Humo de navegación, tema e idioma, export/share de escenarios, y los dos goldens que pinean los espejos TS</td><td class="mono">npm run test:e2e:fast</td></tr>
 <tr><td><span class="mono">simulation.spec.ts</span></td><td>Marcado <code>@slow</code>: corre el MSA real en Pyodide, necesita red (CDN)</td><td class="mono">npm run test:e2e</td></tr>
-<tr><td>Tipos y estilo</td><td>—</td><td class="mono">npm run typecheck · ruff check</td></tr>
+<tr><td>Contrato al día</td><td>Que <code>src/lib/gen/</code> corresponda al Pydantic actual. El CI regenera y exige diff vacío</td><td class="mono">npm run sync:core</td></tr>
+<tr><td>Tipos y estilo</td><td>—</td><td class="mono">npm run typecheck · ruff check · npm run format:check</td></tr>
 </tbody></table>
 <p class="pie-tabla">No hay tests unitarios ni de componente en el frontend: la red de seguridad
-de ese lado es el typecheck más los e2e.</p></div>
+de ese lado es el typecheck, los e2e y —para la matemática— el hecho de que ya casi no queda
+matemática en TypeScript. <strong>Ninguno de estos tests corre en Pyodide</strong>, que es el hueco
+que dejó pasar un piso de <code>pydantic</code> incompatible con la suite entera en verde.</p></div>
 
 <h3>Scripts de auditoría</h3>
 
@@ -498,21 +559,26 @@ Son la memoria reproducible del proyecto: cada número de los informes sale de u
 
 <h3>Verificación completa antes de un commit</h3>
 
-<pre style="font-family:Consolas,monospace;font-size:12.5px;background:var(--paper-2);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:12px 14px;overflow-x:auto;">cd packages/titirilquen_core &amp;&amp; uv run --extra dev pytest -q      <span style="color:#6b6b6b"># 60 tests</span>
-cd apps/web &amp;&amp; npm run typecheck &amp;&amp; npm run test:e2e:fast        <span style="color:#6b6b6b"># tipos + 33 e2e</span>
+<pre style="font-family:Consolas,monospace;font-size:12.5px;background:var(--paper-2);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:12px 14px;overflow-x:auto;"><span style="color:#6b6b6b"># Si tocaste el núcleo, esto PRIMERO: recompila el wheel, regenera el</span>
+<span style="color:#6b6b6b"># contrato TypeScript y los goldens. Nadie más lo hace por vos.</span>
+npm run sync:core --workspace @titirilquen/web
 
-<span style="color:#6b6b6b"># Si tocaste el core, además:</span>
-cd packages/titirilquen_core &amp;&amp; uv build --wheel
-cp dist/titirilquen_core-0.1.0-py3-none-any.whl ../../apps/web/public/pyodide/
+cd packages/titirilquen_core &amp;&amp; uv run --extra dev pytest        <span style="color:#6b6b6b"># 105 tests + línea base</span>
+cd apps/web &amp;&amp; npm run typecheck &amp;&amp; npm run test:e2e:fast        <span style="color:#6b6b6b"># tipos + 58 e2e</span>
+npm run format:check                                              <span style="color:#6b6b6b"># desde la raíz</span></pre>
 
-<span style="color:#6b6b6b"># Si cambiaste un default del core, además:</span>
-uv run python tests/test_contract_frontend.py                     <span style="color:#6b6b6b"># regenera el golden</span></pre>
+<div class="aviso">
+<p><strong>Lo que ningún comando de acá comprueba:</strong> que el navegador siga funcionando. El
+motor por defecto corre en Pyodide, donde no hay tests. Tras un cambio en el núcleo o en la
+frontera, abrir la app y correr una simulación es parte de la verificación, no un lujo.</p>
+</div>
 
 <footer>
-Titirilquen · Mapa de arquitectura · 15 de agosto de 2026 · rama
-<code>ciudad-equilibrio-mejoras</code>.<br>
-Los números de línea corresponden al estado del repositorio en esa fecha y envejecen: para
-localizar algo con certeza, buscar el nombre de la función en vez de saltar a la línea.
+Titirilquen · Mapa de arquitectura · 15 de agosto de 2026, actualizado el 16 tras la cirugía de
+arquitectura · rama <code>ciudad-equilibrio-mejoras</code>.<br>
+Los números de línea de este documento <strong>están verificados</strong> contra el código por
+<code>tools/verifica_mapa.py</code>, que corre en <code>pytest</code>: si envejecen, el test falla.
+Aun así, para localizar algo con certeza conviene buscar el nombre de la función.
 Licencia GPL-3.0-or-later; ver <code>NOTICE.md</code> para la atribución a los autores originales.
 </footer>
 

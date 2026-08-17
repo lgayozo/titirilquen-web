@@ -94,6 +94,11 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   ni el `build`, ni Vercel (su `buildCommand` es `npm run build` a secas). El
   wheel va versionado en el repo justamente por eso. El CI tiene un job
   (`contrato`) que corre `sync:core` y falla si el diff no está vacío.
+- **Si movés una función, `docs/arquitectura.html` puede quedar mintiendo.** Ese
+  documento es el índice «concepto → archivo:línea» del repo y sus punteros están
+  verificados por `tools/verifica_mapa.py`, que corre dentro de `pytest`. Cuando
+  falle, arreglá el número en el HTML (el mensaje dice dónde quedó el símbolo),
+  no el test.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
   defecto de la app da **auto 16,95 · metro 32,79 · bici 22,84 · caminata 7,98**
   (seed 42, tol 0,1) y está pineada en `tests/test_linea_base.py`. Si un cambio
