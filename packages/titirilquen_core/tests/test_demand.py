@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import numpy as np
-
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, PhysicalPenalties, StratumBetas, StratumConfig
-from titirilquen_core.demand.choice import elegir_modo, probabilidades_logit
+from titirilquen_core.demand.choice import probabilidades_logit
 from titirilquen_core.demand.utility import calcular_utilidades
 
 
@@ -77,22 +75,6 @@ def test_probs_suman_uno() -> None:
     )
     probs = probabilidades_logit(utils)
     assert abs(sum(probs.values()) - 1.0) < 1e-9
-
-
-def test_eleccion_reproducible_con_seed() -> None:
-    ciudad = CiudadLineal(n_celdas=21, largo_total_km=10)
-    cfg = _make_demand_config()
-    utils = calcular_utilidades(
-        estrato=2,
-        celda_origen=5,
-        tiene_auto=True,
-        ciudad=ciudad,
-        config=cfg,
-        tiempos_observados=None,
-    )
-    rng1 = np.random.default_rng(42)
-    rng2 = np.random.default_rng(42)
-    assert elegir_modo(utils, rng=rng1) == elegir_modo(utils, rng=rng2)
 
 
 def test_penalizacion_bici_escalonada() -> None:

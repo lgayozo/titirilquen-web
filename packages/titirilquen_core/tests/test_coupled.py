@@ -1,50 +1,25 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
+from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import (
     CityConfig,
     DemandConfig,
-    PhysicalPenalties,
     SimulationConfig,
-    StratumBetas,
-    StratumConfig,
     SupplyConfig,
 )
-from titirilquen_core.coupled import run_coupled
+from titirilquen_core.coupled import _aggregate_T_expected, run_coupled
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 
 
-def _demand_config() -> DemandConfig:
-    penal = PhysicalPenalties(
-        bici_10=-0.09,
-        bici_20=-0.15,
-        bici_30=-0.5,
-        walk_5=-0.09,
-        walk_15=-0.18,
-        walk_25=-0.4,
-    )
-    betas = StratumBetas(
-        asc_auto=1.5,
-        asc_metro=-0.2,
-        asc_bici=-0.9,
-        asc_caminata=-0.5,
-        b_tiempo_viaje=-0.055,
-        b_costo=-0.00008,
-        b_tiempo_espera=-0.05,
-        b_tiempo_acceso=-0.15,
-        b_tiempo_caminata=-0.15,
-        penalizaciones_fisicas=penal,
-    )
-    s = StratumConfig(prob_teletrabajo=0.2, prob_auto=0.6, betas=betas)
-    return DemandConfig(estratos={1: s, 2: s, 3: s})
-
-
-def _sim_small() -> SimulationConfig:
+def _sim_small(demanda_sintetica: DemandConfig) -> SimulationConfig:
     return SimulationConfig(
         city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_hab_km=50),
         supply=SupplyConfig(),
-        demand=_demand_config(),
+        demand=demanda_sintetica,
         max_iter=3,
         seed=42,
     )
@@ -62,9 +37,9 @@ def _land_use_config() -> LandUseConfig:
     )
 
 
-def test_coupled_run_basic() -> None:
+def test_coupled_run_basic(demanda_sintetica: DemandConfig) -> None:
     res = run_coupled(
-        sim=_sim_small(),
+        sim=_sim_small(demanda_sintetica),
         land_use_config=_land_use_config(),
         outer_max_iter=2,
         outer_tol=0.1,
@@ -81,9 +56,9 @@ def test_coupled_run_basic() -> None:
     assert len(res.final_agents) == hogares_no_cbd
 
 
-def test_coupled_T_matrix_shape() -> None:
+def test_coupled_T_matrix_shape(demanda_sintetica: DemandConfig) -> None:
     res = run_coupled(
-        sim=_sim_small(),
+        sim=_sim_small(demanda_sintetica),
         land_use_config=_land_use_config(),
         outer_max_iter=1,
     )
@@ -92,10 +67,10 @@ def test_coupled_T_matrix_shape() -> None:
     assert np.all(np.isfinite(T))
 
 
-def test_coupled_residual_decreases_o_converge() -> None:
+def test_coupled_residual_decreases_o_converge(demanda_sintetica: DemandConfig) -> None:
     """El residuo exterior debería disminuir entre iteraciones o converger."""
     res = run_coupled(
-        sim=_sim_small(),
+        sim=_sim_small(demanda_sintetica),
         land_use_config=_land_use_config(),
         outer_max_iter=3,
         outer_tol=0.01,
@@ -103,3 +78,71 @@ def test_coupled_residual_decreases_o_converge() -> None:
     residuals = [it.T_residual for it in res.iterations if it.T_residual != float("inf")]
     # Al menos una iteración con residuo medible
     assert len(residuals) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Accesibilidad: la decisión D-22
+# ---------------------------------------------------------------------------
+
+
+def test_la_accesibilidad_es_comun_a_los_estratos(demanda_sintetica: DemandConfig) -> None:
+    """`T[h, i]` es igual para los tres estratos: la accesibilidad la define la
+    UBICACIÓN, no quién vive ahí.
+
+    No es un detalle de implementación. Si cada estrato tuviera su propia T, el
+    bid-rent se invertiría: el estrato alto —que valora más el tiempo— vería
+    tiempos distintos y pujaría distinto por la misma parcela, y el modelo
+    terminaría explicando la segregación con un artefacto en vez de con las
+    preferencias. Son 100 líneas de `coupled.py` que hasta ahora no tocaba
+    ningún test.
+    """
+    sim = SimulationConfig(
+        city=CityConfig(n_celdas=41, largo_ciudad_km=8, densidad_hab_km=300),
+        supply=SupplyConfig(),
+        demand=demanda_sintetica,
+        max_iter=2,
+        seed=11,
+        assignment="expected",
+    )
+    ciudad = CiudadLineal(n_celdas=41, largo_total_km=8)
+    trace = ConvergenceTrace()
+    for _ in iter_msa(sim, trace):
+        pass
+
+    T = _aggregate_T_expected(
+        sim, ciudad, trace.iteraciones[-1], n_strata=3, cbd_index=ciudad.cbd_index
+    )
+    assert T.shape == (3, 41)
+    assert np.allclose(T[0], T[1]) and np.allclose(T[1], T[2])
+    # Y crece con la distancia: el CBD es el mínimo.
+    assert T[0, ciudad.cbd_index] == pytest.approx(T[0].min())
+    assert T[0, 0] > T[0, ciudad.cbd_index]
+
+
+def test_la_accesibilidad_pondera_por_poblacion(demanda_sintetica: DemandConfig) -> None:
+    """La media entre estratos va ponderada por cuánta gente hay en cada uno.
+
+    Con los tres estratos idénticos el resultado no puede depender de los pesos;
+    ése es justamente el control que hace significativa la comparación.
+    """
+    sim = SimulationConfig(
+        city=CityConfig(n_celdas=41, largo_ciudad_km=8, densidad_hab_km=300),
+        supply=SupplyConfig(),
+        demand=demanda_sintetica,
+        max_iter=2,
+        seed=11,
+        assignment="expected",
+    )
+    ciudad = CiudadLineal(n_celdas=41, largo_total_km=8)
+    trace = ConvergenceTrace()
+    for _ in iter_msa(sim, trace):
+        pass
+    snap = trace.iteraciones[-1]
+
+    simple = _aggregate_T_expected(sim, ciudad, snap, 3, ciudad.cbd_index)
+    sesgada = _aggregate_T_expected(
+        sim, ciudad, snap, 3, ciudad.cbd_index, H_por_estrato=np.array([1.0, 1.0, 98.0])
+    )
+    assert np.allclose(simple, sesgada), (
+        "con estratos idénticos la ponderación no debería cambiar nada"
+    )
