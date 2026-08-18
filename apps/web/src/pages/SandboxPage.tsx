@@ -32,6 +32,7 @@ import { ReferenceComparison } from "@/components/viz/ReferenceComparison";
 import type { StatBar } from "@/lib/tipos-ui";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import {
+  CargaDeRed,
   TransportMetricsTable,
   type TransportMetricsData,
 } from "@/components/viz/TransportMetricsTable";
@@ -1029,6 +1030,26 @@ export function SandboxPage() {
           </div>
         </div>
 
+        {/* Si la corrida NO convergió, el aviso va ANTES de los números y no
+            solo en el veredicto de más abajo. El orden de la página dice que
+            primero se valida y después se lee, pero los KPI son lo primero que
+            entra por los ojos: sin esta marca, el alumno lee seis cifras como
+            si fueran un equilibrio y recién 500 px más abajo se entera de que
+            no lo son. */}
+        {hasData && convergencia && !convergencia.ok && (
+          <p
+            className="mb-2 font-fig text-[11px] uppercase leading-snug tracking-[0.08em]"
+            style={{
+              color: "var(--s1)",
+              border: "1px solid var(--s1)",
+              padding: "6px 10px",
+            }}
+            role="status"
+          >
+            {t("equilibrium.kpis_sin_equilibrio")}
+          </p>
+        )}
+
         {/* KPIs — el resultado en una línea: viajes, reparto modal, frecuencia
             y CO₂. Convergencia y residuo los dice el veredicto. */}
         <KPIStrip items={kpis} />
@@ -1168,7 +1189,7 @@ export function SandboxPage() {
                 de lectura (ciudad completa). */}
             {transportMetrics && (
               <Panel
-                title={t("metrics_table.title")}
+                title={t("metrics_table.panel_title")}
                 meta={t("metrics_table.meta")}
                 cls="col-12"
               >
@@ -1184,6 +1205,18 @@ export function SandboxPage() {
                 meta={t("panel_meta.modes_all")}
                 cls="col-12"
               >
+                {/* El v/c de los tres modos congestionables es el resumen
+                    numérico de esta misma figura, así que va acá y no dentro
+                    del panel de tablas, donde estaba. */}
+                {transportMetrics && (
+                  <div className="mb-3">
+                    <CargaDeRed
+                      vcAuto={transportMetrics.vcAuto}
+                      vcMetro={transportMetrics.vcMetro}
+                      vcBici={transportMetrics.vcBici}
+                    />
+                  </div>
+                )}
                 <NetworkDiagram
                   snapshot={lastIter}
                   result={result}
@@ -1267,6 +1300,11 @@ export function SandboxPage() {
 
             {result && result.agentes.length > 0 && (
               <>
+                {/* FIG. 03 no es espacial (reparto agregado por estrato), así
+                    que puede ir angosta. FIG. 04 sí lo es y pasó a col-12: en
+                    col-5 quedaba con 387 px de área de datos contra los ~930 de
+                    las demás figuras del mismo eje, o sea 2,6× más comprimida, y
+                    era imposible leerla en columna con ellas. */}
                 <Panel
                   n="03"
                   title={t("sandbox.trips_by_stratum")}
@@ -1285,8 +1323,8 @@ export function SandboxPage() {
                 <Panel
                   n="04"
                   title={t("sandbox.mode_share_by_location")}
-                  meta="stacked · 100%"
-                  cls="col-5"
+                  meta={t("panel_meta.stacked_por_celda")}
+                  cls="col-12"
                 >
                   <ExportableFigure
                     name="reparto-modal-por-ubicacion"

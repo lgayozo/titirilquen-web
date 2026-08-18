@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
+import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
 
 interface FlowProfileProps {
   flows: readonly number[];
@@ -25,7 +26,14 @@ interface FlowProfileProps {
   className?: string;
 }
 
-const MARGIN = { top: 16, right: 10, bottom: 18, left: 40 };
+// El eje horizontal lo fija `EJE_ESPACIAL` para que esta figura alinee
+// columna a columna con las demás del mismo eje (ver lib/ejeEspacial.ts).
+const MARGIN = {
+  top: 16,
+  bottom: 18,
+  left: EJE_ESPACIAL.left,
+  right: EJE_ESPACIAL.right,
+};
 
 /**
  * Perfil de demanda **por celda** de origen a lo largo de la ciudad.

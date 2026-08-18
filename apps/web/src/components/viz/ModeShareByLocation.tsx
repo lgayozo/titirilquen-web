@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 import type { Modo } from "@/lib/types";
 import { COLOR_MODO } from "@/lib/modos";
+import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
 
 interface ModeShareByLocationProps {
   /** Flujo por celda de origen de cada modo de viaje. Con asignación
@@ -21,7 +22,11 @@ interface ModeShareByLocationProps {
    *  aparece en `demandByCell`). */
   teleByCell: readonly number[];
   largoKm: number;
-  nBins?: number;
+  /** Celdas por barra. `1` —el default— dibuja una barra por celda, que es la
+   *  misma resolución que usan las demás figuras del eje espacial. Agrupar de a
+   *  varias suaviza el apilado, pero deja esta figura con una unidad distinta de
+   *  las otras sin que nada lo diga en pantalla. */
+  celdasPorBarra?: number;
   height?: number;
   className?: string;
   /** Si `true`, normaliza cada bin a 100 % (reparto relativo). Si `false`, el
@@ -30,7 +35,15 @@ interface ModeShareByLocationProps {
 }
 
 const MODE_ORDER: Modo[] = ["Teletrabajo", "Caminata", "Bici", "Metro", "Auto"];
-const MARGIN = { top: 8, right: 10, bottom: 16, left: 34 };
+// El eje horizontal lo fija `EJE_ESPACIAL` (ver lib/ejeEspacial.ts). Antes esta
+// figura traía `left: 34`, así que el CBD caía 20 px a la izquierda del de las
+// otras figuras del mismo eje y no se podían leer en columna.
+const MARGIN = {
+  top: 8,
+  bottom: 16,
+  left: EJE_ESPACIAL.left,
+  right: EJE_ESPACIAL.right,
+};
 const LEGEND_H = 20;
 
 /**
@@ -42,14 +55,17 @@ export function ModeShareByLocation({
   demandByCell,
   teleByCell,
   largoKm,
-  nBins = 48,
+  celdasPorBarra = 1,
   height = 200,
   className,
   normalize = true,
 }: ModeShareByLocationProps) {
   const { t } = useTranslation("simulator");
   const nCeldas = teleByCell.length;
-  const binWidth = nCeldas / nBins;
+  // Con `celdasPorBarra = 1` hay tantas barras como celdas y el índice de barra
+  // ES el de la celda: la figura queda en la misma unidad que FIG. 00/01/02.
+  const binWidth = Math.max(1, celdasPorBarra);
+  const nBins = Math.max(1, Math.ceil(nCeldas / binWidth));
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(480);
@@ -140,11 +156,19 @@ export function ModeShareByLocation({
           );
         })}
 
-        {/* Barras apiladas */}
+        {/* Barras apiladas. El gap entre barras solo se dibuja si hay lugar: con
+            una barra por celda (201 sobre ~930 px) cada una mide ~4,6 px y un
+            8 % de gap produce un rayado de moiré que compite con los datos. */}
         {data.bins.map((bin, i) => {
           const total = data.totals[i] ?? 0;
           if (total === 0) return null;
           const totalH = (normalize ? 1 : total / data.maxTotal) * plotH;
+          const gap = barW > 6 ? barW * 0.08 : 0;
+          // Posición física del centro de la barra, para el tooltip.
+          const km =
+            nCeldas > 1
+              ? ((i * binWidth + (binWidth - 1) / 2) / (nCeldas - 1)) * largoKm
+              : 0;
           let yCursor = yFloor;
           return (
             <g key={i}>
@@ -156,14 +180,14 @@ export function ModeShareByLocation({
                 return (
                   <rect
                     key={m}
-                    x={MARGIN.left + i * barW + barW * 0.08}
+                    x={MARGIN.left + i * barW + gap}
                     y={yCursor}
-                    width={Math.max(barW * 0.84, 0.4)}
+                    width={Math.max(barW - 2 * gap, 0.4)}
                     height={h}
                     fill={COLOR_MODO[m]}
                     opacity={0.92}
                   >
-                    <title>{`${t(`modes.${m.toLowerCase()}`)} — bin ${i}: ${Math.round(count)} (${((count / total) * 100).toFixed(1)}%)`}</title>
+                    <title>{`${t(`modes.${m.toLowerCase()}`)} — km ${km.toFixed(1)}: ${Math.round(count)} (${((count / total) * 100).toFixed(1)}%)`}</title>
                   </rect>
                 );
               })}

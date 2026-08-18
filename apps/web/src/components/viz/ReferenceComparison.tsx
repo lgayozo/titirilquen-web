@@ -166,16 +166,29 @@ export function ReferenceComparison({ config, result, reference }: Props) {
         {reference ? t("agg.intro_con_ref") : t("agg.intro_sin_ref")}
       </p>
       <table className="w-full text-sm">
+        {/* Número y nombre, igual que las figuras llevan `FIG. NN`: sin esto la
+            tabla no se puede citar en una guía de clase. */}
+        <caption className="pb-1.5 text-left font-fig text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">
+          {t("agg.caption")}
+        </caption>
         <thead>
           <tr className="border-b border-[var(--rule)] text-[11px] uppercase tracking-wide text-[var(--muted)]">
-            <th className="py-1 text-left font-normal">{t("agg.metrica")}</th>
+            <th scope="col" className="py-1 text-left font-normal">
+              {t("agg.metrica")}
+            </th>
             {reference && (
-              <th className="py-1 text-right font-normal">
+              <th scope="col" className="py-1 text-right font-normal">
                 {t("agg.referencia")}
               </th>
             )}
-            <th className="py-1 text-right font-normal">{t("agg.actual")}</th>
-            {reference && <th className="py-1 text-right font-normal">Δ</th>}
+            <th scope="col" className="py-1 text-right font-normal">
+              {t("agg.actual")}
+            </th>
+            {reference && (
+              <th scope="col" className="py-1 text-right font-normal">
+                Δ
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -185,7 +198,7 @@ export function ReferenceComparison({ config, result, reference }: Props) {
             const bueno = d == null ? false : f.menorEsMejor ? d < 0 : d > 0;
             return (
               <tr key={f.label} className="border-t border-[var(--rule)]">
-                <td className="py-1 pr-2">
+                <td className="py-1 pr-2 text-left">
                   {f.label}
                   {f.nota && (
                     <span className="ml-1 text-[10px] text-[var(--muted)]">

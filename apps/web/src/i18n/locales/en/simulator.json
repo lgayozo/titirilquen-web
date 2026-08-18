@@ -109,7 +109,8 @@
     "modo_auto": "Car",
     "modo_metro": "Metro",
     "modo_bici": "Bike",
-    "modo_caminata": "Walk"
+    "modo_caminata": "Walk",
+    "kpis_sin_equilibrio": "⚠ The run did not converge: the figures below are NOT an equilibrium and cannot be used to compare scenarios. See the verdict further down."
   },
   "run_status": {
     "booting_pyodide": "Initializing Pyodide…",
@@ -182,7 +183,7 @@
   },
   "metrics_table": {
     "title": "Metrics table",
-    "meta": "equilibrium summary · CSV export",
+    "meta": "city-wide · by mode · by stratum",
     "export_csv": "Export CSV",
     "trips": "Physical trips",
     "sys_time": "Avg time",
@@ -215,7 +216,10 @@
     "vc_metro": "v/c metro",
     "vc_metro_sub": "demand/supply · 1 = adjusts",
     "network_load": "Network load",
-    "network_load_note": "Car and bike: peak corridor flow over capacity; >1 means running above capacity. Metro differs: frequency adapts to demand (f_op = load/K), so its ratio is 1 unless the frec_max ceiling or frec_min floor binds — >1 means insufficient frequency, not crowding (the model has no in-vehicle crowding penalty). All three respond to population, prices and capacity, NOT to city length: in a monocentric city the section next to the CBD carries about half the trips regardless of extent."
+    "network_load_note": "Car and bike: peak corridor flow over capacity; >1 means running above capacity. Metro differs: frequency adapts to demand (f_op = load/K), so its ratio is 1 unless the frec_max ceiling or frec_min floor binds — >1 means insufficient frequency, not crowding (the model has no in-vehicle crowding penalty). All three respond to population, prices and capacity, NOT to city length: in a monocentric city the section next to the CBD carries about half the trips regardless of extent.",
+    "cap_modo": "Table 2 · Mean travel time by mode",
+    "cap_estrato": "Table 3 · Results by socioeconomic stratum",
+    "panel_title": "Equilibrium results"
   },
   "hero": {
     "title": "The linear city",
@@ -783,7 +787,8 @@
     "ownership_stratum": "ownership · stratum",
     "utility_position": "utility · position",
     "avg_min": "average · min",
-    "avg_util": "average · util"
+    "avg_util": "average · util",
+    "stacked_por_celda": "stacked 100% · one bar per cell"
   },
   "stale": {
     "banner": "Stale result: the configuration changed since this run. The figures show the previous scenario.",
@@ -821,6 +826,7 @@
     "costo_operador": "Metro operating cost",
     "costo_operador_nota": "({{km}} train-km/h · ×{{f}} day/peak · PROVISIONAL values)",
     "subsidio": "Required subsidy (cost − fare revenue)",
-    "subsidio_nota": "(negative ⇒ the service self-finances)"
+    "subsidio_nota": "(negative ⇒ the service self-finances)",
+    "caption": "Table 1 · City-wide aggregates"
   }
 }

@@ -70,6 +70,71 @@ const fmtRatio = (v: number | null) => (v == null ? "—" : `${v.toFixed(2)}×`)
  * escenario y se exporta a CSV para comparar escenarios y estimar
  * beneficios/desbeneficios sociales aguas abajo.
  */
+/** Las tablas llevan número y nombre igual que las figuras llevan `FIG. NN`.
+ *  Sin eso no se pueden citar en una guía de clase: «miren la tabla 2» no tenía
+ *  referente, mientras que «miren la FIG. 04» sí. */
+const captionStyle: React.CSSProperties = {
+  captionSide: "top",
+  textAlign: "left",
+  padding: "0 14px 6px",
+  fontFamily: "var(--font-fig)",
+  fontSize: 10,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "var(--muted)",
+};
+
+/**
+ * Los tres v/c de los modos con oferta congestionable.
+ *
+ * Vivía dentro de `TransportMetricsTable`, o sea dentro del panel de tablas,
+ * cuando es el resumen numérico EXACTO de lo que dibuja la FIG. 00 (saturación
+ * por tramo). Separado, puede ir al lado de su figura: el número y el dibujo de
+ * lo mismo, juntos.
+ *
+ * Miden otra cosa que los KPI de escenario: responden a población, precios y
+ * capacidad, NO a la forma urbana — en una ciudad monocéntrica el tramo junto al
+ * CBD carga ~la mitad de los viajes sea cual sea el largo.
+ */
+export function CargaDeRed({
+  vcAuto,
+  vcMetro,
+  vcBici,
+}: {
+  vcAuto: number | null;
+  vcMetro: number | null;
+  vcBici: number | null;
+}) {
+  const { t } = useTranslation("simulator");
+  return (
+    <>
+      <div className="eqt-sys-grid">
+        <Stat
+          label={t("metrics_table.vc_auto")}
+          value={fmtRatio(vcAuto)}
+          sub={t("metrics_table.vc_sub")}
+          warn={(vcAuto ?? 0) > 1}
+        />
+        <Stat
+          label={t("metrics_table.vc_metro")}
+          value={fmtRatio(vcMetro)}
+          sub={t("metrics_table.vc_metro_sub")}
+          warn={(vcMetro ?? 0) > 1}
+        />
+        <Stat
+          label={t("metrics_table.vc_bici")}
+          value={fmtRatio(vcBici)}
+          sub={t("metrics_table.vc_sub")}
+          warn={(vcBici ?? 0) > 1}
+        />
+      </div>
+      <p style={{ ...fig(10), padding: "6px 0 0", lineHeight: 1.5 }}>
+        {t("metrics_table.network_load_note")}
+      </p>
+    </>
+  );
+}
+
 export function TransportMetricsTable({ data, className }: Props) {
   const { t } = useTranslation("simulator");
 
@@ -253,37 +318,6 @@ export function TransportMetricsTable({ data, className }: Props) {
           agregados. Todas siguen en el CSV, que es un volcado y no una
           superficie de lectura. Queda lo que no se repite en ninguna parte. */}
 
-      {/* ---- Carga de la red: los tres modos con oferta congestionable ----
-           Agrupados aparte de los KPI de escenario porque miden otra cosa:
-           responden a población, precios y capacidad, NO a la forma urbana (en
-           una ciudad monocéntrica el tramo junto al CBD carga ~la mitad de los
-           viajes sea cual sea el largo). Antes se mostraban solo auto y bici
-           mezclados con el resto, sin el metro y sin esa aclaración. */}
-      <SectionHead>{t("metrics_table.network_load")}</SectionHead>
-      <div className="eqt-sys-grid">
-        <Stat
-          label={t("metrics_table.vc_auto")}
-          value={fmtRatio(data.vcAuto)}
-          sub={t("metrics_table.vc_sub")}
-          warn={(data.vcAuto ?? 0) > 1}
-        />
-        <Stat
-          label={t("metrics_table.vc_metro")}
-          value={fmtRatio(data.vcMetro)}
-          sub={t("metrics_table.vc_metro_sub")}
-          warn={(data.vcMetro ?? 0) > 1}
-        />
-        <Stat
-          label={t("metrics_table.vc_bici")}
-          value={fmtRatio(data.vcBici)}
-          sub={t("metrics_table.vc_sub")}
-          warn={(data.vcBici ?? 0) > 1}
-        />
-      </div>
-      <p style={{ ...fig(10), padding: "6px 14px 0", lineHeight: 1.5 }}>
-        {t("metrics_table.network_load_note")}
-      </p>
-
       {/* ---- Tiempo medio por modo ----
            Antes esta sección abría con share % y viajes por modo, que son
            exactamente los cinco KPI del encabezado de la página. Queda el
@@ -291,9 +325,11 @@ export function TransportMetricsTable({ data, className }: Props) {
       <SectionHead>{t("metrics_table.time_section")}</SectionHead>
       <div style={{ overflowX: "auto" }}>
         <table style={tableStyle}>
+          <caption style={captionStyle}>{t("metrics_table.cap_modo")}</caption>
           <thead>
             <tr>
               <th
+                scope="col"
                 style={{
                   ...fig(10),
                   textAlign: "left",
@@ -305,6 +341,7 @@ export function TransportMetricsTable({ data, className }: Props) {
               </th>
               {data.reparto.map((m) => (
                 <th
+                  scope="col"
                   key={m.modo}
                   style={{
                     ...fig(11, "var(--ink)"),
@@ -354,9 +391,13 @@ export function TransportMetricsTable({ data, className }: Props) {
       <SectionHead>{t("metrics_table.per_stratum")}</SectionHead>
       <div style={{ overflowX: "auto" }}>
         <table style={tableStyle}>
+          <caption style={captionStyle}>
+            {t("metrics_table.cap_estrato")}
+          </caption>
           <thead>
             <tr>
               <th
+                scope="col"
                 style={{
                   ...fig(10),
                   textAlign: "left",
@@ -368,6 +409,7 @@ export function TransportMetricsTable({ data, className }: Props) {
               </th>
               {data.porEstrato.map((s) => (
                 <th
+                  scope="col"
                   key={s.key}
                   style={{
                     ...fig(11, "var(--ink)"),

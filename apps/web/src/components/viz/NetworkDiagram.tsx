@@ -7,6 +7,7 @@ import type {
   SimulationConfig,
   SimulationResult,
 } from "@/lib/types";
+import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
 
 interface NetworkDiagramProps {
   snapshot: IterationSnapshot;
@@ -15,7 +16,19 @@ interface NetworkDiagramProps {
   className?: string;
 }
 
-const MARGIN = { top: 24, right: 16, bottom: 34, left: 82 };
+// El eje horizontal lo fija `EJE_ESPACIAL` (ver lib/ejeEspacial.ts): esta
+// figura era la que definía el margen mayor, y ahora lo comparte en vez de
+// declararlo por su cuenta.
+const MARGIN = {
+  top: 24,
+  // 44 y no 34: el título del eje va centrado en `H - 4` y los ticks en
+  // `H - bottom + 20`, así que con 34 el tick del centro —el del CBD— caía a
+  // 10 px del título y sus cajas se solapaban («10» encima de «Posición (km)»).
+  // Medido: tick y 308-321 contra título y 318-331.
+  bottom: 44,
+  left: EJE_ESPACIAL.left,
+  right: EJE_ESPACIAL.right,
+};
 
 /**
  * Red vial completa de la ciudad lineal. Muestra las 3 redes (auto, metro,

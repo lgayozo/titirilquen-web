@@ -109,7 +109,8 @@
     "modo_auto": "Auto",
     "modo_metro": "Metro",
     "modo_bici": "Bici",
-    "modo_caminata": "Caminata"
+    "modo_caminata": "Caminata",
+    "kpis_sin_equilibrio": "⚠ La corrida no convergió: las cifras de abajo NO son un equilibrio y no sirven para comparar escenarios. Ver el veredicto más abajo."
   },
   "run_status": {
     "booting_pyodide": "Inicializando Pyodide…",
@@ -182,7 +183,7 @@
   },
   "metrics_table": {
     "title": "Tabla de métricas",
-    "meta": "resumen del equilibrio · export CSV",
+    "meta": "ciudad completa · por modo · por estrato",
     "export_csv": "Exportar CSV",
     "trips": "Viajes físicos",
     "sys_time": "Tiempo medio",
@@ -215,7 +216,10 @@
     "vc_metro": "v/c metro",
     "vc_metro_sub": "demanda/oferta · 1 = se ajusta",
     "network_load": "Carga de la red",
-    "network_load_note": "Auto y bici: flujo máximo del corredor sobre la capacidad; >1 ⇒ opera sobre capacidad. El metro es distinto: ajusta la frecuencia a la demanda (f_op = carga/K), así que su cociente vale 1 salvo que el tope frec_max o el piso frec_min esté activo — >1 significa frecuencia insuficiente, no hacinamiento (el modelo no penaliza el hacinamiento en vehículo). Los tres responden a población, precios y capacidad, NO al largo de la ciudad: en una ciudad monocéntrica el tramo junto al CBD carga aproximadamente la mitad de los viajes sea cual sea la extensión."
+    "network_load_note": "Auto y bici: flujo máximo del corredor sobre la capacidad; >1 ⇒ opera sobre capacidad. El metro es distinto: ajusta la frecuencia a la demanda (f_op = carga/K), así que su cociente vale 1 salvo que el tope frec_max o el piso frec_min esté activo — >1 significa frecuencia insuficiente, no hacinamiento (el modelo no penaliza el hacinamiento en vehículo). Los tres responden a población, precios y capacidad, NO al largo de la ciudad: en una ciudad monocéntrica el tramo junto al CBD carga aproximadamente la mitad de los viajes sea cual sea la extensión.",
+    "cap_modo": "Tabla 2 · Tiempo medio de viaje por modo",
+    "cap_estrato": "Tabla 3 · Resultados por estrato socioeconómico",
+    "panel_title": "Resultados del equilibrio"
   },
   "hero": {
     "title": "La ciudad lineal",
@@ -783,7 +787,8 @@
     "ownership_stratum": "tenencia · estrato",
     "utility_position": "utilidad · posición",
     "avg_min": "promedio · min",
-    "avg_util": "promedio · util"
+    "avg_util": "promedio · util",
+    "stacked_por_celda": "apilado 100% · una barra por celda"
   },
   "stale": {
     "banner": "Resultado desactualizado: la configuración cambió desde esta corrida. Las figuras muestran el escenario anterior.",
@@ -821,6 +826,7 @@
     "costo_operador": "Costo de operación del metro",
     "costo_operador_nota": "({{km}} tren-km/h · ×{{f}} día/punta · valores PROVISORIOS)",
     "subsidio": "Subsidio requerido (costo − tarifa)",
-    "subsidio_nota": "(negativo ⇒ el servicio se autofinancia)"
+    "subsidio_nota": "(negativo ⇒ el servicio se autofinancia)",
+    "caption": "Tabla 1 · Agregados de ciudad completa"
   }
 }
