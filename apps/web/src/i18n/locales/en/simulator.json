@@ -26,25 +26,25 @@
     "n_celdas": "Number of cells",
     "n_parcelas": "Number of parcels",
     "pendiente_porcentaje": "Slope (%)",
-    "teletrabajo_factor": "Remote-work factor",
     "cbd_label": "{{n}} cells · CBD at center",
     "density_unit": "pop/km",
     "n_celdas_hint": "Spatial resolution: more cells = smoother profiles but slower simulation. Does not change the model physics (population is set by density × length).",
     "n_parcelas_hint": "Each parcel ≈ {{dx}} m wide (Δx = length/n). More parcels = higher spatial resolution (slower simulation). Total population is set by density × length, so it does NOT change with n.",
     "densidad_hint": "≈ {{cuadra}} households per 100 m block · total population = density × length = {{total}}. Very high values saturate the network (gridlock).",
     "pendiente_hint": "Corridor slope: it slows the bike toward the CBD (uphill) and favors it on the way back.",
-    "teletrabajo_hint": "Scales each stratum's remote-work probability: those agents don't travel and leave the peak demand.",
     "densidad_hab_km": "Density (pop/km)",
     "meta": "{{km}} km · {{n}} parcels",
     "land_use_note": "Stratum composition and density are defined in Land Use and feed this simulation (per-stratum density → per-cell density).",
-    "defined_in_land_use": "The city (length, cells, slope, remote-work, density and strata) is defined in Land Use and feeds this simulation.",
+    "defined_in_land_use": "The city (length, cells, slope, density and strata) is defined in Land Use and feeds this simulation.",
     "largo_hint": "Population fixed ({{pob}} hh): changing the length recomputes density (now {{rho}} pop/km)."
   },
   "economy_params": {
     "tarifa_metro": "Metro fare",
     "parking": "Parking",
     "bencina": "Fuel",
-    "bencina_hint": "Small effect: drivers (high-income) are insensitive to per-km cost. To discourage cars, use parking (fixed cost) or road pricing."
+    "bencina_hint": "Small effect: drivers (high-income) are insensitive to per-km cost. To discourage cars, use parking (fixed cost) or road pricing.",
+    "teletrabajo_factor": "Telework factor",
+    "teletrabajo_hint": "Scales each stratum’s telework rate (the base rate is set in Calibration). Those agents do not travel and leave peak demand: it is the only lever here that removes trips rather than reassigning them between modes."
   },
   "supply_params": {
     "bike": {
@@ -268,7 +268,7 @@
     "g_penal": "Physical penalties",
     "g_penal_hint": "Additive, cumulative and triggered by MINUTE thresholds: a 25-min bike trip adds both the 10-min and the 20-min penalty. Above 45 min cycling is infeasible; walking, above 30 min.",
     "g_poblacion": "Population",
-    "prob_teletrabajo_hint": "Base rate for the stratum. The telework policy is the multiplier, in Land Use.",
+    "prob_teletrabajo_hint": "Base rate for the stratum. The telework policy is the multiplier, under “Economy”.",
     "reset": "Restore the stratum's default values",
     "p": {
       "asc_auto": "ASC car",

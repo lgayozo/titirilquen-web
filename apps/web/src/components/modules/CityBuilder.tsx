@@ -75,15 +75,12 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           hint={t("city_params.pendiente_hint")}
           onChange={(v) => setCity({ pendiente_porcentaje: v })}
         />
-        <LabeledSlider
-          label={t("city_params.teletrabajo_factor")}
-          value={config.city.teletrabajo_factor}
-          min={0}
-          max={2}
-          step={0.1}
-          hint={t("city_params.teletrabajo_hint")}
-          onChange={(v) => setCity({ teletrabajo_factor: v })}
-        />
+        {/* El factor de teletrabajo NO está acá: vive en «Economía», dentro de
+            Transporte. Es una política de gestión de demanda —saca viajes de la
+            punta— y no un atributo de la forma urbana, así que estaba a una
+            página de distancia de las otras palancas (tarifa, parking, pistas).
+            El campo del schema sigue siendo `city.teletrabajo_factor`; lo que se
+            movió es dónde se edita. */}
       </CollapsibleSection>
     </>
   );

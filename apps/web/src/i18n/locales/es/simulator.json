@@ -26,25 +26,25 @@
     "n_celdas": "Número de celdas",
     "n_parcelas": "Número de parcelas",
     "pendiente_porcentaje": "Pendiente (%)",
-    "teletrabajo_factor": "Factor de teletrabajo",
     "cbd_label": "{{n}} celdas · CBD al centro",
     "density_unit": "hab/km",
     "n_celdas_hint": "Resolución espacial: más celdas = perfiles más suaves pero simulación más lenta. No cambia la física del modelo (la población la fija la densidad × largo).",
     "n_parcelas_hint": "Cada parcela ≈ {{dx}} m de ancho (Δx = largo/n). Más parcelas = mayor resolución espacial (simulación más lenta). La población total la fija la densidad × largo, así que NO cambia con n.",
     "densidad_hint": "≈ {{cuadra}} hogares por cuadra de 100 m · población total = densidad × largo = {{total}}. Valores muy altos saturan la red (gridlock).",
     "pendiente_hint": "Pendiente del corredor: castiga la velocidad de la bici hacia el CBD (subida) y la favorece de vuelta.",
-    "teletrabajo_hint": "Escala la probabilidad de teletrabajar de cada estrato: esos agentes no viajan y salen de la demanda de punta.",
     "densidad_hab_km": "Densidad (hab/km)",
     "meta": "{{km}} km · {{n}} parcelas",
     "land_use_note": "La composición de estratos y la densidad se definen en Uso de Suelo y alimentan esta simulación (densidad por estrato → densidad por celda).",
-    "defined_in_land_use": "La ciudad (largo, celdas, pendiente, teletrabajo, densidad y estratos) se define en Uso de Suelo y alimenta esta simulación.",
+    "defined_in_land_use": "La ciudad (largo, celdas, pendiente, densidad y estratos) se define en Uso de Suelo y alimenta esta simulación.",
     "largo_hint": "Población fija ({{pob}} hog): al cambiar el largo, la densidad se recalcula (hoy {{rho}} hab/km)."
   },
   "economy_params": {
     "tarifa_metro": "Tarifa Metro",
     "parking": "Estacionamiento",
     "bencina": "Bencina",
-    "bencina_hint": "Efecto chico: quien maneja (estratos altos) es poco sensible al costo por km. Para desincentivar el auto, usá el parking (costo fijo) o la tarificación."
+    "bencina_hint": "Efecto chico: quien maneja (estratos altos) es poco sensible al costo por km. Para desincentivar el auto, usá el parking (costo fijo) o la tarificación.",
+    "teletrabajo_factor": "Factor de teletrabajo",
+    "teletrabajo_hint": "Escala la tasa de teletrabajo de cada estrato (la base se ajusta en Calibración). Esos agentes no viajan y salen de la demanda de punta: es la única palanca acá que reduce viajes en vez de reasignarlos entre modos."
   },
   "supply_params": {
     "bike": {
@@ -268,7 +268,7 @@
     "g_penal": "Penalizaciones físicas",
     "g_penal_hint": "Aditivas, acumulativas y por umbral de MINUTOS: un viaje en bici de 25 min suma la de 10 y la de 20. Sobre 45 min la bici es infactible; la caminata, sobre 30 min.",
     "g_poblacion": "Población",
-    "prob_teletrabajo_hint": "Tasa base del estrato. La política de teletrabajo es el factor multiplicador que está en Uso de Suelo.",
+    "prob_teletrabajo_hint": "Tasa base del estrato. La política de teletrabajo es el factor multiplicador, en «Economía».",
     "reset": "Restaurar valores por defecto del estrato",
     "p": {
       "asc_auto": "ASC auto",

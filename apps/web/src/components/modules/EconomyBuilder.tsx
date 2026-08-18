@@ -10,13 +10,22 @@ interface EconomyBuilderProps {
 }
 
 /**
- * Controles de las 3 variables económicas que el estudiante ajusta con
- * mayor frecuencia en actividades de política:
+ * Las palancas de política que actúan sobre la DEMANDA — cuánto y cómo se
+ * viaja— por oposición a `SupplyBuilder`, que mueve la oferta física:
  *   - Tarifa Metro ($)
  *   - Estacionamiento ($)
  *   - Bencina ($/km)
+ *   - Factor de teletrabajo (×)
  *
- * Paridad con la versión Streamlit original (app.py → tab_conf2).
+ * El teletrabajo llegó acá el 2026-08-17. Vivía en `CityBuilder`, o sea en la
+ * página de Uso de Suelo, porque su campo está en `city.teletrabajo_factor`; y
+ * el alumno tenía que cambiar de página para usar la única palanca que saca
+ * viajes de la punta, mientras las otras tres estaban en esta sección. La
+ * interfaz llegaba a admitirlo: el panel de calibración decía «la política de
+ * teletrabajo es el factor multiplicador que está en Uso de Suelo».
+ *
+ * El campo del schema NO se movió —sigue en `city`—, para no romper los
+ * escenarios `.ttrq.json` ya guardados. Lo que cambió es dónde se edita.
  */
 export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
   const { t } = useTranslation("simulator");
@@ -29,6 +38,9 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         globales: { ...c.demand.globales, ...patch },
       },
     }));
+
+  const setCity = (patch: Partial<SimulationConfig["city"]>) =>
+    onChange((c) => ({ ...c, city: { ...c.city, ...patch } }));
 
   const { costo_tarifa_metro, costo_parking, costo_combustible_km } =
     config.demand.globales;
@@ -68,6 +80,18 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         format={fmtCurrencyPerKm}
         hint={t("economy_params.bencina_hint")}
         onChange={(v) => setGlobal({ costo_combustible_km: v })}
+      />
+      {/* Única palanca de esta sección que no es un precio: multiplica la tasa
+          de teletrabajo de cada estrato, y esos agentes salen de la demanda. */}
+      <LabeledSlider
+        label={t("economy_params.teletrabajo_factor")}
+        value={config.city.teletrabajo_factor}
+        min={0}
+        max={2}
+        step={0.1}
+        format={(v) => `× ${v.toFixed(1)}`}
+        hint={t("economy_params.teletrabajo_hint")}
+        onChange={(v) => setCity({ teletrabajo_factor: v })}
       />
     </CollapsibleSection>
   );
