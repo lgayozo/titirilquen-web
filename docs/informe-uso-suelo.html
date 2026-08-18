@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — El módulo de uso de suelo, paso a paso</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --alerta: #8a5a12; --frio: #2f6690;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  h4 { font-size: 14px; margin: 18px 0 2px; font-weight: 600; color: var(--ink-2); }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 3px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 660px;
+  }
+  .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
+  .ecuacion.suelta { background: none; border: none; }
+  blockquote {
+    margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
+    color: var(--ink-2); font-style: italic; max-width: 72ch;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso.neutro { border-left-color: var(--muted); }
+  .aviso.alerta { border-left-color: var(--alerta); }
+  .aviso p { margin: 4px 0; }
+  .aviso h4 { margin-top: 0; }
+  .etiqueta {
+    display: inline-block; font-family: "Segoe UI", system-ui, sans-serif; font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 1px 8px;
+    border-radius: 3px; margin-right: 6px;
+  }
+  .etiqueta.ok { background: #dae7de; color: var(--ok); }
+  .etiqueta.lim { background: #efe2c9; color: var(--alerta); }
+  .etiqueta.neutra { background: #e4e2dd; color: var(--ink-2); }
+  .etiqueta.frio { background: #dce7ef; color: var(--frio); }
+  .paso { border-left: 2px solid var(--rule); padding-left: 16px; margin: 20px 0; }
+  .paso h3 { margin-top: 0; }
+  .paso .ref {
+    font-family: "Consolas", monospace; font-size: 11.5px; color: var(--muted);
+    display: block; margin: 2px 0 6px;
+  }
+  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
+  .indice ol { margin: 4px 0; }
+  .indice a { color: var(--ink); text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  .refs { font-size: 13.5px; }
+  .refs li { margin: 6px 0; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, figure, .paso { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Documentación del núcleo</div>
+  <h1>El módulo de uso de suelo, paso a paso</h1>
+  <p class="bajada">
+    Cómo el simulador decide <strong>quién vive dónde</strong>: de la función de
+    puje al operador de punto fijo, y de ahí al mapa que ve el estudiante.
+    Derivación completa, correspondencia con el código, resultados medidos y
+    limitaciones declaradas.
+  </p>
+  <p class="meta">
+    Fuente: <code>titirilquen_core/land_use/</code> —
+    <code>config.py</code> · <code>supply.py</code> · <code>equilibrium.py</code> ·
+    <code>ciudad.py</code> · <code>allocation.py</code><br>
+    Mediciones: <code>docs/AUDITORIA_USO_SUELO.md</code> (iteración 4, agosto 2026),
+    reproducibles con <code>scripts/auditoria_suelo.py</code><br>
+    Documento generado el 2026-08-18
+  </p>
+</header>
+
+<div class="indice">
+  <strong>Contenido</strong>
+  <ol>
+    <li><a href="#s1">Qué responde el módulo, y qué deja fuera</a></li>
+    <li><a href="#s2">Los inputs: la ciudad, la oferta y la función de puje</a></li>
+    <li><a href="#s3">La derivación: de la utilidad al punto fijo</a></li>
+    <li><a href="#s4">El procedimiento de cálculo, paso a paso</a></li>
+    <li><a href="#s5">El flujo en la aplicación</a></li>
+    <li><a href="#s6">Resultados medidos sobre el modelo</a></li>
+    <li><a href="#s7">Limitaciones declaradas</a></li>
+    <li><a href="#s8">Divergencia con el informe LaTeX</a></li>
+    <li><a href="#s9">Referencias</a></li>
+  </ol>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s1"><span class="num">1</span>Qué responde el módulo, y qué deja fuera</h2>
+
+<p>
+  El módulo implementa un <strong>modelo urbano monocéntrico estándar</strong>
+  —Alonso-Muth-Mills— sobre una ciudad lineal discretizada. La pregunta que
+  responde es una sola:
+</p>
+
+<blockquote>
+  Dado dónde se puede construir vivienda y cuánto cuesta llegar al centro desde
+  cada punto, ¿cómo se reparten los estratos socioeconómicos en el espacio?
+</blockquote>
+
+<p>
+  La respuesta es un <strong>equilibrio de subasta</strong>: cada parcela se la
+  lleva quien más puja por ella, y los precios ajustan hasta que todos los
+  hogares están localizados y ninguna parcela queda sobre- o subdemandada. El
+  resultado no es una asignación determinística sino una <em>matriz de
+  probabilidad</em> <code>Q[h,i]</code>: con qué probabilidad la parcela
+  <em>i</em> termina ocupada por un hogar del estrato <em>h</em>.
+</p>
+
+<h3>Lo que el módulo no hace</h3>
+
+<p>
+  Tres exclusiones deliberadas, que conviene tener presentes antes de
+  interpretar cualquier resultado:
+</p>
+
+<ul>
+  <li>
+    <strong>No decide la oferta.</strong> El vector de capacidades
+    <code>S</code> es un <em>input</em>, no un resultado. El supuesto detrás es
+    que el mercado inmobiliario es lento: buscar un equilibrio de localización
+    con la estructura construida fija tiene sentido en el corto plazo. Si se
+    permitiera que <code>S</code> reaccionara dentro del mismo equilibrio, el
+    sistema en general no tendría uno.
+  </li>
+  <li>
+    <strong>No pone techo normativo a la densidad.</strong> Hay restricción de
+    capacidad —y del tipo correcto, ver <a href="#s3">§3.5</a>— pero no hay
+    constructibilidad máxima. Ver <a href="#s7">§7.2</a>.
+  </li>
+  <li>
+    <strong>No elige modo de transporte.</strong> El módulo consume un tiempo al
+    CBD <code>T(i)</code> y no le importa cómo se produjo. En modo aislado ese
+    tiempo es el de flujo libre; en el módulo acoplado lo entrega el equilibrio
+    de transporte.
+  </li>
+</ul>
+
+<!-- ==================================================================== -->
+<h2 id="s2"><span class="num">2</span>Los inputs: la ciudad, la oferta y la función de puje</h2>
+
+<h3>2.1 La ciudad</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Símbolo</th><th>Campo</th><th>Qué es</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>L</code></td><td><code>L</code></td><td>Número de parcelas en que se divide el corredor</td></tr>
+    <tr><td><code>Δx</code></td><td><code>ancho_celda_km</code></td><td>Ancho físico de cada parcela (km)</td></tr>
+    <tr><td><code>CBD</code></td><td><code>cbd_index</code></td><td>Índice de la parcela donde está el centro de negocios</td></tr>
+    <tr><td><code>H<sub>h</sub></code></td><td><code>H_por_estrato</code></td><td>Hogares de cada estrato (alto, medio, bajo)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Los hogares de un mismo estrato son <strong>indistinguibles entre sí</strong>.
+  Eso no es un atajo de implementación: es lo que permite tratar la subasta como
+  una competencia entre <em>tipos</em> y no entre individuos, y es lo que
+  justifica el factor <code>H<sub>h</sub></code> que aparece en la ecuación (4).
+</p>
+
+<h3>2.2 La oferta <code>S</code></h3>
+
+<p>
+  <code>S<sub>i</sub></code> es la capacidad de la parcela <em>i</em>: cuántos
+  hogares caben ahí. Se puede leer como el número de casas, o la altura del
+  edificio. Dos restricciones duras:
+</p>
+
+<div class="ecuacion">
+  Σ<sub>i</sub> S<sub>i</sub> = Σ<sub>h</sub> H<sub>h</sub> &nbsp;&nbsp;&nbsp;&nbsp;
+  S<sub>CBD</sub> = 0
+</div>
+
+<p>
+  La primera es la que hace que el equilibrio exista: la oferta total calza con
+  la demanda total. La segunda dice que no se construye vivienda sobre el centro
+  de negocios.
+</p>
+
+<p>
+  La oferta se genera de forma <strong>determinista</strong>: se discretiza un
+  perfil de pesos <em>w(d)</em>, con <em>d</em> = |i − CBD|, por el método del
+  mayor residuo. Eso garantiza la suma exacta y elimina el ruido parcela a
+  parcela que tenía la versión anterior, que muestreaba <em>N</em> hogares de una
+  normal. La dispersión se controla con
+</p>
+
+<div class="ecuacion suelta">
+  σ = <code>oferta_sigma_frac</code> · min(CBD, L−1−CBD)
+</div>
+
+<p>
+  expuesta en la aplicación como <em>compacidad urbana</em>. Hay seis formas:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Forma</th><th>Perfil <em>w(d)</em></th><th>Lectura urbana</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>normal</code></td><td>e<sup>−½(d/σ)²</sup></td><td>Monocéntrica compacta (el default)</td></tr>
+    <tr><td><code>uniforme</code></td><td>1</td><td>Suburbio homogéneo</td></tr>
+    <tr><td><code>exponencial</code></td><td>e<sup>−d/σ</sup></td><td>Decaimiento tipo von Thünen</td></tr>
+    <tr><td><code>meseta</code></td><td>e<sup>−(d/σ)<sup>8</sup></sup></td><td>Núcleo plano con borde neto (súper-gaussiana)</td></tr>
+    <tr><td><code>bimodal</code></td><td>dos campanas a ±sep</td><td>Ciudad policéntrica con subcentros</td></tr>
+    <tr><td><code>valle</code></td><td>(d/semi)<sup>p</sup>, p = 2·σ<sub>frac</sub></td><td>Densidad creciente con la distancia</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  No hay forma «anular» separada: en una ciudad <em>lineal</em> un anillo de
+  radio <em>r</em> colapsa en dos puntos a ±r, o sea que coincide con la bimodal.
+</p>
+
+<h3>2.3 La función de puje</h3>
+
+<p>
+  Es donde viven los supuestos de comportamiento. Cada estrato trae cuatro
+  parámetros:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Símbolo</th><th>Campo</th><th>Unidad</th><th>Qué es</th><th class="n">Base</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>y<sub>h</sub></code></td><td><code>y</code></td><td>$/mes</td><td>Ingreso del hogar</td><td class="n">3,5M / 1,5M / 0,5M</td></tr>
+    <tr><td><code>λ<sub>h</sub></code></td><td><code>lambda</code></td><td>—</td><td>Utilidad marginal del ingreso</td><td class="n">1,0</td></tr>
+    <tr><td><code>α<sub>h</sub></code></td><td><code>alpha</code></td><td>utiles/min</td><td>Peso del tiempo de viaje</td><td class="n">6,5 / 6,0 / 5,5</td></tr>
+    <tr><td><code>ρ<sub>h</sub></code></td><td><code>rho</code></td><td>utiles/(hogar/km)</td><td>Penalización de densidad</td><td class="n">0,1</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Valores por defecto de <code>LandUseConfig</code>. La referencia de ρ = 0,1
+  equivale a 1 util por hogar adicional en una cuadra de 100 m.
+</p>
+
+<p>
+  A nivel de ciudad hay un quinto parámetro, <code>beta</code> (β, default 1),
+  que es la <strong>precisión del logit</strong> — la escala del ruido de
+  elección. No es una preferencia: ver <a href="#s6">§6.2</a>.
+</p>
+
+<div class="aviso">
+  <h4>La diferencia de α es la palanca principal</h4>
+  <p>
+    Todo el gradiente de localización sale de que los α difieran entre estratos.
+    Si los tres son iguales, la ciudad queda perfectamente mezclada — medido:
+    índice de Theil exactamente 0. Los otros tres parámetros del estrato hacen
+    cosas mucho más acotadas, y uno de ellos (<code>λ</code>) no es un parámetro
+    económico en absoluto (<a href="#s7">§7.1</a>).
+  </p>
+</div>
+
+<h3>2.4 Unidades físicas, no de grilla</h3>
+
+<p>
+  Esta es una decisión de modelación con consecuencias grandes y conviene
+  entenderla antes de leer cualquier resultado. La formulación original usaba
+  <em>T</em> = |i − CBD| (índices de celda) y ρ<sub>h</sub>·S<sub>i</sub>
+  (hogares por celda). Ambas cantidades <strong>dependen de la
+  discretización</strong>: refinar la grilla era algebraicamente idéntico a
+  estirar la ciudad.
+</p>
+
+<p>
+  Medido: sobre la <em>misma</em> ciudad de 20 km, el índice de Theil pasaba de
+  0,245 a 0,658 al refinar de 101 a 401 celdas. Un resultado que depende de la
+  unidad espacial de agregación es el caso clásico del <em>Modifiable Areal Unit
+  Problem</em> <a href="#r-openshaw">[Openshaw 1983]</a>, documentado para
+  índices de segregación por <a href="#r-reardon">[Reardon y O'Sullivan
+  2004]</a>.
+</p>
+
+<p>
+  La implementación actual usa <strong>T en minutos</strong> y
+  <strong>densidad en hogares/km</strong>. Con eso el equilibrio converge al
+  límite continuo del modelo monocéntrico <a href="#r-alonso">[Alonso 1964]</a>,
+  <a href="#r-fujita">[Fujita 1989]</a> y es invariante a la resolución —
+  verificado: Theil entre 0,459 y 0,462 de 101 a 801 celdas—, mientras que el
+  tamaño <em>físico</em> de la ciudad sí mueve los resultados, como corresponde.
+</p>
+
+<div class="aviso">
+  <h4>Convención que hay que respetar al llamar al núcleo</h4>
+  <p>
+    Como la densidad se calcula <code>dens = S / Δx</code>, el valor de
+    <code>ancho_celda_km</code> escala directamente cuánto pesa ρ: un factor 10
+    en Δx es un factor 10 en la desamenidad de densidad. Quien llame debe pasar
+    el ancho <strong>real</strong> (<code>largo_km / L</code>) y no confiar en el
+    default. Todos los puntos de entrada de producción —la API, el loop acoplado,
+    el MSA y los scripts de auditoría— lo pasan explícitamente.
+  </p>
+  <p>
+    El default existe sólo para los usos de juguete y vale
+    <code>ANCHO_CELDA_KM_DEFAULT = 0.1</code> (≈ 20 km en 201 celdas, la
+    referencia del frontend). Es una constante única, compartida por el campo del
+    dataclass y por <code>build()</code>: hasta agosto de 2026 esos dos puntos de
+    entrada declaraban <code>0.1</code> y <code>0.01</code> respectivamente, así
+    que la misma ciudad daba equilibrios distintos según por dónde se entrara
+    —medido sobre una ciudad de juguete de 101 celdas, el estrato alto quedaba a
+    14,6 celdas del CBD por una vía y a 6,2 por la otra—.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s3"><span class="num">3</span>La derivación: de la utilidad al punto fijo</h2>
+
+<p>
+  El desarrollo sigue los capítulos 3–5 de <a href="#r-martinez2018">Martínez
+  (2018)</a>. Se presenta en el orden en que las piezas dependen unas de otras.
+</p>
+
+<h3>3.1 La utilidad del hogar</h3>
+
+<p>
+  Se supone utilidad <strong>lineal en el ingreso</strong>. Para un hogar de tipo
+  <em>h</em> que elige la parcela <em>i</em> y paga renta <em>p<sub>i</sub></em>:
+</p>
+
+<div class="ecuacion">
+  <span class="id">(1)</span>
+  u<sub>h</sub> = λ<sub>h</sub> (y<sub>h</sub> − p<sub>i</sub>) + f<sub>h</sub>(i)
+</div>
+
+<p>
+  <code>λ<sub>h</sub></code> es la utilidad marginal del ingreso; <em>y</em> el
+  ingreso; <em>p<sub>i</sub></em> la renta de la parcela; y
+  <em>f<sub>h</sub>(i)</em> la <strong>función de amenidad</strong> —o, más
+  descriptivamente, de valoración del suelo—: todo lo que hace atractiva una
+  ubicación con independencia de su precio.
+</p>
+
+<h3>3.2 La amenidad</h3>
+
+<p>
+  En esta implementación la amenidad tiene exactamente dos componentes:
+</p>
+
+<div class="ecuacion">
+  <span class="id">(2)</span>
+  f<sub>h</sub>(i) = − α<sub>h</sub> · T(i) − ρ<sub>h</sub> · dens(i),
+  &nbsp;&nbsp; dens(i) = S<sub>i</sub> / Δx
+</div>
+
+<ul>
+  <li>
+    <strong>Accesibilidad</strong>, vía el tiempo al CBD <em>T(i)</em>. Es
+    <em>común a todos los estratos</em>: la accesibilidad es un atributo de la
+    ubicación, no de quien la habita. La heterogeneidad de <em>valoración</em>
+    la captura α<sub>h</sub>.
+  </li>
+  <li>
+    <strong>Congestión residencial</strong>, vía la densidad. Vivir apretado
+    resta utilidad.
+  </li>
+</ul>
+
+<div class="aviso neutro">
+  <p>
+    <code>S<sub>i</sub></code> cumple <strong>dos roles distintos</strong> y vale
+    la pena no confundirlos: como <em>capacidad</em> es la restricción del punto
+    fijo (hogares por parcela), y como <em>desamenidad</em> entra a la utilidad
+    a través de la densidad física <code>S<sub>i</sub>/Δx</code>.
+  </p>
+</div>
+
+<h3>3.3 De la utilidad a la disposición a pagar</h3>
+
+<p>
+  El paso central del enfoque de subasta: en vez de preguntar «¿qué parcela
+  elige el hogar?», se pregunta «¿cuánto está dispuesto a pagar por ella?».
+  Se despeja el precio de (1) fijando un nivel de utilidad <em>u<sub>h</sub></em>:
+</p>
+
+<div class="ecuacion">
+  <span class="id">(3)</span>
+  w<sub>h</sub>(u, i) = y<sub>h</sub> − ( u<sub>h</sub> − f<sub>h</sub>(i) ) / λ<sub>h</sub>
+</div>
+
+<p>
+  Esta es la <em>willingness to pay</em>. Nótese que ya aquí λ<sub>h</sub> entra
+  <strong>dividiendo la amenidad entera</strong> — de ahí sale la limitación de
+  <a href="#s7">§7.1</a>.
+</p>
+
+<h3>3.4 La subasta como elección discreta</h3>
+
+<p>
+  El modelo no asigna hogares a parcelas de forma determinística. Cada hogar
+  enfrenta un término idiosincrático no observado —error de medición, o de
+  conocimiento de su propia utilidad—:
+</p>
+
+<div class="ecuacion suelta">
+  U<sub>hi</sub> = λ<sub>h</sub>(y<sub>h</sub> − p<sub>i</sub>) + f<sub>h</sub>(i) + ε<sub>hi</sub>
+</div>
+
+<p>
+  Cuando los ε se suponen <strong>Gumbel i.i.d.</strong>, la estructura logit no
+  es una elección de conveniencia sino una <em>consecuencia</em>
+  <a href="#r-mcfadden">[McFadden 1974]</a>,
+  <a href="#r-train">[Train 2009]</a>. La probabilidad de que un hogar del tipo
+  <em>h</em> gane la subasta por la parcela <em>i</em> queda:
+</p>
+
+<div class="ecuacion">
+  <span class="id">(4)</span>
+  Q<sub>hi</sub> =
+  H<sub>h</sub> e<sup>β·s<sub>hi</sub></sup> /
+  Σ<sub>g</sub> H<sub>g</sub> e<sup>β·s<sub>gi</sub></sup>
+</div>
+
+<p>
+  donde <em>s<sub>hi</sub></em> es la puja del estrato <em>h</em> por la parcela
+  <em>i</em> y β &gt; 0 la precisión del logit. En la implementación actual esa
+  puja es la de la ecuación (3), es decir
+  <code>s<sub>hi</sub> = y<sub>h</sub> + f<sub>h</sub>(i)/λ<sub>h</sub></code>.
+</p>
+
+<div class="aviso ok">
+  <h4>Por qué aparece <code>H<sub>h</sub></code> y no es cosmético</h4>
+  <p>
+    La parcela la disputan <em>H<sub>g</sub></em> postores de cada tipo, y el
+    máximo de <em>H<sub>g</sub></em> variables Gumbel i.i.d. desplaza la
+    localización en <code>ln(H<sub>g</sub>)/β</code>
+    <a href="#r-train">[Train 2009]</a>. Es precisamente ese factor el que
+    garantiza la <strong>conservación por estrato</strong> en el equilibrio:
+  </p>
+  <div class="ecuacion suelta">Σ<sub>i</sub> S<sub>i</sub> · Q<sub>hi</sub> = H<sub>h</sub></div>
+  <p>
+    Una versión previa omitía el factor; con <em>H</em> heterogéneo la
+    composición espacial no conservaba los hogares por estrato. Corregido en
+    D-25 del registro de discrepancias.
+  </p>
+</div>
+
+<p>
+  Una nota de interpretación: <code>Q</code> es condicional a la parcela. Se lee
+  como una <em>elección de consumidor por parte del subastador</em>, no como una
+  elección de parcela por parte del consumidor. Es posible plantearlo al revés
+  —probabilidad de que cada agente elija cierto terreno— y bajo supuestos sobre
+  β ambas formulaciones son equivalentes
+  <a href="#r-martinez1992">[Martínez 1992]</a>.
+</p>
+
+<h3>3.5 Las restricciones de equilibrio</h3>
+
+<ol>
+  <li>La oferta total calza con la demanda total.</li>
+  <li>Todos los agentes se localizan.</li>
+  <li>La demanda local calza con la oferta local.</li>
+</ol>
+
+<p>
+  Estas condiciones no determinan directamente ni los precios ni las utilidades:
+  dan lugar a un sistema de ecuaciones cuya solución <em>es</em> el equilibrio.
+</p>
+
+<h3>3.6 El operador de punto fijo</h3>
+
+<p>
+  Al imponer que la demanda agregada de cada estrato sea consistente con la
+  oferta disponible, se obtiene un operador que actúa sobre el vector de
+  utilidades de equilibrio <strong>ū</strong> ∈ ℝ<sup>H</sup>:
+</p>
+
+<div class="ecuacion">
+  <span class="id">(5)</span>
+  F(ū)<sub>h</sub> = (1/β) · ln Σ<sub>i</sub>
+  &nbsp; S<sub>i</sub> · e<sup>β·s<sub>hi</sub></sup> /
+  ( Σ<sub>g</sub> H<sub>g</sub> · e<sup>β(s<sub>gi</sub> − ū<sub>g</sub>)</sup> )
+</div>
+
+<p>
+  El equilibrio es el punto fijo <strong>ū* = F(ū*)</strong>. Interpretación:
+  dadas las utilidades alcanzadas por cada estrato, ningún hogar tiene incentivo
+  a relocalizarse, y los precios implícitos equilibran oferta y demanda en cada
+  parcela.
+</p>
+
+<div class="aviso neutro">
+  <p>
+    Detalle fácil de pasar por alto y que importa al leer el código: el peso
+    <code>H<sub>g</sub></code> aparece <strong>sólo en el denominador</strong>.
+    El numerador lleva <code>S<sub>i</sub></code> —la capacidad de la parcela—,
+    no el tamaño del estrato.
+  </p>
+</div>
+
+<h3>3.7 Los precios</h3>
+
+<p>
+  Una vez resuelto el punto fijo, los precios salen por identidad:
+</p>
+
+<div class="ecuacion">
+  <span class="id">(6)</span>
+  p<sub>i</sub> = (1/β) · ln Σ<sub>g</sub> H<sub>g</sub> ·
+  e<sup>β(s<sub>gi</sub> − ū<sub>g</sub>)</sup>
+</div>
+
+<p>
+  Es un <em>valor inclusivo</em> (log-sum) de las pujas por esa parcela: la renta
+  es lo que la parcela consigue extraer del conjunto de postores. Queda
+  determinada <strong>salvo una constante</strong>: sólo el gradiente espacial es
+  informativo. Un precio de equilibrio negativo o de nivel arbitrario no
+  significa nada; la pendiente centro-periferia sí.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s4"><span class="num">4</span>El procedimiento de cálculo, paso a paso</h2>
+
+<p>
+  Lo que sigue es el orden real de ejecución, con el punto del código donde
+  ocurre cada cosa.
+</p>
+
+<div class="paso">
+  <h3>Paso 1 · Generar la oferta <code>S</code></h3>
+  <span class="ref">land_use/supply.py → generar_oferta()</span>
+  <p>
+    Se evalúa el perfil <em>w(d)</em> de la forma elegida, se anula el CBD y se
+    discretiza por mayor residuo hasta que <code>Σ S = Σ H</code> exacto. Es
+    determinista: la misma configuración da el mismo <code>S</code> siempre.
+  </p>
+  <p>
+    Si el perfil degenera (suma de pesos ≤ 0) se reparte uniforme fuera del CBD
+    en vez de fallar. <code>LandUseCity.build()</code> valida la igualdad
+    <code>Σ S = Σ H</code> y aborta si no se cumple.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 2 · Obtener el tiempo al CBD <code>T</code></h3>
+  <span class="ref">land_use/ciudad.py → _default_T()</span>
+  <p>
+    Si no se entrega <code>T</code>, se construye el tiempo a <strong>flujo
+    libre</strong>:
+  </p>
+  <div class="ecuacion suelta">
+    T(i) = d<sub>km</sub>(i) / v<sub>ref</sub> · 60, &nbsp;&nbsp;
+    v<sub>ref</sub> = 30 km/h
+  </div>
+  <p>
+    en minutos, igual para los tres estratos. Es el baseline «sin transporte» y
+    la misma convención con que arranca el loop acoplado. En modo acoplado
+    <code>T</code> llega desde el equilibrio de transporte, con la misma unidad y
+    la misma forma (H × L).
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 3 · Construir la puja <code>s[h,i]</code></h3>
+  <span class="ref">land_use/equilibrium.py → _f(), _f_div_lambda(), solve_logit()</span>
+  <p>
+    Se arma la amenidad de la ecuación (2) y se forma la puja de la (3):
+  </p>
+  <pre><code>dens  = S / Δx
+f     = −α[:,None]·T − ρ[:,None]·dens
+score = y[:,None] + f / λ[:,None]</code></pre>
+  <p>
+    <code>score</code> es la matriz (H × L) que alimenta todo lo que sigue. El
+    solver no vuelve a mirar α, ρ, λ ni <em>y</em> por separado.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 4 · Iterar el punto fijo</h3>
+  <span class="ref">land_use/equilibrium.py → _solve_fixed_point()</span>
+  <p>
+    Se parte de <strong>ū = 0</strong> y se itera la ecuación (5) hasta que
+    <code>‖ū<sub>nuevo</sub> − ū‖<sub>2</sub> &lt; tol</code> (default 1e−8) o se
+    agoten las iteraciones (default 10.000). Cada paso normaliza
+    <code>ū ← ū − ū<sub>1</sub></code>, fijando la utilidad del primer estrato en
+    cero: el nivel de ū no está identificado, sólo las diferencias.
+  </p>
+  <p>
+    Todo el cálculo se hace en <strong>logaritmos</strong>, con
+    <code>scipy.special.logsumexp</code>. No es cosmético: β·s puede ser de
+    cientos, y exponenciar directo desborda. Esto importa especialmente en el
+    módulo acoplado, donde un gridlock lleva <em>T</em> a miles de minutos.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 5 · Precios y matriz de subasta</h3>
+  <span class="ref">land_use/equilibrium.py → _solve_fixed_point()</span>
+  <p>
+    Con ū* fijo se evalúa la ecuación (6) para obtener <code>p</code>, y luego
+    <code>Q</code> columna por columna:
+  </p>
+  <pre><code>log_q  = log(H) + β·(score[:,i] − ū − p[i])
+Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
+  <p>
+    El término <code>−p[i]</code> es constante dentro de la columna y se cancela
+    en la normalización; se deja por estabilidad numérica. Las parcelas sin
+    oferta (el CBD) quedan en cero.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 6 · Asignar hogares a parcelas</h3>
+  <span class="ref">land_use/allocation.py → asignar_hogares_simple()</span>
+  <p>
+    <code>Q</code> es una probabilidad; la ciudad que se dibuja necesita hogares
+    concretos. Se hace por barrido circular: se recorren las parcelas con espacio
+    y en cada una se sortea un estrato según <code>Q[:,i]</code>, filtrada por
+    los estratos que aún tienen cuota. Se repite hasta llenar toda la oferta.
+  </p>
+  <div class="aviso neutro">
+    <p>
+      <strong>Desborde.</strong> Con scores extremos —de nuevo el gridlock del
+      acoplado— <code>Q</code> puede degenerar a 0/1 por underflow, y quedar
+      parcelas cuya única masa está en un estrato con cuota agotada. Las cuotas
+      mandan: el sobrante se reparte al azar entre los espacios restantes. Es la
+      lectura física correcta —si el mercado dice «acá sólo viviría el estrato 1»
+      pero ya no queda estrato 1, alguien ocupa igual el espacio— y la
+      alternativa, fallar, mataba la corrida.
+    </p>
+  </div>
+</div>
+
+<div class="paso">
+  <h3>Paso 7 · Derivar la densidad</h3>
+  <span class="ref">land_use/ciudad.py → densidad_por_celda()</span>
+  <div class="ecuacion suelta">dens(i) = S<sub>i</sub> / Δx</div>
+  <p>
+    La densidad es <strong>consecuencia de la oferta</strong>, no un gradiente de
+    Clark impuesto aparte. Es invariante a la grilla (<code>S</code> escala con
+    Δx) e independiente del estrato: <code>Q</code> sólo reparte esa población
+    entre estratos, no fija su nivel. Es la misma envolvente que usan la
+    asignación de hogares, el feed a transporte y las figuras del frontend — una
+    sola definición de «cuántos viven en la celda <em>i</em>».
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s5"><span class="num">5</span>El flujo en la aplicación</h2>
+
+<p>
+  El módulo de Uso de suelo del simulador expone el procedimiento anterior en
+  dos etapas: primero la ciudad que se configura, después el equilibrio que
+  resulta.
+</p>
+
+<h3>5.1 Antes de resolver</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>Figura</th><th>Qué muestra</th><th>Qué paso refleja</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>FIG. 00</strong><br>La ciudad configurada</td>
+      <td>El perfil de oferta de vivienda a lo largo del corredor</td>
+      <td>Paso 1 — <code>S</code>, antes de cualquier equilibrio</td>
+    </tr>
+    <tr>
+      <td><strong>FIG. 01</strong><br>Población inicial</td>
+      <td>La población de partida por celda</td>
+      <td>El input de escala <code>H_por_estrato</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>5.2 Después de resolver</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>Figura</th><th>Qué muestra</th><th>Qué objeto del modelo es</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>FIG. 01</strong><br>Distribución</td>
+      <td>Dónde quedó cada estrato</td>
+      <td>El resultado de <code>asignar_hogares_simple</code> (paso 6)</td>
+    </tr>
+    <tr>
+      <td><strong>FIG. 02</strong><br>Mapa de composición</td>
+      <td>Con qué probabilidad cada celda es de cada estrato</td>
+      <td><code>Q[h,i]</code> directo (paso 5)</td>
+    </tr>
+    <tr>
+      <td><strong>FIG. 03</strong><br>Densidad</td>
+      <td>Hogares por km a lo largo del corredor</td>
+      <td><code>densidad_por_celda</code> (paso 7)</td>
+    </tr>
+    <tr>
+      <td><strong>FIG. 04</strong><br>Precio de puja</td>
+      <td>La renta implícita por parcela</td>
+      <td><code>p<sub>i</sub></code>, ecuación (6) — <em>meta: log-sum</em></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso alerta">
+  <h4>Cómo leer FIG. 04</h4>
+  <p>
+    El precio está determinado <strong>salvo una constante</strong>
+    (<a href="#s3">§3.7</a>). El nivel del eje no significa nada: lo interpretable
+    es la <em>pendiente</em> centro-periferia. Un gradiente positivo hacia el CBD
+    es el efecto Alonso; un gradiente plano dice que la localización dejó de
+    tener valor diferencial.
+  </p>
+</div>
+
+<h3>5.3 Cómo se conecta con transporte</h3>
+
+<p>
+  En modo aislado el módulo usa el <em>T</em> de flujo libre del paso 2 y
+  termina ahí. En el módulo acoplado, uso de suelo y transporte se resuelven
+  alternadamente: la localización que produce este módulo define de dónde salen
+  los viajes, el equilibrio de transporte devuelve un <em>T</em> congestionado, y
+  ese <em>T</em> vuelve a entrar en la ecuación (2). El loop exterior itera hasta
+  que <em>T</em> deja de moverse.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s6"><span class="num">6</span>Resultados medidos sobre el modelo</h2>
+
+<p class="meta">
+  Todas las cifras de esta sección provienen de
+  <code>scripts/auditoria_suelo.py</code>, reportadas en
+  <code>docs/AUDITORIA_USO_SUELO.md</code> (iteración 4). Base de medición:
+  201 celdas · 20 km · ΣH = 36.000 · shares 10/40/50 ·
+  α = 6,5/6,0/5,5 · β = 1. Columnas: <code>d_h</code> distancia media al CBD del
+  estrato (km), <code>Theil</code> índice de segregación entre celdas,
+  <code>grad_p</code> gradiente de precio centro-periferia (positivo = Alonso).
+</p>
+
+<h3>6.1 El efecto Alonso funciona <span class="etiqueta ok">AU-01</span></h3>
+
+<p>
+  La teoría exige que quien más valora el acceso —α más alto— puje más por el
+  centro y se localice más cerca del CBD. Los cuatro casos que la teoría obliga
+  a reproducir:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>α (alto / medio / bajo)</th><th class="n">d_alto</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">Theil</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td>6,5 / 6,0 / 5,5 &nbsp;<em>(base)</em></td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td></tr>
+    <tr><td>12 / 6 / 3 &nbsp;<em>(α separados)</em></td><td class="n">0,37</td><td class="n">1,90</td><td class="n">5,68</td><td class="n">0,822</td></tr>
+    <tr><td>3 / 6 / 12 &nbsp;<em>(α invertidos)</em></td><td class="n">8,45</td><td class="n">4,99</td><td class="n">1,58</td><td class="n">0,875</td></tr>
+    <tr><td>6 / 6 / 6 &nbsp;<em>(α iguales)</em></td><td class="n">3,63</td><td class="n">3,63</td><td class="n">3,63</td><td class="n">0,000</td></tr>
+    <tr><td>20 / 6 / 1</td><td class="n">0,35</td><td class="n">1,89</td><td class="n">5,68</td><td class="n">0,879</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Gradiente correcto en la base; refuerzo al separar los α;
+  <strong>inversión completa</strong> al invertirlos —el estrato bajo pasa a
+  1,58 km y el alto a 8,45—; y <strong>mezcla perfecta</strong> (Theil = 0, los
+  tres a 3,63 km) cuando los α son iguales. El módulo es fiel al modelo de puja.
+</p>
+
+<h3>6.2 β es la escala de ruido, no una preferencia <span class="etiqueta ok">AU-04</span></h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>β</th><th class="n">0,1</th><th class="n">0,5</th><th class="n">1 (base)</th><th class="n">3</th><th class="n">10</th></tr></thead>
+  <tbody>
+    <tr><td>Theil</td><td class="n">0,013</td><td class="n">0,176</td><td class="n">0,357</td><td class="n">0,651</td><td class="n">0,843</td></tr>
+    <tr><td>d_alto</td><td class="n">2,85</td><td class="n">1,43</td><td class="n">0,99</td><td class="n">0,55</td><td class="n">0,37</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Monótona y con los dos límites correctos: β → 0 da asignación casi aleatoria
+  (Theil ≈ 0) y β → ∞ tiende a la asignación determinista del bid-rent puro. Es
+  exactamente la interpretación de β como precisión del logit.
+</p>
+
+<h3>6.3 Las invariancias que la teoría exige <span class="etiqueta ok">AU-02 · AU-03</span></h3>
+
+<ul>
+  <li>
+    <strong>El ingreso no reasigna.</strong> Con 3,5M/1,5M/0,5M, con todos en
+    1M, o con el estrato alto en 100M, la asignación es <em>idéntica</em>
+    (0,99 / 2,13 / 5,36). Correcto: <em>y</em> entra como constante por estrato y
+    se absorbe en la utilidad de equilibrio ū. Sí importa, en cambio, para la
+    métrica de carga costo/ingreso del módulo acoplado.
+  </li>
+  <li>
+    <strong>La escala de población no reasigna.</strong> ΣH de 9.000, 36.000 y
+    144.000 dan la misma asignación y el mismo Theil (0,3569 / 0,3570 / 0,3570);
+    la densidad escala proporcionalmente (764 / 3.045 / 12.181 hab/km). El modelo
+    es homogéneo de grado 0 en la escala.
+  </li>
+</ul>
+
+<h3>6.4 ρ uniforme no reasigna, pero aplana los precios <span class="etiqueta ok">AU-05</span></h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>ρ (los tres estratos)</th><th class="n">d_alto</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">Theil</th><th class="n">grad_p</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+1,00</td></tr>
+    <tr class="destacada"><td>0,1 <em>(base)</em></td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+0,50</td></tr>
+    <tr><td>0,5</td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+0,21</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Una ρ <strong>común</strong> a los tres estratos no mueve a nadie —es un
+  término común que se absorbe en ū, igual que <em>y</em>— pero
+  <strong>achata el gradiente de precios en un factor 5</strong>: las celdas
+  centrales son las densas, así que la penalización golpea justo donde el suelo
+  vale más. Es la tensión entre congestión residencial y renta de localización.
+</p>
+
+<p>
+  Con ρ <strong>heterogénea</strong> sí hay reasignación: subir ρ sólo al estrato
+  alto (0,5 contra 0 en los demás) lo manda a 8,48 km del CBD.
+</p>
+
+<div class="aviso alerta">
+  <p>
+    Consecuencia pedagógica: un estudiante que mueve ρ y sólo mira el mapa
+    concluye que «no hace nada». Hay que dirigirlo a FIG. 04, que es donde el
+    efecto está.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s7"><span class="num">7</span>Limitaciones declaradas</h2>
+
+<h3>7.1 λ no es un parámetro económico <span class="etiqueta lim">AU-06</span></h3>
+
+<p>
+  Es la única incoherencia teórica viva del módulo, y es más fuerte que «λ escala
+  el ruido». La puja es <code>y<sub>h</sub> + f<sub>h</sub>(i)/λ<sub>h</sub></code>
+  con <em>f</em> lineal en α y ρ, así que dividir por λ es
+  <strong>exactamente</strong> re-escalar las preferencias de ese estrato:
+</p>
+
+<div class="ecuacion">
+  y<sub>h</sub> + f<sub>h</sub>(i)/λ<sub>h</sub> &nbsp; ≡ &nbsp;
+  y<sub>h</sub> + f(i; α<sub>h</sub>/λ<sub>h</sub>, ρ<sub>h</sub>/λ<sub>h</sub>)
+</div>
+
+<p>
+  No es «aproximadamente»: con λ ∈ {0,4 · 0,5 · 1,5 · 3,0} la matriz <code>Q</code>
+  por ambas vías coincide con <strong>max|ΔQ| = 0,000e+00</strong>. Está fijado
+  como test de regresión
+  (<code>test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho</code>).
+</p>
+
+<p>
+  O sea que λ mueve <strong>tres cosas a la vez</strong> sin permitir separarlas:
+  α<sub>eff</sub> = α/λ (cuánto pesa el acceso), ρ<sub>eff</sub> = ρ/λ (cuánto
+  molesta la densidad) y la escala del ruido 1/(β·λ). No agrega información al
+  modelo: es una re-parametrización redundante de α y ρ.
+</p>
+
+<h4>Lo que se mide al moverlo</h4>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>λ del estrato alto</th><th class="n">0,4</th><th class="n">0,5</th><th class="n">0,8</th><th class="n">0,9</th><th class="n">0,95</th><th class="n">1,0 (base)</th><th class="n">1,5</th><th class="n">3,0</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>d_alto (km al CBD)</td><td class="n">8,48</td><td class="n">8,48</td><td class="n">8,26</td><td class="n">4,75</td><td class="n">1,33</td><td class="n">0,99</td><td class="n">0,89</td><td class="n">0,94</td></tr>
+    <tr><td>dispersión (km)</td><td class="n">8,51</td><td class="n">8,51</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">1,27</td><td class="n">1,02</td><td class="n">1,02</td></tr>
+    <tr><td>Theil</td><td class="n">0,537</td><td class="n">0,532</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">0,357</td><td class="n">0,386</td><td class="n">0,405</td></tr>
+    <tr><td>iteraciones</td><td class="n">801</td><td class="n">511</td><td class="n">70</td><td class="n">21</td><td class="n">31</td><td class="n">36</td><td class="n">52</td><td class="n">68</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Dos cosas que un parámetro de comportamiento no hace:</p>
+
+<ol>
+  <li>
+    <strong>Salto casi discontinuo.</strong> Entre λ = 0,8 y λ = 0,95 —un cambio
+    de 19%— el estrato alto cruza la ciudad entera, de 8,26 km a 1,33 km. Fuera
+    de esa banda estrecha λ casi no hace nada.
+  </li>
+  <li>
+    <strong>Dirección absurda.</strong> Bajar λ manda a los ricos a la periferia.
+    El mecanismo es transparente con la identidad de arriba: ρ<sub>eff</sub> = ρ/λ
+    crece (0,1 → 0,25 con λ = 0,4) y la penalización de densidad castiga justo
+    las celdas centrales, que son las densas. Gana ρ sobre α y el estrato huye.
+    De hecho λ = 0,4 reproduce <em>exactamente</em> la fila «alto ρ = 0,5, resto
+    0» de §6.4: es el mismo corner solution.
+  </li>
+</ol>
+
+<p>
+  El contraste que cierra el argumento: el ingreso <em>y</em> —que sí es un
+  parámetro económico del estrato— no reasigna a nadie (§6.3). Si λ moviera gente
+  por una razón económica, <em>y</em> también debería.
+</p>
+
+<div class="aviso alerta">
+  <h4>Cómo debe leerse en clase</h4>
+  <p>
+    Que mover λ cambie el mapa es una <strong>limitación declarada del
+    modelo</strong>, no un resultado. La lectura honesta es: «este parámetro no
+    está identificado; lo que ves es el re-escalamiento de α y ρ junto con el
+    ruido, no una respuesta al ingreso».
+  </p>
+  <p>
+    <strong>No hay corrección implementada.</strong> Corregirlo exige que el ruido
+    escale por estrato, lo que implica cambiar el operador de punto fijo —
+    <code>_solve_fixed_point</code> toma un β escalar— y no sólo la puja. Queda
+    pendiente para los autores.
+  </p>
+</div>
+
+<h3>7.2 No hay techo de densidad <span class="etiqueta lim">AU-08</span></h3>
+
+<p>
+  Conviene separar dos cosas que suenan parecido. <strong>Restricción de
+  capacidad sí hay</strong>, y del tipo correcto: <code>S<sub>i</sub></code> es
+  la capacidad de cada parcela y el equilibrio cumple
+  <code>Σ<sub>i</sub> S<sub>i</sub>·Q<sub>hi</sub> = H<sub>h</sub></code>
+  exactamente. Es vaciado de mercado — los precios ajustan hasta que la demanda
+  por cada parcela iguala su oferta. Eso es Alonso puro y está bien.
+</p>
+
+<p>
+  <strong>Lo que no hay es un techo normativo.</strong> La oferta se concentra
+  sin límite si se le pide:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>σ</th><th class="n">0,15</th><th class="n">0,3</th><th class="n">0,5</th><th class="n">0,8</th><th class="n">1,2</th></tr></thead>
+  <tbody>
+    <tr><td>densidad pico (hab/km)</td><td class="n">9.859</td><td class="n">4.874</td><td class="n">3.045</td><td class="n">2.291</td><td class="n">2.020</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con σ = 0,15 y ΣH = 144.000 la densidad pico llega a ~40.000 hab/km. Ninguna
+  normativa urbana permite eso: en la realidad la altura máxima y la
+  constructibilidad acotan <code>S</code>.
+</p>
+
+<p>
+  Es una <strong>decisión de alcance, no un defecto</strong>: el modelo
+  Alonso-Muth-Mills toma <code>S</code> como exógena, así que un techo sería un
+  módulo de zonificación aparte. Para el fin académico —discutir densificación
+  contra expansión— tener un tope normativo activable sería una buena extensión.
+</p>
+
+<h3>7.3 Convergencia lenta en configuraciones asimétricas <span class="etiqueta neutra">AU-09</span></h3>
+
+<p>
+  El punto fijo converge en 36 iteraciones en la base, pero llega a
+  <strong>2.640</strong> con ρ heterogénea y 801 con λ = 0,4. El tope es 10.000,
+  así que no trunca, pero se nota en la interfaz. Ninguna configuración probada
+  falló en converger.
+</p>
+
+<p>
+  El patrón es informativo: las configuraciones lentas son exactamente las que
+  caen en el corner solution de §6.4 y §7.1 —el estrato alto expulsado a la
+  periferia—. La lentitud es la firma de un equilibrio cerca de la bifurcación,
+  no un problema numérico.
+</p>
+
+<h3>7.4 La respuesta a α es muy sensible <span class="etiqueta neutra">AU-10</span></h3>
+
+<p>
+  La calibración base produce un gradiente que se lee bien (0,99 / 2,13 / 5,36 km).
+  Pero esos tres α difieren en apenas <strong>1,0 utiles/min (≈15%)</strong> y
+  generan una razón de distancias de <strong>5,4×</strong> entre el estrato alto y
+  el bajo. La mecánica de puja amplifica mucho las diferencias pequeñas. Dos
+  consecuencias para el uso en clase:
+</p>
+
+<ol>
+  <li>
+    Es fácil producir resultados extremos moviendo α poco: bueno para mostrar el
+    mecanismo, riesgoso para interpretar magnitudes como si fueran realistas.
+  </li>
+  <li>
+    La calibración base <strong>no es neutra</strong>: ya trae segregación
+    (Theil 0,357). Para partir de una ciudad mezclada y «construir» la
+    segregación en clase, hay que igualar los α.
+  </li>
+</ol>
+
+<!-- ==================================================================== -->
+<h2 id="s8"><span class="num">8</span>Divergencia con el informe LaTeX</h2>
+
+<div class="aviso alerta">
+  <h4>El informe está desactualizado en este punto y hay que corregirlo</h4>
+  <p>
+    <code>reference/overleaf_modificado/Suelo.tex</code>, bloque S-5, describe un
+    segundo solver llamado <em>heteroscedástico</em> y afirma: «en la
+    implementación de referencia este método es el <strong>default</strong>; el
+    <code>logit</code> se conserva como comparación didáctica de la
+    inconsistencia».
+  </p>
+  <p>
+    <strong>Eso ya no es cierto.</strong> Ese solver fue eliminado del núcleo
+    (AU-07), junto con el campo <code>solver</code> de la configuración. Hoy el
+    módulo tiene un <strong>único</strong> solver: el logit sobre la puja
+    <code>y + f/λ</code> descrito en este documento.
+  </p>
+</div>
+
+<h3>8.1 Qué proponía la corrección</h3>
+
+<p>
+  El argumento del bloque S-5 es correcto como diagnóstico. Al despejar el precio
+  para obtener la disposición a pagar (ecuación 3), el término aleatorio queda
+  dividido por λ<sub>h</sub>:
+</p>
+
+<div class="ecuacion suelta">
+  w̃<sub>hi</sub> = w<sub>hi</sub> + ε<sub>hi</sub> / λ<sub>h</sub>
+</div>
+
+<p>
+  con escala Gumbel <code>1/(β·λ<sub>h</sub>)</code>, <strong>distinta por
+  estrato</strong>. Aplicar un logit con β uniforme sobre las pujas —lo que hace
+  el solver actual— equivale a suponer ruido homoscedástico en el espacio de
+  <em>pujas</em>, es decir ruido en <em>utilidad</em> de escala λ<sub>h</sub>/β:
+  los estratos de mayor λ tendrían elección más ruidosa, sin fundamento
+  conductual. El diagnóstico está bien planteado y coincide con lo que este
+  documento registra en §7.1.
+</p>
+
+<p>
+  La corrección propuesta era pesar la puja de cada estrato por su propia
+  precisión β<sub>h</sub> = β·λ<sub>h</sub>, lo que deja el índice de la subasta
+  en unidades de utilidad a través del <em>score</em>
+</p>
+
+<div class="ecuacion suelta">
+  s<sub>hi</sub> := λ<sub>h</sub> y<sub>h</sub> + f<sub>h</sub>(i)
+</div>
+
+<h3>8.2 Por qué se eliminó</h3>
+
+<p>
+  Porque en ese score <strong>λ aparece únicamente multiplicando
+  y<sub>h</sub></strong>, que es una constante por estrato — y el punto fijo la
+  absorbe en ū<sub>h</sub> exactamente igual que absorbe el ingreso (§6.3). El
+  resultado medido: <code>Q</code> idéntica con λ de 0,01 a 100. El parámetro
+  quedaba completamente <strong>inerte</strong>.
+</p>
+
+<p>
+  El propio <code>Suelo.tex</code> lo reconoce, en su propiedad 4
+  («Identificación»): «ni λ<sub>h</sub> ni el ingreso y<sub>h</sub> mueven la
+  asignación espacial en la subasta». Ahí está la disputa completa: el texto lo
+  presenta como la teoría funcionando bien —en un modelo de <em>subasta</em>,
+  λ y <em>y</em> no deberían mover la localización, y el orden espacial emerge
+  vía α<sub>h</sub>—, mientras que el veredicto de la auditoría fue que el
+  método no corregía el artefacto sino que lo <em>borraba</em>, dejando el
+  módulo sin ninguna representación del efecto que λ pretende capturar.
+</p>
+
+<p>
+  La decisión tomada, y que este documento registra como vigente, fue eliminarlo:
+  un parámetro inerte en la interfaz es peor que un parámetro ausente, porque el
+  estudiante lo mueve y no pasa nada. La corrección real —escalar el ruido por
+  estrato— exige modificar el operador de punto fijo y sigue pendiente.
+</p>
+
+<h3>8.3 Qué hay que corregir en el informe</h3>
+
+<ul>
+  <li>
+    El bloque S-5 debe dejar de afirmar que el método heteroscedástico es el
+    default de la implementación de referencia: no existe.
+  </li>
+  <li>
+    El bloque S-6 («Código») menciona «solvers <code>logit</code> y
+    <code>heteroscedastic</code> sobre el mismo punto fijo». Hoy es uno solo.
+  </li>
+  <li>
+    El diagnóstico teórico de S-5 —que el ruido queda heteroscedástico al
+    despejar el precio— <strong>sigue siendo válido y vale la pena conservarlo</strong>,
+    reformulado como problema abierto en vez de como corrección implementada.
+  </li>
+</ul>
+
+<div class="aviso neutro">
+  <p>
+    Escenarios guardados: un archivo que todavía traiga el campo
+    <code>solver</code> <strong>no se migra</strong> — falla al importar con un
+    error explícito. Fue una decisión consciente al romper compatibilidad, en
+    agosto de 2026.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s9"><span class="num">9</span>Referencias</h2>
+
+<p>
+  Para todo lo relacionado con este modelo estocástico de uso de suelo, la
+  referencia central es <a href="#r-martinez2018">Martínez (2018)</a>, capítulos
+  3 al 5, donde se detallan y discuten las decisiones detrás del modelo y se
+  abarcan otras formas de plantearlo.
+</p>
+
+<p class="meta">
+  Entradas copiadas literalmente de la bibliografía del informe
+  (<code>reference/overleaf_modificado/main.tex</code>), para que las citas de
+  este documento y las del informe sean la misma lista.
+</p>
+
+<ol class="refs">
+  <li id="r-alonso">
+    Alonso, W. (1964). <em>Location and Land Use: Toward a General Theory of Land
+    Rent</em>. Harvard University Press.
+  </li>
+  <li id="r-ellickson">
+    Ellickson, B. (1981). An alternative test of the hedonic theory of housing
+    markets. <em>Journal of Urban Economics</em>, 9(1), 56–79.
+  </li>
+  <li id="r-fujita">
+    Fujita, M. (1989). <em>Urban Economic Theory: Land Use and City Size</em>.
+    Cambridge University Press.
+  </li>
+  <li id="r-lermankern">
+    Lerman, S. R., y Kern, C. R. (1983). Hedonic theory, bid rents, and
+    willingness-to-pay: Some extensions of Ellickson's results. <em>Journal of
+    Urban Economics</em>, 13(3), 358–363.
+  </li>
+  <li id="r-martinez1992">
+    Martínez, F. J. (1992). The bid–choice land-use model: an integrated economic
+    framework. <em>Environment and Planning A</em>, 24(6), 871–885.
+  </li>
+  <li id="r-martinez2018">
+    Martínez, F. J. (2018). <em>Microeconomic Modeling in Urban Science</em>.
+    Academic Press.
+  </li>
+  <li id="r-mcfadden">
+    McFadden, D. (1974). Conditional logit analysis of qualitative choice
+    behavior. En P. Zarembka (ed.), <em>Frontiers in Econometrics</em>
+    (pp. 105–142). Academic Press.
+  </li>
+  <li id="r-openshaw">
+    Openshaw, S. (1983). <em>The Modifiable Areal Unit Problem</em>. CATMOG 38.
+    Geo Books.
+  </li>
+  <li id="r-reardon">
+    Reardon, S. F., y O'Sullivan, D. (2004). Measures of spatial segregation.
+    <em>Sociological Methodology</em>, 34(1), 121–162.
+  </li>
+  <li id="r-train">
+    Train, K. E. (2009). <em>Discrete Choice Methods with Simulation</em>
+    (2.ª ed.). Cambridge University Press.
+  </li>
+</ol>
+
+<h3>Documentación interna relacionada</h3>
+
+<ul>
+  <li><code>docs/AUDITORIA_USO_SUELO.md</code> — la auditoría completa, con los hallazgos AU-01 a AU-10 y el script que los reproduce.</li>
+  <li><code>docs/informe-bienestar.html</code> — cómo se mide el excedente del consumidor, que es lo que el módulo acoplado agrega sobre esta localización.</li>
+  <li><code>docs/DISCREPANCIES.md</code> — el registro D-xx citado en el código (D-08 λ, D-13 formas de oferta, D-25 conservación, D-26 unidades físicas, D-27 ingresos).</li>
+</ul>
+
+<footer>
+  <p>
+    <strong>Titirilquen</strong> · Simulador educativo de transporte urbano ·
+    Facultad de Ciencias Físicas y Matemáticas, Universidad de Chile.
+  </p>
+  <p>
+    Este documento describe la implementación vigente en
+    <code>packages/titirilquen_core/src/titirilquen_core/land_use/</code>.
+    Ante cualquier diferencia entre este texto y el código, manda el código: las
+    cifras citadas son reproducibles con
+    <code>uv run python scripts/auditoria_suelo.py</code>.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
