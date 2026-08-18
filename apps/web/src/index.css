@@ -24,6 +24,16 @@
   --walk: #2a4d7a;
   --tele: #8a8578;
 
+  /* Dirección de un Δ. Son SEMÁNTICOS, no de marca ni de modo: «mejora» tomaba
+     prestado --bici, que es el color del modo bicicleta —o sea que en una
+     figura ese verde significa otra cosa—, y «empeora» tomaba --accent, que en
+     el tema `journal` es AZUL. La leyenda dice «verde = mejora, rojo =
+     empeora» y en ese tema no era verdad. Con tokens propios, retematizar no
+     puede volver a cambiarles el significado. El signo (+/−) va igual en el
+     número: la dirección nunca depende sólo del color. */
+  --mejora: #2f6b43;
+  --empeora: #a02c22;
+
   /* Estratos — rampa ciruela/malva apagada (alto→bajo), cálida y desaturada
      para encajar con la paleta impresa, sin colisión con los colores de modo. */
   --s1: #5a3a4a;
@@ -63,6 +73,8 @@
   --bici: #4fb07a;
   --walk: #5b8fd6;
   --tele: #6f6a5e;
+  --mejora: #52b47d;
+  --empeora: #e8635b;
   --s1: #c4a8b6;
   --s2: #9c7286;
   --s3: #6b475b;
@@ -83,6 +95,8 @@
   --bici: #1a5a2a;
   --walk: #1a4d8f;
   --tele: #8a8a8a;
+  --mejora: #1a5a2a;
+  --empeora: #a01818;
   --s1: #4a2a3c;
   --s2: #7d4f66;
   --s3: #a97e92;
@@ -1138,16 +1152,34 @@ table.tabla-datos {
   font-variant-numeric: tabular-nums;
 }
 
+/* El rótulo de tabla replica el header de figura: `TABLA NN` en la familia de
+   figuras y acento, y el nombre en display de 14 px. Se quedan inline —sin
+   flex— porque `caption` necesita su `display: table-caption` para colocarse
+   arriba, y dos inline ya comparten línea de base sin ayuda. */
 table.tabla-datos caption {
   caption-side: top;
   text-align: left;
   padding: 0 0 6px;
+}
+
+table.tabla-datos caption .n {
   font-family: var(--font-fig);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--accent);
+  /* 6 px + el espacio real ≈ los 10 px de gap del header de figura. */
+  margin-right: 6px;
+  white-space: nowrap;
+}
+
+table.tabla-datos caption .nombre {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ink);
 }
 
 table.tabla-datos th {
@@ -1180,6 +1212,36 @@ table.tabla-datos td:first-child {
 /* Nota al pie de una etiqueta («(VoT conductual por estrato)»): más chica y
    apagada, pero en la MISMA familia que la etiqueta que acompaña. */
 table.tabla-datos .celda-nota {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Nombre del escenario bajo el encabezado de columna («Base», «Pro-Auto»). Va
+   en la familia del CUERPO y sin versalitas: es un dato —la identidad de la
+   corrida—, no un rótulo de columna, y tiene que distinguirse de él. */
+table.tabla-datos th .th-escenario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+
+/* «(ciudad)» / «(política)»: qué dimensión nombra cada línea. Apagado, porque
+   es la etiqueta del dato y no el dato. */
+table.tabla-datos th .th-tipo {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Unidad de la fila («(persona)»). Mismo cuerpo que la nota, pero se distingue
+   de ella: la nota explica, la unidad decide si dos cifras son comparables. */
+table.tabla-datos .celda-unidad {
   font-size: 11px;
   color: var(--muted);
 }

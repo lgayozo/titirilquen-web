@@ -1,4 +1,5 @@
 {
+  "tabla_n": "TABLA {{n}}",
   "sections": {
     "city": "Ciudad",
     "supply": "Oferta",
@@ -184,7 +185,6 @@
     "agentes": "agentes"
   },
   "metrics_table": {
-    "title": "Tabla de métricas",
     "meta": "ciudad completa · por modo · por estrato",
     "export_csv": "Exportar CSV",
     "trips": "Viajes físicos",
@@ -201,14 +201,15 @@
     "convergence": "Convergencia",
     "converged": "Convergió",
     "maxiter": "Máx. iter",
-    "time_section": "Tiempo medio por modo",
     "mode_col": "Modo",
     "avg_time_mode": "Tiempo medio (min)",
-    "per_stratum": "Por estrato",
     "metric_col": "Métrica",
+    "st_viajes": "Viajes físicos",
     "st_hogares": "Agentes",
     "st_time": "Tiempo medio",
-    "st_utility": "Utilidad media",
+    "st_logsum": "Logsum (útiles)",
+    "st_util_max": "Utilidad máxima (útiles)",
+    "st_share_nota": "sobre viajes físicos",
     "st_share": "% en",
     "csv_section": "seccion",
     "csv_metric": "metrica",
@@ -219,8 +220,8 @@
     "vc_metro_sub": "carga max / (frec. max x capacidad tren)",
     "network_load": "Carga de la red",
     "network_load_note": "Auto y bici: flujo máximo del corredor sobre la capacidad; >1 ⇒ opera sobre capacidad. El metro es distinto: ajusta la frecuencia a la demanda (f_op = carga/K), así que su cociente vale 1 salvo que el tope frec_max o el piso frec_min esté activo — >1 significa frecuencia insuficiente, no hacinamiento (el modelo no penaliza el hacinamiento en vehículo). Los tres responden a población, precios y capacidad, NO al largo de la ciudad: en una ciudad monocéntrica el tramo junto al CBD carga aproximadamente la mitad de los viajes sea cual sea la extensión.",
-    "cap_modo": "Tabla 2 · Tiempo medio de viaje por modo",
-    "cap_estrato": "Tabla 3 · Resultados por estrato socioeconómico",
+    "cap_modo": "Tiempo medio de viaje por modo",
+    "cap_estrato": "Resultados por estrato socioeconómico",
     "panel_title": "Resultados del equilibrio"
   },
   "hero": {
@@ -805,6 +806,9 @@
     "metrica": "Métrica",
     "actual": "Escenario actual",
     "referencia": "Referencia",
+    "viajes_fisicos": "Viajes físicos",
+    "viajes_fisicos_nota": "(denominador del reparto de abajo; excluye teletrabajo)",
+    "reparto_modo": "Reparto modal · {{modo}}",
     "tiempo_total": "Tiempo total de viaje (persona-min)",
     "tiempo_medio": "Tiempo medio por viajero",
     "cg_percibido": "Costo generalizado percibido",
@@ -833,9 +837,17 @@
     "costo_operador_nota": "({{km}} tren-km/h · ×{{f}} día/punta · valores PROVISORIOS)",
     "subsidio": "Subsidio requerido (costo − tarifa)",
     "subsidio_nota": "(negativo ⇒ el servicio se autofinancia)",
-    "caption": "Tabla 1 · Agregados de ciudad completa",
-    "excedente_social": "Excedente social (VoT unico)",
-    "excedente_social_nota": "(valorado al VoT social {{vot}}/h en vez del conductual de cada estrato: el minuto de todos vale lo mismo)"
+    "caption": "Agregados de ciudad completa",
+    "excedente_social": "Excedente social (VoT único)",
+    "excedente_social_nota": "(valorado al VoT social {{vot}}/h en vez del conductual de cada estrato: el minuto de todos vale lo mismo)",
+    "escenario_hint": "Presets que describen esta corrida, reconocidos por sus parámetros. «Personalizada» = no coincide con ninguno.",
+    "escenario_custom": "Personalizada",
+    "tipo_ciudad": "ciudad",
+    "tipo_politica": "política",
+    "u_ciudad": "(ciudad)",
+    "u_persona": "(persona)",
+    "reparto_hint": "El reparto modal y su Δ van en puntos porcentuales sobre los viajes físicos. El Δ no se colorea: que un modo suba no es una mejora en sí —depende a costa de cuál—.",
+    "unidades_hint": "Las cifras monetarias son totales de la ciudad, salvo las marcadas (persona): ésas son el promedio por viajero del estrato. El nivel del excedente no se interpreta —su cero lo fijan las ASC—; sólo el Δ."
   },
   "espera": {
     "min": "min",

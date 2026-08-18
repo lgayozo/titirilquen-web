@@ -1,4 +1,5 @@
 {
+  "tabla_n": "TABLE {{n}}",
   "sections": {
     "city": "City",
     "supply": "Supply",
@@ -184,7 +185,6 @@
     "agentes": "agents"
   },
   "metrics_table": {
-    "title": "Metrics table",
     "meta": "city-wide · by mode · by stratum",
     "export_csv": "Export CSV",
     "trips": "Physical trips",
@@ -201,14 +201,15 @@
     "convergence": "Convergence",
     "converged": "Converged",
     "maxiter": "Max iter",
-    "time_section": "Average time by mode",
     "mode_col": "Mode",
     "avg_time_mode": "Avg time (min)",
-    "per_stratum": "By stratum",
     "metric_col": "Metric",
+    "st_viajes": "Physical trips",
     "st_hogares": "Agents",
     "st_time": "Avg time",
-    "st_utility": "Avg utility",
+    "st_logsum": "Logsum (utils)",
+    "st_util_max": "Maximum utility (utils)",
+    "st_share_nota": "of physical trips",
     "st_share": "% in",
     "csv_section": "section",
     "csv_metric": "metric",
@@ -219,8 +220,8 @@
     "vc_metro_sub": "max load / (max freq x train capacity)",
     "network_load": "Network load",
     "network_load_note": "Car and bike: peak corridor flow over capacity; >1 means running above capacity. Metro differs: frequency adapts to demand (f_op = load/K), so its ratio is 1 unless the frec_max ceiling or frec_min floor binds — >1 means insufficient frequency, not crowding (the model has no in-vehicle crowding penalty). All three respond to population, prices and capacity, NOT to city length: in a monocentric city the section next to the CBD carries about half the trips regardless of extent.",
-    "cap_modo": "Table 2 · Mean travel time by mode",
-    "cap_estrato": "Table 3 · Results by socioeconomic stratum",
+    "cap_modo": "Mean travel time by mode",
+    "cap_estrato": "Results by socioeconomic stratum",
     "panel_title": "Equilibrium results"
   },
   "hero": {
@@ -805,6 +806,9 @@
     "metrica": "Metric",
     "actual": "Current scenario",
     "referencia": "Reference",
+    "viajes_fisicos": "Physical trips",
+    "viajes_fisicos_nota": "(denominator of the split below; excludes telework)",
+    "reparto_modo": "Mode share · {{modo}}",
     "tiempo_total": "Total travel time (person-min)",
     "tiempo_medio": "Mean time per traveller",
     "cg_percibido": "Perceived generalized cost",
@@ -833,9 +837,17 @@
     "costo_operador_nota": "({{km}} train-km/h · ×{{f}} day/peak · PROVISIONAL values)",
     "subsidio": "Required subsidy (cost − fare revenue)",
     "subsidio_nota": "(negative ⇒ the service self-finances)",
-    "caption": "Table 1 · City-wide aggregates",
+    "caption": "City-wide aggregates",
     "excedente_social": "Social surplus (single VoT)",
-    "excedente_social_nota": "(valued at the social VoT {{vot}}/h instead of each stratum behavioural one: everyone minute is worth the same)"
+    "excedente_social_nota": "(valued at the social VoT {{vot}}/h instead of each stratum’s behavioural one: everyone’s minute is worth the same)",
+    "escenario_hint": "Presets describing this run, recognised from their parameters. “Custom” = matches none.",
+    "escenario_custom": "Custom",
+    "tipo_ciudad": "city",
+    "tipo_politica": "policy",
+    "u_ciudad": "(city)",
+    "u_persona": "(person)",
+    "reparto_hint": "Mode shares and their Δ are in percentage points over physical trips. The Δ is not coloured: a mode going up is not an improvement by itself —it depends at whose expense—.",
+    "unidades_hint": "Monetary figures are city-wide totals except those marked (person), which are the per-traveller mean of the stratum. The LEVEL of surplus is not interpretable —its zero is set by the ASCs—; only the Δ is."
   },
   "espera": {
     "min": "min",

@@ -113,8 +113,8 @@ function Chip({
   const color = negligible
     ? "var(--muted)"
     : good
-      ? "var(--bici)"
-      : "var(--accent)";
+      ? "var(--mejora)"
+      : "var(--empeora)";
   const arrow = negligible ? "→" : delta > 0 ? "↑" : "↓";
   return (
     <span className="inline-flex items-center gap-1">

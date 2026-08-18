@@ -113,5 +113,5 @@ export function MetricCompareTable({
 function deltaColor(delta: number, betterWhen?: "down" | "up"): string {
   if (!betterWhen) return "text-[var(--muted)]";
   const good = betterWhen === "down" ? delta < 0 : delta > 0;
-  return good ? "text-[var(--bici)]" : "text-[var(--metro)]";
+  return good ? "text-[var(--mejora)]" : "text-[var(--empeora)]";
 }

@@ -313,5 +313,5 @@ function deltaColor(delta: number, inverted?: boolean): string {
   const positiveIsGood = !inverted;
   if (Math.abs(delta) < 1e-3) return "text-[var(--muted)]";
   const good = positiveIsGood ? delta > 0 : delta < 0;
-  return good ? "text-[var(--bici)]" : "text-[var(--metro)]";
+  return good ? "text-[var(--mejora)]" : "text-[var(--empeora)]";
 }
