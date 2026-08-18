@@ -309,7 +309,6 @@ a:hover {
   padding-top: 12px;
 }
 
-
 .topbar .spacer {
   flex: 1;
 }
@@ -368,7 +367,9 @@ a:hover {
   cursor: pointer;
   font: inherit;
   border-right: 1px solid var(--rule);
-  transition: background 120ms, color 120ms;
+  transition:
+    background 120ms,
+    color 120ms;
   text-transform: uppercase;
 }
 
@@ -397,7 +398,10 @@ a:hover {
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  transition: background 120ms, color 120ms, border-color 120ms;
+  transition:
+    background 120ms,
+    color 120ms,
+    border-color 120ms;
 }
 
 .chip-toggle.active {
@@ -652,7 +656,9 @@ a:hover {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   margin-top: 12px;
-  transition: background 150ms, box-shadow 150ms;
+  transition:
+    background 150ms,
+    box-shadow 150ms;
   position: sticky;
   bottom: calc(-1 * var(--pad));
   /* Halo inferior para despegar visualmente del contenido que pase por debajo */
@@ -681,7 +687,10 @@ a:hover {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   margin-top: 12px;
-  transition: background 150ms, border-color 150ms, color 150ms;
+  transition:
+    background 150ms,
+    border-color 150ms,
+    color 150ms;
 }
 
 .reset-btn:hover {
@@ -700,7 +709,9 @@ a:hover {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 150ms, color 150ms;
+  transition:
+    background 150ms,
+    color 150ms;
 }
 
 .btn:hover:not(:disabled) {
@@ -782,8 +793,13 @@ a:hover {
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* Ribbon */
@@ -951,23 +967,43 @@ a:hover {
   flex: 1;
 }
 
-.col-3 { grid-column: span 3; }
-.col-4 { grid-column: span 4; }
-.col-5 { grid-column: span 5; }
-.col-6 { grid-column: span 6; }
-.col-7 { grid-column: span 7; }
-.col-8 { grid-column: span 8; }
-.col-9 { grid-column: span 9; }
-.col-12 { grid-column: span 12; }
+.col-3 {
+  grid-column: span 3;
+}
+.col-4 {
+  grid-column: span 4;
+}
+.col-5 {
+  grid-column: span 5;
+}
+.col-6 {
+  grid-column: span 6;
+}
+.col-7 {
+  grid-column: span 7;
+}
+.col-8 {
+  grid-column: span 8;
+}
+.col-9 {
+  grid-column: span 9;
+}
+.col-12 {
+  grid-column: span 12;
+}
 
 @media (max-width: 1100px) {
   /* Tablet: los paneles chicos caben de a dos por fila; los anchos van a fila
      completa (antes todo saltaba a 1 columna y quedaba muy "verticalizado"). */
-  .panel-grid .col-5, .panel-grid .col-6, .panel-grid .col-7,
-  .panel-grid .col-8, .panel-grid .col-9 {
+  .panel-grid .col-5,
+  .panel-grid .col-6,
+  .panel-grid .col-7,
+  .panel-grid .col-8,
+  .panel-grid .col-9 {
     grid-column: span 12;
   }
-  .panel-grid .col-3, .panel-grid .col-4 {
+  .panel-grid .col-3,
+  .panel-grid .col-4 {
     grid-column: span 6;
   }
   /* La página vuelve al flujo normal: una sola columna con UN scroll (el del
@@ -990,7 +1026,8 @@ a:hover {
 
 @media (max-width: 768px) {
   /* Móvil: todo a fila completa. */
-  .panel-grid .col-3, .panel-grid .col-4 {
+  .panel-grid .col-3,
+  .panel-grid .col-4 {
     grid-column: span 12;
   }
 }
@@ -1079,6 +1116,79 @@ svg .fig-title {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Tablas de datos — UN solo estilo para todo el módulo de transporte.
+
+   Antes cada tabla traía el suyo, en estilos inline, y convivían cuatro tamaños
+   (10/11/12/14 px), cuatro pesos (400-700) y DOS familias: la de agregados en
+   serif y las de métricas en mono. Dentro de una misma tabla llegaba a haber dos
+   estilos de `th` y dos de `td`. Medido el 2026-08-18.
+
+   La escala es deliberadamente corta: encabezado mono chico en versalitas,
+   cuerpo en la fuente de lectura a 13 px, números tabulares para que las
+   columnas alineen dígito con dígito. Es el mismo patrón que `table.cmp` de la
+   página de Comparar, que ya funcionaba; acá se generaliza en vez de inventar
+   un tercer dialecto.
+--------------------------------------------------------------------------- */
+table.tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+table.tabla-datos caption {
+  caption-side: top;
+  text-align: left;
+  padding: 0 0 6px;
+  font-family: var(--font-fig);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+table.tabla-datos th {
+  font-family: var(--font-fig);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: right;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--ink);
+  white-space: nowrap;
+}
+
+table.tabla-datos td {
+  text-align: right;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* La primera columna es la etiqueta de la fila: alineada a la izquierda y sin
+   tabular-nums, que solo tiene sentido en cifras. */
+table.tabla-datos th:first-child,
+table.tabla-datos td:first-child {
+  text-align: left;
+  font-variant-numeric: normal;
+}
+
+/* Nota al pie de una etiqueta («(VoT conductual por estrato)»): más chica y
+   apagada, pero en la MISMA familia que la etiqueta que acompaña. */
+table.tabla-datos .celda-nota {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Cifra sin dato. */
+table.tabla-datos .celda-vacia {
+  color: var(--muted);
+}
+
 /* Compare table */
 table.cmp {
   width: 100%;
@@ -1131,10 +1241,18 @@ table.cmp th {
   color: var(--muted);
 }
 
-.badge.auto { color: var(--auto); }
-.badge.metro { color: var(--metro); }
-.badge.bici { color: var(--bici); }
-.badge.walk { color: var(--walk); }
+.badge.auto {
+  color: var(--auto);
+}
+.badge.metro {
+  color: var(--metro);
+}
+.badge.bici {
+  color: var(--bici);
+}
+.badge.walk {
+  color: var(--walk);
+}
 
 /* Corner mark */
 .corner-mark {
@@ -1154,7 +1272,9 @@ table.cmp th {
   border: 1px solid var(--rule);
   background: var(--paper);
   padding: 14px 16px;
-  transition: box-shadow 300ms ease-out, border-color 300ms;
+  transition:
+    box-shadow 300ms ease-out,
+    border-color 300ms;
 }
 
 .run-status--flash {
@@ -1396,7 +1516,8 @@ table.cmp th {
 }
 
 @keyframes skeleton-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     transform: scaleY(0.6);
   }
@@ -1506,7 +1627,9 @@ table.cmp th {
   font-size: 13px;
   line-height: 1.3;
   text-decoration: none;
-  transition: color 120ms, border-color 120ms;
+  transition:
+    color 120ms,
+    border-color 120ms;
 }
 
 .tutorial-toc a:hover {
@@ -1610,10 +1733,16 @@ table.cmp th {
   margin: 14px 0;
 }
 
-.tutorial-article ul { list-style: disc; }
-.tutorial-article ol { list-style: decimal; }
+.tutorial-article ul {
+  list-style: disc;
+}
+.tutorial-article ol {
+  list-style: decimal;
+}
 
-.tutorial-article li { margin: 4px 0; }
+.tutorial-article li {
+  margin: 4px 0;
+}
 
 .tutorial-article code {
   font-family: var(--font-fig);
@@ -1719,8 +1848,12 @@ table.cmp th {
   color: var(--accent);
 }
 
-.tut-callout > .tut-callout-body > :first-child { margin-top: 0; }
-.tut-callout > .tut-callout-body > :last-child { margin-bottom: 0; }
+.tut-callout > .tut-callout-body > :first-child {
+  margin-top: 0;
+}
+.tut-callout > .tut-callout-body > :last-child {
+  margin-bottom: 0;
+}
 
 /* Next step button */
 .tut-next {
@@ -1825,14 +1958,29 @@ table.cmp th {
   animation: skeleton-pulse 1.2s ease-in-out infinite;
 }
 
-.tut-skeleton > div:nth-child(1) { width: 60%; height: 28px; margin-bottom: 24px; }
-.tut-skeleton > div:nth-child(2) { width: 100%; }
-.tut-skeleton > div:nth-child(3) { width: 88%; }
-.tut-skeleton > div:nth-child(4) { width: 70%; }
+.tut-skeleton > div:nth-child(1) {
+  width: 60%;
+  height: 28px;
+  margin-bottom: 24px;
+}
+.tut-skeleton > div:nth-child(2) {
+  width: 100%;
+}
+.tut-skeleton > div:nth-child(3) {
+  width: 88%;
+}
+.tut-skeleton > div:nth-child(4) {
+  width: 70%;
+}
 
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .tut-notfound {
@@ -2018,9 +2166,20 @@ table.cmp th {
   font-variant-numeric: tabular-nums;
 }
 
-.nl-lo { grid-column: 2; text-align: left; }
-.nl-mid { grid-column: 3 / span 1; text-align: center; margin: 0 auto; }
-.nl-hi { grid-column: 4 / -1; text-align: right; margin-left: auto; }
+.nl-lo {
+  grid-column: 2;
+  text-align: left;
+}
+.nl-mid {
+  grid-column: 3 / span 1;
+  text-align: center;
+  margin: 0 auto;
+}
+.nl-hi {
+  grid-column: 4 / -1;
+  text-align: right;
+  margin-left: auto;
+}
 
 /* =============================================================================
  * Flowchart — diagramas interactivos (MSA, Coupled)
@@ -2053,7 +2212,10 @@ table.cmp th {
   fill: var(--paper);
   stroke: var(--ink);
   stroke-width: 1.3;
-  transition: fill 180ms, stroke 180ms, stroke-width 180ms;
+  transition:
+    fill 180ms,
+    stroke 180ms,
+    stroke-width 180ms;
 }
 
 .fc-node--start .fc-node-shape,
@@ -2203,7 +2365,10 @@ table.cmp th {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 140ms, color 140ms, border-color 140ms;
+  transition:
+    background 140ms,
+    color 140ms,
+    border-color 140ms;
 }
 
 .fc-btn:hover:not(:disabled) {
@@ -2318,7 +2483,9 @@ table.cmp th {
   padding: 14px 16px;
   text-align: left;
   cursor: pointer;
-  transition: border-color 150ms, background 150ms;
+  transition:
+    border-color 150ms,
+    background 150ms;
   font: inherit;
   color: inherit;
   display: flex;
@@ -2707,7 +2874,9 @@ table.cmp th {
   display: block;
   text-decoration: none;
   color: var(--ink);
-  transition: background 150ms, border-color 150ms;
+  transition:
+    background 150ms,
+    border-color 150ms;
 }
 
 .about-link:hover {
@@ -2850,8 +3019,12 @@ table.cmp th {
 }
 
 @keyframes card-progress-slide {
-  0% { left: -35%; }
-  100% { left: 100%; }
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 .pulse-dot {
@@ -2864,8 +3037,13 @@ table.cmp th {
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 0.25; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

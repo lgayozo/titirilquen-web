@@ -35,6 +35,15 @@ const MARGIN = {
   right: EJE_ESPACIAL.right,
 };
 
+/** Celda bajo el cursor. Estas figuras no tenían NINGUNA interacción: eran las
+ *  dos únicas del módulo sin tooltip ni `<title>`, así que el alumno podía ver
+ *  la forma del perfil pero no leer un valor puntual. */
+interface HoverCelda {
+  i: number;
+  km: number;
+  valor: number;
+}
+
 /**
  * Perfil de demanda **por celda** de origen a lo largo de la ciudad.
  *
@@ -62,6 +71,7 @@ export function FlowProfile({
 }: FlowProfileProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(360);
+  const [hover, setHover] = useState<HoverCelda | null>(null);
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
@@ -179,36 +189,72 @@ export function FlowProfile({
               width={rectW}
               height={h}
               fill={color}
-              opacity={0.75}
+              opacity={hover?.i === i ? 1 : 0.75}
             />
           );
         })}
 
+        {/* Capa de captura del mouse: una columna de alto completo por celda.
+            Va sobre las barras y es transparente. Sin esto habría que apuntar a
+            la barra misma, que en las celdas de flujo bajo mide 2 px de alto y
+            es imposible de acertar; y las celdas con flujo 0 —que no dibujan
+            barra— no responderían nunca. */}
+        {flows.map((_, i) => (
+          <rect
+            key={`hit-${i}`}
+            x={MARGIN.left + i * barW}
+            y={yTop}
+            width={Math.max(barW, 1)}
+            height={plotH}
+            fill="transparent"
+            onMouseEnter={() =>
+              setHover({
+                i,
+                km: nCeldas > 1 ? (i / (nCeldas - 1)) * largoKm : 0,
+                valor: flows[i] ?? 0,
+              })
+            }
+            onMouseLeave={() => setHover(null)}
+          />
+        ))}
+
         {/* Capacidad: línea sobre la MISMA escala que las barras, así el cruce
             v/c = 1 se lee de un vistazo en vez de tener que comparar cifras. */}
-        {capacity != null && capacity > 0 && (
-          <g>
-            <line
-              x1={MARGIN.left}
-              y1={yFloor - (capacity / scale) * plotH}
-              x2={MARGIN.left + plotW}
-              y2={yFloor - (capacity / scale) * plotH}
-              stroke="var(--s1)"
-              strokeWidth={1.2}
-              strokeDasharray="5 3"
-            />
-            <text
-              x={MARGIN.left + plotW - 2}
-              y={yFloor - (capacity / scale) * plotH - 3}
-              textAnchor="end"
-              className="label"
-              fill="var(--s1)"
-              style={{ fontVariantNumeric: "tabular-nums" }}
-            >
-              {`cap ${valueFmt(capacity)}${capacityLabel ? ` ${capacityLabel}` : ""}`}
-            </text>
-          </g>
-        )}
+        {capacity != null &&
+          capacity > 0 &&
+          (() => {
+            const yCap = yFloor - (capacity / scale) * plotH;
+            // La etiqueta va ENCIMA de su línea salvo que ahí no quepa, o sea
+            // cuando la capacidad está tan cerca del máximo que el rótulo se
+            // metería en el encabezado. Pasa siempre con el metro: su capacidad
+            // operativa ES su carga (f_op = carga/K), así que la línea aterriza
+            // exactamente en el techo y «cap 5017 pax/h» quedaba encimado con
+            // «max 5017 · v/c 1.00» — medido, 92 × 11 px de solape.
+            const cabeArriba = yCap - 3 > MARGIN.top + 9;
+            return (
+              <g>
+                <line
+                  x1={MARGIN.left}
+                  y1={yCap}
+                  x2={MARGIN.left + plotW}
+                  y2={yCap}
+                  stroke="var(--s1)"
+                  strokeWidth={1.2}
+                  strokeDasharray="5 3"
+                />
+                <text
+                  x={MARGIN.left + plotW - 2}
+                  y={cabeArriba ? yCap - 3 : yCap + 12}
+                  textAnchor="end"
+                  className="label"
+                  fill="var(--s1)"
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                >
+                  {`cap ${valueFmt(capacity)}${capacityLabel ? ` ${capacityLabel}` : ""}`}
+                </text>
+              </g>
+            );
+          })()}
 
         {/* Baseline */}
         <line
@@ -243,6 +289,22 @@ export function FlowProfile({
           {largoKm.toFixed(0)} KM
         </text>
       </svg>
+      {hover && (
+        <div className="network-tooltip" role="tooltip">
+          <div className="nt-head" style={{ color }}>
+            {label ? `${label} · ` : ""}
+            {hover.km.toFixed(1)} km
+          </div>
+          <div className="nt-row">
+            <span>{valueFmt(hover.valor)}</span>
+          </div>
+          {capacity != null && capacity > 0 && (
+            <div className="nt-row">
+              <span>{`v/c ${(hover.valor / capacity).toFixed(2)}`}</span>
+            </div>
+          )}
+        </div>
+      )}
       {/* effectiveMax expuesto para tooltips/lectores; no se muestra aparte */}
       <span className="sr-only">{`max ${Math.round(effectiveMax)}`}</span>
     </div>

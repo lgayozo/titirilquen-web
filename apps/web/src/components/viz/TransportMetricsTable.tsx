@@ -65,26 +65,6 @@ const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 const fmtRatio = (v: number | null) => (v == null ? "—" : `${v.toFixed(2)}×`);
 
 /**
- * Tabla-resumen de todas las métricas del equilibrio de Transporte, ordenadas
- * por sistema · reparto modal · por estrato · por modo. Sirve de "ficha" de un
- * escenario y se exporta a CSV para comparar escenarios y estimar
- * beneficios/desbeneficios sociales aguas abajo.
- */
-/** Las tablas llevan número y nombre igual que las figuras llevan `FIG. NN`.
- *  Sin eso no se pueden citar en una guía de clase: «miren la tabla 2» no tenía
- *  referente, mientras que «miren la FIG. 04» sí. */
-const captionStyle: React.CSSProperties = {
-  captionSide: "top",
-  textAlign: "left",
-  padding: "0 14px 6px",
-  fontFamily: "var(--font-fig)",
-  fontSize: 10,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "var(--muted)",
-};
-
-/**
  * Los tres v/c de los modos con oferta congestionable.
  *
  * Vivía dentro de `TransportMetricsTable`, o sea dentro del panel de tablas,
@@ -324,32 +304,13 @@ export function TransportMetricsTable({ data, className }: Props) {
            tiempo medio, que no está en ninguna otra parte. */}
       <SectionHead>{t("metrics_table.time_section")}</SectionHead>
       <div style={{ overflowX: "auto" }}>
-        <table style={tableStyle}>
-          <caption style={captionStyle}>{t("metrics_table.cap_modo")}</caption>
+        <table className="tabla-datos">
+          <caption>{t("metrics_table.cap_modo")}</caption>
           <thead>
             <tr>
-              <th
-                scope="col"
-                style={{
-                  ...fig(10),
-                  textAlign: "left",
-                  padding: "8px 14px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {t("metrics_table.mode_col")}
-              </th>
+              <th scope="col">{t("metrics_table.mode_col")}</th>
               {data.reparto.map((m) => (
-                <th
-                  scope="col"
-                  key={m.modo}
-                  style={{
-                    ...fig(11, "var(--ink)"),
-                    textAlign: "right",
-                    padding: "8px 14px",
-                    fontWeight: 600,
-                  }}
-                >
+                <th scope="col" key={m.modo}>
                   <span
                     style={{
                       display: "inline-flex",
@@ -373,14 +334,10 @@ export function TransportMetricsTable({ data, className }: Props) {
           </thead>
           <tbody>
             <tr style={{ borderTop: "1px solid var(--rule)" }}>
-              <td style={cellLabel}>{t("metrics_table.avg_time_mode")}</td>
+              <td>{t("metrics_table.avg_time_mode")}</td>
               {data.reparto.map((m) => {
                 const tm = data.tiempoPorModo.find((x) => x.modo === m.modo);
-                return (
-                  <td key={m.modo} style={cellVal}>
-                    {tm ? `${fmtMin(tm.min)}` : "—"}
-                  </td>
-                );
+                return <td key={m.modo}>{tm ? `${fmtMin(tm.min)}` : "—"}</td>;
               })}
             </tr>
           </tbody>
@@ -390,34 +347,13 @@ export function TransportMetricsTable({ data, className }: Props) {
       {/* ---- Por estrato ---- */}
       <SectionHead>{t("metrics_table.per_stratum")}</SectionHead>
       <div style={{ overflowX: "auto" }}>
-        <table style={tableStyle}>
-          <caption style={captionStyle}>
-            {t("metrics_table.cap_estrato")}
-          </caption>
+        <table className="tabla-datos">
+          <caption>{t("metrics_table.cap_estrato")}</caption>
           <thead>
             <tr>
-              <th
-                scope="col"
-                style={{
-                  ...fig(10),
-                  textAlign: "left",
-                  padding: "8px 14px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {t("metrics_table.metric_col")}
-              </th>
+              <th scope="col">{t("metrics_table.metric_col")}</th>
               {data.porEstrato.map((s) => (
-                <th
-                  scope="col"
-                  key={s.key}
-                  style={{
-                    ...fig(11, "var(--ink)"),
-                    textAlign: "right",
-                    padding: "8px 14px",
-                    fontWeight: 600,
-                  }}
-                >
+                <th scope="col" key={s.key}>
                   <span
                     style={{
                       display: "inline-flex",
@@ -482,23 +418,6 @@ export function TransportMetricsTable({ data, className }: Props) {
   );
 }
 
-const tableStyle: React.CSSProperties = {
-  width: "100%",
-  borderCollapse: "collapse",
-  fontVariantNumeric: "tabular-nums",
-};
-const cellLabel: React.CSSProperties = {
-  ...fig(11, "var(--muted)"),
-  padding: "7px 14px",
-  textAlign: "left",
-};
-const cellVal: React.CSSProperties = {
-  ...fig(12, "var(--ink)"),
-  padding: "7px 14px",
-  textAlign: "right",
-  fontWeight: 500,
-};
-
 function SectionHead({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -529,11 +448,9 @@ function StratRow({
 }) {
   return (
     <tr style={{ borderTop: "1px solid var(--rule)" }}>
-      <td style={cellLabel}>{label}</td>
+      <td>{label}</td>
       {data.map((s) => (
-        <td key={s.key} style={cellVal}>
-          {get(s)}
-        </td>
+        <td key={s.key}>{get(s)}</td>
       ))}
     </tr>
   );

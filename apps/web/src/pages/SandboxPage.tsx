@@ -308,15 +308,23 @@ export function SandboxPage() {
       ? Math.max(...result.flujos_bici_veh_h) /
         cfgRes.supply.bike.capacidad_pista
       : null,
-    // Metro: carga máxima del tramo / capacidad OPERATIVA (f_op · K). Es el
-    // análogo del v/c y faltaba — se mostraban solo dos de los tres modos con
-    // oferta congestionable. Ojo: el core calcula la ρ del andén contra
-    // frec_max (capacidad potencial), no contra f_op; acá interesa la que
-    // realmente circula.
+    // Metro: carga máxima del tramo / capacidad POTENCIAL (frec_max · K).
+    //
+    // Antes el denominador era la capacidad OPERATIVA (f_op · K), y eso daba
+    // 1,0000 SIEMPRE: el modelo define `f_op = carga_max / K`, así que el
+    // cociente se cancela por construcción y sólo se despegaba de 1 cuando un
+    // tope mordía. Medido en la corrida por defecto: carga 5.017, f_op 5,017,
+    // cociente 1,0000 exacto. Y la FIG. 00 pinta sus tramos contra `frec_max·K`
+    // llamándolo también «v/c metro»: el mismo rótulo con dos números que no se
+    // parecían (1,00 contra 0,13). Así se detectó.
+    //
+    // Queda la potencial, que es la que responde algo: cuánto del servicio que
+    // la red PODRÍA prestar se está usando. Es además la misma que dibuja la
+    // figura, así que la cifra y el color coinciden.
     metro:
-      result?.carga_metro?.length && lastIter && lastIter.frecuencia_metro > 0
+      result?.carga_metro?.length && cfgRes.supply.train.frec_max > 0
         ? Math.max(...result.carga_metro) /
-          (lastIter.frecuencia_metro * cfgRes.supply.train.capacidad_tren)
+          (cfgRes.supply.train.frec_max * cfgRes.supply.train.capacidad_tren)
         : null,
   };
 

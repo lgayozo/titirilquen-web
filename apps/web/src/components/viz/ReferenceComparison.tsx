@@ -165,30 +165,19 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       <p className="mb-2 text-[11px] leading-snug text-[var(--muted)]">
         {reference ? t("agg.intro_con_ref") : t("agg.intro_sin_ref")}
       </p>
-      <table className="w-full text-sm">
+      {/* `tabla-datos` es el ÚNICO estilo de tabla del módulo (index.css). Antes
+          esta usaba serif 14 px y las de métricas mono 11-12 px, una al lado de
+          la otra. */}
+      <table className="tabla-datos">
         {/* Número y nombre, igual que las figuras llevan `FIG. NN`: sin esto la
             tabla no se puede citar en una guía de clase. */}
-        <caption className="pb-1.5 text-left font-fig text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">
-          {t("agg.caption")}
-        </caption>
+        <caption>{t("agg.caption")}</caption>
         <thead>
-          <tr className="border-b border-[var(--rule)] text-[11px] uppercase tracking-wide text-[var(--muted)]">
-            <th scope="col" className="py-1 text-left font-normal">
-              {t("agg.metrica")}
-            </th>
-            {reference && (
-              <th scope="col" className="py-1 text-right font-normal">
-                {t("agg.referencia")}
-              </th>
-            )}
-            <th scope="col" className="py-1 text-right font-normal">
-              {t("agg.actual")}
-            </th>
-            {reference && (
-              <th scope="col" className="py-1 text-right font-normal">
-                Δ
-              </th>
-            )}
+          <tr>
+            <th scope="col">{t("agg.metrica")}</th>
+            {reference && <th scope="col">{t("agg.referencia")}</th>}
+            <th scope="col">{t("agg.actual")}</th>
+            {reference && <th scope="col">Δ</th>}
           </tr>
         </thead>
         <tbody>
@@ -197,26 +186,19 @@ export function ReferenceComparison({ config, result, reference }: Props) {
             const mostrarDelta = d != null && f.comparable !== false;
             const bueno = d == null ? false : f.menorEsMejor ? d < 0 : d > 0;
             return (
-              <tr key={f.label} className="border-t border-[var(--rule)]">
-                <td className="py-1 pr-2 text-left">
+              <tr key={f.label}>
+                <td>
                   {f.label}
-                  {f.nota && (
-                    <span className="ml-1 text-[10px] text-[var(--muted)]">
-                      {f.nota}
-                    </span>
-                  )}
+                  {f.nota && <span className="celda-nota ml-1">{f.nota}</span>}
                 </td>
                 {reference && (
-                  <td className="py-1 text-right tabular-nums text-[var(--muted)]">
+                  <td className="celda-vacia">
                     {f.ref == null ? "—" : f.fmt(f.ref)}
                   </td>
                 )}
-                <td className="py-1 text-right tabular-nums">
-                  {f.fmt(f.actual)}
-                </td>
+                <td>{f.fmt(f.actual)}</td>
                 {reference && (
                   <td
-                    className="py-1 text-right tabular-nums"
                     style={{
                       color: !mostrarDelta
                         ? "var(--muted)"
