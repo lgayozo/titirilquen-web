@@ -529,6 +529,76 @@ return (logsum, mx)</code></pre>
     un útil equivale a <strong>$1.879</strong>. Si λ ≤ 0 el excedente se reporta
     como 0: el valor del tiempo quedaría indefinido.
   </p>
+
+  <h4>6.1 La misma utilidad, al VoT social</h4>
+  <p>
+    λ<sub>h</sub> es el valor del tiempo <em>conductual</em> del estrato, así que
+    convertir con él implica que un minuto del estrato alto vale varias veces el
+    del bajo. Eso es un juicio distributivo, y en evaluación social se reemplaza
+    por un valor de norma. Despejando del propio VoT:
+  </p>
+  <div class="ecuacion">
+    λ<sup>social</sup><sub>h</sub> = |β<sub>t,h</sub>| · 60 ⁄ VoT<sub>social</sub>
+  </div>
+  <p>
+    Sigue dependiendo del estrato porque β<sub>t</sub> fija la escala de
+    <em>su</em> utilidad —sin eso los útiles de estratos distintos no serían
+    sumables— pero el <strong>precio</strong> del minuto pasa a ser único
+    ($3.338/h, SNI 2026). El resultado se publica como
+    <code>excedente_social_total_clp</code>, junto a los otros dos.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>Y esta elección cambia el signo de los resultados agregados.</strong>
+      No es una corrección cosmética. Barriendo pistas en la ciudad base bajo
+      método determinístico (tol 0,02, 120 iteraciones), el bienestar por viajero
+      se mueve en <em>direcciones opuestas</em> según la unidad:
+    </p>
+  </div>
+
+  <div class="envoltorio-tabla">
+  <table>
+    <thead>
+      <tr>
+        <th>pistas</th><th class="n">metro %</th>
+        <th class="n">exc. con λ<sub>h</sub></th><th class="n">Δ</th>
+        <th class="n">exc. social</th><th class="n">Δ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td class="n">39,33</td><td class="n">−1.484</td><td class="n">+0</td><td class="n">−1.901</td><td class="n">+0</td></tr>
+      <tr><td>2</td><td class="n">33,33</td><td class="n">−1.456</td><td class="n">+28</td><td class="n">−1.896</td><td class="n">+5</td></tr>
+      <tr class="destacada"><td>3</td><td class="n">28,68</td><td class="n">−1.444</td><td class="n">+39</td><td class="n">−1.910</td><td class="n">−9</td></tr>
+      <tr class="destacada"><td>4</td><td class="n">26,17</td><td class="n">−1.427</td><td class="n">+57</td><td class="n">−1.908</td><td class="n">−7</td></tr>
+      <tr><td>6</td><td class="n">25,50</td><td class="n">−1.397</td><td class="n">+86</td><td class="n">−1.886</td><td class="n">+15</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="pie-tabla">
+    Pesos por viajero. Con λ<sub>h</sub> el bienestar sube siempre; con λ social
+    <strong>cae</strong> en 3 y 4 pistas y recupera en 6. O sea que
+    <strong>Downs-Thomson aparece o no según la unidad de agregación</strong>.
+    Reproducible con <code>scripts/regimenes_metro.py</code>.
+  </p>
+
+  <p>
+    La causa es el peso implícito de cada estrato. El factor de conversión
+    1⁄|β<sub>t</sub>| vale 18,2 · 30,2 · 66,7 para alto/medio/bajo —3,7× entre
+    extremos— mientras 1⁄λ<sub>h</sub> vale 1.879 · 1.560 · 1.776, casi plano.
+    Agregar al VoT social es <strong>implícitamente redistributivo</strong>: le da
+    3,7 veces más peso al estrato bajo, que es justamente el que más usa el metro
+    y más pierde cuando se degrada. Con el VoT conductual, la ganancia de quienes
+    se pasan al auto —estratos altos, con VoT alto— domina el agregado.
+  </p>
+
+  <p>
+    <strong>Corolario, y no es del simulador sino del problema:</strong> la
+    pregunta «¿al mejorar la vialidad todos terminan peor?» no tiene respuesta
+    única. El reparto se mueve, unos ganan y otros pierden, y el signo agregado lo
+    decide cómo se ponderan entre sí — que es una decisión de evaluación social.
+    Por eso la tabla muestra las dos y ninguna se presenta como «la verdadera».
+  </p>
 </div>
 
 <div class="paso">

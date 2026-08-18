@@ -31,6 +31,7 @@ import sys
 
 from _comun import base_sim, corre_trace, resumen, vc_auto
 
+from titirilquen_core.bienestar import calcular_agregados
 from titirilquen_core.land_use.config import LandUseConfig
 
 #: Los dos escenarios del contraste, con las pistas que dejan a CADA UNO en la
@@ -42,7 +43,7 @@ ESCENARIOS = (
     ("METROPOLIS 144k", 7200, 144_000, 12),
 )
 
-PISTAS_BARRIDO = (1, 2, 4)
+PISTAS_BARRIDO = (1, 2, 4, 8, 12)
 
 
 def _land_use(poblacion: int) -> LandUseConfig:
@@ -65,7 +66,9 @@ def corrida(densidad: int, poblacion: int, pistas: int, metodo: str) -> dict:
     rho = carga / (fmax * K) if fmax * K else 0.0
     factor = 1 + sim.supply.train.anden_alpha * (rho**sim.supply.train.anden_beta)
     esperas = [float(v) for v in it.t_tren_espera if v > 0]
+    f_teo = carga / K if K else 0.0
     return {
+        "tope": "MAX" if f_teo >= fmax - 1e-6 else "-",
         "metro": r["Metro"],
         "auto": r["Auto"],
         "f_op": r["f_op"],
@@ -109,11 +112,15 @@ def seccion_2() -> None:
 
 
 def seccion_3() -> None:
-    print("\n### 3. Downs-Thomson: agregar pistas, en cada regimen")
-    print("  Metodo determinstico (todo_o_nada), que es donde la paradoja aparece.\n")
+    print("\n### 3. Que le pasa a la espera del metro al agregar pistas")
+    print("  Metodo determinstico (todo_o_nada). La columna 'tope' es la clave:")
+    print("  con f_op topada en frec_max el Mohring no puede operar.\n")
     for nombre, dens, pob, _ in ESCENARIOS:
         print(f"  {nombre}")
-        print(f"    {'pistas':>7}{'metro%':>9}{'auto%':>8}{'f_op':>8}{'espera':>9}")
+        print(
+            f"    {'pistas':>7}{'metro%':>9}{'auto%':>8}{'f_op':>8}"
+            f"{'tope':>6}{'espera':>9}{'vs 1 pista':>12}"
+        )
         base_esp = None
         for pistas in PISTAS_BARRIDO:
             d = corrida(dens, pob, pistas, "todo_o_nada")
@@ -121,15 +128,64 @@ def seccion_3() -> None:
                 base_esp = d["espera"]
             print(
                 f"    {pistas:>7}{d['metro']:>9.2f}{d['auto']:>8.2f}"
-                f"{d['f_op']:>8.1f}{d['espera']:>9.2f}"
+                f"{d['f_op']:>8.1f}{d['tope']:>6}{d['espera']:>9.2f}"
+                f"{d['espera'] - base_esp:>+12.2f}"
             )
-            ultima = d["espera"]
-        signo = "SUBE" if ultima > base_esp else "BAJA"
-        print(f"    -> al agregar pistas la espera {signo} ({base_esp:.2f} -> {ultima:.2f} min)\n")
-    print("  En BASE la espera SUBE: el metro pierde pasajeros, baja la frecuencia")
-    print("  y empeora. Eso es Downs-Thomson. En METROPOLIS la espera BAJA: f_op")
-    print("  esta topada en frec_max, asi que el Mohring no opera, y perder")
-    print("  pasajeros solo descongestiona el anden. El signo se da vuelta.")
+        print()
+    print("  En BASE la espera SUBE monotonamente: el metro pierde pasajeros, baja")
+    print("  la frecuencia y empeora. Ese es el canal de Downs-Thomson.")
+    print()
+    print("  En METROPOLIS hay que leer la columna 'tope'. Mientras f_op esta")
+    print("  TOPADA en frec_max el Mohring no opera -la frecuencia no puede caer-")
+    print("  y perder pasajeros solo descongestiona el anden, asi que la espera")
+    print("  BAJA. En cuanto f_op se despega del tope el Mohring vuelve y la espera")
+    print("  empieza a subir de nuevo. O sea que el signo NO lo decide la poblacion")
+    print("  sino si el tope muerde; con las 12 pistas del preset ya no muerde.")
+    print()
+    print("  Y bajo logit (expected) el metro empeora SIEMPRE, en los dos")
+    print("  escenarios: ahi la frecuencia nunca topa y el Mohring gana.")
+
+
+def seccion_4() -> None:
+    """El signo del BIENESTAR, en las dos unidades."""
+    print("\n### 4. El bienestar, en las dos unidades")
+    print("  Costo generalizado que sube NO prueba la paradoja: quien cambia de")
+    print("  modo voluntariamente puede pagar mas y estar mejor. Decide el")
+    print("  excedente. Pero el excedente depende de en que se agregue:\n")
+    print("  lambda_h : VoT conductual por estrato -> eficiencia, disposicion a pagar")
+    print("  social   : VoT unico de norma         -> evaluacion social (SNI)\n")
+    print(
+        f"  {'pistas':>7}{'metro%':>9}{'exc lambda_h':>15}{'delta':>9}"
+        f"{'exc SOCIAL':>13}{'delta':>9}"
+    )
+    print("  " + "-" * 62)
+    b_h = b_s = None
+    for pistas in (1, 2, 3, 4, 6):
+        sim = base_sim()
+        sim.supply.car.num_pistas = pistas
+        sim.assignment = "todo_o_nada"
+        sim.tolerance = 0.02
+        sim.max_iter = 120
+        tr = corre_trace(sim, _land_use(36_000))
+        agg = calcular_agregados(sim, tr)
+        r = resumen(tr)
+        n = max(agg["viajeros"], 1)
+        e_h = agg["excedente_max_total_clp"] / n
+        e_s = agg["excedente_social_total_clp"] / n
+        if b_h is None:
+            b_h, b_s = e_h, e_s
+        marca = "  <-- PEOR" if e_s - b_s < -1 else ""
+        print(
+            f"  {pistas:>7}{r['Metro']:>9.2f}{e_h:>15,.0f}{e_h - b_h:>+9,.0f}"
+            f"{e_s:>13,.0f}{e_s - b_s:>+9,.0f}{marca}"
+        )
+    print("\n  Con lambda_h el bienestar SUBE monotonamente: no hay paradoja.")
+    print("  Con lambda social CAE entre 3 y 4 pistas: la paradoja aparece.")
+    print("  La causa es el peso implicito de cada estrato: 1/|beta_t| vale")
+    print("  18,2 / 30,2 / 66,7 (3,7x entre extremos) y 1/lambda_h vale")
+    print("  1.879 / 1.560 / 1.776, casi plano. Agregar en minutos -o al VoT")
+    print("  social, que es lo mismo salvo un factor- pondera a favor del")
+    print("  estrato bajo, que es el que mas usa el metro.")
 
 
 def main() -> None:
@@ -139,6 +195,7 @@ def main() -> None:
     seccion_1()
     seccion_2()
     seccion_3()
+    seccion_4()
     print()
 
 

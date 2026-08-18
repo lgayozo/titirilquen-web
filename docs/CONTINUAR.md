@@ -526,6 +526,44 @@ media) cae de 1 a 3 pistas y recién con ~6 pistas recupera el punto de partida
 (verificado con tol=0.02). El tiempo físico medio BAJA mientras tanto:
 composición, no mejora — es parte de la lección.
 
+#### El signo depende de la UNIDAD en que se agregue el bienestar
+
+**Esto no estaba escrito y hay que tenerlo presente antes de mostrar la tabla en
+clase.** La frase de arriba —«el bienestar cae de 1 a 3 pistas»— es cierta en
+minutos-equivalentes, que es la unidad de `buscar_downs_thomson.py`. En pesos
+valorados al VoT CONDUCTUAL de cada estrato, la misma corrida da bienestar
+CRECIENTE y la paradoja desaparece. Medido el 2026-08-18 sobre la base, barrido
+de pistas, `todo_o_nada`, tol 0,02 y 120 iteraciones:
+
+| pistas | metro % | exc. con λ_h | Δ | exc. SOCIAL | Δ |
+|---|---|---|---|---|---|
+| 1 | 39,33 | −1.484 | +0 | −1.901 | +0 |
+| 2 | 33,33 | −1.456 | +28 | −1.896 | +5 |
+| 3 | 28,68 | −1.444 | +39 | −1.910 | **−9** |
+| 4 | 26,17 | −1.427 | +57 | −1.908 | **−7** |
+| 6 | 25,50 | −1.397 | +86 | −1.886 | +15 |
+
+La causa es la conversión de útiles a plata. `1/|β_t|` vale 18,2 · 30,2 · 66,7
+para alto/medio/bajo —3,7× entre extremos— mientras `1/λ_h` vale 1.879 · 1.560 ·
+1.776, casi plano. O sea que **agregar en minutos es implícitamente
+redistributivo**: le da 3,7 veces más peso al estrato bajo, que es justamente el
+que más usa el metro y más pierde cuando se degrada. Con el VoT conductual, la
+ganancia de los que se pasan al auto —estratos altos, con VoT alto— domina.
+
+Y el excedente en minutos-equivalentes **es** el excedente al VoT social, salvo
+el factor `VoT/60`: verificado al segundo decimal. Así que no hay tres medidas
+sino dos familias — la conductual (eficiencia, disposición a pagar) y la social
+(un minuto vale lo mismo para todos), que es la de la evaluación de proyectos
+chilena. Desde el 2026-08-18 la tabla de resultados muestra las dos:
+`excedente_max_total_clp` y `excedente_social_total_clp`.
+
+> **Consecuencia para el aula**: la pregunta «¿al mejorar el auto todos terminan
+> pagando más?» no tiene una respuesta única en este modelo, y eso NO es una
+> imprecisión del simulador. El reparto se mueve: unos ganan y otros pierden, y
+> el signo agregado lo decide cómo se ponderan entre sí — que es una decisión de
+> evaluación social, no un resultado del modelo. Vale la pena que el alumno vea
+> las dos columnas moverse en direcciones opuestas en la misma tabla.
+
 En los escenarios estilizados homogéneos la paradoja toma su forma fuerte, la
 **espiral de muerte del metro** (Mogridge): al agregar pistas la participación
 del metro cae hasta 0, la espera se va a `30/frec_min`, y el bienestar cae

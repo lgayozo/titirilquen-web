@@ -127,3 +127,58 @@ def test_las_dos_medidas_no_coinciden(
     ejercer nada y el emparejamiento sería decorativo."""
     agg = _agregados(sim_liviana, lu_chica, "expected")
     assert agg["excedente_total_clp"] != pytest.approx(agg["excedente_max_total_clp"], rel=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# El excedente al VoT social
+# ---------------------------------------------------------------------------
+#
+# Tercera medida, agregada el 2026-08-18. Es la misma utilidad emparejada pero
+# valorada con el VoT de norma en vez del conductual de cada estrato. Importa
+# porque cambia el SIGNO de los Δ agregados: con λ_h el bienestar de la base sube
+# monótonamente al agregar pistas y con λ social cae entre 3 y 4 pistas. Si esta
+# medida se rompiera, la app mostraría una columna plausible con la ponderación
+# equivocada y nadie lo notaría.
+
+
+def test_el_excedente_social_usa_el_vot_de_norma(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """`exc_social = E[max] · VoT_social / (|β_t| · 60)`, despejado del VoT.
+
+    Se verifica contra el cálculo directo por estrato y no contra un número
+    pineado: así el test sigue valiendo si se recalibra `b_tiempo_viaje`.
+    """
+    from titirilquen_core.constantes import VOT_SOCIAL_CLP_HORA
+
+    agg = _agregados(sim_liviana, lu_chica, "expected")
+    for h in ESTRATOS:
+        b_t = abs(sim_liviana.demand.estratos[int(h)].betas.b_tiempo_viaje)
+        lam_social = b_t * 60 / VOT_SOCIAL_CLP_HORA
+        esperado = agg["logsum_por_estrato"][h] / lam_social
+        assert agg["excedente_social_por_estrato_clp"][h] == pytest.approx(esperado, rel=1e-9)
+
+
+def test_el_excedente_social_sigue_la_medida_emparejada(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """Bajo `todo_o_nada` parte de la utilidad máxima, no del logsum: si tomara
+    siempre el logsum heredaría el supuesto de comportamiento equivocado justo en
+    el método donde la paradoja se observa."""
+    from titirilquen_core.constantes import VOT_SOCIAL_CLP_HORA
+
+    agg = _agregados(sim_liviana, lu_chica, "todo_o_nada")
+    for h in ESTRATOS:
+        b_t = abs(sim_liviana.demand.estratos[int(h)].betas.b_tiempo_viaje)
+        lam_social = b_t * 60 / VOT_SOCIAL_CLP_HORA
+        desde_max = agg["util_maxima_por_estrato"][h] / lam_social
+        assert agg["excedente_social_por_estrato_clp"][h] == pytest.approx(desde_max, rel=1e-9)
+
+
+def test_el_social_y_el_conductual_no_coinciden(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """Guard: si dieran lo mismo la tercera columna seria decorativa, y el
+    hallazgo sobre el signo de Downs-Thomson no tendria sentido."""
+    agg = _agregados(sim_liviana, lu_chica, "expected")
+    assert agg["excedente_social_total_clp"] != pytest.approx(agg["excedente_total_clp"], rel=1e-6)
