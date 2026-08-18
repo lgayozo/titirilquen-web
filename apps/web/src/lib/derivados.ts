@@ -60,6 +60,11 @@ export function calcularFlujo(
       demanda: number[] | null;
       capacidad: number | null;
       capacidadLabel?: string;
+      /** Unidad de la SERIE graficada. No siempre coincide con tener capacidad:
+       *  la caminata no tiene corredor con capacidad compartida y aun así su
+       *  serie mide viajes originados. Antes se derivaba de `capacidadLabel` y
+       *  por eso el tooltip de caminata salía sin unidad. */
+      unidad: string;
       color: string;
       esCorredor: boolean;
     }
@@ -69,6 +74,7 @@ export function calcularFlujo(
       demanda: result.flujos_auto_veh_h ? lastIter.demanda_auto : null,
       capacidad: result.capacidad_auto > 0 ? result.capacidad_auto : null,
       capacidadLabel: "veh/h",
+      unidad: "veh/h",
       color: "var(--auto)",
       esCorredor: !!result.flujos_auto_veh_h,
     },
@@ -77,6 +83,7 @@ export function calcularFlujo(
       demanda: result.flujos_bici_veh_h ? lastIter.demanda_bici : null,
       capacidad: capBici > 0 ? capBici : null,
       capacidadLabel: "bici/h",
+      unidad: "bici/h",
       color: "var(--bici)",
       esCorredor: !!result.flujos_bici_veh_h,
     },
@@ -85,6 +92,7 @@ export function calcularFlujo(
       demanda: null,
       capacidad: fOp > 0 && capTren > 0 ? fOp * capTren : null,
       capacidadLabel: "pax/h",
+      unidad: "pax/h",
       color: "var(--metro)",
       esCorredor: !!result.carga_metro?.length,
     },
@@ -94,6 +102,8 @@ export function calcularFlujo(
       flujo: lastIter.demanda_caminata,
       demanda: null,
       capacidad: null,
+      // Sin capacidad, pero la serie son los viajes que NACEN en cada celda.
+      unidad: "viajes/h",
       color: "var(--walk)",
       esCorredor: false,
     },

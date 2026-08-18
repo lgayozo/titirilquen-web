@@ -20,6 +20,10 @@ interface FlowProfileProps {
   capacity?: number | null;
   /** Unidad de la capacidad para la etiqueta de la línea (ej. "veh/h"). */
   capacityLabel?: string;
+  /** Unidad de la SERIE, para el tooltip. Se declara aparte de `capacityLabel`
+   *  porque hay series sin capacidad que igual miden algo: la caminata no usa
+   *  corredor compartido y su tooltip salía sin unidad. */
+  unidad?: string;
   /** Formateo de valores (encabezado "max" y ticks Y). Default: redondeo entero. */
   valueFmt?: (v: number) => string;
   height?: number;
@@ -65,6 +69,7 @@ export function FlowProfile({
   yMax = null,
   capacity = null,
   capacityLabel,
+  unidad: unidadProp,
   valueFmt = (v: number) => String(Math.round(v)),
   height = 120,
   className,
@@ -72,9 +77,9 @@ export function FlowProfile({
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(360);
   const [hover, setHover] = useState<HoverCelda | null>(null);
-  // `capacityLabel` trae la unidad del modo (veh/h · pax/h · bici/h); cuando no
-  // hay capacidad —el CO₂— la unidad viaja en `label`.
-  const unidad = capacityLabel ?? label;
+  // Explícita si el llamador la da; si no, la de la capacidad (veh/h · pax/h ·
+  // bici/h) y por último la del encabezado, que es donde viaja la del CO₂.
+  const unidad = unidadProp ?? capacityLabel ?? label;
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;

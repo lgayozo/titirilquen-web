@@ -1275,6 +1275,7 @@ export function SandboxPage() {
                     demanda={flowData.demanda}
                     capacidad={flowData.capacidad}
                     capacidadLabel={flowData.capacidadLabel}
+                    unidad={flowData.unidad}
                     color={flowData.color}
                     largoKm={cfgRes.city.largo_ciudad_km}
                   />

@@ -11,6 +11,8 @@ interface CorridorFlowFigureProps {
    *  que cada frame del barrido es una suma parcial REAL del modelo y no una
    *  interpolación entre dos imágenes. Sin ella la figura es estática. */
   demanda?: readonly number[] | null;
+  /** Unidad de la serie, para el tooltip (la caminata no tiene capacidad). */
+  unidad?: string;
   /** Capacidad en la misma unidad que `flujo`. */
   capacidad?: number | null;
   capacidadLabel?: string;
@@ -79,6 +81,7 @@ export function CorridorFlowFigure({
   demanda,
   capacidad = null,
   capacidadLabel,
+  unidad,
   color,
   largoKm,
   label,
@@ -149,6 +152,7 @@ export function CorridorFlowFigure({
         yMax={yMax}
         capacity={capacidad}
         capacityLabel={capacidadLabel}
+        unidad={unidad}
         height={height}
       />
       {animable && (
