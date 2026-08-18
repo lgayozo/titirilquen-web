@@ -6,6 +6,7 @@ import type {
   SimulationConfig,
   SimulationResult,
 } from "@/lib/types";
+import type { LandUseConfig } from "@/lib/types-v2";
 
 export type Engine = "api" | "local";
 
@@ -24,17 +25,26 @@ interface SimulationState {
    * derivadas del resultado deben usar ESTA config (no la viva) para no mezclar
    * geometrías; comparar con `config` detecta resultados desactualizados. */
   configUsed: SimulationConfig | null;
+  /** El uso de suelo con el que se lanzó la corrida. Va aparte de `configUsed`
+   * porque vive en otro store, pero es igual de INPUT: el MSA puebla la ciudad
+   * desde `H_por_estrato`. Sin él no se puede decir con qué ciudad se corrió —
+   * σ y ΣH no están en `SimulationConfig`. */
+  landUseUsed: LandUseConfig | null;
   /** Instantánea FIJADA como referencia para comparar dentro del módulo: la
-   *  config y el resultado de una corrida anterior. Permite «corro un
-   *  escenario, lo fijo, corro otro y veo el delta» sin salir de la página ni
-   *  reconstruir el escenario en Comparar. */
-  reference: { config: SimulationConfig; result: SimulationResult } | null;
+   *  config, el uso de suelo y el resultado de una corrida anterior. Permite
+   *  «corro un escenario, lo fijo, corro otro y veo el delta» sin salir de la
+   *  página ni reconstruir el escenario en Comparar. */
+  reference: {
+    config: SimulationConfig;
+    landUse: LandUseConfig | null;
+    result: SimulationResult;
+  } | null;
 
   setConfig: (updater: (prev: SimulationConfig) => SimulationConfig) => void;
   replaceConfig: (config: SimulationConfig) => void;
   setEngine: (engine: Engine) => void;
   setStage: (stage: RunStage) => void;
-  startRun: (total: number) => void;
+  startRun: (total: number, landUse: LandUseConfig) => void;
   pushIteration: (snap: IterationSnapshot) => void;
   finishRun: (result: SimulationResult) => void;
   failRun: (message: string) => void;
@@ -58,6 +68,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   liveIterations: [],
   error: null,
   configUsed: null,
+  landUseUsed: null,
   reference: null,
 
   setConfig: (updater) => set((s) => ({ config: updater(s.config) })),
@@ -65,7 +76,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   setEngine: (engine) => set({ engine }),
   setStage: (stage) => set({ stage }),
 
-  startRun: (total) =>
+  startRun: (total, landUse) =>
     set((s) => ({
       running: true,
       stage: "booting",
@@ -74,6 +85,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       liveIterations: [],
       error: null,
       configUsed: snapshot(s.config),
+      landUseUsed: snapshot(landUse),
     })),
 
   pushIteration: (snap) =>
@@ -88,7 +100,13 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   pinReference: () =>
     set((s) =>
       s.result && s.configUsed
-        ? { reference: { config: s.configUsed, result: s.result } }
+        ? {
+            reference: {
+              config: s.configUsed,
+              landUse: s.landUseUsed,
+              result: s.result,
+            },
+          }
         : s,
     ),
 
@@ -121,6 +139,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       liveIterations: [],
       error: null,
       configUsed: null,
+      landUseUsed: null,
     }),
 
   reset: () =>
@@ -132,6 +151,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       stage: "idle",
       error: null,
       configUsed: null,
+      landUseUsed: null,
     }),
 }));
 

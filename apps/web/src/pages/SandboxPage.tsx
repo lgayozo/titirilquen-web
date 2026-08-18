@@ -37,6 +37,7 @@ import {
   TransportMetricsTable,
   type TransportMetricsData,
 } from "@/components/viz/TransportMetricsTable";
+import { agregadosDe } from "@/lib/agregados";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { simularTransporte } from "@/lib/api";
 import { calcularFlujo } from "@/lib/derivados";
@@ -95,6 +96,7 @@ export function SandboxPage() {
   const pushIteration = useSimulationStore((s) => s.pushIteration);
   const reset = useSimulationStore((s) => s.reset);
   const configUsed = useSimulationStore((s) => s.configUsed);
+  const landUseUsed = useSimulationStore((s) => s.landUseUsed);
   const cancelRun = useSimulationStore((s) => s.cancelRun);
   const reference = useSimulationStore((s) => s.reference);
   const pinReference = useSimulationStore((s) => s.pinReference);
@@ -350,7 +352,7 @@ export function SandboxPage() {
     if (heatMode === "ciudad") setHeatMode("todos");
     const ctrl = new AbortController();
     abortRef.current = ctrl;
-    startRun(config.max_iter);
+    startRun(config.max_iter, landUseConfig);
     try {
       // Localización de estratos: si el equilibrio de pujas se corrió (hay
       // resultado de Uso de Suelo con geometría concordante), la población usa
@@ -560,11 +562,6 @@ export function SandboxPage() {
       2: [0, 0],
       3: [0, 0],
     };
-    const strUtil: Record<number, [number, number]> = {
-      1: [0, 0],
-      2: [0, 0],
-      3: [0, 0],
-    };
     for (const a of agents) {
       const tt = timeOf(a);
       if (tt != null) {
@@ -577,13 +574,6 @@ export function SandboxPage() {
         if (st) {
           st[0] += tt;
           st[1] += 1;
-        }
-      }
-      if (a.modo_elegido && a.modo_elegido !== "Teletrabajo") {
-        const su = strUtil[a.estrato];
-        if (su) {
-          su[0] += a.utilidad_elegida;
-          su[1] += 1;
         }
       }
     }
@@ -601,12 +591,7 @@ export function SandboxPage() {
       value: mean(strTime[s]!),
       color: STR_C[s]!,
     }));
-    const utilByStratum: StatBar[] = [1, 2, 3].map((s) => ({
-      label: strLabel(s),
-      value: mean(strUtil[s]!),
-      color: STR_C[s]!,
-    }));
-    return { timeByMode, timeByStratum, utilByStratum };
+    return { timeByMode, timeByStratum };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, lastIter, t]);
 
@@ -674,6 +659,10 @@ export function SandboxPage() {
       "Caminata",
       "Teletrabajo",
     ];
+    /** Los cuatro modos que efectivamente viajan, en el orden de
+     *  `constantes.MODOS`. El teletrabajo no es una alternativa del mismo
+     *  conjunto: se decide antes y no viaja. */
+    const MODOS_FISICOS = ["Auto", "Metro", "Bici", "Caminata"] as const;
     const MODE_COLOR: Record<string, string> = {
       Auto: "var(--auto)",
       Metro: "var(--metro)",
@@ -705,24 +694,34 @@ export function SandboxPage() {
       twSum += tm.min * c;
       wSum += c;
     }
-    const agents = result.agentes;
+    const agg = agregadosDe(result);
+    const porEstratoUtil =
+      agg == null
+        ? null
+        : agg.medida_bienestar === "utilidad_maxima"
+          ? agg.util_maxima_por_estrato
+          : agg.logsum_por_estrato;
     const porEstrato = [1, 2, 3].map((sNum, idx) => {
-      const stratAgents = agents.filter((a) => a.estrato === sNum);
-      const totalS = stratAgents.length || 1;
-      const repartoS = MODE_ORDER.map((m) => ({
-        modo: m,
-        pct:
-          (stratAgents.filter((a) => a.modo_elegido === m).length / totalS) *
-          100,
-      }));
+      const h = String(sNum) as "1" | "2" | "3";
+      const viajesModo = agg?.viajes_por_modo_estrato?.[h];
+      // El denominador es el MISMO que el de la tabla de agregados: los viajes
+      // físicos del estrato, o sea Σ_m. El teletrabajo queda como la diferencia
+      // contra `nHogares`, visible por resta y sin distorsionar los shares.
+      const viajesS = viajesModo
+        ? MODOS_FISICOS.reduce((acc, m) => acc + (viajesModo[m] ?? 0), 0)
+        : 0;
       return {
         key: `s${sNum}`,
         label: t(`sandbox.stratum_${STRATUM_KEY[idx]}`),
         color: `var(--s${sNum})`,
-        nHogares: stratAgents.length,
+        nHogares: result.agentes.filter((a) => a.estrato === sNum).length,
+        viajes: viajesModo ? viajesS : null,
         tiempoMin: avgStats.timeByStratum[idx]?.value ?? 0,
-        utilidad: avgStats.utilByStratum[idx]?.value ?? 0,
-        reparto: repartoS,
+        utilidad: porEstratoUtil?.[h] ?? null,
+        reparto: MODOS_FISICOS.map((m) => ({
+          modo: m,
+          pct: viajesS > 0 ? ((viajesModo?.[m] ?? 0) / viajesS) * 100 : 0,
+        })),
       };
     });
     return {
@@ -746,6 +745,7 @@ export function SandboxPage() {
       vcMetro: operatingRatios.metro,
       tiempoPorModo,
       porEstrato,
+      medidaBienestar: agg?.medida_bienestar ?? null,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, lastIter, avgStats, t]);
@@ -1201,6 +1201,7 @@ export function SandboxPage() {
                 </div>
                 <ReferenceComparison
                   config={configUsed}
+                  landUse={landUseUsed}
                   result={result}
                   reference={reference}
                 />

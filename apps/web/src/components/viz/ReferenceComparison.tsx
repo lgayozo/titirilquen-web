@@ -1,12 +1,15 @@
 import { useTranslation } from "react-i18next";
 
+import { CaptionTabla } from "@/components/viz/CaptionTabla";
 import { agregadosDe, logsumComparable, type Agregados } from "@/lib/agregados";
 import { VOT_SOCIAL_CLP_HORA } from "@/lib/gen/constantes.gen";
+import { ciudadActiva, politicaActiva } from "@/lib/presets";
 import type {
   SimulationConfig,
   SimulationResult,
   StratumId,
 } from "@/lib/types";
+import type { LandUseConfig } from "@/lib/types-v2";
 
 /**
  * Comparación contra la corrida FIJADA como referencia, dentro del propio
@@ -21,11 +24,21 @@ import type {
  */
 
 const STRATA: StratumId[] = [1, 2, 3];
+/** Orden canónico de `constantes.MODOS`. El reparto se muestra en ese orden
+ *  para que coincida con el de las figuras y el de la tabla de métricas. */
+const MODOS = ["Auto", "Metro", "Bici", "Caminata"] as const;
 
 interface Props {
   config: SimulationConfig;
+  /** El uso de suelo de ESTA corrida. Hace falta para nombrar la ciudad: σ y ΣH
+   *  no están en `SimulationConfig`. */
+  landUse: LandUseConfig | null;
   result: SimulationResult;
-  reference: { config: SimulationConfig; result: SimulationResult } | null;
+  reference: {
+    config: SimulationConfig;
+    landUse: LandUseConfig | null;
+    result: SimulationResult;
+  } | null;
 }
 
 const fmtMin = (v: number) => `${v.toFixed(1)} min`;
@@ -33,6 +46,9 @@ const fmtMin = (v: number) => `${v.toFixed(1)} min`;
 const fmtMoney = (v: number) =>
   `${v < 0 ? "−" : ""}$${Math.round(Math.abs(v)).toLocaleString("es-CL")}`;
 const fmtMiles = (v: number) => `${Math.round(v).toLocaleString("es-CL")}`;
+// Un share y su delta van en la MISMA unidad: puntos porcentuales. Escribir el
+// delta como «%» invitaría a leerlo como variación relativa.
+const fmtPuntos = (v: number) => `${v.toFixed(1)} pp`;
 
 interface FilaAgg {
   label: string;
@@ -41,12 +57,27 @@ interface FilaAgg {
   fmt: (v: number) => string;
   /** true ⇒ bajar es mejor (tiempos y costos). Solo colorea, no juzga. */
   menorEsMejor: boolean;
+  /** Δ sin color: la fila no tiene dirección buena. Un share modal que sube no
+   *  es una mejora —más metro no es automáticamente mejor, depende de a costa
+   *  de qué—, y pintarlo de verde o rojo sería el simulador opinando. */
+  neutra?: boolean;
   /** Si `false`, se muestra el valor pero NO el delta. */
   comparable?: boolean;
+  /** Unidad, cuando la fila NO es un total de ciudad —o cuando está pegada a
+   *  una que no lo es. El excedente por estrato es un promedio por persona y
+   *  quedaba al lado de un total, con el mismo formato y sin nada que lo
+   *  dijera: tres órdenes de magnitud de diferencia leídos como si fueran
+   *  comparables. */
+  unidad?: string;
   nota?: string;
 }
 
-export function ReferenceComparison({ config, result, reference }: Props) {
+export function ReferenceComparison({
+  config,
+  landUse,
+  result,
+  reference,
+}: Props) {
   const { t } = useTranslation("simulator");
   // Los agregados los calcula el núcleo y vienen en el resultado; acá sólo se
   // leen y se restan contra la referencia que el usuario haya fijado.
@@ -77,6 +108,27 @@ export function ReferenceComparison({ config, result, reference }: Props) {
   const excedenteComparable = lsOk && mismaMedida;
 
   const filas: FilaAgg[] = [
+    {
+      // El denominador va PRIMERO y explícito: los shares de abajo se calculan
+      // sobre esta cifra, y entre dos escenarios puede cambiar (el teletrabajo
+      // no viaja). Sin la fila, un share que sube sin que nadie cambie de modo
+      // —porque el denominador bajó— se lee como sustitución modal.
+      label: t("agg.viajes_fisicos"),
+      actual: agg.viajeros,
+      ref: aggRef?.viajeros ?? null,
+      fmt: fmtMiles,
+      menorEsMejor: false,
+      neutra: true,
+      nota: t("agg.viajes_fisicos_nota"),
+    },
+    ...MODOS.map((m) => ({
+      label: t("agg.reparto_modo", { modo: t(`modes.${m.toLowerCase()}`) }),
+      actual: share(agg.viajes_por_modo[m], agg.viajeros),
+      ref: aggRef ? share(aggRef.viajes_por_modo[m], aggRef.viajeros) : null,
+      fmt: fmtPuntos,
+      menorEsMejor: false,
+      neutra: true,
+    })),
     {
       label: t("agg.tiempo_total"),
       actual: agg.tiempo_total_min,
@@ -165,6 +217,7 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       fmt: fmtMoney,
       menorEsMejor: false,
       comparable: excedenteComparable,
+      unidad: t("agg.u_ciudad"),
       nota: t("agg.excedente_social_nota", {
         vot: fmtMoney(VOT_SOCIAL_CLP_HORA),
       }),
@@ -178,6 +231,7 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       fmt: fmtMoney,
       menorEsMejor: false,
       comparable: excedenteComparable,
+      unidad: t("agg.u_persona"),
     })),
   ];
 
@@ -192,12 +246,23 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       <table className="tabla-datos">
         {/* Número y nombre, igual que las figuras llevan `FIG. NN`: sin esto la
             tabla no se puede citar en una guía de clase. */}
-        <caption>{t("agg.caption")}</caption>
+        <CaptionTabla n="01" nombre={t("agg.caption")} />
         <thead>
           <tr>
             <th scope="col">{t("agg.metrica")}</th>
-            {reference && <th scope="col">{t("agg.referencia")}</th>}
-            <th scope="col">{t("agg.actual")}</th>
+            {reference && (
+              <th scope="col">
+                {t("agg.referencia")}
+                <Escenario
+                  config={reference.config}
+                  landUse={reference.landUse}
+                />
+              </th>
+            )}
+            <th scope="col">
+              {t("agg.actual")}
+              <Escenario config={config} landUse={landUse} />
+            </th>
             {reference && <th scope="col">Δ</th>}
           </tr>
         </thead>
@@ -205,11 +270,15 @@ export function ReferenceComparison({ config, result, reference }: Props) {
           {filas.map((f) => {
             const d = f.ref == null ? null : f.actual - f.ref;
             const mostrarDelta = d != null && f.comparable !== false;
+            const neutro = f.neutra === true;
             const bueno = d == null ? false : f.menorEsMejor ? d < 0 : d > 0;
             return (
               <tr key={f.label}>
                 <td>
                   {f.label}
+                  {f.unidad && (
+                    <span className="celda-unidad ml-1">{f.unidad}</span>
+                  )}
                   {f.nota && <span className="celda-nota ml-1">{f.nota}</span>}
                 </td>
                 {reference && (
@@ -221,13 +290,12 @@ export function ReferenceComparison({ config, result, reference }: Props) {
                 {reference && (
                   <td
                     style={{
-                      color: !mostrarDelta
-                        ? "var(--muted)"
-                        : Math.abs(d!) < 1e-9
+                      color:
+                        !mostrarDelta || neutro || Math.abs(d!) < 1e-9
                           ? "var(--muted)"
                           : bueno
-                            ? "var(--bici)"
-                            : "var(--accent)",
+                            ? "var(--mejora)"
+                            : "var(--empeora)",
                     }}
                   >
                     {!mostrarDelta
@@ -242,6 +310,12 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       </table>
 
       <p className="mt-2 text-[10px] leading-snug text-[var(--muted)]">
+        {t("agg.reparto_hint")}
+      </p>
+      <p className="mt-1 text-[10px] leading-snug text-[var(--muted)]">
+        {t("agg.unidades_hint")}
+      </p>
+      <p className="mt-1 text-[10px] leading-snug text-[var(--muted)]">
         {t("agg.vot_hint", {
           alto: fmtMoney(agg.vot_por_estrato_clp_hora["1"]),
           medio: fmtMoney(agg.vot_por_estrato_clp_hora["2"]),
@@ -265,6 +339,47 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       )}
     </div>
   );
+}
+
+/**
+ * Los dos nombres que identifican una corrida: la ciudad y la política.
+ *
+ * La config no guarda de qué preset viene —aplicar uno copia valores y se
+ * olvida del nombre—, así que el escenario se RECONOCE por sus parámetros. Sin
+ * esto las columnas dicen «Referencia» y «Escenario actual» y la tabla no se
+ * puede leer fuera del momento en que se generó: en una guía de clase, o dos
+ * días después, nadie sabe qué se comparó contra qué.
+ */
+function Escenario({
+  config,
+  landUse,
+}: {
+  config: SimulationConfig;
+  landUse: LandUseConfig | null;
+}) {
+  const { t } = useTranslation("simulator");
+  const custom = t("agg.escenario_custom");
+  return (
+    <span className="th-escenario" title={t("agg.escenario_hint")}>
+      <span>
+        {/* Sin uso de suelo no se puede nombrar la ciudad: es el caso de una
+            referencia fijada antes de que la corrida lo guardara. Dice «—» en
+            vez de adivinar. */}
+        {landUse ? (ciudadActiva(config, landUse) ?? custom) : "—"}{" "}
+        <span className="th-tipo">({t("agg.tipo_ciudad")})</span>
+      </span>
+      <span>
+        {politicaActiva(config) ?? custom}{" "}
+        <span className="th-tipo">({t("agg.tipo_politica")})</span>
+      </span>
+    </span>
+  );
+}
+
+/** Share en PORCENTAJE (no fracción): las filas de reparto y sus Δ viven en
+ *  puntos porcentuales. */
+function share(viajes: number | undefined, total: number): number {
+  return total > 0 ? ((viajes ?? 0) / total) * 100 : 0;
 }
 
 function estratoKey(h: StratumId): string {

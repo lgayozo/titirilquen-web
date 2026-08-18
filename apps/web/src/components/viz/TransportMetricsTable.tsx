@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { CaptionTabla } from "@/components/viz/CaptionTabla";
 import { cn } from "@/lib/cn";
 import { downloadCsv } from "@/lib/csv";
 
@@ -17,8 +18,15 @@ export interface StratumMetric {
   label: string;
   color: string;
   nHogares: number;
+  /** Viajes físicos del estrato — el DENOMINADOR de `reparto`. `null` si la
+   *  corrida no trae agregados. Va como fila propia porque el teletrabajo lo
+   *  separa de `nHogares`, y sin verlo un share que sube porque el denominador
+   *  bajó se lee como sustitución modal. */
+  viajes: number | null;
   tiempoMin: number;
-  utilidad: number;
+  /** La medida de bienestar EMPAREJADA con el método, en útiles, tal como la
+   *  calcula el núcleo. `null` si la corrida no trae agregados. */
+  utilidad: number | null;
   /** Reparto modal del estrato (pct por modo, mismo orden que `reparto`). */
   reparto: { modo: string; pct: number }[];
 }
@@ -45,6 +53,10 @@ export interface TransportMetricsData {
   vcMetro: number | null;
   tiempoPorModo: { modo: string; label: string; min: number; color: string }[];
   porEstrato: StratumMetric[];
+  /** Cuál de las dos medidas trae `StratumMetric.utilidad`. Decide el rótulo:
+   *  bajo logit es el logsum y bajo determinístico la utilidad máxima, y
+   *  llamarlas igual haría pasar una por la otra. */
+  medidaBienestar: "logsum" | "utilidad_maxima" | null;
 }
 
 interface Props {
@@ -63,6 +75,10 @@ const fmtInt = (v: number) => Math.round(v).toLocaleString("es-CL");
 const fmtMin = (v: number) => `${v.toFixed(1)}`;
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 const fmtRatio = (v: number | null) => (v == null ? "—" : `${v.toFixed(2)}×`);
+
+/** Cómo se llama la medida de bienestar que se está mostrando. */
+const claveMedida = (m: TransportMetricsData["medidaBienestar"]) =>
+  m === "utilidad_maxima" ? "st_util_max" : "st_logsum";
 
 /**
  * Los tres v/c de los modos con oferta congestionable.
@@ -220,6 +236,13 @@ export function TransportMetricsTable({ data, className }: Props) {
       ]);
       rows.push([
         "por_estrato",
+        H("st_viajes"),
+        s.label,
+        s.viajes == null ? "" : Math.round(s.viajes).toString(),
+        "viajes",
+      ]);
+      rows.push([
+        "por_estrato",
         H("st_time"),
         s.label,
         s.tiempoMin.toFixed(2),
@@ -227,9 +250,9 @@ export function TransportMetricsTable({ data, className }: Props) {
       ]);
       rows.push([
         "por_estrato",
-        H("st_utility"),
+        H(claveMedida(data.medidaBienestar)),
         s.label,
-        s.utilidad.toFixed(3),
+        s.utilidad == null ? "" : s.utilidad.toFixed(3),
         "utiles",
       ]);
       for (const r of s.reparto) {
@@ -246,7 +269,12 @@ export function TransportMetricsTable({ data, className }: Props) {
     downloadCsv("transporte-metricas.csv", rows);
   };
 
-  const modos = data.reparto.map((m) => m.label);
+  // Los rótulos de las filas de reparto por estrato salen del PROPIO reparto
+  // por estrato, no de `data.reparto`: ése lleva Teletrabajo como quinta
+  // categoría (es el de la tira de KPIs, sobre todos los agentes) y el del
+  // estrato tiene sólo los cuatro modos que viajan. Tomándolos de ahí aparecía
+  // una fila «% en Teletrabajo» en 0,0% — un índice sin dato.
+  const modos = (data.porEstrato[0]?.reparto ?? []).map((r) => r.modo);
 
   return (
     <div
@@ -260,20 +288,10 @@ export function TransportMetricsTable({ data, className }: Props) {
           borderBottom: "1px solid var(--rule)",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           gap: 10,
         }}
       >
-        <div
-          style={{
-            ...fig(10, "var(--accent)"),
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-          }}
-        >
-          {t("metrics_table.title")}
-        </div>
         <button
           type="button"
           onClick={handleExport}
@@ -302,10 +320,9 @@ export function TransportMetricsTable({ data, className }: Props) {
            Antes esta sección abría con share % y viajes por modo, que son
            exactamente los cinco KPI del encabezado de la página. Queda el
            tiempo medio, que no está en ninguna otra parte. */}
-      <SectionHead>{t("metrics_table.time_section")}</SectionHead>
-      <div style={{ overflowX: "auto" }}>
+      <div style={{ overflowX: "auto", borderTop: "1px solid var(--rule)" }}>
         <table className="tabla-datos">
-          <caption>{t("metrics_table.cap_modo")}</caption>
+          <CaptionTabla n="02" nombre={t("metrics_table.cap_modo")} />
           <thead>
             <tr>
               <th scope="col">{t("metrics_table.mode_col")}</th>
@@ -345,10 +362,9 @@ export function TransportMetricsTable({ data, className }: Props) {
       </div>
 
       {/* ---- Por estrato ---- */}
-      <SectionHead>{t("metrics_table.per_stratum")}</SectionHead>
-      <div style={{ overflowX: "auto" }}>
+      <div style={{ overflowX: "auto", borderTop: "1px solid var(--rule)" }}>
         <table className="tabla-datos">
-          <caption>{t("metrics_table.cap_estrato")}</caption>
+          <CaptionTabla n="03" nombre={t("metrics_table.cap_estrato")} />
           <thead>
             <tr>
               <th scope="col">{t("metrics_table.metric_col")}</th>
@@ -382,19 +398,26 @@ export function TransportMetricsTable({ data, className }: Props) {
               get={(s) => fmtInt(s.nHogares)}
             />
             <StratRow
+              label={t("metrics_table.st_viajes")}
+              data={data.porEstrato}
+              get={(s) => (s.viajes == null ? "—" : fmtInt(s.viajes))}
+            />
+            <StratRow
               label={t("metrics_table.st_time")}
               data={data.porEstrato}
               get={(s) => `${fmtMin(s.tiempoMin)} min`}
             />
             <StratRow
-              label={t("metrics_table.st_utility")}
+              label={t(`metrics_table.${claveMedida(data.medidaBienestar)}`)}
               data={data.porEstrato}
-              get={(s) => s.utilidad.toFixed(2)}
+              get={(s) => (s.utilidad == null ? "—" : s.utilidad.toFixed(2))}
             />
             {modos.map((modoLabel, mi) => (
               <StratRow
                 key={modoLabel}
-                label={`${t("metrics_table.st_share")} ${modoLabel}`}
+                label={`${t("metrics_table.st_share")} ${t(
+                  `modes.${modoLabel.toLowerCase()}`,
+                )}`}
                 data={data.porEstrato}
                 get={(s) => fmtPct(s.reparto[mi]?.pct ?? 0)}
               />
@@ -412,26 +435,8 @@ export function TransportMetricsTable({ data, className }: Props) {
           lineHeight: 1.5,
         }}
       >
-        ⚠ {t("sandbox.utility_caveat")}
-      </div>
-    </div>
-  );
-}
-
-function SectionHead({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{ padding: "10px 14px 6px", borderTop: "1px solid var(--rule)" }}
-    >
-      <div
-        style={{
-          ...fig(10, "var(--accent)"),
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.12em",
-        }}
-      >
-        {children}
+        {t("metrics_table.st_share")} …: {t("metrics_table.st_share_nota")}.
+        <br />⚠ {t("sandbox.utility_caveat")}
       </div>
     </div>
   );

@@ -7,7 +7,10 @@ import { cn } from "@/lib/cn";
 import { defaultSimulationConfig } from "@/lib/defaults";
 import {
   CITY_PRESETS,
+  LEE_POLITICA,
   POLICY_PRESETS,
+  ciudadActiva,
+  politicaActiva,
   type PolicyPresetValues,
 } from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";
@@ -100,57 +103,46 @@ const GRUPOS: { labelKey: string; keys: (keyof PolicyPresetValues)[] }[] = [
   { labelKey: "modes.bici", keys: ["cap_bici"] },
 ];
 
+/** Sólo presentación: cómo se rotula y se formatea cada parámetro. De dónde
+ *  se LEE lo dice `LEE_POLITICA`, que la tabla de agregados también necesita. */
 const CAMPO: Record<
   keyof PolicyPresetValues,
-  {
-    labelKey: string;
-    get: (c: SimulationConfig) => number;
-    fmt: (v: number) => string;
-  }
+  { labelKey: string; fmt: (v: number) => string }
 > = {
   num_pistas: {
     labelKey: "coupled.param.pistas",
-    get: (c) => c.supply.car.num_pistas,
     fmt: nf,
   },
   parking: {
     labelKey: "coupled.param.parking",
-    get: (c) => c.demand.globales.costo_parking,
     fmt: money,
   },
   bencina: {
     labelKey: "coupled.param.bencina",
-    get: (c) => c.demand.globales.costo_combustible_km,
     fmt: (v) => `${money(v)}/km`,
   },
   factor_flota: {
     labelKey: "coupled.param.factor_flota",
-    get: (c) => c.demand.globales.factor_flota_auto,
     fmt: (v) => `× ${v.toFixed(2)}`,
   },
   num_estaciones: {
     labelKey: "coupled.param.estaciones",
-    get: (c) => c.supply.train.num_estaciones,
     fmt: nf,
   },
   frec_max: {
     labelKey: "coupled.param.frec",
-    get: (c) => c.supply.train.frec_max,
     fmt: (v) => `${nf(v)} tr/h`,
   },
   cap_tren: {
     labelKey: "coupled.param.cap_tren",
-    get: (c) => c.supply.train.capacidad_tren,
     fmt: (v) => `${nf(v)} pax`,
   },
   tarifa: {
     labelKey: "coupled.param.tarifa",
-    get: (c) => c.demand.globales.costo_tarifa_metro,
     fmt: money,
   },
   cap_bici: {
     labelKey: "coupled.param.cap_bici",
-    get: (c) => c.supply.bike.capacidad_pista,
     fmt: (v) => `${nf(v)} bici/h`,
   },
 };
@@ -176,26 +168,9 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
     ([k]) => k !== "Personalizado",
   );
 
-  // La ciudad activa se identifica por las dos dimensiones de forma que el
-  // preset fija (largo y σ); la densidad no, porque es derivada (ver applyCity).
-  // Si además declara `poblacion` (los de ESCALA) hay que compararla: Base y
-  // Metrópolis comparten geometría y sin esto el `.find` devolvería siempre el
-  // primero, mostrando «Base» en una ciudad de 144.000 habitantes.
-  const sumaHActual = landUse.H_por_estrato.reduce((a, b) => a + b, 0);
-  const activeCity = cities.find(
-    ([, v]) =>
-      config.city.largo_ciudad_km === v.largo_ciudad &&
-      (v.sigma === undefined || landUse.oferta_sigma_frac === v.sigma) &&
-      (v.poblacion === undefined || Math.round(sumaHActual) === v.poblacion) &&
-      (v.num_pistas === undefined ||
-        config.supply.car.num_pistas === v.num_pistas),
-  )?.[0];
+  const activeCity = ciudadActiva(config, landUse);
 
-  const activePolicy = policies.find(([, v]) =>
-    (Object.keys(v) as (keyof PolicyPresetValues)[]).every(
-      (k) => CAMPO[k].get(config) === v[k],
-    ),
-  )?.[0];
+  const activePolicy = politicaActiva(config);
 
   /**
    * ISO-POBLACIÓN: el preset de ciudad cambia SOLO el largo y conserva ΣH; la
@@ -312,7 +287,8 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
   const nCambios = esCiudad
     ? filasCiudad(config, landUse).filter((f) => f.valor !== f.base).length
     : GRUPOS.flatMap((g) => g.keys).filter(
-        (k) => CAMPO[k].get(config) !== CAMPO[k].get(defaultSimulationConfig),
+        (k) =>
+          LEE_POLITICA[k](config) !== LEE_POLITICA[k](defaultSimulationConfig),
       ).length;
 
   return (
@@ -363,8 +339,8 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
             filas={g.keys.map((k) => ({
               key: k,
               labelKey: CAMPO[k].labelKey,
-              valor: CAMPO[k].get(config),
-              base: CAMPO[k].get(defaultSimulationConfig),
+              valor: LEE_POLITICA[k](config),
+              base: LEE_POLITICA[k](defaultSimulationConfig),
               fmt: CAMPO[k].fmt,
             }))}
           />
