@@ -1308,16 +1308,18 @@ export function SandboxPage() {
 
             {result && result.agentes.length > 0 && (
               <>
-                {/* FIG. 03 no es espacial (reparto agregado por estrato), así
-                    que puede ir angosta. FIG. 04 sí lo es y pasó a col-12: en
-                    col-5 quedaba con 387 px de área de datos contra los ~930 de
-                    las demás figuras del mismo eje, o sea 2,6× más comprimida, y
-                    era imposible leerla en columna con ellas. */}
+                {/* Las tres van a ancho completo. FIG. 04 y 05 porque son
+                    espaciales y tienen que alinear columna a columna con las
+                    demás del mismo eje (en col-5 la 04 quedaba con 387 px de
+                    área de datos contra ~930, 2,6× más comprimida). Y la 03
+                    porque sus barras son 100 % apiladas: cuanto más ancha, más
+                    finas son las diferencias de reparto que se pueden leer, y
+                    los segmentos chicos dejan de ser inclicables. */}
                 <Panel
                   n="03"
                   title={t("sandbox.trips_by_stratum")}
                   meta={t("panel_meta.share_stratum")}
-                  cls="col-6"
+                  cls="col-12"
                 >
                   <ExportableFigure
                     name="reparto-por-estrato"

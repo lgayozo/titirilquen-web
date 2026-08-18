@@ -46,6 +46,18 @@ const MARGIN = {
 };
 const LEGEND_H = 20;
 
+/** Celda bajo el cursor. Reemplaza a los `<title>` nativos: eran 778 por figura
+ *  —uno por cada segmento— y el navegador los muestra recién tras ~1 s, sin
+ *  estilo. Acá además se resuelve el reparto COMPLETO de la celda de una vez, no
+ *  el modo suelto que quedó debajo del puntero, que es la pregunta que la figura
+ *  invita a hacer. */
+interface HoverCelda {
+  i: number;
+  km: number;
+  total: number;
+  porModo: { modo: Modo; valor: number; share: number }[];
+}
+
 /**
  * Histograma apilado de reparto modal por ubicación (km a lo largo de la
  * ciudad, CBD al centro). Todo (ejes, %, leyenda) va dentro del `<svg>` con
@@ -61,6 +73,7 @@ export function ModeShareByLocation({
   normalize = true,
 }: ModeShareByLocationProps) {
   const { t } = useTranslation("simulator");
+  const [hover, setHover] = useState<HoverCelda | null>(null);
   const nCeldas = teleByCell.length;
   // Con `celdasPorBarra = 1` hay tantas barras como celdas y el índice de barra
   // ES el de la celda: la figura queda en la misma unidad que FIG. 00/01/02.
@@ -164,11 +177,6 @@ export function ModeShareByLocation({
           if (total === 0) return null;
           const totalH = (normalize ? 1 : total / data.maxTotal) * plotH;
           const gap = barW > 6 ? barW * 0.08 : 0;
-          // Posición física del centro de la barra, para el tooltip.
-          const km =
-            nCeldas > 1
-              ? ((i * binWidth + (binWidth - 1) / 2) / (nCeldas - 1)) * largoKm
-              : 0;
           let yCursor = yFloor;
           return (
             <g key={i}>
@@ -185,13 +193,49 @@ export function ModeShareByLocation({
                     width={Math.max(barW - 2 * gap, 0.4)}
                     height={h}
                     fill={COLOR_MODO[m]}
-                    opacity={0.92}
-                  >
-                    <title>{`${t(`modes.${m.toLowerCase()}`)} — km ${km.toFixed(1)}: ${Math.round(count)} (${((count / total) * 100).toFixed(1)}%)`}</title>
-                  </rect>
+                    opacity={hover?.i === i ? 1 : 0.92}
+                  />
                 );
               })}
             </g>
+          );
+        })}
+
+        {/* Captura del mouse: una columna de alto completo por celda. Apuntar a
+            un segmento suelto es imposible cuando la barra mide 4,6 px de ancho
+            y el modo minoritario ocupa un 3 % del alto. */}
+        {data.bins.map((bin, i) => {
+          const total = data.totals[i] ?? 0;
+          if (total === 0) return null;
+          const km =
+            nCeldas > 1
+              ? ((i * binWidth + (binWidth - 1) / 2) / (nCeldas - 1)) * largoKm
+              : 0;
+          return (
+            <rect
+              key={`hit-${i}`}
+              x={MARGIN.left + i * barW}
+              y={yTop}
+              width={Math.max(barW, 1)}
+              height={plotH}
+              fill="transparent"
+              onMouseEnter={() =>
+                setHover({
+                  i,
+                  km,
+                  total,
+                  porModo: MODE_ORDER.slice()
+                    .reverse()
+                    .map((m) => ({
+                      modo: m,
+                      valor: bin[m],
+                      share: bin[m] / total,
+                    }))
+                    .filter((o) => o.valor > 0),
+                })
+              }
+              onMouseLeave={() => setHover(null)}
+            />
           );
         })}
 
@@ -261,6 +305,23 @@ export function ModeShareByLocation({
             );
           })}
       </svg>
+      {hover && (
+        <div className="network-tooltip" role="tooltip">
+          <div className="nt-head">{`${hover.km.toFixed(1)} km`}</div>
+          {hover.porModo.map((o) => (
+            <div key={o.modo} className="nt-row">
+              <span style={{ color: COLOR_MODO[o.modo] }}>
+                {t(`modes.${o.modo.toLowerCase()}`)}
+              </span>
+              <span>{`${(o.share * 100).toFixed(1)}%`}</span>
+            </div>
+          ))}
+          <div className="nt-row">
+            <span>{t("sandbox.total")}</span>
+            <span>{Math.round(hover.total).toLocaleString("es-CL")}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

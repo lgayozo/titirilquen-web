@@ -25,6 +25,20 @@ const ROW_GAP = 8;
 const TOP_PAD = 6;
 const LEGEND_H = 22;
 
+/** Segmento bajo el cursor.
+ *
+ *  Antes esto era un `<title>` nativo: aparece recién tras ~1 s de reposo, sin
+ *  estilo y fuera del tema, y en la práctica el usuario no lo encontraba. El
+ *  tooltip propio es el mismo que ya usan la FIG. 00 y el perfil de flujo, así
+ *  que no agrega un dialecto más. */
+interface HoverSegmento {
+  grupo: string;
+  modo: Modo;
+  conteo: number;
+  share: number;
+  total: number;
+}
+
 /**
  * Barras horizontales 100 % apiladas (reparto modal por grupo). Todo se dibuja
  * dentro de un `<svg>` con ancho medido en píxeles, para que exporte completo a
@@ -35,6 +49,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(420);
+  const [hover, setHover] = useState<HoverSegmento | null>(null);
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
@@ -132,10 +147,22 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                         width={w}
                         height={ROW_H}
                         fill={COLOR_MODO[m]}
-                        opacity={0.92}
-                      >
-                        <title>{`${t(`modes.${m.toLowerCase()}`)}: ${r.counts[m].toLocaleString("es-CL")} (${(share * 100).toFixed(1)}%)`}</title>
-                      </rect>
+                        opacity={
+                          hover && hover.grupo === r.label && hover.modo === m
+                            ? 1
+                            : 0.92
+                        }
+                        onMouseEnter={() =>
+                          setHover({
+                            grupo: r.label,
+                            modo: m,
+                            conteo: r.counts[m],
+                            share,
+                            total: r.total,
+                          })
+                        }
+                        onMouseLeave={() => setHover(null)}
+                      />
                       {w > 26 && (
                         <text
                           x={x + w / 2}
@@ -181,6 +208,19 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
           );
         })}
       </svg>
+      {hover && (
+        <div className="network-tooltip" role="tooltip">
+          <div className="nt-head" style={{ color: COLOR_MODO[hover.modo] }}>
+            {t(`modes.${hover.modo.toLowerCase()}`)} · {hover.grupo}
+          </div>
+          <div className="nt-row">
+            <span>{`${hover.conteo.toLocaleString("es-CL")} de ${hover.total.toLocaleString("es-CL")}`}</span>
+          </div>
+          <div className="nt-row">
+            <span>{`${(hover.share * 100).toFixed(1)}%`}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
