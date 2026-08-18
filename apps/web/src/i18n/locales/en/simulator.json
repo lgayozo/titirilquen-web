@@ -833,7 +833,9 @@
     "costo_operador_nota": "({{km}} train-km/h · ×{{f}} day/peak · PROVISIONAL values)",
     "subsidio": "Required subsidy (cost − fare revenue)",
     "subsidio_nota": "(negative ⇒ the service self-finances)",
-    "caption": "Table 1 · City-wide aggregates"
+    "caption": "Table 1 · City-wide aggregates",
+    "excedente_social": "Social surplus (single VoT)",
+    "excedente_social_nota": "(valued at the social VoT {{vot}}/h instead of each stratum behavioural one: everyone minute is worth the same)"
   },
   "espera": {
     "min": "min",

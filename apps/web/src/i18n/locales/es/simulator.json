@@ -833,7 +833,9 @@
     "costo_operador_nota": "({{km}} tren-km/h · ×{{f}} día/punta · valores PROVISORIOS)",
     "subsidio": "Subsidio requerido (costo − tarifa)",
     "subsidio_nota": "(negativo ⇒ el servicio se autofinancia)",
-    "caption": "Tabla 1 · Agregados de ciudad completa"
+    "caption": "Tabla 1 · Agregados de ciudad completa",
+    "excedente_social": "Excedente social (VoT unico)",
+    "excedente_social_nota": "(valorado al VoT social {{vot}}/h en vez del conductual de cada estrato: el minuto de todos vale lo mismo)"
   },
   "espera": {
     "min": "min",

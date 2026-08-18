@@ -31,6 +31,8 @@ export interface AgregadosDict {
   excedente_por_estrato_clp: Record<"1" | "2" | "3", number>;
   util_maxima_por_estrato: Record<"1" | "2" | "3", number>;
   excedente_max_por_estrato_clp: Record<"1" | "2" | "3", number>;
+  excedente_social_por_estrato_clp: Record<"1" | "2" | "3", number>;
+  excedente_social_total_clp: number;
   viajeros_por_estrato: Record<"1" | "2" | "3", number>;
   excedente_total_clp: number;
   excedente_max_total_clp: number;

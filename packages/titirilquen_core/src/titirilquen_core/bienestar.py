@@ -127,6 +127,20 @@ class AgregadosDict(TypedDict):
     #: `todo_o_nada`, donde no hay término aleatorio que promediar.
     util_maxima_por_estrato: dict[EstratoKey, float]
     excedente_max_por_estrato_clp: dict[EstratoKey, float]
+    #: El excedente EMPAREJADO, pero valorado con el VoT social único en vez del
+    #: conductual de cada estrato. Es al excedente lo que
+    #: `costo_generalizado_social_clp` es al percibido.
+    #:
+    #: No es cosmético: cambia el SIGNO de los resultados agregados. El VoT
+    #: conductual le da al minuto del estrato alto varias veces el valor del
+    #: minuto del bajo, así que agregar en esa unidad pondera a favor de quien
+    #: más gana. Con VoT único el minuto de todos vale lo mismo, que es el
+    #: supuesto de la evaluación social chilena. Medido: en la base, barrer
+    #: pistas de 1 a 6 bajo `todo_o_nada` da bienestar CRECIENTE con λ_h y
+    #: DECRECIENTE entre 3 y 4 pistas con λ social — o sea que Downs-Thomson
+    #: aparece o no según la unidad. Ver `scripts/regimenes_metro.py`.
+    excedente_social_por_estrato_clp: dict[EstratoKey, float]
+    excedente_social_total_clp: float
     viajeros_por_estrato: dict[EstratoKey, float]
     #: Σ_h viajeros_h · excedente_h. Cero arbitrario: sólo el Δ es interpretable.
     excedente_total_clp: float
@@ -320,12 +334,17 @@ def calcular_agregados(
         tren_km * cfg.supply.train.costo_operacion_tren_km * cfg.supply.train.factor_dia_punta
     )
 
+    medida = medida_emparejada(cfg.assignment)
+    usa_max = medida == "utilidad_maxima"
+
     logsum: dict[str, float] = {}
     excedente: dict[str, float] = {}
     util_max: dict[str, float] = {}
     excedente_max: dict[str, float] = {}
+    excedente_social: dict[str, float] = {}
     excedente_total = 0.0
     excedente_max_total = 0.0
+    excedente_social_total = 0.0
     for h in estratos:
         n = ls_n[h]
         logsum[str(h)] = ls_suma[h] / n if n > 0 else 0.0
@@ -337,8 +356,24 @@ def calcular_agregados(
         excedente_total += excedente[str(h)] * n
         excedente_max_total += excedente_max[str(h)] * n
 
-    medida = medida_emparejada(cfg.assignment)
-    excedente_emparejado = excedente_max_total if medida == "utilidad_maxima" else excedente_total
+        # λ SOCIAL: la misma utilidad, valorada con el VoT de NORMA en vez del
+        # conductual del estrato. Se despeja del propio VoT:
+        #
+        #     VoT_h = (β_t/β_c)·60   ⇒   λ_social,h = |β_t,h|·60 / VoT_social
+        #
+        # Sigue dependiendo del estrato porque β_t fija la escala de SU utilidad
+        # —sin eso los útiles de estratos distintos no serían sumables—, pero el
+        # PRECIO del minuto pasa a ser único.
+        lam_social = (
+            abs(cfg.demand.estratos[h].betas.b_tiempo_viaje) * 60 / vot_social_clp_hora
+            if vot_social_clp_hora > 0
+            else 0.0
+        )
+        base_social = util_max[str(h)] if usa_max else logsum[str(h)]
+        excedente_social[str(h)] = base_social / lam_social if lam_social > 0 else 0.0
+        excedente_social_total += excedente_social[str(h)] * n
+
+    excedente_emparejado = excedente_max_total if usa_max else excedente_total
 
     return {
         "tiempo_total_min": tiempo_total,
@@ -351,6 +386,8 @@ def calcular_agregados(
         "excedente_por_estrato_clp": excedente,
         "util_maxima_por_estrato": util_max,
         "excedente_max_por_estrato_clp": excedente_max,
+        "excedente_social_por_estrato_clp": excedente_social,
+        "excedente_social_total_clp": excedente_social_total,
         "viajeros_por_estrato": {str(h): ls_n[h] for h in estratos},
         "excedente_total_clp": excedente_total,
         "excedente_max_total_clp": excedente_max_total,

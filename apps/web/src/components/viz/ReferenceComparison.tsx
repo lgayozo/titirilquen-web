@@ -148,6 +148,27 @@ export function ReferenceComparison({ config, result, reference }: Props) {
       comparable: excedenteComparable,
       nota: t("agg.bienestar_nota"),
     },
+    {
+      // Tercera medida: el MISMO excedente emparejado, pero valorado con el VoT
+      // social único en vez del conductual de cada estrato. Va junto al
+      // excedente y no junto al costo generalizado porque mide bienestar, no
+      // costo — aunque la corrección que aplica es la misma que `cg_social`.
+      //
+      // No es redundante: el VoT conductual pondera a favor de quien más gana,
+      // y con eso el signo del Δ agregado puede darse vuelta. Medido en la base
+      // barriendo pistas: con λ por estrato el bienestar sube monótonamente y
+      // con λ social cae entre 3 y 4 pistas. Downs-Thomson aparece o no según
+      // la unidad, y ésta es la unidad de la evaluación social.
+      label: t("agg.excedente_social"),
+      actual: agg.excedente_social_total_clp,
+      ref: aggRef?.excedente_social_total_clp ?? null,
+      fmt: fmtMoney,
+      menorEsMejor: false,
+      comparable: excedenteComparable,
+      nota: t("agg.excedente_social_nota", {
+        vot: fmtMoney(VOT_SOCIAL_CLP_HORA),
+      }),
+    },
     ...STRATA.map((h) => ({
       label: t(usaMax ? "agg.excedente_estrato_max" : "agg.excedente_estrato", {
         h: t(`strata.${estratoKey(h)}`),
