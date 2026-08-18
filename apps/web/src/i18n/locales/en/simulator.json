@@ -834,5 +834,17 @@
     "subsidio": "Required subsidy (cost − fare revenue)",
     "subsidio_nota": "(negative ⇒ the service self-finances)",
     "caption": "Table 1 · City-wide aggregates"
+  },
+  "espera": {
+    "min": "min",
+    "titulo": "train waiting time, at equilibrium",
+    "base": "Frequency channel (Mohring)",
+    "base_nota": "Half the headway: 30 / {{f}} tph. This is the channel that rules at this population: if demand falls, frequency falls and waiting rises.",
+    "anden": "Platform channel (crowding)",
+    "anden_inactivo": "Inactive: at ρ = {{rho}} the surcharge is negligible. Far more demand would be needed for the platform to matter.",
+    "anden_activo": "Active: at ρ = {{rho}} the platform adds {{pct}} % to waiting.",
+    "constante": "Waiting is the SAME along the whole line: one frequency for the service and a platform surcharge that does not bite, so a spatial profile would draw a straight line.",
+    "varia": "Ranges from {{min}} to {{max}} min by station ({{pct}} %): each one carries a different load.",
+    "msa_nota": "The figure above is the equilibrium one and does not exactly match 30/f_op because the MSA averages times across iterations."
   }
 }

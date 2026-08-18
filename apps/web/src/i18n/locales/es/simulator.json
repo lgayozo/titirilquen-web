@@ -834,5 +834,17 @@
     "subsidio": "Subsidio requerido (costo − tarifa)",
     "subsidio_nota": "(negativo ⇒ el servicio se autofinancia)",
     "caption": "Tabla 1 · Agregados de ciudad completa"
+  },
+  "espera": {
+    "min": "min",
+    "titulo": "espera del tren, en equilibrio",
+    "base": "Canal frecuencia (Mohring)",
+    "base_nota": "Medio intervalo entre trenes: 30 / {{f}} tph. Es el canal que manda con esta población: si la demanda cae, la frecuencia cae y la espera sube.",
+    "anden": "Canal andén (hacinamiento)",
+    "anden_inactivo": "Inactivo: con ρ = {{rho}} el recargo es despreciable. Haría falta mucha más demanda para que el andén se note.",
+    "anden_activo": "Activo: con ρ = {{rho}} el andén recarga la espera un {{pct}} %.",
+    "constante": "La espera es la MISMA en toda la línea: hay una sola frecuencia para el servicio y el recargo de andén no muerde, así que un perfil espacial dibujaría una recta.",
+    "varia": "Varía entre {{min}} y {{max}} min según la estación ({{pct}} %): el andén carga distinto en cada una.",
+    "msa_nota": "La cifra de arriba es la del equilibrio y no coincide exactamente con 30/f_op porque el MSA promedia tiempos entre iteraciones."
   }
 }

@@ -2984,6 +2984,108 @@ table.cmp th {
 }
 
 /* Métricas del sistema (Ciudad en equilibrio): 8 stats en 4×2, balanceado. */
+/* ---------------------------------------------------------------------------
+   Espera del metro, descompuesta (reemplaza al perfil espacial del hero).
+   Ver components/viz/EsperaMetro.tsx: con la ciudad por defecto la espera es
+   constante en el espacio, así que el perfil dibujaba una recta.
+--------------------------------------------------------------------------- */
+.espera-metro {
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  padding: 16px 18px;
+}
+
+.espera-cifra {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.espera-valor {
+  font-family: var(--font-fig);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--metro);
+}
+
+.espera-unidad {
+  font-family: var(--font-fig);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.espera-titulo {
+  font-family: var(--font-fig);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-left: 10px;
+}
+
+.espera-desglose {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  margin-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.espera-parte {
+  padding: 10px 0 2px;
+}
+
+.espera-parte + .espera-parte {
+  border-left: 1px solid var(--rule);
+  padding-left: 14px;
+}
+
+.espera-parte-apagada {
+  opacity: 0.55;
+}
+
+.espera-parte-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.espera-parte-label {
+  font-family: var(--font-fig);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.espera-parte-valor {
+  font-family: var(--font-fig);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.espera-parte-nota {
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 42ch;
+}
+
+.espera-pie {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  border-top: 1px solid var(--rule);
+  padding-top: 8px;
+}
+
 /* Carga de la red: los tres v/c junto a la FIG. 00.
    No reusa `.eqt-sys-grid` porque esa declara `repeat(4, 1fr)` fijo —la usa la
    página acoplada, que sí muestra cuatro— y con tres tarjetas dejaba una cuarta

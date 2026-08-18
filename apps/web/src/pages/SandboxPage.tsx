@@ -23,6 +23,7 @@ import {
   CityPreview,
 } from "@/components/viz/CityPreview";
 import { ConvergenceTrace } from "@/components/viz/ConvergenceTrace";
+import { EsperaMetro } from "@/components/viz/EsperaMetro";
 import { CorridorFlowFigure } from "@/components/viz/CorridorFlowFigure";
 import { FlowProfile } from "@/components/viz/FlowProfile";
 import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
@@ -267,7 +268,20 @@ export function SandboxPage() {
     </>
   );
 
-  const cintaTiempos = () => (
+  const cintaTiempos = () =>
+    esEspera && lastIter ? (
+      <EsperaMetro
+        esperaPorCelda={lastIter.t_tren_espera}
+        fOp={lastIter.frecuencia_metro}
+        rhoAnden={operatingRatios.metro ?? 0}
+        alphaAnden={cfgRes.supply.train.anden_alpha}
+        betaAnden={cfgRes.supply.train.anden_beta}
+      />
+    ) : (
+      <CityStripInterna />
+    );
+
+  const CityStripInterna = () => (
     <CityStrip
       nCeldas={cfgRes.city.n_celdas}
       largoKm={cfgRes.city.largo_ciudad_km}

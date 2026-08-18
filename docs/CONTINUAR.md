@@ -147,6 +147,7 @@ Todos desde `packages/titirilquen_core`, con `uv run python scripts/<x>.py`:
 | `diagnostico_elasticidades.py` | Elasticidades arco, techo de la bici, capacidad de tren vs frecuencia |
 | `diagnostico_bienestar.py` | **Las dos medidas del excedente lado a lado**: brecha logsum vs utilidad maxima en utiles, $ y minutos-equivalentes; cuanto se mueve entre escenarios; y cuantos agentes quedan fuera por no tener modo factible |
 | `paradojas.py` | Downs-Thomson y Braess por número de pistas |
+| `regimenes_metro.py` | **Los dos canales del metro**: cuándo manda el Mohring y cuándo el andén. Mide que son mutuamente excluyentes — el andén solo muerde cuando `f_op` topa, y ahí Downs-Thomson se INVIERTE |
 | `sensibilidad.py` | Barrido densidad × pistas |
 | `auditoria_wardrop.py` | **¿El método `todo_o_nada` produce equilibrio de Wardrop?** Mide el gap de costo generalizado entre grupos |
 | `informe_wardrop.py` | Genera los datos de `docs/informe-wardrop.html` |

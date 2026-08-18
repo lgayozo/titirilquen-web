@@ -11,6 +11,7 @@ export interface CityPresetValues {
   densidad?: number;
   sigma?: number;
   poblacion?: number;
+  num_pistas?: number;
 }
 
 /** Parámetros de política. */
@@ -38,6 +39,7 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
     densidad: 1800,
     sigma: 0.5,
     poblacion: 36000,
+    num_pistas: 2,
   },
   Dispersa: {
     largo_ciudad: 40,
@@ -49,6 +51,7 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
     densidad: 7200,
     sigma: 0.5,
     poblacion: 144000,
+    num_pistas: 12,
   },
 };
 

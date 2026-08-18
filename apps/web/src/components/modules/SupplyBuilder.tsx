@@ -89,7 +89,12 @@ export function SupplyBuilder({
           label={t("supply_params.car.num_pistas")}
           value={car.num_pistas}
           min={1}
-          max={5}
+          // 12 y no 5: el preset Metrópolis trae 12 pistas —es lo que deja el
+          // corredor en la rodilla de la BPR con 144.000 habitantes— y un tope
+          // de 5 impedía volver a ese valor después de moverlo. En la ciudad
+          // lineal TODA la población cruza un único corredor, así que este
+          // número agrega la capacidad vial de la ciudad entera.
+          max={12}
           step={1}
           hint={t("supply_params.car.num_pistas_hint")}
           onChange={(v) => setSupply("car", { num_pistas: v })}

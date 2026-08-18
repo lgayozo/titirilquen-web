@@ -186,7 +186,9 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
     ([, v]) =>
       config.city.largo_ciudad_km === v.largo_ciudad &&
       (v.sigma === undefined || landUse.oferta_sigma_frac === v.sigma) &&
-      (v.poblacion === undefined || Math.round(sumaHActual) === v.poblacion),
+      (v.poblacion === undefined || Math.round(sumaHActual) === v.poblacion) &&
+      (v.num_pistas === undefined ||
+        config.supply.car.num_pistas === v.num_pistas),
   )?.[0];
 
   const activePolicy = policies.find(([, v]) =>
@@ -230,6 +232,19 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
         largo_ciudad_km: largo,
         densidad_hab_km: densidadDerivadaHabKm(sumaFinal, largo),
       },
+      // La capacidad vial la traen SOLO los presets de escala (los que declaran
+      // `poblacion`): a 144.000 habitantes las 2 pistas del default dejan el
+      // corredor en v/c 3,68 y el auto deja de competir, así que el escenario
+      // no compara lo que dice comparar. Los de iso-población (Compacta,
+      // Dispersa) no la declaran y conservan la del usuario, igual que hacen
+      // con la población.
+      supply:
+        p.num_pistas === undefined
+          ? c.supply
+          : {
+              ...c.supply,
+              car: { ...c.supply.car, num_pistas: p.num_pistas },
+            },
     }));
     // La concentración de la oferta (σ) es la segunda dimensión de la forma:
     // sin ella el preset movía la mitad del efecto.

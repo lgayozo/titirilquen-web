@@ -19,6 +19,13 @@ class CityPreset(TypedDict, total=False):
     # si falta, el preset conserva la población vigente (iso-población). Ver el
     # bloque de CITY_PRESETS.
     poblacion: int
+    # Pistas por sentido. Va en el preset de CIUDAD —y no solo en los de
+    # política— porque a una escala dada la capacidad vial no es neutra: con
+    # 144.000 habitantes las 2 pistas del default dejan el corredor en v/c 3,68
+    # y el auto en 52 min, o sea saturado POR CONSTRUCCIÓN, y el escenario deja
+    # de estar en la rodilla de la BPR donde las palancas responden. Lo declaran
+    # los mismos presets que declaran `poblacion`: los que fijan la escala.
+    num_pistas: int
 
 
 class PolicyPreset(TypedDict, total=False):
@@ -48,7 +55,17 @@ CITY_PRESETS: dict[str, CityPreset] = {
     # sea cual sea el largo, así que responde a población/precios/capacidad y no
     # a la forma.
     "Compacta": {"largo_ciudad": 8, "densidad": 4500, "sigma": 0.30},
-    "Base": {"largo_ciudad": 20, "densidad": 1800, "sigma": 0.50, "poblacion": 36_000},
+    # `num_pistas` declarado por la misma razón que `poblacion`: para que el
+    # viaje de VUELTA funcione. Sin esto, volver de Metrópolis dejaba la ciudad
+    # de 36.000 habitantes con las 12 pistas de la metrópolis y un v/c de 0,25,
+    # o sea un corredor vacío donde ninguna palanca de auto hace nada.
+    "Base": {
+        "largo_ciudad": 20,
+        "densidad": 1800,
+        "sigma": 0.50,
+        "poblacion": 36_000,
+        "num_pistas": 2,
+    },
     "Dispersa": {"largo_ciudad": 40, "densidad": 900, "sigma": 0.90},
     # ESCALA, no forma: misma geometría que Base (20 km, sigma 0.50) con 4x la
     # población. Es el único preset que rompe la iso-población de arriba, y a
@@ -66,6 +83,22 @@ CITY_PRESETS: dict[str, CityPreset] = {
         "densidad": 7200,
         "sigma": 0.50,
         "poblacion": 144_000,
+        # 12 y no 2: es el número que deja el corredor en v/c 0,97 con esta
+        # población, o sea la MISMA condición que las 2 pistas dan en Base. Con
+        # el default de 2 el v/c era 3,68 y el auto tardaba 52,3 min: no competía
+        # con el metro y agregar vialidad no movía nada porque la BPR ya estaba
+        # muy pasada la rodilla. Medido (expected, ΣH 144.000):
+        #
+        #   pistas   v/c    auto%   metro%   t_auto
+        #        2   3,68   11,33    47,54   52,3 min
+        #        4   2,44   15,00    45,15   34,8
+        #        8   1,41   17,30    43,37   24,5
+        #       12   0,97   17,95    42,93   21,7   <- rodilla
+        #
+        # Ojo con leer las 12 pistas como un dato urbano: en la ciudad lineal
+        # TODA la población atraviesa un único corredor, así que este número
+        # agrega la capacidad vial completa de la ciudad, no la de una avenida.
+        "num_pistas": 12,
     },
 }
 
