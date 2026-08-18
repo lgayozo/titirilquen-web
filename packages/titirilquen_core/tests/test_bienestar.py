@@ -182,3 +182,54 @@ def test_el_social_y_el_conductual_no_coinciden(
     hallazgo sobre el signo de Downs-Thomson no tendria sentido."""
     agg = _agregados(sim_liviana, lu_chica, "expected")
     assert agg["excedente_social_total_clp"] != pytest.approx(agg["excedente_total_clp"], rel=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# El reparto modal
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("metodo", ["montecarlo", "expected", "todo_o_nada"])
+def test_los_viajes_por_modo_suman_los_viajeros(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig, metodo: str
+) -> None:
+    """`Σ_m viajes_por_modo[m] = viajeros`, exactamente.
+
+    Es la propiedad que hace comparable el reparto con el resto de la tabla: si
+    el share se calculara sobre otro denominador —el conteo de agentes del
+    snapshot, que incluye teletrabajo— los porcentajes no cuadrarían con el
+    tiempo medio ni con el costo generalizado, que se promedian sobre ESTOS
+    viajeros.
+    """
+    agg = _agregados(sim_liviana, lu_chica, metodo)
+    assert set(agg["viajes_por_modo"]) == set(MODOS)
+    assert sum(agg["viajes_por_modo"].values()) == pytest.approx(agg["viajeros"], rel=1e-12)
+
+
+def test_el_reparto_por_estrato_agrega_al_de_ciudad(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """`Σ_h viajes_por_modo_estrato[h][m] = viajes_por_modo[m]`, modo a modo.
+
+    Es la propiedad que hace que las dos tablas de la pantalla —el reparto de
+    ciudad completa y el desagregado por estrato— sean el MISMO reparto visto a
+    dos niveles, y no dos cálculos que hay que creer que coinciden.
+    """
+    agg = _agregados(sim_liviana, lu_chica, "expected")
+    for m in MODOS:
+        suma = sum(agg["viajes_por_modo_estrato"][h][m] for h in ESTRATOS)
+        assert suma == pytest.approx(agg["viajes_por_modo"][m], rel=1e-12), f"modo {m}"
+
+
+def test_el_reparto_modal_reacciona_a_la_politica(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """Guard: encarecer el metro tiene que mover gente fuera del metro.
+
+    Sin esto, un reparto que quedara pegado en cero o en una constante pasaría
+    todos los tests de arriba —suma y claves— sin medir nada.
+    """
+    base = _agregados(sim_liviana, lu_chica, "expected")
+    sim_liviana.demand.globales.costo_tarifa_metro *= 6
+    caro = _agregados(sim_liviana, lu_chica, "expected")
+    assert caro["viajes_por_modo"]["Metro"] < base["viajes_por_modo"]["Metro"]

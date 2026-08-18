@@ -112,6 +112,23 @@ class AgregadosDict(TypedDict):
     tiempo_total_min: float
     #: Viajeros físicos (excluye teletrabajo).
     viajeros: float
+    #: Viajes por modo, en los 4 modos FÍSICOS. Σ = `viajeros`, así que el share
+    #: es `viajes_por_modo[m] / viajeros`.
+    #:
+    #: Se calcula acá y no en la UI porque el reparto modal es lo primero que se
+    #: compara entre escenarios y tiene que salir de la MISMA fuente y el MISMO
+    #: denominador que el resto de la tabla: la demanda esperada por estrato, no
+    #: el conteo de agentes del snapshot. Los dos existen, difieren —el conteo
+    #: incluye teletrabajo— y tenerlos juntos en una tabla de comparación era
+    #: pedir que alguien reste peras con manzanas.
+    viajes_por_modo: dict[str, float]
+    #: Lo mismo, desagregado: `[estrato][modo]`. Σ_m sobre un estrato da sus
+    #: viajes físicos, y Σ_h Σ_m da `viajeros`. La tabla por estrato lo lee de
+    #: acá y no de contar `modo_elegido` sobre los agentes: ese conteo se
+    #: normaliza sobre TODOS los agentes del estrato —teletrabajo incluido—, así
+    #: que los dos repartos de la pantalla tenían denominadores distintos y sólo
+    #: coincidían si uno hacía la conversión a mano.
+    viajes_por_modo_estrato: dict[EstratoKey, dict[str, float]]
     tiempo_medio_min: float
     #: Tiempo valorado al VoT conductual de cada estrato, más dinero.
     costo_generalizado_percibido_clp: float
@@ -261,6 +278,10 @@ def calcular_agregados(
     vot = {h: vot_clp_hora(cfg, h) for h in estratos}
 
     tiempo_total = viajeros = cg_percibido = cg_social = 0.0
+    viajes_modo = dict.fromkeys(MODOS, 0.0)
+    viajes_modo_estrato: dict[str, dict[str, float]] = {
+        str(h): dict.fromkeys(MODOS, 0.0) for h in (1, 2, 3)
+    }
     rec_parking = rec_tarifa = 0.0
     ls_suma = dict.fromkeys(estratos, 0.0)
     mx_suma = dict.fromkeys(estratos, 0.0)
@@ -292,6 +313,8 @@ def calcular_agregados(
                 dinero = _dinero_del_modo(modo, cfg, dist_km)
                 tiempo_total += d * minutos
                 viajeros += d
+                viajes_modo[modo] += d
+                viajes_modo_estrato[str(h)][modo] += d
                 cg_percibido += d * ((minutos / 60) * vot[h] + dinero)
                 cg_social += d * ((minutos / 60) * vot_social_clp_hora + dinero)
                 # Sólo las TRANSFERENCIAS cuentan como recaudación. La bencina se
@@ -378,6 +401,8 @@ def calcular_agregados(
     return {
         "tiempo_total_min": tiempo_total,
         "viajeros": viajeros,
+        "viajes_por_modo": viajes_modo,
+        "viajes_por_modo_estrato": viajes_modo_estrato,
         "tiempo_medio_min": tiempo_total / viajeros if viajeros > 0 else 0.0,
         "costo_generalizado_percibido_clp": cg_percibido,
         "costo_generalizado_social_clp": cg_social,

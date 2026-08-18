@@ -21,6 +21,19 @@ V_REF_KMH = 30.0
 el tiempo a flujo libre a esta velocidad. Misma convención que el arranque del
 loop acoplado (ver D-23/D-26)."""
 
+ANCHO_CELDA_KM_DEFAULT = 0.1
+"""Ancho de parcela por defecto ≈ ciudad de 20 km en 201 celdas, la referencia
+del frontend.
+
+Es una CONSTANTE y no dos literales porque los dos puntos de entrada de la
+clase —el campo del dataclass y el parámetro de `build`— declaraban valores
+distintos (0.1 y 0.01). Como `dens = S/Δx`, ese factor 10 es un factor 10 en la
+desamenidad de densidad: entrar por `build()` sin pasar el ancho daba un
+equilibrio distinto que construir la instancia directo. Los callers deben pasar
+igual el ancho real (`largo_km / L`); el default existe para no romper los usos
+de juguete.
+"""
+
 
 def _default_T(
     n_parcelas: int, cbd_index: int, n_strata: int, ancho_celda_km: float
@@ -49,9 +62,8 @@ class LandUseCity:
     L: int
     cbd_index: int
     cfg: LandUseConfig
-    # Ancho físico de cada celda. Default ≈ ciudad de 20 km en 201 celdas (la
-    # referencia del frontend); los callers deben pasar largo_km/L real.
-    ancho_celda_km: float = 0.1
+    # Ancho físico de cada celda. Ver `ANCHO_CELDA_KM_DEFAULT`.
+    ancho_celda_km: float = ANCHO_CELDA_KM_DEFAULT
     S: NDArray[np.int_] = field(default_factory=lambda: np.zeros(0, dtype=int))
     result: LandUseResult | None = None
     parcelas: list[list[int]] = field(default_factory=list)
@@ -63,7 +75,7 @@ class LandUseCity:
         L: int,
         CBD: int,
         cfg: LandUseConfig,
-        ancho_celda_km: float = 0.01,
+        ancho_celda_km: float = ANCHO_CELDA_KM_DEFAULT,
         S: NDArray[np.int_] | None = None,
         T: NDArray[np.float64] | None = None,
         rng: np.random.Generator | None = None,
