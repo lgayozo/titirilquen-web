@@ -42,6 +42,8 @@ export interface GlobalConfig {
   v_metro: number;
   v_bici: number;
   v_caminata: number;
+  corte_caminata_min: number;
+  corte_bici_min: number;
   costo_combustible_km: number;
   costo_tarifa_metro: number;
   costo_parking: number;

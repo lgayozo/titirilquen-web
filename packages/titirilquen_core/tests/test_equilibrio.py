@@ -288,3 +288,58 @@ def test_hace_falta_al_menos_un_modo(demanda_calibrada: DemandConfig) -> None:
 def test_la_grilla_no_puede_ser_absurda() -> None:
     with pytest.raises(ValidationError):
         CityConfig(n_celdas=3)
+
+
+# ---------------------------------------------------------------------------
+# Cortes de factibilidad configurables
+# ---------------------------------------------------------------------------
+#
+# Eran constantes del núcleo hasta ago-2026. Al volverlos campos del schema hay
+# dos cosas que vigilar: que el default siga siendo el supuesto histórico —o la
+# línea base se movería sin que nadie lo decidiera— y que moverlos haga algo,
+# porque un campo que se ignora es peor que no tenerlo.
+
+
+def test_los_cortes_por_defecto_son_los_del_modelo() -> None:
+    """El default sale de `constantes.py`: el número se declara una sola vez."""
+    from titirilquen_core.config import GlobalConfig
+    from titirilquen_core.constantes import CORTE_BICI_MIN, CORTE_CAMINATA_MIN
+
+    g = GlobalConfig()
+    assert g.corte_caminata_min == CORTE_CAMINATA_MIN
+    assert g.corte_bici_min == CORTE_BICI_MIN
+
+
+def test_bajar_el_corte_de_caminata_reduce_la_caminata(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """Si el campo se ignorara, este test pasaría inadvertido: el reparto sería
+    idéntico y nadie lo notaría hasta que alguien moviera el slider en el aula."""
+
+    def caminata(corte: float) -> float:
+        sim = sim_liviana.model_copy(deep=True)
+        sim.demand.globales.corte_caminata_min = corte
+        sim.max_iter = 6
+        sim.tolerance = 0.1
+        split = _drena(sim, lu_chica).iteraciones[-1].modal_split
+        total = sum(split.values()) or 1
+        return 100.0 * split.get("Caminata", 0) / total
+
+    amplio, angosto = caminata(30.0), caminata(8.0)
+    assert angosto < amplio, (
+        f"bajar el corte de 30 a 8 min no redujo la caminata: {amplio:.2f}% -> {angosto:.2f}%"
+    )
+
+
+def test_el_corte_no_puede_ser_cero_ni_negativo(
+    demanda_calibrada: DemandConfig,
+) -> None:
+    """`gt=0`: un corte de 0 dejaría la caminata infactible en toda la ciudad, que
+    no es una configuración sino un error de tipeo."""
+    from titirilquen_core.config import GlobalConfig
+
+    for valor in (0, -5):
+        with pytest.raises(ValidationError):
+            GlobalConfig(corte_caminata_min=valor)
+        with pytest.raises(ValidationError):
+            GlobalConfig(corte_bici_min=valor)

@@ -49,6 +49,8 @@
    "v_metro": 35,
    "v_bici": 14,
    "v_caminata": 4.8,
+   "corte_caminata_min": 30.0,
+   "corte_bici_min": 45.0,
    "costo_combustible_km": 120,
    "costo_tarifa_metro": 800,
    "costo_parking": 2000,

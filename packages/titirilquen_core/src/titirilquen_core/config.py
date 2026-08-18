@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from titirilquen_core.constantes import CORTE_BICI_MIN, CORTE_CAMINATA_MIN
+
 StratumId = Literal[1, 2, 3]
 """1 = Alto, 2 = Medio, 3 = Bajo."""
 
@@ -97,6 +99,21 @@ class GlobalConfig(BaseModel):
     v_metro: float = 35
     v_bici: float = 14
     v_caminata: float = 4.8
+    # Cortes de FACTIBILIDAD del conjunto de elección: sobre ese tiempo la
+    # alternativa sale del set, no recibe una penalización grande. Distíngase de
+    # `penalizaciones_fisicas`, que castigan progresivamente al cruzar umbrales
+    # (10/20/30 min en bici, 5/15/25 a pie) pero dejan la alternativa disponible.
+    #
+    # Eran constantes del núcleo hasta el 2026-08-18 y se volvieron configurables
+    # a pedido. El default sigue viniendo de `constantes.py` para no tener el
+    # número escrito dos veces: ahí es el supuesto del modelo, acá el valor
+    # inicial que el usuario puede mover.
+    #
+    # Ojo al moverlos: cambian el `J` del conjunto factible, y con él la brecha
+    # entre logsum y utilidad máxima (docs/informe-bienestar.html §4.1). Mover el
+    # corte NO es una política de transporte, es un supuesto de comportamiento.
+    corte_caminata_min: float = Field(default=CORTE_CAMINATA_MIN, gt=0, le=180)
+    corte_bici_min: float = Field(default=CORTE_BICI_MIN, gt=0, le=180)
     costo_combustible_km: float = 120
     costo_tarifa_metro: float = 800
     # 2000 (antes 4000, antes 6000). NO es un precio de lista: el modelo le cobra

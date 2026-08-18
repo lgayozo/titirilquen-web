@@ -293,9 +293,13 @@
       "walk_25": "Walk over 25 min",
       "prob_auto": "Car ownership",
       "prob_teletrabajo": "Telework (base rate)",
-      "b_tiempo_acceso": "β metro access"
+      "b_tiempo_acceso": "β metro access",
+      "corte_caminata_min": "Walking cutoff (min)",
+      "corte_bici_min": "Cycling cutoff (min)"
     },
-    "ratio_acceso": "Metro access / in-vehicle"
+    "ratio_acceso": "Metro access / in-vehicle",
+    "g_cortes": "Feasibility cutoffs (global)",
+    "cortes_hint": "Above this time the alternative leaves the choice set: it does not get a large penalty, it stops existing for that trip. It is a behavioural assumption, not a transport policy. These are global —they do not vary by stratum— and moving a cutoff changes how many alternatives there are, so it also moves the gap between logsum and max-utility surplus."
   },
   "demand_inspector": {
     "title": "Utility inspector — multinomial logit",

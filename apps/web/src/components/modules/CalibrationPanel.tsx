@@ -198,6 +198,16 @@ export function CalibrationPanel({ config, onChange }: Props) {
   const setStratum = (patch: Partial<StratumConfig>) =>
     updateStratum((s) => ({ ...s, ...patch }));
 
+  /** Los cortes de factibilidad son GLOBALES, no por estrato: son un supuesto
+   *  del modelo de elección —hasta dónde una alternativa se considera— y no una
+   *  preferencia que varíe con el ingreso. Por eso escriben en
+   *  `demand.globales` y el selector de estrato de arriba no los afecta. */
+  const setGlobal = (patch: Partial<SimulationConfig["demand"]["globales"]>) =>
+    onChange((c) => ({
+      ...c,
+      demand: { ...c.demand, globales: { ...c.demand.globales, ...patch } },
+    }));
+
   const setBeta = (patch: Partial<StratumBetas>) =>
     updateStratum((s) => ({ ...s, betas: { ...s.betas, ...patch } }));
 
@@ -364,6 +374,32 @@ export function CalibrationPanel({ config, onChange }: Props) {
       </Grupo>
       <p className="mt-1.5 text-[10px] leading-snug text-muted">
         {t("calibration.prob_teletrabajo_hint")}
+      </p>
+
+      {/* Los cortes NO llevan el sufijo del estrato: son globales. Van al final
+          del panel, después de las penalizaciones, porque se leen contra ellas:
+          las penalizaciones castigan al cruzar 10/20/30 min en bici y 5/15/25 a
+          pie y dejan la alternativa disponible; el corte la elimina. */}
+      <Grupo title={t("calibration.g_cortes")}>
+        <NumberField
+          label={t("calibration.p.corte_caminata_min")}
+          value={config.demand.globales.corte_caminata_min}
+          step={5}
+          onChange={(v) =>
+            setGlobal({ corte_caminata_min: Math.min(180, Math.max(1, v)) })
+          }
+        />
+        <NumberField
+          label={t("calibration.p.corte_bici_min")}
+          value={config.demand.globales.corte_bici_min}
+          step={5}
+          onChange={(v) =>
+            setGlobal({ corte_bici_min: Math.min(180, Math.max(1, v)) })
+          }
+        />
+      </Grupo>
+      <p className="mt-1.5 text-[10px] leading-snug text-muted">
+        {t("calibration.cortes_hint")}
       </p>
 
       <button

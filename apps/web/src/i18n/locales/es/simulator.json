@@ -293,9 +293,13 @@
       "walk_25": "Caminata sobre 25 min",
       "prob_auto": "Tenencia de auto",
       "prob_teletrabajo": "Teletrabajo (tasa base)",
-      "b_tiempo_acceso": "β acceso al metro"
+      "b_tiempo_acceso": "β acceso al metro",
+      "corte_caminata_min": "Corte caminata (min)",
+      "corte_bici_min": "Corte bicicleta (min)"
     },
-    "ratio_acceso": "Acceso metro / viaje"
+    "ratio_acceso": "Acceso metro / viaje",
+    "g_cortes": "Cortes de factibilidad (globales)",
+    "cortes_hint": "Sobre este tiempo la alternativa sale del conjunto de elección: no recibe una penalización grande, deja de existir para ese viaje. Es un supuesto de comportamiento, no una política de transporte. Son globales —no dependen del estrato— y mover el corte cambia cuántas alternativas hay, así que también mueve la brecha entre el excedente logsum y el de utilidad máxima."
   },
   "demand_inspector": {
     "title": "Inspector de utilidad — logit multinomial",
