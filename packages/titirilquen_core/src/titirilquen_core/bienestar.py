@@ -58,6 +58,33 @@ Tres medidas separadas a propósito, porque responden preguntas distintas:
    Desde el 2026-08-17 la página acoplada usa la MISMA implementación
    (`medidas_de_utilidad`) y el mismo emparejamiento (`medida_emparejada`), así
    que las dos páginas no pueden contestar distinto la misma pregunta.
+
+Dos convenciones que conviene tener escritas
+--------------------------------------------
+
+**La constante de Euler se omite.** El `E[max]` exacto del logit es
+`ln Σ e^{V_m} + γ`, con γ ≈ 0,5772; acá se calcula sólo el primer término, que es
+la convención habitual. No afecta ningún Δ —γ es aditiva y común, y se cancela en
+toda diferencia, que es lo único interpretable—, pero sí afecta la comparación
+ABSOLUTA entre las dos medidas: la brecha real entre el `E[max]` del logit y el
+del determinístico es ~0,58 útiles mayor que la que se obtiene restando los
+campos de este módulo. O sea que la brecha reportada subestima el valor de la
+variedad, no lo exagera. Sólo importaría para comparar niveles entre métodos, que
+es justamente lo que no se debe hacer.
+
+**Los agentes sin ninguna alternativa factible quedan fuera.** Si para un par
+(estrato, celda) no hay modo factible ni con auto ni sin él, `medidas_de_utilidad`
+devuelve `None` en las dos ramas y ese grupo no entra al promedio NI al
+denominador de población. La consecuencia a vigilar: una política que dejara
+gente sin alternativas no la contaría como bienestar muy bajo, la haría
+desaparecer del cálculo. Medido el 2026-08-17 sobre la corrida por defecto (20 km)
+y sobre una ciudad dispersa de 40 km: cero exclusiones en ambas, los 29.002 y
+28.996 viajeros entran completos, porque el metro sigue siendo factible en
+prácticamente toda la ciudad. Es un caso hoy vacío, no un caso imposible —
+deshabilitar modos o estirar mucho las distancias podría activarlo.
+
+El desarrollo completo, con la derivación y la correspondencia paso a paso con
+este archivo, está en `docs/informe-bienestar.html`.
 """
 
 from __future__ import annotations

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — La medida de bienestar, paso a paso</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --logit: #2f6690; --det: #b4532a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  h4 { font-size: 14px; margin: 18px 0 2px; font-weight: 600; color: var(--ink-2); }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 3px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 640px;
+  }
+  .ecuacion.suelta { background: none; border: none; }
+  blockquote {
+    margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
+    color: var(--ink-2); font-style: italic; max-width: 72ch;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso.neutro { border-left-color: var(--muted); }
+  .aviso p { margin: 4px 0; }
+  .etiqueta {
+    display: inline-block; font-family: "Segoe UI", system-ui, sans-serif; font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 1px 8px;
+    border-radius: 3px; margin-right: 6px;
+  }
+  .etiqueta.logit { background: #dce7ef; color: var(--logit); }
+  .etiqueta.det { background: #e7d9d0; color: var(--det); }
+  .etiqueta.neutra { background: #e4e2dd; color: var(--ink-2); }
+  .paso { border-left: 2px solid var(--rule); padding-left: 16px; margin: 20px 0; }
+  .paso h3 { margin-top: 0; }
+  .paso .ref {
+    font-family: "Consolas", monospace; font-size: 11.5px; color: var(--muted);
+    display: block; margin: 2px 0 6px;
+  }
+  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
+  .indice ol { margin: 4px 0; }
+  .indice a { color: var(--ink); text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, figure, .paso { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Documentación del núcleo</div>
+  <h1>La medida de bienestar, paso a paso</h1>
+  <p class="bajada">
+    Cómo el simulador calcula el excedente del consumidor, por qué hay
+    <strong>dos</strong> fórmulas y no una, y qué se puede comparar con cuál.
+    Derivación completa y correspondencia con el código.
+  </p>
+  <p class="meta">
+    Fuente: <code>titirilquen_core/bienestar.py</code> ·
+    <code>demand/utility.py</code> · <code>demand/choice.py</code><br>
+    Cifras medidas sobre la corrida por defecto (201 celdas, 20 km, 1.800 hab/km,
+    seed 42, tol 0,1) — 2026-08-17
+  </p>
+</header>
+
+<div class="indice">
+  <strong>Contenido</strong>
+  <ol>
+    <li><a href="#s1">Qué se mide, y por qué no es «la utilidad media»</a></li>
+    <li><a href="#s2">La utilidad sistemática V<sub>m</sub></a></li>
+    <li><a href="#s3">Dos supuestos de comportamiento, dos medidas</a></li>
+    <li><a href="#s4">La relación entre ambas: log-sum-exp y el límite de escala</a></li>
+    <li><a href="#s5">El procedimiento de cálculo, paso a paso</a></li>
+    <li><a href="#s6">Qué se puede comparar con qué</a></li>
+    <li><a href="#s7">Medición sobre el modelo</a></li>
+    <li><a href="#s8">Convenciones y decisiones declaradas</a></li>
+  </ol>
+</div>
+
+<h2 id="s1"><span class="num">1</span>Qué se mide, y por qué no es «la utilidad media»</h2>
+
+<p>
+  El reparto modal no contesta si una política mejora al sistema: un modo puede
+  mejorar mientras el conjunto empeora. La magnitud que sí lo contesta es el
+  <strong>excedente del consumidor</strong>, y en modelos de elección discreta se
+  obtiene de una sola cantidad — la <strong>utilidad esperada máxima</strong> del
+  agente <em>antes</em> de elegir:
+</p>
+
+<div class="ecuacion">
+  CS = E[ max<sub>m ∈ C</sub> U<sub>m</sub> ] ⁄ λ
+</div>
+
+<p>
+  donde <em>C</em> es el conjunto de alternativas disponibles y λ la utilidad
+  marginal del ingreso, que traduce útiles a pesos. La esperanza se toma sobre lo
+  que el modelador <strong>no</strong> observa del agente — y ahí está,
+  exactamente, el origen de las dos medidas: depende de qué se suponga que el
+  modelador no ve.
+</p>
+
+<div class="aviso">
+  <p>
+    <strong>Por qué no se promedian utilidades entre personas.</strong> Promediar
+    <em>U</em> de distintos individuos supondría que sus útiles son la misma
+    unidad, lo cual no se sostiene: la escala de utilidad de cada estrato queda
+    fijada por sus propios coeficientes. Lo agregable es el excedente
+    <em>ya convertido a pesos</em> — y aun así con la advertencia distributiva de
+    §6.3. Por eso el núcleo eliminó la «utilidad media» que la versión anterior
+    mostraba.
+  </p>
+</div>
+
+<h2 id="s2"><span class="num">2</span>La utilidad sistemática V<sub>m</sub></h2>
+
+<p>
+  La parte observable de la utilidad se arma en
+  <code>demand/utility.py::calcular_utilidades</code> para un agente
+  caracterizado por su estrato <em>h</em>, su celda de origen <em>i</em> y si
+  tiene auto disponible. Con <em>d</em> la distancia al CBD en km, y todos los
+  coeficientes β propios del estrato:
+</p>
+
+<h4>Auto <span class="etiqueta neutra">requiere tenencia</span></h4>
+<div class="ecuacion">
+  V<sub>auto</sub> = ASC<sub>auto</sub> + β<sub>t</sub>·t<sub>auto</sub>
+  + β<sub>c</sub>·( d·c<sub>comb</sub> + c<sub>park</sub> )
+</div>
+
+<h4>Metro</h4>
+<div class="ecuacion">
+  V<sub>metro</sub> = ASC<sub>metro</sub> + β<sub>t</sub>·t<sub>viaje</sub>
+  + β<sub>e</sub>·t<sub>espera</sub> + β<sub>a</sub>·t<sub>acceso</sub>
+  + β<sub>c</sub>·tarifa
+</div>
+
+<h4>Bicicleta</h4>
+<div class="ecuacion">
+  V<sub>bici</sub> = ASC<sub>bici</sub> + β<sub>t</sub>·t<sub>bici</sub>
+  + P<sub>bici</sub>(t<sub>bici</sub>)
+</div>
+
+<h4>Caminata</h4>
+<div class="ecuacion">
+  V<sub>cam</sub> = ASC<sub>cam</sub> + β<sub>cam</sub>·t<sub>cam</sub>
+  + P<sub>cam</sub>(t<sub>cam</sub>)
+</div>
+
+<p>
+  Las <em>P</em> son penalizaciones físicas <strong>aditivas y escalonadas</strong>,
+  no lineales: se acumulan al cruzar umbrales — 10, 20 y 30 min en bicicleta; 5,
+  15 y 25 min a pie. Dos detalles que suelen pasarse por alto:
+</p>
+
+<ul>
+  <li>
+    La caminata usa <code>β_cam</code>, <strong>no</strong> <code>β_t</code>. Es un
+    coeficiente propio.
+  </li>
+  <li>
+    El acceso al metro usa un tercer coeficiente, <code>β_a</code>, separado de
+    <code>β_cam</code>. Pesan cosas distintas —un tramo forzado dentro de un viaje
+    en transporte público, contra el viaje entero a pie— y sólo el primero está
+    cubierto por el ponderador de la norma.
+  </li>
+</ul>
+
+<h3>2.1 El conjunto factible C</h3>
+
+<p>
+  <strong>C no es fijo</strong>, y esto es central para todo lo que sigue. Una
+  alternativa sale del conjunto cuando:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Alternativa</th><th>Queda infactible si…</th><th class="n">Umbral</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Auto</td><td>el agente no tiene auto disponible</td><td class="n">—</td></tr>
+    <tr><td>Metro</td><td>no hay tramo en tren (<code>t_viaje ≤ 0</code>): la estación más cercana es la del CBD, o sea el propio destino</td><td class="n">—</td></tr>
+    <tr><td>Bicicleta</td><td>el tiempo en bici supera el corte</td><td class="n">45 min</td></tr>
+    <tr><td>Caminata</td><td>el tiempo a pie supera el corte</td><td class="n">30 min</td></tr>
+    <tr><td><em>cualquiera</em></td><td>el usuario la deshabilitó en «modos disponibles»</td><td class="n">—</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  Constantes en <code>constantes.py</code>: <code>CORTE_BICI_MIN = 45.0</code>,
+  <code>CORTE_CAMINATA_MIN = 30.0</code>. Las infactibles reciben la marca
+  <code>UTIL_IMPOSIBLE = −9999</code> y se <strong>excluyen</strong> del cálculo;
+  no se evalúan con ese número.
+</p>
+
+<div class="aviso">
+  <p>
+    <strong>El filtro de factibilidad no es cosmético.</strong> Sin él,
+    deshabilitar un modo casi no movería el logsum —<code>e<sup>−9999</sup></code>
+    aporta ≈ 0— y el excedente saldría inflado por una alternativa que ya no
+    existe. En la medida determinística el efecto sería peor: si el −9999 fuera el
+    único valor «disponible», pasaría a ser el máximo y el excedente se iría a
+    −9999 útiles.
+  </p>
+</div>
+
+<h2 id="s3"><span class="num">3</span>Dos supuestos de comportamiento, dos medidas</h2>
+
+<p>
+  Hasta acá, <em>V<sub>m</sub></em> es común a todo el simulador. Lo que se
+  bifurca es qué se supone que hay <em>además</em> de <em>V</em> en la utilidad
+  que el agente realmente maximiza.
+</p>
+
+<h3>3.1 <span class="etiqueta logit">logit</span> Utilidad aleatoria — métodos <code>montecarlo</code> y <code>expected</code></h3>
+
+<p>
+  El agente maximiza <em>U<sub>m</sub> = V<sub>m</sub> + ε<sub>m</sub></em>, con
+  ε<sub>m</sub> independientes e idénticamente distribuidos Gumbel (valor extremo
+  tipo I) de escala normalizada. El término ε representa la heterogeneidad de
+  gustos que el modelador no observa pero <strong>el agente sí conoce</strong>.
+</p>
+
+<p>Con esa distribución, la probabilidad de elegir <em>m</em> es el logit:</p>
+
+<div class="ecuacion">
+  P<sub>m</sub> = e<sup>V<sub>m</sub></sup> ⁄ Σ<sub>k ∈ C</sub> e<sup>V<sub>k</sub></sup>
+</div>
+
+<p>y la utilidad esperada máxima tiene forma cerrada:</p>
+
+<div class="ecuacion">
+  E[ max<sub>m</sub> (V<sub>m</sub> + ε<sub>m</sub>) ]
+  = ln Σ<sub>m ∈ C</sub> e<sup>V<sub>m</sub></sup> + γ
+</div>
+
+<p>
+  con γ ≈ 0,5772 la constante de Euler-Mascheroni. Ese primer término es el
+  <strong>logsum</strong>. La constante γ se omite en el cálculo — es aditiva y
+  común a todos los escenarios, así que desaparece en cualquier diferencia; §8.1
+  detalla la consecuencia exacta de omitirla.
+</p>
+
+<h3>3.2 <span class="etiqueta det">determinístico</span> Utilidad sin perturbación — método <code>todo_o_nada</code></h3>
+
+<p>
+  El agente maximiza <em>U<sub>m</sub> = V<sub>m</sub></em>, sin término
+  aleatorio. La elección es un <em>argmax</em>: todo el grupo va al mejor modo, y
+  en caso de empate se reparte en partes iguales.
+</p>
+
+<div class="ecuacion">
+  P<sub>m</sub> = 1 si V<sub>m</sub> = max<sub>k</sub> V<sub>k</sub> &nbsp;(repartido entre empatados)&nbsp;; 0 si no
+</div>
+
+<p>Sin nada que promediar, la utilidad esperada máxima es el máximo a secas:</p>
+
+<div class="ecuacion">
+  E[ max<sub>m</sub> V<sub>m</sub> ] = max<sub>m ∈ C</sub> V<sub>m</sub>
+</div>
+
+<div class="aviso ok">
+  <p>
+    <strong>La regla de emparejamiento.</strong> Cada medida corresponde al
+    modelo que la produjo: usar el logsum bajo <code>todo_o_nada</code> le
+    atribuiría al agente un beneficio derivado de una dispersión de gustos que
+    ese método declara inexistente. El núcleo decide el emparejamiento en
+    <code>bienestar.medida_emparejada()</code> y lo publica en el campo
+    <code>medida_bienestar</code>; ni la UI ni la página acoplada reimplementan
+    el criterio.
+  </p>
+</div>
+
+<h2 id="s4"><span class="num">4</span>La relación entre ambas: log-sum-exp y el límite de escala</h2>
+
+<h3>4.1 La desigualdad, y su cota</h3>
+
+<p>
+  Para cualquier conjunto de valores, con <em>J</em> = |C| el número de
+  alternativas factibles:
+</p>
+
+<div class="ecuacion">
+  max<sub>m</sub> V<sub>m</sub> &nbsp;≤&nbsp;
+  ln Σ<sub>m</sub> e<sup>V<sub>m</sub></sup> &nbsp;≤&nbsp;
+  max<sub>m</sub> V<sub>m</sub> + ln J
+</div>
+
+<p>
+  La demostración es directa. Sea <em>V*</em> = max<sub>m</sub> V<sub>m</sub>.
+  Factorizando:
+</p>
+
+<div class="ecuacion suelta">
+  ln Σ<sub>m</sub> e<sup>V<sub>m</sub></sup>
+  = V* + ln Σ<sub>m</sub> e<sup>(V<sub>m</sub> − V*)</sup>
+</div>
+
+<p>
+  Cada sumando <em>e<sup>(V<sub>m</sub> − V*)</sup></em> está en (0, 1], y al
+  menos uno vale exactamente 1 (el del máximo). Por lo tanto la suma está en
+  [1, J], su logaritmo en [0, ln J], y la brecha
+</p>
+
+<div class="ecuacion">
+  G ≡ ln Σ<sub>m</sub> e<sup>V<sub>m</sub></sup> − max<sub>m</sub> V<sub>m</sub>
+  &nbsp;∈&nbsp; [0, ln J]
+</div>
+
+<p>
+  alcanza su techo <em>ln J</em> cuando todas las alternativas son equivalentes
+  (<em>V<sub>m</sub></em> iguales) y tiende a 0 cuando una domina ampliamente al
+  resto. Esa <em>G</em> es el <strong>valor de la variedad</strong>: lo que el
+  logit le acredita al agente por poder encontrar, entre alternativas parecidas,
+  una que le calce con sus gustos idiosincrásicos.
+</p>
+
+<p>
+  <strong>Nota sobre la implementación:</strong> esta misma factorización es la
+  que el código usa para estabilidad numérica — resta el máximo antes de
+  exponenciar, de modo que <code>exp()</code> nunca recibe un argumento positivo
+  grande. La identidad algebraica y el truco numérico son el mismo hecho.
+</p>
+
+<h3>4.2 Las dos medidas son la misma familia</h3>
+
+<p>
+  Introduciendo un parámetro de escala μ &gt; 0 sobre las utilidades, la medida
+  de bienestar del logit es:
+</p>
+
+<div class="ecuacion">
+  W(μ) = (1⁄μ) · ln Σ<sub>m</sub> e<sup>μ V<sub>m</sub></sup>
+</div>
+
+<p>Aplicando la factorización de §4.1 a μV:</p>
+
+<div class="ecuacion suelta">
+  W(μ) = V* + (1⁄μ)·ln Σ<sub>m</sub> e<sup>μ(V<sub>m</sub> − V*)</sup>
+</div>
+
+<p>
+  Cuando μ → ∞ cada término con <em>V<sub>m</sub> &lt; V*</em> se anula, la suma
+  tiende al número de maximizadores (≥ 1) y el segundo sumando se va a cero. Es
+  decir:
+</p>
+
+<div class="ecuacion">
+  lim<sub>μ→∞</sub> W(μ) = max<sub>m</sub> V<sub>m</sub>
+</div>
+
+<p>
+  Las dos medidas del simulador son <strong>el mismo objeto matemático evaluado
+  en dos puntos</strong>: μ = 1 (la normalización estándar del logit, con la
+  escala absorbida en los β) y μ → ∞. Eso es la contraparte, del lado del
+  bienestar, del hecho ya pineado en la suite: <code>todo_o_nada</code> es el
+  límite del logit al escalar las utilidades.
+</p>
+
+<h3>4.3 Una asimetría que importa en evaluación</h3>
+
+<p>
+  Agregar una alternativa al conjunto <strong>siempre</strong> aumenta el logsum,
+  por dominada que sea: <em>ln(e<sup>a</sup> + e<sup>b</sup>) &gt; a</em> para
+  cualquier <em>b</em> finito. El máximo, en cambio, no se mueve si la nueva
+  alternativa no supera a la mejor existente.
+</p>
+
+<div class="aviso">
+  <p>
+    Consecuencia práctica: si se habilitara un modo que <em>nadie elige</em>, la
+    medida logsum reportaría una mejora de bienestar y la determinística no. Es
+    la crítica clásica al logsum como medida de beneficio ante alternativas
+    irrelevantes, y la razón operativa por la que el simulador sólo compara
+    escenarios que comparten el conjunto de modos (§6.2).
+  </p>
+</div>
+
+<h2 id="s5"><span class="num">5</span>El procedimiento de cálculo, paso a paso</h2>
+
+<p>
+  Lo que sigue es la secuencia exacta de <code>bienestar.py::calcular_agregados</code>
+  sobre el estado final de la corrida. Se recorre cada celda <em>i</em> y cada
+  estrato <em>h</em>.
+</p>
+
+<div class="paso">
+  <h3>Paso 1 · Tiempos observados de la celda</h3>
+  <span class="ref">calcular_agregados → TiemposObservados</span>
+  <p>
+    Del snapshot de la última iteración del MSA se leen los cinco tiempos de la
+    celda: auto, bici, y los tres tramos del metro (acceso, espera, viaje). Son
+    tiempos <strong>de equilibrio</strong>: ya incorporan la congestión y la
+    frecuencia endógena.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 2 · Utilidades y filtrado de factibilidad</h3>
+  <span class="ref">medidas_de_utilidad → calcular_utilidades</span>
+  <p>
+    Se evalúan las cuatro <em>V<sub>m</sub></em> de §2 y se conservan sólo las
+    factibles y finitas. Si no queda ninguna, la función devuelve
+    <code>None</code> y el caso se trata en el paso 4.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 3 · Las dos medidas, del mismo set de utilidades</h3>
+  <span class="ref">medidas_de_utilidad</span>
+  <p>
+    Con <em>V*</em> = max de las factibles, se calculan ambas de una vez:
+  </p>
+  <pre><code>mx     = max(valores)
+logsum = mx + ln( Σ exp(v − mx) )
+return (logsum, mx)</code></pre>
+  <p>
+    Salen del <strong>mismo</strong> conjunto a propósito: calcularlas por
+    separado significaría evaluar dos veces la parte cara del módulo y abriría la
+    puerta a que una filtre por factibilidad y la otra no. Es también la única
+    implementación de estas dos fórmulas en el núcleo — la comparten los
+    agregados del Sandbox y las métricas de la página acoplada.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 4 · Mezcla por disponibilidad de auto</h3>
+  <span class="ref">calcular_agregados, ponderación por prob_auto</span>
+  <p>
+    El conjunto <em>C</em> depende de si el agente tiene auto, así que el par de
+    medidas se evalúa <strong>dos veces</strong> —con y sin auto— y se mezcla con
+    la probabilidad de tenencia del estrato:
+  </p>
+  <div class="ecuacion">
+    W̄<sub>hi</sub> = [ p<sub>auto,h</sub>·W<sub>con</sub> + (1 − p<sub>auto,h</sub>)·W<sub>sin</sub> ] ⁄ peso
+  </div>
+  <p>
+    El divisor <em>peso</em> es la suma de las ponderaciones de las ramas que
+    devolvieron un valor. Si una rama es <code>None</code> —por ejemplo, sin auto
+    no queda ningún modo factible— se renormaliza sobre la que sobrevive. Evaluar
+    todo con «tiene auto = verdadero» sobreestimaría el excedente de quienes no
+    lo tienen.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 5 · Promedio por estrato, ponderado por población</h3>
+  <span class="ref">ls_suma / ls_n</span>
+  <p>
+    Cada celda contribuye con el número de agentes del estrato que la habitan,
+    <em>n<sub>hi</sub></em>:
+  </p>
+  <div class="ecuacion">
+    W̄<sub>h</sub> = ( Σ<sub>i</sub> W̄<sub>hi</sub> · n<sub>hi</sub> ) ⁄ ( Σ<sub>i</sub> n<sub>hi</sub> )
+  </div>
+  <p>
+    Se acumulan en paralelo el logsum medio y la utilidad máxima media, sobre el
+    mismo denominador.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 6 · Conversión a pesos</h3>
+  <span class="ref">lam = −b_costo</span>
+  <p>
+    La utilidad marginal del ingreso del estrato es λ<sub>h</sub> = −β<sub>c,h</sub>,
+    positiva porque el coeficiente de costo es negativo. Dividir por ella
+    convierte útiles en pesos:
+  </p>
+  <div class="ecuacion">
+    CS<sub>h</sub> = W̄<sub>h</sub> ⁄ λ<sub>h</sub> &nbsp;&nbsp;[$ por viajero]
+  </div>
+  <p>
+    Con la calibración vigente del estrato alto (β<sub>c</sub> = −0,00053226),
+    un útil equivale a <strong>$1.879</strong>. Si λ ≤ 0 el excedente se reporta
+    como 0: el valor del tiempo quedaría indefinido.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 7 · Agregación y bienestar social</h3>
+  <span class="ref">excedente_total_clp, bienestar_social_clp</span>
+  <p>
+    El total pondera por los viajeros de cada estrato,
+    CS = Σ<sub>h</sub> CS<sub>h</sub>·n<sub>h</sub>, y se calcula por separado
+    para las dos medidas. Finalmente:
+  </p>
+  <div class="ecuacion">
+    BS = CS<sub>emparejado</sub> + R<sub>parking</sub> + R<sub>tarifa</sub> − C<sub>operador</sub>
+  </div>
+  <p>
+    Sólo entra el excedente de la medida que corresponde al método: sumarle
+    recaudación a un logsum bajo <code>todo_o_nada</code> mezclaría dos supuestos
+    de comportamiento en un mismo número.
+  </p>
+  <p>
+    Las recaudaciones son <strong>transferencias</strong> —alguien las recibe— y
+    por eso se acreditan. El combustible <em>no</em> entra: es consumo real de
+    recursos. Sin este término el simulador quedaba sesgado contra las políticas
+    de precio: subir el estacionamiento bajaba el excedente sin acreditar que la
+    ciudad recauda, y toda tarificación parecía empeorar el bienestar.
+  </p>
+</div>
+
+<h2 id="s6"><span class="num">6</span>Qué se puede comparar con qué</h2>
+
+<h3>6.1 Niveles: nunca</h3>
+
+<p>
+  El nivel de cualquiera de las dos medidas incluye las constantes específicas
+  (ASC), cuyo origen es arbitrario. Un excedente de −$9,5 millones no significa
+  que la ciudad esté mal: significa que el cero está donde las ASC lo dejaron.
+  <strong>Sólo las diferencias son interpretables.</strong>
+</p>
+
+<h3>6.2 Δ entre políticas, mismo método: sí</h3>
+
+<p>Es la comparación válida, y la que la interfaz permite. Requiere:</p>
+
+<ul>
+  <li>
+    <strong>El mismo conjunto de modos habilitados.</strong> Con distinto <em>C</em>
+    la medida cambia de escala (§4.3) y su diferencia deja de ser un excedente. La
+    interfaz lo verifica y, si no se cumple, muestra el nivel pero no el Δ.
+  </li>
+  <li>
+    <strong>Los mismos β.</strong> Cambiar la calibración cambia λ, y con ella la
+    unidad monetaria de la medida.
+  </li>
+</ul>
+
+<h3>6.3 Δ entre métodos distintos: no</h3>
+
+<p>Por dos razones independientes, y cada una alcanza:</p>
+
+<ol>
+  <li>
+    <strong>La brecha G no es constante.</strong> Si lo fuera, se cancelaría al
+    restar. Pero <em>G</em> depende del número de alternativas factibles y de cuán
+    parecidas sean sus utilidades — y ambas cosas cambian entre escenarios. §7 lo
+    muestra medido.
+  </li>
+  <li>
+    <strong>No es el mismo estado del mundo.</strong> Los métodos convergen a
+    equilibrios distintos, así que hasta las <em>V<sub>m</sub></em> difieren: los
+    tiempos de equilibrio no son los mismos.
+  </li>
+</ol>
+
+<h3>6.4 Entre estratos: con cuidado</h3>
+
+<p>
+  El excedente en pesos usa la λ propia de cada estrato, así que es comparable
+  como <em>escala monetaria</em> —eficiencia, disposición a pagar— pero
+  <strong>no</strong> como bienestar interpersonal: $1 no vale lo mismo para un
+  hogar de ingreso alto que para uno bajo, y λ varía varias veces entre estratos.
+  Para la lectura distributiva el simulador ofrece la carga costo/ingreso y los
+  tiempos, y para la evaluación social, el costo generalizado con valor del
+  tiempo único de norma.
+</p>
+
+<h2 id="s7"><span class="num">7</span>Medición sobre el modelo</h2>
+
+<p>
+  El núcleo calcula ambas medidas en toda corrida, lo que permite aislar la
+  brecha <em>G</em> sobre el <strong>mismo</strong> equilibrio — sin el ruido de
+  comparar dos corridas distintas.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr>
+      <th>Método</th><th>Estrato</th>
+      <th class="n">logsum</th><th class="n">máx</th>
+      <th class="n">brecha G</th><th class="n">G en $</th>
+      <th class="n">G en min</th><th class="n">% del techo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td rowspan="3"><span class="etiqueta logit">expected</span></td><td>alto</td><td class="n">−0,0174</td><td class="n">−0,5937</td><td class="n">0,5762</td><td class="n">1.083</td><td class="n">10,5</td><td class="n">41,6%</td></tr>
+    <tr><td>medio</td><td class="n">−0,2446</td><td class="n">−1,0638</td><td class="n">0,8192</td><td class="n">1.279</td><td class="n">24,7</td><td class="n">59,1%</td></tr>
+    <tr><td>bajo</td><td class="n">−0,2117</td><td class="n">−0,7041</td><td class="n">0,4925</td><td class="n">875</td><td class="n">32,8</td><td class="n">35,5%</td></tr>
+    <tr><td rowspan="3"><span class="etiqueta det">todo_o_nada</span></td><td>alto</td><td class="n">−0,0612</td><td class="n">−0,6913</td><td class="n">0,6301</td><td class="n">1.184</td><td class="n">11,5</td><td class="n">45,5%</td></tr>
+    <tr><td>medio</td><td class="n">−0,2249</td><td class="n">−1,0957</td><td class="n">0,8708</td><td class="n">1.359</td><td class="n">26,3</td><td class="n">62,8%</td></tr>
+    <tr><td>bajo</td><td class="n">−0,1087</td><td class="n">−0,6908</td><td class="n">0,5821</td><td class="n">1.035</td><td class="n">38,8</td><td class="n">42,0%</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  <em>G</em> en útiles, en pesos por viajero y en minutos-equivalentes de viaje
+  en vehículo (útiles ⁄ β<sub>t</sub>, la única unidad comparable entre estratos
+  porque la escala de la utilidad se cancela en el cociente). Techo teórico con
+  los cuatro modos: <em>ln 4</em> = 1,3863 útiles.
+  Reproducible con <code>scripts/diagnostico_bienestar.py</code>.
+</p>
+
+<h3>7.1 Lo que estos números muestran</h3>
+
+<ul>
+  <li>
+    <strong>La brecha es material</strong>, no un decimal: entre $875 y $1.359 por
+    viajero, del orden de una tarifa de metro ($800) o media hora de valor del
+    tiempo del estrato bajo.
+  </li>
+  <li>
+    <strong>La brecha se mueve entre escenarios.</strong> De <code>expected</code>
+    a <code>todo_o_nada</code> creció en los tres estratos: +0,054 · +0,052 ·
+    +0,090 útiles. En agregado, el valor de la variedad pasó de $32,1 a $35,3
+    millones. Esos $3,2 millones no son efecto de ninguna política: son el cambio
+    de medida. Es la demostración empírica de §6.3.
+  </li>
+  <li>
+    <strong>El estrato medio tiene la brecha mayor</strong> en útiles y en pesos,
+    lo que es coherente con la interpretación de <em>G</em>: es el estrato cuyas
+    alternativas quedan más parejas entre sí, y por lo tanto el que más «valor de
+    la variedad» obtiene del supuesto logit.
+  </li>
+  <li>
+    <strong>En minutos-equivalentes el orden se invierte, y con fuerza.</strong>
+    Medida en tiempo, la brecha del estrato bajo (32,8 min) <em>triplica</em> la
+    del alto (10,5 min), aunque en pesos las tres son parecidas. No es una
+    contradicción: es el valor del tiempo actuando de conversor. Los mismos
+    ~$1.000 son media hora de viaje para quien tiene un VoT de $1.600/h y diez
+    minutos para quien lo tiene en $6.200/h. La lección operativa es que la
+    elección de medida <strong>no es distributivamente neutra</strong>: pasar del
+    logsum a la utilidad máxima recorta bienestar imputado sobre todo a los
+    estratos de menor ingreso cuando el resultado se lee en tiempo.
+  </li>
+</ul>
+
+<h2 id="s8"><span class="num">8</span>Convenciones y decisiones declaradas</h2>
+
+<h3>8.1 La constante de Euler se omite</h3>
+
+<p>
+  El <em>E[max]</em> exacto del logit es <em>ln Σ e<sup>V</sup> + γ</em>, con
+  γ ≈ 0,5772. El código calcula sólo el primer término, siguiendo la convención
+  habitual. Consecuencias, con precisión:
+</p>
+
+<ul>
+  <li>
+    <strong>No afecta ningún Δ.</strong> γ es aditiva y común, y se cancela en
+    toda diferencia entre escenarios — que es lo único interpretable (§6.1).
+  </li>
+  <li>
+    <strong>Sí afecta la brecha absoluta</strong> entre las dos medidas: la
+    <em>G</em> real entre el <em>E[max]</em> del logit y el del modelo
+    determinístico es ≈ 0,58 útiles <em>mayor</em> que la reportada en §7. Es
+    decir, la tabla subestima el valor de la variedad, no lo exagera.
+  </li>
+</ul>
+
+<p>
+  Sólo importaría si alguien comparara niveles entre métodos — que es
+  precisamente lo que §6.3 desaconseja.
+</p>
+
+<h3>8.2 Agentes sin ninguna alternativa factible</h3>
+
+<p>
+  Si para un par (estrato, celda) no queda ningún modo factible ni con auto ni sin
+  él, esos agentes quedan <strong>fuera</strong> del promedio y también del
+  denominador de población del excedente. La consecuencia es que una política que
+  dejara gente sin alternativas no la contaría como bienestar muy bajo: la haría
+  desaparecer del cálculo.
+</p>
+
+<div class="aviso ok">
+  <p>
+    <strong>Medido: hoy no ocurre.</strong> En la corrida por defecto (20 km) y en
+    una ciudad dispersa de 40 km, los <strong>29.002</strong> y
+    <strong>28.996</strong> viajeros respectivamente entran completos en el
+    cálculo — cero exclusiones. La razón es que el metro sigue siendo factible en
+    prácticamente toda la ciudad. Queda anotado como comportamiento a vigilar si
+    alguna vez se deshabilitan modos o se estiran mucho las distancias.
+  </p>
+</div>
+
+<h3>8.3 Una sola implementación</h3>
+
+<p>
+  Las dos fórmulas viven únicamente en
+  <code>bienestar.medidas_de_utilidad()</code>, y el criterio de emparejamiento
+  únicamente en <code>bienestar.medida_emparejada()</code>. La página de
+  transporte y la de ciudad en equilibrio los importan; ninguna reimplementa la
+  matemática ni decide por su cuenta qué medida usar. Antes de agosto de 2026 el
+  logsum estaba escrito dos veces, y las dos copias ya diferían en el filtro de
+  factibilidad.
+</p>
+
+<h3>8.4 Referencias</h3>
+
+<p>
+  El tratamiento del logsum como medida de bienestar en modelos de elección
+  discreta es estándar; las referencias canónicas son Williams (1977), Small y
+  Rosen (1981), Ben-Akiva y Lerman (1985) y Train (2009). El enunciado formal del
+  principio de equilibrio de usuario que el simulador cita —con página verificada—
+  está en Boyles, Lownes y Unnikrishnan, <em>Transportation Network Analysis</em>,
+  y se discute en el informe del método determinístico.
+</p>
+
+<div class="aviso neutro">
+  <p>
+    Las cuatro primeras referencias se dan por autor y año como orientación
+    bibliográfica. <strong>Verificar edición y páginas antes de citarlas en un
+    informe formal</strong>: este documento no reproduce texto de ninguna de ellas.
+  </p>
+</div>
+
+<footer>
+  <p>
+    <strong>Titirilquen</strong> — simulador educativo de transporte urbano ·
+    FCFM, Universidad de Chile. Documento generado a partir del código del núcleo;
+    si la implementación cambia, este documento debe revisarse junto con ella.
+  </p>
+  <p>
+    Documentos relacionados: <code>docs/arquitectura.html</code> (mapa concepto →
+    archivo:línea) · <code>docs/informe-wardrop.html</code> (auditoría del método
+    determinístico) · <code>docs/MATHEMATICAL_MODEL.md</code>.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

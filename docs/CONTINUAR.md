@@ -145,6 +145,7 @@ Todos desde `packages/titirilquen_core`, con `uv run python scripts/<x>.py`:
 | `auditoria_transporte.py` | Barrido de todos los parámetros de transporte: dirección y magnitud |
 | `auditoria_suelo.py` | Ídem para uso de suelo |
 | `diagnostico_elasticidades.py` | Elasticidades arco, techo de la bici, capacidad de tren vs frecuencia |
+| `diagnostico_bienestar.py` | **Las dos medidas del excedente lado a lado**: brecha logsum vs utilidad maxima en utiles, $ y minutos-equivalentes; cuanto se mueve entre escenarios; y cuantos agentes quedan fuera por no tener modo factible |
 | `paradojas.py` | Downs-Thomson y Braess por número de pistas |
 | `sensibilidad.py` | Barrido densidad × pistas |
 | `auditoria_wardrop.py` | **¿El método `todo_o_nada` produce equilibrio de Wardrop?** Mide el gap de costo generalizado entre grupos |
@@ -382,6 +383,14 @@ emparejamiento se aplica a los **dos** términos del Δ —red real y red vacía
 porque restar medidas distintas no daría un delta de nada. Cubierto por cuatro
 tests en `test_coupled_metrics.py` y verificado en el navegador: con `expected`
 el rótulo dice «(logsum)» y con `todo_o_nada`, «(utilidad máx.)».
+
+El **desarrollo matemático completo** —derivación de las dos medidas desde el
+supuesto de comportamiento, el procedimiento de cálculo paso a paso contra el
+código, y qué se puede comparar con qué— está en `docs/informe-bienestar.html`.
+Ahí quedan declaradas además dos convenciones que el código no decía: que se
+omite la constante de Euler (inocuo para los Δ, pero hace que la brecha entre
+medidas se subestime en ~0,58 útiles) y que los agentes sin ningún modo factible
+quedan fuera del promedio — medido: cero casos hoy, en base y en ciudad dispersa.
 
 ### 4.4 Deuda de documentación
 
