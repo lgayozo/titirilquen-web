@@ -180,7 +180,8 @@
     "land_use_city_caption_post": "Composición de equilibrio del módulo de Uso de Suelo (S·Q). Esta es la ciudad que alimenta la simulación de transporte.",
     "land_use_city_caption_pre": "Composición inicial (mezcla uniforme π_h sobre la forma de la ciudad). Corre Uso de Suelo para ver la composición de equilibrio.",
     "land_use_city_caption_none": "Define la población en el módulo de Uso de Suelo para ver la distribución por estrato.",
-    "total": "Total"
+    "total": "Total",
+    "agentes": "agentes"
   },
   "metrics_table": {
     "title": "Tabla de métricas",

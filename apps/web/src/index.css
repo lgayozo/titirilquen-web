@@ -2984,6 +2984,30 @@ table.cmp th {
 }
 
 /* Métricas del sistema (Ciudad en equilibrio): 8 stats en 4×2, balanceado. */
+/* Carga de la red: los tres v/c junto a la FIG. 00.
+   No reusa `.eqt-sys-grid` porque esa declara `repeat(4, 1fr)` fijo —la usa la
+   página acoplada, que sí muestra cuatro— y con tres tarjetas dejaba una cuarta
+   columna vacía: 257 px de hueco a la derecha, y los bloques pegados entre sí
+   sin separación. Eso era lo que se veía desordenado. Acá las columnas se
+   reparten el ancho disponible y los divisores hacen de marco. */
+.carga-red-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+}
+
+.carga-red-grid > * + * {
+  border-left: 1px solid var(--rule);
+}
+
+@media (max-width: 700px) {
+  .carga-red-grid > * + * {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
+}
+
 .eqt-sys-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

@@ -72,6 +72,9 @@ export function FlowProfile({
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(360);
   const [hover, setHover] = useState<HoverCelda | null>(null);
+  // `capacityLabel` trae la unidad del modo (veh/h · pax/h · bici/h); cuando no
+  // hay capacidad —el CO₂— la unidad viaja en `label`.
+  const unidad = capacityLabel ?? label;
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
@@ -292,11 +295,16 @@ export function FlowProfile({
       {hover && (
         <div className="network-tooltip" role="tooltip">
           <div className="nt-head" style={{ color }}>
-            {label ? `${label} · ` : ""}
+            {/* El encabezado no repite el `label` cuando ese label ES la unidad
+                —el caso del CO₂, donde vale «kg/h»—: quedaba «KG/H · 5.0 KM»
+                arriba y «27,6 kg/h» abajo, diciendo lo mismo dos veces. */}
+            {label && label !== unidad ? `${label} · ` : ""}
             {hover.km.toFixed(1)} km
           </div>
           <div className="nt-row">
-            <span>{valueFmt(hover.valor)}</span>
+            <span>
+              {`${valueFmt(hover.valor)}${unidad ? ` ${unidad}` : ""}`}
+            </span>
           </div>
           {capacity != null && capacity > 0 && (
             <div className="nt-row">

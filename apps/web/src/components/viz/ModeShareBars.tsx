@@ -214,7 +214,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
             {t(`modes.${hover.modo.toLowerCase()}`)} · {hover.grupo}
           </div>
           <div className="nt-row">
-            <span>{`${hover.conteo.toLocaleString("es-CL")} de ${hover.total.toLocaleString("es-CL")}`}</span>
+            <span>{`${hover.conteo.toLocaleString("es-CL")} de ${hover.total.toLocaleString("es-CL")} ${t("sandbox.agentes")}`}</span>
           </div>
           <div className="nt-row">
             <span>{`${(hover.share * 100).toFixed(1)}%`}</span>

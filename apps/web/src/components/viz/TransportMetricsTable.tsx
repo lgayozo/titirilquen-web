@@ -88,7 +88,7 @@ export function CargaDeRed({
   const { t } = useTranslation("simulator");
   return (
     <>
-      <div className="eqt-sys-grid">
+      <div className="carga-red-grid">
         <Stat
           label={t("metrics_table.vc_auto")}
           value={fmtRatio(vcAuto)}

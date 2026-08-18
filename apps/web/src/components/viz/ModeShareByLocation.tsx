@@ -318,7 +318,7 @@ export function ModeShareByLocation({
           ))}
           <div className="nt-row">
             <span>{t("sandbox.total")}</span>
-            <span>{Math.round(hover.total).toLocaleString("es-CL")}</span>
+            <span>{`${Math.round(hover.total).toLocaleString("es-CL")} ${t("sandbox.agentes")}`}</span>
           </div>
         </div>
       )}
