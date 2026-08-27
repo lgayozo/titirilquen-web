@@ -24,6 +24,19 @@ positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
 | AU-08 | No hay **techo de densidad**: la densidad puede crecer sin límite | ⚠️ decisión de modelo a discutir |
 | AU-09 | Convergencia lenta en configuraciones asimétricas (hasta 2.640 iter) | ℹ️ observación |
 | AU-10 | Sensibilidad muy alta a diferencias pequeñas de α | ℹ️ para la lectura pedagógica |
+| AU-11 | **El gradiente de renta estaba INVERTIDO** y `grad_p` lo tapaba | 🐛 corregido 2026-08-24 |
+
+> **AVISO (2026-08-24).** Todo lo que este documento dice sobre `grad_p` en las
+> iteraciones 1 a 4 está **medido en la celda equivocada** y varias conclusiones
+> tienen el signo cambiado. `grad_p` se calculaba en `p[CBD]`, la única celda sin
+> oferta (`S=0` ⇒ `T=0` y `dens=0`, amenidad máxima por construcción y nadie
+> puede vivir ahí). Entre celdas habitadas el gradiente de la base era **−0,48**,
+> no +0,50: el suelo más caro estaba en la **periferia**. Ver AU-11.
+>
+> Corregido: `grad_p` se mide sobre celdas con oferta y ρ se recalibró de 0,1 a
+> **0,0025**. Las tablas de AU-01 y AU-05 de abajo conservan los números de
+> localización (que no cambiaron) pero sus columnas `grad_p` son de la medición
+> vieja. Reproducir con `uv run python scripts/auditoria_suelo.py`.
 
 ## 1. ¿Responde el modelo en la dirección correcta?
 
@@ -95,6 +108,20 @@ alto se va a 8,48 km): también correcto.
 
 ### AU-06 — `λ` es un artefacto: no es un parámetro económico independiente ✅
 
+> **Actualizado 2026-08-24.** La identidad sigue valiendo exacta, pero **las
+> tablas y la interpretación de abajo describen el régimen de ρ = 0,1** y ya no
+> aplican. Con ρ = 0,0025 el canal dominante pasó de ρ a α, y con eso el efecto
+> de λ **cambió de dirección**: ahora bajar λ acerca al estrato alto al centro
+> (α_eff = α/λ sube, valora más el acceso), que es coherente, en vez de
+> expulsarlo. El salto abrupto también se corrió: hoy está entre λ=1,0 y λ=1,5.
+>
+> Además, el cotejo con Martínez (2018) precisa el diagnóstico: la ec. (4.3) del
+> libro deja el ruido de la puja con forma `b_h = λ_h·μ_h`, y el código fija
+> `b_h = β`, o sea supone `μ_h = β/λ_h`. Bajo ese supuesto —que es el de la ec.
+> (4.25) del libro— **λ no tiene canal estocástico alguno**: entra sólo en la
+> parte determinística. Por eso mover λ no produce dispersión sino un
+> desplazamiento limpio y reproducible. Ver §7.1 de `docs/informe-uso-suelo.html`.
+
 `λ_h` es la utilidad marginal del ingreso. Mover `λ` cambia la asignación, y eso
 **es lo esperado dado el modelo implementado**. Pero la razón es más fuerte —y
 más incómoda— que «escala el ruido».
@@ -147,9 +174,9 @@ también debería.
 **Qué debe verse en clase.** Que mover λ cambia el mapa es una **limitación
 declarada del modelo**, no un resultado. La lectura honesta es: «este parámetro
 no está identificado; lo que ves es el ruido y el re-escalamiento de α y ρ, no
-una respuesta al ingreso». **No hay corrección implementada** y queda pendiente
-para los autores: corregirlo exige que el ruido escale por estrato, lo que
-implica cambiar el operador de punto fijo, no solo la puja. El hint de la UI y
+una respuesta al ingreso».
+
+> **Corregido el 2026-08-24:** la subasta heteroscedástica (HEV, Train §4.5 / Bhat 1995) está implementada en `land_use/hev.py` y `solve_subasta` la usa automáticamente cuando los λ difieren. Con eso λ queda identificado. Sigue entrando también por `f_h/λ_h`, así que no es un parámetro limpio: para eso haría falta un modelo de elección y no de subasta. El hint de la UI y
 el tutorial §6 lo dicen así.
 
 > Corrección de esta iteración: el tutorial afirmaba «sube λ ⇒ el estrato se
@@ -261,12 +288,44 @@ Las dos observaciones de fondo:
    parámetro económico independiente sino, **con identidad exacta verificada**,
    re-escalar `(α_h, ρ_h)` por `1/λ_h`. Por eso su efecto es abrupto (cruza la
    ciudad entre λ = 0,8 y 0,95) y de dirección absurda (bajarlo expulsa a los
-   ricos del centro). **No hay corrección implementada** y queda pendiente para
-   los autores. Lo que sí se eliminó (AU-07) fue un solver que decía corregirlo
-   sin hacerlo.
+   ricos del centro; con ρ = 0,0025 la dirección se invirtió, ver AU-11).
+   **Corregido el 2026-08-24** con HEV; ver la nota de AU-06. Lo que sí se
+   eliminó antes (AU-07) fue un solver que decía corregirlo sin hacerlo.
 2. **Sin techo de densidad (AU-08)** — la restricción de capacidad que sí existe
    (vaciado de mercado sobre `S`) es la correcta; falta la normativa. Extensión
    posible, no defecto.
 
 Y una de forma: **`ρ` uniforme afecta precios y no localización (AU-05)**, lo
 que es correcto pero invisible para el estudiante.
+
+---
+
+## AU-11 — El gradiente de renta estaba invertido 🐛 (corregido 2026-08-24)
+
+Con ρ = 0,1 el suelo **más caro estaba en la periferia**: en `f = −α·T − ρ·dens`
+el término de densidad aplastaba al de accesibilidad, y como la densidad es
+máxima en el centro, el centro era el peor lugar.
+
+| a km del CBD | α·T | ρ·dens | manda |
+|---|---|---|---|
+| 0,1 | 1,3 | **845** | densidad |
+| 5,0 | 65 | **185** | densidad |
+| 9,95 (borde) | **129** | 41 | acceso |
+
+**Por qué esta auditoría no lo vio.** `grad_p` se medía en `p[CBD]`, la única
+celda sin oferta. Reportaba +0,50 mientras el gradiente entre celdas habitadas
+era −0,48.
+
+**De dónde venía.** En unidades de celda, la razón entre los dos términos es
+`≈ α·(L/2)²·1,253/(ρ·N)`: va con el **cuadrado** del número de celdas. El
+`Suelo.tex` original usa 1001 celdas con α=1 y ρ=0,5 → razón 6,0 y gradiente
+**+0,72** (verificado corriendo el modelo con esa parametrización). Pasar a 201
+celdas dividió la razón por 25. La migración a unidades físicas (D-26) eliminó
+la dependencia de la grilla, pero se calibró sobre la grilla ya cambiada, así
+que preservó el balance roto.
+
+**Corregido:** ρ = 0,0025 (razón 6,1, gradiente **+0,92**), `grad_p` sobre celdas
+con oferta, tres tests que fijan el signo a las tres escalas de población, y la
+FIG. 04 excluye el CBD de su escala. ρ es común a los tres estratos, así que la
+recalibración **no reasignó a nadie**: distancias medias y línea base de
+transporte idénticas.

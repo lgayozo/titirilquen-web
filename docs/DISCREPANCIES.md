@@ -145,7 +145,22 @@ Convenciones:
 
 - **Overleaf** — `Suelo.tex:170-174`: reconoce que el logit es "erróneo" ante `λ_h` heterogéneo y propone un método alternativo.
 - **Código** — `Ciudad2.py:361`: implementaba `resolver_equilibrio_frechet` (marcado "MALA" en el docstring). No se portó a v2.
-- **Estado (2026-08): sigue abierto. No hay corrección implementada.**
+- **Estado (2026-08-24): CERRADO.** Implementada la subasta heteroscedástica
+  (HEV) de Train §4.5 / Bhat (1995) en `land_use/hev.py`. `solve_subasta`
+  despacha según los datos: λ uniformes → forma cerrada (exacta ahí); λ
+  distintos → HEV. Con eso λ queda **identificado** — mover λ deja de ser
+  idéntico a re-escalar (α, ρ), que es lo que este hallazgo denunciaba.
+  Fijado en `tests/test_hev.py`.
+- **Advertencia que sobrevive:** λ sigue entrando también por la parte
+  determinística `f_h/λ_h`, así que mueve preferencias y dispersión a la vez.
+  Para que actúe puramente por sensibilidad al precio hace falta un modelo de
+  **elección**, no de subasta: en una subasta todos los postores de una parcela
+  pagan lo mismo y el precio se cancela.
+- **Ojo con lo que decía Suelo.tex.** Su bloque S-5 llamaba «logit
+  heteroscedástico» a reponderar las pujas por `β_h = β·λ_h` conservando forma
+  cerrada. Eso no es HEV —Train: «the integral does not take a closed form»— y
+  además deja λ inerte (`max|ΔQ| = 2e-8` entre λ=0,01 y λ=100). El `.tex` local
+  se corrigió; `reference/` no se versiona, así que hay que llevarlo a Overleaf.
 
 **El problema.** La utilidad es `U_hi = λ_h(y_h − p_i) + f_h(i) + ε_hi` con `ε`
 Gumbel de escala `1/β` (homoscedástica **en utilidad**). La puja (WTP) divide por

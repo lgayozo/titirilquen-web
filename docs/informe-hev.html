@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — La subasta heteroscedástica, paso a paso</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --alerta: #8a5a12; --frio: #2f6690;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  h4 { font-size: 14px; margin: 18px 0 2px; font-weight: 600; color: var(--ink-2); }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 3px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 680px;
+  }
+  .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
+  .ecuacion.suelta { background: none; border: none; }
+  blockquote {
+    margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
+    color: var(--ink-2); font-style: italic; max-width: 72ch;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso.neutro { border-left-color: var(--muted); }
+  .aviso.alerta { border-left-color: var(--alerta); }
+  .aviso p { margin: 4px 0; }
+  .aviso h4 { margin-top: 0; }
+  .etiqueta {
+    display: inline-block; font-family: "Segoe UI", system-ui, sans-serif; font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 1px 8px;
+    border-radius: 3px; margin-right: 6px;
+  }
+  .etiqueta.ok { background: #dae7de; color: var(--ok); }
+  .etiqueta.lim { background: #efe2c9; color: var(--alerta); }
+  .etiqueta.neutra { background: #e4e2dd; color: var(--ink-2); }
+  .paso { border-left: 2px solid var(--rule); padding-left: 16px; margin: 20px 0; }
+  .paso h3 { margin-top: 0; }
+  .paso .ref {
+    font-family: "Consolas", monospace; font-size: 11.5px; color: var(--muted);
+    display: block; margin: 2px 0 6px;
+  }
+  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
+  .indice ol { margin: 4px 0; }
+  .indice a { color: var(--ink); text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  .refs { font-size: 13.5px; }
+  .refs li { margin: 6px 0; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, figure, .paso { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Documentación del núcleo</div>
+  <h1>La subasta heteroscedástica, paso a paso</h1>
+  <p class="bajada">
+    Por qué el logit cerrado deja de valer cuando la utilidad marginal del
+    ingreso difiere entre estratos, cómo se resuelve el modelo que sí vale,
+    y qué cambia en los resultados. Con la validación numérica, el contraste
+    contra la teoría y el análisis de sensibilidad completos.
+  </p>
+  <p class="meta">
+    Implementación: <code>titirilquen_core/land_use/hev.py</code> ·
+    <code>land_use/equilibrium.py</code> (<code>solve_subasta</code>, <code>_solve_hev</code>)<br>
+    Tests: <code>tests/test_hev.py</code> · Cifras:
+    <code>uv run python scripts/auditoria_hev.py</code><br>
+    Base de medición: 201 celdas · 20 km · ΣH = 99.900 · α = 6,5/6,0/5,5 ·
+    ρ = 0,0025 · β = 1 — 2026-08-24
+  </p>
+</header>
+
+<div class="indice">
+  <strong>Contenido</strong>
+  <ol>
+    <li><a href="#s1">El problema: qué se rompe cuando los λ difieren</a></li>
+    <li><a href="#s2">Lo que <em>no</em> es el logit heteroscedástico</a></li>
+    <li><a href="#s3">La formulación correcta: HEV</a></li>
+    <li><a href="#s4">Cómo se resuelve, paso a paso</a></li>
+    <li><a href="#s5">Validación numérica</a></li>
+    <li><a href="#s6">Contraste con la teoría</a></li>
+    <li><a href="#s7">Resultados: qué hace λ ahora</a></li>
+    <li><a href="#s8">Análisis de sensibilidad</a></li>
+    <li><a href="#s9">Lo que este modelo no resuelve</a></li>
+    <li><a href="#s10">Reproducir</a></li>
+  </ol>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s1"><span class="num">1</span>El problema: qué se rompe cuando los λ difieren</h2>
+
+<p>
+  El módulo de uso de suelo resuelve una <strong>subasta</strong>: cada parcela
+  se la lleva quien más puja por ella. Con pujas perturbadas por un término
+  Gumbel i.i.d., la probabilidad de ganar tiene la forma logit cerrada de la
+  ec. (4.26) de <a href="#r-martinez2018">Martínez (2018)</a>. Eso vale mientras
+  las pujas tengan <strong>la misma varianza</strong>.
+</p>
+
+<p>
+  Dejan de tenerla en cuanto los <code>λ<sub>h</sub></code> difieren. La ec. (4.2)
+  del libro parte de la utilidad
+</p>
+
+<div class="ecuacion">
+  <span class="id">(4.2)</span>
+  v<sub>hi</sub> = λ<sub>h</sub>(y<sub>h</sub> − p<sub>i</sub>) +
+  f<sub>h</sub>(z<sub>i</sub>) + ε<sub>hi</sub>,
+  &nbsp;&nbsp; ε<sub>hi</sub> ~ Gumbel(0, μ<sub>h</sub>)
+</div>
+
+<p>
+  y al invertir a disposición a pagar —que es lo que la subasta compara— la
+  ec. (4.3) deja el término aleatorio <strong>dividido por λ</strong>:
+</p>
+
+<div class="ecuacion">
+  <span class="id">(4.3)</span>
+  q<sub>hi</sub> = y<sub>h</sub> +
+  ( f<sub>h</sub>(z<sub>i</sub>) − u<sub>h</sub> ) / λ<sub>h</sub>
+  + <strong>ε<sub>hi</sub> / λ<sub>h</sub></strong>
+</div>
+
+<p>
+  El propio libro lo señala: el ruido de la puja queda Gumbel con parámetro de
+  forma <code>b<sub>h</sub> = λ<sub>h</sub>·μ<sub>h</sub></code>, <em>distinto
+  por estrato</em>. Y al plantear la subasta MNL (ec. 4.25) advierte que asumir
+  una forma común
+</p>
+
+<blockquote>impone una varianza idéntica de las pujas entre consumidores distintos</blockquote>
+
+<div class="aviso alerta">
+  <h4>El supuesto que nadie eligió</h4>
+  <p>
+    El solver cerrado aplica un <strong>β escalar</strong> a las pujas, o sea
+    <code>b<sub>h</sub> = β</code> para todos. Por la identidad del libro eso
+    equivale a suponer <code>μ<sub>h</sub> = β/λ<sub>h</sub></code>: que quien
+    más valora el dinero tiene <em>proporcionalmente menos</em> dispersión
+    idiosincrática de utilidad. No hay razón conductual para eso. Es el precio
+    de conservar la forma cerrada, y estaba sin declarar.
+  </p>
+  <p>
+    La consecuencia es más grave que un supuesto incómodo: bajo ese modelo λ
+    <strong>no tiene ningún canal estocástico</strong>, y como
+    <code>f</code> es lineal en α y ρ, mover λ es <em>exactamente</em>
+    re-escalar <code>(α<sub>h</sub>, ρ<sub>h</sub>)</code> por
+    <code>1/λ<sub>h</sub></code>. λ no es un parámetro: es una
+    re-parametrización redundante (D-08).
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s2"><span class="num">2</span>Lo que <em>no</em> es el logit heteroscedástico</h2>
+
+<p>
+  El informe LaTeX del proyecto (<code>Suelo.tex</code>, bloque S-5) proponía una
+  corrección: pesar la puja de cada estrato por su propia precisión
+  <code>β<sub>h</sub> = β·λ<sub>h</sub></code>, lo que cancela el
+  <code>1/λ<sub>h</sub></code> del ruido y deja el índice de la subasta en
+  unidades de utilidad, con el <em>score</em>
+  <code>s<sub>hi</sub> = λ<sub>h</sub>y<sub>h</sub> + f<sub>h</sub>(i)</code>.
+</p>
+
+<p>
+  <strong>Eso no es el HEV, y no corrige el artefacto: lo elimina.</strong> En ese
+  score λ aparece únicamente multiplicando <code>y<sub>h</sub></code>, que es una
+  constante por estrato y el punto fijo la absorbe en <code>ū<sub>h</sub></code>
+  igual que absorbe el ingreso. Medido sobre esa formulación: <code>Q</code>
+  resulta idéntica con λ entre 0,01 y 100,
+  <strong>max|ΔQ| = 2·10<sup>−8</sup></strong>. El parámetro queda inerte.
+</p>
+
+<div class="aviso">
+  <h4>El criterio que lo delata en una línea</h4>
+  <p>
+    Esa construcción <strong>conserva la forma cerrada</strong>. Y Train dice de
+    la integral del HEV: «<em>the integral does not take a closed form</em>».
+  </p>
+  <p><strong>Si tiene forma cerrada, no es heteroscedástico.</strong></p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s3"><span class="num">3</span>La formulación correcta: HEV</h2>
+
+<p>
+  El modelo para varianzas distintas entre alternativas es el
+  <strong>heteroskedastic extreme value</strong>, descrito en
+  <a href="#r-train">Train (2009)</a> §4.5 siguiendo a Bhat (1995). Con
+  <code>ε<sub>nj</sub></code> de valor extremo independiente y varianza
+  <code>(θ<sub>j</sub>π)²/6</code> —sin correlación entre alternativas, sólo
+  varianzas distintas—, la probabilidad de elección es
+</p>
+
+<div class="ecuacion">
+  <span class="id">Bhat</span>
+  P<sub>ni</sub> = ∫ [ Π<sub>j≠i</sub>
+  e<sup>−e<sup>−(V<sub>ni</sub> − V<sub>nj</sub> + θ<sub>i</sub>w)/θ<sub>j</sub></sup></sup> ]
+  · e<sup>−e<sup>−w</sup></sup> · e<sup>−w</sup> dw
+</div>
+
+<p>
+  Train normaliza la varianza de una alternativa a <code>π²/6</code> y estima el
+  resto relativo a ella; y señala que, como la integral es
+  <strong>unidimensional</strong>, conviene resolverla por cuadratura antes que
+  por simulación.
+</p>
+
+<h3>3.1 Traducción a la subasta de suelo</h3>
+
+<p>
+  La traducción no es mecánica y conviene explicitarla, porque el rol de las
+  «alternativas» cambia:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>En Train</th><th>Acá</th></tr></thead>
+  <tbody>
+    <tr><td>alternativas <em>j</em> que compiten</td><td>los <strong>estratos</strong> que pujan por una parcela</td></tr>
+    <tr><td>utilidad determinística <code>V<sub>nj</sub></code></td><td>la puja <code>w<sub>hi</sub> = y<sub>h</sub> + (f<sub>h</sub> − u<sub>h</sub>)/λ<sub>h</sub></code></td></tr>
+    <tr><td>escala <code>θ<sub>j</sub></code></td><td><code>θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</code>, heredada de la ec. (4.3)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Falta una pieza que Train no necesita: el modelo agregado de Martínez pondera
+  por el <strong>número de postores</strong> <code>H<sub>h</sub></code>. En el
+  logit cerrado eso es un factor multiplicativo; acá no puede serlo, porque cada
+  estrato tiene su propia escala. La forma correcta es un desplazamiento de la
+  <em>localización</em>:
+</p>
+
+<div class="ecuacion">
+  ℓ<sub>hi</sub> = w<sub>hi</sub> + θ<sub>h</sub> · ln(H<sub>h</sub>)
+</div>
+
+<p>
+  porque el máximo de <code>H<sub>h</sub></code> variables Gumbel i.i.d. de
+  escala <code>θ<sub>h</sub></code> es Gumbel con la localización corrida en
+  <code>θ<sub>h</sub>·ln(H<sub>h</sub>)</code>. Con θ común a todos, ese término
+  reproduce <em>exactamente</em> el factor <code>H<sub>h</sub></code> de la
+  ec. (4.26) — es una de las validaciones de <a href="#s5">§5</a>.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s4"><span class="num">4</span>Cómo se resuelve, paso a paso</h2>
+
+<div class="paso">
+  <h3>Paso 1 · La cuadratura</h3>
+  <span class="ref">land_use/hev.py → q_hev()</span>
+  <p>
+    Regla del <strong>trapecio sobre grilla uniforme</strong> en
+    <code>w ∈ [−10, 40]</code> con <strong>401 nodos</strong>. La elección no es
+    obvia y se midió: ver <a href="#s5">§5.1</a>.
+  </p>
+  <p>
+    Se vectoriza sobre parcelas y nodos a la vez; el único bucle es sobre pares
+    de estratos, que son 3×3. El argumento se recorta a ±40 antes de exponenciar
+    —<code>exp(−exp(−x))</code> satura a 0 y a 1 fuera de ahí— para evitar
+    <code>overflow</code> sin cambiar ningún valor.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 2 · El punto fijo</h3>
+  <span class="ref">land_use/equilibrium.py → _solve_hev()</span>
+  <p>
+    Sin forma cerrada para <code>Q</code> no se puede despejar <code>ū</code>
+    dentro del logaritmo, que es lo que hace la ec. (5.4) de Martínez. Se itera
+    entonces <strong>directamente sobre la condición de equilibrio</strong> de la
+    ec. (5.1), «todo hogar se localiza»:
+  </p>
+  <div class="ecuacion suelta">
+    ū<sub>h</sub> ← ū<sub>h</sub> + θ<sub>h</sub> ·
+    ln( Σ<sub>i</sub> S<sub>i</sub>Q<sub>hi</sub>(ū) / H<sub>h</sub> )
+  </div>
+  <p>
+    Subir <code>ū<sub>h</sub></code> baja la puja <code>w = score − ū</code> y con
+    ella <code>Q</code>, así que el signo reduce el exceso.
+  </p>
+  <div class="aviso ok">
+    <p>
+      <strong>No es un esquema nuevo.</strong> En el caso homoscedástico
+      <code>θ<sub>h</sub> = 1/β</code> y el álgebra devuelve exactamente el
+      operador <code>F(ū)</code> de la ec. (5.4). Es la misma iteración, escrita
+      de una forma que no necesita la forma cerrada.
+    </p>
+  </div>
+</div>
+
+<div class="paso">
+  <h3>Paso 3 · El arranque</h3>
+  <span class="ref">land_use/equilibrium.py → _solve_hev(), warm start</span>
+  <p>
+    Desde <code>ū = 0</code> el balanceo <strong>no converge</strong>. Con
+    ingresos de millones, las pujas de los estratos difieren en ~2·10<sup>6</sup>
+    y <code>Q</code> satura en <code>[1, 0, 0]</code>: el balanceo pierde toda
+    dirección y avanza a paso fijo hacia un objetivo seis órdenes de magnitud
+    más lejos.
+  </p>
+  <p>
+    Se arranca del <strong>equilibrio cerrado</strong>, que da en una corrida un
+    ū del orden correcto —exacto si los λ son uniformes, buena aproximación si
+    no— y desde ahí el HEV sólo corrige.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 4 · El precio</h3>
+  <span class="ref">land_use/hev.py → e_max_hev()</span>
+  <p>
+    La ec. (4.27) de Martínez define el precio como el máximo esperado de las
+    pujas. Bajo HEV ese máximo no es Gumbel, así que se integra la CDF
+    <code>F(w) = Π<sub>g</sub> exp(−exp(−(w−ℓ<sub>g</sub>)/θ<sub>g</sub>))</code>
+    con <code>E[X] = Σ w·dF</code> sobre puntos medios.
+  </p>
+  <p class="pie-tabla">
+    La forma «<code>∫(1−F) − ∫F</code> partida en w = 0» parece más directa pero
+    mete un error de orden <code>dw</code> en el punto de corte, que acá vale
+    ~10<sup>−2</sup> — visible contra el <code>γ/β</code> que debe reproducir.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>Paso 5 · El despacho</h3>
+  <span class="ref">land_use/equilibrium.py → solve_subasta()</span>
+  <p>
+    <strong>No hay campo de configuración para elegir el método.</strong> El
+    modelo lo deciden los datos:
+  </p>
+  <ul>
+    <li>λ<sub>h</sub> todos iguales ⇒ forma cerrada. Es <em>exacta</em> ahí, más
+      rápida, y no mete error de cuadratura en la línea base.</li>
+    <li>λ<sub>h</sub> distintos ⇒ HEV.</li>
+  </ul>
+  <p>
+    Hubo antes un campo <code>solver</code> y se eliminó porque ofrecía elegir un
+    método que decía corregir el artefacto sin hacerlo (AU-07). Reponerlo sería
+    volver a poner al usuario a elegir entre un modelo válido y uno inválido.
+    Con el despacho por datos, <strong>no se puede correr el modelo equivocado
+    para la configuración dada</strong>.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s5"><span class="num">5</span>Validación numérica</h2>
+
+<h3>5.1 Por qué el trapecio y no Gauss-Laguerre</h3>
+
+<p>
+  Gauss-Laguerre parece la elección natural: la sustitución
+  <code>t = e<sup>−w</sup></code> lleva el peso de la densidad de valor extremo
+  <em>exactamente</em> a <code>e<sup>−t</sup></code>, que es su peso canónico.
+  Converge mal de todos modos — el doble exponencial no se parece a un polinomio
+  en <em>t</em>.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>nodos</th><th class="n">trapecio (peor error)</th><th class="n">Gauss-Laguerre</th></tr></thead>
+  <tbody>
+    <tr><td>40</td><td class="n">2,75·10⁻³</td><td class="n">9,86·10⁻³</td></tr>
+    <tr><td>80</td><td class="n">2,79·10⁻⁶</td><td class="n">3,24·10⁻³</td></tr>
+    <tr><td>160</td><td class="n">1,29·10⁻⁸</td><td class="n">2,25·10⁻³</td></tr>
+    <tr class="destacada"><td>401 <em>(elegido)</em></td><td class="n">1,11·10⁻¹⁶</td><td class="n">desborda</td></tr>
+    <tr><td>801</td><td class="n">1,11·10⁻¹⁶</td><td class="n">desborda</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  Peor error de <code>Q</code> sobre 12 combinaciones de λ y separación de pujas,
+  contra una grilla de referencia de 400.001 nodos. «Desborda» = numpy pierde los
+  nodos de Laguerre por overflow en la recurrencia de sus polinomios desde ~n=200,
+  que es una segunda razón para descartarlo.
+</p>
+
+<p>
+  El trapecio gana porque el integrando es suave y <strong>decae
+  exponencialmente en los dos extremos</strong>, que es justo el caso en que la
+  regla del trapecio converge con precisión espectral. A 401 nodos el error ya
+  está en el redondeo de doble precisión: subir a 801 no compra nada, y cada nodo
+  se paga cientos de veces dentro del punto fijo.
+</p>
+
+<h3>5.2 El truncamiento</h3>
+
+<p>
+  Con el rango <code>[−10, 40]</code> el truncamiento aporta menos de
+  10<sup>−16</sup> en todos los casos probados, incluidos θ heterogéneos de 10×
+  y pujas separadas por 20 útiles.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s6"><span class="num">6</span>Contraste con la teoría</h2>
+
+<p>
+  Cuatro propiedades que la teoría obliga, las cuatro fijadas como test en
+  <code>tests/test_hev.py</code>.
+</p>
+
+<h3>6.1 Reducción al logit cerrado <span class="etiqueta ok">exacta</span></h3>
+
+<p>
+  Con θ común, la integral de Bhat <em>debe</em> dar la ec. (4.26). Si esto
+  fallara, activar el modelo nuevo movería en silencio la calibración de todo el
+  simulador.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>β</th><th class="n">max|ΔQ| — kernel de cuadratura</th><th class="n">max|ΔQ| — solver completo</th></tr></thead>
+  <tbody>
+    <tr><td>0,3</td><td class="n">9,44·10⁻¹⁶</td><td class="n">0,00</td></tr>
+    <tr><td>1,0</td><td class="n">8,88·10⁻¹⁶</td><td class="n">0,00</td></tr>
+    <tr><td>3,0</td><td class="n">1,78·10⁻¹⁵</td><td class="n">0,00</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  El kernel da el redondeo de la cuadratura; el solver da <strong>cero exacto</strong>
+  porque con λ uniforme despacha a la forma cerrada y no integra nada. La primera
+  columna prueba que el kernel es correcto; la segunda, que el despacho lo es.
+</p>
+
+<h3>6.2 El precio y la constante de Euler <span class="etiqueta ok">exacta</span></h3>
+
+<p>
+  La ec. (4.27) dice que el precio esperado supera al parámetro de localización
+  en <code>γ/β</code>. Bajo HEV con escala común eso debe reproducirse — y la
+  brecha debe ser una <strong>constante</strong> entre parcelas, que es lo que
+  permite afirmar que los dos caminos difieren sólo en el cero arbitrario.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>β</th><th class="n">brecha media medida</th><th class="n">γ/β teórico</th><th class="n">desviación entre parcelas</th></tr></thead>
+  <tbody>
+    <tr><td>0,5</td><td class="n">1,154431</td><td class="n">1,154431</td><td class="n">5,3·10⁻¹⁴</td></tr>
+    <tr><td>1,0</td><td class="n">0,577216</td><td class="n">0,577216</td><td class="n">2,0·10⁻¹⁴</td></tr>
+    <tr><td>2,0</td><td class="n">0,288608</td><td class="n">0,288608</td><td class="n">1,3·10⁻¹⁴</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6.3 Conservación de hogares <span class="etiqueta ok">se cumple</span></h3>
+
+<p>
+  La ec. (5.1), <code>Σ<sub>i</sub> S<sub>i</sub>·Q<sub>hi</sub> = H<sub>h</sub></code>,
+  es la condición que el punto fijo resuelve. Verificarla es verificar que el
+  balanceo llegó de verdad y no se detuvo en un punto cualquiera.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>λ (alto · medio · bajo)</th><th class="n">error relativo máx.</th><th>converge</th><th class="n">iteraciones</th><th class="n">segundos</th></tr></thead>
+  <tbody>
+    <tr class="destacada"><td>1,0 · 1,0 · 1,0 <em>(cerrado)</em></td><td class="n">2,3·10⁻⁹</td><td>sí</td><td class="n">48</td><td class="n">0,03</td></tr>
+    <tr><td>0,8 · 1,0 · 1,25</td><td class="n">3,9·10⁻⁹</td><td>sí</td><td class="n">140</td><td class="n">1,05</td></tr>
+    <tr><td>0,5 · 1,0 · 2,0</td><td class="n">4,6·10⁻⁹</td><td>sí</td><td class="n">330</td><td class="n">2,91</td></tr>
+    <tr><td>0,4 · 1,0 · 3,0</td><td class="n">5,2·10⁻⁹</td><td>sí</td><td class="n">445</td><td class="n">4,11</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6.4 Identificación de λ <span class="etiqueta ok">el resultado central</span></h3>
+
+<p>
+  Ésta es la propiedad que justifica todo el trabajo. Se compara mover
+  <code>λ<sub>alto</sub></code> contra re-escalar
+  <code>(α<sub>alto</sub>, ρ<sub>alto</sub>)</code> por <code>1/λ</code>: bajo la
+  forma cerrada son <em>la misma configuración</em>, y por eso λ no significa
+  nada ahí.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>λ</th><th class="n">cerrado: max|ΔQ|</th><th class="n">HEV: max|ΔQ|</th><th class="n">d_alto vía λ</th><th class="n">d_alto vía α,ρ</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0,50</td><td class="n">0,00</td><td class="n"><strong>0,1199</strong></td><td class="n">1,06</td><td class="n">1,05</td></tr>
+    <tr><td>0,80</td><td class="n">0,00</td><td class="n"><strong>0,0323</strong></td><td class="n">1,11</td><td class="n">1,10</td></tr>
+    <tr><td>1,25</td><td class="n">0,00</td><td class="n"><strong>0,0240</strong></td><td class="n">5,21</td><td class="n">5,10</td></tr>
+    <tr><td>2,00</td><td class="n">0,00</td><td class="n"><strong>0,0667</strong></td><td class="n">6,57</td><td class="n">6,55</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso ok">
+  <p>
+    La columna «cerrado» es <strong>cero exacto</strong>: es la identidad algebraica
+    de D-08, y la razón por la que λ era un parámetro fantasma. La columna «HEV»
+    no lo es. <strong>λ queda identificado</strong>, porque mueve además la escala
+    del ruido, que re-escalar preferencias no toca.
+  </p>
+  <p>
+    Nótese que las dos últimas columnas están cerca (1,06 contra 1,05): el efecto
+    sobre la <em>media</em> sigue dominado por el canal determinístico. Lo que
+    distingue a los dos modelos es la <em>forma</em> de <code>Q</code>, no su
+    primer momento — ver <a href="#s9">§9</a>.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s7"><span class="num">7</span>Resultados: qué hace λ ahora</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>λ alto</th><th class="n">θ_alto</th><th class="n">α_ef</th><th class="n">d_alto</th><th class="n">dispersión</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">iters</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0,40</td><td class="n">2,50</td><td class="n">16,25</td><td class="n">1,06</td><td class="n">0,60</td><td class="n">3,63</td><td class="n">6,21</td><td class="n">245</td></tr>
+    <tr><td>0,50</td><td class="n">2,00</td><td class="n">13,00</td><td class="n">1,06</td><td class="n">0,61</td><td class="n">3,62</td><td class="n">6,21</td><td class="n">200</td></tr>
+    <tr><td>0,60</td><td class="n">1,67</td><td class="n">10,83</td><td class="n">1,07</td><td class="n">0,62</td><td class="n">3,62</td><td class="n">6,21</td><td class="n">159</td></tr>
+    <tr><td>0,80</td><td class="n">1,25</td><td class="n">8,12</td><td class="n">1,11</td><td class="n">0,69</td><td class="n">3,57</td><td class="n">6,22</td><td class="n">89</td></tr>
+    <tr class="destacada"><td>1,00 <em>(cerrado)</em></td><td class="n">1,00</td><td class="n">6,50</td><td class="n">1,47</td><td class="n">1,05</td><td class="n">3,20</td><td class="n">6,23</td><td class="n">48</td></tr>
+    <tr><td>1,25</td><td class="n">0,80</td><td class="n">5,20</td><td class="n">5,21</td><td class="n">2,24</td><td class="n">1,48</td><td class="n">4,21</td><td class="n">25</td></tr>
+    <tr><td>1,60</td><td class="n">0,62</td><td class="n">4,06</td><td class="n">6,52</td><td class="n">1,57</td><td class="n">1,48</td><td class="n">2,91</td><td class="n">101</td></tr>
+    <tr><td>2,00</td><td class="n">0,50</td><td class="n">3,25</td><td class="n">6,57</td><td class="n">1,50</td><td class="n">1,48</td><td class="n">2,84</td><td class="n">182</td></tr>
+    <tr><td>3,00</td><td class="n">0,33</td><td class="n">2,17</td><td class="n">6,59</td><td class="n">1,47</td><td class="n">1,48</td><td class="n">2,82</td><td class="n">328</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  Distancias medias al CBD en km; «dispersión» es la desviación estándar de la
+  localización del estrato alto — el canal que la forma cerrada no podía mostrar.
+</p>
+
+<h4>Lo que se lee</h4>
+
+<ul>
+  <li>
+    <strong>La dirección es interpretable.</strong> Bajar λ sube
+    <code>α_ef = α/λ</code>: el estrato valora más el acceso y se acerca al CBD
+    (1,47 → 1,06 km). Subirlo lo aleja (→ 6,59 km). Con la calibración anterior
+    de ρ el efecto era el opuesto y absurdo.
+  </li>
+  <li>
+    <strong>La dispersión se mueve con la media.</strong> Va de 0,60 a 2,24 km, y
+    su máximo cae en la transición. No es un canal independiente que se pueda
+    leer aparte: ver <a href="#s9">§9</a>.
+  </li>
+  <li>
+    <strong>Persiste un salto abrupto</strong> entre λ = 1,0 (1,47 km) y λ = 1,25
+    (5,21 km). La banda estrecha se movió respecto del régimen anterior, pero el
+    fenómeno sigue: fuera de ella λ casi no hace nada.
+  </li>
+  <li>
+    <strong>El costo tiene forma de U.</strong> 48 iteraciones en el caso cerrado,
+    mínimo de 25 en λ = 1,25, y hasta 328 en los extremos. El arranque tibio es
+    mejor o peor según cuán lejos quede el equilibrio cerrado del heteroscedástico.
+  </li>
+</ul>
+
+<div class="aviso neutro">
+  <p>
+    <strong>En el navegador.</strong> Medido sobre Pyodide, que es el motor por
+    defecto: <strong>6,9 s</strong> con λ heterogéneos contra <strong>5,4 s</strong>
+    con λ uniforme. El sobrecosto de ~1,5 s sólo se paga cuando el usuario mueve
+    λ a propósito.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s8"><span class="num">8</span>Análisis de sensibilidad</h2>
+
+<h3>8.1 Escalar todos los λ por un factor común</h3>
+
+<p>
+  Si λ fuera sólo una elección de unidades de la utilidad, multiplicar los tres
+  por <em>k</em> no debería cambiar nada. Se mide contra <em>k</em> = 1.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>k</th><th class="n">max|ΔQ| vs k=1</th><th class="n">d_alto</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">iters</th></tr></thead>
+  <tbody>
+    <tr><td>0,50</td><td class="n">2,4·10⁻¹</td><td class="n">1,22</td><td class="n">3,20</td><td class="n">6,48</td><td class="n">98</td></tr>
+    <tr><td>0,80</td><td class="n">7,5·10⁻²</td><td class="n">1,37</td><td class="n">3,19</td><td class="n">6,34</td><td class="n">60</td></tr>
+    <tr class="destacada"><td>1,00</td><td class="n">0</td><td class="n">1,47</td><td class="n">3,20</td><td class="n">6,23</td><td class="n">48</td></tr>
+    <tr><td>1,25</td><td class="n">6,7·10⁻²</td><td class="n">1,58</td><td class="n">3,22</td><td class="n">6,10</td><td class="n">38</td></tr>
+    <tr><td>2,00</td><td class="n">1,7·10⁻¹</td><td class="n">1,86</td><td class="n">3,32</td><td class="n">5,72</td><td class="n">23</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  <strong>No es invariante, y no debería serlo.</strong> Escalar λ solo no es un
+  cambio de unidades: <code>f</code> y el ingreso <code>y</code> no escalan con
+  él, así que <code>U = λ(y−p) + f + ε</code> se transforma en un modelo
+  distinto, no en el mismo modelo con otra vara.
+</p>
+
+<div class="aviso alerta">
+  <p>
+    Ojo con leer esta tabla como una sensibilidad del HEV: con λ <strong>uniforme</strong>
+    el despacho va a la forma cerrada, así que lo que mide es el logit. Es, de
+    hecho, el artefacto de D-08 apareciendo otra vez — escalar los tres λ por
+    <em>k</em> es re-escalar las tres <code>(α, ρ)</code> por <code>1/k</code>.
+  </p>
+</div>
+
+<h3>8.2 La población: el HEV rompe la invariancia de escala</h3>
+
+<p>
+  La localización lleva <code>θ<sub>h</sub>·ln(H<sub>h</sub>)</code>, así que la
+  población entra en la comparación de pujas en cuanto los θ difieren.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>ΣH</th><th class="n">ln H</th><th class="n">d_alto con λ=0,8</th><th class="n">d_alto con λ=1</th><th class="n">d_alto con λ=1,25</th></tr></thead>
+  <tbody>
+    <tr><td>9.000</td><td class="n">8,01</td><td class="n">1,10</td><td class="n">1,47</td><td class="n">5,96</td></tr>
+    <tr><td>36.000</td><td class="n">9,39</td><td class="n">1,10</td><td class="n">1,47</td><td class="n">5,79</td></tr>
+    <tr><td>99.900</td><td class="n">10,41</td><td class="n">1,11</td><td class="n">1,47</td><td class="n">5,21</td></tr>
+    <tr><td>144.000</td><td class="n">10,78</td><td class="n">1,12</td><td class="n">1,47</td><td class="n">4,67</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso alerta">
+  <h4>Una propiedad que se pierde, y hay que declararla</h4>
+  <p>
+    La columna del medio da <strong>1,47 en las cuatro poblaciones</strong>: el
+    logit cerrado es homogéneo de grado 0 en la escala, que es la propiedad AU-03
+    de la auditoría de uso de suelo.
+  </p>
+  <p>
+    <strong>El HEV no la conserva.</strong> Con λ = 1,25 el estrato alto pasa de
+    5,96 km en una ciudad de 9.000 hogares a 4,67 km en una de 144.000. Es
+    consecuencia directa de la teoría —el máximo de <em>H</em> draws depende de
+    <em>H</em> y de la escala a la vez— pero significa que
+    <strong>la misma ciudad a distinta escala ya no da el mismo mapa</strong>
+    cuando los λ difieren.
+  </p>
+</div>
+
+<h3>8.3 Interacción con β</h3>
+
+<p>
+  <code>θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</code>: β y λ comparten la misma
+  escala, así que no son independientes.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>β</th><th class="n">d_alto con λ=0,8</th><th class="n">d_alto con λ=1</th><th class="n">d_alto con λ=1,25</th></tr></thead>
+  <tbody>
+    <tr><td>0,5</td><td class="n">1,26</td><td class="n">1,86</td><td class="n">4,80</td></tr>
+    <tr class="destacada"><td>1,0 <em>(base)</em></td><td class="n">1,11</td><td class="n">1,47</td><td class="n">5,21</td></tr>
+    <tr><td>2,0</td><td class="n">1,07</td><td class="n">1,22</td><td class="n">5,53</td></tr>
+    <tr><td>4,0</td><td class="n">1,05</td><td class="n">1,10</td><td class="n">5,88</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Subir β agudiza la subasta —menos ruido, asignación más determinística— y con
+  eso el efecto de λ se vuelve más marcado: la brecha entre λ = 0,8 y λ = 1,25
+  pasa de 3,5 km con β = 0,5 a 4,8 km con β = 4.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s9"><span class="num">9</span>Lo que este modelo no resuelve</h2>
+
+<p>
+  El HEV corrige la <strong>inconsistencia estadística</strong> e identifica λ.
+  No lo convierte en un parámetro limpio, y conviene ser explícito sobre eso.
+</p>
+
+<h3>9.1 λ sigue entrando por dos canales</h3>
+
+<p>
+  La puja es <code>w<sub>hi</sub> = y<sub>h</sub> + (f<sub>h</sub> −
+  u<sub>h</sub>)/λ<sub>h</sub></code>, así que λ mueve la parte determinística
+  <em>además</em> del ruido. Los dos efectos van juntos y no se pueden separar
+  variando un solo parámetro. Por eso en <a href="#s6">§6.4</a> las medias por
+  las dos vías quedan cerca: lo que distingue a los modelos es la forma completa
+  de <code>Q</code>, no su primer momento.
+</p>
+
+<h3>9.2 No hay canal de sensibilidad al precio</h3>
+
+<p>
+  En una <strong>subasta</strong>, todos los postores de una parcela pagan el
+  mismo <code>p<sub>i</sub></code>, así que el precio se cancela en la
+  comparación y la sensibilidad al precio no tiene dónde morder. Eso es
+  estructural del enfoque, no una limitación de la implementación.
+</p>
+
+<p>
+  Para que λ actúe por esa vía haría falta un modelo de <strong>elección</strong>
+  de ubicación, con <code>P(i|h) ∝ e<sup>β(−λ<sub>h</sub>p<sub>i</sub> +
+  f<sub>hi</sub>)</sup></code>, donde el hogar toma los precios como dados. El
+  puente entre ambos mundos es el <em>bid-choice</em> de
+  <a href="#r-martinez1992">Martínez (1992)</a>.
+</p>
+
+<h3>9.3 Sigue habiendo un salto abrupto</h3>
+
+<p>
+  Entre λ = 1,0 y λ = 1,25 el estrato alto cruza de 1,47 a 5,21 km. La banda se
+  corrió respecto del régimen anterior pero el fenómeno persiste, así que la
+  advertencia pedagógica sigue vigente: λ no se lee como una perilla continua.
+</p>
+
+<h3>9.4 La escala de población deja de ser neutral</h3>
+
+<p>
+  Ver <a href="#s8">§8.2</a>. Es el precio de que el número de postores entre en
+  la localización con el peso de cada escala.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s10"><span class="num">10</span>Reproducir</h2>
+
+<pre><code>cd packages/titirilquen_core
+
+# todas las cifras de este documento
+uv run python scripts/auditoria_hev.py
+
+# las propiedades, como tests
+uv run --extra dev pytest tests/test_hev.py -v</code></pre>
+
+<p>
+  Los cinco tests de <code>tests/test_hev.py</code> cubren, en orden: que el
+  kernel de cuadratura reproduzca la ec. (4.26) con θ común; que
+  <code>e_max_hev</code> dé <code>γ/β</code> y que la brecha sea constante; que
+  el solver con λ uniforme dé la forma cerrada <em>exacta</em>; que se conserven
+  los hogares por estrato; y que bajo HEV λ deje de ser equivalente a re-escalar
+  <code>(α, ρ)</code>.
+</p>
+
+<h3>Referencias</h3>
+
+<ol class="refs">
+  <li id="r-train">
+    Train, K. E. (2009). <em>Discrete Choice Methods with Simulation</em>
+    (2.ª ed.). Cambridge University Press. — §4.5 «Heteroskedastic Logit».
+  </li>
+  <li id="r-martinez2018">
+    Martínez, F. J. (2018). <em>Microeconomic Modeling in Urban Science</em>.
+    Academic Press. — caps. 4 y 5.
+  </li>
+  <li id="r-martinez1992">
+    Martínez, F. J. (1992). The bid–choice land-use model: an integrated economic
+    framework. <em>Environment and Planning A</em>, 24(6), 871–885.
+  </li>
+  <li>
+    Bhat (1995), citado en Train (2009) §4.5 como origen de la fórmula y de la
+    observación de que la integral unidimensional se resuelve por cuadratura.
+    <strong>Cita indirecta:</strong> el ejemplar del capítulo disponible en
+    <code>reference/</code> no incluye la lista de referencias del libro, así que
+    la entrada completa está pendiente de confirmar.
+  </li>
+</ol>
+
+<h3>Documentación relacionada</h3>
+
+<ul>
+  <li><code>docs/informe-uso-suelo.html</code> §7.1 y §7.6 — el módulo completo y dónde encaja esto.</li>
+  <li><code>docs/AUDITORIA_USO_SUELO.md</code> — AU-06 (el artefacto de λ), AU-03 (la invariancia de escala que §8.2 rompe), AU-07 (el solver que se eliminó).</li>
+  <li><code>docs/DISCREPANCIES.md</code> D-08 — el hallazgo original, cerrado por este trabajo.</li>
+</ul>
+
+<footer>
+  <p>
+    <strong>Titirilquen</strong> · Simulador educativo de transporte urbano ·
+    Facultad de Ciencias Físicas y Matemáticas, Universidad de Chile.
+  </p>
+  <p>
+    Todas las cifras de este documento salen de
+    <code>scripts/auditoria_hev.py</code>. Ante cualquier diferencia entre este
+    texto y el código, manda el código: correr el script es la forma de saber
+    cuál de los dos envejeció.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

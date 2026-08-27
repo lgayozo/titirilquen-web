@@ -136,6 +136,7 @@
     <li><a href="#s5">El flujo en la aplicación</a></li>
     <li><a href="#s6">Resultados medidos sobre el modelo</a></li>
     <li><a href="#s7">Limitaciones declaradas</a></li>
+    <li><a href="#s75b">Fidelidad a Martínez (2018)</a></li>
     <li><a href="#s8">Divergencia con el informe LaTeX</a></li>
     <li><a href="#s9">Referencias</a></li>
   </ol>
@@ -291,14 +292,14 @@
     <tr><td><code>y<sub>h</sub></code></td><td><code>y</code></td><td>$/mes</td><td>Ingreso del hogar</td><td class="n">3,5M / 1,5M / 0,5M</td></tr>
     <tr><td><code>λ<sub>h</sub></code></td><td><code>lambda</code></td><td>—</td><td>Utilidad marginal del ingreso</td><td class="n">1,0</td></tr>
     <tr><td><code>α<sub>h</sub></code></td><td><code>alpha</code></td><td>utiles/min</td><td>Peso del tiempo de viaje</td><td class="n">6,5 / 6,0 / 5,5</td></tr>
-    <tr><td><code>ρ<sub>h</sub></code></td><td><code>rho</code></td><td>utiles/(hogar/km)</td><td>Penalización de densidad</td><td class="n">0,1</td></tr>
+    <tr><td><code>ρ<sub>h</sub></code></td><td><code>rho</code></td><td>utiles/(hogar/km)</td><td>Penalización de densidad</td><td class="n">0,0025</td></tr>
   </tbody>
 </table>
 </div>
 
 <p class="pie-tabla">
-  Valores por defecto de <code>LandUseConfig</code>. La referencia de ρ = 0,1
-  equivale a 1 util por hogar adicional en una cuadra de 100 m.
+  Valores por defecto de <code>LandUseConfig</code>. ρ se recalibró de 0,1 a
+  0,0025 el 2026-08-24: ver <a href="#s7">§7.5</a>.
 </p>
 
 <p>
@@ -863,15 +864,23 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
 
 <h3>6.4 ρ uniforme no reasigna, pero aplana los precios <span class="etiqueta ok">AU-05</span></h3>
 
+<p class="meta">
+  Remedido el 2026-08-24 con el <code>grad_p</code> corregido —sobre celdas con
+  oferta, excluyendo el CBD— y con la calibración nueva. Los valores anteriores
+  de esta tabla (+1,00 / +0,50 / +0,21) estaban medidos en la celda vacía del
+  CBD y tenían el signo equivocado; ver <a href="#s7">§7.5</a>.
+</p>
+
 <div class="envoltorio-tabla">
 <table>
   <thead>
     <tr><th>ρ (los tres estratos)</th><th class="n">d_alto</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">Theil</th><th class="n">grad_p</th></tr>
   </thead>
   <tbody>
-    <tr><td>0</td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+1,00</td></tr>
-    <tr class="destacada"><td>0,1 <em>(base)</em></td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+0,50</td></tr>
-    <tr><td>0,5</td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+0,21</td></tr>
+    <tr><td>0</td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+0,99</td></tr>
+    <tr class="destacada"><td>0,0025 <em>(base)</em></td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+0,92</td></tr>
+    <tr><td>0,02</td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">+0,49</td></tr>
+    <tr><td>0,1 <em>(la calibración anterior)</em></td><td class="n">0,99</td><td class="n">2,13</td><td class="n">5,36</td><td class="n">0,357</td><td class="n">−0,49</td></tr>
   </tbody>
 </table>
 </div>
@@ -879,9 +888,10 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
 <p>
   Una ρ <strong>común</strong> a los tres estratos no mueve a nadie —es un
   término común que se absorbe en ū, igual que <em>y</em>— pero
-  <strong>achata el gradiente de precios en un factor 5</strong>: las celdas
-  centrales son las densas, así que la penalización golpea justo donde el suelo
-  vale más. Es la tensión entre congestión residencial y renta de localización.
+  <strong>achata el gradiente de precios, y con suficiente ρ lo invierte</strong>:
+  las celdas centrales son las densas, así que la penalización golpea justo donde
+  el suelo vale más. Es la tensión entre congestión residencial y renta de
+  localización, y con ρ = 0,1 la congestión ganaba.
 </p>
 
 <p>
@@ -903,10 +913,72 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
 <h3>7.1 λ no es un parámetro económico <span class="etiqueta lim">AU-06</span></h3>
 
 <p>
-  Es la única incoherencia teórica viva del módulo, y es más fuerte que «λ escala
-  el ruido». La puja es <code>y<sub>h</sub> + f<sub>h</sub>(i)/λ<sub>h</sub></code>
-  con <em>f</em> lineal en α y ρ, así que dividir por λ es
-  <strong>exactamente</strong> re-escalar las preferencias de ese estrato:
+  Es la única incoherencia teórica viva del módulo. La formulación reproduce la
+  ecuación (4.3) de <a href="#r-martinez2018">Martínez (2018)</a>, así que no es
+  un error de implementación — pero tiene una consecuencia que conviene enunciar
+  con precisión, porque la intuición natural sobre λ es la equivocada.
+</p>
+
+<h4>Qué dice el libro</h4>
+
+<p>
+  Para utilidades lineales en el precio, la ec. (4.2) del libro es
+  <code>v<sub>hi</sub> = λ<sub>h</sub>(y<sub>h</sub> − p<sub>i</sub>) +
+  f<sub>h</sub>(z<sub>i</sub>) + ε<sub>hi</sub></code>, con
+  <code>ε<sub>hi</sub> ~ Gumbel(0, μ<sub>h</sub>)</code>. Al invertir a
+  disposición a pagar, la ec. (4.3) da:
+</p>
+
+<div class="ecuacion">
+  q<sub>hi</sub> = y<sub>h</sub> +
+  (f<sub>h</sub>(z<sub>i</sub>) − u<sub>h</sub>)/λ<sub>h</sub>
+  + ε<sub>hi</sub>/λ<sub>h</sub>
+</div>
+
+<p>
+  y el libro observa que el término aleatorio queda Gumbel con parámetro de forma
+  <strong>b<sub>h</sub> = λ<sub>h</sub> · μ<sub>h</sub></strong> — es decir,
+  <em>por estrato</em>. Después, al plantear la subasta MNL (ec. 4.25), asume
+  bids i.i.d. con una forma <code>b<sub>i</sub></code> común a todos los postores
+  de una ubicación, y advierte que eso «<em>impone una varianza idéntica de las
+  pujas entre consumidores distintos</em>».
+</p>
+
+<h4>Qué asume el código, y qué se sigue de eso</h4>
+
+<p>
+  El solver aplica un <strong>β escalar</strong> a las pujas, o sea
+  <code>b<sub>h</sub> = β</code> para todos. Por la identidad del libro, eso
+  equivale a suponer <code>μ<sub>h</sub> = β/λ<sub>h</sub></code>: el ruido en
+  utilidad varía inversamente con λ, justo lo necesario para que la varianza de
+  las pujas sea la misma. Es la hipótesis de la ec. (4.25) — legítima y del
+  libro— pero <strong>nadie la había declarado</strong>.
+</p>
+
+<div class="aviso alerta">
+  <h4>La consecuencia, que es contraintuitiva</h4>
+  <p>
+    Bajo ese supuesto <strong>λ no tiene ningún canal estocástico</strong>: no
+    toca el ruido, porque el ruido está fijado en β por construcción. λ entra
+    <em>únicamente</em> en la parte determinística de la puja. Por eso, con la
+    forma cerrada, mover λ <strong>no produce dispersión sino un desplazamiento
+    limpio, monótono y perfectamente reproducible</strong>: no es ruido mal
+    atribuido, es el efecto de α con otro nombre.
+  </p>
+  <p>
+    <strong>Eso es exactamente lo que resuelve el HEV</strong>
+    (<a href="#s76">§7.6</a>): al dejar que la escala del ruido dependa del
+    estrato, λ recupera un canal propio y deja de ser una re-parametrización de
+    α y ρ. Desde el 2026-08-24 el módulo lo implementa y lo usa automáticamente
+    cuando los λ difieren.
+  </p>
+</div>
+
+<h4>La identidad</h4>
+
+<p>
+  Como <em>f</em> es lineal en α y ρ, dividir por λ es <strong>exactamente</strong>
+  re-escalar las preferencias del estrato:
 </p>
 
 <div class="ecuacion">
@@ -916,73 +988,69 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
 
 <p>
   No es «aproximadamente»: con λ ∈ {0,4 · 0,5 · 1,5 · 3,0} la matriz <code>Q</code>
-  por ambas vías coincide con <strong>max|ΔQ| = 0,000e+00</strong>. Está fijado
-  como test de regresión
+  por ambas vías coincide con <strong>max|ΔQ| = 0,000e+00</strong>. Fijado como
+  test de regresión
   (<code>test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho</code>).
 </p>
 
-<p>
-  O sea que λ mueve <strong>tres cosas a la vez</strong> sin permitir separarlas:
-  α<sub>eff</sub> = α/λ (cuánto pesa el acceso), ρ<sub>eff</sub> = ρ/λ (cuánto
-  molesta la densidad) y la escala del ruido 1/(β·λ). No agrega información al
-  modelo: es una re-parametrización redundante de α y ρ.
-</p>
+<h4>Qué canal domina, medido</h4>
 
-<h4>Lo que se mide al moverlo</h4>
+<p class="meta">
+  Barrido de λ del estrato alto, calibración vigente (ρ = 0,0025). Se aísla cada
+  canal moviendo sólo uno de los dos parámetros efectivos, y se compara con mover
+  λ (que mueve los dos a la vez). Distancia media al CBD del estrato alto, km.
+</p>
 
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th>λ del estrato alto</th><th class="n">0,4</th><th class="n">0,5</th><th class="n">0,8</th><th class="n">0,9</th><th class="n">0,95</th><th class="n">1,0 (base)</th><th class="n">1,5</th><th class="n">3,0</th></tr>
+    <tr><th>λ</th><th class="n">sólo α/λ</th><th class="n">sólo ρ/λ</th><th class="n">λ (los dos)</th></tr>
   </thead>
   <tbody>
-    <tr><td>d_alto (km al CBD)</td><td class="n">8,48</td><td class="n">8,48</td><td class="n">8,26</td><td class="n">4,75</td><td class="n">1,33</td><td class="n">0,99</td><td class="n">0,89</td><td class="n">0,94</td></tr>
-    <tr><td>dispersión (km)</td><td class="n">8,51</td><td class="n">8,51</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">1,27</td><td class="n">1,02</td><td class="n">1,02</td></tr>
-    <tr><td>Theil</td><td class="n">0,537</td><td class="n">0,532</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">0,357</td><td class="n">0,386</td><td class="n">0,405</td></tr>
-    <tr><td>iteraciones</td><td class="n">801</td><td class="n">511</td><td class="n">70</td><td class="n">21</td><td class="n">31</td><td class="n">36</td><td class="n">52</td><td class="n">68</td></tr>
+    <tr><td>0,25</td><td class="n">1,05</td><td class="n">6,59</td><td class="n">1,05</td></tr>
+    <tr><td>0,50</td><td class="n">1,05</td><td class="n">5,07</td><td class="n">1,05</td></tr>
+    <tr class="destacada"><td>1,00 <em>(base)</em></td><td class="n">1,47</td><td class="n">1,47</td><td class="n">1,47</td></tr>
+    <tr><td>2,00</td><td class="n">6,58</td><td class="n">1,25</td><td class="n">6,55</td></tr>
+    <tr><td>4,00</td><td class="n">6,59</td><td class="n">1,19</td><td class="n">6,59</td></tr>
   </tbody>
 </table>
 </div>
 
-<p>Dos cosas que un parámetro de comportamiento no hace:</p>
-
-<ol>
-  <li>
-    <strong>Salto casi discontinuo.</strong> Entre λ = 0,8 y λ = 0,95 —un cambio
-    de 19%— el estrato alto cruza la ciudad entera, de 8,26 km a 1,33 km. Fuera
-    de esa banda estrecha λ casi no hace nada.
-  </li>
-  <li>
-    <strong>Dirección absurda.</strong> Bajar λ manda a los ricos a la periferia.
-    El mecanismo es transparente con la identidad de arriba: ρ<sub>eff</sub> = ρ/λ
-    crece (0,1 → 0,25 con λ = 0,4) y la penalización de densidad castiga justo
-    las celdas centrales, que son las densas. Gana ρ sobre α y el estrato huye.
-    De hecho λ = 0,4 reproduce <em>exactamente</em> la fila «alto ρ = 0,5, resto
-    0» de §6.4: es el mismo corner solution.
-  </li>
-</ol>
-
 <p>
-  El contraste que cierra el argumento: el ingreso <em>y</em> —que sí es un
-  parámetro económico del estrato— no reasigna a nadie (§6.3). Si λ moviera gente
-  por una razón económica, <em>y</em> también debería.
+  La columna de λ reproduce casi exactamente la de α, y en varios puntos va en
+  <em>contra</em> de la de ρ. Con la calibración vigente
+  <strong>el efecto de λ es el efecto de α</strong>: bajar λ sube
+  α<sub>eff</sub> = α/λ, el estrato valora más el acceso y se acerca al centro.
+  Es coherente, y por eso no parece ruido.
 </p>
 
-<div class="aviso alerta">
-  <h4>Cómo debe leerse en clase</h4>
+<div class="aviso neutro">
   <p>
-    Que mover λ cambie el mapa es una <strong>limitación declarada del
-    modelo</strong>, no un resultado. La lectura honesta es: «este parámetro no
-    está identificado; lo que ves es el re-escalamiento de α y ρ junto con el
-    ruido, no una respuesta al ingreso».
-  </p>
-  <p>
-    <strong>No hay corrección implementada.</strong> Corregirlo exige que el ruido
-    escale por estrato, lo que implica cambiar el operador de punto fijo —
-    <code>_solve_fixed_point</code> toma un β escalar— y no sólo la puja. Queda
-    pendiente para los autores.
+    <strong>Esto cambió con la recalibración de ρ</strong> (<a href="#s7">§7.4</a>).
+    Con ρ = 0,1 mandaba el canal de la densidad y el efecto era el opuesto y
+    absurdo: bajar λ expulsaba al estrato alto a la periferia, porque
+    ρ<sub>eff</sub> = ρ/λ crecía y castigaba las celdas centrales, que son las
+    densas. Las tablas de AU-06 anteriores al 2026-08-24 describen ese régimen y
+    ya no aplican.
   </p>
 </div>
+
+<h4>Cómo debe leerse en clase</h4>
+
+<p>
+  Que mover λ cambie el mapa es una <strong>limitación declarada</strong>, no un
+  resultado. La lectura honesta es: «λ no está identificado; lo que ves es α y ρ
+  re-escalados, no una respuesta al ingreso». El contraste que cierra el
+  argumento es que el ingreso <em>y</em> —que sí es un parámetro económico del
+  estrato— no reasigna a nadie (<a href="#s6">§6.3</a>). Si λ moviera gente por
+  una razón económica, <em>y</em> también debería.
+</p>
+
+<p>
+  Todo lo anterior describe <strong>la rama de forma cerrada</strong>, que es la
+  que corre cuando los λ son uniformes —el caso por defecto—. Con λ heterogéneos
+  el módulo ya no usa esa rama: ver <a href="#s76">§7.6</a>.
+</p>
 
 <h3>7.2 No hay techo de densidad <span class="etiqueta lim">AU-08</span></h3>
 
@@ -1038,7 +1106,100 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   no un problema numérico.
 </p>
 
-<h3>7.4 La respuesta a α es muy sensible <span class="etiqueta neutra">AU-10</span></h3>
+<h3 id="s75">7.4 El gradiente de renta estaba invertido, y la medición lo tapaba
+  <span class="etiqueta lim">2026-08-24</span></h3>
+
+<p>
+  Es el hallazgo más grave de este módulo hasta la fecha, y merece quedar
+  registrado con su mecanismo completo porque la forma en que se ocultó es más
+  instructiva que el error en sí.
+</p>
+
+<h4>Qué pasaba</h4>
+
+<p>
+  Con ρ = 0,1 el suelo <strong>más caro estaba en la periferia</strong>. En
+  <code>f = −α·T − ρ·dens</code> el término de densidad aplastaba al de
+  accesibilidad en el grueso de la ciudad; como la densidad es máxima en el
+  centro, el centro era el peor lugar. El simulador enseñaba el modelo de Alonso
+  al revés.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>a km del CBD</th><th class="n">α·T</th><th class="n">ρ·dens</th><th>manda</th></tr></thead>
+  <tbody>
+    <tr><td>0,1</td><td class="n">1,3</td><td class="n">845</td><td>densidad</td></tr>
+    <tr><td>5,0</td><td class="n">65</td><td class="n">185</td><td>densidad</td></tr>
+    <tr><td>9,95 (borde)</td><td class="n">129</td><td class="n">41</td><td>acceso</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">Estrato alto, defaults del frontend (ΣH = 99.900).</p>
+
+<h4>Por qué no se detectó</h4>
+
+<p>
+  Porque <code>grad_p</code> se medía en <code>p[CBD]</code>, la
+  <strong>única celda sin oferta</strong>. Ahí <code>S = 0</code>, así que
+  <code>T = 0</code> y <code>dens = 0</code>: la amenidad es máxima por
+  construcción, en el único punto donde nadie puede vivir. El indicador reportaba
+  <strong>+0,50</strong> —«Alonso funciona ✅»— mientras el gradiente entre celdas
+  habitadas era <strong>−0,48</strong>.
+</p>
+
+<h4>De dónde venía</h4>
+
+<p>
+  De un cambio de grilla que nadie rebalanceó. En unidades de celda el balance
+  entre los dos términos es, aproximadamente:
+</p>
+
+<div class="ecuacion suelta">
+  razón ≈ α · (L/2)² · 1,253 / (ρ · N)
+</div>
+
+<p>
+  Va con el <strong>cuadrado</strong> del número de celdas. El
+  <code>Suelo.tex</code> original usa una ciudad de 1001 celdas con α = 1 y
+  ρ = 0,5, que da razón ≈ 6 y gradiente <strong>+0,72</strong> —Alonso correcto,
+  verificado corriendo el modelo con esa parametrización—. Pasar a 201 celdas
+  dividió la razón por 25; el resto del factor 39 lo puso el cambio de α/ρ.
+</p>
+
+<div class="aviso alerta">
+  <p>
+    La migración a unidades físicas (D-26) fue <strong>correcta y necesaria</strong>
+    —eliminó la dependencia de la resolución, que es el MAUP de
+    <a href="#s2">§2.4</a>— pero se calibró <em>sobre la grilla de 201</em>, así
+    que congeló un balance ya roto en vez de restaurar el del documento fuente.
+    El arreglo llegó tarde, no equivocado.
+  </p>
+</div>
+
+<h4>Qué se hizo</h4>
+
+<ul>
+  <li>
+    <strong>ρ = 0,0025</strong>, el valor que reproduce la razón ≈ 6 del
+    original. Gradiente medido: <strong>+0,92</strong>. No reasigna a nadie —ρ es
+    común a los tres estratos y se absorbe en ū—, así que las distancias medias
+    por estrato y el equilibrio de transporte quedaron <em>idénticos</em>.
+  </li>
+  <li>
+    <code>grad_p</code> se mide ahora sobre celdas <strong>con oferta</strong>.
+  </li>
+  <li>
+    Tres tests nuevos fijan el signo: en la calibración por defecto, a las tres
+    escalas de población que ofrece la app (36.000 / 99.900 / 144.000), y un
+    guard de que ρ efectivamente mueva el gradiente.
+  </li>
+  <li>
+    La FIG. 04 excluye la celda del CBD de la escala y corta el trazo ahí.
+  </li>
+</ul>
+
+<h3>7.5 La respuesta a α es muy sensible <span class="etiqueta neutra">AU-10</span></h3>
 
 <p>
   La calibración base produce un gradiente que se lee bien (0,99 / 2,13 / 5,36 km).
@@ -1059,6 +1220,220 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
     segregación en clase, hay que igualar los α.
   </li>
 </ol>
+
+<h3 id="s76">7.6 La corrección: subasta heteroscedástica (HEV)
+  <span class="etiqueta ok">implementado 2026-08-24</span></h3>
+
+<p>
+  El modelo correcto cuando la varianza de las pujas difiere entre alternativas
+  es el <strong>heteroskedastic extreme value</strong>, descrito en
+  <a href="#r-train">Train (2009)</a> §4.5 siguiendo a Bhat (1995). La
+  probabilidad de ganar es
+</p>
+
+<div class="ecuacion">
+  Q<sub>h</sub> = ∫ [ Π<sub>g≠h</sub>
+  exp(−exp(−(loc<sub>h</sub> − loc<sub>g</sub> + θ<sub>h</sub>w)/θ<sub>g</sub>)) ]
+  · exp(−exp(−w)) · exp(−w) dw
+</div>
+
+<div class="aviso alerta">
+  <h4>Lo que llama «heteroscedástico» el informe LaTeX no lo es</h4>
+  <p>
+    El bloque S-5 de <code>Suelo.tex</code> propone reponderar las pujas por
+    <code>β<sub>h</sub> = β·λ<sub>h</sub></code> <em>conservando una fórmula
+    cerrada</em>. El tell es justamente ése: Train dice de la integral de arriba
+    «<em>the integral does not take a closed form</em>».
+    <strong>Si tiene forma cerrada, no es heteroscedástico.</strong> Lo de S-5 es
+    una reparametrización, y por eso deja λ inerte — medido:
+    <code>max|ΔQ| = 2·10⁻⁸</code> entre λ = 0,01 y λ = 100.
+  </p>
+</div>
+
+<h4>Cómo se implementó</h4>
+
+<ul>
+  <li>
+    Las «alternativas» son los <strong>estratos que pujan por una parcela</strong>.
+    <code>θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</code> es la escala del ruido, y
+    <code>loc<sub>h</sub> = w<sub>hi</sub> + θ<sub>h</sub>·ln(H<sub>h</sub>)</code>
+    incluye el peso por número de postores: el máximo de <code>H<sub>h</sub></code>
+    Gumbel de escala θ es Gumbel corrido en <code>θ·ln(H<sub>h</sub>)</code>.
+    Con θ común eso reproduce exactamente la ec. (4.26) — es el test de reducción.
+  </li>
+  <li>
+    <strong>Cuadratura</strong>: regla del trapecio sobre <code>w ∈ [−10, 40]</code>
+    con 401 nodos. Se probó Gauss-Laguerre —la sustitución <code>t = e<sup>−w</sup></code>
+    lleva el peso exactamente a <code>e<sup>−t</sup></code>— y converge mal:
+    2·10⁻⁴ con 160 nodos contra 2·10⁻¹⁶ del trapecio con 401. El doble exponencial
+    no se parece a un polinomio en <em>t</em>.
+  </li>
+  <li>
+    <strong>Punto fijo</strong>: sin forma cerrada no se puede despejar ū dentro
+    del logaritmo, así que se itera sobre la ec. (5.1) directamente,
+    <code>ū<sub>h</sub> ← ū<sub>h</sub> + θ<sub>h</sub>·ln(Σ<sub>i</sub>S<sub>i</sub>Q<sub>hi</sub> / H<sub>h</sub>)</code>.
+    Con θ común el álgebra da exactamente el <code>F(ū)</code> de la ec. (5.4):
+    es la misma iteración, escrita sin necesitar la forma cerrada.
+  </li>
+  <li>
+    <strong>Arranca del equilibrio cerrado.</strong> Desde ū = 0 no converge: con
+    ingresos de millones las pujas difieren en ~2·10⁶ y <code>Q</code> satura en
+    [1, 0, 0], dejando al balanceo sin dirección.
+  </li>
+  <li>
+    <strong>Sin campo de configuración.</strong> El despacho lo deciden los datos:
+    λ uniformes ⇒ forma cerrada (exacta, y no mete error de cuadratura en la línea
+    base); λ distintos ⇒ HEV. Así no se puede elegir el modelo inválido.
+  </li>
+</ul>
+
+<h4>Qué hace λ ahora</h4>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>λ del estrato alto</th><th class="n">d_alto</th><th class="n">dispersión</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">iters</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0,60</td><td class="n">1,07</td><td class="n">0,62</td><td class="n">3,62</td><td class="n">6,21</td><td class="n">159</td></tr>
+    <tr><td>0,80</td><td class="n">1,11</td><td class="n">0,69</td><td class="n">3,57</td><td class="n">6,22</td><td class="n">89</td></tr>
+    <tr class="destacada"><td>1,00 <em>(forma cerrada)</em></td><td class="n">1,47</td><td class="n">1,05</td><td class="n">3,20</td><td class="n">6,23</td><td class="n">48</td></tr>
+    <tr><td>1,25</td><td class="n">5,21</td><td class="n">2,24</td><td class="n">1,48</td><td class="n">4,21</td><td class="n">25</td></tr>
+    <tr><td>1,60</td><td class="n">6,52</td><td class="n">1,57</td><td class="n">1,48</td><td class="n">2,91</td><td class="n">101</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  «dispersión» es la desviación estándar de la localización del estrato (km) — el
+  canal que la forma cerrada no podía mostrar.
+</p>
+
+<p>
+  La propiedad que justifica todo el cambio está fijada como test: bajo la forma
+  cerrada, mover λ y re-escalar (α, ρ) por 1/λ dan <code>max|ΔQ| = 0</code>
+  <em>exacto</em>; bajo HEV dejan de coincidir. <strong>λ queda
+  identificado.</strong> Sigue moviendo α<sub>eff</sub> y ρ<sub>eff</sub> además
+  del ruido, así que no es un parámetro limpio —para eso haría falta un modelo de
+  <em>elección</em> y no de subasta, ver <a href="#r-martinez1992">Martínez
+  (1992)</a>— pero ya no es una re-parametrización redundante.
+</p>
+
+<div class="aviso neutro">
+  <p>
+    <strong>Costo.</strong> La rama HEV converge en 25–160 iteraciones a ~9 ms
+    cada una, o sea 0,2–1,5 s en CPython y varias veces eso en Pyodide. Sólo se
+    paga cuando los λ difieren; el camino por defecto sigue usando la forma
+    cerrada y no cambió en nada.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s75b"><span class="num">7bis</span>Fidelidad a Martínez (2018)</h2>
+
+<p>
+  Cotejo directo contra los capítulos 4 y 5 del libro, que es la referencia que
+  el propio módulo declara. El resultado es que
+  <strong>la implementación es fiel en lo esencial</strong>.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>Libro</th><th>Código</th><th class="n">¿Fiel?</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Ec. <strong>(4.26)</strong> — subasta agregada<br>
+        <code>Q<sub>h/i</sub> = H<sub>h</sub>e<sup>βw<sub>hi</sub></sup> / Σ<sub>g</sub> H<sub>g</sub>e<sup>βw<sub>gi</sub></sup></code></td>
+      <td><code>_solve_fixed_point</code></td>
+      <td class="n">idéntica</td>
+    </tr>
+    <tr>
+      <td>Ec. <strong>(5.4)</strong> — punto fijo sobre
+        <code>ū* = u*/λ</code>, con <code>S<sub>i</sub></code> en el numerador y
+        <code>H<sub>g</sub></code> <em>sólo</em> en el denominador</td>
+      <td><code>F(ū)</code></td>
+      <td class="n">idéntica</td>
+    </tr>
+    <tr>
+      <td>Ec. <strong>(5.8)</strong> — precios como valor inclusivo</td>
+      <td><code>log_p / beta</code></td>
+      <td class="n">idéntica</td>
+    </tr>
+    <tr>
+      <td>«<em>normalize utilities setting one element of the vector at any
+        constant (e.g. zero), and iterate</em>»</td>
+      <td><code>u_new -= u_new[0]</code></td>
+      <td class="n">idéntica</td>
+    </tr>
+    <tr>
+      <td>Ec. <strong>(4.27)</strong> — precio <em>esperado</em>
+        <code>p*<sub>i</sub> = p<sub>i</sub> + γ/β</code></td>
+      <td>omite <code>γ/β</code></td>
+      <td class="n">constante en <em>i</em></td>
+    </tr>
+    <tr>
+      <td>Ec. (4.26) indexa la escala por ubicación (<code>b<sub>i</sub></code>)</td>
+      <td>β escalar</td>
+      <td class="n">sigue al cap. 5</td>
+    </tr>
+    <tr>
+      <td>Ec. (4.3) — el ruido de la puja queda con forma
+        <code>b<sub>h</sub> = λ<sub>h</sub>μ<sub>h</sub></code>, por estrato</td>
+      <td>HEV (<a href="#s76">§7.6</a>) cuando los λ difieren</td>
+      <td class="n">implementado</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  La constante de Euler <code>γ/β</code> se omite: es constante en <em>i</em>
+  —β es escalar— así que desplaza el nivel del precio, que ya es arbitrario, y no
+  toca el gradiente. Misma convención que el módulo de bienestar.
+</p>
+
+<p>
+  Sobre la desamenidad de densidad: el libro deja <code>f<sub>h</sub>(z<sub>i</sub>)</code>
+  como función general de atributos de la ubicación y <strong>no prescribe</strong>
+  una penalización por densidad ni da guía sobre su magnitud. Sí advierte que si
+  la amenidad depende de <em>quién</em> se localiza ahí, queda
+  <code>w<sub>h</sub>(z<sub>i</sub>(w))</code> y «<em>el equilibrio es un proceso
+  altamente complejo</em>». La implementación lo esquiva usando
+  <code>S<sub>i</sub></code>, que es exógena y está llena en equilibrio: una
+  instancia legítima dentro de lo que el libro permite.
+</p>
+
+<h3>La brecha: la cuarta condición de equilibrio</h3>
+
+<div class="aviso alerta">
+  <h4>Documentada, no implementada</h4>
+  <p>
+    El libro lista <strong>cuatro</strong> condiciones de equilibrio de corto
+    plazo. El módulo implementa las tres primeras. La cuarta, que es de
+    <a href="#r-alonso">Alonso (1964)</a>, dice:
+  </p>
+  <blockquote>
+    los precios del suelo en el borde de la ciudad deben igualar la renta
+    agrícola (R<sub>A</sub>)
+  </blockquote>
+  <p>
+    Y el libro es explícito en para qué sirve: «<em>estas múltiples soluciones se
+    reducen a una única imponiendo la cuarta condición de equilibrio</em>». Es
+    decir, es la que <strong>fija el nivel absoluto</strong> del precio.
+  </p>
+  <p>
+    El código en cambio normaliza <code>ū<sub>1</sub> = 0</code>, que es
+    arbitrario, y por eso la FIG. 04 sólo puede rotularse «precio salvo
+    constante». <strong>No cambia ninguna conclusión de este documento</strong>
+    —una constante aditiva no altera el gradiente ni la asignación— pero es la
+    diferencia real con el libro y la razón por la que el simulador no puede
+    mostrar un precio de suelo en pesos.
+  </p>
+  <p>
+    Implementarla requiere un parámetro nuevo (R<sub>A</sub>) y un paso de
+    ajuste tras el punto fijo. Es un cambio de modelo, no una corrección, y
+    queda pendiente para los autores.
+  </p>
+</div>
 
 <!-- ==================================================================== -->
 <h2 id="s8"><span class="num">8</span>Divergencia con el informe LaTeX</h2>

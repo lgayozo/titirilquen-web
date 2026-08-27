@@ -202,17 +202,7 @@ con `β` uniforme sobre la puja. Es inconsistente con `λ_h` heterogéneo (ver
 D‑08): como `f` es lineal en `α` y `ρ`, dividir por `λ_h` es **idéntico** a
 re-escalar `(α_h, ρ_h)` por `1/λ_h`, y de paso escala el ruido de ese estrato.
 `λ` no queda identificado — su efecto es un artefacto, no un efecto‑ingreso.
-**No hay corrección implementada**; hubo un segundo solver que decía corregirlo
-y solo dejaba `λ` inerte, y se eliminó (D‑08).
-**Oferta `S`** (`land_use/supply.py`, ver [D‑13](DISCREPANCIES.md)): perfil
-**determinista** redondeado a `Σ S = Σ H` (CBD excluido), con **forma
-parametrizable** (`forma`): `normal` (campana, default), `uniforme`,
-`exponencial` (`S ∝ e^{−d/σ}`), `meseta` (núcleo plano con borde neto),
-`bimodal` (dos picos a ±`sep`) y `valle` (densidad creciente con la distancia —
-triángulo invertido). El ancho/pendiente es `σ = oferta_sigma_frac ·
-min(c, N−1−c)` (default 0.5 ⇒ σ≈L/4) y `forma_param` fija `sep` (solo bimodal;
-en 1D un anillo coincide con bimodal). Permite estudiar cómo cambia el
-equilibrio de asignación según la geometría urbana.
+**Corregido el 2026-08-24:** la subasta heteroscedástica (HEV, Train §4.5 / Bhat 1995) está implementada en `land_use/hev.py` y `solve_subasta` la usa automáticamente cuando los λ difieren. Con eso λ queda identificado. Sigue entrando también por `f_h/λ_h`, así que no es un parámetro limpio: para eso haría falta un modelo de elección y no de subasta.
 
 > El Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente y propone
 > un método alternativo. **Ese método no está implementado en Titirilquen**, ni
