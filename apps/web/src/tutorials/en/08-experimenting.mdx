@@ -28,10 +28,10 @@ tagline: Presets, comparison, suggested activities
 <LoadScenario id="parking_alto">Parking 10k</LoadScenario>
 
 ### B. The logit artifact
-1. Under Land use (the app always runs logit), vary the high stratum's λ (0.5 → 3).
-2. Watch the spatial allocation change — even though λ is just the marginal utility of income.
-3. Lower it to 0.5 and the high stratum **moves to the periphery** (8.5 km from the CBD): the opposite of what any income story predicts. Measured: between λ = 0.8 and λ = 0.95 it crosses the whole city.
-4. Why was the λ dependence an inconsistency rather than a real income effect? (Hint: Land-use tutorial, correction section.)
+1. Under Land use, vary the high stratum's λ (0.5 → 3). Once it differs from the other two, the core switches to the heteroskedastic auction on its own.
+2. Watch the allocation change — even though λ is the marginal utility of income.
+3. Measured: at λ = 0.5 the high stratum sits **1.06 km** from the CBD and at λ = 3 it sits **6.59 km** away. So *raising* it pushes them out.
+4. Is that an income effect? No: λ enters through α_eff = α/λ, so lowering it makes the stratum value access more. In an auction the price cancels between bidders, so λ cannot act through price sensitivity. (Hint: Land-use tutorial, correction section.)
 
 <LoadScenario id="lambda_alto_05">High λ = 0.5</LoadScenario>
 <LoadScenario id="lambda_alto_3">High λ = 3</LoadScenario>

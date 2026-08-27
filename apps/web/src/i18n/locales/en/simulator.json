@@ -417,7 +417,7 @@
     "forma_valle": "Valley",
     "forma_hint_valle": "Little space at the center, lots at the periphery: density grows with distance (inverted triangle).",
     "oferta_sigma_na": "Not applicable to the uniform shape (flat density).",
-    "lambda_artifact_logit": "⚠ It moves the allocation, but it is not an income effect: income y is absorbed and reallocates nobody. Because the bid is divided by λ, moving λ_h is EXACTLY equivalent to rescaling α_h and ρ_h by 1/λ_h and, at the same time, the choice noise (~1/βλ) — three things you cannot separate. That is why lowering it pushes the high stratum out to the periphery, abruptly. This is a known model limitation and no correction is implemented: read the effect as an artifact, not as a result.",
+    "lambda_artifact_logit": "With λ differing across strata the core switches on its own to the heteroskedastic auction (HEV, Train §4.5): there λ IS identified, because besides the bid it moves the noise scale. Still mind this: it enters through two channels at once — lower λ raises α_eff = α/λ, so the stratum values access more and moves toward the CBD. It is not price sensitivity: in an auction the price cancels between bidders. Income y, by contrast, reallocates nobody.",
     "y_na": "Does not affect the allocation: income enters only as a per-stratum constant and is absorbed into the equilibrium utility. Sorting is governed by α and ρ.",
     "intro": "Bid-rent theory predicts that households with the highest valuation of accessibility to the center outbid the rest for parcels near the CBD, pushing lower-valuation groups toward the periphery.",
     "distribution_meta": "bid-rent · 3 strata",

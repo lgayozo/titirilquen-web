@@ -74,7 +74,9 @@ $$
 This is an **identity**, not an approximation: moving $\lambda_h$ is exactly the same as rescaling that stratum's preferences by $1/\lambda_h$. And since $\beta$ is uniform, it also rescales its choice noise to $1/(\beta\lambda_h)$. All three move together and cannot be separated: in this model $\lambda$ is **not an independent economic parameter**, it is a redundant reparameterisation of $\alpha$ and $\rho$.
 
 <Callout type="warn">
-**The simulator does not correct this, and no correction is implemented.** The core did have a second solver claiming to fix it, and it did not — it left $\lambda$ completely **inert** rather than identified — so it was removed. A real fix requires the noise to scale per stratum, which means changing the fixed-point solver, not just the bid. It is pending work.
+**This holds as long as the $\lambda_h$ are equal to each other.** As soon as they differ, the identity above breaks and the core switches models on its own: it uses the **heteroskedastic auction** (HEV), the correct formulation when bid variance differs across bidders (Train, §4.5). There $\lambda$ also moves the noise scale, which rescaling preferences does not touch, and that is what identifies it.
+
+It is not a full fix: $\lambda$ still enters through $f_h/\lambda_h$ too, so it moves preferences and dispersion at once. For it to act purely through price sensitivity you would need a **choice** model rather than an auction — in an auction every bidder for a plot pays the same, so the price cancels.
 </Callout>
 
 <Callout type="info">

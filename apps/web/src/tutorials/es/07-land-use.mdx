@@ -74,7 +74,9 @@ $$
 Es una **identidad**, no una aproximación: mover $\lambda_h$ es exactamente lo mismo que re-escalar las preferencias de ese estrato por $1/\lambda_h$. Y como $\beta$ es uniforme, de paso re-escala su ruido de elección a $1/(\beta\lambda_h)$. Las tres cosas se mueven juntas y no hay forma de separarlas: $\lambda$ **no es un parámetro económico independiente** en este modelo, es una re-parametrización redundante de $\alpha$ y $\rho$.
 
 <Callout type="warn">
-**El simulador no corrige esto y no hay corrección implementada.** Hubo en el núcleo un segundo solver que decía corregirlo y no lo hacía —dejaba $\lambda$ completamente **inerte** en vez de identificarlo—, así que se eliminó. Corregirlo de verdad exige que el ruido escale por estrato, lo que implica cambiar el solver del punto fijo, no solo la puja. Es trabajo pendiente.
+**Esto vale mientras los $\lambda_h$ sean iguales entre sí.** En cuanto difieren, la identidad de arriba deja de valer y el núcleo cambia solo de modelo: usa la **subasta heteroscedástica** (HEV), que es la formulación correcta cuando la varianza de las pujas difiere entre postores (Train, §4.5). Ahí $\lambda$ mueve además la escala del ruido, que la re-escala de preferencias no toca, y por eso queda identificado.
+
+No lo resuelve del todo: $\lambda$ sigue entrando también por $f_h/\lambda_h$, así que mueve preferencias y dispersión a la vez. Para que actúe puramente por sensibilidad al precio haría falta un modelo de **elección** y no de subasta — en una subasta todos los postores de una parcela pagan lo mismo, así que el precio se cancela.
 </Callout>
 
 <Callout type="info">

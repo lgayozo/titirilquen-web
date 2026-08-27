@@ -417,7 +417,7 @@
     "forma_valle": "Valle",
     "forma_hint_valle": "Poco espacio en el centro, mucho en la periferia: la densidad crece con la distancia (triángulo invertido).",
     "oferta_sigma_na": "No aplica a la forma uniforme (densidad plana).",
-    "lambda_artifact_logit": "⚠ Mueve la asignación, pero no es un efecto-ingreso: el ingreso y se absorbe y no reasigna a nadie. Como la puja se divide por λ, mover λ_h equivale EXACTAMENTE a re-escalar α_h y ρ_h por 1/λ_h y, a la vez, el ruido de elección (~1/βλ) — tres cosas que no se pueden separar. Por eso bajarlo expulsa al estrato alto a la periferia, de golpe. Es una limitación conocida del modelo y no hay corrección implementada: lee el efecto como artefacto, no como resultado.",
+    "lambda_artifact_logit": "Con λ distintos entre estratos el núcleo pasa solo a la subasta heteroscedástica (HEV, Train §4.5): ahí λ SÍ está identificado, porque además de la puja mueve la escala del ruido. Ojo igual: sigue entrando por dos canales a la vez — baja λ y sube α_ef = α/λ, así que el estrato valora más el acceso y se acerca al CBD. No es sensibilidad al precio: en una subasta el precio se cancela entre postores. El ingreso y, en cambio, no reasigna a nadie.",
     "y_na": "No afecta la asignación: el ingreso entra solo como constante por estrato y se absorbe en la utilidad de equilibrio. El ordenamiento lo gobiernan α y ρ.",
     "intro": "La teoría del bid-rent predice que los hogares con mayor valoración de la accesibilidad al centro superan en subasta a los demás por parcelas cercanas al CBD, empujando a los grupos de menor valoración hacia la periferia.",
     "distribution_meta": "bid-rent · 3 estratos",
