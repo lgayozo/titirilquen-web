@@ -13,7 +13,7 @@ from numpy.typing import NDArray
 
 from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.config import LandUseConfig
-from titirilquen_core.land_use.equilibrium import LandUseResult, solve_logit
+from titirilquen_core.land_use.equilibrium import LandUseResult, solve_subasta
 from titirilquen_core.land_use.supply import generar_oferta
 
 V_REF_KMH = 30.0
@@ -122,7 +122,7 @@ class LandUseCity:
         if T.shape != (n_strata, self.L):
             raise ValueError(f"T shape {T.shape} != ({n_strata}, {self.L})")
 
-        self.result = solve_logit(
+        self.result = solve_subasta(
             H=H,
             S=self.S,
             y=y,

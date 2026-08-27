@@ -323,3 +323,90 @@ def test_asignacion_no_se_estanca_con_Q_degenerado() -> None:
             conteo[h - 1] += 1
     np.testing.assert_array_equal(conteo, H)  # cuotas exactas
     assert sum(len(p) for p in parcelas) == int(S.sum())  # capacidad exacta
+
+
+# ---------------------------------------------------------------------------
+# El gradiente de renta de Alonso
+# ---------------------------------------------------------------------------
+#
+# Agregado el 2026-08-24. Es la propiedad central del modelo monocentrico —el
+# suelo accesible vale mas— y no estaba vigilada por ningun test. La auditoria
+# creia medirla, pero lo hacia en `p[CBD]`, la UNICA celda sin oferta: ahi
+# `S = 0`, asi que `T = 0` y `dens = 0` y la amenidad es maxima por
+# construccion, en el unico punto donde nadie puede vivir. Con eso reportaba
+# +0,50 («Alonso funciona») mientras el gradiente entre celdas habitadas era
+# -0,48. El signo se daba vuelta y nadie lo veia.
+
+
+def _gradiente_alonso(cfg: LandUseConfig, *, L: int = 201, largo_km: float = 20.0) -> float:
+    """(p_centro - p_periferia)/rango, sobre celdas CON OFERTA.
+
+    Positivo = renta de Alonso: el suelo central vale mas. Se excluye el CBD a
+    proposito; ver el comentario de arriba.
+    """
+    CBD = L // 2
+    city = LandUseCity.build(
+        L=L, CBD=CBD, cfg=cfg, ancho_celda_km=largo_km / L,
+        rng=np.random.default_rng(42),
+    )
+    assert city.result is not None
+    p = city.result.p
+    habitadas = np.flatnonzero(np.asarray(city.S) > 0)
+    rango = float(np.nanmax(p) - np.nanmin(p))
+    if rango <= 1e-12:
+        return 0.0
+    # La celda con oferta mas cercana al CBD, contra el promedio de los bordes.
+    centro = habitadas[int(np.argmin(np.abs(habitadas - CBD)))]
+    periferia = float(np.nanmean([p[habitadas[0]], p[habitadas[-1]]]))
+    return (float(p[centro]) - periferia) / rango
+
+
+def test_el_suelo_central_vale_mas_que_el_periferico() -> None:
+    """La renta de Alonso, con la calibracion por defecto.
+
+    Si esto falla, el simulador esta ensenando lo contrario de lo que dice
+    ensenar: que vivir lejos del centro cuesta mas caro.
+    """
+    grad = _gradiente_alonso(LandUseConfig())
+    assert grad > 0, (
+        f"gradiente de renta {grad:+.2f}: el suelo con oferta mas caro esta en la "
+        "periferia, no en el centro. Revisar el balance alpha/rho — rho*densidad "
+        "no puede dominar a alpha*T en el grueso de la ciudad."
+    )
+
+
+def test_el_gradiente_de_alonso_sobrevive_al_cambio_de_escala() -> None:
+    """El termino de densidad escala con la poblacion y el de acceso no.
+
+    `rho*dens` crece con la poblacion mientras `alpha*T` no, asi que un rho fijo
+    puede tener el signo correcto en una ciudad y el contrario en otra mas
+    grande. Este test fija que la calibracion aguante las tres escalas que la
+    app ofrece — es la propiedad que un solo escenario no detecta.
+    """
+    for suma_h in (36_000, 99_900, 144_000):
+        h = suma_h // 3
+        cfg = LandUseConfig(H_por_estrato=(h, h, suma_h - 2 * h))
+        grad = _gradiente_alonso(cfg)
+        assert grad > 0, f"SumaH={suma_h:,}: gradiente {grad:+.2f}, Alonso invertido"
+
+
+def test_subir_rho_aplana_el_gradiente_sin_invertirlo_en_la_base() -> None:
+    """Guard del propio test: rho tiene que MOVER el gradiente.
+
+    Si no lo moviera, los dos tests de arriba pasarian sin ejercer nada. La
+    direccion tambien importa: mas penalizacion a la densidad castiga las celdas
+    centrales, que son las densas, asi que aplana la renta de Alonso.
+    """
+    def con_rho(rho: float) -> float:
+        base = LandUseConfig()
+        return _gradiente_alonso(
+            LandUseConfig(
+                H_por_estrato=base.H_por_estrato,
+                estratos=tuple(
+                    LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=rho)
+                    for e in base.estratos
+                ),
+            )
+        )
+
+    assert con_rho(0.0) > con_rho(0.005) > con_rho(0.02)

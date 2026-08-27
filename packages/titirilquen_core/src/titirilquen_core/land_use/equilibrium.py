@@ -28,6 +28,8 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.special import logsumexp
 
+from titirilquen_core.land_use.hev import e_max_hev, q_hev
+
 
 @dataclass(frozen=True)
 class LandUseResult:
@@ -195,15 +197,123 @@ def solve_logit(
     como tal; ver `scripts/auditoria_suelo.py` §4 y docs/AUDITORIA_USO_SUELO.md
     (AU-06).
 
-    **No hay corrección implementada.** Hubo un segundo solver que decía
-    corregirlo y no lo hacía: metía `λ` solo como `λ_h·y_h`, una constante por
-    estrato que el punto fijo absorbe, dejando `λ` completamente inerte (Q
-    idéntica con λ de 0.01 a 100). No corregía el artefacto: lo borraba. Se
-    eliminó por eso. Cualquier corrección futura tendría que escalar el ruido
-    por estrato, lo que exige cambiar este solver —`_solve_fixed_point` toma un
-    β escalar—, no solo el `score`.
+    **Corregido, pero no acá.** La corrección es la subasta heteroscedástica
+    (`hev.py`), que sí escala el ruido por estrato y con eso identifica λ;
+    `solve_subasta` la usa sola cuando los λ difieren. Esta función conserva la
+    forma cerrada porque con λ uniformes es EXACTA y mucho más rápida.
+
+    Hubo antes un segundo solver que decía corregirlo y no lo hacía: metía `λ`
+    solo como `λ_h·y_h`, una constante por estrato que el punto fijo absorbe,
+    dejando `λ` completamente inerte (Q idéntica con λ de 0.01 a 100). No
+    corregía el artefacto: lo borraba. Se eliminó por eso.
     """
     H_arr = np.asarray(H, dtype=float)
     S_arr = np.asarray(S, dtype=float).reshape(-1)
     score = y[:, None] + _f_div_lambda(T, S_arr, alpha, rho, lambda_h, ancho_celda_km)
     return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)
+
+
+def _solve_hev(
+    score: NDArray[np.float64],
+    H_arr: NDArray[np.float64],
+    S_arr: NDArray[np.float64],
+    theta: NDArray[np.float64],
+    tol: float,
+    max_iter: int,
+) -> LandUseResult:
+    """Punto fijo de la subasta HETEROSCEDÁSTICA (ver `hev.py`).
+
+    Sin forma cerrada para `Q` no se puede despejar `ū` dentro del logaritmo como
+    hace `_solve_fixed_point`, así que se itera directamente sobre la condición
+    de equilibrio de la ec. (5.1) —«todo hogar se localiza»—:
+
+        Σ_i S_i · Q_h/i(ū) = H_h
+
+    con el balanceo
+
+        ū_h ← ū_h + θ_h · ln( Σ_i S_i Q_h/i(ū) / H_h )
+
+    Subir `ū_h` baja la puja `w = score − ū` y con ella `Q`, así que el signo
+    reduce el exceso. **No es un esquema nuevo**: en el caso homoscedástico
+    `θ_h = 1/β` y el álgebra da exactamente `ū ← F(ū)` de `_solve_fixed_point`
+    —verificado en `test_hev_reduce_al_logit_cuando_lambda_es_uniforme`—, así que
+    es la misma iteración escrita de una forma que no necesita la forma cerrada.
+
+    **Arranca del equilibrio cerrado, no de cero.** Con ingresos de millones, en
+    `ū = 0` las pujas de los estratos difieren en ~2·10⁶ y `Q` satura en
+    `[1, 0, 0]`: el balanceo pierde toda dirección y avanza a paso fijo hacia un
+    objetivo que está seis órdenes de magnitud más lejos. La forma cerrada da en
+    una corrida un `ū` del orden correcto —es exacta si los λ son uniformes y una
+    buena aproximación si no—, y desde ahí el HEV sólo corrige.
+    """
+    n_estratos = len(H_arr)
+    con_oferta = S_arr > 0
+    log_H = np.log(H_arr)
+
+    # Warm start: el equilibrio homoscedástico con la escala media.
+    beta_medio = float(np.mean(1.0 / theta))
+    u_bar = _solve_fixed_point(score, H_arr, S_arr, beta_medio, tol, max_iter).u
+    converged = False
+    iterations = max_iter
+    Q = np.zeros((n_estratos, len(S_arr)))
+
+    for it in range(max_iter):
+        loc = score - u_bar[:, None] + (theta * log_H)[:, None]
+        Q = q_hev(loc, theta)
+        Q[:, ~con_oferta] = 0.0
+        colocados = Q @ S_arr
+        # Un estrato sin colocar a nadie no da información de dirección; se lo
+        # deja quieto en vez de mandar `ū` a −∞.
+        paso = np.where(colocados > 0, theta * np.log(np.maximum(colocados, 1e-300) / H_arr), 0.0)
+        u_new = u_bar + paso
+        u_new -= u_new[0]
+        delta = float(np.linalg.norm(u_new - u_bar))
+        u_bar = u_new
+        if delta < tol:
+            converged = True
+            iterations = it
+            break
+
+    loc = score - u_bar[:, None] + (theta * log_H)[:, None]
+    Q = q_hev(loc, theta)
+    Q[:, ~con_oferta] = 0.0
+    p = e_max_hev(loc, theta)
+    return LandUseResult(u=u_bar, p=p, Q=Q, converged=converged, iterations=iterations)
+
+
+def solve_subasta(
+    *,
+    H: NDArray[np.int_],
+    S: NDArray[np.int_],
+    y: NDArray[np.float64],
+    T: NDArray[np.float64],
+    alpha: NDArray[np.float64],
+    rho: NDArray[np.float64],
+    lambda_h: NDArray[np.float64],
+    beta: float = 1.0,
+    tol: float = 1e-8,
+    max_iter: int = 10000,
+    ancho_celda_km: float = 1.0,
+) -> LandUseResult:
+    """Resuelve el equilibrio con el modelo de subasta que corresponda a los `λ`.
+
+    **El despacho lo deciden los datos, no un campo de configuración.** Hubo un
+    campo `solver` y se eliminó porque ofrecía elegir un método que decía
+    corregir el artefacto de λ y no lo hacía (AU-07); reponerlo sería volver a
+    poner al usuario a elegir entre un modelo válido y uno inválido:
+
+    * `λ_h` todos iguales ⇒ las pujas son homoscedásticas y la forma cerrada de
+      la ec. (4.26) es **exacta**. Se usa esa: es más rápida y no mete error de
+      cuadratura en la línea base.
+    * `λ_h` distintos ⇒ el ruido de la puja tiene escala `1/(β·λ_h)`, distinta
+      por estrato, y la forma cerrada deja de ser válida. Se usa HEV.
+
+    Así nunca se puede correr el modelo equivocado para la configuración dada.
+    """
+    H_arr = np.asarray(H, dtype=float)
+    S_arr = np.asarray(S, dtype=float).reshape(-1)
+    score = y[:, None] + _f_div_lambda(T, S_arr, alpha, rho, lambda_h, ancho_celda_km)
+    lam = np.asarray(lambda_h, dtype=float)
+    if float(np.ptp(lam)) <= 0.0:
+        return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)
+    return _solve_hev(score, H_arr, S_arr, 1.0 / (beta * lam), tol, max_iter)

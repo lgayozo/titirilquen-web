@@ -6,14 +6,16 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from titirilquen_core.land_use.supply import FormaOferta
 
-"""El módulo tiene un **único solver**: `solve_logit` (β uniforme sobre la puja
-`y + f/λ`). Con λ_h heterogéneo, mover λ re-escala las preferencias y el ruido
-de ese estrato a la vez — limitación conocida (D-08), no un efecto de
-comportamiento. No hay corrección implementada.
+"""El modelo de subasta lo elige `solve_subasta` **según los datos**, no un campo
+de configuración: con `λ_h` uniformes usa la forma cerrada de la ec. (4.26) de
+Martínez, que ahí es exacta, y con `λ_h` heterogéneos usa HEV (`hev.py`), que es
+el modelo correcto cuando la varianza de las pujas difiere entre estratos.
 
-Existió un campo `solver` con un segundo método presentado como la corrección:
-no lo era (dejaba λ inerte). Se eliminó junto con el campo. Un escenario
-guardado que todavía lo traiga **no se migra**: falla al importar con un error
+Existió un campo `solver` que ofrecía elegir, y uno de los métodos que ofrecía
+decía corregir el artefacto de λ sin hacerlo (dejaba λ inerte). Se eliminó junto
+con el campo, y no se repuso al implementar HEV justamente para que no se pueda
+elegir el modelo inválido para la configuración dada. Un escenario guardado que
+todavía traiga `solver` **no se migra**: falla al importar con un error
 explícito, decisión tomada al romper la compatibilidad en agosto de 2026."""
 
 
@@ -35,7 +37,7 @@ class LandUseStratumConfig(BaseModel):
         description="Utilidad marginal del ingreso (λ_h)",
     )
     alpha: float = Field(default=6.0, description="Peso del tiempo de viaje (utiles/min)")
-    rho: float = Field(default=0.1, description="Penalización de densidad (utiles por hogar/km)")
+    rho: float = Field(default=0.0025, description="Penalización de densidad (utiles por hogar/km)")
 
 
 class LandUseConfig(BaseModel):
@@ -59,15 +61,30 @@ class LandUseConfig(BaseModel):
     # contrario de la verdad: `alpha` y `rho` son las dos palancas del bid-rent.
     # El `description` de acá existe para que el JSDoc generado lo diga.
     #
-    # Calibración en unidades físicas (D-26), equivalente a la antigua
-    # (α=1.3/1.2/1.1 por celda, ρ=1 por hogar/celda) en la grilla de referencia
-    # del frontend (201 celdas / 20 km): α' ≈ α·(celdas/km)/2 ≈ α·5, ρ' = ρ·Δx ≈ 0.1.
-    # Ingresos en $/mes (D-27).
+    # Calibración en unidades físicas (D-26). Ingresos en $/mes (D-27).
+    #
+    # ρ = 0,0025 y no 0,1 (2026-08-24). El valor anterior venía de convertir
+    # ρ=1 por hogar/celda sobre la grilla de 201 celdas, y esa conversión era
+    # fiel pero partía de un punto ya roto: la ciudad del `Suelo.tex` original
+    # tiene 1001 celdas, y el balance entre los dos términos de la amenidad
+    #
+    #     razón ≈ α·(L/2)²·1,253 / (ρ·N)
+    #
+    # va con el CUADRADO del número de celdas. Pasar de 1001 a 201 lo dividió
+    # por 25 sin que nadie rebalanceara ρ, así que `ρ·dens` terminó dominando a
+    # `α·T` en el 80% de la ciudad y el suelo más caro quedó en la PERIFERIA:
+    # el modelo de Alonso al revés. Medido: gradiente de renta −0,73 con ρ=0,1
+    # y +0,81 con ρ=0,0025, que es el valor que reproduce la razón ≈ 6 del
+    # documento original. Ver `test_el_suelo_central_vale_mas_que_el_periferico`.
+    #
+    # Cambiar ρ NO reasigna a nadie: es común a los tres estratos y se absorbe
+    # en ū (AU-05), así que las distancias medias por estrato quedan idénticas
+    # y sólo cambia el perfil de precios.
     estratos: tuple[LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig] = Field(
         default=(
-            LandUseStratumConfig(y=3_500_000.0, alpha=6.5, rho=0.1),
-            LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=0.1),
-            LandUseStratumConfig(y=500_000.0, alpha=5.5, rho=0.1),
+            LandUseStratumConfig(y=3_500_000.0, alpha=6.5, rho=0.0025),
+            LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=0.0025),
+            LandUseStratumConfig(y=500_000.0, alpha=5.5, rho=0.0025),
         ),
         description=(
             "Parámetros de puja de los tres estratos (alto, medio, bajo). Son la "

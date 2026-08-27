@@ -12,8 +12,14 @@ Métricas reportadas
             mismo ponderador. Separa «se mudó» (cambia dist) de «se desparramó»
             (cambia disp) — necesario para leer el artefacto de lambda (AU-06).
 - `theil`   segregación de Theil entre celdas (0 = mezcla perfecta).
-- `grad_p`  gradiente de precio: (p_CBD - p_periferia)/|p| relativo; en el modelo
-            Alonso-Muth-Mills debe ser POSITIVO (el suelo central vale más).
+- `grad_p`  gradiente de precio: (p_centro - p_periferia)/rango, sobre celdas
+            CON OFERTA; en el modelo Alonso-Muth-Mills debe ser POSITIVO (el
+            suelo central vale más). El CBD se EXCLUYE: es la única celda sin
+            oferta, así que ahí T=0 y dens=0 y la amenidad es máxima por
+            construcción, en el único punto donde nadie puede vivir. Medirlo ahí
+            —lo que esta auditoría hacía hasta el 2026-08-24— reportaba +0,50
+            («Alonso funciona») mientras el gradiente entre celdas habitadas era
+            -0,48: el signo se daba vuelta y AU-01/AU-05 eran falsos positivos.
 - `dens_pk` densidad máxima por celda (hab/km).
 - `iters`   iteraciones del punto fijo (diagnóstico de convergencia).
 
@@ -35,14 +41,18 @@ LARGO_KM = 20.0
 SUMA_H = 36000
 H_BASE = (int(SUMA_H * 0.10), int(SUMA_H * 0.40), int(SUMA_H * 0.50))
 
+#: Se lee del schema en vez de copiarlo: la copia se desfasó justamente acá
+#: cuando se recalibró rho el 2026-08-24.
+RHO_BASE = LandUseStratumConfig(y=1.0).rho
+
 
 def base_cfg(**kw) -> LandUseConfig:
     cfg = LandUseConfig(
         H_por_estrato=H_BASE,
         estratos=(
-            LandUseStratumConfig(y=3_500_000.0, alpha=6.5, rho=0.1),
-            LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=0.1),
-            LandUseStratumConfig(y=500_000.0, alpha=5.5, rho=0.1),
+            LandUseStratumConfig(y=3_500_000.0, alpha=6.5, rho=RHO_BASE),
+            LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=RHO_BASE),
+            LandUseStratumConfig(y=500_000.0, alpha=5.5, rho=RHO_BASE),
         ),
         beta=1.0,
         forma="normal",
@@ -98,11 +108,14 @@ def resolver(cfg: LandUseConfig) -> dict:
                 if q > 0 and pi[h] > 0:
                     theil += (n_i / tot) * q * np.log(q / pi[h])
 
-    # Gradiente de precio centro-periferia, normalizado por el rango.
-    p_cbd = float(p[CBD]) if np.isfinite(p[CBD]) else float("nan")
-    p_per = float(np.nanmean([p[0], p[-1]]))
+    # Gradiente de precio centro-periferia, normalizado por el rango, sobre
+    # celdas CON OFERTA (ver la cabecera: el CBD se excluye a propósito).
+    habitadas = np.flatnonzero(np.asarray(ciudad.S) > 0)
+    centro = int(habitadas[int(np.argmin(np.abs(habitadas - CBD)))])
+    p_c = float(p[centro]) if np.isfinite(p[centro]) else float("nan")
+    p_per = float(np.nanmean([p[habitadas[0]], p[habitadas[-1]]]))
     rango = float(np.nanmax(p) - np.nanmin(p))
-    grad = (p_cbd - p_per) / rango if rango > 1e-12 else 0.0
+    grad = (p_c - p_per) / rango if rango > 1e-12 else 0.0
 
     return {
         "dist": dist_h,
@@ -142,7 +155,7 @@ def barrer(titulo: str, casos: list[tuple[str, LandUseConfig]]) -> None:
 
 def _estratos(alphas=None, rhos=None, lambdas=None, ys=None):
     a = alphas or [6.5, 6.0, 5.5]
-    r = rhos or [0.1, 0.1, 0.1]
+    r = rhos or [RHO_BASE] * 3
     lam = lambdas or [1.0, 1.0, 1.0]
     y = ys or [3_500_000.0, 1_500_000.0, 500_000.0]
     return tuple(
@@ -161,13 +174,16 @@ def equivalencia_lambda() -> None:
         q_pref = np.asarray(
             resolver_q(
                 base_cfg(
-                    estratos=_estratos(alphas=[6.5 / lam, 6.0, 5.5], rhos=[0.1 / lam, 0.1, 0.1])
+                    estratos=_estratos(
+                        alphas=[6.5 / lam, 6.0, 5.5],
+                        rhos=[RHO_BASE / lam, RHO_BASE, RHO_BASE],
+                    )
                 )
             )
         )
         d = float(np.abs(q_lam - q_pref).max())
         print(
-            f"  {lam:>7} {6.5 / lam:>9.2f} {0.1 / lam:>8.3f} {d:>11.3e}  "
+            f"  {lam:>7} {6.5 / lam:>9.2f} {RHO_BASE / lam:>8.4f} {d:>11.3e}  "
             f"{'IDENTICO' if d < 1e-12 else 'DIFIERE'}"
         )
 
@@ -192,10 +208,11 @@ def main() -> None:
     barrer(
         "2. rho (penalización de densidad)",
         [
-            ("base 0.1", base_cfg()),
+            (f"base {RHO_BASE}", base_cfg()),
             ("todos 0 (sin penal.)", base_cfg(estratos=_estratos(rhos=[0, 0, 0]))),
-            ("todos 0.5", base_cfg(estratos=_estratos(rhos=[0.5, 0.5, 0.5]))),
-            ("alto 0.5, resto 0", base_cfg(estratos=_estratos(rhos=[0.5, 0, 0]))),
+            ("todos 0.02", base_cfg(estratos=_estratos(rhos=[0.02, 0.02, 0.02]))),
+            ("todos 0.1 (la vieja)", base_cfg(estratos=_estratos(rhos=[0.1, 0.1, 0.1]))),
+            ("alto 0.1, resto 0", base_cfg(estratos=_estratos(rhos=[0.1, 0, 0]))),
         ],
     )
 

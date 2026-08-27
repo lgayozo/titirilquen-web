@@ -18,6 +18,7 @@ from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 from titirilquen_core.land_use.equilibrium import (
     LandUseResult,
     solve_logit,
+    solve_subasta,
 )
 from titirilquen_core.land_use.supply import generar_oferta_normal
 
@@ -29,4 +30,5 @@ __all__ = [
     "asignar_hogares_simple",
     "generar_oferta_normal",
     "solve_logit",
+    "solve_subasta",
 ]
