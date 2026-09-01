@@ -281,6 +281,9 @@ def s7_sensibilidad_escala() -> None:
     print("\n### 7. SENSIBILIDAD (II): escalar TODOS los lambda por k")
     print("  Si lambda fuera solo una eleccion de unidades, esto no deberia")
     print("  cambiar nada. Se mide contra k=1.\n")
+    print("  OJO: hasta D-31 esta tabla daba hasta 2,4e-1 y se concluia que NO")
+    print("  era invariante. Lo era el bug: la rama cerrada usaba b = beta en")
+    print("  vez de b = beta*lambda.\n")
     base = ciudad((1.0, 1.0, 1.0))
     print(f"{'k':>8}{'max|dQ| vs k=1':>18}{'d_alto':>9}{'d_medio':>9}{'d_bajo':>9}{'iters':>8}")
     print("-" * 62)
@@ -293,10 +296,16 @@ def s7_sensibilidad_escala() -> None:
             f"{c.result.iterations:>8}"
         )
     print()
-    print("  NO es invariante, y no deberia serlo: escalar lambda solo no es un")
-    print("  cambio de unidades de la utilidad, porque f y el ingreso y no")
-    print("  escalan con el. Ademas, con lambda UNIFORME el despacho va a la")
-    print("  forma cerrada, asi que esta tabla mide el logit, no el HEV.")
+    print("  SI es invariante, y debe serlo. El mecanismo, con b = beta*lambda:")
+    print("    - la puja que varia entre parcelas es f/lambda: se encoge por k;")
+    print("    - la precision del ruido b = beta*lambda: crece por k;")
+    print("    - el cociente senal/ruido, (f/lambda)*b = f*beta, NO depende de k.")
+    print("  El unico otro termino es el ingreso y, constante por estrato, que el")
+    print("  punto fijo absorbe en u. Asi que la asignacion no se mueve.")
+    print()
+    print("  Con lambda UNIFORME el despacho va a la forma cerrada, asi que esta")
+    print("  tabla mide el logit. Que de invariante es lo que confirma que las")
+    print("  dos ramas ya leen beta en el mismo espacio.")
 
 
 def s8_sensibilidad_poblacion() -> None:

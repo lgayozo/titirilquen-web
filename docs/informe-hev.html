@@ -700,28 +700,54 @@
 <table>
   <thead><tr><th class="simb">k</th><th class="simb n">max|ΔQ| vs k=1</th><th class="simb n">d_alto</th><th class="simb n">d_medio</th><th class="simb n">d_bajo</th><th class="n">iters</th></tr></thead>
   <tbody>
-    <tr><td>0,50</td><td class="n">2,4·10⁻¹</td><td class="n">1,22</td><td class="n">3,20</td><td class="n">6,48</td><td class="n">98</td></tr>
-    <tr><td>0,80</td><td class="n">7,5·10⁻²</td><td class="n">1,37</td><td class="n">3,19</td><td class="n">6,34</td><td class="n">60</td></tr>
+    <tr><td>0,50</td><td class="n">8,3·10⁻¹⁰</td><td class="n">1,47</td><td class="n">3,20</td><td class="n">6,23</td><td class="n">49</td></tr>
+    <tr><td>0,80</td><td class="n">1,6·10⁻¹⁰</td><td class="n">1,47</td><td class="n">3,20</td><td class="n">6,23</td><td class="n">48</td></tr>
     <tr class="destacada"><td>1,00</td><td class="n">0</td><td class="n">1,47</td><td class="n">3,20</td><td class="n">6,23</td><td class="n">48</td></tr>
-    <tr><td>1,25</td><td class="n">6,7·10⁻²</td><td class="n">1,58</td><td class="n">3,22</td><td class="n">6,10</td><td class="n">38</td></tr>
-    <tr><td>2,00</td><td class="n">1,7·10⁻¹</td><td class="n">1,86</td><td class="n">3,32</td><td class="n">5,72</td><td class="n">23</td></tr>
+    <tr><td>1,25</td><td class="n">9,4·10⁻¹⁰</td><td class="n">1,47</td><td class="n">3,20</td><td class="n">6,23</td><td class="n">47</td></tr>
+    <tr><td>2,00</td><td class="n">2,7·10⁻⁹</td><td class="n">1,47</td><td class="n">3,20</td><td class="n">6,23</td><td class="n">46</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  <strong>No es invariante, y no debería serlo.</strong> Escalar λ solo no es un
-  cambio de unidades: <code>f</code> y el ingreso <code>y</code> no escalan con
-  él, así que <code>U = λ(y−p) + f + ε</code> se transforma en un modelo
-  distinto, no en el mismo modelo con otra vara.
+  <strong>Sí es invariante</strong> —lo que queda es la tolerancia del punto
+  fijo— <strong>y debe serlo.</strong> El mecanismo, con
+  <code>b = β·λ</code>:
+</p>
+
+<ul>
+  <li>la parte de la puja que varía entre parcelas es <code>f/λ</code>: se encoge por <em>k</em>;</li>
+  <li>la precisión del ruido <code>b = β·λ</code>: crece por <em>k</em>;</li>
+  <li>el cociente señal/ruido, <code>(f/λ)·b = f·β</code>, <strong>no depende de <em>k</em></strong>.</li>
+</ul>
+
+<p>
+  El único otro término es el ingreso <code>y</code>, constante por estrato, que
+  el punto fijo absorbe en <code>ū</code>. Así que la asignación no se mueve —
+  las tres columnas de distancia dan 1,47 · 3,20 · 6,23 en las cinco filas.
 </p>
 
 <div class="aviso alerta">
+  <h4>Esta tabla decía lo contrario, y el que estaba mal era el código</h4>
   <p>
-    Ojo con leer esta tabla como una sensibilidad del HEV: con λ <strong>uniforme</strong>
-    el despacho va a la forma cerrada, así que lo que mide es el logit. Es, de
-    hecho, el artefacto de D-08 apareciendo otra vez — escalar los tres λ por
-    <em>k</em> es re-escalar las tres <code>(α, ρ)</code> por <code>1/k</code>.
+    Hasta el 2026-09-01 la columna del medio llegaba a <code>2,4·10⁻¹</code> y
+    esta sección concluía «no es invariante, y no debería serlo», razonando sobre
+    la ec. (4.2) que <code>f</code> y <code>y</code> no escalan con λ. El
+    razonamiento miraba la utilidad; la subasta compara <em>pujas en dinero</em>,
+    y ahí el ruido escala junto con la señal. Lo que no era invariante era
+    <strong>D-31</strong>: la rama cerrada usaba <code>b = β</code> en vez de
+    <code>b = β·λ</code>, así que encogía la señal sin encoger el ruido.
+  </p>
+  <p>
+    Es, de lejos, el efecto observable más grande de esa corrección: pasó de
+    mover la asignación <strong>0,28</strong> a moverla <strong>10⁻⁹</strong>.
+  </p>
+  <p>
+    Sigue valiendo la advertencia de lectura: con λ <strong>uniforme</strong> el
+    despacho va a la forma cerrada, así que esta tabla mide el logit, no el HEV.
+    Y la identidad de D-08 —escalar los tres λ por <em>k</em> es re-escalar las
+    tres <code>(α, ρ)</code> por <code>1/k</code>— sigue valiendo para
+    <code>solve_logit</code>, que conserva <code>b = β</code> fijo a propósito.
   </p>
 </div>
 
