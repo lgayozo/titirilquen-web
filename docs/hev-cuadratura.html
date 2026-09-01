@@ -211,7 +211,7 @@
 <div class="indice">
   <strong style="font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Recorrido</strong>
   <ol>
-    <li><a href="#s1">Tres postores y un lote</a> — qué es θ, y dónde está λ</li>
+    <li><a href="#s1">Tres postores y un lote</a> — qué es θ, dónde está λ, qué es β</li>
     <li><a href="#s2">La probabilidad es una frecuencia</a> — el sorteo, a mano</li>
     <li><a href="#s3">Por qué no hay fórmula</a> — dónde se rompe el logit</li>
     <li><a href="#s4">El truco: condicionar en el ruido del candidato</a> — de dónde sale la integral</li>
@@ -306,11 +306,62 @@
 </ul>
 
 <p>
-  La tabla del panel muestra las cuatro entradas a la izquierda y, separadas por
-  un filete, las tres <strong>salidas</strong>:
+  Y falta uno, que aparece en la ec. (1a) y <strong>no es por estrato</strong>:
+</p>
+
+<ul>
+  <li>
+    <strong><span class="mono">β</span> — cuánto pesa el azar en toda la
+    subasta.</strong> Es la precisión del ruido en <em>útiles</em>, común a los
+    tres estratos, y por eso su control está aparte de la tabla. Subirlo aprieta
+    las tres campanas a la vez: la subasta se vuelve más determinística y gana
+    más seguido el que más puja.
+  </li>
+</ul>
+
+<p>
+  Con el preset «λ uniforme», pasar β de 1 a 2 <strong>no mueve ninguna
+  puja</strong> —las tres <span class="mono">loc</span> quedan en 2,00 · 1,20 ·
+  0,30— y sin embargo la probabilidad de ganar del Alto salta de
+  <strong>61,3 % a 81,0 %</strong>. Ése es β en estado puro: no cambia quién
+  ofrece más, cambia cuánto importa ofrecer más.
+</p>
+
+<div class="aviso neutro">
+  <h4>β y λ comparten la escala del ruido, pero sólo λ toca la puja</h4>
+  <p>
+    En la ec. (1a) los dos entran <strong>multiplicados</strong>: lo único que
+    determina el ruido es el producto <span class="mono">β·λ<sub>h</sub></span>.
+    Se comprueba en el panel: con β = 2 y λ = 0,5 en los tres estratos, los θ
+    vuelven a valer 1,00 exactamente igual que en la base — pero
+    <span class="mono">f/λ</span> se duplicó y las pujas bajaron a 1,00 · 0,40 ·
+    −0,40. <strong>Mismo ruido, distintas pujas.</strong>
+  </p>
+  <p>
+    Ésa es toda la diferencia entre los dos: β actúa <em>sólo</em> por el canal
+    del ruido, λ actúa por los dos. Y hay una asimetría más, que se ve en la
+    tabla: <span class="mono">β</span> es un dial global y
+    <span class="mono">λ<sub>h</sub></span> es por estrato, así que β nunca puede
+    volver heteroscedástica una subasta que no lo era.
+  </p>
+  <p>
+    <strong>Una simplificación declarada:</strong> Martínez tiene un
+    <span class="mono">μ<sub>h</sub></span> <em>por estrato</em> y el núcleo lo
+    colapsa a un solo <span class="mono">β</span>. La precisión en dinero, que es
+    la que ve la subasta porque la puja está en dinero, es entonces
+    <span class="mono">b<sub>h</sub> = β·λ<sub>h</sub></span> — la ec. (4.3) del
+    libro. Confundir esos dos espacios hacía saltar el despacho del núcleo; está
+    contado en <a href="informe-hev.html#s4">informe-hev.html §4</a> y en D-31.
+  </p>
+</div>
+
+<p>
+  La tabla del panel muestra las cuatro entradas <em>por estrato</em> a la
+  izquierda y, separadas por un filete, las tres <strong>salidas</strong>:
   <span class="mono">f/λ</span>, <span class="mono">θ</span> y
   <span class="mono">loc</span>. Movés algo a la izquierda y mirás qué se mueve a
-  la derecha.
+  la derecha. <span class="mono">β</span> va abajo, fuera de la tabla, porque es
+  uno solo para los tres.
 </p>
 
 <div class="aviso neutro">
@@ -507,6 +558,70 @@
     <span class="mono">0,1057</span>: está hecho con todo rigor en
     <a href="../sandbox/hev-paso-a-paso/informe.html#s7">La subasta resuelta a
     mano, §7</a>.
+  </p>
+</div>
+
+<h3>1.2 β es el «parámetro de escala» de los textos de transporte</h3>
+
+<p>
+  Es el mismo objeto: el <span class="mono">μ<sub>h</sub></span> de Martínez y la
+  escala del logit que en la literatura de transporte se escribe
+  <span class="mono">P<sub>i</sub> = e<sup>μV<sub>i</sub></sup> / Σ e<sup>μV<sub>j</sub></sup></span>.
+  Vale la pena decirlo porque arrastra dos cosas conocidas — y una de ellas acá
+  <strong>no</strong> se cumple.
+</p>
+<p>
+  <strong>El nombre engaña.</strong> «Escala» es la convención, pero μ se comporta
+  como una <em>precisión</em>: multiplica la utilidad, y subirlo baja el ruido. La
+  escala Gumbel de verdad es su recíproco. Misma trampa que θ.
+</p>
+<p>
+  <strong>La no-identificación clásica sí se traslada</strong>, y se puede
+  comprobar en el panel: con <span class="mono">H = 10/60/120</span>,
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb">β</th><th class="simb">y</th><th class="simb">f</th><th class="n">Q</th></tr>
+  <tr><td>1</td><td>3 · 2 · 1</td><td>−1 · −0,8 · −0,7</td><td class="n">17,0 · 45,8 · 37,2 %</td></tr>
+  <tr class="destacada"><td>2</td><td>1,5 · 1 · 0,5</td><td>−0,5 · −0,4 · −0,35</td><td class="n">17,0 · 45,8 · 37,2 %</td></tr>
+  <tr><td>2</td><td>3 · 2 · 1</td><td>−1 · −0,8 · −0,7</td><td class="n">38,3 · 46,4 · 15,3 %</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Duplicar β y partir al medio <em>todas</em> las utilidades da idéntico. Sólo el
+  producto β·(utilidades) entra en el modelo, que es la razón de que en la
+  literatura μ se normalice a 1 — y de que el default del núcleo sea
+  <code>beta = 1.0</code>.
+</p>
+
+<div class="aviso alerta">
+  <h4>Pero acá esa normalización no es gratis</h4>
+  <p>
+    En un modelo de elección corriente las unidades de utilidad son arbitrarias,
+    así que fijar μ = 1 no cuesta nada. Esta subasta está denominada en
+    <strong>pesos</strong>, y la compensación de la tabla exige escalar también
+    <span class="mono">y</span> — que es un ingreso <em>medido</em>, 3.500.000
+    $/mes en la configuración del núcleo. No se le puede dividir el sueldo a la
+    gente para compensar un cambio de β.
+  </p>
+  <p>Se ve en el exponente del logit, con <span class="mono">b = β·λ</span>:</p>
+  <pre><code>b·(y + f/λ + θ·ln H − ū − p)  =  βλ·y  +  β·f  +  ln H  −  βλ(ū + p)
+                                 └────┘    └───┘
+                                  y y f entran por separado</code></pre>
+  <p>
+    Para dejarlo invariante hay que mover los dos. Como <span class="mono">y</span>
+    es dato, <strong>β queda anclado por las unidades monetarias</strong>:
+    <code>beta = 1</code> no es una normalización libre sino una afirmación de
+    calibración —dice que la precisión del ruido vale 1 útil⁻¹, dados los útiles
+    en que está medido <span class="mono">f</span>—. Por eso mover β cambia
+    resultados de verdad; la sensibilidad está medida en
+    <a href="informe-hev.html#s8">informe-hev.html §8.3</a>.
+  </p>
+  <p>
+    (El término <span class="mono">θ·ln H</span> no rompe la invariancia porque
+    <span class="mono">b·θ·ln H = ln H/λ</span>, que no depende de β. Por eso la
+    tabla da idéntico aun con <span class="mono">H</span> heterogéneo.)
   </p>
 </div>
 
@@ -772,17 +887,27 @@
   estrato que puja bajo, el único escenario en que gana es que le haya salido un
   ruido grande, así que su masa se va a la derecha. Con el preset «pujas
   separadas» y el estrato bajo como candidato, la joroba se planta en
-  <span class="mono">w ≈ 14</span>: recién ahí su puja alcanza a las otras dos.
+  <span class="mono">w ≈ 4,5</span>: recién por ahí su puja alcanza a las otras
+  dos.
 </p>
 <p>
-  Y ahí está el punto. A esa altura la densidad <span class="mono">φ</span> ya se
-  agotó —vale del orden de <span class="mono">10⁻⁶</span>—, así que la joroba
-  cubre un área de <span class="mono">4·10⁻⁸</span> aunque en el dibujo se vea
-  alta: <strong>el eje vertical está autoescalado</strong>, y con esos números
-  tiene que estarlo. Es exactamente la definición de un evento improbable: no es
+  Y ahí está el punto. A esa altura la densidad <span class="mono">φ</span> ya
+  cayó a <span class="mono">1,1·10⁻²</span> —un octavo de su pico—, así que la
+  joroba cubre un área de sólo <span class="mono">2,0·10⁻³</span> aunque en el
+  dibujo se vea alta: <strong>el eje vertical está autoescalado</strong>, y con
+  esos números tiene que estarlo. Es la definición de un evento improbable: no es
   imposible que el estrato bajo gane, requiere una conjunción de ruidos que casi
-  nunca ocurre. Ese corrimiento hacia la derecha es la razón de que la grilla
-  llegue hasta 40 y no hasta 5.
+  nunca ocurre.
+</p>
+<p>
+  Y se puede empujar más, que es lo que justifica el rango de la grilla. Bajando
+  el <span class="mono">f</span> del estrato bajo hasta −8 —el piso del slider—
+  su puja cae a <span class="mono">loc = −3</span>, la joroba se corre a
+  <span class="mono">w = 7,5</span> y el área baja a
+  <span class="mono">1,0·10⁻⁴</span>. Con λ más separados se corre todavía más.
+  <strong>Ese corrimiento es la razón de que la grilla llegue hasta 40 y no hasta
+  5</strong>; cuánto exactamente hace falta está medido en la
+  <a href="#s6">§6</a>, que es donde vive la cuenta del truncamiento.
 </p>
 
 <!-- ==================================================================== -->
