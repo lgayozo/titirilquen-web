@@ -25,3 +25,8 @@ apps/web/e2e/fixtures
 # ahora sería un diff enorme sin ganancia.
 *.mdx
 *.html
+
+# Salida de sandbox/hev-paso-a-paso/pasos.py (`json.dumps(..., indent=1)`), igual
+# que docs/_datos_informe: reformatearla la deja sucia hasta la proxima corrida
+# del script, que la revierte.
+sandbox/*/salida

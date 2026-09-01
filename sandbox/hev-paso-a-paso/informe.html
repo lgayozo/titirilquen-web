@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — La subasta resuelta a mano, en el caso más simple</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --alerta: #8a5a12; --frio: #2f6690;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 4px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  pre.consola { border-left-color: var(--frio); font-size: 12px; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 680px;
+  }
+  .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
+  blockquote {
+    margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
+    color: var(--ink-2); font-style: italic; max-width: 72ch;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  th.simb {
+    /* Las griegas son sensibles a la caja: sigma no es Sigma y delta no es
+       Delta, que en estos documentos significa otra cosa. Un encabezado con
+       simbolos se escribe como se escribe. */
+    text-transform: none; letter-spacing: .02em; font-size: 11.5px;
+  }
+
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso.neutro { border-left-color: var(--muted); }
+  .aviso.alerta { border-left-color: var(--alerta); }
+  .aviso p { margin: 4px 0; }
+  .aviso h4 { margin: 0 0 2px; font-size: 14px; }
+  figure { margin: 22px 0 8px; }
+  figure img { width: 100%; display: block; border: 1px solid var(--rule); }
+  figcaption {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; color: var(--muted);
+    margin-top: 6px; max-width: 78ch; line-height: 1.5;
+  }
+  figcaption .n {
+    font-weight: 700; color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
+    margin-right: 8px; font-size: 11px;
+  }
+  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
+  .indice ol { margin: 4px 0; }
+  .indice a { color: var(--ink); text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  .refs { font-size: 13.5px; }
+  .refs li { margin: 6px 0; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, figure { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Side project</div>
+  <h1>La subasta resuelta a mano, en el caso más simple</h1>
+  <p class="bajada">
+    Dos estratos, cinco parcelas. El equilibrio de la subasta heteroscedástica
+    reducido a <strong>una ecuación escalar en una incógnita</strong>, resuelto
+    paso a paso, dibujado, y verificado contra tres cosas independientes: un
+    algoritmo distinto, el núcleo de producción, y la subasta simulada hogar por
+    hogar.
+  </p>
+  <p class="meta">
+    Código: <code>sandbox/hev-paso-a-paso/</code> ·
+    Correr: <code>uv run python pasos.py &amp;&amp; uv run python figuras.py</code><br>
+    Todos los números de este documento salen de <code>salida/traza.json</code>,
+    que produce el script. Las figuras no calculan nada.
+  </p>
+</header>
+
+<div class="indice">
+  <strong style="font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Recorrido</strong>
+  <ol>
+    <li><a href="#s1">El enunciado</a> — dos estratos, cinco parcelas</li>
+    <li><a href="#s2">Cuántas incógnitas hay de verdad</a> — la reducción a un escalar</li>
+    <li><a href="#s3">La función de exceso</a> — la curva cuya raíz es el equilibrio, y <strong>dónde se resuelve el HEV</strong></li>
+    <li><a href="#s4">El algoritmo, iteración por iteración</a></li>
+    <li><a href="#s5">Tres verificaciones independientes</a></li>
+    <li><a href="#s6">El resultado</a> — asignación y precios</li>
+    <li><a href="#s7">Por qué λ no significaba nada, y ahora sí</a></li>
+    <li><a href="#s8">Qué prueba esto y qué no</a></li>
+  </ol>
+</div>
+
+<p>
+  Este documento existe porque «el modelo converge» no es una demostración de
+  nada. El módulo de uso de suelo resuelve un punto fijo sobre doscientas
+  parcelas y tres estratos, y lo único que se ve del lado de afuera es un mapa
+  que parece razonable. Si el algoritmo estuviera convergiendo al lugar
+  equivocado, el mapa también parecería razonable.
+</p>
+<p>
+  La forma de salir de eso es achicar el problema hasta que quepa entero en una
+  hoja, resolverlo por métodos que no compartan supuestos, y comprobar que dan
+  el mismo número. Eso es lo que hay acá.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s1"><span class="num">1</span>El enunciado</h2>
+
+<p>
+  Dos estratos —Alto y Bajo— pujan por cinco parcelas alineadas a 1, 2, 3, 4 y
+  5 km del centro, a 10 minutos por kilómetro. Nadie <em>elige</em> dónde vivir:
+  cada parcela se la lleva quien más puja, y las pujas llevan un término
+  aleatorio.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>parcela</th><th class="n">P1</th><th class="n">P2</th><th class="n">P3</th><th class="n">P4</th><th class="n">P5</th></tr>
+  <tr><td>viviendas <code>S_i</code></td><td class="n">10</td><td class="n">20</td><td class="n">30</td><td class="n">20</td><td class="n">20</td></tr>
+  <tr><td>minutos al CBD <code>T_i</code></td><td class="n">10</td><td class="n">20</td><td class="n">30</td><td class="n">40</td><td class="n">50</td></tr>
+</table>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>estrato</th><th class="simb n">H_h</th><th class="simb n">y_h</th><th class="simb n">α</th><th class="simb n">ρ</th><th class="simb n">λ</th><th class="simb n">θ = 1/(βλ)</th></tr>
+  <tr><td><strong style="color:#b4532a">Alto</strong></td><td class="n">40</td><td class="n">3</td><td class="n">0,060</td><td class="n">0,020</td><td class="n">1</td><td class="n">1</td></tr>
+  <tr><td><strong style="color:#2f6690">Bajo</strong></td><td class="n">60</td><td class="n">1</td><td class="n">0,030</td><td class="n">0,005</td><td class="n">1</td><td class="n">1</td></tr>
+</table>
+</div>
+
+<p>
+  Los valores están elegidos para poder leerlos, no para ser realistas: todo en
+  unidades de utilidad directamente. Con ingresos de verdad las pujas difieren
+  en 10⁶ y no se puede ver nada en un gráfico.
+</p>
+
+<div class="aviso">
+  <h4>La restricción que el modelo impone sobre los datos</h4>
+  <p>
+    La oferta total (100 viviendas) iguala a la demanda total (100 hogares), y
+    <strong>tiene que ser así</strong>. El equilibrio pide que cada estrato
+    coloque exactamente sus hogares, <code>Σ_i S_i·Q_{h/i} = H_h</code>. Sumando
+    sobre <code>h</code>, y como las columnas de <code>Q</code> suman 1, queda
+    <code>Σ_i S_i = Σ_h H_h</code>. Si los datos no cumplen eso, el sistema no
+    tiene solución — no es una elección del caso de juguete.
+  </p>
+</div>
+
+<p>
+  La puja determinística es <code>w_hi = y_h + f_h(i)/λ_h</code>, con
+  <code>f_h(i) = −α_h·T_i − ρ_h·dens_i</code>. Con estos datos da:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb">puja <code>w_hi</code></th><th class="n">P1</th><th class="n">P2</th><th class="n">P3</th><th class="n">P4</th><th class="n">P5</th></tr>
+  <tr><td><strong style="color:#b4532a">Alto</strong></td><td class="n">+2,2000</td><td class="n">+1,4000</td><td class="n">+0,6000</td><td class="n">+0,2000</td><td class="n">−0,4000</td></tr>
+  <tr><td><strong style="color:#2f6690">Bajo</strong></td><td class="n">+0,6500</td><td class="n">+0,3000</td><td class="n">−0,0500</td><td class="n">−0,3000</td><td class="n">−0,6000</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Pendiente media por parcela: Alto −0,6500 · Bajo −0,3125.
+</p>
+
+<p>
+  El estrato alto puja más fuerte cerca del centro <em>y su puja cae más rápido
+  con la distancia</em>. Eso es el gradiente de Alonso, y conviene notar que está
+  metido en los <strong>datos</strong> —en que α y ρ del alto son mayores—, no
+  impuesto en la solución. Si el resultado sale con el alto cerca del centro, no
+  es porque el solver lo haya decidido.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s2"><span class="num">2</span>Cuántas incógnitas hay de verdad</h2>
+
+<p>
+  El problema parece tener dos incógnitas, <code>ū_Alto</code> y
+  <code>ū_Bajo</code>, y dos ecuaciones de equilibrio. <strong>Tiene una de cada
+  una</strong>, y verlo es lo que hace que todo lo demás se pueda dibujar.
+</p>
+
+<h3>2.1 La utilidad está determinada salvo una constante</h3>
+
+<p>
+  Sumarle 5 a las dos utilidades no cambia ninguna probabilidad, porque
+  <code>ū</code> entra únicamente por diferencias. Medido:
+</p>
+
+<pre class="consola"><code>max |Q(ū) − Q(ū+5)| = 2.22e-16</code></pre>
+
+<p>
+  Es decir, cero en doble precisión. Por eso el núcleo normaliza con
+  <code>u_new -= u_new[0]</code>. Queda <strong>un</strong> grado de libertad:
+  <code>δ = ū_Bajo − ū_Alto</code>.
+</p>
+
+<h3>2.2 De las dos ecuaciones, sólo una es independiente</h3>
+
+<p>
+  La suma de los hogares colocados es <em>siempre</em> la oferta total, valga lo
+  que valga <code>ū</code>. Así que la segunda ecuación no dice nada que la
+  primera no diga ya:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">δ</th><th class="n">coloca Alto</th><th class="n">coloca Bajo</th><th class="n">suma</th></tr>
+  <tr><td class="n">−4,0</td><td class="n">2,625909</td><td class="n">97,374091</td><td class="n">100,0000000000</td></tr>
+  <tr><td class="n">−1,0</td><td class="n">33,802763</td><td class="n">66,197237</td><td class="n">100,0000000000</td></tr>
+  <tr><td class="n">0,0</td><td class="n">57,198135</td><td class="n">42,801865</td><td class="n">100,0000000000</td></tr>
+  <tr><td class="n">+1,0</td><td class="n">77,899313</td><td class="n">22,100687</td><td class="n">100,0000000000</td></tr>
+  <tr><td class="n">+4,0</td><td class="n">98,568815</td><td class="n">1,431185</td><td class="n">100,0000000000</td></tr>
+</table>
+</div>
+
+<p>
+  La última columna es 100 exacto en todos los casos. <strong>Una ecuación
+  escalar, una incógnita.</strong> Eso es la subasta entera.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s3"><span class="num">3</span>La función de exceso</h2>
+
+<p>
+  Definimos <code>g(δ)</code> = (hogares que coloca el Alto) − 40. Su raíz es el
+  equilibrio, por construcción. Y como el problema quedó en una dimensión, se
+  puede dibujar entera:
+</p>
+
+<figure>
+  <img src="salida/fig1-exceso.png" alt="La función de exceso g(δ), su raíz, y las iteradas del algoritmo caminando hacia ella">
+  <figcaption>
+    <span class="n">Fig. 01</span>
+    La función de exceso sobre todo el rango, con las iteradas del algoritmo del
+    núcleo superpuestas. El primer paso se come casi toda la distancia; el zoom
+    muestra las siguientes. La raíz está en δ* = −0,722849.
+  </figcaption>
+</figure>
+
+<h3>3.1 Dónde se resuelve el logit heteroscedástico</h3>
+
+<p>
+  Conviene detenerse acá, porque es la pregunta que este documento se saltea si
+  uno no la hace: <em>¿en qué momento se resuelve el HEV?</em> La respuesta es
+  contraintuitiva — <strong>en ninguno en particular</strong>. No hay un «paso
+  del HEV». El HEV es la operación <strong>más interna</strong>, y se resuelve
+  entero cada vez que se pide un valor de <code>g</code>.
+</p>
+<p>
+  La cadena de llamadas es literalmente esta:
+</p>
+
+<pre><code>exceso(δ)                 ← un punto de la curva de arriba
+ └─ colocados(ū)          ← Σ_i S_i·Q_{h/i}
+     └─ q_hev(loc, θ)     ← ACÁ. El logit heteroscedástico entero, una vez.
+         └─ _PESO @ z     ← la cuadratura: 401 nodos</code></pre>
+
+<p>
+  O sea que <strong>cada punto de la Fig. 01 es un logit heteroscedástico
+  completo</strong>, con su integral resuelta por cuadratura sobre los 401 nodos,
+  para las cinco parcelas y los dos estratos. Contado con un contador puesto
+  sobre <code>q_hev</code> (<code>cuenta.py</code>):
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th></th><th class="n">HEV resueltos</th><th class="n">evaluaciones del integrando</th></tr>
+  <tr><td>una sola evaluación de <code>g(δ)</code></td><td class="n">1</td><td class="n">4.010</td></tr>
+  <tr><td>el balanceo entero (8 iteraciones)</td><td class="n">17</td><td class="n">68.170</td></tr>
+  <tr><td>la bisección (53 iteraciones)</td><td class="n">55</td><td class="n">220.550</td></tr>
+  <tr class="destacada"><td>la curva dibujada en la Fig. 01</td><td class="n">802</td><td class="n">3.216.020</td></tr>
+</table>
+</div>
+
+<div class="aviso">
+  <h4>Dos cosas distintas que se llaman «resolver el logit heteroscedástico»</h4>
+  <p>
+    Buena parte de la confusión viene de que la frase significa dos cosas, y este
+    documento trata sólo la segunda:
+  </p>
+  <ol>
+    <li>
+      <strong>Resolver el modelo de elección.</strong> Dadas las localizaciones
+      de las pujas y las escalas θ, ¿con qué probabilidad gana cada estrato? No
+      tiene forma cerrada, y se resuelve por <strong>cuadratura</strong>. Es lo
+      que hace <code>q_hev</code> y lo que explica
+      <a href="../../docs/hev-cuadratura.html">La cuadratura del HEV, en imágenes</a>.
+      Acá entra como caja negra.
+    </li>
+    <li>
+      <strong>Resolver el equilibrio.</strong> ¿Cuál es el <code>ū</code> que hace
+      que cada estrato coloque exactamente sus hogares? Eso <em>sí</em> es un
+      problema de punto fijo, y es lo que resuelven las §4 y §5.
+    </li>
+  </ol>
+  <p>
+    El (1) no es iterativo: es una integral, y con 401 nodos da el resultado a
+    precisión de máquina de una sola pasada. El (2) sí es iterativo, y llama al
+    (1) en cada paso. <strong>Anidados, no en secuencia.</strong>
+  </p>
+</div>
+
+<p>
+  Vale la pena ver el orden de magnitud: dibujar esa curva costó tres millones de
+  evaluaciones del integrando, y <em>resolver</em> el equilibrio costó 68.170 —
+  cuarenta y siete veces menos. El gráfico es mucho más caro que la respuesta.
+  Por eso el núcleo no tabula nada: va directo a la raíz.
+</p>
+
+<p>
+  Volviendo a la curva, dos cosas que deja ver de una:
+</p>
+<ul>
+  <li>
+    <strong>Es monótona creciente</strong> — verificado sobre 25 puntos en
+    <code>[−6, 6]</code>. Subir <code>ū_Bajo</code> baja la puja del estrato bajo,
+    así que el alto gana más. Al ser monótona, <strong>la raíz es única</strong>:
+    no hay equilibrios múltiples que discutir, y cualquier método que la busque
+    tiene que llegar al mismo lugar.
+  </li>
+  <li>
+    <strong>Se satura en los dos extremos</strong>, en −40 y en +60. Son los dos
+    casos degenerados: el alto no coloca a nadie, o se lleva las 100 viviendas.
+    Entre medio, la curva cruza el cero una sola vez.
+  </li>
+</ul>
+
+<!-- ==================================================================== -->
+<h2 id="s4"><span class="num">4</span>El algoritmo, iteración por iteración</h2>
+
+<p>
+  El núcleo no busca la raíz con un método genérico: usa un balanceo
+  multiplicativo sobre la condición de equilibrio,
+</p>
+
+<div class="ecuacion">
+  ū<sub>h</sub> ← ū<sub>h</sub> + θ<sub>h</sub> · ln( colocados<sub>h</sub> / H<sub>h</sub> )
+  <span class="id">(5.1)</span>
+</div>
+
+<p>
+  La lectura es directa: si un estrato coloca de más, su <code>ū</code> sube, su
+  puja baja y coloca menos. Lo que no es obvio es <strong>por qué el logaritmo</strong>:
+  es lo que hace que el paso tenga el tamaño correcto en vez de ser una constante
+  arbitraria. En el caso homoscedástico este esquema es <em>exactamente</em> el
+  punto fijo de la forma cerrada, escrito de una manera que no necesita despejar
+  <code>ū</code> de adentro del logaritmo — que es justo lo que no se puede hacer
+  cuando no hay forma cerrada.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="n">it</th><th class="simb n">δ</th><th class="n">coloca Alto</th><th class="n">exceso</th><th class="n">paso</th></tr>
+  <tr><td class="n">0</td><td class="n">+0,00000000</td><td class="n">57,1981</td><td class="n">+1,72e+01</td><td class="n">−6,95e−01</td></tr>
+  <tr><td class="n">1</td><td class="n">−0,69540474</td><td class="n">40,6349</td><td class="n">+6,35e−01</td><td class="n">−2,64e−02</td></tr>
+  <tr><td class="n">2</td><td class="n">−0,72179162</td><td class="n">40,0244</td><td class="n">+2,44e−02</td><td class="n">−1,02e−03</td></tr>
+  <tr><td class="n">3</td><td class="n">−0,72280868</td><td class="n">40,0009</td><td class="n">+9,40e−04</td><td class="n">−3,92e−05</td></tr>
+  <tr><td class="n">4</td><td class="n">−0,72284784</td><td class="n">40,0000</td><td class="n">+3,62e−05</td><td class="n">−1,51e−06</td></tr>
+  <tr><td class="n">5</td><td class="n">−0,72284935</td><td class="n">40,0000</td><td class="n">+1,39e−06</td><td class="n">−5,81e−08</td></tr>
+  <tr><td class="n">6</td><td class="n">−0,72284941</td><td class="n">40,0000</td><td class="n">+5,37e−08</td><td class="n">−2,24e−09</td></tr>
+  <tr><td class="n">7</td><td class="n">−0,72284941</td><td class="n">40,0000</td><td class="n">+2,07e−09</td><td class="n">−8,62e−11</td></tr>
+  <tr class="destacada"><td class="n">8</td><td class="n">−0,72284941</td><td class="n">40,0000</td><td class="n">+7,96e−11</td><td class="n">—</td></tr>
+</table>
+</div>
+
+<p>
+  El error se divide por unas 26 en cada iteración: <strong>convergencia lineal
+  con factor ~0,038</strong>. Ocho iteraciones para llegar a 10⁻¹¹. Fijate que
+  la columna «coloca Alto» ya dice 40,0000 desde la iteración 3 — a partir de ahí
+  lo único que se está afinando son decimales que ningún resultado del modelo va
+  a mostrar. La tolerancia estricta no es para el resultado: es para que el punto
+  fijo exterior del modelo acoplado no herede ruido.
+</p>
+
+<figure>
+  <img src="salida/fig2-convergencia.png" alt="Convergencia del balanceo comparada con la bisección">
+  <figcaption>
+    <span class="n">Fig. 02</span>
+    El balanceo (8 iteraciones) contra la bisección (53). La diferencia es que el
+    balanceo usa la estructura del modelo —sabe en qué dirección y cuánto mover
+    <code>ū</code>— y la bisección sólo sabe leer un signo.
+  </figcaption>
+</figure>
+
+<div class="aviso neutro">
+  <h4>Una diferencia con el núcleo, a propósito</h4>
+  <p>
+    Este demo arranca de <code>ū = 0</code>. El núcleo arranca del equilibrio de
+    la forma cerrada, porque con ingresos de millones las pujas difieren en 10⁶,
+    <code>Q</code> satura en <code>[1, 0]</code> y el balanceo se queda sin
+    dirección: el logaritmo de la razón es enorme y constante. Acá los números
+    son chicos y no hace falta — lo que muestra, de paso, que el warm start es
+    una <strong>necesidad numérica y no parte del modelo</strong>.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s5"><span class="num">5</span>Tres verificaciones independientes</h2>
+
+<p>
+  Que el balanceo converja sólo dice que encontró un punto fijo <em>suyo</em>.
+  Para saber que ese punto es el equilibrio hacen falta métodos que no compartan
+  nada con él.
+</p>
+
+<h3>5.1 Un algoritmo sin nada en común</h3>
+
+<p>
+  Bisección pura sobre <code>g</code>. No usa el gradiente, ni el logaritmo del
+  paso, ni la estructura del modelo: sólo que <code>g</code> cambia de signo.
+  Está implementada a mano —partir el intervalo al medio 53 veces— para que se
+  vea que no hay ningún truco adentro.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>método</th><th class="simb n">δ*</th><th class="n">iteraciones</th></tr>
+  <tr><td>balanceo (el del núcleo)</td><td class="n">−0,72284941344892</td><td class="n">8</td></tr>
+  <tr><td>bisección</td><td class="n">−0,72284941345237</td><td class="n">53</td></tr>
+  <tr class="destacada"><td>diferencia</td><td class="n">3,45·10⁻¹²</td><td class="n">—</td></tr>
+</table>
+</div>
+
+<p>
+  Coinciden en once decimales. El punto fijo del balanceo <strong>es</strong> la
+  raíz de la ecuación de equilibrio, no un artefacto del esquema iterativo.
+</p>
+
+<h3>5.2 Contra el núcleo de producción</h3>
+
+<p>
+  El demo reimplementa la matemática desde cero y <strong>no importa nada</strong>
+  de <code>titirilquen_core</code> — si lo hiciera, estaría demostrando que el
+  núcleo es consistente consigo mismo, que no prueba nada. El paso 6 es el único
+  que importa el núcleo, y sólo para comparar:
+</p>
+
+<pre class="consola"><code>δ* demo   = -0.722849413452
+δ* núcleo = -0.722849413363
+diferencia    = 8.96e-11
+
+max |Q_demo - Q_núcleo| = 2.24e-11</code></pre>
+
+<p>
+  Las dos implementaciones coinciden hasta la tolerancia del solver
+  (<code>1e-10</code> acá, <code>1e-8</code> en el núcleo). Dos personas
+  escribiendo el mismo modelo desde el papel llegan al mismo número.
+</p>
+
+<h3>5.3 Contra la subasta simulada de verdad</h3>
+
+<p>
+  La verificación más fuerte, porque no usa ninguna fórmula. Se corren 100.000
+  subastas: en cada una, <em>cada uno de los 40 hogares del estrato alto y de los
+  60 del bajo saca su propio ruido Gumbel y puja</em>, y la parcela se la lleva el
+  hogar con la puja más alta. Después se cuenta con qué frecuencia gana cada
+  estrato.
+</p>
+
+<figure>
+  <img src="salida/fig5-montecarlo.png" alt="Frecuencia de victorias simulada contra la probabilidad de la cuadratura">
+  <figcaption>
+    <span class="n">Fig. 03</span>
+    Las diez diferencias (dos estratos × cinco parcelas) caen todas dentro de la
+    banda ±1/√n. Error máximo 0,0016 contra un ±0,0032 esperado.
+  </figcaption>
+</figure>
+
+<div class="aviso ok">
+  <h4>Lo que esta prueba verifica de más</h4>
+  <p>
+    Verifica también el corrimiento <code>θ_h·ln(H_h)</code>, que es la parte de
+    la formulación más fácil de escribir mal. La cuadratura lo usa como fórmula;
+    la simulación saca las <code>H_h</code> pujas una por una y <strong>nunca la
+    usa</strong>. Que den lo mismo confirma que el máximo de <code>H_h</code>
+    Gumbel de escala <code>θ_h</code> es Gumbel con la localización corrida en
+    <code>θ_h·ln(H_h)</code>, que es de dónde sale ese término.
+  </p>
+</div>
+
+<h3>5.4 El control de que no se rompió el caso conocido</h3>
+
+<p>
+  Con los <code>θ</code> iguales, el HEV tiene que reproducir el logit cerrado
+  exactamente. En el equilibrio del caso base:
+</p>
+
+<pre class="consola"><code>Q del Alto              P1            P2            P3            P4            P5
+HEV (cuadratura)  0.6038864996  0.4929218425  0.3826502053  0.3478928131  0.2832667866
+logit cerrado     0.6038864996  0.4929218425  0.3826502053  0.3478928131  0.2832667866
+error maximo: 3.33e-16</code></pre>
+
+<!-- ==================================================================== -->
+<h2 id="s6"><span class="num">6</span>El resultado</h2>
+
+<figure>
+  <img src="salida/fig3-pujas.png" alt="Las pujas en equilibrio y la probabilidad de ganar resultante">
+  <figcaption>
+    <span class="n">Fig. 04</span>
+    Arriba, las pujas ya descontada <code>ū</code>: es la comparación que hace la
+    subasta. Abajo, la probabilidad de ganar. El alto gana P1 con 0,60 y P5 con
+    0,28 — nunca con certeza, porque el ruido siempre puede dar vuelta una parcela.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="salida/fig4-asignacion.png" alt="Hogares localizados por parcela y precio del suelo">
+  <figcaption>
+    <span class="n">Fig. 05</span>
+    Izquierda: toda la oferta ocupada y cada estrato completo — las barras llegan
+    exactamente a <code>S_i</code>. Derecha: el precio del suelo, de 6,97 en P1 a
+    5,13 en P5.
+  </figcaption>
+</figure>
+
+<p>
+  El gradiente de precios da <strong>−1,843</strong>: el suelo vale más cerca del
+  centro. Es el resultado que Alonso predice, y acá se puede afirmar con
+  seguridad de dónde viene, porque en la §1 se vio que la puja del alto cae más
+  rápido con la distancia que la del bajo. La competencia por las parcelas
+  centrales es lo que empuja el precio.
+</p>
+<p>
+  Vale la pena notar que la asignación <strong>no es una segregación limpia</strong>:
+  el alto gana P1 con probabilidad 0,60, no 1. En una subasta con ruido, ningún
+  estrato se lleva un anillo entero. Los mapas de segregación perfecta que uno
+  ve en los textos de Alonso son el caso <em>sin</em> ruido.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s7"><span class="num">7</span>Por qué λ no significaba nada, y ahora sí</h2>
+
+<p>
+  Acá está la razón de haber implementado el HEV, y conviene hacer el experimento
+  correcto. El experimento <em>incorrecto</em> —el que uno hace primero— es mover
+  λ y ver si algo cambia. Cambia, pero eso no prueba nada: <strong>bajo la forma
+  cerrada también cambia</strong>, porque λ entra en la puja por
+  <code>score = y + f/λ</code>.
+</p>
+<p>
+  Lo que hay que mostrar es otra cosa: que bajo la forma cerrada ese efecto es
+  <strong>indistinguible de re-escalar las preferencias</strong>. Se arman dos
+  casos:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>caso</th><th class="simb n">λ Alto / Bajo</th><th class="simb n">α Alto</th><th class="simb n">α Bajo</th><th class="simb n">θ Alto / Bajo</th></tr>
+  <tr><td><strong>A</strong> — λ heterogéneo</td><td class="n">0,5 / 2</td><td class="n">0,060</td><td class="n">0,030</td><td class="n">2 / 0,5</td></tr>
+  <tr><td><strong>B</strong> — λ uniforme, α y ρ divididos por λ</td><td class="n">1 / 1</td><td class="n">0,120</td><td class="n">0,015</td><td class="n">1 / 1</td></tr>
+</table>
+</div>
+
+<p>
+  Por construcción tienen <strong>la misma puja determinística</strong> —la
+  diferencia máxima medida es <code>0 exacto</code>—, pero distinto θ.
+</p>
+
+<figure>
+  <img src="salida/fig6-lambda.png" alt="Mismo score, distinta asignación: la identificación de lambda">
+  <figcaption>
+    <span class="n">Fig. 06</span>
+    Izquierda: las pujas de A y B son el mismo número, parcela por parcela.
+    Derecha: la asignación difiere en 0,1057. Como el score quedó fijo, esa
+    diferencia es atribuible únicamente a λ.
+  </figcaption>
+</figure>
+
+<p>
+  La forma cerrada ve <strong>únicamente el score</strong> — se lee directo en la
+  firma de <code>_solve_fixed_point</code>, que recibe <code>score</code>,
+  <code>H</code>, <code>S</code> y un <code>β</code> escalar. Entonces para ella
+  A y B son literalmente el mismo modelo, y cualquier λ se puede canjear por
+  preferencias. Eso es la discrepancia D-08: <strong>λ no está identificado</strong>.
+</p>
+<p>
+  El HEV, en cambio, ve además <code>θ = 1/(βλ)</code>, y con eso A y B dejan de
+  ser el mismo modelo. La distancia media al CBD del estrato alto pasa de 2,399
+  km (B) a 2,602 km (A). Recién ahí λ significa algo.
+</p>
+
+<div class="aviso alerta">
+  <h4>Cómo NO leer el barrido de λ</h4>
+  <p>
+    El script imprime también un barrido: λ = 1/1, 0,8/1,25, 0,5/2 y 0,4/2,5 (alto/bajo). Ese barrido trae un resultado que vale la pena, y es que <strong>al bajar λ del estrato alto el gradiente de precios se empina</strong> —de −1,84 a −3,32— y el alto se acerca al centro, de 2,91 a 2,57 km. Es la predicción de Alonso, y sale de la mecánica correcta: con λ bajo un útil vale muchos pesos, así que la desutilidad de acceso le cuesta más dinero al rico, que por eso puja más agresivamente por lo central.
+    Es informativa pero <strong>no aísla λ</strong>: cada fila cambia el score
+    <em>y</em> el θ a la vez. Lo único que aísla λ es la comparación A vs B, donde
+    el score quedó fijo por construcción. Confundir las dos cosas es exactamente
+    el error que llevó a documentar el efecto de λ al revés durante meses.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s8"><span class="num">8</span>Qué prueba esto y qué no</h2>
+
+<h3>Lo que queda demostrado</h3>
+<ul>
+  <li>
+    <strong>El equilibrio existe y es único</strong> en este caso: la función de
+    exceso es monótona y cruza el cero una sola vez. No hay que preocuparse por
+    equilibrios múltiples ni por dependencia del punto de arranque.
+  </li>
+  <li>
+    <strong>El algoritmo converge al equilibrio</strong>, no a un punto fijo
+    propio: la bisección, que no comparte nada con él, da el mismo número con
+    11 decimales.
+  </li>
+  <li>
+    <strong>La cuadratura calcula la probabilidad correcta</strong>: 100.000
+    subastas simuladas hogar por hogar caen dentro de la banda de Monte Carlo,
+    incluido el corrimiento <code>θ·ln(H)</code>.
+  </li>
+  <li>
+    <strong>El núcleo de producción implementa este modelo</strong> y no otro:
+    coincide con una reimplementación independiente hasta 2·10⁻¹¹.
+  </li>
+  <li>
+    <strong>λ está identificado bajo HEV y no bajo la forma cerrada</strong>, con
+    el score controlado.
+  </li>
+</ul>
+
+<h3>Lo que no</h3>
+<ul>
+  <li>
+    <strong>Esto es un caso de dos estratos y cinco parcelas.</strong> La unicidad
+    verificada acá no se extiende automáticamente a tres estratos y doscientas
+    parcelas: con tres estratos hay dos incógnitas y el argumento de monotonía en
+    una dimensión ya no aplica tal cual. En la ciudad completa la unicidad sigue
+    siendo una conjetura sostenida por que el solver siempre converge al mismo
+    lugar, no un teorema.
+  </li>
+  <li>
+    <strong>Nada de esto valida los parámetros.</strong> Que el modelo se resuelva
+    bien no dice que α, ρ o λ tengan los valores correctos. Es una verificación
+    numérica, no una calibración.
+  </li>
+  <li>
+    <strong>La cuarta condición de equilibrio de Alonso sigue sin estar.</strong>
+    Los precios de la §6 están determinados salvo una constante aditiva; lo que
+    fijaría el nivel es la condición de que en el borde el precio iguale la renta
+    agrícola, que no está implementada. Por eso acá se mira el
+    <em>gradiente</em> de precios y no su nivel.
+  </li>
+</ul>
+
+<!-- ==================================================================== -->
+<h2>Reproducir</h2>
+
+<pre><code>cd sandbox/hev-paso-a-paso
+uv run python pasos.py      # imprime los 10 pasos, escribe salida/traza.json
+uv run python figuras.py    # dibuja las 6 figuras desde el JSON</code></pre>
+
+<p>
+  <code>pasos.py</code> es determinista salvo el Monte Carlo, que usa semilla 42.
+  Los archivos: <code>caso.py</code> (los datos), <code>subasta.py</code> (la
+  matemática, sin importar el núcleo), <code>pasos.py</code> (la corrida),
+  <code>figuras.py</code> (los gráficos).
+</p>
+
+<h2>Referencias</h2>
+<ul class="refs">
+  <li>
+    Martínez, F. (2018). <em>Microeconomic Modeling in Urban Science</em>.
+    Academic Press. Ecs. (4.26) la subasta logit, (5.1) la condición de que todo
+    agente se localiza, (5.8) los precios.
+  </li>
+  <li>
+    Train, K. (2009). <em>Discrete Choice Methods with Simulation</em>, 2ª ed.
+    Cambridge University Press. §4.5 — la formulación HEV.
+  </li>
+</ul>
+
+<h2>Documentación relacionada</h2>
+<ul>
+  <li><a href="../../docs/informe-hev.html">La subasta heteroscedástica, paso a paso</a> — el informe del módulo real.</li>
+  <li><a href="../../docs/hev-cuadratura.html">La cuadratura del HEV, en imágenes</a> — de dónde sale la integral que este demo usa como caja negra.</li>
+  <li><a href="../../docs/informe-uso-suelo.html">El módulo de uso de suelo</a> — dónde encaja la subasta en el modelo de ciudad.</li>
+</ul>
+
+<footer>
+  <strong>Titirilquen</strong> · Simulador educativo de transporte urbano ·
+  Facultad de Ciencias Físicas y Matemáticas, Universidad de Chile.<br>
+  Side project: <code>sandbox/hev-paso-a-paso/</code>. Todos los números salen de
+  <code>salida/traza.json</code>; las figuras no calculan nada.
+</footer>
+
+</div>
+</body>
+</html>

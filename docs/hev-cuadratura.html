@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — La cuadratura del HEV, en imágenes</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --alerta: #8a5a12; --frio: #2f6690;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 4px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 680px;
+  }
+  .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
+  .ecuacion.suelta { background: none; border: none; }
+  blockquote {
+    margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
+    color: var(--ink-2); font-style: italic; max-width: 72ch;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  th.simb {
+    /* Las griegas son sensibles a la caja: sigma no es Sigma y delta no es
+       Delta, que en estos documentos significa otra cosa. Un encabezado con
+       simbolos se escribe como se escribe. */
+    text-transform: none; letter-spacing: .02em; font-size: 11.5px;
+  }
+
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso.neutro { border-left-color: var(--muted); }
+  .aviso.alerta { border-left-color: var(--alerta); }
+  .aviso p { margin: 4px 0; }
+  .aviso h4 { margin: 0 0 2px; font-size: 14px; }
+  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
+  .indice ol { margin: 4px 0; }
+  .indice a { color: var(--ink); text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  .refs { font-size: 13.5px; }
+  .refs li { margin: 6px 0; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+
+  /* --- paneles interactivos ------------------------------------------- */
+  .panel {
+    border: 1px solid var(--rule); background: #fcfbf9; margin: 20px 0 8px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+  .panel .barra {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    padding: 8px 14px; border-bottom: 1px solid var(--rule); background: var(--paper-2);
+  }
+  .panel .rotulo {
+    font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    font-weight: 700; color: var(--accent);
+  }
+  .panel .titulo { font-size: 13px; color: var(--ink-2); }
+  .panel .cuerpo { padding: 12px 14px 14px; }
+  canvas { display: block; width: 100%; }
+  .controles {
+    display: flex; gap: 18px 22px; flex-wrap: wrap; align-items: center;
+    padding: 10px 14px; border-top: 1px solid var(--rule); background: var(--paper-2);
+    font-size: 12px;
+  }
+  /* `flex-wrap` es obligatorio: el grupo por estrato lleva tres sliders y sin
+     esto la fila desborda el ancho de la pagina en pantallas angostas. */
+  .ctrl { display: flex; align-items: center; gap: 6px 7px; flex-wrap: wrap; }
+  .ctrl label { color: var(--muted); white-space: nowrap; }
+  .ctrl input[type=range] { width: 108px; accent-color: var(--accent); max-width: 100%; }
+  /* Tabla de controles del panel 1: una fila por estrato, las columnas
+     derivadas separadas por un filete para que se lea que son SALIDA. */
+  #ctrl-global { display: block; padding: 0; }
+  .tabla-ctrl { width: 100%; border-collapse: collapse; font-size: 12px; margin: 0; }
+  /* Sin `text-transform`: TODOS los encabezados de esta tabla son simbolos, y
+     la caja los cambia. `f` es la utilidad de la parcela y `F` es la CDF de la
+     §4; `y` es el ingreso e `Y` no es nada. Y las griegas, peor todavia. */
+  .tabla-ctrl th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11.5px; letter-spacing: .02em;
+    text-transform: none; color: var(--muted); font-weight: 600; text-align: center;
+    border-bottom: 1px solid var(--rule); padding: 7px 6px 4px; white-space: nowrap;
+  }
+  .tabla-ctrl td { padding: 3px 6px; border-bottom: 1px solid #ece9e3; }
+  .tabla-ctrl tr:last-child td { border-bottom: none; }
+  .tabla-ctrl .est { font-weight: 700; white-space: nowrap; padding-left: 14px; }
+  .tabla-ctrl .sl { display: flex; align-items: center; gap: 6px; }
+  /* Los sliders son deliberadamente cortos: con cuatro entradas por estrato mas
+     tres columnas derivadas, alargarlos empuja la salida —que es lo que hay que
+     mirar— fuera de la pantalla en anchos medianos. */
+  .tabla-ctrl input[type=range] { width: 58px; accent-color: var(--accent); }
+  .tabla-ctrl .v {
+    font-family: "Consolas", monospace; font-size: 11.5px; min-width: 32px;
+    text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2);
+  }
+  .tabla-ctrl .der {
+    font-family: "Consolas", monospace; font-size: 12px; text-align: right;
+    font-variant-numeric: tabular-nums; background: #f1eee8; color: var(--ink-2);
+  }
+  .tabla-ctrl th.loc, .tabla-ctrl td.der.loc {
+    font-weight: 700; color: var(--ink); background: #ebe6dc; padding-right: 14px;
+  }
+  .tabla-ctrl .sep-col { border-left: 2px solid var(--rule); }
+  .pie-ctrl {
+    display: flex; gap: 18px 22px; flex-wrap: wrap; align-items: center;
+    padding: 9px 14px; border-top: 1px solid var(--rule); font-size: 12px;
+  }
+  .ctrl .val {
+    font-family: "Consolas", monospace; font-size: 12px; min-width: 38px;
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  button {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; cursor: pointer;
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 4px 11px; color: var(--ink);
+  }
+  button:hover { border-color: var(--muted); }
+  button.activo { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .grupo { display: inline-flex; }
+  .grupo button { border-radius: 0; margin-left: -1px; }
+  .grupo button:first-child { border-radius: 3px 0 0 3px; margin-left: 0; }
+  .grupo button:last-child { border-radius: 0 3px 3px 0; }
+  .lectura {
+    font-family: "Consolas", monospace; font-size: 12.5px; line-height: 1.7;
+    margin-top: 8px; color: var(--ink-2);
+  }
+  .lectura b { color: var(--ink); }
+  .lectura .sep { color: var(--rule); margin: 0 8px; }
+  .cinta { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 6px; }
+  .cinta i { width: 11px; height: 11px; display: block; border-radius: 2px; }
+  .leyenda { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; margin-bottom: 6px; }
+  .leyenda span { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+  .leyenda i { width: 14px; height: 3px; display: block; }
+  .doble { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .doble { grid-template-columns: 1fr; } }
+  .pie-panel { font-size: 12px; color: var(--muted); margin: 4px 0 0; max-width: 78ch; }
+
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, .panel { break-inside: avoid; }
+    .controles { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Documentación del núcleo</div>
+  <h1>La cuadratura del HEV, en imágenes</h1>
+  <p class="bajada">
+    Por qué la subasta heteroscedástica se resuelve con una integral, qué
+    significa esa integral, y qué hace exactamente la regla del trapecio que
+    corre dentro del punto fijo. Todos los paneles calculan en vivo, con el
+    mismo algoritmo y las mismas constantes que <code>hev.py</code>.
+  </p>
+  <p class="meta">
+    Acompaña a <a href="informe-hev.html">informe-hev.html</a> §4 «Paso 1 · La cuadratura» ·
+    Implementación: <code>titirilquen_core/land_use/hev.py</code><br>
+    Requiere JavaScript. Los seis paneles son interactivos.
+  </p>
+</header>
+
+<div class="indice">
+  <strong style="font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Recorrido</strong>
+  <ol>
+    <li><a href="#s1">Tres postores y un lote</a> — qué es θ, y dónde está λ</li>
+    <li><a href="#s2">La probabilidad es una frecuencia</a> — el sorteo, a mano</li>
+    <li><a href="#s3">Por qué no hay fórmula</a> — dónde se rompe el logit</li>
+    <li><a href="#s4">El truco: condicionar en el ruido del candidato</a> — de dónde sale la integral</li>
+    <li><a href="#s5">La curva que hay que integrar</a></li>
+    <li><a href="#s6">La cuadratura: sumar rectángulos</a> — por qué 401 nodos y por qué [−10, 40]</li>
+    <li><a href="#s7">Dos pruebas</a> — Monte Carlo y la reducción al logit</li>
+    <li><a href="#s8">Qué corre de verdad en el núcleo</a></li>
+  </ol>
+</div>
+
+<p>
+  El módulo de uso de suelo resuelve una <strong>subasta</strong>: cada parcela
+  se la lleva el estrato que más puja por ella. La puja no es determinística
+  —lleva un término aleatorio, porque no observamos todo lo que a un hogar le
+  importa de un lugar—, así que lo que el modelo calcula no es «quién gana» sino
+  <em>con qué probabilidad gana cada uno</em>.
+</p>
+<p>
+  Mientras el ruido de todos los postores tiene la <strong>misma dispersión</strong>,
+  esa probabilidad tiene fórmula cerrada: es el logit. En cuanto las dispersiones
+  difieren —y difieren en cuanto los <span class="mono">λ<sub>h</sub></span>
+  difieren— la fórmula deja de existir y hay que integrar. Este documento es sobre
+  <em>esa</em> integral: qué es, por qué aparece y cómo se calcula.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s1"><span class="num">1</span>Tres postores y un lote</h2>
+
+<p>
+  La puja del estrato <span class="mono">h</span> por una parcela es un número
+  determinístico más un ruido de valor extremo (Gumbel):
+</p>
+
+<div class="ecuacion">
+  b<sub>h</sub> = loc<sub>h</sub> + θ<sub>h</sub> · ε &nbsp;,&nbsp; ε ~ Gumbel estándar
+  <span class="id">(1)</span>
+</div>
+
+<p>
+  Ni <span class="mono">loc</span> ni <span class="mono">θ</span> son parámetros
+  primitivos: <strong>los dos se calculan</strong>, y de hecho comparten
+  ingredientes. Ésas son las dos fórmulas que el panel evalúa, tal como están en
+  <code>land_use/equilibrium.py</code>:
+</p>
+
+<div class="ecuacion">
+  θ<sub>h</sub> = 1 / (β·λ<sub>h</sub>)
+  <span class="id">(1a)</span>
+</div>
+<div class="ecuacion">
+  loc<sub>h</sub> = y<sub>h</sub> + f<sub>h</sub>/λ<sub>h</sub> + θ<sub>h</sub>·ln(H<sub>h</sub>)
+  <span class="id">(1b)</span>
+</div>
+
+<p>Lo que movés son las cuatro entradas, y son éstas:</p>
+
+<ul>
+  <li>
+    <strong><span class="mono">y<sub>h</sub></span> — el ingreso.</strong> Entra
+    entero, <em>sin</em> dividir por λ. Eso importa: es lo que distingue al
+    ingreso de las preferencias.
+  </li>
+  <li>
+    <strong><span class="mono">f<sub>h</sub></span> — cuánto le sirve la parcela
+    a ese estrato</strong>, en útiles. En el núcleo es
+    <span class="mono">f<sub>h</sub> = −α<sub>h</sub>·T − ρ<sub>h</sub>·dens</span>
+    —desutilidad del viaje más desutilidad de la densidad—, así que
+    <strong>es siempre ≤ 0</strong> y el slider no lo deja pasar de cero. Acá va
+    agregado en un solo número porque abrirlo en α, ρ, T y dens convertiría este
+    panel en un modelo de ciudad.
+  </li>
+  <li>
+    <strong><span class="mono">λ<sub>h</sub></span> — la utilidad marginal del
+    ingreso.</strong> Convierte útiles en plata, y aparece en las <em>dos</em>
+    fórmulas. Es el protagonista de la §1.1.
+    <br>
+    <strong>Ojo con el orden:</strong> la utilidad marginal del ingreso es
+    <em>decreciente</em> en el ingreso —al rico un peso adicional le sirve
+    menos—, así que
+    <span class="mono">λ<sub>alto</sub> &lt; λ<sub>medio</sub> &lt; λ<sub>bajo</sub></span>.
+    Todos los presets respetan ese orden. La comprobación cruzada es el valor del
+    tiempo, <span class="mono">VoT = α/λ</span>: sólo con λ bajo en el estrato
+    alto sale el VoT alto que efectivamente se observa.
+  </li>
+  <li>
+    <strong><span class="mono">H<sub>h</sub></span> — cuántos hogares de ese
+    estrato pujan.</strong> El máximo de <span class="mono">H</span> sorteos
+    Gumbel independientes vuelve a ser Gumbel con la localización corrida en
+    <span class="mono">θ·ln H</span>, y eso es todo lo que hace: más postores,
+    puja efectiva más alta.
+  </li>
+</ul>
+
+<p>
+  La tabla del panel muestra las cuatro entradas a la izquierda y, separadas por
+  un filete, las tres <strong>salidas</strong>:
+  <span class="mono">f/λ</span>, <span class="mono">θ</span> y
+  <span class="mono">loc</span>. Movés algo a la izquierda y mirás qué se mueve a
+  la derecha.
+</p>
+
+<div class="aviso neutro">
+  <p>
+    <strong>Falta un término, a propósito:</strong> en el núcleo la ec. (1b)
+    lleva además <span class="mono">−ū<sub>h</sub></span>, la utilidad de
+    equilibrio. Es la <em>incógnita</em> que se resuelve iterando hasta que cada estrato
+    coloque a todos sus hogares, y este panel no resuelve ningún equilibrio —
+    mira una parcela suelta. Restarla sólo correría las tres localizaciones.
+    Cómo se encuentra <span class="mono">ū</span> está en
+    <a href="../sandbox/hev-paso-a-paso/informe.html">La subasta resuelta a mano</a>.
+  </p>
+</div>
+
+<p>
+  Movelos y mirá qué pasa con las tres campanas. Fijate sobre todo en el preset
+  <strong>«pujas empatadas»</strong>: los tres centros en el mismo lugar, las tres
+  probabilidades de ganar bien distintas.
+</p>
+
+<div class="aviso neutro">
+  <h4>Qué es exactamente lo que muestra el panel</h4>
+  <p>
+    <strong>Una sola parcela.</strong> No las doscientas de la ciudad, ni las
+    cinco de un ejemplo: el panel es el retrato de una subasta, la de una parcela.
+    Cada estrato tiene ahí una única puja aleatoria, y los tres números de abajo
+    son las probabilidades de llevarse <em>esa</em> parcela.
+  </p>
+  <p>
+    <strong>Lo dibujado son densidades de probabilidad</strong>, la de la ec. (1)
+    vista como distribución:
+    <span class="mono">f<sub>h</sub>(b) = (1/θ<sub>h</sub>)·e<sup>−z</sup>·e<sup>−e<sup>−z</sup></sup></span>
+    con <span class="mono">z = (b − loc<sub>h</sub>)/θ<sub>h</sub></span>. Las tres
+    <strong>encierran área 1</strong>, así que sus alturas son comparables entre
+    sí: el pico vale <span class="mono">1/(θ<sub>h</sub>·e)</span>, y por eso una
+    puja con θ chico se ve alta y angosta. Ese alto <em>es</em> la lectura de θ.
+  </p>
+  <p>
+    <strong>La punteada vertical marca la moda, no la media.</strong> La Gumbel es
+    asimétrica —cola larga a la derecha—, así que la puja promedio cae en
+    <span class="mono">loc<sub>h</sub> + γθ<sub>h</sub></span>, unos
+    <span class="mono">0,58·θ</span> más a la derecha. Los circulitos sobre el eje
+    marcan esas medias. Con θ heterogéneos <strong>las modas pueden coincidir y
+    las medias no</strong>: en «pujas empatadas» las tres modas están en 0,60 y
+    las medias caen en 1,75 · 1,18 · 0,89. Ese orden es el mismo que el de las
+    probabilidades de ganar (47,6 % · 31,4 % · 21,0 %), lo que ya insinúa por
+    dónde viene el resultado.
+  </p>
+  <p>
+    Pero <strong>la media no determina quién gana</strong>, y conviene ver un
+    contraejemplo antes de agarrarle cariño a esa regla. Partiendo de «λ
+    uniforme», poné <span class="mono">Alto: λ = 0,30 · f = −0,60</span> y
+    <span class="mono">Medio: λ = 1,00 · f = −0,10</span> (y mandá al Bajo lejos
+    con <span class="mono">f = −8</span>):
+  </p>
+  <div class="envoltorio-tabla">
+    <table>
+      <tr><th></th><th class="n">Alto</th><th class="n">Medio</th></tr>
+      <tr><td>loc · θ</td><td class="n">1,00 · 3,33</td><td class="n">1,90 · 1,00</td></tr>
+      <tr><td>media = loc + γθ</td><td class="n"><strong>2,92</strong></td><td class="n">2,48</td></tr>
+      <tr><td>probabilidad de ganar</td><td class="n">48,3 %</td><td class="n"><strong>51,7 %</strong></td></tr>
+    </table>
+  </div>
+  <p class="pie-tabla">
+    El Alto tiene la media más alta y aun así gana menos. Ganar una subasta no es
+    tener la puja promedio más alta: es tener la puja más alta <em>ese día</em>, y
+    eso depende de toda la distribución, no de un resumen suyo. (Es un caso
+    construido a propósito, con una dispersión exagerada, para que el efecto se
+    vea; no es una calibración.)
+  </p>
+</div>
+
+<div class="aviso alerta">
+  <h4>Lo que el panel NO muestra</h4>
+  <p>
+    <span class="mono">Q<sub>h</sub></span> <strong>no es ningún área de este
+    gráfico.</strong> No es el área bajo una curva, ni la fracción de curva que
+    queda más a la derecha, ni nada que se pueda medir mirándolo. Es
+  </p>
+  <div class="ecuacion suelta">
+    Q<sub>h</sub> = P( b<sub>h</sub> &gt; b<sub>g</sub> para todo g ≠ h )
+  </div>
+  <p>
+    o sea la probabilidad de que el sorteo de <em>esta</em> curva salga más alto
+    que el sorteo simultáneo de las otras dos. Comparar tres variables aleatorias
+    a la vez no es una operación que se lea de un dibujo de sus densidades — y
+    calcularla es todo el resto del documento. Los porcentajes de abajo vienen ya
+    resueltos por la cuadratura de la §6.
+  </p>
+</div>
+
+<div class="panel">
+  <div class="barra">
+    <span class="rotulo">Panel 1</span>
+    <span class="titulo">Las tres pujas por <strong>una</strong> parcela, y su probabilidad de ganarla</span>
+  </div>
+  <div class="cuerpo">
+    <canvas id="c1" height="240"></canvas>
+    <div class="lectura" id="lec1"></div>
+  </div>
+  <div class="controles" id="ctrl-global"></div>
+</div>
+<p class="pie-panel">
+  Estos controles son <strong>globales</strong>: los seis paneles del documento
+  miran los mismos <span class="mono">loc</span> y <span class="mono">θ</span>.
+  Lo que cambies acá se propaga hacia abajo.
+</p>
+
+<h3>1.1 Los dos canales de λ</h3>
+
+<p>
+  Mirá dónde aparece <span class="mono">λ</span> en las ecuaciones (1a) y (1b):
+  <strong>en las dos</strong>. Ése es todo el asunto de este modelo, y ahora se
+  puede ver moverse.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>canal</th><th>por dónde entra</th><th>qué le hace a la campana</th></tr>
+  <tr>
+    <td><strong>la puja</strong></td>
+    <td><span class="mono">f<sub>h</sub>/λ<sub>h</sub></span> → <span class="mono">loc</span></td>
+    <td>La corre horizontalmente. Como <span class="mono">f ≤ 0</span>, bajar λ hace <span class="mono">f/λ</span> más negativo y <strong>corre la puja a la izquierda</strong>.</td>
+  </tr>
+  <tr>
+    <td><strong>el ruido</strong></td>
+    <td><span class="mono">1/(β·λ<sub>h</sub>)</span> → <span class="mono">θ</span></td>
+    <td>La ensancha o angosta. Bajar λ <strong>sube θ</strong>: campana más ancha y más baja.</td>
+  </tr>
+</table>
+</div>
+
+<p>
+  Apretá el preset <strong>«λ heterogéneo»</strong>: es el mismo
+  <span class="mono">y</span>, el mismo <span class="mono">f</span> y el mismo
+  <span class="mono">H</span> que «λ uniforme», con lo único distinto siendo
+  λ = 0,5 / 1 / 2 — decreciente en el ingreso, como corresponde. Las tres
+  columnas derivadas se mueven a la vez:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>estrato alto</th><th class="simb n">f/λ</th><th class="simb n">θ</th><th class="simb n">loc</th><th class="n">P(gana)</th></tr>
+  <tr><td>λ uniforme (λ = 1)</td><td class="n">−1,00</td><td class="n">1,00</td><td class="n">2,00</td><td class="n"><strong>61,3 %</strong></td></tr>
+  <tr><td>λ heterogéneo (λ = 0,5)</td><td class="n">−2,00</td><td class="n">2,00</td><td class="n">1,00</td><td class="n"><strong>47,9 %</strong></td></tr>
+</table>
+</div>
+
+<p>
+  Y el resultado es el que la economía manda, no el que uno esperaría de apuro:
+  <strong>usar el λ realista le quita ventaja al estrato alto</strong>, de 61,3 %
+  a 47,9 %. La razón está en la primera columna. Con λ bajo, un útil vale muchos
+  pesos, así que la misma desutilidad de acceso <span class="mono">f = −1</span>
+  se traduce en <span class="mono">−2</span> en plata: <em>el rico es quien más
+  paga, en dinero, por un mal acceso</em>. Ésa es exactamente la mecánica que en
+  la ciudad completa produce el gradiente de puja empinado de Alonso.
+</p>
+<p>
+  Y notá el signo del otro canal, que es contraintuitivo: <strong>λ es una
+  precisión, no una dispersión.</strong> Subir λ <em>baja</em> el ruido.
+  Confundir esas dos convenciones —μ multiplica la utilidad, θ escala el error, y
+  son recíprocas— es de los errores más fáciles de cometer acá.
+</p>
+
+<div class="aviso ok">
+  <h4>Experimento: separar un canal del otro</h4>
+  <p>
+    Que muevas λ y cambie la asignación <em>no</em> prueba que λ tenga un efecto
+    propio: bajo la forma cerrada también cambia, y sin embargo λ no está
+    identificado, porque ese movimiento es indistinguible de re-escalar α y ρ.
+    Para probarlo hay que <strong>congelar un canal y mover el otro</strong>, y
+    eso se puede hacer acá mismo: alcanza con compensar <span class="mono">f</span>
+    para que <span class="mono">f/λ</span> no se mueva.
+  </p>
+  <p>Partiendo de «λ uniforme», tocá sólo la fila del Alto:</p>
+  <div class="envoltorio-tabla">
+    <table>
+      <tr><th></th><th class="simb n">λ</th><th class="simb n">f</th><th class="simb n">f/λ</th><th class="simb n">θ</th><th class="simb n">loc</th><th class="n">P(gana el Alto)</th></tr>
+      <tr><td>caso A</td><td class="n">0,50</td><td class="n">−0,50</td><td class="n">−1,00</td><td class="n">2,00</td><td class="n">2,00</td><td class="n"><strong>61,9 %</strong></td></tr>
+      <tr><td>caso B</td><td class="n">1,00</td><td class="n">−1,00</td><td class="n">−1,00</td><td class="n">1,00</td><td class="n">2,00</td><td class="n"><strong>61,3 %</strong></td></tr>
+    </table>
+  </div>
+  <p class="pie-tabla">
+    Misma puja (<span class="mono">loc = 2,00</span> en los dos), distinto ruido,
+    <strong>distinta probabilidad de ganar</strong>. Esa diferencia es
+    enteramente atribuible a λ, porque es lo único que quedó sin compensar. El
+    logit cerrado no la puede producir: él sólo ve <span class="mono">loc</span>,
+    que acá no se movió.
+  </p>
+  <p>
+    Son 0,7 puntos, poco — porque es una parcela sola y sin equilibrio. En la
+    ciudad, donde <span class="mono">ū</span> se reajusta y las parcelas compiten
+    entre sí, el mismo experimento da asignaciones que difieren en
+    <span class="mono">0,1057</span>: está hecho con todo rigor en
+    <a href="../sandbox/hev-paso-a-paso/informe.html#s7">La subasta resuelta a
+    mano, §7</a>.
+  </p>
+</div>
+
+<div class="aviso">
+  <h4>Lo que el logit cerrado no puede decir</h4>
+  <p>
+    Con las tres pujas <em>exactamente empatadas</em>, el logit reparte un tercio
+    a cada uno: no tiene con qué distinguirlos. El HEV dice otra cosa —gana más
+    seguido el más disperso— y tiene razón: el máximo de una distribución ancha
+    tiende a caer más arriba que el de una angosta, aunque estén centradas en el
+    mismo punto. <strong>Esa</strong> es la información que el logit tira a la
+    basura.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s2"><span class="num">2</span>La probabilidad es una frecuencia</h2>
+
+<p>
+  Antes de cualquier fórmula, conviene tener claro qué número estamos buscando.
+  <span class="mono">Q<sub>h</sub></span> es la respuesta a una pregunta
+  operacional: <em>si esta subasta se repitiera muchísimas veces, sorteando el
+  ruido de nuevo cada vez, ¿en qué fracción de las veces ganaría el estrato h?</em>
+</p>
+<p>
+  El panel siguiente hace literalmente eso. Cada ronda sortea un ruido por
+  estrato, calcula las tres pujas, y marca la más alta. Las barras de abajo son
+  la frecuencia acumulada; las líneas negras son el valor que devuelve la
+  cuadratura.
+</p>
+
+<div class="panel">
+  <div class="barra">
+    <span class="rotulo">Panel 2</span>
+    <span class="titulo">El sorteo, ronda por ronda</span>
+  </div>
+  <div class="cuerpo">
+    <canvas id="c2" height="300"></canvas>
+    <div class="lectura" id="lec2"></div>
+    <div class="cinta" id="cinta2"></div>
+  </div>
+  <div class="controles">
+    <div class="ctrl"><button id="b2play">▶ Sortear</button></div>
+    <div class="ctrl">
+      <label>velocidad</label>
+      <span class="grupo">
+        <button data-vel="1" class="activo">×1</button>
+        <button data-vel="20">×20</button>
+        <button data-vel="400">×400</button>
+      </span>
+    </div>
+    <div class="ctrl"><button id="b2reset">Reiniciar</button></div>
+  </div>
+</div>
+<p class="pie-panel">
+  La cinta de colores son los últimos 60 ganadores, el más reciente a la
+  izquierda.
+</p>
+
+<p>
+  Simular funciona, y de hecho es la validación que usamos en la §7. Pero como
+  método de cálculo es inservible acá: el error de Monte Carlo cae como
+  <span class="mono">1/√n</span>, así que para tres decimales hacen falta del
+  orden de un millón de sorteos <em>por parcela</em>, y esto corre dentro de un
+  punto fijo que itera decenas de veces sobre doscientas parcelas. Necesitamos el
+  número exacto, no una estimación.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s3"><span class="num">3</span>Por qué no hay fórmula</h2>
+
+<p>
+  El logit cerrado sale de una propiedad muy particular de la distribución
+  Gumbel: <strong>el máximo de varios Gumbel independientes con la misma escala
+  vuelve a ser Gumbel</strong>, con la misma escala y la localización corrida.
+  Esa clausura es la que hace que todo colapse a un cociente de exponenciales.
+</p>
+
+<div class="ecuacion">
+  máx<sub>g</sub> Gumbel(loc<sub>g</sub>, θ) &nbsp;=&nbsp; Gumbel( θ·ln Σ<sub>g</sub> e<sup>loc<sub>g</sub>/θ</sup> , θ )
+  <span class="id">(2)</span>
+</div>
+
+<p>
+  La igualdad se ve en una línea: la CDF del máximo es el producto de las CDFs,
+  y con escala común
+  <span class="mono">Π<sub>g</sub> exp(−e<sup>−(x−loc<sub>g</sub>)/θ</sup>) =
+  exp(−e<sup>−x/θ</sup> · Σ<sub>g</sub> e<sup>loc<sub>g</sub>/θ</sup>)</span>,
+  que es otra vez la forma de un Gumbel. <strong>El paso clave es factorizar
+  <span class="mono">e<sup>−x/θ</sup></span> fuera de la suma</strong>, y eso
+  sólo se puede si la <span class="mono">θ</span> del denominador es la misma en
+  todos los términos.
+</p>
+<p>
+  Con escalas distintas la suma es
+  <span class="mono">Σ<sub>g</sub> e<sup>−x/θ<sub>g</sub></sup>·e<sup>loc<sub>g</sub>/θ<sub>g</sub></sup></span>
+  y no hay nada que factorizar: cada término depende de <span class="mono">x</span>
+  con un exponente propio. El máximo <strong>ya no es Gumbel</strong>, no pertenece
+  a ninguna familia con nombre, y la probabilidad de ganar deja de tener forma
+  cerrada. No es que no la hayamos encontrado: no existe.
+</p>
+
+<div class="aviso neutro">
+  <p>
+    Esto no es un defecto del HEV. Es la misma razón por la que el probit
+    multinomial tampoco tiene forma cerrada, y por la que el logit es la
+    excepción y no la regla. Train lo trata en el §4.5 de
+    <em>Discrete Choice Methods with Simulation</em>, siguiendo a Bhat (1995).
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s4"><span class="num">4</span>El truco: condicionar en el ruido del candidato</h2>
+
+<p>
+  Acá está el corazón del asunto, y es una sola idea. La dificultad es que las
+  tres pujas son aleatorias a la vez. Entonces <strong>congelamos una</strong>:
+</p>
+
+<blockquote>
+  Supongamos que yo <em>supiera</em> que al estrato h le salió el ruido
+  exactamente <span class="mono">w</span>. Entonces su puja no es aleatoria: vale
+  <span class="mono">b = loc<sub>h</sub> + θ<sub>h</sub>·w</span>, un número. Y
+  para que h gane, cada uno de los otros tiene que haber quedado <em>por debajo
+  de ese número</em>.
+</blockquote>
+
+<p>
+  Eso último ya sabemos calcularlo. «El estrato g queda por debajo de b» es
+  exactamente su función de distribución evaluada en b, y como los ruidos son
+  independientes, la probabilidad de que <em>todos</em> queden por debajo es el
+  producto:
+</p>
+
+<div class="ecuacion">
+  P(gana h | ε<sub>h</sub> = w) = Π<sub>g≠h</sub> F<sub>g</sub>(loc<sub>h</sub> + θ<sub>h</sub>w)
+  = Π<sub>g≠h</sub> exp( −exp( −(loc<sub>h</sub> − loc<sub>g</sub> + θ<sub>h</sub>w) / θ<sub>g</sub> ) )
+  <span class="id">(3)</span>
+</div>
+
+<p>
+  Pero nosotros no sabemos cuánto salió <span class="mono">w</span>. Lo único que
+  sabemos es <em>con qué densidad</em> puede salir cada valor: la densidad Gumbel
+  estándar <span class="mono">φ(w) = e<sup>−w</sup>·e<sup>−e<sup>−w</sup></sup></span>.
+  Así que promediamos la ec. (3) sobre todos los <span class="mono">w</span>
+  posibles, cada uno pesado por su densidad. Ese promedio <strong>es</strong> la
+  integral:
+</p>
+
+<div class="ecuacion">
+  Q<sub>h</sub> = ∫<sub>−∞</sub><sup>∞</sup>
+  [ Π<sub>g≠h</sub> F<sub>g</sub>(loc<sub>h</sub> + θ<sub>h</sub>w) ] · φ(w) · dw
+  <span class="id">(4)</span>
+</div>
+
+<p>
+  No hay más truco que ese. La integral no apareció por una manipulación
+  algebraica: apareció porque <em>promediar sobre un escenario que no observamos</em>
+  es integrar contra su densidad. El panel siguiente barre
+  <span class="mono">w</span> de izquierda a derecha y muestra las dos mitades a
+  la vez — arriba el escenario, abajo el promedio que se va acumulando.
+</p>
+
+<div class="panel">
+  <div class="barra">
+    <span class="rotulo">Panel 3</span>
+    <span class="titulo">Un escenario a la vez, y su promedio</span>
+  </div>
+  <div class="cuerpo">
+    <canvas id="c3a" height="215"></canvas>
+    <div class="lectura" id="lec3"></div>
+    <canvas id="c3b" height="165" style="margin-top:10px"></canvas>
+  </div>
+  <div class="controles">
+    <div class="ctrl">
+      <label>candidato h</label>
+      <span class="grupo" id="sel-h"></span>
+    </div>
+    <div class="ctrl">
+      <label>ruido w</label>
+      <input type="range" id="s3w" min="-300" max="800" value="0">
+      <span class="val" id="v3w">0,00</span>
+    </div>
+    <div class="ctrl"><button id="b3play">▶ Barrer</button></div>
+  </div>
+</div>
+<p class="pie-panel">
+  <strong>Arriba:</strong> la puja congelada del candidato (línea vertical) y las
+  densidades de los otros dos, con sombreada el área que queda por debajo — cada
+  una de esas áreas es un <span class="mono">F<sub>g</sub>(b)</span>.
+  <strong>Abajo:</strong> el integrando de la ec. (4) contra
+  <span class="mono">w</span>, con el área ya recorrida en sólido. Cuando el
+  barrido termina, esa área es <span class="mono">Q<sub>h</sub></span>.
+</p>
+
+<div class="aviso ok">
+  <h4>Por qué la integral es de una sola dimensión</h4>
+  <p>
+    Con tres postores hay tres ruidos, o sea tres dimensiones de incertidumbre.
+    El condicionamiento se come dos: una vez fijado el ruido del candidato, los
+    otros dos no hay que sortearlos, basta con la probabilidad de que caigan por
+    debajo, que es un valor de la CDF. Queda una sola integral, y una integral
+    en una dimensión se resuelve por cuadratura hasta precisión de máquina.
+    <strong>Con J alternativas sigue siendo unidimensional</strong> —el producto
+    tiene J−1 factores, pero la integral es una— y por eso el método escala.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s5"><span class="num">5</span>La curva que hay que integrar</h2>
+
+<p>
+  El integrando es un producto de dos cosas con formas opuestas, y entender su
+  forma es lo que después justifica cómo se lo integra:
+</p>
+
+<ul>
+  <li>
+    <strong>El producto de CDFs</strong> sube monótonamente de 0 a 1. Con
+    <span class="mono">w</span> muy negativo el candidato puja bajísimo y no gana
+    nunca; con <span class="mono">w</span> muy grande puja altísimo y gana siempre.
+  </li>
+  <li>
+    <strong>La densidad φ(w)</strong> es una campana asimétrica con moda en 0,
+    que se apaga muy rápido: <span class="mono">e<sup>−w</sup></span> por la
+    derecha y un doble exponencial por la izquierda.
+  </li>
+</ul>
+
+<p>
+  El producto de las dos es una joroba que decae exponencialmente en las dos
+  puntas. <strong>El área bajo esa joroba es <span class="mono">Q<sub>h</sub></span></strong>
+  — y las tres jorobas, sumadas, dan exactamente 1.
+</p>
+
+<div class="panel">
+  <div class="barra">
+    <span class="rotulo">Panel 4</span>
+    <span class="titulo">Producto de CDFs × densidad = integrando</span>
+  </div>
+  <div class="cuerpo">
+    <div class="leyenda">
+      <span><i style="background:var(--frio)"></i> Π F<sub>g</sub> — sube de 0 a 1</span>
+      <span><i style="background:var(--muted)"></i> φ(w) — la densidad del ruido</span>
+      <span><i style="background:var(--accent);height:4px"></i> el producto — su área es Q<sub>h</sub></span>
+    </div>
+    <canvas id="c4" height="250"></canvas>
+    <div class="lectura" id="lec4"></div>
+  </div>
+  <div class="controles">
+    <div class="ctrl">
+      <label>candidato h</label>
+      <span class="grupo" id="sel-h4"></span>
+    </div>
+    <div class="ctrl">
+      <label><input type="checkbox" id="ck4"> mostrar los tres a la vez</label>
+    </div>
+  </div>
+</div>
+
+<p>
+  Fijate que la joroba <strong>se corre</strong> según el candidato: para un
+  estrato que puja bajo, el único escenario en que gana es que le haya salido un
+  ruido grande, así que su masa se va a la derecha. Con el preset «pujas
+  separadas» y el estrato bajo como candidato, la joroba se planta en
+  <span class="mono">w ≈ 14</span>: recién ahí su puja alcanza a las otras dos.
+</p>
+<p>
+  Y ahí está el punto. A esa altura la densidad <span class="mono">φ</span> ya se
+  agotó —vale del orden de <span class="mono">10⁻⁶</span>—, así que la joroba
+  cubre un área de <span class="mono">4·10⁻⁸</span> aunque en el dibujo se vea
+  alta: <strong>el eje vertical está autoescalado</strong>, y con esos números
+  tiene que estarlo. Es exactamente la definición de un evento improbable: no es
+  imposible que el estrato bajo gane, requiere una conjunción de ruidos que casi
+  nunca ocurre. Ese corrimiento hacia la derecha es la razón de que la grilla
+  llegue hasta 40 y no hasta 5.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s6"><span class="num">6</span>La cuadratura: sumar rectángulos</h2>
+
+<p>
+  Ya sabemos qué área queremos. Falta calcularla, y acá se termina la teoría: se
+  la aproxima por la <strong>regla del trapecio</strong>, que es lo más simple
+  que hay. Se toman N puntos igualmente espaciados en un rango
+  <span class="mono">[w<sub>mín</sub>, w<sub>máx</sub>]</span>, se evalúa el
+  integrando en cada uno, y se suma multiplicando por el ancho — con los dos
+  extremos a medio peso.
+</p>
+
+<pre><code>_W_MIN, _W_MAX, _N_NODOS = -10.0, 40.0, 401
+_W = np.linspace(_W_MIN, _W_MAX, _N_NODOS)
+_PESO = np.exp(-np.exp(-_W)) * np.exp(-_W) * (_W[1] - _W[0])
+_PESO[0] *= 0.5
+_PESO[-1] *= 0.5</code></pre>
+
+<p>
+  Esas cinco líneas son toda la cuadratura, y se calculan <strong>una sola vez al
+  importar el módulo</strong>: la densidad y el ancho no dependen de los
+  parámetros, así que dentro del punto fijo lo único que queda es un producto
+  matriz-vector. Después, evaluar la ec. (4) es literalmente
+  <span class="mono">_PESO @ z</span>.
+</p>
+<p>
+  Moviendo N en el panel se ve el mecanismo y su falla: con pocos nodos el
+  espaciado es tan grosero que la joroba cae entre dos puntos y la suma la
+  ignora, o peor, la sobrestima porque un nodo cayó justo en la cresta.
+</p>
+
+<div class="panel">
+  <div class="barra">
+    <span class="rotulo">Panel 5</span>
+    <span class="titulo">Los nodos, sobre el rango real [−10, 40]</span>
+  </div>
+  <div class="cuerpo">
+    <canvas id="c5" height="235"></canvas>
+    <div class="lectura" id="lec5"></div>
+    <canvas id="c5b" height="185" style="margin-top:12px"></canvas>
+  </div>
+  <div class="controles">
+    <div class="ctrl">
+      <label>nodos N</label>
+      <input type="range" id="s5n" min="0" max="9" value="7">
+      <span class="val" id="v5n">401</span>
+    </div>
+    <div class="ctrl">
+      <label>candidato h</label>
+      <span class="grupo" id="sel-h5"></span>
+    </div>
+  </div>
+</div>
+<p class="pie-panel">
+  <strong>Arriba:</strong> el integrando y los nodos efectivamente evaluados
+  (puntos), con el polígono del trapecio en línea quebrada.
+  <strong>Abajo:</strong> el peor error sobre los tres estratos contra N, en
+  escala logarítmica, comparado con una grilla de referencia de 6.401 nodos.
+</p>
+
+<h3>Por qué el error se derrumba y después se planta</h3>
+
+<p>
+  La caída de esa curva es mucho más rápida que el
+  <span class="mono">O(N⁻²)</span> que uno esperaría del trapecio. No es un
+  error: la regla del trapecio sobre una grilla uniforme tiene
+  <strong>convergencia espectral</strong> —el error cae exponencialmente, no
+  polinómicamente— cuando el integrando es suave y decae exponencialmente en los
+  dos extremos del rango. Es exactamente nuestro caso, y es la razón de que un
+  método de primaria le gane acá a uno sofisticado.
+</p>
+<p>
+  Después la curva se planta en <span class="mono">10⁻¹⁶</span>: ahí ya no queda
+  error de método, sólo el redondeo de la aritmética de doble precisión. Por eso
+  <strong>401 nodos y no 801</strong>. Duplicar no compra nada, y cada nodo se
+  paga cientos de veces por corrida.
+</p>
+
+<div class="aviso alerta">
+  <h4>Lo que sí se probó y perdió: Gauss-Laguerre</h4>
+  <p>
+    Parece la elección obvia. La sustitución <span class="mono">t = e<sup>−w</sup></span>
+    lleva el peso de la ec. (4) exactamente a <span class="mono">e<sup>−t</sup></span>,
+    que es el peso canónico de Gauss-Laguerre. Converge mal igual, porque la
+    cuadratura gaussiana es óptima cuando el resto del integrando se parece a un
+    polinomio, y un doble exponencial no se parece a ningún polinomio:
+  </p>
+  <div class="envoltorio-tabla">
+    <table>
+      <tr><th>nodos</th><th class="n">trapecio</th><th class="n">Gauss-Laguerre</th></tr>
+      <tr><td>40</td><td class="n">2,75·10⁻³</td><td class="n">9,86·10⁻³</td></tr>
+      <tr><td>80</td><td class="n">2,79·10⁻⁶</td><td class="n">3,24·10⁻³</td></tr>
+      <tr><td>160</td><td class="n">1,29·10⁻⁸</td><td class="n">2,25·10⁻³</td></tr>
+      <tr class="destacada"><td>401 (elegido)</td><td class="n">1,11·10⁻¹⁶</td><td class="n">desborda</td></tr>
+    </table>
+  </div>
+  <p class="pie-tabla">
+    Peor error de Q sobre 12 combinaciones de λ y separación de pujas.
+    «Desborda» = numpy pierde los nodos de Laguerre por overflow en la
+    recurrencia de sus polinomios desde ~n=200. Reproducible con
+    <code>scripts/auditoria_hev.py</code>.
+  </p>
+</div>
+
+<h3>Por qué el rango es [−10, 40]</h3>
+
+<p>
+  Truncar un rango infinito siempre deja algo afuera; la pregunta es cuánto.
+  Acá lo decide la densidad <span class="mono">φ</span>, que se apaga
+  brutalmente:
+</p>
+<ul>
+  <li>
+    <strong>Por la izquierda</strong>, en <span class="mono">w = −10</span> el
+    término <span class="mono">e<sup>−e<sup>−w</sup></sup></span> vale
+    <span class="mono">e<sup>−22.026</sup></span>, que en doble precisión es cero
+    exacto. No hay nada que dejar afuera: el integrando ya subdesbordó.
+  </li>
+  <li>
+    <strong>Por la derecha</strong>, el producto de CDFs está acotado por 1, así
+    que la cola está acotada por <span class="mono">∫<sub>40</sub><sup>∞</sup>φ =
+    1 − e<sup>−e<sup>−40</sup></sup> ≈ 4·10⁻¹⁸</span>. Dos órdenes por debajo del
+    redondeo.
+  </li>
+</ul>
+<p>
+  Que el margen por la derecha sea tan generoso es a propósito: es el que se
+  consume cuando un estrato puja mucho más bajo que los otros y su joroba se
+  corre a la derecha, como se ve en el panel 4 con «pujas separadas».
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s7"><span class="num">7</span>Dos pruebas</h2>
+
+<p>
+  Un método numérico sin verificación no vale nada, y acá hay dos verificaciones
+  independientes. Las dos están fijadas como test en
+  <code>tests/test_hev.py</code>; los paneles las corren en vivo.
+</p>
+
+<h3>7.1 Contra el sorteo (Monte Carlo)</h3>
+
+<p>
+  La primera es de fuerza bruta y no supone nada: si <span class="mono">Q<sub>h</sub></span>
+  es de verdad la frecuencia de victorias, sortear muchísimo tiene que converger
+  ahí. Es lenta y ruidosa, pero es independiente de toda la derivación —si la
+  ec. (4) estuviera mal planteada, esto lo detectaría.
+</p>
+
+<div class="panel">
+  <div class="barra">
+    <span class="rotulo">Panel 6a</span>
+    <span class="titulo">Monte Carlo contra cuadratura</span>
+  </div>
+  <div class="cuerpo">
+    <canvas id="c6" height="235"></canvas>
+    <div class="lectura" id="lec6"></div>
+  </div>
+  <div class="controles">
+    <div class="ctrl"><button id="b6play">▶ Correr 500.000 sorteos</button></div>
+    <div class="ctrl"><button id="b6reset">Reiniciar</button></div>
+  </div>
+</div>
+<p class="pie-panel">
+  Error máximo entre la frecuencia empírica y la cuadratura, contra el número de
+  sorteos, en log-log. La línea punteada es la envolvente
+  <span class="mono">1/√n</span>. Que el error <em>siga</em> a esa envolvente
+  hacia abajo es la prueba: no se estanca en ningún piso, así que la cuadratura
+  no tiene sesgo.
+</p>
+
+<h3>7.2 Contra la forma cerrada</h3>
+
+<p>
+  La segunda es más fina. Cuando todos los <span class="mono">θ<sub>h</sub></span>
+  son iguales, la ec. (2) vuelve a valer y el HEV <em>tiene</em> que reproducir el
+  logit — no aproximadamente, sino hasta el último bit. Es una prueba mucho más
+  exigente que la anterior, porque hay un valor exacto contra el cual comparar.
+</p>
+
+<div class="panel">
+  <div class="barra">
+    <span class="rotulo">Panel 6b</span>
+    <span class="titulo">HEV con θ uniformes vs. logit cerrado</span>
+  </div>
+  <div class="cuerpo">
+    <div class="envoltorio-tabla"><table id="t6b"></table></div>
+    <p class="pie-tabla" id="pie6b"></p>
+  </div>
+  <div class="controles">
+    <div class="ctrl"><button id="b6b">Igualar los θ (λ uniforme)</button></div>
+  </div>
+</div>
+
+<p>
+  Con los <span class="mono">θ</span> iguales la diferencia da cero exacto o del
+  orden de <span class="mono">10⁻¹⁶</span>, y en cuanto se los separa aparece una
+  diferencia real —que <em>no</em> es error numérico: es el modelo distinto. Esa
+  es toda la propiedad de reducción, y es lo que fija
+  <code>test_hev_reduce_al_logit_cuando_lambda_es_uniforme</code>.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s8"><span class="num">8</span>Qué corre de verdad en el núcleo</h2>
+
+<p>
+  El código de <code>q_hev</code> es la ec. (4) casi literal, vectorizada. El
+  único bucle explícito es sobre pares de estratos —3×3— porque los nodos y las
+  parcelas van en los ejes del array:
+</p>
+
+<pre><code>for h in range(n_estratos):
+    z = np.ones((_N_NODOS, n_parcelas))            # z[k, i]: el producto en el nodo k
+    for g in range(n_estratos):
+        if g == h:
+            continue
+        arg = (loc[h] - loc[g])[None, :] + theta[h] * _W[:, None]
+        np.multiply(z, np.exp(-np.exp(-np.clip(arg / theta[g], -_TOPE, _TOPE))), out=z)
+    acum[h] = _PESO @ z                            # la integral: un producto punto</code></pre>
+
+<p>Tres detalles de implementación que valen la pena:</p>
+<ul>
+  <li>
+    <strong>Todas las parcelas de una vez.</strong> <span class="mono">arg</span>
+    tiene forma <span class="mono">(nodos, parcelas)</span>: la cuadratura de las
+    doscientas parcelas se resuelve en el mismo producto matricial.
+  </li>
+  <li>
+    <strong>El <span class="mono">clip</span> a ±40 no cambia el resultado.</strong>
+    <span class="mono">exp(−exp(−x))</span> ya vale 0 o 1 en doble precisión más
+    allá de ahí; recortar sólo evita que numpy emita un warning de overflow al
+    calcular un intermedio que después se descarta.
+  </li>
+  <li>
+    <strong>La normalización final es higiene.</strong> Teóricamente las tres
+    integrales suman 1 solas (es una partición del espacio de eventos), y el
+    panel 4 lo muestra. Dividir por la suma sólo absorbe el redondeo, y protege
+    el caso de la parcela sin oferta, donde todo vale cero.
+  </li>
+</ul>
+
+<p>
+  Dónde encaja esto en el resto: <code>solve_subasta</code> decide por los datos
+  —si los <span class="mono">λ</span> son todos iguales usa la forma cerrada,
+  que es exacta y mucho más rápida; si difieren, llama a
+  <code>_solve_hev</code>, que arranca del equilibrio cerrado como warm start y
+  balancea con esta cuadratura adentro. Todo eso está contado en
+  <a href="informe-hev.html#s4">informe-hev.html §4</a>.
+</p>
+
+<!-- ==================================================================== -->
+<h2>Referencias</h2>
+<ul class="refs">
+  <li>
+    Train, K. (2009). <em>Discrete Choice Methods with Simulation</em>, 2ª ed.
+    Cambridge University Press. §4.5 «Heteroskedastic Logit» — la formulación
+    HEV y su cuadratura.
+  </li>
+  <li>
+    Bhat, C. R. (1995). Fuente original del HEV, citada por Train en el §4.5.
+    <em>Cita completa pendiente:</em> el capítulo disponible en
+    <code>reference/</code> no incluye la bibliografía del libro.
+  </li>
+  <li>
+    Martínez, F. (2018). <em>Microeconomic Modeling in Urban Science</em>.
+    Academic Press. Ecs. (4.3), (4.25)–(4.27) — la subasta de suelo que este
+    método resuelve.
+  </li>
+</ul>
+
+<h2>Documentación relacionada</h2>
+<ul>
+  <li><a href="informe-hev.html">La subasta heteroscedástica, paso a paso</a> — el informe completo: derivación, validación, contraste con la teoría y sensibilidad.</li>
+  <li><a href="informe-uso-suelo.html">El módulo de uso de suelo</a> — dónde entra esta subasta en el modelo de ciudad.</li>
+  <li><a href="../sandbox/hev-paso-a-paso/informe.html">La subasta resuelta a mano</a> — el equilibrio completo en el caso más simple, con esta cuadratura adentro como caja negra.</li>
+  <li><a href="arquitectura.html">Mapa de arquitectura</a> — el índice concepto → archivo:línea.</li>
+</ul>
+
+<footer>
+  Titirilquen · Simulador educativo de transporte urbano · FCFM, Universidad de Chile<br>
+  Los seis paneles calculan en el navegador con el mismo algoritmo y las mismas
+  constantes que <code>titirilquen_core/land_use/hev.py</code>. Verificado contra
+  el núcleo: ver <code>scripts/ref_hev</code> en el informe principal.
+</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------------------------------------------------------------- núcleo
+  // Port literal de titirilquen_core/land_use/hev.py. Mismas constantes.
+  var W_MIN = -10.0, W_MAX = 40.0, N_NODOS = 401, TOPE = 40.0;
+  //: Constante de Euler-Mascheroni. La media de una Gumbel(loc, θ) es loc + γθ.
+  var GAMMA = 0.5772156649015329;
+
+  function grilla(n) {
+    var dw = (W_MAX - W_MIN) / (n - 1), w = new Float64Array(n), p = new Float64Array(n), k;
+    for (k = 0; k < n; k++) {
+      w[k] = W_MIN + k * dw;
+      p[k] = Math.exp(-Math.exp(-w[k])) * Math.exp(-w[k]) * dw;
+    }
+    p[0] *= 0.5; p[n - 1] *= 0.5;
+    return { w: w, p: p };
+  }
+
+  var G = grilla(N_NODOS);
+
+  /** Producto de CDFs de la ec. (3): P(gana h | el ruido de h salio w). */
+  function prodF(w, h, loc, th) {
+    var z = 1, g, a;
+    for (g = 0; g < loc.length; g++) {
+      if (g === h) continue;
+      a = (loc[h] - loc[g] + th[h] * w) / th[g];
+      if (a > TOPE) a = TOPE; else if (a < -TOPE) a = -TOPE;
+      z *= Math.exp(-Math.exp(-a));
+    }
+    return z;
+  }
+
+  /** Integrando de la ec. (4) en el nodo w, para el candidato h. */
+  function integrando(w, h, loc, th) {
+    return prodF(w, h, loc, th) * Math.exp(-Math.exp(-w)) * Math.exp(-w);
+  }
+
+  /** Q_h sin normalizar, con la grilla de n nodos. */
+  function qCrudo(loc, th, n) {
+    var gr = n === N_NODOS ? G : grilla(n), out = [], h, k, s, z, g, a;
+    for (h = 0; h < loc.length; h++) {
+      s = 0;
+      for (k = 0; k < gr.w.length; k++) {
+        z = 1;
+        for (g = 0; g < loc.length; g++) {
+          if (g === h) continue;
+          a = (loc[h] - loc[g] + th[h] * gr.w[k]) / th[g];
+          if (a > TOPE) a = TOPE; else if (a < -TOPE) a = -TOPE;
+          z *= Math.exp(-Math.exp(-a));
+        }
+        s += gr.p[k] * z;
+      }
+      out.push(s);
+    }
+    return out;
+  }
+
+  function qHev(loc, th, n) {
+    var q = qCrudo(loc, th, n || N_NODOS), t = q[0] + q[1] + q[2];
+    return q.map(function (v) { return t > 0 ? v / t : 0; });
+  }
+
+  /** Logit cerrado, valido solo si los theta son iguales. */
+  function qLogit(loc, th) {
+    var mx = Math.max.apply(null, loc);
+    var e = loc.map(function (v) { return Math.exp((v - mx) / th[0]); });
+    var t = e[0] + e[1] + e[2];
+    return e.map(function (v) { return v / t; });
+  }
+
+  function cdf(x, loc, th) { return Math.exp(-Math.exp(-(x - loc) / th)); }
+  function pdf(x, loc, th) {
+    var z = (x - loc) / th;
+    if (z > TOPE) return 0;
+    return Math.exp(-z) * Math.exp(-Math.exp(-z)) / th;
+  }
+  /** Gumbel estandar por inversion. */
+  function sorteo() { return -Math.log(-Math.log(Math.random())); }
+
+  // ---------------------------------------------------------------- estado
+  var EST = [
+    { n: "Alto", c: "#b4532a" },
+    { n: "Medio", c: "#2f6690" },
+    { n: "Bajo", c: "#2e6e4e" }
+  ];
+  // `iN` es el INDICE dentro de N_OPC, no la cantidad de nodos.
+  // `loc` y `th` NO son estado: se derivan de las primitivas en `recalcula()`.
+  // Se guardan igual porque los paneles 2 a 6 los leen tal cual.
+  var S = {
+    y: [3, 2, 1], f: [-1, -0.8, -0.7], lam: [1, 1, 1], H: [1, 1, 1], beta: 1,
+    loc: [0, 0, 0], th: [1, 1, 1],
+    h: 0, w: 0, iN: 7, tres: false
+  };
+
+  /** Las dos formulas del modelo, aplicadas literalmente.
+   *
+   *  θ_h   = 1/(β·λ_h)                        ← el canal del RUIDO
+   *  loc_h = y_h + f_h/λ_h + θ_h·ln(H_h)      ← el canal de la PUJA
+   *
+   *  Falta `−ū_h`, que es la incognita del equilibrio; este panel no resuelve
+   *  ninguno, asi que no esta. Solo correria las tres localizaciones.
+   */
+  function recalcula() {
+    for (var i = 0; i < 3; i++) {
+      S.th[i] = 1 / (S.beta * S.lam[i]);
+      S.loc[i] = S.y[i] + S.f[i] / S.lam[i] + S.th[i] * Math.log(S.H[i]);
+    }
+  }
+
+  //: Los cuatro parametros que el usuario mueve, por estrato.
+  var CAMPOS = [
+    { k: "y", rot: "y", min: 0, max: 600, esc: 100, dec: 2, tit: "ingreso" },
+    { k: "f", rot: "f", min: -800, max: 0, esc: 100, dec: 2,
+      tit: "atractivo de la parcela, en utiles (= −αT − ρ·dens, siempre ≤ 0)" },
+    { k: "lam", rot: "λ", min: 25, max: 667, esc: 100, dec: 2,
+      tit: "utilidad marginal del ingreso" },
+    { k: "H", rot: "H", min: 1, max: 200, esc: 1, dec: 0,
+      tit: "cuantos hogares de ese estrato pujan" }
+  ];
+
+  // OJO con el orden de λ: la utilidad marginal del ingreso es DECRECIENTE en el
+  // ingreso, asi que λ_alto < λ_medio < λ_bajo. Ponerlo al reves invierte el
+  // valor del tiempo (VoT = α/λ), que en los datos es mayor para el rico.
+  var PRESETS = [
+    { k: "λ uniforme", y: [3, 2, 1], f: [-1, -0.8, -0.7], lam: [1, 1, 1], H: [1, 1, 1] },
+    { k: "λ heterogéneo", y: [3, 2, 1], f: [-1, -0.8, -0.7], lam: [0.5, 1, 2], H: [1, 1, 1] },
+    { k: "pujas empatadas", y: [3, 2, 1], f: [-1.2, -1.4, -0.8], lam: [0.5, 1, 2], H: [1, 1, 1] },
+    { k: "pujas separadas", y: [3, 2, 1], f: [-0.25, -1.5, -5], lam: [0.5, 1, 2], H: [1, 1, 1] },
+    { k: "muchos postores", y: [3, 2, 1], f: [-1, -0.8, -0.7], lam: [0.5, 1, 2], H: [10, 60, 120] }
+  ];
+  var N_OPC = [5, 9, 17, 33, 65, 129, 257, 401, 801, 1601];
+
+  // ------------------------------------------------------------- utilidades
+  function $(id) { return document.getElementById(id); }
+  function num(v, d) {
+    return v.toLocaleString("es-CL", { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function sci(v) {
+    if (v === 0) return "0";
+    var e = Math.floor(Math.log10(Math.abs(v)));
+    return num(v / Math.pow(10, e), 2) + "·10" + sup(e);
+  }
+  function sup(e) {
+    var m = { "-": "⁻", 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+    return String(e).split("").map(function (c) { return m[c]; }).join("");
+  }
+
+  /** Prepara un canvas con escalas lineales y devuelve el contexto + helpers. */
+  function lienzo(id, dom, ran, mar) {
+    var c = $(id), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    c.width = Math.max(1, Math.round(r.width * dpr));
+    c.height = Math.max(1, Math.round(c.clientHeight * dpr));
+    var x = c.getContext("2d");
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, r.width, c.clientHeight);
+    var m = mar || { l: 46, r: 14, t: 12, b: 26 };
+    var W = r.width, H = c.clientHeight;
+    return {
+      x: x, W: W, H: H, m: m,
+      sx: function (v) { return m.l + (v - dom[0]) / (dom[1] - dom[0]) * (W - m.l - m.r); },
+      sy: function (v) { return H - m.b - (v - ran[0]) / (ran[1] - ran[0]) * (H - m.t - m.b); }
+    };
+  }
+
+  function ejes(L, tx, ty, rotx, roty) {
+    var x = L.x, i;
+    x.font = "11px Consolas, monospace";
+    x.strokeStyle = "#e6e3dd"; x.lineWidth = 1;
+    if (ty) for (i = 0; i < ty.length; i++) {
+      x.beginPath(); x.moveTo(L.m.l, L.sy(ty[i])); x.lineTo(L.W - L.m.r, L.sy(ty[i])); x.stroke();
+      x.fillStyle = "#8d8880"; x.textAlign = "right"; x.textBaseline = "middle";
+      x.fillText(roty ? roty(ty[i]) : ty[i], L.m.l - 6, L.sy(ty[i]));
+    }
+    x.strokeStyle = "#b8b3aa";
+    x.beginPath(); x.moveTo(L.m.l, L.H - L.m.b); x.lineTo(L.W - L.m.r, L.H - L.m.b); x.stroke();
+    if (tx) for (i = 0; i < tx.length; i++) {
+      x.fillStyle = "#8d8880"; x.textAlign = "center"; x.textBaseline = "top";
+      x.beginPath(); x.moveTo(L.sx(tx[i]), L.H - L.m.b); x.lineTo(L.sx(tx[i]), L.H - L.m.b + 4); x.stroke();
+      x.fillText(rotx ? rotx(tx[i]) : tx[i], L.sx(tx[i]), L.H - L.m.b + 7);
+    }
+  }
+
+  function curva(L, f, a, b, col, ancho, relleno) {
+    var x = L.x, i, N = 320, v, u;
+    x.beginPath();
+    for (i = 0; i <= N; i++) {
+      v = a + (b - a) * i / N; u = f(v);
+      if (i === 0) x.moveTo(L.sx(v), L.sy(u)); else x.lineTo(L.sx(v), L.sy(u));
+    }
+    if (relleno) {
+      x.lineTo(L.sx(b), L.sy(0)); x.lineTo(L.sx(a), L.sy(0)); x.closePath();
+      x.fillStyle = relleno; x.fill();
+    }
+    x.strokeStyle = col; x.lineWidth = ancho || 1.5;
+    x.beginPath();
+    for (i = 0; i <= N; i++) {
+      v = a + (b - a) * i / N; u = f(v);
+      if (i === 0) x.moveTo(L.sx(v), L.sy(u)); else x.lineTo(L.sx(v), L.sy(u));
+    }
+    x.stroke();
+  }
+
+  /** Rotulo del eje vertical, girado 90 grados sobre el margen izquierdo. */
+  function rotuloY(L, texto) {
+    var x = L.x;
+    x.save();
+    x.translate(11, (L.m.t + L.H - L.m.b) / 2);
+    x.rotate(-Math.PI / 2);
+    x.font = "11px 'Segoe UI', system-ui, sans-serif";
+    x.fillStyle = "#8d8880"; x.textAlign = "center"; x.textBaseline = "top";
+    x.fillText(texto, 0, 0);
+    x.restore();
+  }
+
+  function rotulo(L, texto, xv, yv, col, al) {
+    var x = L.x;
+    x.font = "600 11px 'Segoe UI', system-ui, sans-serif";
+    x.fillStyle = col; x.textAlign = al || "left"; x.textBaseline = "bottom";
+    x.fillText(texto, L.sx(xv), L.sy(yv));
+  }
+
+  /** Dominio en el eje de las pujas, comun a los paneles 1 y 3. */
+  function domPuja() {
+    var lo = Math.min.apply(null, S.loc), hi = Math.max.apply(null, S.loc);
+    var t = Math.max.apply(null, S.th);
+    return [lo - 3.2 * t, hi + 6.5 * t];
+  }
+  /** Dominio del panel 3: tiene que contener la puja del candidato durante todo
+   *  el barrido, que llega hasta w = W_TOPE3. Como loc_h <= max(loc) y
+   *  th_h <= max(th), alcanza con estirar el borde derecho por ese mismo factor;
+   *  asi el eje queda FIJO mientras el marcador se mueve. */
+  var W_TOPE3 = 8, W_PISO3 = -3;
+  function domPuja3() {
+    var lo = Math.min.apply(null, S.loc), hi = Math.max.apply(null, S.loc);
+    var t = Math.max.apply(null, S.th);
+    return [lo - 3.2 * t, hi + W_TOPE3 * t];
+  }
+  function altoPuja(d) {
+    var mx = 0, i, k, v;
+    for (i = 0; i < 3; i++) for (k = 0; k <= 60; k++) {
+      v = pdf(d[0] + (d[1] - d[0]) * k / 60, S.loc[i], S.th[i]);
+      if (v > mx) mx = v;
+    }
+    return mx * 1.4;
+  }
+
+  // ------------------------------------------------- controles globales (P1)
+  function controlesGlobales() {
+    var c = $("ctrl-global"), i, k, html;
+    html = '<div class="envoltorio-tabla"><table class="tabla-ctrl">' +
+      '<tr><th class="est"></th>';
+    for (k = 0; k < CAMPOS.length; k++) {
+      html += '<th title="' + CAMPOS[k].tit + '">' + CAMPOS[k].rot + '</th>';
+    }
+    html += '<th class="simb sep-col">f / λ</th><th class="simb">θ = 1/βλ</th><th class="simb loc">loc</th></tr>';
+    for (i = 0; i < 3; i++) {
+      html += '<tr><td class="est" style="color:' + EST[i].c + '">' + EST[i].n + "</td>";
+      for (k = 0; k < CAMPOS.length; k++) {
+        var C = CAMPOS[k];
+        html += '<td><div class="sl"><input type="range" data-p="' + C.k + '" data-i="' + i +
+          '" min="' + C.min + '" max="' + C.max + '" value="' + Math.round(S[C.k][i] * C.esc) +
+          '"><span class="v" id="v-' + C.k + "-" + i + '"></span></div></td>';
+      }
+      html += '<td class="der sep-col" id="d-fl-' + i + '"></td>' +
+        '<td class="der" id="d-th-' + i + '"></td>' +
+        '<td class="der loc" id="d-loc-' + i + '"></td></tr>';
+    }
+    html += "</table></div>";
+    html += '<div class="pie-ctrl">' +
+      '<span class="ctrl"><label title="escala global del ruido">β</label>' +
+      '<input type="range" data-p="beta" data-i="-1" min="25" max="400" value="' +
+      Math.round(S.beta * 100) + '"><span class="val" id="v-beta"></span></span>' +
+      '<span class="ctrl"><label>presets</label><span class="grupo" id="presets"></span></span>' +
+      "</div>";
+    c.innerHTML = html;
+    c.addEventListener("input", function (e) {
+      var t = e.target;
+      if (t.tagName !== "INPUT" || !t.dataset.p) return;
+      var i = +t.dataset.i, p = t.dataset.p;
+      if (p === "beta") S.beta = +t.value / 100;
+      else S[p][i] = +t.value / (p === "H" ? 1 : 100);
+      pintar();
+    });
+    var g = $("presets");
+    PRESETS.forEach(function (p) {
+      var b = document.createElement("button");
+      b.textContent = p.k;
+      b.onclick = function () {
+        CAMPOS.forEach(function (C) { S[C.k] = p[C.k].slice(); });
+        S.beta = 1;
+        sincronizarSliders(); pintar();
+      };
+      g.appendChild(b);
+    });
+  }
+
+  function sincronizarSliders() {
+    var i, e;
+    for (i = 0; i < 3; i++) {
+      CAMPOS.forEach(function (C) {
+        e = document.querySelector('input[data-p="' + C.k + '"][data-i="' + i + '"]');
+        if (e) e.value = Math.round(S[C.k][i] * C.esc);
+      });
+    }
+    e = document.querySelector('input[data-p="beta"]');
+    if (e) e.value = Math.round(S.beta * 100);
+    Array.prototype.forEach.call($("presets").children, function (b, k) {
+      var p = PRESETS[k];
+      var ig = S.beta === 1 && CAMPOS.every(function (C) {
+        return p[C.k].every(function (v, j) { return Math.abs(v - S[C.k][j]) < 1e-9; });
+      });
+      b.classList.toggle("activo", ig);
+    });
+  }
+
+  function selectorH(id, cb) {
+    var g = $(id);
+    g.innerHTML = "";
+    EST.forEach(function (e, i) {
+      var b = document.createElement("button");
+      b.textContent = e.n;
+      b.onclick = function () { S.h = i; cb(); };
+      g.appendChild(b);
+    });
+  }
+  function marcarH() {
+    ["sel-h", "sel-h4", "sel-h5"].forEach(function (id) {
+      var g = $(id); if (!g) return;
+      Array.prototype.forEach.call(g.children, function (b, i) {
+        b.classList.toggle("activo", i === S.h);
+        b.style.color = i === S.h ? "" : EST[i].c;
+      });
+    });
+  }
+
+  // ------------------------------------------------------------- panel 1
+  function panel1() {
+    var d = domPuja(), hi = altoPuja(d);
+    var L = lienzo("c1", d, [0, hi], { l: 60, r: 14, t: 14, b: 42 });
+    var q = qHev(S.loc, S.th), i;
+    // El eje vertical SI lleva escala: como cada curva encierra area 1, las
+    // alturas son comparables entre si y el pico vale 1/(θ·e). Esa altura es
+    // lo que hace visible el efecto de θ, asi que ocultarla sacaba informacion.
+    ejes(L, ticks(d[0], d[1], 6), ticks(0, hi, 4), null, function (v) {
+      return num(v, 1);
+    });
+    rotuloY(L, "densidad de probabilidad");
+    for (i = 0; i < 3; i++) {
+      (function (i) {
+        curva(L, function (v) { return pdf(v, S.loc[i], S.th[i]); }, d[0], d[1],
+          EST[i].c, 1.8, EST[i].c + "1c");
+      })(i);
+      // Con los tres centros cerca, los rotulos se pisan. Van a alturas fijas
+      // escalonadas —no a la del pico, que puede coincidir— y la guia punteada
+      // sube desde el eje hasta el rotulo para no perder cual es cual.
+      var yr = hi * (0.97 - 0.08 * i);
+      L.x.setLineDash([3, 3]); L.x.strokeStyle = EST[i].c + "88"; L.x.lineWidth = 1;
+      L.x.beginPath();
+      L.x.moveTo(L.sx(S.loc[i]), L.sy(0)); L.x.lineTo(L.sx(S.loc[i]), L.sy(yr));
+      L.x.stroke(); L.x.setLineDash([]);
+      rotulo(L, EST[i].n, S.loc[i], yr, EST[i].c, "center");
+
+      // La punteada esta en `loc`, que es la MODA. La media cae a la derecha,
+      // en loc + γθ: la Gumbel es asimetrica y conviene no confundirlas.
+      var media = S.loc[i] + GAMMA * S.th[i];
+      L.x.strokeStyle = EST[i].c; L.x.lineWidth = 1.5;
+      L.x.beginPath(); L.x.arc(L.sx(media), L.sy(0), 3.4, 0, 6.2832); L.x.stroke();
+    }
+    L.x.font = "11px 'Segoe UI', system-ui, sans-serif";
+    L.x.fillStyle = "#8d8880"; L.x.textAlign = "center"; L.x.textBaseline = "top";
+    L.x.fillText("valor de la puja en esta parcela", (L.m.l + L.W - L.m.r) / 2, L.H - 14);
+
+    $("lec1").innerHTML = "Probabilidad de ganar <b>esta parcela</b> (cuadratura): " +
+      EST.map(function (e, i) {
+        return '<b style="color:' + e.c + '">' + e.n + " " + num(q[i] * 100, 1) + "%</b>";
+      }).join('<span class="sep">·</span>') +
+      '<br><span style="color:var(--muted)">líneas punteadas: la moda (= loc) ' +
+      '<span class="sep">·</span> círculos sobre el eje: la media (= loc + γθ)</span>';
+    return q;
+  }
+
+  function ticks(a, b, n) {
+    var paso = Math.pow(10, Math.floor(Math.log10((b - a) / n)));
+    var k = (b - a) / n / paso;
+    paso *= k >= 5 ? 5 : k >= 2 ? 2 : 1;
+    var out = [], v = Math.ceil(a / paso) * paso;
+    for (; v <= b + 1e-9; v += paso) out.push(Math.round(v / paso) * paso);
+    return out;
+  }
+
+  // ------------------------------------------------------------- panel 2
+  var P2 = { on: false, vel: 1, n: 0, gana: [0, 0, 0], hist: [], ult: null, t: 0 };
+
+  function panel2() {
+    var d = domPuja(), hi = altoPuja(d);
+    var L = lienzo("c2", d, [0, hi], { l: 46, r: 14, t: 14, b: 128 });
+    var q = qHev(S.loc, S.th), i;
+    ejes(L, ticks(d[0], d[1], 6));
+    for (i = 0; i < 3; i++) (function (i) {
+      curva(L, function (v) { return pdf(v, S.loc[i], S.th[i]); }, d[0], d[1], EST[i].c + "55", 1.2, EST[i].c + "10");
+    })(i);
+
+    // el sorteo actual
+    if (P2.ult) {
+      for (i = 0; i < 3; i++) {
+        var px = L.sx(P2.ult.b[i]), py = L.sy(0) - 6;
+        L.x.strokeStyle = EST[i].c + "66"; L.x.lineWidth = 1;
+        L.x.beginPath(); L.x.moveTo(px, L.sy(0)); L.x.lineTo(px, L.m.t + 6); L.x.stroke();
+        L.x.fillStyle = EST[i].c;
+        L.x.beginPath(); L.x.arc(px, py, i === P2.ult.g ? 6.5 : 4, 0, 6.2832); L.x.fill();
+        if (i === P2.ult.g) {
+          L.x.strokeStyle = "#1a1a1a"; L.x.lineWidth = 1.6;
+          L.x.beginPath(); L.x.arc(px, py, 10, 0, 6.2832); L.x.stroke();
+        }
+      }
+    }
+
+    // tally
+    var y0 = L.H - 112, an = (L.W - L.m.l - L.m.r) / 3.6, x0 = L.m.l + 10;
+    L.x.font = "11px 'Segoe UI', system-ui, sans-serif";
+    for (i = 0; i < 3; i++) {
+      var f = P2.n ? P2.gana[i] / P2.n : 0;
+      var bx = x0 + i * (an + 18), bw = an, bh = 62;
+      L.x.fillStyle = "#eeebe5";
+      L.x.fillRect(bx, y0, bw, bh);
+      L.x.fillStyle = EST[i].c + "cc";
+      L.x.fillRect(bx, y0 + bh - f * bh, bw, f * bh);
+      L.x.strokeStyle = "#1a1a1a"; L.x.lineWidth = 1.8; L.x.setLineDash([5, 3]);
+      L.x.beginPath();
+      L.x.moveTo(bx - 3, y0 + bh - q[i] * bh); L.x.lineTo(bx + bw + 3, y0 + bh - q[i] * bh);
+      L.x.stroke(); L.x.setLineDash([]);
+      L.x.fillStyle = "#444"; L.x.textAlign = "center"; L.x.textBaseline = "top";
+      L.x.fillText(EST[i].n + "  " + num(f * 100, 1) + "%", bx + bw / 2, y0 + bh + 5);
+      L.x.fillStyle = "#8d8880";
+      L.x.fillText("exacto " + num(q[i] * 100, 1) + "%", bx + bw / 2, y0 + bh + 20);
+    }
+    $("lec2").innerHTML = "<b>" + P2.n.toLocaleString("es-CL") + "</b> sorteos" +
+      '<span class="sep">·</span>error máximo <b>' +
+      (P2.n ? num(Math.max.apply(null, q.map(function (v, i) {
+        return Math.abs(P2.gana[i] / P2.n - v);
+      })) * 100, 2) + " pp" : "—") + "</b>";
+    $("cinta2").innerHTML = P2.hist.slice(0, 60).map(function (g) {
+      return '<i style="background:' + EST[g].c + '"></i>';
+    }).join("");
+  }
+
+  function ronda() {
+    var b = [0, 0, 0], g = 0, i;
+    for (i = 0; i < 3; i++) b[i] = S.loc[i] + S.th[i] * sorteo();
+    for (i = 1; i < 3; i++) if (b[i] > b[g]) g = i;
+    P2.n++; P2.gana[g]++; P2.ult = { b: b, g: g };
+    P2.hist.unshift(g); if (P2.hist.length > 60) P2.hist.pop();
+  }
+
+  function lazo2(t) {
+    if (!P2.on) return;
+    if (P2.vel === 1) {
+      if (t - P2.t > 260) { ronda(); P2.t = t; panel2(); }
+    } else {
+      for (var i = 0; i < P2.vel; i++) ronda();
+      panel2();
+    }
+    requestAnimationFrame(lazo2);
+  }
+
+  // ------------------------------------------------------------- panel 3
+  var P3 = { on: false };
+
+  function panel3() {
+    var d = domPuja3(), hi = altoPuja(d), h = S.h, w = S.w;
+    var b = S.loc[h] + S.th[h] * w, i;
+    var L = lienzo("c3a", d, [0, hi], { l: 46, r: 14, t: 22, b: 40 });
+    ejes(L, ticks(d[0], d[1], 6));
+
+    var prod = 1, fs = [];
+    for (i = 0; i < 3; i++) {
+      if (i === h) continue;
+      var F = cdf(b, S.loc[i], S.th[i]);
+      fs.push({ i: i, F: F }); prod *= F;
+      (function (i, b) {
+        curva(L, function (v) { return pdf(v, S.loc[i], S.th[i]); }, d[0], d[1], EST[i].c + "66", 1.3);
+        curva(L, function (v) { return pdf(v, S.loc[i], S.th[i]); }, d[0], Math.max(d[0], Math.min(b, d[1])),
+          EST[i].c, 1.6, EST[i].c + "44");
+      })(i, b);
+    }
+    // el candidato, congelado
+    L.x.strokeStyle = EST[h].c; L.x.lineWidth = 2.4;
+    L.x.beginPath(); L.x.moveTo(L.sx(b), L.sy(0)); L.x.lineTo(L.sx(b), L.m.t); L.x.stroke();
+    L.x.fillStyle = EST[h].c;
+    L.x.beginPath(); L.x.arc(L.sx(b), L.m.t, 4.5, 0, 6.2832); L.x.fill();
+    L.x.font = "600 11px 'Segoe UI', system-ui, sans-serif";
+    L.x.textAlign = b > (d[0] + d[1]) / 2 ? "right" : "left"; L.x.textBaseline = "top";
+    L.x.fillText(" puja de " + EST[h].n + " = " + num(b, 2) + " ",
+      L.sx(b) + (b > (d[0] + d[1]) / 2 ? -6 : 6), L.m.t + 6);
+
+    $("lec3").innerHTML = "Con w = <b>" + num(w, 2) + "</b>" +
+      '<span class="sep">·</span>' +
+      fs.map(function (f) {
+        return 'F<sub style="color:' + EST[f.i].c + '">' + EST[f.i].n + "</sub> = <b>" + num(f.F, 4) + "</b>";
+      }).join('<span class="sep">×</span>') +
+      '<span class="sep">=</span>gana con probabilidad <b>' + num(prod, 4) + "</b>" +
+      '<span class="sep">·</span>peso φ(w) = <b>' + num(Math.exp(-Math.exp(-w)) * Math.exp(-w), 4) + "</b>";
+
+    // --- abajo: el integrando y el area acumulada
+    var a0 = W_PISO3 - 1, a1 = W_TOPE3 + 1;
+    var mx = 0;
+    for (i = 0; i <= 200; i++) mx = Math.max(mx, integrando(a0 + (a1 - a0) * i / 200, h, S.loc, S.th));
+    var M = lienzo("c3b", [a0, a1], [0, Math.max(mx, 1e-9) * 1.25], { l: 46, r: 14, t: 14, b: 30 });
+    ejes(M, ticks(a0, a1, 7));
+    curva(M, function (v) { return integrando(v, h, S.loc, S.th); }, a0, a1, EST[h].c + "44", 1.4);
+    curva(M, function (v) { return integrando(v, h, S.loc, S.th); }, a0, Math.min(w, a1),
+      EST[h].c, 2, EST[h].c + "33");
+    M.x.strokeStyle = EST[h].c; M.x.lineWidth = 1.4; M.x.setLineDash([4, 3]);
+    M.x.beginPath(); M.x.moveTo(M.sx(w), M.sy(0)); M.x.lineTo(M.sx(w), M.m.t); M.x.stroke();
+    M.x.setLineDash([]);
+    M.x.font = "11px 'Segoe UI', system-ui, sans-serif";
+    M.x.fillStyle = "#8d8880"; M.x.textAlign = "center"; M.x.textBaseline = "top";
+    M.x.fillText("ruido w del candidato", (M.m.l + M.W - M.m.r) / 2, M.H - 15);
+
+    // Area acumulada hasta w, sobre la grilla real. Se usa `prodF` y el peso
+    // tabulado, no `integrando`: en w = -10 la densidad subdesborda a cero
+    // exacto y despejarla del integrando daria 0/0.
+    var acu = 0, tot = 0;
+    for (i = 0; i < G.w.length; i++) {
+      var c = G.p[i] * prodF(G.w[i], h, S.loc, S.th);
+      tot += c;
+      if (G.w[i] <= w) acu += c;
+    }
+    rotulo(M, "área acumulada = " + num(acu, 4) + "   de   Q" + " = " + num(tot, 4),
+      a0 + (a1 - a0) * 0.02, Math.max(mx, 1e-9) * 1.13, "#444");
+  }
+
+  function lazo3() {
+    if (!P3.on) return;
+    S.w += 0.06;
+    if (S.w > W_TOPE3) S.w = W_PISO3;
+    $("s3w").value = Math.round(S.w * 100);
+    $("v3w").textContent = num(S.w, 2);
+    panel3();
+    requestAnimationFrame(lazo3);
+  }
+
+  // ------------------------------------------------------------- panel 4
+  function panel4() {
+    var a0 = -4, a1 = 14, i, hs = S.tres ? [0, 1, 2] : [S.h];
+    // Un estrato que puja muy por debajo solo gana con un ruido enorme, y su
+    // joroba se va a la derecha de la ventana por defecto. Se busca donde cae
+    // la masa sobre TODA la grilla y se estira la ventana si hace falta.
+    var wPico = a0, vPico = -1, w, v;
+    hs.forEach(function (h) {
+      for (i = 0; i <= 600; i++) {
+        w = W_MIN + (W_MAX - W_MIN) * i / 600;
+        v = integrando(w, h, S.loc, S.th);
+        if (v > vPico) { vPico = v; wPico = w; }
+      }
+    });
+    if (wPico + 8 > a1) a1 = Math.min(W_MAX, wPico + 8);
+    var mx = 0;
+    hs.forEach(function (h) {
+      for (i = 0; i <= 300; i++) mx = Math.max(mx, integrando(a0 + (a1 - a0) * i / 300, h, S.loc, S.th));
+    });
+    mx = Math.max(mx, 1e-12);
+    var L = lienzo("c4", [a0, a1], [0, mx * 1.3], { l: 46, r: 14, t: 14, b: 40 });
+    ejes(L, ticks(a0, a1, 8));
+
+    if (!S.tres) {
+      var h = S.h;
+      // el producto de CDFs y la densidad, escalados al alto del panel
+      curva(L, function (v) {
+        var z = 1, g, a;
+        for (g = 0; g < 3; g++) {
+          if (g === h) continue;
+          a = (S.loc[h] - S.loc[g] + S.th[h] * v) / S.th[g];
+          z *= Math.exp(-Math.exp(-Math.max(-TOPE, Math.min(TOPE, a))));
+        }
+        return z * mx * 1.12;
+      }, a0, a1, "#2f6690", 1.4);
+      curva(L, function (v) {
+        return Math.exp(-Math.exp(-v)) * Math.exp(-v) * mx * 1.12 / 0.3679;
+      }, a0, a1, "#9a958c", 1.2);
+      curva(L, function (v) { return integrando(v, h, S.loc, S.th); }, a0, a1,
+        EST[h].c, 2.4, EST[h].c + "2a");
+      rotulo(L, "Π F", a1 - 1.4, mx * 1.16, "#2f6690", "right");
+    } else {
+      hs.forEach(function (h) {
+        curva(L, function (v) { return integrando(v, h, S.loc, S.th); }, a0, a1,
+          EST[h].c, 2, EST[h].c + "22");
+      });
+    }
+    L.x.font = "11px 'Segoe UI', system-ui, sans-serif";
+    L.x.fillStyle = "#8d8880"; L.x.textAlign = "center"; L.x.textBaseline = "top";
+    L.x.fillText("ruido w del candidato", (L.m.l + L.W - L.m.r) / 2, L.H - 15);
+
+    var cr = qCrudo(S.loc, S.th, N_NODOS), suma = cr[0] + cr[1] + cr[2];
+    // cuanto queda fuera de la ventana [-10, 40]
+    var anchoF = 0, fuera = 0, k, v;
+    for (k = 0; k <= 4000; k++) {
+      v = 40 + (200 - 40) * k / 4000;
+      fuera += integrando(v, S.h, S.loc, S.th) * (200 - 40) / 4000;
+    }
+    anchoF = fuera;
+    $("lec4").innerHTML = "Área bajo el integrando" +
+      '<span class="sep">·</span>' + EST.map(function (e, i) {
+        return '<b style="color:' + e.c + '">' + e.n + " " + num(cr[i], 6) + "</b>";
+      }).join('<span class="sep">·</span>') +
+      '<span class="sep">suma =</span><b>' + num(suma, 12) + "</b>" +
+      '<br>Cola a la derecha de w = 40 para ' + EST[S.h].n + ": <b>" +
+      (anchoF < 1e-30 ? "0 (subdesborda)" : sci(anchoF)) + "</b>";
+  }
+
+  // ------------------------------------------------------------- panel 5
+  function panel5() {
+    var n = N_OPC[S.iN], h = S.h, i;
+    var L = lienzo("c5", [W_MIN, W_MAX], [0, 1], { l: 46, r: 14, t: 16, b: 40 });
+    var mx = 0;
+    for (i = 0; i <= 600; i++) mx = Math.max(mx, integrando(W_MIN + 50 * i / 600, h, S.loc, S.th));
+    mx = Math.max(mx, 1e-12);
+    L = lienzo("c5", [W_MIN, W_MAX], [0, mx * 1.25], { l: 46, r: 14, t: 16, b: 40 });
+    ejes(L, [-10, 0, 10, 20, 30, 40]);
+
+    curva(L, function (v) { return integrando(v, h, S.loc, S.th); }, W_MIN, W_MAX,
+      EST[h].c + "55", 1.3, EST[h].c + "12");
+
+    // el poligono del trapecio sobre los nodos efectivos
+    var gr = grilla(n), ys = [], k;
+    for (k = 0; k < n; k++) ys.push(integrando(gr.w[k], h, S.loc, S.th));
+    L.x.strokeStyle = EST[h].c; L.x.lineWidth = 1.8;
+    L.x.beginPath();
+    for (k = 0; k < n; k++) {
+      if (k === 0) L.x.moveTo(L.sx(gr.w[k]), L.sy(ys[k])); else L.x.lineTo(L.sx(gr.w[k]), L.sy(ys[k]));
+    }
+    L.x.stroke();
+    if (n <= 129) {
+      L.x.fillStyle = EST[h].c;
+      for (k = 0; k < n; k++) {
+        L.x.beginPath(); L.x.arc(L.sx(gr.w[k]), L.sy(ys[k]), 2.6, 0, 6.2832); L.x.fill();
+        L.x.strokeStyle = EST[h].c + "44"; L.x.lineWidth = 1;
+        L.x.beginPath(); L.x.moveTo(L.sx(gr.w[k]), L.sy(ys[k])); L.x.lineTo(L.sx(gr.w[k]), L.sy(0)); L.x.stroke();
+      }
+    }
+    L.x.font = "11px 'Segoe UI', system-ui, sans-serif";
+    L.x.fillStyle = "#8d8880"; L.x.textAlign = "center"; L.x.textBaseline = "top";
+    L.x.fillText("ruido w  —  la grilla completa que evalúa el núcleo", (L.m.l + L.W - L.m.r) / 2, L.H - 15);
+
+    var ref = qHev(S.loc, S.th, 6401), aq = qHev(S.loc, S.th, n);
+    var err = Math.max.apply(null, aq.map(function (v, i) { return Math.abs(v - ref[i]); }));
+    $("v5n").textContent = n;
+    $("lec5").innerHTML = "Con <b>" + n + "</b> nodos" +
+      '<span class="sep">·</span>paso dw = <b>' + num(50 / (n - 1), 4) + "</b>" +
+      '<span class="sep">·</span>Q = ' + EST.map(function (e, i) {
+        return '<b style="color:' + e.c + '">' + num(aq[i], 6) + "</b>";
+      }).join(" · ") +
+      '<span class="sep">·</span>error <b>' + (err === 0 ? "0" : sci(err)) + "</b>";
+
+    // --- error vs N
+    var M = lienzo("c5b", [Math.log10(4), Math.log10(2000)], [-17, 0], { l: 52, r: 14, t: 14, b: 34 });
+    M.x.font = "11px Consolas, monospace";
+    [0, -4, -8, -12, -16].forEach(function (e) {
+      M.x.strokeStyle = "#e6e3dd"; M.x.beginPath();
+      M.x.moveTo(M.m.l, M.sy(e)); M.x.lineTo(M.W - M.m.r, M.sy(e)); M.x.stroke();
+      M.x.fillStyle = "#8d8880"; M.x.textAlign = "right"; M.x.textBaseline = "middle";
+      M.x.fillText(e === 0 ? "1" : "10" + sup(e), M.m.l - 6, M.sy(e));
+    });
+    M.x.strokeStyle = "#b8b3aa";
+    M.x.beginPath(); M.x.moveTo(M.m.l, M.H - M.m.b); M.x.lineTo(M.W - M.m.r, M.H - M.m.b); M.x.stroke();
+
+    var pts = N_OPC.map(function (nn) {
+      var qq = qHev(S.loc, S.th, nn);
+      var e = Math.max.apply(null, qq.map(function (v, i) { return Math.abs(v - ref[i]); }));
+      return { n: nn, e: Math.max(e, 1e-17) };
+    });
+    M.x.strokeStyle = EST[h].c; M.x.lineWidth = 1.8;
+    M.x.beginPath();
+    pts.forEach(function (p, k) {
+      var X = M.sx(Math.log10(p.n)), Y = M.sy(Math.log10(p.e));
+      if (k === 0) M.x.moveTo(X, Y); else M.x.lineTo(X, Y);
+    });
+    M.x.stroke();
+    pts.forEach(function (p) {
+      var X = M.sx(Math.log10(p.n)), Y = M.sy(Math.log10(p.e));
+      M.x.fillStyle = p.n === n ? "#1a1a1a" : EST[h].c;
+      M.x.beginPath(); M.x.arc(X, Y, p.n === n ? 4.5 : 2.8, 0, 6.2832); M.x.fill();
+      M.x.fillStyle = "#8d8880"; M.x.font = "10px Consolas, monospace";
+      M.x.textAlign = "center"; M.x.textBaseline = "top";
+      M.x.fillText(p.n, X, M.H - M.m.b + 6);
+    });
+    // el piso del redondeo
+    M.x.strokeStyle = "#8a5a12"; M.x.setLineDash([4, 3]); M.x.lineWidth = 1;
+    M.x.beginPath(); M.x.moveTo(M.m.l, M.sy(-16)); M.x.lineTo(M.W - M.m.r, M.sy(-16)); M.x.stroke();
+    M.x.setLineDash([]);
+    M.x.fillStyle = "#8a5a12"; M.x.font = "600 10.5px 'Segoe UI', system-ui, sans-serif";
+    M.x.textAlign = "left"; M.x.textBaseline = "bottom";
+    M.x.fillText(" piso del redondeo de doble precisión", M.m.l + 4, M.sy(-16) - 2);
+  }
+
+  // ------------------------------------------------------------- panel 6
+  var P6 = { on: false, n: 0, gana: [0, 0, 0], serie: [], prox: 100, tope: 500000 };
+
+  function panel6() {
+    var L = lienzo("c6", [2, 5.8], [-4.2, -0.2], { l: 52, r: 14, t: 14, b: 34 });
+    var i;
+    L.x.font = "11px Consolas, monospace";
+    [-1, -2, -3, -4].forEach(function (e) {
+      L.x.strokeStyle = "#e6e3dd"; L.x.beginPath();
+      L.x.moveTo(L.m.l, L.sy(e)); L.x.lineTo(L.W - L.m.r, L.sy(e)); L.x.stroke();
+      L.x.fillStyle = "#8d8880"; L.x.textAlign = "right"; L.x.textBaseline = "middle";
+      L.x.fillText("10" + sup(e), L.m.l - 6, L.sy(e));
+    });
+    L.x.strokeStyle = "#b8b3aa";
+    L.x.beginPath(); L.x.moveTo(L.m.l, L.H - L.m.b); L.x.lineTo(L.W - L.m.r, L.H - L.m.b); L.x.stroke();
+    [2, 3, 4, 5].forEach(function (e) {
+      L.x.fillStyle = "#8d8880"; L.x.textAlign = "center"; L.x.textBaseline = "top";
+      L.x.fillText("10" + sup(e), L.sx(e), L.H - L.m.b + 6);
+    });
+    // envolvente 1/sqrt(n)
+    L.x.strokeStyle = "#8a5a12"; L.x.setLineDash([5, 4]); L.x.lineWidth = 1.2;
+    L.x.beginPath();
+    L.x.moveTo(L.sx(2), L.sy(Math.log10(1 / Math.sqrt(100))));
+    L.x.lineTo(L.sx(5.8), L.sy(Math.log10(1 / Math.sqrt(Math.pow(10, 5.8)))));
+    L.x.stroke(); L.x.setLineDash([]);
+    L.x.fillStyle = "#8a5a12"; L.x.font = "600 10.5px 'Segoe UI', system-ui, sans-serif";
+    L.x.textAlign = "right"; L.x.textBaseline = "bottom";
+    L.x.fillText("1/√n ", L.W - L.m.r, L.sy(Math.log10(1 / Math.sqrt(Math.pow(10, 5.8)))) - 3);
+
+    L.x.strokeStyle = "#b4532a"; L.x.lineWidth = 1.8;
+    L.x.beginPath();
+    P6.serie.forEach(function (p, k) {
+      var X = L.sx(Math.log10(p.n)), Y = L.sy(Math.log10(Math.max(p.e, 1e-5)));
+      if (k === 0) L.x.moveTo(X, Y); else L.x.lineTo(X, Y);
+    });
+    L.x.stroke();
+    L.x.font = "11px 'Segoe UI', system-ui, sans-serif";
+    L.x.fillStyle = "#8d8880"; L.x.textAlign = "center"; L.x.textBaseline = "top";
+    L.x.fillText("número de sorteos", (L.m.l + L.W - L.m.r) / 2, L.H - 15);
+
+    var q = qHev(S.loc, S.th);
+    var e = P6.n ? Math.max.apply(null, q.map(function (v, i) {
+      return Math.abs(P6.gana[i] / P6.n - v);
+    })) : 0;
+    $("lec6").innerHTML = "<b>" + P6.n.toLocaleString("es-CL") + "</b> sorteos" +
+      '<span class="sep">·</span>frecuencia ' + EST.map(function (t, i) {
+        return '<b style="color:' + t.c + '">' + (P6.n ? num(P6.gana[i] / P6.n, 5) : "—") + "</b>";
+      }).join(" · ") +
+      '<br>cuadratura&nbsp;&nbsp;&nbsp;' + EST.map(function (t, i) {
+        return '<b style="color:' + t.c + '">' + num(q[i], 5) + "</b>";
+      }).join(" · ") +
+      '<span class="sep">·</span>error <b>' + (P6.n ? sci(e) : "—") + "</b>";
+  }
+
+  function lazo6() {
+    if (!P6.on) return;
+    var i, k, b, g;
+    for (k = 0; k < 20000 && P6.n < P6.tope; k++) {
+      b = [0, 0, 0]; g = 0;
+      for (i = 0; i < 3; i++) b[i] = S.loc[i] + S.th[i] * sorteo();
+      for (i = 1; i < 3; i++) if (b[i] > b[g]) g = i;
+      P6.n++; P6.gana[g]++;
+      if (P6.n >= P6.prox) {
+        var q = qHev(S.loc, S.th);
+        P6.serie.push({
+          n: P6.n,
+          e: Math.max.apply(null, q.map(function (v, j) { return Math.abs(P6.gana[j] / P6.n - v); }))
+        });
+        P6.prox = Math.ceil(P6.prox * 1.35);
+      }
+    }
+    panel6();
+    if (P6.n >= P6.tope) { P6.on = false; $("b6play").textContent = "▶ Correr 500.000 sorteos"; return; }
+    requestAnimationFrame(lazo6);
+  }
+
+  function panel6b() {
+    var q = qHev(S.loc, S.th);
+    var unif = Math.abs(S.th[0] - S.th[1]) < 1e-12 && Math.abs(S.th[0] - S.th[2]) < 1e-12;
+    var lg = qLogit(S.loc, S.th);
+    var fil = EST.map(function (e, i) {
+      var d = q[i] - lg[i];
+      return "<tr><td><b style='color:" + e.c + "'>" + e.n + "</b></td>" +
+        "<td class='n'>" + num(q[i], 12) + "</td>" +
+        "<td class='n'>" + num(lg[i], 12) + "</td>" +
+        "<td class='n'>" + (d === 0 ? "0 (exacto)" : sci(d)) + "</td></tr>";
+    }).join("");
+    $("t6b").innerHTML =
+      "<tr><th>estrato</th><th class='n'>HEV (cuadratura)</th><th class='n'>logit cerrado</th><th class='n'>diferencia</th></tr>" + fil;
+    $("pie6b").innerHTML = unif
+      ? "Los tres θ son iguales (" + num(S.th[0], 2) + "): la ec. (2) vuelve a valer y las dos columnas " +
+        "tienen que coincidir bit a bit. <strong>Coinciden.</strong>"
+      : "Los θ <strong>diferen</strong> (" + S.th.map(function (v) { return num(v, 2); }).join(" · ") +
+        "), así que el logit de la tercera columna ya no es el modelo correcto — se calcula con θ = " +
+        num(S.th[0], 2) + " sólo como referencia. La diferencia de la cuarta columna no es error " +
+        "numérico: es el modelo distinto.";
+  }
+
+  // ------------------------------------------------------------- orquesta
+  function pintar() {
+    var i;
+    recalcula();
+    for (i = 0; i < 3; i++) {
+      CAMPOS.forEach(function (C) {
+        $("v-" + C.k + "-" + i).textContent = num(S[C.k][i], C.dec);
+      });
+      $("d-fl-" + i).textContent = num(S.f[i] / S.lam[i], 2);
+      $("d-th-" + i).textContent = num(S.th[i], 2);
+      $("d-loc-" + i).textContent = num(S.loc[i], 2);
+    }
+    $("v-beta").textContent = num(S.beta, 2);
+    sincronizarSliders(); marcarH();
+    panel1(); panel2(); panel3(); panel4(); panel5(); panel6(); panel6b();
+  }
+
+  function arranque() {
+    controlesGlobales();
+    selectorH("sel-h", pintar); selectorH("sel-h4", pintar); selectorH("sel-h5", pintar);
+
+    $("b2play").onclick = function () {
+      P2.on = !P2.on; this.textContent = P2.on ? "⏸ Pausar" : "▶ Sortear";
+      if (P2.on) requestAnimationFrame(lazo2);
+    };
+    document.querySelectorAll("[data-vel]").forEach(function (b) {
+      b.onclick = function () {
+        P2.vel = +this.dataset.vel;
+        document.querySelectorAll("[data-vel]").forEach(function (o) { o.classList.remove("activo"); });
+        this.classList.add("activo");
+      };
+    });
+    $("b2reset").onclick = function () {
+      P2.n = 0; P2.gana = [0, 0, 0]; P2.hist = []; P2.ult = null; panel2();
+    };
+
+    $("s3w").oninput = function () { P3.on = false; $("b3play").textContent = "▶ Barrer"; S.w = +this.value / 100; $("v3w").textContent = num(S.w, 2); panel3(); };
+    $("b3play").onclick = function () {
+      P3.on = !P3.on; this.textContent = P3.on ? "⏸ Pausar" : "▶ Barrer";
+      if (P3.on) { if (S.w > W_TOPE3 - 0.5) S.w = W_PISO3; requestAnimationFrame(lazo3); }
+    };
+
+    $("ck4").onchange = function () { S.tres = this.checked; panel4(); };
+    $("s5n").oninput = function () { S.iN = +this.value; panel5(); };
+
+    $("b6play").onclick = function () {
+      P6.on = !P6.on; this.textContent = P6.on ? "⏸ Pausar" : "▶ Continuar";
+      if (P6.on) requestAnimationFrame(lazo6);
+    };
+    $("b6reset").onclick = function () {
+      P6.on = false; P6.n = 0; P6.gana = [0, 0, 0]; P6.serie = []; P6.prox = 100;
+      $("b6play").textContent = "▶ Correr 500.000 sorteos"; panel6();
+    };
+    $("b6b").onclick = function () { S.th = [1, 1, 1]; sincronizarSliders(); pintar(); };
+
+    pintar();
+    var t;
+    window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(pintar, 150); });
+  }
+
+  // Expuesto para la verificacion contra el nucleo (ver el pie del documento).
+  window.__hev = { qHev: qHev, qCrudo: qCrudo, qLogit: qLogit };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arranque);
+  else arranque();
+})();
+</script>
+</body>
+</html>
