@@ -1928,7 +1928,9 @@ _PESO[-1] *= 0.5</code></pre>
   }
 
   // Expuesto para la verificacion contra el nucleo (ver el pie del documento).
-  window.__hev = { qHev: qHev, qCrudo: qCrudo, qLogit: qLogit };
+  // `pdf` y `sorteo` van tambien porque son las dos mitades de la ec. (1) —la
+  // densidad y el generador de draws— y tienen que concordar entre si.
+  window.__hev = { qHev: qHev, qCrudo: qCrudo, qLogit: qLogit, pdf: pdf, cdf: cdf, sorteo: sorteo };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arranque);
   else arranque();
