@@ -104,13 +104,37 @@ def test_hev_reduce_al_logit_cuando_lambda_es_uniforme(lam: float) -> None:
 
     No «parecido»: idéntico. Si no lo fuera, activar el modelo nuevo movería en
     silencio la calibración y la línea base de todo el simulador.
+
+    El `beta` de `solve_logit` es la precisión en **dinero**; el de
+    `solve_subasta` es la precisión en **útiles**. La conversión es `b = β·λ`,
+    y hay que hacerla acá para comparar el mismo modelo — ver `solve_logit`.
     """
     esc = _escenario()
     lams = np.full(3, lam)
+    cerrado = {**esc, "beta": esc["beta"] * lam}
     assert (
-        np.max(np.abs(solve_subasta(lambda_h=lams, **esc).Q - solve_logit(lambda_h=lams, **esc).Q))
+        np.max(
+            np.abs(solve_subasta(lambda_h=lams, **esc).Q - solve_logit(lambda_h=lams, **cerrado).Q)
+        )
         == 0.0
     )
+
+
+@pytest.mark.parametrize("lam", [0.5, 1.0, 2.0, 3.0])
+def test_el_despacho_no_salta_al_romper_la_uniformidad_de_lambda(lam: float) -> None:
+    """El `if` de `solve_subasta` no puede ser un escalón.
+
+    Hacer los λ infinitesimalmente heterogéneos cambia de rama —de la forma
+    cerrada al HEV— pero no puede cambiar el modelo: en el límite los dos son la
+    misma subasta homoscedástica. Si salta, es que cada rama está interpretando
+    `beta` en un espacio distinto, que es el bug que esto fija (medido antes del
+    arreglo: 4,7 puntos con λ = 2 y 8,9 con λ = 0,5).
+    """
+    esc = _escenario()
+    uniforme = solve_subasta(lambda_h=np.full(3, lam), **esc).Q
+    casi = np.full(3, lam)
+    casi[-1] += 1e-9
+    assert np.max(np.abs(uniforme - solve_subasta(lambda_h=casi, **esc).Q)) < 1e-6
 
 
 @pytest.mark.parametrize("lams", [(0.8, 1.0, 1.25), (0.5, 1.0, 2.0)])

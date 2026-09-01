@@ -817,6 +817,51 @@ Se documentan aquí para que no se confundan:
 
 ---
 
+## D-31 — Uso de suelo: `beta` significaba cosas distintas a cada lado del despacho
+
+**Qué pasaba.** `solve_subasta` elige el modelo según los datos: forma cerrada si
+los `λ_h` son uniformes, HEV si difieren. Las dos ramas recibían `beta`, pero lo
+interpretaban en espacios distintos:
+
+- la rama cerrada lo aplicaba directo a la puja, que está **en dinero** → `b = β`;
+- la rama HEV construía `θ_h = 1/(β·λ_h)`, o sea `b_h = β·λ_h`, tratándolo como
+  precisión **en útiles**.
+
+**Por qué importa.** Por la ec. (4.3) de Martínez (p. 77), la disposición a pagar
+es `q_hi = y_h + (f_h − u_h)/λ_h + ε_hi/λ_h`, con `ε_hi/λ_h ~ Gumbel(0, b_h)` y
+`b_h = λ_h·μ_h`. La precisión en dinero **lleva λ**. La rama cerrada la omitía, y
+con eso el despacho quedaba **discontinuo**: volver los λ infinitesimalmente
+heterogéneos —perturbación de 10⁻⁹, que sólo cambia de rama— movía la asignación
+de golpe. Medido: `max|ΔQ|` = 4,7·10⁻² con λ = 2 y 8,9·10⁻² con λ = 0,5.
+
+**Por qué no se había visto.** Con `λ_h = 1` —el default de los tres estratos, y
+ningún preset lo cambia— `β·λ = β` y las dos lecturas coinciden bit a bit. El
+test que decía verificar la reducción comparaba `solve_subasta` contra
+`solve_logit`, y **con λ uniforme las dos iban a la forma cerrada**: era un test
+de despacho, no de reducción.
+
+**Qué se hizo.** `solve_subasta` convierte igual en las dos ramas (`b_h = β·λ_h`),
+y `_solve_fixed_point` pasó a nombrar su parámetro `b` documentando que es la
+precisión en dinero. `solve_logit` **conserva** su semántica —aplica `beta` tal
+cual a la puja en dinero— porque es la referencia homoscedástica con la que se
+demuestra D-08, y meterle λ rompería justamente la identidad que D-08 exhibe;
+queda anotado en su docstring que para compararla con `solve_subasta` hay que
+pasarle `β·λ`.
+
+**Efecto en la línea base: ninguno.** Con λ = 1 la rama cerrada recibe
+exactamente lo de antes; `test_linea_base` no se movió y el contrato generado
+quedó byte-idéntico. Lo único que cambió de resultado son las corridas con λ
+uniforme ≠ 1, que antes usaban una escala equivocada.
+
+**Fijado por** `test_el_despacho_no_salta_al_romper_la_uniformidad_de_lambda`
+(el salto ahora es ~10⁻¹⁰, la tolerancia del solver) y por
+`test_hev_reduce_al_logit_cuando_lambda_es_uniforme`, corregido para hacer la
+conversión al comparar.
+
+**Encontrada** el 2026-09-01, tirando del hilo de una pregunta de análisis
+dimensional: si `y_h` entra en dinero, ¿en qué unidades está cada término de la
+puja?
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -851,3 +896,4 @@ Se documentan aquí para que no se confundan:
 | D-28 | Transporte: densidad física hab/km (n_celdas puramente numérico) | Continuación de D-26 | Alta |
 | D-29 | Emisiones de metro por tren-km (economías de escala visibles) | Corrección conceptual | Media |
 | D-30 | Tres baselines de "sin congestión" (convenciones) | Documentado, sin cambio de código | Baja |
+| D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp) | Bug corregido, línea base intacta | Alta |

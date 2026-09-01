@@ -7,11 +7,20 @@ la disposición a pagar el término aleatorio queda dividido por `λ_h`,
 
     q_hi = y_h + (f_h(z_i) − u_h)/λ_h + ε_hi/λ_h
 
-o sea Gumbel con parámetro de forma `b_h = λ_h·μ_h`, **distinto por estrato**.
+o sea Gumbel con parámetro de forma `b_h = λ_h·μ_h`, **distinto por estrato**
+(Martínez, p. 77: `ε'_hi = ε_hi/λ_h` es Gumbel(0, b_h) con `b_h = λ_h·μ_h`).
 Aplicar la forma cerrada ahí no es una aproximación: es otro modelo, y equivale a
-suponer `μ_h = β/λ_h` —que quien más valora el dinero tiene proporcionalmente
-menos dispersión idiosincrática de utilidad—, un supuesto sin fundamento
-conductual que nadie eligió.
+suponer `b_h = b` común, o sea `μ_h = b/λ_h` —que quien más valora el dinero
+tiene proporcionalmente menos dispersión idiosincrática de utilidad—, un supuesto
+sin fundamento conductual que nadie eligió.
+
+**Cuál es el `beta` de la configuración.** Es `μ`, la precisión del ruido en
+**útiles**, común a los estratos; la precisión en **dinero** es `b_h = β·λ_h` y
+es la que ve la subasta, porque la puja está en dinero. `solve_subasta` hace esa
+conversión en las dos ramas. Antes no: la rama cerrada recibía `β` crudo, lo que
+equivalía a fijar `b = β` en vez de `b = β·λ`, y hacía que el despacho saltara al
+volver los λ infinitesimalmente heterogéneos (4,7 puntos con λ = 2). Con `λ = 1`
+las dos lecturas coinciden, que es por qué la línea base nunca lo notó.
 
 El modelo correcto para varianzas distintas entre alternativas es el **HEV**
 (heteroskedastic extreme value). La probabilidad de que la alternativa `h` gane

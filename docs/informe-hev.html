@@ -63,6 +63,13 @@
     border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
   }
   td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  th.simb {
+    /* Las griegas son sensibles a la caja: sigma no es Sigma y delta no es
+       Delta, que en estos documentos significa otra cosa. Un encabezado con
+       simbolos se escribe como se escribe. */
+    text-transform: none; letter-spacing: .02em; font-size: 11.5px;
+  }
+
   td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
   tr.destacada td { background: #f3e9e2; font-weight: 600; }
   .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
@@ -196,6 +203,18 @@
     de conservar la forma cerrada, y estaba sin declarar.
   </p>
   <p>
+    <strong>Corregido el 2026-09-01 (D-31), pero sólo en el despacho.</strong>
+    Ese <code>b<sub>h</sub> = β</code> era además <em>inconsistente</em> con la
+    rama HEV, que construye <code>θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</code>, o
+    sea <code>b<sub>h</sub> = β·λ<sub>h</sub></code>: cada rama leía
+    <code>β</code> en un espacio distinto —dinero una, útiles la otra— y el
+    despacho <strong>saltaba</strong>. Hoy <code>solve_subasta</code> convierte
+    igual en las dos (<code>b<sub>h</sub> = β·λ<sub>h</sub></code>, la ec. (4.3)
+    del libro), así que el párrafo de arriba describe ahora sólo a
+    <code>solve_logit</code>, que conserva su semántica a propósito por ser la
+    referencia con la que se demuestra D-08. Ver §4, «Paso 5».
+  </p>
+  <p>
     La consecuencia es más grave que un supuesto incómodo: bajo ese modelo λ
     <strong>no tiene ningún canal estocástico</strong>, y como
     <code>f</code> es lineal en α y ρ, mover λ es <em>exactamente</em>
@@ -316,6 +335,12 @@
     —<code>exp(−exp(−x))</code> satura a 0 y a 1 fuera de ahí— para evitar
     <code>overflow</code> sin cambiar ningún valor.
   </p>
+  <p>
+    <strong>Si este paso no se entiende leyéndolo, está explicado aparte y con
+    animaciones:</strong> <a href="hev-cuadratura.html">La cuadratura del HEV, en
+    imágenes</a> — de dónde sale la integral, qué se está promediando, y por qué
+    401 nodos y no otro número. Seis paneles interactivos que calculan en vivo.
+  </p>
 </div>
 
 <div class="paso">
@@ -397,6 +422,29 @@
     Con el despacho por datos, <strong>no se puede correr el modelo equivocado
     para la configuración dada</strong>.
   </p>
+  <p>
+    <strong>Y el despacho es continuo, que no lo era.</strong> Un
+    <code>if</code> que elige modelo tiene que cumplir que en el límite los dos
+    coincidan, o el resultado depende de un detalle de implementación. Hasta el
+    2026-09-01 no cumplía: con λ uniforme ≠ 1, hacer los λ
+    <em>infinitesimalmente</em> heterogéneos —perturbación de
+    10<sup>−9</sup>, que sólo cambia de rama— movía la asignación de golpe.
+  </p>
+  <div class="envoltorio-tabla">
+    <table>
+      <tr><th class="simb">λ uniforme</th><th class="simb n">max|ΔQ| antes</th><th class="simb n">max|ΔQ| ahora</th></tr>
+      <tr><td>1,0</td><td class="n">1,4·10⁻¹⁰</td><td class="n">1,4·10⁻¹⁰</td></tr>
+      <tr class="destacada"><td>2,0</td><td class="n">4,7·10⁻²</td><td class="n">7,7·10⁻¹¹</td></tr>
+      <tr class="destacada"><td>0,5</td><td class="n">8,9·10⁻²</td><td class="n">2,8·10⁻¹⁰</td></tr>
+    </table>
+  </div>
+  <p class="pie-tabla">
+    Perturbando un solo λ en 10<sup>−9</sup>. Lo que queda es la tolerancia del
+    punto fijo del HEV, no un salto de modelo. Con λ = 1 —el default de los tres
+    estratos— las dos lecturas de β coinciden, que es por qué la línea base nunca
+    lo notó y por qué corregirlo no la movió. Fijado por
+    <code>test_el_despacho_no_salta_al_romper_la_uniformidad_de_lambda</code>.
+  </p>
 </div>
 
 <!-- ==================================================================== -->
@@ -465,7 +513,7 @@
 
 <div class="envoltorio-tabla">
 <table>
-  <thead><tr><th>β</th><th class="n">max|ΔQ| — kernel de cuadratura</th><th class="n">max|ΔQ| — solver completo</th></tr></thead>
+  <thead><tr><th class="simb">β</th><th class="simb n">max|ΔQ| — kernel de cuadratura</th><th class="simb n">max|ΔQ| — solver completo</th></tr></thead>
   <tbody>
     <tr><td>0,3</td><td class="n">9,44·10⁻¹⁶</td><td class="n">0,00</td></tr>
     <tr><td>1,0</td><td class="n">8,88·10⁻¹⁶</td><td class="n">0,00</td></tr>
@@ -479,6 +527,25 @@
   columna prueba que el kernel es correcto; la segunda, que el despacho lo es.
 </p>
 
+<div class="aviso alerta">
+  <h4>La segunda columna probaba menos de lo que decía</h4>
+  <p>
+    Comparaba <code>solve_subasta</code> contra <code>solve_logit</code>, y
+    <strong>con λ uniforme las dos iban a la forma cerrada</strong>: el cero
+    exacto era inevitable, y salía igual con o sin el bug de D-31 adentro. Era un
+    test de <em>despacho</em> disfrazado de test de <em>reducción</em>, y por eso
+    pasaba en λ = 0,5 y λ = 2 mientras las dos ramas usaban escalas distintas.
+  </p>
+  <p>
+    Sigue valiendo lo que la tabla muestra —el despacho a la forma cerrada es
+    exacto—, pero hoy la comparación hace la conversión <code>b = β·λ</code>
+    explícita, y la propiedad que faltaba —que las dos ramas sean el mismo modelo
+    en el límite— la fija un test aparte, en §4. La lección es de método: un test
+    que compara dos caminos que <em>convergen al mismo código</em> no prueba nada
+    sobre el código que no corrió.
+  </p>
+</div>
+
 <h3>6.2 El precio y la constante de Euler <span class="etiqueta ok">exacta</span></h3>
 
 <p>
@@ -490,7 +557,7 @@
 
 <div class="envoltorio-tabla">
 <table>
-  <thead><tr><th>β</th><th class="n">brecha media medida</th><th class="n">γ/β teórico</th><th class="n">desviación entre parcelas</th></tr></thead>
+  <thead><tr><th class="simb">β</th><th class="n">brecha media medida</th><th class="simb n">γ/β teórico</th><th class="n">desviación entre parcelas</th></tr></thead>
   <tbody>
     <tr><td>0,5</td><td class="n">1,154431</td><td class="n">1,154431</td><td class="n">5,3·10⁻¹⁴</td></tr>
     <tr><td>1,0</td><td class="n">0,577216</td><td class="n">0,577216</td><td class="n">2,0·10⁻¹⁴</td></tr>
@@ -509,7 +576,7 @@
 
 <div class="envoltorio-tabla">
 <table>
-  <thead><tr><th>λ (alto · medio · bajo)</th><th class="n">error relativo máx.</th><th>converge</th><th class="n">iteraciones</th><th class="n">segundos</th></tr></thead>
+  <thead><tr><th class="simb">λ (alto · medio · bajo)</th><th class="n">error relativo máx.</th><th>converge</th><th class="n">iteraciones</th><th class="n">segundos</th></tr></thead>
   <tbody>
     <tr class="destacada"><td>1,0 · 1,0 · 1,0 <em>(cerrado)</em></td><td class="n">2,3·10⁻⁹</td><td>sí</td><td class="n">48</td><td class="n">0,03</td></tr>
     <tr><td>0,8 · 1,0 · 1,25</td><td class="n">3,9·10⁻⁹</td><td>sí</td><td class="n">140</td><td class="n">1,05</td></tr>
@@ -532,7 +599,7 @@
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th>λ</th><th class="n">cerrado: max|ΔQ|</th><th class="n">HEV: max|ΔQ|</th><th class="n">d_alto vía λ</th><th class="n">d_alto vía α,ρ</th></tr>
+    <tr><th class="simb">λ</th><th class="simb n">cerrado: max|ΔQ|</th><th class="simb n">HEV: max|ΔQ|</th><th class="simb n">d_alto vía λ</th><th class="simb n">d_alto vía α,ρ</th></tr>
   </thead>
   <tbody>
     <tr><td>0,50</td><td class="n">0,00</td><td class="n"><strong>0,1199</strong></td><td class="n">1,06</td><td class="n">1,05</td></tr>
@@ -564,7 +631,7 @@
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th>λ alto</th><th class="n">θ_alto</th><th class="n">α_ef</th><th class="n">d_alto</th><th class="n">dispersión</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">iters</th></tr>
+    <tr><th class="simb">λ alto</th><th class="simb n">θ_alto</th><th class="simb n">α_ef</th><th class="simb n">d_alto</th><th class="n">dispersión</th><th class="simb n">d_medio</th><th class="simb n">d_bajo</th><th class="n">iters</th></tr>
   </thead>
   <tbody>
     <tr><td>0,40</td><td class="n">2,50</td><td class="n">16,25</td><td class="n">1,06</td><td class="n">0,60</td><td class="n">3,63</td><td class="n">6,21</td><td class="n">245</td></tr>
@@ -631,7 +698,7 @@
 
 <div class="envoltorio-tabla">
 <table>
-  <thead><tr><th>k</th><th class="n">max|ΔQ| vs k=1</th><th class="n">d_alto</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">iters</th></tr></thead>
+  <thead><tr><th class="simb">k</th><th class="simb n">max|ΔQ| vs k=1</th><th class="simb n">d_alto</th><th class="simb n">d_medio</th><th class="simb n">d_bajo</th><th class="n">iters</th></tr></thead>
   <tbody>
     <tr><td>0,50</td><td class="n">2,4·10⁻¹</td><td class="n">1,22</td><td class="n">3,20</td><td class="n">6,48</td><td class="n">98</td></tr>
     <tr><td>0,80</td><td class="n">7,5·10⁻²</td><td class="n">1,37</td><td class="n">3,19</td><td class="n">6,34</td><td class="n">60</td></tr>
@@ -667,7 +734,7 @@
 
 <div class="envoltorio-tabla">
 <table>
-  <thead><tr><th>ΣH</th><th class="n">ln H</th><th class="n">d_alto con λ=0,8</th><th class="n">d_alto con λ=1</th><th class="n">d_alto con λ=1,25</th></tr></thead>
+  <thead><tr><th class="simb">ΣH</th><th class="n">ln H</th><th class="simb n">d_alto con λ=0,8</th><th class="simb n">d_alto con λ=1</th><th class="simb n">d_alto con λ=1,25</th></tr></thead>
   <tbody>
     <tr><td>9.000</td><td class="n">8,01</td><td class="n">1,10</td><td class="n">1,47</td><td class="n">5,96</td></tr>
     <tr><td>36.000</td><td class="n">9,39</td><td class="n">1,10</td><td class="n">1,47</td><td class="n">5,79</td></tr>
@@ -703,7 +770,7 @@
 
 <div class="envoltorio-tabla">
 <table>
-  <thead><tr><th>β</th><th class="n">d_alto con λ=0,8</th><th class="n">d_alto con λ=1</th><th class="n">d_alto con λ=1,25</th></tr></thead>
+  <thead><tr><th class="simb">β</th><th class="simb n">d_alto con λ=0,8</th><th class="simb n">d_alto con λ=1</th><th class="simb n">d_alto con λ=1,25</th></tr></thead>
   <tbody>
     <tr><td>0,5</td><td class="n">1,26</td><td class="n">1,86</td><td class="n">4,80</td></tr>
     <tr class="destacada"><td>1,0 <em>(base)</em></td><td class="n">1,11</td><td class="n">1,47</td><td class="n">5,21</td></tr>
@@ -817,6 +884,8 @@ uv run --extra dev pytest tests/test_hev.py -v</code></pre>
 <h3>Documentación relacionada</h3>
 
 <ul>
+  <li><a href="hev-cuadratura.html"><code>docs/hev-cuadratura.html</code></a> — la cuadratura del §4 explicada con seis paneles interactivos: de dónde sale la integral y por qué el trapecio la resuelve exacta.</li>
+  <li><a href="../sandbox/hev-paso-a-paso/informe.html"><code>sandbox/hev-paso-a-paso/</code></a> — el mismo equilibrio del §4 en el caso más simple (2 estratos, 5 parcelas), donde se reduce a una ecuación escalar y se puede verificar contra bisección y contra la subasta simulada hogar por hogar.</li>
   <li><code>docs/informe-uso-suelo.html</code> §7.1 y §7.6 — el módulo completo y dónde encaja esto.</li>
   <li><code>docs/AUDITORIA_USO_SUELO.md</code> — AU-06 (el artefacto de λ), AU-03 (la invariancia de escala que §8.2 rompe), AU-07 (el solver que se eliminó).</li>
   <li><code>docs/DISCREPANCIES.md</code> D-08 — el hallazgo original, cerrado por este trabajo.</li>

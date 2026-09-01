@@ -92,19 +92,27 @@ def _solve_fixed_point(
     score: NDArray[np.float64],
     H_arr: NDArray[np.float64],
     S_arr: NDArray[np.float64],
-    beta: float,
+    b: float,
     tol: float,
     max_iter: int,
 ) -> LandUseResult:
     """Punto fijo de subasta logit sobre el `score[h, i]` (la puja de cada estrato
-    por cada parcela, en las unidades que defina el solver):
+    por cada parcela, **en dinero**):
 
-        Q[h,i] ∝ S_i·exp(β·(score_hi − ū_h − p_i)),   columnas de Q suman 1.
+        Q[h,i] ∝ S_i·exp(b·(score_hi − ū_h − p_i)),   columnas de Q suman 1.
+
+    `b` es la **precisión en dinero** del ruido de la puja: el `b_h = λ_h·μ_h`
+    de la ec. (4.3) de Martínez (p. 77), donde `μ_h` es la precisión del ruido
+    de la utilidad. No es el `b` de la configuración —ese es `μ`— y la
+    conversión la hace el que llama. Confundirlos hacía saltar el despacho de
+    `solve_subasta` al pasar de λ uniforme a λ heterogéneo (ver ahí).
+
+    Es **escalar**, o sea uniforme entre estratos: una precisión por estrato
+    `b_h` requeriría cambiar este solver, no sólo el `score`, y es exactamente
+    lo que hace el HEV (`hev.py`).
 
     Equilibrio: cada estrato coloca exactamente H_h hogares, vía el punto fijo
-    F(ū)=ū sobre las utilidades ū. `β` es **escalar** (uniforme entre estratos):
-    una escala por estrato `β_h` requeriría cambiar este solver, no solo el
-    `score` — ver la limitación de λ en `solve_logit`."""
+    F(ū)=ū sobre las utilidades ū."""
     I = len(S_arr)
     n_strata = len(H_arr)
 
@@ -112,13 +120,13 @@ def _solve_fixed_point(
     log_S = np.full(I, -np.inf, dtype=float)
     log_S[mask_S_pos] = np.log(S_arr[mask_S_pos])
 
-    logZ = np.log(H_arr)[:, None] + beta * score
+    logZ = np.log(H_arr)[:, None] + b * score
     assert logZ.shape == (n_strata, I)
 
     def F(u_bar: NDArray[np.float64]) -> NDArray[np.float64]:
-        log_denom = logsumexp(logZ - beta * u_bar[:, None], axis=0)
-        log_num = beta * score - log_denom[None, :] + log_S[None, :]
-        u_new = (1 / beta) * logsumexp(log_num, axis=1)
+        log_denom = logsumexp(logZ - b * u_bar[:, None], axis=0)
+        log_num = b * score - log_denom[None, :] + log_S[None, :]
+        u_new = (1 / b) * logsumexp(log_num, axis=1)
         u_new -= u_new[0]
         return u_new
 
@@ -136,10 +144,10 @@ def _solve_fixed_point(
         u_bar = u_new
 
     log_p = logsumexp(
-        np.log(H_arr)[:, None] + beta * (score - u_bar[:, None]),
+        np.log(H_arr)[:, None] + b * (score - u_bar[:, None]),
         axis=0,
     )
-    p = log_p / beta
+    p = log_p / b
 
     # Q ponderado por H (Suelo.tex ec. 3): la subasta la disputan H_h postores
     # de cada tipo, así que P(gana h) ∝ H_h·e^{β(s_hi − ū_h)}. Sin el log(H) la
@@ -151,7 +159,7 @@ def _solve_fixed_point(
     for i in range(I):
         if not mask_S_pos[i]:
             continue
-        log_q = log_H + beta * (score[:, i] - u_bar - p[i])
+        log_q = log_H + b * (score[:, i] - u_bar - p[i])
         Q[:, i] = np.exp(log_q - logsumexp(log_q))
 
     return LandUseResult(u=u_bar, p=p, Q=Q, converged=converged, iterations=iterations)
@@ -173,8 +181,14 @@ def solve_logit(
 ) -> LandUseResult:
     """Equilibrio vía punto fijo logit (ec. 5.4 Martínez). Puja `y_h + f_h(i)/λ_h`.
 
-    Único solver del módulo. `T` en minutos; `ancho_celda_km` convierte S a
-    densidad (ver D-26).
+    `T` en minutos; `ancho_celda_km` convierte S a densidad (ver D-26).
+
+    **Ojo con `beta` acá.** Esta función lo aplica **tal cual** a la puja en
+    dinero, o sea que su `beta` es la precisión en dinero `b`, no el `μ` en
+    útiles. `solve_subasta` —la puerta que usa la app— sí hace la conversión
+    `b = β·λ`. Se deja así a propósito: es la referencia homoscedástica pura con
+    la que se demuestra D-08, y meterle λ rompería justamente la identidad que
+    D-08 exhibe. Para comparar contra `solve_subasta` hay que pasarle `β·λ`.
 
     **Limitación conocida (D-08).** Aplica un β **uniforme** a las pujas, así
     que `λ_h` entra dividiendo `f_h` entero. Consecuencia exacta:
@@ -309,11 +323,28 @@ def solve_subasta(
       por estrato, y la forma cerrada deja de ser válida. Se usa HEV.
 
     Así nunca se puede correr el modelo equivocado para la configuración dada.
+
+    **El despacho es continuo, y no lo era.** Hasta el 2026-09-01 la rama
+    cerrada recibía `β` crudo y la rama HEV `θ = 1/(β·λ)`, o sea que cada una
+    interpretaba `β` en un espacio distinto: la cerrada como precisión en
+    dinero, el HEV como precisión en útiles. Con λ = 1 coinciden y no se notaba,
+    pero con λ uniforme ≠ 1 hacer los λ infinitesimalmente heterogéneos movía la
+    asignación de golpe —medido: 4,7 puntos con λ = 2, 8,9 con λ = 0,5—, que es
+    el síntoma de estar resolviendo dos modelos distintos a cada lado del `if`.
+    Ahora las dos ramas convierten igual, `b_h = β·λ_h`, y el salto es cero;
+    lo fija `test_el_despacho_no_salta_al_romper_la_uniformidad_de_lambda`.
+
+    La línea base **no se mueve**: con `λ_h = 1` (el default de los tres
+    estratos) `β·λ = β` y la rama cerrada recibe exactamente lo de antes.
     """
     H_arr = np.asarray(H, dtype=float)
     S_arr = np.asarray(S, dtype=float).reshape(-1)
     score = y[:, None] + _f_div_lambda(T, S_arr, alpha, rho, lambda_h, ancho_celda_km)
     lam = np.asarray(lambda_h, dtype=float)
+    # `beta` es la precision del ruido en UTILES (el μ_h de Martínez, común a
+    # los estratos). La precision en DINERO —que es la que ve la subasta,
+    # porque la puja está en dinero— es `b_h = β·λ_h`, la ec. (4.3) del libro.
+    # Las dos ramas tienen que hacer la misma conversión o el despacho salta.
     if float(np.ptp(lam)) <= 0.0:
-        return _solve_fixed_point(score, H_arr, S_arr, beta, tol, max_iter)
+        return _solve_fixed_point(score, H_arr, S_arr, beta * float(lam[0]), tol, max_iter)
     return _solve_hev(score, H_arr, S_arr, 1.0 / (beta * lam), tol, max_iter)
