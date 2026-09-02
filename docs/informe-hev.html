@@ -49,8 +49,20 @@
     margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
     max-width: 680px;
   }
+  /* MathML lo renderiza el navegador con la fuente matematica del sistema.
+     `Cambria Math` es la que .ecuacion ya pedia, asi que la tipografia no
+     cambia de familia: sube el cuerpo y aparecen fracciones e integrales de
+     verdad. Se genera con `node tools/renderiza_ecuaciones.js` desde el
+     `data-tex` de cada .ecuacion. */
+  .ecuacion math { font-size: 1.18em; }
+  .ecuacion .katex { font-family: inherit; }
+  .ecuacion { overflow-x: auto; }
   .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
   .ecuacion.suelta { background: none; border: none; }
+  .ref-cita {
+    display: block; margin-top: 6px; font-style: normal; font-size: 11.5px;
+    color: var(--muted); text-align: right;
+  }
   blockquote {
     margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
     color: var(--ink-2); font-style: italic; max-width: 72ch;
@@ -164,11 +176,8 @@
   del libro parte de la utilidad
 </p>
 
-<div class="ecuacion">
-  <span class="id">(4.2)</span>
-  v<sub>hi</sub> = λ<sub>h</sub>(y<sub>h</sub> − p<sub>i</sub>) +
-  f<sub>h</sub>(z<sub>i</sub>) + ε<sub>hi</sub>,
-  &nbsp;&nbsp; ε<sub>hi</sub> ~ Gumbel(0, μ<sub>h</sub>)
+<div class="ecuacion" data-tex="v_{hi} = \lambda_h\,(y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad \varepsilon_{hi} \sim \mathrm{Gumbel}(0,\ \mu_h)" data-id="(4.2)">
+  <span class="id">(4.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>v</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mtext> </mtext><mo stretchy="false">(</mo><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>∼</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mtext> </mtext><msub><mi>μ</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">v_{hi} = \lambda_h\,(y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad \varepsilon_{hi} \sim \mathrm{Gumbel}(0,\ \mu_h)</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -176,11 +185,8 @@
   ec. (4.3) deja el término aleatorio <strong>dividido por λ</strong>:
 </p>
 
-<div class="ecuacion">
-  <span class="id">(4.3)</span>
-  q<sub>hi</sub> = y<sub>h</sub> +
-  ( f<sub>h</sub>(z<sub>i</sub>) − u<sub>h</sub> ) / λ<sub>h</sub>
-  + <strong>ε<sub>hi</sub> / λ<sub>h</sub></strong>
+<div class="ecuacion" data-tex="q_{hi} = y_h + \frac{f_h(z_i) - u_h}{\lambda_h} + \frac{\varepsilon_{hi}}{\lambda_h}" data-id="(4.3)">
+  <span class="id">(4.3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>q</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mfrac><mrow><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>−</mo><msub><mi>u</mi><mi>h</mi></msub></mrow><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mo>+</mo><mfrac><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><msub><mi>λ</mi><mi>h</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">q_{hi} = y_h + \frac{f_h(z_i) - u_h}{\lambda_h} + \frac{\varepsilon_{hi}}{\lambda_h}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -192,15 +198,81 @@
 
 <blockquote>impone una varianza idéntica de las pujas entre consumidores distintos</blockquote>
 
+<h3>1.1 El documento original ya lo había diagnosticado</h3>
+
+<p>
+  Esto no se descubrió acá. El <code>Suelo.tex</code> del Overleaf original del
+  proyecto —anterior a esta implementación— lo dice con todas las letras:
+</p>
+
+<blockquote>
+  El problema viene con que al momento de definir el <em>willingness to pay</em>
+  «despejando» el precio de la parcela desde la utilidad, el término de utilidad
+  marginal λ<sub>h</sub> toca a esta variable, manteniéndola Gumbel, pero
+  <strong>perdiendo la hipótesis de que son idénticamente distribuidas</strong>
+  si los λ<sub>h</sub> son distintos entre sí, por lo que el continuar usando la
+  forma logit, no sólo genera resultados inesperados, sino que también
+  <strong>está mal desde el planteamiento base</strong>.
+  <br><span class="ref-cita">— <code>reference/overleaf_original/Suelo.tex</code></span>
+</blockquote>
+
+<p>
+  Vale la pena detenerse en lo que eso significa. <strong>El diagnóstico ya
+  estaba escrito, y era correcto.</strong> Lo que faltaba era la corrección: el
+  documento identificó que la forma logit deja de valer con λ heterogéneos, y la
+  implementación la siguió usando igual. No hubo un error de lectura de la
+  teoría — hubo un arreglo pendiente.
+</p>
+
+<div class="aviso neutro">
+  <h4>Las dos fuentes ponen λ en la escala del ruido</h4>
+  <p>
+    Conviene dejarlo asentado porque es la pregunta que sigue naturalmente:
+    <em>¿la omisión venía de la formulación?</em> No.
+  </p>
+  <ul>
+    <li>
+      <strong>Martínez</strong> (p. 77, ec. 4.3): el ruido de la puja es
+      <span class="mono">ε/λ ~ Gumbel(0, b<sub>h</sub>)</span> con
+      <span class="mono">b<sub>h</sub> = λ<sub>h</sub>·μ<sub>h</sub></span>. La
+      precisión <strong>lleva λ</strong>.
+    </li>
+    <li>
+      <strong>El Overleaf original</strong>: la cita de arriba.
+    </li>
+  </ul>
+  <p>
+    Ninguna de las dos respalda dejar λ fuera de la escala. La omisión era del
+    código, no de la teoría — y se puede decir exactamente dónde estaba: en
+    <code>solve_logit</code>, λ aparecía <strong>una sola vez</strong>, en
+    <span class="mono">score = y + f/λ</span>, y la escala del ruido era
+    <span class="mono">β</span> a secas. Por eso su efecto era idénticamente
+    re-escalar <span class="mono">(α, ρ)</span> —medido:
+    <span class="mono">max|ΔQ| = 0</span> exacto entre las dos vías, que es
+    D-08— y por eso λ no significaba nada.
+  </p>
+  <p>
+    El HEV le devuelve el segundo canal:
+    <span class="mono">θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</span>. La puja sigue
+    siendo la misma en los dos modelos; lo que se agrega es que la dispersión
+    también dependa de λ. Re-escalar preferencias mueve la puja pero
+    <strong>no toca θ</strong>, y ahí es donde λ deja de ser canjeable.
+  </p>
+</div>
+
 <div class="aviso alerta">
   <h4>El supuesto que nadie eligió</h4>
   <p>
     El solver cerrado aplica un <strong>β escalar</strong> a las pujas, o sea
     <code>b<sub>h</sub> = β</code> para todos. Por la identidad del libro eso
-    equivale a suponer <code>μ<sub>h</sub> = β/λ<sub>h</sub></code>: que quien
-    más valora el dinero tiene <em>proporcionalmente menos</em> dispersión
-    idiosincrática de utilidad. No hay razón conductual para eso. Es el precio
-    de conservar la forma cerrada, y estaba sin declarar.
+    equivale a suponer <code>μ<sub>h</sub> = β/λ<sub>h</sub></code>. Y como
+    <code>μ</code> es una <strong>precisión</strong>, eso significa que la
+    <em>escala</em> del ruido de utilidad,
+    <code>1/μ<sub>h</sub> = λ<sub>h</sub>/β</code>, resulta
+    <strong>proporcional a λ</strong>: quien más valora el dinero tendría
+    <em>proporcionalmente más</em> dispersión idiosincrática de utilidad. No hay
+    razón conductual para eso. Es el precio de conservar la forma cerrada, y
+    estaba sin declarar.
   </p>
   <p>
     <strong>Corregido el 2026-09-01 (D-31), pero sólo en el despacho.</strong>
@@ -266,11 +338,8 @@
   varianzas distintas—, la probabilidad de elección es
 </p>
 
-<div class="ecuacion">
-  <span class="id">Bhat</span>
-  P<sub>ni</sub> = ∫ [ Π<sub>j≠i</sub>
-  e<sup>−e<sup>−(V<sub>ni</sub> − V<sub>nj</sub> + θ<sub>i</sub>w)/θ<sub>j</sub></sup></sup> ]
-  · e<sup>−e<sup>−w</sup></sup> · e<sup>−w</sup> dw
+<div class="ecuacion" data-tex="P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni} - V_{nj} + \theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw" data-id="Bhat">
+  <span class="id">Bhat</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>=</mo><mo>∫</mo><mrow><mo fence="true">[</mo><munder><mo>∏</mo><mrow><mi>j</mi><mo mathvariant="normal">≠</mo><mi>i</mi></mrow></munder><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mo stretchy="false">(</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>i</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>θ</mi><mi>j</mi></msub></mrow></msup></mrow></msup><mo fence="true">]</mo></mrow><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup></mrow></msup><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup><mtext> </mtext><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni} - V_{nj} + \theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -306,8 +375,8 @@
   <em>localización</em>:
 </p>
 
-<div class="ecuacion">
-  ℓ<sub>hi</sub> = w<sub>hi</sub> + θ<sub>h</sub> · ln(H<sub>h</sub>)
+<div class="ecuacion" data-tex="\ell_{hi} = w_{hi} + \theta_h \ln(H_h)">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>H</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\ell_{hi} = w_{hi} + \theta_h \ln(H_h)</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -352,10 +421,9 @@
     entonces <strong>directamente sobre la condición de equilibrio</strong> de la
     ec. (5.1), «todo hogar se localiza»:
   </p>
-  <div class="ecuacion suelta">
-    ū<sub>h</sub> ← ū<sub>h</sub> + θ<sub>h</sub> ·
-    ln( Σ<sub>i</sub> S<sub>i</sub>Q<sub>hi</sub>(ū) / H<sub>h</sub> )
-  </div>
+  <div class="ecuacion suelta" data-tex="\bar u_h \leftarrow \bar u_h + \theta_h \ln\!\left(\frac{\sum_i S_i\,Q_{h/i}(\bar u)}{H_h}\right)">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub><mo>←</mo><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>S</mi><mi>i</mi></msub><mtext> </mtext><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">/</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mo stretchy="false">)</mo></mrow><msub><mi>H</mi><mi>h</mi></msub></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">\bar u_h \leftarrow \bar u_h + \theta_h \ln\!\left(\frac{\sum_i S_i\,Q_{h/i}(\bar u)}{H_h}\right)</annotation></semantics></math></span>
+</div>
   <p>
     Subir <code>ū<sub>h</sub></code> baja la puja <code>w = score − ū</code> y con
     ella <code>Q</code>, así que el signo reduce el exceso.
@@ -911,6 +979,7 @@ uv run --extra dev pytest tests/test_hev.py -v</code></pre>
 
 <ul>
   <li><a href="hev-cuadratura.html"><code>docs/hev-cuadratura.html</code></a> — la cuadratura del §4 explicada con seis paneles interactivos: de dónde sale la integral y por qué el trapecio la resuelve exacta.</li>
+  <li><a href="../sandbox/impacto-hev/informe.html"><code>sandbox/impacto-hev/</code></a> — cuanto cambio el resultado al aplicar la correccion: mismos datos y mismos λ, los dos solvers. El error se concentraba en las fronteras entre estratos.</li>
   <li><a href="../sandbox/hev-paso-a-paso/informe.html"><code>sandbox/hev-paso-a-paso/</code></a> — el mismo equilibrio del §4 en el caso más simple (2 estratos, 5 parcelas), donde se reduce a una ecuación escalar y se puede verificar contra bisección y contra la subasta simulada hogar por hogar.</li>
   <li><code>docs/informe-uso-suelo.html</code> §7.1 y §7.6 — el módulo completo y dónde encaja esto.</li>
   <li><code>docs/AUDITORIA_USO_SUELO.md</code> — AU-06 (el artefacto de λ), AU-03 (la invariancia de escala que §8.2 rompe), AU-07 (el solver que se eliminó).</li>
