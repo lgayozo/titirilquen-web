@@ -862,6 +862,57 @@ conversión al comparar.
 dimensional: si `y_h` entra en dinero, ¿en qué unidades está cada término de la
 puja?
 
+## D-32 — Uso de suelo: la densidad de `f` es exógena, no una externalidad de localización
+
+**Qué hace el código.** La atractividad de la parcela es
+`f_h(i) = −α_h·T_h(i) − ρ_h·dens(i)`, con `dens = S/Δx` y `S` la **oferta**,
+generada una sola vez por `generar_oferta(forma, σ)`. El `score` se arma una vez
+antes del punto fijo (`equilibrium.py:246` y `:362`), así que `ρ·dens` queda
+congelado durante toda la iteración: el punto fijo mueve `ū` y `p`, nunca `f`.
+
+Hay un segundo motivo, más fuerte que el primero: el mercado se vacía —las
+columnas de `Q` suman 1 y `Σ S = Σ H` es obligatorio—, de modo que la densidad
+**realizada** es idénticamente `S/Δx`. El equilibrio decide *quién* vive en cada
+celda; *cuántos* lo fija la oferta y no cambia con ninguna configuración.
+
+**Qué dice Martínez.** En su modelo la atractividad es **endógena**: las
+externalidades de localización son un mecanismo central, no un detalle.
+
+> «The decision of agents to locate themselves in a site inevitably contributes
+> to define their neighbor's perception of the quality of the neighborhood»
+> — Martínez, p. 8
+
+> «When such an effect is associated with the increment on density, this type of
+> location externality is called an agglomeration economy» — p. 29
+
+> «the variability in the location choice process softens the reaction of agents
+> after a relocation of neighboring agents, thus reducing the strength of the
+> cascade changes induced by location externalities» — p. 116
+
+La última frase presupone la cascada: los agentes se relocalizan, eso cambia la
+atractividad, y eso vuelve a moverlos. El punto fijo de Martínez incluye ese
+lazo. El de acá no.
+
+**Por qué importa.** `ρ·dens` **no modela congestión residencial**: ningún hogar
+puede mover la magnitud por la que se lo penaliza. Es un atributo fijo de la
+parcela, estructuralmente indistinguible de un segundo término de accesibilidad
+— y en la geometría por defecto es *casi literalmente* el mismo término, con
+`corr(T, dens) = −0,996` (AU-12).
+
+Consecuencias: no hay cascada, no hay equilibrios múltiples inducidos por
+externalidades, y la segregación que produce el modelo sale sólo de la puja
+diferencial por accesibilidad, no de que los estratos se atraigan o se repelan
+entre sí. Cualquier lectura pedagógica que hable de «congestión» sobre este ρ
+está prometiendo un mecanismo que no está implementado.
+
+**Veredicto.** Simplificación que estaba sin declarar; queda declarada.
+Implementar la externalidad es cambio de modelo —`f` tendría que entrar al punto
+fijo como función de `Q`— y toca convergencia, línea base y unicidad del
+equilibrio. No se hace acá.
+
+**Encontrada** el 2026-09-02, a partir de una observación de Leandro: `ρ`
+penaliza una densidad que el modelo nunca mueve.
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -897,3 +948,4 @@ puja?
 | D-29 | Emisiones de metro por tren-km (economías de escala visibles) | Corrección conceptual | Media |
 | D-30 | Tres baselines de "sin congestión" (convenciones) | Documentado, sin cambio de código | Baja |
 | D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp) | Bug corregido, línea base intacta | Alta |
+| D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez) | Simplificación declarada, sin cambio de código | Media |

@@ -915,9 +915,21 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   a nadie —es un término común que se absorbe en ū, igual que <em>y</em>— pero
   <strong>achata el gradiente de precios, y con suficiente ρ lo invierte</strong>:
   las celdas centrales son las densas, así que la penalización golpea justo donde
-  el suelo vale más. Es la tensión entre congestión residencial y renta de
-  localización, y con ρ = 0,1 la congestión ganaba.
+  el suelo vale más. Con ρ = 0,1 ese término le ganaba a la renta de
+  localización y volcaba el gradiente.
 </p>
+
+<div class="aviso alerta">
+  <p>
+    <strong>No es congestión residencial.</strong> Este informe llamaba a ρ «la
+    tensión entre congestión residencial y renta de localización». Es una
+    promesa que el modelo no cumple: <code>dens</code> es la oferta, exógena, y
+    ningún hogar puede moverla — no hay externalidad de localización en el
+    sentido de Martínez. Lo que compite son dos funciones <em>fijas</em> de la
+    parcela, y en la geometría base son casi la misma función. Ver
+    <a href="#s7">§7.7</a> y §7.8.
+  </p>
+</div>
 
 <p>
   Con ρ <strong>heterogénea</strong> sí hay reasignación: subir ρ sólo al estrato
@@ -1490,6 +1502,82 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
     queda pendiente para los autores.
   </p>
 </div>
+
+<h3>7.7 La densidad de f es exógena: no hay externalidad de localización <span class="etiqueta lim">D-32</span></h3>
+
+<p>
+  La atractividad es <em>f</em><sub>h</sub>(i) = −α<sub>h</sub>·T<sub>h</sub>(i)
+  − ρ<sub>h</sub>·dens(i), con dens = S/Δx. Pero <strong>S es la oferta</strong>,
+  generada una sola vez, y el <code>score</code> se arma antes del punto fijo:
+  ρ·dens queda congelado durante toda la iteración. El punto fijo mueve ū y p,
+  nunca <em>f</em>.
+</p>
+
+<p>
+  Hay un segundo motivo, más fuerte: el mercado se vacía —las columnas de Q
+  suman 1 y ΣS = ΣH es obligatorio—, así que la densidad <strong>realizada</strong>
+  es idénticamente S/Δx. El equilibrio decide <em>quién</em> vive en cada celda;
+  <em>cuántos</em> lo fija la oferta y no cambia nunca.
+</p>
+
+<p>
+  En Martínez la atractividad es <strong>endógena</strong>: las externalidades de
+  localización son un mecanismo central. Dice que quien se localiza «contribuye a
+  definir la percepción de calidad del vecindario de sus vecinos» (p. 8), y habla
+  de los «cambios en cascada inducidos por las externalidades de localización»
+  (p. 116). Esa cascada presupone el lazo agentes → atractividad → agentes. Acá
+  no está.
+</p>
+
+<div class="aviso neutro">
+  <p>
+    Consecuencias: no hay cascada, no hay equilibrios múltiples por
+    externalidades, y la segregación sale sólo de la puja diferencial por
+    accesibilidad — no de que los estratos se atraigan o se repelan. Implementarlo
+    es cambio de modelo: <em>f</em> tendría que entrar al punto fijo como función
+    de Q, y toca convergencia, línea base y unicidad.
+  </p>
+</div>
+
+<h3>7.8 α y ρ no son canales independientes <span class="etiqueta lim">AU-12</span></h3>
+
+<p>
+  Siendo dens una función fija de la parcela, y en las formas monocéntricas casi
+  proporcional a T, los dos canales de <em>f</em> se superponen:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>forma de la oferta</th><th class="simb n">corr(T, dens)</th><th class="simb n">dens min</th><th class="simb n">dens max</th><th>lectura</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td>normal <em>(default)</em></td><td class="n">−0,996</td><td class="n">412</td><td class="n">3.045</td><td>colineal</td></tr>
+    <tr><td>uniforme</td><td class="n">— <em>(plana)</em></td><td class="n">1.809</td><td class="n">1.809</td><td>ρ inerte</td></tr>
+    <tr><td>exponencial</td><td class="n">−0,969</td><td class="n">573</td><td class="n">4.141</td><td>colineal</td></tr>
+    <tr><td>meseta</td><td class="n">−0,922</td><td class="n">0</td><td class="n">3.889</td><td>colineal</td></tr>
+    <tr><td>bimodal</td><td class="n">−0,098</td><td class="n">402</td><td class="n">2.955</td><td><strong>canal independiente</strong></td></tr>
+    <tr><td>valle</td><td class="n">+1,000</td><td class="n">40</td><td class="n">3.578</td><td>colineal</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con dens ≈ a − b·T la atractividad colapsa en
+  <em>f</em> ≈ −(α − ρ·b)·T + constante, y la constante se absorbe en ū.
+  <strong>De los dos parámetros sólo se identifica la combinación
+  α<sub>h</sub> − ρ<sub>h</sub>·b.</strong> En la ciudad por defecto, mover ρ
+  heterogéneo es —al 99,6 %— mover α heterogéneo en sentido contrario.
+</p>
+
+<p>
+  Eso explica <a href="#s6">§6.4</a> más a fondo: cuando una ρ heterogénea da
+  vuelta la ciudad entera no está agregando una fuerza nueva, está reescribiendo
+  α. Y tiene una consecuencia para calibrar: <strong>α y ρ no se pueden estimar
+  por separado</strong> a partir de datos de localización en esta geometría. La
+  única forma que rompe la colinealidad es <strong>bimodal</strong>, donde la
+  oferta tiene dos picos y dens deja de ser monótona en la distancia.
+</p>
 
 <!-- ==================================================================== -->
 <h2 id="s8"><span class="num">8</span>Divergencia con el informe LaTeX</h2>

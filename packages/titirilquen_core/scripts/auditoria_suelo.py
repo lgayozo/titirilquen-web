@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from titirilquen_core.land_use.ciudad import LandUseCity
+from titirilquen_core.land_use.ciudad import LandUseCity, _default_T
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 
 L = 201
@@ -188,6 +188,36 @@ def equivalencia_lambda() -> None:
         )
 
 
+def colinealidad_alpha_rho() -> None:
+    """AU-12: `alpha` y `rho` no son dos canales independientes.
+
+    `dens` es una funcion FIJA de la parcela (la oferta, que el equilibrio no
+    mueve), y en las formas monocentricas es casi proporcional a `T`. Entonces
+    `f = -alpha*T - rho*dens` colapsa en `-(alpha - rho*b)*T + cte`: de los dos
+    parametros solo se identifica esa combinacion."""
+    print("\n### 6b. alpha y rho: ¿dos canales o uno? (AU-12)")
+    print(f"  {'forma':>12} {'corr(T,dens)':>13} {'dens min':>10} {'dens max':>10}  lectura")
+    T = _default_T(L, CBD, 3, LARGO_KM / L)[0]
+    fuera = np.arange(L) != CBD  # el CBD no tiene oferta
+    for forma in ("normal", "uniforme", "exponencial", "meseta", "bimodal", "valle"):
+        ciudad = LandUseCity.build(
+            L=L, CBD=CBD, cfg=base_cfg(forma=forma), ancho_celda_km=LARGO_KM / L
+        )
+        dens = np.asarray(ciudad.densidad_por_celda(), dtype=float)[fuera]
+        # Con la oferta uniforme `dens` es constante y la correlacion no existe
+        # (varianza cero): ahi el veredicto no lo da r, lo da que rho entre como
+        # constante y se absorba en u_barra.
+        if float(np.ptp(dens)) < 1.0:
+            r_txt, lectura = "-", "dens PLANA: rho es inerte"
+        else:
+            r = float(np.corrcoef(T[fuera], dens)[0, 1])
+            r_txt = f"{r:.3f}"
+            lectura = (
+                "colineal: alpha y rho no se separan" if abs(r) > 0.9 else "canal independiente"
+            )
+        print(f"  {forma:>12} {r_txt:>13} {dens.min():>10.0f} {dens.max():>10.0f}  {lectura}")
+
+
 def main() -> None:
     print("AUDITORÍA — MÓDULO DE USO DE SUELO")
     print(f"Base: L={L} celdas · {LARGO_KM:.0f} km · ΣH={SUMA_H} · shares 10/40/50")
@@ -273,6 +303,8 @@ def main() -> None:
             for f in ("normal", "uniforme", "exponencial", "meseta", "bimodal", "valle")
         ],
     )
+
+    colinealidad_alpha_rho()
 
     barrer(
         "7. oferta_sigma_frac (compacidad)",

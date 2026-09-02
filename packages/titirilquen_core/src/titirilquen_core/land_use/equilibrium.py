@@ -71,7 +71,22 @@ def _f(
     la resolución de la grilla: refinarla no cambia ni T(x) ni dens(x), solo
     los muestrea más fino. Con `ancho_celda_km=1` (default) dens = S, lo que
     reproduce el comportamiento previo (útil para tests con unidades
-    arbitrarias)."""
+    arbitrarias).
+
+    **`dens` es EXÓGENA (D-32).** Es la oferta `S`, generada una vez, no la
+    población resultante — y como el mercado se vacía (columnas de `Q` que suman
+    1, `Σ S = Σ H`), la densidad realizada es idénticamente `S/Δx`: el
+    equilibrio decide *quién* vive en cada celda, nunca *cuántos*. Además esta
+    función se evalúa una sola vez, antes del punto fijo. Así que `ρ·dens` NO
+    modela congestión residencial: ningún hogar puede mover la magnitud por la
+    que se lo penaliza. No hay externalidad de localización en el sentido de
+    Martínez, donde la atractividad es endógena y genera cascadas.
+
+    Consecuencia práctica (AU-12): `dens` es una función fija de la parcela y,
+    en las formas monocéntricas, casi proporcional a `T` —`corr = −0,996` con la
+    forma `normal`—, de modo que `f ≈ −(α − ρ·b)·T + cte`. **`alpha` y `rho` no
+    están identificados por separado**; sólo lo está esa combinación. La forma
+    `bimodal` es la única que rompe la colinealidad."""
     dens = S[None, :] / ancho_celda_km
     return -alpha[:, None] * T - rho[:, None] * dens
 

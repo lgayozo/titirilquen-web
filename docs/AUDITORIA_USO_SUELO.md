@@ -25,6 +25,7 @@ positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
 | AU-09 | Convergencia lenta en configuraciones asimétricas (hasta 2.640 iter) | ℹ️ observación |
 | AU-10 | Sensibilidad muy alta a diferencias pequeñas de α | ℹ️ para la lectura pedagógica |
 | AU-11 | **El gradiente de renta estaba INVERTIDO** y `grad_p` lo tapaba | 🐛 corregido 2026-08-24 |
+| AU-12 | `α` y `ρ` no son canales independientes: colineales en la geometría base | ⚠️ no identificados |
 
 > **AVISO (2026-08-24).** Todo lo que este documento dice sobre `grad_p` en las
 > iteraciones 1 a 4 está **medido en la celda equivocada** y varias conclusiones
@@ -96,10 +97,13 @@ Con los `λ` uniformes, una `ρ` **común** a los tres estratos no reasigna a na
 las celdas centrales son las densas, así que la penalización golpea justo donde
 el suelo vale más. De +1,00 a +0,21 hay un factor 5.
 
-Es teóricamente correcto y pedagógicamente interesante (congestión residencial
-vs. renta de localización), pero **hoy no está dicho en ninguna parte**: un
-estudiante que mueve ρ y solo mira la distribución espacial concluye que «no
-hace nada». Recomendación: mencionarlo en el tutorial de uso de suelo.
+Es teóricamente correcto y pedagógicamente interesante, pero **hoy no está
+dicho en ninguna parte**. Ojo con llamarlo «congestión residencial»: `dens` es
+la oferta, exógena, y ningún hogar puede moverla — no hay externalidad de
+localización en el sentido de Martínez (D-32). La tensión que se ve es entre dos
+funciones fijas de la parcela, y en la geometría base son casi la misma función
+(AU-12). Dicho eso, un estudiante que mueve ρ y sólo mira la distribución
+espacial concluye que «no hace nada». Recomendación: mencionarlo en el tutorial de uso de suelo.
 
 Con `ρ` **heterogénea** sí hay reasignación (alto 0,1 y resto 0 → el estrato
 alto se va a 8,48 km): también correcto.
@@ -355,4 +359,40 @@ que preservó el balance roto.
 con oferta, tres tests que fijan el signo a las tres escalas de población, y la
 FIG. 04 excluye el CBD de su escala. ρ es común a los tres estratos, así que la
 recalibración **no reasignó a nadie**: distancias medias y línea base de
-transporte idénticas.
+transporte idénticas. (Con los `λ` uniformes de la línea base; ver AU-05.)
+
+---
+
+## AU-12 — `alpha` y `rho` no son dos canales independientes ⚠️ (2026-09-02)
+
+`dens` es una función **fija** de la parcela: es la oferta, y el equilibrio no la
+mueve (D-32). En las formas monocéntricas es además casi proporcional a `T`.
+Medido sobre la ciudad de la auditoría:
+
+| forma | corr(T, dens) | dens min | dens max | lectura |
+|---|---|---|---|---|
+| **normal** *(default)* | **−0,996** | 412 | 3.045 | colineal |
+| uniforme | — *(plana)* | 1.809 | 1.809 | `ρ` inerte |
+| exponencial | −0,969 | 573 | 4.141 | colineal |
+| meseta | −0,922 | 0 | 3.889 | colineal |
+| **bimodal** | **−0,098** | 402 | 2.955 | **canal independiente** |
+| valle | +1,000 | 40 | 3.578 | colineal |
+
+Con `dens ≈ a − b·T`, la atractividad colapsa:
+
+    f = −α·T − ρ·dens ≈ −(α − ρ·b)·T + constante
+
+y la constante se absorbe en ū. **De los dos parámetros sólo se identifica la
+combinación `α_h − ρ_h·b`.** En la ciudad por defecto, mover `ρ` heterogéneo es
+—al 99,6 %— mover `α` heterogéneo en sentido contrario.
+
+Eso explica AU-05 más a fondo: cuando una `ρ` heterogénea da vuelta la ciudad
+entera no está agregando una fuerza nueva, está reescribiendo `α`.
+
+Consecuencia para calibrar: **no se pueden estimar `α` y `ρ` por separado** a
+partir de datos de localización en la geometría por defecto. La única forma que
+rompe la colinealidad es **bimodal** (−0,098), donde la oferta tiene dos picos y
+`dens` deja de ser monótona en la distancia. Con `uniforme`, `dens` es plana, `ρ`
+entra como constante pura y no hace nada — ni siquiera sobre los precios.
+
+Reproducir con la sección **6b** de `scripts/auditoria_suelo.py`.
