@@ -48,8 +48,20 @@
     margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
     max-width: 680px;
   }
+  /* MathML lo renderiza el navegador con la fuente matematica del sistema.
+     `Cambria Math` es la que .ecuacion ya pedia, asi que la tipografia no
+     cambia de familia: sube el cuerpo y aparecen fracciones e integrales de
+     verdad. Se genera con `node tools/renderiza_ecuaciones.js` desde el
+     `data-tex` de cada .ecuacion. */
+  .ecuacion math { font-size: 1.18em; }
+  .ecuacion .katex { font-family: inherit; }
+  .ecuacion { overflow-x: auto; }
   .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
   .ecuacion.suelta { background: none; border: none; }
+  /* Recuadro para una idea PROPIA que merece destacarse. Se usa en vez de
+     una cita a proposito: en un documento que cita a Train y a Martinez,
+     el formato de cita tiene que significar «esto lo dijo otro». */
+  .aviso.idea p { font-size: 15.5px; }
   blockquote {
     margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
     color: var(--ink-2); font-style: italic; max-width: 72ch;
@@ -214,7 +226,7 @@
     <li><a href="#s1">Tres postores y un lote</a> — qué es θ, dónde está λ, qué es β</li>
     <li><a href="#s2">La probabilidad es una frecuencia</a> — el sorteo, a mano</li>
     <li><a href="#s3">Por qué no hay fórmula</a> — dónde se rompe el logit</li>
-    <li><a href="#s4">El truco: condicionar en el ruido del candidato</a> — de dónde sale la integral</li>
+    <li><a href="#s4">El truco: condicionar en el ruido del candidato</a> — de dónde sale la integral, y qué supone</li>
     <li><a href="#s5">La curva que hay que integrar</a></li>
     <li><a href="#s6">La cuadratura: sumar rectángulos</a> — por qué 401 nodos y por qué [−10, 40]</li>
     <li><a href="#s7">Dos pruebas</a> — Monte Carlo y la reducción al logit</li>
@@ -245,9 +257,8 @@
   determinístico más un ruido de valor extremo (Gumbel):
 </p>
 
-<div class="ecuacion">
-  b<sub>h</sub> = loc<sub>h</sub> + θ<sub>h</sub> · ε &nbsp;,&nbsp; ε ~ Gumbel estándar
-  <span class="id">(1)</span>
+<div class="ecuacion" data-tex="b_h = \mathrm{loc}_h + \theta_h\,\varepsilon, \qquad \varepsilon \sim \text{Gumbel estándar}" data-id="(1)">
+  <span class="id">(1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>b</mi><mi>h</mi></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>h</mi></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mtext> </mtext><mi>ε</mi><mo separator="true">,</mo><mspace width="2em"/><mi>ε</mi><mo>∼</mo><mrow><mtext>Gumbel est</mtext><mover accent="true"><mtext>a</mtext><mo>ˊ</mo></mover><mtext>ndar</mtext></mrow></mrow><annotation encoding="application/x-tex">b_h = \mathrm{loc}_h + \theta_h\,\varepsilon, \qquad \varepsilon \sim \text{Gumbel estándar}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -257,13 +268,11 @@
   <code>land_use/equilibrium.py</code>:
 </p>
 
-<div class="ecuacion">
-  θ<sub>h</sub> = 1 / (β·λ<sub>h</sub>)
-  <span class="id">(1a)</span>
+<div class="ecuacion" data-tex="\theta_h = \frac{1}{\beta\,\lambda_h}" data-id="(1a)">
+  <span class="id">(1a)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>θ</mi><mi>h</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi>β</mi><mtext> </mtext><msub><mi>λ</mi><mi>h</mi></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">\theta_h = \frac{1}{\beta\,\lambda_h}</annotation></semantics></math></span>
 </div>
-<div class="ecuacion">
-  loc<sub>h</sub> = y<sub>h</sub> + f<sub>h</sub>/λ<sub>h</sub> + θ<sub>h</sub>·ln(H<sub>h</sub>)
-  <span class="id">(1b)</span>
+<div class="ecuacion" data-tex="\mathrm{loc}_h = y_h + \frac{f_h}{\lambda_h} + \theta_h \ln(H_h)" data-id="(1b)">
+  <span class="id">(1b)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>h</mi></msub><mo>=</mo><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mfrac><msub><mi>f</mi><mi>h</mi></msub><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>H</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{loc}_h = y_h + \frac{f_h}{\lambda_h} + \theta_h \ln(H_h)</annotation></semantics></math></span>
 </div>
 
 <p>Lo que movés son las cuatro entradas, y son éstas:</p>
@@ -441,9 +450,9 @@
     gráfico.</strong> No es el área bajo una curva, ni la fracción de curva que
     queda más a la derecha, ni nada que se pueda medir mirándolo. Es
   </p>
-  <div class="ecuacion suelta">
-    Q<sub>h</sub> = P( b<sub>h</sub> &gt; b<sub>g</sub> para todo g ≠ h )
-  </div>
+  <div class="ecuacion suelta" data-tex="Q_h = P\!\left(b_h &gt; b_g \quad \text{para todo } g \neq h\right)">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mi>h</mi></msub><mo>=</mo><mi>P</mi><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><msub><mi>b</mi><mi>h</mi></msub><mo>&gt;</mo><msub><mi>b</mi><mi>g</mi></msub><mspace width="1em"/><mtext>para todo </mtext><mi>g</mi><mo mathvariant="normal">≠</mo><mi>h</mi><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">Q_h = P\!\left(b_h &gt; b_g \quad \text{para todo } g \neq h\right)</annotation></semantics></math></span>
+</div>
   <p>
     o sea la probabilidad de que el sorteo de <em>esta</em> curva salga más alto
     que el sorteo simultáneo de las otras dos. Comparar tres variables aleatorias
@@ -700,9 +709,8 @@
   Esa clausura es la que hace que todo colapse a un cociente de exponenciales.
 </p>
 
-<div class="ecuacion">
-  máx<sub>g</sub> Gumbel(loc<sub>g</sub>, θ) &nbsp;=&nbsp; Gumbel( θ·ln Σ<sub>g</sub> e<sup>loc<sub>g</sub>/θ</sup> , θ )
-  <span class="id">(2)</span>
+<div class="ecuacion" data-tex="\max_g\, \mathrm{Gumbel}(\mathrm{loc}_g,\ \theta) \;=\; \mathrm{Gumbel}\!\left(\theta \ln \sum_g e^{\mathrm{loc}_g/\theta},\ \theta\right)" data-id="(2)">
+  <span class="id">(2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>g</mi></munder><mtext> </mtext><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false">(</mo><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>g</mi></msub><mo separator="true">,</mo><mtext> </mtext><mi>θ</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mi>θ</mi><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>g</mi></munder><msup><mi>e</mi><mrow><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>g</mi></msub><mi mathvariant="normal">/</mi><mi>θ</mi></mrow></msup><mo separator="true">,</mo><mtext> </mtext><mi>θ</mi><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">\max_g\, \mathrm{Gumbel}(\mathrm{loc}_g,\ \theta) \;=\; \mathrm{Gumbel}\!\left(\theta \ln \sum_g e^{\mathrm{loc}_g/\theta},\ \theta\right)</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -741,13 +749,16 @@
   tres pujas son aleatorias a la vez. Entonces <strong>congelamos una</strong>:
 </p>
 
-<blockquote>
-  Supongamos que yo <em>supiera</em> que al estrato h le salió el ruido
-  exactamente <span class="mono">w</span>. Entonces su puja no es aleatoria: vale
-  <span class="mono">b = loc<sub>h</sub> + θ<sub>h</sub>·w</span>, un número. Y
-  para que h gane, cada uno de los otros tiene que haber quedado <em>por debajo
-  de ese número</em>.
-</blockquote>
+<div class="aviso ok idea">
+  <h4>La idea, en una frase</h4>
+  <p>
+    Supongamos que yo <em>supiera</em> que al estrato h le salió el ruido
+    exactamente <span class="mono">w</span>. Entonces su puja no es aleatoria:
+    vale <span class="mono">b = loc<sub>h</sub> + θ<sub>h</sub>·w</span>, un
+    número. Y para que h gane, cada uno de los otros tiene que haber quedado
+    <em>por debajo de ese número</em>.
+  </p>
+</div>
 
 <p>
   Eso último ya sabemos calcularlo. «El estrato g queda por debajo de b» es
@@ -756,10 +767,8 @@
   producto:
 </p>
 
-<div class="ecuacion">
-  P(gana h | ε<sub>h</sub> = w) = Π<sub>g≠h</sub> F<sub>g</sub>(loc<sub>h</sub> + θ<sub>h</sub>w)
-  = Π<sub>g≠h</sub> exp( −exp( −(loc<sub>h</sub> − loc<sub>g</sub> + θ<sub>h</sub>w) / θ<sub>g</sub> ) )
-  <span class="id">(3)</span>
+<div class="ecuacion" data-tex="\begin{aligned} P(\text{gana } h \mid \varepsilon_h = w) &amp;= \prod_{g \neq h} F_g(\mathrm{loc}_h + \theta_h w) \\[2pt] &amp;= \prod_{g \neq h} \exp\!\left(-\exp\!\left(-\frac{\mathrm{loc}_h - \mathrm{loc}_g + \theta_h w}{\theta_g}\right)\right) \end{aligned}" data-id="(3)">
+  <span class="id">(3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>P</mi><mo stretchy="false">(</mo><mtext>gana </mtext><mi>h</mi><mo>∣</mo><msub><mi>ε</mi><mi>h</mi></msub><mo>=</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><munder><mo>∏</mo><mrow><mi>g</mi><mo mathvariant="normal">≠</mo><mi>h</mi></mrow></munder><msub><mi>F</mi><mi>g</mi></msub><mo stretchy="false">(</mo><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>h</mi></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>w</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><munder><mo>∏</mo><mrow><mi>g</mi><mo mathvariant="normal">≠</mo><mi>h</mi></mrow></munder><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mo>−</mo><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mo>−</mo><mfrac><mrow><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>h</mi></msub><mo>−</mo><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>g</mi></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>w</mi></mrow><msub><mi>θ</mi><mi>g</mi></msub></mfrac><mo fence="true">)</mo></mrow><mo fence="true">)</mo></mrow></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned} P(\text{gana } h \mid \varepsilon_h = w) &amp;= \prod_{g \neq h} F_g(\mathrm{loc}_h + \theta_h w) \\[2pt] &amp;= \prod_{g \neq h} \exp\!\left(-\exp\!\left(-\frac{\mathrm{loc}_h - \mathrm{loc}_g + \theta_h w}{\theta_g}\right)\right) \end{aligned}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -771,18 +780,127 @@
   integral:
 </p>
 
-<div class="ecuacion">
-  Q<sub>h</sub> = ∫<sub>−∞</sub><sup>∞</sup>
-  [ Π<sub>g≠h</sub> F<sub>g</sub>(loc<sub>h</sub> + θ<sub>h</sub>w) ] · φ(w) · dw
-  <span class="id">(4)</span>
+<div class="ecuacion" data-tex="Q_h = \int_{-\infty}^{\infty} \left[\prod_{g \neq h} F_g(\mathrm{loc}_h + \theta_h w)\right] \varphi(w)\, dw" data-id="(4)">
+  <span class="id">(4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mi>h</mi></msub><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi mathvariant="normal">∞</mi></mrow><mi mathvariant="normal">∞</mi></msubsup><mrow><mo fence="true">[</mo><munder><mo>∏</mo><mrow><mi>g</mi><mo mathvariant="normal">≠</mo><mi>h</mi></mrow></munder><msub><mi>F</mi><mi>g</mi></msub><mo stretchy="false">(</mo><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>h</mi></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mi>φ</mi><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">Q_h = \int_{-\infty}^{\infty} \left[\prod_{g \neq h} F_g(\mathrm{loc}_h + \theta_h w)\right] \varphi(w)\, dw</annotation></semantics></math></span>
 </div>
 
 <p>
   No hay más truco que ese. La integral no apareció por una manipulación
   algebraica: apareció porque <em>promediar sobre un escenario que no observamos</em>
-  es integrar contra su densidad. El panel siguiente barre
-  <span class="mono">w</span> de izquierda a derecha y muestra las dos mitades a
-  la vez — arriba el escenario, abajo el promedio que se va acumulando.
+  es integrar contra su densidad.
+</p>
+
+<h3>4.1 De dónde sale este paso, y qué supone</h3>
+
+<p>
+  Conviene poner los nombres, porque son las dos preguntas que el argumento
+  invita a hacer: <em>¿se puede condicionar así?</em> y <em>¿qué estoy suponiendo
+  al hacerlo?</em>
+</p>
+
+<p>
+  <strong>El promedio es el teorema de la probabilidad total</strong>, en su forma
+  continua —equivalentemente, la propiedad de la torre de la esperanza
+  condicional, <span class="mono">E[X] = E[E[X|Y]]</span>:
+</p>
+
+<div class="ecuacion suelta" data-tex="P(A) = \int P(A \mid \varepsilon_h = w)\, \varphi(w)\, dw">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>A</mi><mo stretchy="false">)</mo><mo>=</mo><mo>∫</mo><mi>P</mi><mo stretchy="false">(</mo><mi>A</mi><mo>∣</mo><msub><mi>ε</mi><mi>h</mi></msub><mo>=</mo><mi>w</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>φ</mi><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">P(A) = \int P(A \mid \varepsilon_h = w)\, \varphi(w)\, dw</annotation></semantics></math></span>
+</div>
+
+<p>
+  Vale para cualquier variable continua; no tiene nada de específico del HEV. Es,
+  literalmente, «promediar sobre los escenarios de <span class="mono">w</span>,
+  cada uno pesado por su densidad».
+</p>
+
+<p>
+  <strong>Lo específico del modelo son dos usos de la independencia</strong>, y
+  conviene saber cuáles son porque es donde el argumento se rompería:
+</p>
+
+<ol>
+  <li>
+    Condicionar en <span class="mono">ε<sub>h</sub></span> <strong>no altera la
+    distribución de los otros ruidos</strong>. Por eso se puede tratar
+    <span class="mono">b</span> como una constante y dejar a los demás con su
+    distribución original.
+  </li>
+  <li>
+    Los <span class="mono">ε<sub>g</sub></span> son mutuamente independientes,
+    así que <span class="mono">P(todos por debajo)</span> <strong>factoriza</strong>
+    en el producto de la ec. (3) en vez de exigir la distribución conjunta.
+  </li>
+</ol>
+
+<p>
+  Esa independencia es la hipótesis explícita del HEV — Train la enuncia al
+  presentarlo: <em>«There is no correlation in unobserved factors over
+  alternatives»</em> (§4.5). Si hubiera correlación, como en el logit anidado, el
+  producto no valdría y habría que integrar en más dimensiones.
+</p>
+
+<div class="aviso ok">
+  <h4>No es una derivación del HEV: es la del logit</h4>
+  <p>
+    <strong>El logit común se deriva exactamente igual.</strong> Train, capítulo
+    3: condicionar en <span class="mono">ε<sub>ni</sub></span>, pedir que los
+    demás queden por debajo, armar el producto de CDFs, integrar contra la
+    densidad de valor extremo. La forma cerrada aparece <em>sólo</em> porque con
+    escala común esa integral se resuelve analíticamente.
+  </p>
+  <p>
+    El HEV es la misma derivación sin esa simplificación — por eso Train lo
+    describe como el logit salvo por tener una varianza distinta en cada
+    alternativa. Así que el paso de arriba no es una licencia del modelo nuevo:
+    <strong>ya estaba adentro del logit de toda la vida.</strong>
+  </p>
+</div>
+
+<div class="aviso neutro">
+  <h4>Verificado, aislando este paso</h4>
+  <p>
+    Que la fórmula completa dé bien contra Monte Carlo (§7.1) no prueba que
+    <em>este</em> paso esté bien: podría haber dos errores que se cancelan. Así
+    que se comprueba solo. Se sortean los tres ruidos, se retienen únicamente los
+    casos con <span class="mono">ε<sub>h</sub> ≈ w</span>, y se cuenta en qué
+    fracción gana h. El Monte Carlo no usa la ec. (3) en ninguna parte.
+  </p>
+  <div class="envoltorio-tabla">
+    <table>
+      <tr><th class="simb">w</th><th class="simb n">Π F<sub>g</sub>(b) — ec. (3)</th><th class="n">frecuencia condicional</th><th class="n">n</th><th class="n">desvío</th></tr>
+      <tr><td>−1,00</td><td class="n">0,0503</td><td class="n">0,0511</td><td class="n">28.736</td><td class="n">0,6 σ</td></tr>
+      <tr><td>−0,25</td><td class="n">0,2378</td><td class="n">0,2375</td><td class="n">56.914</td><td class="n">0,2 σ</td></tr>
+      <tr><td>0,50</td><td class="n">0,4724</td><td class="n">0,4743</td><td class="n">53.090</td><td class="n">0,9 σ</td></tr>
+      <tr><td>1,50</td><td class="n">0,7060</td><td class="n">0,7046</td><td class="n">28.522</td><td class="n">0,5 σ</td></tr>
+      <tr><td>3,00</td><td class="n">0,8829</td><td class="n">0,8810</td><td class="n">7.527</td><td class="n">0,5 σ</td></tr>
+    </table>
+  </div>
+  <p class="pie-tabla">
+    Con <span class="mono">loc = 0,40 · 0,00 · −0,30</span> y
+    <span class="mono">θ = 1,0 · 1,6 · 0,7</span>, candidato el primero; ventana
+    <span class="mono">|ε<sub>h</sub> − w| &lt; 0,02</span> sobre 4·10⁶ sorteos.
+    Los cinco casos caen por debajo de 1σ.
+  </p>
+</div>
+
+<div class="aviso alerta">
+  <h4>Una salvedad de rigor</h4>
+  <p>
+    <span class="mono">{ε<sub>h</sub> = w}</span> es un evento de <strong>medida
+    cero</strong>, así que <span class="mono">P(A | ε<sub>h</sub> = w)</span> no
+    está definido como cociente de probabilidades —dividiría por cero— sino como
+    una versión de la esperanza condicional (probabilidad condicional regular).
+    Para variables continuas independientes y un evento como éste, el cálculo
+    ingenuo coincide con el formal y no hay patología. Pero si alguien pregunta
+    cómo se puede condicionar en algo de probabilidad cero, ésa es la respuesta.
+  </p>
+</div>
+
+<p>
+  El panel siguiente barre <span class="mono">w</span> de izquierda a derecha y
+  muestra las dos mitades a la vez — arriba el escenario, abajo el promedio que
+  se va acumulando.
 </p>
 
 <div class="panel">
@@ -809,12 +927,23 @@
   </div>
 </div>
 <p class="pie-panel">
-  <strong>Arriba:</strong> la puja congelada del candidato (línea vertical) y las
-  densidades de los otros dos, con sombreada el área que queda por debajo — cada
-  una de esas áreas es un <span class="mono">F<sub>g</sub>(b)</span>.
-  <strong>Abajo:</strong> el integrando de la ec. (4) contra
-  <span class="mono">w</span>, con el área ya recorrida en sólido. Cuando el
-  barrido termina, esa área es <span class="mono">Q<sub>h</sub></span>.
+  <strong>Los dos lienzos tienen ejes horizontales distintos</strong>, y ahí está
+  la trampa: arriba el eje es el <em>valor de la puja</em>, abajo es el
+  <em>ruido w</em>. El marcador de arriba se para en
+  <span class="mono">b = loc + θ·w</span>, que es el mismo escenario visto en
+  plata; la conversión está escrita bajo el eje.
+</p>
+<p class="pie-panel">
+  Cómo leerlo, de arriba abajo: la línea vertical es la puja del candidato una
+  vez <em>congelado</em> su ruido en <span class="mono">w</span>. Las áreas
+  sombreadas bajo las otras dos campanas son
+  <span class="mono">F<sub>g</sub>(b)</span> — la probabilidad de que cada rival
+  quede por debajo. Su producto es la probabilidad de que el candidato gane
+  <em>en ese escenario</em>. Multiplicado por <span class="mono">φ(w)</span>, que
+  es lo probable que sea el escenario, da <strong>la altura de la curva de
+  abajo</strong>, marcada con un punto. Y el área acumulada bajo esa curva, en
+  sólido, es el promedio que se va formando: cuando el barrido termina vale
+  <span class="mono">Q<sub>h</sub></span>.
 </p>
 
 <div class="aviso ok">
@@ -1341,6 +1470,13 @@ _PESO[-1] *= 0.5</code></pre>
     var e = Math.floor(Math.log10(Math.abs(v)));
     return num(v / Math.pow(10, e), 2) + "·10" + sup(e);
   }
+  /** 4 decimales cuando alcanzan; notacion cientifica cuando no. El panel 3
+   *  barre hasta w ~ 13 para los candidatos improbables, y ahi φ(w) y el
+   *  integrando valen ~1e-6: con `num(v, 4)` todo sale «0,0000». */
+  function fmt(v) {
+    if (v === 0) return "0";
+    return Math.abs(v) >= 1e-4 ? num(v, 4) : sci(v);
+  }
   function sup(e) {
     var m = { "-": "⁻", 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
     return String(e).split("").map(function (c) { return m[c]; }).join("");
@@ -1426,15 +1562,32 @@ _PESO[-1] *= 0.5</code></pre>
     var t = Math.max.apply(null, S.th);
     return [lo - 3.2 * t, hi + 6.5 * t];
   }
+  //: Piso del barrido. Por debajo de -3 la densidad φ vale exp(-e³) ~ 2e-9: no
+  //: queda area que recorrer.
+  var W_PISO3 = -3;
+
+  /** Hasta donde barrer `w`, POR CANDIDATO.
+   *
+   *  Un tope fijo no sirve. La cola que queda sin recorrer esta acotada por
+   *  `∫_w^∞ φ = e^{-w}` (porque ΠF ≤ 1), asi que la fraccion de Q que falta es
+   *  `e^{-w}/Q_h`: cuanto MENOS probable es el candidato, mas lejos hay que ir.
+   *  Con tope 8 el estrato bajo de «pujas separadas» (Q = 2e-3) se quedaba en
+   *  92,9% y el area acumulada paraba visiblemente corta sin que nada lo
+   *  explicara. Pidiendo 99,9% sale `w >= ln(1000/Q_h)`.
+   */
+  function topeW(h) {
+    var q = qHev(S.loc, S.th)[h];
+    return Math.min(14, Math.max(8, Math.log(1000 / Math.max(q, 1e-12))));
+  }
+
   /** Dominio del panel 3: tiene que contener la puja del candidato durante todo
-   *  el barrido, que llega hasta w = W_TOPE3. Como loc_h <= max(loc) y
-   *  th_h <= max(th), alcanza con estirar el borde derecho por ese mismo factor;
-   *  asi el eje queda FIJO mientras el marcador se mueve. */
-  var W_TOPE3 = 8, W_PISO3 = -3;
-  function domPuja3() {
+   *  su barrido, `loc_h + tope·θ_h`, y ademas mostrar las colas de los otros.
+   *  Se dimensiona POR CANDIDATO —no por el θ maximo— y por eso queda mas
+   *  angosto que antes en casi todos los casos, pese a barrer mas lejos. */
+  function domPuja3(h, tope) {
     var lo = Math.min.apply(null, S.loc), hi = Math.max.apply(null, S.loc);
     var t = Math.max.apply(null, S.th);
-    return [lo - 3.2 * t, hi + W_TOPE3 * t];
+    return [lo - 3.2 * t, Math.max(hi + 4 * t, S.loc[h] + tope * S.th[h] + 0.4)];
   }
   function altoPuja(d) {
     var mx = 0, i, k, v;
@@ -1668,7 +1821,8 @@ _PESO[-1] *= 0.5</code></pre>
   var P3 = { on: false };
 
   function panel3() {
-    var d = domPuja3(), hi = altoPuja(d), h = S.h, w = S.w;
+    var h = S.h, tope = topeW(h);
+    var d = domPuja3(h, tope), hi = altoPuja(d), w = Math.min(S.w, tope);
     var b = S.loc[h] + S.th[h] * w, i;
     var L = lienzo("c3a", d, [0, hi], { l: 46, r: 14, t: 22, b: 40 });
     ejes(L, ticks(d[0], d[1], 6));
@@ -1693,30 +1847,67 @@ _PESO[-1] *= 0.5</code></pre>
     L.x.textAlign = b > (d[0] + d[1]) / 2 ? "right" : "left"; L.x.textBaseline = "top";
     L.x.fillText(" puja de " + EST[h].n + " = " + num(b, 2) + " ",
       L.sx(b) + (b > (d[0] + d[1]) / 2 ? -6 : 6), L.m.t + 6);
+    // Los dos lienzos tienen ejes x DISTINTOS —arriba pujas, abajo ruido— y sin
+    // decirlo se leen como si fueran el mismo. Se escribe la conversion.
+    L.x.font = "11px 'Segoe UI', system-ui, sans-serif";
+    L.x.fillStyle = "#8d8880"; L.x.textAlign = "center"; L.x.textBaseline = "top";
+    L.x.fillText("valor de la puja      b = loc + θ·w = " + num(S.loc[h], 2) +
+      " + " + num(S.th[h], 2) + "×" + num(w, 2) + " = " + num(b, 2),
+      (L.m.l + L.W - L.m.r) / 2, L.H - 15);
+    rotuloY(L, "densidad");
 
-    $("lec3").innerHTML = "Con w = <b>" + num(w, 2) + "</b>" +
-      '<span class="sep">·</span>' +
+    var phi = Math.exp(-Math.exp(-w)) * Math.exp(-w);
+    $("lec3").innerHTML =
+      "<b>arriba</b> · las dos áreas sombreadas: " +
       fs.map(function (f) {
         return 'F<sub style="color:' + EST[f.i].c + '">' + EST[f.i].n + "</sub> = <b>" + num(f.F, 4) + "</b>";
       }).join('<span class="sep">×</span>') +
-      '<span class="sep">=</span>gana con probabilidad <b>' + num(prod, 4) + "</b>" +
-      '<span class="sep">·</span>peso φ(w) = <b>' + num(Math.exp(-Math.exp(-w)) * Math.exp(-w), 4) + "</b>";
+      '<span class="sep">=</span><b>' + num(prod, 4) + "</b> " +
+      '<span style="color:var(--muted)">← gana h en <em>este</em> escenario</span>' +
+      "<br><b>peso</b> · qué tan probable es este escenario: φ(w) = <b>" + fmt(phi) + "</b>" +
+      '<br><b>abajo</b> · producto de los dos: <b>' + num(prod, 4) + " × " + fmt(phi) +
+      " = " + fmt(prod * phi) + "</b> " +
+      '<span style="color:var(--muted)">← es la ALTURA de la curva de abajo en w = ' +
+      num(w, 2) + "</span>";
 
     // --- abajo: el integrando y el area acumulada
-    var a0 = W_PISO3 - 1, a1 = W_TOPE3 + 1;
+    var a0 = W_PISO3 - 1, a1 = tope + 1;
     var mx = 0;
     for (i = 0; i <= 200; i++) mx = Math.max(mx, integrando(a0 + (a1 - a0) * i / 200, h, S.loc, S.th));
-    var M = lienzo("c3b", [a0, a1], [0, Math.max(mx, 1e-9) * 1.25], { l: 46, r: 14, t: 14, b: 30 });
-    ejes(M, ticks(a0, a1, 7));
+    var top3 = Math.max(mx, 1e-9) * 1.25;
+    // Con escalas chicas las etiquetas van en notacion cientifica y son mucho
+    // mas anchas: sin este margen se pisan con el rotulo rotado del eje.
+    var M = lienzo("c3b", [a0, a1], [0, top3],
+      { l: top3 >= 1e-3 ? 60 : 84, r: 16, t: 14, b: 34 });
+    ejes(M, ticks(a0, a1, 7), ticks(0, top3, 4), null, function (v) {
+      return v === 0 ? "0" : top3 >= 1e-3 ? num(v, 3) : sci(v);
+    });
+    rotuloY(M, "aporte al promedio");
     curva(M, function (v) { return integrando(v, h, S.loc, S.th); }, a0, a1, EST[h].c + "44", 1.4);
     curva(M, function (v) { return integrando(v, h, S.loc, S.th); }, a0, Math.min(w, a1),
       EST[h].c, 2, EST[h].c + "33");
+    // La altura en w ES el producto que muestra la lectura. Se marca el punto
+    // para que el numero se pueda VER cayendo sobre la curva: es el puente
+    // entre los dos lienzos, y sin el hay que creer en la palabra.
+    var alt = integrando(w, h, S.loc, S.th);
     M.x.strokeStyle = EST[h].c; M.x.lineWidth = 1.4; M.x.setLineDash([4, 3]);
-    M.x.beginPath(); M.x.moveTo(M.sx(w), M.sy(0)); M.x.lineTo(M.sx(w), M.m.t); M.x.stroke();
+    M.x.beginPath(); M.x.moveTo(M.sx(w), M.sy(0)); M.x.lineTo(M.sx(w), M.sy(alt)); M.x.stroke();
+    M.x.beginPath(); M.x.moveTo(M.m.l, M.sy(alt)); M.x.lineTo(M.sx(w), M.sy(alt)); M.x.stroke();
     M.x.setLineDash([]);
+    M.x.fillStyle = EST[h].c;
+    M.x.beginPath(); M.x.arc(M.sx(w), M.sy(alt), 4.5, 0, 6.2832); M.x.fill();
+    M.x.font = "600 11px 'Segoe UI', system-ui, sans-serif";
+    var derecha = M.sx(w) > (M.m.l + M.W - M.m.r) * 0.72;
+    M.x.textAlign = derecha ? "right" : "left"; M.x.textBaseline = "bottom";
+    M.x.fillText(fmt(alt), M.sx(w) + (derecha ? -7 : 7), M.sy(alt) - 3);
     M.x.font = "11px 'Segoe UI', system-ui, sans-serif";
     M.x.fillStyle = "#8d8880"; M.x.textAlign = "center"; M.x.textBaseline = "top";
-    M.x.fillText("ruido w del candidato", (M.m.l + M.W - M.m.r) / 2, M.H - 15);
+    M.x.fillText("ruido w del candidato  —  OJO: otro eje, no es el de arriba",
+      (M.m.l + M.W - M.m.r) / 2, M.H - 15);
+    // El rango del slider sigue al candidato: cada uno necesita barrer distinto.
+    var sl = $("s3w");
+    sl.min = Math.round(W_PISO3 * 100);
+    sl.max = Math.round(tope * 100);
 
     // Area acumulada hasta w, sobre la grilla real. Se usa `prodF` y el peso
     // tabulado, no `integrando`: en w = -10 la densidad subdesborda a cero
@@ -1734,7 +1925,7 @@ _PESO[-1] *= 0.5</code></pre>
   function lazo3() {
     if (!P3.on) return;
     S.w += 0.06;
-    if (S.w > W_TOPE3) S.w = W_PISO3;
+    if (S.w > topeW(S.h)) S.w = W_PISO3;
     $("s3w").value = Math.round(S.w * 100);
     $("v3w").textContent = num(S.w, 2);
     panel3();
@@ -2031,7 +2222,7 @@ _PESO[-1] *= 0.5</code></pre>
     $("s3w").oninput = function () { P3.on = false; $("b3play").textContent = "▶ Barrer"; S.w = +this.value / 100; $("v3w").textContent = num(S.w, 2); panel3(); };
     $("b3play").onclick = function () {
       P3.on = !P3.on; this.textContent = P3.on ? "⏸ Pausar" : "▶ Barrer";
-      if (P3.on) { if (S.w > W_TOPE3 - 0.5) S.w = W_PISO3; requestAnimationFrame(lazo3); }
+      if (P3.on) { if (S.w > topeW(S.h) - 0.5) S.w = W_PISO3; requestAnimationFrame(lazo3); }
     };
 
     $("ck4").onchange = function () { S.tres = this.checked; panel4(); };
