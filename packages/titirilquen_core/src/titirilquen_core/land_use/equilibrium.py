@@ -204,12 +204,32 @@ def solve_logit(
 
     El efecto **no es un efecto-ingreso**: el ingreso `y` entra como constante
     por estrato, se absorbe en la utilidad de equilibrio ū_h y no reasigna a
-    nadie. Y no es suave: bajar `λ` amplifica `rho_eff = rho/λ`, que castiga
-    justamente las celdas centrales (las densas), de modo que el estrato de
-    alpha más alto **huye del centro** — en la base el salto ocurre entre
-    λ ≈ 0.8 y λ ≈ 0.95. Es una limitación del modelo implementado y debe leerse
-    como tal; ver `scripts/auditoria_suelo.py` §4 y docs/AUDITORIA_USO_SUELO.md
-    (AU-06).
+    nadie —verificado: triplicar `y` mueve `Q` en 8·10⁻¹⁰—. Lo que sí reasigna
+    es `f_h/λ_h`, que **varía entre parcelas** y por eso ū no puede absorberlo.
+
+    El canal dominante es `alpha_ef = alpha/λ`: subir el `λ` de un estrato achica
+    cuánto valora el tiempo de viaje, deja de pujar por lo central y **se aleja**.
+    Bajarlo lo acerca. Que el motor sea α y no ρ se comprueba anulando ρ: el
+    patrón sobrevive y se refuerza.
+
+    **Medir esto sólo tiene sentido con λ decreciente en el ingreso**, que es la
+    condición realista (Martínez p. 77: «it is expected that λ_h decreases with
+    income»): `λ_alto < λ_medio < λ_bajo`. En esa región la respuesta es suave y
+    acotada — con `λ = (1/r, 1, r)`, d_alto va de 1,47 km en r = 1 a 1,05 km en
+    r = 4, saturando:
+
+        r        1      1,25     1,5      2       3       4
+        d_alto   1,47   1,10     1,07    1,05    1,05    1,05
+
+    Barrer `λ_alto` **por encima** de los otros da una transición mucho más
+    violenta —hasta 6,25 km— pero es una configuración económicamente al revés y
+    no debe leerse como el comportamiento del modelo. Ojo también con la
+    documentación anterior a la recalibración de ρ (0,1 → 0,0025), que atribuía
+    esto a `rho_ef` y daba la dirección invertida; ver AU-11 en
+    docs/AUDITORIA_USO_SUELO.md.
+
+    Es una limitación del modelo implementado y debe leerse como tal; ver
+    `scripts/auditoria_suelo.py` §4 y docs/AUDITORIA_USO_SUELO.md (AU-06).
 
     **Corregido, pero no acá.** La corrección es la subasta heteroscedástica
     (`hev.py`), que sí escala el ruido por estrato y con eso identifica λ;

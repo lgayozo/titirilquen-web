@@ -10,9 +10,11 @@ la disposición a pagar el término aleatorio queda dividido por `λ_h`,
 o sea Gumbel con parámetro de forma `b_h = λ_h·μ_h`, **distinto por estrato**
 (Martínez, p. 77: `ε'_hi = ε_hi/λ_h` es Gumbel(0, b_h) con `b_h = λ_h·μ_h`).
 Aplicar la forma cerrada ahí no es una aproximación: es otro modelo, y equivale a
-suponer `b_h = b` común, o sea `μ_h = b/λ_h` —que quien más valora el dinero
-tiene proporcionalmente menos dispersión idiosincrática de utilidad—, un supuesto
-sin fundamento conductual que nadie eligió.
+suponer `b_h = b` común, o sea `μ_h = b/λ_h`. Como `μ` es una PRECISION, eso
+implica que la **escala** del ruido de utilidad, `1/μ_h = λ_h/b`, es
+proporcional a `λ_h`: quien más valora el dinero tendría proporcionalmente
+**más** dispersión idiosincrática de utilidad. Es un supuesto sin fundamento
+conductual, y que nadie eligió: sale de conservar la forma cerrada.
 
 **Cuál es el `beta` de la configuración.** Es `μ`, la precisión del ruido en
 **útiles**, común a los estratos; la precisión en **dinero** es `b_h = β·λ_h` y
