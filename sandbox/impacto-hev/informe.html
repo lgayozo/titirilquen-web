@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Qué cambió al pasar al HEV</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --alerta: #8a5a12; --frio: #2f6690;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 4px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 680px; overflow-x: auto;
+  }
+  .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
+  /* MathML lo renderiza el navegador con la fuente matematica del sistema.
+     `Cambria Math` es la que .ecuacion ya pedia, asi que la tipografia no
+     cambia de familia: sube el cuerpo y aparecen fracciones e integrales de
+     verdad. Se genera con `node tools/renderiza_ecuaciones.js` desde el
+     `data-tex` de cada .ecuacion. */
+  .ecuacion math { font-size: 1.18em; }
+  .ecuacion .katex { font-family: inherit; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  th.simb {
+    /* Las griegas son sensibles a la caja: un encabezado con simbolos se
+       escribe como se escribe. */
+    text-transform: none; letter-spacing: .02em; font-size: 11.5px;
+  }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso.neutro { border-left-color: var(--muted); }
+  .aviso.alerta { border-left-color: var(--alerta); }
+  .aviso p { margin: 4px 0; }
+  .aviso h4 { margin: 0 0 2px; font-size: 14px; }
+  .aviso.idea p { font-size: 15.5px; }
+  figure { margin: 22px 0 8px; }
+  figure img { width: 100%; display: block; border: 1px solid var(--rule); }
+  figcaption {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; color: var(--muted);
+    margin-top: 6px; max-width: 78ch; line-height: 1.5;
+  }
+  figcaption .n {
+    font-weight: 700; color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
+    margin-right: 8px; font-size: 11px;
+  }
+  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
+  .indice ol { margin: 4px 0; }
+  .indice a { color: var(--ink); text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  .refs { font-size: 13.5px; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, figure { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Side project</div>
+  <h1>Qué cambió al pasar al HEV</h1>
+  <p class="bajada">
+    Los mismos datos, los mismos <span class="mono">λ</span> heterogéneos,
+    resueltos con la forma cerrada —lo que hacía el simulador— y con la
+    subasta heteroscedástica. La diferencia entre las dos <em>es</em> el impacto
+    de aplicar la formulación correcta, sin recalibrar nada.
+  </p>
+  <p class="meta">
+    Código: <code>sandbox/impacto-hev/</code> ·
+    Correr: <code>uv run python impacto.py &amp;&amp; uv run python figuras.py</code><br>
+    Ciudad: 201 celdas · 20 km · ΣH = 99.900 · α = 6,5/6,0/5,5 · ρ = 0,0025 · β = 1
+  </p>
+</header>
+
+<div class="indice">
+  <strong style="font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Recorrido</strong>
+  <ol>
+    <li><a href="#s1">Qué se compara, y por qué así</a></li>
+    <li><a href="#s2">Las dos formulaciones</a> — y si el código las implementa</li>
+    <li><a href="#s3">Cuánto cambia</a> — la magnitud</li>
+    <li><a href="#s4">Dónde cambia</a> — el resultado central</li>
+    <li><a href="#s5">Lo que no se mueve</a> — los agregados</li>
+    <li><a href="#s6">Qué concluir</a></li>
+  </ol>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s1"><span class="num">1</span>Qué se compara, y por qué así</h2>
+
+<p>
+  Hasta que se implementó el HEV, el módulo de uso de suelo tenía una limitación
+  conocida: <strong>los <span class="mono">λ_h</span> tenían que ser iguales</strong>.
+  Si se los cambiaba, el resultado se movía — pero ese movimiento no era
+  atribuible a la diferencia de utilidad marginal del ingreso, sino a que se
+  estaba aplicando la forma cerrada a pujas que ya no eran homoscedásticas. Un
+  modelo distinto del que se creía estar corriendo.
+</p>
+<p>
+  Este documento mide cuánto cuesta esa diferencia. Dos corridas de la misma
+  ciudad, con los mismos <code>y</code>, <code>α</code>, <code>ρ</code>,
+  <code>λ</code> y <code>β</code>:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th></th><th>solver</th><th>qué es</th></tr>
+  <tr>
+    <td><strong>antes</strong></td>
+    <td><code>solve_logit</code></td>
+    <td>La forma cerrada. Es literalmente lo que hacía el simulador: hasta el commit del HEV, <code>ciudad.py</code> llamaba <code>solve_logit(..., beta=cfg.beta, ...)</code> con estos mismos argumentos.</td>
+  </tr>
+  <tr>
+    <td><strong>ahora</strong></td>
+    <td><code>solve_subasta</code></td>
+    <td>Con <span class="mono">λ</span> heterogéneos despacha al HEV.</td>
+  </tr>
+</table>
+</div>
+
+<div class="aviso ok">
+  <h4>Por qué el «antes» es fiel</h4>
+  <p>
+    No hace falta desenterrar código viejo: <code>solve_logit</code>
+    <strong>conservó su semántica</strong> a través de D-31 —se la dejó intacta a
+    propósito, por ser la referencia homoscedástica con la que se demuestra
+    D-08—, así que hoy reproduce exactamente el comportamiento anterior. Y los
+    tests que fijan esa función no cambiaron y siguen pasando.
+  </p>
+</div>
+
+<p>
+  <strong>Por qué un barrido y no un caso.</strong> No sabemos el
+  <span class="mono">λ</span> verdadero. Lo que sí se puede afirmar es cómo crece
+  el impacto con la heterogeneidad, así que se barre la razón <em>r</em> con
+  <span class="mono">λ = (1/r, 1, r)</span>. En <em>r</em> = 1 los dos modelos
+  son el mismo y sirve de ancla: <strong>esa fila tiene que dar cero exacto</strong>,
+  y da, lo que confirma que la comparación mide el modelo y no una diferencia de
+  implementación.
+</p>
+
+<div class="aviso ok">
+  <h4>El barrido respeta la condición económica, y no es un detalle</h4>
+  <p>
+    La utilidad marginal del ingreso es <strong>decreciente en el ingreso</strong>
+    —al rico un peso adicional le sirve menos—, así que
+    <span class="mono">λ_alto &lt; λ_medio &lt; λ_bajo</span>. Martínez lo dice
+    explícitamente (p. 77) al derivar la disposición a pagar, y de ahí concluye
+    que <em>la varianza de la disposición a pagar crece con el ingreso</em>. La
+    forma <span class="mono">λ = (1/r, 1, r)</span> cumple esa monotonía en todas
+    las filas.
+  </p>
+  <p>
+    No es una formalidad: <strong>es la configuración que el HEV existe para
+    poder evaluar</strong>. La forma cerrada exige varianzas iguales, o sea que
+    literalmente no puede representar el caso realista sin cometer el error que
+    este documento mide.
+  </p>
+  <p>
+    Y la región importa. Si en vez de esto se sube
+    <span class="mono">λ_alto</span> por encima de los otros —económicamente al
+    revés— la respuesta del modelo se vuelve mucho más violenta: el estrato alto
+    llega a 6,25 km en lugar de moverse entre 1,47 y 1,05 km. Esos números
+    circularon en documentación vieja de este repo; no describen el modelo en su
+    régimen válido.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<!-- ==================================================================== -->
+<h2 id="s2"><span class="num">2</span>Las dos formulaciones</h2>
+
+<p>
+  Antes de mirar números conviene tener las dos expresiones a la vista, y
+  comprobar que el código implementa cada una. Lo que sigue está cotejado contra
+  las fuentes, no contra la memoria.
+</p>
+
+<h3>2.1 La forma cerrada — Martínez, ec. (4.26)</h3>
+
+<div class="ecuacion" data-tex="Q_{h/i} = H_h \frac{e^{\beta_i w_{hi}}}{\sum_{g \in B_i} H_g e^{\beta_i w_{gi}}}" data-id="(4.26) p. 86">
+  <span class="id">(4.26) p. 86</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">/</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>H</mi><mi>h</mi></msub><mfrac><msup><mi>e</mi><mrow><msub><mi>β</mi><mi>i</mi></msub><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow></msup><mrow><munder><mo>∑</mo><mrow><mi>g</mi><mo>∈</mo><msub><mi>B</mi><mi>i</mi></msub></mrow></munder><msub><mi>H</mi><mi>g</mi></msub><msup><mi>e</mi><mrow><msub><mi>β</mi><mi>i</mi></msub><msub><mi>w</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">Q_{h/i} = H_h \frac{e^{\beta_i w_{hi}}}{\sum_{g \in B_i} H_g e^{\beta_i w_{gi}}}</annotation></semantics></math></span>
+</div>
+
+<p>En <code>_solve_fixed_point</code>:</p>
+<pre><code>log_q  = log_H + b * (score[:, i] - u_bar - p[i])
+Q[:, i] = np.exp(log_q - logsumexp(log_q))</code></pre>
+
+<p>Coincide término a término, con dos cosas que conviene declarar:</p>
+<ul>
+  <li>
+    En el libro <span class="mono">β<sub>i</sub></span> está subindicado por
+    <strong>la localización</strong>: la precisión puede variar entre parcelas,
+    aunque debe ser común entre postores de una misma parcela —que es lo que
+    hace posible la forma cerrada—. El código usa <strong>un escalar</strong>
+    para toda la ciudad. Es una simplificación adicional, no un error.
+  </li>
+  <li>
+    El <span class="mono">− p<sub>i</sub></span> no está en el
+    <span class="mono">w<sub>hi</sub></span> del libro. Está permitido porque el
+    propio libro anota, debajo de la ecuación, que la probabilidad es
+    <em>invariante a una constante aditiva sobre las pujas</em>, y
+    <span class="mono">p<sub>i</sub></span> es constante entre los <em>h</em> de
+    una columna. El código lo deja por estabilidad numérica.
+  </li>
+</ul>
+
+<h3>2.2 El precio — Martínez, ec. (4.27)</h3>
+
+<div class="ecuacion" data-tex="p^*_i = p_i + \frac{\gamma}{\beta_i} = \frac{1}{\beta_i}\ln\left[\sum_h H_h e^{\beta_i w_{hi}}\right] + \frac{\gamma}{\beta_i}" data-id="(4.27) p. 86">
+  <span class="id">(4.27) p. 86</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>p</mi><mi>i</mi><mo>∗</mo></msubsup><mo>=</mo><msub><mi>p</mi><mi>i</mi></msub><mo>+</mo><mfrac><mi>γ</mi><msub><mi>β</mi><mi>i</mi></msub></mfrac><mo>=</mo><mfrac><mn>1</mn><msub><mi>β</mi><mi>i</mi></msub></mfrac><mi>ln</mi><mo>⁡</mo><mrow><mo fence="true">[</mo><munder><mo>∑</mo><mi>h</mi></munder><msub><mi>H</mi><mi>h</mi></msub><msup><mi>e</mi><mrow><msub><mi>β</mi><mi>i</mi></msub><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow></msup><mo fence="true">]</mo></mrow><mo>+</mo><mfrac><mi>γ</mi><msub><mi>β</mi><mi>i</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">p^*_i = p_i + \frac{\gamma}{\beta_i} = \frac{1}{\beta_i}\ln\left[\sum_h H_h e^{\beta_i w_{hi}}\right] + \frac{\gamma}{\beta_i}</annotation></semantics></math></span>
+</div>
+
+<pre><code>log_p = logsumexp(np.log(H_arr)[:, None] + b * (score - u_bar[:, None]), axis=0)
+p     = log_p / b</code></pre>
+
+<p>
+  O sea que la rama cerrada devuelve <span class="mono">p<sub>i</sub></span>, el
+  <strong>parámetro de localización</strong> — la ec. (4.27) <em>sin</em> el
+  <span class="mono">γ/β<sub>i</sub></span>. El HEV, en cambio, devuelve el
+  <strong>máximo esperado</strong>. Los dos <em>son</em> el precio de la parcela;
+  son dos resúmenes de la misma distribución, y el libro dice cuánto se llevan
+  entre sí: exactamente <span class="mono">γ/β</span>.
+</p>
+
+<div class="aviso alerta">
+  <h4>Pero el nivel de precios no es comparable, y no es por eso</h4>
+  <p>
+    La distinción de arriba es de <strong>segundo orden</strong>. Con
+    <span class="mono">β = 1</span> vale <span class="mono">γ/β = 0,577</span>,
+    un 0,6 % del rango de precios. La brecha que se mide entre las dos ramas es
+    mucho mayor, y la explica otra cosa:
+  </p>
+  <div class="envoltorio-tabla">
+    <table>
+      <tr><th class="simb">λ (a/m/b)</th><th class="n">rango de p</th><th class="n">brecha medida</th><th class="simb n">γ/β</th><th class="simb">ū<sub>HEV</sub> − ū<sub>cerrada</sub></th></tr>
+      <tr><td>1,00 / 1,00 / 1,00</td><td class="n">96,8</td><td class="n">0,000</td><td class="n">0,577</td><td>[0 · 0 · 0]</td></tr>
+      <tr><td>0,80 / 1,00 / 1,25</td><td class="n">93,0</td><td class="n">3,331</td><td class="n">0,577</td><td>[0 · −2,74 · −4,96]</td></tr>
+      <tr><td>0,50 / 1,00 / 2,00</td><td class="n">96,4</td><td class="n">11,582</td><td class="n">0,577</td><td>[0 · −10,98 · −16,50]</td></tr>
+      <tr><td>0,25 / 1,00 / 4,00</td><td class="n">132,2</td><td class="n">33,580</td><td class="n">0,577</td><td>[0 · −32,97 · −41,23]</td></tr>
+    </table>
+  </div>
+  <p class="pie-tabla">
+    La brecha sigue a la última columna, no a <span class="mono">γ/β</span>.
+  </p>
+  <p>
+    <strong>El nivel absoluto del precio no está determinado por el modelo</strong>
+    —en ninguna de las dos ramas—. Depende de la normalización
+    <span class="mono">ū<sub>alto</sub> = 0</span>, que es una convención
+    arbitraria: se ve en la fórmula que correr todos los
+    <span class="mono">ū</span> en <em>c</em> corre todos los
+    <span class="mono">p</span> en <span class="mono">−c</span>. Las dos ramas
+    normalizan en el mismo lugar, pero llegan a
+    <span class="mono">ū<sub>medio</sub></span> y
+    <span class="mono">ū<sub>bajo</sub></span> distintos —porque son modelos
+    distintos— y el nivel se corre con eso.
+  </p>
+  <p>
+    Lo que fijaría el nivel de verdad es la <strong>cuarta condición de
+    equilibrio de Alonso</strong> —precio en el borde igual a la renta
+    agrícola—, que está documentada y <em>no implementada</em>. Sin ella el
+    precio queda definido salvo una constante, y compararlo entre modelos no
+    significa nada.
+  </p>
+  <p>
+    <strong>El gradiente sí sirve, y por una razón concreta: es invariante a esa
+    constante.</strong> Se verifica más abajo — coincide entre ramas al 0,10 %.
+  </p>
+</div>
+
+<h3>2.3 El HEV — Train §4.5, siguiendo a Bhat (1995)</h3>
+
+<div class="ecuacion" data-tex="P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni}-V_{nj}+\theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw" data-id="§4.5">
+  <span class="id">§4.5</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>=</mo><mo>∫</mo><mrow><mo fence="true">[</mo><munder><mo>∏</mo><mrow><mi>j</mi><mo mathvariant="normal">≠</mo><mi>i</mi></mrow></munder><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mo stretchy="false">(</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>i</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>θ</mi><mi>j</mi></msub></mrow></msup></mrow></msup><mo fence="true">]</mo></mrow><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup></mrow></msup><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup><mtext> </mtext><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni}-V_{nj}+\theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw</annotation></semantics></math></span>
+</div>
+
+<p>En <code>q_hev</code>:</p>
+<pre><code>arg = (loc[h] - loc[g])[None, :] + theta[h] * _W[:, None]
+np.multiply(z, np.exp(-np.exp(-np.clip(arg / theta[g], -_TOPE, _TOPE))), out=z)
+acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
+
+<p>
+  Coincide término a término: el argumento lleva
+  <span class="mono">θ<sub>i</sub></span> multiplicando a <em>w</em> y
+  <span class="mono">θ<sub>j</sub></span> dividiendo, y el peso tabulado es
+  exactamente la densidad de valor extremo por el ancho del trapecio.
+</p>
+
+<h3>2.4 El puente entre las dos</h3>
+
+<p>
+  Las dos ramas reciben el <strong>mismo</strong>
+  <span class="mono">score = y + f/λ</span>. Lo único que las separa es la escala
+  del ruido:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th></th><th class="simb">escala del ruido de la puja</th><th>qué supone</th></tr>
+  <tr><td><strong>cerrada</strong></td><td class="simb"><span class="mono">1/β</span>, común</td><td>que la varianza de la disposición a pagar es igual entre estratos</td></tr>
+  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mono">θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</span></td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
+</table>
+</div>
+
+<p>
+  El <span class="mono">θ<sub>h</sub></span> del HEV sale de la ec. (4.3) del
+  libro: la disposición a pagar es
+  <span class="mono">q<sub>hi</sub> = y<sub>h</sub> + (f<sub>h</sub>−u<sub>h</sub>)/λ<sub>h</sub> + ε<sub>hi</sub>/λ<sub>h</sub></span>,
+  con <span class="mono">ε/λ ~ Gumbel(0, b<sub>h</sub>)</span> y
+  <span class="mono">b<sub>h</sub> = λ<sub>h</sub>·μ<sub>h</sub></span>. La
+  precisión en dinero <strong>lleva λ</strong>; la forma cerrada la omite, y ése
+  es exactamente el error que este documento mide.
+</p>
+
+<div class="aviso neutro">
+  <h4>Verificado: los gradientes sí son comparables</h4>
+  <p>
+    El gradiente es invariante a la constante que separa los niveles, así que en
+    principio sí se puede comparar. Pero eso vale si la brecha es
+    <em>exactamente</em> constante, y no tiene por qué serlo: las dos ramas
+    devuelven resúmenes distintos —parámetro de localización vs máximo
+    esperado— y con θ heterogéneos esa diferencia puede variar de parcela a
+    parcela y torcer el ajuste. Medido: la brecha tiene desviación estándar de
+    0,03 a 0,18 sobre un rango de precios de ~130, y el gradiente ajustado
+    difiere en:
+  </p>
+  <div class="envoltorio-tabla">
+    <table>
+      <tr><th class="simb">λ (a/m/b)</th><th class="n">cerrada</th><th class="n">HEV</th><th class="n">dif. relativa</th></tr>
+      <tr><td>1,00 / 1,00 / 1,00</td><td class="n">−9,4949</td><td class="n">−9,4949</td><td class="n">0,00 %</td></tr>
+      <tr><td>0,80 / 1,00 / 1,25</td><td class="n">−8,7740</td><td class="n">−8,7750</td><td class="n">0,01 %</td></tr>
+      <tr><td>0,50 / 1,00 / 2,00</td><td class="n">−8,2119</td><td class="n">−8,2157</td><td class="n">0,05 %</td></tr>
+      <tr><td>0,25 / 1,00 / 4,00</td><td class="n">−9,5159</td><td class="n">−9,5254</td><td class="n">0,10 %</td></tr>
+    </table>
+  </div>
+  <p class="pie-tabla">
+    Como máximo 0,10 %. La comparación de gradientes de la §5 es válida; la de
+    niveles no se hace, y por eso.
+  </p>
+</div>
+
+<h2 id="s3"><span class="num">3</span>Cuánto cambia</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr>
+    <th class="simb n">r</th><th class="simb">λ (alto / medio / bajo)</th>
+    <th class="simb n">max |ΔQ|</th><th class="n">hogares reubicados</th><th class="n">% del total</th>
+  </tr>
+  <tr class="destacada"><td class="n">1,00</td><td>1,00 / 1,00 / 1,00</td><td class="n">0,0000</td><td class="n">0</td><td class="n">0,00 %</td></tr>
+  <tr><td class="n">1,25</td><td>0,80 / 1,00 / 1,25</td><td class="n">0,0329</td><td class="n">1.229</td><td class="n">1,23 %</td></tr>
+  <tr><td class="n">1,50</td><td>0,67 / 1,00 / 1,50</td><td class="n">0,0660</td><td class="n">1.562</td><td class="n">1,56 %</td></tr>
+  <tr><td class="n">2,00</td><td>0,50 / 1,00 / 2,00</td><td class="n">0,1199</td><td class="n">1.735</td><td class="n">1,74 %</td></tr>
+  <tr><td class="n">3,00</td><td>0,33 / 1,00 / 3,00</td><td class="n">0,2133</td><td class="n">1.740</td><td class="n">1,74 %</td></tr>
+  <tr><td class="n">4,00</td><td>0,25 / 1,00 / 4,00</td><td class="n">0,2547</td><td class="n">1.658</td><td class="n">1,66 %</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  «Hogares reubicados» es <span class="mono">Σ<sub>h,i</sub> |ΔQ<sub>hi</sub>|·S<sub>i</sub> / 2</span>:
+  el transporte mínimo entre las dos asignaciones. El <span class="mono">/2</span>
+  está porque lo que sale de un lado entra en otro y sin él se contaría dos veces.
+</p>
+
+<figure>
+  <img src="salida/fig1-impacto.png" alt="Impacto contra la razón de heterogeneidad">
+  <figcaption>
+    <span class="n">Fig. 01</span>
+    Izquierda: la diferencia máxima en una celda crece sin techo con la
+    heterogeneidad. Derecha: los hogares que efectivamente cambian de celda se
+    estancan cerca del 1,7 %.
+  </figcaption>
+</figure>
+
+<p>
+  Las dos columnas cuentan cosas distintas y conviene no confundirlas.
+  <strong><span class="mono">max |ΔQ|</span> crece sin techo</strong> —llega a
+  0,25 en <em>r</em> = 4, o sea 25 puntos de composición en una celda— mientras
+  que <strong>los hogares reubicados se estancan en ~1,7 %</strong>. Eso sólo
+  puede significar una cosa: las diferencias grandes ocurren en <em>pocas</em>
+  celdas. La §3 muestra en cuáles.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s4"><span class="num">4</span>Dónde cambia</h2>
+
+<p>
+  Éste es el resultado del documento, y no es el que yo esperaba: la diferencia
+  <strong>no está repartida por la ciudad</strong>. Es cero en casi todas partes
+  y se concentra en dos picos estrechos.
+</p>
+
+<figure>
+  <img src="salida/fig2-donde.png" alt="Perfil espacial de la diferencia entre los dos modelos">
+  <figcaption>
+    <span class="n">Fig. 02</span>
+    Arriba, dónde está la vivienda. Abajo, <span class="mono">ΔQ</span> celda a
+    celda con <em>r</em> = 2. Los picos caen exactamente sobre las dos fronteras
+    entre estratos — 2,1 km y 4,5 km del CBD — y entre ellas el error es nulo.
+  </figcaption>
+</figure>
+
+<p>
+  Los picos no están en la periferia despoblada, que sería la explicación
+  cómoda: caen a <strong>2,1 y 4,5 km</strong>, con oferta normal, y coinciden
+  con los cruces de composición. <strong>El modelo incorrecto se equivocaba en
+  las fronteras de la segregación</strong>, que es justamente lo que un modelo de
+  uso de suelo existe para predecir.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>frontera</th><th class="n">antes</th><th class="n">ahora</th><th class="n">corrimiento</th></tr>
+  <tr><td>Alto / Medio</td><td class="n">2,078 km</td><td class="n">2,057 km</td><td class="n">−21 m</td></tr>
+  <tr><td>Medio / Bajo</td><td class="n">4,561 km</td><td class="n">4,531 km</td><td class="n">−30 m</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Con <em>r</em> = 2. El cruce se interpola entre celdas; el ancho de celda es
+  99,5 m, así que el corrimiento es una fracción de celda.
+</p>
+
+<figure>
+  <img src="salida/fig3-composicion.png" alt="Composición por celda con los dos modelos superpuestos">
+  <figcaption>
+    <span class="n">Fig. 03</span>
+    La composición es casi un escalón —anillos nítidos— y los dos modelos
+    difieren en <em>dónde ponen el escalón</em>. En el interior de cada anillo las
+    curvas se pisan.
+  </figcaption>
+</figure>
+
+<p>
+  Ahí está la reconciliación entre las dos columnas de la §2. La frontera se
+  corre unas <strong>decenas de metros</strong>, pero como la transición es
+  abrupta, ese corrimiento produce un <span class="mono">ΔQ</span> grande
+  <em>localmente</em>. Medido: con <em>r</em> = 2, <strong>20 celdas de 201
+  concentran el 61 %</strong> de la reubicación total, y 30 celdas el 78 %.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s5"><span class="num">5</span>Lo que no se mueve</h2>
+
+<p>
+  Hay que decirlo con la misma claridad: <strong>los agregados de ciudad
+  prácticamente no cambian.</strong>
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">r</th><th class="n">d_alto</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">gradiente p</th></tr>
+  <tr><td class="n">1,00</td><td class="n">1,47 → 1,47</td><td class="n">3,20 → 3,20</td><td class="n">6,23 → 6,23</td><td class="n">−9,5 → −9,5</td></tr>
+  <tr><td class="n">1,25</td><td class="n">1,10 → 1,11</td><td class="n">3,27 → 3,24</td><td class="n">6,53 → 6,54</td><td class="n">−8,8 → −8,8</td></tr>
+  <tr><td class="n">2,00</td><td class="n">1,05 → 1,06</td><td class="n">3,26 → 3,25</td><td class="n">6,58 → 6,59</td><td class="n">−8,2 → −8,2</td></tr>
+  <tr><td class="n">4,00</td><td class="n">1,05 → 1,05</td><td class="n">3,26 → 3,25</td><td class="n">6,59 → 6,60</td><td class="n">−9,5 → −9,5</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Distancia media al CBD por estrato, en km, antes → ahora. El gradiente de
+  precio es la pendiente ajustada sobre las celdas con oferta.
+</p>
+
+<figure>
+  <img src="salida/fig4-agregados.png" alt="Distancia media al CBD por estrato bajo los dos modelos">
+  <figcaption>
+    <span class="n">Fig. 04</span>
+    Las curvas de los dos modelos se pisan. Lo que sí se mueve —y mucho— es el
+    efecto de λ: el estrato alto pasa de 1,47 a 1,10 km al volver λ heterogéneo.
+    Pero ese movimiento lo produce el canal de la puja, que <em>los dos modelos
+    comparten</em>.
+  </figcaption>
+</figure>
+
+<div class="aviso alerta">
+  <h4>El corolario incómodo, y es el importante</h4>
+  <p>
+    <strong>En los agregados</strong>, el efecto de λ sobre la localización es
+    casi idéntico en los dos modelos: el estrato alto pasa de
+    <strong>1,47 → 1,10 km</strong> con la forma cerrada y de
+    <strong>1,47 → 1,11 km</strong> con el HEV, y esa distancia de 0,01 km se
+    mantiene en todo el barrido. Ahí la respuesta que daba el simulador antes
+    era, en magnitud, casi la correcta.
+  </p>
+  <p>
+    <strong>En el detalle espacial no</strong>, y conviene no perderlo de vista
+    al leer el párrafo anterior: en las fronteras entre estratos la composición
+    de una celda cambia hasta 25 puntos, y 1.700 hogares quedan en otro lado.
+    El agregado promedia justamente lo que el modelo estaba errando.
+  </p>
+  <p>
+    Aun así, nada de eso vuelve inocua la formulación vieja. La vuelve
+    <em>afortunada</em>. El problema nunca fue el tamaño del número: era que la
+    forma cerrada aplicada a pujas heteroscedásticas supone
+    <span class="mono">μ_h = b/λ_h</span>, y como
+    <span class="mono">μ</span> es una <strong>precisión</strong>, eso implica
+    que la escala del ruido de utilidad —<span class="mono">1/μ_h = λ_h/b</span>—
+    sea proporcional a λ: quien más valora el dinero tendría proporcionalmente
+    <em>más</em> dispersión idiosincrática. <strong>Un supuesto que nadie eligió
+    y que nadie había declarado.</strong> El HEV supone
+    <span class="mono">μ_h = β</span> común —misma dispersión en utilidad para
+    todos, y la de la puja hereda λ—, que es la lectura que el propio Martínez
+    respalda al concluir que la varianza de la disposición a pagar crece con el
+    ingreso. La ganancia es epistémica antes que numérica.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s6"><span class="num">6</span>Qué concluir</h2>
+
+<h3>Lo que el cambio compra</h3>
+<ul>
+  <li>
+    <strong>Las fronteras de la segregación, bien puestas.</strong> Es donde
+    estaba todo el error, y es donde un modelo de uso de suelo se juega la
+    predicción: 20 celdas de 201 concentran el 61 % de la corrección.
+  </li>
+  <li>
+    <strong>Un supuesto declarado en lugar de uno accidental.</strong> Ahora se
+    puede escribir qué se supone sobre la dispersión idiosincrática por estrato,
+    y defenderlo. Antes no había nada que defender porque nadie sabía que había
+    algo supuesto.
+  </li>
+  <li>
+    <strong>λ identificado.</strong> Bajo la forma cerrada, mover λ es
+    exactamente re-escalar (α, ρ) — D-08. Bajo HEV deja de serlo, porque λ mueve
+    además la escala del ruido.
+  </li>
+</ul>
+
+<h3>Lo que no cambia, y conviene decirlo antes de que lo pregunten</h3>
+<ul>
+  <li>
+    Los <strong>agregados por estrato y el gradiente de precios</strong> se mueven
+    en la segunda o tercera cifra. Cualquier conclusión previa que se apoyara en
+    ellos <strong>sobrevive</strong>.
+  </li>
+  <li>
+    La <strong>línea base del simulador no se movió en absoluto</strong>: corre
+    con λ = 1 en los tres estratos, donde los dos modelos coinciden bit a bit.
+  </li>
+  <li>
+    El impacto medido <strong>depende de la razón de heterogeneidad supuesta</strong>,
+    que no está calibrada. Con λ realmente uniforme el cambio es exactamente cero.
+  </li>
+</ul>
+
+<div class="aviso neutro">
+  <h4>Qué no prueba este documento</h4>
+  <p>
+    Que el HEV sea <em>correcto</em> no se demuestra comparándolo con el modelo
+    que reemplaza: se demuestra contra la teoría y contra el sorteo. Eso está en
+    <a href="../hev-paso-a-paso/informe.html">La subasta resuelta a mano</a> —
+    bisección, núcleo y 100.000 subastas simuladas hogar por hogar— y en
+    <a href="../../docs/informe-hev.html">informe-hev.html</a> §6. Acá sólo se
+    mide <strong>cuánto</strong> cambia, dando por establecido <strong>cuál</strong>
+    de los dos es el bueno.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2>Reproducir</h2>
+
+<pre><code>cd sandbox/impacto-hev
+uv run python impacto.py     # las dos corridas, escribe salida/impacto.json
+uv run python figuras.py     # las 4 figuras desde el JSON</code></pre>
+
+<p>
+  Determinista: la ciudad se arma con <code>seed 42</code> y los dos solvers
+  reciben exactamente el mismo diccionario de argumentos, construido una sola
+  vez por cada <em>r</em>.
+</p>
+
+<h2>Documentación relacionada</h2>
+<ul class="refs">
+  <li><a href="../../docs/informe-hev.html">La subasta heteroscedástica, paso a paso</a> — la formulación, la validación y el contraste con la teoría.</li>
+  <li><a href="../hev-paso-a-paso/informe.html">La subasta resuelta a mano</a> — el caso mínimo, con tres verificaciones independientes.</li>
+  <li><a href="../../docs/hev-cuadratura.html">La cuadratura del HEV, en imágenes</a> — de dónde sale la integral.</li>
+  <li><code>docs/DISCREPANCIES.md</code> D-08 (λ no identificado) y D-31 (β en dos espacios).</li>
+</ul>
+
+<footer>
+  <strong>Titirilquen</strong> · Simulador educativo de transporte urbano ·
+  Facultad de Ciencias Físicas y Matemáticas, Universidad de Chile.<br>
+  Side project: <code>sandbox/impacto-hev/</code>. Todos los números salen de
+  <code>salida/impacto.json</code>; las figuras no calculan nada.
+</footer>
+
+</div>
+</body>
+</html>
