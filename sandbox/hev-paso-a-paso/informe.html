@@ -49,6 +49,14 @@
     margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
     max-width: 680px;
   }
+  /* MathML lo renderiza el navegador con la fuente matematica del sistema.
+     `Cambria Math` es la que .ecuacion ya pedia, asi que la tipografia no
+     cambia de familia: sube el cuerpo y aparecen fracciones e integrales de
+     verdad. Se genera con `node tools/renderiza_ecuaciones.js` desde el
+     `data-tex` de cada .ecuacion. */
+  .ecuacion math { font-size: 1.18em; }
+  .ecuacion .katex { font-family: inherit; }
+  .ecuacion { overflow-x: auto; }
   .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
   blockquote {
     margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
@@ -384,9 +392,8 @@
   multiplicativo sobre la condición de equilibrio,
 </p>
 
-<div class="ecuacion">
-  ū<sub>h</sub> ← ū<sub>h</sub> + θ<sub>h</sub> · ln( colocados<sub>h</sub> / H<sub>h</sub> )
-  <span class="id">(5.1)</span>
+<div class="ecuacion" data-tex="\bar u_h \leftarrow \bar u_h + \theta_h \ln\!\left(\frac{\mathrm{colocados}_h}{H_h}\right)" data-id="(5.1)">
+  <span class="id">(5.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub><mo>←</mo><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><msub><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi></mrow><mi>h</mi></msub><msub><mi>H</mi><mi>h</mi></msub></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">\bar u_h \leftarrow \bar u_h + \theta_h \ln\!\left(\frac{\mathrm{colocados}_h}{H_h}\right)</annotation></semantics></math></span>
 </div>
 
 <p>
