@@ -1565,10 +1565,22 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
 <p>
   Con dens ≈ a − b·T la atractividad colapsa en
   <em>f</em> ≈ −(α − ρ·b)·T + constante, y la constante se absorbe en ū.
-  <strong>De los dos parámetros sólo se identifica la combinación
-  α<sub>h</sub> − ρ<sub>h</sub>·b.</strong> En la ciudad por defecto, mover ρ
-  heterogéneo es —al 99,6 %— mover α heterogéneo en sentido contrario.
+  <strong>La localización identifica sobre todo la combinación
+  α<sub>h</sub> − ρ<sub>h</sub>·b.</strong>
 </p>
+
+<div class="aviso alerta">
+  <p>
+    <strong>La correlación no es la redundancia.</strong> Acá decía que mover ρ
+    heterogéneo es «al 99,6 %» mover α en sentido contrario. Ese 0,996 es cuánto
+    de la <em>varianza</em> de dens explica T, no cuánto del <em>efecto</em> de ρ
+    reproduce α. Medido construyendo el equivalente α′ = α − b·ρ y comparando
+    asignaciones, α reproduce el <strong>70,5 %</strong> en la ciudad por
+    defecto: a ρ le queda ~30 % de efecto propio. El residuo pesa poco en
+    varianza y mucho en resultado porque la subasta amplifica diferencias chicas
+    (<a href="#s7">§7.5</a>). Ver <code>sandbox/impacto-rho/informe.html</code>.
+  </p>
+</div>
 
 <p>
   Eso explica <a href="#s6">§6.4</a> más a fondo: cuando una ρ heterogénea da

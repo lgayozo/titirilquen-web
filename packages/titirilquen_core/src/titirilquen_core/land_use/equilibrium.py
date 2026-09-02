@@ -84,9 +84,16 @@ def _f(
 
     Consecuencia práctica (AU-12): `dens` es una función fija de la parcela y,
     en las formas monocéntricas, casi proporcional a `T` —`corr = −0,996` con la
-    forma `normal`—, de modo que `f ≈ −(α − ρ·b)·T + cte`. **`alpha` y `rho` no
-    están identificados por separado**; sólo lo está esa combinación. La forma
-    `bimodal` es la única que rompe la colinealidad."""
+    forma `normal`—, de modo que `f ≈ −(α − ρ·b)·T + cte`: la localización
+    identifica sobre todo esa combinación, no `alpha` y `rho` por separado.
+
+    Ojo con la fuerza de esa afirmación: `corr = −0,996` es varianza explicada,
+    no equivalencia de efecto. Medido (`sandbox/impacto-rho`, E3), construir el
+    equivalente `α' = α − b·ρ` reproduce el **70,5 %** del efecto de una `rho`
+    heterogénea en `normal`, no el 99,6 %: al residuo le queda ~30 % porque la
+    subasta amplifica diferencias chicas (AU-10). En `valle`, donde la
+    colinealidad es exacta, sí reproduce el 99,3 %; en `bimodal` y `meseta` el
+    equivalente no sirve."""
     dens = S[None, :] / ancho_celda_km
     return -alpha[:, None] * T - rho[:, None] * dens
 

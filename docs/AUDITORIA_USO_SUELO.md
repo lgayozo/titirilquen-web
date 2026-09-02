@@ -26,6 +26,7 @@ positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
 | AU-10 | Sensibilidad muy alta a diferencias pequeñas de α | ℹ️ para la lectura pedagógica |
 | AU-11 | **El gradiente de renta estaba INVERTIDO** y `grad_p` lo tapaba | 🐛 corregido 2026-08-24 |
 | AU-12 | `α` y `ρ` no son canales independientes: colineales en la geometría base | ⚠️ no identificados |
+| AU-13 | El **nivel** de `α` no está identificado: sólo el producto `β·α` | ⚠️ normalización libre |
 
 > **AVISO (2026-08-24).** Todo lo que este documento dice sobre `grad_p` en las
 > iteraciones 1 a 4 está **medido en la celda equivocada** y varias conclusiones
@@ -382,9 +383,29 @@ Con `dens ≈ a − b·T`, la atractividad colapsa:
 
     f = −α·T − ρ·dens ≈ −(α − ρ·b)·T + constante
 
-y la constante se absorbe en ū. **De los dos parámetros sólo se identifica la
-combinación `α_h − ρ_h·b`.** En la ciudad por defecto, mover `ρ` heterogéneo es
-—al 99,6 %— mover `α` heterogéneo en sentido contrario.
+y la constante se absorbe en ū. **De los dos parámetros, la localización
+identifica sobre todo la combinación `α_h − ρ_h·b`.**
+
+> **Corregido 2026-09-02, con medición.** Acá decía que mover `ρ` heterogéneo
+> es «al 99,6 %» mover `α` en sentido contrario. **La correlación no es la
+> redundancia**: 0,996 es cuánto de la *varianza* de `dens` explica `T`, no
+> cuánto del *efecto* de ρ reproduce α. Medido en `sandbox/impacto-rho` (E3),
+> construyendo el equivalente `α'_h = α_h − b·ρ_h` y comparando asignaciones:
+>
+> | forma | R² | % del efecto de ρ que α reproduce |
+> |---|---|---|
+> | normal | 0,991 | **70,5 %** |
+> | exponencial | 0,939 | 59,3 % |
+> | meseta | 0,851 | **−19,6 %** |
+> | bimodal | 0,010 | −0,9 % |
+> | valle | 1,000 | 99,3 % |
+>
+> O sea que en la ciudad por defecto **a ρ le queda ~30 % de efecto propio**, no
+> 0,4 %. El residuo `dens − (a − b·T)` pesa poco en varianza y mucho en
+> resultado, porque la subasta amplifica diferencias chicas (AU-10). Sólo en
+> `valle`, donde la colinealidad es exacta (R² = 1,000), α reproduce a ρ casi
+> perfecto. En `meseta` y `bimodal` el «equivalente» es peor que no corregir:
+> ahí `b` no significa nada.
 
 Eso explica AU-05 más a fondo: cuando una `ρ` heterogénea da vuelta la ciudad
 entera no está agregando una fuerza nueva, está reescribiendo `α`.
@@ -396,3 +417,47 @@ rompe la colinealidad es **bimodal** (−0,098), donde la oferta tiene dos picos
 entra como constante pura y no hace nada — ni siquiera sobre los precios.
 
 Reproducir con la sección **6b** de `scripts/auditoria_suelo.py`.
+
+> **No es un defecto de la clase de modelo, es de nuestra geometría.** Martínez
+> (p. 242) dice que la identificación de estos parámetros viene justamente de la
+> variabilidad espacial: «the choice model is particularly suitable to estimate
+> parameters of variables that differentiate bids by location such as
+> accessibility or **densities** because the denominator in Eq. (9.9) is defined
+> for the space of locations; hence, **its variability helps identify** better
+> estimates of these parameters». En una ciudad real, con muchas zonas y densidad
+> no monótona, `α` y `ρ` se separan. En un corredor monocéntrico con `dens`
+> monótona en la distancia, no.
+
+---
+
+## AU-13 — El nivel de `alpha` no está identificado ⚠️ (2026-09-02)
+
+`Q ∝ exp(b·score)` con `b = β·λ` y `score = y + f/λ`, así que
+
+    b·score = β·λ·y + β·f
+
+El primer término es constante por estrato y lo absorbe ū. Queda **`β·f`**:
+sólo el producto `β·α` (y `β·ρ`) es observable. Medido —escalar `(α, ρ)` por `k`
+y `β` por `1/k`:
+
+| k | α_alto | β | max\|ΔQ\| vs k = 1 |
+|---|---|---|---|
+| 10 | 65,0 | 1,00·10⁻¹ | 1,00·10⁻⁹ |
+| 377 | 2.450,5 | 2,65·10⁻³ | 1,17·10⁻⁹ |
+| 1.000 | 6.500,0 | 1,00·10⁻³ | 1,17·10⁻⁹ |
+
+Idéntico a la tolerancia del solver en los tres casos.
+
+**Consecuencia para calibrar.** Poner `α` al nivel que implicaría un valor del
+tiempo en pesos no es una corrección: da exactamente la misma ciudad si se
+compensa `β`. Lo que **sí** está identificado son las **razones** `α_h/α_g`
+entre estratos —que son las que producen el gradiente de Alonso— y el producto
+`β·α`, que fija cuán nítida sale la segregación.
+
+**Hay una salida, y no está implementada.** Martínez (p. 243) ancla `β` con la
+ley de escala de rentas contra población, `R = β·ln N`: «this equation provides
+a **very powerful condition for the estimate of the β-parameter**, which is the
+same parameter for rents at the micro and macro spatial scales». El modelo de
+acá no tiene esa condición macro, así que el nivel queda libre.
+
+Reproducir con la sección **10** de `scripts/auditoria_suelo.py`.

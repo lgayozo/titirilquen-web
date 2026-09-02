@@ -218,6 +218,34 @@ def colinealidad_alpha_rho() -> None:
         print(f"  {forma:>12} {r_txt:>13} {dens.min():>10.0f} {dens.max():>10.0f}  {lectura}")
 
 
+def nivel_de_alpha() -> None:
+    """AU-13: el NIVEL de alpha no esta identificado; solo el producto beta*alpha.
+
+    Q ~ exp(b*score) con b = beta*lambda y score = y + f/lambda, o sea
+    b*score = beta*lambda*y + beta*f. El primer termino es constante por estrato
+    y lo absorbe u_barra; queda **beta*f**. Entonces escalar (alpha, rho) por k y
+    beta por 1/k tiene que dejar Q identico.
+
+    Martinez (p. 243) da una via para anclar beta que aca no esta implementada:
+    la ley de escala de rentas R = beta*ln(N), "a very powerful condition for the
+    estimate of the b-parameter"."""
+    print("\n### 10. El nivel de alpha: ¿esta identificado? (AU-13)")
+    print(f"  {'k':>8} {'alpha_alto':>11} {'beta':>10} {'max|dQ| vs k=1':>16}  veredicto")
+    q_base = np.asarray(resolver_q(base_cfg()))
+    for k in (10.0, 377.0, 1000.0):
+        cfg = base_cfg(
+            beta=1.0 / k,
+            estratos=_estratos(alphas=[6.5 * k, 6.0 * k, 5.5 * k], rhos=[RHO_BASE * k] * 3),
+        )
+        d = float(np.abs(np.asarray(resolver_q(cfg)) - q_base).max())
+        print(
+            f"  {k:>8g} {6.5 * k:>11.1f} {1 / k:>10.2e} {d:>16.2e}  "
+            f"{'IDENTICO' if d < 1e-6 else 'DIFIERE'}"
+        )
+    print("  => solo `beta*alpha` es observable. El nivel es normalizacion libre;")
+    print("     lo identificado son las RAZONES entre estratos.")
+
+
 def main() -> None:
     print("AUDITORÍA — MÓDULO DE USO DE SUELO")
     print(f"Base: L={L} celdas · {LARGO_KM:.0f} km · ΣH={SUMA_H} · shares 10/40/50")
@@ -286,6 +314,7 @@ def main() -> None:
     )
 
     equivalencia_lambda()
+    nivel_de_alpha()
 
     barrer(
         "5. y (ingreso) — debe ser INERTE en la asignación (se absorbe en ū)",

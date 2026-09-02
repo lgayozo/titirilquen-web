@@ -862,6 +862,22 @@ conversión al comparar.
 dimensional: si `y_h` entra en dinero, ¿en qué unidades está cada término de la
 puja?
 
+**No era una distracción nuestra: Martínez la nombra.** En el capítulo de
+estimación (p. 242) plantea exactamente esta ambigüedad sobre el exponente del
+modelo de elección:
+
+> «If they are interpreted as a utility function, then `e_h = β·λ_h`, with `λ_h`
+> the marginal utility of income, whereas if they are interpreted as a consumers'
+> surplus, then `e_h = β` because willingness-to-pay functions have no parameter
+> for prices or rents. **The ambiguity prevails unless β or λ_h is estimated
+> independently** of Eq. (9.9).»
+
+O sea que las dos lecturas que el despacho mezclaba son las dos lecturas
+legítimas del modelo, y sólo una estimación independiente de `β` o de `λ_h` las
+separa. La corrección de acá elige la de utilidad (`b_h = β·λ_h`), que es la
+consistente con la ec. (4.3) y con el HEV. Ver también AU-13: mientras `β` no se
+ancle, su nivel queda libre.
+
 ## D-32 — Uso de suelo: la densidad de `f` es exógena, no una externalidad de localización
 
 **Qué hace el código.** La atractividad de la parcela es
