@@ -51,6 +51,10 @@
   }
   .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
   .ecuacion.suelta { background: none; border: none; }
+  /* Recuadro para una idea PROPIA que merece destacarse. Se usa en vez de
+     una cita a proposito: en un documento que cita a Martinez, el formato
+     de cita tiene que significar «esto lo dijo otro». */
+  .aviso.idea p { font-size: 15.5px; }
   blockquote {
     margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--muted);
     color: var(--ink-2); font-style: italic; max-width: 72ch;
@@ -158,10 +162,13 @@
   responde es una sola:
 </p>
 
-<blockquote>
-  Dado dónde se puede construir vivienda y cuánto cuesta llegar al centro desde
-  cada punto, ¿cómo se reparten los estratos socioeconómicos en el espacio?
-</blockquote>
+<div class="aviso ok idea">
+  <p>
+    Dado dónde se puede construir vivienda y cuánto cuesta llegar al centro desde
+    cada punto, <strong>¿cómo se reparten los estratos socioeconómicos en el
+    espacio?</strong>
+  </p>
+</div>
 
 <p>
   La respuesta es un <strong>equilibrio de subasta</strong>: cada parcela se la
@@ -869,7 +876,18 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   </li>
 </ul>
 
-<h3>6.4 ρ uniforme no reasigna, pero aplana los precios <span class="etiqueta ok">AU-05</span></h3>
+<h3>6.4 ρ uniforme no reasigna <em>si λ es uniforme</em>, pero aplana los precios <span class="etiqueta ok">AU-05</span></h3>
+
+<div class="aviso alerta">
+  <p>
+    <strong>Corregido el 2026-09-02.</strong> El hallazgo, tal como estaba
+    escrito, valía sólo con los λ uniformes. Lo que entra en la puja no es ρ
+    sino <strong>ρ/λ</strong> —el score es <em>y</em> + f/λ—, así que en cuanto
+    los λ difieren una ρ común <strong>deja de ser común en la puja y sí
+    reasigna</strong>. La tabla de abajo es correcta para la línea base
+    (λ = 1); la de más abajo mide qué pasa cuando no lo es.
+  </p>
+</div>
 
 <p class="meta">
   Remedido el 2026-08-24 con el <code>grad_p</code> corregido —sobre celdas con
@@ -893,8 +911,8 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
 </div>
 
 <p>
-  Una ρ <strong>común</strong> a los tres estratos no mueve a nadie —es un
-  término común que se absorbe en ū, igual que <em>y</em>— pero
+  Con los λ uniformes, una ρ <strong>común</strong> a los tres estratos no mueve
+  a nadie —es un término común que se absorbe en ū, igual que <em>y</em>— pero
   <strong>achata el gradiente de precios, y con suficiente ρ lo invierte</strong>:
   las celdas centrales son las densas, así que la penalización golpea justo donde
   el suelo vale más. Es la tensión entre congestión residencial y renta de
@@ -903,7 +921,38 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
 
 <p>
   Con ρ <strong>heterogénea</strong> sí hay reasignación: subir ρ sólo al estrato
-  alto (0,5 contra 0 en los demás) lo manda a 8,48 km del CBD.
+  alto (0,1 contra 0 en los demás) lo manda a 8,48 km del CBD.
+</p>
+
+<h4>Y con ρ uniforme, si los λ difieren</h4>
+
+<p>
+  Mismo barrido, pero con λ = (0,5 · 1 · 2), decreciente en el ingreso como
+  manda Martínez (p. 77). La ρ sigue siendo <strong>la misma para los tres
+  estratos</strong>:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="simb">ρ (los tres estratos)</th><th class="simb n">d_alto</th><th class="simb n">d_medio</th><th class="simb n">d_bajo</th><th class="n">Theil</th><th class="simb n">grad_p</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td class="n">0,38</td><td class="n">1,89</td><td class="n">5,68</td><td class="n">0,828</td><td class="n">+0,97</td></tr>
+    <tr><td>0,0025 <em>(base)</em></td><td class="n">0,38</td><td class="n">1,89</td><td class="n">5,68</td><td class="n">0,823</td><td class="n">+0,81</td></tr>
+    <tr><td>0,01</td><td class="n">0,39</td><td class="n">1,89</td><td class="n">5,68</td><td class="n">0,806</td><td class="n">+0,51</td></tr>
+    <tr class="destacada"><td>0,05</td><td class="n">5,67</td><td class="n">4,57</td><td class="n">2,47</td><td class="n">0,514</td><td class="n">−0,04</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con ρ = 0,05 la ciudad <strong>se invierte</strong>: el estrato alto sale a
+  5,67 km y el bajo entra a 2,47 km, y la segregación cae casi a la mitad
+  (Theil 0,83 → 0,51). Es el mecanismo de Alonso completo —el gusto por el
+  espacio compitiendo contra el costo de transporte—, y aparece sin tocar la
+  heterogeneidad de ρ: la aporta λ. Reproducir con la sección <strong>2b</strong>
+  de <code>scripts/auditoria_suelo.py</code>.
 </p>
 
 <div class="aviso alerta">

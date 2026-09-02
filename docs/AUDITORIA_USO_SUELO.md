@@ -18,7 +18,7 @@ positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
 | AU-02 | `y` (ingreso) es inerte en la asignación — correcto por teoría | ✅ conforme |
 | AU-03 | La asignación es invariante a la escala de población | ✅ conforme |
 | AU-04 | `β` opera como escala de ruido del logit, monótona | ✅ conforme |
-| AU-05 | `ρ` uniforme no reasigna pero **sí aplana el gradiente de precios** | ✅ conforme, no documentado |
+| AU-05 | `ρ` uniforme no reasigna **sólo si `λ` es uniforme**; con `λ` heterogéneo sí reasigna | 🐛 corregido 2026-09-02 |
 | AU-06 | `λ` ≡ re-escalar α y ρ: no es un parámetro, es un artefacto | ✅ esperado, limitación declarada |
 | AU-07 | El solver que decía corregirlo no lo hacía — **eliminado** | 🐛 corregido |
 | AU-08 | No hay **techo de densidad**: la densidad puede crecer sin límite | ⚠️ decisión de modelo a discutir |
@@ -83,7 +83,7 @@ exactamente la interpretación de β como precisión del logit.
 - **Vestigiales**: `densidad_max`/`densidad_min` en 800/200 o en 9999/1 →
   idéntico. Confirmado muertos, como declara el propio schema.
 
-### AU-05 — `ρ` uniforme: no reasigna, pero aplana los precios ✅ (no documentado)
+### AU-05 — `ρ` uniforme: no reasigna **si `λ` es uniforme** 🐛 (corregido 2026-09-02)
 
 | ρ (todos) | d_alto | d_medio | d_bajo | Theil | **grad_p** |
 |---|---|---|---|---|---|
@@ -91,8 +91,8 @@ exactamente la interpretación de β como precisión del logit.
 | 0,1 (base) | 0,99 | 2,13 | 5,36 | 0,357 | **+0,50** |
 | 0,5 | 0,99 | 2,13 | 5,36 | 0,357 | **+0,21** |
 
-Una `ρ` **común** a los tres estratos no reasigna a nadie —es un término común
-que se absorbe en ū, igual que `y`— pero **sí achata el gradiente de precios**:
+Con los `λ` uniformes, una `ρ` **común** a los tres estratos no reasigna a nadie
+—es un término común que se absorbe en ū, igual que `y`— pero **sí achata el gradiente de precios**:
 las celdas centrales son las densas, así que la penalización golpea justo donde
 el suelo vale más. De +1,00 a +0,21 hay un factor 5.
 
@@ -101,8 +101,27 @@ vs. renta de localización), pero **hoy no está dicho en ninguna parte**: un
 estudiante que mueve ρ y solo mira la distribución espacial concluye que «no
 hace nada». Recomendación: mencionarlo en el tutorial de uso de suelo.
 
-Con `ρ` **heterogénea** sí hay reasignación (alto 0,5 y resto 0 → el estrato
+Con `ρ` **heterogénea** sí hay reasignación (alto 0,1 y resto 0 → el estrato
 alto se va a 8,48 km): también correcto.
+
+> **Corregido 2026-09-02 — el hallazgo valía sólo con `λ` uniforme.** Lo que
+> entra en la puja no es `ρ_h` sino **`ρ_h/λ_h`**: el score es `y + f/λ` con
+> `f = −α·T − ρ·dens`. Con los `λ` iguales una `ρ` común sigue siendo un término
+> común y se absorbe en ū —la tabla de arriba es correcta—, pero **en cuanto los
+> `λ` difieren, una `ρ` uniforme deja de ser uniforme en la puja y sí reasigna**.
+> Con `λ = (0,5 · 1 · 2)`, decreciente en el ingreso como manda Martínez (p. 77):
+>
+> | ρ (todos) | d_alto | d_medio | d_bajo | Theil | grad_p |
+> |---|---|---|---|---|---|
+> | 0 | 0,38 | 1,89 | 5,68 | 0,828 | +0,97 |
+> | 0,0025 (base) | 0,38 | 1,89 | 5,68 | 0,823 | +0,81 |
+> | 0,01 | 0,39 | 1,89 | 5,68 | 0,806 | +0,51 |
+> | **0,05** | **5,67** | 4,57 | **2,47** | **0,514** | −0,04 |
+>
+> Con ρ = 0,05 la ciudad **se invierte**: el estrato alto sale a 5,67 km y el
+> bajo entra a 2,47 km, y la segregación cae casi a la mitad (Theil 0,83 →
+> 0,51). No es un efecto de segundo orden. Reproducir con la sección **2b** de
+> `scripts/auditoria_suelo.py`.
 
 ## 2. ¿Tiene coherencia con la teoría?
 
@@ -286,17 +305,25 @@ Las dos observaciones de fondo:
 1. **El artefacto de λ (AU-06)** — es la única incoherencia teórica viva, y es
    una limitación **declarada**. Esta iteración la precisa: `λ_h` no es un
    parámetro económico independiente sino, **con identidad exacta verificada**,
-   re-escalar `(α_h, ρ_h)` por `1/λ_h`. Por eso su efecto es abrupto (cruza la
-   ciudad entre λ = 0,8 y 0,95) y de dirección absurda (bajarlo expulsa a los
-   ricos del centro; con ρ = 0,0025 la dirección se invirtió, ver AU-11).
+   re-escalar `(α_h, ρ_h)` por `1/λ_h`. **En la región económicamente válida**
+   —λ decreciente en el ingreso, `λ_alto < λ_medio < λ_bajo`— su efecto es suave
+   y acotado: con `λ = (1/r, 1, r)` el estrato alto va de 1,47 km en r = 1 a
+   1,05 km en r = 4, saturando. La cifra «cruza la ciudad entre λ = 0,8 y 0,95»
+   que decía esta línea era del régimen de ρ = 0,1, igual que la dirección: con
+   ρ = 0,0025 el canal dominante es `α_ef = α/λ` y **bajar** λ acerca al estrato
+   alto al centro (ver AU-11). La transición violenta —hasta 6,25 km— aparece
+   sólo si se sube `λ_alto` por encima de los otros, que es una configuración al
+   revés y no debe leerse como el comportamiento del modelo. Re-medido el
+   2026-09-02.
    **Corregido el 2026-08-24** con HEV; ver la nota de AU-06. Lo que sí se
    eliminó antes (AU-07) fue un solver que decía corregirlo sin hacerlo.
 2. **Sin techo de densidad (AU-08)** — la restricción de capacidad que sí existe
    (vaciado de mercado sobre `S`) es la correcta; falta la normativa. Extensión
    posible, no defecto.
 
-Y una de forma: **`ρ` uniforme afecta precios y no localización (AU-05)**, lo
-que es correcto pero invisible para el estudiante.
+Y una de forma: **`ρ` uniforme afecta precios y no localización (AU-05)** —
+pero eso vale sólo en la línea base, donde `λ` es uniforme. Con `λ` heterogéneo
+`ρ` reasigna, y fuerte.
 
 ---
 

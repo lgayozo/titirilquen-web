@@ -276,11 +276,19 @@ y `v_ref = 30 km/h`:
 | `alpha` alto | 1,30 | **32,53** útiles/min | 6,50 | 0,20× |
 | `alpha` medio | 1,20 | 30,03 | 6,00 | 0,20× |
 | `alpha` bajo | 1,10 | 27,53 | 5,50 | 0,20× |
-| `rho` (los tres) | 1,00 | **0,0200** útiles/(hab/km) | 0,10 | 5,00× |
+| `rho` (los tres) | 1,00 | **0,0200** útiles/(hab/km) | 0,0025 | 0,125× |
 
 **Leer «alpha 1,3 → 6,5» como un aumento invierte el signo del cambio.** En
 unidades comparables el original pesaba el tiempo de viaje **5× más** que hoy, y
-castigaba la densidad **5× menos**.
+castigaba la densidad **8× más**.
+
+> **Corregido 2026-09-02.** La fila de `rho` decía «0,10 · 5,00×» y el texto,
+> «castigaba la densidad 5× menos». Los dos quedaron obsoletos con la
+> recalibración de `rho` de 0,1 a **0,0025** del 2026-08-24 (ver AU-11), que es
+> posterior al commit que escribió esta sección. Con el valor vigente la
+> comparación **cambia de signo**: el original castigaba la densidad 8× más, no
+> 5× menos. La fila de `alpha` no se vio afectada porque `alpha` no se
+> recalibró.
 
 ### 6.5 Impacto: dónde vive cada estrato
 

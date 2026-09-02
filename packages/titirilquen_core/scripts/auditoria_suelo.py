@@ -216,6 +216,21 @@ def main() -> None:
         ],
     )
 
+    # AU-05 corregido (2026-09-02): «rho uniforme no reasigna» vale SOLO con
+    # lambda uniforme. Lo que entra en la puja es `rho_h/lambda_h`, asi que en
+    # cuanto los lambda difieren una rho comun deja de ser un termino comun y
+    # SI reasigna. Con rho 0,05 la ciudad se invierte entera.
+    LAM_DEC = [0.5, 1.0, 2.0]  # decreciente en el ingreso (Martinez, p. 77)
+    barrer(
+        "2b. rho UNIFORME con lambda decreciente en el ingreso (AU-05)",
+        [
+            ("rho 0", base_cfg(estratos=_estratos(rhos=[0, 0, 0], lambdas=LAM_DEC))),
+            (f"rho {RHO_BASE} (base)", base_cfg(estratos=_estratos(lambdas=LAM_DEC))),
+            ("rho 0.01", base_cfg(estratos=_estratos(rhos=[0.01] * 3, lambdas=LAM_DEC))),
+            ("rho 0.05", base_cfg(estratos=_estratos(rhos=[0.05] * 3, lambdas=LAM_DEC))),
+        ],
+    )
+
     barrer(
         "3. beta (escala del logit de subasta)",
         [

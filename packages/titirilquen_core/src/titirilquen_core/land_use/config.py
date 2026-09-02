@@ -77,9 +77,13 @@ class LandUseConfig(BaseModel):
     # y +0,81 con ρ=0,0025, que es el valor que reproduce la razón ≈ 6 del
     # documento original. Ver `test_el_suelo_central_vale_mas_que_el_periferico`.
     #
-    # Cambiar ρ NO reasigna a nadie: es común a los tres estratos y se absorbe
-    # en ū (AU-05), así que las distancias medias por estrato quedan idénticas
-    # y sólo cambia el perfil de precios.
+    # Con los `λ` uniformes —el default— cambiar ρ NO reasigna a nadie: es común
+    # a los tres estratos y se absorbe en ū (AU-05), así que las distancias
+    # medias por estrato quedan idénticas y sólo cambia el perfil de precios.
+    # OJO: eso vale SÓLO con λ uniforme. Lo que entra en la puja es `ρ_h/λ_h`,
+    # así que en cuanto los λ difieren una ρ común deja de ser un término común
+    # y sí reasigna: con λ = (0,5 · 1 · 2) y ρ = 0,05 la ciudad se invierte
+    # entera (alto a 5,67 km, bajo a 2,47). AU-05, corregido el 2026-09-02.
     estratos: tuple[LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig] = Field(
         default=(
             LandUseStratumConfig(y=3_500_000.0, alpha=6.5, rho=0.0025),
