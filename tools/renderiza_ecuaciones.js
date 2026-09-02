@@ -32,6 +32,7 @@ const ARCHIVOS = [
   "docs/informe-hev.html",
   "sandbox/hev-paso-a-paso/informe.html",
   "sandbox/impacto-hev/informe.html",
+  "sandbox/impacto-rho/informe.html",
 ];
 
 /** `<div class="ecuacion…" data-tex="…" [data-id="…"]> … </div>` */

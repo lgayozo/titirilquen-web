@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Qué hace ρ, y en qué rango</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --alerta: #8a5a12; --frio: #2f6690;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  h4 { font-size: 14px; margin: 18px 0 2px; font-weight: 600; color: var(--ink-2); }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 4px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
+    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 680px; overflow-x: auto;
+  }
+  .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
+  .ecuacion math { font-size: 1.18em; }
+  .ecuacion .katex { font-family: inherit; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  th.simb {
+    /* Las griegas son sensibles a la caja: un encabezado con simbolos se
+       escribe como se escribe. */
+    text-transform: none; letter-spacing: .02em; font-size: 11.5px;
+  }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso.neutro { border-left-color: var(--muted); }
+  .aviso.alerta { border-left-color: var(--alerta); }
+  .aviso p { margin: 4px 0; }
+  .aviso h4 { margin: 0 0 2px; font-size: 14px; color: var(--ink); }
+  figure { margin: 22px 0 8px; }
+  figure img { width: 100%; display: block; border: 1px solid var(--rule); }
+  figcaption {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; color: var(--muted);
+    margin-top: 6px; max-width: 78ch; line-height: 1.5;
+  }
+  figcaption .n {
+    font-weight: 700; color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
+    margin-right: 8px; font-size: 11px;
+  }
+  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
+  .indice ol { margin: 4px 0; }
+  .indice a { color: var(--ink); text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  .si { color: var(--ok); font-weight: 700; }
+  .no { color: var(--accent); font-weight: 700; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, figure { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Side project</div>
+  <h1>Qué hace ρ, y en qué rango</h1>
+  <p class="bajada">
+    ρ es la penalización de densidad de la puja por suelo. Este informe mide qué
+    puede y qué no puede hacer en el modelo implementado, cuánto de su efecto es
+    en realidad α disfrazado, y qué valores dejan una asignación realista. La
+    respuesta corta es que ρ <em>no tiene</em> un rango propio: lo que la
+    localización identifica es una combinación de α, ρ y λ.
+  </p>
+  <p class="meta">
+    Código: <code>sandbox/impacto-rho/</code> ·
+    Plan: <code>PLAN.md</code> ·
+    Correr: <code>uv run python impacto.py &amp;&amp; uv run python figuras.py</code><br>
+    Ciudad: 201 celdas · 20 km · ΣH = 36.000 (7.200/18.000/10.800) · forma normal · σ = 0,5 · β = 1<br>
+    Ingresos: 3,5M / 1,5M / 0,5M $/mes · semilla 42
+  </p>
+</header>
+
+<div class="indice">
+  <strong style="font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Recorrido</strong>
+  <ol>
+    <li><a href="#s1">La pregunta y la respuesta corta</a></li>
+    <li><a href="#s2">Qué puede hacer ρ</a> — el marco, antes de medir</li>
+    <li><a href="#s3">El nivel</a> — inerte en el mapa, activo en el precio</li>
+    <li><a href="#s4">La brecha y el vuelco</a> — Muth/Wheaton en este modelo</li>
+    <li><a href="#s5">Cuánto de ρ es α disfrazado</a> — donde me equivoqué</li>
+    <li><a href="#s6">Dónde cae el efecto</a></li>
+    <li><a href="#s7">Lo que arrastra y lo que cuesta</a></li>
+    <li><a href="#s8">Robustez</a></li>
+    <li><a href="#s9">La región admisible</a> — el resultado</li>
+    <li><a href="#s10">Qué falta para cerrar el número</a></li>
+  </ol>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s1"><span class="num">1</span>La pregunta y la respuesta corta</h2>
+
+<p>
+  La pregunta de partida era: <em>¿cuál debería ser el rango de ρ, o las
+  diferencias de ρ entre estratos, para que la asignación resulte realista?</em>
+</p>
+
+<div class="aviso ok">
+  <h4>La respuesta, en tres frases</h4>
+  <p>
+    <strong>ρ no tiene un rango propio identificable por la localización.</strong>
+    Lo que el mapa identifica es un coeficiente efectivo por estrato que mezcla
+    α, ρ y λ; infinitas parejas (α, ρ) dan la misma ciudad.
+  </p>
+  <p>
+    <strong>El nivel de ρ sí está acotado, pero por los precios.</strong> Por
+    encima de ρ₀ ≈ 0,0425 el gradiente de renta se invierte y el suelo periférico
+    pasa a valer más que el central: deja de ser un modelo de Alonso. El valor
+    vigente, 0,0025, está 17 veces por debajo de ese techo.
+  </p>
+  <p>
+    <strong>Las diferencias entre estratos importan sólo por encima de cierto
+    nivel.</strong> Con ρ₀ ≤ 0,005 la ciudad no vuelca ni con una brecha de
+    elasticidades implausible de 2,0. Con ρ₀ = 0,02 vuelca con 0,75.
+  </p>
+</div>
+
+<p>
+  Y un resultado que no esperaba, que corrige una afirmación previa del repo:
+  <strong>la colinealidad entre α y ρ no implica redundancia</strong>. La
+  correlación entre distancia y densidad es −0,996, pero al construir el α
+  equivalente sólo se reproduce el <strong>70,5 %</strong> del efecto de ρ. A ρ
+  le queda cerca de un 30 % de efecto propio. Ver <a href="#s5">§5</a>.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s2"><span class="num">2</span>Qué puede hacer ρ — el marco, antes de medir</h2>
+
+<p>
+  La puja del estrato <em>h</em> por la parcela <em>i</em> es
+</p>
+
+<div class="ecuacion" data-tex="w_{hi} = y_h + \frac{f_h(i)}{\lambda_h}, \qquad f_h(i) = -\alpha_h\,T(i) - \rho_h\,\mathrm{dens}(i)" data-id="(1)">
+  <span class="id">(1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mfrac><mrow><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mo separator="true">,</mo><mspace width="2em"/><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi>α</mi><mi>h</mi></msub><mtext> </mtext><mi>T</mi><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>ρ</mi><mi>h</mi></msub><mtext> </mtext><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">w_{hi} = y_h + \frac{f_h(i)}{\lambda_h}, \qquad f_h(i) = -\alpha_h\,T(i) - \rho_h\,\mathrm{dens}(i)</annotation></semantics></math></span>
+</div>
+
+<p>
+  con <code>dens = S/Δx</code>, la oferta de viviendas por km. Esa oferta es
+  <strong>exógena</strong>: se genera una vez y el equilibrio no la mueve. Y como
+  el mercado se vacía, la densidad realizada es idénticamente <code>S/Δx</code>
+  (D-32). ρ penaliza, entonces, un atributo fijo de la parcela.
+</p>
+
+<h3>2.1 Las tres reglas de absorción</h3>
+
+<p>
+  La probabilidad de ganar depende de
+  <code>b_h·(w_hi − ū_h − p_i)</code>. De ahí salen tres reglas que gobiernan
+  todo lo demás:
+</p>
+
+<ol>
+  <li>Un término <strong>constante por estrato</strong> se absorbe en ū_h. No mueve la asignación. Es el caso de <em>y</em>.</li>
+  <li>Un término <strong>constante por parcela</strong> se absorbe en p_i. No mueve la asignación, <strong>pero sí el precio</strong>.</li>
+  <li>Sólo las <strong>interacciones</strong> estrato × parcela mueven la asignación.</li>
+</ol>
+
+<p>
+  La regla 2 es la que explica AU-05: con λ uniforme, una ρ común hace que
+  <code>ρ·dens/λ</code> sea idéntico para los tres estratos en cada parcela, así
+  que se va entero al precio.
+</p>
+
+<h3>2.2 El coeficiente efectivo κ</h3>
+
+<p>
+  En las formas monocéntricas <code>dens ≈ a − b·T</code>. Sustituyendo en (1),
+  el término constante se absorbe y queda <strong>un solo coeficiente por
+  estrato</strong>:
+</p>
+
+<div class="ecuacion" data-tex="\kappa_h = \frac{\alpha_h - b\,\rho_h}{\lambda_h}" data-id="(2)">
+  <span class="id">(2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>κ</mi><mi>h</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>−</mo><mi>b</mi><mtext> </mtext><msub><mi>ρ</mi><mi>h</mi></msub></mrow><msub><mi>λ</mi><mi>h</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">\kappa_h = \frac{\alpha_h - b\,\rho_h}{\lambda_h}</annotation></semantics></math></span>
+</div>
+
+<p>
+  <strong>Gana el centro quien tenga mayor κ.</strong> Y <em>b</em> es una tasa
+  de cambio concreta entre ρ y α: ρ entra en la asignación como si fuera una
+  rebaja de α de <code>b·ρ</code>. Medido en esta ciudad, <em>b</em> = 152,6
+  hogares/km por minuto, así que ρ = 0,0025 equivale a restarle 0,38 útiles/min
+  a α.
+</p>
+
+<div class="aviso neutro">
+  <p>
+    <em>b</em> depende de la geometría <strong>y de la población</strong>, porque
+    <code>dens ∝ N</code>. Medido: <code>b/ΣH = 0,00424</code> constante para
+    ΣH = 36.000 y 108.000. No es una constante del modelo, es de la ciudad.
+  </p>
+</div>
+
+<h3>2.3 La parametrización económica</h3>
+
+<p>
+  Para que ρ y λ signifiquen algo se los ata a elasticidades ingreso: la del
+  valor del tiempo (<em>e_t</em>) y la de la demanda de espacio (<em>e_s</em>).
+</p>
+
+<div class="ecuacion" data-tex="\lambda_h = \left(\frac{y_h}{\bar y}\right)^{-e_t}, \qquad \rho_h = \rho_0\left(\frac{y_h}{\bar y}\right)^{\,e_s-e_t}" data-id="(3)">
+  <span class="id">(3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub><mo>=</mo><msup><mrow><mo fence="true">(</mo><mfrac><msub><mi>y</mi><mi>h</mi></msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover></mfrac><mo fence="true">)</mo></mrow><mrow><mo>−</mo><msub><mi>e</mi><mi>t</mi></msub></mrow></msup><mo separator="true">,</mo><mspace width="2em"/><msub><mi>ρ</mi><mi>h</mi></msub><mo>=</mo><msub><mi>ρ</mi><mn>0</mn></msub><msup><mrow><mo fence="true">(</mo><mfrac><msub><mi>y</mi><mi>h</mi></msub><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover></mfrac><mo fence="true">)</mo></mrow><mrow><mtext> </mtext><msub><mi>e</mi><mi>s</mi></msub><mo>−</mo><msub><mi>e</mi><mi>t</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">\lambda_h = \left(\frac{y_h}{\bar y}\right)^{-e_t}, \qquad \rho_h = \rho_0\left(\frac{y_h}{\bar y}\right)^{\,e_s-e_t}</annotation></semantics></math></span>
+</div>
+
+<p>
+  Así <code>α/λ_h ∝ y^{e_t}</code> —el valor del tiempo— y
+  <code>ρ_h/λ_h ∝ y^{e_s}</code> —la aversión a la densidad en dinero—. Con
+  <code>e_s = e_t</code> la ρ queda uniforme. Se usa α = 6,0 uniforme y
+  <strong>e_t = 1</strong>, que es la ec. (2.25) de Jara-Díaz: el valor
+  subjetivo del tiempo iguala la tasa salarial, y con horas iguales
+  <code>w ∝ y</code>.
+</p>
+
+<p>
+  Con eso, la condición de vuelco sale analítica. Poniendo
+  <code>v_h = A·y^{e_t}</code> y <code>r_h = R·y^{e_s}</code>, κ crece y luego
+  decrece, con máximo en
+</p>
+
+<div class="ecuacion" data-tex="y^{*} = \left[\frac{A\,e_t}{b\,R\,e_s}\right]^{1/(e_s-e_t)}" data-id="(4)">
+  <span class="id">(4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>y</mi><mo lspace="0em" rspace="0em">∗</mo></msup><mo>=</mo><msup><mrow><mo fence="true">[</mo><mfrac><mrow><mi>A</mi><mtext> </mtext><msub><mi>e</mi><mi>t</mi></msub></mrow><mrow><mi>b</mi><mtext> </mtext><mi>R</mi><mtext> </mtext><msub><mi>e</mi><mi>s</mi></msub></mrow></mfrac><mo fence="true">]</mo></mrow><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><msub><mi>e</mi><mi>s</mi></msub><mo>−</mo><msub><mi>e</mi><mi>t</mi></msub><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">y^{*} = \left[\frac{A\,e_t}{b\,R\,e_s}\right]^{1/(e_s-e_t)}</annotation></semantics></math></span>
+</div>
+
+<p>
+  Si <code>e_s ≤ e_t</code> no hay vuelco. Si <code>e_s &gt; e_t</code>, el
+  estrato con <code>y &gt; y*</code> se va a la periferia. Es la condición
+  clásica de Muth/Wheaton escrita para este modelo.
+</p>
+
+<h3>2.4 Los dos regímenes que se comparan</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>régimen</th><th class="simb">α</th><th class="simb">λ</th><th class="simb">ρ</th><th>rama del solver</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>R0</strong> — calibración vigente</td><td>6,5 / 6,0 / 5,5</td><td>1 · 1 · 1</td><td>0,0025 uniforme</td><td>forma cerrada</td></tr>
+    <tr><td><strong>R1</strong> — propuesta</td><td>6,0 uniforme</td><td>0,43 · 1,00 · 3,00</td><td>ec. (3)</td><td>HEV</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s3"><span class="num">3</span>El nivel — inerte en el mapa, activo en el precio</h2>
+
+<figure>
+  <img src="salida/fig1-nivel.png" alt="Efecto del nivel de rho en los dos regímenes">
+  <figcaption>
+    <span class="n">Fig. 01</span>
+    Izquierda: con λ uniforme, las tres distancias medias son <em>líneas
+    horizontales</em> — ρ no mueve a nadie, en ningún nivel. Centro: con
+    λ ∝ 1/y sí las mueve, y entre ρ = 0,02 y 0,05 la ciudad se da vuelta.
+    Derecha: el precio reacciona al nivel en los dos regímenes, y cruza cero
+    casi en el mismo punto.
+  </figcaption>
+</figure>
+
+<h3>3.1 Con λ uniforme, ρ es exactamente inerte</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="simb">ρ (los tres)</th><th class="simb n">d_alto</th><th class="simb n">d_medio</th><th class="simb n">d_bajo</th><th class="n">Theil</th><th class="n">hogares movidos</th><th class="simb n">pendiente p ($/km)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td class="n">1,24</td><td class="n">2,95</td><td class="n">6,36</td><td class="n">0,407</td><td class="n">0</td><td class="n">−11,6</td></tr>
+    <tr class="destacada"><td>0,0025 <em>(vigente)</em></td><td class="n">1,24</td><td class="n">2,95</td><td class="n">6,36</td><td class="n">0,407</td><td class="n">0</td><td class="n">−10,8</td></tr>
+    <tr><td>0,01</td><td class="n">1,24</td><td class="n">2,95</td><td class="n">6,36</td><td class="n">0,407</td><td class="n">0</td><td class="n">−8,5</td></tr>
+    <tr><td>0,05</td><td class="n">1,24</td><td class="n">2,95</td><td class="n">6,36</td><td class="n">0,407</td><td class="n">0</td><td class="n">+3,7</td></tr>
+    <tr><td>0,1</td><td class="n">1,24</td><td class="n">2,95</td><td class="n">6,36</td><td class="n">0,407</td><td class="n">0</td><td class="n">+18,9</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  Distancias y Theil idénticos hasta el último dígito en todo el barrido;
+  <code>max|ΔQ|</code> se queda en 10⁻⁹, que es la tolerancia del solver. Es la
+  predicción P1, confirmada.
+</p>
+
+<h3>3.2 Con λ ∝ 1/y, ρ uniforme sí reasigna</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="simb">ρ (los tres)</th><th class="simb n">d_alto</th><th class="simb n">d_medio</th><th class="simb n">d_bajo</th><th class="n">Theil</th><th class="n">hogares movidos</th><th class="simb n">pendiente p ($/km)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td class="n">0,66</td><td class="n">2,92</td><td class="n">6,81</td><td class="n">0,939</td><td class="n">0</td><td class="n">−8,5</td></tr>
+    <tr class="destacada"><td>0,0025</td><td class="n">0,66</td><td class="n">2,92</td><td class="n">6,81</td><td class="n">0,934</td><td class="n">69</td><td class="n">−8,0</td></tr>
+    <tr><td>0,01</td><td class="n">0,67</td><td class="n">2,92</td><td class="n">6,80</td><td class="n">0,916</td><td class="n">346</td><td class="n">−6,5</td></tr>
+    <tr><td>0,02</td><td class="n">0,68</td><td class="n">2,93</td><td class="n">6,78</td><td class="n">0,870</td><td class="n">1.076</td><td class="n">−4,5</td></tr>
+    <tr><td>0,05</td><td class="n">7,49</td><td class="n">2,96</td><td class="n">2,18</td><td class="n">0,727</td><td class="n">27.267</td><td class="n">+4,6</td></tr>
+    <tr><td>0,1</td><td class="n">7,53</td><td class="n">3,63</td><td class="n">1,04</td><td class="n">0,909</td><td class="n">22.100</td><td class="n">+27,0</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  En el régimen lineal, alrededor de <strong>28 hogares por cada 0,001 de ρ₀</strong>.
+  Entre 0,02 y 0,05 hay un vuelco completo: el alto pasa de 0,66 a 7,49 km y el
+  bajo de 6,81 a 2,18. <strong>Con ρ uniforme</strong>, sin ninguna
+  heterogeneidad — la aporta λ, porque lo que entra en la puja es ρ/λ.
+</p>
+
+<div class="aviso alerta">
+  <h4>Esto corrige AU-05 una segunda vez</h4>
+  <p>
+    AU-05 decía que ρ uniforme no reasigna; se corrigió el 2026-09-02 agregando
+    «si λ es uniforme». Lo que se ve acá es que la excepción no es marginal:
+    <strong>con λ heterogéneo, una ρ uniforme suficientemente grande da vuelta
+    la ciudad entera.</strong>
+  </p>
+</div>
+
+<h3>3.3 El techo: dónde se invierte el gradiente de renta</h3>
+
+<figure>
+  <img src="salida/fig5-precios.png" alt="Pendiente de precio contra el nivel de rho">
+  <figcaption>
+    <span class="n">Fig. 05</span>
+    La pendiente de precio crece linealmente con ρ₀ (+199 $/km por unidad de ρ₀)
+    y cruza cero extrapolando en <strong>ρ₀ ≈ 0,0425</strong>. A la derecha, las
+    distancias medias en el mismo barrido: casi no se mueven. El nivel de ρ se
+    calibra contra el precio, no contra el mapa.
+  </figcaption>
+</figure>
+
+<div class="aviso neutro">
+  <h4>Una nota de método: por qué la pendiente y no un cociente</h4>
+  <p>
+    El plan proponía medir el gradiente como <code>(p₁ₖₘ − p₁₀ₖₘ)/p₁ₖₘ</code>.
+    <strong>Está mal</strong>: el nivel de <em>p</em> no está determinado por el
+    modelo —falta la cuarta condición de Alonso— así que un cociente no es
+    invariante a sumarle una constante. La <em>pendiente</em> sí. Se corrigió al
+    implementar.
+  </p>
+  <p>
+    De paso: el <code>grad_p</code> de la auditoría, normalizado por el rango,
+    se queda clavado en 1,000 en todo este barrido. <strong>Sólo indica el
+    signo</strong>, no la magnitud. Sirvió para detectar AU-11; no sirve para
+    calibrar.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s4"><span class="num">4</span>La brecha y el vuelco</h2>
+
+<figure>
+  <img src="salida/fig2-brecha.png" alt="Mapa del vuelco en el plano brecha por rho0">
+  <figcaption>
+    <span class="n">Fig. 02</span>
+    Distancia media del estrato alto sobre la grilla (brecha, ρ₀). La línea negra
+    es la frontera del vuelco: por encima y a la derecha, el rico deja de ser el
+    más central. A la derecha, los cortes: la transición es abrupta, no gradual.
+  </figcaption>
+</figure>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="simb">ρ₀</th><th>brecha crítica <span class="mono">e_s − e_t</span></th><th>lectura</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0,001</td><td>—</td><td>no vuelca hasta brecha 2,0</td></tr>
+    <tr class="destacada"><td>0,0025 <em>(vigente)</em></td><td>—</td><td>no vuelca hasta brecha 2,0</td></tr>
+    <tr><td>0,005</td><td>—</td><td>no vuelca hasta brecha 2,0</td></tr>
+    <tr><td>0,01</td><td>+1,50</td><td>hace falta una brecha implausible</td></tr>
+    <tr><td>0,02</td><td>+0,75</td><td>plausible: es el régimen interesante</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con el ρ₀ vigente <strong>la ciudad no se da vuelta nunca</strong> en el rango
+  explorado. El vuelco necesita <em>a la vez</em> un nivel alto de ρ y una brecha
+  de elasticidades positiva. Ninguno de los dos solo alcanza.
+</p>
+
+<h3>4.1 κ predice el orden en 53 de 55 casos</h3>
+
+<p>
+  La reducción de la §2.2 dice que el orden espacial debería seguir el orden de
+  κ. Se cumple en <strong>53 de 55</strong> puntos de la grilla. Los dos que
+  fallan están justo en el borde:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="simb">ρ₀</th><th class="simb">brecha</th><th class="simb">κ (alto / medio / bajo)</th><th>predicción de κ</th><th>medido</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0,005</td><td>+2,00</td><td>4,31 / 5,24 / 1,97</td><td>vuelca</td><td><span class="si">no vuelca</span></td></tr>
+    <tr><td>0,01</td><td>+1,25</td><td>3,73 / 4,47 / 1,87</td><td>vuelca</td><td><span class="si">no vuelca</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  En los dos, κ_alto queda apenas por debajo de κ_medio y el modelo real
+  <em>resiste</em> un poco más. κ es una aproximación de primer orden: ignora el
+  residuo <code>dens − (a − b·T)</code> y la asimetría de escala de ruido que
+  introduce el HEV. Predice el vuelco algo antes de lo que ocurre, nunca después.
+</p>
+
+<div class="aviso ok">
+  <p>
+    <strong>Es una herramienta útil, no sólo una explicación.</strong> Calcular
+    κ cuesta tres divisiones; correr el HEV cuesta segundos. Para explorar el
+    espacio de parámetros, κ ubica la frontera y el solver la confirma.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s5"><span class="num">5</span>Cuánto de ρ es α disfrazado — donde me equivoqué</h2>
+
+<p>
+  AU-12 estableció que <code>corr(T, dens) = −0,996</code> en la ciudad por
+  defecto, y de ahí el repo afirmaba que mover ρ heterogéneo es «al 99,6 %» mover
+  α en sentido contrario. La predicción de este plan, P3, decía lo mismo: que la
+  fracción no imitada sería <code>≈ 1 − R²</code>, o sea un 1 %.
+</p>
+
+<p>
+  Se midió construyendo el equivalente <code>α′_h = α_h − b·ρ_h</code> con ρ = 0
+  y comparando asignaciones contra la de ρ heterogénea:
+</p>
+
+<figure>
+  <img src="salida/fig3-redundancia.png" alt="Fracción del efecto de rho que alpha reproduce">
+  <figcaption>
+    <span class="n">Fig. 03</span>
+    Izquierda: porcentaje del efecto de ρ que α reproduce, por geometría.
+    Derecha: contra el R² del ajuste <code>dens ≈ a − b·T</code>. La relación
+    existe pero no es la identidad: hace falta colinealidad <em>exacta</em> para
+    que α imite a ρ.
+  </figcaption>
+</figure>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>forma de la oferta</th><th class="simb n">b</th><th class="simb n">R²</th><th class="n">hogares que mueve ρ</th><th class="n">residuo</th><th class="n">% que α reproduce</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td>normal <em>(default)</em></td><td class="n">152,6</td><td class="n">0,991</td><td class="n">4.984</td><td class="n">1.469</td><td class="n">70,5 %</td></tr>
+    <tr><td>exponencial</td><td class="n">170,7</td><td class="n">0,939</td><td class="n">9.315</td><td class="n">3.790</td><td class="n">59,3 %</td></tr>
+    <tr><td>meseta</td><td class="n">285,5</td><td class="n">0,851</td><td class="n">6.356</td><td class="n">7.602</td><td class="n">−19,6 %</td></tr>
+    <tr><td>bimodal</td><td class="n">13,9</td><td class="n">0,010</td><td class="n">5.883</td><td class="n">5.938</td><td class="n">−0,9 %</td></tr>
+    <tr><td>valle</td><td class="n">−180,0</td><td class="n">1,000</td><td class="n">3.436</td><td class="n">23</td><td class="n">99,3 %</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso alerta">
+  <h4>P3 refutada, y AU-12 estaba sobredicho</h4>
+  <p>
+    En la ciudad por defecto α reproduce el <strong>70,5 %</strong>, no el
+    99,6 %. <strong>La correlación no es la redundancia</strong>: 0,996 mide
+    cuánta <em>varianza</em> de dens explica T, no cuánto del <em>efecto</em> de
+    ρ reproduce α. El residuo pesa 0,9 % en varianza y cerca del 30 % en
+    resultado, porque la subasta amplifica diferencias chicas — que es
+    exactamente lo que dice AU-10.
+  </p>
+  <p>
+    Sólo en <code>valle</code>, donde la colinealidad es <em>exacta</em>
+    (R² = 1,000), α imita a ρ al 99,3 %. En <code>meseta</code> y
+    <code>bimodal</code> el «equivalente» es peor que no corregir: ahí
+    <em>b</em> no significa nada y el porcentaje sale negativo.
+  </p>
+  <p>
+    Corregido en AU-12, en §7.8 del informe de uso de suelo y en el docstring de
+    <code>_f</code>.
+  </p>
+</div>
+
+<p>
+  La consecuencia práctica es favorable para ρ: <strong>a ρ le queda cerca de un
+  30 % de efecto propio incluso en la geometría más colineal</strong>. No es un
+  parámetro decorativo. Lo que sigue siendo cierto es que no se puede
+  <em>estimar</em> por separado de α a partir de datos de localización: dos
+  parámetros compitiendo por un canal y medio.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s6"><span class="num">6</span>Dónde cae el efecto</h2>
+
+<figure>
+  <img src="salida/fig4-donde.png" alt="Distribución espacial del efecto de rho">
+  <figcaption>
+    <span class="n">Fig. 04</span>
+    Hogares reubicados por celda al mover la brecha, contra la base. El efecto no
+    está repartido: se apila en las fronteras entre estratos, que en esta ciudad
+    están en 1,22 y 4,84 km del CBD.
+  </figcaption>
+</figure>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="simb">brecha</th><th class="n">hogares movidos</th><th class="n">% en 20 celdas</th><th class="n">% en 30 celdas</th><th>fronteras (km)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>−0,5</td><td class="n">34</td><td class="n">69,3 %</td><td class="n">86,1 %</td><td>1,22 · 4,84</td></tr>
+    <tr><td>+0,5</td><td class="n">39</td><td class="n">71,9 %</td><td class="n">86,1 %</td><td>1,22 · 4,84</td></tr>
+    <tr><td>+1,0</td><td class="n">93</td><td class="n">76,5 %</td><td class="n">87,0 %</td><td>1,22 · 4,84</td></tr>
+    <tr><td>+1,5</td><td class="n">182</td><td class="n">79,6 %</td><td class="n">89,0 %</td><td>1,22 · 4,84</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Entre 69 % y 80 % del movimiento cae en 20 de 201 celdas. Es el mismo patrón
+  que encontró el informe del HEV: <strong>lo que se juega en las fronteras es
+  la segregación</strong>, y ahí es donde un error de especificación se paga.
+</p>
+
+<p>
+  Las fronteras <em>no se mueven</em> en estos casos. Ojo con la lectura: se
+  ubican por el estrato dominante celda a celda, y la resolución es de 100 m, así
+  que un corrimiento menor a una celda no se registra. Lo que cambia es la
+  <em>composición</em> alrededor de la frontera, no su posición.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s7"><span class="num">7</span>Lo que arrastra y lo que cuesta</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>configuración</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th><th class="n">iter</th><th class="n">seg</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td>R0 vigente <em>(= pineado)</em></td><td class="n">16,95</td><td class="n">32,79</td><td class="n">22,84</td><td class="n">7,98</td><td class="n">7</td><td class="n">0,9</td></tr>
+    <tr><td>R1 brecha 0, ρ₀ 0,0025</td><td class="n">16,83</td><td class="n">34,16</td><td class="n">22,38</td><td class="n">7,18</td><td class="n">8</td><td class="n">4,7</td></tr>
+    <tr><td>R1 brecha 0, ρ₀ 0,01</td><td class="n">16,80</td><td class="n">34,09</td><td class="n">22,45</td><td class="n">7,19</td><td class="n">8</td><td class="n">3,6</td></tr>
+    <tr><td>R1 brecha +0,5</td><td class="n">16,80</td><td class="n">34,10</td><td class="n">22,44</td><td class="n">7,17</td><td class="n">8</td><td class="n">4,2</td></tr>
+    <tr><td>R1 brecha +1,0</td><td class="n">16,80</td><td class="n">34,09</td><td class="n">22,45</td><td class="n">7,18</td><td class="n">8</td><td class="n">4,1</td></tr>
+    <tr><td>R1 brecha +1,5</td><td class="n">16,80</td><td class="n">34,09</td><td class="n">22,45</td><td class="n">7,18</td><td class="n">8</td><td class="n">4,1</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  Rama <code>equilibrio</code>, la única que usa uso de suelo. R0 reproduce el
+  valor pineado exacto, lo que valida el harness. La rama <code>original</code>
+  da <code>17,36 · 27,87 · 24,35 · 10,92</code> <strong>idéntica en los seis
+  casos</strong>: no hay fuga de acoplamiento.
+</p>
+
+<p>
+  Dos lecturas. Primera: <strong>el arrastre lo produce λ, no ρ</strong>. Todas
+  las variantes R1 dan el mismo reparto (metro 34,09–34,16) sin importar ρ ni la
+  brecha; el salto de 32,79 a ~34,1 es el cambio de régimen. Segunda: el costo
+  pasa de 0,9 s a ~4 s, un factor de <strong>4,5×</strong>, y es el precio de
+  despachar al HEV. En Pyodide hay que multiplicarlo otra vez.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s8"><span class="num">8</span>Robustez</h2>
+
+<p>
+  La pregunta es si la frontera de vuelco depende de detalles de la
+  configuración. Se repitió el barrido de brechas con ρ₀ = 0,0025 variando de a
+  una: la escala del logit β, la compacidad σ, la composición de estratos, la
+  forma de la oferta y la resolución de la grilla.
+</p>
+
+<figure>
+  <img src="salida/fig6-robustez.png" alt="Robustez del vuelco bajo variaciones">
+  <figcaption>
+    <span class="n">Fig. 06</span>
+    Distancia media del estrato alto contra la brecha, bajo cada variación. Casi
+    todas las curvas son planas: con ρ₀ = 0,0025 el vuelco no llega. La
+    excepción es la ciudad compacta.
+  </figcaption>
+</figure>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>variación</th><th class="simb n">brecha 0</th><th class="simb n">+0,5</th><th class="simb n">+1,0</th><th class="simb n">+1,5</th><th class="simb n">+2,0</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>β = 0,5</td><td class="n">0,72</td><td class="n">0,72</td><td class="n">0,73</td><td class="n">0,75</td><td class="n">0,79</td></tr>
+    <tr class="destacada"><td>β = 1 <em>(base)</em></td><td class="n">0,66</td><td class="n">0,66</td><td class="n">0,67</td><td class="n">0,67</td><td class="n">0,68</td></tr>
+    <tr><td>β = 2</td><td class="n">0,65</td><td class="n">0,65</td><td class="n">0,65</td><td class="n">0,65</td><td class="n">0,65</td></tr>
+    <tr><td><strong>σ = 0,3</strong> <em>(compacta)</em></td><td class="n">0,45</td><td class="n">0,46</td><td class="n">0,48</td><td class="n">0,75</td><td class="n"><strong>4,23 ✗</strong></td></tr>
+    <tr><td>σ = 0,8 <em>(dispersa)</em></td><td class="n">0,85</td><td class="n">0,85</td><td class="n">0,85</td><td class="n">0,85</td><td class="n">0,85</td></tr>
+    <tr><td>shares 10/40/50</td><td class="n">0,38</td><td class="n">0,38</td><td class="n">0,39</td><td class="n">0,39</td><td class="n">0,40</td></tr>
+    <tr><td>shares 33/33/33</td><td class="n">1,06</td><td class="n">1,06</td><td class="n">1,06</td><td class="n">1,07</td><td class="n">1,08</td></tr>
+    <tr><td>forma bimodal</td><td class="n">1,71</td><td class="n">1,71</td><td class="n">1,71</td><td class="n">1,71</td><td class="n">1,71</td></tr>
+    <tr><td>L = 101</td><td class="n">0,71</td><td class="n">0,71</td><td class="n">0,71</td><td class="n">0,71</td><td class="n">0,72</td></tr>
+    <tr><td>L = 401</td><td class="n">0,64</td><td class="n">0,64</td><td class="n">0,64</td><td class="n">0,65</td><td class="n">0,66</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">
+  Distancia media del estrato alto, en km. ✗ marca el único punto donde el orden
+  entre estratos se invierte.
+</p>
+
+<h3>8.1 La única grieta: la ciudad compacta</h3>
+
+<p>
+  Con σ = 0,3 la oferta se concentra cerca del centro, así que el perfil de
+  densidad es más empinado y <code>ρ·dens</code> tiene más agarre: <em>b</em>
+  crece y con él el descuento <code>b·ρ_h</code> sobre α. Es coherente con la
+  ec. (2), no una anomalía. <strong>La compacidad de la ciudad desplaza la
+  frontera de vuelco</strong>, y por eso el techo de ρ₀ de <a href="#s3">§3.3</a>
+  hay que leerlo como propio de esta σ.
+</p>
+
+<h3>8.2 Bimodal: insensible, y por la razón correcta</h3>
+
+<p>
+  En <code>bimodal</code> la distancia del estrato alto es 1,71 km en las cinco
+  brechas, sin moverse un dígito. No es que ρ no haga nada: es que ahí
+  <em>b</em> = 13,9 contra 152,6 en <code>normal</code>, porque la densidad ya no
+  es monótona en la distancia. El descuento <code>b·ρ_h</code> se vuelve
+  despreciable y κ deja de depender de ρ. La misma geometría que <strong>separa</strong>
+  a α de ρ (AU-12) es la que <strong>desactiva</strong> el canal de vuelco.
+</p>
+
+<h3>8.3 Invariancia de grilla</h3>
+
+<p>
+  Refinar de 101 a 401 celdas mueve d_alto de 0,71 a 0,64 km, un 10 %. La
+  invariancia de D-26 se sostiene en lo que importa —el orden y la magnitud no
+  cambian— pero no es exacta a esta escala: 0,66 km son 6,6 celdas con L = 201 y
+  3,3 con L = 101, así que se está midiendo cerca del límite de resolución.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s9"><span class="num">9</span>La región admisible</h2>
+
+<p>
+  Juntando los bordes que salieron de las mediciones, y con los criterios
+  eliminatorios del plan:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>criterio</th><th>qué acota</th><th>borde medido</th><th>estado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>C1</strong> orden alto→bajo</td><td>la brecha, dado ρ₀</td><td>ρ₀ ≤ 0,005: cualquier brecha ≤ 2,0 · ρ₀ = 0,01: brecha &lt; 1,50 · ρ₀ = 0,02: brecha &lt; 0,75</td><td><span class="si">medido</span></td></tr>
+    <tr><td><strong>C2</strong> gradiente de Alonso</td><td>el nivel ρ₀</td><td><strong>ρ₀ &lt; 0,0425</strong> con σ = 0,5; baja con ciudades más compactas (§8.1)</td><td><span class="si">medido</span></td></tr>
+    <tr><td><strong>C3</strong> sin corner solution</td><td>el nivel y la brecha</td><td>no se activa dentro de C1 y C2</td><td><span class="si">medido</span></td></tr>
+    <tr><td><strong>C4</strong> mezcla en fronteras</td><td>β·α más que ρ</td><td>mezcla 0,03–0,25 es hipótesis, no dato</td><td><span class="no">falta ancla</span></td></tr>
+    <tr><td><strong>C5</strong> segregación tipo Santiago</td><td>β·α y la brecha</td><td>Theil medido 0,41 (R0) y 0,94 (R1); sin referencia</td><td><span class="no">falta ancla</span></td></tr>
+    <tr><td><strong>C6</strong> gradiente de renta plausible</td><td>ρ₀ dado α</td><td>curva completa en Fig. 05; sin objetivo</td><td><span class="no">falta ancla</span></td></tr>
+    <tr><td><strong>C7</strong> costo</td><td>el régimen</td><td>R1 cuesta 4,5×</td><td><span class="si">medido</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso ok">
+  <h4>La región, en una frase</h4>
+  <p>
+    Con λ ∝ 1/y y α = 6,0 uniforme, <strong>ρ₀ entre 0 y ~0,04</strong> (por
+    C2) y <strong>brecha de elasticidades entre −1 y +0,75</strong> (por C1,
+    conservadoramente, tomando el ρ₀ más exigente del rango) dejan una asignación
+    con el orden correcto y el gradiente de Alonso en pie. El ρ₀ vigente, 0,0025,
+    está cómodamente adentro con un margen de 17× hasta el techo de C2 — y eso
+    vale en los dos regímenes, porque el techo lo fija el precio y el precio
+    reacciona igual con λ uniforme que con λ ∝ 1/y (Fig. 01, panel derecho).
+    Ojo: la calibración vigente tiene λ uniforme, así que la «brecha» no está
+    definida para ella; es un eje del régimen propuesto.
+  </p>
+</div>
+
+<h3>9.1 El veredicto de las predicciones</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>#</th><th>predicción</th><th>veredicto</th><th>el número que lo decide</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>P1</td><td>ρ uniforme + λ uniforme ⇒ Q invariante</td><td><span class="si">confirmada</span></td><td>max|ΔQ| = 1,2·10⁻⁹ en todo el barrido</td></tr>
+    <tr><td>P2</td><td>ρ uniforme + λ heterogéneo ⇒ Q cambia</td><td><span class="si">confirmada</span></td><td>69 → 1.076 → 27.267 hogares</td></tr>
+    <tr><td>P3</td><td>fracción no imitada por α ≈ 1 − R²</td><td><span class="no">refutada</span></td><td>29,5 % contra el 0,9 % predicho</td></tr>
+    <tr><td>P4</td><td>el orden espacial sigue el orden de κ</td><td><span class="si">confirmada</span> con matiz</td><td>53/55; las 2 fallas son empates en el borde</td></tr>
+    <tr><td>P5</td><td>ρ₀ fija el gradiente de precios</td><td><span class="si">confirmada</span></td><td>pendiente lineal, +199 $/km por unidad de ρ₀</td></tr>
+    <tr><td>P6</td><td>bajo HEV el alto queda más disperso de lo que le toca por κ</td><td><span class="si">confirmada</span></td><td>ver abajo</td></tr>
+    <tr><td>P7</td><td>escalar (α, ρ) por k y β por 1/k deja Q idéntico</td><td><span class="si">confirmada</span></td><td>max|ΔQ| = 1,2·10⁻⁹ hasta k = 1.000</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Sobre <strong>P6</strong>: con λ = (0,43 · 1,00 · 3,00), la escala de ruido del
+  estrato alto es <code>θ = 1/(β·λ)</code> = 2,33, contra 1,00 del medio y 0,33
+  del bajo. El alto tiene <strong>2,3 veces más dispersión idiosincrática</strong>
+  que el medio y 7 veces más que el bajo, aunque su κ sea el más alto. Es una
+  asimetría que la forma cerrada no puede producir —ahí todos comparten escala— y
+  es un efecto propio del HEV, no un artefacto.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s10"><span class="num">10</span>Qué falta para cerrar el número</h2>
+
+<p>
+  Tres anclas empíricas, y ninguna se puede inventar sin arruinar el ejercicio:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>ancla</th><th>para qué</th><th>por qué no está</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Elasticidad ingreso de la demanda de espacio</td><td>fijar la brecha en vez de barrerla</td><td>Jara-Díaz es de transporte; Martínez no publica valores numéricos de ningún parámetro (verificado en las 296 páginas)</td></tr>
+    <tr><td>Índice de segregación de Santiago a escala comparable</td><td>C5, y de paso calibrar β·α</td><td>hace falta un valor publicado y su definición exacta</td></tr>
+    <tr><td>Gradiente de renta observado</td><td>C6: invertir la curva de Fig. 05 y fijar ρ₀</td><td>ídem</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso neutro">
+  <h4>Y una salvedad estructural que no se arregla con datos</h4>
+  <p>
+    Todo esto vale para un ρ que penaliza una densidad <strong>exógena</strong>
+    (D-32). En Martínez la atractividad es endógena y genera cascadas; acá no. Un
+    ρ calibrado contra datos reales estaría absorbiendo, sin decirlo, el efecto
+    de un mecanismo que el modelo no tiene. Es una limitación declarada, no un
+    error, pero condiciona cuánto vale la pena afinar el número.
+  </p>
+</div>
+
+<footer>
+  Titirilquen · <code>sandbox/impacto-rho/</code> ·
+  Todas las cifras salen de <code>salida/*.json</code>, generadas por
+  <code>impacto.py</code>. Reproducible con
+  <code>uv run python impacto.py &amp;&amp; uv run python figuras.py</code>.<br>
+  Referencias: Martínez, <em>Microeconomic Modeling in Urban Science</em> (pp. 77,
+  86, 242, 243) · Jara-Díaz, <em>Transport Economic Theory</em> (ec. 2.25;
+  Jara-Díaz &amp; Videla 1989, p. 57) · Train, <em>Discrete Choice Methods</em> §4.5.
+</footer>
+
+</div>
+</body>
+</html>
