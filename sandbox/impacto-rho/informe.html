@@ -136,6 +136,7 @@
     <li><a href="#s8">Robustez</a></li>
     <li><a href="#s9">La región admisible</a> — el resultado</li>
     <li><a href="#s10">Qué falta para cerrar el número</a></li>
+    <li><a href="#s11">Referencias</a></li>
   </ol>
 </div>
 
@@ -779,14 +780,171 @@
   </p>
 </div>
 
+<!-- ==================================================================== -->
+<h2 id="s11"><span class="num">11</span>Referencias</h2>
+
+<h3>11.1 Fuentes primarias, con lo que se usó de cada una</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>referencia</th><th>qué se tomó</th><th>dónde se usa</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Martínez Concha, F. J.</strong> (2018).
+        <em>Microeconomic Modeling in Urban Science</em>. Academic Press /
+        Elsevier. ISBN 978-0-12-815296-6.
+      </td>
+      <td>
+        Ec. (4.2) y (4.3), p. 77: la utilidad indirecta lineal y la disposición a
+        pagar, con <code>b_h = λ_h·μ_h</code> y «it is expected that λ_h
+        decreases with income».<br>
+        Ec. (4.26) y (4.27), p. 86: la probabilidad de la subasta y el precio como
+        máximo de las pujas.<br>
+        P. 242: la ambigüedad <code>e_h = β·λ_h</code> contra <code>e_h = β</code>,
+        y que la identificación de los parámetros de densidad viene de la
+        variabilidad espacial.<br>
+        P. 243: la ley de escala <code>R = β·ln N</code> como condición para
+        estimar β.<br>
+        Pp. 8, 29, 116: las externalidades de localización y los «cambios en
+        cascada».
+      </td>
+      <td><a href="#s2">§2</a>, <a href="#s5">§5</a>, <a href="#s10">§10</a>; D-31, D-32, AU-12, AU-13</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Jara-Díaz, S.</strong> (2007). <em>Transport Economic
+        Theory</em>. Elsevier, 1ª ed. Universidad de Chile, Santiago.
+      </td>
+      <td>
+        Ec. (2.25) y (2.28): <code>SVTTS = (∂V/∂t)/(∂V/∂c) = w</code> — el valor
+        subjetivo del tiempo iguala la tasa salarial en el marco goods/leisure,
+        «given its endogenous income version». Es el ancla de
+        <code>e_t = 1</code>.<br>
+        P. 64: el valor del tiempo como recurso es <code>μ/λ</code>.<br>
+        P. 113: usar la valoración privada del tiempo para priorizar proyectos
+        favorece proporcionalmente a los grupos de altos ingresos.
+      </td>
+      <td><a href="#s2">§2.3</a>, <a href="#s7">§7</a></td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Jara-Díaz, S. R. y Videla, J.</strong> (1989). «Detection of
+        income effect in mode choice: theory and application».
+        <em>Transportation Research</em> 23B, 393–400.
+      </td>
+      <td>
+        La evidencia empírica de que la utilidad marginal del ingreso
+        <strong>decrece con el ingreso</strong>, estimada sobre un corredor de
+        ingresos medios-bajos en Santiago. Es lo que sostiene
+        <code>λ_h ∝ 1/y_h</code>.
+      </td>
+      <td><a href="#s2">§2.3</a></td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Train, K.</strong> <em>Discrete Choice Methods with
+        Simulation</em>, cap. 4 «GEV», §4.5.
+      </td>
+      <td>
+        La formulación del HEV y su cuadratura, que es la rama que usa el
+        régimen R1 de este informe.
+      </td>
+      <td><a href="#s2">§2.4</a>, <a href="#s7">§7</a></td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Subsecretaría de Evaluación Social</strong> (2026).
+        <em>Precios Sociales — Reporte anual 2026</em>. División de Evaluación
+        Social de Inversiones, Sistema Nacional de Inversiones,
+        <code>www.sni.gob.cl</code>, 31 de marzo de 2026.
+      </td>
+      <td>
+        Cap. 2: el VST oficial y, sobre todo, que «tradicionalmente, aduciendo
+        regresividad, se ha desestimado la distinción por ingresos de las
+        personas». Es por qué <strong>no</strong> se usó para calibrar α por
+        estrato: es un valor normativo, no conductual.
+      </td>
+      <td><a href="#s10">§10</a></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>11.2 Citadas a través de otra fuente, sin verificar en el original</h3>
+
+<p>
+  Estas aparecen citadas dentro de los libros de arriba y se mencionan en el
+  informe o en la documentación del repo, pero <strong>no están en
+  <code>reference/</code></strong> y no se pudo comprobar su texto:
+</p>
+
+<ul>
+  <li>
+    <strong>Bhat, C.</strong> (1995) — la formulación del HEV que sigue Train
+    §4.5. El PDF que hay del capítulo <strong>no incluye la bibliografía</strong>,
+    así que la cita completa sigue pendiente.
+  </li>
+  <li>
+    <strong>Train, K. y McFadden, D.</strong> (1978) — el marco goods/leisure,
+    citado por Jara-Díaz al derivar la ec. (2.25).
+  </li>
+  <li>
+    <strong>Becker, G.</strong> (1965) y <strong>Johnson, M.</strong> (1966) —
+    el origen de «valor del tiempo = tasa salarial» y su corrección, citados por
+    Jara-Díaz (pp. 63, 64).
+  </li>
+  <li>
+    <strong>Lerman, S. y Kern, C.</strong> (1983) — estimación conjunta de
+    localización y rentas, citada por Martínez (p. 243).
+  </li>
+  <li>
+    <strong>Alonso, Muth, Mills</strong> y la condición de <strong>Muth /
+    Wheaton</strong> sobre elasticidades ingreso — el marco de <a href="#s4">§4</a>
+    se deriva acá desde cero para este modelo; el nombre se usa por analogía y
+    <strong>no se verificó contra el original</strong>.
+  </li>
+</ul>
+
+<div class="aviso neutro">
+  <p>
+    Los PDF viven en <code>reference/</code>, que está en <code>.gitignore</code>
+    por licencia. Las citas textuales de este informe se extrajeron de esos
+    archivos y se transcribieron verbatim; los números de página son los del
+    libro, no los del PDF.
+  </p>
+</div>
+
+<h3>11.3 Documentación interna del repo que este informe usa o corrige</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>id</th><th>qué dice</th><th>relación con este informe</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>D-08</strong></td><td>Mover λ ≡ reescalar (α, ρ) por 1/λ bajo la forma cerrada</td><td>es la raíz de la no-identificación que §2.2 formaliza en κ</td></tr>
+    <tr><td><strong>D-26</strong></td><td>Unidades físicas: T en minutos, densidad en hogares/km</td><td>verificado en <a href="#s8">§8.3</a></td></tr>
+    <tr><td><strong>D-31</strong></td><td><code>beta</code> significaba cosas distintas a cada lado del despacho</td><td>gana el respaldo de Martínez p. 242</td></tr>
+    <tr><td><strong>D-32</strong></td><td><code>ρ·dens</code> es exógeno: no hay externalidad de localización</td><td>es el supuesto de partida de todo este análisis</td></tr>
+    <tr><td><strong>AU-05</strong></td><td>ρ uniforme no reasigna (si λ es uniforme)</td><td><a href="#s3">§3</a> lo confirma y lo extiende: con λ ∝ 1/y, ρ uniforme da vuelta la ciudad</td></tr>
+    <tr><td><strong>AU-09</strong></td><td>Convergencia lenta en configuraciones asimétricas</td><td>es el costo de 4,5× de <a href="#s7">§7</a></td></tr>
+    <tr><td><strong>AU-10</strong></td><td>Sensibilidad muy alta a diferencias pequeñas de α</td><td>explica por qué el residuo del 0,9 % produce el 30 % del efecto (<a href="#s5">§5</a>)</td></tr>
+    <tr><td><strong>AU-11</strong></td><td>El gradiente de renta estaba invertido; ρ recalibrado a 0,0025</td><td><a href="#s3">§3.3</a> cuantifica el techo que evita repetirlo</td></tr>
+    <tr><td><strong>AU-12</strong></td><td>α y ρ colineales en la geometría base</td><td><strong>corregido por este informe</strong>: la correlación no es la redundancia</td></tr>
+    <tr><td><strong>AU-13</strong></td><td>El nivel de α no está identificado, sólo β·α</td><td>confirmado en E0 (predicción P7)</td></tr>
+  </tbody>
+</table>
+</div>
+
 <footer>
   Titirilquen · <code>sandbox/impacto-rho/</code> ·
   Todas las cifras salen de <code>salida/*.json</code>, generadas por
   <code>impacto.py</code>. Reproducible con
-  <code>uv run python impacto.py &amp;&amp; uv run python figuras.py</code>.<br>
-  Referencias: Martínez, <em>Microeconomic Modeling in Urban Science</em> (pp. 77,
-  86, 242, 243) · Jara-Díaz, <em>Transport Economic Theory</em> (ec. 2.25;
-  Jara-Díaz &amp; Videla 1989, p. 57) · Train, <em>Discrete Choice Methods</em> §4.5.
+  <code>uv run python impacto.py &amp;&amp; uv run python figuras.py</code>.
+  El plan que originó este trabajo está en <code>PLAN.md</code>.
 </footer>
 
 </div>
