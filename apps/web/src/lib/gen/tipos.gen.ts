@@ -178,8 +178,9 @@ export interface LandUseConfig {
   H_por_estrato: [number, number, number];
   /**
    *  Parámetros de puja de los tres estratos (alto, medio, bajo). Son la
-   *  palanca principal del módulo: la diferencia de `alpha` entre estratos es
-   *  lo que produce el gradiente de localización de Alonso.
+   *  palanca principal del módulo: `alpha` es común y la diferencia de `lambda`
+   *  entre estratos fija el valor del tiempo `alpha/lambda` de cada uno, que es
+   *  lo que produce el gradiente de Alonso.
    */
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   /** Parámetro de sensibilidad logit */

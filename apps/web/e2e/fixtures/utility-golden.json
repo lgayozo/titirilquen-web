@@ -15,7 +15,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.2745199999999999,
+     "valor": -0.16520600000000002,
      "feasible": true
     },
     "Metro": {
@@ -23,11 +23,11 @@
      "feasible": false
     },
     "Bici": {
-     "valor": -1.19,
+     "valor": -0.71616,
      "feasible": true
     },
     "Caminata": {
-     "valor": -0.2,
+     "valor": -0.12036,
      "feasible": true
     }
    }
@@ -77,7 +77,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.605,
+     "valor": -1.335,
      "feasible": true
     },
     "Metro": {
@@ -85,11 +85,11 @@
      "feasible": false
     },
     "Bici": {
-     "valor": -0.02,
+     "valor": -0.044133,
      "feasible": true
     },
     "Caminata": {
-     "valor": 0.25,
+     "valor": 0.55167,
      "feasible": true
     }
    }
@@ -108,19 +108,19 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.29400967164179115,
+     "valor": -0.17693522985074628,
      "feasible": true
     },
     "Metro": {
-     "valor": -1.8451114825870647,
+     "valor": -1.1104174049751245,
      "feasible": true
     },
     "Bici": {
-     "valor": -1.2135323383084577,
+     "valor": -0.7303221890547263,
      "feasible": true
     },
     "Caminata": {
-     "valor": -0.3162935323383085,
+     "valor": -0.19034756218905474,
      "feasible": true
     }
    }
@@ -170,19 +170,19 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.6152985074626866,
+     "valor": -1.3577253731343284,
      "feasible": true
     },
     "Metro": {
-     "valor": -0.5325373134328357,
+     "valor": -1.1751290049751244,
      "feasible": true
     },
     "Bici": {
-     "valor": -0.026417910447761192,
+     "valor": -0.058295189054726367,
      "feasible": true
     },
     "Caminata": {
-     "valor": 0.21828358208955223,
+     "valor": 0.4816824378109453,
      "feasible": true
     }
    }
@@ -205,15 +205,15 @@
      "feasible": false
     },
     "Metro": {
-     "valor": -1.8823254129353233,
+     "valor": -1.1328134248756219,
      "feasible": true
     },
     "Bici": {
-     "valor": -1.3076616915422885,
+     "valor": -0.7869709452736319,
      "feasible": true
     },
     "Caminata": {
-     "valor": -0.8714676616915423,
+     "valor": -0.5244618109452737,
      "feasible": true
     }
    }
@@ -267,15 +267,15 @@
      "feasible": false
     },
     "Metro": {
-     "valor": -0.5426865671641791,
+     "valor": -1.1975250248756217,
      "feasible": true
     },
     "Bici": {
-     "valor": -0.05208955223880597,
+     "valor": -0.11494394527363183,
      "feasible": true
     },
     "Caminata": {
-     "valor": 0.06641791044776121,
+     "valor": 0.14656518905472635,
      "feasible": true
     }
    }
@@ -294,19 +294,19 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.5083960597014925,
+     "valor": -0.3059567582089552,
      "feasible": true
     },
     "Metro": {
-     "valor": -1.9474497910447761,
+     "valor": -1.1720064597014925,
      "feasible": true
     },
     "Bici": {
-     "valor": -1.4723880597014924,
+     "valor": -0.8861062686567165,
      "feasible": true
     },
     "Caminata": {
-     "valor": -1.6855223880597017,
+     "valor": -1.014374746268657,
      "feasible": true
     }
    }
@@ -356,19 +356,19 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.7285820895522386,
+     "valor": -1.60770447761194,
      "feasible": true
     },
     "Metro": {
-     "valor": -0.5604477611940297,
+     "valor": -1.2367180597014924,
      "feasible": true
     },
     "Bici": {
-     "valor": -0.09701492537313434,
+     "valor": -0.21407926865671642,
      "feasible": true
     },
     "Caminata": {
-     "valor": -0.15559701492537317,
+     "valor": -0.3433477462686569,
      "feasible": true
     }
    }
@@ -391,15 +391,15 @@
      "feasible": false
     },
     "Metro": {
-     "valor": -1.9474497910447761,
+     "valor": -1.1720064597014925,
      "feasible": true
     },
     "Bici": {
-     "valor": -1.4723880597014924,
+     "valor": -0.8861062686567165,
      "feasible": true
     },
     "Caminata": {
-     "valor": -1.6855223880597017,
+     "valor": -1.014374746268657,
      "feasible": true
     }
    }
@@ -453,15 +453,15 @@
      "feasible": false
     },
     "Metro": {
-     "valor": -0.5604477611940297,
+     "valor": -1.2367180597014924,
      "feasible": true
     },
     "Bici": {
-     "valor": -0.09701492537313434,
+     "valor": -0.21407926865671642,
      "feasible": true
     },
     "Caminata": {
-     "valor": -0.15559701492537317,
+     "valor": -0.3433477462686569,
      "feasible": true
     }
    }
@@ -480,15 +480,15 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.761761791044776,
+     "valor": -0.45843674626865677,
      "feasible": true
     },
     "Metro": {
-     "valor": -2.068395064676617,
+     "valor": -1.2447935243781094,
      "feasible": true
     },
     "Bici": {
-     "valor": -1.8683084577114428,
+     "valor": -1.1243787263681593,
      "feasible": true
     },
     "Caminata": {
@@ -542,15 +542,15 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.8624626865671641,
+     "valor": -1.903134328358209,
      "feasible": true
     },
     "Metro": {
-     "valor": -0.5934328358208955,
+     "valor": -1.3095051243781093,
      "feasible": true
     },
     "Bici": {
-     "valor": -0.21044776119402983,
+     "valor": -0.4643877263681591,
      "feasible": true
     },
     "Caminata": {
@@ -577,11 +577,11 @@
      "feasible": false
     },
     "Metro": {
-     "valor": -2.2079473034825874,
+     "valor": -1.3287785990049752,
      "feasible": true
     },
     "Bici": {
-     "valor": -2.2212935323383083,
+     "valor": -1.3368115621890548,
      "feasible": true
     },
     "Caminata": {
@@ -639,11 +639,11 @@
      "feasible": false
     },
     "Metro": {
-     "valor": -0.6314925373134328,
+     "valor": -1.393490199004975,
      "feasible": true
     },
     "Bici": {
-     "valor": -0.3067164179104478,
+     "valor": -0.6768205621890546,
      "feasible": true
     },
     "Caminata": {
@@ -666,15 +666,15 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -1.6387970149253728,
+     "valor": -0.9862520895522388,
      "feasible": true
     },
     "Metro": {
-     "valor": -2.487051781094528,
+     "valor": -1.4967487482587063,
      "feasible": true
     },
     "Bici": {
-     "valor": -3.07726368159204,
+     "valor": -1.8519502338308456,
      "feasible": true
     },
     "Caminata": {
@@ -728,15 +728,15 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -1.3258955223880595,
+     "valor": -2.9257761194029848,
      "feasible": true
     },
     "Metro": {
-     "valor": -0.7076119402985075,
+     "valor": -1.5614603482587064,
      "feasible": true
     },
     "Bici": {
-     "valor": -0.5492537313432836,
+     "valor": -1.2120162338308458,
      "feasible": true
     },
     "Caminata": {
@@ -763,11 +763,11 @@
      "feasible": false
     },
     "Metro": {
-     "valor": -2.766156258706468,
+     "valor": -1.6647188975124378,
      "feasible": true
     },
     "Bici": {
-     "valor": -4.283233830845771,
+     "valor": -2.5777259054726365,
      "feasible": true
     },
     "Caminata": {
@@ -825,11 +825,11 @@
      "feasible": false
     },
     "Metro": {
-     "valor": -0.783731343283582,
+     "valor": -1.729430497512438,
      "feasible": true
     },
     "Bici": {
-     "valor": -0.9417910447761194,
+     "valor": -2.0782119054726365,
      "feasible": true
     },
     "Caminata": {

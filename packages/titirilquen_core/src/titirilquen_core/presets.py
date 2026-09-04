@@ -259,12 +259,32 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 #    Antes ambos eran el mismo numero y daban 2.73 / 1.33 / 1.67, sin patron y
 #    en los tres estratos POR ENCIMA de la espera.
 #  * `b_costo` se despeja del valor del tiempo pedido (6.200 / 3.100 / 1.600
-#    $/hora): b_costo = b_tiempo_viaje * 60 / VoT. Se ajusta el coeficiente de
-#    COSTO y no el de tiempo a proposito: `b_tiempo_viaje` es el denominador de
-#    los minutos-equivalentes, asi que dejarlo fijo preserva el significado de
-#    las ASC y de las penalizaciones, que quedaron pendientes de revisar.
-#    Efecto lateral grande: el estrato alto pasa a ser 6.7x mas sensible al
-#    dinero, o sea las palancas de precio recien empiezan a morder.
+#    $/hora): b_costo = b_tiempo_viaje * 60 / VoT. En ago-2026 se ajusto SOLO el
+#    coeficiente de costo, dejando `b_tiempo_viaje` en los valores heredados
+#    (0.055 / 0.0331 / 0.015) para no mover los minutos-equivalentes. Eso dejo
+#    un `b_costo` NO monotono (0.000532 / 0.000641 / 0.000563: el medio valoraba
+#    mas un peso que el bajo), que no era una preferencia sino el residuo de
+#    cuadrar el VoT sobre escalas heredadas. Corregido abajo (sep-2026).
+#
+# HOMOSCEDASTICO (sep-2026). `b_tiempo_viaje` = 0.0331 en los TRES estratos.
+#
+# Multiplicar TODO el bloque de betas de un estrato por una constante k (ASC,
+# los cuatro tiempos, costo y penalizaciones) no cambia ninguna razon interna:
+# conserva los minutos-equivalentes, el VoT y las ASC en minutos. Lo unico que
+# cambia es la escala del ruido Gumbel de ese estrato (U' = k*V + eps es V + eps/k).
+# O sea que `b_tiempo_viaje` distinto por estrato NO era una preferencia por el
+# tiempo: era heteroscedasticidad — el alto elegia modo con un ruido 3.7x menor
+# que el bajo, herencia del original que nadie decidio. Se reescalo el alto por
+# k = 0.0331/0.055 y el bajo por k = 0.0331/0.015; el medio queda intacto.
+#
+# Consecuencias: (1) `b_costo` = 0.0331*60/VoT sale MONOTONO solo — 0.000320 /
+# 0.000641 / 0.001241 — o sea la utilidad marginal del ingreso decrece con el
+# ingreso, que es la unica pieza de esto con teoria detras; toda la
+# heterogeneidad del VoT vive ahi. (2) Un hogar, una funcion de utilidad: el
+# modulo de uso de suelo importa esta anatomia (alpha comun, lambda_h ∝
+# b_costo_h), ver `land_use/config.py` y `tests/test_vot_consistente.py`.
+# (3) La linea base se movio y esta declarada en `tests/test_linea_base.py`.
+# Invariantes fijados en `tests/test_presets.py`.
 #
 # ASC SIN GRADIENTE DE INGRESO (ago-2026). Las cuatro constantes quedan fijadas
 # como una ventaja COMUN a los tres estratos, medida en minutos de viaje sobre el
@@ -277,9 +297,14 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 # auto-metro. Al comprimir esa dispersion a 3.9x (VoT 6.200/3.100/1.600) el mismo
 # gradiente de gustos paso a explicar el 41%, o sea el ingreso entraba dos veces.
 #
-# Ahora el gradiente de uso del auto por estrato (46.3 / 19.2 / 6.4) EMERGE del
-# valor del tiempo y de la disponibilidad de auto, que es donde el ingreso debe
-# entrar. Los valores comunes se eligieron para que el agregado no se moviera
+# Ahora el gradiente de uso del auto por estrato EMERGE del valor del tiempo y
+# de la disponibilidad de auto, que es donde el ingreso debe entrar. Medido en
+# sep-2026 con las escalas homoscedasticas, % de auto sobre los VIAJEROS del
+# estrato (sin teletrabajo), corrida por defecto de la app sin uso de suelo:
+# 47.7 / 22.6 / 3.7. (Aqui decia «46.3 / 19.2 / 6.4» sin denominador ni fecha y
+# no se pudo reproducir; con las escalas heredadas daba 57.4 / 22.0 / 5.8.)
+#
+# Los valores comunes se eligieron para que el agregado no se moviera
 # (auto 11.99 vs 12.16, v/c 0.97 vs 0.99): son neutrales respecto de la
 # calibracion, NO estimados. Con una EOD que de reparto modal por estrato hay que
 # reemplazarlos por el ajuste estandar ASC += ln(objetivo/modelo).
@@ -289,26 +314,29 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 # auto y 13 / 24 / 43 en la bici, que es la razon de fondo de que la
 # infraestructura mueva poco el reparto del estrato bajo.
 DEFAULT_STRATA = {
+    # Estratos alto y bajo reescalados por k = 0.0331/b_t_heredado (sep-2026, ver
+    # HOMOSCEDASTICO arriba). Los comentarios "x viaje" y los minutos de las ASC
+    # se conservan exactos porque todo el bloque se multiplico por el mismo k.
     1: {
         "prob_teletrabajo": 0.40,
         "prob_auto": 0.90,
         "betas": {
-            "asc_auto": 0.9,
-            "asc_metro": -0.2,
-            "asc_bici": -1.19,
-            "asc_caminata": -0.2,
-            "b_tiempo_viaje": -0.055,
-            "b_costo": -0.00053226,  # VoT 6.200 $/h
-            "b_tiempo_espera": -0.11,  # 2.0 x viaje
-            "b_tiempo_acceso": -0.11,  # 2.0 x viaje (ponderador 2 del SNI)
-            "b_tiempo_caminata": -0.0935,  # 1.7 x viaje
+            "asc_auto": 0.54164,  # +20 min sobre el metro (era 0.9 con b_t 0.055)
+            "asc_metro": -0.12036,
+            "asc_bici": -0.71616,  # -18 min
+            "asc_caminata": -0.12036,  # 0 min
+            "b_tiempo_viaje": -0.0331,
+            "b_costo": -0.000320323,  # VoT 6.200 $/h
+            "b_tiempo_espera": -0.0662,  # 2.0 x viaje
+            "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
+            "b_tiempo_caminata": -0.05627,  # 1.7 x viaje
             "penalizaciones_fisicas": {
-                "bici_10": -0.09,
-                "bici_20": -0.15,
-                "bici_30": -0.5,
-                "walk_5": -0.09,
-                "walk_15": -0.18,
-                "walk_25": -0.4,
+                "bici_10": -0.054164,
+                "bici_20": -0.090273,
+                "bici_30": -0.30091,
+                "walk_5": -0.054164,
+                "walk_15": -0.10833,
+                "walk_25": -0.24073,
             },
         },
     },
@@ -339,28 +367,25 @@ DEFAULT_STRATA = {
         "prob_teletrabajo": 0.05,
         "prob_auto": 0.25,
         "betas": {
-            "asc_auto": 0.55,
-            "asc_metro": 0.25,
-            "asc_bici": -0.02,
-            "asc_caminata": 0.25,
-            "b_tiempo_viaje": -0.0150,
-            "b_costo": -0.0005625,  # VoT 1.600 $/h
-            "b_tiempo_espera": -0.03,  # 2.0 x viaje
-            "b_tiempo_acceso": -0.03,  # 2.0 x viaje (ponderador 2 del SNI)
-            "b_tiempo_caminata": -0.0255,  # 1.7 x viaje
+            "asc_auto": 1.2137,  # +20 min sobre el metro (era 0.55 con b_t 0.015)
+            "asc_metro": 0.55167,
+            "asc_bici": -0.044133,  # -18 min
+            "asc_caminata": 0.55167,  # 0 min
+            "b_tiempo_viaje": -0.0331,
+            "b_costo": -0.00124125,  # VoT 1.600 $/h
+            "b_tiempo_espera": -0.0662,  # 2.0 x viaje
+            "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
+            "b_tiempo_caminata": -0.05627,  # 1.7 x viaje
             "penalizaciones_fisicas": {
-                "bici_10": -0.0300,
-                "bici_20": -0.0500,
-                # -0.20 (antes -0.7). El -0.7 rompia la pauta: en las otras
-                # cinco celdas este estrato es ~0.49x el medio, y ahi era 1.75x.
-                # Con su b_tiempo_viaje chico eso daba 46.7 minutos-equivalentes
-                # contra 9.1 y 12.1 de los otros dos, o sea un viaje en bici de
-                # 31 min se evaluaba como uno de 83 y mataba el modo justo en el
-                # estrato que mas lo usa. 0.49 x 0.40 = 0.196 -> -0.20.
-                "bici_30": -0.20,
-                "walk_5": -0.0250,
-                "walk_15": -0.0400,
-                "walk_25": -0.08,
+                "bici_10": -0.0662,
+                "bici_20": -0.11033,
+                # Era -0.20 con b_t 0.015 (y antes -0.7, que rompia la pauta: en
+                # las otras cinco celdas este estrato es ~0.49x el medio y ahi
+                # era 1.75x; 0.49 x 0.40 = 0.196 -> -0.20). Reescalado por k.
+                "bici_30": -0.44133,
+                "walk_5": -0.055167,
+                "walk_15": -0.088267,
+                "walk_25": -0.17653,
             },
         },
     },

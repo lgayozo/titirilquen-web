@@ -40,25 +40,38 @@ TOL_PP = 0.05
 #: Reparto esperado por rama de `localizacion`, en % del total de agentes
 #: (teletrabajo incluido en el denominador, como lo muestra la app).
 ESPERADO = {
+    # Movida dos veces en sep-2026, y las dos veces a propósito:
+    #  1. `lambda` del uso de suelo heterogéneo (VOT-consistente con transporte):
+    #     movió sólo `equilibrio` (metro +1,36 pp), porque `original` no pasa por
+    #     el módulo de suelo.
+    #  2. Transporte HOMOSCEDÁSTICO (`presets.py`): el bloque de betas del alto
+    #     se reescaló por 0,0331/0,055 y el del bajo por 0,0331/0,015, o sea el
+    #     alto elige modo con MÁS ruido que antes y el bajo con MENOS. Mueve las
+    #     dos ramas: auto −1,6 pp (el alto baja de 57 % a 48 % de auto), y ese
+    #     flujo se reparte entre metro, bici y caminata. Por estrato, sobre
+    #     viajeros, rama original: auto 47,7 / 22,6 / 3,7 %.
     "equilibrio": {
-        "Auto": 16.95,
-        "Metro": 32.79,
-        "Bici": 22.84,
-        "Caminata": 7.98,
-        "Teletrabajo": 19.44,
+        "Auto": 15.19,
+        "Metro": 35.31,
+        "Bici": 22.70,
+        "Caminata": 7.34,
+        "Teletrabajo": 19.45,
     },
     "original": {
-        "Auto": 17.36,
-        "Metro": 27.87,
-        "Bici": 24.35,
-        "Caminata": 10.92,
+        "Auto": 15.81,
+        "Metro": 28.32,
+        "Bici": 24.96,
+        "Caminata": 11.42,
         "Teletrabajo": 19.49,
     },
 }
 
 #: Iteraciones hasta converger. Pinearlo detecta cambios en la dinámica del MSA
 #: que el reparto final podría no mostrar.
-ITERACIONES_ESPERADAS = {"equilibrio": 7, "original": 8}
+#: `equilibrio` pasó de 7 a 8 con los `lambda` heterogéneos (sep-2026): la ciudad
+#: de partida es más segregada y el MSA necesita una pasada más. El reescalado
+#: homoscedástico de transporte no cambió el conteo.
+ITERACIONES_ESPERADAS = {"equilibrio": 8, "original": 8}
 
 
 def _config_web() -> SimulationConfig:

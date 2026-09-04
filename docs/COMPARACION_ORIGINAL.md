@@ -120,6 +120,12 @@ metodológica: **`b_tiempo_viaje` no se movió en ningún estrato** — toda la
 corrección se hizo vía `b_costo`, que reescala el VST sin tocar las razones entre
 tiempos.
 
+> **Actualizado 2026-09-04.** Eso dejó un `b_costo` no monótono, y en sep-2026
+> **sí se movió `b_tiempo_viaje`**: a 0,0331 en los tres estratos, reescalando
+> el bloque entero de betas de cada uno (ASC, tiempos, costo, penalizaciones)
+> por el mismo factor, lo que conserva el VST y todos los minutos-equivalentes
+> y sólo homogeneiza la escala del ruido. Ver D-33 en `DISCREPANCIES.md`.
+
 ### 3.2 La espera pesaba menos que el tiempo en vehículo
 
 | Estrato | espera/viaje orig. | espera/viaje act. | caminata/viaje orig. | caminata/viaje act. |

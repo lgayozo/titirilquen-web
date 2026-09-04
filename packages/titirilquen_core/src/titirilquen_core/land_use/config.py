@@ -84,16 +84,57 @@ class LandUseConfig(BaseModel):
     # así que en cuanto los λ difieren una ρ común deja de ser un término común
     # y sí reasigna: con λ = (0,5 · 1 · 2) y ρ = 0,05 la ciudad se invierte
     # entera (alto a 5,67 km, bajo a 2,47). AU-05, corregido el 2026-09-02.
+    # `lambda` HETEROGÉNEA (2026-09-02). Antes los tres valían 1,0, y eso no era
+    # una decisión: era la única opción disponible. La forma cerrada de la
+    # ec. (4.26) aplica un `beta` escalar sobre las pujas, así que con ella
+    # `lambda_h` sólo entra dividiendo el determinístico y es idénticamente
+    # re-escalar `(alpha_h, rho_h)` por `1/lambda_h` — D-08. Con HEV el ruido
+    # escala por estrato a `1/(beta·lambda_h)`, que la re-escala de preferencias
+    # no toca, y `lambda` queda IDENTIFICADO (`test_hev.py`).
+    #
+    # De dónde salen estos números (sep-2026): se IMPORTAN de transporte. Un
+    # hogar tiene una sola función de utilidad, así que el que puja por suelo es
+    # el mismo que elige modo. En `U = lambda_h(y-p) - alpha_h·T` la TMS entre
+    # tiempo y dinero es el valor subjetivo del tiempo, VOT_h = alpha_h/lambda_h
+    # [$/min], y en transporte ese mismo cociente es b_tiempo_viaje/b_costo
+    # (`vot_clp_hora` en `bienestar.py`): 6.200 / 3.100 / 1.600 $/h.
+    #
+    # Transporte es HOMOSCEDÁSTICO desde sep-2026 (`presets.py`): b_tiempo_viaje
+    # es común a los tres estratos y toda la heterogeneidad del VoT vive en
+    # b_costo, que decrece con el ingreso. Acá, lo mismo: `alpha` COMÚN (un
+    # minuto duele igual a todos) y `lambda_h ∝ b_costo_h`, o sea
+    # lambda_h = lambda_medio · VOT_medio / VOT_h = (0,5 · 1 · 1,9375).
+    # `test_vot_consistente.py` vigila las tres cosas: VOT igual entre módulos,
+    # alpha común, lambda decreciente en el ingreso.
+    #
+    # Dos normalizaciones, ambas libres: alpha_medio = 6 y lambda_medio = 1. El
+    # NIVEL de alpha no está identificado (sólo beta·alpha, AU-13) y el de lambda
+    # tampoco (escalarlos todos por k es escalar beta por k). Lo que sí está
+    # identificado son las razones. OJO con lo que implica la escala elegida:
+    # alpha = 6 utiles/min contra b_tiempo_viaje = 0,0331 en transporte, con
+    # beta = 1, equivale a suponer que localizarse es ~180 veces más
+    # determinista que elegir modo. Es una decisión pedagógica pendiente (ver
+    # AU-10/AU-13), no un hecho.
+    #
+    # Antes (hasta sep-2026) alpha era 6,5 / 6,0 / 5,5 —heredado del original—
+    # y lambda = 1 en los tres, porque la forma cerrada obligaba: con beta
+    # escalar sobre las pujas, lambda_h sólo entraba dividiendo el determinístico
+    # y era idénticamente re-escalar (alpha, rho) — D-08. Con HEV el ruido
+    # escala por estrato a 1/(beta·lambda_h) y lambda queda IDENTIFICADO
+    # (`test_hev.py`). Medido: con el mismo VOT, repartirlo entre alpha y lambda
+    # casi no cambia la ciudad (Theil 0,911 vs 0,907), así que la anatomía se
+    # elige por interpretabilidad y consistencia, no por ajuste.
     estratos: tuple[LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig] = Field(
         default=(
-            LandUseStratumConfig(y=3_500_000.0, alpha=6.5, rho=0.0025),
-            LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=0.0025),
-            LandUseStratumConfig(y=500_000.0, alpha=5.5, rho=0.0025),
+            LandUseStratumConfig(y=3_500_000.0, alpha=6.0, rho=0.0025, **{"lambda": 0.5}),
+            LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=0.0025, **{"lambda": 1.0}),
+            LandUseStratumConfig(y=500_000.0, alpha=6.0, rho=0.0025, **{"lambda": 1.9375}),
         ),
         description=(
             "Parámetros de puja de los tres estratos (alto, medio, bajo). Son la "
-            "palanca principal del módulo: la diferencia de `alpha` entre estratos "
-            "es lo que produce el gradiente de localización de Alonso."
+            "palanca principal del módulo: `alpha` es común y la diferencia de "
+            "`lambda` entre estratos fija el valor del tiempo `alpha/lambda` de "
+            "cada uno, que es lo que produce el gradiente de Alonso."
         ),
     )
     beta: float = Field(default=1.0, gt=0, description="Parámetro de sensibilidad logit")

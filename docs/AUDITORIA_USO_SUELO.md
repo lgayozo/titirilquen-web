@@ -19,14 +19,14 @@ positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
 | AU-03 | La asignación es invariante a la escala de población | ✅ conforme |
 | AU-04 | `β` opera como escala de ruido del logit, monótona | ✅ conforme |
 | AU-05 | `ρ` uniforme no reasigna **sólo si `λ` es uniforme**; con `λ` heterogéneo sí reasigna | 🐛 corregido 2026-09-02 |
-| AU-06 | `λ` ≡ re-escalar α y ρ: no es un parámetro, es un artefacto | ✅ esperado, limitación declarada |
+| AU-06 | `λ` ≡ re-escalar α y ρ **sólo bajo la forma cerrada**; con HEV está identificado y desde sep-2026 el default es heterogéneo | ✅ resuelto (D-33) |
 | AU-07 | El solver que decía corregirlo no lo hacía — **eliminado** | 🐛 corregido |
 | AU-08 | No hay **techo de densidad**: la densidad puede crecer sin límite | ⚠️ decisión de modelo a discutir |
 | AU-09 | Convergencia lenta en configuraciones asimétricas (hasta 2.640 iter) | ℹ️ observación |
 | AU-10 | Sensibilidad muy alta a diferencias pequeñas de α | ℹ️ para la lectura pedagógica |
 | AU-11 | **El gradiente de renta estaba INVERTIDO** y `grad_p` lo tapaba | 🐛 corregido 2026-08-24 |
 | AU-12 | `α` y `ρ` no son canales independientes: colineales en la geometría base | ⚠️ no identificados |
-| AU-13 | El **nivel** de `α` no está identificado: sólo el producto `β·α` | ⚠️ normalización libre |
+| AU-13 | El **nivel** de `α` no está identificado: sólo el producto `β·α`. Con α = 6 y β = 1 el suelo es ~180× más determinista que la elección modal | ⚠️ normalización libre, decisión pedagógica pendiente |
 
 > **AVISO (2026-08-24).** Todo lo que este documento dice sobre `grad_p` en las
 > iteraciones 1 a 4 está **medido en la celda equivocada** y varias conclusiones
@@ -131,6 +131,16 @@ alto se va a 8,48 km): también correcto.
 ## 2. ¿Tiene coherencia con la teoría?
 
 ### AU-06 — `λ` es un artefacto: no es un parámetro económico independiente ✅
+
+> **Actualizado 2026-09-04 — ya no es un artefacto.** Lo de abajo vale para la
+> forma cerrada. Con HEV `λ` mueve además la escala del ruido de cada estrato y
+> queda identificado (`test_hev.py`). El default es `λ = (0,5 · 1 · 1,9375)`,
+> con `α = 6` común, importado de la anatomía homoscedástica de transporte:
+> `α/λ` reproduce el VoT 6.200 / 3.100 / 1.600 $/h. Medido: con el mismo VoT,
+> repartirlo entre `α` y `λ` casi no cambia la ciudad (Theil 0,911 / 0,907 /
+> 0,899). Consecuencia para `ρ`: ya no es inerte —entra como `ρ/λ`, razón 3,9×
+> entre estratos— pero mueve poco la asignación (Theil −0,03 al cuadruplicarlo)
+> y mucho los precios (grad_p +0,98 → +0,58). Ver D-33.
 
 > **Actualizado 2026-08-24.** La identidad sigue valiendo exacta, pero **las
 > tablas y la interpretación de abajo describen el régimen de ρ = 0,1** y ya no

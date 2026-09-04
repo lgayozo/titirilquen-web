@@ -151,6 +151,14 @@ Convenciones:
   distintos → HEV. Con eso λ queda **identificado** — mover λ deja de ser
   idéntico a re-escalar (α, ρ), que es lo que este hallazgo denunciaba.
   Fijado en `tests/test_hev.py`.
+- **Actualizado 2026-09-04.** El default ya es heterogéneo: `λ = (0,5 · 1 ·
+  1,9375)`, importado de la anatomía de transporte (D-33). Todo lo que sigue
+  abajo en esta entrada —«El problema», «Cómo se manifiesta», el **Veredicto**
+  «pendiente para los autores» y la nota de UI— describe el régimen de la
+  **forma cerrada** y se conserva como historia: bajo HEV la identidad
+  `y + f/λ ≡ y + f(α/λ, ρ/λ)` sigue siendo cierta para el determinístico, pero
+  `λ` mueve además la escala del ruido y por eso está identificado. La
+  advertencia de que `λ` entra por dos canales a la vez sí sobrevive.
 - **Advertencia que sobrevive:** λ sigue entrando también por la parte
   determinística `f_h/λ_h`, así que mueve preferencias y dispersión a la vez.
   Para que actúe puramente por sensibilidad al precio hace falta un modelo de
@@ -929,6 +937,62 @@ equilibrio. No se hace acá.
 **Encontrada** el 2026-09-02, a partir de una observación de Leandro: `ρ`
 penaliza una densidad que el modelo nunca mueve.
 
+## D-33 — Transporte homoscedástico y una sola función de utilidad para el hogar
+
+- **Síntoma.** El mismo hogar valoraba su tiempo con dos números: en transporte
+  `b_tiempo_viaje/b_costo` daba 6.200 / 3.100 / 1.600 $/h (razón alto/bajo
+  3,875), y en uso de suelo `α/λ` con λ = 1 daba 6,5 / 6,0 / 5,5 (razón 1,18).
+- **Causa, en transporte.** La recalibración de ago-2026 ajustó **sólo** `b_costo`
+  para llevar el VoT del original ($41.250/h el alto) a los valores pedidos,
+  dejando `b_tiempo_viaje` heredado (0,055 / 0,0331 / 0,015). Eso dejó un
+  `b_costo` **no monótono** (0,000532 / 0,000641 / 0,000563: el medio valoraba
+  más un peso que el bajo). No era una preferencia: era el residuo de cuadrar
+  el VoT sobre escalas heredadas.
+- **Lo que revela.** Multiplicar el bloque entero de betas de un estrato por
+  `k` no cambia ninguna razón interna (minutos-equivalentes, ASC en minutos,
+  VoT): sólo cambia la escala del ruido Gumbel de ese estrato. Así que un
+  `b_tiempo_viaje` distinto por estrato **no era heterogeneidad en la
+  preferencia por el tiempo, era heteroscedasticidad**: el alto elegía modo con
+  un ruido 3,7× menor que el bajo, sin que nadie lo hubiera decidido. Lo mismo
+  vale en el suelo: dado el VoT, repartirlo entre `α` y `λ` sólo fija la
+  escala de ruido de cada estrato (medido: Theil 0,911 vs 0,907 vs 0,899 para
+  tres anatomías con el mismo VoT).
+- **Decisión (2026-09-04).** Transporte **homoscedástico**: `b_tiempo_viaje =
+  0,0331` en los tres estratos (la escala del medio, 50 % de la población); el
+  bloque del alto se reescaló por 0,0331/0,055 y el del bajo por 0,0331/0,015.
+  `b_costo = 0,0331·60/VoT` sale monótono solo: 0,000320 / 0,000641 /
+  0,001241. **Toda** la heterogeneidad del VoT vive ahora en la utilidad
+  marginal del ingreso, que decrece con el ingreso — la única pieza con teoría
+  detrás. Uso de suelo **importa** esa anatomía: `α = 6` común y
+  `λ_h = VoT_medio/VoT_h = (0,5 · 1 · 1,9375)`. Un hogar, una función de
+  utilidad.
+- **Alternativas medidas y descartadas.** (a) Homoscedástico a la escala del
+  alto (0,055): el bajo cae a 1,9 % de auto. (b) A la del bajo (0,015): el alto
+  cae de 57 % a 38 %. (c) «Monótono mínimo» —conservar las escalas heredadas y
+  bajar apenas la del medio—: no mueve nada, pero deja el VoT viviendo en `α`
+  y `λ` casi plano, o sea la historia del original y no la de la teoría.
+  (d) `λ ∝ 1/y` (utilidad logarítmica): implica VoT proporcional al ingreso
+  (razón 8,3), inconsistente con la calibración de transporte contra el SNI y
+  con la evidencia de elasticidad-ingreso del VoT bien por debajo de 1.
+- **Lo que se mueve.** Línea base en las dos ramas (auto −1,6 pp; ver
+  `tests/test_linea_base.py` y el `CLAUDE.md`). Por estrato, sobre viajeros,
+  sin uso de suelo: auto 47,7 / 22,6 / 3,7 % (antes 57,4 / 22,0 / 5,8). Nótese
+  que el «46,3 / 19,2 / 6,4» que citaba `presets.py` no tenía denominador ni
+  fecha y no se pudo reproducir; se reemplazó por el valor medido.
+- **Lo que queda libre y declarado.** El nivel de `α` (sólo `β·α` está
+  identificado, AU-13) y el de `λ` (escalarlos todos es escalar `β`). Con
+  `α = 6` y `β = 1`, el suelo asume que localizarse es ~180 veces más
+  determinista que elegir modo (`b_tiempo_viaje = 0,0331`): razón señal/ruido
+  177:1, Theil 0,91. Ese `β` es una decisión pedagógica pendiente (AU-10).
+- **Invariantes.** `tests/test_presets.py` (escala del tiempo común, `|b_costo|`
+  creciente del alto al bajo, ASC del auto = 20 min en los tres) y
+  `tests/test_vot_consistente.py` (mismo VoT en ambos módulos, `α` común, `λ`
+  decreciente en el ingreso).
+- **Veredicto**: calibración corregida en la raíz, con cambio de línea base
+  declarado. Ninguna ecuación se tocó.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -965,3 +1029,4 @@ penaliza una densidad que el modelo nunca mueve.
 | D-30 | Tres baselines de "sin congestión" (convenciones) | Documentado, sin cambio de código | Baja |
 | D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp) | Bug corregido, línea base intacta | Alta |
 | D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez) | Simplificación declarada, sin cambio de código | Media |
+| D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo) | Calibración corregida, línea base movida y declarada | Alta |

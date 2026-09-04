@@ -107,9 +107,11 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   falle, arreglá el número en el HTML (el mensaje dice dónde quedó el símbolo),
   no el test.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
-  defecto de la app da **auto 16,95 · metro 32,79 · bici 22,84 · caminata 7,98**
-  (seed 42, tol 0,1) y está pineada en `tests/test_linea_base.py`. Si un cambio
-  la mueve más de 0,1 pp, no era refactor: es un cambio de modelo. Decláralo.
+  defecto de la app da **auto 15,81 · metro 28,32 · bici 24,96 · caminata 11,42**
+  sin uso de suelo, y **15,19 · 35,31 · 22,70 · 7,34** con él (seed 42, tol 0,1),
+  pineadas en `tests/test_linea_base.py`. Si un cambio las mueve más de 0,05 pp,
+  no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
+  sep-2026 (λ heterogéneo en suelo; transporte homoscedástico): ver ese test.
 - **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
   0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`
   aborte con `already installed` y el motor por defecto deja de arrancar. Ningún

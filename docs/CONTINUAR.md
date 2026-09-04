@@ -119,6 +119,13 @@ precio social del combustible 760 $/l para automóvil.
 v/c 1,38 · t_auto 24,6 min · f_op 5,9 tph · CO₂ 6.178 kg/h · 7 iter**
 (expected, seed 42, tol 0,1). Medido el 2026-08-10.
 
+> **Actualizado 2026-09-04.** Esa medición quedó como historia: la línea base se
+> movió a propósito dos veces en sep-2026 (D-33 en `DISCREPANCIES.md`). Hoy la
+> corrida por defecto da **auto 15,81 · metro 28,32 · bici 24,96 · caminata
+> 11,42 · tele 19,49** sin uso de suelo y **15,19 · 35,31 · 22,70 · 7,34 ·
+> 19,45** con él, 8 iteraciones en ambas. La fuente de verdad es
+> `tests/test_linea_base.py`, no este párrafo.
+
 Reproducir: `uv run python scripts/auditoria_transporte.py`
 
 > El metro baja de 36,99 a 32,79 respecto de la medición anterior por el arreglo
@@ -862,9 +869,11 @@ build del wheel roto en Mac.
 
 ### Los invariantes que quedaron, y cómo no romperlos
 
-1. **La línea base no se mueve.** Auto 16,95 · metro 32,79 · bici 22,84 ·
-   caminata 7,98, seed 42, tol 0,1, en `tests/test_linea_base.py`. Un refactor
-   que la mueva más de 0,1 pp no era refactor.
+1. **La línea base no se mueve.** Auto 15,81 · metro 28,32 · bici 24,96 ·
+   caminata 11,42 (sin suelo) y 15,19 · 35,31 · 22,70 · 7,34 (con suelo), seed
+   42, tol 0,1, en `tests/test_linea_base.py`. Un refactor que la mueva más de
+   0,05 pp no era refactor. Cuando se mueve a propósito —pasó en sep-2026, ver
+   D-33— se actualiza el test, el `CLAUDE.md` y se explica en el commit.
 2. **El contrato se genera, no se escribe.** `sync:core` tras tocar el núcleo; el
    CI lo verifica con `git diff --exit-code`. Las divergencias intencionales
    web↔núcleo están declaradas y comentadas en `src/lib/overrides.ts`, no
