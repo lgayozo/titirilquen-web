@@ -26,7 +26,7 @@ positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
 | AU-10 | Sensibilidad muy alta a diferencias pequeñas de α | ℹ️ para la lectura pedagógica |
 | AU-11 | **El gradiente de renta estaba INVERTIDO** y `grad_p` lo tapaba | 🐛 corregido 2026-08-24 |
 | AU-12 | `α` y `ρ` no son canales independientes: colineales en la geometría base | ⚠️ no identificados |
-| AU-13 | El **nivel** de `α` no está identificado: sólo el producto `β·α`. Con α = 6 y β = 1 el suelo es ~180× más determinista que la elección modal | ⚠️ normalización libre, decisión pedagógica pendiente |
+| AU-13 | El **nivel** de `α` no está identificado por la localización. Desde D-34 lo fija el ancla del original: `α = 1` sobre el logsum de transporte, `λ = \|b_costo\|`; queda libre sólo `β` (ruido de elegir casa vs. viaje) | ✅ resuelto (D-34); `β` es decisión pedagógica |
 
 > **AVISO (2026-08-24).** Todo lo que este documento dice sobre `grad_p` en las
 > iteraciones 1 a 4 está **medido en la celda equivocada** y varias conclusiones

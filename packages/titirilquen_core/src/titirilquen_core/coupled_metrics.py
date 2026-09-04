@@ -50,7 +50,7 @@ from titirilquen_core.bienestar import (
 )
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
-from titirilquen_core.constantes import CATEGORIAS_MODALES, CategoriaModal
+from titirilquen_core.constantes import CATEGORIAS_MODALES, VIAJES_MES, CategoriaModal
 from titirilquen_core.demand.utility import TiemposObservados
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.config import LandUseConfig
@@ -60,9 +60,6 @@ from titirilquen_core.supply.oferta import resolver_red_vacia
 if TYPE_CHECKING:
     from titirilquen_core.config import StratumId
 
-VIAJES_MES = 44
-"""Viajes de conmutación por mes (2 por día laboral × 22 días) para convertir
-el costo por viaje a carga mensual costo/ingreso (D-27)."""
 
 _MODOS_VIAJE: tuple[str, ...] = ("Auto", "Metro", "Bici", "Caminata")
 # Categorías reportadas en el reparto modal (suman 1 sobre todos los agentes).

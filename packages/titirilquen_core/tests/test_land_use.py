@@ -9,6 +9,7 @@ from titirilquen_core.land_use import (
     generar_oferta_normal,
     solve_logit,
 )
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 
 
 def _toy_scenario(lam: np.ndarray):
@@ -129,6 +130,23 @@ def test_solve_logit_converge_simple() -> None:
     np.testing.assert_allclose(col_sum, expected, atol=1e-6)
 
 
+def _T_toy(L: int, CBD: int) -> np.ndarray:
+    """Distancia en celdas, para los tests de MECÁNICA con parámetros de juguete
+    (y=100, alpha≈1, rho=1): no necesitan la calibración de transporte."""
+    return np.tile(np.abs(np.arange(L) - CBD).astype(float), (3, 1))
+
+
+def _T_web(L: int, CBD: int, ancho_celda_km: float) -> np.ndarray:
+    """La accesibilidad real (logsum mensual a flujo libre) con la demanda
+    calibrada de la app, para los tests que usan los defaults físicos."""
+    from titirilquen_core.config import DemandConfig
+    from titirilquen_core.presets import DEFAULT_STRATA
+
+    return T_flujo_libre(
+        DemandConfig.model_validate({"estratos": DEFAULT_STRATA}), L, CBD, ancho_celda_km
+    )
+
+
 def test_land_use_city_build_asigna_todos_los_hogares() -> None:
     cfg = LandUseConfig(
         H_por_estrato=(300, 300, 300),
@@ -141,7 +159,7 @@ def test_land_use_city_build_asigna_todos_los_hogares() -> None:
         max_iter=2000,
     )
     rng = np.random.default_rng(42)
-    city = LandUseCity.build(L=51, CBD=25, cfg=cfg, rng=rng)
+    city = LandUseCity.build(L=51, CBD=25, cfg=cfg, rng=rng, T=_T_toy(51, 25))
     asignados = sum(len(p) for p in city.parcelas)
     assert asignados == 900
     assert city.result is not None
@@ -150,7 +168,7 @@ def test_land_use_city_build_asigna_todos_los_hogares() -> None:
 def test_update_con_T_custom() -> None:
     cfg = LandUseConfig(H_por_estrato=(200, 200, 200), max_iter=2000)
     rng = np.random.default_rng(42)
-    city = LandUseCity.build(L=51, CBD=25, cfg=cfg, rng=rng)
+    city = LandUseCity.build(L=51, CBD=25, cfg=cfg, rng=rng, T=_T_toy(51, 25))
     # Nueva T: distancia cúbica (hace transporte más penalizante)
     T_custom = np.tile((np.abs(np.arange(51) - 25) ** 1.5).astype(float), (3, 1))
     city.update(T=T_custom, rng=rng)
@@ -172,7 +190,7 @@ def test_alpha_mas_alto_atrae_cerca_del_cbd() -> None:
         max_iter=2000,
     )
     rng = np.random.default_rng(42)
-    city = LandUseCity.build(L=101, CBD=50, cfg=cfg, rng=rng)
+    city = LandUseCity.build(L=101, CBD=50, cfg=cfg, rng=rng, T=_T_toy(101, 50))
     conteos = city.hogares_por_parcela_estrato()  # (3, 101)
 
     # Distancia media al CBD por estrato
@@ -229,6 +247,7 @@ def test_invariancia_a_la_resolucion_de_la_grilla() -> None:
             CBD=CBD,
             cfg=_cfg_default_fisica(),
             ancho_celda_km=LARGO_KM / L,
+            T=_T_web(L, L // 2, LARGO_KM / L),
             rng=np.random.default_rng(7),
         )
         assert city.result is not None and city.result.converged
@@ -256,6 +275,7 @@ def test_sensibilidad_al_tamano_fisico() -> None:
             CBD=L // 2,
             cfg=_cfg_default_fisica(),
             ancho_celda_km=largo / L,
+            T=_T_web(L, L // 2, largo / L),
             rng=np.random.default_rng(7),
         )
         assert city.result is not None
@@ -273,6 +293,7 @@ def test_densidad_por_celda_es_oferta_sobre_dx() -> None:
         CBD=L // 2,
         cfg=_cfg_default_fisica(),
         ancho_celda_km=dx,
+        T=_T_web(L, L // 2, dx),
         rng=np.random.default_rng(7),
     )
     dens = city.densidad_por_celda()
@@ -293,6 +314,7 @@ def test_densidad_y_equilibrio_conservan_hogares() -> None:
         CBD=L // 2,
         cfg=_cfg_default_fisica(),
         ancho_celda_km=dx,
+        T=_T_web(L, L // 2, dx),
         rng=np.random.default_rng(7),
     )
     assert city.result is not None
@@ -346,8 +368,12 @@ def _gradiente_alonso(cfg: LandUseConfig, *, L: int = 201, largo_km: float = 20.
     """
     CBD = L // 2
     city = LandUseCity.build(
-        L=L, CBD=CBD, cfg=cfg, ancho_celda_km=largo_km / L,
+        L=L,
+        CBD=CBD,
+        cfg=cfg,
+        ancho_celda_km=largo_km / L,
         rng=np.random.default_rng(42),
+        T=_T_web(L, CBD, largo_km / L),
     )
     assert city.result is not None
     p = city.result.p
@@ -397,14 +423,14 @@ def test_subir_rho_aplana_el_gradiente_sin_invertirlo_en_la_base() -> None:
     direccion tambien importa: mas penalizacion a la densidad castiga las celdas
     centrales, que son las densas, asi que aplana la renta de Alonso.
     """
+
     def con_rho(rho: float) -> float:
         base = LandUseConfig()
         return _gradiente_alonso(
             LandUseConfig(
                 H_por_estrato=base.H_por_estrato,
                 estratos=tuple(
-                    LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=rho)
-                    for e in base.estratos
+                    LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=rho) for e in base.estratos
                 ),
             )
         )

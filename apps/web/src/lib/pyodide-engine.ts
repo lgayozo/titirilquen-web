@@ -12,6 +12,7 @@
  */
 
 import type {
+  DemandConfig,
   IterationSnapshot,
   SimulationConfig,
   SimulationResult,
@@ -238,7 +239,14 @@ class PyodideEngine {
   }
 
   async solveLandUse(
-    req: { L: number; CBD: number; largo_km: number; land_use: LandUseConfig },
+    req: {
+      L: number;
+      CBD: number;
+      largo_km: number;
+      land_use: LandUseConfig;
+      demand: DemandConfig;
+      modos_habilitados?: readonly string[] | null;
+    },
     signal?: AbortSignal,
   ): Promise<LandUseSolveResponse> {
     return this.request<LandUseSolveResponse>(

@@ -20,6 +20,7 @@
 
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type {
+  DemandConfig,
   IterationSnapshot,
   LandUseConfig,
   SimulationConfig,
@@ -139,6 +140,10 @@ export async function resolverUsoDeSuelo(
     /** Largo físico de la ciudad (km): T y densidad van en unidades físicas (D-26). */
     largo_km: number;
     land_use: LandUseConfig;
+    /** La accesibilidad de la puja es el logsum de ESTA demanda a flujo libre,
+     *  mensualizado (D-34): el standalone también necesita los betas. */
+    demand: DemandConfig;
+    modos_habilitados?: readonly string[] | null;
   },
   signal?: AbortSignal,
 ): Promise<LandUseSolveResponse> {

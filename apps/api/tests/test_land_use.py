@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+from titirilquen_core.presets import DEFAULT_STRATA
 
 from api.main import app
 
@@ -17,6 +18,8 @@ def test_land_use_solve() -> None:
                 "beta": 1.0,
                 "max_iter": 2000,
             },
+            # La accesibilidad es el logsum de esta demanda (D-34).
+            "demand": {"estratos": DEFAULT_STRATA},
         },
     )
     assert r.status_code == 200

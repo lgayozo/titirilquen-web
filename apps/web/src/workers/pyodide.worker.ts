@@ -15,6 +15,7 @@
  */
 
 import type {
+  DemandConfig,
   IterationSnapshot,
   SimulationConfig,
   SimulationResult,
@@ -44,7 +45,14 @@ type InMsg =
   | {
       id: string;
       type: "landUseSolve";
-      req: { L: number; CBD: number; land_use: LandUseConfig };
+      req: {
+        L: number;
+        CBD: number;
+        largo_km: number;
+        land_use: LandUseConfig;
+        demand: DemandConfig;
+        modos_habilitados?: readonly string[] | null;
+      };
     }
   | { id: string; type: "coupledStream"; req: CoupledRequest }
   /** Cancelación cooperativa (F-03): marca la corrida `targetId` para que su
@@ -128,7 +136,9 @@ await micropip.install(${JSON.stringify(whlUrl)})
 
 from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
 from titirilquen_core.coupled import iter_coupled
+from titirilquen_core.config import DemandConfig
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa, iter_msa_desde_suelo
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 import json
 
 # La forma del resultado la define el CORE, en titirilquen_core.serializacion.
@@ -179,11 +189,17 @@ def last_trace_to_py():
     return None if t is None else trace_to_dict(t, _LAST_TRACE["cfg"])
 
 def land_use_solve_from_json(req_json: str):
+    # La accesibilidad de la puja es el logsum de transporte a flujo libre,
+    # mensualizado: por eso el standalone también necesita la demanda (D-34).
     req = json.loads(req_json)
     cfg = LandUseConfig.model_validate(req["land_use"])
-    L = int(req["L"])
+    demand = DemandConfig.model_validate(req["demand"])
+    modos = req.get("modos_habilitados")
+    L = int(req["L"]); CBD = int(req["CBD"])
     largo_km = float(req.get("largo_km", 20.0))
-    city = LandUseCity.build(L=L, CBD=int(req["CBD"]), cfg=cfg, ancho_celda_km=largo_km / L)
+    dx = largo_km / L
+    T = T_flujo_libre(demand, L, CBD, dx, tuple(modos) if modos else None)
+    city = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=dx, T=T)
     return land_use_city_to_dict(city)
 
 def coupled_iter_from_json(req_json: str):

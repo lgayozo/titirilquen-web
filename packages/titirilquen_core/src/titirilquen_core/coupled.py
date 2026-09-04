@@ -2,11 +2,11 @@
 
 Estructura (V2):
 
-    Iter 0: LandUseCity.build(T = flujo libre en min)  # baseline sin feedback
+    Iter 0: LandUseCity.build(T = logsum mensual a flujo libre)  # baseline sin feedback
     Para n = 1..N_outer:
         1. poblacion = generar_poblacion_desde_land_use_det(city)
         2. transport_trace = run_msa(config, poblacion)
-        3. T_new[i] = accesibilidad esperada (min), común por ubicación
+        3. T_new[h, i] = −VIAJES_MES·logsum_h(i) sobre los tiempos finales
         4. city.update(T_new)
         5. si ||T_new - T_old|| < tol_outer → break
 
@@ -28,15 +28,16 @@ from titirilquen_core.coupled_metrics import (
     EquilibriumMetrics,
     compute_equilibrium_metrics,
 )
-from titirilquen_core.demand.utility import (
-    UTIL_IMPOSIBLE,
-    TiemposObservados,
-    calcular_utilidades,
-)
+from titirilquen_core.demand.utility import TiemposObservados
 from titirilquen_core.equilibrium.msa import (
     ConvergenceTrace,
     IterationSnapshot,
     run_msa_con_poblacion,
+)
+from titirilquen_core.land_use.accesibilidad import (
+    T_desde_logsum,
+    T_flujo_libre,
+    logsum_por_celda,
 )
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
@@ -56,7 +57,7 @@ class OuterIteration:
     transport: ConvergenceTrace
     T_matrix: NDArray[np.float64]
     T_residual: float
-    """Residuo ||T_new - T_old||_∞ (min)."""
+    """Residuo ||T_new - T_old||_∞ (utiles de transporte por mes)."""
     metrics: EquilibriumMetrics
     """Reporte de métricas (por estrato + sistema) de esta iteración."""
 
@@ -71,48 +72,8 @@ class CoupledResult:
     converged: bool = False
 
 
-# Velocidad de referencia (km/h) para el fallback en minutos de la 1ª iteración.
-_V_REF_FALLBACK_KMH = 30.0
-
-
-def _aggregate_T_expected(
-    sim: SimulationConfig,
-    ciudad: CiudadLineal,
-    snap: IterationSnapshot,
-    n_strata: int,
-    cbd_index: int,
-    H_por_estrato: NDArray[np.float64] | None = None,
-) -> NDArray[np.float64]:
-    """T[h, i] = accesibilidad (tiempo de viaje esperado) de la celda i hacia el
-    CBD — **común a todos los estratos** (todas las filas h son iguales).
-
-    Para cada estrato se computa la esperanza analítica del tiempo
-
-        Te_h(i) = Σ_{auto} w_auto · Σ_m P(m | h,i,auto) · t_m(i)
-
-    con `w_auto = prob_auto` (entre los que viajan; teletrabajo excluido) y
-    `P(m|·)` el logit de modo sobre los tiempos del snapshot final; luego se
-    devuelve la **media entre estratos ponderada por población**
-    `T(i) = Σ_h (H_h/ΣH)·Te_h(i)` (con `H_por_estrato`; si es `None`, media
-    simple), replicada en todas las filas. La ponderación hace que T(i) sea el
-    tiempo esperado del viajero *representativo* de la ubicación: con shares
-    10/40/50 el estrato bajo pesa lo que su población, no 1/3.
-
-    Por qué común y no por estrato (ver D-22): la accesibilidad es un **atributo
-    de la ubicación** en el bid-rent de suelo; la heterogeneidad entre usuarios
-    ya la captura `α_h` (cuánto valora cada estrato la cercanía al CBD). Si en
-    cambio T fuera por estrato, el menor tiempo de los estratos con más auto se
-    leería como "la distancia no les molesta" e **invertiría** el ordenamiento
-    (ricos a la periferia). El experimentado por estrato sí se reporta aparte en
-    `coupled_metrics` a partir de los agentes.
-
-    Es **determinista** y está definido en **todas** las celdas (no necesita el
-    carry-forward para celdas vacías): el residual refleja sólo cambios reales,
-    así que el loop exterior converge a ~0.
-    """
-    n = ciudad.n_celdas
-    gl = sim.demand.globales
-    tiempos = [
+def _tiempos_del_snapshot(snap: IterationSnapshot, n: int) -> list[TiemposObservados]:
+    return [
         TiemposObservados(
             auto_total=float(snap.t_auto[i]),
             bici_total=float(snap.t_bici[i]),
@@ -122,77 +83,24 @@ def _aggregate_T_expected(
         )
         for i in range(n)
     ]
-    T = np.zeros((n_strata, n), dtype=float)
-
-    for h in range(n_strata):
-        estrato = h + 1
-        p_a = float(sim.demand.estratos[estrato].prob_auto)  # type: ignore[index]
-        for i in range(n):
-            if i == cbd_index:
-                continue
-            d_km = abs(i - cbd_index) * ciudad.ancho_celda_km
-            t_modo = {
-                "Auto": float(snap.t_auto[i]),
-                "Metro": float(
-                    snap.t_tren_acceso[i] + snap.t_tren_espera[i] + snap.t_tren_viaje[i]
-                ),
-                "Bici": float(snap.t_bici[i]),
-                "Caminata": d_km / gl.v_caminata * 60.0,
-            }
-            num = 0.0
-            den = 0.0
-            for tiene_auto, w in ((True, p_a), (False, 1.0 - p_a)):
-                if w <= 0:
-                    continue
-                utils = calcular_utilidades(
-                    estrato=estrato,  # type: ignore[arg-type]
-                    celda_origen=i,
-                    tiene_auto=tiene_auto,
-                    ciudad=ciudad,
-                    config=sim.demand,
-                    tiempos_observados=tiempos[i],
-                    modos_habilitados=sim.modos_habilitados,
-                )
-                vals = [
-                    (m, b.valor)
-                    for m, b in utils.items()
-                    if b.feasible and b.valor > UTIL_IMPOSIBLE
-                ]
-                if not vals:
-                    continue  # rama sin modo factible (varado): no aporta tiempo
-                mx = max(v for _, v in vals)
-                exps = [(m, float(np.exp(v - mx))) for m, v in vals]
-                Z = sum(e for _, e in exps)
-                et = sum((e / Z) * t_modo[m] for m, e in exps)
-                num += w * et
-                den += w
-            T[h, i] = (num / den) if den > 0 else d_km / _V_REF_FALLBACK_KMH * 60.0
-
-    # Accesibilidad común por ubicación (ver docstring — evita la inversión del
-    # bid-rent), ponderada por la población de cada estrato.
-    if H_por_estrato is not None and float(np.sum(H_por_estrato)) > 0:
-        w_h = np.asarray(H_por_estrato, dtype=float)
-        T_comun = (w_h[:, None] * T).sum(axis=0) / w_h.sum()
-    else:
-        T_comun = T.mean(axis=0)
-    return np.tile(T_comun, (n_strata, 1))
 
 
-def _freeflow_T(ciudad: CiudadLineal, n_strata: int, v_ref_kmh: float) -> NDArray[np.float64]:
-    """Accesibilidad inicial **a flujo libre**, en minutos: T(i) = d_km(i)/v_ref·60.
+def _T_logsum_snapshot(
+    sim: SimulationConfig,
+    ciudad: CiudadLineal,
+    snap: IterationSnapshot,
+) -> NDArray[np.float64]:
+    """`T[h, i]` = accesibilidad mensual **por estrato** sobre los tiempos del
+    snapshot final: `−VIAJES_MES · logsum_h(i)` (ver `land_use.accesibilidad`).
 
-    Es el baseline "sin feedback" honesto: el suelo se resuelve con una
-    accesibilidad ingenua (tiempo a velocidad de referencia, ignorando modo,
-    espera y congestión) pero **en la misma escala (minutos)** que las
-    iteraciones acopladas. Antes el arranque usaba la distancia en índices de
-    celda (`_default_T`), una escala ~3× mayor, lo que hacía que el salto iter0→
-    final fuera mayormente un reescalado de unidades y no el efecto real del
-    feedback de congestión (ver D-23).
-    """
-    cbd = ciudad.n_celdas // 2
-    d_km = np.abs(np.arange(ciudad.n_celdas) - cbd).astype(float) * ciudad.ancho_celda_km
-    t_min = d_km / v_ref_kmh * 60.0
-    return np.tile(t_min, (n_strata, 1))
+    Hasta sep-2026 acá se devolvía el tiempo esperado en minutos, promediado
+    entre estratos (D-22), porque por estrato invertía Alonso. Con el logsum en
+    pesos eso no pasa (`tests/test_accesibilidad.py`), y la heterogeneidad de
+    acceso —auto, valor del tiempo— vuelve a ser parte de la puja, que es donde
+    corresponde (D-34). Es determinista y está definido en todas las celdas,
+    así que el residual del loop exterior refleja sólo cambios reales."""
+    tiempos = _tiempos_del_snapshot(snap, ciudad.n_celdas)
+    return T_desde_logsum(logsum_por_celda(sim.demand, ciudad, tiempos, sim.modos_habilitados))
 
 
 def _run_transport_with_population(
@@ -235,11 +143,9 @@ def iter_coupled(
     CBD = L // 2
     ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
 
-    n_strata = len(land_use_config.H_por_estrato)
-    H_arr = np.asarray(land_use_config.H_por_estrato, dtype=float)
-    # Baseline "sin feedback" en minutos a flujo libre (no índices de celda),
-    # para que iter0→final mida el efecto real del feedback (ver D-23).
-    T_init = _freeflow_T(ciudad, n_strata, sim.demand.globales.v_auto)
+    # Baseline "sin feedback": la misma accesibilidad (logsum mensual) a flujo
+    # libre, en la misma escala que las iteraciones (D-23, D-34).
+    T_init = T_flujo_libre(sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados)
     city = LandUseCity.build(
         L=L,
         CBD=CBD,
@@ -261,7 +167,7 @@ def iter_coupled(
             teletrabajo_factor=sim.city.teletrabajo_factor,
         )
         transport_trace, final_snap = _run_transport_with_population(sim_eq, agentes, ciudad)
-        T_new = _aggregate_T_expected(sim_eq, ciudad, final_snap, n_strata, CBD, H_arr)
+        T_new = _T_logsum_snapshot(sim_eq, ciudad, final_snap)
 
         residual = float("inf") if T_state is None else float(np.max(np.abs(T_new - T_state)))
         # Amortiguación MSA del loop externo: T_state ← θ·T_new + (1-θ)·T_state.

@@ -19,10 +19,13 @@ import time
 import numpy as np
 from scipy.special import logsumexp
 
+from titirilquen_core.config import DemandConfig
 from titirilquen_core.land_use import LandUseCity, LandUseConfig
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.land_use.config import LandUseStratumConfig
 from titirilquen_core.land_use.equilibrium import solve_logit, solve_subasta
 from titirilquen_core.land_use.hev import e_max_hev, q_hev
+from titirilquen_core.presets import DEFAULT_STRATA
 
 L, CBD, LARGO_KM = 201, 100, 20.0
 DX = LARGO_KM / L
@@ -54,6 +57,7 @@ def ciudad(lams, **kw):
         cfg=_cfg(lams, **kw),
         ancho_celda_km=DX,
         rng=np.random.default_rng(42),
+        T=T_flujo_libre(DemandConfig.model_validate({"estratos": DEFAULT_STRATA}), L, CBD, DX),
     )
 
 

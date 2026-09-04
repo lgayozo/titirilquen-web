@@ -46,3 +46,9 @@ CORTE_BICI_MIN: Final[float] = 45.0
 #: la evaluación social (costo del tiempo agregado), no en la elección de modo,
 #: que usa el valor del tiempo CONDUCTUAL de cada estrato.
 VOT_SOCIAL_CLP_HORA: Final[float] = 3338.0
+
+#: Viajes de conmutación por mes (2 por día laboral × 22 días). Convierte el
+#: costo por viaje en carga mensual costo/ingreso (D-27) y el logsum por viaje en
+#: la accesibilidad mensual que entra a la puja por suelo (D-34): el arriendo
+#: `p` y el ingreso `y` son mensuales, así que el término de transporte también.
+VIAJES_MES: Final[int] = 44

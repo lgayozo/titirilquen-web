@@ -146,6 +146,8 @@ export function ComparePage() {
           CBD: Math.floor(L / 2),
           largo_km: sc.config.city.largo_ciudad_km,
           land_use: sc.landUse ?? defaultLandUseConfig,
+          demand: sc.config.demand,
+          modos_habilitados: sc.config.modos_habilitados,
         });
         setLuResult(id, r);
       } else {

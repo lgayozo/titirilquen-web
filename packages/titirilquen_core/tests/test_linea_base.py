@@ -50,12 +50,17 @@ ESPERADO = {
     #     dos ramas: auto −1,6 pp (el alto baja de 57 % a 48 % de auto), y ese
     #     flujo se reparte entre metro, bici y caminata. Por estrato, sobre
     #     viajeros, rama original: auto 47,7 / 22,6 / 3,7 %.
+    #  3. D-34: la accesibilidad de la puja pasa de minutos a flujo libre al
+    #     logsum mensual de transporte por estrato, con alpha = 1 y
+    #     lambda = |b_costo|. Mueve sólo `equilibrio`, y poco (auto +0,03,
+    #     metro −0,13, bici +0,05, caminata +0,08): la ciudad resultante es casi
+    #     la misma, ahora con unidades que cierran.
     "equilibrio": {
-        "Auto": 15.19,
-        "Metro": 35.31,
-        "Bici": 22.70,
-        "Caminata": 7.34,
-        "Teletrabajo": 19.45,
+        "Auto": 15.22,
+        "Metro": 35.18,
+        "Bici": 22.75,
+        "Caminata": 7.42,
+        "Teletrabajo": 19.44,
     },
     "original": {
         "Auto": 15.81,

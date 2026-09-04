@@ -23,6 +23,7 @@ from titirilquen_core.constantes import MODOS
 from titirilquen_core.demand.choice import probabilidades_logit, probabilidades_todo_o_nada
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.emissions import calcular_emisiones
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.supply import generar_oferta
@@ -297,7 +298,7 @@ def iter_msa_desde_suelo(
     cada estrato**:
 
     - ``"equilibrio"`` (default): se resuelve el equilibrio de pujas de suelo y se
-      usa su `Q`. Usa la T por defecto (flujo libre a la velocidad de referencia),
+      usa su `Q`. Usa la accesibilidad a flujo libre (logsum mensual, D-34),
       igual que la pestaña *Uso de Suelo*, así que el `Q` coincide con el que se
       visualiza ahí para la misma config.
     - ``"original"``: el equilibrio de pujas **no se ha aplicado**, así que la
@@ -336,6 +337,7 @@ def iter_msa_desde_suelo(
             rng=rng,
             ancho_celda_km=ciudad.ancho_celda_km,
             S=S,
+            T=T_flujo_libre(sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados),
         )
         assert city.result is not None
         Q = city.result.Q

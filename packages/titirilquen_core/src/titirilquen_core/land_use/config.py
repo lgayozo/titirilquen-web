@@ -22,10 +22,13 @@ explícito, decisión tomada al romper la compatibilidad en agosto de 2026."""
 class LandUseStratumConfig(BaseModel):
     """Parámetros de la función de puje (bid function) por estrato.
 
-    **Unidades (D-26/D-27)**: `T` entra en minutos y la densidad en hogares/km,
-    así que `alpha` está en utiles/min y `rho` en utiles/(hogar/km). `y` está en
-    $/mes (CLP); no mueve la asignación (se absorbe en ū, ver D-08) pero sí
-    la métrica de carga mensual costo/ingreso del acoplado."""
+    **Unidades (D-26/D-27/D-34)**: `T` es el logsum mensual de transporte
+    (utiles de transporte por mes) y la densidad va en hogares/km; `alpha` es
+    adimensional (1 = la accesibilidad tal cual), `rho` en utiles-mes por
+    (hogar/km) y `lambda` en utiles por peso (= |b_costo| de transporte), con
+    lo que el score queda en $/mes. `y` está en $/mes (CLP); no mueve la
+    asignación (se absorbe en ū, ver D-08) pero sí la métrica de carga mensual
+    costo/ingreso del acoplado."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -36,8 +39,16 @@ class LandUseStratumConfig(BaseModel):
         alias="lambda",
         description="Utilidad marginal del ingreso (λ_h)",
     )
-    alpha: float = Field(default=6.0, description="Peso del tiempo de viaje (utiles/min)")
-    rho: float = Field(default=0.0025, description="Penalización de densidad (utiles por hogar/km)")
+    alpha: float = Field(
+        default=1.0,
+        description=(
+            "Multiplicador de la accesibilidad (logsum mensual de transporte); 1 = tal cual"
+        ),
+    )
+    rho: float = Field(
+        default=5.2e-3,
+        description="Penalización de densidad (utiles de transporte por mes, por hogar/km)",
+    )
 
 
 class LandUseConfig(BaseModel):
@@ -92,43 +103,40 @@ class LandUseConfig(BaseModel):
     # escala por estrato a `1/(beta·lambda_h)`, que la re-escala de preferencias
     # no toca, y `lambda` queda IDENTIFICADO (`test_hev.py`).
     #
-    # De dónde salen estos números (sep-2026): se IMPORTAN de transporte. Un
-    # hogar tiene una sola función de utilidad, así que el que puja por suelo es
-    # el mismo que elige modo. En `U = lambda_h(y-p) - alpha_h·T` la TMS entre
-    # tiempo y dinero es el valor subjetivo del tiempo, VOT_h = alpha_h/lambda_h
-    # [$/min], y en transporte ese mismo cociente es b_tiempo_viaje/b_costo
-    # (`vot_clp_hora` en `bienestar.py`): 6.200 / 3.100 / 1.600 $/h.
+    # De dónde salen estos números (D-34, sep-2026). Un hogar tiene UNA función
+    # de utilidad: el que puja por suelo es el que elige modo. Así que:
     #
-    # Transporte es HOMOSCEDÁSTICO desde sep-2026 (`presets.py`): b_tiempo_viaje
-    # es común a los tres estratos y toda la heterogeneidad del VoT vive en
-    # b_costo, que decrece con el ingreso. Acá, lo mismo: `alpha` COMÚN (un
-    # minuto duele igual a todos) y `lambda_h ∝ b_costo_h`, o sea
-    # lambda_h = lambda_medio · VOT_medio / VOT_h = (0,5 · 1 · 1,9375).
-    # `test_vot_consistente.py` vigila las tres cosas: VOT igual entre módulos,
-    # alpha común, lambda decreciente en el ingreso.
+    #   * `T_h(i)` = −VIAJES_MES·logsum_h(i): la utilidad esperada del viaje desde
+    #     la parcela, en utiles de transporte, mensualizada (`accesibilidad.py`).
+    #   * `alpha = 1`, común: la puja lee esa accesibilidad tal cual. Es el ancla
+    #     que traía el original (`actualizar(T, alpha=[1,1,1])` sobre el logsum)
+    #     y nunca se ejecutó. Un alpha ≠ 1 es un multiplicador sin fuente.
+    #   * `lambda_h = |b_costo_h|` de `presets.DEFAULT_STRATA`, literal, en
+    #     utiles de transporte por peso: 0,000320 / 0,000641 / 0,001241. Con eso
+    #     el score `y + f/lambda` queda en $/mes, como `p` e `y` (D-27), el VoT
+    #     `alpha/lambda` = 6.200 / 3.100 / 1.600 $/h coincide con transporte, y
+    #     el ruido de la puja `1/(beta·lambda_h)` = $3.122 / $1.561 / $806 al mes.
+    #   * `beta = 1`: el mismo ruido Gumbel que un viaje. Es la ÚNICA perilla
+    #     propia del módulo y tiene lectura directa (beta = 0,1 ⇒ elegir casa es
+    #     10 veces más ruidoso que elegir modo). Con 1 la ciudad sale nítida
+    #     (Theil ≈ 0,75): un mes de viajes es mucho dinero frente al ruido de
+    #     un viaje. Bajarlo es decisión pedagógica (AU-10), no calibración.
+    #   * `rho`: SIN FUENTE, ni acá ni en el original (donde valía 1 sobre la
+    #     capacidad cruda). Se fija para que `rho·dens` recorra el 50 % del rango
+    #     de `alpha·T` del estrato medio en la ciudad por defecto (decisión
+    #     2026-09-04): 0,5·87,4/8.410 = 5,2e-3 utiles-mes por (hog/km). Medido:
+    #     Theil 0,75, gradiente de renta +0,75. La asignación se invierte al
+    #     200 % (≈1,0e-2): la UI no debe dejar pasar de ahí.
     #
-    # Dos normalizaciones, ambas libres: alpha_medio = 6 y lambda_medio = 1. El
-    # NIVEL de alpha no está identificado (sólo beta·alpha, AU-13) y el de lambda
-    # tampoco (escalarlos todos por k es escalar beta por k). Lo que sí está
-    # identificado son las razones. OJO con lo que implica la escala elegida:
-    # alpha = 6 utiles/min contra b_tiempo_viaje = 0,0331 en transporte, con
-    # beta = 1, equivale a suponer que localizarse es ~180 veces más
-    # determinista que elegir modo. Es una decisión pedagógica pendiente (ver
-    # AU-10/AU-13), no un hecho.
-    #
-    # Antes (hasta sep-2026) alpha era 6,5 / 6,0 / 5,5 —heredado del original—
-    # y lambda = 1 en los tres, porque la forma cerrada obligaba: con beta
-    # escalar sobre las pujas, lambda_h sólo entraba dividiendo el determinístico
-    # y era idénticamente re-escalar (alpha, rho) — D-08. Con HEV el ruido
-    # escala por estrato a 1/(beta·lambda_h) y lambda queda IDENTIFICADO
-    # (`test_hev.py`). Medido: con el mismo VOT, repartirlo entre alpha y lambda
-    # casi no cambia la ciudad (Theil 0,911 vs 0,907), así que la anatomía se
-    # elige por interpretabilidad y consistencia, no por ajuste.
+    # Todo lo anterior está vigilado por `tests/test_vot_consistente.py` y
+    # `tests/test_accesibilidad.py`. Historia: hasta sep-2026 alpha era 6,5/6,0/
+    # 5,5 (el 1,3/1,2/1,1 del original ×5 por D-26), lambda = 1 por la forma
+    # cerrada (D-08) y T minutos a flujo libre.
     estratos: tuple[LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig] = Field(
         default=(
-            LandUseStratumConfig(y=3_500_000.0, alpha=6.0, rho=0.0025, **{"lambda": 0.5}),
-            LandUseStratumConfig(y=1_500_000.0, alpha=6.0, rho=0.0025, **{"lambda": 1.0}),
-            LandUseStratumConfig(y=500_000.0, alpha=6.0, rho=0.0025, **{"lambda": 1.9375}),
+            LandUseStratumConfig(y=3_500_000.0, alpha=1.0, rho=5.2e-3, **{"lambda": 0.000320323}),
+            LandUseStratumConfig(y=1_500_000.0, alpha=1.0, rho=5.2e-3, **{"lambda": 0.00064065}),
+            LandUseStratumConfig(y=500_000.0, alpha=1.0, rho=5.2e-3, **{"lambda": 0.00124125}),
         ),
         description=(
             "Parámetros de puja de los tres estratos (alto, medio, bajo). Son la "

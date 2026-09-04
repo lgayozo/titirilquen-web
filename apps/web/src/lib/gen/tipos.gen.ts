@@ -156,19 +156,25 @@ export interface SimulationConfig {
 
 /**
  *  Parámetros de la función de puje (bid function) por estrato. **Unidades
- *  (D-26/D-27)**: `T` entra en minutos y la densidad en hogares/km, así que
- *  `alpha` está en utiles/min y `rho` en utiles/(hogar/km). `y` está en $/mes
- *  (CLP); no mueve la asignación (se absorbe en ū, ver D-08) pero sí la
- *  métrica de carga mensual costo/ingreso del acoplado.
+ *  (D-26/D-27/D-34)**: `T` es el logsum mensual de transporte (utiles de
+ *  transporte por mes) y la densidad va en hogares/km; `alpha` es
+ *  adimensional (1 = la accesibilidad tal cual), `rho` en utiles-mes por
+ *  (hogar/km) y `lambda` en utiles por peso (= |b_costo| de transporte), con
+ *  lo que el score queda en $/mes. `y` está en $/mes (CLP); no mueve la
+ *  asignación (se absorbe en ū, ver D-08) pero sí la métrica de carga mensual
+ *  costo/ingreso del acoplado.
  */
 export interface LandUseStratumConfig {
   /** Ingreso mensual del estrato ($/mes) */
   y: number;
   /** Utilidad marginal del ingreso (λ_h) */
   lambda: number;
-  /** Peso del tiempo de viaje (utiles/min) */
+  /**
+   *  Multiplicador de la accesibilidad (logsum mensual de transporte); 1 = tal
+   *  cual
+   */
   alpha: number;
-  /** Penalización de densidad (utiles por hogar/km) */
+  /** Penalización de densidad (utiles de transporte por mes, por hogar/km) */
   rho: number;
 }
 

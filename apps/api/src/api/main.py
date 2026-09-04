@@ -27,7 +27,9 @@ from titirilquen_core import (
     run_coupled,
     run_msa,
 )
+from titirilquen_core.config import DemandConfig
 from titirilquen_core.coupled import iter_coupled
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.serializacion import (
     coupled_result_to_dict,
     land_use_city_to_dict,
@@ -82,13 +84,25 @@ class LandUseOnlyRequest(BaseModel):
     CBD: int = Field(default=100, ge=0)
     largo_km: float = Field(default=20.0, gt=0, description="Largo físico de la ciudad")
     land_use: LandUseConfig
+    demand: DemandConfig = Field(
+        description=(
+            "Demanda de transporte (betas por estrato): la accesibilidad de la puja "
+            "es su logsum a flujo libre, mensualizado (D-34)"
+        )
+    )
+    modos_habilitados: tuple[str, ...] | None = None
 
 
 @app.post("/land-use/solve")
 def land_use_solve(req: LandUseOnlyRequest) -> dict[str, object]:
-    """Resuelve el equilibrio de uso de suelo con T = tiempo a flujo libre (min)."""
+    """Resuelve el uso de suelo con T = −VIAJES_MES·logsum de transporte a flujo libre."""
+    dx = req.largo_km / req.L
     city = LandUseCity.build(
-        L=req.L, CBD=req.CBD, cfg=req.land_use, ancho_celda_km=req.largo_km / req.L
+        L=req.L,
+        CBD=req.CBD,
+        cfg=req.land_use,
+        ancho_celda_km=dx,
+        T=T_flujo_libre(req.demand, req.L, req.CBD, dx, req.modos_habilitados),
     )
     return land_use_city_to_dict(city)
 
@@ -99,7 +113,9 @@ class CoupledRequest(BaseModel):
     sim: SimulationConfig
     land_use: LandUseConfig
     outer_max_iter: int = Field(default=3, ge=1, le=10)
-    outer_tol: float = Field(default=1.0, ge=0, description="minutos")
+    outer_tol: float = Field(
+        default=1.0, ge=0, description="utiles de transporte por mes (‖ΔT‖∞, D-34)"
+    )
 
 
 @app.post("/coupled/solve")

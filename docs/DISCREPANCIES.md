@@ -592,6 +592,10 @@ guardados que lo traen se migran en `serialization.ts`.
   reintroduce el problema de la inversión).
 - **Veredicto**: Bug del modelo acoplado corregido (decisión del autor del
   modelo, jun-2026). NO reintroducir T por estrato en el bid-rent.
+- **Revisada 2026-09-04 (D-34).** La prohibición valía para `T` en minutos.
+  Con la accesibilidad = logsum en pesos, `T` por estrato NO invierte Alonso
+  (medido) y es el objeto teórico correcto; `_aggregate_T_expected` fue
+  reemplazada por `_T_logsum_snapshot`, por estrato, sin promedio.
 
 ---
 
@@ -612,6 +616,9 @@ guardados que lo traen se migran en `serialization.ts`.
   diferencia **entre escenarios**.
 - **Veredicto**: Artefacto de unidades corregido; el feedback honesto es modesto
   (no era un bug que estuviera "apagado", era el artefacto el que lo inflaba).
+- **Actualizado 2026-09-04 (D-34).** El baseline y las iteraciones usan ahora
+  el mismo objeto —logsum mensual a flujo libre vs. sobre el snapshot—, así
+  que la comparación sin/con feedback sigue siendo en la misma escala.
 
 ---
 
@@ -993,6 +1000,69 @@ penaliza una densidad que el modelo nunca mueve.
 
 ---
 
+## D-34 — Uso de suelo: la accesibilidad es el logsum de transporte, con α = 1 (el ancla del original, recuperada)
+
+- **Síntoma.** `α` y `ρ` no salían de ninguna parte. `α = 6,5/6,0/5,5` era el
+  `[1,3, 1,2, 1,1]` del constructor de `Ciudad2.py` ×5 por el cambio de unidades
+  (D-26); `ρ = 0,0025` salió de rebalancear la grilla el 2026-08-24. En el
+  Overleaf original, `α_h` se define como «factor que acompaña al coste de
+  transporte, para tener más control sobre el mismo» y `ρ` como «factor de
+  penalización a la densidad», sin un número justificado. La app original ni
+  siquiera llamaba a `actualizar`: corría con los defaults del constructor y
+  `T` = distancia en celdas.
+- **Lo que sí traía el original.** `construir_T_desde_csv` cargaba
+  `LogSuma_Utilidad` por (estrato, celda) —el **logsum del logit modal**— y el
+  demo y el `.tex` llamaban `actualizar(T, alpha=[1,1,1])`. O sea: `α = 1` sobre
+  la utilidad esperada del viaje, en utiles de transporte. Esa vía nunca se
+  ejecutó (el CSV no existe en el repo, `app.py` no lo produce) y tenía el
+  signo al revés (`f = −α·T` con `T` = logsum penaliza la buena accesibilidad),
+  pero es la única definición de `α` con significado.
+- **Decisión (2026-09-04).** Recuperarla, con unidades que cierren:
+  `T_h(i) = −VIAJES_MES · logsum_h(i)` (utiles de transporte por mes; el signo
+  lo vuelve costo y los 44 viajes lo ponen en la escala mensual del arriendo `p`
+  y el ingreso `y`, D-27), `α = 1` común, `λ_h = |b_costo_h|` literal (utiles
+  por peso), `β = 1` (el mismo ruido Gumbel que un viaje). Con eso el score
+  `y + f/λ` está en $/mes, el VoT `α/λ · b_tiempo · 60` es exactamente el de
+  transporte en nivel, y el ruido de la puja `1/λ_h` = $3.122 / $1.561 / $806
+  al mes. `β` pasa a ser la **única perilla propia** del módulo y tiene lectura:
+  «cuánto más ruidoso es elegir casa que elegir modo».
+  Implementado en `land_use/accesibilidad.py`; el standalone recibe `demand`
+  (`/land-use/solve`, `landUseSolve`) porque sin los betas no hay accesibilidad.
+- **D-22, revisada.** El logsum es por estrato por naturaleza. D-22 promediaba
+  la accesibilidad entre estratos porque `T` en minutos por estrato invertía
+  Alonso (el auto del rico le aplanaba el tiempo). Medido con el logsum en
+  pesos: **no invierte** —alto 0,72 km, medio 2,97, bajo 6,69; Theil 0,75— y la
+  variante común ponderada da 0,88. La heterogeneidad de acceso vuelve a la
+  puja, que es donde corresponde. Guard: `tests/test_accesibilidad.py`.
+- **`ρ`, todavía sin fuente.** Se fija para que `ρ·dens` recorra el 50 % del
+  rango de `α·T` del estrato medio en la ciudad por defecto (decisión
+  2026-09-04): `0,5·87,4/8.410 = 5,2·10⁻³`. Gradiente de renta +0,75. La
+  asignación se invierte al 200 % (≈1,0·10⁻²), antes que el gradiente de precios
+  (~300 %): el slider topa en 0,01.
+- **Lo que mide.** Un mes de viajes es mucho dinero frente al ruido de un
+  viaje: el rango centro–borde vale $212k/$136k/$84k al mes contra ruido de
+  $3k/$1,5k/$0,8k, señal/ruido ~90:1, así que con `β = 1` la ciudad sigue
+  nítida. `k = 1` (un solo viaje contra el arriendo) da Theil 0,009: por eso el
+  factor mensual no es opcional. Escalar `α` sin `ρ` NO equivale a bajar `β`
+  (cambia el balance accesibilidad/densidad e invierte Alonso con `α = 0,0331`);
+  la perilla honesta es `β`.
+- **Lo que se mueve.** Sólo la rama `equilibrio` de la línea base, y poco:
+  auto 15,19 → 15,22, metro 35,31 → 35,18, bici 22,70 → 22,75, caminata 7,34 →
+  7,42. `original` intacta. El acoplado arranca y itera con el mismo objeto
+  (`T_flujo_libre` y `_T_logsum_snapshot`); `T_residual` queda en utiles de
+  transporte por mes.
+- **UI.** `α` y `λ` se editan sin poder romper las razones: un control común
+  para `α` y una *escala* para `λ` (`λ_h = escala·|b_costo_h|`, leídos de la
+  demanda de transporte). `β` en 0,01–2; `ρ` en 0–0,01.
+- **Invariantes.** `tests/test_vot_consistente.py` (`α = 1`, `λ = |b_costo|`
+  exacto, VoT igual en nivel, `λ` decreciente, HEV), `tests/test_accesibilidad.py`
+  (logsum = el del logit modal; `T` es un costo creciente; por estrato no
+  invierte Alonso), `tests/test_coupled.py` (accesibilidad por estrato).
+- **Veredicto**: ancla del original recuperada y hecha consistente. `ρ` sigue
+  siendo la única cantidad sin fuente, declarada como decisión.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -1030,3 +1100,4 @@ penaliza una densidad que el modelo nunca mueve.
 | D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp) | Bug corregido, línea base intacta | Alta |
 | D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez) | Simplificación declarada, sin cambio de código | Media |
 | D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo) | Calibración corregida, línea base movida y declarada | Alta |
+| D-34 | Suelo: accesibilidad = logsum mensual de transporte, α = 1, λ = |b_costo|; D-22 revisada | Ancla del original recuperada, línea base movida poco | Alta |

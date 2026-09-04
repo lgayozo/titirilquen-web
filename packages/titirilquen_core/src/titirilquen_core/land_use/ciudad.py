@@ -35,27 +35,13 @@ de juguete.
 """
 
 
-def _default_T(
-    n_parcelas: int, cbd_index: int, n_strata: int, ancho_celda_km: float
-) -> NDArray[np.float64]:
-    """T[h, i] = tiempo a flujo libre al CBD, en **minutos** (d_km/v_ref·60),
-    igual para todos los estratos (la variación por estrato se captura vía α_h).
-
-    En minutos y no en índices de celda (D-26): con índices, refinar la grilla
-    "agrandaba" la ciudad que ve el bid-rent y el equilibrio dependía de la
-    resolución; en unidades físicas T(x) es invariante a la discretización."""
-    dist_km = np.abs(np.arange(n_parcelas) - cbd_index).astype(float) * ancho_celda_km
-    t_min = dist_km / V_REF_KMH * 60.0
-    return np.tile(t_min, (n_strata, 1))
-
-
 @dataclass
 class LandUseCity:
     """Ciudad lineal con uso de suelo resuelto.
 
     Uso típico:
         city = LandUseCity.build(L=201, CBD=100, cfg=LandUseConfig(...))
-        # o con una T proveniente de transporte:
+        # T: accesibilidad mensual de transporte por estrato (obligatoria):
         city.update(T=T_from_transport)
     """
 
@@ -106,7 +92,11 @@ class LandUseCity:
         T: NDArray[np.float64] | None = None,
         rng: np.random.Generator | None = None,
     ) -> None:
-        """Recalcula el equilibrio. Si `T` no se entrega, usa la distancia al CBD."""
+        """Recalcula el equilibrio con la accesibilidad `T[h, i]` dada.
+
+        `T` es obligatoria: es el logsum mensual de transporte por estrato
+        (`land_use.accesibilidad`), y no hay un default honesto sin la demanda.
+        Hasta sep-2026 existía `_default_T` (minutos a flujo libre); ver D-34."""
         if rng is None:
             rng = np.random.default_rng()
 
@@ -118,7 +108,10 @@ class LandUseCity:
         lambda_h = np.asarray([s.lambda_ for s in self.cfg.estratos], dtype=float)
 
         if T is None:
-            T = _default_T(self.L, self.cbd_index, n_strata, self.ancho_celda_km)
+            raise ValueError(
+                "LandUseCity necesita T[h, i]: "
+                "usá land_use.accesibilidad.T_flujo_libre(demand, ...)"
+            )
         if T.shape != (n_strata, self.L):
             raise ValueError(f"T shape {T.shape} != ({n_strata}, {self.L})")
 

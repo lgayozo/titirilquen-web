@@ -32,14 +32,22 @@ from __future__ import annotations
 
 import numpy as np
 
-from titirilquen_core.land_use.ciudad import LandUseCity, _default_T
+from titirilquen_core.config import DemandConfig
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
+from titirilquen_core.presets import DEFAULT_STRATA
 
 L = 201
 CBD = L // 2
 LARGO_KM = 20.0
 SUMA_H = 36000
 H_BASE = (int(SUMA_H * 0.10), int(SUMA_H * 0.40), int(SUMA_H * 0.50))
+
+#: Accesibilidad real de la app (logsum mensual a flujo libre), D-34.
+T_WEB = T_flujo_libre(
+    DemandConfig.model_validate({"estratos": DEFAULT_STRATA}), L, CBD, LARGO_KM / L
+)
 
 #: Se lee del schema en vez de copiarlo: la copia se desfasó justamente acá
 #: cuando se recalibró rho el 2026-08-24.
@@ -70,12 +78,12 @@ def base_cfg(**kw) -> LandUseConfig:
 
 def resolver_q(cfg: LandUseConfig) -> np.ndarray:
     """Matriz de composición Q[h, i] del equilibrio (sin métricas derivadas)."""
-    ciudad = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=LARGO_KM / L)
+    ciudad = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=LARGO_KM / L, T=T_WEB)
     return np.asarray(ciudad.result.Q, dtype=float)
 
 
 def resolver(cfg: LandUseConfig) -> dict:
-    ciudad = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=LARGO_KM / L)
+    ciudad = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=LARGO_KM / L, T=T_WEB)
     oferta = np.asarray(ciudad.S, dtype=float)
     q_mat = np.asarray(ciudad.result.Q, dtype=float)  # [h, i]
     p = np.asarray(ciudad.result.p, dtype=float)
@@ -197,7 +205,7 @@ def colinealidad_alpha_rho() -> None:
     parametros solo se identifica esa combinacion."""
     print("\n### 6b. alpha y rho: ¿dos canales o uno? (AU-12)")
     print(f"  {'forma':>12} {'corr(T,dens)':>13} {'dens min':>10} {'dens max':>10}  lectura")
-    T = _default_T(L, CBD, 3, LARGO_KM / L)[0]
+    T = T_WEB[1]  # estrato medio
     fuera = np.arange(L) != CBD  # el CBD no tiene oferta
     for forma in ("normal", "uniforme", "exponencial", "meseta", "bimodal", "valle"):
         ciudad = LandUseCity.build(

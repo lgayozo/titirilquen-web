@@ -9,6 +9,9 @@ interface LandUseBuilderProps {
   onChange: (updater: (prev: LandUseConfig) => LandUseConfig) => void;
   /** Largo de la ciudad (km), para el total de población derivado. */
   largoKm: number;
+  /** |b_costo| de la demanda de transporte por estrato (alto, medio, bajo).
+   *  λ_h = escala · |b_costo_h|: la UI mueve la escala, nunca las razones (D-34). */
+  bCosto: readonly [number, number, number];
 }
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
@@ -17,8 +20,33 @@ export function LandUseBuilder({
   config,
   onChange,
   largoKm,
+  bCosto,
 }: LandUseBuilderProps) {
   const { t } = useTranslation("simulator");
+
+  // α es común a los tres estratos y λ_h = escala · |b_costo_h|: los dos
+  // controles mueven los tres valores a la vez, así las razones entre estratos
+  // —y con transporte— no se pueden romper desde la UI (D-34).
+  const alpha = config.estratos[0].alpha;
+  const escalaLambda =
+    bCosto[1] > 0 ? config.estratos[1].lambda / bCosto[1] : 1;
+  const setAlpha = (v: number) =>
+    onChange((c) => ({
+      ...c,
+      estratos: c.estratos.map((e) => ({
+        ...e,
+        alpha: v,
+      })) as LandUseConfig["estratos"],
+    }));
+  const setEscalaLambda = (k: number) =>
+    onChange((c) => ({
+      ...c,
+      estratos: c.estratos.map((e, h) => ({
+        ...e,
+        lambda: k * bCosto[h as 0 | 1 | 2],
+      })) as LandUseConfig["estratos"],
+    }));
+  const fmtLambda = (v: number) => `${(v * 1e4).toFixed(2)}·10⁻⁴`;
 
   const setStratum = (
     idx: 0 | 1 | 2,
@@ -178,22 +206,49 @@ export function LandUseBuilder({
         )}
       </CollapsibleSection>
 
-      {/* ---- PARÁMETROS DE PUJA (bid-rent): sensibilidades del estrato ---- */}
+      {/* ---- PARÁMETROS DE PUJA (bid-rent): β, α y la escala de λ ---- */}
       <CollapsibleSection
         title={t("land_use.section_bidrent")}
-        meta={`β=${config.beta.toFixed(1)}`}
+        meta={`β=${config.beta.toFixed(2)} · α=${alpha.toFixed(1)}`}
         defaultOpen={false}
       >
+        <p className="mb-2 text-[10px] text-muted">
+          {t("land_use.bidrent_hint")}
+        </p>
         <LabeledSlider
           label={t("land_use.param_beta")}
           value={config.beta}
-          min={0.1}
-          max={5}
-          step={0.1}
+          min={0.01}
+          max={2}
+          step={0.01}
+          hint={t("land_use.beta_hint")}
           onChange={(v) => onChange((c) => ({ ...c, beta: v }))}
         />
-        <p className="mt-1 text-[10px] text-muted">
-          {t("land_use.bidrent_hint")}
+        <LabeledSlider
+          label={t("land_use.param_alpha")}
+          value={alpha}
+          min={0.1}
+          max={10}
+          step={0.1}
+          hint={t("land_use.alpha_hint")}
+          onChange={setAlpha}
+        />
+        <LabeledSlider
+          label={t("land_use.param_lambda_escala")}
+          value={escalaLambda}
+          min={0.1}
+          max={10}
+          step={0.05}
+          format={(v) => `×${v.toFixed(2)}`}
+          hint={t("land_use.lambda_escala_hint")}
+          onChange={setEscalaLambda}
+        />
+        <p className="-mt-1 text-[10px] text-muted">
+          {t("land_use.lambda_values", {
+            l1: fmtLambda(config.estratos[0].lambda),
+            l2: fmtLambda(config.estratos[1].lambda),
+            l3: fmtLambda(config.estratos[2].lambda),
+          })}
         </p>
       </CollapsibleSection>
 
@@ -204,23 +259,17 @@ export function LandUseBuilder({
           <CollapsibleSection
             key={i}
             title={`${labels[idx]} · ${t("land_use.section_bidrent_short")}`}
-            meta={`α=${s.alpha}`}
+            meta={`ρ=${(s.rho * 1e3).toFixed(1)}·10⁻³`}
             defaultOpen={false}
           >
-            <LabeledSlider
-              label={t("land_use.param_alpha")}
-              value={s.alpha}
-              min={0.5}
-              max={20}
-              step={0.25}
-              onChange={(v) => setStratum(idx, { alpha: v })}
-            />
             <LabeledSlider
               label={t("land_use.param_rho")}
               value={s.rho}
               min={0}
-              max={0.5}
-              step={0.01}
+              max={0.01}
+              step={0.0001}
+              format={(v) => `${(v * 1e3).toFixed(2)}·10⁻³`}
+              hint={t("land_use.rho_hint")}
               onChange={(v) => setStratum(idx, { rho: v })}
             />
             <LabeledSlider
@@ -233,15 +282,6 @@ export function LandUseBuilder({
               disabled
               hint={t("land_use.y_na")}
               onChange={(v) => setStratum(idx, { y: v })}
-            />
-            <LabeledSlider
-              label={t("land_use.param_lambda")}
-              value={s.lambda}
-              min={0.1}
-              max={3}
-              step={0.05}
-              hint={t("land_use.lambda_artifact_logit")}
-              onChange={(v) => setStratum(idx, { lambda: v })}
             />
           </CollapsibleSection>
         );
