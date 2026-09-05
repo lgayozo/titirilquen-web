@@ -352,7 +352,7 @@
     "densidad_media_label": "Population scale (pop/km)",
     "densidad_media": "Mean density",
     "poblacion_total_hint": "Total population ≈ {{total}} = length × mean density ({{dens}} pop/km). It sets how many households there are; per-cell density is a consequence of supply (S/Δx), not an imposed gradient.",
-    "bidrent_hint": "The accessibility entering the bid is the mode-choice logsum —that household's expected trip utility—, monthly (44 trips). α = 1 reads it as is; λ_h = |b_cost_h| turns it into pesos, so the value of time α/λ is the same as in Transport; β = 1 is the same noise as one trip. One household, one utility function (D-34).",
+    "bidrent_hint": "The accessibility entering the bid is the mode-choice logsum —that household's expected trip utility—, monthly (44 trips). α = 1 reads it as is; λ_h = |b_cost_h| turns it into pesos, so the value of time α/λ is the same as in Transport; β sets the noise (0.15 ≈ 1/√44 by default). One household, one utility function (D-34).",
     "subtitle": "Alonso-Muth-Mills model",
     "mode_standalone": "Land use only",
     "mode_coupled": "City at equilibrium",
@@ -424,7 +424,7 @@
     "placeholder_desc": "The Alonso equilibrium allocates households by auction: each stratum bids for parcels according to its valuation of accessibility (α·T) and its disutility of density (ρ·dens). The stratum that values proximity the most wins the center; the rest sort toward the periphery. Adjust the city shape and per-stratum parameters on the left panel.",
     "param_lambda_escala": "λ · scale (marg. utility of income)",
     "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utils/$ = transport |b_cost| × scale. The ratios across strata are transport's and are not editable.",
-    "beta_hint": "The module's only knob of its own: how noisy choosing a home is relative to choosing a mode. β = 1: the same noise as one trip (very sharp city, Theil ≈ 0.75). β = 0.1: ten times noisier (visible mixing, Theil ≈ 0.1). Does not touch the value of time.",
+    "beta_hint": "The module's only knob of its own: how noisy choosing a home is relative to one trip. β = 1 is one trip's noise against a monthly signal (near-deterministic city, Theil ≈ 0.75). The default 0.15 ≈ 1/√44 assumes the noise also accumulates over the month (Theil ≈ 0.16). Does not touch the value of time.",
     "alpha_hint": "1 = accessibility as is. Any other value is an unsourced multiplier; for more or less sharpness use β. Common to the three strata: their differences in valuing time already come through λ.",
     "lambda_escala_hint": "Common scale on Transport's |b_cost|. Moves the bid noise in pesos (1/λ) and ρ's relative weight; does not move the ratios across strata. ×1 = literal.",
     "rho_hint": "No source in the original model; by default it weighs half as much as accessibility for the middle stratum. It mostly moves prices (flattens Alonso's rent). Past ~1.0·10⁻² the allocation flips: hence the cap."

@@ -23,7 +23,7 @@ positivo = Alonso), `dens_pk` (densidad máxima) e `iters`.
 | AU-07 | El solver que decía corregirlo no lo hacía — **eliminado** | 🐛 corregido |
 | AU-08 | No hay **techo de densidad**: la densidad puede crecer sin límite | ⚠️ decisión de modelo a discutir |
 | AU-09 | Convergencia lenta en configuraciones asimétricas (hasta 2.640 iter) | ℹ️ observación |
-| AU-10 | Sensibilidad muy alta a diferencias pequeñas de α | ℹ️ para la lectura pedagógica |
+| AU-10 | Sensibilidad muy alta a diferencias pequeñas de α — era señal/ruido 177:1. Con D-34 la razón la fija `β`; el default `β = 1/√44` deja Theil 0,16 | ✅ resuelto por D-34 |
 | AU-11 | **El gradiente de renta estaba INVERTIDO** y `grad_p` lo tapaba | 🐛 corregido 2026-08-24 |
 | AU-12 | `α` y `ρ` no son canales independientes: colineales en la geometría base | ⚠️ no identificados |
 | AU-13 | El **nivel** de `α` no está identificado por la localización. Desde D-34 lo fija el ancla del original: `α = 1` sobre el logsum de transporte, `λ = \|b_costo\|`; queda libre sólo `β` (ruido de elegir casa vs. viaje) | ✅ resuelto (D-34); `β` es decisión pedagógica |

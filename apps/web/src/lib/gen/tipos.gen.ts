@@ -189,7 +189,10 @@ export interface LandUseConfig {
    *  lo que produce el gradiente de Alonso.
    */
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
-  /** Parámetro de sensibilidad logit */
+  /**
+   *  Nitidez de la subasta: escala del ruido de la puja = 1/(beta·lambda). 1 =
+   *  el ruido de un viaje; 0,15 ≈ 1/√44 = ruido acumulado en el mes
+   */
   beta: number;
   tol: number;
   max_iter: number;

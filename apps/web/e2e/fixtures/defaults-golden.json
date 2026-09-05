@@ -95,7 +95,7 @@
      "rho": 0.0052
     }
    ],
-   "beta": 1.0,
+   "beta": 0.15,
    "tol": 1e-08,
    "max_iter": 10000,
    "forma": "normal",

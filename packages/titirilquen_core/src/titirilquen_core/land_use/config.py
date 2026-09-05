@@ -145,7 +145,25 @@ class LandUseConfig(BaseModel):
             "cada uno, que es lo que produce el gradiente de Alonso."
         ),
     )
-    beta: float = Field(default=1.0, gt=0, description="Parámetro de sensibilidad logit")
+    # `beta` = 0,15 ≈ 1/√44 (decisión 2026-09-04). La escala del ruido Gumbel de la
+    # puja es 1/(beta·lambda_h). Con beta = 1 el ruido es el de UN viaje mientras
+    # la señal (T) está mensualizada ×44: eso supone que el gusto idiosincrático
+    # por una casa es un solo sorteo, y da una ciudad casi determinista (Theil
+    # 0,75, señal/ruido ~90:1). Si en cambio el ruido también se acumula viaje a
+    # viaje (iid), su escala mensual crece como √44 ≈ 6,6 y la razón señal/ruido
+    # honesta es 6,6 veces menor: beta = 1/√44. Ninguna de las dos hipótesis se
+    # puede estimar con estos datos; ésta es la que no infla la nitidez. Medido:
+    # Theil ≈ 0,16, alto/medio/bajo ≈ 2,1 / 3,1 / 5,5 km, gradiente de renta
+    # +0,78, ~30 iteraciones (vs 140 con beta = 1). Es la ÚNICA perilla propia
+    # del módulo: alpha y lambda vienen de transporte (D-34).
+    beta: float = Field(
+        default=0.15,
+        gt=0,
+        description=(
+            "Nitidez de la subasta: escala del ruido de la puja = 1/(beta·lambda). "
+            "1 = el ruido de un viaje; 0,15 ≈ 1/√44 = ruido acumulado en el mes"
+        ),
+    )
     tol: float = Field(default=1e-8, gt=0)
     max_iter: int = Field(default=10000, ge=1)
     forma: FormaOferta = Field(

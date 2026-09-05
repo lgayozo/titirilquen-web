@@ -1051,6 +1051,17 @@ penaliza una densidad que el modelo nunca mueve.
   7,42. `original` intacta. El acoplado arranca y itera con el mismo objeto
   (`T_flujo_libre` y `_T_logsum_snapshot`); `T_residual` queda en utiles de
   transporte por mes.
+- **`β` = 0,15 ≈ 1/√44 (decisión 2026-09-04).** Con `β = 1` la señal está
+  mensualizada ×44 pero el ruido es el de un viaje: eso supone que el gusto por
+  una casa es un solo sorteo, y da Theil 0,75. Si el ruido también se acumula
+  viaje a viaje (iid), su escala mensual crece como √44 ≈ 6,6 y la razón
+  señal/ruido honesta es 6,6 veces menor. Ninguna hipótesis se estima con estos
+  datos; se eligió la que no infla la nitidez. Medido: Theil 0,16, alto/medio/
+  bajo 2,15 / 3,11 / 5,50 km, gradiente +0,78, 29 iteraciones. Mueve la rama
+  `equilibrio` (metro −3,0 pp, caminata +1,65): declarado en `test_linea_base`.
+  Los otros dos caminos a un Theil menor con `β = 1` son trampa: bajar `α` sin
+  `ρ` cambia el modelo (invierte Alonso), y bajar la escala de `λ` es `β` con
+  otro nombre rompiendo el nivel del VoT.
 - **UI.** `α` y `λ` se editan sin poder romper las razones: un control común
   para `α` y una *escala* para `λ` (`λ_h = escala·|b_costo_h|`, leídos de la
   demanda de transporte). `β` en 0,01–2; `ρ` en 0–0,01.
@@ -1100,4 +1111,4 @@ penaliza una densidad que el modelo nunca mueve.
 | D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp) | Bug corregido, línea base intacta | Alta |
 | D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez) | Simplificación declarada, sin cambio de código | Media |
 | D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo) | Calibración corregida, línea base movida y declarada | Alta |
-| D-34 | Suelo: accesibilidad = logsum mensual de transporte, α = 1, λ = |b_costo|; D-22 revisada | Ancla del original recuperada, línea base movida poco | Alta |
+| D-34 | Suelo: accesibilidad = logsum mensual de transporte, α = 1, λ = |b_costo|, β = 1/√44; D-22 revisada | Ancla del original recuperada, línea base movida y declarada | Alta |

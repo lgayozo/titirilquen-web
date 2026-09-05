@@ -55,12 +55,17 @@ ESPERADO = {
     #     lambda = |b_costo|. Mueve sólo `equilibrio`, y poco (auto +0,03,
     #     metro −0,13, bici +0,05, caminata +0,08): la ciudad resultante es casi
     #     la misma, ahora con unidades que cierran.
+    #  4. beta = 0,15 ≈ 1/√44 (ruido acumulado en el mes, no el de un viaje):
+    #     la ciudad de partida pasa de Theil 0,75 a 0,16 —el estrato bajo ya no
+    #     queda confinado a la periferia (5,5 km en vez de 6,7)— y sus viajes
+    #     más cortos migran del metro a la caminata y la bici: metro −3,0 pp,
+    #     caminata +1,65, bici +1,10, auto +0,20. `original` sigue intacta.
     "equilibrio": {
-        "Auto": 15.22,
-        "Metro": 35.18,
-        "Bici": 22.75,
-        "Caminata": 7.42,
-        "Teletrabajo": 19.44,
+        "Auto": 15.42,
+        "Metro": 32.17,
+        "Bici": 23.85,
+        "Caminata": 9.07,
+        "Teletrabajo": 19.49,
     },
     "original": {
         "Auto": 15.81,
