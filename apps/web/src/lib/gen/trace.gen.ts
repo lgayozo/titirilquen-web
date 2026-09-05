@@ -117,6 +117,11 @@ export interface LandUseSolveDict {
    *  parámetro. 0 donde no hay oferta.
    */
   densidad_celda: number[];
+  /**
+   *  Segregación de Theil POBLACIONAL (N = S·Q), calculada en el núcleo (D-38).
+   *  El frontend la muestra; ya no la recalcula sobre Q.
+   */
+  theil: number;
   result: LandUseResultDict;
 }
 
@@ -126,6 +131,13 @@ export interface StratumMetrics {
   estrato: number;
   /** Hogares del estrato (Σ_i S_i·Q[h,i] ≈ H_h). */
   n_hogares: number;
+  /**
+   *  Agentes del estrato que viajan (sin teletrabajo ni varados). Es la
+   *  población sobre la que están promediados `tiempo_medio_min`,
+   *  `costo_medio_clp` y `delta_excedente_clp`, y la que pesa en el bienestar
+   *  total (D-35).
+   */
+  n_viajeros: number;
   /** Distancia media de residencia al CBD, ponderada por hogares (km). */
   dist_media_cbd_km: number;
   /** Tiempo de viaje medio de los agentes que viajan (min). */
@@ -178,8 +190,9 @@ export interface SystemMetrics {
   /** Índice H de Theil sobre Q ∈ [0,1]. 0 = integrada, 1 = segregación total. */
   segregacion_theil: number;
   /**
-   *  Σ_h n_hogares_h · ΔCS_h ($). Efecto agregado de bienestar de la demanda
-   *  sobre la red (congestión vs Mohring), respecto a la red vacía.
+   *  Σ sobre los agentes que viajan de ΔCS ($) — D-35. Efecto agregado de
+   *  bienestar de la demanda sobre la red (congestión vs Mohring), respecto a
+   *  la red vacía.
    */
   delta_bienestar_total_clp: number;
   /**

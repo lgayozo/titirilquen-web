@@ -32,7 +32,11 @@ import numpy as np
 from titirilquen_core.bienestar import AgregadosDict, calcular_agregados
 from titirilquen_core.config import ModoElegido, SimulationConfig
 from titirilquen_core.coupled import CoupledResult, OuterIteration
-from titirilquen_core.coupled_metrics import EquilibriumMetricsJSON, equilibrium_metrics_to_dict
+from titirilquen_core.coupled_metrics import (
+    EquilibriumMetricsJSON,
+    _theil,
+    equilibrium_metrics_to_dict,
+)
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.equilibrium import LandUseResult
@@ -136,6 +140,10 @@ class LandUseSolveDict(TypedDict):
     densidad_celda: list[float]
     """Densidad por celda (hab/km) = S_i/Δx: es CONSECUENCIA de la oferta, no un
     parámetro. 0 donde no hay oferta."""
+
+    theil: float
+    """Segregación de Theil POBLACIONAL (N = S·Q), calculada en el núcleo (D-38).
+    El frontend la muestra; ya no la recalcula sobre Q."""
 
     result: LandUseResultDict
 
@@ -261,6 +269,7 @@ def land_use_city_to_dict(city: LandUseCity) -> LandUseSolveDict:
         "S": city.S.tolist(),
         "parcelas": city.parcelas,
         "densidad_celda": city.densidad_por_celda().tolist(),
+        "theil": _theil(np.asarray(city.result.Q), np.asarray(city.S, dtype=float)),
         "result": land_use_result_to_dict(city.result),
     }
 

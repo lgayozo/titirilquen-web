@@ -233,3 +233,54 @@ def test_el_reparto_modal_reacciona_a_la_politica(
     sim_liviana.demand.globales.costo_tarifa_metro *= 6
     caro = _agregados(sim_liviana, lu_chica, "expected")
     assert caro["viajes_por_modo"]["Metro"] < base["viajes_por_modo"]["Metro"]
+
+
+# ---------------------------------------------------------------------------
+# D-36 / D-37: costo del operador y costo generalizado
+# ---------------------------------------------------------------------------
+
+
+def test_un_metro_sin_emisiones_sigue_costando_operarlo(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """D-36: los tren-km salen del servicio (f_op · línea · 2), no de las
+    emisiones. Con factor de emisión 0 el costo del operador no puede caer."""
+    con = _agregados(sim_liviana.model_copy(deep=True), lu_chica, "expected")
+    sim0 = sim_liviana.model_copy(deep=True)
+    sim0.demand.globales.factor_emision_metro_tren_km = 0.0
+    sin = _agregados(sim0, lu_chica, "expected")
+    assert sin["tren_km_hora"] > 0
+    assert sin["tren_km_hora"] == pytest.approx(con["tren_km_hora"], rel=1e-9)
+    assert sin["costo_operador_clp"] == pytest.approx(con["costo_operador_clp"], rel=1e-9)
+
+
+def test_los_minutos_ponderados_pesan_espera_y_acceso() -> None:
+    """D-37: el costo generalizado no es «minutos × VoT» plano."""
+    from titirilquen_core.bienestar import minutos_ponderados
+    from titirilquen_core.demand.utility import TiemposObservados
+
+    t = TiemposObservados(
+        auto_total=12.0, bici_total=20.0, tren_acceso=6.0, tren_espera=4.0, tren_viaje=15.0
+    )
+    assert minutos_ponderados("Auto", t, 30.0, w_espera=2, w_acceso=2, w_caminata=1.7) == 12.0
+    assert minutos_ponderados("Bici", t, 30.0, w_espera=2, w_acceso=2, w_caminata=1.7) == 20.0
+    assert (
+        minutos_ponderados("Metro", t, 30.0, w_espera=2, w_acceso=2, w_caminata=1.7) == 15 + 8 + 12
+    )
+    assert minutos_ponderados("Caminata", t, 30.0, w_espera=2, w_acceso=2, w_caminata=1.7) == 51.0
+    # con ponderadores 1 vuelve a los minutos físicos
+    assert minutos_ponderados("Metro", t, 30.0, w_espera=1, w_acceso=1, w_caminata=1) == 25.0
+
+
+def test_el_costo_social_supera_al_de_minutos_planos(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """D-37: con espera y acceso ponderados ×2 (SNI), el costo social agregado
+    es mayor que valorar todos los minutos igual — salvo que nadie use metro."""
+    from titirilquen_core.bienestar import VOT_SOCIAL_CLP_HORA
+
+    agg = _agregados(sim_liviana.model_copy(deep=True), lu_chica, "expected")
+    if agg["viajes_por_modo"]["Metro"] > 0:
+        # cota inferior: minutos planos × VoT social (sin dinero) < social reportado
+        plano = agg["tiempo_total_min"] / 60 * VOT_SOCIAL_CLP_HORA
+        assert agg["costo_generalizado_social_clp"] > plano

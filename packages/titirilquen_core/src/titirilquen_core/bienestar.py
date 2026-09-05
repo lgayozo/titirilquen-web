@@ -97,6 +97,7 @@ from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig, StratumId
 from titirilquen_core.constantes import MODOS, VOT_SOCIAL_CLP_HORA
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
+from titirilquen_core.emissions import tren_km_hora
 from titirilquen_core.equilibrium.msa import ConvergenceTrace
 
 #: Los estratos como llegan al JSON. Las claves de un objeto JSON son strings,
@@ -184,6 +185,39 @@ class AgregadosDict(TypedDict):
     #: estacionamiento bajaba el excedente sin acreditar que la ciudad recauda,
     #: así que toda tarificación parecía empeorar el bienestar.
     bienestar_social_clp: float
+
+
+#: Ponderadores del SNI (Precios Sociales 2026, tabla 2.1) para el tiempo de
+#: espera y de acceso caminando del transporte público mayor, sobre el tiempo
+#: en vehículo. El viaje entero a pie NO está en esa tabla: pondera 1.
+PONDERADOR_SNI_ESPERA = 2.0
+PONDERADOR_SNI_ACCESO = 2.0
+
+
+def minutos_ponderados(
+    modo: str,
+    tiempos: TiemposObservados,
+    t_caminata_min: float,
+    *,
+    w_espera: float,
+    w_acceso: float,
+    w_caminata: float,
+) -> float:
+    """Minutos-equivalentes en vehículo de un viaje: cada componente de tiempo
+    pesa lo que pesa en la utilidad (o en la norma), no un minuto plano (D-37).
+
+    Auto y bici: su tiempo tal cual. Metro: viaje + w·espera + w·acceso.
+    Caminata como modo: w_caminata · tiempo. Las penalizaciones escalonadas de
+    bici y caminata quedan fuera: son desutilidad, no tiempo."""
+    if modo == "Auto":
+        return float(tiempos.auto_total)
+    if modo == "Bici":
+        return float(tiempos.bici_total)
+    if modo == "Metro":
+        return float(
+            tiempos.tren_viaje + w_espera * tiempos.tren_espera + w_acceso * tiempos.tren_acceso
+        )
+    return w_caminata * float(t_caminata_min)
 
 
 def vot_clp_hora(cfg: SimulationConfig, estrato: StratumId) -> float:
@@ -315,8 +349,29 @@ def calcular_agregados(
                 viajeros += d
                 viajes_modo[modo] += d
                 viajes_modo_estrato[str(h)][modo] += d
-                cg_percibido += d * ((minutos / 60) * vot[h] + dinero)
-                cg_social += d * ((minutos / 60) * vot_social_clp_hora + dinero)
+                # Costo generalizado por COMPONENTES (D-37): el percibido pesa
+                # espera, acceso y caminata como la utilidad del estrato; el
+                # social, como la tabla 2.1 del SNI.
+                b = cfg.demand.estratos[h].betas
+                bt = abs(b.b_tiempo_viaje) or 1.0
+                min_perc = minutos_ponderados(
+                    modo,
+                    tiempos,
+                    t_cam,
+                    w_espera=abs(b.b_tiempo_espera) / bt,
+                    w_acceso=abs(b.b_tiempo_acceso) / bt,
+                    w_caminata=abs(b.b_tiempo_caminata) / bt,
+                )
+                min_soc = minutos_ponderados(
+                    modo,
+                    tiempos,
+                    t_cam,
+                    w_espera=PONDERADOR_SNI_ESPERA,
+                    w_acceso=PONDERADOR_SNI_ACCESO,
+                    w_caminata=1.0,
+                )
+                cg_percibido += d * ((min_perc / 60) * vot[h] + dinero)
+                cg_social += d * ((min_soc / 60) * vot_social_clp_hora + dinero)
                 # Sólo las TRANSFERENCIAS cuentan como recaudación. La bencina se
                 # excluye a propósito: es consumo real de recursos, no ingreso.
                 if modo == "Auto":
@@ -345,11 +400,10 @@ def calcular_agregados(
                 mx_suma[h] += mx * n_estrato
                 ls_n[h] += n_estrato
 
-    # Tren-km del servicio. Se despeja de las emisiones del metro en vez de
-    # recalcular `f_op · span · 2`: esa fórmula vive en `emissions.py` y
-    # duplicarla acá sería otro espejo.
-    factor_em = cfg.demand.globales.factor_emision_metro_tren_km
-    tren_km = trace.emisiones_metro_kg / factor_em if factor_em > 0 else 0.0
+    # Tren-km del servicio, de la misma función que usan las emisiones (D-36).
+    # Antes se despejaba `kg / factor_emisión`, y con factor 0 el costo del
+    # operador desaparecía aunque el servicio siguiera circulando.
+    tren_km = tren_km_hora(float(snap.frecuencia_metro), trace.estaciones_km)
     # El factor día/punta lleva el costo de la hora punta a base comparable con
     # el ingreso: sin él, el autofinanciamiento se lee sobre la hora más cargada
     # del día y sale optimista por construcción.

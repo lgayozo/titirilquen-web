@@ -40,6 +40,19 @@ class EmissionsResult:
     velocidad_auto_kmh: NDArray[np.float64]
 
 
+def tren_km_hora(frecuencia_metro: float, estaciones_km: NDArray[np.float64] | None) -> float:
+    """Tren-km por hora del servicio: `f_op · largo de la línea · 2` (ida y vuelta).
+
+    Es la ÚNICA definición: la usan las emisiones del metro (D-29) y el costo del
+    operador en `bienestar.py`. Hasta D-36 el costo se despejaba de las emisiones
+    (`kg / factor`), así que un factor de emisión 0 —metro descarbonizado— ponía
+    el costo operador en $0 con el mismo servicio circulando."""
+    if estaciones_km is None or len(estaciones_km) < 2 or frecuencia_metro <= 0:
+        return 0.0
+    span_km = float(np.max(estaciones_km) - np.min(estaciones_km))
+    return float(frecuencia_metro) * span_km * 2.0
+
+
 def calcular_emisiones(
     *,
     flujos_auto: NDArray[np.float64],
@@ -74,9 +87,8 @@ def calcular_emisiones(
     # El perfil espacial se reparte uniforme sobre las celdas que cubre la línea.
     emisiones_metro_g = np.zeros(n_celdas)
     metro_kg = 0.0
-    if len(estaciones_km) >= 2 and frecuencia_metro > 0:
-        span_km = float(estaciones_km.max() - estaciones_km.min())
-        tren_km_h = frecuencia_metro * span_km * 2.0
+    tren_km_h = tren_km_hora(frecuencia_metro, estaciones_km)
+    if tren_km_h > 0:
         metro_kg = factor_emision_metro_tren_km * tren_km_h
         idx_start = int((float(estaciones_km.min()) / largo_ciudad_km) * n_celdas)
         idx_end = int((float(estaciones_km.max()) / largo_ciudad_km) * n_celdas)

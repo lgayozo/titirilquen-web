@@ -103,10 +103,16 @@ def test_regresividad_por_ingreso(corrida) -> None:
         assert m.sistema.ratio_carga_bajo_alto > 1.0
 
 
-def test_bienestar_total_es_suma_ponderada(corrida) -> None:
+def test_bienestar_total_es_suma_sobre_quienes_viajan(corrida) -> None:
+    """D-35: el promedio por viajero se multiplica por los VIAJEROS, no por
+    todos los hogares (teletrabajo tiene ΔCS = 0 y el varado no tiene medida)."""
     m, _sim, _lu = corrida
-    esperado = sum(sm.delta_excedente_clp * sm.n_hogares for sm in m.por_estrato)
+    esperado = sum(sm.delta_excedente_clp * sm.n_viajeros for sm in m.por_estrato)
     assert abs(m.sistema.delta_bienestar_total_clp - esperado) < 1e-3
+    inflado = sum(sm.delta_excedente_clp * sm.n_hogares for sm in m.por_estrato)
+    assert abs(inflado) > abs(esperado), (
+        "n_hogares ≥ n_viajeros: el viejo total era mayor en magnitud"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -151,3 +157,18 @@ def test_el_nucleo_decide_la_medida_una_sola_vez(demanda_sintetica: DemandConfig
     res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
     acoplada = res.iterations[-1].metrics.sistema.medida_bienestar
     assert acoplada == medida_emparejada(sim.assignment)
+
+
+def test_el_theil_pesa_por_hogares_no_por_celdas() -> None:
+    """D-38: dos celdas, una con 100 hogares mezclados y otra con 1 hogar de un
+    solo estrato. Por celdas la segregada pesa la mitad; por hogares, casi nada."""
+    import numpy as np
+
+    from titirilquen_core.coupled_metrics import _theil
+
+    Q = np.array([[0.5, 1.0], [0.5, 0.0]])
+    S = np.array([100.0, 1.0])
+    territorial = _theil(Q)
+    poblacional = _theil(Q, S)
+    assert territorial > 0.3
+    assert poblacional < 0.05

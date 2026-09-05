@@ -76,6 +76,11 @@ class StratumMetrics:
     n_hogares: float
     """Hogares del estrato (Σ_i S_i·Q[h,i] ≈ H_h)."""
 
+    n_viajeros: int
+    """Agentes del estrato que viajan (sin teletrabajo ni varados). Es la
+    población sobre la que están promediados `tiempo_medio_min`, `costo_medio_clp`
+    y `delta_excedente_clp`, y la que pesa en el bienestar total (D-35)."""
+
     dist_media_cbd_km: float
     """Distancia media de residencia al CBD, ponderada por hogares (km)."""
 
@@ -134,7 +139,7 @@ class SystemMetrics:
     """Índice H de Theil sobre Q ∈ [0,1]. 0 = integrada, 1 = segregación total."""
 
     delta_bienestar_total_clp: float
-    """Σ_h n_hogares_h · ΔCS_h ($). Efecto agregado de bienestar de la demanda
+    """Σ sobre los agentes que viajan de ΔCS ($) — D-35. Efecto agregado de bienestar de la demanda
     sobre la red (congestión vs Mohring), respecto a la red vacía."""
 
     medida_bienestar: MedidaBienestar
@@ -263,11 +268,16 @@ def _utilidad_esperada(
     return maximo if medida == "utilidad_maxima" else logsum
 
 
-def _theil(Q: np.ndarray) -> float:
-    """Índice H de Theil sobre Q (estratos x parcelas). 0 = integrada, 1 = segregada."""
-    total_h = Q.sum(axis=1)
-    total_i = Q.sum(axis=0)
-    N = float(Q.sum())
+def _theil(Q: np.ndarray, S: np.ndarray | None = None) -> float:
+    """Índice H de Theil, 0 = integrada, 1 = segregada.
+
+    Con `S` (capacidad por parcela) pesa por HOGARES, `N_hi = S_i·Q_hi`: es el
+    índice poblacional (D-38). Sin `S` pesa cada celda habitada igual, porque
+    las columnas de Q suman 1 — un índice territorial, no el que se reporta."""
+    N_hi = Q if S is None else Q * np.asarray(S, dtype=float)[None, :]
+    total_h = N_hi.sum(axis=1)
+    total_i = N_hi.sum(axis=0)
+    N = float(N_hi.sum())
     if N <= 0:
         return 0.0
 
@@ -283,7 +293,7 @@ def _theil(Q: np.ndarray) -> float:
         Ni = total_i[i]
         if Ni <= 0:
             continue
-        weighted += (Ni / N) * entropy(Q[:, i] / Ni)
+        weighted += (Ni / N) * entropy(N_hi[:, i] / Ni)
     return 1.0 - weighted / E
 
 
@@ -415,6 +425,7 @@ def compute_equilibrium_metrics(
             StratumMetrics(
                 estrato=h + 1,
                 n_hogares=n_h,
+                n_viajeros=nv,
                 dist_media_cbd_km=d_media,
                 tiempo_medio_min=t_medio,
                 reparto_modal=reparto,
@@ -435,9 +446,12 @@ def compute_equilibrium_metrics(
     n_viajan_total = int(viajan.sum())
     t_medio_sis = t_total / n_viajan_total if n_viajan_total > 0 else 0.0
 
-    bienestar_total = float(
-        sum(por_estrato[h].delta_excedente_clp * por_estrato[h].n_hogares for h in range(n_strata))
-    )
+    # Suma del ΔCS sobre los agentes que VIAJAN (D-35). Antes se multiplicaba el
+    # promedio por viajero por `n_hogares` —que incluye teletrabajo y varados—,
+    # inflando la magnitud ≈ n_hogares/n_viajeros (~20 % en la base). El
+    # teletrabajador tiene ΔCS = 0; el varado no tiene medida y queda FUERA: si
+    # una política deja gente sin viaje, este total no lo castiga (pendiente).
+    bienestar_total = float(cs_sum.sum())
 
     t_alto = por_estrato[0].tiempo_medio_min
     t_bajo = por_estrato[-1].tiempo_medio_min
@@ -460,7 +474,7 @@ def compute_equilibrium_metrics(
         emisiones_total_kg=float(trace.emisiones_total_kg),
         emisiones_auto_kg=float(trace.emisiones_auto_kg),
         emisiones_metro_kg=float(trace.emisiones_metro_kg),
-        segregacion_theil=_theil(Q),
+        segregacion_theil=_theil(Q, S),
         delta_bienestar_total_clp=bienestar_total,
         medida_bienestar=medida,
         ratio_tiempo_bajo_alto=ratio_t,

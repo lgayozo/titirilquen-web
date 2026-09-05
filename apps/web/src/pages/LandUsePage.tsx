@@ -15,7 +15,6 @@ import { StrataHeatmap } from "@/components/viz/StrataHeatmap";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { resolverUsoDeSuelo } from "@/lib/api";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
-import { theilSegregation } from "@/lib/metrics";
 import { isLandUseStale, useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
@@ -161,7 +160,7 @@ export function LandUsePage() {
         }
       }
     }
-    const theil = theilSegregation(result.result.Q);
+    const theil = result.theil;
     const STR = ["alto", "medio", "bajo"];
     const VAR = ["var(--s1)", "var(--s2)", "var(--s3)"];
     return [

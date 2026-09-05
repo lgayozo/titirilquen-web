@@ -24,7 +24,6 @@ import { defaultLandUseConfig } from "@/lib/defaults";
 import { expectedComposition } from "@/lib/citySupply";
 import { downloadCsv } from "@/lib/csv";
 import { computeKPIs, type ScenarioKPIs } from "@/lib/kpis";
-import { theilSegregation } from "@/lib/metrics";
 import type { Modo } from "@/lib/types";
 import type { LandUseConfig, LandUseSolveResponse } from "@/lib/types-v2";
 import {
@@ -67,7 +66,7 @@ function landUseValues(
   }
   const dist = (k: number) => (cnt[k]! > 0 ? sum[k]! / cnt[k]! : 0);
   return {
-    theil: theilSegregation(r.result.Q),
+    theil: r.theil,
     dist_alto: dist(0),
     dist_medio: dist(1),
     dist_bajo: dist(2),

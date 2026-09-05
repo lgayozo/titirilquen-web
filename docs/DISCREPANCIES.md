@@ -1094,7 +1094,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   reescalado. Corrección: acumular sobre los pesos de quienes viajan y explicitar
   el período; decidir y declarar qué se hace con los varados (hoy se omiten en
   silencio, lo que puede *mejorar* un promedio al empeorar la red).
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-05. `bienestar_total = Σ ΔCS` sobre los agentes que viajan; `StratumMetrics.n_viajeros` expone la población del promedio. Los varados siguen fuera, declarado en el código.
 
 ## D-36 — Bienestar: los tren-km se despejan de las emisiones, así que un factor de emisión 0 anula el costo del operador (A05)
 
@@ -1105,7 +1105,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   en esa cifra con el mismo servicio.
 - **Veredicto**: bug. Corrección: `emissions.py` expone los tren-km (o el trace
   los serializa) y `bienestar.py` los consume; test con factor 0.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-05. `emissions.tren_km_hora(f_op, estaciones)` es la única definición; `bienestar.py` la consume. Test: factor 0 conserva tren-km y costo operador.
 
 ## D-37 — Bienestar: el costo generalizado aplica el VoT en vehículo a todos los minutos (A04)
 
@@ -1120,7 +1120,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   costo por componente de tiempo con sus ponderadores, y presentar el excedente
   social reescalado como lo que es (una agregación distributiva), no como
   cumplimiento de la metodología SNI.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-05. `bienestar.minutos_ponderados`: el percibido pesa espera/acceso/caminata con los betas del estrato; el social con los ponderadores 2/2 del SNI (caminata como modo: 1, no cubierto por la tabla). Las penalizaciones escalonadas quedan fuera del costo.
 
 ## D-38 — Theil ponderado por celdas, no por hogares (A06)
 
@@ -1133,7 +1133,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   un único Theil poblacional calculado en el núcleo y expuesto por
   `serializacion.py` (cae el espejo TS); si se conserva el territorial, con otro
   nombre.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-05. `_theil(Q, S)` pesa por hogares; el standalone lo expone como `theil` en `LandUseSolveDict` y el espejo `lib/metrics.ts` desapareció.
 
 ## D-39 — Convergencia: el residual del MSA se mide después de amortiguar, y «terminó» se rotula «convergió» (A01, A02)
 
@@ -1279,10 +1279,10 @@ cumple, y eso está en D-39.
 | D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez) | Simplificación declarada, sin cambio de código | Media |
 | D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo) | Calibración corregida, línea base movida y declarada | Alta |
 | D-34 | Suelo: accesibilidad = logsum mensual de transporte, α = 1, λ = |b_costo|, β = 1/√44; D-22 revisada | Ancla del original recuperada, línea base movida y declarada | Alta |
-| D-35 | Acoplado: bienestar total = excedente por viajero × todos los hogares | Pendiente (auditoría 2026-09-05) | Alta |
-| D-36 | Bienestar: tren-km despejados de emisiones; factor 0 anula el costo operador | Pendiente (auditoría 2026-09-05) | Alta |
-| D-37 | Bienestar: costo generalizado sin ponderadores de espera/acceso | Pendiente (auditoría 2026-09-05) | Alta |
-| D-38 | Theil ponderado por celdas, no por hogares (y espejo TS) | Pendiente (auditoría 2026-09-05) | Media |
+| D-35 | Acoplado: bienestar total = excedente por viajero × todos los hogares | Corregido 2026-09-05 | Alta |
+| D-36 | Bienestar: tren-km despejados de emisiones; factor 0 anula el costo operador | Corregido 2026-09-05 | Alta |
+| D-37 | Bienestar: costo generalizado sin ponderadores de espera/acceso | Corregido 2026-09-05 | Alta |
+| D-38 | Theil ponderado por celdas, no por hogares (y espejo TS) | Corregido 2026-09-05 | Media |
 | D-39 | Convergencia: residual amortiguado; «terminó» rotulado «convergió»; residual en «minutos» | Pendiente (auditoría 2026-09-05) | Alta |
 | D-40 | Acoplado: estado final de otro paso; `assignment` distinto en métricas | Pendiente (auditoría 2026-09-05) | Media |
 | D-41 | Suelo: «λ · escala» inerte sobre Q; β = 1/√44 es aproximación de 2º momento | Pendiente (auditoría 2026-09-05) | Media |
