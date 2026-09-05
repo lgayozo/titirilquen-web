@@ -1074,6 +1074,173 @@ penaliza una densidad que el modelo nunca mueve.
 
 ---
 
+## Auditoría externa del 2026-09-05 (D-35 a D-44)
+
+Una auditoría científica y numérica hecha por ChatGPT («ASTRA») sobre `b9afa73`
+—carpeta `docs/auditoria-2026-09-05/`, **no versionada**— reportó 14 hallazgos
+(A01–A14). Se contrastó cada uno contra el código y por medición
+(2026-09-05). Lo que sigue registra los que se confirmaron, con el veredicto
+propio y el estado; los descartados o ya documentados se anotan al final.
+Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
+
+## D-35 — Acoplado: el bienestar total multiplica el excedente *por viajero* por *todos* los hogares (A03)
+
+- **Evidencia**: `coupled_metrics.py`, `compute_equilibrium_metrics`. `cs_medio =
+  cs_sum/nv` promedia sólo sobre quienes viajan (excluye teletrabajo y varados);
+  luego `bienestar_total = Σ_h cs_medio·n_hogares`, con `n_hogares` = todos.
+  Infla la magnitud en ≈ n_hogares/nv (≈ 20 % en la base).
+- **Veredicto**: error contable. El teletrabajador tiene ΔCS = 0 y el varado no
+  tiene medida: el total es la suma sobre la población elegible, no un promedio
+  reescalado. Corrección: acumular sobre los pesos de quienes viajan y explicitar
+  el período; decidir y declarar qué se hace con los varados (hoy se omiten en
+  silencio, lo que puede *mejorar* un promedio al empeorar la red).
+- **Estado**: pendiente.
+
+## D-36 — Bienestar: los tren-km se despejan de las emisiones, así que un factor de emisión 0 anula el costo del operador (A05)
+
+- **Evidencia**: `bienestar.py`: `tren_km = trace.emisiones_metro_kg / factor_em
+  if factor_em > 0 else 0.0`. El comentario declara que se hizo para no duplicar
+  la fórmula `f_op·span·2` de `emissions.py`. Con factor 0 (metro
+  descarbonizado) el costo operador pasa de ~$5,6 M a $0 y el bienestar «mejora»
+  en esa cifra con el mismo servicio.
+- **Veredicto**: bug. Corrección: `emissions.py` expone los tren-km (o el trace
+  los serializa) y `bienestar.py` los consume; test con factor 0.
+- **Estado**: pendiente.
+
+## D-37 — Bienestar: el costo generalizado aplica el VoT en vehículo a todos los minutos (A04)
+
+- **Evidencia**: `bienestar.py`: `cg_percibido += d·((minutos/60)·vot_h + dinero)`
+  y `cg_social += d·((minutos/60)·vot_social + dinero)` con `minutos` =
+  acceso + espera + viaje. La utilidad que decide el modo pondera espera y
+  acceso ×2 (`b_tiempo_espera`, `b_tiempo_acceso`; ponderador 2 de la tabla 2.1
+  del SNI que el propio `presets.py` cita) y la caminata ×1,7. En la base, sólo
+  la corrección del metro mueve el agregado social ~13,7 %.
+- **Veredicto**: el «costo percibido» no es el equivalente monetario de la
+  utilidad, y el «costo social» no sigue la tabla que dice seguir. Corrección:
+  costo por componente de tiempo con sus ponderadores, y presentar el excedente
+  social reescalado como lo que es (una agregación distributiva), no como
+  cumplimiento de la metodología SNI.
+- **Estado**: pendiente.
+
+## D-38 — Theil ponderado por celdas, no por hogares (A06)
+
+- **Evidencia**: `coupled_metrics._theil(Q)` usa `Q.sum(axis=0)` = 1 como peso
+  de cada celda habitada, así que una celda con 5 hogares pesa lo mismo que una
+  con 300. `LandUsePage.tsx` y `ComparePage.tsx` hacen lo mismo en TS (espejo).
+  En la base la diferencia es chica (3,4 %); con ofertas no uniformes puede
+  cambiar el orden entre escenarios.
+- **Veredicto**: el índice poblacional requiere `N_hi = S_i·Q_hi`. Corrección:
+  un único Theil poblacional calculado en el núcleo y expuesto por
+  `serializacion.py` (cae el espejo TS); si se conserva el territorial, con otro
+  nombre.
+- **Estado**: pendiente.
+
+## D-39 — Convergencia: el residual del MSA se mide después de amortiguar, y «terminó» se rotula «convergió» (A01, A02)
+
+- **Evidencia (A01)**: `msa.py::_iter_loop`. Con `promediar_flujos` la demanda se
+  promedia con paso `1/(it+1)` y el residual mide el cambio del *promedio*; el
+  desajuste entre la oferta recién evaluada y el estado es `(it+1)` veces eso.
+  En la base con suelo, 0,072 min de residual a la 8ª iteración son ~0,5 min de
+  brecha, contra una tolerancia publicada de 0,1.
+- **Evidencia (A02)**: `coupled.py`: `is_converged = outer > 0 and residual <
+  outer_tol`, sin exigir `transport_trace.converged` ni la convergencia del
+  suelo; con `max_iter=1` interior devuelve `converged=True`. En la web,
+  `RunStatus.tsx` traduce `stage === "done"` como «Equilibrio alcanzado» y
+  `CoupledPage.tsx` construye `converged: stage === "done"`. El campo
+  `residual_final_min` sigue nombrado en minutos aunque desde D-34 `T` va en
+  utiles de transporte por mes (los textos se corrigieron en `b9afa73`; el
+  nombre y la lógica no).
+- **Veredicto**: el criterio de parada por cambio del iterado es el estándar de
+  MSA en código docente y no prueba que el punto fijo no exista, pero la
+  tolerancia publicada **no acota** lo que la interfaz sugiere. Corrección:
+  publicar además un *gap* no amortiguado (recalcular demanda y oferta al estado
+  final), separar «finalizó» de «convergió» en núcleo y UI, exigir las tres
+  convergencias en el acoplado, renombrar el residual con su unidad.
+- **Estado**: pendiente.
+
+## D-40 — Acoplado: el estado final no es el de la última iteración, y las métricas reciben otro `assignment` que la corrida (A07, A08)
+
+- **Evidencia (A07)**: al agotar `outer_max_iter` sin converger, `city.update(T_state)`
+  corre *después* del último `yield`: `final_city` es una ciudad que nunca vio
+  transporte, mientras `final_agents` y las métricas son de la anterior. Con un
+  paso exterior, `max|ΔQ| = 0,19` entre ambas.
+- **Evidencia (A08)**: `sim_eq = sim.model_copy(update={"assignment": "expected"})`
+  corre el transporte, pero `compute_equilibrium_metrics(sim=sim)` recibe el
+  original: si el usuario pidió `todo_o_nada`, el flujo es logit y el excedente
+  se rotula `utilidad_maxima`.
+- **Veredicto**: inconsistencias de contrato. Corrección: no actualizar la
+  ciudad al salir si no se va a simular su transporte (o simularlo y emitir ese
+  estado); pasar la configuración *efectiva* a las métricas y al usuario, o
+  rechazar `todo_o_nada` en el acoplado explícitamente.
+- **Estado**: pendiente.
+
+## D-41 — Suelo: el control «λ · escala» es inerte sobre la asignación, y β = 1/√44 es una aproximación de segundo momento (A10, A11)
+
+- **Evidencia (A10)**: medido: `λ × 0,1` → `max|ΔQ| = 4·10⁻¹⁴`, rango de precios
+  ×10. Es la invariancia de AU-13 vista desde `λ`: el determinístico `f/λ` y el
+  ruido `1/(β·λ)` escalan juntos, y `ρ/λ` escala igual que `α/λ`, así que
+  tampoco cambia el balance con la densidad. El *hint* del control en
+  `LandUseBuilder.tsx` (introducido en `b9afa73`) afirma lo contrario: **falso**.
+  Lo único que mueve esa escala es la unidad monetaria de las rentas.
+- **Evidencia (A11)**: la suma de 44 Gumbel no es Gumbel; escalar el ruido por
+  √44 es un ajuste de segundo momento, y los shocks de vivienda no están
+  justificados como 44 shocks de viaje iid. El comentario de `config.py`
+  (`920e176`) lo presenta como hipótesis alternativa, no como derivación, pero
+  debe decir «aproximación de segundo momento, no estimada».
+- **Veredicto**: ambos ciertos y propios. Corrección: quitar el control o
+  reetiquetarlo como unidad monetaria; corregir el comentario de `β`; agregar un
+  test de que la escala común de λ no mueve `Q`.
+- **Estado**: pendiente.
+
+## D-42 — Suelo standalone: «flujo libre» no usa la red configurada (A09)
+
+- **Evidencia**: `T_flujo_libre` usa `_tiempos_flujo_libre` (velocidades de la
+  demanda, acceso 10 min y espera 5 min fijos), no la red vacía con las
+  estaciones y frecuencia mínima configuradas. Cambiar estaciones o velocidad
+  del metro no mueve el suelo standalone. Diferencia máxima con la red vacía
+  real en la base: 14,7 utiles/mes.
+- **Veredicto**: herencia, no regresión (antes de D-34 el standalone ignoraba la
+  oferta por completo) y es la misma convención de la iteración 0 del MSA. Pero
+  `resolver_red_vacia` (`supply/oferta.py`) y `_tiempos_red_vacia`
+  (`coupled_metrics.py`) ya existen: el standalone debe recibir la oferta y usar
+  la red vacía, que además es el baseline con el que el acoplado mide ΔCS.
+- **Estado**: pendiente.
+
+## D-43 — Validación de dominios y precisión de la cuadratura HEV fuera de la base (A13)
+
+- **Evidencia**: el schema acepta `v_auto = 0`, `b_costo = 0` y shares
+  negativos; la cuadratura HEV es de grilla fija (401 nodos en [−10, 40]) y con
+  razones de escala 100 y 10.000 el error absoluto de probabilidad llega a
+  0,005 y 0,008; normalizar columnas lo esconde.
+- **Veredicto**: cierto, acotado a entradas por API o archivo (ningún `b_costo`
+  razonable produce esas razones). Corrección: validadores de dominio en los
+  schemas; en HEV, grilla adaptada a la razón de escalas o cuadratura adaptativa
+  y exigir balance de hogares al declarar convergencia.
+- **Estado**: pendiente.
+
+## D-44 — Redondeos, muestras y convenciones geométricas (A14)
+
+- **Evidencia**: la población entera derivada del suelo conserva `S` por celda
+  pero no `H` por estrato (7.194/17.998/10.808 en la base); la página de suelo
+  muestra una realización aleatoria mientras el acoplado usa esperanzas; auto y
+  bici descuentan medio tramo propio al acumular tiempos (0,096 vs 0,193 min en
+  la celda vecina al CBD).
+- **Veredicto**: cierto, de baja prioridad. Corrección: redondeo con márgenes,
+  métricas esperadas para comparar, convención origen/destino documentada.
+- **Estado**: pendiente.
+
+**Descartados o ya cubiertos.** A12 (`/simulate` con densidad plana vs. motor
+local con suelo) es C-02, documentado en `api.ts`; la diferencia de 9 pp que
+mide es real y unificar el contrato es decisión aparte. La observación de §4.2
+—que la forma cerrada con `λ` heterogéneo es *otro supuesto* (precisiones de
+utilidad distintas), no un modelo inválido— es correcta y corrige la redacción
+de D-08. El dictamen general («no certificar como equilibrio validado ni como
+evaluación social») es cierto como afirmación, pero nadie lo afirmó: lo que
+importa de él es que las etiquetas de la UI prometen más de lo que el cálculo
+cumple, y eso está en D-39.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -1112,3 +1279,13 @@ penaliza una densidad que el modelo nunca mueve.
 | D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez) | Simplificación declarada, sin cambio de código | Media |
 | D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo) | Calibración corregida, línea base movida y declarada | Alta |
 | D-34 | Suelo: accesibilidad = logsum mensual de transporte, α = 1, λ = |b_costo|, β = 1/√44; D-22 revisada | Ancla del original recuperada, línea base movida y declarada | Alta |
+| D-35 | Acoplado: bienestar total = excedente por viajero × todos los hogares | Pendiente (auditoría 2026-09-05) | Alta |
+| D-36 | Bienestar: tren-km despejados de emisiones; factor 0 anula el costo operador | Pendiente (auditoría 2026-09-05) | Alta |
+| D-37 | Bienestar: costo generalizado sin ponderadores de espera/acceso | Pendiente (auditoría 2026-09-05) | Alta |
+| D-38 | Theil ponderado por celdas, no por hogares (y espejo TS) | Pendiente (auditoría 2026-09-05) | Media |
+| D-39 | Convergencia: residual amortiguado; «terminó» rotulado «convergió»; residual en «minutos» | Pendiente (auditoría 2026-09-05) | Alta |
+| D-40 | Acoplado: estado final de otro paso; `assignment` distinto en métricas | Pendiente (auditoría 2026-09-05) | Media |
+| D-41 | Suelo: «λ · escala» inerte sobre Q; β = 1/√44 es aproximación de 2º momento | Pendiente (auditoría 2026-09-05) | Media |
+| D-42 | Suelo standalone: flujo libre sin la red configurada | Pendiente (auditoría 2026-09-05) | Media |
+| D-43 | Validación de dominios; cuadratura HEV fija fuera de la base | Pendiente (auditoría 2026-09-05) | Media |
+| D-44 | Redondeos, muestras y convenciones geométricas | Pendiente (auditoría 2026-09-05) | Baja |
