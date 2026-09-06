@@ -21,6 +21,7 @@
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type {
   DemandConfig,
+  SupplyConfig,
   IterationSnapshot,
   LandUseConfig,
   SimulationConfig,
@@ -143,6 +144,9 @@ export async function resolverUsoDeSuelo(
     /** La accesibilidad de la puja es el logsum de ESTA demanda a flujo libre,
      *  mensualizado (D-34): el standalone también necesita los betas. */
     demand: DemandConfig;
+    /** La red VACÍA configurada (estaciones, frecuencia mínima) es la que da la
+     *  accesibilidad; sin la oferta no hay una honesta que devolver (D-42). */
+    supply: SupplyConfig;
     modos_habilitados?: readonly string[] | null;
   },
   signal?: AbortSignal,

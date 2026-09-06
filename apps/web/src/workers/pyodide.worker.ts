@@ -16,6 +16,7 @@
 
 import type {
   DemandConfig,
+  SupplyConfig,
   IterationSnapshot,
   SimulationConfig,
   SimulationResult,
@@ -51,6 +52,7 @@ type InMsg =
         largo_km: number;
         land_use: LandUseConfig;
         demand: DemandConfig;
+        supply: SupplyConfig;
         modos_habilitados?: readonly string[] | null;
       };
     }
@@ -136,7 +138,7 @@ await micropip.install(${JSON.stringify(whlUrl)})
 
 from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
 from titirilquen_core.coupled import iter_coupled
-from titirilquen_core.config import DemandConfig
+from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa, iter_msa_desde_suelo
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 import json
@@ -194,11 +196,12 @@ def land_use_solve_from_json(req_json: str):
     req = json.loads(req_json)
     cfg = LandUseConfig.model_validate(req["land_use"])
     demand = DemandConfig.model_validate(req["demand"])
+    supply = SupplyConfig.model_validate(req["supply"])
     modos = req.get("modos_habilitados")
     L = int(req["L"]); CBD = int(req["CBD"])
     largo_km = float(req.get("largo_km", 20.0))
     dx = largo_km / L
-    T = T_flujo_libre(demand, L, CBD, dx, tuple(modos) if modos else None)
+    T = T_flujo_libre(demand, L, CBD, dx, tuple(modos) if modos else None, supply=supply)
     city = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=dx, T=T)
     return land_use_city_to_dict(city)
 

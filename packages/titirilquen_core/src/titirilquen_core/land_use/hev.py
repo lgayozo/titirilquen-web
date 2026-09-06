@@ -72,12 +72,43 @@ from numpy.typing import NDArray
 #: en el redondeo. Importa porque esto corre dentro del punto fijo y también en
 #: Pyodide, así que cada nodo se paga cientos de veces.
 _W_MIN, _W_MAX, _N_NODOS = -10.0, 40.0, 401
-_W = np.linspace(_W_MIN, _W_MAX, _N_NODOS)
-#: `exp(−exp(−w))·exp(−w)·dw` — la densidad por el ancho del trapecio, con los
-#: extremos a medio peso.
-_PESO = np.exp(-np.exp(-_W)) * np.exp(-_W) * (_W[1] - _W[0])
-_PESO[0] *= 0.5
-_PESO[-1] *= 0.5
+#: Tope de nodos cuando las escalas difieren mucho (ver `_grilla`).
+_N_NODOS_MAX = 40_001
+
+
+def _grilla(n: int) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """Nodos y pesos del trapecio en `[_W_MIN, _W_MAX]`: `exp(−exp(−w))·exp(−w)·dw`,
+    con los extremos a medio peso."""
+    w = np.linspace(_W_MIN, _W_MAX, n)
+    peso = np.exp(-np.exp(-w)) * np.exp(-w) * (w[1] - w[0])
+    peso[0] *= 0.5
+    peso[-1] *= 0.5
+    return w, peso
+
+
+_GRILLAS: dict[int, tuple[NDArray[np.float64], NDArray[np.float64]]] = {}
+
+
+def _grilla_para(theta: NDArray[np.float64]) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """La grilla que resuelve ESTAS escalas (D-43).
+
+    El integrando de `q_hev` lleva factores `exp(−exp(−(Δ + θ_h·w)/θ_g))`: en `w`
+    son escalones de ancho `θ_g/θ_h`. Con 401 nodos el paso es 0,125, que basta
+    mientras la razón de escalas sea ~4 (la de la app) pero no cuando es 100 o
+    10.000 —error absoluto de 0,005–0,008 en las probabilidades, escondido por
+    la normalización de columnas. Se exige paso ≤ (θ_min/θ_max)/2 y se cachea
+    la grilla por tamaño; el tope evita que una configuración patológica por
+    API cuelgue el proceso (ahí el error vuelve a crecer y queda declarado)."""
+    theta = np.asarray(theta, dtype=float)
+    razon = float(theta.min() / theta.max()) if theta.size and theta.max() > 0 else 1.0
+    n = int(np.ceil((_W_MAX - _W_MIN) / (razon / 2.0))) + 1
+    n = max(_N_NODOS, min(n, _N_NODOS_MAX))
+    if n not in _GRILLAS:
+        _GRILLAS[n] = _grilla(n)
+    return _GRILLAS[n]
+
+
+_W, _PESO = _grilla_para(np.ones(1))
 
 #: Tope del argumento antes de exponenciar. `exp(-exp(-x))` satura a 0 por
 #: debajo de −40 y a 1 por encima; recortar evita `overflow` sin cambiar nada.
@@ -99,16 +130,17 @@ def q_hev(
     pares de estratos, que son 3×3.
     """
     n_estratos, n_parcelas = loc.shape
+    w, peso = _grilla_para(np.asarray(theta, dtype=float))
     acum = np.zeros((n_estratos, n_parcelas))
     for h in range(n_estratos):
         # `z[k, i]` = producto sobre g≠h evaluado en el nodo k y la parcela i.
-        z = np.ones((_N_NODOS, n_parcelas))
+        z = np.ones((w.size, n_parcelas))
         for g in range(n_estratos):
             if g == h:
                 continue
-            arg = (loc[h] - loc[g])[None, :] + theta[h] * _W[:, None]
+            arg = (loc[h] - loc[g])[None, :] + theta[h] * w[:, None]
             np.multiply(z, np.exp(-np.exp(-np.clip(arg / theta[g], -_TOPE, _TOPE))), out=z)
-        acum[h] = _PESO @ z
+        acum[h] = peso @ z
     total = acum.sum(axis=0)
     # Una parcela sin oferta no participa de ninguna subasta; la deja en 0 el
     # caller. Acá sólo se evita dividir por cero.

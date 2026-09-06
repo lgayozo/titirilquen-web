@@ -31,13 +31,14 @@ import numpy as np
 from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
-from titirilquen_core.config import DemandConfig
+from titirilquen_core.config import CityConfig, DemandConfig, SimulationConfig, SupplyConfig
 from titirilquen_core.constantes import VIAJES_MES
 from titirilquen_core.demand.utility import (
     UTIL_IMPOSIBLE,
     TiemposObservados,
     calcular_utilidades,
 )
+from titirilquen_core.supply.oferta import resolver_red_vacia
 
 
 def logsum_por_celda(
@@ -92,17 +93,50 @@ def T_desde_logsum(logsum: NDArray[np.float64]) -> NDArray[np.float64]:
     return -float(VIAJES_MES) * np.asarray(logsum, dtype=float)
 
 
+def tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[TiemposObservados]:
+    """Tiempos por celda con la **red vacía** (demanda cero): BPR(0) en auto y
+    bici, tren a frecuencia mínima con las estaciones configuradas. Es el
+    contrafactual «la misma infraestructura sin nadie usándola», el baseline del
+    ΔCS del acoplado y —desde D-42— la accesibilidad del suelo standalone."""
+    oferta = resolver_red_vacia(sim, ciudad)
+    car0, bike0, train0 = oferta.auto, oferta.bici, oferta.tren
+    return [
+        TiemposObservados(
+            auto_total=float(car0.t_usuarios_min[i]),
+            bici_total=float(bike0.t_usuarios_min[i]),
+            tren_acceso=float(train0.t_acceso_min[i]),
+            tren_espera=float(train0.t_espera_min[i]),
+            tren_viaje=float(train0.t_viaje_min[i]),
+        )
+        for i in range(ciudad.n_celdas)
+    ]
+
+
 def T_flujo_libre(
     demand: DemandConfig,
     L: int,
     CBD: int,
     ancho_celda_km: float,
     modos_habilitados: tuple[str, ...] | None = None,
+    *,
+    supply: SupplyConfig,
 ) -> NDArray[np.float64]:
-    """La `T` del módulo de suelo *standalone* y del arranque del acoplado:
-    accesibilidad a flujo libre, sin congestión. `CBD` se acepta por simetría con
+    """La `T` del módulo de suelo *standalone* y del arranque del acoplado: la
+    accesibilidad de la **red vacía configurada** (estaciones, frecuencia mínima,
+    velocidades de la oferta), sin congestión.
+
+    Hasta D-42 usaba `_tiempos_flujo_libre` —velocidades de la demanda y 10 min
+    de acceso + 5 de espera fijos—, así que cambiar la oferta del metro no movía
+    el suelo standalone. La oferta es obligatoria a propósito: sin ella no hay
+    una accesibilidad honesta que devolver. `CBD` se acepta por simetría con
     `LandUseCity.build`; `CiudadLineal` lo fija en `n_celdas // 2`."""
     ciudad = CiudadLineal(n_celdas=L, largo_total_km=ancho_celda_km * L)
     if ciudad.cbd_index != CBD:
         raise ValueError(f"CBD={CBD} pero la ciudad lineal lo pone en {ciudad.cbd_index}")
-    return T_desde_logsum(logsum_por_celda(demand, ciudad, None, modos_habilitados))
+    sim = SimulationConfig(
+        city=CityConfig(n_celdas=L, largo_ciudad_km=ancho_celda_km * L),
+        supply=supply,
+        demand=demand,
+    )
+    tiempos = tiempos_red_vacia(sim, ciudad)
+    return T_desde_logsum(logsum_por_celda(demand, ciudad, tiempos, modos_habilitados))

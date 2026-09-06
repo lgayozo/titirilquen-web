@@ -343,7 +343,9 @@ def iter_msa_desde_suelo(
             rng=rng,
             ancho_celda_km=ciudad.ancho_celda_km,
             S=S,
-            T=T_flujo_libre(sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados),
+            T=T_flujo_libre(
+                sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
+            ),
         )
         assert city.result is not None
         Q = city.result.Q

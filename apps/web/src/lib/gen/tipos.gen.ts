@@ -71,7 +71,9 @@ export interface StratumBetas {
   asc_metro: number;
   asc_bici: number;
   asc_caminata: number;
+  /** Desutilidad del tiempo en vehículo (utiles/min); negativo */
   b_tiempo_viaje: number;
+  /** Desutilidad del dinero (utiles/$); negativo. Es λ en el suelo (D-34) */
   b_costo: number;
   b_tiempo_espera: number;
   b_tiempo_acceso: number;

@@ -32,7 +32,7 @@ class LandUseStratumConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    y: float = Field(description="Ingreso mensual del estrato ($/mes)")
+    y: float = Field(gt=0, description="Ingreso mensual del estrato ($/mes)")
     lambda_: float = Field(
         default=1.0,
         gt=0,
@@ -145,6 +145,7 @@ class LandUseConfig(BaseModel):
             "cada uno, que es lo que produce el gradiente de Alonso."
         ),
     )
+
     # `beta` = 0,15 ≈ 1/√44 (decisión 2026-09-04). La escala del ruido Gumbel de la
     # puja es 1/(beta·lambda_h). Con beta = 1 el ruido es el de UN viaje mientras
     # la señal (T) está mensualizada ×44: eso supone que el gusto idiosincrático
@@ -158,6 +159,17 @@ class LandUseConfig(BaseModel):
     # Theil ≈ 0,16, alto/medio/bajo ≈ 2,1 / 3,1 / 5,5 km, gradiente de renta
     # +0,78, ~30 iteraciones (vs 140 con beta = 1). Es la ÚNICA perilla propia
     # del módulo: alpha y lambda vienen de transporte (D-34).
+    @field_validator("H_por_estrato")
+    @classmethod
+    def _hogares_no_negativos(cls, v: tuple[int, int, int]) -> tuple[int, int, int]:
+        # D-43: el schema aceptaba shares negativos, que aguas abajo dan
+        # probabilidades inválidas sin ningún error explícito.
+        if any(h < 0 for h in v):
+            raise ValueError(f"H_por_estrato no admite negativos: {v}")
+        if sum(v) <= 0:
+            raise ValueError("H_por_estrato: la ciudad necesita al menos un hogar")
+        return v
+
     beta: float = Field(
         default=0.15,
         gt=0,

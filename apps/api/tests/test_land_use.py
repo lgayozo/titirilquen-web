@@ -20,6 +20,7 @@ def test_land_use_solve() -> None:
             },
             # La accesibilidad es el logsum de esta demanda (D-34).
             "demand": {"estratos": DEFAULT_STRATA},
+            "supply": {},
         },
     )
     assert r.status_code == 200

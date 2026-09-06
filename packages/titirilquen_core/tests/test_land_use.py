@@ -139,11 +139,15 @@ def _T_toy(L: int, CBD: int) -> np.ndarray:
 def _T_web(L: int, CBD: int, ancho_celda_km: float) -> np.ndarray:
     """La accesibilidad real (logsum mensual a flujo libre) con la demanda
     calibrada de la app, para los tests que usan los defaults físicos."""
-    from titirilquen_core.config import DemandConfig
+    from titirilquen_core.config import DemandConfig, SupplyConfig
     from titirilquen_core.presets import DEFAULT_STRATA
 
     return T_flujo_libre(
-        DemandConfig.model_validate({"estratos": DEFAULT_STRATA}), L, CBD, ancho_celda_km
+        DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
+        L,
+        CBD,
+        ancho_celda_km,
+        supply=SupplyConfig(),
     )
 
 

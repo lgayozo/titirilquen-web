@@ -53,9 +53,9 @@ from titirilquen_core.config import SimulationConfig
 from titirilquen_core.constantes import CATEGORIAS_MODALES, VIAJES_MES, CategoriaModal
 from titirilquen_core.demand.utility import TiemposObservados
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
+from titirilquen_core.land_use.accesibilidad import tiempos_red_vacia
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult
-from titirilquen_core.supply.oferta import resolver_red_vacia
 
 if TYPE_CHECKING:
     from titirilquen_core.config import StratumId
@@ -220,24 +220,6 @@ def _costo_modo(modo: str, dist_km: float, gl) -> float:
     return 0.0  # Bici / Caminata
 
 
-def _tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[TiemposObservados]:
-    """Tiempos por celda con la **red vacía** (demanda cero): BPR(0) en auto y
-    bici, tren a frecuencia mínima con las mismas estaciones. Es el baseline del
-    ΔCS — la misma infraestructura sin nadie usándola."""
-    oferta = resolver_red_vacia(sim, ciudad)
-    car0, bike0, train0 = oferta.auto, oferta.bici, oferta.tren
-    return [
-        TiemposObservados(
-            auto_total=float(car0.t_usuarios_min[i]),
-            bici_total=float(bike0.t_usuarios_min[i]),
-            tren_acceso=float(train0.t_acceso_min[i]),
-            tren_espera=float(train0.t_espera_min[i]),
-            tren_viaje=float(train0.t_viaje_min[i]),
-        )
-        for i in range(ciudad.n_celdas)
-    ]
-
-
 def _utilidad_esperada(
     tiempos: TiemposObservados,
     *,
@@ -363,7 +345,7 @@ def compute_equilibrium_metrics(
     cache_ls: dict[tuple[int, int, bool], float] = {}
     cache_ff: dict[tuple[int, int, bool], float] = {}
     tiempos_obs = [_tiempos_observados(snap, i) for i in range(L)]
-    tiempos_ff = _tiempos_red_vacia(sim, ciudad)
+    tiempos_ff = tiempos_red_vacia(sim, ciudad)
 
     for a in agentes:
         h = a.estrato - 1

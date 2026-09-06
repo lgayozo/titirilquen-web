@@ -102,7 +102,7 @@ def test_uso_de_suelo_emite_las_claves_declaradas() -> None:
         CBD=25,
         cfg=LandUseConfig(H_por_estrato=(100, 200, 300)),
         ancho_celda_km=10 / 51,
-        T=T_flujo_libre(_demanda_web(), 51, 25, 10 / 51),
+        T=T_flujo_libre(_demanda_web(), 51, 25, 10 / 51, supply=SupplyConfig()),
     )
     salida = land_use_city_to_dict(city)
     assert set(salida) == set(get_type_hints(LandUseSolveDict))

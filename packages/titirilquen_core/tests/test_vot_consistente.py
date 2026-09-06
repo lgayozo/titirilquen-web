@@ -28,7 +28,7 @@ from __future__ import annotations
 import numpy as np
 
 from titirilquen_core.bienestar import vot_clp_hora
-from titirilquen_core.config import DemandConfig, SimulationConfig
+from titirilquen_core.config import DemandConfig, SimulationConfig, SupplyConfig
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.presets import DEFAULT_STRATA
 
@@ -141,7 +141,7 @@ def test_una_escala_comun_de_lambda_no_mueve_la_asignacion() -> None:
 
     L, CBD, dx = 101, 50, 20 / 101
     dem = DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
-    T = T_flujo_libre(dem, L, CBD, dx)
+    T = T_flujo_libre(dem, L, CBD, dx, supply=SupplyConfig())
     base = LandUseConfig(H_por_estrato=(720, 1800, 1080), max_iter=5000)
     escalada = base.model_copy(
         update={

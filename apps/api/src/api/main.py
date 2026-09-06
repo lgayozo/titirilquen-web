@@ -27,7 +27,7 @@ from titirilquen_core import (
     run_coupled,
     run_msa,
 )
-from titirilquen_core.config import DemandConfig
+from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.serializacion import (
@@ -90,6 +90,10 @@ class LandUseOnlyRequest(BaseModel):
             "es su logsum a flujo libre, mensualizado (D-34)"
         )
     )
+    supply: SupplyConfig = Field(
+        default_factory=SupplyConfig,
+        description="Oferta de transporte: la accesibilidad es la de la red VACÍA configurada (D-42)",
+    )
     modos_habilitados: tuple[str, ...] | None = None
 
 
@@ -102,7 +106,7 @@ def land_use_solve(req: LandUseOnlyRequest) -> dict[str, object]:
         CBD=req.CBD,
         cfg=req.land_use,
         ancho_celda_km=dx,
-        T=T_flujo_libre(req.demand, req.L, req.CBD, dx, req.modos_habilitados),
+        T=T_flujo_libre(req.demand, req.L, req.CBD, dx, req.modos_habilitados, supply=req.supply),
     )
     return land_use_city_to_dict(city)
 

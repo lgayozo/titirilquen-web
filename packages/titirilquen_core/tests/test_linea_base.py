@@ -60,12 +60,16 @@ ESPERADO = {
     #     queda confinado a la periferia (5,5 km en vez de 6,7)— y sus viajes
     #     más cortos migran del metro a la caminata y la bici: metro −3,0 pp,
     #     caminata +1,65, bici +1,10, auto +0,20. `original` sigue intacta.
+    #  5. D-42: la accesibilidad del suelo standalone (y del arranque del
+    #     acoplado) pasa del «flujo libre» con 10 min de acceso fijos a la red
+    #     VACÍA configurada (estaciones reales, frecuencia mínima). Mueve poco:
+    #     metro −0,11, caminata +0,07, bici +0,04, auto −0,03.
     "equilibrio": {
-        "Auto": 15.42,
-        "Metro": 32.17,
-        "Bici": 23.85,
-        "Caminata": 9.07,
-        "Teletrabajo": 19.49,
+        "Auto": 15.39,
+        "Metro": 32.06,
+        "Bici": 23.89,
+        "Caminata": 9.14,
+        "Teletrabajo": 19.53,
     },
     "original": {
         "Auto": 15.81,

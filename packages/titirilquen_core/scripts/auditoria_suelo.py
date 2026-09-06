@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from titirilquen_core.config import DemandConfig
+from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
@@ -46,7 +46,11 @@ H_BASE = (int(SUMA_H * 0.10), int(SUMA_H * 0.40), int(SUMA_H * 0.50))
 
 #: Accesibilidad real de la app (logsum mensual a flujo libre), D-34.
 T_WEB = T_flujo_libre(
-    DemandConfig.model_validate({"estratos": DEFAULT_STRATA}), L, CBD, LARGO_KM / L
+    DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
+    L,
+    CBD,
+    LARGO_KM / L,
+    supply=SupplyConfig(),
 )
 
 #: Se lee del schema en vez de copiarlo: la copia se desfasó justamente acá

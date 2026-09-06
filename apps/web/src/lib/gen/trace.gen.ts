@@ -131,6 +131,12 @@ export interface LandUseSolveDict {
    *  El frontend la muestra; ya no la recalcula sobre Q.
    */
   theil: number;
+  /**
+   *  Distancia media al CBD por estrato (alto, medio, bajo), ponderada por los
+   *  hogares ESPERADOS `S_i·Q_hi` (D-44). La asignación entera `parcelas` es
+   *  una realización aleatoria: sirve para dibujar, no para comparar cifras.
+   */
+  dist_media_km: number[];
   result: LandUseResultDict;
 }
 

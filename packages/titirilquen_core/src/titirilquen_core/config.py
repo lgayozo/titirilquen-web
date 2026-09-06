@@ -53,8 +53,12 @@ class StratumBetas(BaseModel):
     asc_metro: float
     asc_bici: float
     asc_caminata: float
-    b_tiempo_viaje: float
-    b_costo: float
+    b_tiempo_viaje: float = Field(
+        lt=0, description="Desutilidad del tiempo en vehículo (utiles/min); negativo"
+    )
+    b_costo: float = Field(
+        lt=0, description="Desutilidad del dinero (utiles/$); negativo. Es λ en el suelo (D-34)"
+    )
     b_tiempo_espera: float
     # ACCESO caminando a la estación de metro. Separado de `b_tiempo_caminata`
     # en ago-2026: un solo coeficiente pesaba las dos cosas, y no son lo mismo.
@@ -95,10 +99,10 @@ class StratumConfig(BaseModel):
 class GlobalConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    v_auto: float = 31
-    v_metro: float = 35
-    v_bici: float = 14
-    v_caminata: float = 4.8
+    v_auto: float = Field(default=31, gt=0)
+    v_metro: float = Field(default=35, gt=0)
+    v_bici: float = Field(default=14, gt=0)
+    v_caminata: float = Field(default=4.8, gt=0)
     # Cortes de FACTIBILIDAD del conjunto de elección: sobre ese tiempo la
     # alternativa sale del set, no recibe una penalización grande. Distíngase de
     # `penalizaciones_fisicas`, que castigan progresivamente al cruzar umbrales

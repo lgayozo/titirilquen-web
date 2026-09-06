@@ -150,6 +150,11 @@ class LandUseSolveDict(TypedDict):
     """Segregación de Theil POBLACIONAL (N = S·Q), calculada en el núcleo (D-38).
     El frontend la muestra; ya no la recalcula sobre Q."""
 
+    dist_media_km: list[float]
+    """Distancia media al CBD por estrato (alto, medio, bajo), ponderada por los
+    hogares ESPERADOS `S_i·Q_hi` (D-44). La asignación entera `parcelas` es una
+    realización aleatoria: sirve para dibujar, no para comparar cifras."""
+
     result: LandUseResultDict
 
 
@@ -266,6 +271,18 @@ def land_use_result_to_dict(res: LandUseResult) -> LandUseResultDict:
     }
 
 
+def _dist_media_km(city: LandUseCity) -> list[float]:
+    assert city.result is not None
+    Q = np.asarray(city.result.Q, dtype=float)
+    S = np.asarray(city.S, dtype=float)
+    dist = np.abs(np.arange(city.L) - city.cbd_index) * city.ancho_celda_km
+    ocup = S[None, :] * Q
+    tot = ocup.sum(axis=1)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        d = np.where(tot > 0, (ocup * dist[None, :]).sum(axis=1) / tot, 0.0)
+    return [float(x) for x in d]
+
+
 def land_use_city_to_dict(city: LandUseCity) -> LandUseSolveDict:
     """La ciudad resuelta con su geometría — respuesta de `/land-use/solve`."""
     assert city.result is not None, "la ciudad no tiene equilibrio resuelto"
@@ -276,6 +293,7 @@ def land_use_city_to_dict(city: LandUseCity) -> LandUseSolveDict:
         "parcelas": city.parcelas,
         "densidad_celda": city.densidad_por_celda().tolist(),
         "theil": _theil(np.asarray(city.result.Q), np.asarray(city.S, dtype=float)),
+        "dist_media_km": _dist_media_km(city),
         "result": land_use_result_to_dict(city.result),
     }
 

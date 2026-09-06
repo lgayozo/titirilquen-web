@@ -145,7 +145,9 @@ def iter_coupled(
 
     # Baseline "sin feedback": la misma accesibilidad (logsum mensual) a flujo
     # libre, en la misma escala que las iteraciones (D-23, D-34).
-    T_init = T_flujo_libre(sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados)
+    T_init = T_flujo_libre(
+        sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
+    )
     city = LandUseCity.build(
         L=L,
         CBD=CBD,

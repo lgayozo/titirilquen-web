@@ -11,7 +11,7 @@ from __future__ import annotations
 import numpy as np
 
 from titirilquen_core.city import CiudadLineal
-from titirilquen_core.config import DemandConfig
+from titirilquen_core.config import CityConfig, DemandConfig, SimulationConfig, SupplyConfig
 from titirilquen_core.constantes import VIAJES_MES
 from titirilquen_core.demand.choice import probabilidades_logit
 from titirilquen_core.demand.utility import calcular_utilidades
@@ -59,19 +59,29 @@ def test_el_logsum_es_el_del_logit_modal() -> None:
 
 
 def test_T_es_un_costo_mensual_que_crece_con_la_distancia() -> None:
-    T = T_flujo_libre(_demanda(), L, CBD, DX)
+    T = T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig())
     assert T.shape == (3, L)
     assert np.all(np.isfinite(T))
+    d = np.abs(np.arange(L) - CBD)
+    fuera = np.arange(L) != CBD  # la celda del CBD no tiene vivienda ni entra a la puja
     for h in range(3):
-        # Más lejos ⇒ más costo, monótono en cada mitad de la ciudad. La celda del
-        # CBD queda fuera: no tiene vivienda (S = 0) y su logsum es menor que el
-        # de sus vecinas (a distancia 0 el reparto modal degenera), así que
-        # nunca entra a la puja.
-        assert np.all(np.diff(T[h, CBD + 1 :]) >= -1e-9), f"estrato {h}: T no crece a la derecha"
-        assert np.all(np.diff(T[h, :CBD]) <= 1e-9), f"estrato {h}: T no crece a la izquierda"
+        # Más lejos ⇒ más costo, como TENDENCIA: con la red vacía configurada
+        # (D-42) la accesibilidad no es monótona celda a celda —cerca de cada
+        # estación el acceso al metro se acorta—, pero sí sube con la distancia
+        # en el grueso de la ciudad. Se exige correlación alta y que el borde
+        # cueste más que el centro.
+        corr = np.corrcoef(d[fuera], T[h, fuera])[0, 1]
+        assert corr > 0.9, f"estrato {h}: corr(T, distancia) = {corr:.3f}"
         assert T[h, CBD + 1] < T[h, -1] and T[h, CBD - 1] < T[h, 0]
-    # escala: VIAJES_MES veces el logsum por viaje, con signo cambiado
-    ls = logsum_por_celda(_demanda(), CiudadLineal(n_celdas=L, largo_total_km=LARGO))
+    # escala: VIAJES_MES veces el logsum por viaje sobre la red VACÍA, con
+    # signo cambiado (D-42: no el flujo libre de 10 min de acceso fijos).
+    from titirilquen_core.land_use.accesibilidad import tiempos_red_vacia
+
+    ciudad = CiudadLineal(n_celdas=L, largo_total_km=LARGO)
+    sim = SimulationConfig(
+        city=CityConfig(n_celdas=L, largo_ciudad_km=LARGO), supply=SupplyConfig(), demand=_demanda()
+    )
+    ls = logsum_por_celda(_demanda(), ciudad, tiempos_red_vacia(sim, ciudad))
     np.testing.assert_allclose(T, -VIAJES_MES * ls)
     assert T_desde_logsum(ls).shape == (3, L)
 
@@ -98,7 +108,7 @@ def test_la_accesibilidad_por_estrato_no_invierte_alonso() -> None:
         CBD=CBD,
         cfg=cfg,
         ancho_celda_km=DX,
-        T=T_flujo_libre(_demanda(), L, CBD, DX),
+        T=T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig()),
         rng=np.random.default_rng(42),
     )
     assert city.result is not None and city.result.converged
@@ -106,3 +116,15 @@ def test_la_accesibilidad_por_estrato_no_invierte_alonso() -> None:
     assert d[0] < d[1] < d[2], (
         f"Alonso invertido o revuelto: d = {d.round(2)} km (alto, medio, bajo)"
     )
+
+
+def test_la_oferta_de_metro_mueve_la_accesibilidad_standalone() -> None:
+    """D-42: la accesibilidad es la de la red vacía CONFIGURADA. Cambiar las
+    estaciones del metro tiene que cambiar `T`; con los 10 min de acceso fijos
+    de antes no lo hacía."""
+    dem = _demanda()
+    base = T_flujo_libre(dem, L, CBD, DX, supply=SupplyConfig())
+    pocas = SupplyConfig()
+    pocas.train.num_estaciones = 3
+    otra = T_flujo_libre(dem, L, CBD, DX, supply=pocas)
+    assert np.max(np.abs(otra - base)) > 1.0, "las estaciones no movieron la accesibilidad"

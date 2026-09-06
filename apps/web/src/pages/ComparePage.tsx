@@ -47,29 +47,13 @@ function scaledLandUse(lu: LandUseConfig, poblacion: number): LandUseConfig {
 }
 
 /** Métricas comparables del equilibrio de suelo (mismas que LandUsePage). */
-function landUseValues(
-  r: LandUseSolveResponse,
-  largoKm: number,
-): Record<string, number> {
-  const kmPerCell = largoKm / Math.max(r.L, 1);
-  const sum = [0, 0, 0];
-  const cnt = [0, 0, 0];
-  for (let i = 0; i < r.parcelas.length; i++) {
-    const dkm = Math.abs(i - r.CBD) * kmPerCell;
-    for (const h of r.parcelas[i] ?? []) {
-      const k = h - 1;
-      if (k >= 0 && k < 3) {
-        sum[k]! += dkm;
-        cnt[k]! += 1;
-      }
-    }
-  }
-  const dist = (k: number) => (cnt[k]! > 0 ? sum[k]! / cnt[k]! : 0);
+function landUseValues(r: LandUseSolveResponse): Record<string, number> {
+  // Distancias esperadas (S·Q) y Theil poblacional vienen del núcleo (D-38/D-44).
   return {
     theil: r.theil,
-    dist_alto: dist(0),
-    dist_medio: dist(1),
-    dist_bajo: dist(2),
+    dist_alto: r.dist_media_km[0] ?? 0,
+    dist_medio: r.dist_media_km[1] ?? 0,
+    dist_bajo: r.dist_media_km[2] ?? 0,
   };
 }
 
@@ -146,6 +130,7 @@ export function ComparePage() {
           largo_km: sc.config.city.largo_ciudad_km,
           land_use: sc.landUse ?? defaultLandUseConfig,
           demand: sc.config.demand,
+          supply: sc.config.supply,
           modos_habilitados: sc.config.modos_habilitados,
         });
         setLuResult(id, r);
@@ -230,10 +215,7 @@ export function ComparePage() {
       scenarios.map((s) => ({
         id: s.id,
         name: s.name || untitled(s.id),
-        values:
-          s.luResult && s.config
-            ? landUseValues(s.luResult, s.config.city.largo_ciudad_km)
-            : null,
+        values: s.luResult && s.config ? landUseValues(s.luResult) : null,
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [scenarios, t],

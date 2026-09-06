@@ -1204,7 +1204,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   `resolver_red_vacia` (`supply/oferta.py`) y `_tiempos_red_vacia`
   (`coupled_metrics.py`) ya existen: el standalone debe recibir la oferta y usar
   la red vacía, que además es el baseline con el que el acoplado mide ΔCS.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-06. `T_flujo_libre(..., supply=)` exige la oferta y usa `tiempos_red_vacia` (única definición, en `accesibilidad.py`; `coupled_metrics` la importa de ahí): estaciones reales y frecuencia mínima. El standalone recibe `supply` por API y worker. Test: cambiar `num_estaciones` mueve `T`. La accesibilidad deja de ser monótona celda a celda (cerca de cada estación baja el acceso), como corresponde; el test pasa a exigir tendencia. Línea base `equilibrio` movida poco (metro −0,11, caminata +0,07).
 
 ## D-43 — Validación de dominios y precisión de la cuadratura HEV fuera de la base (A13)
 
@@ -1216,7 +1216,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   razonable produce esas razones). Corrección: validadores de dominio en los
   schemas; en HEV, grilla adaptada a la razón de escalas o cuadratura adaptativa
   y exigir balance de hogares al declarar convergencia.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-06 (parcial). Validadores: `b_tiempo_viaje` y `b_costo` < 0, velocidades > 0, `y` > 0, `H_por_estrato` sin negativos y con al menos un hogar. Cuadratura HEV: la grilla se adapta a la razón de escalas (paso ≤ (θ_min/θ_max)/2, cacheada, tope 40.001 nodos): error < 1e-6 con razón 100; con 10.000 muerde el tope y queda en ~1e-4, declarado en el test. Pendiente: exigir balance de hogares al declarar convergencia HEV.
 
 ## D-44 — Redondeos, muestras y convenciones geométricas (A14)
 
@@ -1227,7 +1227,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   la celda vecina al CBD).
 - **Veredicto**: cierto, de baja prioridad. Corrección: redondeo con márgenes,
   métricas esperadas para comparar, convención origen/destino documentada.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-06 (parcial). Las distancias por estrato del standalone salen ahora del núcleo sobre hogares esperados (`dist_media_km` en `LandUseSolveDict`); la asignación entera `parcelas` queda sólo para dibujar. Aceptado y declarado: el redondeo por celda conserva `S_i` y no `H_h` exactos (7.194/17.998/10.808), y auto/bici descuentan medio tramo propio — corregirlos movería la línea base por seis hogares y una convención de carga zonal; se documenta en vez de tocar.
 
 **Descartados o ya cubiertos.** A12 (`/simulate` con densidad plana vs. motor
 local con suelo) es C-02, documentado en `api.ts`; la diferencia de 9 pp que
@@ -1286,6 +1286,6 @@ cumple, y eso está en D-39.
 | D-39 | Convergencia: residual amortiguado; «terminó» rotulado «convergió»; residual en «minutos» | Corregido 2026-09-05 | Alta |
 | D-40 | Acoplado: estado final de otro paso; `assignment` distinto en métricas | Corregido 2026-09-05 | Media |
 | D-41 | Suelo: «λ · escala» inerte sobre Q; β = 1/√44 es aproximación de 2º momento | Corregido 2026-09-05 | Media |
-| D-42 | Suelo standalone: flujo libre sin la red configurada | Pendiente (auditoría 2026-09-05) | Media |
-| D-43 | Validación de dominios; cuadratura HEV fija fuera de la base | Pendiente (auditoría 2026-09-05) | Media |
-| D-44 | Redondeos, muestras y convenciones geométricas | Pendiente (auditoría 2026-09-05) | Baja |
+| D-42 | Suelo standalone: flujo libre sin la red configurada | Corregido 2026-09-06 | Media |
+| D-43 | Validación de dominios; cuadratura HEV fija fuera de la base | Corregido 2026-09-06 | Media |
+| D-44 | Redondeos, muestras y convenciones geométricas | Corregido 2026-09-06 | Baja |

@@ -47,6 +47,7 @@ export function LandUsePage() {
         largo_km: simConfig.city.largo_ciudad_km,
         land_use: config,
         demand: simConfig.demand,
+        supply: simConfig.supply,
         modos_habilitados: simConfig.modos_habilitados,
       });
       finishStandalone(r);
@@ -143,30 +144,15 @@ export function LandUsePage() {
   // largo de la ciudad de transporte.
   const metrics = useMemo<KPI[] | null>(() => {
     if (!result) return null;
-    const { parcelas: parc, L: nL, CBD: cbd } = result;
-    // Geometría de la corrida (snapshot), no la viva: cambiar la ciudad en
-    // Transporte no debe reinterpretar un resultado viejo.
-    const kmPerCell =
-      (runContext?.largoKm ?? simConfig.city.largo_ciudad_km) / Math.max(nL, 1);
-    const sum = [0, 0, 0];
-    const cnt = [0, 0, 0];
-    for (let i = 0; i < parc.length; i++) {
-      const dkm = Math.abs(i - cbd) * kmPerCell;
-      for (const h of parc[i] ?? []) {
-        const k = h - 1;
-        if (k === 0 || k === 1 || k === 2) {
-          sum[k] = (sum[k] ?? 0) + dkm;
-          cnt[k] = (cnt[k] ?? 0) + 1;
-        }
-      }
-    }
+    // Distancias ESPERADAS (S·Q) calculadas en el núcleo (D-44): la asignación
+    // entera `parcelas` es una realización aleatoria y sirve para dibujar, no
+    // para comparar cifras. El Theil también viene del núcleo (D-38).
     const theil = result.theil;
     const STR = ["alto", "medio", "bajo"];
     const VAR = ["var(--s1)", "var(--s2)", "var(--s3)"];
     return [
       ...[0, 1, 2].map((k) => {
-        const c = cnt[k] ?? 0;
-        const dist = c > 0 ? (sum[k] ?? 0) / c : 0;
+        const dist = result.dist_media_km[k] ?? 0;
         return {
           label: tS("land_use.metric_dist", { s: tS(`strata.${STR[k]}`) }),
           value: dist.toFixed(1),
@@ -176,7 +162,7 @@ export function LandUsePage() {
       }),
       { label: tS("land_use.metric_segregation"), value: theil.toFixed(3) },
     ];
-  }, [result, runContext, simConfig.city.largo_ciudad_km, tS]);
+  }, [result, tS]);
 
   return (
     <div className="page">

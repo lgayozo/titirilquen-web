@@ -169,3 +169,30 @@ def test_bajo_hev_lambda_deja_de_ser_reescalar_alpha_y_rho(lam: float) -> None:
     via_preferencias = solve_subasta(lambda_h=np.ones(3), **reescalado)
 
     assert np.max(np.abs(via_lambda.Q - via_preferencias.Q)) > 1e-3
+
+
+@pytest.mark.parametrize(("razon", "tol"), [(100.0, 1e-6), (10_000.0, 1e-4)])
+def test_la_cuadratura_aguanta_escalas_muy_distintas(razon: float, tol: float) -> None:
+    """D-43: con 401 nodos fijos y razón de escalas 100 o 10.000 el error absoluto
+    de probabilidad llegaba a 0,005–0,008. La grilla se adapta a la razón; se
+    compara contra una referencia con el doble de nodos. Con 10.000 muerde el
+    tope de nodos y el error queda en ~1e-4: declarado, no escondido."""
+    from titirilquen_core.land_use import hev
+
+    rng = np.random.default_rng(3)
+    loc = rng.normal(size=(3, 40)) * 2.0
+    theta = np.array([1.0, 1.0 / razon, 1.0])
+    q = hev.q_hev(loc, theta)
+    w_ref, p_ref = hev._grilla(2 * hev._grilla_para(theta)[0].size - 1)
+    ref = np.zeros_like(q)
+    for h in range(3):
+        z = np.ones((w_ref.size, loc.shape[1]))
+        for g in range(3):
+            if g == h:
+                continue
+            arg = (loc[h] - loc[g])[None, :] + theta[h] * w_ref[:, None]
+            z *= np.exp(-np.exp(-np.clip(arg / theta[g], -hev._TOPE, hev._TOPE)))
+        ref[h] = p_ref @ z
+    ref /= ref.sum(axis=0)
+    np.testing.assert_allclose(q.sum(axis=0), 1.0, atol=1e-9)
+    assert np.max(np.abs(q - ref)) < tol

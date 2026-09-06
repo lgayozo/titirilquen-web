@@ -13,6 +13,7 @@
 
 import type {
   DemandConfig,
+  SupplyConfig,
   IterationSnapshot,
   SimulationConfig,
   SimulationResult,
@@ -245,6 +246,7 @@ class PyodideEngine {
       largo_km: number;
       land_use: LandUseConfig;
       demand: DemandConfig;
+      supply: SupplyConfig;
       modos_habilitados?: readonly string[] | null;
     },
     signal?: AbortSignal,
