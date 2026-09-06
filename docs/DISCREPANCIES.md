@@ -1077,7 +1077,7 @@ penaliza una densidad que el modelo nunca mueve.
 ## Auditoría externa del 2026-09-05 (D-35 a D-44)
 
 Una auditoría científica y numérica hecha por ChatGPT («ASTRA») sobre `b9afa73`
-—carpeta `docs/auditoria-2026-09-05/`, **no versionada**— reportó 14 hallazgos
+—carpeta `reference/auditoria-2026-09-05/`, **no versionada**— reportó 14 hallazgos
 (A01–A14). Se contrastó cada uno contra el código y por medición
 (2026-09-05). Lo que sigue registra los que se confirmaron, con el veredicto
 propio y el estado; los descartados o ya documentados se anotan al final.
