@@ -422,11 +422,9 @@
     "relation": "Este módulo resuelve SOLO el suelo, con transporte fijo a flujo libre. Para el loop completo suelo ↔ transporte, ver «Ciudad en equilibrio».",
     "placeholder_title": "Uso de suelo · la subasta del espacio",
     "placeholder_desc": "El equilibrio Alonso asigna los hogares por subasta: cada estrato puja por las parcelas según su valoración de la accesibilidad (α·T) y su rechazo a la densidad (ρ·dens). El estrato que más valora la cercanía gana el centro; el resto se ordena hacia la periferia. Ajustá la forma de la ciudad y los parámetros por estrato en el panel izquierdo.",
-    "param_lambda_escala": "λ · escala (util. marg. del ingreso)",
-    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utiles/$ = |b_costo| de transporte × escala. Las razones entre estratos son las de transporte y no se editan.",
+    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utiles/$: el |b_costo| de cada estrato en Transporte. No se edita: una escala común de λ no mueve la asignación, sólo la unidad de las rentas (D-41).",
     "beta_hint": "Única perilla propia del módulo: cuánto ruido tiene elegir casa frente a un viaje. β = 1 es el ruido de un solo viaje contra una señal mensual (ciudad casi determinista, Theil ≈ 0,75). El default 0,15 ≈ 1/√44 supone que el ruido también se acumula en el mes (Theil ≈ 0,16). No toca el valor del tiempo.",
     "alpha_hint": "1 = la accesibilidad tal cual. Otro valor es un multiplicador sin fuente; para más o menos nitidez usá β. Es común a los tres estratos: sus diferencias de valoración del tiempo ya vienen en λ.",
-    "lambda_escala_hint": "Escala común sobre los |b_costo| de Transporte. Mueve el ruido de la puja en pesos (1/λ) y el peso relativo de ρ; no mueve las razones entre estratos. ×1 = literal.",
     "rho_hint": "Sin fuente en el modelo original; por defecto pesa la mitad que la accesibilidad en el estrato medio. Mueve sobre todo los precios (aplana la renta de Alonso). Pasado ~1,0·10⁻² la asignación se invierte: por eso el tope."
   },
   "bid_price": {
@@ -457,7 +455,7 @@
       "mean_time": "Tiempo medio (min) por modo efectivo",
       "operation": "Operación",
       "metro_freq": "Frecuencia metro (trenes/h)",
-      "final_residual": "Residuo final (min)",
+      "final_residual": "Residuo final (utiles/mes)",
       "physical_trips": "Viajes físicos",
       "emissions": "Emisiones CO₂ (kg/h)",
       "total": "Total",

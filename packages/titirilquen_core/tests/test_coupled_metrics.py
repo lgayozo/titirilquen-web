@@ -125,21 +125,16 @@ def test_bienestar_total_es_suma_sobre_quienes_viajan(corrida) -> None:
 # plausibles.
 
 
-@pytest.mark.parametrize(
-    ("metodo", "esperada"),
-    [
-        ("montecarlo", "logsum"),
-        ("expected", "logsum"),
-        ("todo_o_nada", "utilidad_maxima"),
-    ],
-)
-def test_la_medida_sigue_al_metodo(
-    demanda_sintetica: DemandConfig, metodo: str, esperada: str
-) -> None:
+@pytest.mark.parametrize("metodo", ["montecarlo", "expected", "todo_o_nada"])
+def test_la_medida_sigue_al_metodo_efectivo(demanda_sintetica: DemandConfig, metodo: str) -> None:
+    """D-40: el acoplado SIEMPRE corre el transporte con `expected` (flujos
+    fraccionales, logit), así que la medida emparejada es el logsum pida lo que
+    pida la configuración. Antes las métricas recibían la configuración original
+    y con `todo_o_nada` rotulaban `utilidad_maxima` un flujo que era logit."""
     sim = _sim_small(demanda_sintetica)
     sim.assignment = metodo
     res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
-    assert res.iterations[-1].metrics.sistema.medida_bienestar == esperada
+    assert res.iterations[-1].metrics.sistema.medida_bienestar == "logsum"
 
 
 def test_el_nucleo_decide_la_medida_una_sola_vez(demanda_sintetica: DemandConfig) -> None:
@@ -156,7 +151,32 @@ def test_el_nucleo_decide_la_medida_una_sola_vez(demanda_sintetica: DemandConfig
     sim.assignment = "todo_o_nada"
     res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
     acoplada = res.iterations[-1].metrics.sistema.medida_bienestar
-    assert acoplada == medida_emparejada(sim.assignment)
+    # El criterio es uno solo, aplicado a la configuración EFECTIVA del acoplado.
+    assert acoplada == medida_emparejada("expected")
+
+
+def test_el_estado_final_es_el_de_la_ultima_iteracion(demanda_sintetica: DemandConfig) -> None:
+    """D-40: al agotar `outer_max_iter`, `final_city` es la ciudad cuyo transporte
+    se simuló en la última iteración, no una actualizada después."""
+    import numpy as np
+
+    sim = _sim_small(demanda_sintetica)
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=1e-9)
+    assert res.final_city is not None and res.final_city.result is not None
+    np.testing.assert_array_equal(res.final_city.result.Q, res.iterations[-1].land_use.Q)
+
+
+def test_el_acoplado_no_converge_si_el_transporte_no_convergio(
+    demanda_sintetica: DemandConfig,
+) -> None:
+    """D-39: con `max_iter=1` interior el MSA no puede converger; el acoplado no
+    puede declararse convergido aunque su residual exterior sea chico."""
+    sim = _sim_small(demanda_sintetica)
+    sim.max_iter = 1
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=3, outer_tol=1e9)
+    assert not any(it.transport.converged for it in res.iterations)
+    assert res.converged is False
+    assert all(not it.metrics.sistema.convergio_exterior for it in res.iterations)
 
 
 def test_el_theil_pesa_por_hogares_no_por_celdas() -> None:

@@ -69,7 +69,16 @@ export interface SnapshotDict {
 
 /** Resultado completo de una corrida de transporte. */
 export interface TraceDict {
+  /**
+   *  `residuo < tolerance` dos veces seguidas. Mide el cambio del iterado
+   *  amortiguado, no la brecha real: ver `gap_final_min` (D-39).
+   */
   converged: boolean;
+  /**
+   *  Brecha no amortiguada del estado final (min). Es la cifra que acota cuán
+   *  lejos del punto fijo quedó la corrida.
+   */
+  gap_final_min: number;
   capacidad_auto: number;
   v_libre_auto: number;
   alpha_auto_bpr: number;
@@ -169,8 +178,11 @@ export interface SystemMetrics {
   /** ¿El loop suelo↔transporte alcanzó `outer_tol`? */
   convergio_exterior: boolean;
   iteraciones_exteriores: number;
-  /** Residuo ||ΔT||_∞ de la última iteración (min); None si no medible. */
-  residual_final_min: number | null;
+  /**
+   *  ‖T_n − T_{n−1}‖∞ del loop exterior, en utiles de transporte por mes (T =
+   *  −VIAJES_MES·logsum, D-34). Hasta D-39 se llamaba `residual_final_min`.
+   */
+  residual_final: number | null;
   /** ¿Convergió el MSA interior de la última corrida de transporte? */
   convergio_msa: boolean;
   /** Σ sobre agentes del tiempo de viaje (pax·min). */

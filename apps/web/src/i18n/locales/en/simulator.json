@@ -422,11 +422,9 @@
     "relation": "This module solves land use ONLY, with transport fixed at free flow. For the full land ↔ transport loop, see “City at equilibrium”.",
     "placeholder_title": "Land use · the auction for space",
     "placeholder_desc": "The Alonso equilibrium allocates households by auction: each stratum bids for parcels according to its valuation of accessibility (α·T) and its disutility of density (ρ·dens). The stratum that values proximity the most wins the center; the rest sort toward the periphery. Adjust the city shape and per-stratum parameters on the left panel.",
-    "param_lambda_escala": "λ · scale (marg. utility of income)",
-    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utils/$ = transport |b_cost| × scale. The ratios across strata are transport's and are not editable.",
+    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utils/$: each stratum's |b_cost| from Transport. Not editable: a common λ scale does not move the allocation, only the rent unit (D-41).",
     "beta_hint": "The module's only knob of its own: how noisy choosing a home is relative to one trip. β = 1 is one trip's noise against a monthly signal (near-deterministic city, Theil ≈ 0.75). The default 0.15 ≈ 1/√44 assumes the noise also accumulates over the month (Theil ≈ 0.16). Does not touch the value of time.",
     "alpha_hint": "1 = accessibility as is. Any other value is an unsourced multiplier; for more or less sharpness use β. Common to the three strata: their differences in valuing time already come through λ.",
-    "lambda_escala_hint": "Common scale on Transport's |b_cost|. Moves the bid noise in pesos (1/λ) and ρ's relative weight; does not move the ratios across strata. ×1 = literal.",
     "rho_hint": "No source in the original model; by default it weighs half as much as accessibility for the middle stratum. It mostly moves prices (flattens Alonso's rent). Past ~1.0·10⁻² the allocation flips: hence the cap."
   },
   "bid_price": {
@@ -457,7 +455,7 @@
       "mean_time": "Mean time (min) by effective mode",
       "operation": "Operation",
       "metro_freq": "Metro frequency (trains/h)",
-      "final_residual": "Final residual (min)",
+      "final_residual": "Final residual (utils/month)",
       "physical_trips": "Physical trips",
       "emissions": "CO₂ emissions (kg/h)",
       "total": "Total",

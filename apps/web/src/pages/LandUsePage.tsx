@@ -197,11 +197,6 @@ export function LandUsePage() {
           config={config}
           onChange={setConfig}
           largoKm={simConfig.city.largo_ciudad_km}
-          bCosto={[
-            Math.abs(simConfig.demand.estratos[1].betas.b_costo),
-            Math.abs(simConfig.demand.estratos[2].betas.b_costo),
-            Math.abs(simConfig.demand.estratos[3].betas.b_costo),
-          ]}
         />
 
         {(stage === "done" || stage === "error") && (

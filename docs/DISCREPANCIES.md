@@ -1156,7 +1156,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   publicar además un *gap* no amortiguado (recalcular demanda y oferta al estado
   final), separar «finalizó» de «convergió» en núcleo y UI, exigir las tres
   convergencias en el acoplado, renombrar el residual con su unidad.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-05 (parcial). Núcleo: `ConvergenceTrace.gap_final_min` recalcula demanda y oferta al estado final y publica la brecha NO amortiguada (serializada en `TraceDict`); el acoplado sólo se declara convergido si convergen residual exterior, MSA y subasta; `residual_final_min` → `residual_final` (utiles/mes). UI: `RunStatus` y `CoupledPage` leen la bandera real (`equilibrium.not_converged` cuando no convergió). Pendiente: mostrar `gap_final_min` en la tabla de transporte y decidir si el criterio de parada del MSA pasa a usar la brecha.
 
 ## D-40 — Acoplado: el estado final no es el de la última iteración, y las métricas reciben otro `assignment` que la corrida (A07, A08)
 
@@ -1172,7 +1172,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   ciudad al salir si no se va a simular su transporte (o simularlo y emitir ese
   estado); pasar la configuración *efectiva* a las métricas y al usuario, o
   rechazar `todo_o_nada` en el acoplado explícitamente.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-05. La ciudad sólo se actualiza si viene otra vuelta que la simule (`final_city` = `land_use` de la última iteración, test con `outer_max_iter=1`); las métricas reciben la configuración efectiva (`sim_eq`, `expected`), así que la medida de bienestar del acoplado es siempre el logsum y el test lo fija.
 
 ## D-41 — Suelo: el control «λ · escala» es inerte sobre la asignación, y β = 1/√44 es una aproximación de segundo momento (A10, A11)
 
@@ -1190,7 +1190,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
 - **Veredicto**: ambos ciertos y propios. Corrección: quitar el control o
   reetiquetarlo como unidad monetaria; corregir el comentario de `β`; agregar un
   test de que la escala común de λ no mueve `Q`.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-05. El control «λ · escala» se eliminó; λ se muestra como lo que es (el |b_costo| de transporte, no editable) y `test_una_escala_comun_de_lambda_no_mueve_la_asignacion` fija la invariancia. El comentario de `β` en `config.py` dice ahora «aproximación de segundo momento, no derivación».
 
 ## D-42 — Suelo standalone: «flujo libre» no usa la red configurada (A09)
 
@@ -1283,9 +1283,9 @@ cumple, y eso está en D-39.
 | D-36 | Bienestar: tren-km despejados de emisiones; factor 0 anula el costo operador | Corregido 2026-09-05 | Alta |
 | D-37 | Bienestar: costo generalizado sin ponderadores de espera/acceso | Corregido 2026-09-05 | Alta |
 | D-38 | Theil ponderado por celdas, no por hogares (y espejo TS) | Corregido 2026-09-05 | Media |
-| D-39 | Convergencia: residual amortiguado; «terminó» rotulado «convergió»; residual en «minutos» | Pendiente (auditoría 2026-09-05) | Alta |
-| D-40 | Acoplado: estado final de otro paso; `assignment` distinto en métricas | Pendiente (auditoría 2026-09-05) | Media |
-| D-41 | Suelo: «λ · escala» inerte sobre Q; β = 1/√44 es aproximación de 2º momento | Pendiente (auditoría 2026-09-05) | Media |
+| D-39 | Convergencia: residual amortiguado; «terminó» rotulado «convergió»; residual en «minutos» | Corregido 2026-09-05 | Alta |
+| D-40 | Acoplado: estado final de otro paso; `assignment` distinto en métricas | Corregido 2026-09-05 | Media |
+| D-41 | Suelo: «λ · escala» inerte sobre Q; β = 1/√44 es aproximación de 2º momento | Corregido 2026-09-05 | Media |
 | D-42 | Suelo standalone: flujo libre sin la red configurada | Pendiente (auditoría 2026-09-05) | Media |
 | D-43 | Validación de dominios; cuadratura HEV fija fuera de la base | Pendiente (auditoría 2026-09-05) | Media |
 | D-44 | Redondeos, muestras y convenciones geométricas | Pendiente (auditoría 2026-09-05) | Baja |

@@ -66,6 +66,12 @@ class ConvergenceTrace:
 
     iteraciones: list[IterationSnapshot] = field(default_factory=list)
     converged: bool = False
+    #: Brecha NO amortiguada del estado final (min): se recalcula la demanda con
+    #: los tiempos finales, se resuelve la oferta con ESA demanda y se mide el
+    #: máximo cambio de tiempo en cualquier modo y celda. `residuo` mide el cambio
+    #: del iterado amortiguado, que con paso 1/n subestima el desajuste real en
+    #: ~n veces (D-39): esta es la cifra que acota lo que «convergió» sugiere.
+    gap_final_min: float = float("nan")
     capacidad_auto: float = 0.0
     v_libre_auto: float = 0.0
     alpha_auto_bpr: float = 0.0
@@ -600,6 +606,31 @@ def _finalizar_trace(
     )
     if last_state is None:
         return
+
+    # Brecha no amortiguada (D-39): demanda fresca con los tiempos finales →
+    # oferta → tiempos; cuánto difieren de los que el loop declaró finales.
+    snap = trace.iteraciones[-1]
+    _, da, dm, db, _ = _correr_iteracion(
+        grupos,
+        0,
+        ciudad,
+        sim.demand,
+        tiempos_actuales,
+        rng,
+        expected=True,
+        modos_habilitados=sim.modos_habilitados,
+        todo_o_nada=sim.assignment == "todo_o_nada",
+    )
+    fresca = resolver_oferta(sim, ciudad, da, db, dm)
+    metro_final = snap.t_tren_acceso + snap.t_tren_espera + snap.t_tren_viaje
+    metro_fresco = fresca.tren.t_acceso_min + fresca.tren.t_espera_min + fresca.tren.t_viaje_min
+    trace.gap_final_min = float(
+        max(
+            np.max(np.abs(fresca.auto.t_usuarios_min - snap.t_auto)),
+            np.max(np.abs(fresca.bici.t_usuarios_min - snap.t_bici)),
+            np.max(np.abs(metro_fresco - metro_final)),
+        )
+    )
 
     trace.capacidad_auto = last_state["capacidad"]
     trace.v_libre_auto = last_state["v_libre"]

@@ -113,7 +113,9 @@ class SystemMetrics:
     """¿El loop suelo↔transporte alcanzó `outer_tol`?"""
 
     iteraciones_exteriores: int
-    residual_final_min: float | None
+    residual_final: float | None
+    """‖T_n − T_{n−1}‖∞ del loop exterior, en utiles de transporte por mes
+    (T = −VIAJES_MES·logsum, D-34). Hasta D-39 se llamaba `residual_final_min`."""
     """Residuo ||ΔT||_∞ de la última iteración (min); None si no medible."""
 
     convergio_msa: bool
@@ -465,7 +467,7 @@ def compute_equilibrium_metrics(
     sistema = SystemMetrics(
         convergio_exterior=converged,
         iteraciones_exteriores=iterations_count,
-        residual_final_min=residual_out,
+        residual_final=residual_out,
         convergio_msa=trace.converged,
         tiempo_total_pax_min=t_total,
         tiempo_medio_min=t_medio_sis,

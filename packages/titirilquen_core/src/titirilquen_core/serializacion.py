@@ -92,6 +92,11 @@ class TraceDict(TypedDict):
     """Resultado completo de una corrida de transporte."""
 
     converged: bool
+    """`residuo < tolerance` dos veces seguidas. Mide el cambio del iterado
+    amortiguado, no la brecha real: ver `gap_final_min` (D-39)."""
+    gap_final_min: float
+    """Brecha no amortiguada del estado final (min). Es la cifra que acota
+    cuán lejos del punto fijo quedó la corrida."""
     capacidad_auto: float
     v_libre_auto: float
     alpha_auto_bpr: float
@@ -231,6 +236,7 @@ def trace_to_dict(trace: ConvergenceTrace, cfg: SimulationConfig | None = None) 
     """
     return {
         "converged": trace.converged,
+        "gap_final_min": trace.gap_final_min,
         "capacidad_auto": trace.capacidad_auto,
         "v_libre_auto": trace.v_libre_auto,
         "alpha_auto_bpr": trace.alpha_auto_bpr,

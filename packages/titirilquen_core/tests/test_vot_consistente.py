@@ -129,3 +129,28 @@ def test_el_default_usa_la_subasta_heteroscedastica() -> None:
         "los `lambda` por defecto volvieron a ser uniformes: el módulo despacha a "
         "la forma cerrada y `lambda` deja de estar identificado (D-08)."
     )
+
+
+def test_una_escala_comun_de_lambda_no_mueve_la_asignacion() -> None:
+    """D-41: escalar los tres λ por k reescala el determinístico `f/λ`, el ruido
+    `1/(βλ)` y `ρ/λ` a la vez: la composición Q no cambia, sólo la unidad de las
+    rentas. Por eso la UI no ofrece ese control."""
+    from titirilquen_core.land_use import LandUseCity
+    from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+    from titirilquen_core.land_use.config import LandUseStratumConfig
+
+    L, CBD, dx = 101, 50, 20 / 101
+    dem = DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
+    T = T_flujo_libre(dem, L, CBD, dx)
+    base = LandUseConfig(H_por_estrato=(720, 1800, 1080), max_iter=5000)
+    escalada = base.model_copy(
+        update={
+            "estratos": tuple(
+                LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=e.rho, **{"lambda": e.lambda_ * 10})
+                for e in base.estratos
+            )
+        }
+    )
+    Q0 = LandUseCity.build(L=L, CBD=CBD, cfg=base, ancho_celda_km=dx, T=T).result.Q
+    Q1 = LandUseCity.build(L=L, CBD=CBD, cfg=escalada, ancho_celda_km=dx, T=T).result.Q
+    assert np.max(np.abs(Q0 - Q1)) < 1e-8

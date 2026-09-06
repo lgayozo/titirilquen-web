@@ -145,7 +145,8 @@ export function CoupledPage() {
   // Resultado en forma de CoupledResult para los componentes de trayectoria.
   const result: CoupledResult | null = iters.length
     ? {
-        converged: stage === "done",
+        // Convergió de verdad, no «terminó» (D-39): lo dice el núcleo.
+        converged: last?.metrics.sistema.convergio_exterior ?? false,
         iterations: iters,
         final_parcelas: [],
         S: null,

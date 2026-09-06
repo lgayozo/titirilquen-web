@@ -285,9 +285,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           sub={t("eqt.conv_sub", {
             n: sys.iteraciones_exteriores,
             res:
-              sys.residual_final_min == null
-                ? "—"
-                : sys.residual_final_min.toFixed(2),
+              sys.residual_final == null ? "—" : sys.residual_final.toFixed(2),
           })}
           good={sys.convergio_exterior}
         />

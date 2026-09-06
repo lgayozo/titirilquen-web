@@ -151,8 +151,10 @@ class LandUseConfig(BaseModel):
     # por una casa es un solo sorteo, y da una ciudad casi determinista (Theil
     # 0,75, señal/ruido ~90:1). Si en cambio el ruido también se acumula viaje a
     # viaje (iid), su escala mensual crece como √44 ≈ 6,6 y la razón señal/ruido
-    # honesta es 6,6 veces menor: beta = 1/√44. Ninguna de las dos hipótesis se
-    # puede estimar con estos datos; ésta es la que no infla la nitidez. Medido:
+    # honesta es 6,6 veces menor: beta = 1/√44. Es una APROXIMACIÓN DE SEGUNDO
+    # MOMENTO, no una derivación: la suma de 44 Gumbel no es Gumbel, y los shocks
+    # de vivienda no son 44 shocks de viaje iid (D-41). Ninguna de las dos
+    # hipótesis se estima con estos datos; ésta es la que no infla la nitidez. Medido:
     # Theil ≈ 0,16, alto/medio/bajo ≈ 2,1 / 3,1 / 5,5 km, gradiente de renta
     # +0,78, ~30 iteraciones (vs 140 con beta = 1). Es la ÚNICA perilla propia
     # del módulo: alpha y lambda vienen de transporte (D-34).

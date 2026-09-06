@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import { pyodideEngine } from "@/lib/pyodide-engine";
+import { useSimulationStore } from "@/store/simulationStore";
 import type { IterationSnapshot, Modo } from "@/lib/types";
 
 interface RunStatusProps {
@@ -41,6 +42,8 @@ export function RunStatus({
   className,
 }: RunStatusProps) {
   const { t } = useTranslation("simulator");
+  // «Terminó» no es «convergió» (D-39): el rótulo final lee la bandera real.
+  const converged = useSimulationStore((s) => s.result?.converged ?? null);
   const [flash, setFlash] = useState(false);
   const prevIter = useRef(-1);
   const prevResidual = useRef<number | null>(null);
@@ -74,7 +77,10 @@ export function RunStatus({
       if (current === total) return t("run_status.smoothing_final");
       return t("run_status.iterating");
     }
-    if (stage === "done") return t("equilibrium.converged");
+    if (stage === "done")
+      return converged === false
+        ? t("equilibrium.not_converged")
+        : t("equilibrium.converged");
     return "";
   })();
 

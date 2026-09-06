@@ -178,12 +178,20 @@ def iter_coupled(
             T_state = theta * T_new + (1.0 - theta) * T_state
 
         assert city.result is not None
-        is_converged = outer > 0 and residual < outer_tol
+        # Convergió el ACOPLADO sólo si convergieron sus tres partes (D-39): el
+        # residual exterior, el MSA de esta iteración y la subasta del suelo.
+        is_converged = (
+            outer > 0
+            and residual < outer_tol
+            and bool(transport_trace.converged)
+            and bool(city.result.converged)
+        )
         metrics = compute_equilibrium_metrics(
             land_use=city.result,
             trace=transport_trace,
             S=city.S,
-            sim=sim,
+            # La configuración EFECTIVA (D-40): el transporte corre `expected`.
+            sim=sim_eq,
             land_use_config=land_use_config,
             T_residual=residual,
             converged=is_converged,
@@ -205,7 +213,11 @@ def iter_coupled(
             if result is not None:
                 result.converged = True
             break
-        city.update(T=T_state, rng=rng)
+        # Sólo se actualiza la ciudad si viene otra vuelta que la simule (D-40):
+        # antes, al agotar el máximo, `final_city` quedaba con un suelo que
+        # ningún transporte vio, distinto del `land_use` de la última iteración.
+        if outer < outer_max_iter - 1:
+            city.update(T=T_state, rng=rng)
 
     if result is not None:
         result.final_city = city
