@@ -154,7 +154,7 @@ alto se va a 8,48 km): también correcto.
 > `b_h = β`, o sea supone `μ_h = β/λ_h`. Bajo ese supuesto —que es el de la ec.
 > (4.25) del libro— **λ no tiene canal estocástico alguno**: entra sólo en la
 > parte determinística. Por eso mover λ no produce dispersión sino un
-> desplazamiento limpio y reproducible. Ver §7.1 de `docs/informe-uso-suelo.html`.
+> desplazamiento limpio y reproducible. Ver §7.1 de `docs/libro/informe-uso-suelo.html`.
 
 `λ_h` es la utilidad marginal del ingreso. Mover `λ` cambia la asignación, y eso
 **es lo esperado dado el modelo implementado**. Pero la razón es más fuerte —y

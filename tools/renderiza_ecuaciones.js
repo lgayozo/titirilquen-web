@@ -28,8 +28,8 @@ const katex = require("katex");
 
 const RAIZ = path.resolve(__dirname, "..");
 const ARCHIVOS = [
-  "docs/hev-cuadratura.html",
-  "docs/informe-hev.html",
+  "docs/libro/hev-cuadratura.html",
+  "docs/libro/informe-hev.html",
   "sandbox/hev-paso-a-paso/informe.html",
   "sandbox/impacto-hev/informe.html",
   "sandbox/impacto-rho/informe.html",

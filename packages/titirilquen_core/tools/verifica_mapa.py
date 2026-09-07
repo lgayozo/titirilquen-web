@@ -1,14 +1,15 @@
-"""Verifica que `docs/arquitectura.html` siga apuntando a donde dice.
+"""Verifica que los documentos de `docs/libro/` sigan apuntando a donde dicen.
 
-El mapa de arquitectura es un índice de «concepto → archivo:línea». Su utilidad
-depende por completo de que esos punteros sean ciertos, y son justo el tipo de
-dato que envejece sin que nadie lo note: basta que alguien agregue un import
-arriba para que veinte números queden corridos. El propio documento lo admitía
-en el pie («los números de línea envejecen»), que es otra forma de decir que
-nadie los estaba verificando.
+El libro coteja teoría contra código, y ese cotejo se escribe como punteros
+«concepto → archivo:línea». Su utilidad depende por completo de que sean
+ciertos, y son justo el tipo de dato que envejece sin que nadie lo note: basta
+que alguien agregue un import arriba para que veinte números queden corridos.
+El mapa de arquitectura lo admitía en su pie («los números de línea
+envejecen»), que es otra forma de decir que nadie los estaba verificando.
 
-Esto lo verifica. Lee el HTML, extrae cada afirmación de la forma
-«el símbolo X está en el archivo A, línea N» y comprueba que sea verdad.
+Esto lo verifica, en TODOS los documentos del libro. Lee cada HTML, extrae cada
+afirmación de la forma «el símbolo X está en el archivo A, línea N» y comprueba
+que sea verdad.
 
 Dos formas de afirmación, ambas en el índice maestro (§1):
 
@@ -22,7 +23,7 @@ Dos formas de afirmación, ambas en el índice maestro (§1):
                                                        la línea entre paréntesis
 
 Uso directo:  uv run python tools/verifica_mapa.py
-Y como test:  tests/test_mapa_arquitectura.py
+Y como test:  tests/test_libro.py
 """
 
 from __future__ import annotations
@@ -33,7 +34,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[3]
-MAPA = RAIZ / "docs" / "arquitectura.html"
+LIBRO = RAIZ / "docs" / "libro"
 
 NUCLEO = RAIZ / "packages" / "titirilquen_core" / "src" / "titirilquen_core"
 WEB = RAIZ / "apps" / "web" / "src"
@@ -154,18 +155,35 @@ def revisa(html: str) -> list[str]:
     return problemas
 
 
+def documentos() -> list[Path]:
+    """Los HTML del libro, en orden. `index.html` y `plantilla.html` quedan
+    fuera: el índice no coteja código y la plantilla trae punteros de ejemplo."""
+    fuera = {"index.html", "plantilla.html"}
+    return sorted(p for p in LIBRO.glob("*.html") if p.name not in fuera)
+
+
+def revisa_libro() -> dict[str, list[str]]:
+    """`{nombre del documento: problemas}`, sólo con los que tienen alguno."""
+    return {
+        doc.name: problemas
+        for doc in documentos()
+        if (problemas := revisa(doc.read_text(encoding="utf-8")))
+    }
+
+
 def main() -> int:
-    problemas = revisa(MAPA.read_text(encoding="utf-8"))
-    if not problemas:
-        afirmaciones, rutas = extrae(MAPA.read_text(encoding="utf-8"))
-        print(
-            f"docs/arquitectura.html al día: {len(afirmaciones)} punteros "
-            f"y {len(set(rutas))} rutas verificados."
-        )
+    docs = documentos()
+    fallos = revisa_libro()
+    if not fallos:
+        total = sum(len(extrae(d.read_text(encoding="utf-8"))[0]) for d in docs)
+        print(f"docs/libro/ al día: {total} punteros en {len(docs)} documentos.")
         return 0
-    print(f"docs/arquitectura.html tiene {len(problemas)} punteros rotos:\n")
-    for p in problemas:
-        print(f"  {p}")
+    n = sum(len(v) for v in fallos.values())
+    print(f"docs/libro/ tiene {n} punteros rotos en {len(fallos)} documentos:\n")
+    for nombre, problemas in fallos.items():
+        print(f"  {nombre}:")
+        for p in problemas:
+            print(f"    {p}")
     return 1
 
 

@@ -1,7 +1,7 @@
 """Genera los datos del informe de auditoria del metodo DETERMINISTICO.
 
-Corre los experimentos y escribe `docs/_datos_informe/wardrop.json`, que consume
-`docs/informe-wardrop.html`. Separado de `auditoria_wardrop.py` (que imprime en
+Corre los experimentos y escribe `docs/libro/_datos_informe/wardrop.json`, que consume
+`docs/libro/informe-wardrop.html`. Separado de `auditoria_wardrop.py` (que imprime en
 consola para trabajar) porque este emite el dato estructurado del informe.
 
     uv run python scripts/informe_wardrop.py

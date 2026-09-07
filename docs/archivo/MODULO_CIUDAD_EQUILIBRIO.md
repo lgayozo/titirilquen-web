@@ -2,7 +2,7 @@
 
 > **⚠ ARCHIVADO — agosto 2026.** Changelog de la tanda de junio 2026 sobre el
 > módulo acoplado; sus «pendientes» se resolvieron o cambiaron de forma.
-> **Vigente:** [`docs/arquitectura.html`](../arquitectura.html) para el módulo
+> **Vigente:** [`docs/libro/arquitectura.html`](../arquitectura.html) para el módulo
 > acoplado y [`docs/DISCREPANCIES.md`](../DISCREPANCIES.md) para las decisiones de
 > modelo.
 

@@ -467,7 +467,7 @@ Todo en unidades físicas: km, minutos, hogares/km, $/mes.
   independently»).
 - Matizar **AU-12** con Martínez p. 242: la identificación de densidades viene
   de la variabilidad espacial; es propiedad de nuestra geometría.
-- Fila en `docs/arquitectura.html` apuntando a `sandbox/impacto-rho/informe.html`
+- Fila en `docs/libro/arquitectura.html` apuntando a `sandbox/impacto-rho/informe.html`
   (ver cómo está la de impacto-hev).
 
 ---
@@ -529,7 +529,7 @@ que escribió este plan:
   "apps/web/e2e/fixtures/*.json"` (el generador no puede correr prettier
   solo). Verificar con `git diff --stat` que sólo cambia lo esperado.
 - **`verifica_mapa.py`** (dentro de pytest) falla si un docstring del core
-  desplaza un símbolo. Arreglar el número en `docs/arquitectura.html`; el
+  desplaza un símbolo. Arreglar el número en `docs/libro/arquitectura.html`; el
   mensaje dice dónde quedó.
 - **`git status` muestra ~60 `.tsx` modificados**: fantasmas CRLF. `git diff`
   sobre ellos está vacío. **No** hacer `git add -A` en la raíz; agregar

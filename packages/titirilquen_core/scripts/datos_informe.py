@@ -1,4 +1,4 @@
-"""Datos y graficos del informe docente (docs/informe-downs-thomson.html).
+"""Datos y graficos del informe docente (docs/libro/informe-downs-thomson.html).
 
 Dos productos, ambos sobre el DEFAULT vigente (K=1000, frec_min=2):
 

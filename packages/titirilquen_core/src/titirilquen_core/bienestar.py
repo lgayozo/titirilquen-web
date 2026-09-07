@@ -84,7 +84,7 @@ prácticamente toda la ciudad. Es un caso hoy vacío, no un caso imposible —
 deshabilitar modos o estirar mucho las distancias podría activarlo.
 
 El desarrollo completo, con la derivación y la correspondencia paso a paso con
-este archivo, está en `docs/informe-bienestar.html`.
+este archivo, está en `docs/libro/informe-bienestar.html`.
 """
 
 from __future__ import annotations

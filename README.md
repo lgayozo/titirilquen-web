@@ -69,7 +69,7 @@ cd apps/web && npm run typecheck && npm run test:e2e:fast    # frontend
 Vigente:
 
 - [`docs/CONTINUAR.md`](docs/CONTINUAR.md) — **Empieza acá**: estado del proyecto, calibración vigente y qué falta
-- [`docs/arquitectura.html`](docs/arquitectura.html) — Mapa navegable del código: dónde vive cada módulo y cómo se relacionan
+- [`docs/libro/`](docs/libro/index.html) — **El libro**: un capítulo por módulo con teoría, cotejo contra el código, parámetros, resultados, pruebas, auditorías y discusión. Incluye el mapa navegable del código ([`arquitectura.html`](docs/libro/arquitectura.html))
 - [`docs/DISCREPANCIES.md`](docs/DISCREPANCIES.md) — Divergencias código↔Overleaf (`D-xx`), con la justificación de cada una
 - [`docs/MATHEMATICAL_MODEL.md`](docs/MATHEMATICAL_MODEL.md) — Fuente única del modelo matemático
 - [`docs/ANALISIS_SENSIBILIDAD.md`](docs/ANALISIS_SENSIBILIDAD.md) · [`docs/AUDITORIA_USO_SUELO.md`](docs/AUDITORIA_USO_SUELO.md) — Qué mueve cada parámetro, medido
@@ -77,10 +77,17 @@ Vigente:
 - [`docs/DEPLOY.md`](docs/DEPLOY.md) — Vercel y Fly.io
 - [`CLAUDE.md`](CLAUDE.md) — Guía para agentes de código
 
-Informes en HTML (abrir en el navegador):
-[`informe-wardrop.html`](docs/informe-wardrop.html) (auditoría del método de
-asignación) · [`informe-downs-thomson.html`](docs/informe-downs-thomson.html) ·
-[`diagrama-flujo.html`](docs/diagrama-flujo.html).
+Los informes en HTML viven ahora dentro del libro
+([índice](docs/libro/index.html)), cada uno mapeado al capítulo que lo va a
+absorber: [`informe-wardrop.html`](docs/libro/informe-wardrop.html) (auditoría del
+método de asignación) ·
+[`informe-downs-thomson.html`](docs/libro/informe-downs-thomson.html) ·
+[`informe-uso-suelo.html`](docs/libro/informe-uso-suelo.html) ·
+[`informe-hev.html`](docs/libro/informe-hev.html) ·
+[`hev-cuadratura.html`](docs/libro/hev-cuadratura.html) ·
+[`informe-bienestar.html`](docs/libro/informe-bienestar.html) ·
+[`diagrama-flujo.html`](docs/libro/diagrama-flujo.html). Varios narran unidades
+anteriores a D-34; el índice del libro lo advierte.
 
 [`docs/archivo/`](docs/archivo/) guarda los documentos caducos, cada uno con una
 nota al inicio que dice por qué caducó y qué lo reemplaza.

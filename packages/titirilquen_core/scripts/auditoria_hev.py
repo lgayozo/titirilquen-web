@@ -1,6 +1,6 @@
 """Auditoría de la subasta heteroscedástica (HEV) — Train §4.5 / Bhat (1995).
 
-Produce todas las cifras de `docs/informe-hev.html`: validación numérica,
+Produce todas las cifras de `docs/libro/informe-hev.html`: validación numérica,
 contraste con la teoría, resultados y análisis de sensibilidad. Si algo del
 solver cambia, este script lo dice y el informe hay que rehacerlo.
 

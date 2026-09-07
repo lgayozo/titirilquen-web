@@ -157,7 +157,7 @@ Todos desde `packages/titirilquen_core`, con `uv run python scripts/<x>.py`:
 | `regimenes_metro.py` | **Los dos canales del metro**: cuándo manda el Mohring y cuándo el andén. Mide que son mutuamente excluyentes — el andén solo muerde cuando `f_op` topa, y ahí Downs-Thomson se INVIERTE |
 | `sensibilidad.py` | Barrido densidad × pistas |
 | `auditoria_wardrop.py` | **¿El método `todo_o_nada` produce equilibrio de Wardrop?** Mide el gap de costo generalizado entre grupos |
-| `informe_wardrop.py` | Genera los datos de `docs/informe-wardrop.html` |
+| `informe_wardrop.py` | Genera los datos de `docs/libro/informe-wardrop.html` |
 | `buscar_downs_thomson.py` | Busca la región de parámetros donde la paradoja se observa |
 | `comparar_original.py` | Contraste numérico con el simulador original. **Necesita `reference/`**, que no viaja en el repo |
 | `datos_informe.py` | Datos de los informes HTML de `docs/` |
@@ -345,7 +345,7 @@ objetivos muy altos de auto exigen también más capacidad vial y más motorizac
 ### 4.3 Hecho: el todo-o-nada como tercer método de asignación
 
 > Se llamó `wardrop` hasta agosto de 2026. La auditoría (§5 y
-> `docs/informe-wardrop.html`) mostró que **no produce un equilibrio de Wardrop**,
+> `docs/libro/informe-wardrop.html`) mostró que **no produce un equilibrio de Wardrop**,
 > así que el valor del schema pasó a `todo_o_nada`, que es lo que el algoritmo
 > hace de verdad. Abajo se conserva la redacción original con el nombre nuevo.
 
@@ -394,7 +394,7 @@ el rótulo dice «(logsum)» y con `todo_o_nada`, «(utilidad máx.)».
 
 El **desarrollo matemático completo** —derivación de las dos medidas desde el
 supuesto de comportamiento, el procedimiento de cálculo paso a paso contra el
-código, y qué se puede comparar con qué— está en `docs/informe-bienestar.html`.
+código, y qué se puede comparar con qué— está en `docs/libro/informe-bienestar.html`.
 Ahí quedan declaradas además dos convenciones que el código no decía: que se
 omite la constante de Euler (inocuo para los Δ, pero hace que la brecha entre
 medidas se subestime en ~0,58 útiles) y que los agentes sin ningún modo factible
@@ -481,7 +481,7 @@ escribirla**, porque un pendiente falso cuesta una sesión entera.
    `.prettierignore`, no el glob del script, así vale también para el editor.
    **Queda afuera `*.md`**: prettier expande cada tabla al ancho de su columna
    más larga — 184 líneas cambiadas solo en este documento, con filas de 200+
-   caracteres. Y también `apps/web/e2e/fixtures` y `docs/_datos_informe`, que
+   caracteres. Y también `apps/web/e2e/fixtures` y `docs/libro/_datos_informe`, que
    los escribe Python con `json.dumps(..., indent=1)`: reformatearlos los deja
    sucios hasta que el generador los revierte.
 

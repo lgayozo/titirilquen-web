@@ -225,7 +225,7 @@ en 2.92× el flujo libre — capacidad blanda, plana.
 
 ## 4. Parámetros muertos e inertes (S-05)
 
-Detalle en el Anexo C de `docs/diagrama-flujo.html`. Resumen:
+Detalle en el Anexo C de `docs/libro/diagrama-flujo.html`. Resumen:
 
 | Parámetro | Por qué está muerto | Recomendación |
 |---|---|---|

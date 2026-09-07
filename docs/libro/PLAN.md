@@ -1,7 +1,7 @@
 # El libro de Titirilquén — plan
 
-**Fecha:** 6 de septiembre de 2026. **Estado:** propuesta; las decisiones de la
-sección 5 están abiertas.
+**Fecha:** 6 de septiembre de 2026. **Estado:** fase 0 completa; decisiones de
+la sección 5 tomadas, salvo el idioma a futuro.
 
 Un libro por módulo que contenga, de forma estructurada y verificable, la
 teoría, el cotejo con el código, los parámetros y su origen, los resultados,
@@ -134,11 +134,14 @@ parciales de la auditoría externa entran por esta vía:
 
 ## 4. Secuencia
 
-1. **Fase 0 — esqueleto y verificación.** Índice, plantilla, verificador de
-   punteros extendido, pipeline de datos con su test, migración de
-   `arquitectura.html` y `diagrama-flujo.html` al capítulo 8. Es la fase que
-   decide si el resto vale la pena: si el verificador y el pipeline no quedan
-   en `pytest`, no se escribe ningún capítulo.
+1. **Fase 0 — esqueleto y verificación. HECHA (2026-09-06).** Índice
+   (`index.html`), plantilla (`plantilla.html`), hoja de estilo común
+   (`libro.css`), verificador extendido de un documento a los ocho
+   (`tools/verifica_mapa.py`: 103 punteros verificados), contrato del pipeline
+   de datos (`datos/README.md`) y seis tests en `tests/test_libro.py` —
+   punteros, cantidad razonable, enlaces internos, huérfanos del índice,
+   capítulo ⇒ script + JSON, y `_meta` en todo JSON. Los ocho informes
+   migrados. No se escribió ningún capítulo: eso es la fase 1.
 2. **Fase 1 — capítulos 1 a 4 (transporte).** Son los que menos auditoría
    formal tienen. `informe-wardrop` e `informe-downs-thomson` se absorben.
 3. **Fase 2 — capítulos 5 a 7 (suelo, acoplado, bienestar).** Donde más
@@ -153,20 +156,21 @@ Cada capítulo cierra con la suite verde, el índice al día y un commit propio
 cuyo mensaje dice qué se auditó, qué se encontró y qué se decidió. Ningún
 capítulo se declara *vigente* con un puntero roto o un JSON desfasado.
 
-## 5. Decisiones abiertas
+## 5. Decisiones tomadas (2026-09-06)
 
-- **Dónde vive.** Propuesta: `docs/libro/` como HTML estático, hermano de los
-  informes actuales y desplegable con la app. Alternativa: MDX dentro de la
-  app, como los tutoriales — más integrado, pero acopla el libro al build del
-  frontend y lo vuelve más difícil de leer fuera de él.
-- **Los tutoriales.** ¿Siguen siendo la versión para estudiantes y el libro la
-  versión para autores, o el libro los reemplaza? Cambia la profundidad de la
-  sección 1 de cada capítulo.
-- **Los informes existentes.** Migrarlos al capítulo correspondiente
-  (recomendado: hoy contradicen las unidades vigentes) o dejarlos como
-  antecedente histórico enlazado.
-- **Idioma.** Español, como todo el repo. ¿Versión en inglés a futuro, como los
-  tutoriales?
+- **Dónde vive:** `docs/libro/`, HTML estático. Se descartó MDX dentro de la
+  app: acoplaba el libro al build del frontend y lo volvía más difícil de leer
+  fuera de él.
+- **Los informes existentes: migrados.** Los ocho HTML se movieron a
+  `docs/libro/` el 2026-09-06, tal como estaban, y el índice los mapea al
+  capítulo que los absorberá. Varios narran unidades anteriores a D-34; el
+  índice lo advierte en su §4 y cada uno se corrige al escribirse su capítulo.
+- **Los tutoriales siguen siendo la versión para estudiantes.** El libro es
+  para autores: quien va a tocar el modelo, auditarlo o defender un resultado.
+  Eso fija la profundidad de la sección 1 de cada capítulo — la teoría se
+  escribe con su fuente y su página, no didácticamente.
+- **Idioma: español**, como todo el repo. Una versión en inglés queda para
+  después de que el libro esté completo, si se decide.
 
 ## 6. Riesgos y cómo se acotan
 

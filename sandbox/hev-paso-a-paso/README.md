@@ -112,8 +112,8 @@ mal—, porque la simulación saca las `H_h` pujas una por una y nunca lo usa.
 
 ## Relacionado
 
-- `docs/informe-hev.html` — el informe del módulo real.
-- `docs/hev-cuadratura.html` — de dónde sale la integral que este demo usa como
+- `docs/libro/informe-hev.html` — el informe del módulo real.
+- `docs/libro/hev-cuadratura.html` — de dónde sale la integral que este demo usa como
   caja negra.
 - `docs/AUDITORIA_USO_SUELO.md` AU-06, `docs/DISCREPANCIES.md` D-08 — el problema
   de identificación de λ que el paso 9 demuestra resuelto.

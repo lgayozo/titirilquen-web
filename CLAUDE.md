@@ -101,11 +101,15 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   ni el `build`, ni Vercel (su `buildCommand` es `npm run build` a secas). El
   wheel va versionado en el repo justamente por eso. El CI tiene un job
   (`contrato`) que corre `sync:core` y falla si el diff no está vacío.
-- **Si movés una función, `docs/arquitectura.html` puede quedar mintiendo.** Ese
-  documento es el índice «concepto → archivo:línea» del repo y sus punteros están
-  verificados por `tools/verifica_mapa.py`, que corre dentro de `pytest`. Cuando
-  falle, arreglá el número en el HTML (el mensaje dice dónde quedó el símbolo),
-  no el test.
+- **Si movés una función, el libro puede quedar mintiendo.** `docs/libro/` es la
+  documentación de autores: un capítulo por módulo con teoría, cotejo contra el
+  código, parámetros, resultados, pruebas, auditorías y discusión (el plan está
+  en `docs/libro/PLAN.md`, el índice y el estado de cada capítulo en
+  `docs/libro/index.html`). Sus punteros «concepto → archivo:línea» los verifica
+  `tools/verifica_mapa.py` sobre TODOS los documentos, dentro de `pytest`
+  (`tests/test_libro.py`). Cuando falle, arreglá el número en el HTML (el
+  mensaje dice dónde quedó el símbolo), no el test. Ningún número del libro se
+  tipea a mano: van en `docs/libro/datos/` y el mismo test lo exige.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
   defecto de la app da **auto 15,81 · metro 28,32 · bici 24,96 · caminata 11,42**
   sin uso de suelo, y **15,42 · 32,17 · 23,85 · 9,07** con él (seed 42, tol 0,1),
@@ -127,6 +131,6 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   (sólo Pyodide). Ojo: por la ruta `/simulate` la población es la de densidad
   plana, porque ese endpoint no recibe uso de suelo (C-02, anotado en `api.ts`).
 - Deploy: `apps/web` → Vercel/GitHub Pages, `apps/api` → Fly.io (`/health`).
-  Detalles en `docs/DEPLOY.md`; el mapa del código en `docs/arquitectura.html`.
+  Detalles en `docs/DEPLOY.md`; el mapa del código en `docs/libro/arquitectura.html`.
 - Licencia **GPL-3.0-or-later** (heredada); ver `NOTICE.md` para la atribución a
   los autores originales.

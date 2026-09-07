@@ -114,7 +114,7 @@ class GlobalConfig(BaseModel):
     # inicial que el usuario puede mover.
     #
     # Ojo al moverlos: cambian el `J` del conjunto factible, y con él la brecha
-    # entre logsum y utilidad máxima (docs/informe-bienestar.html §4.1). Mover el
+    # entre logsum y utilidad máxima (docs/libro/informe-bienestar.html §4.1). Mover el
     # corte NO es una política de transporte, es un supuesto de comportamiento.
     corte_caminata_min: float = Field(default=CORTE_CAMINATA_MIN, gt=0, le=180)
     corte_bici_min: float = Field(default=CORTE_BICI_MIN, gt=0, le=180)
@@ -252,7 +252,7 @@ class TrainSupplyParams(BaseModel):
     # realismo, pone al metro en la zona EMPINADA de su economia de escala
     # (f_op = carga/K queda en ~5-7 tph, espera ~4-6 min): ahi las palancas del
     # metro muerden y la paradoja de Downs-Thomson es observable bajo Wardrop
-    # (ver scripts/buscar_downs_thomson.py y docs/informe-downs-thomson.html).
+    # (ver scripts/buscar_downs_thomson.py y docs/libro/informe-downs-thomson.html).
     # Con 300 la frecuencia era ~21 tph y la espera 1.4 min: curva plana, metro
     # insensible a todo.
     capacidad_tren: int = 1000

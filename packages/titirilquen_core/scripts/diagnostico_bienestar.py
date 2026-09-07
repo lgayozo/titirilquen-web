@@ -22,7 +22,7 @@ Responde tres preguntas:
    cuenta cuántos son: si dejara de ser cero, el excedente estaría escondiendo a
    quien se quedó sin alternativas en vez de contarlo como bienestar bajo.
 
-El desarrollo matemático completo está en `docs/informe-bienestar.html`.
+El desarrollo matemático completo está en `docs/libro/informe-bienestar.html`.
 
 Nota de estilo: **lo que se IMPRIME va en ASCII**, como en el resto de
 `scripts/`. No es descuido — la consola de Windows usa cp1252 y un `print` con
@@ -120,7 +120,7 @@ def imprime_totales(datos: dict) -> None:
         print("  escenarios. Si fuera constante se cancelaria al restar y las medidas")
         print("  serian intercambiables para comparar politicas. NO lo es: por eso el")
         print("  delta entre metodos distintos no significa nada.")
-        print("  Ver docs/informe-bienestar.html seccion 6.3.")
+        print("  Ver docs/libro/informe-bienestar.html seccion 6.3.")
     print("\n  Los NIVELES no son interpretables (cero arbitrario por las ASC); lo que")
     print("  importa aca es la diferencia entre columnas, no su magnitud.")
 

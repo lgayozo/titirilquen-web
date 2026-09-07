@@ -4,7 +4,7 @@
 > arquitectura de agosto lo contradice punto por punto: `POST /simulate/stream` ya
 > no existe, el `$schema` de los `.ttrq.json` es `titirilquen-scenario/v3` y no
 > `v1`, y los tipos TypeScript ya no se escriben a mano (se generan desde
-> Pydantic). **Vigente:** [`docs/arquitectura.html`](../arquitectura.html) —mapa
+> Pydantic). **Vigente:** [`docs/libro/arquitectura.html`](../arquitectura.html) —mapa
 > navegable con enlaces al código— y la sección «Arquitectura» de `CLAUDE.md`.
 
 ## Visión general

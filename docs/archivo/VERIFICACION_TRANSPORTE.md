@@ -6,7 +6,7 @@
 > ASC). Las magnitudes de las tablas no se reproducen. Se conserva porque las
 > **relaciones causales** que verifica —los signos, no los números— siguen siendo
 > las que el modelo debe cumplir. **Vigente:**
-> [`docs/informe-wardrop.html`](../informe-wardrop.html) y el test de línea base
+> [`docs/libro/informe-wardrop.html`](../informe-wardrop.html) y el test de línea base
 > (`packages/titirilquen_core/tests/test_linea_base.py`).
 
 > Experimento de verificación del núcleo `titirilquen_core` (oferta · demanda ·
