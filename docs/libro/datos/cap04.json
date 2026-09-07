@@ -1,0 +1,269 @@
+{
+ "_meta": {
+  "fecha": "2026-09-07",
+  "commit": "3dfdd26",
+  "script": "docs/libro/datos/datos_cap04.py",
+  "configuracion": "La de la aplicación (`test_linea_base._config_web`), localización «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, tolerancia 0,1, máximo 20 iteraciones."
+ },
+ "trayectoria": {
+  "tolerancia": 0.1,
+  "residuo_por_iteracion": [
+   null,
+   12.37958,
+   1.50346,
+   0.40459,
+   0.20841,
+   0.12752,
+   0.09587,
+   0.06524
+  ],
+  "paso_msa_por_iteracion": [
+   1.0,
+   0.5,
+   0.33333,
+   0.25,
+   0.2,
+   0.16667,
+   0.14286,
+   0.125
+  ],
+  "iteraciones": 8,
+  "convergio": true,
+  "residuo_final_min": 0.06524,
+  "gap_final_min": 0.45596,
+  "reparto_pct": {
+   "Auto": 15.812,
+   "Metro": 28.317,
+   "Bici": 24.955,
+   "Caminata": 11.422,
+   "Teletrabajo": 19.494
+  },
+  "emisiones_kg_h": 7496.3,
+  "razon_gap_sobre_residuo": 6.99
+ },
+ "tolerancia": [
+  {
+   "tolerancia": 0.5,
+   "iteraciones": 5,
+   "convergio": true,
+   "residuo_final_min": 0.20841,
+   "gap_final_min": 0.76513,
+   "reparto_pct": {
+    "Auto": 15.852,
+    "Metro": 28.38,
+    "Bici": 24.847,
+    "Caminata": 11.427,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 7542.3
+  },
+  {
+   "tolerancia": 0.1,
+   "iteraciones": 8,
+   "convergio": true,
+   "residuo_final_min": 0.06524,
+   "gap_final_min": 0.45596,
+   "reparto_pct": {
+    "Auto": 15.812,
+    "Metro": 28.317,
+    "Bici": 24.955,
+    "Caminata": 11.422,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 7496.3
+  },
+  {
+   "tolerancia": 0.01,
+   "iteraciones": 22,
+   "convergio": true,
+   "residuo_final_min": 0.00875,
+   "gap_final_min": 0.18587,
+   "reparto_pct": {
+    "Auto": 15.817,
+    "Metro": 28.427,
+    "Bici": 24.844,
+    "Caminata": 11.418,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 7495.8
+  },
+  {
+   "tolerancia": 0.001,
+   "iteraciones": 66,
+   "convergio": true,
+   "residuo_final_min": 0.00096,
+   "gap_final_min": 0.06252,
+   "reparto_pct": {
+    "Auto": 15.805,
+    "Metro": 28.402,
+    "Bici": 24.882,
+    "Caminata": 11.416,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 7484.9
+  }
+ ],
+ "variantes": {
+  "promedia_tiempos_default": {
+   "iteraciones": 8,
+   "convergio": true,
+   "residuo_final_min": 0.06524,
+   "gap_final_min": 0.45596,
+   "reparto_pct": {
+    "Auto": 15.812,
+    "Metro": 28.317,
+    "Bici": 24.955,
+    "Caminata": 11.422,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 7496.3
+  },
+  "promedia_flujos_boyles": {
+   "iteraciones": 7,
+   "convergio": true,
+   "residuo_final_min": 0.06839,
+   "gap_final_min": 0.39869,
+   "reparto_pct": {
+    "Auto": 15.786,
+    "Metro": 28.447,
+    "Bici": 24.831,
+    "Caminata": 11.442,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 7788.1
+  },
+  "diferencia_maxima_pp": 0.13
+ },
+ "unicidad": {
+  "por_semilla": [
+   {
+    "semilla": 1,
+    "iteraciones": 8,
+    "convergio": true,
+    "residuo_final_min": 0.06524,
+    "gap_final_min": 0.45596,
+    "reparto_pct": {
+     "Auto": 15.812,
+     "Metro": 28.317,
+     "Bici": 24.955,
+     "Caminata": 11.422,
+     "Teletrabajo": 19.494
+    },
+    "emisiones_kg_h": 7496.3
+   },
+   {
+    "semilla": 42,
+    "iteraciones": 8,
+    "convergio": true,
+    "residuo_final_min": 0.06524,
+    "gap_final_min": 0.45596,
+    "reparto_pct": {
+     "Auto": 15.812,
+     "Metro": 28.317,
+     "Bici": 24.955,
+     "Caminata": 11.422,
+     "Teletrabajo": 19.494
+    },
+    "emisiones_kg_h": 7496.3
+   },
+   {
+    "semilla": 777,
+    "iteraciones": 8,
+    "convergio": true,
+    "residuo_final_min": 0.06524,
+    "gap_final_min": 0.45596,
+    "reparto_pct": {
+     "Auto": 15.812,
+     "Metro": 28.317,
+     "Bici": 24.955,
+     "Caminata": 11.422,
+     "Teletrabajo": 19.494
+    },
+    "emisiones_kg_h": 7496.3
+   }
+  ],
+  "dispersion_maxima_pp": 0.0,
+  "nota": "Con `assignment='expected'` la asignación es determinista (flujos fraccionales), así que la semilla sólo afecta la generación de la población. Una dispersión nula indica que el punto fijo no depende del sorteo."
+ },
+ "emisiones": {
+  "total_kg_h": 7496.3,
+  "auto_kg_h": 6986.6,
+  "metro_kg_h": 509.7,
+  "metro_pct_del_total": 6.8,
+  "nota": "El metro emite por tren-km circulando (D-29), no por pasajero: su huella no baja si viaja menos gente, sólo si baja la frecuencia."
+ },
+ "downs_thomson": [
+  {
+   "num_pistas": 1,
+   "iteraciones": 12,
+   "convergio": true,
+   "residuo_final_min": 0.0726,
+   "gap_final_min": 0.7727,
+   "reparto_pct": {
+    "Auto": 13.341,
+    "Metro": 30.362,
+    "Bici": 25.215,
+    "Caminata": 11.588,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 8640.0,
+   "frecuencia_metro_tph": 5.465,
+   "t_auto_borde_min": 37.289,
+   "t_medio_auto_bici_min": 10.496
+  },
+  {
+   "num_pistas": 2,
+   "iteraciones": 8,
+   "convergio": true,
+   "residuo_final_min": 0.06524,
+   "gap_final_min": 0.45596,
+   "reparto_pct": {
+    "Auto": 15.812,
+    "Metro": 28.317,
+    "Bici": 24.955,
+    "Caminata": 11.422,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 7496.3,
+   "frecuencia_metro_tph": 5.097,
+   "t_auto_borde_min": 26.028,
+   "t_medio_auto_bici_min": 9.434
+  },
+  {
+   "num_pistas": 3,
+   "iteraciones": 8,
+   "convergio": true,
+   "residuo_final_min": 0.05612,
+   "gap_final_min": 0.40926,
+   "reparto_pct": {
+    "Auto": 16.599,
+    "Metro": 27.738,
+    "Bici": 24.797,
+    "Caminata": 11.371,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 6877.4,
+   "frecuencia_metro_tph": 4.993,
+   "t_auto_borde_min": 22.527,
+   "t_medio_auto_bici_min": 8.952
+  },
+  {
+   "num_pistas": 4,
+   "iteraciones": 8,
+   "convergio": true,
+   "residuo_final_min": 0.06144,
+   "gap_final_min": 0.44243,
+   "reparto_pct": {
+    "Auto": 16.916,
+    "Metro": 27.508,
+    "Bici": 24.73,
+    "Caminata": 11.351,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 6568.2,
+   "frecuencia_metro_tph": 4.951,
+   "t_auto_borde_min": 21.125,
+   "t_medio_auto_bici_min": 8.745
+  }
+ ]
+}

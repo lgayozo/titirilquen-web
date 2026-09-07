@@ -1389,6 +1389,37 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-50 — MSA: el simulador usa la variante sin argumento de convergencia, teniendo la otra implementada
+
+- **Hallado**: auditoría del capítulo 4 del libro, 2026-09-07.
+- **Evidencia**: `_iter_loop` tiene dos variantes y su propio docstring lo dice
+  con todas las letras. Con `promediar_flujos=False` —el default y la única que
+  usa producción— se promedian los **tiempos**:
+  `t ← f·c(x(t)) + (1−f)·t`. Con `promediar_flujos=True` se promedian los
+  **flujos** y los tiempos se recalculan del flujo promediado: es el MSA estándar
+  de Boyles, Lownes y Unnikrishnan (§6.2, p. 159) y, en palabras del propio
+  docstring, «el único para el que vale el argumento de convergencia»: con la
+  carga todo-o-nada, `x* − x` es dirección de descenso de la función de Beckmann,
+  y eso se apoya en promediar la variable **primal**.
+- **Medido**: las dos llegan casi al mismo sitio. Diferencia máxima del reparto
+  **0,13 pp**; la variante de Boyles converge en 7 iteraciones contra 8 y deja
+  una brecha no amortiguada **menor** (0,399 contra 0,456 min). O sea que
+  adoptarla no cuesta exactitud y gana el argumento teórico.
+- **Por qué no se cambió antes**: el parámetro no es campo del schema, y moverlo
+  ahí obligaría a tocar los espejos TypeScript, el golden y los escenarios
+  guardados. La razón es de coste de contrato, no de modelo — y está anotada en
+  el propio docstring.
+- **Veredicto**: no es un bug: los dos algoritmos son legítimos y el resultado
+  casi no cambia. Pero el simulador declara equilibrio con el método que no tiene
+  garantía teniendo el que sí, ya implementado y ya probado
+  (`test_promediar_flujos_llega_a_un_punto_fijo_parecido`). Corrección propuesta:
+  hacer de `promediar_flujos=True` el comportamiento de producción y declarar el
+  movimiento de línea base, o dejar escrito en el capítulo por qué se prefiere la
+  otra.
+- **Estado**: pendiente.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -1442,3 +1473,4 @@ cumple, y eso está en D-39.
 | D-47 | Metro: `num_estaciones` entrega n±1 estaciones; la etiqueta promete el número pedido                       | Pendiente (libro, cap. 2)                            | Baja                       |
 | D-48 | Demanda: la bici usa `b_tiempo_viaje` (esfuerzo = ir sentado); penalizaciones con gradiente opuesto entre modos | Pendiente (libro, cap. 3) | Media |
 | D-49 | Demanda: `corte_bici_min` inerte con la ciudad por defecto (10,5 km > radio 10 km) | Pendiente (libro, cap. 3) | Baja |
+| D-50 | MSA: producción usa la variante sin argumento de convergencia; la de Boyles está implementada y da 0,13 pp | Pendiente (libro, cap. 4) | Media |

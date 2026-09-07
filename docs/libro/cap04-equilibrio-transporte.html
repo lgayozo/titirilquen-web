@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 4: Equilibrio de transporte</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 4</div>
+  <h1>Equilibrio de transporte</h1>
+  <p class="bajada">
+    Oferta y demanda se determinan mutuamente: los tiempos deciden quién viaja
+    en qué, y quién viaja en qué decide los tiempos. Este capítulo trata del
+    punto fijo entre ambas, y de cuánto podemos afirmar que lo alcanzamos.
+  </p>
+  <p class="meta">
+    Módulos: <code>equilibrium/msa.py</code> · <code>emissions.py</code> ·
+    auditado el 2026-09-07 ·
+    datos regenerados el 2026-09-07 ·
+    <span class="estado auditado">auditado</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Cotejo con el código</a></li>
+    <li><a href="#s3">Parámetros</a></li>
+    <li><a href="#s4">Resultados</a></li>
+    <li><a href="#s5">Pruebas</a></li>
+    <li><a href="#s6">Auditorías</a></li>
+    <li><a href="#s7">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<p>
+  Los capítulos 2 y 3 definen dos funciones que se muerden la cola. La oferta
+  dice qué tiempos resultan de una carga, <em>t = c(x)</em>; la demanda dice qué
+  carga resulta de unos tiempos, <em>x = d(t)</em>. El equilibrio es el punto
+  fijo:
+</p>
+
+<div class="ecuacion" data-tex="x^{\star} = d\bigl(c(x^{\star})\bigr)">
+  <span class="id">(4.1)</span>
+  x* = d( c(x*) )
+</div>
+
+<p>
+  Iterar directamente —cargar, medir, recargar— no converge: oscila entre
+  extremos, porque toda la demanda salta al modo que quedó rápido y lo satura. La
+  solución clásica es el <strong>método de promedios sucesivos</strong>, que
+  mezcla el estado nuevo con el viejo en proporción decreciente:
+</p>
+
+<div class="ecuacion" data-tex="x^{(n+1)} = \frac{1}{n+1}\, x^{\star(n)} + \frac{n}{n+1}\, x^{(n)}">
+  <span class="id">(4.2)</span>
+  x⁽ⁿ⁺¹⁾ = [1/(n+1)]·x*⁽ⁿ⁾ + [n/(n+1)]·x⁽ⁿ⁾
+</div>
+
+<p>
+  El paso 1/(n+1) hace que el promedio sea el de todas las cargas visitadas. Su
+  justificación no es sólo empírica: con carga todo-o-nada, la dirección
+  <em>x* − x</em> desciende la función de Beckmann, y de ahí sale el argumento de
+  convergencia (Boyles, Lownes y Unnikrishnan, §6.2). Ese argumento se apoya en
+  promediar la variable <strong>primal</strong>, los flujos.
+</p>
+
+<div class="aviso alerta">
+  <h4>El simulador promedia la otra variable</h4>
+  <p>
+    Por defecto, el núcleo promedia los <strong>tiempos</strong> en vez de los
+    flujos: <code>t ← f·c(x(t)) + (1−f)·t</code>. La variante estándar está
+    implementada —<code>promediar_flujos=True</code>— y ninguna ruta de
+    producción la usa. Es la primera cosa que este capítulo tiene que medir
+    (§4, D-50).
+  </p>
+</div>
+
+<h3>Cuándo parar, y qué significa</h3>
+
+<p>
+  El criterio es el cambio del iterado entre dos pasos: si el mayor cambio de
+  tiempo en cualquier modo y celda cae bajo la tolerancia dos veces seguidas, se
+  declara convergido. El problema es que ese residuo mide el movimiento del
+  promedio, no la distancia al punto fijo. Con paso 1/n el promedio se mueve poco
+  aunque el estado siga desajustado, y el residuo <strong>subestima</strong> la
+  brecha real. Por eso el núcleo publica además la brecha no amortiguada
+  (D-39): recalcular demanda y oferta desde el estado final y medir cuánto se
+  moverían los tiempos sin promediar.
+</p>
+
+<h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">(4.2)</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">362</td>
+      <td><code>_iter_loop</code> — el loop; su docstring compara las dos variantes</td>
+    </tr>
+    <tr>
+      <td class="n">(4.1)</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">159</td>
+      <td><code>_correr_iteracion</code> — el lado <em>d(t)</em>: carga por grupo, no por agente</td>
+    </tr>
+    <tr>
+      <td class="n">(4.2)</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">448</td>
+      <td>el paso <code>f</code>: 1/(it+1) al promediar tiempos, 1 al promediar flujos</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">514</td>
+      <td>criterio de parada: residuo bajo tolerancia dos veces seguidas</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">579</td>
+      <td><code>_finalizar_trace</code> — calcula ahí la brecha no amortiguada de D-39 (629)</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">288</td>
+      <td><code>iter_msa_desde_suelo</code> — la ruta de la aplicación; <code>iter_msa</code> (263) es la de densidad plana</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">emissions.py</td>
+      <td class="n">56</td>
+      <td><code>calcular_emisiones</code> — auto por velocidad, metro por <code>tren_km_hora</code> (43)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Diferencias con la fuente</h3>
+
+<p>
+  <strong>D-10</strong>: el original no tenía criterio de convergencia —corría
+  doce iteraciones fijas e imprimía «Equilibrio Alcanzado» pasara lo que pasara—.
+  <strong>D-29</strong>: las emisiones del metro se calculan por tren-km y no por
+  pasajero-km, que es lo que hace visibles sus economías de escala.
+  <strong>D-39</strong> agregó la brecha no amortiguada y exigió que el acoplado
+  no declare convergencia sin la de sus partes.
+</p>
+
+<h2 id="s3"><span class="num">§3</span> Parámetros</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Parámetro</th><th class="n">App</th><th>Unidad</th><th>Origen</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>tolerance</code></td>
+      <td class="n">0,1</td>
+      <td>min</td>
+      <td><span class="etiqueta neutra">decisión</span> acota el residuo, no la brecha (§4)</td>
+    </tr>
+    <tr>
+      <td><code>max_iter</code></td>
+      <td class="n">20</td>
+      <td>—</td>
+      <td><span class="etiqueta neutra">decisión</span> presupuesto del navegador</td>
+    </tr>
+    <tr>
+      <td><code>assignment</code></td>
+      <td class="n">expected</td>
+      <td>—</td>
+      <td><span class="etiqueta neutra">decisión</span> flujos fraccionales, sin ruido de muestreo</td>
+    </tr>
+    <tr>
+      <td><code>promediar_flujos</code></td>
+      <td class="n">False</td>
+      <td>—</td>
+      <td><span class="etiqueta lim">heredado</span> no es campo del schema; la variante con garantía es la otra (D-50)</td>
+    </tr>
+    <tr>
+      <td><code>seed</code></td>
+      <td class="n">42</td>
+      <td>—</td>
+      <td><span class="etiqueta neutra">decisión</span> reproducibilidad</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s4"><span class="num">§4</span> Resultados</h2>
+
+<p>Todo sale de <code>datos/cap04.json</code>.</p>
+
+<h3>La brecha es siete veces el residuo</h3>
+
+<p>
+  La corrida por defecto converge en <strong>8 iteraciones</strong> con un
+  residuo final de <strong>0,065 min</strong>, bajo la tolerancia de 0,1. Pero la
+  brecha no amortiguada —lo que se moverían los tiempos si se recalculara sin
+  promediar— es <strong>0,456 min</strong>: siete veces mayor. La razón coincide
+  con lo que predice el paso 1/n a la octava iteración, que es exactamente lo que
+  D-39 señalaba.
+</p>
+
+<h3>Exigir más precisión no cambia la respuesta</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Tolerancia</th><th class="n">Iteraciones</th><th class="n">Residuo</th><th class="n">Brecha</th><th class="n">Auto %</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0,5</td><td class="n">5</td><td class="n">0,208</td><td class="n">0,765</td><td class="n">15,852</td></tr>
+    <tr class="destacada"><td class="n">0,1</td><td class="n">8</td><td class="n">0,065</td><td class="n">0,456</td><td class="n">15,812</td></tr>
+    <tr><td class="n">0,01</td><td class="n">22</td><td class="n">0,009</td><td class="n">0,186</td><td class="n">15,817</td></tr>
+    <tr><td class="n">0,001</td><td class="n">66</td><td class="n">0,001</td><td class="n">0,063</td><td class="n">15,805</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Este es el resultado tranquilizador del capítulo. Bajar la tolerancia de 0,5 a
+  0,001 cuesta trece veces más iteraciones y reduce la brecha en un factor doce,
+  pero <strong>el reparto se mueve 0,047 pp</strong>. La corrida rápida de la
+  aplicación está, en lo que importa, en el mismo lugar que la corrida cara: la
+  brecha de 0,46 min no se traduce en un error apreciable del resultado.
+</p>
+
+<div class="aviso idea">
+  <h4>Qué significa esto para D-39</h4>
+  <p>
+    La brecha sigue siendo la cifra honesta y hay que publicarla — decir «0,065»
+    cuando el desajuste es 0,46 es engañoso. Pero el capítulo permite acotar la
+    consecuencia: en esta configuración, la diferencia entre estar convergido y
+    <em>casi</em> convergido vale menos de una décima de punto porcentual. La
+    tolerancia de 0,1 es defendible; lo que no lo era es el rótulo.
+  </p>
+</div>
+
+<h3>Las dos variantes del MSA llegan al mismo sitio</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Variante</th><th class="n">Iter.</th><th class="n">Brecha</th><th class="n">Auto %</th><th class="n">Metro %</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td>Promedia tiempos <em>(default)</em></td><td class="n">8</td><td class="n">0,456</td><td class="n">15,812</td><td class="n">28,317</td></tr>
+    <tr><td>Promedia flujos <em>(Boyles §6.2)</em></td><td class="n">7</td><td class="n">0,399</td><td class="n">15,786</td><td class="n">28,447</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  La diferencia máxima del reparto es <strong>0,13 pp</strong>. La variante con
+  argumento de convergencia converge <em>antes</em> y deja una brecha
+  <em>menor</em>. Adoptarla no costaría exactitud y ganaría el respaldo teórico:
+  es D-50.
+</p>
+
+<h3>El punto fijo no depende del sorteo</h3>
+
+<p>
+  Con semillas 1, 42 y 777 el reparto es idéntico: <strong>dispersión 0,0
+  pp</strong>. Con asignación esperada la carga es determinista, así que la
+  semilla sólo afecta a la generación de la población — y el equilibrio no la ve.
+  No prueba unicidad matemática, pero descarta que el resultado sea un artefacto
+  del muestreo.
+</p>
+
+<h3>Downs-Thomson no aparece, y se ve por qué</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Pistas</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Frecuencia (tph)</th><th class="n">CO₂ kg/h</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">1</td><td class="n">13,34</td><td class="n">30,36</td><td class="n">5,46</td><td class="n">8.640,0</td></tr>
+    <tr class="destacada"><td class="n">2</td><td class="n">15,81</td><td class="n">28,32</td><td class="n">5,10</td><td class="n">7.496,3</td></tr>
+    <tr><td class="n">3</td><td class="n">16,60</td><td class="n">27,74</td><td class="n">4,99</td><td class="n">6.877,4</td></tr>
+    <tr><td class="n">4</td><td class="n">16,92</td><td class="n">27,51</td><td class="n">4,95</td><td class="n">6.568,2</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El mecanismo de Downs-Thomson <strong>está presente</strong>: al ampliar la
+  vía, el auto gana usuarios, el metro los pierde y su frecuencia cae de 5,46 a
+  4,95 tren/h — el efecto Mohring operando en reversa, que es exactamente la
+  cadena que produce la paradoja. Lo que no ocurre es que llegue a dominar: el
+  tiempo medio no empeora y las emisiones bajan, porque la velocidad del auto
+  sube y la curva de emisión depende de ella.
+</p>
+
+<p>
+  No hay ninguna obligación teórica de que la paradoja aparezca en toda
+  configuración: requiere que el transporte público sea el modo dominante y que
+  su frecuencia sea muy sensible a la demanda. Aquí el metro lleva menos de un
+  tercio de los viajes y su frecuencia se mueve un 9 %.
+</p>
+
+<h3>Emisiones</h3>
+
+<p>
+  Del total de 7.496,3 kg/h, el metro aporta <strong>509,7 kg/h (6,8 %)</strong>
+  y el auto los otros 6.986,6. La huella del metro no depende de cuánta gente lleve sino de
+  cuántos trenes circulen (D-29), así que baja sólo si baja la frecuencia — que
+  es lo que se ve en la tabla anterior al agregar pistas.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Pruebas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Archivo</th><th class="n">Tests</th><th>Qué fija</th><th>Qué NO cubre</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="ruta py">tests/test_equilibrio.py</code></td>
+      <td class="n">17</td>
+      <td>La mecánica del loop, los límites de la grilla, y que las dos variantes lleguen a un punto fijo parecido.</td>
+      <td>Que la variante de producción converja en el sentido de Beckmann (D-50).</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_convergencia.py</code></td>
+      <td class="n">3</td>
+      <td>Que la brecha exista, supere al residuo y se cierre al exigir más tolerancia (D-39).</td>
+      <td>Que la brecha acote el error del reparto — que es lo que la §4 midió a mano.</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_linea_base.py</code></td>
+      <td class="n">3</td>
+      <td>El reparto de las dos ramas y el número de iteraciones, con 0,05 pp de tolerancia.</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_emissions.py</code></td>
+      <td class="n">4</td>
+      <td>La curva de emisión por velocidad y el reparto auto/metro.</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s6"><span class="num">§6</span> Auditorías</h2>
+
+<div class="paso">
+  <h3>Protocolo aplicado <span class="ref">2026-09-07</span></h3>
+  <p>
+    (a) lectura estática de (4.1)–(4.2) contra el loop; (b) trayectoria de
+    convergencia y barrido de tolerancia; (c) invariancia frente a la semilla y
+    comparación de las dos variantes del algoritmo; (d) consistencia con los
+    capítulos 2 y 3 — el equilibrio consume las funciones de costo y la regla de
+    elección tal como las dejaron; (e) contraste de lo que la interfaz declara
+    como convergencia contra lo que el núcleo verifica, que ya había producido
+    D-39.
+  </p>
+</div>
+
+<div class="aviso alerta">
+  <h4>D-50 — Se usa la variante sin argumento de convergencia</h4>
+  <p>
+    <strong>Media.</strong> El MSA estándar promedia flujos; el simulador
+    promedia tiempos. La variante con respaldo teórico está implementada, tiene
+    test, converge <em>antes</em> (7 iteraciones contra 8), deja una brecha
+    <em>menor</em> (0,399 contra 0,456 min) y cambia el reparto en 0,13 pp. No es
+    un bug —ambos algoritmos son legítimos— pero declarar equilibrio con el
+    método sin garantía, teniendo el otro a mano, es una decisión que conviene
+    tomar a propósito. La razón por la que no se cambió está anotada en el
+    código: el parámetro no es campo del schema y moverlo obligaría a tocar los
+    espejos y los escenarios guardados.
+  </p>
+</div>
+
+<p>
+  El resto de la auditoría <strong>cierra el pendiente de D-39</strong> con
+  números. La brecha es 7× el residuo, tal como la aritmética del paso 1/n
+  predecía; y —esto es nuevo— el reparto apenas se mueve 0,047 pp entre la
+  tolerancia más laxa y la más estricta. La consecuencia práctica del desajuste
+  es pequeña, aunque el rótulo siga siendo el problema.
+</p>
+
+<h2 id="s7"><span class="num">§7</span> Discusión</h2>
+
+<p>
+  Este es el primer capítulo donde la auditoría <strong>tranquiliza más de lo que
+  inquieta</strong>. El punto fijo existe, no depende del sorteo, se alcanza por
+  dos caminos distintos que dan casi lo mismo, y exigir cien veces más precisión
+  mueve el resultado menos de una décima de punto. La maquinaria del equilibrio
+  es sólida.
+</p>
+
+<p>
+  Lo que queda es una decisión pendiente, no un defecto: el simulador usa el
+  algoritmo cuya convergencia nadie puede demostrar, teniendo implementado el que
+  sí. Y el argumento para no cambiarlo —el coste de tocar el contrato— es
+  legítimo pero no es sobre el modelo.
+</p>
+
+<div class="aviso idea">
+  <h4>Cierre de la fase 1</h4>
+  <p>
+    Cuatro capítulos y seis discrepancias nuevas (D-45 a D-50). Ninguna es un
+    error de cálculo: son <strong>tres afirmaciones que sobrevivieron a su
+    corrección</strong> (D-45, D-46), <strong>tres parámetros inertes</strong>
+    presentados como palancas (D-46, D-49 y la congestión de andén), <strong>dos
+    nombres que no describen lo que hacen</strong> (D-47, D-48) y <strong>una
+    decisión algorítmica no tomada</strong> (D-50). El modelo calcula bien; lo
+    que se despega es lo que dice de sí mismo.
+  </p>
+</div>
+
+<h3>Pendientes</h3>
+
+<ul>
+  <li>
+    <strong>D-50</strong>: decidir si producción pasa a promediar flujos. Mueve
+    la línea base 0,13 pp y hay que declararlo.
+  </li>
+  <li>
+    <strong>D-39, lo que queda</strong>: mostrar la brecha en la tabla de
+    transporte. El dato ya está en el contrato; falta la columna.
+  </li>
+  <li>
+    <strong>Sin discrepancia</strong>: ningún test comprueba que la brecha acote
+    el error del reparto, que es la afirmación con la que este capítulo
+    tranquiliza. Es el test que faltaría para poder confiar en ella sin
+    remedirla.
+  </li>
+</ul>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    <a href="cap03-demanda-eleccion-modal.html">← capítulo 3</a> ·
+    datos en <code>datos/cap04.json</code>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
