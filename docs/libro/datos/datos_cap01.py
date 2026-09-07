@@ -167,26 +167,26 @@ def main() -> None:
         "densidad": barrido("densidad_hab_km", [900, 1800, 2700, 3600]),
         "largo": barrido("largo_ciudad_km", [10, 20, 30, 40]),
         "convenciones": {
+            # Corregido 2026-09-07 (auditoría del cap. 2): `supply/` recibe
+            # `cbd_km` pero lo reconvierte a índice con int(cbd_km/L·n), que es
+            # ⌊n/2⌋ para todo n. No es una convención aparte.
             "por_indice": {
                 "formula": "|i − n//2| · Δx",
                 "usos": [
                     "demand/utility.py",
                     "equilibrium/msa.py",
                     "land_use/accesibilidad.py",
+                    "supply/car.py (tras reconvertir cbd_km a índice)",
                 ],
             },
             "por_posicion": {
-                "formula": "|x − L/2|, con x continuo",
-                "usos": [
-                    "supply/oferta.py (ubicacion_centro_km)",
-                    "supply/car.py",
-                    "supply/bike.py",
+                "formula": "|x_i − L/2|, con x_i el centroide",
+                "usos": [],
+                "expuesta_en": [
+                    "CiudadLineal.centroides_km",
+                    "CiudadLineal.distancia_al_cbd_km",
                 ],
             },
-            "sin_usar": [
-                "CiudadLineal.centroides_km",
-                "CiudadLineal.distancia_al_cbd_km",
-            ],
         },
     }
     SALIDA.write_text(

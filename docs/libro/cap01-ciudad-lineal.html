@@ -164,8 +164,9 @@
 <h3>Las dos convenciones de distancia</h3>
 
 <p>
-  El núcleo no mide la distancia al CBD de una sola manera. Mide de dos, y
-  ninguna usa los métodos que <code>city.py</code> expone para eso:
+  <code>CiudadLineal</code> expone la geometría en <strong>posición
+  continua</strong> —centroides y distancias en kilómetros— mientras todo el
+  núcleo mide por <strong>índice</strong>:
 </p>
 
 <div class="envoltorio-tabla">
@@ -179,24 +180,37 @@
       <td><code>|i − ⌊n/2⌋|·Δx</code></td>
       <td class="ruta py">demand/utility.py</td>
       <td class="n">81</td>
-      <td><code>dist_km</code> — la que ve la demanda</td>
+      <td><code>dist_km</code> — la que usa todo el núcleo</td>
     </tr>
     <tr>
       <td>Por posición</td>
-      <td><code>|x − L/2|</code></td>
-      <td class="ruta py">supply/oferta.py</td>
-      <td class="n">53</td>
-      <td><code>cbd_km</code> — la que ve la oferta</td>
+      <td><code>|x_i − L/2|</code></td>
+      <td class="ruta py">city.py</td>
+      <td class="n">41</td>
+      <td><code>distancia_al_cbd_km</code> — la que no usa nadie</td>
     </tr>
   </tbody>
 </table>
 </div>
 
+<div class="aviso neutro">
+  <h4>Corrección del 2026-09-07, al auditar el capítulo 2</h4>
+  <p>
+    Este capítulo afirmaba que la <em>oferta</em> usaba la convención continua y
+    que por eso se separaba de la demanda con <em>n</em> par. Es falso:
+    <code class="ruta py">supply/car.py</code> recibe <code>cbd_km</code> pero lo
+    reconvierte a índice con <code>int(cbd_km/L · n)</code>, y como
+    <code>int(n/2) = ⌊n/2⌋</code> para todo <em>n</em>, cae siempre en la misma
+    celda. Oferta y demanda comparten el CBD con cualquier paridad. Lo que sí
+    queda en pie es que la convención continua sólo coincide con la otra cuando
+    <em>n</em> es impar, y que vive en dos métodos que nadie llama.
+  </p>
+</div>
+
 <p>
-  Con <em>n</em> impar coinciden dígito a dígito, y por eso nunca dio problemas:
-  la ciudad de la aplicación tiene 201 celdas y la del núcleo 1001. Con <em>n</em>
-  par se separan medio Δx y la celda del CBD queda a distancia positiva de sí
-  misma. La §4 lo mide y la §6 lo registra como D-45.
+  Con <em>n</em> impar las dos formas coinciden dígito a dígito, y por eso nunca
+  dio problemas: la ciudad de la aplicación tiene 201 celdas y la del núcleo
+  1001. La §4 mide el desfase con <em>n</em> par y la §6 lo registra como D-45.
 </p>
 
 <h2 id="s3"><span class="num">§3</span> Parámetros</h2>
@@ -459,15 +473,16 @@
 <div class="aviso neutro">
   <h4>D-45 — Dos convenciones de distancia, y la paridad que nadie valida</h4>
   <p>
-    <strong>Baja, latente.</strong> Demanda y suelo miden por índice; la oferta
-    por posición continua. Coinciden si y sólo si <em>n</em> es impar. El
+    <strong>Baja, latente.</strong> Todo el núcleo mide por índice; los dos
+    métodos que <code>CiudadLineal</code> expone miden por posición continua, y
+    coinciden si y sólo si <em>n</em> es impar. El
     docstring de <code>CityConfig</code> lo exige, el validador no —sólo pide
     <code>ge=11</code>—, y la interfaz sí lo fuerza
     (<code class="ruta ts">components/modules/CityBuilder.tsx</code>:66). Es el
-    patrón de D-43: la UI evita el caso, el schema lo acepta. Además,
-    <code>centroides_km</code> y <code>distancia_al_cbd_km</code> —los únicos que
-    exponen la convención continua vectorizada— no los llama nadie: el desfase
-    vive en código muerto.
+    patrón de D-43: la UI evita el caso, el schema lo acepta. El desfase vive en
+    <code>centroides_km</code> y <code>distancia_al_cbd_km</code>, que no llama
+    nadie — por eso es inocuo hoy, y por eso lo sería menos el día que alguien
+    los use creyéndolos equivalentes.
   </p>
 </div>
 

@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-09-07",
-  "commit": "8a4fd7f",
+  "commit": "789ab9a",
   "script": "docs/libro/datos/datos_cap01.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web`): 201 celdas, 20 km, 1.800 hab/km, semilla 42, asignación esperada, tolerancia 0,1. Localización «original» (mezcla uniforme): el capítulo 1 mira la geometría, no la subasta de suelo."
  },
@@ -325,20 +325,17 @@
    "usos": [
     "demand/utility.py",
     "equilibrium/msa.py",
-    "land_use/accesibilidad.py"
+    "land_use/accesibilidad.py",
+    "supply/car.py (tras reconvertir cbd_km a índice)"
    ]
   },
   "por_posicion": {
-   "formula": "|x − L/2|, con x continuo",
-   "usos": [
-    "supply/oferta.py (ubicacion_centro_km)",
-    "supply/car.py",
-    "supply/bike.py"
+   "formula": "|x_i − L/2|, con x_i el centroide",
+   "usos": [],
+   "expuesta_en": [
+    "CiudadLineal.centroides_km",
+    "CiudadLineal.distancia_al_cbd_km"
    ]
-  },
-  "sin_usar": [
-   "CiudadLineal.centroides_km",
-   "CiudadLineal.distancia_al_cbd_km"
-  ]
+  }
  }
 }

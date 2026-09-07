@@ -16,6 +16,7 @@ Este documento registra las divergencias entre el código fuente (`titirilquen-r
 > no existe en el original (solo `MAX_ITER`).
 
 Convenciones:
+
 - **Veredicto**: `Overleaf incorrecto` | `Código incorrecto` | `Equivalentes` | `Ambos describen distinto alcance`.
 - Las referencias a ecuaciones usan la numeración del Overleaf original.
 
@@ -152,7 +153,7 @@ Convenciones:
   idéntico a re-escalar (α, ρ), que es lo que este hallazgo denunciaba.
   Fijado en `tests/test_hev.py`.
 - **Actualizado 2026-09-04.** El default ya es heterogéneo: `λ = (0,5 · 1 ·
-  1,9375)`, importado de la anatomía de transporte (D-33). Todo lo que sigue
+1,9375)`, importado de la anatomía de transporte (D-33). Todo lo que sigue
   abajo en esta entrada —«El problema», «Cómo se manifiesta», el **Veredicto**
   «pendiente para los autores» y la nota de UI— describe el régimen de la
   **forma cerrada** y se conserva como historia: bajo HEV la identidad
@@ -184,6 +185,7 @@ pueden separar: `λ` **no es un parámetro económico independiente**, es una
 re-parametrización redundante de `α` y `ρ`.
 
 **Cómo se manifiesta** (medido en `scripts/auditoria_suelo.py`, ver AU-06):
+
 - Salto casi discontinuo: entre `λ = 0,8` y `λ = 0,95` el estrato alto cruza la
   ciudad entera (8,26 → 1,33 km del CBD). Fuera de esa banda, `λ` casi no hace
   nada.
@@ -248,7 +250,7 @@ guardados que lo traen se migran en `serialization.ts`.
     `rng` que generó la población (antes re‑sembraba) → `iter_msa` (vivo) y
     `run_msa` (final) producen exactamente la misma corrida y cortan en la misma
     iteración.
-  - App: default `tolerance = 0.1` min y slider en el panel *Equilibrio*; el KPI
+  - App: default `tolerance = 0.1` min y slider en el panel _Equilibrio_; el KPI
     indica si **convergió** o llegó a `max_iter`.
 
 ---
@@ -281,7 +283,7 @@ guardados que lo traen se migran en `serialization.ts`.
      frecuencia la carga extra se vuelve espera de andén.
   2. **Discontinuidad no física.** Justo pasando `ratio = 1`, el factor cae de
      `1.0` a `0.5·ratio⁴ ≈ 0.5` y solo vuelve a 1 en `ratio ≈ 1.19`; o sea, al
-     iniciarse la saturación la espera *disminuye* antes de dispararse.
+     iniciarse la saturación la espera _disminuye_ antes de dispararse.
   3. **Bajo saturación real** (`f_op` fijada a `frec_max`, carga ≫ umbral) la
      espera crece como `ratio⁴` y domina el tiempo de viaje (cientos de minutos).
      Verificado empíricamente forzando `densidad_por_celda=300`,
@@ -316,7 +318,7 @@ guardados que lo traen se migran en `serialization.ts`.
      semi‑ciudad; `σ = frac · min(CBD, L-1-CBD)`), con slider en el panel de
      Uso de suelo. Default `0.5` ⇒ `σ ≈ L/4`, preservando la magnitud original.
   - La función estocástica original se conserva (`generar_oferta_normal`).
-- **Veredicto**: Divergencia intencional respecto al original (estocástico → 
+- **Veredicto**: Divergencia intencional respecto al original (estocástico →
   determinista) + exposición de un parámetro antes hardcodeado.
 - **Acción**: Mantener. Interpretación: `oferta_sigma_frac` = compacidad urbana
   (menor ⇒ ciudad compacta junto al CBD; mayor ⇒ dispersa). λ_h sigue gobernando
@@ -393,7 +395,7 @@ guardados que lo traen se migran en `serialization.ts`.
 - **Código** — `supply/train.py`: `_ALFA_CONGESTION = 0.5`, `_BETA_CONGESTION = 4.0`
   → `factor = 0.5·ρ^4` para `ρ > 1` (con comentario "ver app.py:237-238").
 - **Análisis**: los valores difieren y, peor, **cambian el comportamiento
-  cualitativo**: con `0.5·ρ^4` el factor *cae* a 0.5 justo sobre `ρ=1` y solo
+  cualitativo**: con `0.5·ρ^4` el factor _cae_ a 0.5 justo sobre `ρ=1` y solo
   supera 1 en `ρ > 2^¼ ≈ 1.19` (ver D‑12), mientras que con `α=10, β=10` el factor
   salta hacia arriba. No se puede saber cuál refleja el `app.py` real sin el
   código original (no disponible).
@@ -418,7 +420,7 @@ guardados que lo traen se migran en `serialization.ts`.
 
 ## D-17 · Signo de `f_h` en la disposición a pagar (Suelo)
 
-- **Overleaf** — `Suelo.tex`, *willingness to pay*: `w_h(u,i) = y_h − (u_h + f_h(i))/λ`.
+- **Overleaf** — `Suelo.tex`, _willingness to pay_: `w_h(u,i) = y_h − (u_h + f_h(i))/λ`.
 - **Código** — `land_use/equilibrium.py`: usa `y + f/λ` (`logw = y + f_dl`, y el
   operador `z_hi = H_h·e^{β(y + f_h/λ_h)}`).
 - **Análisis**: despejando `p_i` de `u_h = λ_h(y_h − p_i) + f_h(i)` se obtiene
@@ -458,9 +460,9 @@ guardados que lo traen se migran en `serialization.ts`.
   tiempo total de metro (≈3 min de ≈17), dominado por acceso + viaje a bordo,
   ambos independientes de la demanda.
 - **Nota conceptual**: DT nace del **efecto Mohring** (frecuencia↑ con la
-  demanda ⇒ el TP mejora con más pasajeros), no del *crowding* (ocupación↑ ⇒ TP
+  demanda ⇒ el TP mejora con más pasajeros), no del _crowding_ (ocupación↑ ⇒ TP
   peor), que es de signo opuesto (congestión del TP, estabilizadora). El castigo
-  de andén (D‑16) es del lado *crowding*. Reproducir DT pediría acoplar el
+  de andén (D‑16) es del lado _crowding_. Reproducir DT pediría acoplar el
   **tiempo a bordo** a la ocupación de forma dominante, lo que sería poco
   realista para un metro; con parámetros realistas el modelo monocéntrico no
   exhibe la paradoja.
@@ -508,7 +510,7 @@ guardados que lo traen se migran en `serialization.ts`.
      así que hay ~6·`n_celdas` grupos distintos **independiente de la densidad**.
      Se calcula la probabilidad **una vez por grupo** y se agregan los flujos:
      en `expected`, `dem += nₐ·prob`; en `montecarlo`, una `rng.multinomial(nₐ,
-     prob)` por grupo. Costo del loop: O(max_iter · grupos).
+prob)` por grupo. Costo del loop: O(max_iter · grupos).
   2. **Registros por agente una sola vez**: `_asignar_modos_agentes` muestrea el
      modo de cada agente (vectorizado, `rng.choice(size=nₐ)`) sólo al final, a
      partir del estado convergido (antes se reescribían en cada iteración).
@@ -588,7 +590,7 @@ guardados que lo traen se migran en `serialization.ts`.
 - **Refinamiento (jun-2026)**: la media pasó de simple a **ponderada por
   población** (`T(i) = Σ_h (H_h/ΣH)·Te_h(i)`): con shares 10/40/50 el estrato
   bajo pesa lo que su población, no 1/3 — T(i) es el tiempo esperado del viajero
-  *representativo* de la ubicación. Sigue siendo común por ubicación (no
+  _representativo_ de la ubicación. Sigue siendo común por ubicación (no
   reintroduce el problema de la inversión).
 - **Veredicto**: Bug del modelo acoplado corregido (decisión del autor del
   modelo, jun-2026). NO reintroducir T por estrato en el bid-rent.
@@ -665,7 +667,7 @@ guardados que lo traen se migran en `serialization.ts`.
   `Suelo.tex` es `Q_hi = H_h·e^{βw}/Σ_g H_g·e^{βw}`: la parcela la disputan
   `H_g` postores de cada tipo, y el máximo de `H_g` Gumbel i.i.d. corre la
   ubicación en `ln(H_g)/β`. El propio punto fijo y el precio (`e^{βp_i} =
-  Σ_g H_g·e^{β(s_gi − ū_g)}`) sí incluían `H` — solo el `Q` devuelto lo omitía.
+Σ_g H_g·e^{β(s_gi − ū_g)}`) sí incluían `H` — solo el `Q` devuelto lo omitía.
   Con `H` igual entre estratos (el default histórico, 33300×3) el factor se
   cancela, por eso pasó inadvertido.
 - **Fix (jun-2026)**: `log_q = log(H) + β(score − ū − p_i)`, normalizado por
@@ -685,8 +687,8 @@ guardados que lo traen se migran en `serialization.ts`.
   slider "número de celdas" — una decisión puramente numérica — cambiaba las
   conclusiones del modelo.
 - **Causa**: dos términos de la atractividad `f_h(i) = −α_h·T(i) − ρ_h·S_i`
-  estaban en **unidades de grilla**, no físicas: `T = |i − CBD|` en *índices de
-  celda* (su rango crece con L) y `S_i` en *hogares por celda* (se diluye con
+  estaban en **unidades de grilla**, no físicas: `T = |i − CBD|` en _índices de
+  celda_ (su rango crece con L) y `S_i` en _hogares por celda_ (se diluye con
   L). Refinar la grilla era matemáticamente **idéntico** a estirar la ciudad:
   los Theil del artefacto (0.245/0.462/0.658 para L=101/201/401) coinciden
   exactamente con los de agrandar la ciudad física (10/20/40 km a L fija).
@@ -704,7 +706,7 @@ guardados que lo traen se migran en `serialization.ts`.
 - **Por qué es lo correcto**: la discretización es una elección numérica y los
   indicadores deben **converger** al refinarla (el límite continuo es el modelo
   monocéntrico de Alonso/Fujita); que un resultado dependa de la unidad espacial
-  de agregación es el clásico *Modifiable Areal Unit Problem* (Openshaw 1983),
+  de agregación es el clásico _Modifiable Areal Unit Problem_ (Openshaw 1983),
   documentado para índices de segregación por Reardon & O'Sullivan (2004). El
   tamaño **físico** de la ciudad, en cambio, sí debe mover los indicadores —
   más km ⇒ el gradiente α·T pesa más contra el ruido del logit ⇒ más sorting.
@@ -712,11 +714,11 @@ guardados que lo traen se migran en `serialization.ts`.
   `test_invariancia_a_la_resolucion_de_la_grilla` — Theil estable (±2%) y
   distancias medias estables (±0.35 km) entre L=101/201/401;
   `test_sensibilidad_al_tamano_fisico` — Theil(40 km) > Theil(10 km).
-- **Referencias**: Alonso (1964) *Location and Land Use*; Fujita (1989) *Urban
-  Economic Theory*; Martínez (2018) *Microeconomic Modeling in Urban Science*
-  caps. 3–5; Openshaw (1983) *The Modifiable Areal Unit Problem* (CATMOG 38);
-  Reardon & O'Sullivan (2004) "Measures of Spatial Segregation", *Sociological
-  Methodology* 34; Hansen (1959) "How Accessibility Shapes Land Use", *JAPA* 25.
+- **Referencias**: Alonso (1964) _Location and Land Use_; Fujita (1989) _Urban
+  Economic Theory_; Martínez (2018) _Microeconomic Modeling in Urban Science_
+  caps. 3–5; Openshaw (1983) _The Modifiable Areal Unit Problem_ (CATMOG 38);
+  Reardon & O'Sullivan (2004) "Measures of Spatial Segregation", _Sociological
+  Methodology_ 34; Hansen (1959) "How Accessibility Shapes Land Use", _JAPA_ 25.
 - **Migración**: escenarios `.ttrq` con α/ρ/y en unidades viejas (solo los
   exportados desde esta rama antes del cambio) requieren reescalar a mano
   (α×5, ρ×0.1); los v1 no traían suelo, así que no les afecta.
@@ -738,9 +740,9 @@ guardados que lo traen se migran en `serialization.ts`.
 - **Nota de modelo**: `y` sigue **sin mover la asignación** (entra como constante
   por estrato y se absorbe en ū — ver D-08); solo alimenta la
   métrica de equidad. El ratio bajo/alto era válido incluso antes (adimensional);
-  lo que no tenía sentido era el *nivel*.
+  lo que no tenía sentido era el _nivel_.
 - **Referencia**: el costo de transporte como fracción del ingreso es la métrica
-  estándar de asequibilidad (p.ej. el *H+T Affordability Index* del CNT usa 15%
+  estándar de asequibilidad (p.ej. el _H+T Affordability Index_ del CNT usa 15%
   del ingreso como umbral de transporte asequible).
 - **Veredicto**: Unidades corregidas; métrica interpretable.
 
@@ -824,11 +826,11 @@ No es un bug sino una aclaración (auditoría jun-2026): el modelo usa **tres
 nociones distintas de "red sin congestión"**, cada una apropiada a su contexto.
 Se documentan aquí para que no se confundan:
 
-| Uso | Baseline | Definición | Por qué |
-|---|---|---|---|
-| **Iteración 0 del MSA** | Flujo libre *naive* | auto/bici a velocidad libre; metro con `t_acceso=10`, `t_espera=5` fijos | Es el arranque histórico del original (fiel al Overleaf, ver D-04 nota); solo necesita ser un punto de partida razonable — el MSA lo corrige en 1–2 iteraciones. |
-| **ΔCS (excedente del consumidor)** | **Red vacía** | la misma infraestructura con demanda 0: BPR(0), tren a `f_min` con las estaciones reales | El Δ debe aislar el efecto de la DEMANDA sobre la red (congestión vs Mohring); usar tiempos fijos inventados sesgaría el signo (con pocas estaciones, el acceso real a flujo libre es peor que el "10 min" naive). |
-| **Arranque del loop acoplado** | Flujo libre **en minutos** a `v_auto` | `T(i) = d_km/v_auto·60` | El suelo de la iteración 0 no conoce la red (aún no corre el MSA); solo necesita una accesibilidad monótona en la MISMA unidad (minutos) que las iteraciones siguientes (D-23). |
+| Uso                                | Baseline                              | Definición                                                                               | Por qué                                                                                                                                                                                                            |
+| ---------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Iteración 0 del MSA**            | Flujo libre _naive_                   | auto/bici a velocidad libre; metro con `t_acceso=10`, `t_espera=5` fijos                 | Es el arranque histórico del original (fiel al Overleaf, ver D-04 nota); solo necesita ser un punto de partida razonable — el MSA lo corrige en 1–2 iteraciones.                                                   |
+| **ΔCS (excedente del consumidor)** | **Red vacía**                         | la misma infraestructura con demanda 0: BPR(0), tren a `f_min` con las estaciones reales | El Δ debe aislar el efecto de la DEMANDA sobre la red (congestión vs Mohring); usar tiempos fijos inventados sesgaría el signo (con pocas estaciones, el acceso real a flujo libre es peor que el "10 min" naive). |
+| **Arranque del loop acoplado**     | Flujo libre **en minutos** a `v_auto` | `T(i) = d_km/v_auto·60`                                                                  | El suelo de la iteración 0 no conoce la red (aún no corre el MSA); solo necesita una accesibilidad monótona en la MISMA unidad (minutos) que las iteraciones siguientes (D-23).                                    |
 
 - **Nota relacionada (caminata sin congestión)**: `d_caminata` se calcula y
   reporta pero no existe función de oferta peatonal — la caminata nunca se
@@ -910,8 +912,8 @@ congelado durante toda la iteración: el punto fijo mueve `ū` y `p`, nunca `f`.
 
 Hay un segundo motivo, más fuerte que el primero: el mercado se vacía —las
 columnas de `Q` suman 1 y `Σ S = Σ H` es obligatorio—, de modo que la densidad
-**realizada** es idénticamente `S/Δx`. El equilibrio decide *quién* vive en cada
-celda; *cuántos* lo fija la oferta y no cambia con ninguna configuración.
+**realizada** es idénticamente `S/Δx`. El equilibrio decide _quién_ vive en cada
+celda; _cuántos_ lo fija la oferta y no cambia con ninguna configuración.
 
 **Qué dice Martínez.** En su modelo la atractividad es **endógena**: las
 externalidades de localización son un mecanismo central, no un detalle.
@@ -934,7 +936,7 @@ lazo. El de acá no.
 **Por qué importa.** `ρ·dens` **no modela congestión residencial**: ningún hogar
 puede mover la magnitud por la que se lo penaliza. Es un atributo fijo de la
 parcela, estructuralmente indistinguible de un segundo término de accesibilidad
-— y en la geometría por defecto es *casi literalmente* el mismo término, con
+— y en la geometría por defecto es _casi literalmente_ el mismo término, con
 `corr(T, dens) = −0,996` (AU-12).
 
 Consecuencias: no hay cascada, no hay equilibrios múltiples inducidos por
@@ -972,7 +974,7 @@ penaliza una densidad que el modelo nunca mueve.
   escala de ruido de cada estrato (medido: Theil 0,911 vs 0,907 vs 0,899 para
   tres anatomías con el mismo VoT).
 - **Decisión (2026-09-04).** Transporte **homoscedástico**: `b_tiempo_viaje =
-  0,0331` en los tres estratos (la escala del medio, 50 % de la población); el
+0,0331` en los tres estratos (la escala del medio, 50 % de la población); el
   bloque del alto se reescaló por 0,0331/0,055 y el del bajo por 0,0331/0,015.
   `b_costo = 0,0331·60/VoT` sale monótono solo: 0,000320 / 0,000641 /
   0,001241. **Toda** la heterogeneidad del VoT vive ahora en la utilidad
@@ -1070,7 +1072,7 @@ penaliza una densidad que el modelo nunca mueve.
   `ρ` cambia el modelo (invierte Alonso), y bajar la escala de `λ` es `β` con
   otro nombre rompiendo el nivel del VoT.
 - **UI.** `α` y `λ` se editan sin poder romper las razones: un control común
-  para `α` y una *escala* para `λ` (`λ_h = escala·|b_costo_h|`, leídos de la
+  para `α` y una _escala_ para `λ` (`λ_h = escala·|b_costo_h|`, leídos de la
   demanda de transporte). `β` en 0,01–2; `ρ` en 0–0,01.
 - **Invariantes.** `tests/test_vot_consistente.py` (`α = 1`, `λ = |b_costo|`
   exacto, VoT igual en nivel, `λ` decreciente, HEV), `tests/test_accesibilidad.py`
@@ -1090,23 +1092,23 @@ Una auditoría científica y numérica hecha por ChatGPT («ASTRA») sobre `b9af
 propio y el estado; los descartados o ya documentados se anotan al final.
 Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
 
-## D-35 — Acoplado: el bienestar total multiplica el excedente *por viajero* por *todos* los hogares (A03)
+## D-35 — Acoplado: el bienestar total multiplica el excedente _por viajero_ por _todos_ los hogares (A03)
 
 - **Evidencia**: `coupled_metrics.py`, `compute_equilibrium_metrics`. `cs_medio =
-  cs_sum/nv` promedia sólo sobre quienes viajan (excluye teletrabajo y varados);
+cs_sum/nv` promedia sólo sobre quienes viajan (excluye teletrabajo y varados);
   luego `bienestar_total = Σ_h cs_medio·n_hogares`, con `n_hogares` = todos.
   Infla la magnitud en ≈ n_hogares/nv (≈ 20 % en la base).
 - **Veredicto**: error contable. El teletrabajador tiene ΔCS = 0 y el varado no
   tiene medida: el total es la suma sobre la población elegible, no un promedio
   reescalado. Corrección: acumular sobre los pesos de quienes viajan y explicitar
   el período; decidir y declarar qué se hace con los varados (hoy se omiten en
-  silencio, lo que puede *mejorar* un promedio al empeorar la red).
+  silencio, lo que puede _mejorar_ un promedio al empeorar la red).
 - **Estado**: corregido 2026-09-05. `bienestar_total = Σ ΔCS` sobre los agentes que viajan; `StratumMetrics.n_viajeros` expone la población del promedio. Los varados siguen fuera, declarado en el código.
 
 ## D-36 — Bienestar: los tren-km se despejan de las emisiones, así que un factor de emisión 0 anula el costo del operador (A05)
 
 - **Evidencia**: `bienestar.py`: `tren_km = trace.emisiones_metro_kg / factor_em
-  if factor_em > 0 else 0.0`. El comentario declara que se hizo para no duplicar
+if factor_em > 0 else 0.0`. El comentario declara que se hizo para no duplicar
   la fórmula `f_op·span·2` de `emissions.py`. Con factor 0 (metro
   descarbonizado) el costo operador pasa de ~$5,6 M a $0 y el bienestar «mejora»
   en esa cifra con el mismo servicio.
@@ -1145,12 +1147,12 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
 ## D-39 — Convergencia: el residual del MSA se mide después de amortiguar, y «terminó» se rotula «convergió» (A01, A02)
 
 - **Evidencia (A01)**: `msa.py::_iter_loop`. Con `promediar_flujos` la demanda se
-  promedia con paso `1/(it+1)` y el residual mide el cambio del *promedio*; el
+  promedia con paso `1/(it+1)` y el residual mide el cambio del _promedio_; el
   desajuste entre la oferta recién evaluada y el estado es `(it+1)` veces eso.
   En la base con suelo, 0,072 min de residual a la 8ª iteración son ~0,5 min de
   brecha, contra una tolerancia publicada de 0,1.
 - **Evidencia (A02)**: `coupled.py`: `is_converged = outer > 0 and residual <
-  outer_tol`, sin exigir `transport_trace.converged` ni la convergencia del
+outer_tol`, sin exigir `transport_trace.converged` ni la convergencia del
   suelo; con `max_iter=1` interior devuelve `converged=True`. En la web,
   `RunStatus.tsx` traduce `stage === "done"` como «Equilibrio alcanzado» y
   `CoupledPage.tsx` construye `converged: stage === "done"`. El campo
@@ -1160,7 +1162,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
 - **Veredicto**: el criterio de parada por cambio del iterado es el estándar de
   MSA en código docente y no prueba que el punto fijo no exista, pero la
   tolerancia publicada **no acota** lo que la interfaz sugiere. Corrección:
-  publicar además un *gap* no amortiguado (recalcular demanda y oferta al estado
+  publicar además un _gap_ no amortiguado (recalcular demanda y oferta al estado
   final), separar «finalizó» de «convergió» en núcleo y UI, exigir las tres
   convergencias en el acoplado, renombrar el residual con su unidad.
 - **Estado**: corregido 2026-09-05 (parcial). Núcleo: `ConvergenceTrace.gap_final_min` recalcula demanda y oferta al estado final y publica la brecha NO amortiguada (serializada en `TraceDict`); el acoplado sólo se declara convergido si convergen residual exterior, MSA y subasta; `residual_final_min` → `residual_final` (utiles/mes). UI: `RunStatus` y `CoupledPage` leen la bandera real (`equilibrium.not_converged` cuando no convergió). Pendiente: mostrar `gap_final_min` en la tabla de transporte y decidir si el criterio de parada del MSA pasa a usar la brecha.
@@ -1168,7 +1170,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
 ## D-40 — Acoplado: el estado final no es el de la última iteración, y las métricas reciben otro `assignment` que la corrida (A07, A08)
 
 - **Evidencia (A07)**: al agotar `outer_max_iter` sin converger, `city.update(T_state)`
-  corre *después* del último `yield`: `final_city` es una ciudad que nunca vio
+  corre _después_ del último `yield`: `final_city` es una ciudad que nunca vio
   transporte, mientras `final_agents` y las métricas son de la anterior. Con un
   paso exterior, `max|ΔQ| = 0,19` entre ambas.
 - **Evidencia (A08)**: `sim_eq = sim.model_copy(update={"assignment": "expected"})`
@@ -1177,7 +1179,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
   se rotula `utilidad_maxima`.
 - **Veredicto**: inconsistencias de contrato. Corrección: no actualizar la
   ciudad al salir si no se va a simular su transporte (o simularlo y emitir ese
-  estado); pasar la configuración *efectiva* a las métricas y al usuario, o
+  estado); pasar la configuración _efectiva_ a las métricas y al usuario, o
   rechazar `todo_o_nada` en el acoplado explícitamente.
 - **Estado**: corregido 2026-09-05. La ciudad sólo se actualiza si viene otra vuelta que la simule (`final_city` = `land_use` de la última iteración, test con `outer_max_iter=1`); las métricas reciben la configuración efectiva (`sim_eq`, `expected`), así que la medida de bienestar del acoplado es siempre el logsum y el test lo fija.
 
@@ -1186,7 +1188,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
 - **Evidencia (A10)**: medido: `λ × 0,1` → `max|ΔQ| = 4·10⁻¹⁴`, rango de precios
   ×10. Es la invariancia de AU-13 vista desde `λ`: el determinístico `f/λ` y el
   ruido `1/(β·λ)` escalan juntos, y `ρ/λ` escala igual que `α/λ`, así que
-  tampoco cambia el balance con la densidad. El *hint* del control en
+  tampoco cambia el balance con la densidad. El _hint_ del control en
   `LandUseBuilder.tsx` (introducido en `b9afa73`) afirma lo contrario: **falso**.
   Lo único que mueve esa escala es la unidad monetaria de las rentas.
 - **Evidencia (A11)**: la suma de 44 Gumbel no es Gumbel; escalar el ruido por
@@ -1239,7 +1241,7 @@ Convención de esta tanda: **Estado** `pendiente` → `corregido <fecha>`.
 **Descartados o ya cubiertos.** A12 (`/simulate` con densidad plana vs. motor
 local con suelo) es C-02, documentado en `api.ts`; la diferencia de 9 pp que
 mide es real y unificar el contrato es decisión aparte. La observación de §4.2
-—que la forma cerrada con `λ` heterogéneo es *otro supuesto* (precisiones de
+—que la forma cerrada con `λ` heterogéneo es _otro supuesto_ (precisiones de
 utilidad distintas), no un modelo inválido— es correcta y corrige la redacción
 de D-08. El dictamen general («no certificar como equilibrio validado ni como
 evaluación social») es cierto como afirmación, pero nadie lo afirmó: lo que
@@ -1251,25 +1253,32 @@ cumple, y eso está en D-39.
 ## D-45 — Ciudad: dos convenciones de distancia al CBD, y la paridad que nadie valida
 
 - **Hallado**: auditoría del capítulo 1 del libro, 2026-09-07.
-- **Evidencia**: el núcleo mide la distancia al CBD de dos maneras. Por
-  **índices**, `|i − n//2|·Δx`, que usan `demand/utility.py`,
-  `equilibrium/msa.py` y `land_use/accesibilidad.py`; y por **posición
-  continua**, `|x − L/2|`, que usa `supply/oferta.py` al pasar
-  `ubicacion_centro_km` a las funciones de auto, bici y metro. Las dos coinciden
-  **exactamente si y sólo si `n_celdas` es impar**: con `n` par el centroide de
-  la celda `n//2` queda medio `Δx` a la derecha del CBD, y la celda del CBD pasa
-  a estar a distancia positiva de sí misma (0,05 km con `n`=200, 0,20 km con
-  `n`=50, sobre 20 km).
+- **Corregido el 2026-09-07, al auditar el capítulo 2.** La primera redacción
+  afirmaba que la oferta usaba una convención distinta de la demanda y que las
+  dos se separaban con `n` par. **Es falso**: `supply/car.py` recibe `cbd_km`
+  pero lo reconvierte a índice con `int(cbd_km/L · n)`, y como
+  `int(n/2) == n//2` para todo `n`, cae siempre en la misma celda que
+  `cbd_index`. Oferta y demanda comparten la celda del CBD con cualquier
+  paridad. Lo que sigue en pie es lo de abajo.
+- **Evidencia**: `CiudadLineal` expone la geometría en **posición continua**
+  (`centroides_km`, `distancia_al_cbd_km`: `|x_i − L/2|`) mientras todo el
+  núcleo mide por **índice** (`|i − n//2|·Δx`) — `demand/utility.py`,
+  `equilibrium/msa.py`, `land_use/accesibilidad.py` y, tras la reconversión,
+  también `supply/`. Las dos formas coinciden **si y sólo si `n_celdas` es
+  impar**: con `n` par el centroide de la celda `n//2` queda medio `Δx` a la
+  derecha del CBD, y por la convención continua esa celda pasa a estar a
+  distancia positiva de sí misma (0,05 km con `n`=200, 0,20 km con `n`=50,
+  sobre 20 km).
 - **El docstring de `CityConfig` ya lo exige** («`n_celdas` debe ser impar para
   que el CBD quede centrado») pero el validador sólo pide `ge=11`: por API o por
   escenario importado entra un par sin ninguna queja. La interfaz sí lo fuerza
   (`CityBuilder.tsx`: `v % 2 === 0 ? v + 1 : v`), así que es el patrón de D-43 —
   la UI evita el caso, el schema no.
-- **Código muerto, y justo el afectado**: `CiudadLineal.centroides_km` y
+- **Código muerto, y es donde vive el desfase**: `CiudadLineal.centroides_km` y
   `CiudadLineal.distancia_al_cbd_km` son los únicos que exponen la convención
-  continua en forma vectorial, y **no los llama nadie** (0 usos en núcleo, tests
-  y scripts). El desfase vive ahí, donde no hace daño hoy y lo haría el día que
-  alguien los use creyendo que son equivalentes a la otra convención.
+  continua, y **no los llama nadie** (0 usos en núcleo, tests y scripts). Por eso
+  el desfase es inocuo hoy: haría daño el día que alguien los use creyendo que
+  son equivalentes a la convención por índice que usa todo lo demás.
 - **Veredicto**: latente, no activo. La ciudad por defecto (201) y la del núcleo
   (1001) son impares, y la UI no deja llegar a un par. Corrección propuesta:
   validar la paridad en `CityConfig`, y decidir sobre los dos métodos muertos —
@@ -1309,53 +1318,76 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-47 — Metro: `num_estaciones` no es el número de estaciones
+
+- **Hallado**: auditoría del capítulo 2 del libro, 2026-09-07.
+- **Evidencia**: `oferta_tren` construye la línea partiendo del CBD hacia ambos
+  lados con paso `L/num_estaciones`, y después filtra a `[0, L]` y aplica
+  `np.unique`. El conteo resultante depende de si los bordes caen exactos: con
+  `L`=20 km, pedir 10 da **11** estaciones, pedir 20 da 21, pedir 30 da 31, y
+  pedir 24 da **23**. Sólo 3, 5 y 6 aciertan. El default de la aplicación es 10,
+  así que la ciudad por defecto tiene **once** estaciones, no diez.
+- **Lo que se ve**: la etiqueta de la interfaz dice «Número de estaciones» y el
+  informe muestra ese número; el gráfico de la línea dibuja las reales. Nada
+  advierte de la diferencia.
+- **Veredicto**: el parámetro es en realidad un **número de intervalos**
+  (`separación = L/n`), y como tal está bien definido y es el que el usuario
+  querría mover. El problema es el nombre y el conteo que se reporta.
+  Corrección propuesta: renombrar a separación entre estaciones o exponer el
+  conteo real junto al pedido; en cualquier caso, que la etiqueta no prometa un
+  número que el modelo no entrega.
+- **Estado**: pendiente.
+
+---
+
 ## Tabla resumen
 
-| ID | Tema | Veredicto | Prioridad |
-|----|---|---|---|
-| D-01 | Factor pendiente bici | Overleaf incorrecto | Alta |
-| D-02 | Penalizaciones bici/caminata | Overleaf incorrecto | Alta |
-| D-03 | β caminata | Overleaf incorrecto | Alta |
-| D-04 | `t_espera` base | Equivalentes | Baja |
-| D-05 | Caminata habilitada | Overleaf desactualizado | Media |
-| D-06 | Emisiones no documentadas | Doc incompleta | Media |
-| D-07 | Jornadas inactivas | Dead-path intencional | Baja |
-| D-08 | Método Frechét | Ampliación | Baja |
-| D-09 | Parámetros hardcodeados | UI | Media (fix en web v1) |
-| D-10 | Sin criterio de convergencia | Mejora | Media (fix en core) |
-| D-11 | `generar_poblacion` muerta | Limpieza | Baja |
-| D-12 | Congestión de andén metro inactiva (+ artefacto) | Fiel al original (artefacto) | Baja |
-| D-13 | Oferta de suelo determinista + σ expuesta | Divergencia intencional | Media |
-| D-14 | Loop acoplado: residual espurio (unidades) + MSA | Bug V2 corregido | Alta |
-| D-15 | Bici sin piso de velocidad (podía ser > caminata) | Bug físico corregido | Alta |
-| D-16 | Constantes congestión andén (α,β) ≠ Overleaf | Discrepancia código↔Overleaf | Media |
-| D-17 | Signo de f_h en WTP (Suelo) | Overleaf incorrecto (typo) | Media |
-| D-18 | Rango de frecuencia realista (Mohring) + test Downs‑Thomson | Mejora + diagnóstico (DT no observable) | Media |
-| D-19 | Selección de modos disponibles (set de elección) | Ampliación de funcionalidad | Media |
-| D-20 | Rendimiento: asignación agrupada (independiente de densidad) | Mejora de rendimiento | Alta |
-| D-21 | Saturación ciclovía: techo de caminata plano (capacidad blanda) | Simplificación aceptada (limitación documentada) | Media |
-| D-22 | Acoplado: accesibilidad común por ubicación (no por estrato) | Bug del modelo corregido | Alta |
-| D-23 | Acoplado: baseline "sin feedback" en min a flujo libre (no índices) | Artefacto de unidades corregido | Alta |
-| D-24 | Acoplado: gridlock monocéntrico → población por escenario | Acotado por config (robustez pendiente) | Media |
-| D-25 | Suelo: Q sin ponderación H_h (no conservaba hogares por estrato) | Bug del port corregido | Alta |
-| D-26 | Suelo: unidades físicas (T en min, densidad hog/km) → invariancia de grilla | Bug de unidades corregido (decisión de modelo) | Alta |
-| D-27 | Carga mensual costo/ingreso con y en $/mes | Unidades corregidas | Media |
-| D-28 | Transporte: densidad física hab/km (n_celdas puramente numérico) | Continuación de D-26 | Alta |
-| D-29 | Emisiones de metro por tren-km (economías de escala visibles) | Corrección conceptual | Media |
-| D-30 | Tres baselines de "sin congestión" (convenciones) | Documentado, sin cambio de código | Baja |
-| D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp) | Bug corregido, línea base intacta | Alta |
-| D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez) | Simplificación declarada, sin cambio de código | Media |
-| D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo) | Calibración corregida, línea base movida y declarada | Alta |
-| D-34 | Suelo: accesibilidad = logsum mensual de transporte, α = 1, λ = |b_costo|, β = 1/√44; D-22 revisada | Ancla del original recuperada, línea base movida y declarada | Alta |
-| D-35 | Acoplado: bienestar total = excedente por viajero × todos los hogares | Corregido 2026-09-05 | Alta |
-| D-36 | Bienestar: tren-km despejados de emisiones; factor 0 anula el costo operador | Corregido 2026-09-05 | Alta |
-| D-37 | Bienestar: costo generalizado sin ponderadores de espera/acceso | Corregido 2026-09-05 | Alta |
-| D-38 | Theil ponderado por celdas, no por hogares (y espejo TS) | Corregido 2026-09-05 | Media |
-| D-39 | Convergencia: residual amortiguado; «terminó» rotulado «convergió»; residual en «minutos» | Corregido 2026-09-05 | Alta |
-| D-40 | Acoplado: estado final de otro paso; `assignment` distinto en métricas | Corregido 2026-09-05 | Media |
-| D-41 | Suelo: «λ · escala» inerte sobre Q; β = 1/√44 es aproximación de 2º momento | Corregido 2026-09-05 | Media |
-| D-42 | Suelo standalone: flujo libre sin la red configurada | Corregido 2026-09-06 | Media |
-| D-43 | Validación de dominios; cuadratura HEV fija fuera de la base | Corregido 2026-09-06 | Media |
-| D-44 | Redondeos, muestras y convenciones geométricas | Corregido 2026-09-06 | Baja |
-| D-45 | Ciudad: dos convenciones de distancia al CBD; paridad de `n_celdas` sin validar; dos métodos muertos | Pendiente (libro, cap. 1) | Baja |
-| D-46 | Ciudad: dos fuentes de población; el schema y dos textos nombran la inerte | Pendiente (libro, cap. 1) | Media |
+| ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
+| ---- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------- | ------------------------------------------------------------ | ---- |
+| D-01 | Factor pendiente bici                                                                                      | Overleaf incorrecto                                  | Alta                       |
+| D-02 | Penalizaciones bici/caminata                                                                               | Overleaf incorrecto                                  | Alta                       |
+| D-03 | β caminata                                                                                                 | Overleaf incorrecto                                  | Alta                       |
+| D-04 | `t_espera` base                                                                                            | Equivalentes                                         | Baja                       |
+| D-05 | Caminata habilitada                                                                                        | Overleaf desactualizado                              | Media                      |
+| D-06 | Emisiones no documentadas                                                                                  | Doc incompleta                                       | Media                      |
+| D-07 | Jornadas inactivas                                                                                         | Dead-path intencional                                | Baja                       |
+| D-08 | Método Frechét                                                                                             | Ampliación                                           | Baja                       |
+| D-09 | Parámetros hardcodeados                                                                                    | UI                                                   | Media (fix en web v1)      |
+| D-10 | Sin criterio de convergencia                                                                               | Mejora                                               | Media (fix en core)        |
+| D-11 | `generar_poblacion` muerta                                                                                 | Limpieza                                             | Baja                       |
+| D-12 | Congestión de andén metro inactiva (+ artefacto)                                                           | Fiel al original (artefacto)                         | Baja                       |
+| D-13 | Oferta de suelo determinista + σ expuesta                                                                  | Divergencia intencional                              | Media                      |
+| D-14 | Loop acoplado: residual espurio (unidades) + MSA                                                           | Bug V2 corregido                                     | Alta                       |
+| D-15 | Bici sin piso de velocidad (podía ser > caminata)                                                          | Bug físico corregido                                 | Alta                       |
+| D-16 | Constantes congestión andén (α,β) ≠ Overleaf                                                               | Discrepancia código↔Overleaf                         | Media                      |
+| D-17 | Signo de f_h en WTP (Suelo)                                                                                | Overleaf incorrecto (typo)                           | Media                      |
+| D-18 | Rango de frecuencia realista (Mohring) + test Downs‑Thomson                                                | Mejora + diagnóstico (DT no observable)              | Media                      |
+| D-19 | Selección de modos disponibles (set de elección)                                                           | Ampliación de funcionalidad                          | Media                      |
+| D-20 | Rendimiento: asignación agrupada (independiente de densidad)                                               | Mejora de rendimiento                                | Alta                       |
+| D-21 | Saturación ciclovía: techo de caminata plano (capacidad blanda)                                            | Simplificación aceptada (limitación documentada)     | Media                      |
+| D-22 | Acoplado: accesibilidad común por ubicación (no por estrato)                                               | Bug del modelo corregido                             | Alta                       |
+| D-23 | Acoplado: baseline "sin feedback" en min a flujo libre (no índices)                                        | Artefacto de unidades corregido                      | Alta                       |
+| D-24 | Acoplado: gridlock monocéntrico → población por escenario                                                  | Acotado por config (robustez pendiente)              | Media                      |
+| D-25 | Suelo: Q sin ponderación H_h (no conservaba hogares por estrato)                                           | Bug del port corregido                               | Alta                       |
+| D-26 | Suelo: unidades físicas (T en min, densidad hog/km) → invariancia de grilla                                | Bug de unidades corregido (decisión de modelo)       | Alta                       |
+| D-27 | Carga mensual costo/ingreso con y en $/mes                                                                 | Unidades corregidas                                  | Media                      |
+| D-28 | Transporte: densidad física hab/km (n_celdas puramente numérico)                                           | Continuación de D-26                                 | Alta                       |
+| D-29 | Emisiones de metro por tren-km (economías de escala visibles)                                              | Corrección conceptual                                | Media                      |
+| D-30 | Tres baselines de "sin congestión" (convenciones)                                                          | Documentado, sin cambio de código                    | Baja                       |
+| D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp)                             | Bug corregido, línea base intacta                    | Alta                       |
+| D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez)                                      | Simplificación declarada, sin cambio de código       | Media                      |
+| D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo)                                | Calibración corregida, línea base movida y declarada | Alta                       |
+| D-34 | Suelo: accesibilidad = logsum mensual de transporte, α = 1, λ =                                            | b_costo                                              | , β = 1/√44; D-22 revisada | Ancla del original recuperada, línea base movida y declarada | Alta |
+| D-35 | Acoplado: bienestar total = excedente por viajero × todos los hogares                                      | Corregido 2026-09-05                                 | Alta                       |
+| D-36 | Bienestar: tren-km despejados de emisiones; factor 0 anula el costo operador                               | Corregido 2026-09-05                                 | Alta                       |
+| D-37 | Bienestar: costo generalizado sin ponderadores de espera/acceso                                            | Corregido 2026-09-05                                 | Alta                       |
+| D-38 | Theil ponderado por celdas, no por hogares (y espejo TS)                                                   | Corregido 2026-09-05                                 | Media                      |
+| D-39 | Convergencia: residual amortiguado; «terminó» rotulado «convergió»; residual en «minutos»                  | Corregido 2026-09-05                                 | Alta                       |
+| D-40 | Acoplado: estado final de otro paso; `assignment` distinto en métricas                                     | Corregido 2026-09-05                                 | Media                      |
+| D-41 | Suelo: «λ · escala» inerte sobre Q; β = 1/√44 es aproximación de 2º momento                                | Corregido 2026-09-05                                 | Media                      |
+| D-42 | Suelo standalone: flujo libre sin la red configurada                                                       | Corregido 2026-09-06                                 | Media                      |
+| D-43 | Validación de dominios; cuadratura HEV fija fuera de la base                                               | Corregido 2026-09-06                                 | Media                      |
+| D-44 | Redondeos, muestras y convenciones geométricas                                                             | Corregido 2026-09-06                                 | Baja                       |
+| D-45 | Ciudad: `CiudadLineal` expone una convención de distancia que nadie usa; paridad de `n_celdas` sin validar | Pendiente (libro, cap. 1; corregido cap. 2)          | Baja                       |
+| D-46 | Ciudad: dos fuentes de población; el schema y dos textos nombran la inerte                                 | Pendiente (libro, cap. 1)                            | Media                      |
+| D-47 | Metro: `num_estaciones` entrega n±1 estaciones; la etiqueta promete el número pedido                       | Pendiente (libro, cap. 2)                            | Baja                       |
