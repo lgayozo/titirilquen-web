@@ -71,9 +71,9 @@
   <tbody>
     <tr>
       <td class="cap">1</td>
-      <td class="titulo">La ciudad lineal</td>
-      <td><span class="estado">pendiente</span></td>
-      <td class="fuentes">tutorial 02 · D-26 · D-28</td>
+      <td class="titulo"><a href="cap01-ciudad-lineal.html">La ciudad lineal</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">tutorial 02 · D-26 · D-28 → <strong>D-45</strong>, <strong>D-46</strong></td>
     </tr>
     <tr>
       <td class="cap">2</td>
@@ -214,6 +214,18 @@
   tests (<code>test_linea_base</code>, <code>test_vot_consistente</code>), el
   registro de discrepancias (<a href="../DISCREPANCIES.md">DISCREPANCIES.md</a>)
   y los comentarios del código.
+</p>
+
+<h3>El capítulo 1 como piloto</h3>
+
+<p>
+  Se escribió primero para medir qué cuesta un capítulo completo — auditoría con
+  el protocolo de cinco pasos, datos generados por script, punteros verificados —
+  antes de comprometer los otros nueve. Salieron dos discrepancias nuevas
+  (D-45 y D-46) y un matiz sobre D-28, y las tres son del mismo tipo:
+  <strong>afirmaciones que sobrevivieron a la corrección que las volvió
+  falsas</strong>. Las encontró el paso (e) del protocolo, el que contrasta lo
+  que la interfaz dice contra lo que el núcleo calcula.
 </p>
 
 <footer>

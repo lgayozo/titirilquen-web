@@ -16,10 +16,14 @@ El contrato, que fija `tests/test_libro.py`:
    "por qué"}`.
 2. **El JSON dice cuándo y con qué se generó.** Toda salida lleva una clave
    `_meta` con la fecha, el commit y la configuración usada.
-3. **Regenerar no debe cambiar nada.** El test corre el script y compara; si el
-   diff no está vacío, el capítulo quedó desfasado del código y hay que
-   regenerarlo y declararlo en el commit. Es el mismo mecanismo de `sync:core` y
-   los goldens.
+3. **Regenerar no debe cambiar nada, salvo `_meta`.** El test corre el script y
+   compara **ignorando esa clave**: la fecha y el commit cambian por su cuenta y
+   harían fallar el test en cada corrida. Si el resto difiere, el capítulo quedó
+   desfasado del código y hay que regenerarlo y declararlo en el commit. Es el
+   mismo mecanismo de `sync:core` y los goldens. Verificado para `cap01`: dos
+   corridas seguidas dan el mismo JSON salvo `_meta`.
+4. **Los JSON no pasan por prettier** (`.prettierignore`): son generados, y
+   reformatearlos los deja sucios hasta la próxima corrida.
 
 Correr uno a mano, desde `packages/titirilquen_core`:
 

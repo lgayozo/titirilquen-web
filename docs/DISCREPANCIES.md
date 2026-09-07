@@ -775,6 +775,13 @@ guardados que lo traen se migran en `serialization.ts`.
   grande (más gente a densidad constante + más distancia).
 - **Verificación**: `test_poblacion_invariante_a_la_grilla` — población total
   estable (±6 sobre 250) entre 51, 101 y 401 celdas con la misma ciudad física.
+- **Matiz medido (libro, cap. 1, 2026-09-07)**: la invariancia de la **población**
+  es exacta por la ruta de la aplicación (36.000 agentes en 51, 101, 201, 401 y
+  801 celdas). La del **resultado** es asintótica, no exacta: entre L=51 y L=801
+  el reparto se mueve hasta 0,73 pp (caminata) y las emisiones 3,3 %; entre 201 y
+  801, ≤0,10 pp. Es error de discretización que converge al refinar, no un efecto
+  de escala, pero «`n_celdas` no cambia nada económico, en ningún módulo» es más
+  fuerte de lo que los números sostienen en las grillas gruesas.
 - **Veredicto**: Continuación de D-26 (unidades físicas en todos los módulos);
   decisión de modelo jun-2026.
 
@@ -1241,6 +1248,67 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-45 — Ciudad: dos convenciones de distancia al CBD, y la paridad que nadie valida
+
+- **Hallado**: auditoría del capítulo 1 del libro, 2026-09-07.
+- **Evidencia**: el núcleo mide la distancia al CBD de dos maneras. Por
+  **índices**, `|i − n//2|·Δx`, que usan `demand/utility.py`,
+  `equilibrium/msa.py` y `land_use/accesibilidad.py`; y por **posición
+  continua**, `|x − L/2|`, que usa `supply/oferta.py` al pasar
+  `ubicacion_centro_km` a las funciones de auto, bici y metro. Las dos coinciden
+  **exactamente si y sólo si `n_celdas` es impar**: con `n` par el centroide de
+  la celda `n//2` queda medio `Δx` a la derecha del CBD, y la celda del CBD pasa
+  a estar a distancia positiva de sí misma (0,05 km con `n`=200, 0,20 km con
+  `n`=50, sobre 20 km).
+- **El docstring de `CityConfig` ya lo exige** («`n_celdas` debe ser impar para
+  que el CBD quede centrado») pero el validador sólo pide `ge=11`: por API o por
+  escenario importado entra un par sin ninguna queja. La interfaz sí lo fuerza
+  (`CityBuilder.tsx`: `v % 2 === 0 ? v + 1 : v`), así que es el patrón de D-43 —
+  la UI evita el caso, el schema no.
+- **Código muerto, y justo el afectado**: `CiudadLineal.centroides_km` y
+  `CiudadLineal.distancia_al_cbd_km` son los únicos que exponen la convención
+  continua en forma vectorial, y **no los llama nadie** (0 usos en núcleo, tests
+  y scripts). El desfase vive ahí, donde no hace daño hoy y lo haría el día que
+  alguien los use creyendo que son equivalentes a la otra convención.
+- **Veredicto**: latente, no activo. La ciudad por defecto (201) y la del núcleo
+  (1001) son impares, y la UI no deja llegar a un par. Corrección propuesta:
+  validar la paridad en `CityConfig`, y decidir sobre los dos métodos muertos —
+  borrarlos o dejarlos como la definición canónica y hacer que el resto los use.
+- **Estado**: pendiente.
+
+## D-46 — Ciudad: la población tiene dos fuentes, y el schema y los textos siguen nombrando la que no manda
+
+- **Hallado**: auditoría del capítulo 1 del libro, 2026-09-07. **Confirma y
+  extiende S-05** (`ANALISIS_SENSIBILIDAD.md` §4), que ya declaraba
+  `densidad_hab_km` «sensible pero muerto en la app».
+- **Evidencia**: hay dos parámetros de población y cuál manda depende de la ruta.
+  Por `iter_msa` (transporte solo) la población es `densidad_hab_km · largo`:
+  900 → 3.600 hab/km da 17.910 → 71.642 agentes y mueve el reparto de auto de
+  18,58 % a 12,53 %. Por `iter_msa_desde_suelo` —**la ruta que usa la
+  aplicación**— la población la fija `land_use.H_por_estrato` y
+  `densidad_hab_km` es **exactamente inerte**: 900, 1.800 y 3.600 hab/km dan los
+  mismos 36.000 agentes y el mismo reparto al tercer decimal. Mover
+  `H_por_estrato`, en cambio, sí: ΣH 18.000 / 36.000 / 72.000 da auto
+  17,77 / 15,81 / 13,28 %.
+- **Lo que S-05 arregló y lo que quedó**: la interfaz ya no ofrece el dial —
+  `CityBuilder` sólo tiene largo, parcelas y pendiente, y deriva la densidad con
+  `densidadDerivadaHabKm(ΣH, largo)`—. Pero quedaron atrás tres cosas: el
+  comentario de `CityConfig.densidad_hab_km` sigue afirmando «población total =
+  densidad_hab_km · largo» sin la condición; la clave
+  `city_params.n_parcelas_hint` —que **sí se muestra**— repite «La población
+  total la fija la densidad × largo»; y las claves `city_params.densidad_hab_km`
+  y `densidad_hint` quedaron **huérfanas** (0 componentes las usan) conservando
+  el mismo texto. Peor: `largo_hint`, que también se muestra, dice lo contrario y
+  correcto («Población fija: al cambiar el largo, la densidad se recalcula»). La
+  interfaz se contradice a sí misma en dos etiquetas contiguas.
+- **Veredicto**: la corrección de S-05 llegó al comportamiento y no a la
+  documentación. Corrección propuesta: condicionar el comentario del schema,
+  reescribir `n_parcelas_hint`, borrar las dos claves huérfanas, y decidir si
+  `densidad_hab_km` sigue siendo campo de entrada o pasa a derivado explícito.
+- **Estado**: pendiente.
+
+---
+
 ## Tabla resumen
 
 | ID | Tema | Veredicto | Prioridad |
@@ -1289,3 +1357,5 @@ cumple, y eso está en D-39.
 | D-42 | Suelo standalone: flujo libre sin la red configurada | Corregido 2026-09-06 | Media |
 | D-43 | Validación de dominios; cuadratura HEV fija fuera de la base | Corregido 2026-09-06 | Media |
 | D-44 | Redondeos, muestras y convenciones geométricas | Corregido 2026-09-06 | Baja |
+| D-45 | Ciudad: dos convenciones de distancia al CBD; paridad de `n_celdas` sin validar; dos métodos muertos | Pendiente (libro, cap. 1) | Baja |
+| D-46 | Ciudad: dos fuentes de población; el schema y dos textos nombran la inerte | Pendiente (libro, cap. 1) | Media |
