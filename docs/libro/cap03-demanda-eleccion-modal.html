@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 3: Demanda y elección modal</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 3</div>
+  <h1>Demanda y elección modal</h1>
+  <p class="bajada">
+    Quién viaja en qué. Un logit multinomial sobre cuatro modos, con la
+    calibración más delicada del simulador: aquí es donde el ingreso entra al
+    modelo, y donde un coeficiente mal puesto cambia la ciudad entera.
+  </p>
+  <p class="meta">
+    Módulos: <code>demand/utility.py</code> · <code>demand/choice.py</code> ·
+    <code>population.py</code> · <code>presets.py</code> ·
+    auditado el 2026-09-07 ·
+    datos regenerados el 2026-09-07 ·
+    <span class="estado auditado">auditado</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Cotejo con el código</a></li>
+    <li><a href="#s3">Parámetros</a></li>
+    <li><a href="#s4">Resultados</a></li>
+    <li><a href="#s5">Pruebas</a></li>
+    <li><a href="#s6">Auditorías</a></li>
+    <li><a href="#s7">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<p>
+  Cada viajero elige entre cuatro modos comparando utilidades. La utilidad de un
+  modo suma una constante específica, el tiempo valorado con su coeficiente, el
+  dinero, y —en los modos activos— penalizaciones por esfuerzo:
+</p>
+
+<div class="ecuacion" data-tex="V_m^s = \mathrm{ASC}_m^s + \sum_k \beta_{t_k}^s\, t_k + \beta_c^s\, c_m + \sum_j \pi_j^s \mathbb{1}\{t_m > u_j\}">
+  <span class="id">(3.1)</span>
+  V_m^s = ASC_m^s + Σ_k β_{t_k}^s · t_k + β_c^s · c_m + Σ_j π_j^s · 1{t_m &gt; u_j}
+</div>
+
+<p>
+  El superíndice <em>s</em> es el estrato: cada uno tiene sus propios
+  coeficientes. Con un término aleatorio Gumbel independiente, la probabilidad de
+  elegir el modo <em>m</em> es el logit multinomial:
+</p>
+
+<div class="ecuacion" data-tex="P_m = \frac{e^{V_m}}{\sum_{m' \in \mathcal{C}} e^{V_{m'}}}">
+  <span class="id">(3.2)</span>
+  P_m = e^{V_m} / Σ_{m′ ∈ C} e^{V_{m′}}
+</div>
+
+<p>
+  El conjunto de elección <em>C</em> no es fijo: un modo sale si no es factible.
+  El auto exige tenerlo, el metro exige que haya un tramo en tren de verdad, y la
+  bicicleta y la caminata tienen cortes de tiempo por encima de los cuales
+  desaparecen.
+</p>
+
+<div class="aviso idea">
+  <h4>Minutos-equivalentes: la única forma de comparar</h4>
+  <p>
+    Los coeficientes de estratos distintos no se pueden comparar directamente:
+    cada utilidad tiene su propia escala arbitraria. Dividir cada término por
+    <code>|β_t_viaje|</code> del estrato la cancela y deja todo en
+    <strong>minutos-equivalentes de viaje en vehículo</strong>. Es la cuenta que
+    hace <code>scripts/diagnostico_calibracion.py</code>, y todo este capítulo
+    está escrito en esa unidad.
+  </p>
+</div>
+
+<h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">(3.1)</td>
+      <td class="ruta py">demand/utility.py</td>
+      <td class="n">60</td>
+      <td><code>calcular_utilidades</code> — los cuatro modos; <code>UtilityBreakdown</code> (38) guarda la descomposición</td>
+    </tr>
+    <tr>
+      <td class="n">(3.2)</td>
+      <td class="ruta py">demand/choice.py</td>
+      <td class="n">19</td>
+      <td><code>probabilidades_logit</code> — con resta del máximo por estabilidad</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">demand/choice.py</td>
+      <td class="n">44</td>
+      <td><code>probabilidades_todo_o_nada</code> — el límite determinístico; su docstring explica por qué <strong>no</strong> es Wardrop</td>
+    </tr>
+    <tr>
+      <td class="n">(3.1)</td>
+      <td class="ruta py">demand/utility.py</td>
+      <td class="n">138</td>
+      <td>bicicleta: usa <code>b_tiempo_viaje</code>, no un coeficiente propio (D-48)</td>
+    </tr>
+    <tr>
+      <td class="n">(3.1)</td>
+      <td class="ruta py">demand/utility.py</td>
+      <td class="n">156</td>
+      <td>caminata: usa <code>b_tiempo_caminata</code>, que sí es propio (D-03)</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">presets.py</td>
+      <td class="n">316</td>
+      <td><code>DEFAULT_STRATA</code> — la calibración, homoscedástica desde D-33</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Diferencias con la fuente</h3>
+
+<p>
+  Cinco discrepancias registradas viven en este módulo, y todas son del mismo
+  tipo: el Overleaf dice una cosa y el código hace otra, con el código en lo
+  correcto. <strong>D-02</strong>: las penalizaciones son aditivas, no
+  multiplicativas. <strong>D-03</strong> y <strong>D-05</strong>: la caminata
+  tiene coeficiente propio y umbrales distintos de los del documento.
+  <strong>D-04</strong>: el tiempo de espera base difiere. <strong>D-01</strong>
+  vive en la oferta pero afecta acá.
+</p>
+
+<p>
+  Y una asimetría que <em>no</em> es discrepancia con el Overleaf porque el
+  Overleaf la comparte: el metro no tiene corte de factibilidad por acceso. Se
+  cerró de otra forma —exigiendo que exista tramo en tren— y el comentario del
+  código explica el caso que lo motivó.
+</p>
+
+<h2 id="s3"><span class="num">§3</span> Parámetros</h2>
+
+<p>
+  Tras D-33 la escala del tiempo es común a los tres estratos
+  (<code>b_tiempo_viaje</code> = −0,0331), así que toda la heterogeneidad del
+  valor del tiempo vive en <code>b_costo</code>. Las ASC quedaron homogéneas en
+  minutos-equivalentes; las penalizaciones, no.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Estrato</th><th class="n">b_costo</th><th class="n">VOT $/h</th><th class="n">ASC auto</th><th class="n">ASC bici</th><th class="n">Pen. bici &gt;30</th><th class="n">Pen. cam. &gt;25</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>alto</td><td class="n">0,000320</td><td class="n">6.200</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">13,45</td><td class="n">12,18</td></tr>
+    <tr class="destacada"><td>medio</td><td class="n">0,000641</td><td class="n">3.100</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">17,02</td><td class="n">10,27</td></tr>
+    <tr><td>bajo</td><td class="n">0,001241</td><td class="n">1.600</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">18,67</td><td class="n">9,67</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  ASC y penalizaciones en minutos-equivalentes en vehículo. Las ASC son
+  <span class="etiqueta neutra">decisión</span> declarada (D-33: ventaja común,
+  sin gradiente de ingreso); las penalizaciones son
+  <span class="etiqueta lim">heredadas</span> y conservan un gradiente que nadie
+  declaró (D-48).
+</p>
+
+<h2 id="s4"><span class="num">§4</span> Resultados</h2>
+
+<p>Todo sale de <code>datos/cap03.json</code>.</p>
+
+<h3>Cuánto pesa un minuto, según cómo se pase</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Componente</th><th class="n">En vehículo</th><th class="n">Bicicleta</th><th class="n">Caminata</th><th class="n">Espera</th><th class="n">Acceso a pie</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Minutos-equivalentes</strong></td><td class="n">1,0</td><td class="n">1,0</td><td class="n">1,7</td><td class="n">2,0</td><td class="n">2,0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Los tres últimos tienen fuente: la tabla 2.1 del SNI pondera 2 la espera y el
+  acceso al transporte público, y el 1,7 de la caminata es un juicio declarado
+  como tal en <code>presets.py</code>. El que no tiene fuente es el segundo:
+  <strong>pedalear pesa exactamente lo mismo que ir sentado</strong>. La
+  bicicleta comparte coeficiente con el auto y el tren, y la única cosa que
+  distingue su esfuerzo son las penalizaciones escalonadas — que llegan tarde y
+  de golpe (§6, D-48).
+</p>
+
+<h3>El costo generalizado, modo por modo</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">km al CBD</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0,5</td><td class="n">17,69</td><td class="n">43,19</td><td class="n">16,99</td><td class="n">8,94</td></tr>
+    <tr><td class="n">1</td><td class="n">19,80</td><td class="n">44,05</td><td class="n">19,12</td><td class="n">19,51</td></tr>
+    <tr><td class="n">2</td><td class="n">24,04</td><td class="n">45,75</td><td class="n">23,39</td><td class="n">43,38</td></tr>
+    <tr><td class="n">3</td><td class="n">28,28</td><td class="n">47,46</td><td class="n">29,57</td><td>—</td></tr>
+    <tr><td class="n">5</td><td class="n">36,75</td><td class="n">50,87</td><td class="n">41,12</td><td>—</td></tr>
+    <tr><td class="n">7</td><td class="n">45,23</td><td class="n">54,28</td><td class="n">49,65</td><td>—</td></tr>
+    <tr class="destacada"><td class="n">10</td><td class="n">57,94</td><td class="n">59,40</td><td class="n">74,52</td><td>—</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Minutos-equivalentes en vehículo a flujo libre, estrato medio; menor es mejor.
+  Incluye constante, tiempo, dinero y penalizaciones.
+</p>
+
+<p>
+  El metro parte con una desventaja enorme —43 minutos-equivalentes para un viaje
+  de 500 metros— y sólo alcanza al auto a los 10 km. La razón está en el
+  capítulo 2: con la frecuencia en su piso, la espera son 15 minutos que pesan
+  doble, más el acceso a la estación, que también pesa doble. El metro no compite
+  por velocidad sino por distancia.
+</p>
+
+<h3>Qué modos existen, según dónde se viva</h3>
+
+<p>
+  El corte de la caminata está en 30 min, que a 4,8 km/h son <strong>2,4
+  km</strong>: el <strong>75,6 %</strong> de las celdas no tiene ese modo. El de
+  la bicicleta está en 45 min, que a 14 km/h son <strong>10,5 km</strong> — y el
+  radio de la ciudad es 10. <strong>Ninguna celda pierde la bicicleta</strong>:
+  ese corte sólo mordería en una ciudad de más de 21 km (D-49).
+</p>
+
+<h3>Las dos palancas de precio</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Tarifa metro ($)</th><th class="n">0</th><th class="n">400</th><th class="n">800</th><th class="n">1.200</th><th class="n">1.600</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Metro %</td><td class="n">36,06</td><td class="n">32,15</td><td class="n">28,32</td><td class="n">24,93</td><td class="n">21,90</td></tr>
+    <tr><td>Auto %</td><td class="n">13,24</td><td class="n">14,50</td><td class="n">15,81</td><td class="n">17,19</td><td class="n">18,56</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Combustible ($/km)</th><th class="n">60</th><th class="n">120</th><th class="n">240</th><th class="n">480</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Auto %</td><td class="n">16,90</td><td class="n">15,81</td><td class="n">13,83</td><td class="n">10,61</td></tr>
+    <tr><td>Metro %</td><td class="n">27,41</td><td class="n">28,32</td><td class="n">30,07</td><td class="n">32,87</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Las direcciones son las correctas y las magnitudes, razonables. Vale notar la
+  asimetría: duplicar la tarifa (800 → 1.600) saca 6,4 puntos al metro, mientras
+  <em>cuadruplicar</em> el combustible (120 → 480) saca 5,2 al auto. El auto es
+  bastante más inelástico, lo que era de esperarse: su costo por viaje es menor
+  que el del metro en los viajes cortos, que son la mayoría.
+</p>
+
+<h3>Logit contra determinístico</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Método</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td>Logit (esperado)</td><td class="n">15,81</td><td class="n">28,32</td><td class="n">24,95</td><td class="n">11,42</td></tr>
+    <tr><td>Todo o nada</td><td class="n">22,13</td><td class="n">23,69</td><td class="n">20,73</td><td class="n">13,95</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  La diferencia es grande —el auto gana 6,3 puntos— y se entiende mirando una
+  celda: a 3 km del centro, el estrato medio reparte 40 % auto, 21 % metro y
+  38 % bici bajo el logit, y <strong>100 % auto</strong> bajo el determinístico.
+  El logit no es un método de asignación distinto: es un supuesto distinto sobre
+  cuánta heterogeneidad de gustos hay dentro de un grupo.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Pruebas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Archivo</th><th class="n">Tests</th><th>Qué fija</th><th>Qué NO cubre</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="ruta py">tests/test_demand.py</code></td>
+      <td class="n">4</td>
+      <td>La utilidad de cada modo y el efecto de no tener auto.</td>
+      <td>Los umbrales de penalización, y que la bici use el coeficiente de vehículo.</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_choice_todo_o_nada.py</code></td>
+      <td class="n">6</td>
+      <td>El argmax, los empates repartidos y el caso sin modos factibles.</td>
+      <td>La distancia entre logit y determinístico en el agregado.</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_presets.py</code></td>
+      <td class="n">8</td>
+      <td>Signos, VOT decreciente, y desde D-33: escala del tiempo común, <code>|b_costo|</code> creciente y ASC de 20 min en los tres.</td>
+      <td>Las penalizaciones: ningún test mira su gradiente ni sus saltos (D-48).</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El contraste con las ASC es revelador: D-33 dejó un test que exige que la
+  ventaja del auto valga 20 minutos en los tres estratos, y no hay ninguno
+  equivalente para las penalizaciones — que son el otro término del mismo tipo.
+  Por eso su gradiente sobrevivió sin que nadie lo notara.
+</p>
+
+<h2 id="s6"><span class="num">§6</span> Auditorías</h2>
+
+<div class="paso">
+  <h3>Protocolo aplicado <span class="ref">2026-09-07</span></h3>
+  <p>
+    (a) lectura estática de (3.1)–(3.2) contra los cuatro modos; (b) costo
+    generalizado por distancia y elasticidades a las dos palancas de precio; (c)
+    traducción de todos los coeficientes a minutos-equivalentes, que es la
+    invariancia que hace comparables los estratos; (d) consistencia con los
+    capítulos 1 y 2 — la demanda ve la misma geometría y consume los tiempos que
+    la oferta produce; (e) contraste del tutorial 04 contra la implementación.
+  </p>
+</div>
+
+<div class="aviso alerta">
+  <h4>D-48 — Pedalear se valora como ir sentado</h4>
+  <p>
+    <strong>Media.</strong> La bicicleta usa <code>b_tiempo_viaje</code>: un
+    minuto pedaleando pesa 1,0, igual que un minuto en el asiento del auto,
+    mientras caminar pesa 1,7 y esperar 2,0. Las penalizaciones escalonadas lo
+    compensan, pero tarde y de golpe: el salto de los 30 minutos vale
+    <strong>+12,1 minutos-equivalentes</strong> de una vez. Y conservan un
+    gradiente por estrato que va en <em>direcciones opuestas</em> — la de la
+    bicicleta crece del estrato alto al bajo (13,45 → 18,67) y la de la caminata
+    decrece (12,18 → 9,67)— sin ninguna razón declarada. Es residuo de la
+    calibración original: el reescalado de D-33 conservó las razones internas de
+    cada estrato, y con ellas esta asimetría.
+  </p>
+</div>
+
+<div class="aviso neutro">
+  <h4>D-49 — El corte de la bicicleta nunca muerde</h4>
+  <p>
+    <strong>Baja.</strong> 45 minutos a 14 km/h son 10,5 km, y el radio de la
+    ciudad es 10. Ninguna celda pierde la bicicleta por ese corte; sólo mordería
+    en una ciudad de más de 21 km. Es el <strong>tercer parámetro inerte</strong>
+    que encuentra esta auditoría, tras <code>densidad_hab_km</code> (D-46) y la
+    congestión de andén (capítulo 2).
+  </p>
+</div>
+
+<p>
+  El paso (e) dio limpio esta vez: <strong>el tutorial 04 es fiel</strong>.
+  Distingue explícitamente los umbrales de penalización del corte de
+  factibilidad, y declara que la caminata usa su propio coeficiente. Es el primer
+  capítulo donde lo que la documentación dice y lo que el código hace coinciden.
+</p>
+
+<h2 id="s7"><span class="num">§7</span> Discusión</h2>
+
+<p>
+  La mecánica del logit es correcta y la calibración, tras D-33, tiene una
+  estructura defendible: una escala de tiempo común, toda la heterogeneidad del
+  valor del tiempo en el coeficiente del dinero, y constantes modales sin
+  gradiente de ingreso. Las elasticidades responden con signo y magnitud
+  razonables.
+</p>
+
+<p>
+  Lo que queda expuesto es <strong>lo que D-33 no alcanzó a limpiar</strong>. Ese
+  trabajo homogeneizó las ASC y la escala del tiempo, pero las penalizaciones
+  físicas quedaron con su gradiente original, y el coeficiente de la bicicleta
+  quedó pegado al del vehículo. Son los dos términos que no pasaron por la
+  revisión.
+</p>
+
+<div class="aviso idea">
+  <h4>Tres capítulos, tres formas del mismo problema</h4>
+  <p>
+    El capítulo 1 encontró afirmaciones que sobrevivieron a su corrección; el 2,
+    parámetros cuyo nombre no describe lo que hacen; éste, términos que una
+    recalibración dejó atrás. En los tres casos el modelo <em>calcula</em> bien y
+    lo que falla es la correspondencia entre lo que declara y lo que hace. Y en
+    los tres, lo encontró traducir todo a una unidad común y mirar los números
+    uno al lado del otro.
+  </p>
+</div>
+
+<h3>Pendientes</h3>
+
+<ul>
+  <li>
+    <strong>D-48</strong>: decidir si pedalear pesa como ir sentado —si no,
+    darle a la bicicleta su propio coeficiente— y resolver el gradiente de las
+    penalizaciones: justificarlo u homogeneizarlo como se hizo con las ASC.
+    Cualquiera de las dos mueve la línea base.
+  </li>
+  <li>
+    <strong>D-49</strong>: dejar dicho en la interfaz que el corte de la
+    bicicleta no actúa en ciudades de menos de 21 km.
+  </li>
+  <li>
+    <strong>Sin discrepancia</strong>: falta el test que fije las penalizaciones
+    en minutos-equivalentes, el equivalente del que D-33 dejó para las ASC. Es
+    dónde se escondió D-48.
+  </li>
+</ul>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    <a href="cap02-oferta-transporte.html">← capítulo 2</a> ·
+    datos en <code>datos/cap03.json</code>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1340,6 +1340,55 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-48 — Demanda: pedalear se valora como ir sentado, y las penalizaciones que lo compensan tienen un gradiente sin justificar
+
+- **Hallado**: auditoría del capítulo 3 del libro, 2026-09-07.
+- **Evidencia**: la utilidad de la bicicleta usa `b_tiempo_viaje` —el mismo
+  coeficiente que el tiempo dentro del auto o del tren— mientras la caminata
+  tiene el suyo (`b_tiempo_caminata`, 1,7×) y la espera y el acceso pesan 2×.
+  En minutos-equivalentes en vehículo: **en vehículo 1,0 · bici 1,0 · caminata
+  1,7 · espera 2,0 · acceso 2,0**. Un minuto pedaleando cuesta lo mismo que un
+  minuto sentado, aunque la literatura de VOT suele valorar el esfuerzo físico
+  por encima del tiempo en vehículo. El tutorial 04 refleja fielmente la
+  ecuación, así que no es un error de documentación: es una decisión de modelo
+  que nadie declaró como tal.
+- **Lo compensan las penalizaciones escalonadas, mal**: se suman al cruzar 10,
+  20 y 30 minutos, y el salto de los 30 vale **+12,1 minutos-equivalentes de
+  golpe** (estrato medio). Un viaje de 30,1 min cuesta doce minutos más que uno
+  de 29,9. La discontinuidad está declarada en el tutorial y es fiel al
+  original, pero convierte un umbral arbitrario en un acantilado.
+- **Y tienen un gradiente por estrato que va en direcciones opuestas.** Tras el
+  reescalado homoscedástico de D-33 las ASC quedaron idénticas entre estratos
+  (auto +20 min, bici −18, caminata 0 en los tres), pero las penalizaciones no:
+  bici >30 min vale 13,45 / 17,02 / 18,67 minutos-equivalentes para alto / medio
+  / bajo —creciente— mientras caminata >25 min vale 12,18 / 10,27 / 9,67
+  —decreciente—. El estrato bajo penaliza más la bicicleta larga y menos la
+  caminata larga que el alto, sin ninguna razón declarada. Es residuo de la
+  calibración original: el reescalado de D-33 conservó las razones internas de
+  cada estrato, y con ellas esta asimetría.
+- **Veredicto**: decisión de modelo no declarada más un residuo de calibración.
+  Corrección propuesta: decidir y declarar si pedalear pesa como ir sentado; y
+  si el gradiente de las penalizaciones es deliberado, justificarlo, o
+  homogeneizarlo como se hizo con las ASC.
+- **Estado**: pendiente.
+
+## D-49 — Demanda: el corte de factibilidad de la bicicleta es inerte en la ciudad por defecto
+
+- **Hallado**: auditoría del capítulo 3 del libro, 2026-09-07.
+- **Evidencia**: `corte_bici_min` = 45 min a 14 km/h equivale a **10,5 km**,
+  pero el radio de la ciudad por defecto es 10 km. Ningún viaje puede superarlo:
+  el 0 % de las celdas pierde la bicicleta por este corte. Sólo mordería en
+  ciudades de más de **21 km** de largo. El corte de la caminata, en cambio,
+  está muy activo: 30 min a 4,8 km/h son 2,4 km, y el **75,6 %** de las celdas
+  quedan sin ese modo.
+- **Veredicto**: tercer parámetro inerte que encuentra esta auditoría, tras
+  `densidad_hab_km` (D-46) y la congestión de andén (cap. 2). No es un bug —el
+  corte existe para ciudades grandes— pero conviene que la interfaz no lo
+  presente como una palanca activa, igual que en los otros dos casos.
+- **Estado**: pendiente.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -1391,3 +1440,5 @@ cumple, y eso está en D-39.
 | D-45 | Ciudad: `CiudadLineal` expone una convención de distancia que nadie usa; paridad de `n_celdas` sin validar | Pendiente (libro, cap. 1; corregido cap. 2)          | Baja                       |
 | D-46 | Ciudad: dos fuentes de población; el schema y dos textos nombran la inerte                                 | Pendiente (libro, cap. 1)                            | Media                      |
 | D-47 | Metro: `num_estaciones` entrega n±1 estaciones; la etiqueta promete el número pedido                       | Pendiente (libro, cap. 2)                            | Baja                       |
+| D-48 | Demanda: la bici usa `b_tiempo_viaje` (esfuerzo = ir sentado); penalizaciones con gradiente opuesto entre modos | Pendiente (libro, cap. 3) | Media |
+| D-49 | Demanda: `corte_bici_min` inerte con la ciudad por defecto (10,5 km > radio 10 km) | Pendiente (libro, cap. 3) | Baja |
