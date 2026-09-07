@@ -1236,7 +1236,7 @@ outer_tol`, sin exigir `transport_trace.converged` ni la convergencia del
   la celda vecina al CBD).
 - **Veredicto**: cierto, de baja prioridad. Corrección: redondeo con márgenes,
   métricas esperadas para comparar, convención origen/destino documentada.
-- **Estado**: corregido 2026-09-06 (parcial). Las distancias por estrato del standalone salen ahora del núcleo sobre hogares esperados (`dist_media_km` en `LandUseSolveDict`); la asignación entera `parcelas` queda sólo para dibujar. Aceptado y declarado: el redondeo por celda conserva `S_i` y no `H_h` exactos (7.194/17.998/10.808), y auto/bici descuentan medio tramo propio — corregirlos movería la línea base por seis hogares y una convención de carga zonal; se documenta en vez de tocar.
+- **Estado**: corregido 2026-09-06 (parcial). Las distancias por estrato del standalone salen ahora del núcleo sobre hogares esperados (`dist_media_km` en `LandUseSolveDict`); la asignación entera `parcelas` queda sólo para dibujar. Aceptado y declarado: el redondeo por celda conserva `S_i` y no `H_h` exactos (7.208/18.000/10.792 tras D-42; eran 7.194/17.998/10.808 al registrarlo), y auto/bici descuentan medio tramo propio — corregirlos movería la línea base por seis hogares y una convención de carga zonal; se documenta en vez de tocar.
 
 **Descartados o ya cubiertos.** A12 (`/simulate` con densidad plana vs. motor
 local con suelo) es C-02, documentado en `api.ts`; la diferencia de 9 pp que
@@ -1420,6 +1420,32 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-51 — Suelo: hay dos discretizaciones y sólo una conserva las dos marginales
+
+- **Hallado**: auditoría del capítulo 5 del libro, 2026-09-07.
+- **Evidencia**: el reparto de hogares enteros se hace en dos lugares distintos y
+  con dos técnicas distintas.
+  `land_use/allocation.py::asignar_hogares_simple` sortea secuencialmente **con
+  cuotas** (`H_rest`), así que respeta por construcción tanto la capacidad de
+  cada parcela como el total de cada estrato: medido, conserva `S_i` celda a
+  celda **y** `H_h` exacto (desvío 0, 0, 0).
+  `population.py::generar_poblacion_desde_land_use_det`, en cambio, aplica mayor
+  residuo **por celda** sobre `Q[:,i]·S_i`: conserva `Σ_h = S_i` exacto pero deja
+  libre la marginal por estrato. Medido: **7.208 / 18.000 / 10.792** contra el
+  objetivo 7.200 / 18.000 / 10.800, desvío ±8 sobre 36.000 (0,11 %).
+- **Y es la segunda la que alimenta el transporte**: los agentes de la simulación
+  salen de ahí, no de `allocation`. O sea que la técnica que conserva las dos
+  marginales existe en el repositorio, a tres archivos de distancia del lugar
+  donde haría falta.
+- **Veredicto**: desvío pequeño y sin sesgo fijo —cambia con la configuración—
+  pero evitable. Corrección propuesta: usar en `population` el mismo sorteo con
+  cuotas de `allocation`, o un redondeo biproporcional. Es la misma familia que
+  D-44, que registraba el síntoma sin identificar que la solución ya estaba
+  implementada al lado.
+- **Estado**: pendiente.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -1474,3 +1500,4 @@ cumple, y eso está en D-39.
 | D-48 | Demanda: la bici usa `b_tiempo_viaje` (esfuerzo = ir sentado); penalizaciones con gradiente opuesto entre modos | Pendiente (libro, cap. 3) | Media |
 | D-49 | Demanda: `corte_bici_min` inerte con la ciudad por defecto (10,5 km > radio 10 km) | Pendiente (libro, cap. 3) | Baja |
 | D-50 | MSA: producción usa la variante sin argumento de convergencia; la de Boyles está implementada y da 0,13 pp | Pendiente (libro, cap. 4) | Media |
+| D-51 | Suelo: `allocation` conserva las dos marginales y `population` sólo una; es la segunda la que alimenta el transporte | Pendiente (libro, cap. 5) | Media |
