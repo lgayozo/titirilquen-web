@@ -1698,6 +1698,108 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-60 — CI: los dos guardas del contrato existen en el YAML y no han corrido nunca
+
+- **Hallado**: auditoría del capítulo 8 del libro, 2026-09-08.
+- **Lo que el repo afirma**: `CLAUDE.md` dice que «el CI tiene un job
+  (`contrato`) que corre `sync:core` y falla si el diff no está vacío» y que
+  desde el 2026-08-17 el job `pyodide` «sí detecta» el piso de pydantic en un
+  navegador real. `arquitectura.html` §6 repite lo primero como la «red» de los
+  defaults generados.
+- **Evidencia**: `.github/workflows/ci.yml` dispara sólo en `push` a `main` y en
+  `pull_request`. El último run del workflow es del **2026-06-09**; los jobs
+  `contrato` y `pyodide` se agregaron el **2026-08-16/17** (`fa3cadc`). Todo el
+  trabajo de agosto y septiembre está en `ciudad-equilibrio-mejoras`, 168
+  commits por delante de `origin/main` y sin PR. Resultado: **ninguno de los dos
+  guardas se ha ejecutado jamás**, y el run más reciente sólo muestra dos jobs.
+- **Y el guarda habría saltado**: al correr `sync:core` localmente, el wheel
+  servido por el frontend (`apps/web/public/pyodide/`) estaba **desfasado un
+  commit** (`8a4fd7f`, la fase 0 del libro): `bienestar.py` y `config.py`
+  diferían en tres rutas de comentarios. Sólo comentarios —el navegador corría
+  lógica idéntica—, pero es exactamente la clase de deriva que el job existe
+  para atrapar, y no la atrapó porque nunca corrió. Verificable en cualquier
+  momento con el bloque `wheel_al_dia` de `datos_cap08.py`, que recompila el
+  wheel y compara los hashes de `RECORD` sin depender del CI.
+- **Veredicto**: la documentación describe una red que no está tendida. No es
+  un error del YAML sino de la rama de trabajo: mientras nada llegue a `main`,
+  los cuatro jobs son texto.
+- **Estado**: pendiente. Corrección: abrir el PR (o agregar la rama a
+  `on.push.branches`), y hasta entonces correr `sync:core` y `--grep @slow`
+  como parte del cierre de cada capítulo. El wheel se regeneró y va en el
+  commit del capítulo 8.
+
+---
+
+## D-61 — Acoplado: el default de vueltas de la interfaz (12) supera la cota de la API (10)
+
+- **Hallado**: auditoría del capítulo 8 del libro, 2026-09-08.
+- **Evidencia**: un mismo parámetro, cuatro defaults: `coupled.py` 5,
+  `apps/api/src/api/main.py` 3 —con `Field(default=3, ge=1, le=10)`—,
+  `pyodide.worker.ts` 3 y `landUseStore.ts` **12**. `CoupledPage.tsx` y
+  `ComparePage.tsx` envían el de la interfaz. Medido con `TestClient`:
+  `outer_max_iter = 10` → 200; `outer_max_iter = 12` → **422** «Input should
+  be less than or equal to 10».
+- **Consecuencia**: con `engine = "api"` la página «Ciudad en equilibrio» y la
+  lente acoplada de «Comparar» **no pueden correr con su configuración por
+  defecto**. Nadie lo notó porque el motor por defecto es el local, que no
+  valida la cota, y porque ningún e2e ejercita el motor api.
+- **Veredicto**: contrato roto entre dos runtimes que dicen ser el mismo. La
+  cota de la API tiene sentido (protege al servidor) pero no está en el
+  contrato que ve el frontend; el default de la interfaz, tampoco.
+- **Estado**: pendiente. Corrección: un solo default y una sola cota, en el
+  núcleo, proyectados por `genera_contrato.py` como el resto.
+
+---
+
+## D-62 — Contrato: cada vuelta del acoplado transporta 5,9 MB de agentes que la interfaz no abre
+
+- **Hallado**: auditoría del capítulo 8 del libro, 2026-09-08.
+- **Evidencia**: `outer_iteration_to_dict` (`serializacion.py:301`) incluye
+  `transport: trace_to_dict(outer.transport)`, y `trace_to_dict` incluye los
+  36.000 agentes con seis campos cada uno. Medido: una `OuterIteration` pesa
+  **5.923.962 bytes**, de los que `transport` es el **99,49 %** (y dentro de él
+  `agentes` el 94,87 %). La interfaz lee de cada vuelta `metrics`,
+  `land_use`, `T_residual` y `outer_iter`; **`transport` tiene cero
+  referencias** en `apps/web/src` fuera de `lib/gen/`. Con las 12 vueltas del
+  default de la interfaz cruzan la frontera **71,1 MB** por corrida, de los que
+  el frontend abre **0,22 MB**. En el motor local cada mensaje pasa además por
+  `jsFromPy` (PyProxy → objetos JS) antes de descartarse.
+- **Veredicto**: no es un error de cálculo, es carga útil que nadie abre —
+  la misma familia que `T_matrix` (cap. 6) pero tres órdenes de magnitud
+  mayor. Es también la razón por la que el acoplado «se siente» lento en el
+  navegador.
+- **Estado**: pendiente. Corrección: que `OuterIterationDict.transport` lleve
+  el trace **sin agentes** (o sólo el snapshot final), y que el Sandbox —el
+  único consumidor de agentes— los pida por su propia ruta.
+
+---
+
+## D-63 — Contrato: una entrada muerta en el worker y quince campos sin lector
+
+- **Hallado**: auditoría del capítulo 8 del libro, 2026-09-08.
+- **Evidencia (a)**: el worker expone `simulate` (`simulate_from_json`, sin
+  streaming) y `pyodide-engine.ts` lo envuelve en `simulate()`; ningún archivo
+  del frontend lo llama (0 referencias a `pyodideEngine.simulate(`). Vive en un
+  string que ninguna herramienta lee, así que ni `ts-prune` ni el lint lo
+  marcan.
+- **Evidencia (b)**: de los 112 campos del contrato, **15 no aparecen en
+  ningún archivo del frontend**: `gap_final_min`, `v_libre_auto`,
+  `alpha_auto_bpr`, `beta_auto_bpr`, `f_msa`, `teletrabaja`, `tiene_auto`,
+  `T_matrix`, `excedente_social_por_estrato_clp`, `viajeros_por_estrato`,
+  `excedente_total_clp`, `excedente_max_total_clp`, `n_viajeros`,
+  `convergio_msa`, `tiempo_total_pax_min`. Dos de ellos son pendientes
+  declarados que siguen sin cerrarse: `gap_final_min` (D-39: «mostrar la
+  brecha en la tabla») y `n_viajeros` (D-35: «exponer la población del
+  promedio»). Los nombres de una o dos letras (`S`, `Q`, `p`, `u`, `L`, `id`)
+  no se pueden verificar por grep y quedan fuera del conteo.
+- **Veredicto**: código y contrato muertos, de efecto nulo sobre los números.
+  Se registra porque el generador proyecta todo lo que el núcleo declara, así
+  que el contrato crece y nunca se poda.
+- **Estado**: pendiente, prioridad baja. No se borra nada en este capítulo
+  (política: mencionar, no eliminar).
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -1761,3 +1863,7 @@ cumple, y eso está en D-39.
 | D-57 | Bienestar: el que queda sin modo factible desaparece del agregado; un toggle de la UI estranda al 11 % | Pendiente (libro, cap. 7) | Alta |
 | D-58 | Bienestar: `bienestar_social_clp` mezcla hora punta con costo llevado a día (efecto acotado: 7 % del Δ) | Pendiente (libro, cap. 7) | Baja |
 | D-59 | Bienestar: rótulos que describen el cálculo anterior a D-35 y a D-56 | Pendiente (libro, cap. 7) | Media |
+| D-60 | CI: los jobs `contrato` y `pyodide` existen en el YAML y no han corrido nunca; el wheel estaba desfasado un commit | Pendiente (libro, cap. 8) | Alta |
+| D-61 | Acoplado: el default de vueltas de la interfaz (12) supera la cota de la API (10): 422 con `engine=api` | Pendiente (libro, cap. 8) | Alta |
+| D-62 | Contrato: cada vuelta del acoplado lleva 5,9 MB de agentes que la interfaz no lee (71 MB por corrida, 0,22 usados) | Pendiente (libro, cap. 8) | Media |
+| D-63 | Contrato: entrada `simulate` del worker sin llamadores y 15 campos sin lector | Pendiente (libro, cap. 8) | Baja |

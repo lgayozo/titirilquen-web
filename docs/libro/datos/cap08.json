@@ -1,0 +1,230 @@
+{
+ "_meta": {
+  "fecha": "2026-09-08",
+  "commit": "6bfdf36",
+  "script": "docs/libro/datos/datos_cap08.py",
+  "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
+ },
+ "wheel_al_dia": {
+  "wheel_servido": "titirilquen_core-0.2.0-py3-none-any.whl",
+  "archivos_en_el_wheel": 31,
+  "archivos_con_hash_distinto": [],
+  "al_dia": true
+ },
+ "paridad_worker_api": {
+  "lineas_de_python_en_el_worker": 84,
+  "entradas": {
+   "simulate": {
+    "api": "/simulate",
+    "iguales": true,
+    "claves_distintas": [],
+    "llamadores_en_el_frontend": 0
+   },
+   "landUseSolve": {
+    "api": "/land-use/solve",
+    "iguales_salvo_parcelas": true,
+    "parcelas_iguales": false,
+    "claves_distintas": []
+   },
+   "coupledStream": {
+    "api": "/coupled/stream",
+    "vueltas": 2,
+    "iguales": true,
+    "claves_distintas": []
+   },
+   "simulateStream_con_suelo": {
+    "api": null,
+    "nota": "No hay endpoint: con `engine=api` el Sandbox cae a `/simulate` (C-02).",
+    "iguales_al_nucleo": true
+   }
+  }
+ },
+ "c02": {
+  "motor_api_densidad_plana": {
+   "reparto_pct": {
+    "Auto": 15.421,
+    "Metro": 37.468,
+    "Bici": 20.994,
+    "Caminata": 6.746,
+    "Teletrabajo": 19.371
+   },
+   "agentes": 35821
+  },
+  "motor_local_suelo_original": {
+   "reparto_pct": {
+    "Auto": 15.812,
+    "Metro": 28.317,
+    "Bici": 24.955,
+    "Caminata": 11.422,
+    "Teletrabajo": 19.494
+   },
+   "agentes": 36000
+  },
+  "diferencia_pp": {
+   "Auto": 0.391,
+   "Metro": -9.151,
+   "Bici": 3.961,
+   "Caminata": 4.676,
+   "Teletrabajo": 0.123
+  },
+  "diferencia_maxima_pp": 9.151,
+  "diferencia_agentes": 179
+ },
+ "defaults": {
+  "overrides_encontrados": {
+   "n_celdas": 201,
+   "densidad_hab_km": 1800,
+   "seed": 42,
+   "assignment": "expected",
+   "H_por_estrato": [
+    7200,
+    18000,
+    10800
+   ],
+   "land_use.max_iter": 2000
+  },
+  "overrides_que_declara_el_docstring": 6,
+  "overrides_contados": 6,
+  "golden_mas_overrides_igual_a_linea_base": true,
+  "claves_distintas": [],
+  "nota": "`estratos: ESTRATOS_CALIBRADOS` no es un override: `DemandConfig` no tiene default para `estratos`, así que el frontend RELLENA un campo obligatorio, no lo cambia."
+ },
+ "outer_max_iter": {
+  "defaults": {
+   "nucleo (coupled.py)": 5,
+   "api (main.py)": 3,
+   "worker (pyodide.worker.ts)": 3,
+   "interfaz (landUseStore.ts)": 12
+  },
+  "cota_superior_de_la_api": 10,
+  "respuesta_de_la_api": {
+   "10": 200,
+   "12": 422
+  },
+  "la_interfaz_pasa_por_la_api": false
+ },
+ "payload": {
+  "trace_to_dict_bytes": 5897623,
+  "trace_agentes": 36000,
+  "trace_por_clave_pct": {
+   "agentes": 94.87,
+   "iteraciones": 4.28,
+   "demanda_estrato": 0.63,
+   "emisiones_perfil_kg": 0.07,
+   "flujos_auto_veh_h": 0.07
+  },
+  "outer_iteration_bytes": 5923962,
+  "outer_por_clave_pct": {
+   "transport": 99.49,
+   "land_use": 0.28,
+   "T_matrix": 0.2,
+   "metrics": 0.04,
+   "T_residual": 0.0,
+   "outer_iter": 0.0
+  },
+  "referencias_en_el_frontend_por_campo_de_outer": {
+   "outer_iter": 5,
+   "land_use": 13,
+   "transport": 0,
+   "T_matrix": 0,
+   "T_residual": 4,
+   "metrics": 9
+  },
+  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 71.1,
+  "mb_que_el_frontend_abre_de_eso": 0.22
+ },
+ "campos_sin_lector": {
+  "campos_totales": 112,
+  "sin_lector": {
+   "TraceDict": [
+    "gap_final_min",
+    "v_libre_auto",
+    "alpha_auto_bpr",
+    "beta_auto_bpr"
+   ],
+   "SnapshotDict": [
+    "f_msa"
+   ],
+   "AgenteDict": [
+    "teletrabaja",
+    "tiene_auto"
+   ],
+   "OuterIterationDict": [
+    "T_matrix"
+   ],
+   "AgregadosDict": [
+    "excedente_social_por_estrato_clp",
+    "viajeros_por_estrato",
+    "excedente_total_clp",
+    "excedente_max_total_clp"
+   ],
+   "StratumMetrics": [
+    "n_viajeros"
+   ],
+   "SystemMetrics": [
+    "convergio_msa",
+    "tiempo_total_pax_min"
+   ]
+  },
+  "no_verificables_por_grep": {
+   "AgenteDict": [
+    "id"
+   ],
+   "LandUseSolveDict": [
+    "L",
+    "S"
+   ],
+   "LandUseResultDict": [
+    "u",
+    "p",
+    "Q"
+   ],
+   "CoupledResultDict": [
+    "S"
+   ]
+  },
+  "cantidad_sin_lector": 15
+ },
+ "determinismo": {
+  "standalone_dos_corridas": {
+   "Q_iguales": true,
+   "parcelas_iguales": false,
+   "nota": "`/land-use/solve` y el worker construyen la ciudad sin `rng`: la asignación entera se sortea distinto cada vez; `Q`, `p`, Theil y distancias son deterministas."
+  },
+  "acoplado_vuelta_0_vs_standalone": {
+   "max_dQ": 0.0,
+   "nota": "La página de suelo y la vuelta 0 del acoplado resuelven la MISMA ciudad."
+  }
+ },
+ "pines": {
+  "goldens_casos": {
+   "supply-golden.json": 18,
+   "utility-golden.json": 27
+  },
+  "contrato_generado": {
+   "archivos": [
+    "constantes.gen.ts",
+    "defaults.gen.ts",
+    "presets.gen.ts",
+    "tipos.gen.ts",
+    "trace.gen.ts"
+   ],
+   "lineas": 896,
+   "interfaces": 29
+  },
+  "version_del_nucleo": "0.2.0",
+  "wheel_que_pide_el_worker": "0.2.0",
+  "coinciden": true,
+  "pyodide": "0.26.4",
+  "piso_pydantic": ">=2.7",
+  "ci_dispara_en_push_a": [
+   "main"
+  ],
+  "ci_jobs": [
+   "Python (core + api)",
+   "Contrato generado al día",
+   "Web (typecheck + lint + build + e2e)",
+   "Pyodide arranca de verdad"
+  ]
+ }
+}
