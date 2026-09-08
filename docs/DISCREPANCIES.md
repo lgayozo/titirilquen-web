@@ -1727,6 +1727,13 @@ cumple, y eso está en D-39.
   `on.push.branches`), y hasta entonces correr `sync:core` y `--grep @slow`
   como parte del cierre de cada capítulo. El wheel se regeneró y va en el
   commit del capítulo 8.
+- **Actualización 2026-09-08**: PR #1 abierto. Primera corrida: `contrato` ✅,
+  `pyodide` ✅ (el motor por defecto arranca en un navegador real por primera
+  vez fuera de la máquina del autor), `web` ✅, `core` ❌ por el formato del
+  README del núcleo (`84061cd` lo arregla). Segunda corrida: `core` ✅ y
+  `contrato` ❌ — formatear el README cambió **un byte** del wheel, porque
+  `uv build` embebe el README en `METADATA`; sincronizado en `6255297`. Tercera:
+  `contrato` ✅, `core` ✅. El guarda funciona; lo que faltaba era que corriera.
 
 ---
 
@@ -1800,6 +1807,87 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-64 — Calibración: ninguno de los 77 parámetros está estimado, y los tres que ordenan a los estratos no tienen fuente escrita
+
+- **Hallado**: auditoría del capítulo 9 del libro, 2026-09-08.
+- **Inventario**: 119 hojas de configuración (77 sin repetir los tres estratos)
+  etiquetadas una a una. **Estimadas con datos: 0.** Con norma: 3
+  (`b_tiempo_acceso` = ponderador 2 del SNI, `λ_h` que se deriva de él por
+  `|b_costo|`, y `VOT_SOCIAL_CLP_HORA`). Heredadas del simulador original: 33.
+  Decisiones declaradas: 41. Seis además llevan «sin fuente» escrito por el
+  propio código: `b_costo`, `rho`, `anden_alpha`, `anden_beta`,
+  `costo_operacion_tren_km`, `factor_dia_punta`.
+- **Lo que importa de eso**: `b_costo_h = b_tiempo·60/VoT_h`, y **es el único
+  coeficiente que distingue a los estratos** tras D-33 —toda la heterogeneidad
+  del modelo vive ahí, y de él sale `λ_h` para el suelo—. Los tres VoT
+  (6.200 / 3.100 / 1.600 $/h) aparecen en `presets.py` como «el valor del
+  tiempo pedido», en D-33 como «los valores pedidos» y en
+  `COMPARACION_ORIGINAL.md` como «Actual»; ningún documento dice de dónde
+  salen. El VoT social del SNI (3.338) queda un 7,7 % sobre el medio, lo que
+  sugiere el ancla, pero no está escrito.
+- **Herencia medida** contra `reference/Titirilquen/app.py`: de los 45 betas,
+  8 se conservan (todos del estrato medio), 15 se reescalaron por el factor
+  homoscedástico `k` (0,6018 / 1 / 2,2067) y **22 se reemplazaron** en
+  ago/sep-2026. El VoT original era 41.250 / 9.930 / 1.500 $/h (dispersión
+  27,5×).
+- **Veredicto**: no es un error —el repo lo sabe y lo dice en cada
+  comentario— pero está repartido en veinte comentarios y nunca sumado. Sumado
+  dice: el simulador es una **construcción declarada** sobre un original que
+  tampoco estaba estimado, y su única cadena hacia un dato externo pasa por
+  tres números que nadie anotó de dónde vienen.
+- **Estado**: pendiente. Corrección mínima: escribir la fuente (o la decisión)
+  de los tres VoT donde se despeja `b_costo`; corrección de fondo: una EOD que
+  permita el ajuste estándar de las ASC, que `presets.py` ya anticipa.
+
+---
+
+## D-65 — Calibración: cuatro velocidades duplicadas entre `globales` y `supply`, con papeles distintos
+
+- **Hallado**: auditoría del capítulo 9 del libro, 2026-09-08.
+- **Evidencia**: `GlobalConfig` trae `v_auto`, `v_metro`, `v_bici`,
+  `v_caminata`; `supply` trae `car.v_max_kmh`, `train.v_tren_kmh`,
+  `bike.v_media_kmh`, `train.v_caminata_kmh`, con los mismos defaults. Medido
+  con +10 % sobre la corrida por defecto: las tres primeras globales mueven
+  0,131 / 0,011 / 0,100 pp —sólo siembran la iteración 0 del MSA
+  (`demand/utility.py:52-56`) y lo que queda es dependencia de camino dentro de
+  la tolerancia—, mientras sus gemelas de `supply` mueven 0,490 / 0,249 /
+  0,967 pp. `globales.v_caminata`, en cambio, es **activa** (1,060 pp): es la
+  velocidad del modo caminata **y** el techo de la bici
+  (`supply/oferta.py:74`), mientras `train.v_caminata_kmh` es el acceso a la
+  estación (0,488 pp). Dos parámetros con el mismo nombre y el mismo número,
+  y sólo uno se edita en cada lugar.
+- **Alcance**: ninguna de las cuatro globales tiene slider; viven en el schema,
+  en el `.ttrq.json` y en el contrato generado. S-05 ya lo decía de tres; la
+  cuarta no estaba anotada.
+- **Estado**: pendiente. Corrección: que la iteración 0 lea las velocidades de
+  `supply` y las tres globales inertes desaparezcan del schema (con migración
+  del `.ttrq`); `v_caminata` con un solo dueño.
+
+---
+
+## D-66 — Calibración: `ANALISIS_SENSIBILIDAD.md` y dos comentarios describen defaults que ya no existen
+
+- **Hallado**: auditoría del capítulo 9 del libro, 2026-09-08.
+- **Evidencia**: `docs/ANALISIS_SENSIBILIDAD.md` §4 lista como «muertos»
+  `tasa_carga`, `factor_emision_auto`, `prob_jornada_flexible`,
+  `prob_part_time`, `densidad_max/min` — todos retirados del schema en agosto
+  de 2026 (los propios comentarios de `config.py` lo dicen)—; S-10 afirma que
+  el default de ciclovía es 800 bici/h cuando `BikeSupplyParams` trae 2.500; y
+  §4.1 sigue diciendo `frec_max = 30` cuando es 40. Las mediciones del
+  documento son a 500 hab/km, escala que el mismo documento (S-03) reemplazó.
+  Además, el comentario de `costo_parking` (`config.py:137`) afirma «con 2000
+  el reparto vuelve a 12,7 %»: hoy el auto da 15,8 % en la rama «original».
+- **Veredicto**: el documento fue correcto cuando se escribió y hoy es una
+  trampa para quien lo lea antes que el código. El barrido de este capítulo
+  (54 parámetros, +10 %, línea base actual) lo reemplaza: los inertes de
+  verdad son `anden_alpha`, `anden_beta`, `frec_min`, `frec_max`,
+  `ancho_pista_m`, `densidad_hab_km` (por diseño en la rama con suelo) y los
+  dos del costo del operador (por diseño: no entran al reparto).
+- **Estado**: pendiente, prioridad baja. Corrección: cabecera de «superado por
+  el capítulo 9» en el documento, o borrarlo.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -1867,3 +1955,6 @@ cumple, y eso está en D-39.
 | D-61 | Acoplado: el default de vueltas de la interfaz (12) supera la cota de la API (10): 422 con `engine=api` | Pendiente (libro, cap. 8) | Alta |
 | D-62 | Contrato: cada vuelta del acoplado lleva 5,9 MB de agentes que la interfaz no lee (71 MB por corrida, 0,22 usados) | Pendiente (libro, cap. 8) | Media |
 | D-63 | Contrato: entrada `simulate` del worker sin llamadores y 15 campos sin lector | Pendiente (libro, cap. 8) | Baja |
+| D-64 | Calibración: 0 de 77 parámetros estimados; los tres VoT que ordenan a los estratos no tienen fuente escrita | Pendiente (libro, cap. 9) | Alta |
+| D-65 | Calibración: cuatro velocidades duplicadas entre `globales` y `supply`; tres globales inertes, `v_caminata` con dos dueños | Pendiente (libro, cap. 9) | Media |
+| D-66 | Calibración: `ANALISIS_SENSIBILIDAD.md` y comentarios con defaults que ya no existen | Pendiente (libro, cap. 9) | Baja |
