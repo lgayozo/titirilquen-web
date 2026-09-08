@@ -1888,6 +1888,59 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-67 — Consistencia: una misma corrida tiene dos repartos modales, y la interfaz muestra los dos
+
+- **Hallado**: auditoría del capítulo 10 del libro, 2026-09-08.
+- **Evidencia**: bajo `assignment = "expected"` el MSA acumula el reparto como
+  demanda **esperada** —`conteo[m] += n·pr` en `_correr_iteracion`
+  (`equilibrium/msa.py:204`)— y ése es el `modal_split` de cada snapshot. Al
+  terminar, `_asignar_modos_agentes` (`msa.py:224`) le da a cada agente un
+  `modo_elegido` **muestreado** de las probabilidades de su grupo
+  (`rng.choice`), y de esos agentes salen `coupled_metrics.reparto_modal`, el
+  `modal_share` de `lib/kpis.ts` y todas las figuras agente-nivel. Medido sobre
+  la misma corrida: el conteo esperado da auto 15,390 / metro 32,057 / bici
+  23,887 / caminata 9,138; el muestreado, 15,583 / 31,947 / 23,683 / 9,258 —
+  **0,204 pp** de brecha, y depende de la semilla.
+- **Dónde se ve**: en el Sandbox, `RunStatus.tsx:103` y `ConvergenceTrace.tsx`
+  leen `modal_split` (esperado) mientras los KPI de `kpis.ts:88` y la tabla por
+  estrato leen los agentes (muestreado). Dos números para «reparto modal» en la
+  misma pantalla, sin rótulo que los distinga. La página acoplada sólo muestra
+  el muestreado. Y la línea base (`test_linea_base`) fija el esperado.
+- **Contexto que absuelve en parte**: el muestreo es deliberado —el docstring
+  dice que «preserva modos minoritarios como la bici» frente al argmax— y la
+  diferencia es pequeña. Pero `expected` se eligió justamente para que las
+  curvas de sensibilidad se lean sin ruido de muestreo (`overrides.ts`), y por
+  esta vía el ruido vuelve a entrar a la mitad de los indicadores.
+- **Veredicto**: dos definiciones legítimas del mismo indicador, publicadas sin
+  decir cuál es cuál. Corrección: rotular («esperado» / «realizado»), o derivar
+  las figuras agente-nivel del reparto esperado cuando `assignment = expected`.
+- **Estado**: pendiente.
+
+---
+
+## D-68 — Consistencia: la documentación canónica cita una línea base y unos conteos que ya no rigen
+
+- **Hallado**: auditoría del capítulo 10 del libro, 2026-09-08.
+- **Evidencia**: `CLAUDE.md:115` cita la línea base con uso de suelo como
+  «15,42 · 32,17 · 23,85 · 9,07»; `tests/test_linea_base.py::ESPERADO` fija
+  15,39 / 32,06 / 23,89 / 9,14 (la corrección de D-42 la movió y el test se
+  actualizó; el documento no). Brecha máxima **0,11 pp**, más del doble de la
+  tolerancia del test (0,05). La rama sin suelo sí coincide. `CLAUDE.md:24-25`
+  dice «105 tests del núcleo» y «58 e2e»: hoy se recolectan **180** y Playwright
+  lista **59**. Y D-30 sigue documentando «tres baselines de sin congestión»
+  cuando desde D-34/D-42 son dos: el arranque ingenuo del MSA (velocidades
+  globales, 10 min de acceso y 5 de espera) y la red vacía, que sirve tanto al
+  ΔCS como al suelo; su fila «arranque del acoplado en minutos a `v_auto`» ya
+  no describe el código.
+- **Veredicto**: el documento que todo agente lee primero describe un estado
+  anterior del modelo en su cifra más importante. Misma familia que D-54 y D-59,
+  con más alcance porque `CLAUDE.md` es canónico por definición.
+- **Estado**: pendiente. Corrección: que `CLAUDE.md` cite el test en vez de los
+  números (o que un test compare el documento con `ESPERADO`), y marcar D-30
+  como superado.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -1958,3 +2011,5 @@ cumple, y eso está en D-39.
 | D-64 | Calibración: 0 de 77 parámetros estimados; los tres VoT que ordenan a los estratos no tienen fuente escrita | Pendiente (libro, cap. 9) | Alta |
 | D-65 | Calibración: cuatro velocidades duplicadas entre `globales` y `supply`; tres globales inertes, `v_caminata` con dos dueños | Pendiente (libro, cap. 9) | Media |
 | D-66 | Calibración: `ANALISIS_SENSIBILIDAD.md` y comentarios con defaults que ya no existen | Pendiente (libro, cap. 9) | Baja |
+| D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Pendiente (libro, cap. 10) | Media |
+| D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Pendiente (libro, cap. 10) | Media |
