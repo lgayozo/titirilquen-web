@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Diccionario del libro</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · archivo maestro</div>
+  <h1>Diccionario del libro</h1>
+  <p class="bajada">
+    Una sola página para llegar a cualquier parte: los diez capítulos con lo que
+    contestan y lo que encontraron, un diccionario de términos que dice en qué
+    capítulo y sección vive cada concepto, y las siglas que el libro usa sin
+    explicar dos veces.
+  </p>
+  <p class="meta">
+    <a href="index.html">índice y estado</a> ·
+    <a href="PLAN.md">plan</a> ·
+    <a href="../DISCREPANCIES.md">registro de discrepancias</a> ·
+    <a href="datos/README.md">contrato de los datos</a>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#capitulos">Abrir un capítulo</a></li>
+    <li><a href="#terminos">Diccionario A–Z</a></li>
+    <li><a href="#informes">Informes absorbidos</a></li>
+    <li><a href="#siglas">Siglas y registros</a></li>
+  </ol>
+</nav>
+
+<h2 id="capitulos"><span class="num">§1</span> Abrir un capítulo</h2>
+
+<p>
+  Cada capítulo tiene las mismas siete secciones: <a href="cap01-ciudad-lineal.html#s1">§1 Teoría</a>,
+  §2 Cotejo con el código, §3 Parámetros, §4 Resultados, §5 Pruebas,
+  §6 Auditorías, §7 Discusión. Los enlaces de la última columna llevan al
+  registro de discrepancias, donde cada hallazgo tiene evidencia, veredicto y
+  estado.
+</p>
+
+<div class="envoltorio-tabla">
+<table class="capitulos">
+  <thead>
+    <tr><th class="cap">#</th><th>Capítulo</th><th>Qué contesta</th><th>Módulos</th><th>Hallazgos propios</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="cap">1</td>
+      <td class="titulo"><a href="cap01-ciudad-lineal.html">La ciudad lineal</a></td>
+      <td>Cómo se discretiza el corredor, dónde queda el CBD, qué significa refinar la grilla y por qué la población es física (hab/km) y no numérica.</td>
+      <td class="fuentes"><code>city.py</code> · <code>CityConfig</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-45</a> · <a href="../DISCREPANCIES.md">D-46</a></td>
+    </tr>
+    <tr>
+      <td class="cap">2</td>
+      <td class="titulo"><a href="cap02-oferta-transporte.html">Oferta de transporte</a></td>
+      <td>Los tiempos de auto (Greenshields + BPR), bici (BPR con techo de caminata) y metro (frecuencia endógena, andén, estaciones), y qué parámetro hace lo que su nombre dice.</td>
+      <td class="fuentes"><code>supply/car</code> · <code>bike</code> · <code>train</code> · <code>oferta</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-47</a></td>
+    </tr>
+    <tr>
+      <td class="cap">3</td>
+      <td class="titulo"><a href="cap03-demanda-eleccion-modal.html">Demanda y elección modal</a></td>
+      <td>La utilidad por modo, el logit, los cortes de factibilidad y las penalizaciones escalonadas; los betas en minutos-equivalentes, que es la única unidad en que se pueden juzgar.</td>
+      <td class="fuentes"><code>demand/utility</code> · <code>choice</code> · <code>population</code> · <code>presets</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-48</a> · <a href="../DISCREPANCIES.md">D-49</a></td>
+    </tr>
+    <tr>
+      <td class="cap">4</td>
+      <td class="titulo"><a href="cap04-equilibrio-transporte.html">Equilibrio de transporte</a></td>
+      <td>El MSA: si converge, a qué, por qué caminos, y cuánto miente su residuo; Downs-Thomson y las emisiones.</td>
+      <td class="fuentes"><code>equilibrium/msa</code> · <code>emissions</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-50</a></td>
+    </tr>
+    <tr>
+      <td class="cap">5</td>
+      <td class="titulo"><a href="cap05-uso-de-suelo.html">Uso de suelo: oferta y subasta</a></td>
+      <td>La oferta de vivienda por formas y la subasta de Alonso-Martínez (forma cerrada y HEV); qué conserva la población y qué la redondea.</td>
+      <td class="fuentes"><code>land_use/supply</code> · <code>equilibrium</code> · <code>hev</code> · <code>allocation</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-51</a></td>
+    </tr>
+    <tr>
+      <td class="cap">6</td>
+      <td class="titulo"><a href="cap06-accesibilidad-acoplamiento.html">Accesibilidad y acoplamiento</a></td>
+      <td>El logsum mensual como accesibilidad, la desigualdad de Alonso escrita entera, y el loop exterior suelo ↔ transporte: qué mide su residual y cuándo para.</td>
+      <td class="fuentes"><code>land_use/accesibilidad</code> · <code>coupled</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-52</a> · <a href="../DISCREPANCIES.md">D-53</a> · <a href="../DISCREPANCIES.md">D-54</a> · <a href="../DISCREPANCIES.md">D-55</a></td>
+    </tr>
+    <tr>
+      <td class="cap">7</td>
+      <td class="titulo"><a href="cap07-bienestar-indicadores.html">Bienestar e indicadores</a></td>
+      <td>Excedente del consumidor en dos monedas, la función objetivo con recaudación y costo del operador, la población que desaparece, el Theil y su convergencia de grilla.</td>
+      <td class="fuentes"><code>bienestar</code> · <code>coupled_metrics</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-56</a> · <a href="../DISCREPANCIES.md">D-57</a> · <a href="../DISCREPANCIES.md">D-58</a> · <a href="../DISCREPANCIES.md">D-59</a></td>
+    </tr>
+    <tr>
+      <td class="cap">8</td>
+      <td class="titulo"><a href="cap08-contrato-runtimes.html">Contrato y runtimes</a></td>
+      <td>Un núcleo en dos motores (FastAPI y Pyodide): paridad numérica del pegamento del worker, contrato generado, wheel, goldens, y el CI que lo vigila.</td>
+      <td class="fuentes"><code>serializacion</code> · <code>apps/api</code> · <code>pyodide.worker.ts</code> · <code>lib/api.ts</code> · <code>lib/gen/</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-60</a> · <a href="../DISCREPANCIES.md">D-61</a> · <a href="../DISCREPANCIES.md">D-62</a> · <a href="../DISCREPANCIES.md">D-63</a></td>
+    </tr>
+    <tr>
+      <td class="cap">9</td>
+      <td class="titulo"><a href="cap09-calibracion.html">Calibración: de dónde sale cada número</a></td>
+      <td>Inventario de los 77 parámetros con su origen, la herencia del original beta a beta, la cadena del VoT y un barrido de sensibilidad de qué mueve el modelo y qué es inerte.</td>
+      <td class="fuentes"><code>presets</code> · <code>config</code> · <code>land_use/config</code> · <code>constantes</code></td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-64</a> · <a href="../DISCREPANCIES.md">D-65</a> · <a href="../DISCREPANCIES.md">D-66</a></td>
+    </tr>
+    <tr>
+      <td class="cap">10</td>
+      <td class="titulo"><a href="cap10-consistencia.html">Consistencia entre módulos</a></td>
+      <td>Las costuras: un hogar, una población, un reparto modal, un «sin congestión», una ciudad — cuáles se cumplen y cuáles se muestran con una sola palabra para dos cosas.</td>
+      <td class="fuentes">transversal</td>
+      <td class="fuentes"><a href="../DISCREPANCIES.md">D-67</a> · <a href="../DISCREPANCIES.md">D-68</a></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="terminos"><span class="num">§2</span> Diccionario A–Z</h2>
+
+<p>
+  Cada término con una definición de una línea y el lugar donde el libro lo
+  trata a fondo. «§» remite a la sección del capítulo.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Término</th><th>Qué es</th><th>Dónde</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>α (alfa)</strong></td><td>Multiplicador de la accesibilidad en la función de puje. Vale 1, común a los estratos: la puja lee el logsum tal cual (D-34).</td><td><a href="cap05-uso-de-suelo.html#s3">cap. 5 §3</a> · <a href="cap09-calibracion.html#s4">cap. 9 §4</a></td></tr>
+    <tr><td><strong>Accesibilidad (T)</strong></td><td>Costo mensual de vivir en una parcela y tener que viajar: <em>T_h(i) = −44·logsum_h(i)</em>, en útiles de transporte por mes, por estrato.</td><td><a href="cap06-accesibilidad-acoplamiento.html#s1">cap. 6 §1</a></td></tr>
+    <tr><td><strong>Agentes</strong></td><td>Los 36.000 individuos del transporte, con estrato, celda, teletrabajo y auto sorteados una vez; la misma realización en todas las páginas.</td><td><a href="cap10-consistencia.html#s4">cap. 10 §4.2</a></td></tr>
+    <tr><td><strong>Agregados</strong></td><td>Indicadores de ciudad completa del Sandbox (<code>calcular_agregados</code>): tiempo, costo generalizado, excedentes, recaudación, bienestar social.</td><td><a href="cap07-bienestar-indicadores.html#s2">cap. 7 §2</a></td></tr>
+    <tr><td><strong>Alonso (ordenamiento de)</strong></td><td>El estrato con la puja más empinada ocupa el centro. La desigualdad que lo decide: <em>λ_bajo/λ_alto &gt; |∂T_bajo/∂x| / |∂T_alto/∂x|</em>.</td><td><a href="cap06-accesibilidad-acoplamiento.html#s1">cap. 6 §1</a> y <a href="cap06-accesibilidad-acoplamiento.html#s4">§4.2</a></td></tr>
+    <tr><td><strong>Andén (BPR de)</strong></td><td>Recargo de la espera cuando la carga supera la capacidad del metro; inerte en la base, muerde 23× con la frecuencia topada.</td><td><a href="cap02-oferta-transporte.html#s4">cap. 2 §4</a> · <a href="cap09-calibracion.html#s4">cap. 9 §4.4</a></td></tr>
+    <tr><td><strong>ASC</strong></td><td>Constantes específicas de modo. Neutrales a propósito: +20 min auto, −18 bici, 0 caminata sobre el metro, iguales en los tres estratos.</td><td><a href="cap03-demanda-eleccion-modal.html#s3">cap. 3 §3</a> · <a href="cap09-calibracion.html#s4">cap. 9 §4.3</a></td></tr>
+    <tr><td><strong>Asignación (<code>assignment</code>)</strong></td><td><code>expected</code> (flujos = probabilidades), <code>montecarlo</code> (sorteo) o <code>todo_o_nada</code> (todo al mejor modo). La app usa <code>expected</code>; el acoplado lo fuerza.</td><td><a href="cap04-equilibrio-transporte.html#s1">cap. 4 §1</a> · <a href="cap10-consistencia.html#s4">cap. 10 §4.3</a></td></tr>
+    <tr><td><strong>β (beta) del suelo</strong></td><td>Nitidez de la subasta: escala del ruido de la puja <em>1/(β·λ_h)</em>. Vale 0,15 ≈ 1/√44, aproximación de segundo momento (D-41).</td><td><a href="cap05-uso-de-suelo.html#s3">cap. 5 §3</a></td></tr>
+    <tr><td><strong>Baseline «sin congestión»</strong></td><td>Dos, no tres: el arranque ingenuo del MSA (velocidades globales, 10 + 5 min) y la red vacía configurada, que sirve al ΔCS y al suelo.</td><td><a href="cap10-consistencia.html#s4">cap. 10 §4.4</a></td></tr>
+    <tr><td><strong>Bienestar social</strong></td><td><em>W = CS + recaudación − costo del operador</em>, con el excedente conductual. Tres términos de hora punta y uno llevado a día (D-58).</td><td><a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.4</a></td></tr>
+    <tr><td><strong>BPR</strong></td><td>Función volumen-demora <em>t = t₀(1 + α(v/c)^β)</em>; la usan auto, bici y el andén del metro.</td><td><a href="cap02-oferta-transporte.html#s1">cap. 2 §1</a></td></tr>
+    <tr><td><strong>Carga costo/ingreso</strong></td><td>Costo mensual de transporte sobre ingreso mensual del estrato: 44 viajes × costo por viaje ÷ <em>y</em> (D-27).</td><td><a href="cap07-bienestar-indicadores.html#s2">cap. 7 §2</a></td></tr>
+    <tr><td><strong>CBD</strong></td><td>La celda central del corredor, <em>n//2</em>; sin vivienda, destino de todos los viajes. Coincide en todas las convenciones desde D-45.</td><td><a href="cap01-ciudad-lineal.html#s1">cap. 1 §1</a> · <a href="cap10-consistencia.html#s4">cap. 10 §4.5</a></td></tr>
+    <tr><td><strong>Contrato (Python → TypeScript)</strong></td><td>Tipos, defaults, presets y constantes generados desde Pydantic a <code>lib/gen/</code>; no se editan a mano.</td><td><a href="cap08-contrato-runtimes.html#s1">cap. 8 §1</a></td></tr>
+    <tr><td><strong>Convergencia</strong></td><td>Tres loops, tres residuos, tres unidades; el núcleo compone un solo <em>flag</em> (D-39) y el frontend lo relaja (D-55).</td><td><a href="cap10-consistencia.html#s4">cap. 10 §4.6</a></td></tr>
+    <tr><td><strong>Cortes de factibilidad</strong></td><td>Sobre 30 min a pie (2,4 km) y 45 en bici (10,5 km) el modo sale del conjunto de elección; no es una penalización.</td><td><a href="cap03-demanda-eleccion-modal.html#s4">cap. 3 §4</a></td></tr>
+    <tr><td><strong>Costo generalizado</strong></td><td>Tiempo valorado más dinero, por componente de tiempo ponderado (D-37): «percibido» con el VoT del estrato, «social» con el del SNI.</td><td><a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.7</a></td></tr>
+    <tr><td><strong>Densidad (hab/km)</strong></td><td>Física, no por celda (D-26/D-28): refinar la grilla no cambia la población. En la rama con suelo, la población viene de <em>H</em>.</td><td><a href="cap01-ciudad-lineal.html#s1">cap. 1 §1</a></td></tr>
+    <tr><td><strong>Downs-Thomson</strong></td><td>Ampliar la vía empeora al sistema porque el metro pierde frecuencia. Aparece o no según el método de asignación y la unidad de bienestar.</td><td><a href="cap04-equilibrio-transporte.html#s4">cap. 4 §4</a> · <a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.3</a></td></tr>
+    <tr><td><strong>Excedente del consumidor (CS)</strong></td><td><em>E[max]</em> del viajero en pesos: logsum bajo el logit, máximo bajo todo-o-nada, dividido por λ. Cero arbitrario: sólo el Δ significa algo.</td><td><a href="cap07-bienestar-indicadores.html#s1">cap. 7 §1</a></td></tr>
+    <tr><td><strong>Excedente social</strong></td><td>El mismo excedente ponderado por <em>VoT_social/VoT_h</em>: reprecia personas, no minutos (D-56). Con β_t común es la suma llana de útiles.</td><td><a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.1–4.2</a></td></tr>
+    <tr><td><strong>Formas de oferta</strong></td><td>Normal, uniforme, exponencial, meseta, bimodal, valle: el perfil <em>S_i</em> de vivienda a lo largo del corredor, determinista (D-13).</td><td><a href="cap05-uso-de-suelo.html#s4">cap. 5 §4</a></td></tr>
+    <tr><td><strong>Golden</strong></td><td>Fixture que el núcleo escribe y el frontend compara, para los dos espejos que quedan: utilidad (27 casos) y oferta de vivienda (18).</td><td><a href="cap08-contrato-runtimes.html#s5">cap. 8 §5</a></td></tr>
+    <tr><td><strong>Greenshields</strong></td><td>Diagrama fundamental lineal: la capacidad por pista sale de <em>k_j·v_l/4</em> y queda acoplada a la velocidad (S-04).</td><td><a href="cap02-oferta-transporte.html#s1">cap. 2 §1</a></td></tr>
+    <tr><td><strong>HEV</strong></td><td>Subasta heteroscedástica (Train §4.5): cuando las λ_h difieren, las pujas tienen escalas distintas y la forma cerrada deja de valer.</td><td><a href="cap05-uso-de-suelo.html#s1">cap. 5 §1</a></td></tr>
+    <tr><td><strong>Herencia del original</strong></td><td>De 45 betas, 8 conservados, 15 reescalados por <em>k</em> y 22 reemplazados: el original aportó la forma, la calibración es otra.</td><td><a href="cap09-calibracion.html#s4">cap. 9 §4.2</a></td></tr>
+    <tr><td><strong>Homoscedástico</strong></td><td><em>β_t</em> común a los tres estratos (D-33): un β_t distinto por estrato no era preferencia por el tiempo sino escala de ruido.</td><td><a href="cap03-demanda-eleccion-modal.html#s3">cap. 3 §3</a> · <a href="cap09-calibracion.html#s1">cap. 9 §1</a></td></tr>
+    <tr><td><strong>λ (lambda)</strong></td><td>Utilidad marginal del ingreso en la puja, <em>= |b_costo_h|</em> literal de transporte (D-34). Es lo que endereza a Alonso, no el logsum (D-52).</td><td><a href="cap06-accesibilidad-acoplamiento.html#s4">cap. 6 §4.2</a></td></tr>
+    <tr><td><strong>Línea base</strong></td><td>El reparto modal por defecto de la app, pineado ±0,05 pp en <code>test_linea_base</code>: si un cambio lo mueve, no era refactor.</td><td><a href="cap10-consistencia.html#s4">cap. 10 §4.7</a></td></tr>
+    <tr><td><strong>Logsum</strong></td><td><em>ln Σ_m e^{V_m}</em>: la utilidad esperada del viaje. Una sola implementación, tres consumidores (demanda, accesibilidad, bienestar).</td><td><a href="cap03-demanda-eleccion-modal.html#s1">cap. 3 §1</a> · <a href="cap10-consistencia.html#s4">cap. 10 §4.1</a></td></tr>
+    <tr><td><strong>Minutos-equivalentes</strong></td><td>Cualquier término de la utilidad dividido por <em>β_t</em>: la unidad en que los betas de estratos distintos son comparables.</td><td><a href="cap03-demanda-eleccion-modal.html#s4">cap. 3 §4</a> · <a href="cap09-calibracion.html#s1">cap. 9 §1</a></td></tr>
+    <tr><td><strong>Mohring (efecto)</strong></td><td>Más demanda ⇒ más frecuencia ⇒ menos espera: la economía de escala del metro, y el canal que hace posible Downs-Thomson.</td><td><a href="cap02-oferta-transporte.html#s1">cap. 2 §1</a></td></tr>
+    <tr><td><strong>MSA</strong></td><td>Método de promedios sucesivos, paso <em>1/(k+1)</em>. Transporte promedia tiempos (sin argumento de convergencia, D-50); el acoplado promedia <em>T</em>.</td><td><a href="cap04-equilibrio-transporte.html#s1">cap. 4 §1</a> · <a href="cap06-accesibilidad-acoplamiento.html#s4">cap. 6 §4.5</a></td></tr>
+    <tr><td><strong>Overrides</strong></td><td>Las seis diferencias deliberadas entre los defaults del núcleo y los de la app, declaradas en <code>lib/overrides.ts</code>.</td><td><a href="cap08-contrato-runtimes.html#s4">cap. 8 §4.3</a></td></tr>
+    <tr><td><strong>Parcelas</strong></td><td>La asignación entera de hogares a celdas, sorteada; sirve para dibujar, no para comparar (D-44). Dos discretizaciones conviven (D-51).</td><td><a href="cap05-uso-de-suelo.html#s4">cap. 5 §4</a></td></tr>
+    <tr><td><strong>Penalizaciones escalonadas</strong></td><td>Saltos de utilidad al cruzar 10/20/30 min en bici y 5/15/25 a pie. Son desutilidad, no tiempo, y hacen discontinuo el logsum (D-53).</td><td><a href="cap03-demanda-eleccion-modal.html#s4">cap. 3 §4</a></td></tr>
+    <tr><td><strong>Población que desaparece</strong></td><td>Quien no tiene modo factible sale del agregado de bienestar; apagar el metro estranda al 11 % (D-57).</td><td><a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.5</a></td></tr>
+    <tr><td><strong>Presets</strong></td><td>Ciudades (forma urbana a iso-población) y políticas (valores absolutos, no diferencias, con su razón contra la base).</td><td><a href="cap09-calibracion.html#s4">cap. 9 §4.6</a></td></tr>
+    <tr><td><strong>Pyodide / worker</strong></td><td>El motor por defecto: el mismo wheel corriendo en un Web Worker. Su pegamento son 84 líneas de Python dentro de un string.</td><td><a href="cap08-contrato-runtimes.html#s4">cap. 8 §4.1</a></td></tr>
+    <tr><td><strong>Red vacía</strong></td><td>La infraestructura configurada con demanda cero: BPR(0), tren a frecuencia mínima, estaciones reales. Baseline del ΔCS y del suelo (D-42).</td><td><a href="cap06-accesibilidad-acoplamiento.html#s2">cap. 6 §2</a></td></tr>
+    <tr><td><strong>Reparto modal</strong></td><td>Dos numeradores (esperado <em>n·p_m</em> o agentes muestreados) y dos denominadores (con o sin teletrabajo): cuatro números legítimos (D-67).</td><td><a href="cap10-consistencia.html#s4">cap. 10 §4.3</a></td></tr>
+    <tr><td><strong>Residual / brecha</strong></td><td>El residuo mide el cambio del iterado; la brecha, cuánto falta al punto fijo. En transporte el residuo subestima (D-39); en el acoplado sobreestima (D-53).</td><td><a href="cap04-equilibrio-transporte.html#s4">cap. 4 §4</a> · <a href="cap06-accesibilidad-acoplamiento.html#s4">cap. 6 §4.5</a></td></tr>
+    <tr><td><strong>ρ (rho)</strong></td><td>Penalización de densidad en la puja. Sin fuente; fijada para que <em>ρ·dens</em> recorra el 50 % del rango de <em>α·T</em>. Es el que menos importa de los que actúan.</td><td><a href="cap05-uso-de-suelo.html#s3">cap. 5 §3</a> · <a href="cap09-calibracion.html#s4">cap. 9 §4.5</a></td></tr>
+    <tr><td><strong>Sensibilidad</strong></td><td>Cada parámetro +10 %: lo que más mueve es la demografía; ningún beta entra al top 10; ocho inertes por tres razones distintas.</td><td><a href="cap09-calibracion.html#s4">cap. 9 §4.4</a></td></tr>
+    <tr><td><strong>SNI (Precios Sociales 2026)</strong></td><td>La única norma del modelo: VoT social $3.338/h y ponderador 2 para espera y acceso (tabla 2.1).</td><td><a href="cap07-bienestar-indicadores.html#s3">cap. 7 §3</a> · <a href="cap09-calibracion.html#s3">cap. 9 §3</a></td></tr>
+    <tr><td><strong>Subasta (bid-rent)</strong></td><td>Martínez (2018): quien más puja se queda la parcela; el equilibrio es el punto fijo de las utilidades de reserva que cierra <em>Σ S_i Q_hi = H_h</em>.</td><td><a href="cap05-uso-de-suelo.html#s1">cap. 5 §1</a></td></tr>
+    <tr><td><strong><code>sync:core</code> / wheel</strong></td><td>Tras tocar el núcleo: recompila el wheel que sirve Pyodide, regenera <code>lib/gen/</code> y los goldens. El wheel embebe el README.</td><td><a href="cap08-contrato-runtimes.html#s4">cap. 8 §4.6</a></td></tr>
+    <tr><td><strong>Theil (índice H de)</strong></td><td>Segregación de 0 a 1 sobre <em>N_hi = S_i·Q_hi</em>, poblacional (D-38). Converge al refinar la grilla.</td><td><a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.6</a></td></tr>
+    <tr><td><strong>Teletrabajo</strong></td><td>Se decide antes de la elección de modo; 19,5 % de los agentes. Entra o no al denominador según quién cuente.</td><td><a href="cap10-consistencia.html#s4">cap. 10 §4.2</a></td></tr>
+    <tr><td><strong>Un hogar, una utilidad</strong></td><td>El que elige modo es el que puja y el que se cuenta: mismo logsum, mismo VoT (D-33/D-34). Se cumple a 10⁻⁹.</td><td><a href="cap10-consistencia.html#s4">cap. 10 §4.1</a></td></tr>
+    <tr><td><strong>Varado</strong></td><td>Agente sin ningún modo factible. Categoría del reparto; fuera del bienestar.</td><td><a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.5</a></td></tr>
+    <tr><td><strong>VIAJES_MES</strong></td><td>44 = 2 × 22 días: lo que mensualiza el costo por viaje (carga) y el logsum (accesibilidad).</td><td><a href="cap06-accesibilidad-acoplamiento.html#s3">cap. 6 §3</a></td></tr>
+    <tr><td><strong>VoT (valor del tiempo)</strong></td><td><em>(β_t/β_c)·60</em>: 6.200 / 3.100 / 1.600 $/h. El ancla de toda la calibración, sin fuente escrita (D-64).</td><td><a href="cap09-calibracion.html#s4">cap. 9 §4.3</a></td></tr>
+    <tr><td><strong>Wardrop</strong></td><td>Condición de equilibrio de usuario que este modelo NO cumple: por eso <code>todo_o_nada</code> dejó de llamarse así.</td><td><a href="cap04-equilibrio-transporte.html#s1">cap. 4 §1</a></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="informes"><span class="num">§3</span> Informes absorbidos</h2>
+
+<p>
+  Los ocho informes anteriores al libro se conservan tal como se migraron el
+  2026-09-06. Varios narran unidades y parámetros anteriores a D-34; el
+  capítulo que los absorbe dice qué sigue vigente.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Informe</th><th>Qué contiene</th><th>Lo absorbe</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="informe-wardrop.html">informe-wardrop</a></td><td>Por qué el todo-o-nada no es Wardrop.</td><td><a href="cap04-equilibrio-transporte.html">cap. 4</a></td></tr>
+    <tr><td><a href="informe-downs-thomson.html">informe-downs-thomson</a></td><td>El barrido de pistas y la paradoja.</td><td><a href="cap04-equilibrio-transporte.html">cap. 4</a></td></tr>
+    <tr><td><a href="informe-uso-suelo.html">informe-uso-suelo</a></td><td>La subasta paso a paso, unidades anteriores a D-34.</td><td><a href="cap05-uso-de-suelo.html">cap. 5</a></td></tr>
+    <tr><td><a href="informe-hev.html">informe-hev</a> · <a href="hev-cuadratura.html">hev-cuadratura</a></td><td>La subasta heteroscedástica y su integral.</td><td><a href="cap05-uso-de-suelo.html">cap. 5</a></td></tr>
+    <tr><td><a href="informe-bienestar.html">informe-bienestar</a></td><td>Las tres medidas de bienestar; su §6.1 quedó al revés tras D-33 (D-56).</td><td><a href="cap07-bienestar-indicadores.html">cap. 7</a></td></tr>
+    <tr><td><a href="arquitectura.html">arquitectura</a> · <a href="diagrama-flujo.html">diagrama-flujo</a></td><td>El mapa del código y el flujo de una simulación.</td><td><a href="cap08-contrato-runtimes.html">cap. 8</a></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="siglas"><span class="num">§4</span> Siglas y registros</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Sigla</th><th>Qué es</th><th>Dónde vive</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>D-nn</strong></td><td>Discrepancia: un hallazgo con evidencia, veredicto y estado. D-01 a D-44 son anteriores al libro; D-45 a D-68, del libro, todas pendientes de corrección.</td><td><a href="../DISCREPANCIES.md">DISCREPANCIES.md</a></td></tr>
+    <tr><td><strong>AU-nn</strong></td><td>Hallazgos de la auditoría del uso de suelo (agosto de 2026).</td><td><a href="../AUDITORIA_USO_SUELO.md">AUDITORIA_USO_SUELO.md</a></td></tr>
+    <tr><td><strong>S-nn</strong></td><td>Hallazgos del análisis de sensibilidad (agosto de 2026); superado por el cap. 9 (D-66).</td><td><a href="../ANALISIS_SENSIBILIDAD.md">ANALISIS_SENSIBILIDAD.md</a></td></tr>
+    <tr><td><strong>A-nn</strong></td><td>Hallazgos de la auditoría externa del 2026-09-05, contrastados en D-35 a D-44.</td><td><code>reference/auditoria-2026-09-05/</code> (no versionado)</td></tr>
+    <tr><td><strong>C-02</strong></td><td>Con motor api el Sandbox cae a <code>/simulate</code> sin uso de suelo: 9,15 pp de metro entre motores.</td><td><a href="cap08-contrato-runtimes.html#s4">cap. 8 §4.2</a></td></tr>
+    <tr><td><strong><code>capNN.json</code></strong></td><td>Los números de cada capítulo, escritos por <code>datos_capNN.py</code>; ninguno se tipea a mano.</td><td><a href="datos/README.md">datos/README.md</a></td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice y estado</a> ·
+    plan en <a href="PLAN.md">PLAN.md</a>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
