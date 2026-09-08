@@ -1577,6 +1577,127 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-56 — Bienestar: el «excedente social» reprecia el dinero, no sólo el tiempo (y tras D-33 el mecanismo se dio vuelta)
+
+- **Hallado**: auditoría del capítulo 7 del libro, 2026-09-08.
+- **Lo que dice la interfaz**: `agg.excedente_social_nota` → «valorado al VoT
+  social $3.338/h en vez del conductual de cada estrato: **el minuto de todos
+  vale lo mismo**». O sea, una revaluación del tiempo.
+- **Lo que hace el código**: `bienestar.py:444-451` divide la utilidad **entera**
+  por `λ^soc_h = |b_tiempo_h|·60/VoT_social`. Como el dinero entra a esa utilidad
+  vía `b_costo·$`, también queda reescalado por `λ_h/λ^soc_h = VoT_social/VoT_h`.
+- **Medido** (prueba de envolvente sobre la tarifa del metro, con los tiempos y
+  la demanda FIJOS, así que es la derivada parcial y no la respuesta de
+  equilibrio): subir la tarifa $1 mueve el excedente conductual en −10.194,3
+  contra los −10.201,6 viajes de metro (error 0,07 %) — **$1 de tarifa cuesta
+  $1**. En la medida social mueve −14.355,6 contra los −14.362,4 que predice el
+  repreciado (error 0,05 %): $1 de tarifa cuesta **$0,54 al estrato alto, $1,08
+  al medio y $2,09 al bajo**.
+- **Veredicto**: no es un error de cálculo — es un ponderador distributivo
+  perfectamente legítimo (pesar por la inversa de la utilidad marginal del
+  ingreso), y el propio informe de bienestar lo llama «implícitamente
+  redistributivo». Lo que está mal es el rótulo, que promete una revaluación del
+  tiempo y entrega una reponderación de personas.
+- **Y el mecanismo se invirtió con D-33.** El informe (`informe-bienestar.html`
+  §6.1) explica el efecto así: `1/|β_t|` valía 18,2 · 30,2 · 66,7 —3,7× entre
+  extremos— mientras `1/λ_h` era «casi plano» (1.879 · 1.560 · 1.776). Con el
+  transporte homoscedástico `b_tiempo_viaje` es **común** a los tres estratos,
+  así que hoy `λ^soc` es común y **la medida social es la suma llana de útiles**
+  (1.680,8 $/útil para los tres); la que pondera es la **conductual**, 3.121,8 /
+  1.560,9 / 805,6, o sea 3,875× a favor del estrato alto. La dirección del
+  resultado sobrevive por álgebra —el cociente sigue siendo `VoT_social/VoT_h`—
+  pero la explicación del informe quedó al revés y sus seis números están
+  desactualizados.
+- **Estado**: pendiente. Corrección: reescribir el rótulo («pondera a cada
+  estrato por la inversa de su valor del tiempo», no «el minuto de todos vale lo
+  mismo»), y reescribir §6.1 del informe al absorberlo en el capítulo.
+
+---
+
+## D-57 — Bienestar: quien se queda sin ningún modo factible desaparece del agregado, y el caso dejó de ser vacío
+
+- **Hallado**: auditoría del capítulo 7 del libro, 2026-09-08.
+- **El módulo lo anticipó**: `bienestar.py:75-84` declara que si un par (estrato,
+  celda) no tiene modo factible, `medidas_de_utilidad` devuelve `None` y ese
+  grupo «no entra al promedio NI al denominador de población», con la
+  consecuencia escrita: «una política que dejara gente sin alternativas no la
+  contaría como bienestar muy bajo, la haría desaparecer del cálculo». Lo midió
+  en agosto de 2026 y dio cero exclusiones, y anotó que deshabilitar modos
+  «podría activarlo».
+- **Hoy lo activa un interruptor de la interfaz.** `SandboxPage.tsx:866-879`
+  ofrece un toggle por modo. Medido sobre la ciudad por defecto:
+
+  | escenario | viajeros en el agregado | varados | % de quienes viajarían |
+  | --- | --- | --- | --- |
+  | todos los modos | 28.982,0 | 0 | 0,00 % |
+  | sin metro | 25.714,0 | **3.268** | **11,28 %** |
+  | sin bici ni caminata | 26.664,0 | **2.318** | **8,00 %** |
+  | sin auto | 28.982,0 | 0 | 0,00 % |
+
+- **Cuánto sesga**: apagar el metro mide un daño de −$21.956.796 en excedente
+  total. Valorando a los 3.268 varados al excedente del viajero **medio** de ese
+  mismo escenario —una cota inferior, porque quedaron varados justamente por
+  estar peor— el daño sería −$26.358.465: el agregado lo **subestima en al menos
+  un 20,05 %**, y la política sale mejor evaluada por haber expulsado gente del
+  cálculo.
+- **Veredicto**: sesgo conocido, documentado y ahora alcanzable en un clic. No es
+  sólo un problema del promedio: el TOTAL también se contrae porque `n` cae.
+- **Estado**: pendiente. Corrección: contar al varado con una utilidad de
+  reserva explícita (el valor del viaje no realizado) o, como mínimo, publicar el
+  conteo de varados junto al agregado para que el usuario vea el denominador que
+  se movió.
+
+---
+
+## D-58 — Bienestar: `bienestar_social_clp` suma tres flujos de hora punta y un costo llevado a día
+
+- **Hallado**: auditoría del capítulo 7 del libro, 2026-09-08.
+- **Evidencia**: `bienestar.py:479` calcula `excedente + parking + tarifa −
+  costo_operador`. Los tres primeros son flujos de la hora punta que el modelo
+  simula; el cuarto lleva `factor_dia_punta` (`config.py:291`, default 2,0), que
+  lo escala a costo diario por viaje. La interfaz lo rotula «Bienestar social =
+  excedente + recaudación − costo operador», sin decir que un término está en
+  otra base.
+- **Composición en la base**: excedente −12.677.996 · parking +11.386.225 ·
+  tarifa +8.161.318 · operador −4.893.107 = **+1.976.440**. Pasar el factor de 2
+  a 1 mueve el titular un **124 %** de su propio valor, y entre factor 2 y 3 el
+  titular cambia de signo.
+- **Pero acotado, y hay que decirlo**: el nivel tiene cero arbitrario (el
+  excedente arrastra las ASC), así que su signo no significa nada y la interfaz
+  siempre lo muestra contra un escenario de referencia. En el **Δ** —que es lo
+  interpretable— el factor casi se cancela: el Δ de 2 a 4 pistas vale
+  +2.004.641 con factor 1, +2.074.487 con 2 y +2.144.333 con 3, un rango de
+  **7 %**. No se cancela del todo porque la frecuencia del metro es endógena.
+- **De paso, verificado**: el comentario de `config.py` predice que «haría falta
+  ~3,7 para que requiera subsidio». Medido: autofinancia con 1, 2 y 3, y a 3,7
+  el subsidio pasa a +890.930. La predicción del código es correcta.
+- **Veredicto**: inconsistencia de base contable real pero de efecto acotado
+  sobre lo único que se lee. Corrección: declarar la base en el rótulo, o llevar
+  los cuatro términos a la misma (multiplicar también recaudación y excedente).
+- **Estado**: pendiente, prioridad baja.
+
+---
+
+## D-59 — Bienestar: tres rótulos que describen versiones anteriores del cálculo
+
+- **Hallado**: auditoría del capítulo 7 del libro, 2026-09-08.
+- **Evidencia**:
+  1. `i18n/locales/{es,en}/simulator.json` → `eqt.welfare_total_sub` dice
+     «Σ hogares · ΔCS vs red vacía ($)». Ésa es exactamente la fórmula que D-35
+     corrigió el 2026-09-05: hoy es la suma sobre los **viajeros**, no sobre los
+     hogares, y la diferencia era del ~20 %. El rótulo describe el bug.
+  2. `eqt.cs` dice «Δ Excedente (logsum)» en duro, aunque bajo `todo_o_nada` la
+     medida es la utilidad máxima. La tabla del Sandbox sí alterna el rótulo
+     (`agg.excedente_estrato_max`); la del acoplado no — aunque ahí el acoplado
+     siempre corre `expected` (D-40), así que hoy el rótulo acierta por
+     construcción, no por diseño.
+  3. `agg.excedente_social_nota` — ver D-56.
+- **Veredicto**: misma familia que D-54. El cálculo se corrigió, el texto que lo
+  describe no.
+- **Estado**: pendiente.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -1636,3 +1757,7 @@ cumple, y eso está en D-39.
 | D-53 | Acoplado: el residual exterior mide el rezago del promedio (`residual₁/k`) y su máximo lo pone un escalón de la bici en 2 celdas de 603 | Pendiente (libro, cap. 6) | Alta |
 | D-54 | Acoplado: `outer_tol` rotulado en minutos en cuatro lugares y sin recalibrar desde D-34 | Pendiente (libro, cap. 6) | Media |
 | D-55 | Acoplado: `api.ts` reconstruye `converged` sólo con el residual, más laxo que el núcleo | Pendiente (libro, cap. 6) | Media |
+| D-56 | Bienestar: el «excedente social» reprecia el dinero, no sólo el tiempo; y tras D-33 el mecanismo se invirtió | Pendiente (libro, cap. 7) | Alta |
+| D-57 | Bienestar: el que queda sin modo factible desaparece del agregado; un toggle de la UI estranda al 11 % | Pendiente (libro, cap. 7) | Alta |
+| D-58 | Bienestar: `bienestar_social_clp` mezcla hora punta con costo llevado a día (efecto acotado: 7 % del Δ) | Pendiente (libro, cap. 7) | Baja |
+| D-59 | Bienestar: rótulos que describen el cálculo anterior a D-35 y a D-56 | Pendiente (libro, cap. 7) | Media |
