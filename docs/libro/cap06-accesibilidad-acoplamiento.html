@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 6: Accesibilidad y acoplamiento</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 6</div>
+  <h1>Accesibilidad y acoplamiento</h1>
+  <p class="bajada">
+    La pieza que cierra el circuito. Dónde vive la gente cambia por dónde puede
+    llegar, y a dónde puede llegar cambia por dónde vive: este capítulo audita
+    el objeto que traduce transporte en suelo —la accesibilidad— y el loop que
+    los hace converger.
+  </p>
+  <p class="meta">
+    Módulos: <code>land_use/accesibilidad.py</code> · <code>coupled.py</code> ·
+    <code>coupled_metrics.py</code> ·
+    auditado el 2026-09-07 ·
+    datos regenerados el 2026-09-07 ·
+    <span class="estado auditado">auditado</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Cotejo con el código</a></li>
+    <li><a href="#s3">Parámetros</a></li>
+    <li><a href="#s4">Resultados</a></li>
+    <li><a href="#s5">Pruebas</a></li>
+    <li><a href="#s6">Auditorías</a></li>
+    <li><a href="#s7">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<h3>La accesibilidad es la utilidad esperada del viaje</h3>
+
+<p>
+  El capítulo 5 dejó una incógnita en la función de puje: <em>T_h(i)</em>, «lo
+  que le cuesta a un hogar del estrato <em>h</em> vivir en la parcela <em>i</em>
+  y tener que viajar». Cualquier función decreciente en la accesibilidad
+  produce un gradiente de Alonso, así que el modelo no obliga a nada — y por eso
+  la elección importa.
+</p>
+
+<p>
+  El objeto correcto ya está calculado en el capítulo 3. Un hogar que elige modo
+  con un logit tiene una utilidad esperada del viaje que es el <strong>logsum</strong>,
+  y ése es el excedente del viajero en útiles de transporte:
+</p>
+
+<div class="ecuacion" data-tex="\mathrm{logsum}_h(i) \;=\; \ln \sum_{m \in M_h(i)} \exp\!\big(V_{hm}(i)\big)">
+  <span class="id">(6.1)</span>
+  logsum_h(i) = ln Σ_{m ∈ M_h(i)} exp(V_hm(i))
+</div>
+
+<p>
+  Es el resultado de Williams–Daly–Zachary: bajo el logit, <em>E[max_m U_m]</em>
+  vale el logsum más la constante de Euler, y su derivada respecto del atributo
+  de un modo devuelve la probabilidad de elegirlo. Es la única medida de
+  accesibilidad que es consistente con la elección modal que el mismo hogar hace
+  tres módulos más arriba, y por eso <strong>un hogar, una utilidad</strong> es
+  el criterio de este capítulo.
+</p>
+
+<p>
+  Para que entre en la puja hacen falta dos conversiones. El signo, porque el
+  logsum es un beneficio y <em>T</em> tiene que ser un costo; y la escala
+  temporal, porque un viaje no se compara con un mes de arriendo:
+</p>
+
+<div class="ecuacion" data-tex="T_h(i) \;=\; -\,\mathrm{VIAJES\_MES}\cdot \mathrm{logsum}_h(i) \qquad [\text{útiles de transporte / mes}]">
+  <span class="id">(6.2)</span>
+  T_h(i) = −VIAJES_MES · logsum_h(i)   [útiles de transporte / mes]
+</div>
+
+<p>
+  Con <em>α = 1</em> la puja lee esa cantidad tal cual, y al dividir por
+  <em>λ_h</em> queda en $/mes, que es la unidad del arriendo y del ingreso. El
+  nivel absoluto <strong>no significa nada</strong> —el logsum arrastra las
+  constantes específicas de modo, cuyo cero es arbitrario—: sólo son
+  interpretables las diferencias entre parcelas y la pendiente.
+</p>
+
+<h3>El criterio de ordenamiento de Alonso, explícito</h3>
+
+<p>
+  El modelo de Alonso ordena a los hogares por la <em>pendiente</em> de su
+  disposición a pagar: quien tiene la curva de puja más empinada ocupa el
+  centro. Con <em>α</em> común y la utilidad lineal en el ingreso disponible del
+  capítulo 5, esa pendiente en pesos por kilómetro es
+</p>
+
+<div class="ecuacion" data-tex="\left|\frac{\partial p_h}{\partial x}\right| \;=\; \frac{\alpha}{\lambda_h}\left|\frac{\partial T_h}{\partial x}\right|">
+  <span class="id">(6.3)</span>
+  |∂p_h/∂x| = (α / λ_h) · |∂T_h/∂x|
+</div>
+
+<p>
+  De donde sale la condición que el estrato alto ocupe el centro, escrita
+  entera:
+</p>
+
+<div class="ecuacion" data-tex="\frac{\lambda_{\text{bajo}}}{\lambda_{\text{alto}}} \;>\; \frac{|\partial T_{\text{bajo}}/\partial x|}{|\partial T_{\text{alto}}/\partial x|}">
+  <span class="id">(6.4)</span>
+  λ_bajo / λ_alto  &gt;  |∂T_bajo/∂x| / |∂T_alto/∂x|
+</div>
+
+<p>
+  A la izquierda la ventaja de <strong>moneda</strong>: cuánto más vale un peso
+  para el pobre que para el rico. A la derecha la ventaja de <strong>tiempo</strong>:
+  cuánto más rápido crece el costo del viaje para el pobre, que tiene menos
+  auto y peores alternativas. Alonso se cumple cuando la primera gana. Es la
+  desigualdad que la §4 evalúa con números y que decide el resultado central de
+  este capítulo.
+</p>
+
+<h3>El punto fijo del acoplamiento</h3>
+
+<p>
+  El suelo necesita <em>T</em> y el transporte necesita saber quién vive dónde.
+  Eso es un punto fijo sobre la matriz de accesibilidad: dada <em>T</em>, la
+  subasta produce <em>Q(T)</em>; de <em>Q</em> sale una población; de la
+  población, un equilibrio de transporte; y del equilibrio, una <em>T</em>
+  nueva. Llamando <em>F</em> a esa composición,
+</p>
+
+<div class="ecuacion" data-tex="T^{\star} = F(T^{\star}), \qquad F = \text{logsum} \circ \text{MSA} \circ \text{población} \circ \text{subasta}">
+  <span class="id">(6.5)</span>
+  T* = F(T*),   F = logsum ∘ MSA ∘ población ∘ subasta
+</div>
+
+<p>
+  Nada garantiza que <em>F</em> sea contractiva, así que se itera con el mismo
+  promedio de sucesivas medias del capítulo 4, ahora en el loop de afuera:
+</p>
+
+<div class="ecuacion" data-tex="T^{(k)} \;=\; \theta_k\, F\!\big(T^{(k-1)}\big) + (1-\theta_k)\, T^{(k-1)}, \qquad \theta_k = \frac{1}{k+1}">
+  <span class="id">(6.6)</span>
+  T⁽ᵏ⁾ = θ_k · F(T⁽ᵏ⁻¹⁾) + (1 − θ_k) · T⁽ᵏ⁻¹⁾,   θ_k = 1/(k+1)
+</div>
+
+<p>
+  El criterio de parada compara <em>‖F(T⁽ᵏ⁻¹⁾) − T⁽ᵏ⁻¹⁾‖<sub>∞</sub></em> contra
+  una tolerancia. Esa elección —qué norma, sobre qué cantidad, contra qué
+  iterado— es el asunto de la §4: está bien planteada y aun así no mide lo que
+  parece medir.
+</p>
+
+<h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">(6.1)</td>
+      <td class="ruta py">land_use/accesibilidad.py</td>
+      <td class="n">44</td>
+      <td><code>logsum_por_celda</code> — log-suma-exp estabilizada, esperanza sobre <code>prob_auto</code>; una celda sin ningún modo factible vale <code>UTIL_IMPOSIBLE</code></td>
+    </tr>
+    <tr>
+      <td class="n">(6.2)</td>
+      <td class="ruta py">land_use/accesibilidad.py</td>
+      <td class="n">90</td>
+      <td><code>T_desde_logsum</code> — el signo y el factor mensual, en una línea</td>
+    </tr>
+    <tr>
+      <td class="n">(6.2)</td>
+      <td class="ruta py">constantes.py</td>
+      <td class="n">54</td>
+      <td><code>VIAJES_MES</code> — 44 viajes al mes, la constante que mensualiza</td>
+    </tr>
+    <tr>
+      <td class="n">(6.2)</td>
+      <td class="ruta py">land_use/accesibilidad.py</td>
+      <td class="n">115</td>
+      <td><code>T_flujo_libre</code> — la <em>T</em> del suelo standalone y del arranque del acoplado, sobre <code>tiempos_red_vacia</code> (96)</td>
+    </tr>
+    <tr>
+      <td class="n">(6.2)</td>
+      <td class="ruta py">supply/oferta.py</td>
+      <td class="n">93</td>
+      <td><code>resolver_red_vacia</code> — la infraestructura configurada con demanda cero (D-42)</td>
+    </tr>
+    <tr>
+      <td class="n">(6.5)</td>
+      <td class="ruta py">coupled.py</td>
+      <td class="n">123</td>
+      <td><code>iter_coupled</code> — el loop exterior; <code>run_coupled</code> (230) es consumirlo entero</td>
+    </tr>
+    <tr>
+      <td class="n">(6.5)</td>
+      <td class="ruta py">coupled.py</td>
+      <td class="n">151</td>
+      <td><code>LandUseCity</code> — la subasta; <code>generar_poblacion_desde_land_use_det</code> (164) y <code>_T_logsum_snapshot</code> (172) cierran el ciclo</td>
+    </tr>
+    <tr>
+      <td class="n">(6.5)</td>
+      <td class="ruta py">coupled.py</td>
+      <td class="n">88</td>
+      <td><code>_T_logsum_snapshot</code> — el mismo (6.1) sobre los tiempos congestionados; <code>_tiempos_del_snapshot</code> (75) los desempaqueta</td>
+    </tr>
+    <tr>
+      <td class="n">(6.6)</td>
+      <td class="ruta py">coupled.py</td>
+      <td class="n">179</td>
+      <td><code>theta</code> — el paso 1/(k+1); la actualización del estado en 180 y la vuelta a la ciudad en <code>city.update</code> (222)</td>
+    </tr>
+    <tr>
+      <td class="n">(6.6)</td>
+      <td class="ruta py">coupled.py</td>
+      <td class="n">174</td>
+      <td><code>residual</code> — <em>‖T_new − T_state‖<sub>∞</sub></em>; el criterio compuesto en <code>is_converged</code> (185)</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">coupled.py</td>
+      <td class="n">52</td>
+      <td><code>OuterIteration</code> — lo que se emite por vuelta; <code>CoupledResult</code> (66) lo agrega</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">coupled_metrics.py</td>
+      <td class="n">289</td>
+      <td><code>compute_equilibrium_metrics</code> — las métricas por estrato y de sistema, calculadas por vuelta y adjuntas a la iteración</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">coupled_metrics.py</td>
+      <td class="n">348</td>
+      <td><code>tiempos_red_vacia</code> — el baseline del ΔCS es el mismo objeto que la <em>T</em> del standalone, importado, no reimplementado (D-42)</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">serializacion.py</td>
+      <td class="n">301</td>
+      <td><code>outer_iteration_to_dict</code> — la forma JSON de cada vuelta, una sola vez para API y worker</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta ts">lib/api.ts</td>
+      <td class="n">162</td>
+      <td><code>resolverAcoplado</code> — la puerta única al motor; <code>resolverAcopladoStream</code> (184) es la que usa la página</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Diferencias con la fuente</h3>
+
+<p>
+  No hay una «fuente» del loop acoplado: el Overleaf original define el módulo
+  de suelo con una <em>T</em> exógena y nunca lo acopla al transporte. Todo lo
+  de esta sección es construcción propia, y por eso su historia de correcciones
+  es larga: D-14 (residual espurio en índices de celda), D-22 (accesibilidad por
+  estrato), D-23 (baseline en otra escala), D-24 (gridlock), D-40 (el estado
+  final no era el de la última iteración) y D-42 (la red que no se leía).
+</p>
+
+<div class="aviso neutro">
+  <h4>D-34 — la accesibilidad pasó de minutos al logsum mensual</h4>
+  <p>
+    Hasta sep-2026 <em>T</em> era el tiempo esperado del viaje en minutos. El
+    cambio no fue de precisión sino de <strong>identificación</strong>: con el
+    logsum, <em>α = 1</em> y <em>λ_h = |b_costo_h|</em> dejan de ser
+    multiplicadores libres y pasan a ser cantidades leídas del módulo de
+    transporte. Es el ancla que traía el simulador original —cargaba
+    <code>LogSuma_Utilidad</code> por (estrato, celda) y llamaba
+    <code>actualizar(T, alpha=[1,1,1])</code>— y que nunca llegó a ejecutarse.
+  </p>
+</div>
+
+<div class="aviso neutro">
+  <h4>D-42 — «flujo libre» pasó a ser la red vacía configurada</h4>
+  <p>
+    <code>T_flujo_libre</code> usaba las velocidades de la demanda y 10 min de
+    acceso más 5 de espera fijos, de modo que cambiar las estaciones o la
+    frecuencia del metro no movía el suelo standalone. Ahora exige la oferta y
+    resuelve la red con demanda cero. Consecuencia deseable: <em>T</em> deja de
+    ser monótona celda a celda, porque junto a cada estación el acceso baja.
+  </p>
+</div>
+
+<h2 id="s3"><span class="num">§3</span> Parámetros</h2>
+
+<p>
+  Este módulo tiene la propiedad rara de <strong>no introducir parámetros
+  propios de modelo</strong>: todo lo que usa se lo pide a transporte (los
+  <em>β</em> del logit) o a suelo (<em>α</em>, <em>λ</em>, <em>ρ</em>,
+  <em>β</em> de la subasta). Lo que sí introduce son tres números
+  <em>numéricos</em>, del algoritmo, y ésos son los que nadie calibró.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Parámetro</th><th>Valor</th><th>Unidad</th><th>Origen</th><th>Dónde se fija</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>VIAJES_MES</code></td>
+      <td class="n">44</td>
+      <td>viajes/mes</td>
+      <td><span class="etiqueta neutra">decisión</span> D-27: 22 días hábiles, ida y vuelta</td>
+      <td><code class="ruta py">constantes.py</code></td>
+    </tr>
+    <tr>
+      <td><code>alpha</code></td>
+      <td class="n">1,0</td>
+      <td>adimensional</td>
+      <td><span class="etiqueta neutra">decisión</span> D-34: la puja lee el logsum tal cual</td>
+      <td><code class="ruta py">land_use/config.py</code></td>
+    </tr>
+    <tr>
+      <td><code>lambda</code></td>
+      <td class="n">3,203·10⁻⁴ · 6,407·10⁻⁴ · 1,241·10⁻³</td>
+      <td>útiles/$</td>
+      <td><span class="etiqueta frio">norma</span> el <code>b_costo</code> de transporte, literal (D-33/D-34)</td>
+      <td><code class="ruta py">presets.py</code></td>
+    </tr>
+    <tr>
+      <td><code>theta</code></td>
+      <td class="n">1/(k+1)</td>
+      <td>adimensional</td>
+      <td><span class="etiqueta neutra">decisión</span> D-14: paso MSA, no ajustable</td>
+      <td><code class="ruta py">coupled.py</code></td>
+    </tr>
+    <tr>
+      <td><code>outer_tol</code></td>
+      <td class="n">1,0</td>
+      <td>útiles/mes</td>
+      <td><span class="etiqueta lim">heredado</span> se fijó cuando el residual eran minutos; ver D-54</td>
+      <td><code class="ruta tsx">pages/CoupledPage.tsx</code></td>
+    </tr>
+    <tr>
+      <td><code>outer_max_iter</code></td>
+      <td class="n">12</td>
+      <td>vueltas</td>
+      <td><span class="etiqueta neutra">decisión</span> tope de la interfaz; el núcleo trae 5 y la API 3</td>
+      <td><code class="ruta ts">store/landUseStore.ts</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Los tres últimos son de método, no de modelo, y por eso es fácil que envejezcan
+  sin que nadie los mire: no aparecen en ninguna ecuación. La §4 muestra que
+  <code>outer_tol</code> es hoy el número que más decide sobre el costo de una
+  corrida y el que menos se revisó.
+</p>
+
+<h2 id="s4"><span class="num">§4</span> Resultados</h2>
+
+<h3>4.1 Qué forma tiene la accesibilidad</h3>
+
+<p>
+  <em>T</em> a red vacía, por estrato, en las dos unidades. En útiles/mes es lo
+  que entra a <em>f_h</em>; en $/mes es lo que la puja pone sobre la mesa. Se
+  leen las diferencias, no los niveles.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr>
+      <th class="n">km del CBD</th>
+      <th class="n" colspan="3">T (útiles/mes)</th>
+      <th class="n" colspan="3">T/λ ($/mes)</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th>
+      <th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0,5</td><td class="n">−25,92</td><td class="n">−21,47</td><td class="n">−32,99</td><td class="n">−80.925</td><td class="n">−33.514</td><td class="n">−26.577</td></tr>
+    <tr><td class="n">1</td><td class="n">−19,44</td><td class="n">−13,08</td><td class="n">−23,53</td><td class="n">−60.700</td><td class="n">−20.419</td><td class="n">−18.956</td></tr>
+    <tr><td class="n">2</td><td class="n">−15,58</td><td class="n">−6,91</td><td class="n">−13,29</td><td class="n">−48.628</td><td class="n">−10.782</td><td class="n">−10.703</td></tr>
+    <tr><td class="n">3</td><td class="n">1,11</td><td class="n">16,78</td><td class="n">14,50</td><td class="n">3.479</td><td class="n">26.184</td><td class="n">11.680</td></tr>
+    <tr><td class="n">5</td><td class="n">11,99</td><td class="n">30,48</td><td class="n">30,07</td><td class="n">37.418</td><td class="n">47.577</td><td class="n">24.226</td></tr>
+    <tr><td class="n">8</td><td class="n">23,00</td><td class="n">44,83</td><td class="n">50,21</td><td class="n">71.816</td><td class="n">69.971</td><td class="n">40.449</td></tr>
+    <tr class="destacada"><td>pendiente 1–9 km</td><td class="n">6,33</td><td class="n">8,52</td><td class="n">10,31</td><td class="n">19.766</td><td class="n">13.295</td><td class="n">8.307</td></tr>
+    <tr><td>rango total</td><td class="n">69,24</td><td class="n">94,11</td><td class="n">113,10</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El salto entre 2 y 3 km no es ruido: es el corte de la caminata en
+  <strong>2,4 km</strong>, donde el estrato pierde un modo entero del conjunto
+  de elección y el logsum cae de golpe. El de la bici está en 10,5 km, fuera de
+  esta tabla pero dentro de la ciudad. Y las tres filas de <code>T</code> son
+  <strong>no monótonas celda a celda</strong>: junto a cada estación el acceso al
+  metro baja y la accesibilidad mejora aunque uno se aleje del centro. Es la red
+  configurada, no una función de la distancia.
+</p>
+
+<h3>4.2 Qué remueve la inversión de Alonso</h3>
+
+<div class="aviso alerta">
+  <h4>D-52 — la respuesta no es el logsum</h4>
+  <p>
+    Desde D-22 el repositorio sostiene que la accesibilidad por estrato en
+    minutos invertía Alonso y que el logsum en pesos lo enderezó. En sep-2026
+    cambiaron dos cosas a la vez: el <strong>objeto</strong> (minutos → logsum) y
+    la <strong>moneda</strong> (<em>λ</em> uniforme → <em>λ_h</em> = |b_costo_h|).
+    El guard vigente sólo verifica la conjunción. Separadas, la fila no decide
+    nada y la columna decide todo.
+  </p>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th class="n" colspan="4">λ heterogéneo (hoy)</th>
+      <th class="n" colspan="4">λ uniforme</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th></th>
+      <th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="destacada">
+      <td>logsum (D-34)</td>
+      <td class="n">2,249</td><td class="n">3,020</td><td class="n">5,579</td><td>Alonso ok</td>
+      <td class="n">5,541</td><td class="n">3,703</td><td class="n">2,246</td><td><strong>invertida</strong></td>
+    </tr>
+    <tr>
+      <td>minutos (D-22)</td>
+      <td class="n">2,082</td><td class="n">3,062</td><td class="n">5,620</td><td>Alonso ok</td>
+      <td class="n">5,250</td><td class="n">3,577</td><td class="n">2,649</td><td><strong>invertida</strong></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Distancia media al CBD, en km, ponderada por hogares. La <em>T</em> en minutos
+  se reescala por 2,748, el factor que iguala su rango al del logsum en el
+  estrato medio: así el balance <em>α·T</em> contra <em>ρ·dens</em> —para el que
+  se calibró <em>ρ</em>— es el mismo en las cuatro celdas y lo que se compara es
+  el objeto, no su escala.
+</p>
+
+<p>
+  La desigualdad (6.4) predice las cuatro celdas sin correr nada. La ventaja de
+  moneda es <em>λ_bajo/λ_alto</em> = <strong>3,875</strong> y no depende del
+  objeto; la de tiempo es 1,63 con el logsum y 1,50 en minutos. El margen —el
+  cociente entre ambas— queda así:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Objeto</th><th class="n">ventaja de tiempo</th><th class="n">margen con λ heterogéneo</th><th class="n">margen con λ uniforme</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>logsum</td><td class="n">1,6285</td><td class="n">2,3794</td><td class="n">0,6140</td></tr>
+    <tr><td>minutos</td><td class="n">1,4966</td><td class="n">2,5893</td><td class="n">0,6682</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Margen mayor que 1 ⇒ Alonso; menor ⇒ inversión. Cuatro predicciones, cuatro
+  aciertos. Y con minutos el margen es incluso <em>más</em> holgado, porque el
+  auto del rico aplana su pendiente menos de lo que su <em>λ</em> la empina.
+</p>
+
+<p>
+  El logsum sigue siendo el objeto correcto —es la utilidad del propio hogar,
+  hace que <em>α = 1</em> tenga significado y cierra las unidades— pero por
+  ninguna de las razones que el código da de sí mismo. Y queda un riesgo vivo:
+  <em>λ</em> uniforme es una configuración <strong>admitida</strong>, es la que
+  despacha a la forma cerrada de la ecuación (4.26), y el default del campo es
+  1,0 para los tres estratos. Basta omitirlo para obtener una ciudad invertida
+  sin ningún aviso.
+</p>
+
+<h3>4.3 La red configurada mueve la accesibilidad, no la asignación</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">estaciones</th><th class="n">máx |ΔT| vs 4 est.</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">4</td><td class="n">—</td><td class="n">2,255</td><td class="n">3,052</td><td class="n">5,521</td></tr>
+    <tr><td class="n">6</td><td class="n">26,063</td><td class="n">2,254</td><td class="n">2,987</td><td class="n">5,630</td></tr>
+    <tr class="destacada"><td class="n">10</td><td class="n">19,668</td><td class="n">2,249</td><td class="n">3,020</td><td class="n">5,579</td></tr>
+    <tr><td class="n">20</td><td class="n">18,418</td><td class="n">2,195</td><td class="n">3,032</td><td class="n">5,594</td></tr>
+    <tr><td class="n">30</td><td class="n">17,215</td><td class="n">2,156</td><td class="n">3,034</td><td class="n">5,617</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Distancia media al CBD, en km. La fila destacada es el default de la
+  aplicación.
+</p>
+
+<p>
+  D-42 quedó bien corregido: la oferta del metro <strong>sí</strong> mueve la
+  accesibilidad del suelo standalone, y fuerte —decenas de útiles/mes junto a las
+  estaciones—. Lo que casi no se mueve es la <strong>asignación</strong>: 0,1 km
+  de corrimiento del estrato alto entre 4 y 30 estaciones. El resultado es
+  económicamente sensato: dónde para el tren redistribuye accesibilidad
+  localmente, pero la localización de los estratos la fija la pendiente del
+  corredor, que no cambia.
+</p>
+
+<h3>4.4 El loop exterior: la trayectoria</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr>
+      <th class="n">k</th><th class="n">residual</th><th class="n">residual₁/k</th>
+      <th class="n">brecha real</th><th class="n">máx |ΔQ|</th><th class="n">Theil</th>
+      <th class="n">alto</th><th class="n">bajo</th><th class="n">t medio</th><th>convergió</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">0,16441</td><td class="n">2,2486</td><td class="n">5,5792</td><td class="n">18,845</td><td>no</td></tr>
+    <tr><td class="n">1</td><td class="n">7,7167</td><td class="n">7,7167</td><td class="n">7,71666</td><td class="n">1,09·10⁻¹</td><td class="n">0,16050</td><td class="n">2,2005</td><td class="n">5,4429</td><td class="n">18,908</td><td>no</td></tr>
+    <tr class="destacada"><td class="n">2</td><td class="n">3,8558</td><td class="n">3,8583</td><td class="n">0,00296</td><td class="n">5,76·10⁻³</td><td class="n">0,16052</td><td class="n">2,2000</td><td class="n">5,4431</td><td class="n">18,904</td><td>no</td></tr>
+    <tr><td class="n">3</td><td class="n">2,5707</td><td class="n">2,5722</td><td class="n">0,00093</td><td class="n">1,92·10⁻³</td><td class="n">0,16054</td><td class="n">2,1998</td><td class="n">5,4432</td><td class="n">18,902</td><td>no</td></tr>
+    <tr><td class="n">4</td><td class="n">1,9278</td><td class="n">1,9292</td><td class="n">0,00279</td><td class="n">9,63·10⁻⁴</td><td class="n">0,16054</td><td class="n">2,1997</td><td class="n">5,4432</td><td class="n">18,902</td><td>no</td></tr>
+    <tr><td class="n">5</td><td class="n">1,5423</td><td class="n">1,5433</td><td class="n">0,00000</td><td class="n">5,80·10⁻⁴</td><td class="n">0,16054</td><td class="n">2,1997</td><td class="n">5,4433</td><td class="n">18,902</td><td>no</td></tr>
+    <tr><td class="n">6</td><td class="n">1,2852</td><td class="n">1,2861</td><td class="n">0,00000</td><td class="n">3,87·10⁻⁴</td><td class="n">0,16055</td><td class="n">2,1997</td><td class="n">5,4433</td><td class="n">18,902</td><td>no</td></tr>
+    <tr><td class="n">7</td><td class="n">1,1015</td><td class="n">1,1024</td><td class="n">0,00105</td><td class="n">2,76·10⁻⁴</td><td class="n">0,16055</td><td class="n">2,1997</td><td class="n">5,4433</td><td class="n">18,902</td><td>no</td></tr>
+    <tr class="destacada"><td class="n">8</td><td class="n">0,9638</td><td class="n">0,9646</td><td class="n">0,00000</td><td class="n">2,07·10⁻⁴</td><td class="n">0,16055</td><td class="n">2,1996</td><td class="n">5,4433</td><td class="n">18,902</td><td><strong>sí</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Corrida de la aplicación: 20 km, 36.000 hogares, semilla 42,
+  <code>outer_max_iter = 12</code>, <code>outer_tol = 1,0</code>. «Brecha real»
+  es <em>‖T_new_k − T_new_{k−1}‖<sub>∞</sub></em>, el iterado sin promediar,
+  reconstruido invirtiendo (6.6). Distancias en km, tiempo medio en min.
+</p>
+
+<p>
+  El feedback existe y es <strong>modesto</strong>, como D-23 anticipó: entre la
+  ciudad sin congestión (k = 0) y la acoplada, el Theil baja de 0,16441 a
+  0,16055, el estrato bajo se acerca 0,14 km al centro y el reparto modal se
+  mueve una décima de punto (bici +0,11 pp, metro −0,05). La frecuencia del
+  metro pasa de 5,7702 a 5,7687 trenes/h. Lo que responde fuerte al transporte
+  no es <em>dónde vive</em> la gente, sino <em>cómo viaja</em> — y eso ya lo
+  resuelve el capítulo 4.
+</p>
+
+<h3>4.5 Qué mide, en realidad, el criterio de parada</h3>
+
+<div class="aviso alerta">
+  <h4>D-53 — el residual mide el rezago del promedio, y su máximo lo pone un escalón</h4>
+  <p>
+    Dos cosas separadas, y las dos apuntan al mismo lugar.
+  </p>
+</div>
+
+<p>
+  <strong>(a) La columna «residual₁/k» de la tabla anterior es una predicción,
+  no un ajuste.</strong> Si el mapa <em>F</em> ya llegó a su punto fijo, el error
+  del promedio (6.6) decae exactamente como <em>1/k</em>, y el residual con él.
+  Coincide en las cuatro cifras desde la vuelta 2. La brecha real lo confirma
+  por el otro lado: cae a 0,003 en la vuelta 2 y es <strong>cero</strong> en
+  cuatro de las ocho. En la vuelta 2 el residual es 1.302 veces la brecha.
+</p>
+
+<p>
+  La consecuencia práctica: la ciudad deja de moverse en <strong>k = 2</strong>
+  y el criterio recién se satisface en <strong>k = 8</strong>. Esas seis vueltas
+  —seis MSA completos— compran ΔTheil = 3·10⁻⁵, 40 cm de distancia media y
+  0,14 pp en el reparto modal. Y el número de vueltas resulta ser
+  <em>⌈residual₁ / outer_tol⌉</em>, que no dice nada del acoplamiento.
+</p>
+
+<p>
+  Es el espejo de D-39 con el signo cambiado. Allá, en el MSA de transporte, el
+  residuo medía el cambio del iterado amortiguado y <strong>subestimaba</strong>
+  la brecha real. Acá el residual está bien planteado —es
+  <em>‖F(T_state) − T_state‖<sub>∞</sub></em>, y la ciudad que se reporta se
+  construyó con <em>T_state</em>— pero mide en la unidad de la <em>entrada</em>
+  del mapa, y como el mapa contrae muchísimo, <strong>sobreestima</strong>
+  cuánto falta.
+</p>
+
+<p>
+  <strong>(b) El máximo no lo pone la ciudad, lo pone una discontinuidad.</strong>
+  El residual es una norma del supremo sobre 3×201 celdas. En la vuelta 1:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">mediana</th><th class="n">p90</th><th class="n">p99</th><th class="n">máximo</th><th class="n">celdas &gt; tolerancia</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0,0403</td><td class="n">0,0755</td><td class="n">0,1173</td><td class="n">7,7167</td><td class="n">6 de 603</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Las seis celdas son la misma pareja simétrica —índices 60 y 140, a 3,98 km del
+  CBD— repetida en los tres estratos. Ahí el tiempo en bici pasa de
+  <strong>29,904 a 30,011 minutos</strong> entre una vuelta y la siguiente y
+  cruza el escalón de los 30 min de las penalizaciones físicas, que para el
+  estrato bajo vale <strong>13,33 minutos-equivalentes</strong> = 0,4413 útiles
+  de golpe; <code>VIAJES_MES</code> lo multiplica por 44. <strong>Una décima de minuto de bici en una celda fija
+  cuántas vueltas da el loop de toda la ciudad.</strong>
+</p>
+
+<p>
+  Eso explica el barrido de población de más abajo, cuyos conteos de iteraciones
+  son erráticos mientras la economía es perfectamente suave: converge en dos
+  vueltas cuando ninguna celda cruza un escalón, y en nueve o diez cuando alguna
+  lo cruza.
+</p>
+
+<h3>4.6 Y lo que el frontend dice de todo esto</h3>
+
+<div class="aviso alerta">
+  <h4>D-55 — el criterio del núcleo tiene tres condiciones; el del frontend, una</h4>
+  <p>
+    <code>is_converged</code> exige que hayan convergido las tres partes: el
+    residual exterior, el MSA interior y la subasta del suelo (D-39).
+    <code>resolverAcoplado</code>, en la rama del motor local —el motor por
+    defecto—, lo reconstruye como <code>T_residual &lt; outer_tol</code> a secas.
+  </p>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">k</th><th class="n">residual</th><th>MSA convergió</th><th>el núcleo dice</th><th>el frontend diría</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0</td><td class="n">∞</td><td>no</td><td>no</td><td>no</td></tr>
+    <tr class="destacada"><td class="n">1</td><td class="n">0,0564</td><td>no</td><td>no</td><td><strong>sí</strong></td></tr>
+    <tr><td class="n">2</td><td class="n">0,0285</td><td>no</td><td>no</td><td><strong>sí</strong></td></tr>
+    <tr><td class="n">3</td><td class="n">0,0175</td><td>no</td><td>no</td><td><strong>sí</strong></td></tr>
+    <tr><td class="n">4</td><td class="n">0,0138</td><td>no</td><td>no</td><td><strong>sí</strong></td></tr>
+    <tr><td class="n">5</td><td class="n">0,0110</td><td>no</td><td>no</td><td><strong>sí</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Misma ciudad, con <code>max_iter = 2</code> en el MSA para que el transporte no
+  pueda converger.
+</p>
+
+<p>
+  Con el transporte congelado el residual exterior es diminuto — precisamente
+  porque nada se mueve. Un residual chico puede significar «el sistema convergió»
+  o «nada se movió porque nada convergió», y el criterio del frontend no
+  distingue. Lo consume la página de comparación para rotular cada escenario,
+  mientras el dato correcto viaja en la misma respuesta, dentro de las métricas.
+  Es D-39 otra vez —«terminó» rotulado como «convergió»— por el otro camino, y
+  de paso es matemática del núcleo reimplementada en TypeScript.
+</p>
+
+<h3>4.7 La población como palanca (D-24)</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ΣH</th><th class="n">vueltas</th><th class="n">residual final</th><th class="n">Theil</th><th class="n">alto</th><th class="n">bajo</th><th class="n">auto %</th><th class="n">metro %</th><th class="n">t medio</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">12.000</td><td class="n">2</td><td class="n">0,018</td><td class="n">0,2118</td><td class="n">1,999</td><td class="n">5,820</td><td class="n">16,82</td><td class="n">17,27</td><td class="n">19,21</td></tr>
+    <tr><td class="n">24.000</td><td class="n">2</td><td class="n">0,095</td><td class="n">0,1853</td><td class="n">2,105</td><td class="n">5,637</td><td class="n">16,53</td><td class="n">25,23</td><td class="n">19,89</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">9</td><td class="n">0,964</td><td class="n">0,1606</td><td class="n">2,200</td><td class="n">5,443</td><td class="n">15,57</td><td class="n">31,90</td><td class="n">18,90</td></tr>
+    <tr><td class="n">60.000</td><td class="n">2</td><td class="n">0,173</td><td class="n">0,1355</td><td class="n">2,307</td><td class="n">5,125</td><td class="n">13,95</td><td class="n">38,37</td><td class="n">18,56</td></tr>
+    <tr><td class="n">90.000</td><td class="n">10</td><td class="n">0,943</td><td class="n">0,1200</td><td class="n">2,458</td><td class="n">4,751</td><td class="n">12,42</td><td class="n">41,87</td><td class="n">18,73</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Ciudad de 20 km, resto de la configuración por defecto, hasta 10 vueltas.
+  Distancias en km, tiempo medio en min.
+</p>
+
+<p>
+  La economía es monótona y sensata: más población ⇒ más metro (17,3 % → 41,9 %),
+  menos auto y menos bici, y una ciudad <em>más mezclada</em> (Theil 0,212 →
+  0,120), con el estrato bajo acercándose al centro un kilómetro entero. La
+  densidad integra, porque la oferta de vivienda central se hace escasa para
+  todos. Y el tiempo medio de viaje casi no cambia (19,2 → 18,7 min): la gente
+  compensa la congestión cambiando de modo, no viajando más.
+</p>
+
+<p>
+  El corredor no gridlockea en este rango con el resto de la configuración por
+  defecto. El contraste que importa es el otro: mientras la economía se mueve
+  suave, las vueltas del loop van 2, 2, 9, 2, 10.
+</p>
+
+<p class="pie-tabla">
+  Fuente: <code>datos/cap06.json</code>, regenerado el 2026-09-07 con
+  <code>uv run python ../../docs/libro/datos/datos_cap06.py</code>.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Pruebas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Test</th><th>Qué fija</th><th>Qué NO cubre</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>test_accesibilidad.py::test_el_logsum_es_el_del_logit_modal</code></td>
+      <td>Que (6.1) sea el logsum del mismo logit del capítulo 3, recalculado a mano en una celda con <code>prob_auto = 1</code>.</td>
+      <td>La esperanza sobre tenencia de auto: se elige justamente el caso en que no hay mezcla.</td>
+    </tr>
+    <tr>
+      <td><code>test_accesibilidad.py::test_T_es_un_costo_mensual_que_crece_con_la_distancia</code></td>
+      <td>El signo y el factor 44 de (6.2), y que <em>T</em> tienda a crecer hacia los bordes.</td>
+      <td>La monotonía celda a celda, que desde D-42 <em>no</em> se cumple: exige tendencia, no orden.</td>
+    </tr>
+    <tr>
+      <td><code>test_accesibilidad.py::test_la_accesibilidad_por_estrato_no_invierte_alonso</code></td>
+      <td>Que la configuración por defecto respete el ordenamiento de Alonso.</td>
+      <td><strong>La atribución</strong>: verifica logsum <em>y</em> λ heterogéneo juntos, así que no distingue cuál de los dos lo sostiene (D-52). Con λ uniforme la ciudad se invierte y ningún test lo nota.</td>
+    </tr>
+    <tr>
+      <td><code>test_accesibilidad.py::test_la_oferta_de_metro_mueve_la_accesibilidad_standalone</code></td>
+      <td>D-42: cambiar <code>num_estaciones</code> mueve <em>T</em>.</td>
+      <td>Que lo mueva en la dirección correcta, o que mueva la asignación (§4.3 muestra que casi no).</td>
+    </tr>
+    <tr>
+      <td><code>test_coupled.py::test_la_accesibilidad_es_el_logsum_y_crece_con_la_distancia</code></td>
+      <td>Que <code>_T_logsum_snapshot</code> use la demanda y nada más: con estratos idénticos las tres filas coinciden.</td>
+      <td>El valor: sólo compara filas entre sí.</td>
+    </tr>
+    <tr>
+      <td><code>test_coupled.py::test_la_accesibilidad_es_por_estrato</code></td>
+      <td>Que con la demanda calibrada las filas difieran (D-22 revisada).</td>
+      <td>El sentido de la diferencia.</td>
+    </tr>
+    <tr>
+      <td><code>test_coupled.py::test_coupled_residual_decreases_o_converge</code></td>
+      <td><strong>Nada de lo que promete.</strong> El nombre y el docstring dicen que el residuo debería decrecer entre iteraciones; el cuerpo sólo verifica que exista al menos un residuo medible.</td>
+      <td>El decrecimiento del residual, que es justamente lo que la §4.5 muestra que ocurre por una razón equivocada.</td>
+    </tr>
+    <tr>
+      <td><code>test_coupled_metrics.py::test_el_estado_final_es_el_de_la_ultima_iteracion</code></td>
+      <td>D-40: al agotar <code>outer_max_iter</code>, la ciudad final es la que ese transporte vio.</td>
+      <td>Que <code>T_matrix</code> de una iteración sea la <em>T</em> que produjo su propio <code>land_use</code>: está corrida en una vuelta por construcción.</td>
+    </tr>
+    <tr>
+      <td><code>test_coupled_metrics.py::test_el_acoplado_no_converge_si_el_transporte_no_convergio</code></td>
+      <td>D-39: el criterio compuesto del núcleo.</td>
+      <td>Que el frontend use ese criterio, que es donde se pierde (D-55).</td>
+    </tr>
+    <tr>
+      <td><code>test_coupled_metrics.py::test_la_medida_sigue_al_metodo_efectivo</code></td>
+      <td>D-40: las métricas reciben la configuración efectiva, no la pedida.</td>
+      <td>Que el usuario sepa que su <code>todo_o_nada</code> se ignoró en el acoplado.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El módulo tiene diez tests y ninguno mira lo que este capítulo encontró. No es
+  casualidad: todos verifican <em>propiedades del objeto</em> (es un logsum, es
+  un costo, difiere por estrato) y ninguno verifica <em>atribuciones</em> ni
+  <em>criterios</em>. Las dos cosas que fallaron son de ese tipo.
+</p>
+
+<h2 id="s6"><span class="num">§6</span> Auditorías</h2>
+
+<div class="paso">
+  <h3>Protocolo aplicado <span class="ref">2026-09-07</span></h3>
+  <p>
+    (a) lectura estática de (6.1)–(6.6) contra <code>accesibilidad.py</code>,
+    <code>coupled.py</code> y <code>coupled_metrics.py</code>; (b) reproducción
+    de la corrida acoplada de la aplicación y barridos de estaciones y
+    población; (c) invariancias: unidades de <em>T</em>, escala de <em>λ</em>,
+    reconstrucción del iterado sin amortiguar; (d) consistencia con los
+    capítulos 3 (el logsum es el mismo) y 5 (la subasta recibe lo que espera);
+    (e) rótulos y criterios de la interfaz contra los del núcleo.
+  </p>
+</div>
+
+<h3>Hallazgos previos del módulo</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ID</th><th>Qué era</th><th>Estado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">D-14</td><td>Residual espurio: las celdas sin agentes caían a un fallback en índices de celda, no en minutos, y el loop no amortiguaba.</td><td>corregido</td></tr>
+    <tr><td class="n">D-22</td><td>Accesibilidad por estrato en minutos: invertía Alonso; se pasó a una media común por ubicación.</td><td>revertido por D-34 — y ver <strong>D-52</strong></td></tr>
+    <tr><td class="n">D-23</td><td>El baseline «sin feedback» estaba en otra escala que las iteraciones, e inflaba el efecto del acoplamiento.</td><td>corregido</td></tr>
+    <tr><td class="n">D-24</td><td>Gridlock del corredor monocéntrico con demanda alta; se acotó por configuración.</td><td>acotado; robustez del loop pendiente</td></tr>
+    <tr><td class="n">D-34</td><td>La accesibilidad pasó al logsum mensual con <em>α = 1</em> y <em>λ_h</em> = |b_costo_h|.</td><td>corregido</td></tr>
+    <tr><td class="n">D-40</td><td>El estado final no era el de la última iteración, y las métricas recibían otra configuración que la corrida.</td><td>corregido</td></tr>
+    <tr><td class="n">D-42</td><td>El «flujo libre» del suelo standalone no usaba la red configurada.</td><td>corregido</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Hallazgos de esta auditoría</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ID</th><th>Hallazgo</th><th>Veredicto</th><th>Estado</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">D-52</td>
+      <td>Lo que remueve la inversión de Alonso es <em>λ</em> heterogéneo, no el logsum. <em>λ</em> uniforme sigue siendo una configuración admitida que invierte en silencio.</td>
+      <td>El modelo está bien; la atribución no, y el guard no discrimina.</td>
+      <td>pendiente</td>
+    </tr>
+    <tr>
+      <td class="n">D-53</td>
+      <td>El residual exterior decae como <em>residual₁/k</em> por el promedio, y su máximo lo pone un escalón de penalización de la bici en 2 celdas de 603.</td>
+      <td>Bien planteado, mal calibrado: mide la entrada del mapa, con la norma que más peso da al salto.</td>
+      <td>pendiente</td>
+    </tr>
+    <tr>
+      <td class="n">D-54</td>
+      <td><code>outer_tol</code> sigue rotulado en minutos en <code>coupled.py</code>, en <code>types-v2.ts</code> y en el texto que ve el usuario; su valor no se revisó desde D-34.</td>
+      <td>Rótulos desfasados más un parámetro heredado.</td>
+      <td>pendiente</td>
+    </tr>
+    <tr>
+      <td class="n">D-55</td>
+      <td>El frontend reconstruye <code>converged</code> sólo con el residual, más laxo que el núcleo, en el motor por defecto.</td>
+      <td>D-39 otra vez, por el otro camino; y matemática del núcleo en TypeScript.</td>
+      <td>pendiente</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Observaciones sin discrepancia</h3>
+
+<ul>
+  <li>
+    <code>T_matrix</code> viaja completa en el contrato —3×201 flotantes por
+    vuelta, doce vueltas— y <strong>ningún componente del frontend la consume</strong>.
+    No miente sobre nada; es carga útil que nadie abre. Se anota, no se toca.
+  </li>
+  <li>
+    <code>SystemMetrics.residual_final</code> tiene dos <em>docstrings</em>
+    pegados, el corregido y el anterior. El generador del contrato toma el
+    primero, así que el TypeScript dice la unidad correcta; el segundo es una
+    expresión sin efecto que sólo confunde a quien lee el archivo.
+  </li>
+  <li>
+    El residual de la vuelta 0 es <code>inf</code> y la condición
+    <code>outer &gt; 0</code> del criterio es por eso redundante. Es defensa
+    duplicada, no un error.
+  </li>
+</ul>
+
+<h2 id="s7"><span class="num">§7</span> Discusión</h2>
+
+<h3>Lo que este módulo resolvió bien</h3>
+
+<p>
+  El acoplamiento es la parte del simulador con más historia de correcciones, y
+  el saldo es bueno. La accesibilidad dejó de ser un objeto <em>ad hoc</em> y
+  pasó a ser la utilidad esperada que el propio hogar calcula al elegir modo;
+  el baseline «sin feedback» y las iteraciones comparten escala; el estado final
+  es el que su transporte vio; la red configurada se usa donde antes se ignoraba.
+  Y el resultado sustantivo —que el feedback transporte→suelo sobre la
+  localización es <strong>modesto</strong>, mientras el efecto sobre el reparto
+  modal y la congestión es grande— sobrevivió a todas esas correcciones. Eso es
+  lo que uno querría de un hallazgo: que no dependa del bug que lo acompañaba.
+</p>
+
+<h3>La lección de D-52</h3>
+
+<p>
+  Es la más transferible del capítulo. Cuando dos cosas cambian a la vez y el
+  resultado mejora, el mérito se le atribuye a la que motivó el cambio, no a la
+  que lo produjo — y el test que se escribe para proteger el resultado hereda
+  esa confusión, porque verifica la conjunción. La única cura es medir el 2×2.
+  Acá salió barato: cuatro corridas de la subasta, veinte segundos.
+</p>
+
+<p>
+  Y deja un pendiente concreto: la desigualdad (6.4) es <em>computable</em> con
+  lo que el módulo ya tiene. El propio código podría evaluarla y avisar cuando
+  la configuración va a producir una ciudad invertida, en vez de dejar que la
+  descubra quien lea una tabla de distancias medias.
+</p>
+
+<h3>Alternativas medidas y descartadas</h3>
+
+<ul>
+  <li>
+    <strong>Accesibilidad común por ubicación</strong> (D-22, jun-2026 a
+    sep-2026): promediar <em>T</em> entre estratos, ponderando por población.
+    Descartada por D-34: el logsum es por estrato por naturaleza, y la
+    heterogeneidad de acceso pertenece a la puja. La §4.2 agrega que la razón
+    original para promediarlo tampoco era la correcta.
+  </li>
+  <li>
+    <strong><em>T</em> en minutos</strong>: descartada por identificación, no por
+    resultado. Con <em>λ</em> heterogéneo produce una ciudad casi igual
+    (2,08 / 3,06 / 5,62 contra 2,25 / 3,02 / 5,58), pero deja a <em>α</em> como
+    un multiplicador libre sin unidad ni fuente.
+  </li>
+</ul>
+
+<div class="aviso idea">
+  <h4>Pendientes</h4>
+  <ul>
+    <li>
+      <strong>Rehacer el criterio de parada</strong> (D-53). Comparar contra la
+      brecha no amortiguada —el análogo de <code>gap_final_min</code> del
+      capítulo 4— y sobre una norma que no sea el supremo: una <em>ℓ₂</em>
+      ponderada por hogares, o directamente el cambio en <em>Q</em>, que es lo
+      que el usuario lee. Mueve la línea base del acoplado, así que es cambio
+      declarado, no refactor.
+    </li>
+    <li>
+      <strong>Fijar <code>outer_tol</code> después, no antes</strong> (D-54).
+      Recalibrar el número sin arreglar qué mide sólo cambia el punto de un
+      criterio que igual no informa.
+    </li>
+    <li>
+      <strong>La discontinuidad de fondo</strong>. Las penalizaciones
+      escalonadas de bici y caminata hacen que la utilidad —y por lo tanto el
+      logsum, y por lo tanto <em>T</em>— salte en función del tiempo de viaje.
+      Suavizarlas es una decisión de modelo del capítulo 3, no de éste, pero es
+      acá donde el salto se vuelve visible.
+    </li>
+    <li>
+      <strong>Robustez del loop exterior</strong> (D-24, abierto desde jun-2026):
+      amortiguación adaptativa para admitir demanda alta en ciudades grandes sin
+      acotar por población.
+    </li>
+  </ul>
+</div>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    plan en <a href="PLAN.md">PLAN.md</a> ·
+    capítulo anterior: <a href="cap05-uso-de-suelo.html">Uso de suelo</a>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

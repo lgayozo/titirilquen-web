@@ -1446,6 +1446,137 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-52 — Acoplado: lo que remueve la inversión de Alonso es `λ`, no el logsum
+
+- **Hallado**: auditoría del capítulo 6 del libro, 2026-09-07.
+- **Lo que el repo dice de sí mismo**: `land_use/accesibilidad.py:19-25`,
+  `coupled.py:96-100`, D-22 revisada y D-34 cuentan la misma historia — la
+  accesibilidad por estrato **en minutos** invertía Alonso (el auto del rico le
+  aplanaba el tiempo) y pasar al **logsum en pesos** la enderezó.
+- **Evidencia**: en sep-2026 cambiaron dos cosas a la vez, el objeto (minutos →
+  logsum) y la moneda (`λ` uniforme → `λ_h = |b_costo_h|`, D-33/D-34), y el
+  guard (`tests/test_accesibilidad.py::test_la_accesibilidad_por_estrato_no_invierte_alonso`)
+  sólo verifica la conjunción. Separadas en un 2×2 sobre la ciudad de la
+  aplicación —reescalando la `T` en minutos para que su rango iguale al del
+  logsum, y así comparar el objeto y no su escala— la fila no decide nada y la
+  columna decide todo:
+
+  | | `λ` heterogéneo | `λ` uniforme |
+  | --- | --- | --- |
+  | logsum (D-34) | 2,25 / 3,02 / 5,58 — Alonso ok | 5,54 / 3,70 / 2,25 — **invertida** |
+  | minutos (D-22) | 2,08 / 3,06 / 5,62 — Alonso ok | 5,25 / 3,58 / 2,65 — **invertida** |
+
+  El mecanismo es aritmético: en minutos el estrato alto tiene la pendiente
+  **más plana** (2,33 contra 3,49 min/km del bajo, razón 0,67), pero
+  `1/λ_alto = $3.122` contra `1/λ_bajo = $806` la multiplica por 3,87. En
+  $/km/mes el alto puja **19.766** y el bajo **8.307**: la pendiente monetaria
+  se da vuelta y Alonso se cumple. Con `λ` uniforme esa corrección desaparece y
+  la ciudad se invierte, con logsum o con minutos indistintamente.
+- **Veredicto**: el modelo está bien; la atribución no. El logsum se justifica
+  por otras razones —es la utilidad del propio hogar, hace que `α = 1` signifique
+  algo y cierra las unidades— pero **no** es lo que remueve la inversión.
+- **Y el riesgo sigue abierto**: `λ` uniforme es una configuración *admitida*, y
+  además la que despacha a la forma cerrada de la ec. (4.26)
+  (`land_use/config.py:9-19`); `LandUseStratumConfig.lambda_` trae default 1,0,
+  así que basta omitir el campo para obtener una ciudad invertida sin ningún
+  aviso. `tests/test_coupled.py:28-37` construye exactamente esa configuración.
+- **Estado**: pendiente. Corrección propuesta: corregir los tres comentarios,
+  y agregar al guard el caso `λ` uniforme —que hoy pasaría igual— o hacer que
+  el propio módulo declare la inversión cuando la detecta.
+
+---
+
+## D-53 — Acoplado: el residual exterior es un supremo sobre una función escalonada, comparado contra un promedio que se rezaga
+
+- **Hallado**: auditoría del capítulo 6 del libro, 2026-09-07.
+- **Evidencia (a) — el residual mide el rezago del promedio, no el movimiento
+  del sistema**. `coupled.py:174` compara `T_new` contra el estado amortiguado
+  `T_state`, y `coupled.py:179-180` lo actualiza con paso MSA `θ = 1/(k+1)`.
+  Si el mapa ya llegó a su punto fijo, el error del promedio decae como `1/k`
+  y el residual con él. Medido en la corrida de la aplicación: el residual va
+  7,72 → 3,86 → 2,57 → … → 0,96, que es **exactamente `residual₁/k`** en las
+  cuatro cifras; la brecha real `‖T_new_k − T_new_{k−1}‖∞` cae a **0,003 en la
+  vuelta 2** y es cero en cuatro de las ocho. La ciudad deja de moverse en la
+  vuelta 2 (`max|ΔQ| = 5,8·10⁻³`) y el criterio recién se satisface en la 8:
+  **seis MSA completos** compran `ΔTheil = 3·10⁻⁵`, 40 cm de distancia media y
+  0,14 pp de reparto modal.
+  Corolario: el número de vueltas es `⌈residual₁/outer_tol⌉` y no dice nada del
+  acoplamiento. Es el espejo de D-39 con el signo cambiado: allá el residuo
+  **subestimaba** la brecha, acá la **sobreestima** (×1.302 en la vuelta 2).
+- **Evidencia (b) — el máximo lo pone una discontinuidad, no la ciudad**. El
+  residual es `‖·‖∞` sobre 3×201 celdas. En la base, la mediana del cambio es
+  **0,040** y el percentil 99 **0,117**, pero el máximo es **7,72**: sólo
+  **6 celdas de 603** superan la tolerancia, y son la misma pareja simétrica
+  (índices 60 y 140, a 3,98 km) en los tres estratos. Ahí el tiempo en bici pasa
+  de 29,90 a 30,01 min y cruza el escalón `bici_30` de las penalizaciones
+  (`demand/utility.py`), que para el estrato bajo vale 13,3 minutos-equivalentes
+  = 0,44 útiles; `VIAJES_MES` lo multiplica por 44. **Una décima de minuto de
+  bici en una celda fija cuántas vueltas da el loop de toda la ciudad.**
+  Explica el barrido de población, que es errático justamente por eso: 12k, 24k
+  y 60k convergen en 2 vueltas (ninguna celda cruza un escalón) y 36k y 90k
+  necesitan 9 y 10.
+- **Veredicto**: el residual está bien *planteado* —es `‖F(T_state) − T_state‖∞`,
+  y la ciudad que se reporta se construyó con `T_state`— pero mide en la unidad
+  de la entrada del mapa, sobre una función con saltos, y con la norma que más
+  peso le da al salto. No es una medida útil de si la ciudad convergió.
+- **Corrección propuesta**: comparar contra la brecha no amortiguada
+  (`‖T_new_k − T_new_{k−1}‖∞`, el análogo de `gap_final_min` de D-39), y sobre
+  una norma que no sea el supremo (una `‖·‖₂` ponderada por hogares, o el
+  cambio en `Q`, que es lo que el usuario lee). Cambia la línea base del
+  acoplado: hay que declararlo.
+- **Estado**: pendiente.
+
+---
+
+## D-54 — Acoplado: `outer_tol` sigue rotulado en minutos en cuatro lugares, y su valor nunca se recalibró
+
+- **Hallado**: auditoría del capítulo 6 del libro, 2026-09-07.
+- **Evidencia**: desde D-34 el residual exterior está en **útiles de transporte
+  por mes** (`T = −VIAJES_MES·logsum`). Siguen diciendo «minutos»:
+  `coupled.py:235` (`outer_tol: float = 1.0,  # minutos`), `coupled.py:244`
+  («tolerancia en minutos»), `apps/web/src/lib/types-v2.ts:61` («Tolerancia del
+  loop exterior, en minutos») y el rótulo que ve el usuario,
+  `i18n/locales/{es,en}/simulator.json:672` → `"{{n}} iter · residual {{res}} min"`.
+  `coupled_metrics.py:117-119` tiene los dos docstrings pegados, el corregido y
+  el viejo («(min)»); el contrato TS toma el primero, así que
+  `trace.gen.ts:188` sí dice la unidad correcta. Lo único correcto de punta a
+  punta es el `Field` de la API (`apps/api/src/api/main.py:120`).
+- **Y el número tampoco se revisó**: `1,0` se fijó cuando el residual eran
+  minutos sobre un rango de ~33 (≈3 % del recorrido). Hoy el rango de `T` a
+  red vacía es **69,2 / 94,1 / 113,1** útiles/mes según el estrato, así que la
+  misma tolerancia vale entre 0,9 % y 1,4 % — y, por D-53, es 7,7 veces menor
+  que el salto que produce un solo escalón de penalización de la bici.
+- **Veredicto**: rótulos desfasados (el usuario lee una unidad que no es) más un
+  parámetro heredado sin recalibrar. Corrección: cambiar los cuatro textos y
+  fijar la tolerancia junto con el criterio de D-53, no antes.
+- **Estado**: pendiente.
+
+---
+
+## D-55 — Acoplado: el frontend reconstruye `converged` con un criterio más laxo que el núcleo
+
+- **Hallado**: auditoría del capítulo 6 del libro, 2026-09-07.
+- **Evidencia**: `coupled.py:185-190` declara convergido el acoplado sólo si
+  convergieron **sus tres partes** (residual exterior, MSA interior y subasta
+  del suelo, D-39). `apps/web/src/lib/api.ts:172-173`, en la rama del motor
+  **local** —que es el motor por defecto— lo reconstruye como
+  `última.T_residual < req.outer_tol` a secas. Medido con `max_iter = 2` en el
+  MSA, que así no puede converger: el núcleo dice `convergio_exterior = false`
+  en las seis vueltas y el criterio del frontend diría `true` **desde la
+  primera**, porque con el transporte congelado el residual es diminuto (0,056).
+  Un residual chico puede significar «nada se mueve porque nada convergió».
+- **Lo consume `ComparePage.tsx:154` para rotular cada escenario**. La página
+  acoplada (`CoupledPage.tsx:149`) sí lee `metrics.sistema.convergio_exterior`,
+  o sea que el dato correcto viaja en la misma respuesta y ahí al lado.
+- **Veredicto**: es la misma familia que D-39 —«terminó» rotulado como
+  «convergió»— reaparecida en el otro camino, y además es matemática del núcleo
+  reimplementada en TypeScript, que es justo lo que la política del repo
+  prohíbe. Corrección: leer
+  `iterations.at(-1).metrics.sistema.convergio_exterior`.
+- **Estado**: pendiente.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -1501,3 +1632,7 @@ cumple, y eso está en D-39.
 | D-49 | Demanda: `corte_bici_min` inerte con la ciudad por defecto (10,5 km > radio 10 km) | Pendiente (libro, cap. 3) | Baja |
 | D-50 | MSA: producción usa la variante sin argumento de convergencia; la de Boyles está implementada y da 0,13 pp | Pendiente (libro, cap. 4) | Media |
 | D-51 | Suelo: `allocation` conserva las dos marginales y `population` sólo una; es la segunda la que alimenta el transporte | Pendiente (libro, cap. 5) | Media |
+| D-52 | Acoplado: la inversión de Alonso la remueve `λ` heterogéneo, no el logsum; `λ` uniforme sigue admitida e invierte en silencio | Pendiente (libro, cap. 6) | Alta |
+| D-53 | Acoplado: el residual exterior mide el rezago del promedio (`residual₁/k`) y su máximo lo pone un escalón de la bici en 2 celdas de 603 | Pendiente (libro, cap. 6) | Alta |
+| D-54 | Acoplado: `outer_tol` rotulado en minutos en cuatro lugares y sin recalibrar desde D-34 | Pendiente (libro, cap. 6) | Media |
+| D-55 | Acoplado: `api.ts` reconstruye `converged` sólo con el residual, más laxo que el núcleo | Pendiente (libro, cap. 6) | Media |
