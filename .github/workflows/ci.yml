@@ -70,6 +70,8 @@ jobs:
         run: npm run lint --workspace @titirilquen/web
       - name: Formato
         run: npm run format:check
+      - name: Ecuaciones del libro pre-renderizadas a MathML
+        run: node tools/renderiza_ecuaciones.js --check
       - name: Build (tsc + vite)
         run: npm run build --workspace @titirilquen/web
       - name: Instalar navegador Playwright

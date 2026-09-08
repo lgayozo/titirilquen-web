@@ -1,5 +1,5 @@
 /**
- * Renderiza a MathML las ecuaciones de los informes de `docs/` y `sandbox/`.
+ * Renderiza a MathML las ecuaciones del libro (`docs/libro/`) y de `sandbox/`.
  *
  *     node tools/renderiza_ecuaciones.js            # todos los archivos
  *     node tools/renderiza_ecuaciones.js --check    # falla si algo esta desactualizado
@@ -27,9 +27,15 @@ const path = require("path");
 const katex = require("katex");
 
 const RAIZ = path.resolve(__dirname, "..");
+// Todo el libro salvo el índice, la plantilla (trae un `data-tex` de ejemplo
+// que envejece a propósito) y el diccionario; más los sandboxes.
+const FUERA = new Set(["index.html", "plantilla.html", "diccionario.html"]);
 const ARCHIVOS = [
-  "docs/libro/hev-cuadratura.html",
-  "docs/libro/informe-hev.html",
+  ...fs
+    .readdirSync(path.join(RAIZ, "docs/libro"))
+    .filter((f) => f.endsWith(".html") && !FUERA.has(f))
+    .sort()
+    .map((f) => `docs/libro/${f}`),
   "sandbox/hev-paso-a-paso/informe.html",
   "sandbox/impacto-hev/informe.html",
   "sandbox/impacto-rho/informe.html",
