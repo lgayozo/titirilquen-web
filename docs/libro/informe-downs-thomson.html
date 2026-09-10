@@ -131,9 +131,9 @@ estratos socioeconómicos.</p>
 <h3>2.1 Demanda: logit multinomial</h3>
 <p>Cada agente elige entre Auto (si dispone), Metro, Bicicleta y Caminata maximizando una
 utilidad con coeficientes por estrato <em>s</em>. Para el metro:</p>
-<div class="ecuacion">V<sup>s</sup><sub>metro</sub> = ASC<sup>s</sup><sub>metro</sub>
-+ β<sup>s</sup><sub>viaje</sub>·t<sub>v</sub> + β<sup>s</sup><sub>espera</sub>·t<sub>e</sub>
-+ β<sup>s</sup><sub>acceso</sub>·t<sub>a</sub> + β<sup>s</sup><sub>costo</sub>·tarifa</div>
+<div class="ecuacion" data-tex="V^{s}_{\text{metro}} = ASC^{s}_{\text{metro}} + \beta^{s}_{\text{viaje}}\, t_v + \beta^{s}_{\text{espera}}\, t_e + \beta^{s}_{\text{acceso}}\, t_a + \beta^{s}_{\text{costo}}\,\text{tarifa}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>V</mi><mtext>metro</mtext><mi>s</mi></msubsup><mo>=</mo><mi>A</mi><mi>S</mi><msubsup><mi>C</mi><mtext>metro</mtext><mi>s</mi></msubsup><mo>+</mo><msubsup><mi>β</mi><mtext>viaje</mtext><mi>s</mi></msubsup><mtext> </mtext><msub><mi>t</mi><mi>v</mi></msub><mo>+</mo><msubsup><mi>β</mi><mtext>espera</mtext><mi>s</mi></msubsup><mtext> </mtext><msub><mi>t</mi><mi>e</mi></msub><mo>+</mo><msubsup><mi>β</mi><mtext>acceso</mtext><mi>s</mi></msubsup><mtext> </mtext><msub><mi>t</mi><mi>a</mi></msub><mo>+</mo><msubsup><mi>β</mi><mtext>costo</mtext><mi>s</mi></msubsup><mtext> </mtext><mtext>tarifa</mtext></mrow><annotation encoding="application/x-tex">V^{s}_{\text{metro}} = ASC^{s}_{\text{metro}} + \beta^{s}_{\text{viaje}}\, t_v + \beta^{s}_{\text{espera}}\, t_e + \beta^{s}_{\text{acceso}}\, t_a + \beta^{s}_{\text{costo}}\,\text{tarifa}</annotation></semantics></math></span>
+</div>
 <p>y análogas para los demás modos (la caminata usa su propio β; la bici suma penalizaciones
 escalonadas por duración: sobre 10, 20 y 30 min, e infactible sobre 45; la caminata es
 infactible sobre 30 min). La elección probabilística es
@@ -148,8 +148,9 @@ acumulado direccional hacia el CBD.</li>
 de caminarlo. Capacidad 2.500 bici/h.</li>
 <li><strong>Metro</strong>: sistema cíclico con estaciones equidistantes. La frecuencia es
 <em>endógena</em> — el corazón del efecto Mohring y de esta paradoja:
-<div class="ecuacion">f<sub>op</sub> = min( f<sub>max</sub>, max( f<sub>min</sub>, L<sub>max</sub>/K ) )
-&nbsp;&nbsp;&nbsp;&nbsp; t<sub>espera</sub> = 30 / f<sub>op</sub></div>
+<div class="ecuacion" data-tex="f_{\mathrm{op}} = \min\big(f_{\max},\, \max(f_{\min},\, L_{\max}/K)\big) \qquad t_{\text{espera}} = 30 / f_{\mathrm{op}}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>f</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">p</mi></mrow></msub><mo>=</mo><mi>min</mi><mo>⁡</mo><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>f</mi><mi>max</mi><mo>⁡</mo></msub><mo separator="true">,</mo><mtext> </mtext><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>f</mi><mi>min</mi><mo>⁡</mo></msub><mo separator="true">,</mo><mtext> </mtext><msub><mi>L</mi><mi>max</mi><mo>⁡</mo></msub><mi mathvariant="normal">/</mi><mi>K</mi><mo stretchy="false">)</mo><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mspace width="2em"/><msub><mi>t</mi><mtext>espera</mtext></msub><mo>=</mo><mn>30</mn><mi mathvariant="normal">/</mi><msub><mi>f</mi><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">p</mi></mrow></msub></mrow><annotation encoding="application/x-tex">f_{\mathrm{op}} = \min\big(f_{\max},\, \max(f_{\min},\, L_{\max}/K)\big) \qquad t_{\text{espera}} = 30 / f_{\mathrm{op}}</annotation></semantics></math></span>
+</div>
 donde L<sub>max</sub> es la carga del tramo crítico y K la capacidad por tren. Más pasajeros
 ⇒ más frecuencia ⇒ menos espera (economía de escala, elasticidad −1). El tiempo en vehículo
 cobra además una detención de 30 s por estación intermedia. Congestión de andén tipo BPR si
@@ -251,8 +252,9 @@ Si además los usuarios arbitran hasta igualar costos entre modos, el costo com�
 equilibrio puede ser <em>mayor</em>: la ciudad entera termina peor tras ampliar la vía.
 Formalmente, con c<sub>R</sub>(q<sub>R</sub>, Cap) = c<sub>T</sub>(Q − q<sub>R</sub>):</p>
 
-<div class="ecuacion">dc*/dCap = c'<sub>T</sub> · (∂c<sub>R</sub>/∂Cap) / (c'<sub>R</sub> + c'<sub>T</sub>)
-&nbsp;&gt; 0&nbsp;&nbsp; si&nbsp; c'<sub>T</sub> &lt; 0</div>
+<div class="ecuacion" data-tex="\frac{dc^{*}}{d\,\mathrm{Cap}} = \frac{c'_T\, (\partial c_R / \partial \mathrm{Cap})}{c'_R + c'_T} \;&gt;\; 0 \quad \text{si } c'_T &lt; 0">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi>d</mi><msup><mi>c</mi><mo lspace="0em" rspace="0em">∗</mo></msup></mrow><mrow><mi>d</mi><mtext> </mtext><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi></mrow></mrow></mfrac><mo>=</mo><mfrac><mrow><msubsup><mi>c</mi><mi>T</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msubsup><mtext> </mtext><mo stretchy="false">(</mo><mi mathvariant="normal">∂</mi><msub><mi>c</mi><mi>R</mi></msub><mi mathvariant="normal">/</mi><mi mathvariant="normal">∂</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi></mrow><mo stretchy="false">)</mo></mrow><mrow><msubsup><mi>c</mi><mi>R</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msubsup><mo>+</mo><msubsup><mi>c</mi><mi>T</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msubsup></mrow></mfrac><mtext>  </mtext><mo>&gt;</mo><mtext>  </mtext><mn>0</mn><mspace width="1em"/><mtext>si </mtext><msubsup><mi>c</mi><mi>T</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msubsup><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\frac{dc^{*}}{d\,\mathrm{Cap}} = \frac{c&#x27;_T\, (\partial c_R / \partial \mathrm{Cap})}{c&#x27;_R + c&#x27;_T} \;&gt;\; 0 \quad \text{si } c&#x27;_T &lt; 0</annotation></semantics></math></span>
+</div>
 
 <p>La derivación deja explícitas las condiciones, y la búsqueda las midió una a una:</p>
 
@@ -287,7 +289,9 @@ canales: la <em>ganancia directa</em> de quienes pueden aprovecharla (proporcion
 P<sub>auto</sub>) y la <em>pérdida inducida</em> de los usuarios del metro, cuya espera sube al
 perder pasajeros. Derivando ambos canales, la pérdida solo puede superar a la ganancia si</p>
 
-<div class="ecuacion">P<sub>metro</sub> · w<sub>espera</sub> · espera · |β<sub>t</sub>| &gt; 1</div>
+<div class="ecuacion" data-tex="P_{\text{metro}} \cdot w_{\text{espera}} \cdot \text{espera} \cdot |\beta_t| &gt; 1">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mtext>metro</mtext></msub><mo>⋅</mo><msub><mi>w</mi><mtext>espera</mtext></msub><mo>⋅</mo><mtext>espera</mtext><mo>⋅</mo><mi mathvariant="normal">∣</mi><msub><mi>β</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">P_{\text{metro}} \cdot w_{\text{espera}} \cdot \text{espera} \cdot |\beta_t| &gt; 1</annotation></semantics></math></span>
+</div>
 
 <p>donde w<sub>espera</sub> es la razón espera/viaje y |β<sub>t</sub>| la escala del logit. El
 término <span class="mono">espera·|β<sub>t</sub>|·w</span> es la desutilidad de la espera en
@@ -297,10 +301,9 @@ de elección. Y la regla de frecuencia <span class="mono">f = carga/K</span> apo
 <span class="mono">espera·P<sub>metro</sub> = 30K/Q<sub>corredor</sub></span> (la espera es
 30K/carga y la carga es P·Q). Sustituyendo:</p>
 
-<div class="ecuacion"><strong>30 · K / Q<sub>corredor</sub></strong>
-<span style="color:var(--muted)">(estructura: oferta y ciudad)</span>
-&nbsp;×&nbsp; <strong>w<sub>espera</sub> · |β<sub>t</sub>|</strong>
-<span style="color:var(--muted)">(conducta: calibración)</span> &nbsp;&gt;&nbsp; 1</div>
+<div class="ecuacion" data-tex="\underbrace{\frac{30\,K}{Q_{\text{corredor}}}}_{\text{estructura: oferta y ciudad}} \;\times\; \underbrace{w_{\text{espera}}\,|\beta_t|}_{\text{conducta: calibración}} \;&gt;\; 1">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><munder><mfrac><mrow><mn>30</mn><mtext> </mtext><mi>K</mi></mrow><msub><mi>Q</mi><mtext>corredor</mtext></msub></mfrac><mo stretchy="true">⏟</mo></munder><mtext>estructura: oferta y ciudad</mtext></munder><mtext>  </mtext><mo>×</mo><mtext>  </mtext><munder><munder><mrow><msub><mi>w</mi><mtext>espera</mtext></msub><mtext> </mtext><mi mathvariant="normal">∣</mi><msub><mi>β</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi></mrow><mo stretchy="true">⏟</mo></munder><mrow><mtext>conducta: calibraci</mtext><mover accent="true"><mtext>o</mtext><mo>ˊ</mo></mover><mtext>n</mtext></mrow></munder><mtext>  </mtext><mo>&gt;</mo><mtext>  </mtext><mn>1</mn></mrow><annotation encoding="application/x-tex">\underbrace{\frac{30\,K}{Q_{\text{corredor}}}}_{\text{estructura: oferta y ciudad}} \;\times\; \underbrace{w_{\text{espera}}\,|\beta_t|}_{\text{conducta: calibración}} \;&gt;\; 1</annotation></semantics></math></span>
+</div>
 
 <p>La paradoja aparece o no según si este producto puede cruzar 1 — y cada factor tiene un
 techo disciplinado por algo externo:</p>

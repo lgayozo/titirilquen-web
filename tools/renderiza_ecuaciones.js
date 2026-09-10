@@ -29,7 +29,13 @@ const katex = require("katex");
 const RAIZ = path.resolve(__dirname, "..");
 // Todo el libro salvo el índice, la plantilla (trae un `data-tex` de ejemplo
 // que envejece a propósito) y el diccionario; más los sandboxes.
-const FUERA = new Set(["index.html", "plantilla.html", "diccionario.html"]);
+// `diagrama-flujo.html` tampoco: su unico `.ecuacion` es un template de JS.
+const FUERA = new Set([
+  "index.html",
+  "plantilla.html",
+  "diccionario.html",
+  "diagrama-flujo.html",
+]);
 const ARCHIVOS = [
   ...fs
     .readdirSync(path.join(RAIZ, "docs/libro"))

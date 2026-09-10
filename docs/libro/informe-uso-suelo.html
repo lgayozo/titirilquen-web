@@ -242,9 +242,8 @@
   edificio. Dos restricciones duras:
 </p>
 
-<div class="ecuacion">
-  Σ<sub>i</sub> S<sub>i</sub> = Σ<sub>h</sub> H<sub>h</sub> &nbsp;&nbsp;&nbsp;&nbsp;
-  S<sub>CBD</sub> = 0
+<div class="ecuacion" data-tex="\sum_i S_i = \sum_h H_h \qquad S_{\mathrm{CBD}} = 0">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>S</mi><mi>i</mi></msub><mo>=</mo><munder><mo>∑</mo><mi>h</mi></munder><msub><mi>H</mi><mi>h</mi></msub><mspace width="2em"/><msub><mi>S</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">B</mi><mi mathvariant="normal">D</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\sum_i S_i = \sum_h H_h \qquad S_{\mathrm{CBD}} = 0</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -261,8 +260,8 @@
   normal. La dispersión se controla con
 </p>
 
-<div class="ecuacion suelta">
-  σ = <code>oferta_sigma_frac</code> · min(CBD, L−1−CBD)
+<div class="ecuacion suelta" data-tex="\sigma = \texttt{oferta\_sigma\_frac} \cdot \min(\mathrm{CBD},\, L - 1 - \mathrm{CBD})">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>σ</mi><mo>=</mo><mtext mathvariant="monospace">oferta_sigma_frac</mtext><mo>⋅</mo><mi>min</mi><mo>⁡</mo><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">B</mi><mi mathvariant="normal">D</mi></mrow><mo separator="true">,</mo><mtext> </mtext><mi>L</mi><mo>−</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">B</mi><mi mathvariant="normal">D</mi></mrow><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sigma = \texttt{oferta\_sigma\_frac} \cdot \min(\mathrm{CBD},\, L - 1 - \mathrm{CBD})</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -399,9 +398,8 @@
   <em>h</em> que elige la parcela <em>i</em> y paga renta <em>p<sub>i</sub></em>:
 </p>
 
-<div class="ecuacion">
-  <span class="id">(1)</span>
-  u<sub>h</sub> = λ<sub>h</sub> (y<sub>h</sub> − p<sub>i</sub>) + f<sub>h</sub>(i)
+<div class="ecuacion" data-tex="u_h = \lambda_h (y_h - p_i) + f_h(i)" data-id="(1)">
+  <span class="id">(1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>u</mi><mi>h</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">u_h = \lambda_h (y_h - p_i) + f_h(i)</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -418,10 +416,8 @@
   En esta implementación la amenidad tiene exactamente dos componentes:
 </p>
 
-<div class="ecuacion">
-  <span class="id">(2)</span>
-  f<sub>h</sub>(i) = − α<sub>h</sub> · T(i) − ρ<sub>h</sub> · dens(i),
-  &nbsp;&nbsp; dens(i) = S<sub>i</sub> / Δx
+<div class="ecuacion" data-tex="f_h(i) = -\alpha_h\, T(i) - \rho_h\, \mathrm{dens}(i), \qquad \mathrm{dens}(i) = S_i / \Delta x" data-id="(2)">
+  <span class="id">(2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi>α</mi><mi>h</mi></msub><mtext> </mtext><mi>T</mi><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>ρ</mi><mi>h</mi></msub><mtext> </mtext><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>S</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">f_h(i) = -\alpha_h\, T(i) - \rho_h\, \mathrm{dens}(i), \qquad \mathrm{dens}(i) = S_i / \Delta x</annotation></semantics></math></span>
 </div>
 
 <ul>
@@ -454,9 +450,8 @@
   Se despeja el precio de (1) fijando un nivel de utilidad <em>u<sub>h</sub></em>:
 </p>
 
-<div class="ecuacion">
-  <span class="id">(3)</span>
-  w<sub>h</sub>(u, i) = y<sub>h</sub> − ( u<sub>h</sub> − f<sub>h</sub>(i) ) / λ<sub>h</sub>
+<div class="ecuacion" data-tex="w_h(u, i) = y_h - \frac{u_h - f_h(i)}{\lambda_h}" data-id="(3)">
+  <span class="id">(3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>w</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>u</mi><mo separator="true">,</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><mfrac><mrow><msub><mi>u</mi><mi>h</mi></msub><mo>−</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><msub><mi>λ</mi><mi>h</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">w_h(u, i) = y_h - \frac{u_h - f_h(i)}{\lambda_h}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -473,8 +468,8 @@
   conocimiento de su propia utilidad—:
 </p>
 
-<div class="ecuacion suelta">
-  U<sub>hi</sub> = λ<sub>h</sub>(y<sub>h</sub> − p<sub>i</sub>) + f<sub>h</sub>(i) + ε<sub>hi</sub>
+<div class="ecuacion suelta" data-tex="U_{hi} = \lambda_h (y_h - p_i) + f_h(i) + \varepsilon_{hi}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>U</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">U_{hi} = \lambda_h (y_h - p_i) + f_h(i) + \varepsilon_{hi}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -485,11 +480,8 @@
   <em>h</em> gane la subasta por la parcela <em>i</em> queda:
 </p>
 
-<div class="ecuacion">
-  <span class="id">(4)</span>
-  Q<sub>hi</sub> =
-  H<sub>h</sub> e<sup>β·s<sub>hi</sub></sup> /
-  Σ<sub>g</sub> H<sub>g</sub> e<sup>β·s<sub>gi</sub></sup>
+<div class="ecuacion" data-tex="Q_{hi} = \frac{H_h\, e^{\beta s_{hi}}}{\sum_g H_g\, e^{\beta s_{gi}}}" data-id="(4)">
+  <span class="id">(4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><mfrac><mrow><msub><mi>H</mi><mi>h</mi></msub><mtext> </mtext><msup><mi>e</mi><mrow><mi>β</mi><msub><mi>s</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow></msup></mrow><mrow><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>H</mi><mi>g</mi></msub><mtext> </mtext><msup><mi>e</mi><mrow><mi>β</mi><msub><mi>s</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">Q_{hi} = \frac{H_h\, e^{\beta s_{hi}}}{\sum_g H_g\, e^{\beta s_{gi}}}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -508,7 +500,9 @@
     <a href="#r-train">[Train 2009]</a>. Es precisamente ese factor el que
     garantiza la <strong>conservación por estrato</strong> en el equilibrio:
   </p>
-  <div class="ecuacion suelta">Σ<sub>i</sub> S<sub>i</sub> · Q<sub>hi</sub> = H<sub>h</sub></div>
+  <div class="ecuacion suelta" data-tex="\sum_i S_i\, Q_{hi} = H_h">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>S</mi><mi>i</mi></msub><mtext> </mtext><msub><mi>Q</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\sum_i S_i\, Q_{hi} = H_h</annotation></semantics></math></span>
+</div>
   <p>
     Una versión previa omitía el factor; con <em>H</em> heterogéneo la
     composición espacial no conservaba los hogares por estrato. Corregido en
@@ -546,11 +540,8 @@
   utilidades de equilibrio <strong>ū</strong> ∈ ℝ<sup>H</sup>:
 </p>
 
-<div class="ecuacion">
-  <span class="id">(5)</span>
-  F(ū)<sub>h</sub> = (1/β) · ln Σ<sub>i</sub>
-  &nbsp; S<sub>i</sub> · e<sup>β·s<sub>hi</sub></sup> /
-  ( Σ<sub>g</sub> H<sub>g</sub> · e<sup>β(s<sub>gi</sub> − ū<sub>g</sub>)</sup> )
+<div class="ecuacion" data-tex="F(\bar u)_h = \frac{1}{\beta}\,\ln \sum_i \frac{S_i\, e^{\beta s_{hi}}}{\sum_g H_g\, e^{\beta (s_{gi} - \bar u_g)}}" data-id="(5)">
+  <span class="id">(5)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>F</mi><mo stretchy="false">(</mo><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><msub><mo stretchy="false">)</mo><mi>h</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>β</mi></mfrac><mtext> </mtext><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>i</mi></munder><mfrac><mrow><msub><mi>S</mi><mi>i</mi></msub><mtext> </mtext><msup><mi>e</mi><mrow><mi>β</mi><msub><mi>s</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow></msup></mrow><mrow><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>H</mi><mi>g</mi></msub><mtext> </mtext><msup><mi>e</mi><mrow><mi>β</mi><mo stretchy="false">(</mo><msub><mi>s</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>g</mi></msub><mo stretchy="false">)</mo></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">F(\bar u)_h = \frac{1}{\beta}\,\ln \sum_i \frac{S_i\, e^{\beta s_{hi}}}{\sum_g H_g\, e^{\beta (s_{gi} - \bar u_g)}}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -575,10 +566,8 @@
   Una vez resuelto el punto fijo, los precios salen por identidad:
 </p>
 
-<div class="ecuacion">
-  <span class="id">(6)</span>
-  p<sub>i</sub> = (1/β) · ln Σ<sub>g</sub> H<sub>g</sub> ·
-  e<sup>β(s<sub>gi</sub> − ū<sub>g</sub>)</sup>
+<div class="ecuacion" data-tex="p_i = \frac{1}{\beta}\,\ln \sum_g H_g\, e^{\beta (s_{gi} - \bar u_g)}" data-id="(6)">
+  <span class="id">(6)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>p</mi><mi>i</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>β</mi></mfrac><mtext> </mtext><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>H</mi><mi>g</mi></msub><mtext> </mtext><msup><mi>e</mi><mrow><mi>β</mi><mo stretchy="false">(</mo><msub><mi>s</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>g</mi></msub><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">p_i = \frac{1}{\beta}\,\ln \sum_g H_g\, e^{\beta (s_{gi} - \bar u_g)}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -619,10 +608,9 @@
     Si no se entrega <code>T</code>, se construye el tiempo a <strong>flujo
     libre</strong>:
   </p>
-  <div class="ecuacion suelta">
-    T(i) = d<sub>km</sub>(i) / v<sub>ref</sub> · 60, &nbsp;&nbsp;
-    v<sub>ref</sub> = 30 km/h
-  </div>
+  <div class="ecuacion suelta" data-tex="T(i) = \frac{d_{\mathrm{km}}(i)}{v_{\mathrm{ref}}} \cdot 60, \qquad v_{\mathrm{ref}} = 30\ \mathrm{km/h}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><msub><mi>d</mi><mrow><mi mathvariant="normal">k</mi><mi mathvariant="normal">m</mi></mrow></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><msub><mi>v</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub></mfrac><mo>⋅</mo><mn>60</mn><mo separator="true">,</mo><mspace width="2em"/><msub><mi>v</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msub><mo>=</mo><mn>30</mn><mtext> </mtext><mrow><mi mathvariant="normal">k</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">h</mi></mrow></mrow><annotation encoding="application/x-tex">T(i) = \frac{d_{\mathrm{km}}(i)}{v_{\mathrm{ref}}} \cdot 60, \qquad v_{\mathrm{ref}} = 30\ \mathrm{km/h}</annotation></semantics></math></span>
+</div>
   <p>
     en minutos, igual para los tres estratos. Es el baseline «sin transporte» y
     la misma convención con que arranca el loop acoplado. En modo acoplado
@@ -705,7 +693,9 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
 <div class="paso">
   <h3>Paso 7 · Derivar la densidad</h3>
   <span class="ref">land_use/ciudad.py → densidad_por_celda()</span>
-  <div class="ecuacion suelta">dens(i) = S<sub>i</sub> / Δx</div>
+  <div class="ecuacion suelta" data-tex="\mathrm{dens}(i) = S_i / \Delta x">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>S</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\mathrm{dens}(i) = S_i / \Delta x</annotation></semantics></math></span>
+</div>
   <p>
     La densidad es <strong>consecuencia de la oferta</strong>, no un gradiente de
     Clark impuesto aparte. Es invariante a la grilla (<code>S</code> escala con
@@ -997,10 +987,8 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   disposición a pagar, la ec. (4.3) da:
 </p>
 
-<div class="ecuacion">
-  q<sub>hi</sub> = y<sub>h</sub> +
-  (f<sub>h</sub>(z<sub>i</sub>) − u<sub>h</sub>)/λ<sub>h</sub>
-  + ε<sub>hi</sub>/λ<sub>h</sub>
+<div class="ecuacion" data-tex="q_{hi} = y_h + \frac{f_h(z_i) - u_h}{\lambda_h} + \frac{\varepsilon_{hi}}{\lambda_h}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>q</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mfrac><mrow><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>−</mo><msub><mi>u</mi><mi>h</mi></msub></mrow><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mo>+</mo><mfrac><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><msub><mi>λ</mi><mi>h</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">q_{hi} = y_h + \frac{f_h(z_i) - u_h}{\lambda_h} + \frac{\varepsilon_{hi}}{\lambda_h}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -1049,9 +1037,8 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   re-escalar las preferencias del estrato:
 </p>
 
-<div class="ecuacion">
-  y<sub>h</sub> + f<sub>h</sub>(i)/λ<sub>h</sub> &nbsp; ≡ &nbsp;
-  y<sub>h</sub> + f(i; α<sub>h</sub>/λ<sub>h</sub>, ρ<sub>h</sub>/λ<sub>h</sub>)
+<div class="ecuacion" data-tex="y_h + \frac{f_h(i)}{\lambda_h} \;\equiv\; y_h + f\!\left(i;\, \frac{\alpha_h}{\lambda_h},\, \frac{\rho_h}{\lambda_h}\right)">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mfrac><mrow><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mtext>  </mtext><mo>≡</mo><mtext>  </mtext><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mi>f</mi><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mi>i</mi><mo separator="true">;</mo><mtext> </mtext><mfrac><msub><mi>α</mi><mi>h</mi></msub><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mo separator="true">,</mo><mtext> </mtext><mfrac><msub><mi>ρ</mi><mi>h</mi></msub><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">y_h + \frac{f_h(i)}{\lambda_h} \;\equiv\; y_h + f\!\left(i;\, \frac{\alpha_h}{\lambda_h},\, \frac{\rho_h}{\lambda_h}\right)</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -1223,8 +1210,8 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   entre los dos términos es, aproximadamente:
 </p>
 
-<div class="ecuacion suelta">
-  razón ≈ α · (L/2)² · 1,253 / (ρ · N)
+<div class="ecuacion suelta" data-tex="\text{razón} \approx \frac{\alpha\,(L/2)^2 \cdot 1{,}253}{\rho\, N}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mtext>raz</mtext><mover accent="true"><mtext>o</mtext><mo>ˊ</mo></mover><mtext>n</mtext></mrow><mo>≈</mo><mfrac><mrow><mi>α</mi><mtext> </mtext><mo stretchy="false">(</mo><mi>L</mi><mi mathvariant="normal">/</mi><mn>2</mn><msup><mo stretchy="false">)</mo><mn>2</mn></msup><mo>⋅</mo><mn>1,253</mn></mrow><mrow><mi>ρ</mi><mtext> </mtext><mi>N</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{razón} \approx \frac{\alpha\,(L/2)^2 \cdot 1{,}253}{\rho\, N}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -1299,10 +1286,8 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   probabilidad de ganar es
 </p>
 
-<div class="ecuacion">
-  Q<sub>h</sub> = ∫ [ Π<sub>g≠h</sub>
-  exp(−exp(−(loc<sub>h</sub> − loc<sub>g</sub> + θ<sub>h</sub>w)/θ<sub>g</sub>)) ]
-  · exp(−exp(−w)) · exp(−w) dw
+<div class="ecuacion" data-tex="Q_h = \int \Big[ \prod_{g \neq h} \exp\!\Big(-\exp\big(-(\mathrm{loc}_h - \mathrm{loc}_g + \theta_h w)/\theta_g\big)\Big) \Big] \exp(-\exp(-w))\, \exp(-w)\, dw">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mi>h</mi></msub><mo>=</mo><mo>∫</mo><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">[</mo><munder><mo>∏</mo><mrow><mi>g</mi><mo mathvariant="normal">≠</mo><mi>h</mi></mrow></munder><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">(</mo><mo>−</mo><mi>exp</mi><mo>⁡</mo><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mo>−</mo><mo stretchy="false">(</mo><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>h</mi></msub><mo>−</mo><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>g</mi></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>θ</mi><mi>g</mi></msub><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">)</mo><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">]</mo><mi>exp</mi><mo>⁡</mo><mo stretchy="false">(</mo><mo>−</mo><mi>exp</mi><mo>⁡</mo><mo stretchy="false">(</mo><mo>−</mo><mi>w</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mtext> </mtext><mi>exp</mi><mo>⁡</mo><mo stretchy="false">(</mo><mo>−</mo><mi>w</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">Q_h = \int \Big[ \prod_{g \neq h} \exp\!\Big(-\exp\big(-(\mathrm{loc}_h - \mathrm{loc}_g + \theta_h w)/\theta_g\big)\Big) \Big] \exp(-\exp(-w))\, \exp(-w)\, dw</annotation></semantics></math></span>
 </div>
 
 <div class="aviso alerta">
@@ -1619,8 +1604,8 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   dividido por λ<sub>h</sub>:
 </p>
 
-<div class="ecuacion suelta">
-  w̃<sub>hi</sub> = w<sub>hi</sub> + ε<sub>hi</sub> / λ<sub>h</sub>
+<div class="ecuacion suelta" data-tex="\tilde w_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>w</mi><mo>~</mo></mover><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>+</mo><mfrac><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><msub><mi>λ</mi><mi>h</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">\tilde w_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -1639,8 +1624,8 @@ Q[:,i] = exp(log_q − logsumexp(log_q))</code></pre>
   en unidades de utilidad a través del <em>score</em>
 </p>
 
-<div class="ecuacion suelta">
-  s<sub>hi</sub> := λ<sub>h</sub> y<sub>h</sub> + f<sub>h</sub>(i)
+<div class="ecuacion suelta" data-tex="s_{hi} := \lambda_h y_h + f_h(i)">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>s</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>:</mo><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">s_{hi} := \lambda_h y_h + f_h(i)</annotation></semantics></math></span>
 </div>
 
 <h3>8.2 Por qué se eliminó</h3>

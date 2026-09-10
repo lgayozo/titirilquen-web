@@ -148,8 +148,8 @@
   agente <em>antes</em> de elegir:
 </p>
 
-<div class="ecuacion">
-  CS = E[ max<sub>m ∈ C</sub> U<sub>m</sub> ] ⁄ λ
+<div class="ecuacion" data-tex="CS = \frac{E\big[\max_{m \in C} U_m\big]}{\lambda}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mi>S</mi><mo>=</mo><mfrac><mrow><mi>E</mi><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">[</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mrow><mi>m</mi><mo>∈</mo><mi>C</mi></mrow></munder><msub><mi>U</mi><mi>m</mi></msub><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">]</mo></mrow><mi>λ</mi></mfrac></mrow><annotation encoding="application/x-tex">CS = \frac{E\big[\max_{m \in C} U_m\big]}{\lambda}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -183,28 +183,23 @@
 </p>
 
 <h4>Auto <span class="etiqueta neutra">requiere tenencia</span></h4>
-<div class="ecuacion">
-  V<sub>auto</sub> = ASC<sub>auto</sub> + β<sub>t</sub>·t<sub>auto</sub>
-  + β<sub>c</sub>·( d·c<sub>comb</sub> + c<sub>park</sub> )
+<div class="ecuacion" data-tex="V_{\text{auto}} = ASC_{\text{auto}} + \beta_t\, t_{\text{auto}} + \beta_c\,(d\cdot c_{\text{comb}} + c_{\text{park}})">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>V</mi><mtext>auto</mtext></msub><mo>=</mo><mi>A</mi><mi>S</mi><msub><mi>C</mi><mtext>auto</mtext></msub><mo>+</mo><msub><mi>β</mi><mi>t</mi></msub><mtext> </mtext><msub><mi>t</mi><mtext>auto</mtext></msub><mo>+</mo><msub><mi>β</mi><mi>c</mi></msub><mtext> </mtext><mo stretchy="false">(</mo><mi>d</mi><mo>⋅</mo><msub><mi>c</mi><mtext>comb</mtext></msub><mo>+</mo><msub><mi>c</mi><mtext>park</mtext></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">V_{\text{auto}} = ASC_{\text{auto}} + \beta_t\, t_{\text{auto}} + \beta_c\,(d\cdot c_{\text{comb}} + c_{\text{park}})</annotation></semantics></math></span>
 </div>
 
 <h4>Metro</h4>
-<div class="ecuacion">
-  V<sub>metro</sub> = ASC<sub>metro</sub> + β<sub>t</sub>·t<sub>viaje</sub>
-  + β<sub>e</sub>·t<sub>espera</sub> + β<sub>a</sub>·t<sub>acceso</sub>
-  + β<sub>c</sub>·tarifa
+<div class="ecuacion" data-tex="V_{\text{metro}} = ASC_{\text{metro}} + \beta_t\, t_{\text{viaje}} + \beta_e\, t_{\text{espera}} + \beta_a\, t_{\text{acceso}} + \beta_c\,\text{tarifa}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>V</mi><mtext>metro</mtext></msub><mo>=</mo><mi>A</mi><mi>S</mi><msub><mi>C</mi><mtext>metro</mtext></msub><mo>+</mo><msub><mi>β</mi><mi>t</mi></msub><mtext> </mtext><msub><mi>t</mi><mtext>viaje</mtext></msub><mo>+</mo><msub><mi>β</mi><mi>e</mi></msub><mtext> </mtext><msub><mi>t</mi><mtext>espera</mtext></msub><mo>+</mo><msub><mi>β</mi><mi>a</mi></msub><mtext> </mtext><msub><mi>t</mi><mtext>acceso</mtext></msub><mo>+</mo><msub><mi>β</mi><mi>c</mi></msub><mtext> </mtext><mtext>tarifa</mtext></mrow><annotation encoding="application/x-tex">V_{\text{metro}} = ASC_{\text{metro}} + \beta_t\, t_{\text{viaje}} + \beta_e\, t_{\text{espera}} + \beta_a\, t_{\text{acceso}} + \beta_c\,\text{tarifa}</annotation></semantics></math></span>
 </div>
 
 <h4>Bicicleta</h4>
-<div class="ecuacion">
-  V<sub>bici</sub> = ASC<sub>bici</sub> + β<sub>t</sub>·t<sub>bici</sub>
-  + P<sub>bici</sub>(t<sub>bici</sub>)
+<div class="ecuacion" data-tex="V_{\text{bici}} = ASC_{\text{bici}} + \beta_t\, t_{\text{bici}} + P_{\text{bici}}(t_{\text{bici}})">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>V</mi><mtext>bici</mtext></msub><mo>=</mo><mi>A</mi><mi>S</mi><msub><mi>C</mi><mtext>bici</mtext></msub><mo>+</mo><msub><mi>β</mi><mi>t</mi></msub><mtext> </mtext><msub><mi>t</mi><mtext>bici</mtext></msub><mo>+</mo><msub><mi>P</mi><mtext>bici</mtext></msub><mo stretchy="false">(</mo><msub><mi>t</mi><mtext>bici</mtext></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">V_{\text{bici}} = ASC_{\text{bici}} + \beta_t\, t_{\text{bici}} + P_{\text{bici}}(t_{\text{bici}})</annotation></semantics></math></span>
 </div>
 
 <h4>Caminata</h4>
-<div class="ecuacion">
-  V<sub>cam</sub> = ASC<sub>cam</sub> + β<sub>cam</sub>·t<sub>cam</sub>
-  + P<sub>cam</sub>(t<sub>cam</sub>)
+<div class="ecuacion" data-tex="V_{\text{cam}} = ASC_{\text{cam}} + \beta_{\text{cam}}\, t_{\text{cam}} + P_{\text{cam}}(t_{\text{cam}})">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>V</mi><mtext>cam</mtext></msub><mo>=</mo><mi>A</mi><mi>S</mi><msub><mi>C</mi><mtext>cam</mtext></msub><mo>+</mo><msub><mi>β</mi><mtext>cam</mtext></msub><mtext> </mtext><msub><mi>t</mi><mtext>cam</mtext></msub><mo>+</mo><msub><mi>P</mi><mtext>cam</mtext></msub><mo stretchy="false">(</mo><msub><mi>t</mi><mtext>cam</mtext></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">V_{\text{cam}} = ASC_{\text{cam}} + \beta_{\text{cam}}\, t_{\text{cam}} + P_{\text{cam}}(t_{\text{cam}})</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -284,15 +279,14 @@
 
 <p>Con esa distribución, la probabilidad de elegir <em>m</em> es el logit:</p>
 
-<div class="ecuacion">
-  P<sub>m</sub> = e<sup>V<sub>m</sub></sup> ⁄ Σ<sub>k ∈ C</sub> e<sup>V<sub>k</sub></sup>
+<div class="ecuacion" data-tex="P_m = \frac{e^{V_m}}{\sum_{k \in C} e^{V_k}}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mfrac><msup><mi>e</mi><msub><mi>V</mi><mi>m</mi></msub></msup><mrow><munder><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><mi>C</mi></mrow></munder><msup><mi>e</mi><msub><mi>V</mi><mi>k</mi></msub></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">P_m = \frac{e^{V_m}}{\sum_{k \in C} e^{V_k}}</annotation></semantics></math></span>
 </div>
 
 <p>y la utilidad esperada máxima tiene forma cerrada:</p>
 
-<div class="ecuacion">
-  E[ max<sub>m</sub> (V<sub>m</sub> + ε<sub>m</sub>) ]
-  = ln Σ<sub>m ∈ C</sub> e<sup>V<sub>m</sub></sup> + γ
+<div class="ecuacion" data-tex="E\Big[\max_m (V_m + \varepsilon_m)\Big] = \ln \sum_{m \in C} e^{V_m} + \gamma">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>E</mi><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">[</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><mo stretchy="false">(</mo><msub><mi>V</mi><mi>m</mi></msub><mo>+</mo><msub><mi>ε</mi><mi>m</mi></msub><mo stretchy="false">)</mo><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">]</mo><mo>=</mo><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mrow><mi>m</mi><mo>∈</mo><mi>C</mi></mrow></munder><msup><mi>e</mi><msub><mi>V</mi><mi>m</mi></msub></msup><mo>+</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">E\Big[\max_m (V_m + \varepsilon_m)\Big] = \ln \sum_{m \in C} e^{V_m} + \gamma</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -310,14 +304,14 @@
   en caso de empate se reparte en partes iguales.
 </p>
 
-<div class="ecuacion">
-  P<sub>m</sub> = 1 si V<sub>m</sub> = max<sub>k</sub> V<sub>k</sub> &nbsp;(repartido entre empatados)&nbsp;; 0 si no
+<div class="ecuacion" data-tex="P_m = \begin{cases} 1 &amp; \text{si } V_m = \max_k V_k \ \ \text{(repartido entre empatados)} \\ 0 &amp; \text{si no} \end{cases}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mrow><mo fence="true">{</mo><mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mtext>si </mtext><msub><mi>V</mi><mi>m</mi></msub><mo>=</mo><msub><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>k</mi></msub><msub><mi>V</mi><mi>k</mi></msub><mtext>  (repartido entre empatados)</mtext></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>si no</mtext></mstyle></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">P_m = \begin{cases} 1 &amp; \text{si } V_m = \max_k V_k \ \ \text{(repartido entre empatados)} \\ 0 &amp; \text{si no} \end{cases}</annotation></semantics></math></span>
 </div>
 
 <p>Sin nada que promediar, la utilidad esperada máxima es el máximo a secas:</p>
 
-<div class="ecuacion">
-  E[ max<sub>m</sub> V<sub>m</sub> ] = max<sub>m ∈ C</sub> V<sub>m</sub>
+<div class="ecuacion" data-tex="E\Big[\max_m V_m\Big] = \max_{m \in C} V_m">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>E</mi><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">[</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><msub><mi>V</mi><mi>m</mi></msub><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">]</mo><mo>=</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mrow><mi>m</mi><mo>∈</mo><mi>C</mi></mrow></munder><msub><mi>V</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">E\Big[\max_m V_m\Big] = \max_{m \in C} V_m</annotation></semantics></math></span>
 </div>
 
 <div class="aviso ok">
@@ -341,10 +335,8 @@
   alternativas factibles:
 </p>
 
-<div class="ecuacion">
-  max<sub>m</sub> V<sub>m</sub> &nbsp;≤&nbsp;
-  ln Σ<sub>m</sub> e<sup>V<sub>m</sub></sup> &nbsp;≤&nbsp;
-  max<sub>m</sub> V<sub>m</sub> + ln J
+<div class="ecuacion" data-tex="\max_m V_m \;\le\; \ln \sum_m e^{V_m} \;\le\; \max_m V_m + \ln J">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><msub><mi>V</mi><mi>m</mi></msub><mtext>  </mtext><mo>≤</mo><mtext>  </mtext><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>m</mi></munder><msup><mi>e</mi><msub><mi>V</mi><mi>m</mi></msub></msup><mtext>  </mtext><mo>≤</mo><mtext>  </mtext><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><msub><mi>V</mi><mi>m</mi></msub><mo>+</mo><mi>ln</mi><mo>⁡</mo><mi>J</mi></mrow><annotation encoding="application/x-tex">\max_m V_m \;\le\; \ln \sum_m e^{V_m} \;\le\; \max_m V_m + \ln J</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -352,9 +344,8 @@
   Factorizando:
 </p>
 
-<div class="ecuacion suelta">
-  ln Σ<sub>m</sub> e<sup>V<sub>m</sub></sup>
-  = V* + ln Σ<sub>m</sub> e<sup>(V<sub>m</sub> − V*)</sup>
+<div class="ecuacion suelta" data-tex="\ln \sum_m e^{V_m} = V^{*} + \ln \sum_m e^{(V_m - V^{*})}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>m</mi></munder><msup><mi>e</mi><msub><mi>V</mi><mi>m</mi></msub></msup><mo>=</mo><msup><mi>V</mi><mo lspace="0em" rspace="0em">∗</mo></msup><mo>+</mo><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>m</mi></munder><msup><mi>e</mi><mrow><mo stretchy="false">(</mo><msub><mi>V</mi><mi>m</mi></msub><mo>−</mo><msup><mi>V</mi><mo lspace="0em" rspace="0em">∗</mo></msup><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">\ln \sum_m e^{V_m} = V^{*} + \ln \sum_m e^{(V_m - V^{*})}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -363,9 +354,8 @@
   [1, J], su logaritmo en [0, ln J], y la brecha
 </p>
 
-<div class="ecuacion">
-  G ≡ ln Σ<sub>m</sub> e<sup>V<sub>m</sub></sup> − max<sub>m</sub> V<sub>m</sub>
-  &nbsp;∈&nbsp; [0, ln J]
+<div class="ecuacion" data-tex="G \equiv \ln \sum_m e^{V_m} - \max_m V_m \;\in\; [0,\, \ln J]">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>G</mi><mo>≡</mo><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>m</mi></munder><msup><mi>e</mi><msub><mi>V</mi><mi>m</mi></msub></msup><mo>−</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><msub><mi>V</mi><mi>m</mi></msub><mtext>  </mtext><mo>∈</mo><mtext>  </mtext><mo stretchy="false">[</mo><mn>0</mn><mo separator="true">,</mo><mtext> </mtext><mi>ln</mi><mo>⁡</mo><mi>J</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">G \equiv \ln \sum_m e^{V_m} - \max_m V_m \;\in\; [0,\, \ln J]</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -390,14 +380,14 @@
   de bienestar del logit es:
 </p>
 
-<div class="ecuacion">
-  W(μ) = (1⁄μ) · ln Σ<sub>m</sub> e<sup>μ V<sub>m</sub></sup>
+<div class="ecuacion" data-tex="W(\mu) = \frac{1}{\mu}\,\ln \sum_m e^{\mu V_m}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>W</mi><mo stretchy="false">(</mo><mi>μ</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mi>μ</mi></mfrac><mtext> </mtext><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>m</mi></munder><msup><mi>e</mi><mrow><mi>μ</mi><msub><mi>V</mi><mi>m</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">W(\mu) = \frac{1}{\mu}\,\ln \sum_m e^{\mu V_m}</annotation></semantics></math></span>
 </div>
 
 <p>Aplicando la factorización de §4.1 a μV:</p>
 
-<div class="ecuacion suelta">
-  W(μ) = V* + (1⁄μ)·ln Σ<sub>m</sub> e<sup>μ(V<sub>m</sub> − V*)</sup>
+<div class="ecuacion suelta" data-tex="W(\mu) = V^{*} + \frac{1}{\mu}\,\ln \sum_m e^{\mu (V_m - V^{*})}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>W</mi><mo stretchy="false">(</mo><mi>μ</mi><mo stretchy="false">)</mo><mo>=</mo><msup><mi>V</mi><mo lspace="0em" rspace="0em">∗</mo></msup><mo>+</mo><mfrac><mn>1</mn><mi>μ</mi></mfrac><mtext> </mtext><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>m</mi></munder><msup><mi>e</mi><mrow><mi>μ</mi><mo stretchy="false">(</mo><msub><mi>V</mi><mi>m</mi></msub><mo>−</mo><msup><mi>V</mi><mo lspace="0em" rspace="0em">∗</mo></msup><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">W(\mu) = V^{*} + \frac{1}{\mu}\,\ln \sum_m e^{\mu (V_m - V^{*})}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -406,8 +396,8 @@
   decir:
 </p>
 
-<div class="ecuacion">
-  lim<sub>μ→∞</sub> W(μ) = max<sub>m</sub> V<sub>m</sub>
+<div class="ecuacion" data-tex="\lim_{\mu \to \infty} W(\mu) = \max_m V_m">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mrow><mi>lim</mi><mo>⁡</mo></mrow><mrow><mi>μ</mi><mo>→</mo><mi mathvariant="normal">∞</mi></mrow></munder><mi>W</mi><mo stretchy="false">(</mo><mi>μ</mi><mo stretchy="false">)</mo><mo>=</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><msub><mi>V</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">\lim_{\mu \to \infty} W(\mu) = \max_m V_m</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -492,9 +482,9 @@ return (logsum, mx)</code></pre>
     medidas se evalúa <strong>dos veces</strong> —con y sin auto— y se mezcla con
     la probabilidad de tenencia del estrato:
   </p>
-  <div class="ecuacion">
-    W̄<sub>hi</sub> = [ p<sub>auto,h</sub>·W<sub>con</sub> + (1 − p<sub>auto,h</sub>)·W<sub>sin</sub> ] ⁄ peso
-  </div>
+  <div class="ecuacion" data-tex="\bar W_{hi} = \frac{p_{\text{auto},h}\, W_{\text{con}} + (1 - p_{\text{auto},h})\, W_{\text{sin}}}{\text{peso}}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>W</mi><mo>ˉ</mo></mover><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><mfrac><mrow><msub><mi>p</mi><mrow><mtext>auto</mtext><mo separator="true">,</mo><mi>h</mi></mrow></msub><mtext> </mtext><msub><mi>W</mi><mtext>con</mtext></msub><mo>+</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mrow><mtext>auto</mtext><mo separator="true">,</mo><mi>h</mi></mrow></msub><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>W</mi><mtext>sin</mtext></msub></mrow><mtext>peso</mtext></mfrac></mrow><annotation encoding="application/x-tex">\bar W_{hi} = \frac{p_{\text{auto},h}\, W_{\text{con}} + (1 - p_{\text{auto},h})\, W_{\text{sin}}}{\text{peso}}</annotation></semantics></math></span>
+</div>
   <p>
     El divisor <em>peso</em> es la suma de las ponderaciones de las ramas que
     devolvieron un valor. Si una rama es <code>None</code> —por ejemplo, sin auto
@@ -511,9 +501,9 @@ return (logsum, mx)</code></pre>
     Cada celda contribuye con el número de agentes del estrato que la habitan,
     <em>n<sub>hi</sub></em>:
   </p>
-  <div class="ecuacion">
-    W̄<sub>h</sub> = ( Σ<sub>i</sub> W̄<sub>hi</sub> · n<sub>hi</sub> ) ⁄ ( Σ<sub>i</sub> n<sub>hi</sub> )
-  </div>
+  <div class="ecuacion" data-tex="\bar W_h = \frac{\sum_i \bar W_{hi}\, n_{hi}}{\sum_i n_{hi}}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>W</mi><mo>ˉ</mo></mover><mi>h</mi></msub><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mover accent="true"><mi>W</mi><mo>ˉ</mo></mover><mrow><mi>h</mi><mi>i</mi></mrow></msub><mtext> </mtext><msub><mi>n</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>n</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">\bar W_h = \frac{\sum_i \bar W_{hi}\, n_{hi}}{\sum_i n_{hi}}</annotation></semantics></math></span>
+</div>
   <p>
     Se acumulan en paralelo el logsum medio y la utilidad máxima media, sobre el
     mismo denominador.
@@ -528,9 +518,9 @@ return (logsum, mx)</code></pre>
     positiva porque el coeficiente de costo es negativo. Dividir por ella
     convierte útiles en pesos:
   </p>
-  <div class="ecuacion">
-    CS<sub>h</sub> = W̄<sub>h</sub> ⁄ λ<sub>h</sub> &nbsp;&nbsp;[$ por viajero]
-  </div>
+  <div class="ecuacion" data-tex="CS_h = \frac{\bar W_h}{\lambda_h} \qquad [\$ \text{ por viajero}]">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><msub><mi>S</mi><mi>h</mi></msub><mo>=</mo><mfrac><msub><mover accent="true"><mi>W</mi><mo>ˉ</mo></mover><mi>h</mi></msub><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mspace width="2em"/><mo stretchy="false">[</mo><mi mathvariant="normal">$</mi><mtext> por viajero</mtext><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">CS_h = \frac{\bar W_h}{\lambda_h} \qquad [\$ \text{ por viajero}]</annotation></semantics></math></span>
+</div>
   <p>
     Con la calibración vigente del estrato alto (β<sub>c</sub> = −0,00053226),
     un útil equivale a <strong>$1.879</strong>. Si λ ≤ 0 el excedente se reporta
@@ -544,9 +534,9 @@ return (logsum, mx)</code></pre>
     del bajo. Eso es un juicio distributivo, y en evaluación social se reemplaza
     por un valor de norma. Despejando del propio VoT:
   </p>
-  <div class="ecuacion">
-    λ<sup>social</sup><sub>h</sub> = |β<sub>t,h</sub>| · 60 ⁄ VoT<sub>social</sub>
-  </div>
+  <div class="ecuacion" data-tex="\lambda^{\text{social}}_h = \frac{|\beta_{t,h}| \cdot 60}{VoT_{\text{social}}}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>λ</mi><mi>h</mi><mtext>social</mtext></msubsup><mo>=</mo><mfrac><mrow><mi mathvariant="normal">∣</mi><msub><mi>β</mi><mrow><mi>t</mi><mo separator="true">,</mo><mi>h</mi></mrow></msub><mi mathvariant="normal">∣</mi><mo>⋅</mo><mn>60</mn></mrow><mrow><mi>V</mi><mi>o</mi><msub><mi>T</mi><mtext>social</mtext></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">\lambda^{\text{social}}_h = \frac{|\beta_{t,h}| \cdot 60}{VoT_{\text{social}}}</annotation></semantics></math></span>
+</div>
   <p>
     Sigue dependiendo del estrato porque β<sub>t</sub> fija la escala de
     <em>su</em> utilidad —sin eso los útiles de estratos distintos no serían
@@ -616,9 +606,9 @@ return (logsum, mx)</code></pre>
     CS = Σ<sub>h</sub> CS<sub>h</sub>·n<sub>h</sub>, y se calcula por separado
     para las dos medidas. Finalmente:
   </p>
-  <div class="ecuacion">
-    BS = CS<sub>emparejado</sub> + R<sub>parking</sub> + R<sub>tarifa</sub> − C<sub>operador</sub>
-  </div>
+  <div class="ecuacion" data-tex="BS = CS_{\text{emparejado}} + R_{\text{parking}} + R_{\text{tarifa}} - C_{\text{operador}}">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>B</mi><mi>S</mi><mo>=</mo><mi>C</mi><msub><mi>S</mi><mtext>emparejado</mtext></msub><mo>+</mo><msub><mi>R</mi><mtext>parking</mtext></msub><mo>+</mo><msub><mi>R</mi><mtext>tarifa</mtext></msub><mo>−</mo><msub><mi>C</mi><mtext>operador</mtext></msub></mrow><annotation encoding="application/x-tex">BS = CS_{\text{emparejado}} + R_{\text{parking}} + R_{\text{tarifa}} - C_{\text{operador}}</annotation></semantics></math></span>
+</div>
   <p>
     Sólo entra el excedente de la medida que corresponde al método: sumarle
     recaudación a un logsum bajo <code>todo_o_nada</code> mezclaría dos supuestos

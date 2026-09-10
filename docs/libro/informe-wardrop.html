@@ -127,9 +127,8 @@ mismos tiempos y los mismos coeficientes, así que eligen igual. En la ciudad po
 
 <p>Es exactamente el límite del logit multinomial cuando la escala de los coeficientes crece:</p>
 
-<div class="ecuacion">
-P<sub>m</sub> = e<sup>λV<sub>m</sub></sup> ⁄ Σ<sub>k</sub> e<sup>λV<sub>k</sub></sup>
-&nbsp;&nbsp;⟶&nbsp;&nbsp; 1{m = argmax V}&nbsp;&nbsp; cuando λ → ∞
+<div class="ecuacion" data-tex="P_m = \frac{e^{\lambda V_m}}{\sum_k e^{\lambda V_k}} \;\longrightarrow\; \mathbb{1}\{m = \arg\max V\} \qquad \text{cuando } \lambda \to \infty">
+  <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mfrac><msup><mi>e</mi><mrow><mi>λ</mi><msub><mi>V</mi><mi>m</mi></msub></mrow></msup><mrow><munder><mo>∑</mo><mi>k</mi></munder><msup><mi>e</mi><mrow><mi>λ</mi><msub><mi>V</mi><mi>k</mi></msub></mrow></msup></mrow></mfrac><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mn mathvariant="double-struck">1</mn><mo stretchy="false">{</mo><mi>m</mi><mo>=</mo><mi>arg</mi><mo>⁡</mo><mi>max</mi><mo>⁡</mo><mi>V</mi><mo stretchy="false">}</mo><mspace width="2em"/><mtext>cuando </mtext><mi>λ</mi><mo>→</mo><mi mathvariant="normal">∞</mi></mrow><annotation encoding="application/x-tex">P_m = \frac{e^{\lambda V_m}}{\sum_k e^{\lambda V_k}} \;\longrightarrow\; \mathbb{1}\{m = \arg\max V\} \qquad \text{cuando } \lambda \to \infty</annotation></semantics></math></span>
 </div>
 
 <p>Es decir, no es un modelo distinto: es el mismo modelo con varianza cero en la parte no
