@@ -35,6 +35,13 @@ from titirilquen_core.config import (
     SupplyConfig,
 )
 from titirilquen_core.equilibrium.msa import run_msa
+from titirilquen_core.land_use.config import LandUseConfig
+
+
+def suelo_uniforme(total: int) -> LandUseConfig:
+    h = (round(total * 0.2), round(total * 0.5), total - round(total * 0.2) - round(total * 0.5))
+    return LandUseConfig(H_por_estrato=h, forma="uniforme")
+
 
 DENSIDADES = (200.0, 500.0, 1800.0)
 PISTAS = (1, 2, 3, 4, 5, 6)
@@ -77,7 +84,7 @@ def _config(densidad: float, pistas: int) -> SimulationConfig:
     """Config equivalente a la que ve el usuario de la web:
     201 celdas, 20 km, expected, tolerancia 0.1, seed fija."""
     cfg = SimulationConfig(
-        city=CityConfig(n_celdas=201, largo_ciudad_km=20, densidad_hab_km=densidad),
+        city=CityConfig(n_celdas=201, largo_ciudad_km=20),
         supply=SupplyConfig(),
         demand=demanda_ui(),
         max_iter=20,
@@ -95,7 +102,8 @@ def _config(densidad: float, pistas: int) -> SimulationConfig:
 
 
 def _fila(densidad: float, pistas: int) -> dict:
-    trace = run_msa(_config(densidad, pistas))
+    # La densidad plana de antes, como uso de suelo uniforme (D-46).
+    trace = run_msa(_config(densidad, pistas), suelo_uniforme(round(densidad * 20)), "original")
     last = trace.iteraciones[-1]
     total = sum(last.modal_split.values())
     pct_auto = 100.0 * last.modal_split.get("Auto", 0) / total

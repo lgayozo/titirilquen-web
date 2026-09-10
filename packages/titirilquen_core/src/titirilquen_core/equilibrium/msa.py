@@ -27,11 +27,7 @@ from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.supply import generar_oferta
-from titirilquen_core.population import (
-    Agente,
-    generar_poblacion,
-    generar_poblacion_desde_land_use_det,
-)
+from titirilquen_core.population import Agente, generar_poblacion_desde_land_use_det
 from titirilquen_core.supply.oferta import resolver_oferta
 
 ModalSplit = dict[str, float]
@@ -260,31 +256,6 @@ def _asignar_modos_agentes(
             a.utilidad_elegida = utils[modo].valor
 
 
-def iter_msa(
-    sim: SimulationConfig, trace: ConvergenceTrace | None = None
-) -> Iterator[IterationSnapshot]:
-    """Generador que emite una IterationSnapshot por iteración (streaming).
-
-    Si se pasa `trace`, **popula el ConvergenceTrace completo en el mismo
-    recorrido**: snapshots, registros por agente (estado final), capacidades y
-    emisiones. Así el resultado completo se obtiene en **una sola corrida** (antes
-    el worker corría la simulación dos veces). `run_msa` no es más que consumir
-    este generador con un `trace`.
-    """
-    rng = np.random.default_rng(sim.seed)
-    ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
-
-    agentes = generar_poblacion(
-        ciudad=ciudad,
-        densidad_hab_km=sim.city.densidad_hab_km,
-        share_estratos=sim.city.share_estratos,
-        demand_config=sim.demand,
-        teletrabajo_factor=sim.city.teletrabajo_factor,
-        rng=rng,
-    )
-    yield from _iter_loop(sim, ciudad, agentes, rng, trace)
-
-
 def iter_msa_desde_suelo(
     sim: SimulationConfig,
     land_use_config: LandUseConfig,
@@ -292,11 +263,11 @@ def iter_msa_desde_suelo(
     localizacion: Literal["equilibrio", "original"] = "equilibrio",
     promediar_flujos: bool = False,
 ) -> Iterator[IterationSnapshot]:
-    """Igual que :func:`iter_msa` pero la población se deriva del **uso de suelo**
-    (opción A del feed suelo→transporte): los `S_i` hogares que la ciudad ofrece
-    en cada celda se reparten entre estratos según una matriz `Q`
-    (`N[h,i] = mayor_residuo(S_i·Q[h,i])`, con `Σ_h = S_i` exacto), en vez de la
-    densidad plana `densidad_hab_km` y el `share_estratos` global. La envolvente
+    """El MSA de transporte con la población derivada del **uso de suelo**: los
+    `S_i` hogares que la ciudad ofrece en cada celda se reparten entre estratos
+    según una matriz `Q` (`N[h,i] = mayor_residuo(S_i·Q[h,i])`, con `Σ_h = S_i`
+    exacto). Es la ÚNICA ruta desde sep-2026; antes existía `iter_msa` con una
+    densidad plana que la app no usaba (D-46, C-02). La envolvente
     de población es la oferta `S` (misma que las figuras y que el loop acoplado);
     conserva los hogares por estrato (`Σ_i N[h,i] = H_h`).
 
@@ -354,7 +325,7 @@ def iter_msa_desde_suelo(
         S=S,
         cbd_index=CBD,
         demand_config=sim.demand,
-        teletrabajo_factor=sim.city.teletrabajo_factor,
+        teletrabajo_factor=sim.demand.globales.teletrabajo_factor,
     )
     yield from _iter_loop(sim, ciudad, agentes, rng, trace, promediar_flujos)
 
@@ -367,8 +338,8 @@ def _iter_loop(
     trace: ConvergenceTrace | None = None,
     promediar_flujos: bool = False,
 ) -> Iterator[IterationSnapshot]:
-    """Loop MSA sobre una **población ya construida** (compartido por `iter_msa`
-    y el loop acoplado). Si se pasa `trace`, lo popula por completo.
+    """Loop MSA sobre una **población ya construida** (compartido por
+    `iter_msa_desde_suelo` y el loop acoplado). Si se pasa `trace`, lo popula por completo.
 
     `promediar_flujos` cambia CUÁL variable promedia el MSA, y existe solo para
     medir: el default (`False`) es el comportamiento histórico y ninguna ruta de
@@ -524,14 +495,26 @@ def _iter_loop(
         _finalizar_trace(trace, sim, ciudad, grupos, tiempos_actuales, rng, last_state)
 
 
-def run_msa(sim: SimulationConfig) -> ConvergenceTrace:
+def run_msa(
+    sim: SimulationConfig,
+    land_use_config: LandUseConfig,
+    localizacion: Literal["equilibrio", "original"] = "original",
+) -> ConvergenceTrace:
     """Ejecuta el loop MSA completo hasta convergencia o `max_iter`.
 
-    Es simplemente consumir `iter_msa` con un `trace`: un único recorrido que
-    produce el resultado completo (snapshots + agentes + capacidades + emisiones).
+    Es simplemente consumir `iter_msa_desde_suelo` con un `trace`: un único
+    recorrido que produce el resultado completo (snapshots + agentes +
+    capacidades + emisiones).
+
+    Hasta sep-2026 existía una segunda ruta, `iter_msa`, que poblaba la ciudad
+    con una densidad plana (`densidad_hab_km` × `share_estratos`) sin pasar por
+    el uso de suelo. Era la ruta de `/simulate` y de los tests, y la app nunca
+    la usaba: dos fuentes de población para una misma ciudad (D-46, C-02). La
+    población viene ahora siempre de `LandUseConfig`; la densidad plana se
+    reproduce con `forma="uniforme"` y `localizacion="original"`.
     """
     trace = ConvergenceTrace()
-    for _ in iter_msa(sim, trace=trace):
+    for _ in iter_msa_desde_suelo(sim, land_use_config, trace, localizacion=localizacion):
         pass
     return trace
 

@@ -29,14 +29,12 @@
     "pendiente_porcentaje": "Slope (%)",
     "cbd_label": "{{n}} cells · CBD at center",
     "density_unit": "pop/km",
-    "n_celdas_hint": "Spatial resolution: more cells = smoother profiles but slower simulation. Does not change the model physics (population is set by density × length).",
-    "n_parcelas_hint": "Each parcel ≈ {{dx}} m wide (Δx = length/n). More parcels = higher spatial resolution (slower simulation). Total population is set by density × length, so it does NOT change with n.",
-    "densidad_hint": "≈ {{cuadra}} households per 100 m block · total population = density × length = {{total}}. Very high values saturate the network (gridlock).",
+    "n_celdas_hint": "Spatial resolution: more cells = smoother profiles but slower simulation. Does not change the model physics: population is set by land use (ΣH), not by the grid.",
+    "n_parcelas_hint": "Each parcel ≈ {{dx}} m wide (Δx = length/n). More parcels = higher spatial resolution (slower simulation). Total population is set by land use (ΣH), so it does NOT change with n.",
     "pendiente_hint": "Corridor slope: it slows the bike toward the CBD (uphill) and favors it on the way back.",
-    "densidad_hab_km": "Density (pop/km)",
     "meta": "{{km}} km · {{n}} parcels",
-    "land_use_note": "Stratum composition and density are defined in Land Use and feed this simulation (per-stratum density → per-cell density).",
-    "defined_in_land_use": "The city (length, cells, slope, density and strata) is defined in Land Use and feeds this simulation.",
+    "land_use_note": "Stratum composition and population are defined in Land Use and feed this simulation (households per stratum → households per cell).",
+    "defined_in_land_use": "The city (length, cells and slope) and its population (households per stratum) are defined in Land Use and feed this simulation.",
     "largo_hint": "Population fixed ({{pob}} hh): changing the length recomputes density (now {{rho}} pop/km)."
   },
   "economy_params": {

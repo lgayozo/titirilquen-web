@@ -71,7 +71,6 @@ from titirilquen_core.serializacion import (
     OuterIterationDict,
     SnapshotDict,
     TraceDict,
-    iteration_to_dict,
     land_use_city_to_dict,
     outer_iteration_to_dict,
     trace_to_dict,
@@ -225,21 +224,29 @@ def paridad_worker_api() -> dict:
     L, CBD = sim.city.n_celdas, ciudad.cbd_index
     out: dict = {"lineas_de_python_en_el_worker": peg["lineas"], "entradas": {}}
 
-    # (a) simulate_from_json ≡ /simulate
-    w = ns["simulate_from_json"](cfg_json)
-    a = trace_to_dict(run_msa(sim), sim)
-    src_web = _fuente_web_sin_strings()
-    out["entradas"]["simulate"] = {
+    # (a) /simulate ≡ iter_from_json_suelo + last_trace_to_py. Desde sep-2026
+    # el endpoint recibe el uso de suelo (C-02 cerrado); el worker nunca tuvo
+    # otra entrada viva, así que la comparación es entre las dos rutas reales.
+    lu_json = json.loads(lu.model_dump_json(by_alias=True))
+    for _ in ns["iter_from_json_suelo"](
+        json.dumps(
+            {
+                "config": json.loads(cfg_json),
+                "land_use": lu_json,
+                "localizacion": "equilibrio",
+            }
+        )
+    ):
+        pass
+    w = ns["last_trace_to_py"]()
+    a = trace_to_dict(run_msa(sim, lu, "equilibrio"), sim)
+    out["entradas"]["simulateStream"] = {
         "api": "/simulate",
         "iguales": _json_igual(w, a),
         "claves_distintas": _claves_distintas(w, a)[:10],
-        "llamadores_en_el_frontend": len(
-            re.findall(r"pyodideEngine\.simulate\(", src_web)
-        ),
     }
 
     # (b) land_use_solve_from_json ≡ /land-use/solve (salvo `parcelas`: rng)
-    lu_json = json.loads(lu.model_dump_json(by_alias=True))
     req = {
         "L": L,
         "CBD": CBD,
@@ -293,23 +300,6 @@ def paridad_worker_api() -> dict:
         ),
     }
 
-    # (d) iter_from_json_suelo: SIN contraparte en la API (C-02)
-    ult = None
-    peticion = {
-        "config": json.loads(cfg_json),
-        "land_use": lu_json,
-        "localizacion": "original",
-    }
-    for snap in ns["iter_from_json_suelo"](json.dumps(peticion)):
-        ult = snap
-    tr = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(sim, lu, tr, localizacion="original"):
-        pass
-    out["entradas"]["simulateStream_con_suelo"] = {
-        "api": None,
-        "nota": "No hay endpoint: con `engine=api` el Sandbox cae a `/simulate` (C-02).",
-        "iguales_al_nucleo": _json_igual(ult, iteration_to_dict(tr.iteraciones[-1])),
-    }
     return out
 
 
@@ -319,8 +309,10 @@ def paridad_worker_api() -> dict:
 
 
 def c02() -> dict:
-    """El Sandbox con motor local corre `iter_msa_desde_suelo(…, "original")`;
-    con motor api cae a `/simulate`, que es `run_msa` con densidad plana."""
+    """C-02, cerrado el 2026-09-10: el Sandbox con motor api corría `/simulate`
+    con densidad plana y con motor local `iter_msa_desde_suelo`; medido en el
+    cap. 8 original, 9,15 pp de metro entre motores. Hoy `/simulate` recibe el
+    uso de suelo y las dos rutas son la misma función: se mide que lo sean."""
     sim = base._config_web()
     lu = base._land_use_web()
 
@@ -329,17 +321,20 @@ def c02() -> dict:
         t = sum(s.values())
         return {k: round(100.0 * v / t, 3) for k, v in s.items()}
 
-    plana = run_msa(sim)
+    api = run_msa(sim, lu, "original")
     tr = ConvergenceTrace()
     for _ in iter_msa_desde_suelo(sim, lu, tr, localizacion="original"):
         pass
-    p, o = pct(plana), pct(tr)
+    p, o = pct(api), pct(tr)
     return {
-        "motor_api_densidad_plana": {"reparto_pct": p, "agentes": len(plana.agentes)},
-        "motor_local_suelo_original": {"reparto_pct": o, "agentes": len(tr.agentes)},
-        "diferencia_pp": {k: round(o[k] - p[k], 3) for k in o},
+        "motor_api_run_msa": {"reparto_pct": p, "agentes": len(api.agentes)},
+        "motor_local_iter_msa_desde_suelo": {
+            "reparto_pct": o,
+            "agentes": len(tr.agentes),
+        },
         "diferencia_maxima_pp": round(max(abs(o[k] - p[k]) for k in o), 3),
-        "diferencia_agentes": len(tr.agentes) - len(plana.agentes),
+        "diferencia_agentes": len(tr.agentes) - len(api.agentes),
+        "historia": "antes del cierre: 9,151 pp de metro y 179 agentes de diferencia",
     }
 
 
@@ -352,7 +347,7 @@ def defaults() -> dict:
     """Golden del núcleo + `overrides.ts` ≟ `test_linea_base._config_web()`.
 
     El golden lo escribe el núcleo; los overrides se leen del archivo TS con
-    expresiones regulares (son seis números y una palabra). Si la suma no da la
+    expresiones regulares (son cinco números y una palabra). Si la suma no da la
     configuración que la línea base dice que corre la aplicación, uno de los
     tres está mintiendo.
     """
@@ -367,7 +362,6 @@ def defaults() -> dict:
         return m.group(1)
 
     n_celdas = int(cap(r"n_celdas:\s*(\d+)"))
-    dens = int(cap(r"densidad_hab_km:\s*(\d+)"))
     seed = int(cap(r"seed:\s*(\d+)"))
     assignment = cap(r'assignment:\s*"(\w+)"')
     poblacion = int(cap(r"POBLACION_BASE\s*=\s*([\d_]+)").replace("_", ""))
@@ -375,7 +369,7 @@ def defaults() -> dict:
     lu_max_iter = int(cap(r"max_iter:\s*(\d+)"))
 
     app = {
-        "city": {**golden["city"], "n_celdas": n_celdas, "densidad_hab_km": dens},
+        "city": {**golden["city"], "n_celdas": n_celdas},
         "supply": golden["supply"],
         "sim": {**golden["sim"], "seed": seed, "assignment": assignment},
         "land_use": {
@@ -398,14 +392,13 @@ def defaults() -> dict:
     return {
         "overrides_encontrados": {
             "n_celdas": n_celdas,
-            "densidad_hab_km": dens,
             "seed": seed,
             "assignment": assignment,
             "H_por_estrato": app["land_use"]["H_por_estrato"],
             "land_use.max_iter": lu_max_iter,
         },
-        "overrides_que_declara_el_docstring": 6 if "seis diferencias" in ov else None,
-        "overrides_contados": 6,
+        "overrides_que_declara_el_docstring": 5 if "cinco diferencias" in ov else None,
+        "overrides_contados": 5,
         "golden_mas_overrides_igual_a_linea_base": _json_igual(app_n, lb_n),
         "claves_distintas": _claves_distintas(app_n, lb_n),
         "nota": (
@@ -686,7 +679,8 @@ def main() -> None:
         print(f"  {k:<26} {v}")
     c = datos["c02"]
     print(
-        f"\nC-02: diferencia máxima {c['diferencia_maxima_pp']} pp · {c['diferencia_pp']}"
+        "\nC-02 (cerrado): diferencia entre motores "
+        f"{c['diferencia_maxima_pp']} pp · {c['diferencia_agentes']} agentes"
     )
     d = datos["defaults"]
     print(

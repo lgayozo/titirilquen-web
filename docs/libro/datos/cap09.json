@@ -1,26 +1,26 @@
 {
  "_meta": {
-  "fecha": "2026-09-08",
-  "commit": "6255297",
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
   "script": "docs/libro/datos/datos_cap09.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`), rama «original» para la sensibilidad de transporte y «equilibrio» para la del suelo. El original se lee de `reference/Titirilquen/app.py`."
  },
  "inventario": {
-  "parametros": 119,
+  "parametros": 117,
   "sin_etiqueta": [],
   "conteo": {
    "norma": 7,
    "estimado": 0,
    "heredado": 49,
-   "decisión": 63
+   "decisión": 61
   },
   "conteo_sin_repetir_estratos": {
    "norma": 3,
    "estimado": 0,
    "heredado": 33,
-   "decisión": 41
+   "decisión": 39
   },
-  "parametros_unicos": 77,
+  "parametros_unicos": 75,
   "sin_fuente_declarada": [
    "demand.estratos.*.betas.b_costo",
    "land_use.estratos.*.rho",
@@ -45,32 +45,11 @@
     "fuente": "original: 20 km"
    },
    {
-    "parametro": "city.densidad_hab_km",
-    "valor": 1800.0,
-    "etiqueta": "decisión",
-    "sin_fuente": false,
-    "fuente": "S-03: 1.800 hab/km para que el corredor se congestione"
-   },
-   {
     "parametro": "city.pendiente_porcentaje",
     "valor": 0.0,
     "etiqueta": "heredado",
     "sin_fuente": false,
     "fuente": "original: 0"
-   },
-   {
-    "parametro": "city.teletrabajo_factor",
-    "valor": 1.0,
-    "etiqueta": "heredado",
-    "sin_fuente": false,
-    "fuente": "original: slider 0–2, default 1"
-   },
-   {
-    "parametro": "city.share_estratos",
-    "valor": "(0.2, 0.5, 0.3)",
-    "etiqueta": "decisión",
-    "sin_fuente": false,
-    "fuente": "ago-2026: 20/50/30 (antes 10/40/50)"
    },
    {
     "parametro": "supply.bike.v_media_kmh",
@@ -309,6 +288,13 @@
     "etiqueta": "decisión",
     "sin_fuente": false,
     "fuente": "2,5 kg/tren-km: continuidad con 0,040 kg/pax·km (D-29)"
+   },
+   {
+    "parametro": "demand.globales.teletrabajo_factor",
+    "valor": 1.0,
+    "etiqueta": "heredado",
+    "sin_fuente": false,
+    "fuente": "original: slider 0–2, default 1; vivía en `city` hasta sep-2026"
    },
    {
     "parametro": "demand.estratos.1.prob_teletrabajo",
@@ -1492,10 +1478,10 @@
    "Caminata": 11.422,
    "Teletrabajo": 19.494
   },
-  "parametros_probados": 54,
+  "parametros_probados": 53,
   "ranking": [
    {
-    "parametro": "city.teletrabajo_factor",
+    "parametro": "demand.globales.teletrabajo_factor",
     "valor": 1.0,
     "perturbado": 1.1,
     "max_delta_pp": 1.9722,
@@ -1909,15 +1895,6 @@
     "inerte": true
    },
    {
-    "parametro": "city.densidad_hab_km",
-    "valor": 1800.0,
-    "perturbado": 1980.0000000000002,
-    "max_delta_pp": 0.0,
-    "delta_t_medio_min": 0.0,
-    "delta_emisiones_kg": 0.0,
-    "inerte": true
-   },
-   {
     "parametro": "supply.car.ancho_pista_m",
     "valor": 3.5,
     "perturbado": 3.8500000000000005,
@@ -1984,7 +1961,6 @@
   "inertes": [
    "supply.train.anden_beta",
    "supply.train.frec_max",
-   "city.densidad_hab_km",
    "supply.car.ancho_pista_m",
    "supply.train.costo_operacion_tren_km",
    "supply.train.factor_dia_punta",
@@ -2174,24 +2150,20 @@
    "Personalizado": {},
    "Compacta": {
     "largo_ciudad": 8,
-    "densidad": 4500,
     "sigma": 0.3
    },
    "Base": {
     "largo_ciudad": 20,
-    "densidad": 1800,
     "sigma": 0.5,
     "poblacion": 36000,
     "num_pistas": 2
    },
    "Dispersa": {
     "largo_ciudad": 40,
-    "densidad": 900,
     "sigma": 0.9
    },
    "Metrópolis": {
     "largo_ciudad": 20,
-    "densidad": 7200,
     "sigma": 0.5,
     "poblacion": 144000,
     "num_pistas": 12

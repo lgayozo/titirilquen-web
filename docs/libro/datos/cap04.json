@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-07",
-  "commit": "3dfdd26",
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
   "script": "docs/libro/datos/datos_cap04.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web`), localización «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, tolerancia 0,1, máximo 20 iteraciones."
  },

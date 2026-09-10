@@ -200,7 +200,9 @@ export function ScenarioCard({
           </span>
           <span>
             {tS("compare.scenario_card.density", {
-              rho: scenario.config.city.densidad_hab_km,
+              rho: Math.round(
+                scenario.poblacion / scenario.config.city.largo_ciudad_km,
+              ),
             })}
           </span>
           <span>

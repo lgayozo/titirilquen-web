@@ -19,24 +19,24 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
+from tests._poblacion import suelo_uniforme
 from titirilquen_core.config import (
     CityConfig,
     DemandConfig,
     SimulationConfig,
     SupplyConfig,
 )
-from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa, iter_msa_desde_suelo
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
 from titirilquen_core.land_use.config import LandUseConfig
 
 
 def _drena(sim: SimulationConfig, lu: LandUseConfig | None = None, **kw) -> ConvergenceTrace:
     tr = ConvergenceTrace()
     if lu is None:
-        for _ in iter_msa(sim, tr):
-            pass
-    else:
-        for _ in iter_msa_desde_suelo(sim, lu, tr, **kw):
-            pass
+        # La «ciudad plana» de antes: 400 hab/km × 10 km sobre oferta uniforme.
+        lu, kw = suelo_uniforme(4000), {"localizacion": "original", **kw}
+    for _ in iter_msa_desde_suelo(sim, lu, tr, **kw):
+        pass
     return tr
 
 
@@ -268,11 +268,6 @@ def test_las_claves_de_estrato_llegan_como_texto_desde_json(
     coerción, toda config que venga del navegador sería inválida."""
     crudo = {str(k): v.model_dump() for k, v in demanda_calibrada.estratos.items()}
     assert set(DemandConfig(estratos=crudo).estratos) == {1, 2, 3}
-
-
-def test_los_shares_deben_sumar_uno(demanda_calibrada: DemandConfig) -> None:
-    with pytest.raises(ValidationError):
-        CityConfig(share_estratos=(0.5, 0.5, 0.5))
 
 
 def test_hace_falta_al_menos_un_modo(demanda_calibrada: DemandConfig) -> None:

@@ -22,14 +22,24 @@ export interface CarSupplyParams {
   capacidad_pista: number | null;
 }
 
-/** Ciudad lineal. `n_celdas` debe ser impar para que el CBD quede centrado. */
+/**
+ *  Ciudad lineal: la geometría y nada más. Tres números. `n_celdas` es la
+ *  resolución numérica (impar, para que el CBD sea una celda y su centroide
+ *  caiga en L/2); `largo_ciudad_km` el tamaño físico; `pendiente_porcentaje`
+ *  el terreno, que sólo ve la bicicleta. Hasta sep-2026 traía además
+ *  `densidad_hab_km`, `share_estratos` y `teletrabajo_factor`. Los dos
+ *  primeros eran la fuente de población de la ruta «transporte solo», que
+ *  dejó de existir: la población viene SIEMPRE del uso de suelo
+ *  (`LandUseConfig.H_por_estrato` sobre la oferta `S`), así que eran inertes
+ *  por la ruta de la app y el schema afirmaba «población = densidad × largo»
+ *  sin condición (D-46). El tercero es una palanca de demanda y vive ahora en
+ *  `GlobalConfig`. La densidad media es una CONSECUENCIA, ΣH / largo, y así
+ *  se reporta.
+ */
 export interface CityConfig {
   n_celdas: number;
   largo_ciudad_km: number;
-  densidad_hab_km: number;
   pendiente_porcentaje: number;
-  teletrabajo_factor: number;
-  share_estratos: [number, number, number];
 }
 
 export interface DemandConfig {
@@ -49,6 +59,7 @@ export interface GlobalConfig {
   costo_parking: number;
   factor_flota_auto: number;
   factor_emision_metro_tren_km: number;
+  teletrabajo_factor: number;
 }
 
 /**

@@ -29,14 +29,12 @@
     "pendiente_porcentaje": "Pendiente (%)",
     "cbd_label": "{{n}} celdas · CBD al centro",
     "density_unit": "hab/km",
-    "n_celdas_hint": "Resolución espacial: más celdas = perfiles más suaves pero simulación más lenta. No cambia la física del modelo (la población la fija la densidad × largo).",
-    "n_parcelas_hint": "Cada parcela ≈ {{dx}} m de ancho (Δx = largo/n). Más parcelas = mayor resolución espacial (simulación más lenta). La población total la fija la densidad × largo, así que NO cambia con n.",
-    "densidad_hint": "≈ {{cuadra}} hogares por cuadra de 100 m · población total = densidad × largo = {{total}}. Valores muy altos saturan la red (gridlock).",
+    "n_celdas_hint": "Resolución espacial: más celdas = perfiles más suaves pero simulación más lenta. No cambia la física del modelo: la población la fija el uso de suelo (ΣH), no la grilla.",
+    "n_parcelas_hint": "Cada parcela ≈ {{dx}} m de ancho (Δx = largo/n). Más parcelas = mayor resolución espacial (simulación más lenta). La población total la fija el uso de suelo (ΣH), así que NO cambia con n.",
     "pendiente_hint": "Pendiente del corredor: castiga la velocidad de la bici hacia el CBD (subida) y la favorece de vuelta.",
-    "densidad_hab_km": "Densidad (hab/km)",
     "meta": "{{km}} km · {{n}} parcelas",
-    "land_use_note": "La composición de estratos y la densidad se definen en Uso de Suelo y alimentan esta simulación (densidad por estrato → densidad por celda).",
-    "defined_in_land_use": "La ciudad (largo, celdas, pendiente, densidad y estratos) se define en Uso de Suelo y alimenta esta simulación.",
+    "land_use_note": "La composición de estratos y la población se definen en Uso de Suelo y alimentan esta simulación (hogares por estrato → hogares por celda).",
+    "defined_in_land_use": "La ciudad (largo, celdas y pendiente) y su población (hogares por estrato) se definen en Uso de Suelo y alimentan esta simulación.",
     "largo_hint": "Población fija ({{pob}} hog): al cambiar el largo, la densidad se recalcula (hoy {{rho}} hab/km)."
   },
   "economy_params": {

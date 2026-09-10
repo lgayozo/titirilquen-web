@@ -136,7 +136,7 @@
     <tr>
       <td class="n">2</td>
       <td class="ruta py">population.py</td>
-      <td class="n">110</td>
+      <td class="n">50</td>
       <td><code>generar_poblacion_desde_land_use_det</code> — la única fábrica de agentes de las dos páginas; sortea teletrabajo y auto</td>
     </tr>
     <tr>
@@ -148,13 +148,13 @@
     <tr>
       <td class="n">3</td>
       <td class="ruta py">equilibrium/msa.py</td>
-      <td class="n">159</td>
+      <td class="n">155</td>
       <td><code>_correr_iteracion</code> — el conteo ESPERADO <em>n·p_m</em> (204) que es <code>modal_split</code></td>
     </tr>
     <tr>
       <td class="n">3</td>
       <td class="ruta py">equilibrium/msa.py</td>
-      <td class="n">224</td>
+      <td class="n">220</td>
       <td><code>_asignar_modos_agentes</code> — el <code>modo_elegido</code> MUESTREADO por agente al final (D-67)</td>
     </tr>
     <tr>
@@ -178,7 +178,7 @@
     <tr>
       <td class="n">5</td>
       <td class="ruta py">equilibrium/msa.py</td>
-      <td class="n">288</td>
+      <td class="n">259</td>
       <td><code>iter_msa_desde_suelo</code> — la rama «original» en 331; la geometría se hereda de <code>CiudadLineal</code></td>
     </tr>
     <tr>
@@ -190,7 +190,7 @@
     <tr>
       <td class="n">—</td>
       <td class="ruta py">CLAUDE.md</td>
-      <td class="n">115</td>
+      <td class="n">121</td>
       <td><code>seed</code> — la línea base citada en el documento canónico, desfasada 0,11 pp (D-68); los conteos de tests en 24–25</td>
     </tr>
   </tbody>
@@ -406,7 +406,7 @@
     El test se actualizó con D-42; <code>CLAUDE.md</code> no. La brecha, 0,11 pp,
     es más del doble de la tolerancia del test. Y los conteos que el mismo
     documento da como orientación —«105 tests del núcleo», «58 e2e»— son hoy
-    <strong>180</strong> y <strong>59</strong>. Es la misma familia de D-54 y D-59,
+    <strong>201</strong> y <strong>59</strong> (el 58 vale para <code>test:e2e:fast</code>; el 59 cuenta el @slow). Es la misma familia de D-54 y D-59,
     con más alcance: es el archivo que todo agente lee primero.
   </p>
 </div>
@@ -416,13 +416,14 @@
 <ul>
   <li>
     <strong>i18n</strong>: los dos idiomas tienen exactamente el mismo conjunto de
-    claves — 746 en <code>simulator.json</code>, 55 en <code>common.json</code>,
+    claves — 744 en <code>simulator.json</code>, 55 en <code>common.json</code>,
     ninguna huérfana en ningún sentido. Es la comprobación que
     <code>CLAUDE.md</code> advierte que un grep no puede hacer.
   </li>
   <li>
     <strong>Discrepancias registradas</strong>: 68, de las que 24 (D-45 a D-68)
-    son de este libro y siguen pendientes.
+    son de este libro; D-45 y D-46 se corrigieron el 2026-09-10 (cap. 1), el
+    resto sigue pendiente.
   </li>
 </ul>
 

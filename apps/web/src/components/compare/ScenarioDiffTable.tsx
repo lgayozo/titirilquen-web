@@ -49,7 +49,7 @@ const GRUPOS: { labelKey: string; campos: Campo[] }[] = [
       },
       {
         labelKey: "compare.diff.teletrabajo",
-        get: (c) => c.city.teletrabajo_factor,
+        get: (c) => c.demand.globales.teletrabajo_factor,
         fmt: (v) => `× ${nf(v)}`,
       },
       { labelKey: "compare.diff.forma", get: (_c, lu) => lu?.forma ?? null },

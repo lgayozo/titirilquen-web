@@ -105,25 +105,26 @@ async function leerSse<T>(
  */
 export async function simularTransporte(
   config: SimulationConfig,
+  landUse: LandUseConfig,
+  localizacion: "equilibrio" | "original",
   onIteracion: (snap: IterationSnapshot) => void,
   signal?: AbortSignal,
-  landUse?: LandUseConfig,
-  localizacion?: "equilibrio" | "original",
 ): Promise<SimulationResult> {
   if (motorLocal()) {
     return pyodideEngine.simulateStream(
       config,
-      onIteracion,
-      signal,
       landUse,
       localizacion,
+      onIteracion,
+      signal,
     );
   }
-  // `/simulate` no recibe uso de suelo: por esta ruta la población es la de
-  // densidad plana (C-02). Es una diferencia real entre motores, no un bug.
+  // Misma población en los dos motores: `/simulate` recibe el uso de suelo
+  // desde sep-2026. Antes poblaba con densidad plana y el Sandbox daba 9,15 pp
+  // de metro distintos según el motor (C-02, cerrado).
   const resultado = await postJson<SimulationResult>(
     "/simulate",
-    config,
+    { sim: config, land_use: landUse, localizacion },
     signal,
   );
   resultado.iteraciones.forEach(onIteracion);

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from tests._poblacion import suelo_uniforme
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import (
     CityConfig,
@@ -10,14 +11,14 @@ from titirilquen_core.config import (
     SupplyConfig,
 )
 from titirilquen_core.coupled import _T_logsum_snapshot, run_coupled
-from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 from titirilquen_core.presets import DEFAULT_STRATA
 
 
 def _sim_small(demanda_sintetica: DemandConfig) -> SimulationConfig:
     return SimulationConfig(
-        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_hab_km=50),
+        city=CityConfig(n_celdas=51, largo_ciudad_km=5),
         supply=SupplyConfig(),
         demand=demanda_sintetica,
         max_iter=3,
@@ -87,7 +88,7 @@ def test_coupled_residual_decreases_o_converge(demanda_sintetica: DemandConfig) 
 
 def _snapshot(demand: DemandConfig):
     sim = SimulationConfig(
-        city=CityConfig(n_celdas=41, largo_ciudad_km=8, densidad_hab_km=300),
+        city=CityConfig(n_celdas=41, largo_ciudad_km=8),
         supply=SupplyConfig(),
         demand=demand,
         max_iter=2,
@@ -96,7 +97,7 @@ def _snapshot(demand: DemandConfig):
     )
     ciudad = CiudadLineal(n_celdas=41, largo_total_km=8)
     trace = ConvergenceTrace()
-    for _ in iter_msa(sim, trace):
+    for _ in iter_msa_desde_suelo(sim, suelo_uniforme(2400), trace, localizacion="original"):
         pass
     return sim, ciudad, trace.iteraciones[-1]
 

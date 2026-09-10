@@ -9,10 +9,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
   city: {
     n_celdas: 1001,
     largo_ciudad_km: 20.0,
-    densidad_hab_km: 500.0,
     pendiente_porcentaje: 0.0,
-    teletrabajo_factor: 1.0,
-    share_estratos: [0.2, 0.5, 0.3],
   },
   supply: {
     bike: {
@@ -58,6 +55,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
       costo_parking: 2000,
       factor_flota_auto: 1.0,
       factor_emision_metro_tren_km: 2.5,
+      teletrabajo_factor: 1.0,
     },
     estratos: {
       "1": {

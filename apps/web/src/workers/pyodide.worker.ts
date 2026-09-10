@@ -4,7 +4,6 @@
  *
  * Protocolo (main thread → worker):
  *   { id, type: "init" }
- *   { id, type: "simulate", config }
  *   { id, type: "simulateStream", config }
  *
  * Respuestas (worker → main thread):
@@ -30,14 +29,14 @@ import type {
 
 type InMsg =
   | { id: string; type: "init" }
-  | { id: string; type: "simulate"; config: SimulationConfig }
   | {
       id: string;
       type: "simulateStream";
       config: SimulationConfig;
-      /** Opción A: si viene, la población se deriva del uso de suelo
-       *  (densidad por estrato → por celda) en vez de la densidad plana. */
-      land_use?: LandUseConfig;
+      /** La población SIEMPRE se deriva del uso de suelo (hogares por estrato
+       *  → hogares por celda). Hasta sep-2026 era opcional y sin él se poblaba
+       *  con densidad plana: dos poblaciones para una ciudad (D-46). */
+      land_use: LandUseConfig;
       /** Localización de los estratos: "original" = mezcla uniforme π_h (el
        *  equilibrio de pujas no se ha movido); "equilibrio" = producto del
        *  bid-rent. Solo aplica con `land_use`. Default "equilibrio". */
@@ -87,8 +86,6 @@ interface PyodideInterface {
 type LoadPyodide = (opts: { indexURL: string }) => Promise<PyodideInterface>;
 
 let pyodide: PyodideInterface | null = null;
-let simulateFn: ((config: unknown) => unknown) | null = null;
-let iterFn: ((config: unknown) => unknown) | null = null;
 let iterSueloFn: ((req: unknown) => unknown) | null = null;
 let lastTraceFn: (() => unknown) | null = null;
 let landUseSolveFn: ((req: unknown) => unknown) | null = null;
@@ -136,10 +133,10 @@ import micropip
 await micropip.install("pydantic")
 await micropip.install(${JSON.stringify(whlUrl)})
 
-from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
+from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.config import DemandConfig, SupplyConfig
-from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa, iter_msa_desde_suelo
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 import json
 
@@ -154,27 +151,14 @@ from titirilquen_core.serializacion import (
     trace_to_dict,
 )
 
-def simulate_from_json(config_json: str):
-    cfg = SimulationConfig.model_validate_json(config_json)
-    return trace_to_dict(run_msa(cfg), cfg)
-
-# Streaming en una sola corrida: iter_msa popula el trace completo mientras
-# emite los snapshots. Tras agotar el generador, last_trace_to_py() devuelve el
-# resultado final (agentes/emisiones) SIN volver a correr la simulación.
+# Streaming en una sola corrida: iter_msa_desde_suelo popula el trace completo
+# mientras emite los snapshots. Tras agotar el generador, last_trace_to_py()
+# devuelve el resultado final (agentes/emisiones) SIN volver a correr.
 _LAST_TRACE = {"trace": None, "cfg": None}
 
-def iter_from_json(config_json: str):
-    cfg = SimulationConfig.model_validate_json(config_json)
-    trace = ConvergenceTrace()
-    _LAST_TRACE["trace"] = None
-    _LAST_TRACE["cfg"] = cfg
-    for snap in iter_msa(cfg, trace):
-        yield iteration_to_dict(snap)
-    _LAST_TRACE["trace"] = trace
-
 def iter_from_json_suelo(req_json: str):
-    # Opción A: la población del transporte se deriva del uso de suelo
-    # (densidad por estrato → densidad por celda), no de la densidad plana.
+    # La población del transporte se deriva del uso de suelo (hogares por
+    # estrato → hogares por celda); es la única ruta desde sep-2026.
     req = json.loads(req_json)
     cfg = SimulationConfig.model_validate(req["config"])
     lu = LandUseConfig.model_validate(req["land_use"])
@@ -221,15 +205,11 @@ def coupled_iter_from_json(req_json: str):
 `);
 
   const globals = py.pyimport("__main__") as {
-    simulate_from_json: unknown;
-    iter_from_json: unknown;
     iter_from_json_suelo: unknown;
     last_trace_to_py: unknown;
     land_use_solve_from_json: unknown;
     coupled_iter_from_json: unknown;
   };
-  simulateFn = globals.simulate_from_json as (c: unknown) => unknown;
-  iterFn = globals.iter_from_json as (c: unknown) => unknown;
   iterSueloFn = globals.iter_from_json_suelo as (r: unknown) => unknown;
   lastTraceFn = globals.last_trace_to_py as () => unknown;
   landUseSolveFn = globals.land_use_solve_from_json as (r: unknown) => unknown;
@@ -267,26 +247,13 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
       post({ id: msg.id, type: "ready" });
       return;
     }
-    if (msg.type === "simulate") {
-      const result = jsFromPy(
-        simulateFn!(JSON.stringify(msg.config)),
-      ) as SimulationResult;
-      post({ id: msg.id, type: "done", result });
-      return;
-    }
     if (msg.type === "simulateStream") {
-      // Opción A: con `land_use`, la población viene del uso de suelo
-      // (densidad por estrato → por celda); si no, densidad plana clásica.
-      const gen = (
-        msg.land_use
-          ? iterSueloFn!(
-              JSON.stringify({
-                config: msg.config,
-                land_use: msg.land_use,
-                localizacion: msg.localizacion ?? "equilibrio",
-              }),
-            )
-          : iterFn!(JSON.stringify(msg.config))
+      const gen = iterSueloFn!(
+        JSON.stringify({
+          config: msg.config,
+          land_use: msg.land_use,
+          localizacion: msg.localizacion ?? "equilibrio",
+        }),
       ) as {
         [Symbol.iterator](): Iterator<unknown>;
       };

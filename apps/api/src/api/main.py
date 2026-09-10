@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import AsyncGenerator
+from typing import Literal
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -66,10 +67,27 @@ def health() -> dict[str, str]:
 # HTTP, el patrón sigue vivo en `/coupled/stream`.
 
 
+class SimulateRequest(BaseModel):
+    """Request del equilibrio de transporte.
+
+    Hasta sep-2026 recibía sólo `SimulationConfig` y poblaba con densidad plana
+    (C-02: con `engine=api` el Sandbox corría OTRA población que con el motor
+    local, 9,15 pp de metro de diferencia). La población viene ahora siempre
+    del uso de suelo, en los dos motores.
+    """
+
+    sim: SimulationConfig
+    land_use: LandUseConfig
+    localizacion: Literal["equilibrio", "original"] = Field(
+        default="equilibrio",
+        description="«equilibrio» resuelve la subasta; «original» usa la mezcla uniforme π_h",
+    )
+
+
 @app.post("/simulate")
-def simulate(config: SimulationConfig) -> dict[str, object]:
-    trace = run_msa(config)
-    return trace_to_dict(trace, config)
+def simulate(req: SimulateRequest) -> dict[str, object]:
+    trace = run_msa(req.sim, req.land_use, req.localizacion)
+    return trace_to_dict(trace, req.sim)
 
 
 # ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-07",
-  "commit": "789ab9a",
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
   "script": "docs/libro/datos/datos_cap02.py",
   "configuracion": "Oferta de la aplicación (`test_linea_base._config_web().supply`) sobre la ciudad por defecto: 201 celdas, 20 km. Las demandas son uniformes y sintéticas — el capítulo mide las funciones de costo, no el equilibrio, que es el capítulo 4."
  },
@@ -29,21 +29,14 @@
     "coinciden": true
    },
    {
-    "n_celdas": 200,
-    "cbd_index_cap1": 100,
-    "idx_centro_auto_bici": 100,
-    "idx_cbd_parcela_tren": 100,
-    "coinciden": true
-   },
-   {
-    "n_celdas": 100,
-    "cbd_index_cap1": 50,
-    "idx_centro_auto_bici": 50,
-    "idx_cbd_parcela_tren": 50,
+    "n_celdas": 1001,
+    "cbd_index_cap1": 500,
+    "idx_centro_auto_bici": 500,
+    "idx_cbd_parcela_tren": 500,
     "coinciden": true
    }
   ],
-  "nota": "int(L/2 / L · n) == n//2 para todo n > 0: los tres modos usan la celda del capítulo 1 con cualquier paridad. El tren, además, sitúa sus estaciones sobre centroides (x_i = (i+½)·Δx), que es la convención continua de `CiudadLineal` — coherente, porque el acceso a la estación es una distancia física, no un conteo de celdas."
+  "nota": "int(L/2 / L · n) == n//2 para todo n > 0: los tres modos usan la celda del capítulo 1 (y desde sep-2026 n es impar por schema). El tren, además, sitúa sus estaciones sobre centroides (x_i = (i+½)·Δx), que es la convención continua de `CiudadLineal` — coherente, porque el acceso a la estación es una distancia física, no un conteo de celdas."
  },
  "auto": {
   "densidad_embotellamiento_veh_km": 142.857,

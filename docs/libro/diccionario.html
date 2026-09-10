@@ -156,7 +156,7 @@
     <tr><td><strong>Convergencia</strong></td><td>Tres loops, tres residuos, tres unidades; el núcleo compone un solo <em>flag</em> (D-39) y el frontend lo relaja (D-55).</td><td><a href="cap10-consistencia.html#s4">cap. 10 §4.6</a></td></tr>
     <tr><td><strong>Cortes de factibilidad</strong></td><td>Sobre 30 min a pie (2,4 km) y 45 en bici (10,5 km) el modo sale del conjunto de elección; no es una penalización.</td><td><a href="cap03-demanda-eleccion-modal.html#s4">cap. 3 §4</a></td></tr>
     <tr><td><strong>Costo generalizado</strong></td><td>Tiempo valorado más dinero, por componente de tiempo ponderado (D-37): «percibido» con el VoT del estrato, «social» con el del SNI.</td><td><a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.7</a></td></tr>
-    <tr><td><strong>Densidad (hab/km)</strong></td><td>Física, no por celda (D-26/D-28): refinar la grilla no cambia la población. En la rama con suelo, la población viene de <em>H</em>.</td><td><a href="cap01-ciudad-lineal.html#s1">cap. 1 §1</a></td></tr>
+    <tr><td><strong>Densidad (hab/km)</strong></td><td>Derivada: ΣH / L. La población viene sólo del uso de suelo (D-46, corregido); refinar la grilla no la cambia (D-26/D-28).</td><td><a href="cap01-ciudad-lineal.html#s1">cap. 1 §1</a></td></tr>
     <tr><td><strong>Downs-Thomson</strong></td><td>Ampliar la vía empeora al sistema porque el metro pierde frecuencia. Aparece o no según el método de asignación y la unidad de bienestar.</td><td><a href="cap04-equilibrio-transporte.html#s4">cap. 4 §4</a> · <a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.3</a></td></tr>
     <tr><td><strong>Excedente del consumidor (CS)</strong></td><td><em>E[max]</em> del viajero en pesos: logsum bajo el logit, máximo bajo todo-o-nada, dividido por λ. Cero arbitrario: sólo el Δ significa algo.</td><td><a href="cap07-bienestar-indicadores.html#s1">cap. 7 §1</a></td></tr>
     <tr><td><strong>Excedente social</strong></td><td>El mismo excedente ponderado por <em>VoT_social/VoT_h</em>: reprecia personas, no minutos (D-56). Con β_t común es la suma llana de útiles.</td><td><a href="cap07-bienestar-indicadores.html#s4">cap. 7 §4.1–4.2</a></td></tr>
@@ -229,11 +229,11 @@
     <tr><th>Sigla</th><th>Qué es</th><th>Dónde vive</th></tr>
   </thead>
   <tbody>
-    <tr><td><strong>D-nn</strong></td><td>Discrepancia: un hallazgo con evidencia, veredicto y estado. D-01 a D-44 son anteriores al libro; D-45 a D-68, del libro, todas pendientes de corrección.</td><td><a href="../DISCREPANCIES.md">DISCREPANCIES.md</a></td></tr>
+    <tr><td><strong>D-nn</strong></td><td>Discrepancia: un hallazgo con evidencia, veredicto y estado. D-01 a D-44 son anteriores al libro; D-45 a D-68, del libro; D-45 y D-46 corregidas el 2026-09-10, el resto pendiente.</td><td><a href="../DISCREPANCIES.md">DISCREPANCIES.md</a></td></tr>
     <tr><td><strong>AU-nn</strong></td><td>Hallazgos de la auditoría del uso de suelo (agosto de 2026).</td><td><a href="../AUDITORIA_USO_SUELO.md">AUDITORIA_USO_SUELO.md</a></td></tr>
     <tr><td><strong>S-nn</strong></td><td>Hallazgos del análisis de sensibilidad (agosto de 2026); superado por el cap. 9 (D-66).</td><td><a href="../ANALISIS_SENSIBILIDAD.md">ANALISIS_SENSIBILIDAD.md</a></td></tr>
     <tr><td><strong>A-nn</strong></td><td>Hallazgos de la auditoría externa del 2026-09-05, contrastados en D-35 a D-44.</td><td><code>reference/auditoria-2026-09-05/</code> (no versionado)</td></tr>
-    <tr><td><strong>C-02</strong></td><td>Con motor api el Sandbox cae a <code>/simulate</code> sin uso de suelo: 9,15 pp de metro entre motores.</td><td><a href="cap08-contrato-runtimes.html#s4">cap. 8 §4.2</a></td></tr>
+    <tr><td><strong>C-02</strong></td><td>Cerrado el 2026-09-10: <code>/simulate</code> recibe el uso de suelo y los dos motores dan el mismo reparto (antes, 9,15 pp de metro de diferencia).</td><td><a href="cap08-contrato-runtimes.html#s4">cap. 8 §4.2</a></td></tr>
     <tr><td><strong><code>capNN.json</code></strong></td><td>Los números de cada capítulo, escritos por <code>datos_capNN.py</code>; ninguno se tipea a mano.</td><td><a href="datos/README.md">datos/README.md</a></td></tr>
   </tbody>
 </table>

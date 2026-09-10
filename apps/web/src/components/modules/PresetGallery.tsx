@@ -199,14 +199,9 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
     if (!p?.largo_ciudad) return;
     const largo = p.largo_ciudad;
     const sumaH = landUse.H_por_estrato.reduce((a, b) => a + b, 0);
-    const sumaFinal = p.poblacion ?? sumaH;
     setConfig((c) => ({
       ...c,
-      city: {
-        ...c.city,
-        largo_ciudad_km: largo,
-        densidad_hab_km: densidadDerivadaHabKm(sumaFinal, largo),
-      },
+      city: { ...c.city, largo_ciudad_km: largo },
       // La capacidad vial la traen SOLO los presets de escala (los que declaran
       // `poblacion`): a 144.000 habitantes las 2 pistas del default dejan el
       // corredor en v/c 3,68 y el auto deja de competir, así que el escenario

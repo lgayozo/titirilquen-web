@@ -19,8 +19,9 @@ from typing import get_type_hints
 
 import pytest
 
+from tests._poblacion import suelo_uniforme
 from titirilquen_core.config import CityConfig, DemandConfig, SimulationConfig, SupplyConfig
-from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
@@ -41,7 +42,7 @@ from titirilquen_core.serializacion import (
 def trace(demanda_sintetica_modulo: DemandConfig) -> ConvergenceTrace:
     """Una corrida chica, reutilizada por todos los tests del módulo."""
     cfg = SimulationConfig(
-        city=CityConfig(n_celdas=51, largo_ciudad_km=10, densidad_hab_km=400),
+        city=CityConfig(n_celdas=51, largo_ciudad_km=10),
         supply=SupplyConfig(),
         demand=demanda_sintetica_modulo,
         max_iter=2,
@@ -49,7 +50,7 @@ def trace(demanda_sintetica_modulo: DemandConfig) -> ConvergenceTrace:
         assignment="expected",
     )
     tr = ConvergenceTrace()
-    for _ in iter_msa(cfg, tr):
+    for _ in iter_msa_desde_suelo(cfg, suelo_uniforme(4000), tr, localizacion="original"):
         pass
     return tr
 

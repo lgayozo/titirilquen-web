@@ -132,7 +132,7 @@ def iter_coupled(
 
     Ideal para SSE: el consumidor puede renderizar progreso en vivo. Si se pasa
     `result`, lo popula por completo en el mismo recorrido (iteraciones, ciudad
-    final, agentes, convergencia) — mismo patrón que `iter_msa(trace=...)`;
+    final, agentes, convergencia) — mismo patrón que `iter_msa_desde_suelo(trace=...)`;
     `run_coupled` no es más que consumir este generador con un `result`.
     """
     rng = np.random.default_rng(sim.seed)
@@ -166,7 +166,7 @@ def iter_coupled(
             S=city.S,
             cbd_index=CBD,
             demand_config=sim.demand,
-            teletrabajo_factor=sim.city.teletrabajo_factor,
+            teletrabajo_factor=sim.demand.globales.teletrabajo_factor,
         )
         transport_trace, final_snap = _run_transport_with_population(sim_eq, agentes, ciudad)
         T_new = _T_logsum_snapshot(sim_eq, ciudad, final_snap)

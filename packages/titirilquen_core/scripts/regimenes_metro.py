@@ -53,7 +53,7 @@ def _land_use(poblacion: int) -> LandUseConfig:
 
 def corrida(densidad: int, poblacion: int, pistas: int, metodo: str) -> dict:
     sim = base_sim()
-    sim.city.densidad_hab_km = densidad
+    # `densidad` ya no es un campo: la escala la fija `_land_use(poblacion)`.
     sim.supply.car.num_pistas = pistas
     sim.assignment = metodo
     tr = corre_trace(sim, _land_use(poblacion))

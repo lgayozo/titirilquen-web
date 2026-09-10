@@ -36,13 +36,7 @@ def test_coupled_solve() -> None:
         "/coupled/solve",
         json={
             "sim": {
-                "city": {
-                    "n_celdas": 51,
-                    "largo_ciudad_km": 5,
-                    # Ver la nota de test_simulate.py: 1 hab/celda x 50 / 5 km.
-                    "densidad_hab_km": 10,
-                    "share_estratos": [0.1, 0.4, 0.5],
-                },
+                "city": {"n_celdas": 51, "largo_ciudad_km": 5},
                 "supply": {},
                 "demand": {
                     "estratos": {

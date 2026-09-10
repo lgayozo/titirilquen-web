@@ -184,7 +184,6 @@ export function applyJointPreset(preset: JointPreset): {
       ...(city.largo_ciudad !== undefined && {
         largo_ciudad_km: city.largo_ciudad,
       }),
-      ...(city.densidad !== undefined && { densidad_hab_km: city.densidad }),
     },
     supply: {
       ...defaultSimulationConfig.supply,

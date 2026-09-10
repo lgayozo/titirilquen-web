@@ -2,7 +2,7 @@
  * Dónde y por qué el frontend se aparta de los defaults del núcleo.
  *
  * Los valores por defecto vienen generados desde Pydantic (`lib/gen/`), pero
- * la aplicación no arranca exactamente con ellos: hay seis diferencias
+ * la aplicación no arranca exactamente con ellos: hay cinco diferencias
  * deliberadas, casi todas por interactividad en el navegador.
  *
  * Antes vivían como una lista de excepciones dentro del test de contrato
@@ -35,11 +35,6 @@ export const defaultSimulationConfig: SimulationConfig = {
     // (Δx ≈ 100 m) es el punto donde la resolución sigue siendo suficiente y
     // la simulación se siente instantánea.
     n_celdas: 201,
-    // El núcleo trae la escala liviana del paper (500 hab/km). La app usa la
-    // del preset «Base»: por debajo de ~1.800 el corredor no se congestiona y
-    // la BPR del auto queda plana, con lo que mover la oferta no cambia nada y
-    // el ejercicio pierde sentido (S-03).
-    densidad_hab_km: 1800,
   },
   demand: {
     ...DEFAULTS_CORE.demand,
@@ -57,7 +52,9 @@ export const defaultSimulationConfig: SimulationConfig = {
 export const defaultLandUseConfig: LandUseConfig = {
   ...DEFAULTS_LAND_USE_CORE,
   // El núcleo conserva la escala del paper (99.900 hogares). La app usa 36.000
-  // en sync con `city.densidad_hab_km`, repartidos según SHARES.
+  // —1.800 hab/km sobre 20 km: por debajo de eso el corredor no se congestiona
+  // y la BPR del auto queda plana, S-03— repartidos según SHARES. Es la ÚNICA
+  // fuente de población desde sep-2026 (D-46).
   H_por_estrato: [
     POBLACION_BASE * SHARES[0],
     POBLACION_BASE * SHARES[1],

@@ -151,6 +151,11 @@ class GlobalConfig(BaseModel):
     # en el escenario de referencia, y plausible para metro eléctrico
     # (~8 kWh/km × ~0.3 kgCO₂/kWh). El frontend migra configs viejas.
     factor_emision_metro_tren_km: float = 2.5
+    # Multiplica la probabilidad de teletrabajo de cada estrato (acotada a 1):
+    # la única palanca que saca viajes de la punta. Vivía en `CityConfig` hasta
+    # sep-2026, pero es gestión de demanda, no forma urbana; la interfaz ya lo
+    # editaba en «Economía» desde ago-2026.
+    teletrabajo_factor: float = Field(default=1.0, ge=0.0, le=5.0)
 
 
 class DemandConfig(BaseModel):
@@ -179,33 +184,36 @@ class DemandConfig(BaseModel):
 
 
 class CityConfig(BaseModel):
-    """Ciudad lineal. `n_celdas` debe ser impar para que el CBD quede centrado."""
+    """Ciudad lineal: la geometría y nada más.
+
+    Tres números. `n_celdas` es la resolución numérica (impar, para que el CBD
+    sea una celda y su centroide caiga en L/2); `largo_ciudad_km` el tamaño
+    físico; `pendiente_porcentaje` el terreno, que sólo ve la bicicleta.
+
+    Hasta sep-2026 traía además `densidad_hab_km`, `share_estratos` y
+    `teletrabajo_factor`. Los dos primeros eran la fuente de población de la
+    ruta «transporte solo», que dejó de existir: la población viene SIEMPRE del
+    uso de suelo (`LandUseConfig.H_por_estrato` sobre la oferta `S`), así que
+    eran inertes por la ruta de la app y el schema afirmaba «población =
+    densidad × largo» sin condición (D-46). El tercero es una palanca de
+    demanda y vive ahora en `GlobalConfig`. La densidad media es una
+    CONSECUENCIA, ΣH / largo, y así se reporta."""
 
     model_config = ConfigDict(extra="forbid")
 
     n_celdas: int = Field(default=1001, ge=11)
     largo_ciudad_km: float = Field(default=20.0, gt=0)
-    # Densidad FÍSICA (D-28): población total = densidad_hab_km · largo, así que
-    # `n_celdas` queda como variable puramente numérica (antes era hab/celda y
-    # refinar la grilla multiplicaba la población). 500 hab/km ≈ 50 hogares por
-    # cuadra de 100 m. El frontend migra configs viejas (serialization.ts).
-    densidad_hab_km: float = Field(default=500.0, gt=0)
     pendiente_porcentaje: float = Field(default=0.0)
-    teletrabajo_factor: float = Field(default=1.0, ge=0.0, le=5.0)
-    # (0.20, 0.50, 0.30) — antes (0.10, 0.40, 0.50). Con media ciudad en el
-    # estrato bajo (VoT $1.600/h), los ~$1.800 de diferencia entre auto y metro
-    # les valen 67 minutos y el auto no puede competir por construcción: era una
-    # ciudad pobre por supuesto, no por resultado. Ago-2026.
-    share_estratos: tuple[float, float, float] = Field(default=(0.20, 0.50, 0.30))
-    # `ingresos_estratos` se eliminó (jun-2026): nunca se usó en el core y
-    # duplicaba el `y` del módulo de suelo. El frontend descarta el campo al
-    # importar escenarios viejos (ver serialization.ts::migrateConfig).
 
-    @field_validator("share_estratos")
+    @field_validator("n_celdas")
     @classmethod
-    def _shares_sum_to_one(cls, v: tuple[float, float, float]) -> tuple[float, float, float]:
-        if abs(sum(v) - 1.0) > 1e-6:
-            raise ValueError(f"Los shares de estratos deben sumar 1, obtuve {sum(v)}")
+    def _impar(cls, v: int) -> int:
+        # Con n par el centroide de la celda n//2 cae medio Δx a la derecha de
+        # L/2 y la «celda del CBD» queda a esa distancia de sí misma (D-45). El
+        # docstring lo exigía y ningún validador lo leía; la interfaz lo
+        # forzaba por su cuenta (CityBuilder). Ahora lo exige el schema.
+        if v % 2 == 0:
+            raise ValueError(f"n_celdas debe ser impar para que el CBD sea una celda; obtuve {v}")
         return v
 
 

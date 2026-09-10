@@ -4,7 +4,7 @@
  * Formato de archivo `.ttrq.json`:
  * ```json
  * {
- *   "$schema": "titirilquen-scenario/v3",
+ *   "$schema": "titirilquen-scenario/v4",
  *   "name": "Mi escenario",
  *   "config": { ...SimulationConfig },
  *   "land_use": { ...LandUseConfig },          // opcional
@@ -23,7 +23,7 @@
  * educativo cuyos escenarios se rehacen en minutos, no un sistema con datos
  * que no se pueden perder.
  *
- * La consecuencia es explícita: un archivo o link anterior a v3 falla al
+ * La consecuencia es explícita: un archivo o link anterior a v4 falla al
  * importarse, con un mensaje que dice por qué. Si algún día hay escenarios que
  * de verdad importe conservar, la decisión se revisa — y entonces el lugar
  * correcto es un migrador versionado, no cinco parches sueltos.
@@ -32,7 +32,7 @@
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 
-export const TTRQ_SCHEMA = "titirilquen-scenario/v3";
+export const TTRQ_SCHEMA = "titirilquen-scenario/v4";
 export const TTRQ_EXT = ".ttrq.json";
 
 export interface CoupledPrefs {
@@ -84,8 +84,10 @@ export function parseTtrqJson(raw: string): TtrqFile {
     throw new Error(
       `Este escenario es de una versión anterior del simulador ` +
         `(${String(obj.$schema)}; se espera "${TTRQ_SCHEMA}") y ya no se puede ` +
-        `importar. El esquema cambió en agosto de 2026: se retiraron parámetros ` +
-        `que ningún cálculo leía. Vuelve a exportarlo desde la versión actual.`,
+        `importar. El esquema cambió en agosto de 2026 (parámetros que ningún ` +
+        `cálculo leía) y en septiembre de 2026 (la población viene sólo del uso ` +
+        `de suelo: \`city\` perdió densidad, shares y teletrabajo). Vuelve a ` +
+        `exportarlo desde la versión actual.`,
     );
   }
   if (typeof obj.config !== "object" || obj.config === null) {

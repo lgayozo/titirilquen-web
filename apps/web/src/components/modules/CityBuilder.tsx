@@ -44,13 +44,9 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
               config.city.largo_ciudad_km,
             ).toLocaleString("es-CL"),
           })}
-          onChange={(v) =>
-            // Cambiar el largo con población fija ⇒ la densidad se recalcula.
-            setCity({
-              largo_ciudad_km: v,
-              densidad_hab_km: densidadDerivadaHabKm(sumaH, v),
-            })
-          }
+          // Población fija (ΣH del suelo): la densidad media que muestra el hint
+          // es una consecuencia, no un campo (D-46).
+          onChange={(v) => setCity({ largo_ciudad_km: v })}
         />
         <LabeledSlider
           label={t("city_params.n_parcelas")}
@@ -79,8 +75,7 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
             Transporte. Es una política de gestión de demanda —saca viajes de la
             punta— y no un atributo de la forma urbana, así que estaba a una
             página de distancia de las otras palancas (tarifa, parking, pistas).
-            El campo del schema sigue siendo `city.teletrabajo_factor`; lo que se
-            movió es dónde se edita. */}
+            Desde sep-2026 el campo también vive ahí: `demand.globales.teletrabajo_factor`. */}
       </CollapsibleSection>
     </>
   );

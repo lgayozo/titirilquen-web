@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-08",
-  "commit": "6bfdf36",
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -12,13 +12,12 @@
   "al_dia": true
  },
  "paridad_worker_api": {
-  "lineas_de_python_en_el_worker": 84,
+  "lineas_de_python_en_el_worker": 71,
   "entradas": {
-   "simulate": {
+   "simulateStream": {
     "api": "/simulate",
     "iguales": true,
-    "claves_distintas": [],
-    "llamadores_en_el_frontend": 0
+    "claves_distintas": []
    },
    "landUseSolve": {
     "api": "/land-use/solve",
@@ -31,26 +30,11 @@
     "vueltas": 2,
     "iguales": true,
     "claves_distintas": []
-   },
-   "simulateStream_con_suelo": {
-    "api": null,
-    "nota": "No hay endpoint: con `engine=api` el Sandbox cae a `/simulate` (C-02).",
-    "iguales_al_nucleo": true
    }
   }
  },
  "c02": {
-  "motor_api_densidad_plana": {
-   "reparto_pct": {
-    "Auto": 15.421,
-    "Metro": 37.468,
-    "Bici": 20.994,
-    "Caminata": 6.746,
-    "Teletrabajo": 19.371
-   },
-   "agentes": 35821
-  },
-  "motor_local_suelo_original": {
+  "motor_api_run_msa": {
    "reparto_pct": {
     "Auto": 15.812,
     "Metro": 28.317,
@@ -60,20 +44,23 @@
    },
    "agentes": 36000
   },
-  "diferencia_pp": {
-   "Auto": 0.391,
-   "Metro": -9.151,
-   "Bici": 3.961,
-   "Caminata": 4.676,
-   "Teletrabajo": 0.123
+  "motor_local_iter_msa_desde_suelo": {
+   "reparto_pct": {
+    "Auto": 15.812,
+    "Metro": 28.317,
+    "Bici": 24.955,
+    "Caminata": 11.422,
+    "Teletrabajo": 19.494
+   },
+   "agentes": 36000
   },
-  "diferencia_maxima_pp": 9.151,
-  "diferencia_agentes": 179
+  "diferencia_maxima_pp": 0.0,
+  "diferencia_agentes": 0,
+  "historia": "antes del cierre: 9,151 pp de metro y 179 agentes de diferencia"
  },
  "defaults": {
   "overrides_encontrados": {
    "n_celdas": 201,
-   "densidad_hab_km": 1800,
    "seed": 42,
    "assignment": "expected",
    "H_por_estrato": [
@@ -83,8 +70,8 @@
    ],
    "land_use.max_iter": 2000
   },
-  "overrides_que_declara_el_docstring": 6,
-  "overrides_contados": 6,
+  "overrides_que_declara_el_docstring": 5,
+  "overrides_contados": 5,
   "golden_mas_overrides_igual_a_linea_base": true,
   "claves_distintas": [],
   "nota": "`estratos: ESTRATOS_CALIBRADOS` no es un override: `DemandConfig` no tiene default para `estratos`, así que el frontend RELLENA un campo obligatorio, no lo cambia."
@@ -124,7 +111,7 @@
   },
   "referencias_en_el_frontend_por_campo_de_outer": {
    "outer_iter": 5,
-   "land_use": 13,
+   "land_use": 12,
    "transport": 0,
    "T_matrix": 0,
    "T_residual": 4,
@@ -209,7 +196,7 @@
     "tipos.gen.ts",
     "trace.gen.ts"
    ],
-   "lineas": 896,
+   "lineas": 900,
    "interfaces": 29
   },
   "version_del_nucleo": "0.2.0",

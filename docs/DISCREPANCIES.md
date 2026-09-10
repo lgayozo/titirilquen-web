@@ -1283,7 +1283,12 @@ cumple, y eso está en D-39.
   (1001) son impares, y la UI no deja llegar a un par. Corrección propuesta:
   validar la paridad en `CityConfig`, y decidir sobre los dos métodos muertos —
   borrarlos o dejarlos como la definición canónica y hacer que el resto los use.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-10 (libro, cap. 1). `CiudadLineal` perdió
+  `centroides_km` y `distancia_al_cbd_km` —la convención continua que nadie
+  llamaba— y exige `n` impar en `__post_init__`; `CityConfig` lo valida en el
+  schema. Una sola convención de distancia, por índice. Guard:
+  `tests/test_city.py::test_una_grilla_par_se_rechaza` y
+  `test_el_cbd_es_la_celda_central_y_su_centroide_cae_en_medio_largo`.
 
 ## D-46 — Ciudad: la población tiene dos fuentes, y el schema y los textos siguen nombrando la que no manda
 
@@ -1314,7 +1319,16 @@ cumple, y eso está en D-39.
   documentación. Corrección propuesta: condicionar el comentario del schema,
   reescribir `n_parcelas_hint`, borrar las dos claves huérfanas, y decidir si
   `densidad_hab_km` sigue siendo campo de entrada o pasa a derivado explícito.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-09-10 (libro, cap. 1). Decisión de modelo: UNA
+  fuente de población. `CityConfig` perdió `densidad_hab_km` y
+  `share_estratos`; `iter_msa` (densidad plana) y `generar_poblacion` se
+  eliminaron; `run_msa(sim, land_use, localizacion)` y `/simulate` reciben el
+  uso de suelo. La densidad media se deriva (ΣH/largo) donde se muestra. De
+  paso cierra **C-02**: los dos motores corren la misma población (medido:
+  0,0 pp). `teletrabajo_factor` pasó a `GlobalConfig`, que es donde la
+  interfaz ya lo editaba. Schema `.ttrq.json` → v4, sin migración (como en
+  agosto). Guards: `tests/test_city.py` (población = ΣH exacta en cualquier
+  grilla, CBD sin hogares, simetría).
 
 ---
 
@@ -1802,8 +1816,9 @@ cumple, y eso está en D-39.
 - **Veredicto**: código y contrato muertos, de efecto nulo sobre los números.
   Se registra porque el generador proyecta todo lo que el núcleo declara, así
   que el contrato crece y nunca se poda.
-- **Estado**: pendiente, prioridad baja. No se borra nada en este capítulo
-  (política: mencionar, no eliminar).
+- **Estado**: parcialmente corregido 2026-09-10: la entrada `simulate` del
+  worker y `pyodideEngine.simulate()` se eliminaron con la ruta de densidad
+  plana (D-46). Los 15 campos sin lector siguen pendientes (baja).
 
 ---
 
@@ -1840,6 +1855,8 @@ cumple, y eso está en D-39.
   permita el ajuste estándar de las ASC, que `presets.py` ya anticipa.
 
 ---
+
+**Actualización 2026-09-10.** Tras D-46 (corregido) el inventario es de 117 hojas / 75 parámetros únicos (61/39 «decisión», 49/33 «heredado», 7/3 «norma», 0 estimados) y el barrido de sensibilidad de transporte cubre 53 parámetros con 7 inertes: `densidad_hab_km` y `share_estratos` salieron de `CityConfig` y `teletrabajo_factor` pasó a `demand.globales`. El veredicto no cambia: cero estimados, los tres VoT siguen sin fuente escrita.
 
 ## D-65 — Calibración: cuatro velocidades duplicadas entre `globales` y `supply`, con papeles distintos
 
@@ -1935,9 +1952,10 @@ cumple, y eso está en D-39.
 - **Veredicto**: el documento que todo agente lee primero describe un estado
   anterior del modelo en su cifra más importante. Misma familia que D-54 y D-59,
   con más alcance porque `CLAUDE.md` es canónico por definición.
-- **Estado**: pendiente. Corrección: que `CLAUDE.md` cite el test en vez de los
-  números (o que un test compare el documento con `ESPERADO`), y marcar D-30
-  como superado.
+- **Estado**: parcialmente corregido 2026-09-10: `CLAUDE.md` cita hoy los
+  números del test (y el conteo de tests del núcleo). Precisión sobre el «58
+  e2e»: es correcto para `test:e2e:fast`; los 59 que lista Playwright incluyen
+  el `@slow`. D-30 sigue pendiente de marcarse como superado.
 
 ---
 
@@ -1989,8 +2007,8 @@ cumple, y eso está en D-39.
 | D-42 | Suelo standalone: flujo libre sin la red configurada                                                       | Corregido 2026-09-06                                 | Media                      |
 | D-43 | Validación de dominios; cuadratura HEV fija fuera de la base                                               | Corregido 2026-09-06                                 | Media                      |
 | D-44 | Redondeos, muestras y convenciones geométricas                                                             | Corregido 2026-09-06                                 | Baja                       |
-| D-45 | Ciudad: `CiudadLineal` expone una convención de distancia que nadie usa; paridad de `n_celdas` sin validar | Pendiente (libro, cap. 1; corregido cap. 2)          | Baja                       |
-| D-46 | Ciudad: dos fuentes de población; el schema y dos textos nombran la inerte                                 | Pendiente (libro, cap. 1)                            | Media                      |
+| D-45 | Ciudad: `CiudadLineal` expone una convención de distancia que nadie usa; paridad de `n_celdas` sin validar | Corregido 2026-09-10 (libro, cap. 1) | Baja                       |
+| D-46 | Ciudad: dos fuentes de población; el schema y dos textos nombran la inerte                                 | Corregido 2026-09-10 (una sola fuente de población; cierra C-02) | Media                      |
 | D-47 | Metro: `num_estaciones` entrega n±1 estaciones; la etiqueta promete el número pedido                       | Pendiente (libro, cap. 2)                            | Baja                       |
 | D-48 | Demanda: la bici usa `b_tiempo_viaje` (esfuerzo = ir sentado); penalizaciones con gradiente opuesto entre modos | Pendiente (libro, cap. 3) | Media |
 | D-49 | Demanda: `corte_bici_min` inerte con la ciudad por defecto (10,5 km > radio 10 km) | Pendiente (libro, cap. 3) | Baja |

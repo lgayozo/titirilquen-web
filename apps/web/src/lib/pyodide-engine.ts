@@ -39,12 +39,11 @@ type WorkerOutMsg =
 
 type WorkerInMsg =
   | { id: string; type: "init" }
-  | { id: string; type: "simulate"; config: SimulationConfig }
   | {
       id: string;
       type: "simulateStream";
       config: SimulationConfig;
-      land_use?: LandUseConfig;
+      land_use: LandUseConfig;
       localizacion?: "equilibrio" | "original";
     }
   | {
@@ -190,33 +189,12 @@ class PyodideEngine {
     });
   }
 
-  async simulate(
-    config: SimulationConfig,
-    signal?: AbortSignal,
-  ): Promise<SimulationResult> {
-    return this.request<SimulationResult>(
-      { type: "simulate", config },
-      (data, resolve, reject) => {
-        if (data.type === "done") {
-          resolve(data.result);
-          return true;
-        }
-        if (data.type === "error") {
-          reject(new Error(data.message));
-          return true;
-        }
-        return false;
-      },
-      signal,
-    );
-  }
-
   async simulateStream(
     config: SimulationConfig,
+    landUse: LandUseConfig,
+    localizacion: "equilibrio" | "original",
     onIteration: (s: IterationSnapshot) => void,
     signal?: AbortSignal,
-    landUse?: LandUseConfig,
-    localizacion?: "equilibrio" | "original",
   ): Promise<SimulationResult> {
     return this.request<SimulationResult>(
       { type: "simulateStream", config, land_use: landUse, localizacion },

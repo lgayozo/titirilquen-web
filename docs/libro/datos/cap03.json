@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-07",
-  "commit": "389f7af",
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
   "script": "docs/libro/datos/datos_cap03.py",
   "configuracion": "Demanda de la aplicación (`presets.DEFAULT_STRATA`, homoscedástica desde D-33) sobre la ciudad por defecto: 201 celdas, 20 km, localización «original». Los costos por modo son a flujo libre."
  },

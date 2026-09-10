@@ -131,14 +131,14 @@
     <tr>
       <td class="n">(9.1)–(9.4)</td>
       <td class="ruta py">presets.py</td>
-      <td class="n">316</td>
+      <td class="n">314</td>
       <td><code>DEFAULT_STRATA</code> — los 42 betas y las dos probabilidades por estrato; el comentario de arriba es la historia de la calibración</td>
     </tr>
     <tr>
       <td class="n">—</td>
       <td class="ruta py">presets.py</td>
-      <td class="n">44</td>
-      <td><code>CITY_PRESETS</code> — forma urbana a iso-población; <code>POLICY_PRESETS</code> (127) con valores absolutos, no diferencias</td>
+      <td class="n">43</td>
+      <td><code>CITY_PRESETS</code> — forma urbana a iso-población; <code>POLICY_PRESETS</code> (125) con valores absolutos, no diferencias</td>
     </tr>
     <tr>
       <td class="n">(9.4)</td>
@@ -155,20 +155,20 @@
     <tr>
       <td class="n">—</td>
       <td class="ruta py">config.py</td>
-      <td class="n">181</td>
-      <td><code>CityConfig</code> — <code>densidad_hab_km</code> (192) y <code>share_estratos</code> (199)</td>
+      <td class="n">186</td>
+      <td><code>CityConfig</code> — desde el 2026-09-10 sólo <em>n</em>, <em>L</em> y pendiente; <code>densidad_hab_km</code> y <code>share_estratos</code> se borraron (D-46)</td>
     </tr>
     <tr>
       <td class="n">—</td>
       <td class="ruta py">config.py</td>
-      <td class="n">212</td>
-      <td><code>BikeSupplyParams</code> — <code>capacidad_pista</code> (220): 2.500, no los 800 que S-10 cita</td>
+      <td class="n">220</td>
+      <td><code>BikeSupplyParams</code> — <code>capacidad_pista</code> (228): 2.500, no los 800 que S-10 cita</td>
     </tr>
     <tr>
       <td class="n">—</td>
       <td class="ruta py">config.py</td>
-      <td class="n">247</td>
-      <td><code>TrainSupplyParams</code> — <code>capacidad_tren</code> (258), <code>frec_min</code> (308), <code>frec_max</code> (315), <code>anden_alpha</code> (316) con D-16</td>
+      <td class="n">255</td>
+      <td><code>TrainSupplyParams</code> — <code>capacidad_tren</code> (266), <code>frec_min</code> (316), <code>frec_max</code> (323), <code>anden_alpha</code> (324) con D-16</td>
     </tr>
     <tr>
       <td class="n">—</td>
@@ -197,8 +197,8 @@
     <tr>
       <td class="n">(9.3)</td>
       <td class="ruta py">packages/titirilquen_core/tests/test_presets.py</td>
-      <td class="n">90</td>
-      <td><code>test_los_estratos_comparten_la_escala_del_tiempo</code> — D-33 fijado; <code>test_las_asc_conservan_sus_minutos_equivalentes</code> (111)</td>
+      <td class="n">91</td>
+      <td><code>test_los_estratos_comparten_la_escala_del_tiempo</code> — D-33 fijado; <code>test_las_asc_conservan_sus_minutos_equivalentes</code> (112)</td>
     </tr>
     <tr>
       <td class="n">(9.4)</td>
@@ -223,8 +223,8 @@
 <h2 id="s3"><span class="num">§3</span> Parámetros</h2>
 
 <p>
-  La tabla de este capítulo no es una lista sino un conteo: 119 hojas de
-  configuración, 77 sin repetir los tres estratos, cada una etiquetada en
+  La tabla de este capítulo no es una lista sino un conteo: 117 hojas de
+  configuración, 75 sin repetir los tres estratos, cada una etiquetada en
   <code>datos_cap09.py::ORIGEN</code>. La etiqueta es una clasificación de
   esta auditoría —está en el script, con su fuente, y se puede discutir fila a
   fila—, no un dato del código.
@@ -239,8 +239,8 @@
     <tr><td><span class="etiqueta ok">estimado</span></td><td class="n">0</td><td class="n">0</td><td>—</td></tr>
     <tr><td><span class="etiqueta frio">norma</span></td><td class="n">7</td><td class="n">3</td><td><code>b_tiempo_acceso</code> (ponderador 2 del SNI), <code>lambda</code> (= |b_costo|), <code>VOT_SOCIAL_CLP_HORA</code></td></tr>
     <tr><td><span class="etiqueta lim">heredado</span></td><td class="n">49</td><td class="n">33</td><td>velocidades, costos unitarios, BPR, penalizaciones, <code>prob_auto</code>, geometría del vehículo</td></tr>
-    <tr><td><span class="etiqueta neutra">decisión</span></td><td class="n">63</td><td class="n">41</td><td>ASC neutrales, <code>b_tiempo_viaje</code> común, capacidades, cortes, <code>ρ</code>, <code>β</code>, presets</td></tr>
-    <tr class="destacada"><td>total</td><td class="n">119</td><td class="n">77</td><td></td></tr>
+    <tr><td><span class="etiqueta neutra">decisión</span></td><td class="n">61</td><td class="n">39</td><td>ASC neutrales, <code>b_tiempo_viaje</code> común, capacidades, cortes, <code>ρ</code>, <code>β</code>, presets</td></tr>
+    <tr class="destacada"><td>total</td><td class="n">117</td><td class="n">75</td><td></td></tr>
   </tbody>
 </table>
 </div>
@@ -260,7 +260,7 @@
 <div class="aviso alerta">
   <h4>D-64 — el modelo es una construcción declarada, y su ancla externa son tres números sin fuente</h4>
   <p>
-    Ninguno de los 77 parámetros se estimó con datos. Los tres con norma son
+    Ninguno de los 75 parámetros se estimó con datos. Los tres con norma son
     un ponderador, su derivado y un valor social que no entra a la elección. Y
     el único coeficiente que distingue a los estratos —<code>b_costo</code>, del
     que sale <code>λ</code> para el suelo— se despeja de tres VoT que
@@ -330,7 +330,7 @@
 <p>
   Cada parámetro numérico de la configuración de transporte, uno a la vez,
   +10 % (los conteos chicos, +1), sobre la corrida por defecto de la aplicación
-  en la rama «original»: 54 parámetros. Se reporta el mayor cambio del reparto
+  en la rama «original»: 53 parámetros. Se reporta el mayor cambio del reparto
   modal, en puntos porcentuales.
 </p>
 
@@ -340,7 +340,7 @@
     <tr><th class="n">#</th><th>parámetro</th><th class="n">valor → perturbado</th><th class="n">Δ máx (pp)</th><th class="n">Δ t medio (min)</th><th class="n">Δ CO₂ (kg/h)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">1</td><td><code>city.teletrabajo_factor</code></td><td class="n">1,0 → 1,1</td><td class="n">1,972</td><td class="n">−0,024</td><td class="n">−315,25</td></tr>
+    <tr><td class="n">1</td><td><code>globales.teletrabajo_factor</code></td><td class="n">1,0 → 1,1</td><td class="n">1,972</td><td class="n">−0,024</td><td class="n">−315,25</td></tr>
     <tr><td class="n">2</td><td><code>city.largo_ciudad_km</code></td><td class="n">20 → 22</td><td class="n">1,745</td><td class="n">0,090</td><td class="n">823,54</td></tr>
     <tr><td class="n">3</td><td><code>globales.v_caminata</code></td><td class="n">4,8 → 5,28</td><td class="n">1,060</td><td class="n">−0,142</td><td class="n">−37,90</td></tr>
     <tr><td class="n">4</td><td><code>estratos.2.prob_teletrabajo</code></td><td class="n">0,2 → 0,22</td><td class="n">1,006</td><td class="n">0,001</td><td class="n">−113,08</td></tr>
@@ -363,12 +363,11 @@
     <tr><td colspan="6">… 26 parámetros entre 0,372 y 0,007 pp …</td></tr>
     <tr><td class="n">47</td><td><code>train.anden_beta</code></td><td class="n">4,0 → 4,4</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,03</td></tr>
     <tr><td class="n">48</td><td><code>train.frec_max</code></td><td class="n">40 → 44</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,02</td></tr>
-    <tr><td class="n">49</td><td><code>city.densidad_hab_km</code></td><td class="n">1.800 → 1.980</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">50</td><td><code>car.ancho_pista_m</code></td><td class="n">3,5 → 3,85</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">51</td><td><code>train.costo_operacion_tren_km</code></td><td class="n">12.000 → 13.200</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">52</td><td><code>train.factor_dia_punta</code></td><td class="n">2,0 → 2,2</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">53</td><td><code>train.frec_min</code></td><td class="n">2 → 3</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">54</td><td><code>train.anden_alpha</code></td><td class="n">0,5 → 0,55</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,01</td></tr>
+        <tr><td class="n">49</td><td><code>car.ancho_pista_m</code></td><td class="n">3,5 → 3,85</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">50</td><td><code>train.costo_operacion_tren_km</code></td><td class="n">12.000 → 13.200</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">51</td><td><code>train.factor_dia_punta</code></td><td class="n">2,0 → 2,2</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">52</td><td><code>train.frec_min</code></td><td class="n">2 → 3</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">53</td><td><code>train.anden_alpha</code></td><td class="n">0,5 → 0,55</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,01</td></tr>
   </tbody>
 </table>
 </div>
@@ -392,9 +391,9 @@
     14º con 0,59 pp — y es el que no tiene fuente.
   </li>
   <li>
-    <strong>Ocho inertes, por tres razones distintas.</strong> Por diseño:
-    <code>densidad_hab_km</code> (la población viene del suelo en esta rama) y
-    los dos del costo del operador (no entran al reparto). Por régimen:
+    <strong>Siete inertes, por tres razones distintas.</strong> Por diseño:
+    los dos del costo del operador (no entran al reparto); la densidad, que
+    era inerte por la misma razón, ya no es un parámetro (D-46, corregido). Por régimen:
     <code>frec_min</code>, <code>frec_max</code>, <code>anden_alpha</code>,
     <code>anden_beta</code> (la frecuencia demandada es interior y el andén no
     satura a esta demanda; S-09 mostró que con la frecuencia topada el andén
@@ -545,8 +544,9 @@
     (a) lectura estática de <code>presets.py</code>, <code>config.py</code>,
     <code>land_use/config.py</code> y <code>constantes.py</code>, comentario por
     comentario, para etiquetar; (b) reproducción: los 45 betas contra el
-    original, la cadena (9.4) recomputada; (c) invariancias: barrido de 54 + 7
-    parámetros a +10 % sobre la línea base actual; (d) consistencia: mismo VoT
+    original, la cadena (9.4) recomputada; (c) invariancias: barrido de 53 + 7
+    parámetros a +10 % sobre la línea base actual (54 + 7 el 2026-09-08; 53 + 7
+    tras D-46); (d) consistencia: mismo VoT
     en transporte y suelo, mismos ponderadores en utilidad y norma (cap. 7);
     (e) lo que la documentación de sensibilidad dice contra lo que se mide.
   </p>

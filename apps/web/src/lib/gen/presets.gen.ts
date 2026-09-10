@@ -8,7 +8,6 @@
 /** Parámetros de forma urbana. */
 export interface CityPresetValues {
   largo_ciudad?: number;
-  densidad?: number;
   sigma?: number;
   poblacion?: number;
   num_pistas?: number;
@@ -31,24 +30,20 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
   Personalizado: {},
   Compacta: {
     largo_ciudad: 8,
-    densidad: 4500,
     sigma: 0.3,
   },
   Base: {
     largo_ciudad: 20,
-    densidad: 1800,
     sigma: 0.5,
     poblacion: 36000,
     num_pistas: 2,
   },
   Dispersa: {
     largo_ciudad: 40,
-    densidad: 900,
     sigma: 0.9,
   },
   Metrópolis: {
     largo_ciudad: 20,
-    densidad: 7200,
     sigma: 0.5,
     poblacion: 144000,
     num_pistas: 12,

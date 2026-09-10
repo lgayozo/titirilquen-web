@@ -115,8 +115,7 @@ def main() -> None:
         [(f"largo {k}", con_city(largo_ciudad_km=k)) for k in (8, 20, 40)]
         + [(f"celdas {n}", con_city(n_celdas=n)) for n in (51, 201, 501)]
         + [(f"pendiente {p}", con_city(pendiente_porcentaje=p)) for p in (-8, 0, 8)]
-        + [(f"tele_factor {f}", con_city(teletrabajo_factor=f)) for f in (0, 1, 2)]
-        + [(f"densidad {d}", con_city(densidad_hab_km=d)) for d in (500, 1800, 5000)],
+        + [(f"tele_factor {f}", con_globales(teletrabajo_factor=f)) for f in (0, 1, 2)],
     )
 
     barrer(

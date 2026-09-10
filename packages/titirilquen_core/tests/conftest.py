@@ -89,7 +89,7 @@ def demanda_calibrada() -> DemandConfig:
 def sim_liviana(demanda_sintetica: DemandConfig) -> SimulationConfig:
     """Config chica y rápida: para ejercitar caminos, no para medir números."""
     return SimulationConfig(
-        city=CityConfig(n_celdas=51, largo_ciudad_km=10, densidad_hab_km=400),
+        city=CityConfig(n_celdas=51, largo_ciudad_km=10),
         supply=SupplyConfig(),
         demand=demanda_sintetica,
         max_iter=3,

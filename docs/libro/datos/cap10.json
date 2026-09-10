@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-08",
-  "commit": "f2f59be",
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
   "script": "docs/libro/datos/datos_cap10.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`), rama «equilibrio» salvo donde se indica; el acoplado con una vuelta."
  },
@@ -368,17 +368,17 @@
  "documentacion": {
   "tests_nucleo": {
    "citados_en_CLAUDE_md": 105,
-   "recolectados_hoy": 180
+   "recolectados_hoy": 201
   },
   "tests_e2e": {
    "citados_en_CLAUDE_md": 58,
    "listados_hoy": 59
   },
-  "discrepancias_registradas": 66,
+  "discrepancias_registradas": 68,
   "i18n": {
    "simulator.json": {
-    "claves_es": 746,
-    "claves_en": 746,
+    "claves_es": 744,
+    "claves_en": 744,
     "solo_en_es": [],
     "solo_en_en": []
    },

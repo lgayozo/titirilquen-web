@@ -117,26 +117,26 @@
     <tr>
       <td class="n">2</td>
       <td class="ruta py">apps/api/src/api/main.py</td>
-      <td class="n">70</td>
-      <td><code>simulate</code> — <code>run_msa(config)</code>, densidad plana (C-02); <code>land_use_solve</code> (101), <code>coupled_solve</code> (126), <code>coupled_stream</code> (142)</td>
+      <td class="n">88</td>
+      <td><code>simulate</code> — <code>run_msa(sim, land_use, localizacion)</code>; <code>SimulateRequest</code> (70) trae el uso de suelo desde el 2026-09-10 (C-02, cerrado); <code>land_use_solve</code> (119), <code>coupled_solve</code> (144), <code>coupled_stream</code> (160)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta py">apps/api/src/api/main.py</td>
-      <td class="n">114</td>
+      <td class="n">132</td>
       <td><code>CoupledRequest</code> — <code>outer_max_iter</code> con <code>le=10</code>: la cota que la interfaz no cumple (D-61)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
-      <td class="n">134</td>
-      <td><code>runPythonAsync</code> — el bloque Python embebido: 84 líneas que ninguna herramienta lee</td>
+      <td class="n">82</td>
+      <td><code>runPythonAsync</code> — el bloque Python embebido: 71 líneas que ninguna herramienta lee</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
-      <td class="n">157</td>
-      <td><code>simulate_from_json</code> — sin llamadores (D-63); <code>iter_from_json_suelo</code> (175), <code>land_use_solve_from_json</code> (193), <code>coupled_iter_from_json</code> (208)</td>
+      <td class="n">159</td>
+      <td><code>iter_from_json_suelo</code> — la entrada del Sandbox; <code>land_use_solve_from_json</code> (177), <code>coupled_iter_from_json</code> (192). <code>simulate_from_json</code>, sin llamadores, se borró el 2026-09-10 (D-63)</td>
     </tr>
     <tr>
       <td class="n">2</td>
@@ -148,13 +148,13 @@
       <td class="n">2</td>
       <td class="ruta ts">lib/api.ts</td>
       <td class="n">41</td>
-      <td><code>motorLocal</code> — la única decisión de motor; <code>simularTransporte</code> (106), <code>resolverUsoDeSuelo</code> (137), <code>resolverAcoplado</code> (162), <code>resolverAcopladoStream</code> (184)</td>
+      <td><code>motorLocal</code> — la única decisión de motor; <code>simularTransporte</code> (106), <code>resolverUsoDeSuelo</code> (138), <code>resolverAcoplado</code> (163), <code>resolverAcopladoStream</code> (185)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">lib/pyodide-engine.ts</td>
-      <td class="n">73</td>
-      <td><code>PyodideEngine</code> — el cliente del worker; <code>simulate</code> (193) sin llamadores, <code>simulateStream</code> (214), <code>solveLandUse</code> (242), <code>solveCoupledStream</code> (271)</td>
+      <td class="n">72</td>
+      <td><code>PyodideEngine</code> — el cliente del worker; <code>simulateStream</code> (192), <code>solveLandUse</code> (220), <code>solveCoupledStream</code> (249). El <code>simulate</code> sin llamadores se borró el 2026-09-10 (D-63)</td>
     </tr>
     <tr>
       <td class="n">3</td>
@@ -166,7 +166,7 @@
       <td class="n">3</td>
       <td class="ruta ts">lib/overrides.ts</td>
       <td class="n">29</td>
-      <td><code>defaultSimulationConfig</code> — las divergencias deliberadas; <code>defaultLandUseConfig</code> (57)</td>
+      <td><code>defaultSimulationConfig</code> — las divergencias deliberadas; <code>defaultLandUseConfig</code> (52)</td>
     </tr>
     <tr>
       <td class="n">3</td>
@@ -203,8 +203,9 @@
   <p>
     Era cierto cuando se escribió el diagrama. Hoy <code>SandboxPage.tsx</code>
     importa <code>simularTransporte</code> de <code>lib/api.ts</code> y respeta el
-    motor, igual que las otras páginas. Lo que sí sigue siendo cierto es C-02:
-    con motor api cae a <code>/simulate</code>, sin uso de suelo.
+    motor, igual que las otras páginas. Y desde el 2026-09-10 tampoco vale la
+    salvedad de C-02: con motor api va a <code>/simulate</code> con el mismo uso
+    de suelo que el motor local.
   </p>
 </div>
 
@@ -302,27 +303,27 @@
     <tr><th>entrada del worker</th><th>ruta de la API</th><th>resultado</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>simulate_from_json</code></td><td><code>/simulate</code></td><td>idénticos (0 claves distintas) — y <strong>0 llamadores</strong> en el frontend</td></tr>
+    <tr class="destacada"><td><code>iter_from_json_suelo</code> (<code>simulateStream</code>)</td><td><code>/simulate</code></td><td>idénticos (0 claves distintas): la entrada del Sandbox, contra la ruta que la API recorre con motor api</td></tr>
     <tr><td><code>land_use_solve_from_json</code></td><td><code>/land-use/solve</code></td><td>idénticos salvo <code>parcelas</code>, que ninguno de los dos siembra</td></tr>
     <tr><td><code>coupled_iter_from_json</code></td><td><code>/coupled/stream</code></td><td>idénticos, vuelta a vuelta (2 vueltas)</td></tr>
-    <tr class="destacada"><td><code>iter_from_json_suelo</code></td><td><strong>no existe</strong></td><td>idéntico al núcleo; con motor api el Sandbox cae a <code>/simulate</code> (C-02)</td></tr>
   </tbody>
 </table>
 </div>
 
 <p class="pie-tabla">
-  Comparación JSON con tolerancia relativa 10⁻¹². Son 84 líneas de Python
+  Comparación JSON con tolerancia relativa 10⁻¹². Son 71 líneas de Python
   dentro de un string de TypeScript.
 </p>
 
 <p>
-  El invariante 2 se cumple en las tres entradas que tienen contraparte. Es la
-  primera vez que se verifica en CPython: el único test que ejecuta ese bloque
+  El invariante 2 se cumple en las tres entradas, y desde el 2026-09-10 la
+  del Sandbox tiene contraparte: hasta entonces <code>/simulate</code>
+  corría otra población (C-02). Es la primera vez que se verifica en CPython: el único test que ejecuta ese bloque
   (<code>simulation.spec.ts</code>, @slow) comprueba que un KPI deja de ser «—»
   y que otro contiene «%». Que el motor arranca, no qué calcula.
 </p>
 
-<h3>4.2 C-02, cuantificado</h3>
+<h3>4.2 C-02, cuantificado y cerrado</h3>
 
 <div class="envoltorio-tabla">
 <table>
@@ -330,31 +331,34 @@
     <tr><th>motor</th><th class="n">auto</th><th class="n">metro</th><th class="n">bici</th><th class="n">caminata</th><th class="n">teletrabajo</th><th class="n">agentes</th></tr>
   </thead>
   <tbody>
-    <tr><td>api — <code>/simulate</code>, densidad plana</td><td class="n">15,421</td><td class="n">37,468</td><td class="n">20,994</td><td class="n">6,746</td><td class="n">19,371</td><td class="n">35.821</td></tr>
-    <tr class="destacada"><td>local — suelo, localización «original»</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">19,494</td><td class="n">36.000</td></tr>
-    <tr><td>diferencia (pp)</td><td class="n">+0,391</td><td class="n">−9,151</td><td class="n">+3,961</td><td class="n">+4,676</td><td class="n">+0,123</td><td class="n">179</td></tr>
+    <tr><td>api — <code>run_msa(sim, suelo, «original»)</code>, lo que corre <code>/simulate</code></td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">19,494</td><td class="n">36.000</td></tr>
+    <tr class="destacada"><td>local — <code>iter_msa_desde_suelo</code>, lo que corre el worker</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">19,494</td><td class="n">36.000</td></tr>
+    <tr><td>diferencia (pp)</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  <code>api.ts</code> declara la diferencia («es una diferencia real entre
-  motores, no un bug») pero nunca dijo cuánto era: <strong>9,15 puntos de metro</strong>
-  en el estado por defecto del Sandbox, antes de que el usuario toque nada. Los
-  dos motores no son «el mismo modelo con otro transporte»: son dos poblaciones
-  distintas, y la del servidor tiene 179 agentes menos porque la densidad plana
-  redondea por celda.
+  Antes del cierre, <code>api.ts</code> declaraba la diferencia («es una
+  diferencia real entre motores, no un bug») sin decir cuánto era: la auditoría
+  del 2026-09-08 midió <strong>9,15 puntos de metro</strong> y 179 agentes
+  menos en el servidor, porque <code>/simulate</code> poblaba la ciudad con la
+  densidad plana. El 2026-09-10 esa ruta se borró del núcleo (D-46, cap. 1):
+  <code>/simulate</code> recibe el uso de suelo y la localización, y los dos
+  motores corren exactamente la misma población. La diferencia medida es cero
+  en las cinco categorías y en el conteo de agentes.
 </p>
 
 <h3>4.3 Los defaults cierran</h3>
 
 <p>
-  Golden del núcleo (<code>defaults-golden.json</code>) más los seis overrides
+  Golden del núcleo (<code>defaults-golden.json</code>) más los cinco overrides
   leídos de <code>overrides.ts</code>, contra la configuración que
   <code>test_linea_base</code> dice que corre la aplicación:
   <strong>iguales, 0 claves distintas</strong>. Los tres documentos —golden,
   overrides, línea base— cuentan la misma historia. El docstring de
-  <code>overrides.ts</code> dice «seis diferencias» y son seis:
+  <code>overrides.ts</code> dice «cinco diferencias» y son cinco (eran seis
+  hasta que la densidad dejó de ser un campo, D-46):
   <code>estratos: ESTRATOS_CALIBRADOS</code> no cuenta, porque
   <code>DemandConfig</code> no tiene default para <code>estratos</code> y el
   frontend rellena un campo obligatorio en vez de cambiarlo.
@@ -567,7 +571,7 @@
     <tr><th class="n">ID</th><th>Qué era</th><th>Estado</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">C-02</td><td><code>/simulate</code> no recibe uso de suelo: con motor api la población es la de densidad plana.</td><td>declarado; cuantificado acá: 9,15 pp de metro</td></tr>
+    <tr><td class="n">C-02</td><td><code>/simulate</code> no recibía uso de suelo: con motor api la población era la de densidad plana.</td><td>cuantificado el 2026-09-08 (9,15 pp de metro); cerrado el 2026-09-10: 0,0 pp</td></tr>
     <tr><td class="n">—</td><td>La serialización estaba escrita dos veces (API y worker) y divergió: los KPI salían en cero con motor api.</td><td>corregido (ago-2026): <code>serializacion.py</code></td></tr>
     <tr><td class="n">—</td><td>Tipos, defaults y presets transcritos a mano, ~130 valores y 14 interfaces.</td><td>corregido (ago-2026): generados</td></tr>
     <tr><td class="n">—</td><td>El piso de pydantic subió a ≥2.8 y el motor local dejó de arrancar con la suite en verde.</td><td>corregido; guarda: el job <code>pyodide</code>, que no ha corrido</td></tr>
@@ -603,7 +607,7 @@
     </tr>
     <tr>
       <td class="n">D-63</td>
-      <td>La entrada <code>simulate</code> del worker no tiene llamadores, y 15 campos del contrato no tienen lector.</td>
+      <td>La entrada <code>simulate</code> del worker no tenía llamadores (borrada el 2026-09-10), y 15 campos del contrato no tienen lector.</td>
       <td>Código y contrato muertos, sin efecto sobre los números.</td>
       <td>pendiente (baja)</td>
     </tr>

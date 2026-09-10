@@ -21,7 +21,7 @@ uses `pip install` ni crees venvs a mano.
 
 ```bash
 npm run dev                                                  # frontend (Pyodide, sin backend)
-cd packages/titirilquen_core && uv run --extra dev pytest    # 105 tests del núcleo
+cd packages/titirilquen_core && uv run --extra dev pytest    # ~200 tests del núcleo
 cd apps/web && npm run typecheck && npm run test:e2e:fast    # 58 e2e
 npm run format:check                                         # prettier, desde la raíz
 ```
@@ -110,10 +110,16 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   (`tests/test_libro.py`). Cuando falle, arreglá el número en el HTML (el
   mensaje dice dónde quedó el símbolo), no el test. Ningún número del libro se
   tipea a mano: van en `docs/libro/datos/` y el mismo test lo exige.
+- **La población viene sólo del uso de suelo** (`LandUseConfig.H_por_estrato`
+  sobre la oferta `S`). `CityConfig` son tres números —`n_celdas` impar,
+  `largo_ciudad_km`, `pendiente_porcentaje`—; la densidad media es ΣH/largo y
+  se deriva donde se muestra (D-46). `teletrabajo_factor` vive en
+  `demand.globales`.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
   defecto de la app da **auto 15,81 · metro 28,32 · bici 24,96 · caminata 11,42**
-  sin uso de suelo, y **15,42 · 32,17 · 23,85 · 9,07** con él (seed 42, tol 0,1),
-  pineadas en `tests/test_linea_base.py`. Si un cambio las mueve más de 0,05 pp,
+  con la localización «original» (mezcla uniforme), y **15,39 · 32,06 · 23,89 ·
+  9,14** con la de equilibrio (seed 42, tol 0,1), pineadas en
+  `tests/test_linea_base.py` — ese archivo manda si estos números y él difieren. Si un cambio las mueve más de 0,05 pp,
   no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
   sep-2026 (λ heterogéneo en suelo; transporte homoscedástico; accesibilidad =
   logsum de transporte, D-34): ver ese test.
@@ -128,8 +134,8 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   por `serializacion.py`.
 - **Para el motor `api` necesitas la API corriendo** en `:8000` (el proxy de Vite
   mapea `/api`). Con `VITE_API_BASE="disabled"` el frontend es 100% estático
-  (sólo Pyodide). Ojo: por la ruta `/simulate` la población es la de densidad
-  plana, porque ese endpoint no recibe uso de suelo (C-02, anotado en `api.ts`).
+  (sólo Pyodide). Los dos motores corren la misma población: `/simulate`
+  recibe el uso de suelo desde sep-2026 (C-02, cerrado).
 - Deploy: `apps/web` → Vercel/GitHub Pages, `apps/api` → Fly.io (`/health`).
   Detalles en `docs/DEPLOY.md`; el mapa del código en `docs/libro/arquitectura.html`.
 - Licencia **GPL-3.0-or-later** (heredada); ver `NOTICE.md` para la atribución a

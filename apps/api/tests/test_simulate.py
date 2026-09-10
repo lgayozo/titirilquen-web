@@ -8,16 +8,7 @@ from api.main import app
 
 def _config_pequeno() -> dict:
     return {
-        "city": {
-            "n_celdas": 51,
-            "largo_ciudad_km": 5,
-            # Era `densidad_por_celda: 5`, campo renombrado en D-28. La
-            # conversión documentada es hab/celda x (n_celdas-1) / largo_km:
-            # 5 x 50 / 5 = 50 hab/km. El test llevaba meses en 422 porque
-            # `apps/api/tests` no está en `testpaths` y nadie lo corría.
-            "densidad_hab_km": 50,
-            "share_estratos": [0.1, 0.4, 0.5],
-        },
+        "city": {"n_celdas": 51, "largo_ciudad_km": 5},
         "supply": {},
         "demand": {"estratos": DEFAULT_STRATA},
         "max_iter": 3,
@@ -27,7 +18,16 @@ def _config_pequeno() -> dict:
 
 def test_simulate_endpoint() -> None:
     client = TestClient(app)
-    r = client.post("/simulate", json=_config_pequeno())
+    # 250 hogares sobre oferta uniforme y mezcla π_h: la «densidad plana» de
+    # antes (50 hab/km × 5 km), ahora como uso de suelo (D-46).
+    r = client.post(
+        "/simulate",
+        json={
+            "sim": _config_pequeno(),
+            "land_use": {"H_por_estrato": [25, 100, 125], "forma": "uniforme", "max_iter": 200},
+            "localizacion": "original",
+        },
+    )
     assert r.status_code == 200
     body = r.json()
     assert "iteraciones" in body

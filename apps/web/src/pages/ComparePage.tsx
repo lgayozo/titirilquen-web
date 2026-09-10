@@ -116,10 +116,9 @@ export function ComparePage() {
         // convergencia en vivo. Qué motor corre lo decide `lib/api`.
         const result = await simularTransporte(
           sc.config,
-          () => {},
-          undefined,
           sc.landUse ?? defaultLandUseConfig,
           loc,
+          () => {},
         );
         setTransportResult(id, result);
       } else if (k === "land_use") {

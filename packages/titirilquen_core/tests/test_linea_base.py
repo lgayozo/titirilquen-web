@@ -99,7 +99,6 @@ def _config_web() -> SimulationConfig:
         city=CityConfig(
             n_celdas=201,  # web: 201 · core: 1001
             largo_ciudad_km=20,
-            densidad_hab_km=1800,  # web: 1800 · core: otro
         ),
         supply=SupplyConfig(),
         demand=DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),

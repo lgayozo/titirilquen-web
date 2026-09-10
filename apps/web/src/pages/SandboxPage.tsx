@@ -107,6 +107,13 @@ export function SandboxPage() {
   // definen en la pestaña Uso de Suelo.
   const landUseConfig = useLandUseStore((s) => s.config);
   const landUseResult = useLandUseStore((s) => s.result);
+  // La mezcla de estratos de la corrida: ΣH normalizado. Era `city.share_estratos`,
+  // un campo que la app no usaba para poblar (D-46).
+  const shareEstratos = useMemo((): readonly [number, number, number] => {
+    const H = (landUseUsed ?? landUseConfig).H_por_estrato;
+    const total = H[0] + H[1] + H[2];
+    return [H[0] / total, H[1] / total, H[2] / total];
+  }, [landUseUsed, landUseConfig]);
 
   // Config de la corrida visible: el snapshot usado por el resultado, no la
   // viva — así las figuras no mezclan geometrías si el usuario mueve sliders.
@@ -300,7 +307,7 @@ export function SandboxPage() {
           : undefined
       }
       estacionesKm={result?.estaciones_km ?? undefined}
-      shareEstratos={cfgRes.city.share_estratos}
+      shareEstratos={shareEstratos}
       iterationToken={lastIter?.iter ?? -1}
     />
   );
@@ -360,10 +367,10 @@ export function SandboxPage() {
       // Mismo criterio que la imagen inicial (landUseCity.isPost).
       const final = await simularTransporte(
         config,
-        (snap) => pushIteration(snap),
-        ctrl.signal,
         landUseConfig,
         landUseCity.isPost ? "equilibrio" : "original",
+        (snap) => pushIteration(snap),
+        ctrl.signal,
       );
       finishRun(final);
     } catch (e) {

@@ -52,7 +52,7 @@ def demanda_ui() -> DemandConfig:
 def base_sim() -> SimulationConfig:
     """La configuración que ve el usuario al abrir el módulo de transporte."""
     return SimulationConfig(
-        city=CityConfig(n_celdas=201, largo_ciudad_km=20, densidad_hab_km=1800),
+        city=CityConfig(n_celdas=201, largo_ciudad_km=20),
         supply=SupplyConfig(),
         demand=demanda_ui(),
         max_iter=20,

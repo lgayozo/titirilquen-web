@@ -10,7 +10,6 @@ from typing import TypedDict
 
 class CityPreset(TypedDict, total=False):
     largo_ciudad: int
-    densidad: int
     # Concentración de la oferta de vivienda (sigma del perfil, land_use/supply):
     # la otra dimensión de «forma urbana» además de la extensión — dónde vive la
     # gente DENTRO de la ciudad. Sin ella el preset movía la mitad del efecto.
@@ -45,7 +44,8 @@ CITY_PRESETS: dict[str, CityPreset] = {
     "Personalizado": {},
     # Calibración ISO-POBLACIÓN (ΣH = 36.000): los tres presets comparan FORMA
     # urbana —extensión (largo) y concentración (sigma)— con la misma gente. La
-    # densidad es la consecuencia (36.000/largo), no un input independiente.
+    # densidad es la consecuencia (36.000/largo), no un input: desde sep-2026
+    # ni siquiera es un campo (D-46).
     #
     # Rango ampliado respecto de la calibración original (12/20/30, sin sigma)
     # porque a iso-población ese rango movía la mitad del efecto: el contraste
@@ -54,19 +54,18 @@ CITY_PRESETS: dict[str, CityPreset] = {
     # monocéntrica el tramo junto al CBD carga ~la mitad de los viajes en auto
     # sea cual sea el largo, así que responde a población/precios/capacidad y no
     # a la forma.
-    "Compacta": {"largo_ciudad": 8, "densidad": 4500, "sigma": 0.30},
+    "Compacta": {"largo_ciudad": 8, "sigma": 0.30},
     # `num_pistas` declarado por la misma razón que `poblacion`: para que el
     # viaje de VUELTA funcione. Sin esto, volver de Metrópolis dejaba la ciudad
     # de 36.000 habitantes con las 12 pistas de la metrópolis y un v/c de 0,25,
     # o sea un corredor vacío donde ninguna palanca de auto hace nada.
     "Base": {
         "largo_ciudad": 20,
-        "densidad": 1800,
         "sigma": 0.50,
         "poblacion": 36_000,
         "num_pistas": 2,
     },
-    "Dispersa": {"largo_ciudad": 40, "densidad": 900, "sigma": 0.90},
+    "Dispersa": {"largo_ciudad": 40, "sigma": 0.90},
     # ESCALA, no forma: misma geometría que Base (20 km, sigma 0.50) con 4x la
     # población. Es el único preset que rompe la iso-población de arriba, y a
     # propósito: aísla la dimensión que los otros tres mantienen fija.
@@ -80,7 +79,6 @@ CITY_PRESETS: dict[str, CityPreset] = {
     # Ver docs/CONTINUAR.md §4.1c.
     "Metrópolis": {
         "largo_ciudad": 20,
-        "densidad": 7200,
         "sigma": 0.50,
         "poblacion": 144_000,
         # 12 y no 2: es el número que deja el corredor en v/c 0,97 con esta

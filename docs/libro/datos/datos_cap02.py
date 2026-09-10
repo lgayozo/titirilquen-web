@@ -77,7 +77,8 @@ def geometria_compartida() -> dict:
     se anota la diferencia de convención.
     """
     filas = []
-    for n in (201, 101, 51, 200, 100):
+    # Sólo impares: desde sep-2026 `CiudadLineal` rechaza n par (D-45).
+    for n in (201, 101, 51, 1001):
         c = CiudadLineal(n_celdas=n, largo_total_km=20.0)
         idx_reconvertido = max(0, min(int((c.cbd_km / c.largo_total_km) * n), n - 1))
         filas.append(
@@ -93,7 +94,7 @@ def geometria_compartida() -> dict:
         "filas": filas,
         "nota": (
             "int(L/2 / L · n) == n//2 para todo n > 0: los tres modos usan la celda "
-            "del capítulo 1 con cualquier paridad. El tren, además, sitúa sus "
+            "del capítulo 1 (y desde sep-2026 n es impar por schema). El tren, además, sitúa sus "
             "estaciones sobre centroides (x_i = (i+½)·Δx), que es la convención "
             "continua de `CiudadLineal` — coherente, porque el acceso a la estación "
             "es una distancia física, no un conteo de celdas."

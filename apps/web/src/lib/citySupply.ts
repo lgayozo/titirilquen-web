@@ -14,11 +14,9 @@ import type { FormaOferta } from "@/lib/types-v2";
 /**
  * Densidad derivada ρ = ΣH / largo (hab/km).
  *
- * En la app la densidad NO es un input: la escala de demanda la fija ΣH del uso
- * de suelo (la ruta `iter_msa_desde_suelo` puebla desde ahí; `densidad_hab_km`
- * queda inerte — S-05). Pero ese campo SÍ manda en la ruta core/API y viaja en
- * los `.ttrq.json`, así que hay que mantenerlo sincronizado como valor derivado
- * o el archivo exportado declararía una población que la app no usa.
+ * La densidad NO es un input: la escala de demanda la fija ΣH del uso de suelo,
+ * en todos los motores desde sep-2026 (D-46). Esta función sólo la DERIVA para
+ * mostrarla (hints, tarjetas): ΣH / largo.
  */
 export function densidadDerivadaHabKm(sumaH: number, largoKm: number): number {
   return largoKm > 0 ? Math.round(sumaH / largoKm) : 0;

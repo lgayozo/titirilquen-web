@@ -1,122 +1,102 @@
 {
  "_meta": {
-  "fecha": "2026-09-07",
-  "commit": "789ab9a",
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
   "script": "docs/libro/datos/datos_cap01.py",
-  "configuracion": "La de la aplicación (`test_linea_base._config_web`): 201 celdas, 20 km, 1.800 hab/km, semilla 42, asignación esperada, tolerancia 0,1. Localización «original» (mezcla uniforme): el capítulo 1 mira la geometría, no la subasta de suelo."
+  "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30 sobre oferta normal, semilla 42, asignación esperada, tolerancia 0,1. Localización «original» (mezcla uniforme): el capítulo 1 mira la geometría, no la subasta de suelo."
  },
  "geometria": {
   "n_celdas": 201,
   "largo_km": 20.0,
+  "pendiente_porcentaje": 0.0,
   "ancho_celda_km": 0.099502,
   "ancho_celda_m": 99.5,
   "cbd_index": 100,
   "cbd_km": 10.0,
   "centroide_cbd_km": 10.0,
   "distancia_max_km": 9.9502,
-  "densidad_hab_km": 1800.0,
-  "poblacion": 36000,
-  "share_estratos": [
-   0.2,
-   0.5,
-   0.3
+  "poblacion_suelo": 36000,
+  "H_por_estrato": [
+   7200,
+   18000,
+   10800
   ],
+  "densidad_media_derivada_hab_km": 1800.0,
   "core_n_celdas": 1001,
-  "core_densidad_hab_km": 500.0
+  "campos_de_CityConfig": [
+   "largo_ciudad_km",
+   "n_celdas",
+   "pendiente_porcentaje"
+  ]
  },
  "paridad": {
-  "filas": [
+  "impares": [
    {
     "n_celdas": 1001,
-    "impar": true,
     "cbd_index": 500,
     "centroide_cbd_km": 10.0,
     "cbd_km": 10.0,
     "desfase_km": 0.0,
-    "desfase_en_celdas": 0.0,
-    "convenciones_coinciden": true,
-    "distancia_del_cbd_a_si_mismo_km": 0.0
+    "convenciones_coinciden": true
    },
    {
     "n_celdas": 401,
-    "impar": true,
     "cbd_index": 200,
     "centroide_cbd_km": 10.0,
     "cbd_km": 10.0,
     "desfase_km": 0.0,
-    "desfase_en_celdas": 0.0,
-    "convenciones_coinciden": true,
-    "distancia_del_cbd_a_si_mismo_km": 0.0
+    "convenciones_coinciden": true
    },
    {
     "n_celdas": 201,
-    "impar": true,
     "cbd_index": 100,
     "centroide_cbd_km": 10.0,
     "cbd_km": 10.0,
     "desfase_km": 0.0,
-    "desfase_en_celdas": 0.0,
-    "convenciones_coinciden": true,
-    "distancia_del_cbd_a_si_mismo_km": 0.0
+    "convenciones_coinciden": true
    },
    {
     "n_celdas": 101,
-    "impar": true,
     "cbd_index": 50,
     "centroide_cbd_km": 10.0,
     "cbd_km": 10.0,
     "desfase_km": 0.0,
-    "desfase_en_celdas": 0.0,
-    "convenciones_coinciden": true,
-    "distancia_del_cbd_a_si_mismo_km": 0.0
+    "convenciones_coinciden": true
    },
    {
     "n_celdas": 51,
-    "impar": true,
     "cbd_index": 25,
     "centroide_cbd_km": 10.0,
     "cbd_km": 10.0,
     "desfase_km": 0.0,
-    "desfase_en_celdas": 0.0,
-    "convenciones_coinciden": true,
-    "distancia_del_cbd_a_si_mismo_km": 0.0
-   },
+    "convenciones_coinciden": true
+   }
+  ],
+  "pares": [
    {
     "n_celdas": 200,
-    "impar": false,
-    "cbd_index": 100,
-    "centroide_cbd_km": 10.05,
-    "cbd_km": 10.0,
-    "desfase_km": 0.05,
+    "desfase_que_tendria_km": 0.05,
     "desfase_en_celdas": 0.5,
-    "convenciones_coinciden": false,
-    "distancia_del_cbd_a_si_mismo_km": 0.05
+    "CityConfig": "Value error, n_celdas debe ser impar para que el CBD sea una celda; obtuve 200",
+    "CiudadLineal": "n_celdas debe ser impar y ≥ 3; obtuve 200"
    },
    {
     "n_celdas": 100,
-    "impar": false,
-    "cbd_index": 50,
-    "centroide_cbd_km": 10.1,
-    "cbd_km": 10.0,
-    "desfase_km": 0.1,
+    "desfase_que_tendria_km": 0.1,
     "desfase_en_celdas": 0.5,
-    "convenciones_coinciden": false,
-    "distancia_del_cbd_a_si_mismo_km": 0.1
+    "CityConfig": "Value error, n_celdas debe ser impar para que el CBD sea una celda; obtuve 100",
+    "CiudadLineal": "n_celdas debe ser impar y ≥ 3; obtuve 100"
    },
    {
     "n_celdas": 50,
-    "impar": false,
-    "cbd_index": 25,
-    "centroide_cbd_km": 10.2,
-    "cbd_km": 10.0,
-    "desfase_km": 0.2,
+    "desfase_que_tendria_km": 0.2,
     "desfase_en_celdas": 0.5,
-    "convenciones_coinciden": false,
-    "distancia_del_cbd_a_si_mismo_km": 0.2
+    "CityConfig": "Value error, n_celdas debe ser impar para que el CBD sea una celda; obtuve 50",
+    "CiudadLineal": "n_celdas debe ser impar y ≥ 3; obtuve 50"
    }
   ],
-  "schema_exige_impar": false,
-  "ui_fuerza_impar": true
+  "schema_exige_impar": true,
+  "clase_exige_impar": true
  },
  "grilla": [
   {
@@ -195,9 +175,48 @@
    "emisiones_kg_h": 7505.2
   }
  ],
- "densidad": [
+ "grilla_saltos": [
   {
-   "densidad_hab_km": 900,
+   "de": 51,
+   "a": 101,
+   "max_delta_pp": 0.481
+  },
+  {
+   "de": 101,
+   "a": 201,
+   "max_delta_pp": 0.151
+  },
+  {
+   "de": 201,
+   "a": 401,
+   "max_delta_pp": 0.1
+  },
+  {
+   "de": 401,
+   "a": 801,
+   "max_delta_pp": 0.062
+  }
+ ],
+ "poblacion": [
+  {
+   "poblacion": 18000,
+   "densidad_media_hab_km": 900,
+   "agentes": 18000,
+   "reparto_pct": {
+    "Auto": 17.768,
+    "Metro": 16.976,
+    "Bici": 34.25,
+    "Caminata": 11.483,
+    "Teletrabajo": 19.522
+   },
+   "iteraciones": 5,
+   "convergio": true,
+   "gap_final_min": 0.1009,
+   "emisiones_kg_h": 3503.5
+  },
+  {
+   "poblacion": 36000,
+   "densidad_media_hab_km": 1800,
    "agentes": 36000,
    "reparto_pct": {
     "Auto": 15.812,
@@ -212,49 +231,36 @@
    "emisiones_kg_h": 7496.3
   },
   {
-   "densidad_hab_km": 1800,
-   "agentes": 36000,
+   "poblacion": 54000,
+   "densidad_media_hab_km": 2700,
+   "agentes": 54000,
    "reparto_pct": {
-    "Auto": 15.812,
-    "Metro": 28.317,
-    "Bici": 24.955,
-    "Caminata": 11.422,
-    "Teletrabajo": 19.494
+    "Auto": 14.465,
+    "Metro": 34.003,
+    "Bici": 20.482,
+    "Caminata": 11.524,
+    "Teletrabajo": 19.526
    },
-   "iteraciones": 8,
+   "iteraciones": 10,
    "convergio": true,
-   "gap_final_min": 0.456,
-   "emisiones_kg_h": 7496.3
+   "gap_final_min": 0.7342,
+   "emisiones_kg_h": 12313.7
   },
   {
-   "densidad_hab_km": 2700,
-   "agentes": 36000,
+   "poblacion": 72000,
+   "densidad_media_hab_km": 3600,
+   "agentes": 72000,
    "reparto_pct": {
-    "Auto": 15.812,
-    "Metro": 28.317,
-    "Bici": 24.955,
-    "Caminata": 11.422,
-    "Teletrabajo": 19.494
+    "Auto": 13.275,
+    "Metro": 37.115,
+    "Bici": 18.468,
+    "Caminata": 11.63,
+    "Teletrabajo": 19.511
    },
-   "iteraciones": 8,
+   "iteraciones": 11,
    "convergio": true,
-   "gap_final_min": 0.456,
-   "emisiones_kg_h": 7496.3
-  },
-  {
-   "densidad_hab_km": 3600,
-   "agentes": 36000,
-   "reparto_pct": {
-    "Auto": 15.812,
-    "Metro": 28.317,
-    "Bici": 24.955,
-    "Caminata": 11.422,
-    "Teletrabajo": 19.494
-   },
-   "iteraciones": 8,
-   "convergio": true,
-   "gap_final_min": 0.456,
-   "emisiones_kg_h": 7496.3
+   "gap_final_min": 0.9748,
+   "emisiones_kg_h": 17255.1
   }
  ],
  "largo": [
@@ -331,11 +337,7 @@
   },
   "por_posicion": {
    "formula": "|x_i − L/2|, con x_i el centroide",
-   "usos": [],
-   "expuesta_en": [
-    "CiudadLineal.centroides_km",
-    "CiudadLineal.distancia_al_cbd_km"
-   ]
+   "estado": "eliminada de `city.py` el 2026-09-10 (D-45); coincide con la otra si y sólo si n es impar, que ahora es obligatorio"
   }
  }
 }

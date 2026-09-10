@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-08",
-  "commit": "f025dc0",
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
   "script": "docs/libro/datos/datos_cap06.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, semilla 42, asignación esperada, tolerancia interior 0,1. El acoplado con `outer_max_iter = 12` y `outer_tol = 1,0`, que es lo que manda `CoupledPage.tsx`."
  },

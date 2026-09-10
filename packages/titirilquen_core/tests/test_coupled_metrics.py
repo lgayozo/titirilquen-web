@@ -15,7 +15,7 @@ from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 
 def _sim_small(demanda_sintetica: DemandConfig) -> SimulationConfig:
     return SimulationConfig(
-        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_hab_km=50),
+        city=CityConfig(n_celdas=51, largo_ciudad_km=5),
         supply=SupplyConfig(),
         demand=demanda_sintetica,
         max_iter=3,

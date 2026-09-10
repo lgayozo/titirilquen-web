@@ -67,14 +67,7 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         False,
     ),
     "city.largo_ciudad_km": (HEREDADO, "original: 20 km", False),
-    "city.densidad_hab_km": (
-        DECISION,
-        "S-03: 1.800 hab/km para que el corredor se congestione",
-        False,
-    ),
     "city.pendiente_porcentaje": (HEREDADO, "original: 0", False),
-    "city.teletrabajo_factor": (HEREDADO, "original: slider 0–2, default 1", False),
-    "city.share_estratos": (DECISION, "ago-2026: 20/50/30 (antes 10/40/50)", False),
     "supply.bike.v_media_kmh": (HEREDADO, "original: 14 km/h", False),
     "supply.bike.capacidad_pista": (
         DECISION,
@@ -154,6 +147,11 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
     "demand.globales.factor_flota_auto": (
         DECISION,
         "1,0 = flota de referencia sobre la curva COPERT",
+        False,
+    ),
+    "demand.globales.teletrabajo_factor": (
+        HEREDADO,
+        "original: slider 0–2, default 1; vivía en `city` hasta sep-2026",
         False,
     ),
     "demand.globales.factor_emision_metro_tren_km": (
@@ -575,7 +573,6 @@ def sensibilidad() -> dict:
         "max_iter",
         "tolerance",
         "city.n_celdas",
-        "city.share_estratos",
     }
     filas = []
     for ruta, valor in _hojas(d0):
