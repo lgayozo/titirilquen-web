@@ -10,26 +10,50 @@ tagline: MSA — Método de Promedios Sucesivos
 En la primera iteración los agentes no tienen información de congestión y asumen **flujo libre**. Al asignar demanda, el auto se sobrecarga (es el más rápido). Para evitar oscilaciones se usa el **Método de Promedios Sucesivos**:
 
 $$
-T^{(n+1)} = f_n \cdot T_{\text{obs}}^{(n)} + (1 - f_n) \cdot T^{(n)}, \quad f_n = \frac{1}{n + 1}
+T_{\text{actuales}}^{*} = f \cdot T_{\text{nuevos}} + (1 - f) \cdot T_{\text{actuales}}, \qquad f = \frac{1}{it + 1}
 $$
 
-El peso de la nueva información disminuye con $1/n$: la primera iteración reemplaza completo, la segunda hace un promedio 50/50, la tercera pondera 1/3 y 2/3, etc.
+<OverleafRef sec="Bucle de equilibrio" />
+
+El peso de la nueva información disminuye con $1/it$: la primera iteración reemplaza completo, la segunda hace un promedio 50/50, la tercera pondera 1/3 y 2/3, etc.
 
 ## Interpretación
 
-- $f_n$ grande en iteraciones tempranas → adaptación rápida (ciudad "aprende")
-- $f_n$ pequeño en iteraciones tardías → estabilización (ciudad "recuerda")
+- $f$ grande en iteraciones tempranas → adaptación rápida (la ciudad "aprende")
+- $f$ pequeño en iteraciones tardías → estabilización (la ciudad "recuerda")
 
-El residuo que muestra el panel en vivo es $\|T^{(n+1)} - T^{(n)}\|_\infty$ en minutos. Cuando baja a ~0.01 min, el sistema está esencialmente en equilibrio.
+## Criterio de parada
+
+El bucle corta cuando el residual
+
+$$
+r^{(it)} = \left\lVert T^{(it)} - T^{(it-1)} \right\rVert_{\infty}
+$$
+
+<OverleafRef sec="Criterio de Parada" tag="R-11" />
+
+— el máximo cambio del tiempo de viaje en cualquier modo y parcela — es menor que la tolerancia (referencia: **0.1 min**) durante **dos iteraciones consecutivas** (robusto al ruido del Monte Carlo). `MAX_ITER` (referencia: 20) queda como tope de seguridad: la cola $\sim 1/it$ del MSA puede requerir 20–25 iteraciones en escenarios rígidos.
 
 <MSAFlowchart />
 
-## V2: loop acoplado suelo↔transporte
+## Loop acoplado suelo ↔ transporte
 
-El loop exterior (página **Uso de suelo**, modo *Acoplado*) añade otra capa:
+El bucle exterior (página **Ciudad en equilibrio**) alterna ambos módulos hasta el punto fijo conjunto: el suelo asigna hogares dada la accesibilidad $T$, esa población corre el MSA, y los nuevos tiempos actualizan $T$. La accesibilidad de cada parcela es el tiempo esperado de viaje al CBD, **común a todos los estratos** (media ponderada por población):
+
+$$
+T^{\text{nuevo}}(i) = \sum_h \frac{H_h}{\sum_g H_g} \cdot \mathbb{E}\left[\, t \mid h, i \,\right]
+$$
+
+<OverleafRef sec="Acoplamiento suelo–transporte" tag="R-12" />
+
+con amortiguación exterior $T \leftarrow \theta\, T^{\text{nuevo}} + (1-\theta)\, T$, $\theta = 1/(n+1)$, y residual $\lVert T^{\text{nuevo}} - T \rVert_\infty$ en **minutos** (tolerancia de referencia: 1 min).
+
+<Callout type="info">
+¿Por qué $T$ común y no por estrato? La accesibilidad es un atributo de la **ubicación**; si fuera por estrato, el menor tiempo de los estratos motorizados se leería como "la distancia no les molesta" e **invertiría** el ordenamiento del bid-rent (ricos a la periferia). La heterogeneidad de valoración la captura $\alpha_h$.
+</Callout>
 
 <CoupledFlowchart />
 
-Convergencia externa suele requerir más iteraciones que la interna porque dos procesos se retroalimentan: más congestión en el centro → los hogares ricos se dispersan → menos congestión → vuelven al centro…
+La convergencia externa suele requerir más iteraciones que la interna porque dos procesos se retroalimentan: más congestión en el centro → los hogares se redistribuyen → cambia la congestión…
 
-<NextStep to="experimenting">Experimentar →</NextStep>
+<NextStep to="land-use">Módulo Uso de suelo →</NextStep>

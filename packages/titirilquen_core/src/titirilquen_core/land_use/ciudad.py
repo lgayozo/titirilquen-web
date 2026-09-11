@@ -13,24 +13,26 @@ from numpy.typing import NDArray
 
 from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.config import LandUseConfig
-from titirilquen_core.land_use.equilibrium import (
-    LandUseResult,
-    solve_heteroscedastic,
-    solve_logit,
-)
-
-_SOLVERS = {
-    "heteroscedastic": solve_heteroscedastic,
-    "logit": solve_logit,
-}
+from titirilquen_core.land_use.equilibrium import LandUseResult, solve_subasta
 from titirilquen_core.land_use.supply import generar_oferta
 
+V_REF_KMH = 30.0
+"""Velocidad de referencia del baseline "sin transporte": el T por defecto es
+el tiempo a flujo libre a esta velocidad. Misma convención que el arranque del
+loop acoplado (ver D-23/D-26)."""
 
-def _default_T(n_parcelas: int, cbd_index: int, n_strata: int) -> NDArray[np.float64]:
-    """T[h, i] = |i - cbd|, igual para todos los estratos (la variación por
-    estrato se captura vía α_h)."""
-    dist = np.abs(np.arange(n_parcelas) - cbd_index).astype(float)
-    return np.tile(dist, (n_strata, 1))
+ANCHO_CELDA_KM_DEFAULT = 0.1
+"""Ancho de parcela por defecto ≈ ciudad de 20 km en 201 celdas, la referencia
+del frontend.
+
+Es una CONSTANTE y no dos literales porque los dos puntos de entrada de la
+clase —el campo del dataclass y el parámetro de `build`— declaraban valores
+distintos (0.1 y 0.01). Como `dens = S/Δx`, ese factor 10 es un factor 10 en la
+desamenidad de densidad: entrar por `build()` sin pasar el ancho daba un
+equilibrio distinto que construir la instancia directo. Los callers deben pasar
+igual el ancho real (`largo_km / L`); el default existe para no romper los usos
+de juguete.
+"""
 
 
 @dataclass
@@ -39,14 +41,15 @@ class LandUseCity:
 
     Uso típico:
         city = LandUseCity.build(L=201, CBD=100, cfg=LandUseConfig(...))
-        # o con una T proveniente de transporte:
+        # T: accesibilidad mensual de transporte por estrato (obligatoria):
         city.update(T=T_from_transport)
     """
 
     L: int
     cbd_index: int
     cfg: LandUseConfig
-    ancho_celda_km: float = 0.01
+    # Ancho físico de cada celda. Ver `ANCHO_CELDA_KM_DEFAULT`.
+    ancho_celda_km: float = ANCHO_CELDA_KM_DEFAULT
     S: NDArray[np.int_] = field(default_factory=lambda: np.zeros(0, dtype=int))
     result: LandUseResult | None = None
     parcelas: list[list[int]] = field(default_factory=list)
@@ -58,11 +61,11 @@ class LandUseCity:
         L: int,
         CBD: int,
         cfg: LandUseConfig,
-        ancho_celda_km: float = 0.01,
+        ancho_celda_km: float = ANCHO_CELDA_KM_DEFAULT,
         S: NDArray[np.int_] | None = None,
         T: NDArray[np.float64] | None = None,
         rng: np.random.Generator | None = None,
-    ) -> "LandUseCity":
+    ) -> LandUseCity:
         """Construye la ciudad, genera oferta si no se entrega, y resuelve equilibrio."""
         if rng is None:
             rng = np.random.default_rng()
@@ -89,7 +92,11 @@ class LandUseCity:
         T: NDArray[np.float64] | None = None,
         rng: np.random.Generator | None = None,
     ) -> None:
-        """Recalcula el equilibrio. Si `T` no se entrega, usa la distancia al CBD."""
+        """Recalcula el equilibrio con la accesibilidad `T[h, i]` dada.
+
+        `T` es obligatoria: es el logsum mensual de transporte por estrato
+        (`land_use.accesibilidad`), y no hay un default honesto sin la demanda.
+        Hasta sep-2026 existía `_default_T` (minutos a flujo libre); ver D-34."""
         if rng is None:
             rng = np.random.default_rng()
 
@@ -101,12 +108,14 @@ class LandUseCity:
         lambda_h = np.asarray([s.lambda_ for s in self.cfg.estratos], dtype=float)
 
         if T is None:
-            T = _default_T(self.L, self.cbd_index, n_strata)
+            raise ValueError(
+                "LandUseCity necesita T[h, i]: "
+                "usá land_use.accesibilidad.T_flujo_libre(demand, ...)"
+            )
         if T.shape != (n_strata, self.L):
             raise ValueError(f"T shape {T.shape} != ({n_strata}, {self.L})")
 
-        solver = _SOLVERS[self.cfg.solver]
-        self.result = solver(
+        self.result = solve_subasta(
             H=H,
             S=self.S,
             y=y,
@@ -117,8 +126,31 @@ class LandUseCity:
             beta=self.cfg.beta,
             tol=self.cfg.tol,
             max_iter=self.cfg.max_iter,
+            ancho_celda_km=self.ancho_celda_km,
         )
         self.parcelas = asignar_hogares_simple(Q=self.result.Q, S=self.S, H=H, rng=rng)
+
+    def densidad_por_celda(self) -> NDArray[np.float64]:
+        """Densidad de población por celda (hab/km) como **consecuencia de la oferta
+        `S`**:
+
+            dens(i) = S_i / Δx
+
+        donde `S_i` son los hogares que la ciudad ofrece en la celda `i`
+        (`supply.generar_oferta`) y `Δx = ancho_celda_km`. La **forma** la da el
+        perfil de oferta (`forma`); ya NO es un gradiente de Clark geométrico
+        impuesto e independiente del equilibrio. Es **invariante a la grilla** (`S`
+        escala con `Δx`, así que `S/Δx` no depende de la resolución) e
+        **independiente del estrato** (la composición `Q` solo reparte esa
+        población entre estratos, no fija su nivel). Las celdas sin oferta (el CBD,
+        `S=0`) quedan en 0.
+
+        Es la **misma envolvente** que usa la asignación de hogares
+        (`asignar_hogares_simple` reparte `S·Q`), el feed a transporte y las
+        figuras del frontend: una sola definición de "cuántos viven en la celda i"."""
+        dens = np.asarray(self.S, dtype=float) / self.ancho_celda_km
+        dens[np.asarray(self.S) <= 0] = 0.0  # sin vivienda (CBD)
+        return dens
 
     def hogares_por_parcela_estrato(self) -> NDArray[np.int_]:
         """Matriz (n_strata, L) con el conteo efectivo asignado por celda."""

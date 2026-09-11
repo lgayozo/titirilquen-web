@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 2: Oferta de transporte</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 2</div>
+  <h1>Oferta de transporte</h1>
+  <p class="bajada">
+    Cuánto tarda un viaje cuando la red ya tiene gente encima. Tres modos con
+    tres mecanismos distintos: el auto se congestiona, la bicicleta también pero
+    con un piso, y el metro <em>mejora</em> con la demanda.
+  </p>
+  <p class="meta">
+    Módulos: <code>supply/car.py</code> · <code>bike.py</code> ·
+    <code>train.py</code> · <code>oferta.py</code> ·
+    auditado el 2026-09-07 ·
+    datos regenerados el 2026-09-07 ·
+    <span class="estado auditado">auditado</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Cotejo con el código</a></li>
+    <li><a href="#s3">Parámetros</a></li>
+    <li><a href="#s4">Resultados</a></li>
+    <li><a href="#s5">Pruebas</a></li>
+    <li><a href="#s6">Auditorías</a></li>
+    <li><a href="#s7">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<p>
+  La oferta responde una sola pregunta: <em>dada una carga, ¿cuánto tarda cada
+  modo?</em> No decide quién viaja —eso es el capítulo 3— ni busca el punto fijo
+  entre ambas —el capítulo 4—. Aquí sólo están las funciones de costo.
+</p>
+
+<h3>Auto: Greenshields y BPR</h3>
+
+<p>
+  La capacidad de una pista no se configura a mano: se deriva del diagrama
+  fundamental de Greenshields, donde el flujo máximo ocurre a media velocidad
+  libre y media densidad de embotellamiento.
+</p>
+
+<div class="ecuacion" data-tex="k_j = \frac{1000}{\ell + g}, \qquad C = \frac{k_j \cdot v_l}{4}" data-id="(2.1)">
+  <span class="id">(2.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>k</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1000</mn><mrow><mi mathvariant="normal">ℓ</mi><mo>+</mo><mi>g</mi></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>C</mi><mo>=</mo><mfrac><mrow><msub><mi>k</mi><mi>j</mi></msub><mo>⋅</mo><msub><mi>v</mi><mi>l</mi></msub></mrow><mn>4</mn></mfrac></mrow><annotation encoding="application/x-tex">k_j = \frac{1000}{\ell + g}, \qquad C = \frac{k_j \cdot v_l}{4}</annotation></semantics></math></span>
+</div>
+
+<p>
+  con <em>ℓ</em> el largo del vehículo y <em>g</em> el espaciamiento mínimo. La
+  velocidad libre <em>v_l</em> penaliza la velocidad máxima según el ancho de
+  pista. La demora sobre esa capacidad es la curva BPR:
+</p>
+
+<div class="ecuacion" data-tex="t = t_0 \left[ 1 + \alpha \left(\frac{q}{C}\right)^{\beta} \right]" data-id="(2.2)">
+  <span class="id">(2.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>t</mi><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub><mrow><mo fence="true">[</mo><mn>1</mn><mo>+</mo><mi>α</mi><msup><mrow><mo fence="true">(</mo><mfrac><mi>q</mi><mi>C</mi></mfrac><mo fence="true">)</mo></mrow><mi>β</mi></msup><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">t = t_0 \left[ 1 + \alpha \left(\frac{q}{C}\right)^{\beta} \right]</annotation></semantics></math></span>
+</div>
+
+<p>
+  El flujo <em>q</em> de cada celda es el <strong>acumulado</strong> hacia el
+  CBD: todos los viajes de las celdas exteriores pasan por las interiores, así
+  que la carga crece hacia el centro. El tiempo de un viaje es la suma de los
+  tramos que atraviesa, descontando medio tramo propio (el viajero entra por el
+  centroide de su celda, no por el borde).
+</p>
+
+<h3>Bicicleta: la misma curva, con un piso</h3>
+
+<p>
+  La bicicleta usa (2.2) sobre la capacidad de la ciclovía, con dos añadidos.
+  La pendiente modifica la velocidad de forma lineal y asimétrica —subir cuesta
+  más de lo que bajar ahorra—, y el tiempo de cada tramo se acota por arriba al
+  de <strong>caminar</strong> ese tramo: una bicicleta congestionada nunca puede
+  ser más lenta que empujarla (D-15).
+</p>
+
+<h3>Metro: economías de escala</h3>
+
+<p>
+  El metro es el único modo donde más demanda puede significar <em>menos</em>
+  tiempo. La frecuencia es endógena a la carga:
+</p>
+
+<div class="ecuacion" data-tex="f = \mathrm{clip}\!\left(\frac{Q_{\max}}{K},\; f_{\min},\; f_{\max}\right), \qquad t_{\text{espera}} = \frac{60}{2f}" data-id="(2.3)">
+  <span class="id">(2.3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo>=</mo><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">p</mi></mrow><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><msub><mi>Q</mi><mi>max</mi><mo>⁡</mo></msub><mi>K</mi></mfrac><mo separator="true">,</mo><mtext>  </mtext><msub><mi>f</mi><mi>min</mi><mo>⁡</mo></msub><mo separator="true">,</mo><mtext>  </mtext><msub><mi>f</mi><mi>max</mi><mo>⁡</mo></msub><mo fence="true">)</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><msub><mi>t</mi><mtext>espera</mtext></msub><mo>=</mo><mfrac><mn>60</mn><mrow><mn>2</mn><mi>f</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">f = \mathrm{clip}\!\left(\frac{Q_{\max}}{K},\; f_{\min},\; f_{\max}\right), \qquad t_{\text{espera}} = \frac{60}{2f}</annotation></semantics></math></span>
+</div>
+
+<p>
+  Más pasajeros ⇒ más trenes ⇒ menos espera: es el <strong>efecto
+  Mohring</strong> (1972), la economía de escala del transporte público. Los
+  topes <em>f_mín</em> y <em>f_máx</em> lo apagan en los extremos, y la §4 mide
+  dónde. Sobre la espera se aplica además una BPR de andén por saturación del
+  sistema, y el tiempo en vehículo suma las detenciones intermedias — que es lo
+  que le pone un costo a agregar estaciones.
+</p>
+
+<h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">(2.1)</td>
+      <td class="ruta py">supply/car.py</td>
+      <td class="n">55</td>
+      <td><code>cap_pista</code> — Greenshields, o el valor explícito de S-04; <code>_factor_ancho</code> (25) penaliza <em>v_l</em></td>
+    </tr>
+    <tr>
+      <td class="n">(2.2)</td>
+      <td class="ruta py">supply/car.py</td>
+      <td class="n">36</td>
+      <td><code>demora_auto_tramo</code> — BPR sobre el flujo acumulado</td>
+    </tr>
+    <tr>
+      <td class="n">(2.2)</td>
+      <td class="ruta py">supply/bike.py</td>
+      <td class="n">32</td>
+      <td><code>demora_bici_tramo</code> — ídem; <code>_velocidad_con_pendiente</code> (21) aplica D-01</td>
+    </tr>
+    <tr>
+      <td class="n">(2.3)</td>
+      <td class="ruta py">supply/train.py</td>
+      <td class="n">33</td>
+      <td><code>oferta_tren</code> — frecuencia endógena, espera, acceso y detenciones</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">supply/oferta.py</td>
+      <td class="n">38</td>
+      <td><code>resolver_oferta</code> — los tres modos de una vez; <code>resolver_red_vacia</code> (93) es el contrafactual</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Diferencias con la fuente</h3>
+
+<p>
+  Tres, todas registradas y ninguna silenciosa. <strong>D-01</strong>: el
+  coeficiente de pendiente del Overleaf (0,09992) haría colapsar la velocidad al
+  10 % en terreno plano; el código usa 0,9992, que es lo consistente.
+  <strong>D-16</strong>: las constantes de congestión de andén difieren de las
+  del Overleaf y cambian la forma de la curva. <strong>D-15</strong>: el piso de
+  caminata no está en el original — se agregó porque sin él la bicicleta podía
+  quedar más lenta que caminar.
+</p>
+
+<div class="aviso neutro">
+  <h4>Consistencia con el capítulo 1</h4>
+  <p>
+    Los tres modos reciben la posición del CBD en kilómetros
+    (<code>cbd_km</code>) y la reconvierten a índice con
+    <code>int(cbd_km/L · n)</code>. Como eso es <code>⌊n/2⌋</code> para todo
+    <em>n</em>, los tres caen en la misma celda que usa la demanda, con cualquier
+    paridad — verificado en la §4 sobre 201, 101, 51 y 1001 celdas (desde el
+    2026-09-10 <em>n</em> es impar por schema, así que las grillas pares ya no
+    se pueden construir). El metro, además, sitúa sus estaciones sobre
+    centroides, que es correcto: el acceso a pie es una distancia física, no un
+    conteo de celdas.
+  </p>
+</div>
+
+<h2 id="s3"><span class="num">§3</span> Parámetros</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Parámetro</th><th class="n">Valor</th><th>Unidad</th><th>Origen</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>alpha_bpr</code> / <code>beta_bpr</code> (auto)</td>
+      <td class="n">0,8 / 2,0</td>
+      <td>—</td>
+      <td><span class="etiqueta lim">heredado</span> <strong>no son los de la FHWA</strong> (0,15 / 4,0): castigan más la congestión moderada y menos la severa</td>
+    </tr>
+    <tr>
+      <td><code>largo_vehiculo_m</code> + <code>gap_m</code></td>
+      <td class="n">5 + 2</td>
+      <td>m</td>
+      <td><span class="etiqueta lim">heredado</span> dan <em>k_j</em> = 142,9 veh/km</td>
+    </tr>
+    <tr>
+      <td><code>v_max_kmh</code> (auto)</td>
+      <td class="n">31</td>
+      <td>km/h</td>
+      <td><span class="etiqueta lim">heredado</span> con ancho ≥ 3,5 m no se penaliza</td>
+    </tr>
+    <tr>
+      <td><code>capacidad_pista</code> (bici)</td>
+      <td class="n">2.500</td>
+      <td>bici/h</td>
+      <td><span class="etiqueta lim">heredado</span></td>
+    </tr>
+    <tr>
+      <td><code>frec_min</code> / <code>frec_max</code></td>
+      <td class="n">2 / 40</td>
+      <td>tren/h</td>
+      <td><span class="etiqueta neutra">decisión</span> operativa; el mínimo apaga Mohring bajo demanda baja (§4)</td>
+    </tr>
+    <tr>
+      <td><code>anden_alpha</code> / <code>anden_beta</code></td>
+      <td class="n">0,15 / 4,0</td>
+      <td>—</td>
+      <td><span class="etiqueta lim">heredado</span> <strong>prácticamente inactivos</strong> (D-12, medido en §4)</td>
+    </tr>
+    <tr>
+      <td><code>num_estaciones</code></td>
+      <td class="n">10</td>
+      <td>—</td>
+      <td><span class="etiqueta lim">heredado</span> entrega <strong>11</strong> estaciones (D-47)</td>
+    </tr>
+    <tr>
+      <td><code>tiempo_detencion_min</code></td>
+      <td class="n">0,5</td>
+      <td>min</td>
+      <td><span class="etiqueta neutra">decisión</span> D-18: sin él, agregar estaciones no costaba nada</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s4"><span class="num">§4</span> Resultados</h2>
+
+<p>
+  Todo sale de <code>datos/cap02.json</code>. Las demandas son uniformes y
+  sintéticas: aquí se miden las funciones de costo, no el equilibrio.
+</p>
+
+<h3>El auto reproduce Greenshields exactamente</h3>
+
+<p>
+  Con ℓ+g = 7 m, <em>k_j</em> = 142,857 veh/km; con ancho 3,5 m el factor es 1,0
+  y <em>v_l</em> = 31 km/h. La capacidad por dirección que predice (2.1) es
+  <strong>2.214,3 veh/h</strong> y la que devuelve el código es
+  <strong>2.214,3 veh/h</strong>. La curva BPR sobre esa capacidad:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">v/c</th><th class="n">0,00</th><th class="n">0,25</th><th class="n">0,50</th><th class="n">0,75</th><th class="n">1,00</th><th class="n">1,25</th><th class="n">1,50</th><th class="n">2,00</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>t / t libre</strong></td>
+      <td class="n">1,000</td><td class="n">1,017</td><td class="n">1,068</td><td class="n">1,153</td>
+      <td class="n">1,272</td><td class="n">1,425</td><td class="n">1,612</td><td class="n">2,088</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  En saturación plena el viaje tarda 27 % más que a flujo libre. Con los
+  parámetros de la FHWA (α=0,15, β=4) serían 15 %, y la curva sería mucho más
+  plana antes de v/c=1 y mucho más brusca después. La calibración heredada
+  reparte el castigo de otra manera; no está justificada en ninguna fuente del
+  repositorio.
+</p>
+
+<h3>La bicicleta: el piso funciona, y tarde</h3>
+
+<p>
+  Caminar un tramo de 99,5 m toma 1,244 min. El piso se activa cuando la BPR
+  cruda supera ese valor, y eso sólo ocurre con carga muy alta:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Demanda/celda</th><th class="n">Flujo máx. (bici/h)</th><th class="n">Tramos con piso activo</th><th class="n">t borde (min)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">20</td><td class="n">2.000</td><td class="n">0 / 201</td><td class="n">47,05</td></tr>
+    <tr><td class="n">50</td><td class="n">5.000</td><td class="n">6 / 201</td><td class="n">71,23</td></tr>
+    <tr><td class="n">200</td><td class="n">20.000</td><td class="n">152 / 201</td><td class="n">111,23</td></tr>
+    <tr><td class="n">1.000</td><td class="n">100.000</td><td class="n">192 / 201</td><td class="n">121,90</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con la capacidad de 2.500 bici/h, el piso empieza a morder al doble de
+  capacidad y satura la ciudad entera a ocho veces. En la corrida por defecto no
+  se activa: es una salvaguarda contra el absurdo, no un mecanismo cotidiano.
+</p>
+
+<p>
+  La pendiente es <strong>asimétrica</strong>, como corresponde: a −6 % el viaje
+  del borde toma 36,96 min y a +6 %, 72,18 min. Subir cuesta casi el doble que
+  bajar, y ya no da lo mismo el signo (AT-05, corregido).
+</p>
+
+<h3>El metro: Mohring existe, pero arranca tarde</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Demanda/celda</th><th class="n">f teórica</th><th class="n">f operativa</th><th>Tope</th><th class="n">Espera media (min)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">5</td><td class="n">0,450</td><td class="n">2,000</td><td>f_mín</td><td class="n">13,433</td></tr>
+    <tr><td class="n">10</td><td class="n">0,900</td><td class="n">2,000</td><td>f_mín</td><td class="n">13,433</td></tr>
+    <tr><td class="n">20</td><td class="n">1,800</td><td class="n">2,000</td><td>f_mín</td><td class="n">13,433</td></tr>
+    <tr class="destacada"><td class="n">40</td><td class="n">3,600</td><td class="n">3,600</td><td>—</td><td class="n">7,463</td></tr>
+    <tr><td class="n">80</td><td class="n">7,200</td><td class="n">7,200</td><td>—</td><td class="n">3,732</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Por debajo de unos 22 pasajeros por celda la frecuencia queda clavada en
+  <em>f_mín</em> = 2 tren/h y <strong>el efecto Mohring está apagado</strong>: la
+  espera no reacciona a la demanda. Por encima, funciona como debe — duplicar la
+  demanda parte la espera a la mitad. La corrida por defecto opera arriba de ese
+  umbral, así que Mohring sí actúa; pero cualquier escenario con metro poco usado
+  cae en la zona muerta, y ahí subir la demanda no mejora el servicio.
+</p>
+
+<h3>La congestión de andén casi no existe</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Demanda/celda</th><th class="n">10</th><th class="n">40</th><th class="n">80</th><th class="n">160</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Sobrecosto sobre la espera</strong></td><td class="n">0 %</td><td class="n">0,001 %</td><td class="n">0,017 %</td><td class="n">0,275 %</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con β=4, el castigo sólo despega cuando la razón carga/capacidad se acerca a 1,
+  y en el rango alcanzable no llega. D-12 lo llamaba «prácticamente inactiva»;
+  medido, es un cuarto de punto porcentual en el caso más extremo. El parámetro
+  existe, se puede mover desde la interfaz, y no cambia nada.
+</p>
+
+<h3>Las estaciones: el óptimo existe, y el default no está ahí</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Pedidas</th><th class="n">Reales</th><th class="n">Acceso (min)</th><th class="n">Viaje (min)</th><th class="n">Suma (min)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">4</td><td class="n">5</td><td class="n">15,625</td><td class="n">8,653</td><td class="n">24,278</td></tr>
+    <tr class="destacada"><td class="n">10</td><td class="n">11</td><td class="n">6,250</td><td class="n">9,325</td><td class="n">15,575</td></tr>
+    <tr><td class="n">14</td><td class="n">14</td><td class="n">4,783</td><td class="n">9,763</td><td class="n">14,546</td></tr>
+    <tr><td class="n">20</td><td class="n">21</td><td class="n">3,125</td><td class="n">10,544</td><td class="n">13,669</td></tr>
+    <tr><td class="n">30</td><td class="n">31</td><td class="n">2,083</td><td class="n">11,827</td><td class="n">13,909</td></tr>
+    <tr><td class="n">60</td><td class="n">59</td><td class="n">1,075</td><td class="n">15,552</td><td class="n">16,627</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El trade-off que promete la interfaz es real: el acceso cae y el viaje sube, y
+  la suma tiene un mínimo en <strong>20 estaciones pedidas</strong> (13,67 min).
+  El default de 10 queda 1,9 min por encima. No es un error —el número de
+  estaciones responde a costos de construcción que el modelo no tiene—, pero
+  conviene saber que el default no es el óptimo de tiempo.
+</p>
+
+<p>
+  La columna «reales» es el hallazgo: <strong>pedir 10 entrega 11</strong>. Ver
+  D-47 en la §6.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Pruebas</h2>
+
+<p>
+  A diferencia del capítulo 1, aquí sí hay pruebas propias: 17 tests en tres
+  archivos, uno por modo.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Archivo</th><th class="n">Tests</th><th>Qué fija</th><th>Qué NO cubre</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="ruta py">tests/test_supply_car.py</code></td>
+      <td class="n">4</td>
+      <td>El factor de ancho, que más pistas bajan la congestión, que la capacidad escala con pistas y que la capacidad explícita desacopla la velocidad (S-04).</td>
+      <td>Que la capacidad reproduzca Greenshields; que la BPR tenga la forma de (2.2).</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_supply_bike.py</code></td>
+      <td class="n">8</td>
+      <td>La pendiente en sus cuatro casos y sus cotas, el centro con tiempo cero, la demora creciente, y la simetría entre los dos lados de la ciudad (AT-05).</td>
+      <td>El piso de caminata (D-15): ningún test lo activa.</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_supply_train.py</code></td>
+      <td class="n">5</td>
+      <td>La frecuencia teórica, los dos topes, el caso intermedio y que subir la capacidad del tren baje la frecuencia.</td>
+      <td>El conteo de estaciones (D-47); la congestión de andén; el trade-off acceso/viaje.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s6"><span class="num">§6</span> Auditorías</h2>
+
+<div class="paso">
+  <h3>Protocolo aplicado <span class="ref">2026-09-07</span></h3>
+  <p>
+    (a) lectura estática de los tres modos contra (2.1)–(2.3); (b) reproducción
+    de Greenshields contra su fórmula cerrada y barridos de carga en los tres
+    modos; (c) invariancia del CBD frente a la paridad; (d) consistencia con el
+    capítulo 1 — los tres modos y la demanda comparten celda del CBD; (e)
+    contraste de las etiquetas de la interfaz contra el cálculo.
+  </p>
+</div>
+
+<div class="aviso neutro">
+  <h4>D-47 — <code>num_estaciones</code> no es el número de estaciones</h4>
+  <p>
+    <strong>Baja.</strong> La línea se construye desde el CBD con paso
+    <code>L/n</code> y luego se filtra a <code>[0, L]</code>: pedir 10 entrega 11,
+    pedir 20 entrega 21, pedir 24 entrega 23. Sólo 3, 5 y 6 aciertan. El
+    parámetro es en realidad un número de <em>intervalos</em>, y como tal está
+    bien definido; lo que falla es que la etiqueta promete un conteo que el
+    modelo no entrega. La ciudad por defecto tiene once estaciones, no diez.
+  </p>
+</div>
+
+<p>
+  Los otros tres resultados de la auditoría <strong>confirman hallazgos ya
+  registrados</strong> y les ponen número, que es la mitad del trabajo que no
+  estaba hecha:
+</p>
+
+<ul>
+  <li>
+    <strong>D-12</strong> decía que la congestión de andén estaba «prácticamente
+    inactiva». Medido: ≤ 0,275 % de sobrecosto sobre la espera, incluso al
+    cuádruple de la demanda de saturación.
+  </li>
+  <li>
+    <strong>AT-08 / AT-09</strong> advertían sobre los topes de frecuencia.
+    Medido: por debajo de ~22 pax/celda la frecuencia está clavada en
+    <em>f_mín</em> y Mohring no opera. La corrida por defecto está por encima.
+  </li>
+  <li>
+    <strong>AT-05</strong>, la asimetría de la pendiente, funciona: −6 % da 36,96
+    min y +6 % da 72,18 min contra los mismos 47,05 min en plano.
+  </li>
+</ul>
+
+<p>
+  Y una <strong>corrección al capítulo 1</strong>, que salió de auditar éste:
+  aquel afirmaba que la oferta medía distancias con una convención distinta de la
+  demanda. Es falso — la oferta reconvierte a índice y coincide siempre. D-45 y
+  el capítulo 1 quedaron corregidos.
+</p>
+
+<h2 id="s7"><span class="num">§7</span> Discusión</h2>
+
+<p>
+  Los tres mecanismos son correctos y están bien separados: Greenshields
+  reproduce su fórmula al decimal, la BPR tiene la forma que dice tener, y el
+  efecto Mohring —que es lo que hace interesante al metro— opera de verdad en el
+  rango de la corrida por defecto.
+</p>
+
+<p>
+  Lo que la auditoría deja al descubierto es de <strong>calibración</strong>, no
+  de implementación. Hay tres parámetros heredados que nadie ha justificado y que
+  se comportan de maneras que el usuario no puede adivinar: la BPR del auto no
+  usa los coeficientes estándar, la congestión de andén es un dial que no mueve
+  nada, y el número de estaciones no es el número de estaciones.
+</p>
+
+<div class="aviso idea">
+  <h4>El patrón que llevamos dos capítulos viendo</h4>
+  <p>
+    En el capítulo 1 fueron dos afirmaciones que sobrevivieron a la corrección
+    que las volvió falsas. Aquí son tres parámetros que hacen algo distinto de lo
+    que su nombre dice. Es la misma familia de problema: <strong>la distancia
+    entre lo que el modelo declara y lo que calcula</strong>, y en ambos casos la
+    encontró el paso (e) del protocolo.
+  </p>
+</div>
+
+<h3>Pendientes</h3>
+
+<ul>
+  <li>
+    <strong>D-47</strong>: renombrar el parámetro a separación entre estaciones,
+    o exponer el conteo real. Es cosmético pero afecta a lo que el usuario cree
+    estar configurando.
+  </li>
+  <li>
+    <strong>La BPR del auto</strong>: decidir si α=0,8 / β=2 se justifica o se
+    migra a los valores de la FHWA. Mover esto cambia la línea base y es decisión
+    de modelo, no de documentación.
+  </li>
+  <li>
+    <strong>La congestión de andén</strong>: o se recalibra para que muerda en el
+    rango alcanzable, o se retira del panel. Un dial inerte enseña algo falso.
+  </li>
+  <li>
+    <strong>Sin discrepancia</strong>: ningún test activa el piso de la
+    bicicleta, y el conteo de estaciones tampoco tiene prueba. Son dos tests
+    cortos que cerrarían lo que este capítulo encontró a mano.
+  </li>
+</ul>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    <a href="cap01-ciudad-lineal.html">← capítulo 1</a> ·
+    datos en <code>datos/cap02.json</code>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

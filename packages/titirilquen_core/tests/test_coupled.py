@@ -2,39 +2,25 @@ from __future__ import annotations
 
 import numpy as np
 
+from tests._poblacion import suelo_uniforme
+from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import (
     CityConfig,
     DemandConfig,
-    PhysicalPenalties,
     SimulationConfig,
-    StratumBetas,
-    StratumConfig,
     SupplyConfig,
 )
-from titirilquen_core.coupled import run_coupled
+from titirilquen_core.coupled import _T_logsum_snapshot, run_coupled
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
+from titirilquen_core.presets import DEFAULT_STRATA
 
 
-def _demand_config() -> DemandConfig:
-    penal = PhysicalPenalties(
-        bici_10=-0.09, bici_20=-0.15, bici_30=-0.5,
-        walk_5=-0.09, walk_15=-0.18, walk_25=-0.4,
-    )
-    betas = StratumBetas(
-        asc_auto=1.5, asc_metro=-0.2, asc_bici=-0.9, asc_caminata=-0.5,
-        b_tiempo_viaje=-0.055, b_costo=-0.00008,
-        b_tiempo_espera=-0.05, b_tiempo_caminata=-0.15,
-        penalizaciones_fisicas=penal,
-    )
-    s = StratumConfig(prob_teletrabajo=0.2, prob_auto=0.6, betas=betas)
-    return DemandConfig(estratos={1: s, 2: s, 3: s})
-
-
-def _sim_small() -> SimulationConfig:
+def _sim_small(demanda_sintetica: DemandConfig) -> SimulationConfig:
     return SimulationConfig(
-        city=CityConfig(n_celdas=51, largo_ciudad_km=5, densidad_por_celda=5),
+        city=CityConfig(n_celdas=51, largo_ciudad_km=5),
         supply=SupplyConfig(),
-        demand=_demand_config(),
+        demand=demanda_sintetica,
         max_iter=3,
         seed=42,
     )
@@ -52,9 +38,9 @@ def _land_use_config() -> LandUseConfig:
     )
 
 
-def test_coupled_run_basic() -> None:
+def test_coupled_run_basic(demanda_sintetica: DemandConfig) -> None:
     res = run_coupled(
-        sim=_sim_small(),
+        sim=_sim_small(demanda_sintetica),
         land_use_config=_land_use_config(),
         outer_max_iter=2,
         outer_tol=0.1,
@@ -71,9 +57,9 @@ def test_coupled_run_basic() -> None:
     assert len(res.final_agents) == hogares_no_cbd
 
 
-def test_coupled_T_matrix_shape() -> None:
+def test_coupled_T_matrix_shape(demanda_sintetica: DemandConfig) -> None:
     res = run_coupled(
-        sim=_sim_small(),
+        sim=_sim_small(demanda_sintetica),
         land_use_config=_land_use_config(),
         outer_max_iter=1,
     )
@@ -82,10 +68,10 @@ def test_coupled_T_matrix_shape() -> None:
     assert np.all(np.isfinite(T))
 
 
-def test_coupled_residual_decreases_o_converge() -> None:
+def test_coupled_residual_decreases_o_converge(demanda_sintetica: DemandConfig) -> None:
     """El residuo exterior debería disminuir entre iteraciones o converger."""
     res = run_coupled(
-        sim=_sim_small(),
+        sim=_sim_small(demanda_sintetica),
         land_use_config=_land_use_config(),
         outer_max_iter=3,
         outer_tol=0.01,
@@ -93,3 +79,55 @@ def test_coupled_residual_decreases_o_converge() -> None:
     residuals = [it.T_residual for it in res.iterations if it.T_residual != float("inf")]
     # Al menos una iteración con residuo medible
     assert len(residuals) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Accesibilidad: D-22 revisada por D-34
+# ---------------------------------------------------------------------------
+
+
+def _snapshot(demand: DemandConfig):
+    sim = SimulationConfig(
+        city=CityConfig(n_celdas=41, largo_ciudad_km=8),
+        supply=SupplyConfig(),
+        demand=demand,
+        max_iter=2,
+        seed=11,
+        assignment="expected",
+    )
+    ciudad = CiudadLineal(n_celdas=41, largo_total_km=8)
+    trace = ConvergenceTrace()
+    for _ in iter_msa_desde_suelo(sim, suelo_uniforme(2400), trace, localizacion="original"):
+        pass
+    return sim, ciudad, trace.iteraciones[-1]
+
+
+def test_la_accesibilidad_es_el_logsum_y_crece_con_la_distancia(
+    demanda_sintetica: DemandConfig,
+) -> None:
+    """`T[h, i] = −VIAJES_MES·logsum_h(i)` sobre los tiempos del snapshot.
+
+    Con la demanda sintética los tres estratos son idénticos, así que las tres
+    filas tienen que coincidir: si difieren, se coló algo que no es la demanda.
+    Y es un costo: crece hacia los bordes (la celda del CBD, sin vivienda, queda
+    fuera de la comparación).
+    """
+    sim, ciudad, snap = _snapshot(demanda_sintetica)
+    T = _T_logsum_snapshot(sim, ciudad, snap)
+    assert T.shape == (3, 41)
+    assert np.allclose(T[0], T[1]) and np.allclose(T[1], T[2])
+    c = ciudad.cbd_index
+    assert T[0, 0] > T[0, c + 1] and T[0, -1] > T[0, c - 1]
+
+
+def test_la_accesibilidad_es_por_estrato() -> None:
+    """Con la demanda calibrada las filas difieren: la accesibilidad es la del
+    hogar que vive ahí (auto, valor del tiempo), no un atributo del lugar.
+
+    Hasta sep-2026 (D-22) se promediaba entre estratos porque `T` en minutos
+    por estrato invertía Alonso. Con el logsum en pesos no invierte —lo fija
+    `test_accesibilidad.py`— y la heterogeneidad vuelve a la puja (D-34).
+    """
+    sim, ciudad, snap = _snapshot(DemandConfig.model_validate({"estratos": DEFAULT_STRATA}))
+    T = _T_logsum_snapshot(sim, ciudad, snap)
+    assert not np.allclose(T[0], T[2]), "los estratos alto y bajo ven la misma accesibilidad"

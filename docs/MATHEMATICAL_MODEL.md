@@ -113,7 +113,7 @@ factor = 1                  si ρ_s ≤ 1
 > Mohring es **medible** (espera baja al ganar pasajeros) pero **DT no emerge** con
 > parámetros realistas, porque la espera es una fracción chica del tiempo total de
 > metro (acceso + a bordo dominan) y la sustitución auto↔metro es modesta.
-> Ver DISCREPANCIES.md D‑18 y `VERIFICACION_TRANSPORTE.md` H1.
+> Ver DISCREPANCIES.md D‑18 y `archivo/VERIFICACION_TRANSPORTE.md` H1.
 
 ---
 
@@ -149,9 +149,28 @@ residual decrece monótonamente y la corrida es reproducible.
 
 ## 5. Uso de suelo — bid‑rent (`land_use/`, ver `Suelo.tex`)
 
-Modelo monocéntrico tipo Alonso‑Muth‑Mills. Utilidad lineal en el ingreso:
+*Mapa: esta sección es la spec **as-built** del módulo. El historial de cómo se
+llegó está en [`archivo/CAMBIOS_USO_SUELO.md`](archivo/CAMBIOS_USO_SUELO.md); lo que falta reflejar
+en el Overleaf, en [`OVERLEAF_CHANGES.md`](OVERLEAF_CHANGES.md) §C8–C9.*
+
+Modelo monocéntrico tipo Alonso‑Muth‑Mills.
+
+> **Alcance (qué ES y qué NO es).** Es **bid‑rent**: ordena estratos sobre una
+> oferta `S` **exógena y fija** → composición `Q` + precios implícitos `p`. Es
+> "tipo AMM" solo en el sabor monocéntrico (la oferta normal por defecto imita el
+> centro denso), pero la **densidad NO es endógena**: la define `S`, no el
+> equilibrio. `Suelo.tex` lo elige a propósito («la oferta… se mantiene "fijo"…
+> esto debe de momento ser así, si permitimos un cambio en esta oferta a corto
+> plazo… el sistema no tendría equilibrios»). La **densidad física es `S_i/Δx`**
+> (`Suelo.tex`: `S` tiene doble rol, capacidad + desamenidad vía `ρ_h`); el
+> gradiente de Clark de una versión intermedia del código era una **divergencia**,
+> ya revertida (ver `archivo/CAMBIOS_USO_SUELO.md` §Unificación en la oferta S). El **loop
+> acoplado (§6) tampoco endogeneiza la densidad**: acopla suelo↔transporte vía la
+> accesibilidad `T`, con `S` fija (`N_{hi} = S_i·Q_{hi}`).
+
+Utilidad lineal en el ingreso:
 ```
-u_h = λ_h(y_h − p_i) + f_h(i),     f_h(i) = −α_h·T_h(i) − ρ_h·S_i
+u_h = λ_h(y_h − p_i) + f_h(i),     f_h(i) = −α_h·T_h(i) − ρ_h·(S_i/Δx)
 ```
 Disposición a pagar (ver [D‑17](DISCREPANCIES.md) — el Overleaf invierte el signo
 de `f`):
@@ -163,27 +182,32 @@ Probabilidad de subasta (logit) y operador de punto fijo sobre un **score** `s_h
 Q_hi = H_h·e^{β·s_hi} / Σ_g H_g·e^{β·s_gi}
 u* = F(u*),   F(u)_h = (1/β)·ln( Σ_i S_i · e^{β(s_hi − u_h)} / Σ_g e^{β(s_gi − u_g)} )
 ```
-Dos solvers comparten ese operador, cambiando solo el `score`:
-- **`heteroscedastic`** (default, consistente): `s_hi = λ_h·y_h + f_h(i)` — escala
-  por estrato `β_h = β·λ_h`, en espacio de utilidad.
-- **`logit`**: `s_hi = y_h + f_h(i)/λ_h` — `β` uniforme sobre la puja. Inconsistente
-  con `λ_h` heterogéneo (ver D‑08). Se conserva para comparación didáctica.
-**Oferta `S`** (`land_use/supply.py`, ver [D‑13](DISCREPANCIES.md)): perfil
-**determinista** redondeado a `Σ S = Σ H` (CBD excluido), con **forma
-parametrizable** (`forma`): `normal` (campana, default), `uniforme`,
-`exponencial` (`S ∝ e^{−d/σ}`), `meseta` (núcleo plano con borde neto),
-`bimodal` (dos picos a ±`sep`) y `valle` (densidad creciente con la distancia —
-triángulo invertido). El ancho/pendiente es `σ = oferta_sigma_frac ·
-min(c, N−1−c)` (default 0.5 ⇒ σ≈L/4) y `forma_param` fija `sep` (solo bimodal;
-en 1D un anillo coincide con bimodal). Permite estudiar cómo cambia el
-equilibrio de asignación según la geometría urbana.
 
-> El Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente (al dividir
-> la puja por `λ_h`, el ruido queda con escala `1/(β·λ_h)` por estrato) y sugiere
-> un **logit heteroscedástico**. Ese es el solver `heteroscedastic` (default,
-> `s = λ·y + f`, escala `β_h = β·λ_h`): coincide con `logit` cuando `λ_h = 1` y es
-> **invariante a la escala común de `λ`** (a diferencia del logit). Ver
-> [D‑08](DISCREPANCIES.md).
+> **Nota (asignación vs. visualización).** `Q_hi` ya es la probabilidad de subasta
+> con el shock `ε` **integrado** (el logit es el máximo de Gumbels marginalizado);
+> el equilibrio es `Q`, no una realización concreta. Por eso **las figuras de
+> distribución de estratos grafican la ocupación esperada `E[N_hi] = S_i·Q_hi`**
+> (determinista, pseudocontinua entre celdas), no una asignación muestreada. El
+> conteo por celda es lineal en la asignación, así que el esperado es insesgado
+> (sin Jensen). **Muestrear el `ε`** (`asignar_hogares_simple`, `rng.choice`) o
+> discretizar por conteos (`_mayor_residuo`) se reserva para generar la
+> **población agent-based** del transporte, donde cada agente necesita un estrato
+> y un modo concretos. Nunca graficar una sola muestra: introduce una "peineta"
+> entre celdas contiguas con pocos hogares que no es parte del equilibrio (ver
+> `archivo/CAMBIOS_USO_SUELO.md`). El loop acoplado usa asignación **esperada/determinista**
+> por la misma razón: el remuestreo dejaría un piso de residual que impide converger.
+
+**Un único solver** usa ese operador: **`logit`** (`s_hi = y_h + f_h(i)/λ_h`),
+con `β` uniforme sobre la puja. Es inconsistente con `λ_h` heterogéneo (ver
+D‑08): como `f` es lineal en `α` y `ρ`, dividir por `λ_h` es **idéntico** a
+re-escalar `(α_h, ρ_h)` por `1/λ_h`, y de paso escala el ruido de ese estrato.
+`λ` no queda identificado — su efecto es un artefacto, no un efecto‑ingreso.
+**Corregido el 2026-08-24:** la subasta heteroscedástica (HEV, Train §4.5 / Bhat 1995) está implementada en `land_use/hev.py` y `solve_subasta` la usa automáticamente cuando los λ difieren. Con eso λ queda identificado. Sigue entrando también por `f_h/λ_h`, así que no es un parámetro limpio: para eso haría falta un modelo de elección y no de subasta.
+
+> El Overleaf nota que el logit con `λ_h` heterogéneo es inconsistente y propone
+> un método alternativo. **Ese método no está implementado en Titirilquen**, ni
+> ningún otro que corrija el problema: la app corre siempre `logit`, con la
+> limitación declarada. Ver [D‑08](DISCREPANCIES.md).
 
 ---
 
@@ -202,6 +226,7 @@ ruido). Persiste un piso de residual por el remuestreo estocástico de població
 
 ## Referencias
 - Martínez, F. *Microeconomic Modeling in Urban Science*, cap. 3–5 (uso de suelo).
-- Overleaf original en `reference/overleaf/` (no versionado).
+- Overleaf original en `reference/overleaf_original/` y versión modificada en
+  `reference/overleaf_modificado/` (ninguna versionada en git).
 - Divergencias código↔Overleaf y mejoras V2: [`DISCREPANCIES.md`](DISCREPANCIES.md);
   agenda de cambios al paper: [`OVERLEAF_CHANGES.md`](OVERLEAF_CHANGES.md).

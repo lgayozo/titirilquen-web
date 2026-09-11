@@ -1,16 +1,39 @@
 import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import type { LandUseConfig } from "@/lib/types-v2";
 
 interface LandUseBuilderProps {
   config: LandUseConfig;
   onChange: (updater: (prev: LandUseConfig) => LandUseConfig) => void;
+  /** Largo de la ciudad (km), para el total de población derivado. */
+  largoKm: number;
 }
 
-export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
+const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
+
+export function LandUseBuilder({
+  config,
+  onChange,
+  largoKm,
+}: LandUseBuilderProps) {
   const { t } = useTranslation("simulator");
+
+  // α es común a los tres estratos: el control mueve los tres valores a la
+  // vez. λ_h = |b_costo_h| viene de transporte y NO se edita: una escala común
+  // de λ no mueve la asignación (sólo la unidad monetaria de las rentas), así
+  // que un control para ella sería un botón inerte (D-41).
+  const alpha = config.estratos[0].alpha;
+  const setAlpha = (v: number) =>
+    onChange((c) => ({
+      ...c,
+      estratos: c.estratos.map((e) => ({
+        ...e,
+        alpha: v,
+      })) as LandUseConfig["estratos"],
+    }));
+  const fmtLambda = (v: number) => `${(v * 1e4).toFixed(2)}·10⁻⁴`;
 
   const setStratum = (
     idx: 0 | 1 | 2,
@@ -22,12 +45,35 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
       return { ...c, estratos: next };
     });
 
-  const setH = (idx: 0 | 1 | 2, v: number) =>
-    onChange((c) => {
-      const H = [...c.H_por_estrato] as [number, number, number];
-      H[idx] = v;
-      return { ...c, H_por_estrato: H };
-    });
+  // Proporciones π_h = H_h/ΣH (la mezcla) y ESCALA de población (ΣH). La
+  // «densidad media» es una vista de la escala: densidad_media = ΣH / largo.
+  // Mover la densidad reescala ΣH (y con ella la oferta S y la densidad por
+  // celda = S/Δx); las proporciones fijan el reparto sin cambiar el total.
+  const totalH = config.H_por_estrato.reduce((a, b) => a + b, 0) || 1;
+  const pi = config.H_por_estrato.map((h) => h / totalH) as [
+    number,
+    number,
+    number,
+  ];
+  const densMedia = totalH / largoKm;
+
+  // Reescribe H con proporciones `p` y total `T` (Σ = T exacto, cada H ≥ 1).
+  const writeH = (p: [number, number, number], T: number) => {
+    const Ha = Math.max(1, Math.round(p[0] * T));
+    const Hm = Math.max(1, Math.round(p[1] * T));
+    const Hb = Math.max(1, T - Ha - Hm);
+    onChange((c) => ({ ...c, H_por_estrato: [Ha, Hm, Hb] }));
+  };
+
+  const setProporciones = (a: number, m: number) => {
+    const A = Math.max(0, Math.min(1, a));
+    const M = Math.max(0, Math.min(1 - A, m));
+    writeH([A, M, 1 - A - M], totalH);
+  };
+
+  // T = densidad_media · largo, ≥ 3 para garantizar ≥1 hogar por estrato.
+  const setDensidadMedia = (dm: number) =>
+    writeH(pi, Math.max(3, Math.round(dm * largoKm)));
 
   const labels = [
     t("strata.alto"),
@@ -37,69 +83,88 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
 
   return (
     <>
-      <SidebarSection
-        title={t("land_use.title")}
-        meta={`β=${config.beta.toFixed(1)}`}
+      {/* ---- POBLACIÓN: proporciones (mezcla) + densidad por estrato ---- */}
+      <CollapsibleSection
+        title={t("land_use.section_poblacion")}
+        meta={`≈ ${Math.round(totalH).toLocaleString("es-CL")}`}
       >
+        <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+          {t("land_use.proporciones")}
+        </div>
         <LabeledSlider
-          label={t("land_use.param_beta")}
-          value={config.beta}
-          min={0.1}
-          max={5}
-          step={0.1}
-          onChange={(v) => onChange((c) => ({ ...c, beta: v }))}
+          label={labels[0]}
+          value={pi[0]}
+          min={0}
+          max={1}
+          step={0.05}
+          format={pct}
+          onChange={(v) => setProporciones(v, pi[1])}
+        />
+        <LabeledSlider
+          label={labels[1]}
+          value={pi[1]}
+          min={0}
+          max={1 - pi[0]}
+          step={0.05}
+          format={pct}
+          onChange={(v) => setProporciones(pi[0], v)}
+        />
+        <div className="text-[11px] text-muted">
+          {labels[2]}: {pct(pi[2])} ({t("strata.auto_calculated")})
+        </div>
+
+        <div className="mb-1 mt-3 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+          {t("land_use.densidad_media_label")}
+        </div>
+        <LabeledSlider
+          label={t("land_use.densidad_media")}
+          value={densMedia}
+          min={100}
+          // 3000: aire sobre el default 1800 (preset Base). Compacta (4200) se
+          // aplica por preset, no por slider.
+          max={3000}
+          step={50}
+          unit="hab/km"
+          onChange={setDensidadMedia}
         />
 
-        <div className="mb-3">
-          <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-            {t("land_use.solver")}
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {(["heteroscedastic", "logit"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => onChange((c) => ({ ...c, solver: s }))}
-                className={`chip-toggle${config.solver === s ? " active" : ""}`}
-              >
-                {t(`land_use.solver_${s}`)}
-              </button>
-            ))}
-          </div>
-          <p className="mt-1 text-[10px] text-muted">
-            {t(`land_use.solver_hint_${config.solver}`)}
-          </p>
-        </div>
+        <p className="mt-2 text-[10px] text-muted">
+          {t("land_use.poblacion_total_hint", {
+            total: Math.round(totalH).toLocaleString("es-CL"),
+            dens: Math.round(densMedia),
+          })}
+        </p>
+      </CollapsibleSection>
 
-        <div className="mb-3">
-          <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-            {t("land_use.forma")}
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {(
-              [
-                "normal",
-                "uniforme",
-                "exponencial",
-                "meseta",
-                "bimodal",
-                "valle",
-              ] as const
-            ).map((f) => (
-              <button
-                key={f}
-                type="button"
-                className={`chip-toggle${config.forma === f ? " active" : ""}`}
-                onClick={() => onChange((c) => ({ ...c, forma: f }))}
-              >
-                {t(`land_use.forma_${f}`)}
-              </button>
-            ))}
-          </div>
-          <p className="mt-1 text-[10px] text-muted">
-            {t(`land_use.forma_hint_${config.forma}`)}
-          </p>
+      {/* ---- FORMA DE LA CIUDAD: perfil de oferta de vivienda ---- */}
+      <CollapsibleSection
+        title={t("land_use.section_forma")}
+        meta={t(`land_use.forma_${config.forma}`)}
+      >
+        <div className="flex flex-wrap gap-1.5">
+          {(
+            [
+              "normal",
+              "uniforme",
+              "exponencial",
+              "meseta",
+              "bimodal",
+              "valle",
+            ] as const
+          ).map((f) => (
+            <button
+              key={f}
+              type="button"
+              className={`chip-toggle${config.forma === f ? " active" : ""}`}
+              onClick={() => onChange((c) => ({ ...c, forma: f }))}
+            >
+              {t(`land_use.forma_${f}`)}
+            </button>
+          ))}
         </div>
+        <p className="mt-1 text-[10px] text-muted">
+          {t(`land_use.forma_hint_${config.forma}`)}
+        </p>
 
         <LabeledSlider
           label={t("land_use.param_oferta_sigma")}
@@ -126,66 +191,76 @@ export function LandUseBuilder({ config, onChange }: LandUseBuilderProps) {
             onChange={(v) => onChange((c) => ({ ...c, forma_param: v }))}
           />
         )}
-      </SidebarSection>
+      </CollapsibleSection>
+
+      {/* ---- PARÁMETROS DE PUJA (bid-rent): β, α y la escala de λ ---- */}
+      <CollapsibleSection
+        title={t("land_use.section_bidrent")}
+        meta={`β=${config.beta.toFixed(2)} · α=${alpha.toFixed(1)}`}
+        defaultOpen={false}
+      >
+        <p className="mb-2 text-[10px] text-muted">
+          {t("land_use.bidrent_hint")}
+        </p>
+        <LabeledSlider
+          label={t("land_use.param_beta")}
+          value={config.beta}
+          min={0.01}
+          max={2}
+          step={0.01}
+          hint={t("land_use.beta_hint")}
+          onChange={(v) => onChange((c) => ({ ...c, beta: v }))}
+        />
+        <LabeledSlider
+          label={t("land_use.param_alpha")}
+          value={alpha}
+          min={0.1}
+          max={10}
+          step={0.1}
+          hint={t("land_use.alpha_hint")}
+          onChange={setAlpha}
+        />
+        <p className="-mt-1 text-[10px] text-muted">
+          {t("land_use.lambda_values", {
+            l1: fmtLambda(config.estratos[0].lambda),
+            l2: fmtLambda(config.estratos[1].lambda),
+            l3: fmtLambda(config.estratos[2].lambda),
+          })}
+        </p>
+      </CollapsibleSection>
 
       {[0, 1, 2].map((i) => {
         const idx = i as 0 | 1 | 2;
         const s = config.estratos[idx];
         return (
-          <SidebarSection
+          <CollapsibleSection
             key={i}
-            title={labels[i]!}
-            meta={`H=${config.H_por_estrato[idx].toLocaleString()}`}
+            title={`${labels[idx]} · ${t("land_use.section_bidrent_short")}`}
+            meta={`ρ=${(s.rho * 1e3).toFixed(1)}·10⁻³`}
+            defaultOpen={false}
           >
-            <LabeledSlider
-              label={t("land_use.param_H", { stratum: labels[i] })}
-              value={config.H_por_estrato[idx]}
-              min={100}
-              max={20000}
-              step={100}
-              onChange={(v) => setH(idx, v)}
-            />
-            <LabeledSlider
-              label={t("land_use.param_alpha")}
-              value={s.alpha}
-              min={0.1}
-              max={5}
-              step={0.05}
-              onChange={(v) => setStratum(idx, { alpha: v })}
-            />
             <LabeledSlider
               label={t("land_use.param_rho")}
               value={s.rho}
               min={0}
-              max={3}
-              step={0.05}
+              max={0.01}
+              step={0.0001}
+              format={(v) => `${(v * 1e3).toFixed(2)}·10⁻³`}
+              hint={t("land_use.rho_hint")}
               onChange={(v) => setStratum(idx, { rho: v })}
             />
             <LabeledSlider
               label={t("land_use.param_y")}
               value={s.y}
-              min={1}
-              max={300}
-              step={1}
+              min={100_000}
+              max={10_000_000}
+              step={100_000}
+              format={(v) => `$${(v / 1_000_000).toFixed(1)}M`}
               disabled
               hint={t("land_use.y_na")}
               onChange={(v) => setStratum(idx, { y: v })}
             />
-            <LabeledSlider
-              label={t("land_use.param_lambda")}
-              value={s.lambda}
-              min={0.1}
-              max={3}
-              step={0.05}
-              disabled={config.solver === "heteroscedastic"}
-              hint={
-                config.solver === "heteroscedastic"
-                  ? t("land_use.lambda_na_het")
-                  : t("land_use.lambda_artifact_logit")
-              }
-              onChange={(v) => setStratum(idx, { lambda: v })}
-            />
-          </SidebarSection>
+          </CollapsibleSection>
         );
       })}
     </>

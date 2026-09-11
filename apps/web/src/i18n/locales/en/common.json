@@ -6,9 +6,10 @@
     "tutorial": "Tutorial",
     "sandbox": "Transport",
     "land_use": "Land use",
-    "coupled": "Coupled",
+    "coupled": "City at equilibrium",
     "compare": "Compare",
-    "about": "About"
+    "about": "About",
+    "menu": "Menu"
   },
   "language": {
     "label": "Language",
@@ -33,8 +34,10 @@
     "export_svg": "Export figure",
     "add_scenario": "Add scenario",
     "remove": "Remove",
-    "use_sandbox": "Current transport",
-    "new_run": "New simulation"
+    "use_sandbox": "Use current configuration",
+    "new_run": "New simulation",
+    "cancel": "Cancel",
+    "scenario_toolbar": "Scenario"
   },
   "engine": {
     "label": "Engine",
@@ -45,8 +48,7 @@
   },
   "skip_to_main": "Skip to main content",
   "footer": {
-    "authors": "Sebastian Acevedo, Pablo Alvarez, Fernando Castillo, Angelo Guevara",
-    "web_by": "Web by Leandro Gayozo",
+    "authors": "Angelo Guevara, Leandro Gayozo, Sebastian Acevedo, Pablo Alvarez, Fernando Castillo",
     "license": "GPLv3"
   },
   "about": {
@@ -54,38 +56,24 @@
     "title": "About Titirilquen",
     "lede": "An educational transport simulator over a monocentric linear city, designed for university teaching at the School of Engineering (FCFM), University of Chile.",
     "sections": {
-      "model_authors": "§1 · Model authors",
-      "web_impl": "§2 · Web re-implementation",
-      "license": "§3 · License",
-      "links": "§4 · Links"
+      "authorship": "§1 · Authorship",
+      "links": "§2 · Links"
     },
-    "model_authors": {
-      "heading": "Original authorship",
-      "body": "The mathematical model — its supply, demand and equilibrium equations — and the original Streamlit version were developed by the following academic team:"
+    "tags": {
+      "fcfm": "FCFM",
+      "uchile": "U. de Chile",
+      "transport": "Transporte"
     },
-    "web_impl": {
-      "heading": "Web rearchitecture",
-      "body": "This web interface re-implements the original simulator in React + FastAPI with a focus on pedagogical narrative. It preserves the numerical core intact and is fully interoperable with the Streamlit version."
-    },
-    "license": {
-      "heading": "GPLv3",
-      "body": "Both the original simulator and this re-implementation are distributed under the GNU General Public License v3. You are free to use, study, modify and redistribute the software under the same license."
-    },
-    "roles": {
-      "lead_author": "Lead author",
-      "author": "Model author",
-      "web_engineer": "Civil Engineer — Web Rearchitecture"
+    "authorship": {
+      "heading": "Team",
+      "body": "The mathematical model —supply, demand and equilibrium on the linear city—, its original Streamlit version and this web re-implementation were developed by:"
     },
     "links": {
       "original_repo": "Original repository",
       "web_repo": "Web repository",
       "streamlit": "Streamlit app (V1)",
       "license": "GPLv3 license"
-    },
-    "tags": {
-      "fcfm": "FCFM",
-      "uchile": "U. de Chile",
-      "transport": "Transport"
     }
-  }
+  },
+  "scenario_label": "Scenario"
 }

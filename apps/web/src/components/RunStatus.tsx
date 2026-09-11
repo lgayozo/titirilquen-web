@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { pyodideEngine } from "@/lib/pyodide-engine";
+import { useSimulationStore } from "@/store/simulationStore";
 import type { IterationSnapshot, Modo } from "@/lib/types";
 
 interface RunStatusProps {
@@ -31,8 +33,17 @@ const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
  *  - Residuo con tendencia ↓ (converging, bici-green) / ↑ (diverging, accent)
  *  - Barra de progreso fina
  */
-export function RunStatus({ current, total, lastIter, stage, engine, className }: RunStatusProps) {
+export function RunStatus({
+  current,
+  total,
+  lastIter,
+  stage,
+  engine,
+  className,
+}: RunStatusProps) {
   const { t } = useTranslation("simulator");
+  // «Terminó» no es «convergió» (D-39): el rótulo final lee la bandera real.
+  const converged = useSimulationStore((s) => s.result?.converged ?? null);
   const [flash, setFlash] = useState(false);
   const prevIter = useRef(-1);
   const prevResidual = useRef<number | null>(null);
@@ -48,18 +59,28 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
 
   const pct = total > 0 ? Math.min(100, (current / total) * 100) : 0;
 
+  // Etapa del boot de Pyodide (F-03): runtime → paquetes → wheel.
+  const bootStage = useSyncExternalStore(
+    pyodideEngine.subscribeBoot,
+    pyodideEngine.getBootStage,
+  );
+
   const phaseLabel = (() => {
     if (stage === "booting") {
-      return engine === "local"
-        ? t("run_status.booting_pyodide")
-        : t("run_status.connecting_api");
+      if (engine !== "local") return t("run_status.connecting_api");
+      return bootStage
+        ? `${t("run_status.booting_pyodide")} · ${t(`run_status.boot_stage.${bootStage}`)}`
+        : t("run_status.booting_pyodide");
     }
     if (stage === "running") {
       if (current === 0) return t("run_status.generating_population");
       if (current === total) return t("run_status.smoothing_final");
       return t("run_status.iterating");
     }
-    if (stage === "done") return t("equilibrium.converged");
+    if (stage === "done")
+      return converged === false
+        ? t("equilibrium.not_converged")
+        : t("equilibrium.converged");
     return "";
   })();
 
@@ -68,12 +89,12 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
     residual == null
       ? null
       : prevResidual.current == null
-      ? null
-      : residual < prevResidual.current - 1e-6
-      ? "down"
-      : residual > prevResidual.current + 1e-6
-      ? "up"
-      : "same";
+        ? null
+        : residual < prevResidual.current - 1e-6
+          ? "down"
+          : residual > prevResidual.current + 1e-6
+            ? "up"
+            : "same";
   if (residual != null && prevResidual.current !== residual) {
     prevResidual.current = residual;
   }
@@ -86,26 +107,23 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
     stage === "done"
       ? "var(--bici)"
       : stage === "error"
-      ? "var(--metro)"
-      : "var(--accent)";
+        ? "var(--metro)"
+        : "var(--accent)";
 
   return (
     <div
       role="status"
       aria-live="polite"
       aria-busy={stage === "running" || stage === "booting"}
-      className={cn(
-        "run-status",
-        flash && "run-status--flash",
-        className
-      )}
+      className={cn("run-status", flash && "run-status--flash", className)}
     >
       <div className="run-status-head">
         <div className="run-status-phase">
           <span
             className={cn(
               "run-status-dot",
-              (stage === "running" || stage === "booting") && "animate-pulse-dot"
+              (stage === "running" || stage === "booting") &&
+                "animate-pulse-dot",
             )}
             style={{ backgroundColor: dotColor }}
             aria-hidden
@@ -118,7 +136,9 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
 
         {residual != null && (
           <div className="run-status-residual">
-            <div className="run-status-residual-label">{t("equilibrium.residual")}</div>
+            <div className="run-status-residual-label">
+              {t("equilibrium.residual")}
+            </div>
             <div className="run-status-residual-value">
               <span className="num">{residual.toFixed(3)}</span>
               {trend === "down" && (
@@ -151,14 +171,17 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
         aria-valuemax={total}
         className="run-status-progress"
       >
-        <div className="run-status-progress-fill" style={{ width: `${pct}%` }} />
+        <div
+          className="run-status-progress-fill"
+          style={{ width: `${pct}%` }}
+        />
       </div>
 
       {lastIter && totalAgents > 0 && (
         <div className="run-status-split">
           <div className="run-status-split-head">
             <span>{t("sandbox.modal_split_last")}</span>
-            <span className="num">{totalAgents.toLocaleString()}</span>
+            <span className="num">{totalAgents.toLocaleString("es-CL")}</span>
           </div>
           <div
             className="run-status-split-bar"
@@ -177,7 +200,9 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
                   title={`${t(`modes.${m.toLowerCase()}`)}: ${n} (${w.toFixed(1)}%)`}
                 >
                   {w > 7 && (
-                    <span className="run-status-split-label">{w.toFixed(0)}%</span>
+                    <span className="run-status-split-label">
+                      {w.toFixed(0)}%
+                    </span>
                   )}
                 </div>
               );
@@ -195,7 +220,7 @@ export function RunStatus({ current, total, lastIter, stage, engine, className }
                     aria-hidden
                   />
                   <span className="name">{t(`modes.${m.toLowerCase()}`)}</span>
-                  <span className="num">{n.toLocaleString()}</span>
+                  <span className="num">{n.toLocaleString("es-CL")}</span>
                 </span>
               );
             })}

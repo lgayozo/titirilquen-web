@@ -1,0 +1,374 @@
+{
+ "_meta": {
+  "fecha": "2026-09-10",
+  "commit": "87469b7",
+  "script": "docs/libro/datos/datos_cap05.py",
+  "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α=1, ρ=5,2e-3, β=0,15, λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
+ },
+ "formas": [
+  {
+   "forma": "normal",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 3045.1,
+   "densidad_pico_en_km": 0.3
+  },
+  {
+   "forma": "uniforme",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 1809.0,
+   "densidad_pico_en_km": 9.95
+  },
+  {
+   "forma": "exponencial",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 4140.6,
+   "densidad_pico_en_km": 0.1
+  },
+  {
+   "forma": "meseta",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 126,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 3889.3,
+   "densidad_pico_en_km": 0.1
+  },
+  {
+   "forma": "bimodal",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 2954.7,
+   "densidad_pico_en_km": 5.07
+  },
+  {
+   "forma": "valle",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 3577.8,
+   "densidad_pico_en_km": 9.95
+  }
+ ],
+ "conservacion": {
+  "por_forma": [
+   {
+    "forma": "normal",
+    "convergio": true,
+    "iteraciones": 30,
+    "error_max_hogares": 2.388e-09,
+    "error_relativo_max": 2.211e-13
+   },
+   {
+    "forma": "uniforme",
+    "convergio": true,
+    "iteraciones": 37,
+    "error_max_hogares": 2.408e-09,
+    "error_relativo_max": 2.23e-13
+   },
+   {
+    "forma": "exponencial",
+    "convergio": true,
+    "iteraciones": 31,
+    "error_max_hogares": 1.197e-09,
+    "error_relativo_max": 1.108e-13
+   },
+   {
+    "forma": "meseta",
+    "convergio": true,
+    "iteraciones": 25,
+    "error_max_hogares": 7.294e-10,
+    "error_relativo_max": 6.754e-14
+   },
+   {
+    "forma": "bimodal",
+    "convergio": true,
+    "iteraciones": 28,
+    "error_max_hogares": 1.157e-09,
+    "error_relativo_max": 1.071e-13
+   },
+   {
+    "forma": "valle",
+    "convergio": true,
+    "iteraciones": 35,
+    "error_max_hogares": 1.957e-09,
+    "error_relativo_max": 1.812e-13
+   }
+  ],
+  "por_escala": [
+   {
+    "suma_H": 3600,
+    "error_max_hogares": 2.333e-10,
+    "iteraciones": 37
+   },
+   {
+    "suma_H": 36000,
+    "error_max_hogares": 2.388e-09,
+    "iteraciones": 30
+   },
+   {
+    "suma_H": 144000,
+    "error_max_hogares": 3.332e-09,
+    "iteraciones": 17
+   }
+  ]
+ },
+ "despacho": {
+  "filas": [
+   {
+    "caso": "lambda uniforme (forma cerrada)",
+    "lambdas": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "rama": "forma cerrada",
+    "razon_escalas": 1.0,
+    "convergio": true,
+    "iteraciones": 15,
+    "error_balance_hogares": 1.149e-06,
+    "columnas_suman_uno_error": 2.22e-16
+   },
+   {
+    "caso": "lambda del default (HEV)",
+    "lambdas": [
+     0.00032,
+     0.000641,
+     0.001241
+    ],
+    "rama": "HEV",
+    "razon_escalas": 3.9,
+    "convergio": true,
+    "iteraciones": 30,
+    "error_balance_hogares": 2.388e-09,
+    "columnas_suman_uno_error": 2.22e-16
+   },
+   {
+    "caso": "lambda razon 10 (HEV)",
+    "lambdas": [
+     0.1,
+     1.0,
+     1.0
+    ],
+    "rama": "HEV",
+    "razon_escalas": 10.0,
+    "convergio": true,
+    "iteraciones": 27,
+    "error_balance_hogares": 2.437e-07,
+    "columnas_suman_uno_error": 2.22e-16
+   },
+   {
+    "caso": "lambda razon 100 (HEV)",
+    "lambdas": [
+     0.01,
+     1.0,
+     1.0
+    ],
+    "rama": "HEV",
+    "razon_escalas": 100.0,
+    "convergio": true,
+    "iteraciones": 35,
+    "error_balance_hogares": 1.488e-07,
+    "columnas_suman_uno_error": 2.22e-16
+   }
+  ],
+  "nota": "El balance `Σ_i S_i·Q_hi = H_h` se cumple a precisión de máquina en las dos ramas, pero NINGUNA lo exige para declarar `converged`: la bandera sale del residuo del punto fijo. Es el pendiente que dejó la auditoría externa del 2026-09-05."
+ },
+ "asignacion_entera": {
+  "S_conservado_por_celda": true,
+  "H_objetivo": [
+   7200,
+   18000,
+   10800
+  ],
+  "H_obtenido": [
+   7200,
+   18000,
+   10800
+  ],
+  "desvio_por_estrato": [
+   0,
+   0,
+   0
+  ],
+  "desvio_total_abs": 0,
+  "desvio_relativo_max_pct": 0.0
+ },
+ "perillas": {
+  "beta": [
+   {
+    "beta": 0.05,
+    "dist_km": [
+     3.084,
+     3.346,
+     4.479
+    ],
+    "theil": 0.0283,
+    "grad_p": 0.701,
+    "iteraciones": 17
+   },
+   {
+    "beta": 0.15,
+    "dist_km": [
+     2.249,
+     3.02,
+     5.579
+    ],
+    "theil": 0.1693,
+    "grad_p": 0.669,
+    "iteraciones": 30
+   },
+   {
+    "beta": 0.5,
+    "dist_km": [
+     1.137,
+     2.959,
+     6.422
+    ],
+    "theil": 0.494,
+    "grad_p": 0.647,
+    "iteraciones": 73
+   },
+   {
+    "beta": 1.0,
+    "dist_km": [
+     0.837,
+     2.94,
+     6.652
+    ],
+    "theil": 0.7121,
+    "grad_p": 0.648,
+    "iteraciones": 149
+   }
+  ],
+  "rho": [
+   {
+    "rho": 0.0,
+    "dist_km": [
+     1.922,
+     2.952,
+     5.909
+    ],
+    "theil": 0.2356,
+    "grad_p": 0.92,
+    "iteraciones": 38
+   },
+   {
+    "rho": 0.0052,
+    "dist_km": [
+     2.249,
+     3.02,
+     5.579
+    ],
+    "theil": 0.1693,
+    "grad_p": 0.669,
+    "iteraciones": 30
+   },
+   {
+    "rho": 0.01,
+    "dist_km": [
+     2.706,
+     3.097,
+     5.144
+    ],
+    "theil": 0.1079,
+    "grad_p": 0.481,
+    "iteraciones": 24
+   },
+   {
+    "rho": 0.02,
+    "dist_km": [
+     4.244,
+     3.266,
+     3.838
+    ],
+    "theil": 0.048,
+    "grad_p": 0.186,
+    "iteraciones": 17
+   }
+  ]
+ },
+ "invariancias": {
+  "grilla": [
+   {
+    "n_celdas": 101,
+    "theil": 0.1656,
+    "dist_km": [
+     2.303,
+     3.041,
+     5.572
+    ]
+   },
+   {
+    "n_celdas": 201,
+    "theil": 0.1693,
+    "dist_km": [
+     2.249,
+     3.02,
+     5.579
+    ]
+   },
+   {
+    "n_celdas": 401,
+    "theil": 0.1712,
+    "dist_km": [
+     2.221,
+     3.008,
+     5.583
+    ]
+   }
+  ],
+  "tamano_fisico": [
+   {
+    "largo_km": 10.0,
+    "dist_km": [
+     3.524,
+     3.281,
+     4.294
+    ],
+    "theil": 0.0241,
+    "grad_p": 0.314,
+    "iteraciones": 16
+   },
+   {
+    "largo_km": 20.0,
+    "dist_km": [
+     2.249,
+     3.02,
+     5.579
+    ],
+    "theil": 0.1693,
+    "grad_p": 0.669,
+    "iteraciones": 30
+   },
+   {
+    "largo_km": 40.0,
+    "dist_km": [
+     1.582,
+     2.856,
+     6.297
+    ],
+    "theil": 0.3581,
+    "grad_p": 0.708,
+    "iteraciones": 57
+   }
+  ]
+ }
+}

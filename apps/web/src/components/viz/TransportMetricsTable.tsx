@@ -1,0 +1,511 @@
+import { useTranslation } from "react-i18next";
+
+import { CaptionTabla } from "@/components/viz/CaptionTabla";
+import { cn } from "@/lib/cn";
+import { downloadCsv } from "@/lib/csv";
+
+/** Reparto modal de un modo: porcentaje y conteo de viajes. */
+export interface ModalEntry {
+  modo: string;
+  label: string;
+  pct: number;
+  count: number;
+  color: string;
+}
+
+export interface StratumMetric {
+  key: string;
+  label: string;
+  color: string;
+  nHogares: number;
+  /** Viajes físicos del estrato — el DENOMINADOR de `reparto`. `null` si la
+   *  corrida no trae agregados. Va como fila propia porque el teletrabajo lo
+   *  separa de `nHogares`, y sin verlo un share que sube porque el denominador
+   *  bajó se lee como sustitución modal. */
+  viajes: number | null;
+  tiempoMin: number;
+  /** La medida de bienestar EMPAREJADA con el método, en útiles, tal como la
+   *  calcula el núcleo. `null` si la corrida no trae agregados. */
+  utilidad: number | null;
+  /** Reparto modal del estrato (pct por modo, mismo orden que `reparto`). */
+  reparto: { modo: string; pct: number }[];
+}
+
+/** Todas las métricas de una corrida de Transporte, ya agregadas. */
+export interface TransportMetricsData {
+  viajesFisicos: number;
+  reparto: ModalEntry[];
+  tiempoSistemaMin: number;
+  frecuenciaMetro: number;
+  residuoMin: number | null;
+  co2Total: number;
+  co2Auto: number;
+  co2Metro: number;
+  iteraciones: number;
+  totalIteraciones: number;
+  converged: boolean;
+  capacidadAuto: number;
+  /** Carga de la red por modo (flujo o carga / capacidad ofrecida). El metro
+   *  usa la frecuencia OPERATIVA (f_op·K), no frec_max: es la capacidad que
+   *  realmente circula. >1 ⇒ el modo opera sobre su capacidad. */
+  vcAuto: number | null;
+  vcBici: number | null;
+  vcMetro: number | null;
+  tiempoPorModo: { modo: string; label: string; min: number; color: string }[];
+  porEstrato: StratumMetric[];
+  /** Cuál de las dos medidas trae `StratumMetric.utilidad`. Decide el rótulo:
+   *  bajo logit es el logsum y bajo determinístico la utilidad máxima, y
+   *  llamarlas igual haría pasar una por la otra. */
+  medidaBienestar: "logsum" | "utilidad_maxima" | null;
+}
+
+interface Props {
+  data: TransportMetricsData;
+  className?: string;
+}
+
+const fig = (size: number, color = "var(--muted)"): React.CSSProperties => ({
+  fontFamily: "var(--font-fig)",
+  fontSize: size,
+  letterSpacing: "0.04em",
+  color,
+});
+
+const fmtInt = (v: number) => Math.round(v).toLocaleString("es-CL");
+const fmtMin = (v: number) => `${v.toFixed(1)}`;
+const fmtPct = (v: number) => `${v.toFixed(1)}%`;
+const fmtRatio = (v: number | null) => (v == null ? "—" : `${v.toFixed(2)}×`);
+
+/** Cómo se llama la medida de bienestar que se está mostrando. */
+const claveMedida = (m: TransportMetricsData["medidaBienestar"]) =>
+  m === "utilidad_maxima" ? "st_util_max" : "st_logsum";
+
+/**
+ * Los tres v/c de los modos con oferta congestionable.
+ *
+ * Vivía dentro de `TransportMetricsTable`, o sea dentro del panel de tablas,
+ * cuando es el resumen numérico EXACTO de lo que dibuja la FIG. 00 (saturación
+ * por tramo). Separado, puede ir al lado de su figura: el número y el dibujo de
+ * lo mismo, juntos.
+ *
+ * Miden otra cosa que los KPI de escenario: responden a población, precios y
+ * capacidad, NO a la forma urbana — en una ciudad monocéntrica el tramo junto al
+ * CBD carga ~la mitad de los viajes sea cual sea el largo.
+ */
+export function CargaDeRed({
+  vcAuto,
+  vcMetro,
+  vcBici,
+}: {
+  vcAuto: number | null;
+  vcMetro: number | null;
+  vcBici: number | null;
+}) {
+  const { t } = useTranslation("simulator");
+  return (
+    <>
+      <div className="carga-red-grid">
+        <Stat
+          label={t("metrics_table.vc_auto")}
+          value={fmtRatio(vcAuto)}
+          sub={t("metrics_table.vc_sub")}
+          warn={(vcAuto ?? 0) > 1}
+        />
+        <Stat
+          label={t("metrics_table.vc_metro")}
+          value={fmtRatio(vcMetro)}
+          sub={t("metrics_table.vc_metro_sub")}
+          warn={(vcMetro ?? 0) > 1}
+        />
+        <Stat
+          label={t("metrics_table.vc_bici")}
+          value={fmtRatio(vcBici)}
+          sub={t("metrics_table.vc_sub")}
+          warn={(vcBici ?? 0) > 1}
+        />
+      </div>
+      <p style={{ ...fig(10), padding: "6px 0 0", lineHeight: 1.5 }}>
+        {t("metrics_table.network_load_note")}
+      </p>
+    </>
+  );
+}
+
+export function TransportMetricsTable({ data, className }: Props) {
+  const { t } = useTranslation("simulator");
+
+  const handleExport = () => {
+    const rows: (string | number)[][] = [];
+    const H = (s: string) => t(`metrics_table.${s}`);
+    rows.push([
+      H("csv_section"),
+      H("csv_metric"),
+      H("csv_category"),
+      H("csv_value"),
+      H("csv_unit"),
+    ]);
+
+    // Sistema
+    const sys = "sistema";
+    rows.push([sys, H("trips"), "", data.viajesFisicos, "viajes"]);
+    rows.push([
+      sys,
+      H("sys_time"),
+      "",
+      data.tiempoSistemaMin.toFixed(2),
+      "min",
+    ]);
+    rows.push([
+      sys,
+      H("frequency"),
+      "",
+      data.frecuenciaMetro.toFixed(2),
+      "tph",
+    ]);
+    rows.push([
+      sys,
+      H("residual"),
+      "",
+      data.residuoMin == null ? "" : data.residuoMin.toFixed(3),
+      "min",
+    ]);
+    rows.push([sys, H("co2_total"), "", data.co2Total.toFixed(2), "kg/h"]);
+    rows.push([sys, H("co2"), "auto", data.co2Auto.toFixed(2), "kg/h"]);
+    rows.push([sys, H("co2"), "metro", data.co2Metro.toFixed(2), "kg/h"]);
+    rows.push([
+      sys,
+      H("cap_auto"),
+      "",
+      Math.round(data.capacidadAuto),
+      "veh/h",
+    ]);
+    rows.push([
+      sys,
+      H("vc"),
+      "auto",
+      data.vcAuto == null ? "" : data.vcAuto.toFixed(3),
+      "v/c",
+    ]);
+    rows.push([
+      sys,
+      H("vc"),
+      "metro",
+      data.vcMetro == null ? "" : data.vcMetro.toFixed(3),
+      "v/c",
+    ]);
+    rows.push([
+      sys,
+      H("vc"),
+      "bici",
+      data.vcBici == null ? "" : data.vcBici.toFixed(3),
+      "v/c",
+    ]);
+    rows.push([
+      sys,
+      H("convergence"),
+      "",
+      data.converged ? H("converged") : H("maxiter"),
+      `${data.iteraciones}/${data.totalIteraciones}`,
+    ]);
+
+    // Reparto modal del sistema
+    for (const m of data.reparto) {
+      rows.push(["reparto_modal", m.label, "pct", m.pct.toFixed(2), "%"]);
+      rows.push([
+        "reparto_modal",
+        m.label,
+        "viajes",
+        Math.round(m.count),
+        "viajes",
+      ]);
+    }
+
+    // Tiempo medio por modo
+    for (const m of data.tiempoPorModo) {
+      rows.push(["tiempo_por_modo", m.label, "", m.min.toFixed(2), "min"]);
+    }
+
+    // Por estrato
+    for (const s of data.porEstrato) {
+      rows.push([
+        "por_estrato",
+        H("st_hogares"),
+        s.label,
+        Math.round(s.nHogares),
+        "hogares",
+      ]);
+      rows.push([
+        "por_estrato",
+        H("st_viajes"),
+        s.label,
+        s.viajes == null ? "" : Math.round(s.viajes).toString(),
+        "viajes",
+      ]);
+      rows.push([
+        "por_estrato",
+        H("st_time"),
+        s.label,
+        s.tiempoMin.toFixed(2),
+        "min",
+      ]);
+      rows.push([
+        "por_estrato",
+        H(claveMedida(data.medidaBienestar)),
+        s.label,
+        s.utilidad == null ? "" : s.utilidad.toFixed(3),
+        "utiles",
+      ]);
+      for (const r of s.reparto) {
+        rows.push([
+          "por_estrato",
+          `${H("st_share")} ${r.modo}`,
+          s.label,
+          r.pct.toFixed(2),
+          "%",
+        ]);
+      }
+    }
+
+    downloadCsv("transporte-metricas.csv", rows);
+  };
+
+  // Los rótulos de las filas de reparto por estrato salen del PROPIO reparto
+  // por estrato, no de `data.reparto`: ése lleva Teletrabajo como quinta
+  // categoría (es el de la tira de KPIs, sobre todos los agentes) y el del
+  // estrato tiene sólo los cuatro modos que viajan. Tomándolos de ahí aparecía
+  // una fila «% en Teletrabajo» en 0,0% — un índice sin dato.
+  const modos = (data.porEstrato[0]?.reparto ?? []).map((r) => r.modo);
+
+  return (
+    <div
+      className={cn(className)}
+      style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
+    >
+      {/* ---- Encabezado + export ---- */}
+      <div
+        style={{
+          padding: "10px 14px",
+          borderBottom: "1px solid var(--rule)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: 10,
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleExport}
+          className="export-btn"
+          style={{
+            ...fig(10, "var(--ink-2)"),
+            border: "1px solid var(--rule)",
+            padding: "4px 10px",
+            background: "var(--paper-2)",
+            cursor: "pointer",
+          }}
+        >
+          {`↓ ${t("metrics_table.export_csv")}`}
+        </button>
+      </div>
+
+      {/* La grilla de stats del sistema se eliminó entera: cada una de sus seis
+          cifras vivía ya en otro panel. Viajes, frecuencia y CO₂ están en la
+          tira de KPIs —la frecuencia además con el aviso de tope mordiendo, que
+          acá no estaba—; residuo y convergencia, en el veredicto; y «tiempo
+          medio» es exactamente el `tiempo_medio por viajero` de la tabla de
+          agregados. Todas siguen en el CSV, que es un volcado y no una
+          superficie de lectura. Queda lo que no se repite en ninguna parte. */}
+
+      {/* ---- Tiempo medio por modo ----
+           Antes esta sección abría con share % y viajes por modo, que son
+           exactamente los cinco KPI del encabezado de la página. Queda el
+           tiempo medio, que no está en ninguna otra parte. */}
+      <div style={{ overflowX: "auto", borderTop: "1px solid var(--rule)" }}>
+        <table className="tabla-datos">
+          <CaptionTabla n="02" nombre={t("metrics_table.cap_modo")} />
+          <thead>
+            <tr>
+              <th scope="col">{t("metrics_table.mode_col")}</th>
+              {data.reparto.map((m) => (
+                <th scope="col" key={m.modo}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        background: m.color,
+                        display: "inline-block",
+                      }}
+                    />
+                    {m.label}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderTop: "1px solid var(--rule)" }}>
+              <td>{t("metrics_table.avg_time_mode")}</td>
+              {data.reparto.map((m) => {
+                const tm = data.tiempoPorModo.find((x) => x.modo === m.modo);
+                return <td key={m.modo}>{tm ? `${fmtMin(tm.min)}` : "—"}</td>;
+              })}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* ---- Por estrato ---- */}
+      <div style={{ overflowX: "auto", borderTop: "1px solid var(--rule)" }}>
+        <table className="tabla-datos">
+          <CaptionTabla n="03" nombre={t("metrics_table.cap_estrato")} />
+          <thead>
+            <tr>
+              <th scope="col">{t("metrics_table.metric_col")}</th>
+              {data.porEstrato.map((s) => (
+                <th scope="col" key={s.key}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        background: s.color,
+                        display: "inline-block",
+                      }}
+                    />
+                    {s.label}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <StratRow
+              label={t("metrics_table.st_hogares")}
+              data={data.porEstrato}
+              get={(s) => fmtInt(s.nHogares)}
+            />
+            <StratRow
+              label={t("metrics_table.st_viajes")}
+              data={data.porEstrato}
+              get={(s) => (s.viajes == null ? "—" : fmtInt(s.viajes))}
+            />
+            <StratRow
+              label={t("metrics_table.st_time")}
+              data={data.porEstrato}
+              get={(s) => `${fmtMin(s.tiempoMin)} min`}
+            />
+            <StratRow
+              label={t(`metrics_table.${claveMedida(data.medidaBienestar)}`)}
+              data={data.porEstrato}
+              get={(s) => (s.utilidad == null ? "—" : s.utilidad.toFixed(2))}
+            />
+            {modos.map((modoLabel, mi) => (
+              <StratRow
+                key={modoLabel}
+                label={`${t("metrics_table.st_share")} ${t(
+                  `modes.${modoLabel.toLowerCase()}`,
+                )}`}
+                data={data.porEstrato}
+                get={(s) => fmtPct(s.reparto[mi]?.pct ?? 0)}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ---- Caveat de utilidad ---- */}
+      <div
+        style={{
+          padding: "10px 14px",
+          borderTop: "1px solid var(--rule)",
+          ...fig(10.5, "var(--muted)"),
+          lineHeight: 1.5,
+        }}
+      >
+        {t("metrics_table.st_share")} …: {t("metrics_table.st_share_nota")}.
+        <br />⚠ {t("sandbox.utility_caveat")}
+      </div>
+    </div>
+  );
+}
+
+function StratRow({
+  label,
+  data,
+  get,
+}: {
+  label: string;
+  data: StratumMetric[];
+  get: (s: StratumMetric) => string;
+}) {
+  return (
+    <tr style={{ borderTop: "1px solid var(--rule)" }}>
+      <td>{label}</td>
+      {data.map((s) => (
+        <td key={s.key}>{get(s)}</td>
+      ))}
+    </tr>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  sub,
+  good,
+  warn,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  good?: boolean;
+  warn?: boolean;
+}) {
+  const valColor = good ? "var(--bici)" : warn ? "var(--accent)" : "var(--ink)";
+  return (
+    <div
+      style={{
+        padding: "12px 14px",
+        borderRight: "1px solid var(--rule)",
+        borderTop: "1px solid var(--rule)",
+      }}
+    >
+      <div
+        style={{
+          ...fig(9.5),
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 19,
+          fontWeight: 600,
+          color: valColor,
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1.2,
+          marginTop: 3,
+        }}
+      >
+        {value}
+      </div>
+      {sub && <div style={{ ...fig(9.5), marginTop: 2 }}>{sub}</div>}
+    </div>
+  );
+}

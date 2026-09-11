@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 10: Consistencia entre módulos</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 10</div>
+  <h1>Consistencia entre módulos</h1>
+  <p class="bajada">
+    Nueve capítulos auditaron cada módulo contra su teoría. Éste audita las
+    costuras: si el hogar que elige modo es el que puja por suelo y el que se
+    cuenta en el bienestar, si la población es una sola en todas las páginas,
+    si los tres loops entienden lo mismo por «convergió», y si lo que la
+    documentación canónica dice de la línea base sigue siendo verdad.
+  </p>
+  <p class="meta">
+    Transversal: <code>demand</code> · <code>land_use</code> ·
+    <code>bienestar</code> · <code>coupled</code> · <code>tests/test_linea_base.py</code> ·
+    <code>CLAUDE.md</code> ·
+    auditado el 2026-09-08 ·
+    datos regenerados el 2026-09-08 ·
+    <span class="estado auditado">auditado</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Cotejo con el código</a></li>
+    <li><a href="#s3">Parámetros</a></li>
+    <li><a href="#s4">Resultados</a></li>
+    <li><a href="#s5">Pruebas</a></li>
+    <li><a href="#s6">Auditorías</a></li>
+    <li><a href="#s7">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<p>
+  Un simulador modular es consistente cuando las cantidades que cruzan de un
+  módulo a otro significan lo mismo en los dos lados. Acá hay cinco de esas
+  cantidades, y cada una tiene una identidad que se puede medir.
+</p>
+
+<h3>Identidad 1 — un hogar, una utilidad</h3>
+
+<p>
+  El hogar que elige modo con el logit del capítulo 3, el que puja por una
+  parcela con la accesibilidad del capítulo 6 y el que se cuenta en el
+  bienestar del capítulo 7 es el mismo. Eso exige que el logsum sea uno solo,
+  calculado por una sola función, y que el valor del tiempo de la puja sea el
+  del transporte:
+</p>
+
+<div class="ecuacion" data-tex="\mathrm{logsum}^{\text{demanda}}_h(i) = \mathrm{logsum}^{\text{acces.}}_h(i) = \mathrm{logsum}^{\text{bienestar}}_h(i), \qquad \frac{\alpha}{\lambda_h}\,|\beta_t|\cdot 60 = VoT_h" data-id="(10.1)">
+  <span class="id">(10.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi></mrow><mi>h</mi><mtext>demanda</mtext></msubsup><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi></mrow><mi>h</mi><mtext>acces.</mtext></msubsup><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi></mrow><mi>h</mi><mtext>bienestar</mtext></msubsup><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mfrac><mi>α</mi><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mtext> </mtext><mi mathvariant="normal">∣</mi><msub><mi>β</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><mo>⋅</mo><mn>60</mn><mo>=</mo><mi>V</mi><mi>o</mi><msub><mi>T</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\mathrm{logsum}^{\text{demanda}}_h(i) = \mathrm{logsum}^{\text{acces.}}_h(i) = \mathrm{logsum}^{\text{bienestar}}_h(i), \qquad \frac{\alpha}{\lambda_h}\,|\beta_t|\cdot 60 = VoT_h</annotation></semantics></math></span>
+</div>
+
+<h3>Identidad 2 — una población</h3>
+
+<p>
+  Los hogares de la subasta, los agentes del transporte y los viajeros del
+  bienestar son los mismos individuos, con los mismos sorteos de teletrabajo y
+  tenencia de auto, en cualquier página:
+</p>
+
+<div class="ecuacion" data-tex="\sum_h H_h \;=\; N_{\text{agentes}} \;=\; N_{\text{teletrabajan}} + N_{\text{viajan}} + N_{\text{varados}}" data-id="(10.2)">
+  <span class="id">(10.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mo>∑</mo><mi>h</mi></munder><msub><mi>H</mi><mi>h</mi></msub><mtext>  </mtext><mo>=</mo><mtext>  </mtext><msub><mi>N</mi><mtext>agentes</mtext></msub><mtext>  </mtext><mo>=</mo><mtext>  </mtext><msub><mi>N</mi><mtext>teletrabajan</mtext></msub><mo>+</mo><msub><mi>N</mi><mtext>viajan</mtext></msub><mo>+</mo><msub><mi>N</mi><mtext>varados</mtext></msub></mrow><annotation encoding="application/x-tex">\sum_h H_h \;=\; N_{\text{agentes}} \;=\; N_{\text{teletrabajan}} + N_{\text{viajan}} + N_{\text{varados}}</annotation></semantics></math></span>
+</div>
+
+<h3>Identidad 3 — un reparto modal</h3>
+
+<p>
+  «Reparto modal» admite dos numeradores (demanda esperada <em>n·p_m</em> o
+  agentes realizados) y dos denominadores (con o sin teletrabajo). Los cuatro
+  son legítimos; lo que la consistencia exige es que cada tabla diga cuál usa
+  y que los que dicen ser el mismo lo sean.
+</p>
+
+<h3>Identidad 4 — un «sin congestión»</h3>
+
+<p>
+  Tres lugares necesitan una red sin demanda: el arranque del MSA, el
+  contrafactual del ΔCS y la accesibilidad del suelo standalone. D-30 documentó
+  tres convenciones distintas; la §4.4 mide cuántas quedan y cuánto difieren.
+</p>
+
+<h3>Identidad 5 — una ciudad</h3>
+
+<p>
+  <code>CiudadLineal</code>, <code>LandUseCity</code>, el acoplado y las
+  funciones de oferta calculan cada uno dónde está el CBD y cuánto mide una
+  celda. Para toda grilla impar tienen que coincidir, y el capítulo 1 mostró
+  que no siempre fue así (D-45).
+</p>
+
+<h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Id.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">1</td>
+      <td class="ruta py">demand/choice.py</td>
+      <td class="n">19</td>
+      <td><code>probabilidades_logit</code> — no expone el logsum; se recupera como <em>V_m − ln P_m</em></td>
+    </tr>
+    <tr>
+      <td class="n">1</td>
+      <td class="ruta py">land_use/accesibilidad.py</td>
+      <td class="n">44</td>
+      <td><code>logsum_por_celda</code> — esperanza sobre <code>prob_auto</code>; <code>tiempos_red_vacia</code> (96) es el baseline compartido</td>
+    </tr>
+    <tr>
+      <td class="n">1</td>
+      <td class="ruta py">bienestar.py</td>
+      <td class="n">253</td>
+      <td><code>medidas_de_utilidad</code> — por rama con/sin auto, mezcladas aparte; <code>calcular_agregados</code> (296) cuenta viajeros en 349</td>
+    </tr>
+    <tr>
+      <td class="n">1</td>
+      <td class="ruta py">packages/titirilquen_core/tests/test_vot_consistente.py</td>
+      <td class="n">86</td>
+      <td><code>test_el_vot_es_el_mismo_en_los_dos_modulos</code> — la identidad (10.1) en nivel, fijada</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta py">population.py</td>
+      <td class="n">50</td>
+      <td><code>generar_poblacion_desde_land_use_det</code> — la única fábrica de agentes de las dos páginas; sortea teletrabajo y auto</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta py">coupled.py</td>
+      <td class="n">141</td>
+      <td><code>sim_eq</code> — el acoplado fuerza <code>expected</code>; la misma semilla en 138</td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">155</td>
+      <td><code>_correr_iteracion</code> — el conteo ESPERADO <em>n·p_m</em> (204) que es <code>modal_split</code></td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">220</td>
+      <td><code>_asignar_modos_agentes</code> — el <code>modo_elegido</code> MUESTREADO por agente al final (D-67)</td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta ts">lib/kpis.ts</td>
+      <td class="n">88</td>
+      <td><code>modal_share</code> — de los agentes (muestreado); <code>RunStatus.tsx</code> lee <code>modal_split</code> (esperado)</td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta py">coupled_metrics.py</td>
+      <td class="n">289</td>
+      <td><code>compute_equilibrium_metrics</code> — <code>reparto_modal</code> de los agentes, con teletrabajo y varado en el denominador</td>
+    </tr>
+    <tr>
+      <td class="n">4</td>
+      <td class="ruta py">demand/utility.py</td>
+      <td class="n">50</td>
+      <td><code>_tiempos_flujo_libre</code> — el arranque ingenuo: velocidades globales, 10 min de acceso, 5 de espera; lo usa <code>calcular_utilidades</code> (60) cuando no hay tiempos</td>
+    </tr>
+    <tr>
+      <td class="n">5</td>
+      <td class="ruta py">equilibrium/msa.py</td>
+      <td class="n">259</td>
+      <td><code>iter_msa_desde_suelo</code> — la rama «original» en 331; la geometría se hereda de <code>CiudadLineal</code></td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">packages/titirilquen_core/tests/test_linea_base.py</td>
+      <td class="n">42</td>
+      <td><code>ESPERADO</code> — la red de seguridad; <code>TOL_PP</code> (38) = 0,05</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">CLAUDE.md</td>
+      <td class="n">121</td>
+      <td><code>seed</code> — la línea base citada en el documento canónico, desfasada 0,11 pp (D-68); los conteos de tests en 24–25</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Diferencias con la fuente</h3>
+
+<p>
+  Este capítulo no tiene fuente externa: la «teoría» son las identidades que
+  el propio repositorio promete. Lo que se aparta de ellas está en la §4.
+</p>
+
+<h2 id="s3"><span class="num">§3</span> Parámetros</h2>
+
+<p>
+  No hay parámetros propios. Hay tres tolerancias, una por loop, y la §4.6 las
+  pone lado a lado porque ninguna otra tabla lo hace.
+</p>
+
+<h2 id="s4"><span class="num">§4</span> Resultados</h2>
+
+<h3>4.1 Un hogar, una utilidad: se cumple</h3>
+
+<p>
+  Sobre nueve combinaciones estrato × celda (tres estratos; celdas 60, 125 y
+  180), el logsum recalculado a mano desde <code>calcular_utilidades</code>, el
+  recuperado de <code>probabilidades_logit</code>, el de
+  <code>medidas_de_utilidad</code> y el de <code>logsum_por_celda</code> con
+  <code>prob_auto = 1</code> <strong>coinciden en las nueve</strong> a 10⁻⁹. Y el
+  valor del tiempo:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>estrato</th><th class="n">VoT transporte ($/h)</th><th class="n">α/λ · |β_t| · 60 ($/h)</th><th>iguales</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>alto</td><td class="n">6.199,992</td><td class="n">6.199,992</td><td>sí</td></tr>
+    <tr><td>medio</td><td class="n">3.099,977</td><td class="n">3.099,977</td><td>sí</td></tr>
+    <tr><td>bajo</td><td class="n">1.600,000</td><td class="n">1.600,000</td><td>sí</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Es el resultado de D-33 y D-34, y es la identidad mejor cuidada del
+  repositorio: hay una sola implementación del logsum y tres consumidores que
+  la importan.
+</p>
+
+<h3>4.2 Una población: se cumple, con una advertencia</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>cantidad</th><th class="n">valor</th><th>quién la cuenta</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>hogares Σ H</td><td class="n">36.000</td><td><code>LandUseConfig</code></td></tr>
+    <tr><td>agentes de transporte</td><td class="n">36.000</td><td><code>trace.agentes</code>, Sandbox y acoplado</td></tr>
+    <tr><td>teletrabajan</td><td class="n">7.030</td><td>los dos, idénticos</td></tr>
+    <tr><td>tienen auto</td><td class="n">15.112</td><td>los dos, idénticos</td></tr>
+    <tr><td>viajan (sin teletrabajo, con modo)</td><td class="n">28.970</td><td>agentes</td></tr>
+    <tr><td>viajeros según <code>calcular_agregados</code></td><td class="n">28.970,0</td><td>demanda esperada</td></tr>
+    <tr><td>viajeros según <code>demanda_estrato</code></td><td class="n">28.970,0</td><td>el cubo del trace</td></tr>
+    <tr><td>viajeros según <code>coupled_metrics</code></td><td class="n">28.970</td><td>Σ <code>n_viajeros</code></td></tr>
+    <tr><td>varados</td><td class="n">0</td><td>—</td></tr>
+    <tr class="destacada"><td>misma realización de agentes en las dos páginas</td><td class="n">sí</td><td>estrato, celda, teletrabajo y auto, agente a agente</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  La población es una: la fábrica es una sola función y las dos páginas la
+  siembran igual. La advertencia es que <strong>los 36.000 agentes tienen
+  <code>modo_elegido</code>, incluidos los 7.030 que teletrabajan</strong>: el
+  sorteo se hace antes de excluirlos. Quien filtre viajeros por «tiene modo»
+  cuenta 36.000; hay que filtrar por <code>teletrabaja</code> primero, como hace
+  <code>coupled_metrics</code>. Ningún consumidor cae hoy en eso; el campo lo
+  permite.
+</p>
+
+<h3>4.3 Un reparto modal: hay dos, y la interfaz muestra ambos</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>quién lo calcula</th><th>numerador</th><th>denominador</th><th class="n">auto</th><th class="n">metro</th><th class="n">bici</th><th class="n">caminata</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>modal_split</code> del MSA (Sandbox, <code>RunStatus</code>)</td><td>esperado <em>n·p_m</em></td><td>con teletrabajo</td><td class="n">15,390</td><td class="n">32,057</td><td class="n">23,887</td><td class="n">9,138</td></tr>
+    <tr class="destacada"><td><code>reparto_modal</code> del acoplado (agentes)</td><td>muestreado</td><td>con teletrabajo y varado</td><td class="n">15,583</td><td class="n">31,947</td><td class="n">23,683</td><td class="n">9,258</td></tr>
+    <tr><td><code>viajes_por_modo</code> de los agregados</td><td>esperado</td><td>sin teletrabajo</td><td class="n">19,126</td><td class="n">39,862</td><td class="n">29,656</td><td class="n">11,356</td></tr>
+    <tr><td><code>modal_split</code> sin teletrabajo</td><td>esperado</td><td>sin teletrabajo</td><td class="n">19,124</td><td class="n">39,836</td><td class="n">29,684</td><td class="n">11,356</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso alerta">
+  <h4>D-67 — el mismo trace, dos conteos, 0,204 pp</h4>
+  <p>
+    Las dos páginas corren la <strong>misma</strong> simulación: el
+    <code>modal_split</code> del acoplado es idéntico al del Sandbox (brecha
+    0,0 pp). Lo que difiere es el conteo <em>dentro</em> de la corrida: el MSA
+    acumula la demanda esperada <em>n·p_m</em>, y al terminar
+    <code>_asignar_modos_agentes</code> le sortea a cada agente un modo con
+    <code>rng.choice</code>. El Sandbox muestra el esperado en
+    <code>RunStatus</code> y el muestreado en los KPI y la tabla por estrato; el
+    acoplado, sólo el muestreado; la línea base fija el esperado. Dos números
+    para un indicador, en una pantalla, sin rótulo.
+  </p>
+</div>
+
+<p>
+  El muestreo es deliberado —«preserva modos minoritarios como la bici» frente
+  al argmax— y la brecha es chica. Pero <code>expected</code> se eligió
+  justamente para que las curvas de sensibilidad se lean sin ruido de muestreo,
+  y por esta puerta el ruido vuelve a entrar a la mitad de los indicadores. La
+  brecha esperado ↔ realizado en el mismo denominador es de 0,028 pp; la que
+  importa es la de denominador, 3,7 pp entre «con» y «sin» teletrabajo, que es
+  la que un lector no avisado toma por un cambio de modelo.
+</p>
+
+<h3>4.4 Dos «sin congestión», no tres</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>componente</th><th class="n">media ingenuo (min)</th><th class="n">media red vacía</th><th class="n">media convergido</th><th class="n">máx |ingenuo − vacía|</th><th class="n">máx |vacía − convergido|</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>auto</td><td class="n">9,677</td><td class="n">9,581</td><td class="n">13,807</td><td class="n">0,096</td><td class="n">5,046</td></tr>
+    <tr><td>bici</td><td class="n">21,428</td><td class="n">21,216</td><td class="n">32,820</td><td class="n">0,213</td><td class="n">14,108</td></tr>
+    <tr><td>acceso al tren</td><td class="n">10,000</td><td class="n">6,250</td><td class="n">6,250</td><td class="n">10,000</td><td class="n">0,000</td></tr>
+    <tr class="destacada"><td>espera del tren</td><td class="n">5,000</td><td class="n">13,433</td><td class="n">4,889</td><td class="n">10,000</td><td class="n">9,541</td></tr>
+    <tr><td>viaje en tren</td><td class="n">8,571</td><td class="n">9,325</td><td class="n">9,325</td><td class="n">3,620</td><td class="n">0,000</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  D-30 documentó tres baselines. Desde D-34/D-42 son <strong>dos</strong>: el
+  arranque ingenuo del MSA (<code>_tiempos_flujo_libre</code>: velocidades
+  globales, 10 min de acceso y 5 de espera fijos) y la red vacía configurada,
+  que sirve tanto al ΔCS como al suelo. La fila de D-30 sobre el «arranque del
+  acoplado en minutos a <em>v_auto</em>» ya no describe el código (D-68).
+</p>
+
+<p>
+  Y los dos que quedan difieren en lo que importa: la espera. El ingenuo supone
+  5 minutos; la red vacía, con el tren a frecuencia mínima, 13,4. El convergido
+  queda en 4,9 porque la demanda trae frecuencia (Mohring). Así que el MSA
+  arranca <em>más cerca</em> del punto fijo que la red vacía en la espera y más
+  lejos en el acceso. El reparto de la iteración 0 —auto 14,666, metro 21,031,
+  bici 36,723— está a 15,7 pp del final en la bici, y el MSA lo corrige en 8
+  iteraciones: el arranque no importa para el resultado, sí para el camino. El
+  capítulo 9 midió el residuo de ese camino: 0,13 pp por cambiar
+  <code>v_auto</code> global.
+</p>
+
+<h3>4.5 Una ciudad: se cumple</h3>
+
+<p>
+  Para 51, 101, 201, 401 y 801 celdas, el CBD según <code>CiudadLineal</code>,
+  según el acoplado (<em>L//2</em>), según el mínimo de <em>t_auto</em> y según
+  el mínimo de <em>t_bici</em> <strong>coinciden en las cinco grillas</strong>;
+  con 201 celdas el índice es 100 y el ancho 0,099502 km, y la población es
+  36.000 en todas. D-45 quedó cerrado en el capítulo 1 y no reaparece.
+</p>
+
+<h3>4.6 Tres loops, tres residuos, tres unidades</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>loop</th><th>residuo</th><th>unidad</th><th class="n">tolerancia</th><th>brecha honesta publicada</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>MSA de transporte</td><td>máx |t_n − t_{n−1}| del iterado amortiguado</td><td>minutos</td><td class="n">0,1</td><td><code>gap_final_min</code> (D-39), sin lector en la interfaz (D-63)</td></tr>
+    <tr><td>subasta de suelo</td><td>máx |ū_n − ū_{n−1}|</td><td>útiles del suelo</td><td class="n">10⁻⁸</td><td>balance Σ S_i Q_hi = H_h no exigido (cap. 5)</td></tr>
+    <tr><td>acoplado</td><td>‖F(T_state) − T_state‖∞, rezago del promedio (D-53)</td><td>útiles de transporte / mes</td><td class="n">1,0</td><td>ninguna</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Tres criterios, tres unidades, tres formas de subestimar o sobreestimar la
+  brecha, y un solo <em>flag</em> compuesto en el núcleo (D-39: los tres tienen
+  que converger) que el frontend reduce a uno en el motor local (D-55). La
+  consistencia que falta no es de valores sino de <strong>semántica</strong>:
+  «convergió» significa tres cosas distintas y se muestra con una palabra.
+</p>
+
+<h3>4.7 La línea base: el test dice la verdad, el documento no</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>rama</th><th class="n">fijado en el test</th><th class="n">medido hoy</th><th class="n">citado en CLAUDE.md</th><th class="n">CLAUDE.md − test (pp)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>original (sin suelo)</td><td class="n">15,81 · 28,32 · 24,96 · 11,42</td><td class="n">15,81 · 28,32 · 24,96 · 11,42</td><td class="n">15,81 · 28,32 · 24,96 · 11,42</td><td class="n">0,00</td></tr>
+    <tr class="destacada"><td>equilibrio (con suelo)</td><td class="n">15,39 · 32,06 · 23,89 · 9,14</td><td class="n">15,39 · 32,06 · 23,89 · 9,14</td><td class="n">15,42 · 32,17 · 23,85 · 9,07</td><td class="n">0,11</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso alerta">
+  <h4>D-68 — el documento canónico cita la línea base anterior a D-42</h4>
+  <p>
+    El test se actualizó con D-42; <code>CLAUDE.md</code> no. La brecha, 0,11 pp,
+    es más del doble de la tolerancia del test. Y los conteos que el mismo
+    documento da como orientación —«105 tests del núcleo», «58 e2e»— son hoy
+    <strong>201</strong> y <strong>59</strong> (el 58 vale para <code>test:e2e:fast</code>; el 59 cuenta el @slow). Es la misma familia de D-54 y D-59,
+    con más alcance: es el archivo que todo agente lee primero.
+  </p>
+</div>
+
+<h3>4.8 Lo demás que se midió</h3>
+
+<ul>
+  <li>
+    <strong>i18n</strong>: los dos idiomas tienen exactamente el mismo conjunto de
+    claves — 744 en <code>simulator.json</code>, 55 en <code>common.json</code>,
+    ninguna huérfana en ningún sentido. Es la comprobación que
+    <code>CLAUDE.md</code> advierte que un grep no puede hacer.
+  </li>
+  <li>
+    <strong>Discrepancias registradas</strong>: 68, de las que 24 (D-45 a D-68)
+    son de este libro; D-45 y D-46 se corrigieron el 2026-09-10 (cap. 1), el
+    resto sigue pendiente.
+  </li>
+</ul>
+
+<p class="pie-tabla">
+  Fuente: <code>datos/cap10.json</code>, regenerado el 2026-09-08 con
+  <code>uv run python ../../docs/libro/datos/datos_cap10.py</code>.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Pruebas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Test</th><th>Qué fija</th><th>Qué NO cubre</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>test_vot_consistente.py</code> (6 tests)</td>
+      <td>La identidad (10.1) en nivel: mismo VoT, <code>λ = |b_costo|</code>, <code>α = 1</code>, HEV por defecto.</td>
+      <td>Que el logsum sea uno: los tres consumidores importan la misma función, pero ningún test los compara entre sí como hace la §4.1.</td>
+    </tr>
+    <tr>
+      <td><code>test_linea_base.py</code> (3 tests)</td>
+      <td>El reparto <em>esperado</em> de las dos ramas, ±0,05 pp, y sus iteraciones.</td>
+      <td>El reparto <em>muestreado</em> que muestran los KPI (D-67); y que <code>CLAUDE.md</code> cite lo mismo que el test (D-68).</td>
+    </tr>
+    <tr>
+      <td><code>test_coupled_metrics.py::test_el_estado_final_es_el_de_la_ultima_iteracion</code></td>
+      <td>D-40: la ciudad final del acoplado es la que su transporte vio.</td>
+      <td>Que la vuelta 0 sea la misma corrida que el Sandbox: se verifica acá, no en un test.</td>
+    </tr>
+    <tr>
+      <td><code>test_coupled_metrics.py::test_reparto_modal_suma_uno</code></td>
+      <td>Que el reparto por agentes sume 1.</td>
+      <td>Que coincida con el <code>modal_split</code> del mismo trace (no coincide: D-67).</td>
+    </tr>
+    <tr>
+      <td><code>test_libro.py</code> (6 tests)</td>
+      <td>Que el libro apunte a donde dice y no pierda documentos.</td>
+      <td>Que los números del libro sigan siendo los del JSON: el contrato lo exige y ningún test lo regenera.</td>
+    </tr>
+    <tr>
+      <td><em>ninguno</em></td>
+      <td>—</td>
+      <td>Las identidades 2, 4 y 5 (población, baselines, geometría) y la paridad de claves i18n. Este capítulo las mide; conviene que pytest las herede.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s6"><span class="num">§6</span> Auditorías</h2>
+
+<div class="paso">
+  <h3>Protocolo aplicado <span class="ref">2026-09-08</span></h3>
+  <p>
+    (a) lectura estática de las costuras: quién produce y quién consume cada
+    cantidad compartida; (b) reproducción: la misma corrida en las dos páginas,
+    agente a agente; (c) invariancias: logsum por tres vías, geometría en cinco
+    grillas; (d) consistencia: los cuatro repartos, los dos baselines, los tres
+    loops; (e) lo que <code>CLAUDE.md</code> y D-30 dicen contra lo que se mide.
+  </p>
+</div>
+
+<h3>Hallazgos previos que este capítulo cierra o confirma</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ID</th><th>Qué era</th><th>Estado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">D-26 / D-27 / D-28</td><td>Unidades físicas: minutos, hab/km, $/mes.</td><td>consistentes; la única cantidad mensual nueva (D-34) usa el mismo <code>VIAJES_MES</code></td></tr>
+    <tr><td class="n">D-30</td><td>Tres baselines de «sin congestión».</td><td>hoy son dos; una fila desfasada (D-68)</td></tr>
+    <tr><td class="n">D-33 / D-34</td><td>Un hogar, una utilidad.</td><td><strong>confirmado</strong>: logsum único a 10⁻⁹ y VoT idéntico en nivel</td></tr>
+    <tr><td class="n">D-45</td><td>El CBD según dos convenciones.</td><td>cerrado (cap. 1); confirmado en cinco grillas</td></tr>
+    <tr><td class="n">D-51</td><td>La discretización de hogares no conserva la marginal por estrato.</td><td>vigente; no afecta a la identidad 2 porque ambas páginas usan la misma</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Hallazgos de esta auditoría</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ID</th><th>Hallazgo</th><th>Veredicto</th><th>Estado</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">D-67</td>
+      <td>Una misma corrida tiene dos repartos modales —esperado y muestreado, 0,204 pp— y el Sandbox muestra ambos sin rótulo.</td>
+      <td>Dos definiciones legítimas publicadas como una.</td>
+      <td>pendiente</td>
+    </tr>
+    <tr>
+      <td class="n">D-68</td>
+      <td><code>CLAUDE.md</code> cita la línea base anterior a D-42 (0,11 pp) y conteos de tests viejos; D-30 describe un baseline que ya no existe.</td>
+      <td>El documento canónico describe un estado anterior del modelo.</td>
+      <td>pendiente</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s7"><span class="num">§7</span> Discusión</h2>
+
+<h3>Lo que se sostiene</h3>
+
+<p>
+  Tres de las cinco identidades se cumplen exactamente: el hogar es uno (logsum
+  único a 10⁻⁹, VoT idéntico en nivel), la población es una (36.000 agentes con
+  los mismos sorteos en las dos páginas) y la ciudad es una (cinco grillas, cuatro
+  convenciones, un CBD). Es el saldo de las correcciones de septiembre —D-33,
+  D-34, D-45— y de una decisión de arquitectura anterior: que la matemática viva
+  una vez. Donde hay una sola implementación, la consistencia sale gratis.
+</p>
+
+<h3>Lo que no</h3>
+
+<p>
+  Las dos identidades que fallan fallan por lo mismo: <strong>hay dos
+  implementaciones legítimas y ningún rótulo</strong>. El reparto esperado y el
+  muestreado son ambos correctos; el arranque ingenuo y la red vacía son ambos
+  razonables; los tres residuos de convergencia son cada uno defendible en su
+  loop. El problema nunca es que uno esté mal, es que se muestran con la misma
+  palabra. Diez capítulos después, es el patrón dominante del libro: <em>el
+  modelo calcula bien; lo que se despega es lo que dice de sí mismo</em>.
+</p>
+
+<h3>Sobre el documento canónico</h3>
+
+<p>
+  D-68 merece una línea aparte porque no es un rótulo de interfaz. Es
+  <code>CLAUDE.md</code>, el archivo que instruye a cualquier agente que toque
+  este repositorio, y su cifra más importante —la línea base que «es la red de
+  seguridad de la matemática»— está desfasada 0,11 pp desde D-42. El test tiene
+  razón y el documento no, que es el orden correcto de las cosas; pero un agente
+  que lea el documento y no corra el test va a creer que la línea base se movió
+  cuando no se movió. La corrección es barata: citar el test en vez de los
+  números.
+</p>
+
+<div class="aviso idea">
+  <h4>Pendientes</h4>
+  <ul>
+    <li>
+      <strong>Rotular los dos repartos</strong> (D-67), o derivar las figuras
+      agente-nivel del reparto esperado bajo <code>expected</code>.
+    </li>
+    <li>
+      <strong><code>CLAUDE.md</code> cita el test</strong> (D-68), y D-30 se marca
+      superado por la §4.4.
+    </li>
+    <li>
+      <strong>Heredar a pytest</strong> las identidades 2, 4 y 5 y la paridad
+      i18n: son cuatro asserts que este capítulo ya escribió.
+    </li>
+    <li>
+      <strong>Una sola palabra para tres convergencias</strong>: que la
+      interfaz diga cuál de los tres loops es el que no convergió, en vez de
+      «terminó».
+    </li>
+  </ul>
+</div>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    plan en <a href="PLAN.md">PLAN.md</a> ·
+    capítulo anterior: <a href="cap09-calibracion.html">Calibración</a>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

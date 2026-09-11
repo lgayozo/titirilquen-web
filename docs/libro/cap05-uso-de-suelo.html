@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 5: Uso de suelo, oferta y subasta</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 5</div>
+  <h1>Uso de suelo: oferta y subasta</h1>
+  <p class="bajada">
+    Quién vive dónde. Una oferta de vivienda fija y una subasta entre estratos
+    que la reparte: es el modelo de Alonso implementado como el bid-choice de
+    Martínez, y el módulo con más historia corregida del simulador.
+  </p>
+  <p class="meta">
+    Módulos: <code>land_use/supply.py</code> · <code>equilibrium.py</code> ·
+    <code>hev.py</code> · <code>allocation.py</code> ·
+    auditado el 2026-09-07 ·
+    datos regenerados el 2026-09-07 ·
+    <span class="estado auditado">auditado</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Cotejo con el código</a></li>
+    <li><a href="#s3">Parámetros</a></li>
+    <li><a href="#s4">Resultados</a></li>
+    <li><a href="#s5">Pruebas</a></li>
+    <li><a href="#s6">Auditorías</a></li>
+    <li><a href="#s7">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<p>
+  La oferta de vivienda <em>S_i</em> es exógena: cuántos hogares caben en cada
+  parcela. Los hogares compiten por ellas en una subasta, y quien más puja se
+  queda. La utilidad de un hogar del estrato <em>h</em> en la parcela <em>i</em>
+  es lineal en el ingreso disponible:
+</p>
+
+<div class="ecuacion" data-tex="u_h = \lambda_h (y_h - p_i) + f_h(i), \qquad f_h(i) = -\alpha_h T_h(i) - \rho_h\, \mathrm{dens}(i)" data-id="(5.1)">
+  <span class="id">(5.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>u</mi><mi>h</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi>α</mi><mi>h</mi></msub><msub><mi>T</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>ρ</mi><mi>h</mi></msub><mtext> </mtext><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">u_h = \lambda_h (y_h - p_i) + f_h(i), \qquad f_h(i) = -\alpha_h T_h(i) - \rho_h\, \mathrm{dens}(i)</annotation></semantics></math></span>
+</div>
+
+<p>
+  Despejando el precio se obtiene la <strong>disposición a pagar</strong>, y con
+  un término aleatorio Gumbel la probabilidad de que el estrato <em>h</em> gane
+  la parcela <em>i</em>. Con precisión común a todos los estratos eso tiene forma
+  cerrada —la ecuación (4.26) de Martínez, con el factor de población
+  <em>H_h</em>—; cuando las <em>λ_h</em> difieren, las escalas de las pujas
+  difieren y hace falta la integral heteroscedástica de Train (§4.5).
+</p>
+
+<p>
+  El equilibrio es el punto fijo de las utilidades de reserva <em>ū_h</em> que
+  hace calzar oferta y demanda por estrato:
+</p>
+
+<div class="ecuacion" data-tex="\sum_i S_i\, Q_{hi} = H_h \quad \forall h" data-id="(5.2)">
+  <span class="id">(5.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>S</mi><mi>i</mi></msub><mtext> </mtext><msub><mi>Q</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>H</mi><mi>h</mi></msub><mspace width="1em"/><mi mathvariant="normal">∀</mi><mi>h</mi></mrow><annotation encoding="application/x-tex">\sum_i S_i\, Q_{hi} = H_h \quad \forall h</annotation></semantics></math></span>
+</div>
+
+<p>
+  Es la ecuación (5.1) de Martínez —«todo hogar se localiza»— y la condición que
+  hace interpretable cualquier resultado del módulo. Si no se cumple, la
+  composición <em>Q</em> no es una distribución de la población sino un número
+  cualquiera.
+</p>
+
+<div class="aviso idea">
+  <h4>Qué cambió en septiembre de 2026</h4>
+  <p>
+    Este módulo fue reescrito casi entero en una semana. <strong>D-34</strong>
+    cambió qué es <em>T</em>: ya no son minutos de distancia sino el logsum
+    mensual del logit modal, o sea la utilidad esperada del viaje de ese hogar,
+    con <em>α</em> = 1 leyéndola tal cual. <strong>D-33</strong> ató las
+    <em>λ_h</em> al <code>b_costo</code> de transporte. Y <em>β</em> = 1/√44
+    quedó como la única perilla propia del módulo. El resultado es que un hogar
+    tiene una sola función de utilidad en todo el simulador.
+  </p>
+</div>
+
+<h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">land_use/supply.py</td>
+      <td class="n">59</td>
+      <td><code>generar_oferta</code> — las seis formas; <code>_discretizar</code> (33) cierra `Σ S = N` por mayor residuo</td>
+    </tr>
+    <tr>
+      <td class="n">(5.1)</td>
+      <td class="ruta py">land_use/equilibrium.py</td>
+      <td class="n">340</td>
+      <td><code>solve_subasta</code> — despacha según los datos; <code>solve_logit</code> (190) es la forma cerrada</td>
+    </tr>
+    <tr>
+      <td class="n">(5.1)</td>
+      <td class="ruta py">land_use/hev.py</td>
+      <td class="n">118</td>
+      <td><code>q_hev</code> — la integral de Train; <code>e_max_hev</code> (151) da el precio</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">land_use/hev.py</td>
+      <td class="n">92</td>
+      <td><code>_grilla_para</code> — cuadratura adaptada a la razón de escalas (D-43)</td>
+    </tr>
+    <tr>
+      <td class="n">(5.2)</td>
+      <td class="ruta py">land_use/allocation.py</td>
+      <td class="n">13</td>
+      <td><code>asignar_hogares_simple</code> — hogares enteros a parcelas, con cuotas</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">land_use/ciudad.py</td>
+      <td class="n">39</td>
+      <td><code>LandUseCity</code> — arma la ciudad y resuelve; exige `T` desde D-34</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">population.py</td>
+      <td class="n">50</td>
+      <td><code>generar_poblacion_desde_land_use_det</code> — la otra discretización (D-51)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Diferencias con la fuente</h3>
+
+<p>
+  <strong>D-25</strong>: el <em>Q</em> devuelto omitía el peso <em>H_h</em> de la
+  subasta, así que (5.2) no se cumplía con estratos de tamaño distinto.
+  <strong>D-31</strong>: <code>beta</code> significaba cosas distintas a cada
+  lado del despacho. <strong>D-32</strong>: la densidad que penaliza <em>ρ</em>
+  es exógena, no una externalidad de localización — el Overleaf sugería lo
+  segundo. <strong>D-08</strong> es la más larga: documenta por qué la forma
+  cerrada con <em>λ</em> heterogéneo estaba mal especificada y cómo HEV lo cerró.
+</p>
+
+<h2 id="s3"><span class="num">§3</span> Parámetros</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Parámetro</th><th class="n">Valor</th><th>Unidad</th><th>Origen</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>alpha</code></td>
+      <td class="n">1,0</td>
+      <td>—</td>
+      <td><span class="etiqueta neutra">decisión</span> D-34: lee el logsum tal cual; es el ancla del simulador original</td>
+    </tr>
+    <tr>
+      <td><code>lambda</code></td>
+      <td class="n">3,20 / 6,41 / 12,41 ·10⁻⁴</td>
+      <td>utiles/$</td>
+      <td><span class="etiqueta frio">norma</span> el <code>|b_costo|</code> de transporte, literal (D-33/D-34)</td>
+    </tr>
+    <tr>
+      <td><code>beta</code></td>
+      <td class="n">0,15</td>
+      <td>—</td>
+      <td><span class="etiqueta neutra">decisión</span> ≈ 1/√44: aproximación de segundo momento, no estimada</td>
+    </tr>
+    <tr>
+      <td><code>rho</code></td>
+      <td class="n">5,2 ·10⁻³</td>
+      <td>utiles-mes/(hog/km)</td>
+      <td><span class="etiqueta lim">heredado</span> <strong>sin fuente</strong>; fijado al 50 % del rango de α·T</td>
+    </tr>
+    <tr>
+      <td><code>forma</code> / <code>oferta_sigma_frac</code></td>
+      <td class="n">normal / 0,5</td>
+      <td>—</td>
+      <td><span class="etiqueta lim">heredado</span> del simulador original</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s4"><span class="num">§4</span> Resultados</h2>
+
+<p>Todo sale de <code>datos/cap05.json</code>.</p>
+
+<h3>La oferta: seis formas, todas bien construidas</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Forma</th><th class="n">Σ S</th><th>CBD vacío</th><th class="n">Densidad máx. (hab/km)</th><th class="n">Pico a (km)</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td>normal</td><td class="n">36.000</td><td>sí</td><td class="n">3.045,1</td><td class="n">0,10</td></tr>
+    <tr><td>uniforme</td><td class="n">36.000</td><td>sí</td><td class="n">1.809,0</td><td class="n">0,10</td></tr>
+    <tr><td>exponencial</td><td class="n">36.000</td><td>sí</td><td class="n">4.140,6</td><td class="n">0,10</td></tr>
+    <tr><td>meseta</td><td class="n">36.000</td><td>sí</td><td class="n">3.889,3</td><td class="n">0,10</td></tr>
+    <tr><td>bimodal</td><td class="n">36.000</td><td>sí</td><td class="n">2.954,7</td><td class="n">4,98</td></tr>
+    <tr><td>valle</td><td class="n">36.000</td><td>sí</td><td class="n">3.577,8</td><td class="n">9,95</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Las seis conservan la población exactamente y dejan el CBD sin viviendas. Los
+  picos caen donde deben: junto al centro en las monocéntricas, a 5 km en la
+  bimodal y en el borde en el valle. El módulo de oferta no tenía auditoría
+  previa y sale limpio.
+</p>
+
+<h3>La conservación de hogares se cumple a precisión de máquina</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Forma</th><th class="n">Error máx. (hogares)</th><th class="n">Iteraciones</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>normal</td><td class="n">2,4 ·10⁻⁹</td><td class="n">30</td></tr>
+    <tr><td>uniforme</td><td class="n">2,4 ·10⁻⁹</td><td class="n">37</td></tr>
+    <tr><td>exponencial</td><td class="n">1,2 ·10⁻⁹</td><td class="n">31</td></tr>
+    <tr><td>meseta</td><td class="n">7,3 ·10⁻¹⁰</td><td class="n">25</td></tr>
+    <tr><td>bimodal</td><td class="n">1,2 ·10⁻⁹</td><td class="n">28</td></tr>
+    <tr><td>valle</td><td class="n">2,0 ·10⁻⁹</td><td class="n">35</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Sobre 36.000 hogares, un error de 2·10⁻⁹ es ruido de punto flotante. La
+  ecuación (5.2) se cumple en las seis formas y en las tres escalas probadas
+  (3.600, 36.000 y 144.000 hogares). Es el resultado que sostiene todo lo demás:
+  <em>Q</em> es una distribución de población de verdad.
+</p>
+
+<h3>El despacho entre forma cerrada y HEV</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Caso</th><th>Rama</th><th class="n">Razón de escalas</th><th class="n">Error de balance</th><th>Convergió</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>λ uniforme</td><td>forma cerrada</td><td class="n">1,0</td><td class="n">1,2 ·10⁻⁶</td><td>sí</td></tr>
+    <tr class="destacada"><td>λ del default</td><td>HEV</td><td class="n">3,9</td><td class="n">2,4 ·10⁻⁹</td><td>sí</td></tr>
+    <tr><td>λ razón 10</td><td>HEV</td><td class="n">10,0</td><td class="n">2,4 ·10⁻⁷</td><td>sí</td></tr>
+    <tr><td>λ razón 100</td><td>HEV</td><td class="n">100,0</td><td class="n">1,5 ·10⁻⁷</td><td>sí</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El despacho funciona y el balance se cumple en las dos ramas, incluso con
+  escalas cien veces distintas — la cuadratura adaptativa de D-43 sostiene ese
+  caso. Queda, eso sí, el pendiente que la auditoría externa señaló:
+  <strong>ninguna de las dos ramas exige el balance para declararse
+  convergida</strong>. La bandera sale del residuo del punto fijo. Se cumple de
+  hecho, no por construcción.
+</p>
+
+<h3>Dos discretizaciones, y sólo una conserva las dos marginales</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Función</th><th>Técnica</th><th class="n">Conserva S_i</th><th class="n">Conserva H_h</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>allocation.asignar_hogares_simple</code></td><td>sorteo con cuotas</td><td>sí</td><td class="n">sí (0, 0, 0)</td></tr>
+    <tr><td><code>population…_desde_land_use_det</code></td><td>mayor residuo por celda</td><td>sí</td><td class="n">no (+8, 0, −8)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  La primera respeta las dos marginales por construcción, porque descuenta de una
+  cuota por estrato a medida que asigna. La segunda redondea cada celda por
+  separado: cierra la columna y deja libre la fila. El desvío es 0,11 % y sin
+  sesgo fijo, pero <strong>es la segunda la que genera los agentes del
+  transporte</strong> — y la técnica correcta está tres archivos más allá. Es
+  D-51.
+</p>
+
+<h3>Las dos perillas</h3>
+
+<p>
+  <em>β</em> gobierna la nitidez de la subasta sin tocar el valor del tiempo. El
+  gradiente de renta se mantiene positivo en todo el rango, así que subirlo
+  segrega más pero no rompe a Alonso:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">β</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th class="n">Iter.</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0,05</td><td class="n">0,0283</td><td class="n">3,084</td><td class="n">4,479</td><td class="n">+0,701</td><td class="n">17</td></tr>
+    <tr class="destacada"><td class="n">0,15</td><td class="n">0,1693</td><td class="n">2,249</td><td class="n">5,579</td><td class="n">+0,669</td><td class="n">30</td></tr>
+    <tr><td class="n">0,50</td><td class="n">0,4940</td><td class="n">1,137</td><td class="n">6,422</td><td class="n">+0,647</td><td class="n">73</td></tr>
+    <tr><td class="n">1,00</td><td class="n">0,7121</td><td class="n">0,837</td><td class="n">6,652</td><td class="n">+0,648</td><td class="n">149</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  <em>ρ</em> hace lo contrario: aplana. Sube la penalización por densidad y la
+  ciudad se mezcla —el Theil cae de 0,2356 a 0,0480— pero a costa de aplastar el
+  gradiente de renta, de +0,920 a +0,186:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ρ</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th>Asignación</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0.0</td><td class="n">0.2356</td><td class="n">1.922</td><td class="n">5.909</td><td class="n">+0.920</td><td>—</td></tr>
+    <tr class="destacada"><td class="n">0.0052</td><td class="n">0.1693</td><td class="n">2.249</td><td class="n">5.579</td><td class="n">+0.669</td><td>—</td></tr>
+    <tr><td class="n">0.01</td><td class="n">0.1079</td><td class="n">2.706</td><td class="n">5.144</td><td class="n">+0.481</td><td>—</td></tr>
+    <tr><td class="n">0.02</td><td class="n">0.0480</td><td class="n">4.244</td><td class="n">3.838</td><td class="n">+0.186</td><td> ← invertida</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El dato que importa está en la última fila: con <strong>ρ = 0,02 la asignación
+  ya está invertida</strong> —el estrato alto vive a 4,24 km y el bajo a 3,84—
+  aunque el gradiente de precios siga siendo positivo. O sea que el signo de
+  <code>grad_p</code>, que es el guard que usan los tests, <strong>no detecta la
+  inversión más temprana</strong>: la del reparto de la gente. El tope de 0,01
+  propuesto para el control sigue siendo seguro, pero la vara para vigilarlo
+  debería ser el orden de las distancias, no sólo el precio.
+</p>
+
+<h3>Invariancias</h3>
+
+<p>
+  Refinar la grilla de 101 a 401 celdas deja el Theil en
+  0.1693 ± 0,003 (0.1656 y 0.1712 en los
+  extremos) y las distancias medias dentro de 0,08 km: la invariancia de D-26 se
+  sostiene con la configuración vigente, que es lo que había que volver a
+  comprobar después de reescribir el módulo entero.
+</p>
+
+<p>
+  El tamaño físico sí mueve el resultado, como debe: de 10 a 40 km el Theil sube
+  de 0.0241 a 0.3581 y el estrato alto se acerca al
+  centro (de 3.524 a 1.582 km). Más
+  kilómetros hacen pesar más el gradiente de accesibilidad contra el ruido de la
+  subasta.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Pruebas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Archivo</th><th class="n">Tests</th><th>Qué fija</th><th>Qué NO cubre</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="ruta py">tests/test_land_use.py</code></td>
+      <td class="n">17</td>
+      <td>La conservación de hogares (D-25), el gradiente de Alonso, las invariancias de grilla y escala.</td>
+      <td>Las seis formas de oferta: sólo se prueban con la normal.</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_hev.py</code></td>
+      <td class="n">7</td>
+      <td>Que HEV reduzca al logit con λ uniforme, el despacho sin escalones, y que λ quede identificado.</td>
+      <td>Que el balance de hogares se exija al declarar convergencia.</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_accesibilidad.py</code></td>
+      <td class="n">4</td>
+      <td>Que <em>T</em> sea el logsum mensual y que por estrato no invierta Alonso (D-34).</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><code class="ruta py">tests/test_vot_consistente.py</code></td>
+      <td class="n">6</td>
+      <td>α = 1, λ = |b_costo| literal, el VoT igual en los dos módulos.</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s6"><span class="num">§6</span> Auditorías</h2>
+
+<div class="paso">
+  <h3>Protocolo aplicado <span class="ref">2026-09-07</span></h3>
+  <p>
+    Este módulo ya tenía tres informes y trece hallazgos (AU-01 a AU-13), así que
+    la auditoría se concentró en lo no mirado: (a) lectura estática de
+    <code>supply.py</code> y <code>allocation.py</code>, los dos sin auditoría
+    previa; (b) conservación de hogares por forma y por escala; (c) invariancias
+    de grilla y tamaño con la configuración vigente, que cambió entera en
+    septiembre; (d) consistencia con el capítulo 3 —la accesibilidad que entra
+    aquí es el logsum que sale de allá—; (e) el despacho y el balance, que era el
+    pendiente de la auditoría externa.
+  </p>
+</div>
+
+<div class="aviso alerta">
+  <h4>D-51 — Dos discretizaciones, una sola correcta</h4>
+  <p>
+    <strong>Media.</strong> <code>allocation</code> conserva las dos marginales
+    por construcción; <code>population</code> redondea celda a celda y deja el
+    total por estrato con ±8 hogares de desvío. Es la segunda la que alimenta el
+    transporte, y la técnica correcta ya está implementada al lado. Es la misma
+    familia que D-44, que registraba el síntoma sin notar que la solución estaba
+    a mano.
+  </p>
+</div>
+
+<p>
+  Lo demás <strong>confirma</strong>. La conservación (5.2) se cumple a 10⁻⁹ en
+  las seis formas y tres escalas; el despacho a HEV funciona hasta razón de
+  escalas 100; las seis ofertas conservan la población y respetan el CBD; y las
+  invariancias de D-26 se sostienen con la configuración nueva, que es lo que
+  había que volver a comprobar después de reescribir el módulo entero.
+</p>
+
+<p>
+  Sigue abierto el pendiente de la auditoría externa:
+  <strong>ninguna rama exige el balance de hogares para declarar
+  convergencia</strong>. Hoy se cumple de hecho —y este capítulo lo mide— pero
+  por el residuo del punto fijo, no por construcción. Si un caso extremo hiciera
+  divergir las dos cosas, la bandera diría que sí.
+</p>
+
+<p>
+  De paso, los números de <strong>D-44</strong> quedaron actualizados: se
+  midieron antes de D-42 y la accesibilidad nueva cambió el redondeo
+  (7.208/18.000/10.792 contra los 7.194/17.998/10.808 originales).
+</p>
+
+<h2 id="s7"><span class="num">§7</span> Discusión</h2>
+
+<p>
+  Es el módulo más auditado del simulador y se nota: las trece observaciones de
+  AU y las once discrepancias que lo tocan dejaron un código donde cada decisión
+  rara tiene su comentario y su fecha. La conservación —lo único que realmente no
+  puede fallar— se cumple con margen en todas las configuraciones probadas.
+</p>
+
+<p>
+  Lo que queda es de otro orden. <strong>ρ sigue sin fuente</strong>: es el único
+  parámetro del simulador cuyo valor se fijó por una regla de proporción
+  («que pese la mitad que la accesibilidad») en vez de por una estimación o una
+  norma. Está declarado como tal, que es lo correcto, pero declarar no es
+  justificar.
+</p>
+
+<div class="aviso idea">
+  <h4>Lo que la reescritura de septiembre dejó bien</h4>
+  <p>
+    Vale decirlo porque la auditoría tiende a listar sólo lo que falla: el
+    módulo pasó de tener tres parámetros heredados sin origen (α, λ, ρ) a tener
+    uno. α y λ hoy vienen de transporte y hay tests que lo exigen literalmente.
+    Esa es la diferencia entre un modelo calibrado y uno con números puestos.
+  </p>
+</div>
+
+<h3>Pendientes</h3>
+
+<ul>
+  <li>
+    <strong>D-51</strong>: usar en <code>population</code> el sorteo con cuotas
+    de <code>allocation</code>, o un redondeo biproporcional. Mueve la línea base
+    por ocho hogares.
+  </li>
+  <li>
+    <strong>Balance como condición de convergencia</strong>: exigir (5.2) antes
+    de poner <code>converged=True</code>, en las dos ramas. Es el pendiente que
+    dejó la auditoría externa del 2026-09-05.
+  </li>
+  <li>
+    <strong>ρ</strong>: buscarle una fuente, o declarar el módulo como
+    dependiente de una calibración que no tiene.
+  </li>
+  <li>
+    <strong>Sin discrepancia</strong>: cinco de las seis formas de oferta no
+    tienen test propio. Este capítulo las probó a mano y salieron bien; conviene
+    que eso quede fijado.
+  </li>
+</ul>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    <a href="cap04-equilibrio-transporte.html">← capítulo 4</a> ·
+    material previo: <a href="informe-uso-suelo.html">informe de uso de suelo</a> ·
+    <a href="informe-hev.html">HEV</a> · <a href="hev-cuadratura.html">cuadratura</a> ·
+    datos en <code>datos/cap05.json</code>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,396 @@
+# Análisis de sensibilidad de la configuración — Iteración 2 (agosto 2026)
+
+Registro de hallazgos `S-xx`. Complementa a `DISCREPANCIES.md` (D-xx, fidelidad
+código↔paper): aquí la pregunta no es si el código implementa el modelo, sino si
+**los parámetros que la UI expone mueven el resultado**. Todos los números de este
+documento están **medidos** ejecutando el core (no estimados); la evidencia clave se
+reproduce con `packages/titirilquen_core/scripts/sensibilidad.py`.
+
+| ID | Hallazgo | Estado |
+|---|---|---|
+| S-01 | KPI v/c usaba demanda originada en vez de flujo de corredor (subestima ~62×) | **CORREGIDO** (it. 2) |
+| S-02 | NetworkDiagram dividía la capacidad dos veces por `num_pistas` | **CORREGIDO** (it. 2) |
+| S-03 | Escala default (500 hab/km) dejaba la BPR del auto sin morder | **CORREGIDO** (it. 2) |
+| S-04 | Capacidad del auto acoplada a la velocidad (`cap_pista ∝ v_l`) | **CORREGIDO** (it. 3: `capacidad_pista` opcional) |
+| S-05 | Parámetros muertos o inertes en el schema | DOCUMENTADO (§4.1 corrige la parte de `frec_max`) |
+| S-06 | Vacío de normalización de unidades (viajes/período vs veh/h) | DOCUMENTADO |
+| S-07 | Metro: `capacidad_tren` con signo invertido y sin hacinamiento | PENDIENTE (requiere autores) |
+| S-08 | Cuatro políticas capaban `frec_max` bajo el default | **CORREGIDO** (it. 3) |
+| S-09 | La BPR de andén dejó de ser inerte: D-16/B1-B2 pasa a ser material | **ABIERTO — para los autores** |
+| S-10 | El default de ciclovía deja el modo sobre capacidad en todo escenario | ABIERTO (ligado a S-06) |
+
+## 0. Resumen ejecutivo
+
+**Síntoma reportado**: mover la oferta de auto (pistas, velocidad) no cambiaba el
+equilibrio. **Tres causas apiladas**, de superficie a raíz:
+
+1. El KPI v/c mostraba 0.00× por un error de numerador (S-01) — el corredor real
+   operaba a 0.27×, pero nadie podía verlo.
+2. Aun con 0.27×, el término BPR aportaba +0.41 min sobre 19.16 (+2.2%): la
+   congestión valía 0.014 utiles frente a una ASC de 0.79 y un costo de −1.44.
+   `num_pistas` 1→20 movía el reparto **0.21 pp**. La red estaba sobredimensionada.
+3. La causa raíz era de **escala, no de la BPR** (S-03): el default de la UI
+   (500 hab/km) era 3.6× más liviano que el propio preset «Base» del repo (1800).
+
+**Qué se corrigió en esta iteración**: el trace expone el flujo de corredor
+(numerador correcto del v/c), el diagrama de red dejó de duplicar las pistas, y el
+default subió a 1800 hab/km. Resultado medido: la sensibilidad de `num_pistas`
+pasó de 0.20 a **2.05 pp** (13×) y el v/c default de 0.27 a **0.95**.
+
+## 1. Metodología
+
+- Baseline: defaults de la UI — 201 celdas, 20 km, seed 42, `expected`,
+  tolerance 0.1, betas de `defaults.ts`. Población según la ruta indicada.
+- Reparto modal baseline (10.000 hab = 500 hab/km, 2 pistas, ruta core), medido
+  el 2026-08-10: auto 20.16% · metro 20.41% · bici 33.62% · caminata 6.50% ·
+  teletrabajo 19.31%, sobre 9.950 agentes. El teletrabajo va en el denominador.
+  **Es una foto de la calibración vigente, no un invariante**: caduca con cada
+  recalibración. Las cifras anteriores (metro 48.40%) quedaron obsoletas tras la
+  recalibración de betas, la subida de motorización y el arreglo del metro sin
+  tramo en tren.
+- Reproducir: `cd packages/titirilquen_core && uv run python scripts/sensibilidad.py`
+  (sale 1 si los umbrales esperados no se cumplen — sirve de regresión).
+- Nota de rutas de población: el core/API usan `generar_poblacion` (densidad
+  plana); la app usa `iter_msa_desde_suelo` (ΣH de `LandUseConfig`). Misma escala,
+  localización inicial distinta; los v/c difieren ~5%.
+
+## 2. Diagnóstico del auto
+
+### S-01 — KPI v/c mal calculado [CORREGIDO]
+
+`SandboxPage.tsx` dividía `max(demanda_auto)` — los viajes **originados** por celda
+(~9.6 veh) — por la capacidad direccional (2214 veh/h). En una ciudad lineal
+monocéntrica el volumen crítico es el flujo que **atraviesa** el tramo rumbo al CBD
+(cumsum direccional): 597 veh/h en la celda crítica. v/c real 0.27, mostrado 0.00×.
+
+El core ya calculaba ese cumsum (`supply/car.py`, `flujos_veh_por_hora`) pero el
+valor moría en el `last_state` de `msa.py` sin llegar al trace. Fix: el
+`ConvergenceTrace` expone `flujos_auto_veh_h` / `flujos_bici_veh_h` (estado final)
+y el KPI divide `max(flujo)/capacidad`. Espejos actualizados (worker + API).
+
+Efecto lateral revelado: el **v/c de bici saltó de 0.03× a ~1.3×** — la ciclovía
+estaba congestionada y el bug lo ocultaba (ver §4).
+
+### S-02 — Doble conteo de pistas en el diagrama de red [CORREGIDO]
+
+`NetworkDiagram.tsx` hacía `capacidad_auto × num_pistas`, pero `capacidad_auto` es
+la `capacidad_direccion` del core, que **ya incluye** las pistas (`car.py`:
+`cap_pista · num_pistas`). El v/c pintado era la mitad del real y — perverso —
+**empeoraba** cuando el usuario agregaba pistas.
+
+### S-03 — Causa raíz: escala de población [CORREGIDO]
+
+Cálculo con defaults (previos) y los valores reales del código:
+
+```
+densidad_emb  = 1000/(5+2)        = 142.86 veh/km      (largo_vehiculo + gap)
+cap_pista     = 142.86·31/4       = 1107.1 veh/h       (Greenshields q_max = k_j·v_f/4)
+capacidad     = 1107.1·2          = 2214.3 veh/h       (2 pistas)
+viajes auto   ≈ 11.8% de 9.950    ≈ 1.173
+flujo máx     ≈ 1.173/2 (un lado) ≈ 597 veh/h  →  v/c = 0.27
+BPR peor celda: 0.8·0.27² = 0.058 → +5.8% ese tramo; promedio del corredor ≈ ⅓
+t_auto[0]: 19.58 min con α=0.8 vs 19.16 con α=0 → Δcongestión = +0.41 min (+2.2%)
+en utiles (estrato 2): b_t·Δ = −0.0331·0.41 = −0.014, frente a |V| ≈ 1.3
+```
+
+Para v/c = 1 hacen falta ~4.430 viajes en auto ≈ 37.500 agentes ≈ **1.875 hab/km**.
+El preset «Base» del propio repo define **1800**; el default de la UI era 500.
+
+Barrido medido (salida de `scripts/sensibilidad.py`, 2026-08-10):
+
+| densidad (hab/km) | pistas | % auto | v/c corredor | t_auto máx (min) | convergió |
+|---|---|---|---|---|---|
+| 200 | 1 | 19.72 | 0.37 | 19.9 | sí |
+| 200 | 2 | 19.83 | 0.18 | 19.3 | sí |
+| 200 | 3 | 19.85 | 0.12 | 19.2 | sí |
+| 200 | 4 | 19.86 | 0.09 | 19.2 | sí |
+| 200 | 5 | 19.86 | 0.07 | 19.2 | sí |
+| 200 | 6 | 19.87 | 0.06 | 19.2 | sí |
+| 500 | 1 | 19.46 | 0.88 | 23.5 | sí |
+| 500 | 2 | 20.16 | 0.46 | 20.3 | sí |
+| 500 | 3 | 20.29 | 0.31 | 19.7 | sí |
+| 500 | 4 | 20.34 | 0.23 | 19.4 | sí |
+| 500 | 5 | 20.36 | 0.19 | 19.3 | sí |
+| 500 | 6 | 20.38 | 0.15 | 19.3 | sí |
+| 1800 | 1 | 13.28 | 2.16 | 43.9 | sí |
+| 1800 | 2 | 16.81 | 1.37 | 30.3 | sí |
+| 1800 | 3 | 18.17 | 0.99 | 25.0 | sí |
+| 1800 | 4 | 18.77 | 0.77 | 22.7 | sí |
+| 1800 | 5 | 19.08 | 0.62 | 21.5 | sí |
+| 1800 | 6 | 19.25 | 0.53 | 20.8 | sí |
+
+Δ% auto (pistas 1→6): **0.15 pp** con 200 (v/c 0.37) · **0.92 pp** con 500
+(v/c 0.88) · **5.97 pp** con 1800 (v/c 2.16).
+
+El umbral de regresión se evalúa contra el **v/c medido con 1 pista**, no contra
+la densidad: con v/c < 0.5 se exige Δ < 0.5 pp; con v/c > 1.0 se exige
+Δ > 1.5 pp; entre medio hay zona gris sin umbral, porque la rodilla de la BPR no
+tiene un corte nítido. El script además falla si el barrido deja de cubrir
+alguno de los dos regímenes, para que no quede verde sin verificar nada.
+
+> **Por qué el umbral se redefinió.** La versión anterior exigía "con 500 hab/km
+> la oferta no debe mover el reparto". Eso era cierto cuando esa densidad daba
+> v/c 0.28 con 1 pista, pero `9854f6d` subió la motorización (`prob_auto`
+> 0.90/0.60/0.30 → 0.95/0.75/0.45) y corrió la mezcla de estratos a
+> (0.20/0.50/0.30): la misma densidad pasó a v/c 0.92, o sea a la rodilla de la
+> BPR, donde la oferta **sí** mueve el reparto. El test marcaba "falla" cuando lo
+> que había caducado era su premisa. La relación v/c → Δpp es monótona y estable
+> (0.28→0.08 · 0.37→0.15 · 0.54→0.36 · 0.71→0.61 · 0.88→0.92 · 2.16→5.97), así
+> que indexar por v/c sobrevive a recalibraciones. Se agregó 200 hab/km al
+> barrido para que el régimen de flujo libre siga cubierto.
+
+Fix aplicado: `defaults.ts` 500→1800 y `H_por_estrato` [3600, 14400, 18000]
+(ΣH = 36.000); slider de densidad media hasta 3000; divergencia intencional
+registrada en `contract.spec.ts`; tutorial 02-city actualizado. El core conserva
+la escala liviana (500) — la divergencia es deliberada y está documentada.
+Costo verificado: corridas ~20 s post-boot (antes ~8 s) con 36.000 agentes.
+
+### S-04 — Capacidad acoplada a la velocidad [CORREGIDO it. 3]
+
+`car.py`: `cap_pista = k_e·v_l/4` — es el q_max de Greenshields, correcto en
+teoría, pero convierte a `v_max_kmh` en una palanca doble: subir la velocidad sube
+la capacidad en la misma proporción, así que **la velocidad nunca puede empeorar
+la congestión** (medido: v/c cae de 0.27 a 0.10 al pasar de 31 a 80 km/h). En una
+BPR estándar `v_f` y `C` son parámetros separables. **Corregido en it. 3**:
+`CarSupplyParams.capacidad_pista: float | None` — `None` conserva Greenshields
+exacto (default retrocompatible); un valor explícito fija C independiente de
+v_f (checkbox «capacidad manual» + slider en el Sandbox). Verificado: cap 600 +
+v_max 60 → capacidad 1200 con v_libre 60 y v/c 1.77 — «vía rápida y saturada»,
+el régimen antes inexpresable.
+
+## 3. Tabla parámetro → efecto medido → veredicto
+
+Rango barrido con el resto en default (10.000 hab salvo indicación). «Δ» es el
+cambio del share del modo correspondiente en puntos porcentuales.
+
+### Ciudad y raíz
+
+| Parámetro | Barrido | Efecto | Veredicto |
+|---|---|---|---|
+| `largo_ciudad_km` | 10→40 | auto 10.5→12.9%, metro 36→60% | sensible |
+| `n_celdas` | 51→1001 | auto 12.20→12.13% | neutro (D-28 funciona) |
+| `teletrabajo_factor` | 0→3 | tele 0→40.6%, auto 16.7→3.8% | muy sensible |
+| `pendiente_porcentaje` | ±8 | bici 18.3→16.2%; casi simétrico en ± (se aplica +p izquierda, −p derecha) | sensible con matiz |
+| `densidad_hab_km` | 500→20.000 | v/c 0.27→12 | sensible **pero muerto en la app** (S-05) |
+| `share_estratos` | extremos | auto 3.8↔41.2% | ídem |
+| `max_iter` | 1→60 | converge en 8-12 | no binding |
+| `tolerance` | 0→5 | corta 20→4 iters | el corte real |
+| `assignment` | mc/expected/todo_o_nada | 19.93 vs 20.16 vs **31.08**% auto | leve entre mc y expected; **fuerte** con todo-o-nada |
+| `seed` | — | nada con `expected` + ruta suelo (determinista) | condicional |
+
+### Oferta auto (post S-03, evaluada a 1800 hab/km)
+
+| Parámetro | Barrido | Efecto | Veredicto |
+|---|---|---|---|
+| `v_max_kmh` | 15→80 | 3.2 pp (a 500); mayor a 1800 | sensible, con doble efecto (S-04) |
+| `num_pistas` | 1→6 | 2.05 pp (a 1800; 0.20 a 500) | **rehabilitado por S-03** |
+| `alpha_bpr` | 0→5 | leve; escala con v/c | vivo a 1800 |
+| `beta_bpr` | 1→8 | con v/c<1 el signo se invierte (β↑ ⇒ demora↓) | cuidado pedagógico |
+| `ancho_pista_m` | 2.5→5 | escalón 0.75/0.9/1.0 topado en 3.5 | muerto hacia arriba |
+| `largo_vehiculo_m`, `gap_m` | — | solo vía capacidad, efecto ínfimo a 500 | casi muerto a 500 |
+
+### Oferta bici — el modo congestionado
+
+| Parámetro | Barrido | Efecto | Veredicto |
+|---|---|---|---|
+| `capacidad_pista` | 100→5000 | bici **7.6→24.0%** (16.4 pp) | la palanca de oferta más fuerte del simulador |
+| `v_media_kmh` | 8→25 | bici 10.6→25.7% | muy sensible |
+| `alpha_bpr` (bici) | 0→10 | bici 24.2→9.2% | muy sensible (v/c>1: sí muerde) |
+| `beta_bpr` (bici) | — | vivo | sensible |
+
+Contexto: con defaults la ciclovía (cap. 800) tiene 2.8× menos capacidad que la
+calzada (2214) con flujos comparables. El techo de caminata (R-7/D-21) la satura
+en 2.92× el flujo libre — capacidad blanda, plana.
+
+### Oferta metro
+
+| Parámetro | Barrido | Efecto | Veredicto |
+|---|---|---|---|
+| `num_estaciones` | 2→40 | metro **38.7→50.7%** | la palanca dominante (vía t_acceso) |
+| `v_tren_kmh` | 15→70 | metro 45.4→49.6% | sensible |
+| `capacidad_tren` | 100→3000 | metro 49.0→48.2%, f 23.4→6.0 | **signo invertido** (S-07) |
+| `frec_min` / `frec_max` | — | **CORREGIDO en it. 3** (ver §4.1): a la escala actual `frec_max` muerde en el default y en 5 de 7 políticas | `frec_max` vivo · `frec_min` inerte salvo Pro-Auto |
+| `anden_alpha` / `anden_beta` | 0→5 / 1→10 | ρ = 0.256 → factor 1.002 (+0.5 s): nada | inertes (D-16 abierto) |
+| `v_caminata_kmh` (acceso) | — | vivo | sensible |
+| `tasa_carga` | 6→100 | resultado byte a byte idéntico | **no implementado** |
+
+### Economía (las palancas reales del auto)
+
+| Parámetro | Barrido | Efecto | Veredicto |
+|---|---|---|---|
+| `costo_parking` | 0→30.000 | auto **22.9→2.7%** | la palanca #1 del simulador |
+| `costo_combustible_km` | 120→600 | auto 11.8→9.6% | sensible |
+| `costo_tarifa_metro` | 0→3000 | metro 52.5→39.1% | sensible |
+| `v_caminata` (global) | 4.8→8 | caminata 7.1→12.5% | sensible (también techo de bici) |
+
+## 4. Parámetros muertos e inertes (S-05)
+
+Detalle en el Anexo C de `docs/libro/diagrama-flujo.html`. Resumen:
+
+| Parámetro | Por qué está muerto | Recomendación |
+|---|---|---|
+| `tasa_carga` | `train.py`: `_ = tasa_carga` (no implementado) | implementar o quitar del schema |
+| `factor_emision_auto` | huérfano: la emisión usa COPERT `2467.4·v^-0.699` | quitar (con migración .ttrq) |
+| `prob_jornada_flexible`, `prob_part_time`, `jornada.*` | nunca leídos (D-07) | quitar o documentar como futuro |
+| ~~`frec_min`/`frec_max`~~ | **ya no aplica** — ver §4.1 | — |
+| `anden_alpha`/`anden_beta` | factor 1.002 con defaults | recalibrar con autores (B1/B2) |
+| `v_auto`/`v_metro`/`v_bici` globales | solo semilla de iteración 0 | documentar en la UI o quitar sliders futuros |
+| `densidad_hab_km`, `share_estratos` | la ruta `desde_suelo` puebla desde `H_por_estrato` | señalizar en la UI que la escala vive en Uso de Suelo |
+| `densidad_max/min`, `densidad_estrato` (suelo) | vestigiales post `S/Δx` | quitar con migración |
+
+### 4.1 Corrección: `frec_max` dejó de ser inerte (medido en it. 3)
+
+La versión original de este documento afirmaba que `frec_min`/`frec_max` eran
+inertes y que los presets «Máx Metro» (50) y «TP Gratis» (35) tocaban un knob
+muerto. **Esa medición se hizo a 500 hab/km y quedó obsoleta cuando S-03 subió
+la escala a 1800**: la carga del metro creció ~3.6× y el régimen de frecuencia
+cambió por completo. Re-medido con los defaults actuales:
+
+| Preset | f_op | frec_max | Régimen |
+|---|---|---|---|
+| *(default)* | 30.00 | 30 | **TECHO** |
+| TP Gratis | 33.64 | 35 | interior |
+| Tarificación Vial | 20.00 | 20 | **TECHO** |
+| Pro-Auto | 6.00 | 6 | **PISO** |
+| Pro-Bici | 20.00 | 20 | **TECHO** |
+| Vehículos híbridos | 20.00 | 20 | **TECHO** |
+| Máx Metro | 34.58 | 50 | interior |
+| Ciclorrecreovía | 20.00 | 20 | **TECHO** |
+
+`frec_max` muerde en el default y en 5 de 7 políticas; los dos casos
+«interior» (TP Gratis y Máx Metro) tampoco son inertes, porque **liberan** el
+tope de 30 que el default impone. `frec_min` sí queda inerte salvo en Pro-Auto,
+donde el intervalo degenera (`frec_min = frec_max = 6`).
+
+El arreglo no fue una recalibración sino un efecto lateral de S-03: la
+insensibilidad venía de la escala, no del parámetro. Es un recordatorio de que
+**toda medición de sensibilidad está atada a la escala en que se hizo** — si se
+vuelve a cambiar la población default, este cuadro hay que rehacerlo.
+
+Consecuencia nueva que esto destapa: cuatro políticas bajan `frec_max` a 20,
+**por debajo del 30 del default**, así que degradan el metro como efecto
+colateral no declarado (ver S-08).
+
+## 4.2 S-08 — Cuatro políticas capaban el metro sin declararlo [CORREGIDO it. 3]
+
+`Tarificación Vial`, `Pro-Bici`, `Vehículos híbridos` y `Ciclorrecreovía`
+declaraban `frec_max = 20`, que era el default **antiguo**: D-18 recalibró el
+rango a [6, 30] y estas políticas nunca se actualizaron. Como los presets fijan
+valores absolutos (no diffs), ese 20 quedó capando el metro por debajo del
+default en políticas que no son sobre el metro. Medido:
+
+| Política | frec_max | f_op | espera máx | %metro |
+|---|---|---|---|---|
+| Tarificación Vial | 20 → 30 | 20 → 30 | **6.98 → 1.78 min** | 58.76 → 59.53 |
+| Pro-Bici | 20 → 30 | 20 → 24.5 | 3.10 → 1.51 | 43.69 → 43.86 |
+| Vehículos híbridos | 20 → 30 | 20 → 30 | 5.73 → 1.61 | 54.80 → 55.32 |
+| Ciclorrecreovía | 20 → 30 | 20 → 24.3 | 3.00 → 1.51 | 43.27 → 43.50 |
+
+El reparto modal apenas se mueve (+0.2 a +0.8 pp) pero la **espera máxima se
+cuadruplica**: la degradación era real aunque poco visible en el KPI de portada.
+Las cuatro pasan a declarar 30 = default. Siguen deliberados `Pro-Auto` (6,
+degrada el TP a propósito), `TP Gratis` (35) y `Máx Metro` (50).
+
+## 4.3 S-09 — La BPR de andén dejó de ser inerte [ABIERTO, para los autores]
+
+Misma caducidad que §4.1: S-05 declaró `anden_alpha`/`anden_beta` inertes con
+`ρ = 0.256 → factor 1.002`, medido a 500 hab/km. A la escala actual **ρ supera
+1** y el parámetro mueve fuertemente la espera:
+
+| Escenario | ρ | α = 0 | α = 0.5 (default) | α = 2 | α = 5 |
+|---|---|---|---|---|---|
+| Default (frec_max 30) | 1.05 | 1.03 min | 1.62 | 3.34 | 6.66 |
+| Frecuencia topada (20) | 1.57 | 1.50 min | 5.78 | 17.01 | **34.60** |
+
+Con la frecuencia topada, α mueve la espera **23×** y el reparto del metro 4 pp.
+Esto **cambia la prioridad de la conversación pendiente con los autores**: D-16
+(la calibración α=0.5, β=4 frente al α=10, β=10 del Overleaf) y B1/B2 dejaron de
+ser una discrepancia decorativa — hoy la elección de esos dos números tiene
+consecuencias materiales en los resultados. Recomendación: llevar este cuadro a
+la reunión.
+
+## 4.4 S-10 — El default de ciclovía deja el modo sobre capacidad [ABIERTO]
+
+Con 800 bici/h la ciclovía opera **sobre capacidad en las tres ciudades**, y el
+tiempo de bici queda pegado a su techo físico (el tiempo de caminar el tramo,
+R-7/D-21), donde `alpha_bpr`/`beta_bpr` ya no significan nada:
+
+| cap_bici | Compacta v/c · %bici | Base v/c · %bici | Dispersa v/c · %bici |
+|---|---|---|---|
+| **800 (default)** | **4.03** · 17.9 | **2.55** · 11.3 | **1.43** · 6.4 |
+| 1500 | 2.23 · 18.6 | 1.84 · 15.3 | 1.00 · 8.3 |
+| 2500 | 1.41 · 19.6 | 1.39 · 19.4 | 0.70 · 9.7 |
+| 4000 | 0.90 · 20.1 | 1.02 · 22.8 | 0.50 · 11.1 |
+
+El default **duplica** el reparto de la bici respecto de una ciclovía holgada
+(11.3% vs 22.8% en Base): es una decisión de calibración con efecto de primer
+orden, hoy no declarada. Y explica por qué S-05 encontró `capacidad_pista` como
+«la palanca de oferta más fuerte»: no es fineza del modelo, es que el modo parte
+saturado.
+
+**No se cambia aquí**, por dos razones: (1) subir el default a ~2500–4000 para
+que el v/c caiga a ~1 sería ajustar un parámetro para compensar la
+normalización que falta (S-06: la demanda está en viajes/período y la capacidad
+en unidades/hora, sin `factor_hora_punta` ni ocupación), o sea tapar la causa
+con el síntoma; (2) mueve resultados de portada y es calibración académica.
+Recomendación: resolver S-06 primero con los autores y recalibrar las tres
+capacidades (auto, bici, tren) de forma consistente en la misma pasada.
+
+Ninguno se elimina en esta iteración (tocan schema y migraciones de escenarios
+guardados); la decisión de limpieza es de la iteración 3.
+
+## 5. Vacío de normalización de unidades (S-06)
+
+La demanda es «hogares que viajan en el período» y la capacidad es veh/**hora**.
+No existen `factor_hora_punta` (~0.10–0.25) ni `ocupacion_auto` (~1.2–1.5
+pax/veh) en el core: la comparación demanda/capacidad asume implícitamente
+1 viaje = 1 veh/h. Los dos factores se cancelarían parcialmente, pero
+explicitarlos haría auditable la escala (y daría dos palancas pedagógicas
+nuevas). Las emisiones (`total_kg` «por hora») heredan la misma ambigüedad.
+Propuesta para iteración 3, coordinada con los autores del apunte.
+
+## 6. Metro: signo invertido y hacinamiento ausente (S-07)
+
+`capacidad_tren` no es una restricción de confort: es el **divisor de la
+frecuencia** (`f = carga/K`). Trenes más grandes ⇒ menos frecuencia ⇒ más espera
+⇒ menos metro (medido: K 100→1000 baja el share 0.9 pp). No existe penalización
+por hacinamiento en el vehículo en todo el core; el único castigo por carga es la
+BPR de andén, hoy inerte (D-16). Un usuario que sube «capacidad del tren»
+esperando mejorar el metro obtiene lo contrario. Propuesta it. 3: añadir un
+término de hacinamiento en vehículo (p. ej. multiplicador BPR sobre t_viaje con
+ρ = carga/(f·K)) y revisar la calibración del andén con los autores.
+
+## 7. Recomendaciones priorizadas para iteración 3
+
+- ~~Desacoplar capacidad de velocidad (S-04)~~ · ~~exponer presets de ciudad
+  (F-01)~~ — **hechos en it. 3**.
+- **P0 — para la reunión con los autores**: calibración de la BPR de andén
+  (S-09/D-16/B1-B2), que dejó de ser decorativa; hacinamiento en vehículo y el
+  signo invertido de `capacidad_tren` (S-07).
+- **P0 — normalización**: `factor_hora_punta` + ocupación explícitos (S-06), y
+  recalibrar en la misma pasada las tres capacidades (auto, bici, tren) — sin
+  eso, el default de ciclovía (S-10) seguirá siendo un parche.
+- **P1** — Señalizar en la UI cuándo `frec_min`/`frec_max` están activos (hoy el
+  usuario no distingue «subí el tope y no pasó nada» de «el tope no estaba
+  mordiendo»); ídem densidad cuando la escala la manda `H_por_estrato`.
+- **P2** — Limpieza de muertos con migración de schema (S-05); revisar el rango
+  del slider β BPR auto (con v/c<1 su efecto pedagógico es contraintuitivo).
+
+### Advertencia metodológica
+
+Tres de los hallazgos de este documento (§4.1, §4.3) caducaron al cambiar la
+escala de población en S-03, y uno de ellos (`frec_max`) se «arregló» solo. Toda
+medición de sensibilidad está atada a la escala en que se hizo: **si vuelve a
+cambiar la población default, hay que rehacer los cuadros de §3, §4.1 y §4.3**.
+El script `scripts/sensibilidad.py` cubre solo el barrido del auto; el resto
+está en los scripts de exploración citados en cada sección.
+
+## Anexo — Reproducción
+
+```bash
+cd packages/titirilquen_core
+uv run python scripts/sensibilidad.py
+```
+
+Salida esperada: la tabla de §2/S-03 y `OK: sensibilidad conforme a lo esperado`
+(exit 0). Si el core cambia y los umbrales dejan de cumplirse, el script sale 1.

@@ -18,7 +18,13 @@ const STORAGE_KEY = "titirilquen.theme";
 export function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "system";
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (raw === "paper" || raw === "dark" || raw === "journal" || raw === "system") return raw;
+  if (
+    raw === "paper" ||
+    raw === "dark" ||
+    raw === "journal" ||
+    raw === "system"
+  )
+    return raw;
   // Compat con valores antiguos
   if (raw === "light") return "paper";
   return "system";
@@ -32,18 +38,23 @@ export function storeTheme(theme: Theme): void {
 export function resolveTheme(theme: Theme): ResolvedTheme {
   if (theme !== "system") return theme;
   if (typeof window === "undefined") return "paper";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "paper";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "paper";
 }
 
 export function applyTheme(theme: Theme): ResolvedTheme {
   const resolved = resolveTheme(theme);
   document.documentElement.dataset.theme = resolved;
   // Mantener color-scheme para navegadores que lo usan
-  document.documentElement.style.colorScheme = resolved === "dark" ? "dark" : "light";
+  document.documentElement.style.colorScheme =
+    resolved === "dark" ? "dark" : "light";
   return resolved;
 }
 
-export function watchSystemTheme(onChange: (isDark: boolean) => void): () => void {
+export function watchSystemTheme(
+  onChange: (isDark: boolean) => void,
+): () => void {
   if (typeof window === "undefined") return () => {};
   const mq = window.matchMedia("(prefers-color-scheme: dark)");
   const handler = (e: MediaQueryListEvent) => onChange(e.matches);

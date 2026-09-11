@@ -1,23 +1,26 @@
-"""Entry point FastAPI.
+"""Entry point FastAPI — capa delgada sobre `titirilquen_core`.
 
-Dos endpoints:
-  - POST /simulate           corrida completa
-  - POST /simulate/stream    SSE, una iteración por evento (para UI viva)
+  - GET  /health           chequeo de vida (Fly.io)
+  - POST /simulate         equilibrio de transporte, corrida completa
+  - POST /land-use/solve   equilibrio de uso de suelo, sin transporte
+  - POST /coupled/solve    loop acoplado suelo↔transporte, corrida completa
+  - POST /coupled/stream   ídem, SSE con una iteración exterior por evento
 
-Ambos reciben `SimulationConfig` de `titirilquen_core`.
+La API es OPCIONAL: el frontend corre el mismo núcleo en el navegador vía
+Pyodide y ése es su motor por defecto. Estos endpoints existen para el modo
+`engine="api"`.
 """
 
 from __future__ import annotations
 
 import json
 from collections.abc import AsyncGenerator
+from typing import Literal
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-
 from pydantic import BaseModel, Field
-
 from titirilquen_core import (
     LandUseCity,
     LandUseConfig,
@@ -25,14 +28,12 @@ from titirilquen_core import (
     run_coupled,
     run_msa,
 )
+from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.coupled import iter_coupled
-from titirilquen_core.equilibrium.msa import iter_msa
-from titirilquen_core.presets import CITY_PRESETS, DEFAULT_STRATA, POLICY_PRESETS
-
-from api.serialization import (
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.serializacion import (
     coupled_result_to_dict,
-    iteration_to_dict,
-    land_use_result_to_dict,
+    land_use_city_to_dict,
     outer_iteration_to_dict,
     trace_to_dict,
 )
@@ -57,30 +58,36 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.get("/presets")
-def presets() -> dict[str, object]:
-    return {
-        "city": CITY_PRESETS,
-        "policy": POLICY_PRESETS,
-        "strata_default": DEFAULT_STRATA,
-    }
+# Acá vivían `GET /presets` y `POST /simulate/stream`. Se retiraron por no
+# tener clientes: el frontend nunca llamó a `/presets` (usa su propio espejo de
+# los presets) y el cliente TS del stream de transporte no se importaba en
+# ninguna página. El streaming en vivo del MSA lo hace el worker de Pyodide,
+# que es el motor por defecto; con `engine="api"` la comparación de escenarios
+# usa `/simulate`, que es bloqueante. Si alguna vez hace falta streaming por
+# HTTP, el patrón sigue vivo en `/coupled/stream`.
+
+
+class SimulateRequest(BaseModel):
+    """Request del equilibrio de transporte.
+
+    Hasta sep-2026 recibía sólo `SimulationConfig` y poblaba con densidad plana
+    (C-02: con `engine=api` el Sandbox corría OTRA población que con el motor
+    local, 9,15 pp de metro de diferencia). La población viene ahora siempre
+    del uso de suelo, en los dos motores.
+    """
+
+    sim: SimulationConfig
+    land_use: LandUseConfig
+    localizacion: Literal["equilibrio", "original"] = Field(
+        default="equilibrio",
+        description="«equilibrio» resuelve la subasta; «original» usa la mezcla uniforme π_h",
+    )
 
 
 @app.post("/simulate")
-def simulate(config: SimulationConfig) -> dict[str, object]:
-    trace = run_msa(config)
-    return trace_to_dict(trace)
-
-
-@app.post("/simulate/stream")
-async def simulate_stream(config: SimulationConfig) -> StreamingResponse:
-    async def event_gen() -> AsyncGenerator[str, None]:
-        for snap in iter_msa(config):
-            payload = iteration_to_dict(snap)
-            yield f"data: {json.dumps(payload)}\n\n"
-        yield "event: done\ndata: {}\n\n"
-
-    return StreamingResponse(event_gen(), media_type="text/event-stream")
+def simulate(req: SimulateRequest) -> dict[str, object]:
+    trace = run_msa(req.sim, req.land_use, req.localizacion)
+    return trace_to_dict(trace, req.sim)
 
 
 # ---------------------------------------------------------------------------
@@ -93,21 +100,33 @@ class LandUseOnlyRequest(BaseModel):
 
     L: int = Field(default=201, ge=11)
     CBD: int = Field(default=100, ge=0)
+    largo_km: float = Field(default=20.0, gt=0, description="Largo físico de la ciudad")
     land_use: LandUseConfig
+    demand: DemandConfig = Field(
+        description=(
+            "Demanda de transporte (betas por estrato): la accesibilidad de la puja "
+            "es su logsum a flujo libre, mensualizado (D-34)"
+        )
+    )
+    supply: SupplyConfig = Field(
+        default_factory=SupplyConfig,
+        description="Oferta de transporte: la accesibilidad es la de la red VACÍA configurada (D-42)",
+    )
+    modos_habilitados: tuple[str, ...] | None = None
 
 
 @app.post("/land-use/solve")
 def land_use_solve(req: LandUseOnlyRequest) -> dict[str, object]:
-    """Resuelve el equilibrio de uso de suelo con T = distancia al CBD."""
-    city = LandUseCity.build(L=req.L, CBD=req.CBD, cfg=req.land_use)
-    assert city.result is not None
-    return {
-        "L": city.L,
-        "CBD": city.cbd_index,
-        "S": city.S.tolist(),
-        "parcelas": city.parcelas,
-        "result": land_use_result_to_dict(city.result),
-    }
+    """Resuelve el uso de suelo con T = −VIAJES_MES·logsum de transporte a flujo libre."""
+    dx = req.largo_km / req.L
+    city = LandUseCity.build(
+        L=req.L,
+        CBD=req.CBD,
+        cfg=req.land_use,
+        ancho_celda_km=dx,
+        T=T_flujo_libre(req.demand, req.L, req.CBD, dx, req.modos_habilitados, supply=req.supply),
+    )
+    return land_use_city_to_dict(city)
 
 
 class CoupledRequest(BaseModel):
@@ -116,7 +135,9 @@ class CoupledRequest(BaseModel):
     sim: SimulationConfig
     land_use: LandUseConfig
     outer_max_iter: int = Field(default=3, ge=1, le=10)
-    outer_tol: float = Field(default=1.0, ge=0, description="minutos")
+    outer_tol: float = Field(
+        default=1.0, ge=0, description="utiles de transporte por mes (‖ΔT‖∞, D-34)"
+    )
 
 
 @app.post("/coupled/solve")

@@ -1,0 +1,94 @@
+---
+slug: land-use
+order: 7
+title: Uso de suelo
+tagline: Bid-rent, subasta logit y el artefacto de lambda
+---
+
+# 6. Uso de suelo
+
+El módulo de suelo (página **Uso de suelo**) resuelve dónde vive cada hogar mediante una **subasta** tipo Alonso–Muth–Mills: cada estrato puja por las parcelas y el que más valora cada ubicación la gana, empujando al resto hacia la periferia.
+
+## Utilidad y disposición a pagar
+
+La utilidad de un hogar del estrato $h$ en la parcela $i$, pagando renta $p_i$, es **lineal en el ingreso**:
+
+$$
+u_h = \lambda_h\,(y_h - p_i) + f_h(i)
+$$
+
+<OverleafRef sec="Suelo · Función de puje" />
+
+donde $\lambda_h$ es la utilidad marginal del ingreso, $y_h$ el ingreso mensual del estrato y $f_h(i)$ la **función de amenidad**, en unidades físicas:
+
+$$
+f_h(i) = -\alpha_h\, T(i) - \rho_h \cdot \frac{S_i}{\Delta x}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-2" />
+
+con $T(i)$ el tiempo de viaje al CBD en **minutos** (a flujo libre en el modo aislado; del equilibrio de transporte en el acoplado), $\alpha_h$ en utiles/min y $\rho_h$ la penalización a la **densidad** (hogares/km). Las unidades físicas hacen que el equilibrio sea invariante a la resolución de la grilla — refinar la discretización no cambia las conclusiones.
+
+Despejando el precio se obtiene la **disposición a pagar** (*willingness to pay*) al nivel de utilidad $u_h$:
+
+$$
+w_h(u, i) = y_h - \frac{u_h - f_h(i)}{\lambda_h}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-3" />
+
+## La subasta logit
+
+Con un término idiosincrático Gumbel en la utilidad, la probabilidad de que un hogar del estrato $h$ gane la subasta por la parcela $i$ es:
+
+$$
+Q_{hi} = \frac{H_h\, e^{\beta\, w_{hi}}}{\sum_{g} H_g\, e^{\beta\, w_{gi}}}
+$$
+
+<OverleafRef sec="Suelo · Asignación probabilística" />
+
+La ponderación por $H_h$ (número de postores de cada tipo) garantiza la **conservación por estrato** en el equilibrio: $\sum_i S_i\, Q_{hi} = H_h$.
+
+<OverleafRef sec="Suelo · Asignación probabilística" tag="S-4" />
+
+El equilibrio se obtiene como punto fijo sobre las utilidades $\bar{u}_h$ (cada estrato coloca exactamente sus $H_h$ hogares), y los **precios implícitos** del suelo salen de la identidad:
+
+$$
+p_i^{*} = \frac{1}{\beta} \ln\left( \sum_g H_g\, e^{\beta\, w_{gi}} \right)
+$$
+
+<OverleafRef sec="Suelo · Interpretación del punto fijo" />
+
+definidos salvo una constante: solo el **gradiente** espacial es informativo.
+
+## Una limitación: $\lambda$ no está identificado
+
+El modelo de arriba tiene un problema cuando $\lambda_h$ es heterogéneo, y conviene entenderlo porque el simulador **no lo corrige**.
+
+La puja divide la atractividad por $\lambda_h$, y $f$ es lineal en $\alpha_h$ y $\rho_h$. Entonces:
+
+$$
+y_h + \frac{f_h(i)}{\lambda_h} \;\equiv\; y_h + f\!\left(i;\; \frac{\alpha_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
+$$
+
+Es una **identidad**, no una aproximación: mover $\lambda_h$ es exactamente lo mismo que re-escalar las preferencias de ese estrato por $1/\lambda_h$. Y como $\beta$ es uniforme, de paso re-escala su ruido de elección a $1/(\beta\lambda_h)$. Las tres cosas se mueven juntas y no hay forma de separarlas: $\lambda$ **no es un parámetro económico independiente** en este modelo, es una re-parametrización redundante de $\alpha$ y $\rho$.
+
+<Callout type="warn">
+**Esto vale mientras los $\lambda_h$ sean iguales entre sí.** En cuanto difieren, la identidad de arriba deja de valer y el núcleo cambia solo de modelo: usa la **subasta heteroscedástica** (HEV), que es la formulación correcta cuando la varianza de las pujas difiere entre postores (Train, §4.5). Ahí $\lambda$ mueve además la escala del ruido, que la re-escala de preferencias no toca, y por eso queda identificado.
+
+No lo resuelve del todo: $\lambda$ sigue entrando también por $f_h/\lambda_h$, así que mueve preferencias y dispersión a la vez. Para que actúe puramente por sensibilidad al precio haría falta un modelo de **elección** y no de subasta — en una subasta todos los postores de una parcela pagan lo mismo, así que el precio se cancela.
+</Callout>
+
+<Callout type="info">
+Probá variar $\lambda$ del estrato alto y mirá la asignación. Se mueve — y eso es la limitación, no un resultado. Bajarlo a 0.5 **manda al estrato alto a la periferia** (8.5 km del CBD), lo contrario de lo que diría cualquier historia de ingreso: al crecer $\rho/\lambda$ la penalización de densidad castiga justo las celdas centrales, que son las densas. El contraste que lo confirma: el ingreso $y$ —que sí es un parámetro económico— **no reasigna a nadie**, porque entra como constante y se absorbe en $\bar{u}$.
+</Callout>
+
+## La forma de la ciudad
+
+La oferta $S(i)$ se genera **determinista** (discretización por mayor residuo, $\sum_i S_i = \sum_h H_h$ exacto, CBD vacío) con seis formas parametrizables: normal, uniforme, exponencial, meseta, bimodal y valle, con dispersión $\sigma$ como fracción de la semi-ciudad.
+
+La **densidad por celda** es una consecuencia directa de la oferta: $\text{dens}(i) = S_i/\Delta x$, así que sigue la forma elegida (no es un gradiente impuesto). Las figuras de población y el mapa de calor de estratos comparten esa envolvente; el bid-rent solo reordena *quién* vive dónde, sin cambiar *cuántos* por celda.
+
+<OverleafRef sec="Suelo (oferta S)" tag="S-1" />
+
+<NextStep to="experimenting">Experimentar →</NextStep>

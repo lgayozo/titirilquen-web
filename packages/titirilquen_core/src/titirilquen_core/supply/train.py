@@ -12,13 +12,20 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
+
 @dataclass(frozen=True)
 class TrainSupplyResult:
     t_acceso_min: NDArray[np.float64]
     t_espera_min: NDArray[np.float64]
     t_viaje_min: NDArray[np.float64]
-    t_total_min: NDArray[np.float64]
     frecuencia_operativa: float
+    #: Frecuencia ANTES del recorte: `carga_maxima / capacidad_tren`. Junto con
+    #: `frecuencia_operativa` dice si `frec_min`/`frec_max` estan mordiendo y
+    #: cuanto falta para que dejen de hacerlo. Sin esto la UI no puede
+    #: distinguir «subi el tope y no paso nada» de «el tope no estaba activo»
+    #: (AT-08/AT-09): cuando la frecuencia esta topada el efecto Mohring esta
+    #: agotado, `frec_min` es irrelevante y la BPR de anden si muerde.
+    frecuencia_teorica: float
     carga_por_tramo: NDArray[np.float64]
     estaciones_km: NDArray[np.float64]
 
@@ -32,9 +39,9 @@ def oferta_tren(
     capacidad_tren: int,
     num_estaciones: int,
     v_caminata_kmh: float,
-    tasa_carga: float,
     frec_min: float,
     frec_max: float,
+    tiempo_detencion_min: float = 0.5,
     anden_alpha: float = 0.15,
     anden_beta: float = 4.0,
 ) -> TrainSupplyResult:
@@ -71,10 +78,7 @@ def oferta_tren(
 
     idx_centro_est = int(np.argmin(np.abs(estaciones - x_centro_km)))
 
-    if num_s >= 2:
-        carga_por_tramo = np.zeros(num_s - 1)
-    else:
-        carga_por_tramo = np.zeros(0)
+    carga_por_tramo = np.zeros(num_s - 1) if num_s >= 2 else np.zeros(0)
     carga_al_salir_estacion = np.zeros(num_s)
 
     acum = 0.0
@@ -112,19 +116,28 @@ def oferta_tren(
 
     t_acceso_min = (dist_acceso / v_caminata_kmh) * 60
     t_espera_min = t_espera_por_estacion[idx_estacion_usuario]
-    t_viaje_min = (np.abs(loc_estacion_acceso - x_centro_km) / v_tren_kmh) * 60
-    t_total = t_acceso_min + t_espera_min + t_viaje_min
-
-    # `tasa_carga` actualmente sin uso en la fórmula original, se preserva como
-    # parámetro reservado para futura inclusión de tiempo de dwell.
-    _ = tasa_carga
-
+    # Tiempo en vehículo = marcha + detenciones. Las paradas que el viajero
+    # sufre son las INTERMEDIAS: no la de subida (ya está adentro) ni la del CBD
+    # (se baja). Sin este término, agregar estaciones acortaba el acceso sin
+    # ningún costo — ver el comentario de `tiempo_detencion_min` en config.py.
+    paradas_intermedias = np.maximum(np.abs(idx_estacion_usuario - idx_centro_est) - 1, 0)
+    t_marcha_min = (np.abs(loc_estacion_acceso - x_centro_km) / v_tren_kmh) * 60
+    t_viaje_min = t_marcha_min + paradas_intermedias * tiempo_detencion_min
+    # Hubo aquí un `t_total = acceso + espera + viaje` que se devolvía y nadie
+    # leía: cada consumidor suma los tres tramos por su cuenta, porque los
+    # necesita separados para descomponer el costo generalizado.
+    #
+    # Y un parámetro `tasa_carga` (pax/s de subida) que solo se asignaba a `_`.
+    # Estaba reservado para un dwell dependiente de los pasajeros que suben —
+    # una deseconomía de escala del metro, que juega EN CONTRA del efecto
+    # Mohring. Es una decisión de modelación, no un refinamiento pendiente: si
+    # se toma, se toma con su ecuación.
     return TrainSupplyResult(
         t_acceso_min=t_acceso_min,
         t_espera_min=t_espera_min,
         t_viaje_min=t_viaje_min,
-        t_total_min=t_total,
         frecuencia_operativa=f_op,
+        frecuencia_teorica=f_teorica,
         carga_por_tramo=carga_por_tramo,
         estaciones_km=estaciones,
     )

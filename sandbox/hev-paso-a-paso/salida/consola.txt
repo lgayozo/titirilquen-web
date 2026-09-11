@@ -1,0 +1,224 @@
+
+  LA SUBASTA HETEROSCEDASTICA EN EL CASO MAS SIMPLE
+  dos estratos, cinco parcelas, una ecuacion, una incognita
+
+==========================================================================
+  PASO 1 · El enunciado
+==========================================================================
+  Dos estratos pujan por cinco parcelas. Nadie elige: la parcela se la
+  lleva quien mas puja, y las pujas llevan ruido.
+
+           parcela  P1  P2  P3  P4  P5
+  ----------------  --  --  --  --  --
+   S_i (viviendas)  10  20  30  20  20
+  T_i (min al CBD)  10  20  30  40  50
+
+  estrato  H_h  y_h  alpha    rho  lambda   theta
+  -------  ---  ---  -----  -----  ------  ------
+     Alto   40    3   0.06   0.02       1  1.0000
+     Bajo   60    1   0.03  0.005       1  1.0000
+
+  Oferta total 100 = demanda total 100. Tiene que ser
+  asi: sumando las condiciones de equilibrio sobre h, y como las columnas
+  de Q suman 1, queda Sum(S) = Sum(H). Si no se cumple, no hay solucion.
+
+  puja w_hi       P1       P2       P3       P4       P5
+  ---------  -------  -------  -------  -------  -------
+       Alto  +2.2000  +1.4000  +0.6000  +0.2000  -0.4000
+       Bajo  +0.6500  +0.3000  -0.0500  -0.3000  -0.6000
+
+  El alto puja mas fuerte cerca del CBD y su puja cae mas rapido con la
+  distancia: el gradiente de Alonso esta en los DATOS, no en la solucion.
+  Pendiente por parcela:  Alto -0.6500   Bajo -0.3125
+
+==========================================================================
+  PASO 2 · Cuantas incognitas hay de verdad
+==========================================================================
+  El problema parece tener dos incognitas, u_Alto y u_Bajo. Tiene una.
+
+  (a) La utilidad esta determinada salvo una constante aditiva. Sumarle 5
+      a las dos no cambia ninguna Q, porque solo entran por diferencias:
+      max |Q(u) - Q(u+5)| = 2.22e-16
+      Por eso el nucleo normaliza con `u_new -= u_new[0]`. Queda 1 grado
+      de libertad: delta = u_Bajo - u_Alto.
+
+  (b) De las dos ecuaciones de equilibrio, solo una es independiente.
+      La suma de los colocados es SIEMPRE la oferta total, valga lo que
+      valga u, asi que la segunda ecuacion no dice nada nuevo:
+  delta  coloca Alto  coloca Bajo            suma
+  -----  -----------  -----------  --------------
+   -4.0     2.625909    97.374091  100.0000000000
+   -1.0    33.802763    66.197237  100.0000000000
+   +0.0    57.198135    42.801865  100.0000000000
+   +1.0    77.899313    22.100687  100.0000000000
+   +4.0    98.568815     1.431185  100.0000000000
+
+      La ultima columna es 100 exacto en todos los casos.
+      Conclusion: UNA ecuacion escalar, UNA incognita.
+
+==========================================================================
+  PASO 3 · La funcion de exceso
+==========================================================================
+  g(delta) = (hogares que coloca el Alto) - H_Alto.  Su raiz es el
+  equilibrio. Se tabula en todo el rango para ver que hay una sola:
+
+  delta  g(delta)
+  -----  --------
+  -6.00  -39.6347
+  -4.50  -38.3873
+  -3.00  -33.2240
+  -1.50  -16.0355
+  +0.00  +17.1981
+  +1.50  +45.1931
+  +3.00  +56.2141
+  +4.50  +59.1264
+  +6.00  +59.8036
+
+  Monotona creciente en todo el rango: True
+  Subir u_Bajo baja la puja del bajo, asi que el alto gana mas. Al ser
+  monotona, la raiz es unica y cualquier metodo que la busque llega a la
+  misma. No hay equilibrios multiples que discutir.
+
+==========================================================================
+  PASO 4 · El algoritmo del nucleo, iteracion por iteracion
+==========================================================================
+  u_h <- u_h + theta_h * ln(colocados_h / H_h)
+
+  it        delta  coloca Alto     exceso       paso
+  --  -----------  -----------  ---------  ---------
+   0  +0.00000000      57.1981  +1.72e+01  -6.95e-01
+   1  -0.69540474      40.6349  +6.35e-01  -2.64e-02
+   2  -0.72179162      40.0244  +2.44e-02  -1.02e-03
+   3  -0.72280868      40.0009  +9.40e-04  -3.92e-05
+   4  -0.72284784      40.0000  +3.62e-05  -1.51e-06
+   5  -0.72284935      40.0000  +1.39e-06  -5.81e-08
+   6  -0.72284941      40.0000  +5.37e-08  -2.24e-09
+   7  -0.72284941      40.0000  +2.07e-09  -8.62e-11
+   8  -0.72284941      40.0000  +7.96e-11           
+
+  Convergio: True en 8 iteraciones.
+  delta* = -0.722849413449   exceso final = +7.96e-11
+
+==========================================================================
+  PASO 5 · Verificacion 1: un algoritmo sin nada en comun
+==========================================================================
+  Biseccion pura sobre g. No usa el gradiente, ni el logaritmo del paso,
+  ni la estructura del modelo: solo que g cambia de signo.
+
+             metodo             delta*  iteraciones
+  -----------------  -----------------  -----------
+  balanceo (nucleo)  -0.72284941344892            8
+          biseccion  -0.72284941345237           53
+
+  Diferencia: 3.45e-12
+  Dos algoritmos independientes, el mismo numero. El punto fijo del
+  balanceo ES la raiz de la ecuacion de equilibrio, no un artefacto suyo.
+
+==========================================================================
+  PASO 6 · Verificacion 2: contra el nucleo de produccion
+==========================================================================
+  delta* demo   = -0.722849413452
+  delta* nucleo = -0.722849413363
+  diferencia    = 8.96e-11
+
+  max |Q_demo - Q_nucleo| = 2.24e-11
+
+  El demo reimplementa la matematica desde cero y no importa nada del
+  nucleo, asi que esto mide que las dos implementaciones coinciden.
+
+==========================================================================
+  PASO 7 · Verificacion 3: la subasta simulada de verdad
+==========================================================================
+  100,000 repeticiones. En cada una, cada uno de los H_h hogares de cada
+  estrato saca su propio ruido Gumbel y puja; gana la parcela el hogar
+  con la puja mas alta. Se cuenta con que frecuencia gana cada estrato.
+
+                           P1       P2       P3       P4       P5
+  ------------------  -------  -------  -------  -------  -------
+  Q cuadratura  Alto   0.6039   0.4929   0.3827   0.3479   0.2833
+  frecuencia MC Alto   0.6055   0.4936   0.3827   0.3488   0.2825
+          diferencia  +0.0016  +0.0006  +0.0001  +0.0009  -0.0008
+
+  Error maximo: 0.0016   (esperado ~1/sqrt(n) = 0.0032)
+
+  Esto verifica ADEMAS el corrimiento theta*ln(H): la simulacion saca
+  las H_h pujas una por una y nunca usa esa formula.
+
+==========================================================================
+  PASO 8 · Los precios y la asignacion de equilibrio
+==========================================================================
+                     P1       P2       P3       P4       P5
+  ------------  -------  -------  -------  -------  -------
+        Q Alto   0.6039   0.4929   0.3827   0.3479   0.2833
+        Q Bajo   0.3961   0.5071   0.6173   0.6521   0.7167
+  hogares Alto     6.04     9.86    11.48     6.96     5.67
+  hogares Bajo     3.96    10.14    18.52    13.04    14.33
+    precio p_i  +6.9705  +6.3735  +5.8267  +5.5220  +5.1275
+
+  Coloca Alto 40.000000 de 40   Bajo 60.000000 de 60
+  Gradiente de precio P1->P5: -1.8430
+  Negativo = el suelo vale mas cerca del CBD, que es Alonso.
+
+==========================================================================
+  PASO 10 · El control de que el HEV no rompio el caso conocido
+==========================================================================
+  Con los theta iguales, el HEV tiene que dar el logit cerrado exacto.
+
+        Q del Alto            P1            P2            P3            P4            P5
+  ----------------  ------------  ------------  ------------  ------------  ------------
+  HEV (cuadratura)  0.6038864996  0.4929218425  0.3826502053  0.3478928131  0.2832667866
+     logit cerrado  0.6038864996  0.4929218425  0.3826502053  0.3478928131  0.2832667866
+        diferencia      +0.0e+00      -1.1e-16      -3.3e-16      -1.7e-16      -1.7e-16
+
+  Error maximo: 3.33e-16
+
+==========================================================================
+  PASO 9 · Por que lambda no significaba nada, y ahora si
+==========================================================================
+  El experimento correcto no es «mover lambda y ver si algo cambia»:
+  bajo la forma cerrada tambien cambia, porque lambda entra por
+  score = y + f/lambda. Lo que hay que mostrar es que bajo la forma
+  cerrada ese efecto es INDISTINGUIBLE de re-escalar alpha y rho.
+
+  (a) Los dos casos tienen la MISMA puja deterministica: max diff = 0.00e+00
+                caso  lambda A/B  alpha Alto  alpha Bajo
+  ------------------  ----------  ----------  ----------
+    A: lambda hetero     0.5 / 2        0.06        0.03
+  B: lambda uniforme       1 / 1        0.12       0.015
+
+      La forma cerrada ve UNICAMENTE el score (se lee en
+      `_solve_fixed_point`: recibe score, H, S y un beta escalar).
+      Entonces para ella A y B son literalmente el mismo modelo, y
+      cualquier lambda se puede canjear por preferencias. Eso es D-08:
+      lambda no esta identificado.
+
+  (b) El HEV, en cambio, ve tambien theta = 1/(beta*lambda):
+         caso        theta A/B     delta*  km medios Alto   grad p
+  -----------  ---------------  ---------  --------------  -------
+      A (HEV)  2.0000 / 0.5000  -4.421998          2.6019  -2.7650
+  B (cerrado)  1.0000 / 1.0000  +2.096193          2.3986  -2.8947
+
+      max |Q_A - Q_B| = 0.1057
+      Mismo score, distinta asignacion. Esa diferencia es enteramente
+      atribuible a lambda, porque es lo unico que quedo distinto entre
+      los dos casos. RECIEN AHI lambda significa algo.
+
+      (Los delta* no son comparables entre las dos filas: u esta medida
+      en las unidades de theta, que es justo lo que cambia. Lo comparable
+      es la asignacion, que es observable.)
+
+  (c) Un barrido, para ver la magnitud del efecto:
+  lambda A/B   modelo     delta*  km medios Alto   grad p
+  ----------  -------  ---------  --------------  -------
+       1 / 1  cerrado  -0.722849          2.9088  -1.8430
+  0.8 / 1.25      HEV  -1.851825          2.7615  -2.0196
+     0.5 / 2      HEV  -4.421998          2.6019  -2.7650
+   0.4 / 2.5      HEV  -5.829870          2.5696  -3.3241
+
+      Ojo con leer esta tabla como «el efecto de lambda»: cada fila
+      cambia el score Y el theta a la vez. Lo unico que aisla lambda es
+      la comparacion A vs B de arriba, donde el score quedo fijo.
+
+
+  Traza guardada en C:\Users\leang\Desktop\proyectos\titirilquen-uchile\titirilquen-web\sandbox\hev-paso-a-paso\salida\traza.json
+

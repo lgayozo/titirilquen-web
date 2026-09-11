@@ -1,69 +1,142 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guía para agentes de código (Claude Code, Codex y equivalentes) que trabajen en
+este repositorio. Es el documento **canónico**: `AGENTS.md` sólo apunta acá.
 
 ## Qué es
 
-Simulador educativo de transporte urbano sobre una **ciudad lineal monocéntrica** (modelos de oferta, demanda y equilibrio). Monorepo con un único núcleo científico en Python que corre en **dos runtimes**: FastAPI (servidor) y Pyodide (navegador). El frontend funciona sin backend gracias a Pyodide.
+Simulador educativo de transporte urbano sobre una **ciudad lineal monocéntrica**
+(modelos de oferta, demanda y equilibrio). Monorepo con un único núcleo
+científico en Python que corre en **dos runtimes**: FastAPI (servidor) y Pyodide
+(navegador). El frontend funciona sin backend gracias a Pyodide.
 
-Idioma del código y la documentación: **español** (comentarios, docs, mensajes de commit). Mantén esa convención.
-
-## Estructura (workspaces)
-
-- `apps/web/` — frontend Vite + React 18 + TypeScript (`@titirilquen/web`)
-- `apps/api/` — wrapper FastAPI opcional (`titirilquen_api`)
-- `packages/titirilquen_core/` — núcleo científico Python (oferta · demanda · equilibrio · uso de suelo · emisiones)
+Idioma del código y la documentación: **español** (comentarios, docs, mensajes de
+commit). Mantén esa convención.
 
 ## Comandos
 
-Gestor de paquetes JS: **npm** (hay `package-lock.json`; el `README` menciona pnpm pero los scripts raíz usan `npm --workspace`). Node ≥ 20, Python ≥ 3.11.
+Gestor de paquetes JS: **npm** (hay `package-lock.json` y los scripts raíz usan
+`npm --workspace`). No uses pnpm ni yarn. Gestor de Python: **uv**, único — no
+uses `pip install` ni crees venvs a mano.
 
-Desde la raíz:
-- `npm run dev` — levanta el frontend (delegado a `@titirilquen/web`)
-- `npm run build` / `npm run typecheck` — sobre todos los workspaces
-- `npm run format` — Prettier
+```bash
+npm run dev                                                  # frontend (Pyodide, sin backend)
+cd packages/titirilquen_core && uv run --extra dev pytest    # ~200 tests del núcleo
+cd apps/web && npm run typecheck && npm run test:e2e:fast    # 58 e2e
+npm run format:check                                         # prettier, desde la raíz
+```
 
-Desde `apps/web/`:
-- `npm run dev` — Vite en `:5173`; proxea `/api` → `http://localhost:8000`
-- `npm run build` — `tsc -b && vite build`
-- `npm run build:core-wheel` — recompila el wheel de `titirilquen_core` en `public/pyodide/` (ver gotcha abajo)
-- `npm run lint` — ESLint · `npm run typecheck` — `tsc --noEmit` · `npm run preview`
+E2E con Playwright, specs en `apps/web/e2e/`: `test:e2e` corre la suite completa,
+`test:e2e:fast` excluye `@slow` y `test:e2e:ui` abre el modo interactivo. El test
+`@slow` (`simulation.spec.ts`) corre el MSA real en Pyodide y necesita red (CDN);
+el resto es determinista y rápido. No hay tests unitarios/de componente del
+frontend: la red que protege la matemática es pytest, y la que protege el
+contrato Python↔TS son los goldens de `contract.spec.ts`.
 
-Python (`packages/titirilquen_core/` y `apps/api/`):
-- Tests: `pytest` (configurado con `testpaths = ["tests"]` en el core)
-- Un solo test: `pytest tests/test_demand.py::test_logit -q`
-- Lint/format: `ruff` · tipos del core: `mypy`
-- El API instala el core como dependencia editable (`[tool.uv.sources]`).
-
-Frontend E2E (Playwright, en `apps/web/`):
-- `npm run test:e2e` — toda la suite (levanta Vite solo) · `npm run test:e2e:fast` — excluye `@slow` · `npm run test:e2e:ui` — modo UI
-- Specs en `apps/web/e2e/`. El test `@slow` (`simulation.spec.ts`) corre el MSA real en Pyodide y necesita red (CDN); el resto es determinista y rápido.
-- No hay tests unitarios/de componente todavía.
+**El `@slow` es el único test que ejerce el runtime del navegador**, que es el
+motor por defecto de la app. El CI lo corre en su propio job (`pyodide`), aparte
+del job `web`, porque depende de un CDN externo y conviene distinguir un fallo de
+red de un fallo de la app. Cuando el motor no arranca, el test lo lee del **store**
+(`stage: "error"`), no de la consola: los errores de un Web Worker no llegan a
+`page.on("console")` —probado— y el store trae además el traceback de micropip.
 
 ## Arquitectura
 
-**Un núcleo Python, dos motores.** `titirilquen_core` es Python puro (numpy · scipy · pydantic). Se reutiliza idéntico en:
+**Un núcleo Python, dos motores.** `titirilquen_core` es Python puro (numpy ·
+scipy · pydantic). Se reutiliza idéntico en:
+
 - **FastAPI** (`apps/api`): instalado en el venv del servidor.
-- **Pyodide** (navegador): el **mismo wheel** se sirve como asset estático desde `apps/web/public/pyodide/titirilquen_core-*.whl` y `micropip` lo instala en un Web Worker (`apps/web/src/workers/pyodide.worker.ts`).
+- **Pyodide** (navegador): el **mismo wheel** se sirve como asset estático desde
+  `apps/web/public/pyodide/titirilquen_core-0.2.0-py3-none-any.whl` y `micropip`
+  lo instala en un Web Worker (`apps/web/src/workers/pyodide.worker.ts`).
 
-**Abstracción de motor.** Los stores no saben qué motor corre detrás. `engine: "api" | "local"` (default `"local"`) elige entre:
-- `src/lib/api.ts` / `api-v2.ts` — REST + SSE contra FastAPI (`/simulate`, `/simulate/stream`, `/land-use/solve`, `/coupled/*`).
-- `src/lib/pyodide-engine.ts` — wrapper sobre el worker, con la **misma firma** (`simulateStream(config, onIteration)`).
+**Una sola puerta al motor.** Ninguna página decide contra qué motor corre:
+`src/lib/api.ts` es el único punto de entrada y encapsula
+`engine: "api" | "local"` (default `"local"`). Expone `simularTransporte`,
+`resolverUsoDeSuelo`, `resolverAcoplado` y `resolverAcopladoStream`. Detrás:
+REST + SSE contra FastAPI (`/simulate`, `/land-use/solve`, `/coupled/*`) o
+`src/lib/pyodide-engine.ts` sobre el worker. No llames al worker directo desde
+una página.
 
-Ambos emiten una iteración a la vez (SSE en el server, `postMessage` en el worker) para mostrar **en vivo** la convergencia del MSA. El flujo: ajuste de parámetros → `SimulationConfig` (Zustand) → `startRun` → `pushIteration(snap)` por iteración → `finishRun(result)`.
+Ambos motores emiten una iteración a la vez (SSE en el server, `postMessage` en
+el worker) para mostrar **en vivo** la convergencia del MSA. El flujo: ajuste de
+parámetros → `SimulationConfig` (Zustand) → `startRun` → `pushIteration(snap)`
+por iteración → `finishRun(result)`.
 
-**Estado serializable.** `SimulationConfig` es Pydantic en Python y tiene un **espejo TS escrito a mano** en `src/lib/types.ts` / `types-v2.ts`; la lógica de utilidad/serialización está duplicada en `src/lib/utility.ts` + `serialization.ts` y en `apps/api/src/api/serialization.py`. Export a archivo `.ttrq.json` y share por `?s=` (base64url), sin DB.
+**El contrato Python→TS es generado, no escrito a mano.**
+`packages/titirilquen_core/tools/genera_contrato.py` emite
+`apps/web/src/lib/gen/*.gen.ts` (tipos, defaults, presets, constantes y la forma
+del trace) desde el schema Pydantic y los `TypedDict` del núcleo. **No edites
+`src/lib/gen/`**: se sobreescribe. `types.ts`, `defaults.ts` y `presets.ts` son
+shims que re-exportan de ahí. Las divergencias **intencionales** entre el default
+del núcleo y el de la web viven declaradas y comentadas en `src/lib/overrides.ts`.
 
-**Frontend.** React Router (`createBrowserRouter` en `src/main.tsx`) con `RootLayout` y páginas: Tutorial (`/`, `/tutorial`, `/tutorial/:slug`), Sandbox, LandUse, Coupled, Compare, About. Estado con Zustand (`src/store/`). Estilos Tailwind 3 + primitivas tipo shadcn (Radix + `class-variance-authority`). Visualizaciones en `src/components/viz/` (Recharts + D3); ecuaciones con KaTeX. Alias `@` → `src/`.
+**La forma JSON es una sola.** `titirilquen_core/serializacion.py` produce los
+diccionarios que consumen tanto FastAPI como el worker; `bienestar.py` calcula
+los agregados de bienestar. Esa lógica ya no está duplicada en TypeScript.
 
-**i18n.** `react-i18next`, default `es`, soportados `["es","en"]`, namespaces `common` y `simulator`, recursos importados estáticamente en `src/i18n/index.ts` (sin fetch). Las ecuaciones LaTeX no se traducen.
+**Lo que sigue siendo espejo.** `src/lib/utility.ts` reimplementa el cálculo de
+utilidad para el inspector didáctico (necesita ser síncrono). Es el único espejo
+que queda, y está pineado con `e2e/fixtures/utility-golden.json`: si divergen, el
+test falla. Lo mismo `citySupply.ts` con su golden de oferta.
 
-**Tutoriales = MDX por idioma.** `src/tutorials/{es,en}/NN-*.mdx`, autodescubiertos con `import.meta.glob` (lazy / code-split) y ordenados por el prefijo `NN-`. Para añadir una sección hay que crear el MDX en **ambos** idiomas y agregar la entrada en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
+**Estado serializable.** Export a archivo `.ttrq.json` (`$schema:
+"titirilquen-scenario/v3"`) y share por `?s=` (base64url), sin DB. No hay
+migraciones: un archivo de un schema anterior falla con un error explícito.
+
+**i18n.** Las ecuaciones LaTeX no se traducen. Ojo al borrar claves: varias se
+construyen por interpolación (`` t(`equilibrium.modo_${m.toLowerCase()}`) ``), así
+que un grep de la clave literal da cero y **miente**.
+
+**Tutoriales = MDX por idioma.** `src/tutorials/{es,en}/NN-*.mdx`, autodescubiertos
+con `import.meta.glob` (lazy / code-split) y ordenados por el prefijo `NN-`. Para
+añadir una sección hay que crear el MDX en **ambos** idiomas y agregar la entrada
+en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
 
 ## Gotchas
 
-- **Tras tocar `titirilquen_core`, recompila el wheel** (`cd apps/web && npm run build:core-wheel`) o el motor Pyodide seguirá ejecutando código viejo. El `dev`/`build` del web no lo regenera solo (en Vercel lo hace el `buildCommand` de `vercel.json`).
-- **El núcleo matemático vive solo en Python.** No reimplementes la matemática en TS; los archivos `src/lib/types*.ts`, `utility.ts` y `serialization.ts` son espejos y deben mantenerse en sync con el core y con `api/serialization.py`.
-- **Para el motor `api` necesitas la API corriendo** en `:8000` (el proxy de Vite mapea `/api`). Con `VITE_API_BASE="disabled"` el frontend es 100% estático (solo Pyodide).
-- Deploy: `apps/web` → Vercel/GitHub Pages, `apps/api` → Fly.io (`/health`). Detalles en `docs/DEPLOY.md`; diseño en `docs/ARCHITECTURE.md`.
-- Licencia **GPL-3.0-or-later** (heredada); ver `NOTICE.md` para la atribución a los autores originales.
+- **Tras tocar `titirilquen_core`, corre `npm run sync:core --workspace @titirilquen/web`.**
+  Recompila el wheel, regenera `src/lib/gen/` y los goldens. Si no lo haces,
+  Pyodide sigue ejecutando código viejo. **Nadie lo hace por ti**: ni el `dev`,
+  ni el `build`, ni Vercel (su `buildCommand` es `npm run build` a secas). El
+  wheel va versionado en el repo justamente por eso. El CI tiene un job
+  (`contrato`) que corre `sync:core` y falla si el diff no está vacío.
+- **Si movés una función, el libro puede quedar mintiendo.** `docs/libro/` es la
+  documentación de autores: un capítulo por módulo con teoría, cotejo contra el
+  código, parámetros, resultados, pruebas, auditorías y discusión (el plan está
+  en `docs/libro/PLAN.md`, el índice y el estado de cada capítulo en
+  `docs/libro/index.html`). Sus punteros «concepto → archivo:línea» los verifica
+  `tools/verifica_mapa.py` sobre TODOS los documentos, dentro de `pytest`
+  (`tests/test_libro.py`). Cuando falle, arreglá el número en el HTML (el
+  mensaje dice dónde quedó el símbolo), no el test. Ningún número del libro se
+  tipea a mano: van en `docs/libro/datos/` y el mismo test lo exige.
+- **La población viene sólo del uso de suelo** (`LandUseConfig.H_por_estrato`
+  sobre la oferta `S`). `CityConfig` son tres números —`n_celdas` impar,
+  `largo_ciudad_km`, `pendiente_porcentaje`—; la densidad media es ΣH/largo y
+  se deriva donde se muestra (D-46). `teletrabajo_factor` vive en
+  `demand.globales`.
+- **La línea base es la red de seguridad de la matemática.** La corrida por
+  defecto de la app da **auto 15,81 · metro 28,32 · bici 24,96 · caminata 11,42**
+  con la localización «original» (mezcla uniforme), y **15,39 · 32,06 · 23,89 ·
+  9,14** con la de equilibrio (seed 42, tol 0,1), pineadas en
+  `tests/test_linea_base.py` — ese archivo manda si estos números y él difieren. Si un cambio las mueve más de 0,05 pp,
+  no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
+  sep-2026 (λ heterogéneo en suelo; transporte homoscedástico; accesibilidad =
+  logsum de transporte, D-34): ver ese test.
+- **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
+  0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`
+  aborte con `already installed` y el motor por defecto deja de arrancar. Ningún
+  test en CPython lo detecta —pytest pasa entero—, pero desde el 2026-08-17 sí
+  lo detecta el job **`pyodide`** del CI, que corre el `@slow` en un navegador
+  real. Localmente: `cd apps/web && npx playwright test --grep @slow`.
+- **El núcleo matemático vive solo en Python.** No reimplementes la matemática en
+  TS. Si necesitas un número nuevo en la UI, calcúlalo en el núcleo y expóntelo
+  por `serializacion.py`.
+- **Para el motor `api` necesitas la API corriendo** en `:8000` (el proxy de Vite
+  mapea `/api`). Con `VITE_API_BASE="disabled"` el frontend es 100% estático
+  (sólo Pyodide). Los dos motores corren la misma población: `/simulate`
+  recibe el uso de suelo desde sep-2026 (C-02, cerrado).
+- Deploy: `apps/web` → Vercel/GitHub Pages, `apps/api` → Fly.io (`/health`).
+  Detalles en `docs/DEPLOY.md`; el mapa del código en `docs/libro/arquitectura.html`.
+- Licencia **GPL-3.0-or-later** (heredada); ver `NOTICE.md` para la atribución a
+  los autores originales.

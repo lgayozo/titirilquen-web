@@ -19,14 +19,21 @@ declare global {
   }
 }
 
-async function seedMaxIter(page: import("@playwright/test").Page, value: number) {
+async function seedMaxIter(
+  page: import("@playwright/test").Page,
+  value: number,
+) {
   await page.evaluate((v) => {
-    window.__stores.simulation.getState().setConfig((c) => ({ ...c, max_iter: v }));
+    window.__stores.simulation
+      .getState()
+      .setConfig((c) => ({ ...c, max_iter: v }));
   }, value);
 }
 
 test.describe("escenarios: exportar y compartir", () => {
-  test("exporta la config como .ttrq.json con el schema correcto", async ({ page }) => {
+  test("exporta la config como .ttrq.json con el schema correcto", async ({
+    page,
+  }) => {
     await page.goto("/sandbox");
     await seedMaxIter(page, 17);
 
@@ -41,11 +48,17 @@ test.describe("escenarios: exportar y compartir", () => {
     for await (const chunk of stream) chunks.push(chunk as Buffer);
     const file = JSON.parse(Buffer.concat(chunks).toString("utf-8"));
 
-    expect(file.$schema).toBe("titirilquen-scenario/v1");
+    expect(file.$schema).toBe("titirilquen-scenario/v4");
     expect(file.config.max_iter).toBe(17);
+    // El escenario incluye también el suelo y las preferencias del acoplado.
+    expect(file.land_use).toBeDefined();
+    expect(file.coupled?.poblacion).toBeGreaterThan(0);
   });
 
-  test("compartir genera un link ?s= que restaura la config", async ({ page, context }) => {
+  test("compartir genera un link ?s= que restaura la config", async ({
+    page,
+    context,
+  }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto("/sandbox");
     await seedMaxIter(page, 19);
@@ -56,7 +69,7 @@ test.describe("escenarios: exportar y compartir", () => {
 
     await page.goto(link);
     const restored = await page.evaluate(
-      () => window.__stores.simulation.getState().config.max_iter
+      () => window.__stores.simulation.getState().config.max_iter,
     );
     expect(restored).toBe(19);
   });

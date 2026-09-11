@@ -40,7 +40,10 @@ function inlineComputedStyles(source: SVGElement): SVGElement {
     }
     if (inline.length > 0) {
       const existing = node.getAttribute("style") ?? "";
-      node.setAttribute("style", `${existing};${inline.join(";")}`.replace(/^;/, ""));
+      node.setAttribute(
+        "style",
+        `${existing};${inline.join(";")}`.replace(/^;/, ""),
+      );
     }
   });
 
@@ -52,18 +55,26 @@ function inlineComputedStyles(source: SVGElement): SVGElement {
   return clone;
 }
 
-function applyPixelDimensions(svg: SVGElement, width: number, height: number): void {
+function applyPixelDimensions(
+  svg: SVGElement,
+  width: number,
+  height: number,
+): void {
   svg.setAttribute("width", String(width));
   svg.setAttribute("height", String(height));
 }
 
 export function serializeSvg(
   source: SVGElement,
-  opts: { width?: number; height?: number } = {}
+  opts: { width?: number; height?: number } = {},
 ): string {
   const clone = inlineComputedStyles(source);
   const bbox = source.getBoundingClientRect();
-  applyPixelDimensions(clone, opts.width ?? bbox.width, opts.height ?? bbox.height);
+  applyPixelDimensions(
+    clone,
+    opts.width ?? bbox.width,
+    opts.height ?? bbox.height,
+  );
   const xml = new XMLSerializer().serializeToString(clone);
   return `<?xml version="1.0" encoding="UTF-8"?>\n${xml}`;
 }
@@ -71,17 +82,20 @@ export function serializeSvg(
 export function downloadSvg(
   source: SVGElement,
   filename: string,
-  opts?: { width?: number; height?: number }
+  opts?: { width?: number; height?: number },
 ): void {
   const xml = serializeSvg(source, opts);
   const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
-  triggerDownload(blob, filename.endsWith(".svg") ? filename : `${filename}.svg`);
+  triggerDownload(
+    blob,
+    filename.endsWith(".svg") ? filename : `${filename}.svg`,
+  );
 }
 
 export async function downloadPng(
   source: SVGElement,
   filename: string,
-  opts: { width?: number; height?: number; scale?: number } = {}
+  opts: { width?: number; height?: number; scale?: number } = {},
 ): Promise<void> {
   const bbox = source.getBoundingClientRect();
   const width = opts.width ?? bbox.width;
@@ -111,7 +125,10 @@ export async function downloadPng(
   await new Promise<void>((resolve) => {
     canvas.toBlob((blob) => {
       if (!blob) return resolve();
-      triggerDownload(blob, filename.endsWith(".png") ? filename : `${filename}.png`);
+      triggerDownload(
+        blob,
+        filename.endsWith(".png") ? filename : `${filename}.png`,
+      );
       resolve();
     }, "image/png");
   });

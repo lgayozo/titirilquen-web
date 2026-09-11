@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — El libro</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Simulador Titirilquén · documentación de autores</div>
+  <h1>El libro</h1>
+  <p class="bajada">
+    Un capítulo por módulo, con la misma plantilla: la teoría y su fuente, el
+    cotejo con el código, el origen de cada parámetro, los resultados, las
+    pruebas, las auditorías y las discusiones.
+  </p>
+  <p class="meta">
+    Iniciado el 2026-09-06 · plan en <a href="PLAN.md">PLAN.md</a> ·
+    <a href="diccionario.html">diccionario y archivo maestro</a> ·
+    punteros verificados en <code>pytest</code>
+  </p>
+</header>
+
+<h2><span class="num">§1</span> Cómo leerlo</h2>
+
+<p>
+  El libro es para <strong>autores</strong>: quien va a tocar el modelo, auditarlo
+  o defender un resultado. Para estudiantes están los tutoriales de la aplicación,
+  que cuentan la misma matemática sin el cotejo ni las discrepancias.
+</p>
+
+<p>
+  Cada capítulo sigue las mismas siete secciones, en este orden:
+</p>
+
+<ol class="secciones">
+  <li><strong>Teoría.</strong> Las ecuaciones con su fuente: Martínez (2018),
+    Train (2009), Boyles et al., Precios Sociales 2026 del SNI, el Overleaf
+    original.</li>
+  <li><strong>Cotejo con el código.</strong> Tabla ecuación ↔ función con
+    <code>archivo:línea</code>, y las diferencias explícitas: qué se simplificó,
+    qué se corrigió, qué se extendió.</li>
+  <li><strong>Parámetros.</strong> Cada número con su origen —<em>estimado</em>,
+    <em>norma</em>, <em>heredado del original</em>, <em>decisión declarada</em>—.
+    Ninguno sin etiqueta.</li>
+  <li><strong>Resultados.</strong> La línea base del módulo y sus figuras, todas
+    generadas por script.</li>
+  <li><strong>Pruebas.</strong> Qué invariante fija cada test del módulo y qué
+    <strong>no</strong> cubre.</li>
+  <li><strong>Auditorías.</strong> Los hallazgos AU/D del módulo con su estado.</li>
+  <li><strong>Discusión.</strong> Decisiones tomadas, alternativas medidas y
+    descartadas, pendientes con nombre.</li>
+</ol>
+
+<h2><span class="num">§2</span> Los capítulos</h2>
+
+<p>
+  El orden sigue las dependencias del código: es el orden en que se puede
+  auditar sin supuestos hacia adelante. La columna <em>material</em> enlaza los
+  documentos que el capítulo va a absorber; hasta que eso ocurra, son la fuente
+  vigente y se leen tal cual, con la advertencia de la <a href="#estado">§4</a>.
+</p>
+
+<div class="envoltorio-tabla">
+<table class="capitulos">
+  <thead>
+    <tr><th class="n">Cap.</th><th>Módulo</th><th>Estado</th><th>Material que absorbe</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="cap">1</td>
+      <td class="titulo"><a href="cap01-ciudad-lineal.html">La ciudad lineal</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">tutorial 02 · D-26 · D-28 → <strong>D-45</strong>, <strong>D-46</strong> (corregidas el 2026-09-10)</td>
+    </tr>
+    <tr>
+      <td class="cap">2</td>
+      <td class="titulo"><a href="cap02-oferta-transporte.html">Oferta de transporte</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">tutorial 03 · D-01 · D-12 · D-15 · D-16 · D-18 · D-21 → <strong>D-47</strong></td>
+    </tr>
+    <tr>
+      <td class="cap">3</td>
+      <td class="titulo"><a href="cap03-demanda-eleccion-modal.html">Demanda y elección modal</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">tutorial 04 · D-01…D-05 · D-33 → <strong>D-48</strong>, <strong>D-49</strong></td>
+    </tr>
+    <tr>
+      <td class="cap">4</td>
+      <td class="titulo"><a href="cap04-equilibrio-transporte.html">Equilibrio de transporte</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">
+        <a href="informe-wardrop.html">informe-wardrop</a> ·
+        <a href="informe-downs-thomson.html">informe-downs-thomson</a> ·
+        D-10 · D-29 · D-39 → <strong>D-50</strong>
+      </td>
+    </tr>
+    <tr>
+      <td class="cap">5</td>
+      <td class="titulo"><a href="cap05-uso-de-suelo.html">Uso de suelo: oferta y subasta</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">
+        <a href="informe-uso-suelo.html">informe-uso-suelo</a> ·
+        <a href="informe-hev.html">informe-hev</a> ·
+        <a href="hev-cuadratura.html">hev-cuadratura</a> ·
+        los tres sandboxes · AU-01…AU-13 · D-08 · D-25 · D-31 · D-32 · D-34 → <strong>D-51</strong>
+      </td>
+    </tr>
+    <tr>
+      <td class="cap">6</td>
+      <td class="titulo"><a href="cap06-accesibilidad-acoplamiento.html">Accesibilidad y acoplamiento</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">
+        D-14 · D-22 · D-23 · D-24 · D-34 · D-40 · D-42 → <strong>D-55</strong>
+      </td>
+    </tr>
+    <tr>
+      <td class="cap">7</td>
+      <td class="titulo"><a href="cap07-bienestar-indicadores.html">Bienestar e indicadores</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">
+        <a href="informe-bienestar.html">informe-bienestar</a> ·
+        D-27 · D-35…D-38 → <strong>D-59</strong>
+      </td>
+    </tr>
+    <tr>
+      <td class="cap">8</td>
+      <td class="titulo"><a href="cap08-contrato-runtimes.html">Contrato y runtimes</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">
+        <a href="arquitectura.html">arquitectura</a> ·
+        <a href="diagrama-flujo.html">diagrama-flujo</a> · C-02 → <strong>D-63</strong>
+      </td>
+    </tr>
+    <tr>
+      <td class="cap">9</td>
+      <td class="titulo"><a href="cap09-calibracion.html">Calibración: de dónde sale cada número</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">COMPARACION_ORIGINAL · D-33 · D-34 · β = 1/√44 → <strong>D-66</strong>
+      </td>
+    </tr>
+    <tr>
+      <td class="cap">10</td>
+      <td class="titulo"><a href="cap10-consistencia.html">Consistencia entre módulos</a></td>
+      <td><span class="estado auditado">auditado</span></td>
+      <td class="fuentes">test_vot_consistente · test_linea_base · D-26 · D-27 → <strong>D-68</strong>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  <span class="estado">pendiente</span> el capítulo no existe todavía ·
+  <span class="estado migrado">migrado</span> su material está acá pero sin
+  reescribir · <span class="estado borrador">borrador</span> escrito, sin
+  auditar · <span class="estado auditado">auditado</span> auditado, datos sin
+  regenerar · <span class="estado vigente">vigente</span> auditado y con datos
+  al día.
+</p>
+
+<h2><span class="num">§3</span> Cómo se verifica</h2>
+
+<p>
+  Tres mecanismos, y son la razón de que esto no sea otra carpeta de informes
+  que envejece. Los tres corren en <code>pytest</code>.
+</p>
+
+<h3>Punteros <code>archivo:línea</code></h3>
+
+<p>
+  Cada afirmación de la forma «el símbolo <code>X</code> vive en
+  <code>A:N</code>» se comprueba contra el archivo. Lo hace
+  <code>tools/verifica_mapa.py</code> sobre <em>todos</em> los documentos del
+  libro, y lo fija <code>tests/test_libro.py</code>. Cuando salta, el mensaje
+  dice en qué línea quedó el símbolo: se corrige el número del HTML, nunca el
+  test.
+</p>
+
+<pre><code>cd packages/titirilquen_core &amp;&amp; uv run python tools/verifica_mapa.py</code></pre>
+
+<h3>Números generados, nunca tipeados</h3>
+
+<p>
+  Cada capítulo tiene su script de datos, que escribe un JSON; el HTML lee de
+  ahí. Un test regenera los JSON y falla si el diff no está vacío — el mismo
+  mecanismo que <code>sync:core</code> y los goldens. Una línea base que cambia
+  obliga a regenerar el capítulo, y el commit lo declara.
+</p>
+
+<h3>Ecuaciones en MathML</h3>
+
+<p>
+  El LaTeX va en <code>data-tex</code> y se pre-renderiza con
+  <code>tools/renderiza_ecuaciones.js</code>: sin dependencia externa en el
+  navegador y sin que el lector necesite red.
+</p>
+
+<h2 id="estado"><span class="num">§4</span> Estado de la migración</h2>
+
+<div class="aviso alerta">
+  <h4>Los ocho documentos migrados están sin actualizar</h4>
+  <p>
+    El 2026-09-06 se movieron a esta carpeta tal como estaban. Varios narran
+    unidades y parámetros <strong>anteriores a D-34</strong>: en particular, los
+    de uso de suelo hablan de <code>α</code> en utiles/min y <code>T</code> en
+    minutos, cuando desde entonces la accesibilidad es el logsum mensual de
+    transporte con <code>α = 1</code> y <code>λ = |b_costo|</code>. Sus punteros
+    al código sí están verificados; su narración, no. Cada uno se corrige al
+    escribirse el capítulo que lo absorbe.
+  </p>
+</div>
+
+<p>
+  Mientras tanto, la fuente de verdad de lo vigente es, en este orden: los
+  tests (<code>test_linea_base</code>, <code>test_vot_consistente</code>), el
+  registro de discrepancias (<a href="../DISCREPANCIES.md">DISCREPANCIES.md</a>)
+  y los comentarios del código.
+</p>
+
+<h3>El capítulo 1 como piloto</h3>
+
+<p>
+  Se escribió primero para medir qué cuesta un capítulo completo — auditoría con
+  el protocolo de cinco pasos, datos generados por script, punteros verificados —
+  antes de comprometer los otros nueve. Salieron dos discrepancias nuevas
+  (D-45 y D-46) y un matiz sobre D-28, y las tres son del mismo tipo:
+  <strong>afirmaciones que sobrevivieron a la corrección que las volvió
+  falsas</strong>. Las encontró el paso (e) del protocolo, el que contrasta lo
+  que la interfaz dice contra lo que el núcleo calcula.
+</p>
+
+<footer>
+  <p class="meta">
+    Titirilquén · simulador educativo de transporte urbano · GPL-3.0-or-later.
+    El plan del libro, con la secuencia de fases y las decisiones tomadas, está
+    en <a href="PLAN.md">PLAN.md</a>.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

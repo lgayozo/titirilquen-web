@@ -2,11 +2,11 @@
 
 Estructura (V2):
 
-    Iter 0: LandUseCity.build(T = dist(i, CBD))        # bootstrap
+    Iter 0: LandUseCity.build(T = logsum mensual a flujo libre)  # baseline sin feedback
     Para n = 1..N_outer:
-        1. poblacion = generar_poblacion_desde_land_use(city)
+        1. poblacion = generar_poblacion_desde_land_use_det(city)
         2. transport_trace = run_msa(config, poblacion)
-        3. T_new[h, i] = mean travel time por (estrato, celda)
+        3. T_new[h, i] = −VIAJES_MES·logsum_h(i) sobre los tiempos finales
         4. city.update(T_new)
         5. si ||T_new - T_old|| < tol_outer → break
 
@@ -24,15 +24,28 @@ from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
+from titirilquen_core.coupled_metrics import (
+    EquilibriumMetrics,
+    compute_equilibrium_metrics,
+)
+from titirilquen_core.demand.utility import TiemposObservados
 from titirilquen_core.equilibrium.msa import (
     ConvergenceTrace,
     IterationSnapshot,
     run_msa_con_poblacion,
 )
+from titirilquen_core.land_use.accesibilidad import (
+    T_desde_logsum,
+    T_flujo_libre,
+    logsum_por_celda,
+)
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult
-from titirilquen_core.population import Agente, generar_poblacion_desde_land_use
+from titirilquen_core.population import (
+    Agente,
+    generar_poblacion_desde_land_use_det,
+)
 
 
 @dataclass
@@ -44,7 +57,9 @@ class OuterIteration:
     transport: ConvergenceTrace
     T_matrix: NDArray[np.float64]
     T_residual: float
-    """Residuo ||T_new - T_old||_∞ (min)."""
+    """Residuo ||T_new - T_old||_∞ (utiles de transporte por mes)."""
+    metrics: EquilibriumMetrics
+    """Reporte de métricas (por estrato + sistema) de esta iteración."""
 
 
 @dataclass
@@ -57,61 +72,35 @@ class CoupledResult:
     converged: bool = False
 
 
-# Velocidad de referencia (km/h) para el fallback en minutos de la 1ª iteración.
-_V_REF_FALLBACK_KMH = 30.0
+def _tiempos_del_snapshot(snap: IterationSnapshot, n: int) -> list[TiemposObservados]:
+    return [
+        TiemposObservados(
+            auto_total=float(snap.t_auto[i]),
+            bici_total=float(snap.t_bici[i]),
+            tren_acceso=float(snap.t_tren_acceso[i]),
+            tren_espera=float(snap.t_tren_espera[i]),
+            tren_viaje=float(snap.t_tren_viaje[i]),
+        )
+        for i in range(n)
+    ]
 
 
-def _aggregate_T(
-    agentes: list[Agente],
+def _T_logsum_snapshot(
+    sim: SimulationConfig,
+    ciudad: CiudadLineal,
     snap: IterationSnapshot,
-    n_strata: int,
-    n_celdas: int,
-    cbd_index: int,
-    ancho_celda_km: float,
-    T_prev: NDArray[np.float64] | None = None,
 ) -> NDArray[np.float64]:
-    """Construye T[h, i] = tiempo de viaje esperado del estrato h desde la celda i.
+    """`T[h, i]` = accesibilidad mensual **por estrato** sobre los tiempos del
+    snapshot final: `−VIAJES_MES · logsum_h(i)` (ver `land_use.accesibilidad`).
 
-    Se usa el tiempo (en minutos) del modo efectivamente elegido por cada agente
-    (de la última iteración del MSA). Para celdas/estratos **sin agentes** de
-    muestra:
-      - si hay estado previo `T_prev`, se mantiene ese valor (carry-forward) —
-        así el residual refleja sólo cambios reales y no el ruido de qué celdas
-        quedaron vacías en cada sorteo;
-      - en la 1ª iteración (sin `T_prev`), se usa un fallback **en minutos**
-        (distancia km / velocidad de referencia · 60), no la distancia en
-        índices de celda.
-    """
-    T = np.zeros((n_strata, n_celdas), dtype=float)
-    counts = np.zeros((n_strata, n_celdas), dtype=int)
-
-    for a in agentes:
-        if a.modo_elegido is None or a.teletrabaja:
-            continue
-        h = a.estrato - 1
-        i = a.celda_origen
-        if a.modo_elegido == "Auto":
-            t = snap.t_auto[i]
-        elif a.modo_elegido == "Metro":
-            t = snap.t_tren_acceso[i] + snap.t_tren_espera[i] + snap.t_tren_viaje[i]
-        elif a.modo_elegido == "Bici":
-            t = snap.t_bici[i]
-        else:  # Caminata
-            t = abs(i - cbd_index) * ancho_celda_km / 4.8 * 60  # dist_km / v_cam · 60
-        T[h, i] += float(t)
-        counts[h, i] += 1
-
-    mask = counts > 0
-    with np.errstate(invalid="ignore", divide="ignore"):
-        T = np.where(mask, T / np.maximum(counts, 1), T)
-
-    if T_prev is not None:
-        T = np.where(mask, T, T_prev)
-    else:
-        dist_km = np.abs(np.arange(n_celdas) - cbd_index).astype(float) * ancho_celda_km
-        fallback_min = dist_km / _V_REF_FALLBACK_KMH * 60.0
-        T = np.where(mask, T, fallback_min[None, :])
-    return T
+    Hasta sep-2026 acá se devolvía el tiempo esperado en minutos, promediado
+    entre estratos (D-22), porque por estrato invertía Alonso. Con el logsum en
+    pesos eso no pasa (`tests/test_accesibilidad.py`), y la heterogeneidad de
+    acceso —auto, valor del tiempo— vuelve a ser parte de la puja, que es donde
+    corresponde (D-34). Es determinista y está definido en todas las celdas,
+    así que el residual del loop exterior refleja sólo cambios reales."""
+    tiempos = _tiempos_del_snapshot(snap, ciudad.n_celdas)
+    return T_desde_logsum(logsum_por_celda(sim.demand, ciudad, tiempos, sim.modos_habilitados))
 
 
 def _run_transport_with_population(
@@ -137,32 +126,50 @@ def iter_coupled(
     land_use_config: LandUseConfig,
     outer_max_iter: int = 5,
     outer_tol: float = 1.0,
+    result: CoupledResult | None = None,
 ) -> Iterator[OuterIteration]:
     """Generador que emite una OuterIteration por cada paso del loop exterior.
 
-    Ideal para SSE: el consumidor puede renderizar progreso en vivo.
+    Ideal para SSE: el consumidor puede renderizar progreso en vivo. Si se pasa
+    `result`, lo popula por completo en el mismo recorrido (iteraciones, ciudad
+    final, agentes, convergencia) — mismo patrón que `iter_msa_desde_suelo(trace=...)`;
+    `run_coupled` no es más que consumir este generador con un `result`.
     """
     rng = np.random.default_rng(sim.seed)
+    # El loop acoplado usa asignación **esperada** (determinista) para que el
+    # equilibrio suelo↔transporte converja sin el piso estocástico del Monte Carlo.
+    sim_eq = sim.model_copy(update={"assignment": "expected"})
     L = sim.city.n_celdas
     CBD = L // 2
     ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
 
-    city = LandUseCity.build(L=L, CBD=CBD, cfg=land_use_config, rng=rng)
-
-    n_strata = len(land_use_config.H_por_estrato)
+    # Baseline "sin feedback": la misma accesibilidad (logsum mensual) a flujo
+    # libre, en la misma escala que las iteraciones (D-23, D-34).
+    T_init = T_flujo_libre(
+        sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
+    )
+    city = LandUseCity.build(
+        L=L,
+        CBD=CBD,
+        cfg=land_use_config,
+        T=T_init,
+        rng=rng,
+        # Ancho físico real: la penalización ρ usa densidad hogares/km (D-26).
+        ancho_celda_km=ciudad.ancho_celda_km,
+    )
     T_state: NDArray[np.float64] | None = None
 
     for outer in range(outer_max_iter):
-        agentes = generar_poblacion_desde_land_use(
-            land_use_city=city,
+        assert city.result is not None
+        agentes = generar_poblacion_desde_land_use_det(
+            Q=city.result.Q,
+            S=city.S,
+            cbd_index=CBD,
             demand_config=sim.demand,
-            teletrabajo_factor=sim.city.teletrabajo_factor,
-            rng=rng,
+            teletrabajo_factor=sim.demand.globales.teletrabajo_factor,
         )
-        transport_trace, final_snap = _run_transport_with_population(sim, agentes, ciudad)
-        T_new = _aggregate_T(
-            agentes, final_snap, n_strata, L, CBD, ciudad.ancho_celda_km, T_state
-        )
+        transport_trace, final_snap = _run_transport_with_population(sim_eq, agentes, ciudad)
+        T_new = _T_logsum_snapshot(sim_eq, ciudad, final_snap)
 
         residual = float("inf") if T_state is None else float(np.max(np.abs(T_new - T_state)))
         # Amortiguación MSA del loop externo: T_state ← θ·T_new + (1-θ)·T_state.
@@ -173,17 +180,51 @@ def iter_coupled(
             T_state = theta * T_new + (1.0 - theta) * T_state
 
         assert city.result is not None
-        yield OuterIteration(
+        # Convergió el ACOPLADO sólo si convergieron sus tres partes (D-39): el
+        # residual exterior, el MSA de esta iteración y la subasta del suelo.
+        is_converged = (
+            outer > 0
+            and residual < outer_tol
+            and bool(transport_trace.converged)
+            and bool(city.result.converged)
+        )
+        metrics = compute_equilibrium_metrics(
+            land_use=city.result,
+            trace=transport_trace,
+            S=city.S,
+            # La configuración EFECTIVA (D-40): el transporte corre `expected`.
+            sim=sim_eq,
+            land_use_config=land_use_config,
+            T_residual=residual,
+            converged=is_converged,
+            iterations_count=outer + 1,
+        )
+        iteration = OuterIteration(
             outer_iter=outer,
             land_use=city.result,
             transport=transport_trace,
             T_matrix=T_state.copy(),
             T_residual=residual,
+            metrics=metrics,
         )
+        if result is not None:
+            result.iterations.append(iteration)
+        yield iteration
 
-        if outer > 0 and residual < outer_tol:
+        if is_converged:
+            if result is not None:
+                result.converged = True
             break
-        city.update(T=T_state, rng=rng)
+        # Sólo se actualiza la ciudad si viene otra vuelta que la simule (D-40):
+        # antes, al agotar el máximo, `final_city` quedaba con un suelo que
+        # ningún transporte vio, distinto del `land_use` de la última iteración.
+        if outer < outer_max_iter - 1:
+            city.update(T=T_state, rng=rng)
+
+    if result is not None:
+        result.final_city = city
+        if result.iterations:
+            result.final_agents = result.iterations[-1].transport.agentes
 
 
 def run_coupled(
@@ -195,57 +236,20 @@ def run_coupled(
 ) -> CoupledResult:
     """Ejecuta el loop suelo↔transporte hasta el final y devuelve el resultado agregado.
 
+    Es simplemente consumir `iter_coupled` con un `result` (un único recorrido).
+
     :param sim: configuración de transporte (`SimulationConfig` de V1).
     :param land_use_config: configuración del módulo de uso de suelo.
     :param outer_max_iter: iteraciones máximas del loop exterior.
     :param outer_tol: tolerancia en minutos sobre ||T_new - T_old||_∞.
     """
-    rng = np.random.default_rng(sim.seed)
-    L = sim.city.n_celdas
-    CBD = L // 2
-    ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
-    city = LandUseCity.build(L=L, CBD=CBD, cfg=land_use_config, rng=rng)
-
     result = CoupledResult()
-    n_strata = len(land_use_config.H_por_estrato)
-    T_state: NDArray[np.float64] | None = None
-
-    for outer in range(outer_max_iter):
-        agentes = generar_poblacion_desde_land_use(
-            land_use_city=city,
-            demand_config=sim.demand,
-            teletrabajo_factor=sim.city.teletrabajo_factor,
-            rng=rng,
-        )
-        transport_trace, final_snap = _run_transport_with_population(sim, agentes, ciudad)
-        T_new = _aggregate_T(
-            agentes, final_snap, n_strata, L, CBD, ciudad.ancho_celda_km, T_state
-        )
-        residual = float("inf") if T_state is None else float(np.max(np.abs(T_new - T_state)))
-        # Amortiguación MSA del loop externo.
-        if T_state is None:
-            T_state = T_new
-        else:
-            theta = 1.0 / (outer + 1)
-            T_state = theta * T_new + (1.0 - theta) * T_state
-
-        assert city.result is not None
-        result.iterations.append(
-            OuterIteration(
-                outer_iter=outer,
-                land_use=city.result,
-                transport=transport_trace,
-                T_matrix=T_state.copy(),
-                T_residual=residual,
-            )
-        )
-
-        if outer > 0 and residual < outer_tol:
-            result.converged = True
-            break
-        city.update(T=T_state, rng=rng)
-
-    result.final_city = city
-    if result.iterations:
-        result.final_agents = result.iterations[-1].transport.agentes
+    for _ in iter_coupled(
+        sim=sim,
+        land_use_config=land_use_config,
+        outer_max_iter=outer_max_iter,
+        outer_tol=outer_tol,
+        result=result,
+    ):
+        pass
     return result

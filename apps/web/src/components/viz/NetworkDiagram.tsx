@@ -2,7 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
-import type { IterationSnapshot, SimulationConfig, SimulationResult } from "@/lib/types";
+import type {
+  IterationSnapshot,
+  SimulationConfig,
+  SimulationResult,
+} from "@/lib/types";
+import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
 
 interface NetworkDiagramProps {
   snapshot: IterationSnapshot;
@@ -11,7 +16,19 @@ interface NetworkDiagramProps {
   className?: string;
 }
 
-const MARGIN = { top: 24, right: 16, bottom: 34, left: 82 };
+// El eje horizontal lo fija `EJE_ESPACIAL` (ver lib/ejeEspacial.ts): esta
+// figura era la que definía el margen mayor, y ahora lo comparte en vez de
+// declararlo por su cuenta.
+const MARGIN = {
+  top: 24,
+  // 44 y no 34: el título del eje va centrado en `H - 4` y los ticks en
+  // `H - bottom + 20`, así que con 34 el tick del centro —el del CBD— caía a
+  // 10 px del título y sus cajas se solapaban («10» encima de «Posición (km)»).
+  // Medido: tick y 308-321 contra título y 318-331.
+  bottom: 44,
+  left: EJE_ESPACIAL.left,
+  right: EJE_ESPACIAL.right,
+};
 
 /**
  * Red vial completa de la ciudad lineal. Muestra las 3 redes (auto, metro,
@@ -19,7 +36,12 @@ const MARGIN = { top: 24, right: 16, bottom: 34, left: 82 };
  * su saturación (v/c). Permite ver de un vistazo dónde se forma la
  * congestión crítica y qué modo queda más tensionado por la política actual.
  */
-export function NetworkDiagram({ snapshot, result, config, className }: NetworkDiagramProps) {
+export function NetworkDiagram({
+  snapshot,
+  result,
+  config,
+  className,
+}: NetworkDiagramProps) {
   const { t } = useTranslation("simulator");
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(900);
@@ -43,8 +65,11 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
   const cellWidth = plotW / L;
 
   // Capacidades para computar v/c --------------------------------------------
-  const capAuto = result.capacidad_auto * config.supply.car.num_pistas;
-  const capTren = config.supply.train.capacidad_tren * config.supply.train.frec_max;
+  // `capacidad_auto` es la capacidad_direccion del core y YA incluye num_pistas
+  // (supply/car.py: cap_pista · num_pistas) — multiplicar de nuevo la duplicaba.
+  const capAuto = result.capacidad_auto;
+  const capTren =
+    config.supply.train.capacidad_tren * config.supply.train.frec_max;
   const capBici = config.supply.bike.capacidad_pista;
 
   // Flujo acumulado hacia el CBD (igual que `supply/car.py` con np.cumsum).
@@ -53,20 +78,20 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
   // centro — acumulando a la izquierda 0→CBD y a la derecha L→CBD.
   const flowAuto = useMemo(
     () => cumulativeFlowTowardCBD(snapshot.demanda_auto, L),
-    [snapshot.demanda_auto, L]
+    [snapshot.demanda_auto, L],
   );
   const flowBici = useMemo(
     () => cumulativeFlowTowardCBD(snapshot.demanda_bici, L),
-    [snapshot.demanda_bici, L]
+    [snapshot.demanda_bici, L],
   );
 
   const vcAuto = useMemo(
     () => flowAuto.map((q) => (capAuto > 0 ? q / capAuto : 0)),
-    [flowAuto, capAuto]
+    [flowAuto, capAuto],
   );
   const vcBici = useMemo(
     () => flowBici.map((q) => (capBici > 0 ? q / capBici : 0)),
-    [flowBici, capBici]
+    [flowBici, capBici],
   );
 
   // Metro: `result.carga_metro` es la carga (pax/h) por tramo interestación.
@@ -97,7 +122,7 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
 
   const vcMetro = useMemo(
     () => flowMetro.map((q) => (capTren > 0 ? q / capTren : 0)),
-    [flowMetro, capTren]
+    [flowMetro, capTren],
   );
 
   // Caminata: no tiene capacidad/v-c. Mostramos la intensidad de demanda por
@@ -105,7 +130,7 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
   const vCam = config.demand.globales.v_caminata;
   const maxWalk = useMemo(
     () => Math.max(1, ...snapshot.demanda_caminata),
-    [snapshot.demanda_caminata]
+    [snapshot.demanda_caminata],
   );
 
   // Bandas (y centers) -------------------------------------------------------
@@ -121,7 +146,9 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
 
   // Stations proyectadas ------------------------------------------------------
   const stations = useMemo(() => {
-    return (result.estaciones_km ?? []).map((km) => MARGIN.left + (km / lengthKm) * plotW);
+    return (result.estaciones_km ?? []).map(
+      (km) => MARGIN.left + (km / lengthKm) * plotW,
+    );
   }, [result.estaciones_km, lengthKm, plotW]);
 
   // X ticks
@@ -147,10 +174,38 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
         aria-label={t("network.aria")}
       >
         {/* Fondo de bandas con borde --------------------------------------- */}
-        <BandFrame x={MARGIN.left} y={yAuto} w={plotW} h={bandH} label={t("modes.auto")} labelColor="var(--auto)" />
-        <BandFrame x={MARGIN.left} y={yMetro} w={plotW} h={bandH} label={t("modes.metro")} labelColor="var(--metro)" />
-        <BandFrame x={MARGIN.left} y={yBici} w={plotW} h={bandH} label={t("modes.bici")} labelColor="var(--bici)" />
-        <BandFrame x={MARGIN.left} y={yWalk} w={plotW} h={bandH} label={t("modes.caminata")} labelColor="var(--walk)" />
+        <BandFrame
+          x={MARGIN.left}
+          y={yAuto}
+          w={plotW}
+          h={bandH}
+          label={t("modes.auto")}
+          labelColor="var(--auto)"
+        />
+        <BandFrame
+          x={MARGIN.left}
+          y={yMetro}
+          w={plotW}
+          h={bandH}
+          label={t("modes.metro")}
+          labelColor="var(--metro)"
+        />
+        <BandFrame
+          x={MARGIN.left}
+          y={yBici}
+          w={plotW}
+          h={bandH}
+          label={t("modes.bici")}
+          labelColor="var(--bici)"
+        />
+        <BandFrame
+          x={MARGIN.left}
+          y={yWalk}
+          w={plotW}
+          h={bandH}
+          label={t("modes.caminata")}
+          labelColor="var(--walk)"
+        />
 
         {/* Celdas de cada modo --------------------------------------------- */}
         {vcAuto.map((vc, i) => (
@@ -177,7 +232,9 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
         ))}
 
         {/* División de pistas (líneas horizontales suaves) */}
-        {Array.from({ length: Math.max(0, config.supply.car.num_pistas - 1) }).map((_, i) => {
+        {Array.from({
+          length: Math.max(0, config.supply.car.num_pistas - 1),
+        }).map((_, i) => {
           const y = yAuto + ((i + 1) * bandH) / config.supply.car.num_pistas;
           return (
             <line
@@ -209,7 +266,10 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
                 vc,
                 flow: flowMetro[i] ?? 0,
                 cap: capTren,
-                time: (snapshot.t_tren_viaje[i] ?? 0) + (snapshot.t_tren_espera[i] ?? 0) + (snapshot.t_tren_acceso[i] ?? 0),
+                time:
+                  (snapshot.t_tren_viaje[i] ?? 0) +
+                  (snapshot.t_tren_espera[i] ?? 0) +
+                  (snapshot.t_tren_acceso[i] ?? 0),
                 km: ((i + 0.5) / L) * lengthKm,
               })
             }
@@ -257,7 +317,9 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
                 vc: 0,
                 flow: d,
                 cap: 0,
-                time: ((Math.abs(i - Math.floor(L / 2)) * (lengthKm / L)) / vCam) * 60,
+                time:
+                  ((Math.abs(i - Math.floor(L / 2)) * (lengthKm / L)) / vCam) *
+                  60,
                 km: ((i + 0.5) / L) * lengthKm,
               })
             }
@@ -278,7 +340,15 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
               opacity={0.5}
               pointerEvents="none"
             />
-            <circle cx={x} cy={yMetro + bandH / 2} r={3} fill="var(--paper)" stroke="var(--ink)" strokeWidth={1.2} pointerEvents="none" />
+            <circle
+              cx={x}
+              cy={yMetro + bandH / 2}
+              r={3}
+              fill="var(--paper)"
+              stroke="var(--ink)"
+              strokeWidth={1.2}
+              pointerEvents="none"
+            />
           </g>
         ))}
 
@@ -293,7 +363,13 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
           strokeDasharray="3 3"
           pointerEvents="none"
         />
-        <text x={cbdX} y={MARGIN.top - 6} textAnchor="middle" className="label" fill="var(--accent)">
+        <text
+          x={cbdX}
+          y={MARGIN.top - 6}
+          textAnchor="middle"
+          className="label"
+          fill="var(--accent)"
+        >
           CBD
         </text>
 
@@ -308,13 +384,31 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
         />
         {xTicks.map((tick, i) => (
           <g key={`x-${i}`}>
-            <line x1={tick.x} y1={H - MARGIN.bottom + 4} x2={tick.x} y2={H - MARGIN.bottom + 8} stroke="var(--ink)" strokeWidth={0.8} />
-            <text x={tick.x} y={H - MARGIN.bottom + 20} textAnchor="middle" className="label" style={{ fontVariantNumeric: "tabular-nums" }}>
+            <line
+              x1={tick.x}
+              y1={H - MARGIN.bottom + 4}
+              x2={tick.x}
+              y2={H - MARGIN.bottom + 8}
+              stroke="var(--ink)"
+              strokeWidth={0.8}
+            />
+            <text
+              x={tick.x}
+              y={H - MARGIN.bottom + 20}
+              textAnchor="middle"
+              className="label"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
               {tick.km.toFixed(0)}
             </text>
           </g>
         ))}
-        <text x={MARGIN.left + plotW / 2} y={H - 4} textAnchor="middle" className="label">
+        <text
+          x={MARGIN.left + plotW / 2}
+          y={H - 4}
+          textAnchor="middle"
+          className="label"
+        >
           {t("network.x_axis")}
         </text>
       </svg>
@@ -326,18 +420,27 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
           </div>
           <Row
             label={t("network.flow")}
-            value={`${Math.round(hover.flow).toLocaleString()} ${t(`network.unit.${hover.mode}`)}`}
+            value={`${Math.round(hover.flow).toLocaleString("es-CL")} ${t(`network.unit.${hover.mode}`)}`}
           />
           {hover.mode !== "caminata" && (
             <>
               <Row
                 label={t("network.capacity")}
-                value={`${Math.round(hover.cap).toLocaleString()} ${t(`network.unit.${hover.mode}`)}`}
+                value={`${Math.round(hover.cap).toLocaleString("es-CL")} ${t(`network.unit.${hover.mode}`)}`}
               />
-              <Row label={t("network.vc")} value={hover.vc.toFixed(2)} emph={hover.vc > 1} />
+              <Row
+                label={t("network.vc")}
+                value={hover.vc.toFixed(2)}
+                emph={hover.vc > 1}
+              />
             </>
           )}
-          {hover.time != null && <Row label={t("network.time")} value={`${hover.time.toFixed(1)} min`} />}
+          {hover.time != null && (
+            <Row
+              label={t("network.time")}
+              value={`${hover.time.toFixed(1)} min`}
+            />
+          )}
         </div>
       )}
 
@@ -346,7 +449,15 @@ export function NetworkDiagram({ snapshot, result, config, className }: NetworkD
   );
 }
 
-function Row({ label, value, emph }: { label: string; value: string; emph?: boolean }) {
+function Row({
+  label,
+  value,
+  emph,
+}: {
+  label: string;
+  value: string;
+  emph?: boolean;
+}) {
   return (
     <div className="nt-row">
       <span className="nt-label">{label}</span>
@@ -388,8 +499,22 @@ function BandFrame({
 }) {
   return (
     <g pointerEvents="none">
-      <rect x={x} y={y} width={w} height={h} fill="var(--paper-2)" stroke="var(--rule)" strokeWidth={0.8} />
-      <text x={x - 8} y={y + h / 2 + 3} textAnchor="end" className="network-band-label" fill={labelColor}>
+      <rect
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        fill="var(--paper-2)"
+        stroke="var(--rule)"
+        strokeWidth={0.8}
+      />
+      <text
+        x={x - 8}
+        y={y + h / 2 + 3}
+        textAnchor="end"
+        className="network-band-label"
+        fill={labelColor}
+      >
         {label.toUpperCase()}
       </text>
     </g>
@@ -418,7 +543,10 @@ function colorForVC(vc: number): string {
  * `np.cumsum` del core Python (`supply/car.py`). En el CBD el flujo vuelve
  * a cero (ya arribaron todos los viajes).
  */
-function cumulativeFlowTowardCBD(perCellDemand: readonly number[], L: number): number[] {
+function cumulativeFlowTowardCBD(
+  perCellDemand: readonly number[],
+  L: number,
+): number[] {
   const cbd = Math.floor(L / 2);
   const out = new Array(L).fill(0);
   let cum = 0;

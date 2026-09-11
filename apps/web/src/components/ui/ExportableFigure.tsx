@@ -56,12 +56,11 @@ export function ExportableFigure({
   };
 
   return (
-    <figure
-      className={cn("relative group", className)}
-      aria-label={title}
-    >
+    <figure className={cn("relative group", className)} aria-label={title}>
       <div ref={ref}>{children}</div>
-      {description && <figcaption className="sr-only">{description}</figcaption>}
+      {description && (
+        <figcaption className="sr-only">{description}</figcaption>
+      )}
 
       <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
         <button
