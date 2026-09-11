@@ -69,9 +69,16 @@
     <strong>El borde <em>L</em> es exógeno.</strong> En Alonso y en Anas la
     ciudad termina donde la renta urbana iguala a la agrícola, y el perfil de
     densidad sale de la puja. Acá <em>L</em> es un número de entrada, y el
-    perfil de densidad lo fija la oferta de suelo <em>S(x)</em> y la subasta
-    del capítulo 5, no la geometría. La geometría sólo dice cuántas celdas hay
-    y a qué distancia del centro.
+    perfil de densidad lo fija la oferta de suelo <em>S(x)</em> sola: la
+    subasta del capítulo 5 decide <em>quién</em> vive en cada celda, nunca
+    <em>cuántos</em>. La razón es que no hay elección de tamaño de lote. En
+    Alonso cada hogar elige cuánto suelo comprar contra la renta, y la
+    densidad —el inverso del lote— sube hacia el centro como resultado. Acá
+    cada hogar ocupa una unidad de tamaño fijo, la oferta <em>S_i</em> se
+    genera una vez y el mercado se vacía exacto (Σ S = Σ H), así que la
+    densidad realizada es <em>S_i / Δx</em> por identidad, antes de que la
+    puja corra (D-32). La geometría sólo dice cuántas celdas hay y a qué
+    distancia del centro.
   </li>
 </ul>
 
@@ -603,7 +610,9 @@
   Lo que queda en pie como decisión de modelo es <strong>el borde exógeno</strong>.
   En Alonso y Anas la ciudad crece hasta que la renta urbana cae a la agrícola;
   acá <em>L</em> se fija a mano y la oferta <em>S(x)</em> reparte una población
-  también fija. Es coherente con Martínez —una ciudad discreta con un conjunto
+  también fija; para que la densidad fuera endógena haría falta una elección
+  de tamaño de lote a la Alonso o un modelo de oferentes como el de Martínez
+  (2018, §3.4), y ninguno de los dos está implementado. Es coherente con Martínez —una ciudad discreta con un conjunto
   dado de localizaciones— y es lo que hace posible el dial 3, pero conviene
   saber que las curvas de renta del capítulo 5 no «cierran» en el borde: ahí
   la renta vale lo que la puja diga, no lo que la alternativa agrícola exija.
