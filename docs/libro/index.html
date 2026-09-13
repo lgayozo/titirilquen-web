@@ -33,26 +33,28 @@
 </p>
 
 <p>
-  Cada capítulo sigue las mismas siete secciones, en este orden:
+  Cada capítulo sigue las mismas seis secciones, en este orden. El capítulo
+  describe el simulador tal como está y permite verificar sus resultados; no
+  es un historial de cambios, que vive en git y en el registro de
+  discrepancias.
 </p>
 
 <ol class="secciones">
   <li><strong>Teoría.</strong> Las ecuaciones con su fuente: Martínez (2018),
     Train (2009), Boyles et al., Precios Sociales 2026 del SNI, el Overleaf
     original.</li>
-  <li><strong>Cotejo con el código.</strong> Tabla ecuación ↔ función con
-    <code>archivo:línea</code>, y las diferencias explícitas: qué se simplificó,
-    qué se corrigió, qué se extendió.</li>
   <li><strong>Parámetros.</strong> Cada número con su origen —<em>estimado</em>,
-    <em>norma</em>, <em>heredado del original</em>, <em>decisión declarada</em>—.
-    Ninguno sin etiqueta.</li>
-  <li><strong>Resultados.</strong> La línea base del módulo y sus figuras, todas
-    generadas por script.</li>
+    <em>norma</em>, <em>heredado del original</em>, <em>decisión declarada</em>—
+    y la razón de su valor. Ninguno sin etiqueta.</li>
+  <li><strong>Código.</strong> Tabla ecuación ↔ función con
+    <code>archivo:línea</code>: dónde está escrito cada término y qué toma cada
+    módulo de los anteriores.</li>
   <li><strong>Pruebas.</strong> Qué invariante fija cada test del módulo y qué
     <strong>no</strong> cubre.</li>
-  <li><strong>Auditorías.</strong> Los hallazgos AU/D del módulo con su estado.</li>
-  <li><strong>Discusión.</strong> Decisiones tomadas, alternativas medidas y
-    descartadas, pendientes con nombre.</li>
+  <li><strong>Resultados.</strong> La línea base del módulo y sus figuras, todas
+    generadas por script.</li>
+  <li><strong>Discusión.</strong> Alcance, decisiones de modelo con su razón y
+    pendientes con nombre.</li>
 </ol>
 
 <h2><span class="num">§2</span> Los capítulos</h2>
@@ -73,8 +75,8 @@
     <tr>
       <td class="cap">1</td>
       <td class="titulo"><a href="cap01-ciudad-lineal.html">La ciudad lineal</a></td>
-      <td><span class="estado auditado">auditado</span></td>
-      <td class="fuentes">tutorial 02 · D-26 · D-28 → <strong>D-45</strong>, <strong>D-46</strong> (corregidas el 2026-09-10)</td>
+      <td><span class="estado vigente">vigente</span></td>
+      <td class="fuentes">tutorial 02 · D-26 · D-28 · D-45 · D-46</td>
     </tr>
     <tr>
       <td class="cap">2</td>

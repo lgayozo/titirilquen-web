@@ -13,27 +13,25 @@
   <div class="kicker">El libro de Titirilquén · capítulo 1</div>
   <h1>La ciudad lineal</h1>
   <p class="bajada">
-    El escenario sobre el que corre todo lo demás: una regla partida en un
-    número impar de celdas con el CBD al centro, tres números que la describen,
-    y una población que viene de una sola parte —el uso de suelo—.
+    El escenario sobre el que corre todo lo demás: un corredor partido en un
+    número impar de celdas con el CBD al centro, descrito por tres números, y
+    poblado desde el uso de suelo.
   </p>
   <p class="meta">
     Módulo: <code>city.py</code> · <code>CityConfig</code> ·
-    auditado el 2026-09-07 · corregido el 2026-09-10 ·
     datos regenerados el 2026-09-10 ·
-    <span class="estado auditado">auditado</span>
+    <span class="estado vigente">vigente</span>
   </p>
 </header>
 
 <nav class="indice">
   <ol>
     <li><a href="#s1">Teoría</a></li>
-    <li><a href="#s2">Cotejo con el código</a></li>
-    <li><a href="#s3">Parámetros</a></li>
-    <li><a href="#s4">Resultados</a></li>
-    <li><a href="#s5">Pruebas</a></li>
-    <li><a href="#s6">Auditorías</a></li>
-    <li><a href="#s7">Discusión</a></li>
+    <li><a href="#s2">Parámetros</a></li>
+    <li><a href="#s3">Código</a></li>
+    <li><a href="#s4">Pruebas</a></li>
+    <li><a href="#s5">Resultados</a></li>
+    <li><a href="#s6">Discusión</a></li>
   </ol>
 </nav>
 
@@ -41,49 +39,22 @@
 
 <p>
   La ciudad es <strong>monocéntrica y unidimensional</strong>: un segmento de
-  largo <em>L</em> con un único centro de empleo (el CBD) en su punto medio, y
+  largo <em>L</em> con un único centro de empleo, el CBD, en su punto medio, y
   todos los viajes dirigidos ahí. En el continuo es la ciudad de Alonso (1964).
   La versión que corre acá es la <strong>discreta</strong>: Anas (1990) formuló
   la ciudad lineal monocéntrica cerrada con hogares que eligen localización por
   un logit entre posiciones, y mostró que la solución de Alonso es su caso
-  límite. Ese es el objeto de este simulador —celdas y logit—, no una
-  aproximación numérica de la curva continua.
+  límite. Martínez (2018, cap. 3) define la ciudad directamente como un
+  conjunto discreto de localizaciones <em>I</em>, sin exigirles estar sobre una
+  recta ni a distancias iguales. La ciudad de este simulador es un caso
+  particular de esa definición, con tres restricciones que vienen del
+  simulador y no de la teoría.
 </p>
 
-<p>
-  Martínez (2018, cap. 3, <em>Discrete Urban Economic Theory</em>) va un paso
-  más allá y define la ciudad directamente como un conjunto discreto de
-  localizaciones <em>I</em>, sin exigirles estar sobre una recta ni a
-  distancias iguales. La ciudad lineal de acá es un caso particular suyo, con
-  dos restricciones que conviene declarar porque no vienen de la teoría sino del
-  simulador:
-</p>
-
-<ul>
-  <li>
-    <strong>Las celdas son equiespaciadas</strong>, porque Δx es la unidad de
-    distancia del transporte (cap. 2 y 3) y la oferta de suelo se mide por
-    celda (cap. 5).
-  </li>
-  <li>
-    <strong>El borde <em>L</em> es exógeno.</strong> En Alonso y en Anas la
-    ciudad termina donde la renta urbana iguala a la agrícola, y el perfil de
-    densidad sale de la puja. Acá <em>L</em> es un número de entrada, y el
-    perfil de densidad lo fija la oferta de suelo <em>S(x)</em> sola: la
-    subasta del capítulo 5 decide <em>quién</em> vive en cada celda, nunca
-    <em>cuántos</em>. La razón es que no hay elección de tamaño de lote. En
-    Alonso cada hogar elige cuánto suelo comprar contra la renta, y la
-    densidad —el inverso del lote— sube hacia el centro como resultado. Acá
-    cada hogar ocupa una unidad de tamaño fijo, la oferta <em>S_i</em> se
-    genera una vez y el mercado se vacía exacto (Σ S = Σ H), así que la
-    densidad realizada es <em>S_i / Δx</em> por identidad, antes de que la
-    puja corra (D-32). La geometría sólo dice cuántas celdas hay y a qué
-    distancia del centro.
-  </li>
-</ul>
+<h3>La discretización</h3>
 
 <p>
-  Para calcular, el segmento se parte en <em>n</em> celdas de ancho uniforme:
+  El segmento se parte en <em>n</em> celdas de ancho uniforme:
 </p>
 
 <div class="ecuacion" data-tex="\Delta x = L / n, \qquad x_i = (i + \tfrac{1}{2})\,\Delta x, \quad i = 0,\dots,n-1" data-id="(1.1)">
@@ -104,16 +75,40 @@
   L/2, y (1.2) coincide con la distancia continua <code>|x_i − L/2|</code>. Con
   <em>n</em> par no hay celda central: el centroide de ⌊n/2⌋ queda medio Δx a
   la derecha de L/2 y las dos definiciones se separan. Por eso <em>n</em> impar
-  no es una preferencia sino una <strong>condición</strong>, y desde el
-  2026-09-10 el schema y la clase la exigen (§2).
+  es una <strong>condición</strong> del modelo, y el código la exige (§3). Las
+  celdas son equiespaciadas porque Δx es la unidad de distancia del transporte
+  (cap. 2 y 3) y la oferta de suelo se mide por celda (cap. 5). Ésa es la
+  primera restricción.
+</p>
+
+<h3>Lo que la ciudad no decide</h3>
+
+<p>
+  La segunda restricción es que <strong>el borde <em>L</em> es exógeno</strong>.
+  En Alonso y en Anas la ciudad termina donde la renta urbana iguala a la
+  agrícola, y el tamaño es un resultado. Acá <em>L</em> es un número de entrada.
+</p>
+
+<p>
+  La tercera es que <strong>el perfil de densidad lo fija la oferta de suelo
+  <em>S(x)</em> sola</strong>. La subasta del capítulo 5 decide <em>quién</em>
+  vive en cada celda, nunca <em>cuántos</em>. La razón es que no hay elección
+  de tamaño de lote: en Alonso cada hogar elige cuánto suelo comprar contra la
+  renta y la densidad, el inverso del lote, sube hacia el centro como
+  resultado. Acá cada hogar ocupa una unidad de tamaño fijo, la oferta
+  <em>S_i</em> se genera una vez y el mercado se vacía exacto, Σ S = Σ H, así
+  que la densidad realizada es <em>S_i / Δx</em> por identidad, antes de que la
+  puja corra. Los autores del simulador original dejaron la oferta como dato a
+  propósito: si se permitiera cambiarla a corto plazo, escribieron, «el sistema
+  no tendría equilibrios».
 </p>
 
 <h3>La población</h3>
 
 <p>
-  La ciudad no trae población propia. Los hogares son los del uso de suelo
-  —<em>H_e</em> por estrato— y se reparten entre las celdas por la subasta del
-  capítulo 5 o, en la localización «original», uniformemente sobre la oferta:
+  La ciudad no trae población propia. Los hogares son los del uso de suelo,
+  <em>H_e</em> por estrato, y se reparten entre las celdas por la subasta o,
+  en la localización «original», uniformemente sobre la oferta:
 </p>
 
 <div class="ecuacion" data-tex="N = \sum_{e} H_e, \qquad \rho_{\text{hab}} = N / L" data-id="(1.3)">
@@ -121,34 +116,100 @@
 </div>
 
 <p>
-  La densidad media es un <strong>derivado</strong>, no un dial. Hasta el
-  2026-09-10 existía un segundo camino —<code>densidad_hab_km</code> por
-  <code>largo</code>— que la aplicación no usaba, y el capítulo anterior a esta
-  versión documentó que movía nada (D-46). Lo que sí se conserva de aquella
-  decisión es su propósito: que la población sea una cantidad física,
-  independiente de <em>n</em>. Con habitantes por celda, refinar la grilla
-  multiplicaba la población de la misma ciudad —el <em>Modifiable Areal Unit
-  Problem</em> de Openshaw (1983)—; con (1.3) no.
+  La densidad media es un <strong>derivado</strong>, no un dial. Que la
+  población sea una cantidad física, independiente de <em>n</em>, es la
+  propiedad que hace de la grilla un asunto puramente numérico: con habitantes
+  por celda, refinar la grilla multiplicaría la población de la misma ciudad,
+  que es el <em>Modifiable Areal Unit Problem</em> de Openshaw (1983). Con
+  (1.3) refinar la grilla sólo muestrea más fino la misma ciudad.
 </p>
 
 <div class="aviso idea">
-  <h4>Los tres diales, revisados</h4>
+  <h4>Los tres diales, y qué mueve cada uno</h4>
   <p>
     <strong>n</strong> es resolución numérica: la población no depende de él y
-    el resultado <em>converge</em> al refinarlo, pero no es invariante en las
-    grillas gruesas (§4 mide cuánto y por qué). <strong>L</strong> dice cuán
-    grande es la ciudad y sí manda. <strong>ΣH</strong>, que reemplazó a la
-    densidad, dice cuánta gente viaja y también manda. La afirmación de D-28
-    queda así, más modesta y verdadera.
+    el resultado converge al refinarlo, aunque no es invariante en las grillas
+    gruesas (§5 mide cuánto y por qué). <strong>L</strong> dice cuán grande es
+    la ciudad y sí manda. <strong>ΣH</strong>, que no es de la ciudad sino del
+    suelo, dice cuánta gente viaja y también manda.
   </p>
 </div>
 
-<h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
+<h2 id="s2"><span class="num">§2</span> Parámetros</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Parámetro</th><th class="n">App</th><th class="n">Núcleo</th><th>Unidad</th><th>Origen</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>n_celdas</code></td>
+      <td class="n">201</td>
+      <td class="n">1001</td>
+      <td>celdas</td>
+      <td><span class="etiqueta neutra">decisión</span> impar y ≥ 11; 1001 es la del documento original, 201 la que hace la simulación instantánea en el navegador</td>
+    </tr>
+    <tr>
+      <td><code>largo_ciudad_km</code></td>
+      <td class="n">20</td>
+      <td class="n">20</td>
+      <td>km</td>
+      <td><span class="etiqueta lim">heredado</span> del simulador original</td>
+    </tr>
+    <tr>
+      <td><code>pendiente_porcentaje</code></td>
+      <td class="n">0</td>
+      <td class="n">0</td>
+      <td>%</td>
+      <td><span class="etiqueta neutra">decisión</span> ciudad plana; sólo afecta a la bicicleta, como un único factor de velocidad</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>La elección de los valores</h3>
 
 <p>
-  El módulo es mínimo —una <em>dataclass</em> congelada con dos números, tres
-  propiedades y un validador— y eso es una virtud: la geometría no debería
-  tener estado ni ofrecer dos maneras de medir lo mismo.
+  <strong>201 celdas</strong> es un compromiso entre resolución y tiempo de
+  cálculo, y la §5 lo respalda: refinar de 201 a 401 celdas mueve el reparto
+  modal menos de 0,15 puntos porcentuales, y de 401 a 801 menos todavía. Sobre
+  20 km dan Δx = 99,5 m, la «cuadra» de cien metros con la que se lee la
+  densidad. El núcleo conserva las 1001 celdas del documento original para
+  quien quiera reproducirlo.
+</p>
+
+<p>
+  <strong>20 km</strong> es el largo del simulador original y no tiene otra
+  justificación. Importa saberlo porque, a diferencia de <em>n</em>, el largo
+  sí cambia el resultado: es el tamaño físico de la ciudad, y la §5 muestra
+  cuánto.
+</p>
+
+<p>
+  <strong>Pendiente 0 %</strong> deja la ciudad plana. El parámetro se aplica
+  como un único factor de velocidad a todas las celdas de la ciclovía: no hay
+  una mitad cuesta arriba y otra cuesta abajo, es un ajuste medio y no una
+  topografía. Corresponde al capítulo 2.
+</p>
+
+<h3>Lo que no es parámetro de la ciudad</h3>
+
+<p>
+  La <strong>población</strong> es la suma de hogares del uso de suelo: en la
+  aplicación, 7.200 / 18.000 / 10.800 por estrato, 36.000 en total, que sobre
+  20 km dan una densidad media de 1.800 hab/km. Ese número se deriva donde se
+  muestra y no se edita. El <strong>factor de teletrabajo</strong> es demanda,
+  no geometría, y vive con las probabilidades de teletrabajo por estrato en
+  <code>GlobalConfig</code>.
+</p>
+
+<h2 id="s3"><span class="num">§3</span> Código</h2>
+
+<p>
+  La geometría es una <em>dataclass</em> congelada con dos números, tres
+  propiedades y un validador. No tiene estado ni ofrece dos maneras de medir
+  lo mismo: la distancia al CBD es (1.2) en todo el núcleo.
 </p>
 
 <div class="envoltorio-tabla">
@@ -179,19 +240,19 @@
       <td class="n">(1.2)</td>
       <td class="ruta py">demand/utility.py</td>
       <td class="n">81</td>
-      <td><code>dist_km</code> — |i − ⌊n/2⌋|·Δx, la única convención de distancia del núcleo</td>
+      <td><code>dist_km</code> — |i − ⌊n/2⌋|·Δx, la distancia que ve la demanda</td>
     </tr>
     <tr>
       <td class="n">(1.2)</td>
       <td class="ruta py">supply/car.py</td>
       <td class="n">60</td>
-      <td><code>idx_centro</code> — reconvierte <code>cbd_km</code> a índice con <code>int(n/2)</code>, que es ⌊n/2⌋ para todo <em>n</em></td>
+      <td><code>idx_centro</code> — la oferta recibe <code>cbd_km</code> y lo reconvierte a índice con <code>int(n/2)</code>, que es ⌊n/2⌋ para todo <em>n</em>: oferta y demanda comparten el CBD</td>
     </tr>
     <tr>
       <td class="n">—</td>
       <td class="ruta py">config.py</td>
       <td class="n">186</td>
-      <td><code>CityConfig</code> — <em>n</em>, <em>L</em> y pendiente, nada más; <code>_impar</code> (210) exige la paridad que antes sólo pedía el docstring</td>
+      <td><code>CityConfig</code> — <em>n</em>, <em>L</em> y pendiente, nada más; <code>_impar</code> (210) exige la paridad</td>
     </tr>
     <tr>
       <td class="n">(1.3)</td>
@@ -209,263 +270,33 @@
       <td class="n">—</td>
       <td class="ruta py">config.py</td>
       <td class="n">158</td>
-      <td><code>teletrabajo_factor</code> — se mudó de la ciudad a <code>GlobalConfig</code> (99), con el resto de la demanda</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-<h3>Una sola convención de distancia</h3>
-
-<p>
-  Hasta el 2026-09-10 <code>CiudadLineal</code> exponía además la geometría en
-  posición continua —<code>centroides_km</code> y
-  <code>distancia_al_cbd_km</code>— que nadie llamaba y que coincidía con (1.2)
-  sólo con <em>n</em> impar. Los dos métodos se borraron; la convención por
-  índice es la definición, y la §4 reconstruye la otra sólo para medir el
-  desfase que tendría con <em>n</em> par.
-</p>
-
-<div class="aviso neutro">
-  <h4>Corrección del 2026-09-07, al auditar el capítulo 2</h4>
-  <p>
-    Este capítulo afirmaba que la <em>oferta</em> usaba la convención continua y
-    que por eso se separaba de la demanda con <em>n</em> par. Es falso:
-    <code class="ruta py">supply/car.py</code> recibe <code>cbd_km</code> pero lo
-    reconvierte a índice, y como <code>int(n/2) = ⌊n/2⌋</code> para todo
-    <em>n</em>, cae siempre en la misma celda. Oferta y demanda comparten el CBD
-    con cualquier paridad; hoy, además, la paridad es siempre impar.
-  </p>
-</div>
-
-<h2 id="s3"><span class="num">§3</span> Parámetros</h2>
-
-<div class="envoltorio-tabla">
-<table>
-  <thead>
-    <tr><th>Parámetro</th><th class="n">App</th><th class="n">Núcleo</th><th>Unidad</th><th>Origen</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>n_celdas</code></td>
-      <td class="n">201</td>
-      <td class="n">1001</td>
-      <td>celdas</td>
-      <td><span class="etiqueta neutra">decisión</span> resolución, impar y ≥ 11; 1001 es la del Overleaf original, 201 la que hace la simulación instantánea en el navegador</td>
+      <td><code>teletrabajo_factor</code> — en <code>GlobalConfig</code> (99), con el resto de la demanda</td>
     </tr>
     <tr>
-      <td><code>largo_ciudad_km</code></td>
-      <td class="n">20</td>
-      <td class="n">20</td>
-      <td>km</td>
-      <td><span class="etiqueta lim">heredado</span> del simulador original</td>
-    </tr>
-    <tr>
-      <td><code>pendiente_porcentaje</code></td>
-      <td class="n">0</td>
-      <td class="n">0</td>
-      <td>%</td>
-      <td><span class="etiqueta neutra">decisión</span> ciudad plana por defecto; sólo afecta a la bicicleta</td>
+      <td class="n">—</td>
+      <td class="ruta ts">components/modules/CityBuilder.tsx</td>
+      <td class="n">62</td>
+      <td><code>setCity</code> — la interfaz redondea <em>n</em> a impar; es una comodidad, la guarda es el schema</td>
     </tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Tres campos, y son los tres que la interfaz muestra. Los que
-  <code>CityConfig</code> tenía hasta el 2026-09-10 y ya no:
+  Cada módulo toma de la ciudad lo que necesita: la demanda, Δx y el índice
+  del CBD para la distancia; la oferta, <code>cbd_km</code> y <em>n</em> para
+  ubicar el centro y las estaciones; el uso de suelo, <em>n</em> y Δx para
+  contar celdas y convertir la oferta en densidad; la bicicleta, la pendiente.
+  Los escenarios guardados llevan los tres campos bajo <code>city</code>.
 </p>
 
-<div class="envoltorio-tabla">
-<table>
-  <thead>
-    <tr><th>Campo</th><th>Qué pasó</th><th>Dónde vive ahora</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>densidad_hab_km</code></td>
-      <td>eliminado: era inerte por la ruta de la aplicación (D-46)</td>
-      <td>derivado ΣH / L; en la app, 36.000 / 20 = 1.800 hab/km, y así lo muestra <code>ScenarioCard</code></td>
-    </tr>
-    <tr>
-      <td><code>share_estratos</code></td>
-      <td>eliminado: repetía la mezcla que ya fija el suelo</td>
-      <td><code>H_por_estrato</code> del uso de suelo: 7.200 / 18.000 / 10.800</td>
-    </tr>
-    <tr>
-      <td><code>teletrabajo_factor</code></td>
-      <td>movido: es demanda, no geometría</td>
-      <td><code>demand.globales.teletrabajo_factor</code>, con las probabilidades de teletrabajo por estrato</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+<h2 id="s4"><span class="num">§4</span> Pruebas</h2>
 
 <p>
-  El cambio rompe el schema de los escenarios guardados: un
-  <code>.ttrq.json</code> anterior (<code>titirilquen-scenario/v3</code>) falla
-  con un error explícito, como manda el diseño de <code>serialization.ts</code>
-  —no hay migraciones—. Es una decisión, no un descuido: migrar en silencio
-  habría sido inventar un uso de suelo para escenarios que sólo traían una
-  densidad.
-</p>
-
-<h2 id="s4"><span class="num">§4</span> Resultados</h2>
-
-<p>
-  Todos los números de esta sección salen de
-  <code>datos/cap01.json</code>. La configuración es la de la aplicación, con
-  localización <em>original</em>: el capítulo 1 mira la geometría, no la subasta.
-</p>
-
-<h3>La ciudad por defecto</h3>
-
-<p>
-  201 celdas sobre 20 km dan <strong>Δx = 99,5 m</strong> —la «cuadra de
-  referencia» de cien metros con la que se lee la densidad—, el CBD en la celda
-  100 a los 10,0 km, y una distancia máxima al centro de 9,95 km. Los 36.000
-  hogares del suelo (7.200 / 18.000 / 10.800) dan una densidad media de 1.800
-  hab/km, que es el número que la interfaz muestra como derivado.
-</p>
-
-<h3>Dial 1: la resolución converge, y se sabe por qué no es exacta</h3>
-
-<div class="envoltorio-tabla">
-<table>
-  <thead>
-    <tr><th class="n">n</th><th class="n">Población</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
-  </thead>
-  <tbody>
-    <tr><td class="n">51</td><td class="n">36.000</td><td class="n">15,873</td><td class="n">28,821</td><td class="n">25,012</td><td class="n">10,790</td><td class="n">7.742,7</td></tr>
-    <tr><td class="n">101</td><td class="n">36.000</td><td class="n">15,825</td><td class="n">28,345</td><td class="n">25,060</td><td class="n">11,271</td><td class="n">7.555,4</td></tr>
-    <tr class="destacada"><td class="n">201</td><td class="n">36.000</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">7.496,3</td></tr>
-    <tr><td class="n">401</td><td class="n">36.000</td><td class="n">15,791</td><td class="n">28,332</td><td class="n">24,855</td><td class="n">11,511</td><td class="n">7.496,3</td></tr>
-    <tr><td class="n">801</td><td class="n">36.000</td><td class="n">15,729</td><td class="n">28,358</td><td class="n">24,851</td><td class="n">11,517</td><td class="n">7.505,2</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p>
-  <strong>La población es exactamente invariante</strong>: 36.000 agentes en las
-  cinco grillas, y <code>test_city.py</code> lo fija para 51, 101 y 401. El
-  reparto, en cambio, converge sin ser invariante. El mayor cambio de una
-  categoría entre grillas consecutivas:
-</p>
-
-<div class="envoltorio-tabla">
-<table>
-  <thead>
-    <tr><th>Refinamiento</th><th class="n">Δ máx (pp)</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>51 → 101</td><td class="n">0,481</td></tr>
-    <tr><td>101 → 201</td><td class="n">0,151</td></tr>
-    <tr class="destacada"><td>201 → 401</td><td class="n">0,100</td></tr>
-    <tr><td>401 → 801</td><td class="n">0,062</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p>
-  Cada duplicación reduce el salto a cerca de dos tercios del anterior. La
-  causa está en la demanda, no en la geometría: los cortes de caminata y
-  bicicleta (<code>corte_caminata_min</code>, <code>corte_bici_min</code>) y
-  las penalizaciones físicas por tramo son <strong>funciones escalón de la
-  distancia</strong>, y con cada Δx el escalón cae en una fracción distinta de
-  una celda. Mientras existan escalones, la grilla va a tener un residuo; lo
-  que se puede exigir es que decrezca, y eso es lo que el test
-  <code>test_la_grilla_converge</code> pide: menos de 0,15 pp entre 201 y 401,
-  y no más que eso entre 401 y 801. La frase de D-28 —«no cambia nada
-  económico, en ningún módulo»— queda reemplazada por ésta.
-</p>
-
-<h3>Dial 2: la población, que ahora sí mueve</h3>
-
-<p>
-  El dial que reemplazó a la densidad es ΣH del uso de suelo, con la misma
-  mezcla 20/50/30 y la misma forma de oferta:
-</p>
-
-<div class="envoltorio-tabla">
-<table>
-  <thead>
-    <tr><th class="n">ΣH</th><th class="n">hab/km</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th><th class="n">Iter.</th></tr>
-  </thead>
-  <tbody>
-    <tr><td class="n">18.000</td><td class="n">900</td><td class="n">17,768</td><td class="n">16,976</td><td class="n">34,250</td><td class="n">11,483</td><td class="n">3.503,5</td><td class="n">5</td></tr>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">7.496,3</td><td class="n">8</td></tr>
-    <tr><td class="n">54.000</td><td class="n">2.700</td><td class="n">14,465</td><td class="n">34,003</td><td class="n">20,482</td><td class="n">11,524</td><td class="n">12.313,7</td><td class="n">10</td></tr>
-    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">13,275</td><td class="n">37,115</td><td class="n">18,468</td><td class="n">11,630</td><td class="n">17.255,1</td><td class="n">11</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p>
-  Con el largo fijo, más gente es más congestión: el auto cae de 17,77 % a
-  13,28 %, la bicicleta pierde la mitad de su cuota cuando la ciclovía satura,
-  y el metro —con economías de escala— sube de 16,98 % a 37,12 %. La caminata
-  casi no se mueve, porque su tiempo no depende del flujo. Las emisiones
-  crecen casi cinco veces con cuatro veces la población, y el MSA necesita más
-  iteraciones para cerrar. Es la respuesta que el capítulo anterior a esta
-  versión sólo podía obtener por la ruta que la aplicación no usaba.
-</p>
-
-<h3>Dial 3: el largo, que sí manda</h3>
-
-<div class="envoltorio-tabla">
-<table>
-  <thead>
-    <tr><th class="n">L (km)</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
-  </thead>
-  <tbody>
-    <tr><td class="n">10</td><td class="n">14,73</td><td class="n">16,59</td><td class="n">20,86</td><td class="n">3.391,7</td></tr>
-    <tr class="destacada"><td class="n">20</td><td class="n">15,81</td><td class="n">28,32</td><td class="n">11,42</td><td class="n">7.496,3</td></tr>
-    <tr><td class="n">30</td><td class="n">16,17</td><td class="n">34,61</td><td class="n">8,07</td><td class="n">11.398,7</td></tr>
-    <tr><td class="n">40</td><td class="n">16,39</td><td class="n">38,27</td><td class="n">6,24</td><td class="n">15.118,3</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p>
-  Con la población fija en 36.000, estirar la ciudad alarga los viajes: la
-  caminata se derrumba de 20,9 % a 6,2 %, el metro se duplica y las emisiones se
-  cuadruplican. La dirección y la magnitud son las que la teoría predice.
-</p>
-
-<h3>La paridad</h3>
-
-<div class="envoltorio-tabla">
-<table>
-  <thead>
-    <tr><th class="n">n</th><th>Paridad</th><th class="n">Desfase (km)</th><th class="n">En celdas</th><th>Qué pasa</th></tr>
-  </thead>
-  <tbody>
-    <tr><td class="n">1001</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>las dos convenciones coinciden</td></tr>
-    <tr><td class="n">401</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>coinciden</td></tr>
-    <tr class="destacada"><td class="n">201</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>coinciden</td></tr>
-    <tr><td class="n">101</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>coinciden</td></tr>
-    <tr><td class="n">51</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>coinciden</td></tr>
-    <tr><td class="n">200</td><td>par</td><td class="n">0,0500</td><td class="n">0,50</td><td>rechazado por <code>CityConfig</code> y por <code>CiudadLineal</code></td></tr>
-    <tr><td class="n">100</td><td>par</td><td class="n">0,1000</td><td class="n">0,50</td><td>rechazado</td></tr>
-    <tr><td class="n">50</td><td>par</td><td class="n">0,2000</td><td class="n">0,50</td><td>rechazado</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p>
-  El desfase que tendría una grilla par es siempre medio Δx, así que crece con
-  la grilla gruesa: 200 m sobre 20 km con n=50. Ya no es un caso que el código
-  acepte: las tres filas pares fallan en el validador del schema y, si alguien
-  construye la dataclass a mano, también ahí.
-</p>
-
-<h2 id="s5"><span class="num">§5</span> Pruebas</h2>
-
-<p>
-  <code>tests/test_city.py</code> existe desde el 2026-09-10. Fija la
-  geometría en sí, y las tres cosas que la auditoría del 2026-09-07 encontró
-  sin cubrir: la paridad, la única convención de distancia y la población
-  frente a la grilla.
+  <code>tests/test_city.py</code> fija la geometría en sí, la paridad, la
+  única convención de distancia y la población frente a la grilla. Dos tests
+  del uso de suelo completan la invariancia de resolución y la sensibilidad al
+  tamaño físico.
 </p>
 
 <div class="envoltorio-tabla">
@@ -508,7 +339,7 @@
     </tr>
     <tr>
       <td><code class="ruta py">tests/test_city.py</code>:156</td>
-      <td>La población es exactamente ΣH con 51, 101 y 401 celdas (D-28).</td>
+      <td>La población es exactamente ΣH con 51, 101 y 401 celdas.</td>
     </tr>
     <tr>
       <td><code class="ruta py">tests/test_city.py</code>:168</td>
@@ -535,99 +366,186 @@
 </div>
 
 <p>
-  Lo que sigue sin test propio es lo que este capítulo declara como decisión
-  y no como propiedad: que <em>L</em> sea exógeno.
+  Lo que no tiene test es lo que este capítulo declara como decisión y no como
+  propiedad: que <em>L</em> sea exógeno y que la oferta fije la densidad.
 </p>
 
-<h2 id="s6"><span class="num">§6</span> Auditorías</h2>
+<h2 id="s5"><span class="num">§5</span> Resultados</h2>
 
-<div class="paso">
-  <h3>Protocolo aplicado <span class="ref">2026-09-07</span></h3>
-  <p>
-    (a) lectura estática de <code>city.py</code> y <code>CityConfig</code> contra
-    (1.1)–(1.3); (b) reproducción de la ciudad por defecto y barrido de los tres
-    diales; (c) invariancia de grilla y de escala; (d) el capítulo 1 no tiene
-    módulos anteriores con los que contrastar; (e) contraste de lo que la
-    interfaz afirma contra lo que el núcleo calcula.
-  </p>
-</div>
+<p>
+  Todos los números de esta sección salen de <code>datos/cap01.json</code>. La
+  configuración es la de la aplicación, con localización «original»: este
+  capítulo mira la geometría, no la subasta.
+</p>
 
-<div class="paso">
-  <h3>Corrección aplicada <span class="ref">2026-09-10</span></h3>
-  <p>
-    Se resolvieron los dos hallazgos y los tres pendientes que dejó la
-    auditoría, y se contrastó la definición de ciudad contra Martínez (2018) y
-    Anas (1990). Los capítulos 3 a 7 se regeneraron después del cambio y sus
-    datos no se movieron: la línea base es la misma.
-  </p>
-</div>
+<h3>La ciudad por defecto</h3>
 
-<div class="aviso ok">
-  <h4>D-46 — corregido: la población tiene una sola fuente</h4>
-  <p>
-    <code>densidad_hab_km</code> y <code>share_estratos</code> salieron de
-    <code>CityConfig</code>; <code>generar_poblacion</code> e
-    <code>iter_msa</code>, la ruta de densidad plana, se borraron.
-    <code>run_msa</code> y <code>/simulate</code> reciben el uso de suelo, con
-    lo que C-02 —la diferencia de población entre motores— se cierra (cap. 8
-    §4.2). El comentario del schema y las etiquetas de la interfaz que
-    afirmaban «población = densidad × largo» se reescribieron; la densidad se
-    deriva donde se muestra.
-  </p>
-</div>
+<p>
+  201 celdas sobre 20 km dan <strong>Δx = 99,5 m</strong>, el CBD en la celda
+  100 a los 10,0 km, y una distancia máxima al centro de 9,95 km. Los 36.000
+  hogares del suelo, 7.200 / 18.000 / 10.800 por estrato, dan una densidad
+  media de 1.800 hab/km.
+</p>
 
-<div class="aviso ok">
-  <h4>D-45 — corregido: una convención, y la paridad se valida</h4>
-  <p>
-    <code>centroides_km</code> y <code>distancia_al_cbd_km</code> se borraron
-    de <code>CiudadLineal</code>; la distancia es (1.2) en todo el núcleo.
-    <code>CityConfig</code> rechaza <em>n</em> par con un validador y
-    <code>CiudadLineal</code> con su <code>__post_init__</code>, así que el
-    patrón de D-43 —la interfaz evita el caso, el schema lo acepta— ya no
-    aplica acá: <code class="ruta ts">components/modules/CityBuilder.tsx</code>:62
-    sigue redondeando a impar, pero ahora es una comodidad, no la única guarda.
-  </p>
+<h3>La resolución converge</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">n</th><th class="n">Población</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">51</td><td class="n">36.000</td><td class="n">15,873</td><td class="n">28,821</td><td class="n">25,012</td><td class="n">10,790</td><td class="n">7.742,7</td></tr>
+    <tr><td class="n">101</td><td class="n">36.000</td><td class="n">15,825</td><td class="n">28,345</td><td class="n">25,060</td><td class="n">11,271</td><td class="n">7.555,4</td></tr>
+    <tr class="destacada"><td class="n">201</td><td class="n">36.000</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">7.496,3</td></tr>
+    <tr><td class="n">401</td><td class="n">36.000</td><td class="n">15,791</td><td class="n">28,332</td><td class="n">24,855</td><td class="n">11,511</td><td class="n">7.496,3</td></tr>
+    <tr><td class="n">801</td><td class="n">36.000</td><td class="n">15,729</td><td class="n">28,358</td><td class="n">24,851</td><td class="n">11,517</td><td class="n">7.505,2</td></tr>
+  </tbody>
+</table>
 </div>
 
 <p>
-  Un tercer punto, sin número propio: el <strong>tutorial 02</strong> que ven los
-  estudiantes muestra la tabla de estratos con shares 10/40/50, cuando el default
-  es 20/50/30 desde agosto de 2026. Corresponde al capítulo 3, que es donde vive
-  la demanda; queda anotado acá porque se encontró mirando <code>CityConfig</code>.
+  <strong>La población es exactamente invariante</strong>: 36.000 agentes en las
+  cinco grillas. El reparto converge sin ser invariante. El mayor cambio de una
+  categoría entre grillas consecutivas:
 </p>
 
-<h2 id="s7"><span class="num">§7</span> Discusión</h2>
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Refinamiento</th><th class="n">Δ máx (pp)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>51 → 101</td><td class="n">0,481</td></tr>
+    <tr><td>101 → 201</td><td class="n">0,151</td></tr>
+    <tr class="destacada"><td>201 → 401</td><td class="n">0,100</td></tr>
+    <tr><td>401 → 801</td><td class="n">0,062</td></tr>
+  </tbody>
+</table>
+</div>
 
 <p>
-  La ciudad lineal ahora hace una sola cosa: decir cuántas celdas hay y a qué
-  distancia del centro. No decide cuánta gente vive en ella —eso es del suelo—
-  ni cuánta teletrabaja —eso es de la demanda—. La simplificación no cambió
-  ningún número de la línea base y sí cerró la única diferencia real de
-  comportamiento entre los dos motores.
+  Cada duplicación reduce el salto a cerca de dos tercios del anterior. La
+  causa está en la demanda, no en la geometría: los cortes de caminata y
+  bicicleta y las penalizaciones físicas por tramo son <strong>funciones
+  escalón de la distancia</strong>, y con cada Δx el escalón cae en una
+  fracción distinta de una celda. Mientras existan escalones la grilla tendrá
+  un residuo; lo que se exige es que decrezca, y eso es lo que fija
+  <code>test_la_grilla_converge</code>.
+</p>
+
+<h3>La población mueve el resultado</h3>
+
+<p>
+  ΣH del uso de suelo, con la misma mezcla 20/50/30 y la misma forma de
+  oferta:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ΣH</th><th class="n">hab/km</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th><th class="n">Iter.</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">18.000</td><td class="n">900</td><td class="n">17,768</td><td class="n">16,976</td><td class="n">34,250</td><td class="n">11,483</td><td class="n">3.503,5</td><td class="n">5</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">7.496,3</td><td class="n">8</td></tr>
+    <tr><td class="n">54.000</td><td class="n">2.700</td><td class="n">14,465</td><td class="n">34,003</td><td class="n">20,482</td><td class="n">11,524</td><td class="n">12.313,7</td><td class="n">10</td></tr>
+    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">13,275</td><td class="n">37,115</td><td class="n">18,468</td><td class="n">11,630</td><td class="n">17.255,1</td><td class="n">11</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con el largo fijo, más gente es más congestión: el auto cae de 17,77 % a
+  13,28 %, la bicicleta pierde la mitad de su cuota cuando la ciclovía satura,
+  y el metro, con economías de escala, sube de 16,98 % a 37,12 %. La caminata
+  casi no se mueve porque su tiempo no depende del flujo. Las emisiones crecen
+  casi cinco veces con cuatro veces la población, y el MSA necesita más
+  iteraciones para cerrar.
+</p>
+
+<h3>El largo manda</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">L (km)</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">10</td><td class="n">14,73</td><td class="n">16,59</td><td class="n">20,86</td><td class="n">3.391,7</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">15,81</td><td class="n">28,32</td><td class="n">11,42</td><td class="n">7.496,3</td></tr>
+    <tr><td class="n">30</td><td class="n">16,17</td><td class="n">34,61</td><td class="n">8,07</td><td class="n">11.398,7</td></tr>
+    <tr><td class="n">40</td><td class="n">16,39</td><td class="n">38,27</td><td class="n">6,24</td><td class="n">15.118,3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con la población fija en 36.000, estirar la ciudad alarga los viajes: la
+  caminata se derrumba de 20,9 % a 6,2 %, el metro se duplica y las emisiones se
+  cuadruplican. La dirección y la magnitud son las que la teoría predice.
+</p>
+
+<h3>Por qué n impar</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">n</th><th>Paridad</th><th class="n">Desfase (km)</th><th class="n">En celdas</th><th>Qué pasa</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">1001</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>índice y posición coinciden</td></tr>
+    <tr><td class="n">401</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>coinciden</td></tr>
+    <tr class="destacada"><td class="n">201</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>coinciden</td></tr>
+    <tr><td class="n">101</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>coinciden</td></tr>
+    <tr><td class="n">51</td><td>impar</td><td class="n">0,0000</td><td class="n">0,00</td><td>coinciden</td></tr>
+    <tr><td class="n">200</td><td>par</td><td class="n">0,0500</td><td class="n">0,50</td><td>rechazado por <code>CityConfig</code> y por <code>CiudadLineal</code></td></tr>
+    <tr><td class="n">100</td><td>par</td><td class="n">0,1000</td><td class="n">0,50</td><td>rechazado</td></tr>
+    <tr><td class="n">50</td><td>par</td><td class="n">0,2000</td><td class="n">0,50</td><td>rechazado</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El desfase que tendría una grilla par entre la distancia por índice y la
+  distancia continua es siempre medio Δx, así que crece con la grilla gruesa:
+  200 m sobre 20 km con n=50. El código no acepta el caso: las tres filas pares
+  fallan en el validador del schema y, si alguien construye la dataclass a
+  mano, también ahí.
+</p>
+
+<h2 id="s6"><span class="num">§6</span> Discusión</h2>
+
+<p>
+  La ciudad lineal hace una sola cosa: decir cuántas celdas hay y a qué
+  distancia del centro. No decide cuánta gente vive en ella, eso es del suelo,
+  ni cuánta teletrabaja, eso es de la demanda. Sus tres números están
+  etiquetados, sus propiedades tienen test y su único dial numérico converge
+  con una causa conocida.
 </p>
 
 <p>
-  Lo que queda en pie como decisión de modelo es <strong>el borde exógeno</strong>.
-  En Alonso y Anas la ciudad crece hasta que la renta urbana cae a la agrícola;
-  acá <em>L</em> se fija a mano y la oferta <em>S(x)</em> reparte una población
-  también fija; para que la densidad fuera endógena haría falta una elección
-  de tamaño de lote a la Alonso o un modelo de oferentes como el de Martínez
-  (2018, §3.4), y ninguno de los dos está implementado. Es coherente con Martínez —una ciudad discreta con un conjunto
-  dado de localizaciones— y es lo que hace posible el dial 3, pero conviene
-  saber que las curvas de renta del capítulo 5 no «cierran» en el borde: ahí
-  la renta vale lo que la puja diga, no lo que la alternativa agrícola exija.
+  Lo que queda en pie como decisión de modelo es <strong>el borde exógeno</strong>
+  y <strong>la densidad exógena</strong>, que son la misma decisión vista de
+  dos lados. En Alonso y Anas la ciudad crece hasta que la renta urbana cae a
+  la agrícola y la densidad sale de la puja; acá <em>L</em> se fija a mano y
+  la oferta <em>S(x)</em> reparte una población también fija. Es coherente con
+  Martínez, una ciudad discreta con un conjunto dado de localizaciones, y es lo
+  que hace posible el dial del largo, pero conviene saber que las curvas de
+  renta del capítulo 5 no «cierran» en el borde: ahí la renta vale lo que la
+  puja diga, no lo que la alternativa agrícola exija.
 </p>
 
 <div class="aviso idea">
-  <h4>Lo que este capítulo dejó para el resto del libro</h4>
+  <h4>Si algún día la densidad resultara de la puja</h4>
   <p>
-    Los dos hallazgos del 2026-09-07 no eran de matemática: eran
-    <strong>afirmaciones que sobrevivieron a la corrección que las volvió
-    falsas</strong>, y el paso (e) del protocolo los encontró. La corrección
-    del 2026-09-10 aplica el remedio de fondo: en vez de arreglar los textos
-    que describían una segunda fuente de población, se eliminó la segunda
-    fuente. Un capítulo que cuenta un solo camino no puede desfasarse
-    respecto del otro.
+    El camino corto es una elección de tamaño de lote a la Anas (1990): un
+    término de vivienda en la utilidad, la capacidad de la celda como área
+    sobre lote óptimo, y el punto fijo del capítulo 5 resuelto sobre utilidades
+    y precios a la vez, con la penalización por densidad congelada en la
+    primera versión. El camino largo es un modelo de oferentes como el de
+    Martínez (2018, §3.4). Cualquiera de los dos mueve la línea base con suelo
+    y es un cambio de modelo, no un refactor. Está pendiente por decisión.
   </p>
 </div>
 
@@ -635,27 +553,15 @@
 
 <ul>
   <li>
-    <strong>Sin discrepancia</strong>: <code>pendiente_porcentaje</code> es un
-    solo factor de velocidad para todas las celdas
-    (<code class="ruta py">supply/bike.py</code>:21): no hay una mitad cuesta
-    arriba y otra cuesta abajo. Es un ajuste medio, no una topografía, y la
-    etiqueta debería decirlo. Corresponde al capítulo 2.
+    <strong>Pendiente como factor medio.</strong> La etiqueta de
+    <code>pendiente_porcentaje</code> debería decir que es un único factor de
+    velocidad para toda la ciclovía
+    (<code class="ruta py">supply/bike.py</code>:21), no una topografía.
+    Corresponde al capítulo 2.
   </li>
   <li>
-    <strong>Sin discrepancia</strong>: dejar escrito en el capítulo 5 que el
-    borde es exógeno y qué pasaría si se cerrara con una renta agrícola.
-  </li>
-  <li>
-    <strong>Decisión del 2026-09-10: la oferta sigue fija.</strong> Que la
-    densidad resulte de la puja queda pendiente. El Overleaf original ya la
-    dejaba como dato «de momento», con la advertencia de que si la oferta
-    cambiara «el sistema no tendría equilibrios»
-    (<code>reference/overleaf_original/Suelo.tex</code>, sin versionar). El
-    camino corto sería una elección de tamaño de lote a la Anas (1990), con
-    el punto fijo sobre utilidades y precios a la vez y el término
-    <em>ρ·dens</em> congelado en la primera versión; el largo, un modelo de
-    oferentes (Martínez 2018, §3.4). Cualquiera de los dos mueve la línea
-    base con suelo y es un cambio de modelo, no un refactor.
+    <strong>Borde exógeno en el capítulo 5.</strong> Dejar escrito ahí que el
+    borde no cierra con una renta agrícola y qué cambiaría si lo hiciera.
   </li>
 </ul>
 
@@ -667,7 +573,8 @@
     Anas, A. (1990). <em>Taste heterogeneity and urban spatial structure: The
     logit model and monocentric theory reconciled</em>. Journal of Urban
     Economics, 28(3), 318–335 · Martínez, F. J. (2018). <em>Microeconomic
-    Modeling in Urban Science</em>. Academic Press, cap. 3.
+    Modeling in Urban Science</em>. Academic Press, cap. 3 · Openshaw, S.
+    (1983). <em>The Modifiable Areal Unit Problem</em>. CATMOG 38.
   </p>
 </footer>
 

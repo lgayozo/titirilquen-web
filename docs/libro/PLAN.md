@@ -48,22 +48,28 @@ hacia adelante.
 
 ### La plantilla de cada capítulo
 
-Siete secciones, fijas y en este orden:
+Seis secciones, fijas y en este orden. El capítulo describe el simulador tal
+como está y permite verificar sus resultados; **no es un historial de
+cambios**: eso vive en git y en el registro de discrepancias. Los hallazgos de
+auditoría se registran en `DISCREPANCIES.md`, no en el capítulo.
 
 1. **Teoría.** Las ecuaciones con su fuente: Martínez (2018), Train (2009),
-   Boyles et al., Precios Sociales 2026 del SNI, el Overleaf original.
-2. **Cotejo con el código.** Tabla ecuación ↔ función con `archivo:línea`, y
-   las diferencias explícitas (qué se simplificó, qué se corrigió, qué se
-   extendió).
-3. **Parámetros.** Cada número con su origen: *estimado*, *norma*, *heredado
-   del original*, *decisión declarada*. Ninguno sin etiqueta.
-4. **Resultados.** La línea base del módulo y sus figuras, todas generadas por
+   Boyles et al., Precios Sociales 2026 del SNI, el Overleaf original. Incluye
+   el alcance: qué decide el módulo y qué toma como dado.
+2. **Parámetros.** Cada número con su origen: *estimado*, *norma*, *heredado
+   del original*, *decisión declarada*, y la razón de su valor. Ninguno sin
+   etiqueta.
+3. **Código.** Tabla ecuación ↔ función con `archivo:línea`, y qué toma cada
+   módulo de los anteriores.
+4. **Pruebas.** Qué invariante fija cada test del módulo y qué **no** cubre.
+5. **Resultados.** La línea base del módulo y sus figuras, todas generadas por
    script (ver §2).
-5. **Pruebas.** Qué invariante fija cada test del módulo y qué **no** cubre.
-6. **Auditorías.** Los hallazgos AU/D del módulo con su estado, más la ficha
-   de la auditoría nueva (ver §3).
-7. **Discusión.** Decisiones tomadas, alternativas medidas y descartadas,
-   pendientes con nombre.
+6. **Discusión.** Alcance, decisiones de modelo con su razón, y pendientes con
+   nombre.
+
+(Hasta septiembre de 2026 la plantilla tenía siete secciones, con «Cotejo con
+el código» antes de «Parámetros» y una sección de «Auditorías». Los capítulos
+se migran uno a uno, empezando por el 1.)
 
 ## 2. Infraestructura primero, para que el libro no mienta
 
