@@ -1,9 +1,43 @@
 {
  "_meta": {
-  "fecha": "2026-09-10",
-  "commit": "87469b7",
-  "script": "docs/libro/datos/datos_cap02.py",
-  "configuracion": "Oferta de la aplicación (`test_linea_base._config_web().supply`) sobre la ciudad por defecto: 201 celdas, 20 km. Las demandas son uniformes y sintéticas — el capítulo mide las funciones de costo, no el equilibrio, que es el capítulo 4."
+  "fecha": "2026-09-15",
+  "commit": "660b8af",
+  "script": "docs/libro/datos/datos_cap03.py",
+  "configuracion": "Oferta de la aplicación (`test_linea_base._config_web().supply`) sobre la ciudad por defecto: 201 celdas, 20 km. Las demandas son uniformes y sintéticas — el capítulo mide las funciones de costo, no el equilibrio, que es el capítulo 5."
+ },
+ "parametros_vigentes": {
+  "auto": {
+   "v_max_kmh": 31,
+   "ancho_pista_m": 3.5,
+   "largo_vehiculo_m": 5.0,
+   "gap_m": 2.0,
+   "num_pistas": 2,
+   "alpha_bpr": 0.8,
+   "beta_bpr": 2.0,
+   "capacidad_pista": null
+  },
+  "bici": {
+   "v_media_kmh": 14,
+   "capacidad_pista": 2500,
+   "alpha_bpr": 0.5,
+   "beta_bpr": 2.0
+  },
+  "metro": {
+   "v_tren_kmh": 35,
+   "capacidad_tren": 1000,
+   "num_estaciones": 10,
+   "v_caminata_kmh": 4.8,
+   "frec_min": 2,
+   "frec_max": 40,
+   "tiempo_detencion_min": 0.5,
+   "anden_alpha": 0.5,
+   "anden_beta": 4.0,
+   "capacidad_sistema_pax_h": 40000
+  },
+  "fhwa_bpr_referencia": {
+   "alpha": 0.15,
+   "beta": 4.0
+  }
  },
  "geometria_compartida": {
   "filas": [

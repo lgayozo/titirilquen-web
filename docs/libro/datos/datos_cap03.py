@@ -378,6 +378,44 @@ def red_vacia() -> dict:
     }
 
 
+def parametros_vigentes() -> dict:
+    """Los parámetros de oferta con los que corre la aplicación, tal como están
+    en el schema: lo que la tabla de parámetros del capítulo transcribe."""
+    cfg, _ = _ciudad()
+    car, bike, train = cfg.supply.car, cfg.supply.bike, cfg.supply.train
+    return {
+        "auto": {
+            "v_max_kmh": car.v_max_kmh,
+            "ancho_pista_m": car.ancho_pista_m,
+            "largo_vehiculo_m": car.largo_vehiculo_m,
+            "gap_m": car.gap_m,
+            "num_pistas": car.num_pistas,
+            "alpha_bpr": car.alpha_bpr,
+            "beta_bpr": car.beta_bpr,
+            "capacidad_pista": car.capacidad_pista,
+        },
+        "bici": {
+            "v_media_kmh": bike.v_media_kmh,
+            "capacidad_pista": bike.capacidad_pista,
+            "alpha_bpr": bike.alpha_bpr,
+            "beta_bpr": bike.beta_bpr,
+        },
+        "metro": {
+            "v_tren_kmh": train.v_tren_kmh,
+            "capacidad_tren": train.capacidad_tren,
+            "num_estaciones": train.num_estaciones,
+            "v_caminata_kmh": train.v_caminata_kmh,
+            "frec_min": train.frec_min,
+            "frec_max": train.frec_max,
+            "tiempo_detencion_min": train.tiempo_detencion_min,
+            "anden_alpha": train.anden_alpha,
+            "anden_beta": train.anden_beta,
+            "capacidad_sistema_pax_h": train.frec_max * train.capacidad_tren,
+        },
+        "fhwa_bpr_referencia": {"alpha": 0.15, "beta": 4.0},
+    }
+
+
 def main() -> None:
     b = bici()
     # AT-05: con la topografía monocéntrica, +p y −p NO pueden dar lo mismo.
@@ -399,6 +437,7 @@ def main() -> None:
                 "equilibrio, que es el capítulo 5."
             ),
         },
+        "parametros_vigentes": parametros_vigentes(),
         "geometria_compartida": geometria_compartida(),
         "auto": auto(),
         "bici": b,
