@@ -267,7 +267,7 @@ def perillas() -> dict:
     for b in (0.05, LandUseConfig().beta, 0.5, 1.0):
         cfg = LandUseConfig(H_por_estrato=H_APP, beta=b, max_iter=5000)
         out["beta"].append({"beta": round(b, 4), **_metricas(_ciudad(cfg))})
-    for r in (0.0, 0.0052, 0.01, 0.02):
+    for r in (0.0, 0.005, 0.01, 0.02, 0.03):
         cfg = LandUseConfig(
             H_por_estrato=H_APP,
             max_iter=5000,
@@ -349,6 +349,10 @@ def configuracion_vigente() -> dict:
         "rho": [e.rho for e in cfg.estratos],
         "beta": round(cfg.beta, 4),
         "beta_formula": "1/√VIAJES_MES",
+        "b_h_por_clp": [cfg.beta * e.lambda_ for e in cfg.estratos],
+        "escala_ruido_puja_clp_mes": [
+            round(1.0 / (cfg.beta * e.lambda_)) for e in cfg.estratos
+        ],
         "VIAJES_MES": VIAJES_MES,
         "vot_transporte_clp_h": [round(t * 60.0 / c) for t, c in zip(bt, bc)],
         "vot_suelo_alpha_sobre_lambda_clp_por_util": [
@@ -471,6 +475,38 @@ def reescala_beta() -> dict:
     }
 
 
+def rho_umbral() -> dict:
+    """El ρ en que la asignación se invierte: el estrato alto pasa a vivir más
+    lejos que el bajo. Bisección sobre ρ común, con la configuración vigente."""
+
+    def distancias(rho: float) -> list[float]:
+        cfg = LandUseConfig(
+            H_por_estrato=H_APP,
+            max_iter=5000,
+            estratos=tuple(
+                LandUseStratumConfig(
+                    y=e.y, alpha=e.alpha, rho=rho, **{"lambda": e.lambda_}
+                )
+                for e in LandUseConfig().estratos
+            ),
+        )
+        return _metricas(_ciudad(cfg))["dist_km"]
+
+    lo, hi = 0.005, 0.03
+    for _ in range(14):
+        m = (lo + hi) / 2
+        d = distancias(m)
+        if d[0] < d[2]:
+            lo = m
+        else:
+            hi = m
+    return {
+        "rho_inversion": round(hi, 4),
+        "criterio": "d_alto = d_bajo",
+        "dial_ui_max": 0.03,
+    }
+
+
 FUENTES_EXTERNAS = {
     "casen_2022": {
         "que": "Ingreso autónomo promedio mensual de los hogares por decil de ingreso "
@@ -522,7 +558,7 @@ def main() -> None:
             "script": "docs/libro/datos/datos_cap02.py",
             "configuracion": (
                 "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 "
-                "(20/50/30), oferta normal σ=0,5, α=1, ρ=5,2e-3, β=1/√44≈0,151, "
+                "(20/50/30), oferta normal σ=0,5, α=1, ρ=0, β=1/√44≈0,151, "
                 "λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
             ),
         },
@@ -535,6 +571,7 @@ def main() -> None:
         "configuracion_vigente": configuracion_vigente(),
         "escalas": escalas(),
         "reescala_beta": reescala_beta(),
+        "rho_umbral": rho_umbral(),
         "fuentes_externas": FUENTES_EXTERNAS,
     }
     SALIDA.write_text(

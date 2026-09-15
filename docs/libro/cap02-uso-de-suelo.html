@@ -155,7 +155,31 @@
   La normalización de escala ya la hizo el logit de transporte, que fija en 1
   el shock de un viaje, y <em>β</em> es entonces la <strong>razón entre la
   escala del ruido de elegir casa y la de elegir modo</strong>. Es el único
-  parámetro propio del módulo, y la §2 explica su valor.
+  parámetro propio del módulo, y la §2 explica su valor. Las tres escalas, con
+  sus unidades, son:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Símbolo</th><th>Qué es</th><th>Unidad</th><th class="n">Alto</th><th class="n">Medio</th><th class="n">Bajo</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><em>μ_h</em> = β</td><td>precisión del ruido de la utilidad</td><td>1/útil</td><td class="n">0,1508</td><td class="n">0,1508</td><td class="n">0,1508</td></tr>
+    <tr><td><em>λ_h</em></td><td>utilidad marginal del ingreso</td><td>utiles/$</td><td class="n">3,20 ·10⁻⁴</td><td class="n">6,41 ·10⁻⁴</td><td class="n">12,41 ·10⁻⁴</td></tr>
+    <tr><td><em>b_h</em> = λ_h·μ_h</td><td>precisión del ruido de la puja, en dinero</td><td>1/$</td><td class="n">4,83 ·10⁻⁵</td><td class="n">9,66 ·10⁻⁵</td><td class="n">18,71 ·10⁻⁵</td></tr>
+    <tr><td>1/<em>b_h</em></td><td>escala Gumbel de la puja</td><td>$/mes</td><td class="n">20.708</td><td class="n">10.354</td><td class="n">5.344</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  <em>β</em> es común a los estratos porque el ruido de vivienda se supone
+  igual para todos en utiles; la heterogeneidad en dinero, que Martínez subraya
+  cuando dice que la varianza de la disposición a pagar crece con el ingreso,
+  aparece sola al dividir por <em>λ_h</em>: el estrato alto tiene un ruido de
+  puja cuatro veces mayor en pesos que el bajo porque cada útil le cuesta
+  cuatro veces más pesos.
 </p>
 
 <div class="aviso idea">
@@ -165,11 +189,12 @@
     implícitos y las utilidades de reserva. Toma como dados la oferta
     <em>S_i</em> y su forma, los hogares <em>H_h</em>, los ingresos, la
     accesibilidad y la escala <em>β</em>. No hay elección de tamaño de lote, así
-    que la densidad no responde a los precios; y la penalización por densidad
-    actúa sobre una cantidad exógena, así que no hay externalidades de
-    localización ni las cascadas que Martínez asocia a ellas. En su geometría
-    por defecto, densidad y accesibilidad son casi la misma variable, con una
-    correlación de −0,996, y la puja identifica sobre todo su combinación.
+    que la densidad no responde a los precios; y la penalización por densidad,
+    que por defecto no actúa, penaliza una cantidad exógena, así que no hay
+    externalidades de localización ni las cascadas que Martínez asocia a
+    ellas. En la geometría por defecto, densidad y accesibilidad son casi la
+    misma variable, con una correlación de −0,996, y la puja identifica sobre
+    todo su combinación.
   </p>
 </div>
 
@@ -213,9 +238,9 @@
     </tr>
     <tr>
       <td><code>rho</code></td>
-      <td class="n">5,2 ·10⁻³</td>
+      <td class="n">0</td>
       <td>utiles-mes/(hog/km)</td>
-      <td><span class="etiqueta lim">heredado</span> <strong>sin fuente</strong>; pendiente de decisión</td>
+      <td><span class="etiqueta neutra">decisión</span> sin fuente; 0 deja el modelo en Alonso puro; el control llega a 0,03</td>
     </tr>
     <tr>
       <td><code>forma</code> / <code>oferta_sigma_frac</code></td>
@@ -275,12 +300,18 @@
 
 <p>
   <strong>ρ.</strong> No tiene fuente: Martínez deja <em>f_h</em> como función
-  general de atributos y no prescribe penalización por densidad; el documento
-  original la traía sin justificar. Su valor actual hace que <em>ρ·dens</em>
-  recorra el 15 % del rango de <em>α·T</em> en el estrato medio. Con la
-  forma normal es casi redundante con la accesibilidad, mueve poco la
-  asignación y aplana el gradiente de renta; la §5 mide cuánto. Queda
-  pendiente decidir si se conserva, se anula o se reinterpreta.
+  general de atributos y no prescribe penalización por densidad, y el
+  documento original la traía sin justificar. Por eso vale cero por defecto y
+  el modelo queda en Alonso puro: la localización la decide sólo la
+  accesibilidad, y la segregación sale de que el tiempo vale distinto por
+  estrato. Se conserva como control pedagógico porque cuenta la otra mitad de
+  la historia de Alonso. Como entra dividido por <em>λ_h</em>, un <em>ρ</em>
+  común ya hace que el estrato alto pague más pesos por baja densidad; al
+  subirlo la ciudad se mezcla, el gradiente de renta se aplana y, cerca de
+  <em>ρ</em> = 0,0187, la asignación se invierte: el estrato alto pasa a vivir
+  más lejos que el bajo, el patrón «ricos en la periferia» que en Alonso
+  produce una preferencia por espacio que crece con el ingreso. El control
+  llega a 0,03 para que ese cruce se vea; la §5 lo mide.
 </p>
 
 <p>
@@ -315,8 +346,8 @@
     <tr>
       <td class="n">—</td>
       <td class="ruta py">land_use/config.py</td>
-      <td class="n">57</td>
-      <td><code>LandUseConfig</code> — <code>H_por_estrato</code> (62), <code>estratos</code> (135), <code>beta</code> (172) derivado de VIAJES_MES, <code>forma</code> (184), <code>oferta_sigma_frac</code> (191)</td>
+      <td class="n">61</td>
+      <td><code>LandUseConfig</code> — <code>H_por_estrato</code> (66), <code>estratos</code> (124), <code>beta</code> (161) derivado de VIAJES_MES, <code>forma</code> (173), <code>oferta_sigma_frac</code> (180)</td>
     </tr>
     <tr>
       <td class="n">—</td>
@@ -473,18 +504,18 @@
     <tr><th>Forma</th><th class="n">Error máx. (hogares)</th><th class="n">Iteraciones</th></tr>
   </thead>
   <tbody>
-    <tr><td>normal</td><td class="n">2,4 ·10⁻⁹</td><td class="n">30</td></tr>
+    <tr><td>normal</td><td class="n">2,8 ·10⁻⁹</td><td class="n">38</td></tr>
     <tr><td>uniforme</td><td class="n">2,8 ·10⁻⁹</td><td class="n">37</td></tr>
-    <tr><td>exponencial</td><td class="n">1,7 ·10⁻⁹</td><td class="n">31</td></tr>
-    <tr><td>meseta</td><td class="n">8,0 ·10⁻¹⁰</td><td class="n">25</td></tr>
-    <tr><td>bimodal</td><td class="n">1,5 ·10⁻⁹</td><td class="n">28</td></tr>
-    <tr><td>valle</td><td class="n">2,2 ·10⁻⁹</td><td class="n">35</td></tr>
+    <tr><td>exponencial</td><td class="n">2,6 ·10⁻⁹</td><td class="n">42</td></tr>
+    <tr><td>meseta</td><td class="n">1,7 ·10⁻⁹</td><td class="n">29</td></tr>
+    <tr><td>bimodal</td><td class="n">7,3 ·10⁻¹⁰</td><td class="n">30</td></tr>
+    <tr><td>valle</td><td class="n">1,7 ·10⁻⁹</td><td class="n">28</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Sobre 36.000 hogares, un error de 10⁻⁹ es ruido de punto flotante. La
+  Sobre 36.000 hogares, un error del orden de 10⁻⁹ es ruido de punto flotante. La
   ecuación (2.5) se cumple en las seis formas y en tres escalas, 3.600, 36.000
   y 144.000 hogares. Es el resultado que sostiene todo lo demás: <em>Q</em> es
   una distribución de población de verdad.
@@ -499,9 +530,9 @@
   </thead>
   <tbody>
     <tr><td>λ uniforme</td><td>forma cerrada</td><td class="n">1,0</td><td class="n">1,3 ·10⁻⁶</td><td class="n">15</td></tr>
-    <tr class="destacada"><td>λ del default</td><td>HEV</td><td class="n">3,9</td><td class="n">2,4 ·10⁻⁹</td><td class="n">30</td></tr>
-    <tr><td>λ razón 10</td><td>HEV</td><td class="n">10,0</td><td class="n">3,0 ·10⁻⁷</td><td class="n">27</td></tr>
-    <tr><td>λ razón 100</td><td>HEV</td><td class="n">100,0</td><td class="n">1,2 ·10⁻⁷</td><td class="n">36</td></tr>
+    <tr class="destacada"><td>λ del default</td><td>HEV</td><td class="n">3,9</td><td class="n">2,8 ·10⁻⁹</td><td class="n">38</td></tr>
+    <tr><td>λ razón 10</td><td>HEV</td><td class="n">10,0</td><td class="n">5,0 ·10⁻⁷</td><td class="n">30</td></tr>
+    <tr><td>λ razón 100</td><td>HEV</td><td class="n">100,0</td><td class="n">3,8 ·10⁻⁷</td><td class="n">39</td></tr>
   </tbody>
 </table>
 </div>
@@ -537,22 +568,22 @@
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th>Estrato</th><th class="n">Señal por accesibilidad ($)</th><th class="n">Señal por densidad ($)</th><th class="n">Ruido con β = 0,151 ($)</th><th class="n">Señal/ruido</th><th class="n">Ruido con β = 1 ($)</th><th class="n">Señal/ruido</th></tr>
+    <tr><th>Estrato</th><th class="n">Señal: puja centro − periferia ($)</th><th class="n">Ruido con β = 0,151 ($)</th><th class="n">Señal/ruido</th><th class="n">Ruido con β = 1 ($)</th><th class="n">Señal/ruido</th></tr>
   </thead>
   <tbody>
-    <tr><td>alto</td><td class="n">211.686</td><td class="n">42.745</td><td class="n">20.708</td><td class="n">12,3</td><td class="n">3.122</td><td class="n">81,5</td></tr>
-    <tr><td>medio</td><td class="n">144.055</td><td class="n">21.372</td><td class="n">10.354</td><td class="n">16,0</td><td class="n">1.561</td><td class="n">106,0</td></tr>
-    <tr><td>bajo</td><td class="n">89.474</td><td class="n">11.031</td><td class="n">5.344</td><td class="n">18,8</td><td class="n">806</td><td class="n">124,8</td></tr>
+    <tr><td class="n">0,05</td><td class="n">0,0459</td><td class="n">2,869</td><td class="n">3,285</td><td class="n">4,724</td><td class="n">+0,914</td><td class="n">19</td></tr>
+    <tr class="destacada"><td class="n">0,1508</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td><td class="n">+0,920</td><td class="n">38</td></tr>
+    <tr><td class="n">0,50</td><td class="n">0,5967</td><td class="n">0,996</td><td class="n">2,897</td><td class="n">6,619</td><td class="n">+0,920</td><td class="n">108</td></tr>
+    <tr><td class="n">1,00</td><td class="n">0,7802</td><td class="n">0,792</td><td class="n">2,902</td><td class="n">6,746</td><td class="n">+0,920</td><td class="n">243</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Con <em>β = 1</em> la señal supera al ruido entre 80 y 125 veces: la subasta
+  Con <em>β = 1</em> la señal supera al ruido entre 68 y 111 veces: la subasta
   es casi determinista y cada estrato ocupa su franja. Con <em>β = 1/√44</em>
-  la razón baja a entre 12 y 19, que es lo que produce la mezcla que se ve en
-  las figuras. La densidad aporta alrededor de un quinto de la señal de la
-  accesibilidad en los tres estratos.
+  la razón baja a entre 10 y 17, que es lo que produce la mezcla que se ve en
+  las figuras. Con <em>ρ</em> = 0 toda la señal es accesibilidad.
 </p>
 
 <div class="envoltorio-tabla">
@@ -570,10 +601,11 @@
 </div>
 
 <p>
-  <em>β</em> gobierna la nitidez sin tocar el valor del tiempo: el gradiente
-  de renta se mantiene positivo en todo el rango, así que subirlo segrega más
-  pero no rompe a Alonso. El Theil va de 0,03 a 0,71, y el número de
-  iteraciones del punto fijo crece con la nitidez.
+  <em>β</em> gobierna la nitidez sin tocar el valor del tiempo: con
+  <em>ρ</em> = 0 el gradiente de renta ni siquiera se mueve, queda en +0,92 en
+  todo el rango, y lo que cambia es cuánto se separan los estratos. El Theil
+  va de 0,05 a 0,78, y el número de iteraciones del punto fijo crece con la
+  nitidez.
 </p>
 
 <p>
@@ -588,18 +620,19 @@
     <tr><th>Transformación</th><th class="n">max ΔQ</th><th class="n">max Δp ($)</th><th class="n">max Δū ($)</th></tr>
   </thead>
   <tbody>
-    <tr><td>HEV: β = 1 con λ, α, ρ × 0,1508</td><td class="n">1,3 ·10⁻¹⁴</td><td class="n">1,4 ·10⁻⁹</td><td class="n">0</td></tr>
-    <tr><td>forma cerrada: ídem con λ uniforme</td><td class="n">1,1 ·10⁻¹⁴</td><td class="n">0</td><td class="n">0</td></tr>
-    <tr><td>HEV: β = 1 con sólo λ × 0,1508</td><td class="n">0,548</td><td class="n">597.287</td><td class="n">86.923</td></tr>
+    <tr><td>HEV: β = 1 con λ, α, ρ × 0,1508</td><td class="n">1,3 ·10⁻¹⁴</td><td class="n">9,3 ·10⁻¹⁰</td><td class="n">0</td></tr>
+    <tr><td>forma cerrada: ídem con λ uniforme</td><td class="n">6,0 ·10⁻¹⁵</td><td class="n">9,3 ·10⁻¹⁰</td><td class="n">0</td></tr>
+    <tr><td>HEV: β = 1 con sólo λ × 0,1508</td><td class="n">0,510</td><td class="n">591.648</td><td class="n">222.970</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Los coeficientes equivalentes serían <em>λ</em> = 4,83 / 9,66 / 18,71 ·10⁻⁵,
-  <em>α</em> = 0,151 y <em>ρ</em> = 7,84 ·10⁻⁴: el mismo modelo con el
-  supuesto repartido en tres números en vez de uno. Reescalar sólo <em>λ</em>
-  no equivale a nada.
+  Los coeficientes equivalentes serían <em>λ</em> = 4,83 / 9,66 / 18,71 ·10⁻⁵
+  y <em>α</em> = 0,151, que son justamente los <em>b_h</em> de la §1 y
+  <em>β</em>: el mismo modelo con el supuesto repartido en los coeficientes en
+  vez de en un número con nombre. Reescalar sólo <em>λ</em> no equivale a
+  nada.
 </p>
 
 <div class="envoltorio-tabla">
@@ -608,10 +641,11 @@
     <tr><th class="n">ρ</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th>Asignación</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0,0</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td><td class="n">+0,920</td><td>—</td></tr>
-    <tr class="destacada"><td class="n">0,0052</td><td class="n">0,1703</td><td class="n">2,244</td><td class="n">3,018</td><td class="n">5,584</td><td class="n">+0,669</td><td>—</td></tr>
+    <tr class="destacada"><td class="n">0,0</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td><td class="n">+0,920</td><td>Alonso puro</td></tr>
+    <tr><td class="n">0,005</td><td class="n">0,1730</td><td class="n">2,228</td><td class="n">3,015</td><td class="n">5,599</td><td class="n">+0,677</td><td>—</td></tr>
     <tr><td class="n">0,01</td><td class="n">0,1087</td><td class="n">2,702</td><td class="n">3,096</td><td class="n">5,149</td><td class="n">+0,481</td><td>—</td></tr>
     <tr><td class="n">0,02</td><td class="n">0,0485</td><td class="n">4,247</td><td class="n">3,264</td><td class="n">3,839</td><td class="n">+0,186</td><td>invertida</td></tr>
+    <tr><td class="n">0,03</td><td class="n">0,1432</td><td class="n">5,816</td><td class="n">3,277</td><td class="n">2,771</td><td class="n">−0,045</td><td>invertida, renta invertida</td></tr>
   </tbody>
 </table>
 </div>
@@ -619,12 +653,13 @@
 <p>
   <em>ρ</em> hace lo contrario de <em>β</em>: aplana. Sube la penalización por
   densidad y la ciudad se mezcla, pero a costa de aplastar el gradiente de
-  renta, y con <em>ρ = 0,02</em> la asignación ya está invertida, el estrato
-  alto vive más lejos que el bajo, aunque el gradiente de precios siga siendo
-  positivo. El signo de <code>grad_p</code> no detecta la inversión más
-  temprana, la del reparto de la gente; la vara para vigilar <em>ρ</em> es el
-  orden de las distancias. Con <em>ρ = 0</em> el modelo es Alonso puro: la
-  segregación sale sólo de que el tiempo vale distinto.
+  renta, y en <em>ρ</em> = 0,0187 la asignación se invierte: el estrato alto
+  pasa a vivir más lejos que el bajo mientras el gradiente de precios sigue
+  siendo positivo. Sólo con <em>ρ</em> = 0,03 se invierte también la renta, y
+  ahí el Theil vuelve a subir porque la ciudad se segrega al revés. El signo de
+  <code>grad_p</code> no detecta la inversión más temprana, la del reparto de
+  la gente; la vara para vigilar <em>ρ</em> es el orden de las distancias. El
+  control de la interfaz llega a 0,03 para que las dos inversiones se vean.
 </p>
 
 <h3>5.6 Invariancias</h3>
@@ -635,9 +670,9 @@
     <tr><th class="n">Celdas</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">101</td><td class="n">0,1667</td><td class="n">2,298</td><td class="n">3,040</td><td class="n">5,578</td></tr>
-    <tr class="destacada"><td class="n">201</td><td class="n">0,1703</td><td class="n">2,244</td><td class="n">3,018</td><td class="n">5,584</td></tr>
-    <tr><td class="n">401</td><td class="n">0,1723</td><td class="n">2,216</td><td class="n">3,007</td><td class="n">5,588</td></tr>
+    <tr><td class="n">101</td><td class="n">0,2345</td><td class="n">1,964</td><td class="n">2,972</td><td class="n">5,914</td></tr>
+    <tr class="destacada"><td class="n">201</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td></tr>
+    <tr><td class="n">401</td><td class="n">0,2381</td><td class="n">1,894</td><td class="n">2,940</td><td class="n">5,913</td></tr>
   </tbody>
 </table>
 </div>
@@ -648,16 +683,16 @@
     <tr><th class="n">L (km)</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th class="n">Iter.</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">10</td><td class="n">0,0243</td><td class="n">3,523</td><td class="n">3,279</td><td class="n">4,297</td><td class="n">+0,313</td><td class="n">16</td></tr>
-    <tr class="destacada"><td class="n">20</td><td class="n">0,1703</td><td class="n">2,244</td><td class="n">3,018</td><td class="n">5,584</td><td class="n">+0,669</td><td class="n">30</td></tr>
-    <tr><td class="n">40</td><td class="n">0,3597</td><td class="n">1,577</td><td class="n">2,855</td><td class="n">6,300</td><td class="n">+0,708</td><td class="n">58</td></tr>
+    <tr><td class="n">10</td><td class="n">0,1556</td><td class="n">2,317</td><td class="n">2,984</td><td class="n">5,592</td><td class="n">+0,965</td><td class="n">29</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td><td class="n">+0,920</td><td class="n">38</td></tr>
+    <tr><td class="n">40</td><td class="n">0,3847</td><td class="n">1,507</td><td class="n">2,845</td><td class="n">6,364</td><td class="n">+0,780</td><td class="n">63</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Refinar la grilla de 101 a 401 celdas deja el Theil dentro de 0,006 y las
-  distancias medias dentro de 0,08 km: la resolución es numérica, como en el
+  Refinar la grilla de 101 a 401 celdas deja el Theil dentro de 0,004 y las
+  distancias medias dentro de 0,07 km: la resolución es numérica, como en el
   capítulo 1. El tamaño físico sí mueve el resultado, como debe: más
   kilómetros hacen pesar más el gradiente de accesibilidad contra el ruido de
   la subasta, y el estrato alto se acerca al centro.
@@ -670,8 +705,8 @@
   hogares se cumple a precisión de máquina en todas las formas y escalas, el
   despacho entre las dos ramas es continuo, y el mismo hogar que puja por
   suelo es el que elige modo, con un solo valor del tiempo. De los siete
-  parámetros, cuatro vienen de transporte o de una norma y tres son decisiones
-  declaradas con su razón.
+  parámetros, <em>λ</em> viene de transporte, la forma de la oferta es
+  heredada y los otros cinco son decisiones declaradas con su razón.
 </p>
 
 <p>
@@ -679,21 +714,20 @@
   simulador es un supuesto dos veces</strong>: la gobiernan la dispersión del
   valor del tiempo entre estratos y <em>β</em>, y las dos son decisiones. Con
   ellas fijas, el Theil es un resultado; sin declararlas, sería un número
-  puesto. Y <strong><em>ρ</em> sigue sin fuente</strong>: es el único parámetro
-  del simulador cuyo valor se fijó por una regla de proporción en vez de por
-  una estimación, una norma o una decisión explicada, y su papel es
-  discutible, porque penaliza una cantidad que ningún hogar puede mover y que
-  casi coincide con la accesibilidad.
+  puesto. <strong><em>ρ</em> quedó en cero</strong> porque no tiene fuente y
+  porque penaliza una cantidad que ningún hogar puede mover y que casi
+  coincide con la accesibilidad; como control enseña algo real, la inversión
+  de Alonso, y por eso no se eliminó.
 </p>
 
 <h3>Pendientes</h3>
 
 <ul>
   <li>
-    <strong>ρ.</strong> Decidir entre conservarlo como experimento pedagógico
-    de desamenidad por densidad, anularlo para dejar el modelo en Alonso puro,
-    o reinterpretarlo. Cualquiera de las tres mueve la línea base con suelo y
-    es un cambio de modelo.
+    <strong>ρ por estrato.</strong> Hoy es común y la heterogeneidad en pesos
+    sale sólo de <em>λ_h</em>. Un <em>ρ_h</em> propio permitiría contar
+    explícitamente que la preferencia por espacio crece con el ingreso, que es
+    el mecanismo de Alonso para la inversión.
   </li>
   <li>
     <strong>Balance como condición de convergencia.</strong> Exigir (2.5)

@@ -1,9 +1,9 @@
 {
  "_meta": {
   "fecha": "2026-09-15",
-  "commit": "1c8341a",
+  "commit": "5910114",
   "script": "docs/libro/datos/datos_cap02.py",
-  "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α=1, ρ=5,2e-3, β=1/√44≈0,151, λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
+  "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α=1, ρ=0, β=1/√44≈0,151, λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
  },
  "formas": [
   {
@@ -72,61 +72,61 @@
    {
     "forma": "normal",
     "convergio": true,
-    "iteraciones": 30,
-    "error_max_hogares": 2.387e-09,
-    "error_relativo_max": 2.21e-13
+    "iteraciones": 38,
+    "error_max_hogares": 2.805e-09,
+    "error_relativo_max": 2.597e-13
    },
    {
     "forma": "uniforme",
     "convergio": true,
     "iteraciones": 37,
-    "error_max_hogares": 2.785e-09,
-    "error_relativo_max": 2.579e-13
+    "error_max_hogares": 2.765e-09,
+    "error_relativo_max": 2.56e-13
    },
    {
     "forma": "exponencial",
     "convergio": true,
-    "iteraciones": 31,
-    "error_max_hogares": 1.692e-09,
-    "error_relativo_max": 1.566e-13
+    "iteraciones": 42,
+    "error_max_hogares": 2.616e-09,
+    "error_relativo_max": 2.422e-13
    },
    {
     "forma": "meseta",
     "convergio": true,
-    "iteraciones": 25,
-    "error_max_hogares": 8.04e-10,
-    "error_relativo_max": 7.444e-14
+    "iteraciones": 29,
+    "error_max_hogares": 1.659e-09,
+    "error_relativo_max": 1.536e-13
    },
    {
     "forma": "bimodal",
     "convergio": true,
-    "iteraciones": 28,
-    "error_max_hogares": 1.515e-09,
-    "error_relativo_max": 1.403e-13
+    "iteraciones": 30,
+    "error_max_hogares": 7.276e-10,
+    "error_relativo_max": 6.737e-14
    },
    {
     "forma": "valle",
     "convergio": true,
-    "iteraciones": 35,
-    "error_max_hogares": 2.23e-09,
-    "error_relativo_max": 2.065e-13
+    "iteraciones": 28,
+    "error_max_hogares": 1.732e-09,
+    "error_relativo_max": 1.603e-13
    }
   ],
   "por_escala": [
    {
     "suma_H": 3600,
-    "error_max_hogares": 2.751e-10,
-    "iteraciones": 37
+    "error_max_hogares": 2.315e-10,
+    "iteraciones": 38
    },
    {
     "suma_H": 36000,
-    "error_max_hogares": 2.387e-09,
-    "iteraciones": 30
+    "error_max_hogares": 2.805e-09,
+    "iteraciones": 38
    },
    {
     "suma_H": 144000,
-    "error_max_hogares": 1.834e-09,
-    "iteraciones": 17
+    "error_max_hogares": 1.177e-08,
+    "iteraciones": 38
    }
   ]
  },
@@ -143,7 +143,7 @@
     "razon_escalas": 1.0,
     "convergio": true,
     "iteraciones": 15,
-    "error_balance_hogares": 1.345e-06,
+    "error_balance_hogares": 1.337e-06,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -156,8 +156,8 @@
     "rama": "HEV",
     "razon_escalas": 3.9,
     "convergio": true,
-    "iteraciones": 30,
-    "error_balance_hogares": 2.387e-09,
+    "iteraciones": 38,
+    "error_balance_hogares": 2.805e-09,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -170,8 +170,8 @@
     "rama": "HEV",
     "razon_escalas": 10.0,
     "convergio": true,
-    "iteraciones": 27,
-    "error_balance_hogares": 3.01e-07,
+    "iteraciones": 30,
+    "error_balance_hogares": 4.975e-07,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -184,8 +184,8 @@
     "rama": "HEV",
     "razon_escalas": 100.0,
     "convergio": true,
-    "iteraciones": 36,
-    "error_balance_hogares": 1.229e-07,
+    "iteraciones": 39,
+    "error_balance_hogares": 3.759e-07,
     "columnas_suman_uno_error": 2.22e-16
    }
   ],
@@ -216,46 +216,46 @@
    {
     "beta": 0.05,
     "dist_km": [
-     3.084,
-     3.346,
-     4.479
+     2.869,
+     3.285,
+     4.724
     ],
-    "theil": 0.0283,
-    "grad_p": 0.701,
-    "iteraciones": 17
+    "theil": 0.0459,
+    "grad_p": 0.914,
+    "iteraciones": 19
    },
    {
     "beta": 0.1508,
     "dist_km": [
-     2.244,
-     3.018,
-     5.584
+     1.918,
+     2.951,
+     5.913
     ],
-    "theil": 0.1703,
-    "grad_p": 0.669,
-    "iteraciones": 30
+    "theil": 0.2368,
+    "grad_p": 0.92,
+    "iteraciones": 38
    },
    {
     "beta": 0.5,
     "dist_km": [
-     1.137,
-     2.959,
-     6.422
+     0.996,
+     2.897,
+     6.619
     ],
-    "theil": 0.494,
-    "grad_p": 0.647,
-    "iteraciones": 73
+    "theil": 0.5967,
+    "grad_p": 0.92,
+    "iteraciones": 108
    },
    {
     "beta": 1.0,
     "dist_km": [
-     0.837,
-     2.94,
-     6.652
+     0.792,
+     2.902,
+     6.746
     ],
-    "theil": 0.7121,
-    "grad_p": 0.648,
-    "iteraciones": 149
+    "theil": 0.7802,
+    "grad_p": 0.92,
+    "iteraciones": 243
    }
   ],
   "rho": [
@@ -271,15 +271,15 @@
     "iteraciones": 38
    },
    {
-    "rho": 0.0052,
+    "rho": 0.005,
     "dist_km": [
-     2.244,
-     3.018,
-     5.584
+     2.228,
+     3.015,
+     5.599
     ],
-    "theil": 0.1703,
-    "grad_p": 0.669,
-    "iteraciones": 30
+    "theil": 0.173,
+    "grad_p": 0.677,
+    "iteraciones": 31
    },
    {
     "rho": 0.01,
@@ -302,6 +302,17 @@
     "theil": 0.0485,
     "grad_p": 0.186,
     "iteraciones": 17
+   },
+   {
+    "rho": 0.03,
+    "dist_km": [
+     5.816,
+     3.277,
+     2.771
+    ],
+    "theil": 0.1432,
+    "grad_p": -0.045,
+    "iteraciones": 25
    }
   ]
  },
@@ -309,29 +320,29 @@
   "grilla": [
    {
     "n_celdas": 101,
-    "theil": 0.1667,
+    "theil": 0.2345,
     "dist_km": [
-     2.298,
-     3.04,
-     5.578
+     1.964,
+     2.972,
+     5.914
     ]
    },
    {
     "n_celdas": 201,
-    "theil": 0.1703,
+    "theil": 0.2368,
     "dist_km": [
-     2.244,
-     3.018,
-     5.584
+     1.918,
+     2.951,
+     5.913
     ]
    },
    {
     "n_celdas": 401,
-    "theil": 0.1723,
+    "theil": 0.2381,
     "dist_km": [
-     2.216,
-     3.007,
-     5.588
+     1.894,
+     2.94,
+     5.913
     ]
    }
   ],
@@ -339,35 +350,35 @@
    {
     "largo_km": 10.0,
     "dist_km": [
-     3.523,
-     3.279,
-     4.297
+     2.317,
+     2.984,
+     5.592
     ],
-    "theil": 0.0243,
-    "grad_p": 0.313,
-    "iteraciones": 16
+    "theil": 0.1556,
+    "grad_p": 0.965,
+    "iteraciones": 29
    },
    {
     "largo_km": 20.0,
     "dist_km": [
-     2.244,
-     3.018,
-     5.584
+     1.918,
+     2.951,
+     5.913
     ],
-    "theil": 0.1703,
-    "grad_p": 0.669,
-    "iteraciones": 30
+    "theil": 0.2368,
+    "grad_p": 0.92,
+    "iteraciones": 38
    },
    {
     "largo_km": 40.0,
     "dist_km": [
-     1.577,
-     2.855,
-     6.3
+     1.507,
+     2.845,
+     6.364
     ],
-    "theil": 0.3597,
-    "grad_p": 0.708,
-    "iteraciones": 58
+    "theil": 0.3847,
+    "grad_p": 0.78,
+    "iteraciones": 63
    }
   ]
  },
@@ -393,12 +404,22 @@
    1.0
   ],
   "rho": [
-   0.0052,
-   0.0052,
-   0.0052
+   0.0,
+   0.0,
+   0.0
   ],
   "beta": 0.1508,
   "beta_formula": "1/√VIAJES_MES",
+  "b_h_por_clp": [
+   4.8290509214591493e-05,
+   9.658162145187213e-05,
+   0.00018712547822857453
+  ],
+  "escala_ruido_puja_clp_mes": [
+   20708,
+   10354,
+   5344
+  ],
   "VIAJES_MES": 44,
   "vot_transporte_clp_h": [
    6200,
@@ -423,53 +444,53 @@
    {
     "estrato": "alto",
     "senal_accesibilidad_clp": 211686,
-    "senal_densidad_clp": 42745,
-    "senal_total_clp": 254431,
+    "senal_densidad_clp": 0,
+    "senal_total_clp": 211686,
     "ruido_clp": 20708,
-    "senal_sobre_ruido": 12.3,
+    "senal_sobre_ruido": 10.2,
     "ruido_con_beta_1_clp": 3122,
-    "senal_sobre_ruido_con_beta_1": 81.5
+    "senal_sobre_ruido_con_beta_1": 67.8
    },
    {
     "estrato": "medio",
     "senal_accesibilidad_clp": 144055,
-    "senal_densidad_clp": 21372,
-    "senal_total_clp": 165427,
+    "senal_densidad_clp": 0,
+    "senal_total_clp": 144055,
     "ruido_clp": 10354,
-    "senal_sobre_ruido": 16.0,
+    "senal_sobre_ruido": 13.9,
     "ruido_con_beta_1_clp": 1561,
-    "senal_sobre_ruido_con_beta_1": 106.0
+    "senal_sobre_ruido_con_beta_1": 92.3
    },
    {
     "estrato": "bajo",
     "senal_accesibilidad_clp": 89474,
-    "senal_densidad_clp": 11031,
-    "senal_total_clp": 100505,
+    "senal_densidad_clp": 0,
+    "senal_total_clp": 89474,
     "ruido_clp": 5344,
-    "senal_sobre_ruido": 18.8,
+    "senal_sobre_ruido": 16.7,
     "ruido_con_beta_1_clp": 806,
-    "senal_sobre_ruido_con_beta_1": 124.8
+    "senal_sobre_ruido_con_beta_1": 111.1
    }
   ],
   "rango_T_medio_utiles_mes": 92.3,
   "rango_densidad_hab_km": 2633,
-  "rho_dens_sobre_alpha_T_medio": 0.15
+  "rho_dens_sobre_alpha_T_medio": 0.0
  },
  "reescala_beta": {
   "k": 0.1508,
   "hev_beta_1_con_lambda_alpha_rho_por_k": {
-   "max_delta_Q": 1.3211653993039363e-14,
-   "max_delta_p_clp": 1.3969838619232178e-09,
+   "max_delta_Q": 1.27675647831893e-14,
+   "max_delta_p_clp": 9.313225746154785e-10,
    "max_delta_u_clp": 0.0
   },
   "hev_beta_1_con_solo_lambda_por_k": {
-   "max_delta_Q": 0.547843634328872,
-   "max_delta_p_clp": 597286.6387378285,
-   "max_delta_u_clp": 86923.40949756932
+   "max_delta_Q": 0.5098083887905736,
+   "max_delta_p_clp": 591648.2106016949,
+   "max_delta_u_clp": 222969.58201679448
   },
   "cerrada_beta_1_con_lambda_alpha_rho_por_k": {
-   "max_delta_Q": 1.1435297153639112e-14,
-   "max_delta_p_clp": 0.0,
+   "max_delta_Q": 5.9674487573602164e-15,
+   "max_delta_p_clp": 9.313225746154785e-10,
    "max_delta_u_clp": 0.0
   },
   "parametros_equivalentes_con_beta_1": {
@@ -479,8 +500,13 @@
     0.00018712547822857453
    ],
    "alpha": 0.15075567228888181,
-   "rho": 0.0007839294959021854
+   "rho": 0.0
   }
+ },
+ "rho_umbral": {
+  "rho_inversion": 0.0187,
+  "criterio": "d_alto = d_bajo",
+  "dial_ui_max": 0.03
  },
  "fuentes_externas": {
   "casen_2022": {

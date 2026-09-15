@@ -243,8 +243,8 @@ export function LandUseBuilder({
               label={t("land_use.param_rho")}
               value={s.rho}
               min={0}
-              max={0.01}
-              step={0.0001}
+              max={0.03}
+              step={0.0005}
               format={(v) => `${(v * 1e3).toFixed(2)}·10⁻³`}
               hint={t("land_use.rho_hint")}
               onChange={(v) => setStratum(idx, { rho: v })}

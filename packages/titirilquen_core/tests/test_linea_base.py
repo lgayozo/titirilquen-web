@@ -64,12 +64,17 @@ ESPERADO = {
     #     acoplado) pasa del «flujo libre» con 10 min de acceso fijos a la red
     #     VACÍA configurada (estaciones reales, frecuencia mínima). Mueve poco:
     #     metro −0,11, caminata +0,07, bici +0,04, auto −0,03.
+    #  6. rho = 0 (2026-09-15): la penalización por densidad, sin fuente, deja
+    #     de actuar por defecto y el suelo queda en Alonso puro (Theil 0,24 en
+    #     vez de 0,17, el alto a 1,9 km en vez de 2,2). Los viajes cortos del
+    #     centro migran a metro y auto: metro +0,60, caminata −0,31, bici −0,10,
+    #     auto −0,09; una iteración más del MSA. `original` sigue intacta.
     "equilibrio": {
-        "Auto": 15.39,
-        "Metro": 32.06,
-        "Bici": 23.89,
-        "Caminata": 9.14,
-        "Teletrabajo": 19.53,
+        "Auto": 15.30,
+        "Metro": 32.66,
+        "Bici": 23.79,
+        "Caminata": 8.83,
+        "Teletrabajo": 19.42,
     },
     "original": {
         "Auto": 15.81,
@@ -85,7 +90,7 @@ ESPERADO = {
 #: `equilibrio` pasó de 7 a 8 con los `lambda` heterogéneos (sep-2026): la ciudad
 #: de partida es más segregada y el MSA necesita una pasada más. El reescalado
 #: homoscedástico de transporte no cambió el conteo.
-ITERACIONES_ESPERADAS = {"equilibrio": 8, "original": 8}
+ITERACIONES_ESPERADAS = {"equilibrio": 9, "original": 8}
 
 
 def _config_web() -> SimulationConfig:

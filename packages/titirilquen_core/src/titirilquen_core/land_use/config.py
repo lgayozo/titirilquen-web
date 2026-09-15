@@ -49,8 +49,12 @@ class LandUseStratumConfig(BaseModel):
         ),
     )
     rho: float = Field(
-        default=5.2e-3,
-        description="Penalización de densidad (utiles de transporte por mes, por hogar/km)",
+        default=0.0,
+        ge=0,
+        description=(
+            "Penalización de densidad (utiles de transporte por mes, por hogar/km). "
+            "0 = Alonso puro: sólo manda la accesibilidad. Entra en pesos como rho/lambda_h"
+        ),
     )
 
 
@@ -77,27 +81,17 @@ class LandUseConfig(BaseModel):
     #
     # Calibración en unidades físicas (D-26). Ingresos en $/mes (D-27).
     #
-    # ρ = 0,0025 y no 0,1 (2026-08-24). El valor anterior venía de convertir
-    # ρ=1 por hogar/celda sobre la grilla de 201 celdas, y esa conversión era
-    # fiel pero partía de un punto ya roto: la ciudad del `Suelo.tex` original
-    # tiene 1001 celdas, y el balance entre los dos términos de la amenidad
+    # `rho` = 0 por defecto: el modelo es Alonso puro, la localización la decide
+    # sólo la accesibilidad y la segregación sale de que el tiempo vale distinto
+    # por estrato. La penalización por densidad no tiene fuente (Martínez deja
+    # f_h como función general de atributos) y actúa sobre una densidad exógena
+    # (S/Δx), así que no es congestión residencial: es una desamenidad fija de la
+    # parcela. Se conserva como dial pedagógico: como entra dividido por lambda_h,
+    # un rho común ya hace que el estrato alto pague más pesos por baja densidad;
+    # al subirlo, la ciudad se mezcla, el gradiente de renta se aplana y cerca de
+    # 0,019 la asignación se invierte (el alto vive más lejos que el bajo), que es
+    # el patrón «ricos en la periferia». La interfaz llega hasta 0,03.
     #
-    #     razón ≈ α·(L/2)²·1,253 / (ρ·N)
-    #
-    # va con el CUADRADO del número de celdas. Pasar de 1001 a 201 lo dividió
-    # por 25 sin que nadie rebalanceara ρ, así que `ρ·dens` terminó dominando a
-    # `α·T` en el 80% de la ciudad y el suelo más caro quedó en la PERIFERIA:
-    # el modelo de Alonso al revés. Medido: gradiente de renta −0,73 con ρ=0,1
-    # y +0,81 con ρ=0,0025, que es el valor que reproduce la razón ≈ 6 del
-    # documento original. Ver `test_el_suelo_central_vale_mas_que_el_periferico`.
-    #
-    # Con los `λ` uniformes —el default— cambiar ρ NO reasigna a nadie: es común
-    # a los tres estratos y se absorbe en ū (AU-05), así que las distancias
-    # medias por estrato quedan idénticas y sólo cambia el perfil de precios.
-    # OJO: eso vale SÓLO con λ uniforme. Lo que entra en la puja es `ρ_h/λ_h`,
-    # así que en cuanto los λ difieren una ρ común deja de ser un término común
-    # y sí reasigna: con λ = (0,5 · 1 · 2) y ρ = 0,05 la ciudad se invierte
-    # entera (alto a 5,67 km, bajo a 2,47). AU-05, corregido el 2026-09-02.
     # `lambda` HETEROGÉNEA (2026-09-02). Antes los tres valían 1,0, y eso no era
     # una decisión: era la única opción disponible. La forma cerrada de la
     # ec. (4.26) aplica un `beta` escalar sobre las pujas, así que con ella
@@ -121,12 +115,7 @@ class LandUseConfig(BaseModel):
     #     el ruido de la puja `1/(beta·lambda_h)` = $3.122 / $1.561 / $806 al mes.
     #   * `beta`: ver el comentario del campo, más abajo. Es la única perilla
     #     propia del módulo.
-    #   * `rho`: SIN FUENTE, ni acá ni en el original (donde valía 1 sobre la
-    #     capacidad cruda). Se fija para que `rho·dens` recorra el 50 % del rango
-    #     de `alpha·T` del estrato medio en la ciudad por defecto (decisión
-    #     2026-09-04): 0,5·87,4/8.410 = 5,2e-3 utiles-mes por (hog/km). Medido:
-    #     Theil 0,75, gradiente de renta +0,75. La asignación se invierte al
-    #     200 % (≈1,0e-2): la UI no debe dejar pasar de ahí.
+    #   * `rho`: sin fuente; 0 por defecto (ver el comentario del campo).
     #
     # Todo lo anterior está vigilado por `tests/test_vot_consistente.py` y
     # `tests/test_accesibilidad.py`. Historia: hasta sep-2026 alpha era 6,5/6,0/
@@ -134,9 +123,9 @@ class LandUseConfig(BaseModel):
     # cerrada (D-08) y T minutos a flujo libre.
     estratos: tuple[LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig] = Field(
         default=(
-            LandUseStratumConfig(y=3_500_000.0, alpha=1.0, rho=5.2e-3, **{"lambda": 0.000320323}),
-            LandUseStratumConfig(y=1_500_000.0, alpha=1.0, rho=5.2e-3, **{"lambda": 0.00064065}),
-            LandUseStratumConfig(y=500_000.0, alpha=1.0, rho=5.2e-3, **{"lambda": 0.00124125}),
+            LandUseStratumConfig(y=3_500_000.0, alpha=1.0, rho=0.0, **{"lambda": 0.000320323}),
+            LandUseStratumConfig(y=1_500_000.0, alpha=1.0, rho=0.0, **{"lambda": 0.00064065}),
+            LandUseStratumConfig(y=500_000.0, alpha=1.0, rho=0.0, **{"lambda": 0.00124125}),
         ),
         description=(
             "Parámetros de puja de los tres estratos (alto, medio, bajo). Son la "

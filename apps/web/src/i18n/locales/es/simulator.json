@@ -423,7 +423,7 @@
     "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utiles/$: el |b_costo| de cada estrato en Transporte. No se edita: una escala común de λ no mueve la asignación, sólo la unidad de las rentas (D-41).",
     "beta_hint": "Única perilla propia del módulo: cuánto ruido tiene elegir casa frente a un viaje. β = 1 es el ruido de un solo viaje contra una señal mensual (ciudad casi determinista, Theil ≈ 0,75). El default 1/√44 ≈ 0,15 supone que el ruido de casa acumula 44 shocks de viaje independientes (Theil ≈ 0,16). No toca el valor del tiempo.",
     "alpha_hint": "1 = la accesibilidad tal cual. Otro valor es un multiplicador sin fuente; para más o menos nitidez usá β. Es común a los tres estratos: sus diferencias de valoración del tiempo ya vienen en λ.",
-    "rho_hint": "Sin fuente en el modelo original; por defecto pesa la mitad que la accesibilidad en el estrato medio. Mueve sobre todo los precios (aplana la renta de Alonso). Pasado ~1,0·10⁻² la asignación se invierte: por eso el tope."
+    "rho_hint": "Sin fuente en el modelo original; 0 por defecto (Alonso puro: sólo manda la accesibilidad). Entra en pesos como ρ/λ_h, así que el estrato alto paga más por baja densidad. Al subirlo la ciudad se mezcla y la renta se aplana; cerca de 0,019 la asignación se invierte y los ricos quedan en la periferia."
   },
   "bid_price": {
     "y_label": "PRECIO (REL.)",

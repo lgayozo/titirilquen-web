@@ -423,7 +423,7 @@
     "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utils/$: each stratum's |b_cost| from Transport. Not editable: a common λ scale does not move the allocation, only the rent unit (D-41).",
     "beta_hint": "The module's only knob of its own: how noisy choosing a home is relative to one trip. β = 1 is one trip's noise against a monthly signal (near-deterministic city, Theil ≈ 0.75). The default 1/√44 ≈ 0.15 assumes the home-choice noise accumulates 44 independent trip shocks (Theil ≈ 0.16). Does not touch the value of time.",
     "alpha_hint": "1 = accessibility as is. Any other value is an unsourced multiplier; for more or less sharpness use β. Common to the three strata: their differences in valuing time already come through λ.",
-    "rho_hint": "No source in the original model; by default it weighs half as much as accessibility for the middle stratum. It mostly moves prices (flattens Alonso's rent). Past ~1.0·10⁻² the allocation flips: hence the cap."
+    "rho_hint": "No source in the original model; 0 by default (pure Alonso: only accessibility matters). It enters in pesos as ρ/λ_h, so the high stratum pays more for low density. Raising it mixes the city and flattens rents; near 0.019 the allocation inverts and the rich end up in the periphery."
   },
   "bid_price": {
     "y_label": "PRICE (REL.)",

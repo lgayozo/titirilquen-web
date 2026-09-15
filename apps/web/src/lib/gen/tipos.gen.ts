@@ -187,7 +187,10 @@ export interface LandUseStratumConfig {
    *  cual
    */
   alpha: number;
-  /** Penalización de densidad (utiles de transporte por mes, por hogar/km) */
+  /**
+   *  Penalización de densidad (utiles de transporte por mes, por hogar/km). 0 =
+   *  Alonso puro: sólo manda la accesibilidad. Entra en pesos como rho/lambda_h
+   */
   rho: number;
 }
 
