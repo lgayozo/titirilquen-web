@@ -203,8 +203,10 @@ export interface LandUseConfig {
    */
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   /**
-   *  Nitidez de la subasta: escala del ruido de la puja = 1/(beta·lambda). 1 =
-   *  el ruido de un viaje; 0,15 ≈ 1/√44 = ruido acumulado en el mes
+   *  Razón entre la escala del ruido de elegir casa y la de un viaje; el ruido
+   *  de la puja es 1/(beta·lambda). Default 1/√VIAJES_MES ≈ 0,151: el shock
+   *  mensual acumula VIAJES_MES viajes independientes. 1 = un solo shock por
+   *  casa (ciudad casi determinista)
    */
   beta: number;
   tol: number;

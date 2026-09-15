@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import math
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from titirilquen_core.constantes import VIAJES_MES
 from titirilquen_core.land_use.supply import FormaOferta
 
 """El modelo de subasta lo elige `solve_subasta` **según los datos**, no un campo
@@ -116,11 +119,8 @@ class LandUseConfig(BaseModel):
     #     el score `y + f/lambda` queda en $/mes, como `p` e `y` (D-27), el VoT
     #     `alpha/lambda` = 6.200 / 3.100 / 1.600 $/h coincide con transporte, y
     #     el ruido de la puja `1/(beta·lambda_h)` = $3.122 / $1.561 / $806 al mes.
-    #   * `beta = 1`: el mismo ruido Gumbel que un viaje. Es la ÚNICA perilla
-    #     propia del módulo y tiene lectura directa (beta = 0,1 ⇒ elegir casa es
-    #     10 veces más ruidoso que elegir modo). Con 1 la ciudad sale nítida
-    #     (Theil ≈ 0,75): un mes de viajes es mucho dinero frente al ruido de
-    #     un viaje. Bajarlo es decisión pedagógica (AU-10), no calibración.
+    #   * `beta`: ver el comentario del campo, más abajo. Es la única perilla
+    #     propia del módulo.
     #   * `rho`: SIN FUENTE, ni acá ni en el original (donde valía 1 sobre la
     #     capacidad cruda). Se fija para que `rho·dens` recorra el 50 % del rango
     #     de `alpha·T` del estrato medio en la ciudad por defecto (decisión
@@ -146,19 +146,18 @@ class LandUseConfig(BaseModel):
         ),
     )
 
-    # `beta` = 0,15 ≈ 1/√44 (decisión 2026-09-04). La escala del ruido Gumbel de la
-    # puja es 1/(beta·lambda_h). Con beta = 1 el ruido es el de UN viaje mientras
-    # la señal (T) está mensualizada ×44: eso supone que el gusto idiosincrático
-    # por una casa es un solo sorteo, y da una ciudad casi determinista (Theil
-    # 0,75, señal/ruido ~90:1). Si en cambio el ruido también se acumula viaje a
-    # viaje (iid), su escala mensual crece como √44 ≈ 6,6 y la razón señal/ruido
-    # honesta es 6,6 veces menor: beta = 1/√44. Es una APROXIMACIÓN DE SEGUNDO
-    # MOMENTO, no una derivación: la suma de 44 Gumbel no es Gumbel, y los shocks
-    # de vivienda no son 44 shocks de viaje iid (D-41). Ninguna de las dos
-    # hipótesis se estima con estos datos; ésta es la que no infla la nitidez. Medido:
-    # Theil ≈ 0,16, alto/medio/bajo ≈ 2,1 / 3,1 / 5,5 km, gradiente de renta
-    # +0,78, ~30 iteraciones (vs 140 con beta = 1). Es la ÚNICA perilla propia
-    # del módulo: alpha y lambda vienen de transporte (D-34).
+    # `beta` = 1/√VIAJES_MES ≈ 0,151. Es la razón entre la escala del ruido de
+    # elegir casa y la de elegir modo: el logit de transporte fija su escala en 1
+    # (un útil = un shock Gumbel de un viaje), y la puja lee la accesibilidad
+    # mensual, la suma de VIAJES_MES viajes. Si cada viaje trae su propio shock
+    # independiente, la desviación del shock mensual crece como √VIAJES_MES, y la
+    # escala del ruido de la puja, 1/(beta·lambda_h), tiene que crecer igual:
+    # beta = 1/√VIAJES_MES. Es una aproximación de segundo momento (la suma de
+    # Gumbel no es Gumbel) y un supuesto: en Martínez (2018, pp. 89 y 242) la
+    # escala de la subasta se identifica con rentas observadas, que acá no hay.
+    # beta = 1 sería «un solo shock por casa, igual al de un viaje», y da una
+    # ciudad casi determinista (Theil ≈ 0,71 contra ≈ 0,17). Es la única
+    # perilla propia del módulo: alpha y lambda vienen de transporte (D-34).
     @field_validator("H_por_estrato")
     @classmethod
     def _hogares_no_negativos(cls, v: tuple[int, int, int]) -> tuple[int, int, int]:
@@ -171,11 +170,13 @@ class LandUseConfig(BaseModel):
         return v
 
     beta: float = Field(
-        default=0.15,
+        default=1 / math.sqrt(VIAJES_MES),
         gt=0,
         description=(
-            "Nitidez de la subasta: escala del ruido de la puja = 1/(beta·lambda). "
-            "1 = el ruido de un viaje; 0,15 ≈ 1/√44 = ruido acumulado en el mes"
+            "Razón entre la escala del ruido de elegir casa y la de un viaje; el "
+            "ruido de la puja es 1/(beta·lambda). Default 1/√VIAJES_MES ≈ 0,151: "
+            "el shock mensual acumula VIAJES_MES viajes independientes. 1 = un "
+            "solo shock por casa (ciudad casi determinista)"
         ),
     )
     tol: float = Field(default=1e-8, gt=0)

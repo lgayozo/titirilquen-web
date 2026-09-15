@@ -55,7 +55,7 @@ ESPERADO = {
     #     lambda = |b_costo|. Mueve sólo `equilibrio`, y poco (auto +0,03,
     #     metro −0,13, bici +0,05, caminata +0,08): la ciudad resultante es casi
     #     la misma, ahora con unidades que cierran.
-    #  4. beta = 0,15 ≈ 1/√44 (ruido acumulado en el mes, no el de un viaje):
+    #  4. beta = 1/√VIAJES_MES ≈ 0,151 (ruido acumulado en el mes, no el de un viaje):
     #     la ciudad de partida pasa de Theil 0,75 a 0,16 —el estrato bajo ya no
     #     queda confinado a la periferia (5,5 km en vez de 6,7)— y sus viajes
     #     más cortos migran del metro a la caminata y la bici: metro −3,0 pp,

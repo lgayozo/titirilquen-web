@@ -13,8 +13,9 @@ y que nunca llegó a ejecutarse (D-34).
 El signo lo vuelve costo (crece con la distancia) y `VIAJES_MES` lo pone en la
 misma escala mensual que el arriendo `p` y el ingreso `y` (D-27): un viaje contra
 un mes de arriendo no es comparable; 44 viajes sí. Con `alpha = 1` la puja lee
-esa cantidad tal cual, con `lambda_h = |b_costo_h|` la pasa a pesos, y `beta = 1`
-significa exactamente «el mismo ruido Gumbel que un viaje».
+esa cantidad tal cual, con `lambda_h = |b_costo_h|` la pasa a pesos, y
+`beta = 1/√VIAJES_MES` fija el ruido de la puja como el de VIAJES_MES shocks
+independientes, uno por viaje (ver `LandUseConfig.beta`).
 
 Es POR ESTRATO, y eso es deliberado: la heterogeneidad de acceso (tener auto,
 valorar más el tiempo) es justamente lo que el logsum captura. D-22 había fijado

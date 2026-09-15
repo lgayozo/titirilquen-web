@@ -1,6 +1,6 @@
-"""Datos del capítulo 5 — Uso de suelo: oferta y subasta.
+"""Datos del capítulo 2 — Uso de suelo: oferta y subasta.
 
-Produce `cap05.json`. El módulo ya tiene tres informes y trece hallazgos (AU-01
+Produce `cap02.json`. El módulo ya tiene tres informes y trece hallazgos (AU-01
 a AU-13), así que este capítulo no repite lo medido: audita lo que quedó sin
 mirar y verifica las conservaciones que sostienen todo lo demás.
 
@@ -22,7 +22,7 @@ Seis bloques:
 
 Correr desde `packages/titirilquen_core` (~3 min):
 
-    uv run python ../../docs/libro/datos/datos_cap05.py
+    uv run python ../../docs/libro/datos/datos_cap02.py
 """
 
 from __future__ import annotations
@@ -39,13 +39,14 @@ RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 from titirilquen_core.config import DemandConfig, SupplyConfig
+from titirilquen_core.constantes import VIAJES_MES
 from titirilquen_core.land_use import LandUseCity, LandUseConfig
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.land_use.config import LandUseStratumConfig
 from titirilquen_core.land_use.supply import generar_oferta
 from titirilquen_core.presets import DEFAULT_STRATA
 
-SALIDA = Path(__file__).parent / "cap05.json"
+SALIDA = Path(__file__).parent / "cap02.json"
 FORMAS = ("normal", "uniforme", "exponencial", "meseta", "bimodal", "valle")
 L, CBD, LARGO = 201, 100, 20.0
 DX = LARGO / L
@@ -263,9 +264,9 @@ def _metricas(c) -> dict:
 def perillas() -> dict:
     """β (nitidez) y ρ (densidad): los dos parámetros propios del módulo."""
     out = {"beta": [], "rho": []}
-    for b in (0.05, 0.15, 0.5, 1.0):
+    for b in (0.05, LandUseConfig().beta, 0.5, 1.0):
         cfg = LandUseConfig(H_por_estrato=H_APP, beta=b, max_iter=5000)
-        out["beta"].append({"beta": b, **_metricas(_ciudad(cfg))})
+        out["beta"].append({"beta": round(b, 4), **_metricas(_ciudad(cfg))})
     for r in (0.0, 0.0052, 0.01, 0.02):
         cfg = LandUseConfig(
             H_por_estrato=H_APP,
@@ -335,15 +336,193 @@ def invariancias() -> dict:
     return {"grilla": grilla, "tamano_fisico": fisico}
 
 
+def configuracion_vigente() -> dict:
+    """Los parámetros con los que corre la aplicación, tal como están en el schema."""
+    cfg = LandUseConfig(H_por_estrato=H_APP)
+    bt = [abs(DEFAULT_STRATA[h]["betas"]["b_tiempo_viaje"]) for h in (1, 2, 3)]
+    bc = [abs(DEFAULT_STRATA[h]["betas"]["b_costo"]) for h in (1, 2, 3)]
+    return {
+        "H_por_estrato": list(H_APP),
+        "y_clp_mes": [e.y for e in cfg.estratos],
+        "lambda_utiles_por_clp": [e.lambda_ for e in cfg.estratos],
+        "alpha": [e.alpha for e in cfg.estratos],
+        "rho": [e.rho for e in cfg.estratos],
+        "beta": round(cfg.beta, 4),
+        "beta_formula": "1/√VIAJES_MES",
+        "VIAJES_MES": VIAJES_MES,
+        "vot_transporte_clp_h": [round(t * 60.0 / c) for t, c in zip(bt, bc)],
+        "vot_suelo_alpha_sobre_lambda_clp_por_util": [
+            round(e.alpha / e.lambda_) for e in cfg.estratos
+        ],
+        "forma": cfg.forma,
+        "oferta_sigma_frac": cfg.oferta_sigma_frac,
+        "vot_sobre_salario_hora_implicito": [
+            round((t * 60.0 / c) / (e.y / 180.0), 2)
+            for t, c, e in zip(bt, bc, cfg.estratos)
+        ],
+    }
+
+
+def _ciudad_app(cfg: LandUseConfig):
+    T = T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig())
+    return LandUseCity.build(
+        L=L, CBD=CBD, cfg=cfg, ancho_celda_km=DX, T=T, rng=np.random.default_rng(42)
+    ), T
+
+
+def escalas() -> dict:
+    """Señal y ruido de la puja, en pesos por mes y por estrato.
+
+    La señal es cuánto cambia la puja del estrato entre el centro y la periferia
+    (accesibilidad y densidad, cada una en pesos vía 1/λ); el ruido, la escala
+    Gumbel de la puja, 1/(β·λ_h). Con β = 1 el ruido sería el de un solo viaje."""
+    cfg = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
+    city, T = _ciudad_app(cfg)
+    S = np.asarray(city.S, float)
+    ok = S > 0
+    dens = S / DX
+    filas = []
+    for h, e in enumerate(cfg.estratos):
+        senal_T = float((T[h, ok].max() - T[h, ok].min()) * e.alpha / e.lambda_)
+        senal_dens = float((dens[ok].max() - dens[ok].min()) * e.rho / e.lambda_)
+        ruido = 1.0 / (cfg.beta * e.lambda_)
+        ruido_1 = 1.0 / e.lambda_
+        filas.append(
+            {
+                "estrato": ["alto", "medio", "bajo"][h],
+                "senal_accesibilidad_clp": round(senal_T),
+                "senal_densidad_clp": round(senal_dens),
+                "senal_total_clp": round(senal_T + senal_dens),
+                "ruido_clp": round(ruido),
+                "senal_sobre_ruido": round((senal_T + senal_dens) / ruido, 1),
+                "ruido_con_beta_1_clp": round(ruido_1),
+                "senal_sobre_ruido_con_beta_1": round(
+                    (senal_T + senal_dens) / ruido_1, 1
+                ),
+            }
+        )
+    rango_T = float(T[1, ok].max() - T[1, ok].min())
+    rango_dens = float(dens[ok].max() - dens[ok].min())
+    return {
+        "por_estrato": filas,
+        "rango_T_medio_utiles_mes": round(rango_T, 1),
+        "rango_densidad_hab_km": round(rango_dens),
+        "rho_dens_sobre_alpha_T_medio": round(
+            cfg.estratos[1].rho * rango_dens / rango_T, 2
+        ),
+    }
+
+
+def reescala_beta() -> dict:
+    """β = 1 con (λ, α, ρ) × β_default reproduce el mismo equilibrio: sólo los
+    productos β·λ, β·α y β·ρ entran en la subasta. Se mide en la rama HEV (el
+    default) y en la cerrada (λ uniforme)."""
+    base = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
+    k = base.beta
+
+    def reescalada(cfg: LandUseConfig, que: tuple[str, ...]) -> LandUseConfig:
+        estr = tuple(
+            LandUseStratumConfig(
+                y=e.y,
+                alpha=e.alpha * (k if "alpha" in que else 1),
+                rho=e.rho * (k if "rho" in que else 1),
+                **{"lambda": e.lambda_ * (k if "lambda" in que else 1)},
+            )
+            for e in cfg.estratos
+        )
+        return cfg.model_copy(update={"estratos": estr, "beta": 1.0})
+
+    def compara(a: LandUseConfig, b: LandUseConfig) -> dict:
+        ra = _ciudad_app(a)[0].result
+        rb = _ciudad_app(b)[0].result
+        return {
+            "max_delta_Q": float(np.abs(ra.Q - rb.Q).max()),
+            "max_delta_p_clp": float(np.abs(ra.p - rb.p).max()),
+            "max_delta_u_clp": float(np.abs(ra.u - rb.u).max()),
+        }
+
+    lam_med = base.estratos[1].lambda_
+    uniforme = base.model_copy(
+        update={
+            "estratos": tuple(
+                LandUseStratumConfig(
+                    y=e.y, alpha=e.alpha, rho=e.rho, **{"lambda": lam_med}
+                )
+                for e in base.estratos
+            )
+        }
+    )
+    return {
+        "k": round(k, 4),
+        "hev_beta_1_con_lambda_alpha_rho_por_k": compara(
+            base, reescalada(base, ("lambda", "alpha", "rho"))
+        ),
+        "hev_beta_1_con_solo_lambda_por_k": compara(
+            base, reescalada(base, ("lambda",))
+        ),
+        "cerrada_beta_1_con_lambda_alpha_rho_por_k": compara(
+            uniforme, reescalada(uniforme, ("lambda", "alpha", "rho"))
+        ),
+        "parametros_equivalentes_con_beta_1": {
+            "lambda": [e.lambda_ * k for e in base.estratos],
+            "alpha": base.estratos[0].alpha * k,
+            "rho": base.estratos[0].rho * k,
+        },
+    }
+
+
+FUENTES_EXTERNAS = {
+    "casen_2022": {
+        "que": "Ingreso autónomo promedio mensual de los hogares por decil de ingreso "
+        "autónomo per cápita, $ de noviembre de 2022 (Observatorio Social, "
+        "«Ingresos de los hogares, síntesis de resultados», versión oct-2023)",
+        "por_decil_clp": [
+            94767,
+            386988,
+            551052,
+            670525,
+            842463,
+            1044632,
+            1163685,
+            1496944,
+            2002295,
+            4154848,
+        ],
+        "promedio_nacional_clp": 1236534,
+        "promedio_por_tercil_20_50_30_clp": [
+            round((2002295 + 4154848) / 2),
+            round((670525 + 842463 + 1044632 + 1163685 + 1496944) / 5),
+            round((94767 + 386988 + 551052) / 3),
+        ],
+    },
+    "sni_2026": {
+        "que": "Precios Sociales 2026, cap. 2 y Tabla 2.1 (CLP de diciembre de 2025)",
+        "vst_urbano_en_vehiculo_clp_h": 3338,
+        "vst_urbano_espera_y_caminata_clp_h": 6676,
+        "costo_mano_de_obra_hora_clp": 8235,
+        "viaje_al_trabajo_clp_h": 0.5 * 8235,
+        "nota": "El documento no distingue valores por ingreso: «aduciendo regresividad, "
+        "se ha desestimado la distinción por ingresos de las personas».",
+    },
+    "binsuwadan_2023": {
+        "que": "Binsuwadan, Wardman, de Jong, Batley y Wheat (2023), Transport Policy 136, "
+        "126–136, Tabla 5: elasticidad-ingreso del valor del tiempo, viaje al trabajo en auto",
+        "transversal_ingreso_hogar_media": 0.27,
+        "transversal_ingreso_personal_media": 0.37,
+        "intertemporal_ingreso_hogar_media": 0.62,
+    },
+}
+
+
 def main() -> None:
     datos = {
         "_meta": {
             "fecha": datetime.now(UTC).date().isoformat(),
             "commit": _commit(),
-            "script": "docs/libro/datos/datos_cap05.py",
+            "script": "docs/libro/datos/datos_cap02.py",
             "configuracion": (
                 "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 "
-                "(20/50/30), oferta normal σ=0,5, α=1, ρ=5,2e-3, β=0,15, "
+                "(20/50/30), oferta normal σ=0,5, α=1, ρ=5,2e-3, β=1/√44≈0,151, "
                 "λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
             ),
         },
@@ -353,6 +532,10 @@ def main() -> None:
         "asignacion_entera": asignacion_entera(),
         "perillas": perillas(),
         "invariancias": invariancias(),
+        "configuracion_vigente": configuracion_vigente(),
+        "escalas": escalas(),
+        "reescala_beta": reescala_beta(),
+        "fuentes_externas": FUENTES_EXTERNAS,
     }
     SALIDA.write_text(
         json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"

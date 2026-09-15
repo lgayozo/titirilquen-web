@@ -350,7 +350,7 @@
     "densidad_media_label": "Escala de población (hab/km)",
     "densidad_media": "Densidad media",
     "poblacion_total_hint": "Población total ≈ {{total}} = largo × densidad media ({{dens}} hab/km). Fija cuántos hogares hay; la densidad por celda es una consecuencia de la oferta (S/Δx), no un gradiente impuesto.",
-    "bidrent_hint": "La accesibilidad que entra en la puja es el logsum del logit modal —la utilidad esperada del viaje de ese hogar—, mensualizado (44 viajes). α = 1 lo lee tal cual; λ_h = |b_costo_h| lo pasa a pesos, así que el valor del tiempo α/λ es el mismo que en Transporte; β fija el ruido (0,15 ≈ 1/√44 por defecto). Un hogar, una función de utilidad (D-34).",
+    "bidrent_hint": "La accesibilidad que entra en la puja es el logsum del logit modal —la utilidad esperada del viaje de ese hogar—, mensualizado (44 viajes). α = 1 lo lee tal cual; λ_h = |b_costo_h| lo pasa a pesos, así que el valor del tiempo α/λ es el mismo que en Transporte; β fija el ruido (1/√44 ≈ 0,15 por defecto). Un hogar, una función de utilidad (D-34).",
     "subtitle": "Modelo Alonso-Muth-Mills",
     "mode_standalone": "Sólo suelo",
     "mode_coupled": "Ciudad en equilibrio",
@@ -421,7 +421,7 @@
     "placeholder_title": "Uso de suelo · la subasta del espacio",
     "placeholder_desc": "El equilibrio Alonso asigna los hogares por subasta: cada estrato puja por las parcelas según su valoración de la accesibilidad (α·T) y su rechazo a la densidad (ρ·dens). El estrato que más valora la cercanía gana el centro; el resto se ordena hacia la periferia. Ajustá la forma de la ciudad y los parámetros por estrato en el panel izquierdo.",
     "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utiles/$: el |b_costo| de cada estrato en Transporte. No se edita: una escala común de λ no mueve la asignación, sólo la unidad de las rentas (D-41).",
-    "beta_hint": "Única perilla propia del módulo: cuánto ruido tiene elegir casa frente a un viaje. β = 1 es el ruido de un solo viaje contra una señal mensual (ciudad casi determinista, Theil ≈ 0,75). El default 0,15 ≈ 1/√44 supone que el ruido también se acumula en el mes (Theil ≈ 0,16). No toca el valor del tiempo.",
+    "beta_hint": "Única perilla propia del módulo: cuánto ruido tiene elegir casa frente a un viaje. β = 1 es el ruido de un solo viaje contra una señal mensual (ciudad casi determinista, Theil ≈ 0,75). El default 1/√44 ≈ 0,15 supone que el ruido de casa acumula 44 shocks de viaje independientes (Theil ≈ 0,16). No toca el valor del tiempo.",
     "alpha_hint": "1 = la accesibilidad tal cual. Otro valor es un multiplicador sin fuente; para más o menos nitidez usá β. Es común a los tres estratos: sus diferencias de valoración del tiempo ya vienen en λ.",
     "rho_hint": "Sin fuente en el modelo original; por defecto pesa la mitad que la accesibilidad en el estrato medio. Mueve sobre todo los precios (aplana la renta de Alonso). Pasado ~1,0·10⁻² la asignación se invierte: por eso el tope."
   },

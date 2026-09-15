@@ -158,7 +158,7 @@ export const DEFAULTS_LAND_USE_CORE: LandUseConfig = {
       rho: 0.0052,
     },
   ],
-  beta: 0.15,
+  beta: 0.15075567228888181,
   tol: 1e-8,
   max_iter: 10000,
   forma: "normal",

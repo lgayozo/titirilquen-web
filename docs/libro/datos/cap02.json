@@ -1,9 +1,9 @@
 {
  "_meta": {
-  "fecha": "2026-09-10",
-  "commit": "87469b7",
-  "script": "docs/libro/datos/datos_cap05.py",
-  "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α=1, ρ=5,2e-3, β=0,15, λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
+  "fecha": "2026-09-15",
+  "commit": "1c8341a",
+  "script": "docs/libro/datos/datos_cap02.py",
+  "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α=1, ρ=5,2e-3, β=1/√44≈0,151, λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
  },
  "formas": [
   {
@@ -73,59 +73,59 @@
     "forma": "normal",
     "convergio": true,
     "iteraciones": 30,
-    "error_max_hogares": 2.388e-09,
-    "error_relativo_max": 2.211e-13
+    "error_max_hogares": 2.387e-09,
+    "error_relativo_max": 2.21e-13
    },
    {
     "forma": "uniforme",
     "convergio": true,
     "iteraciones": 37,
-    "error_max_hogares": 2.408e-09,
-    "error_relativo_max": 2.23e-13
+    "error_max_hogares": 2.785e-09,
+    "error_relativo_max": 2.579e-13
    },
    {
     "forma": "exponencial",
     "convergio": true,
     "iteraciones": 31,
-    "error_max_hogares": 1.197e-09,
-    "error_relativo_max": 1.108e-13
+    "error_max_hogares": 1.692e-09,
+    "error_relativo_max": 1.566e-13
    },
    {
     "forma": "meseta",
     "convergio": true,
     "iteraciones": 25,
-    "error_max_hogares": 7.294e-10,
-    "error_relativo_max": 6.754e-14
+    "error_max_hogares": 8.04e-10,
+    "error_relativo_max": 7.444e-14
    },
    {
     "forma": "bimodal",
     "convergio": true,
     "iteraciones": 28,
-    "error_max_hogares": 1.157e-09,
-    "error_relativo_max": 1.071e-13
+    "error_max_hogares": 1.515e-09,
+    "error_relativo_max": 1.403e-13
    },
    {
     "forma": "valle",
     "convergio": true,
     "iteraciones": 35,
-    "error_max_hogares": 1.957e-09,
-    "error_relativo_max": 1.812e-13
+    "error_max_hogares": 2.23e-09,
+    "error_relativo_max": 2.065e-13
    }
   ],
   "por_escala": [
    {
     "suma_H": 3600,
-    "error_max_hogares": 2.333e-10,
+    "error_max_hogares": 2.751e-10,
     "iteraciones": 37
    },
    {
     "suma_H": 36000,
-    "error_max_hogares": 2.388e-09,
+    "error_max_hogares": 2.387e-09,
     "iteraciones": 30
    },
    {
     "suma_H": 144000,
-    "error_max_hogares": 3.332e-09,
+    "error_max_hogares": 1.834e-09,
     "iteraciones": 17
    }
   ]
@@ -143,7 +143,7 @@
     "razon_escalas": 1.0,
     "convergio": true,
     "iteraciones": 15,
-    "error_balance_hogares": 1.149e-06,
+    "error_balance_hogares": 1.345e-06,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -157,7 +157,7 @@
     "razon_escalas": 3.9,
     "convergio": true,
     "iteraciones": 30,
-    "error_balance_hogares": 2.388e-09,
+    "error_balance_hogares": 2.387e-09,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -171,7 +171,7 @@
     "razon_escalas": 10.0,
     "convergio": true,
     "iteraciones": 27,
-    "error_balance_hogares": 2.437e-07,
+    "error_balance_hogares": 3.01e-07,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -184,8 +184,8 @@
     "rama": "HEV",
     "razon_escalas": 100.0,
     "convergio": true,
-    "iteraciones": 35,
-    "error_balance_hogares": 1.488e-07,
+    "iteraciones": 36,
+    "error_balance_hogares": 1.229e-07,
     "columnas_suman_uno_error": 2.22e-16
    }
   ],
@@ -225,13 +225,13 @@
     "iteraciones": 17
    },
    {
-    "beta": 0.15,
+    "beta": 0.1508,
     "dist_km": [
-     2.249,
-     3.02,
-     5.579
+     2.244,
+     3.018,
+     5.584
     ],
-    "theil": 0.1693,
+    "theil": 0.1703,
     "grad_p": 0.669,
     "iteraciones": 30
    },
@@ -262,44 +262,44 @@
    {
     "rho": 0.0,
     "dist_km": [
-     1.922,
-     2.952,
-     5.909
+     1.918,
+     2.951,
+     5.913
     ],
-    "theil": 0.2356,
+    "theil": 0.2368,
     "grad_p": 0.92,
     "iteraciones": 38
    },
    {
     "rho": 0.0052,
     "dist_km": [
-     2.249,
-     3.02,
-     5.579
+     2.244,
+     3.018,
+     5.584
     ],
-    "theil": 0.1693,
+    "theil": 0.1703,
     "grad_p": 0.669,
     "iteraciones": 30
    },
    {
     "rho": 0.01,
     "dist_km": [
-     2.706,
-     3.097,
-     5.144
+     2.702,
+     3.096,
+     5.149
     ],
-    "theil": 0.1079,
+    "theil": 0.1087,
     "grad_p": 0.481,
     "iteraciones": 24
    },
    {
     "rho": 0.02,
     "dist_km": [
-     4.244,
-     3.266,
-     3.838
+     4.247,
+     3.264,
+     3.839
     ],
-    "theil": 0.048,
+    "theil": 0.0485,
     "grad_p": 0.186,
     "iteraciones": 17
    }
@@ -309,29 +309,29 @@
   "grilla": [
    {
     "n_celdas": 101,
-    "theil": 0.1656,
+    "theil": 0.1667,
     "dist_km": [
-     2.303,
-     3.041,
-     5.572
+     2.298,
+     3.04,
+     5.578
     ]
    },
    {
     "n_celdas": 201,
-    "theil": 0.1693,
+    "theil": 0.1703,
     "dist_km": [
-     2.249,
-     3.02,
-     5.579
+     2.244,
+     3.018,
+     5.584
     ]
    },
    {
     "n_celdas": 401,
-    "theil": 0.1712,
+    "theil": 0.1723,
     "dist_km": [
-     2.221,
-     3.008,
-     5.583
+     2.216,
+     3.007,
+     5.588
     ]
    }
   ],
@@ -339,36 +339,184 @@
    {
     "largo_km": 10.0,
     "dist_km": [
-     3.524,
-     3.281,
-     4.294
+     3.523,
+     3.279,
+     4.297
     ],
-    "theil": 0.0241,
-    "grad_p": 0.314,
+    "theil": 0.0243,
+    "grad_p": 0.313,
     "iteraciones": 16
    },
    {
     "largo_km": 20.0,
     "dist_km": [
-     2.249,
-     3.02,
-     5.579
+     2.244,
+     3.018,
+     5.584
     ],
-    "theil": 0.1693,
+    "theil": 0.1703,
     "grad_p": 0.669,
     "iteraciones": 30
    },
    {
     "largo_km": 40.0,
     "dist_km": [
-     1.582,
-     2.856,
-     6.297
+     1.577,
+     2.855,
+     6.3
     ],
-    "theil": 0.3581,
+    "theil": 0.3597,
     "grad_p": 0.708,
-    "iteraciones": 57
+    "iteraciones": 58
    }
   ]
+ },
+ "configuracion_vigente": {
+  "H_por_estrato": [
+   7200,
+   18000,
+   10800
+  ],
+  "y_clp_mes": [
+   3500000.0,
+   1500000.0,
+   500000.0
+  ],
+  "lambda_utiles_por_clp": [
+   0.000320323,
+   0.00064065,
+   0.00124125
+  ],
+  "alpha": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "rho": [
+   0.0052,
+   0.0052,
+   0.0052
+  ],
+  "beta": 0.1508,
+  "beta_formula": "1/√VIAJES_MES",
+  "VIAJES_MES": 44,
+  "vot_transporte_clp_h": [
+   6200,
+   3100,
+   1600
+  ],
+  "vot_suelo_alpha_sobre_lambda_clp_por_util": [
+   3122,
+   1561,
+   806
+  ],
+  "forma": "normal",
+  "oferta_sigma_frac": 0.5,
+  "vot_sobre_salario_hora_implicito": [
+   0.32,
+   0.37,
+   0.58
+  ]
+ },
+ "escalas": {
+  "por_estrato": [
+   {
+    "estrato": "alto",
+    "senal_accesibilidad_clp": 211686,
+    "senal_densidad_clp": 42745,
+    "senal_total_clp": 254431,
+    "ruido_clp": 20708,
+    "senal_sobre_ruido": 12.3,
+    "ruido_con_beta_1_clp": 3122,
+    "senal_sobre_ruido_con_beta_1": 81.5
+   },
+   {
+    "estrato": "medio",
+    "senal_accesibilidad_clp": 144055,
+    "senal_densidad_clp": 21372,
+    "senal_total_clp": 165427,
+    "ruido_clp": 10354,
+    "senal_sobre_ruido": 16.0,
+    "ruido_con_beta_1_clp": 1561,
+    "senal_sobre_ruido_con_beta_1": 106.0
+   },
+   {
+    "estrato": "bajo",
+    "senal_accesibilidad_clp": 89474,
+    "senal_densidad_clp": 11031,
+    "senal_total_clp": 100505,
+    "ruido_clp": 5344,
+    "senal_sobre_ruido": 18.8,
+    "ruido_con_beta_1_clp": 806,
+    "senal_sobre_ruido_con_beta_1": 124.8
+   }
+  ],
+  "rango_T_medio_utiles_mes": 92.3,
+  "rango_densidad_hab_km": 2633,
+  "rho_dens_sobre_alpha_T_medio": 0.15
+ },
+ "reescala_beta": {
+  "k": 0.1508,
+  "hev_beta_1_con_lambda_alpha_rho_por_k": {
+   "max_delta_Q": 1.3211653993039363e-14,
+   "max_delta_p_clp": 1.3969838619232178e-09,
+   "max_delta_u_clp": 0.0
+  },
+  "hev_beta_1_con_solo_lambda_por_k": {
+   "max_delta_Q": 0.547843634328872,
+   "max_delta_p_clp": 597286.6387378285,
+   "max_delta_u_clp": 86923.40949756932
+  },
+  "cerrada_beta_1_con_lambda_alpha_rho_por_k": {
+   "max_delta_Q": 1.1435297153639112e-14,
+   "max_delta_p_clp": 0.0,
+   "max_delta_u_clp": 0.0
+  },
+  "parametros_equivalentes_con_beta_1": {
+   "lambda": [
+    4.8290509214591493e-05,
+    9.658162145187213e-05,
+    0.00018712547822857453
+   ],
+   "alpha": 0.15075567228888181,
+   "rho": 0.0007839294959021854
+  }
+ },
+ "fuentes_externas": {
+  "casen_2022": {
+   "que": "Ingreso autónomo promedio mensual de los hogares por decil de ingreso autónomo per cápita, $ de noviembre de 2022 (Observatorio Social, «Ingresos de los hogares, síntesis de resultados», versión oct-2023)",
+   "por_decil_clp": [
+    94767,
+    386988,
+    551052,
+    670525,
+    842463,
+    1044632,
+    1163685,
+    1496944,
+    2002295,
+    4154848
+   ],
+   "promedio_nacional_clp": 1236534,
+   "promedio_por_tercil_20_50_30_clp": [
+    3078572,
+    1043650,
+    344269
+   ]
+  },
+  "sni_2026": {
+   "que": "Precios Sociales 2026, cap. 2 y Tabla 2.1 (CLP de diciembre de 2025)",
+   "vst_urbano_en_vehiculo_clp_h": 3338,
+   "vst_urbano_espera_y_caminata_clp_h": 6676,
+   "costo_mano_de_obra_hora_clp": 8235,
+   "viaje_al_trabajo_clp_h": 4117.5,
+   "nota": "El documento no distingue valores por ingreso: «aduciendo regresividad, se ha desestimado la distinción por ingresos de las personas»."
+  },
+  "binsuwadan_2023": {
+   "que": "Binsuwadan, Wardman, de Jong, Batley y Wheat (2023), Transport Policy 136, 126–136, Tabla 5: elasticidad-ingreso del valor del tiempo, viaje al trabajo en auto",
+   "transversal_ingreso_hogar_media": 0.27,
+   "transversal_ingreso_personal_media": 0.37,
+   "intertemporal_ingreso_hogar_media": 0.62
+  }
  }
 }
