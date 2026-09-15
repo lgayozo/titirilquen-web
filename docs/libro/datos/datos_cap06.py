@@ -25,6 +25,9 @@ Seis bloques:
 6. `poblacion` — D-24: la población como palanca de demanda, y hasta dónde el
    loop sigue convergiendo.
 
+Más `parametros_vigentes`: lo que el acoplado usa y de dónde lo toma, leído del
+núcleo por introspección y de la app, la API y el worker desde su fuente.
+
 Correr desde `packages/titirilquen_core` (~2 min):
 
     uv run python ../../docs/libro/datos/datos_cap06.py
@@ -53,6 +56,22 @@ from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.presets import DEFAULT_STRATA
 
 SALIDA = Path(__file__).parent / "cap06.json"
+#: Referencias externas que cita el capítulo, en la forma en que se citan.
+FUENTES_EXTERNAS = {
+    "alonso_1964": (
+        "Alonso, W. (1964). Location and Land Use: Toward a General Theory of "
+        "Land Rent. Harvard University Press."
+    ),
+    "williams_1977": (
+        "Williams, H. C. W. L. (1977). On the formation of travel demand models "
+        "and economic evaluation measures of user benefit. Environment and "
+        "Planning A, 9(3), 285–344."
+    ),
+    "small_rosen_1981": (
+        "Small, K. A. y Rosen, H. S. (1981). Applied welfare economics with "
+        "discrete choice models. Econometrica, 49(1), 105–130."
+    ),
+}
 NOMBRES = ("alto", "medio", "bajo")
 #: `λ_h = |b_costo_h|` del default de la app (D-34). Se leen del núcleo, no se
 #: tipean: si `presets.py` cambia, este capítulo cambia con él.
@@ -74,9 +93,7 @@ def _commit() -> str:
 
 def _ciudad() -> CiudadLineal:
     sim = base._config_web()
-    return CiudadLineal(
-        n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km
-    )
+    return CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
 
 
 def _lambdas() -> list[float]:
@@ -85,9 +102,7 @@ def _lambdas() -> list[float]:
 
 
 def _celda(ciudad: CiudadLineal, km: float) -> int:
-    return min(
-        ciudad.cbd_index + round(km / ciudad.ancho_celda_km), ciudad.n_celdas - 1
-    )
+    return min(ciudad.cbd_index + round(km / ciudad.ancho_celda_km), ciudad.n_celdas - 1)
 
 
 def _T_minutos_por_estrato() -> np.ndarray:
@@ -141,17 +156,14 @@ def _T_minutos_por_estrato() -> np.ndarray:
     return T
 
 
-def _distancias_medias(
-    T: np.ndarray, lambdas: list[float] | None = None
-) -> list[float]:
+def _distancias_medias(T: np.ndarray, lambdas: list[float] | None = None) -> list[float]:
     """Resuelve la subasta con esa `T` y devuelve la distancia media al CBD por
     estrato, ponderada por hogares (`N_hi = S_i·Q_hi`)."""
     ciudad = _ciudad()
     cfg = base._land_use_web()
     if lambdas is not None:
         estratos = tuple(
-            e.model_copy(update={"lambda_": lam})
-            for e, lam in zip(cfg.estratos, lambdas)
+            e.model_copy(update={"lambda_": lam}) for e, lam in zip(cfg.estratos, lambdas)
         )
         cfg = cfg.model_copy(update={"estratos": estratos})
     city = LandUseCity.build(
@@ -205,10 +217,7 @@ def accesibilidad() -> dict:
     # Pendiente por mínimos cuadrados sobre el semicorredor útil (1 a 9 km):
     # entre 0 y 1 km el perfil está dominado por la caminata y no es recta.
     i0, i1 = _celda(ciudad, 1.0), _celda(ciudad, 9.0)
-    d = (
-        np.arange(i0, i1 + 1) * ciudad.ancho_celda_km
-        - ciudad.cbd_index * ciudad.ancho_celda_km
-    )
+    d = np.arange(i0, i1 + 1) * ciudad.ancho_celda_km - ciudad.cbd_index * ciudad.ancho_celda_km
     pend_ut = [float(np.polyfit(d, T[h, i0 : i1 + 1], 1)[0]) for h in range(3)]
     return {
         "unidad": "T = −VIAJES_MES·logsum; útiles de transporte por mes, y $/mes al dividir por λ_h",
@@ -219,9 +228,7 @@ def accesibilidad() -> dict:
             "utiles_mes_por_km": [round(x, 4) for x in pend_ut],
             "clp_mes_por_km": [round(pend_ut[h] / lam[h]) for h in range(3)],
         },
-        "rango_utiles_mes": [
-            round(float(T[h].max() - T[h].min()), 2) for h in range(3)
-        ],
+        "rango_utiles_mes": [round(float(T[h].max() - T[h].min()), 2) for h in range(3)],
         "cortes_modales_km": {
             "caminata": round(gl.corte_caminata_min * gl.v_caminata / 60.0, 3),
             "bici": round(gl.corte_bici_min * gl.v_bici / 60.0, 3),
@@ -281,9 +288,7 @@ def quien_remueve_la_inversion() -> dict:
     # La pendiente en minutos por km, que es lo que el bid-rent leía antes.
     i0, i1 = _celda(ciudad, 1.0), _celda(ciudad, 9.0)
     d_km = (np.arange(i0, i1 + 1) - ciudad.cbd_index) * ciudad.ancho_celda_km
-    pend_min = [
-        round(float(np.polyfit(d_km, T_min[h, i0 : i1 + 1], 1)[0]), 4) for h in range(3)
-    ]
+    pend_min = [round(float(np.polyfit(d_km, T_min[h, i0 : i1 + 1], 1)[0]), 4) for h in range(3)]
     # El criterio de ordenamiento de Alonso, explícito. Con `α` común el
     # gradiente de la puja en $/km es (1/λ_h)·∂T_h/∂x, así que el estrato alto
     # ocupa el centro si y sólo si λ_bajo/λ_alto > (∂T_bajo/∂x)/(∂T_alto/∂x):
@@ -361,9 +366,7 @@ def red_configurada() -> dict:
 # ---------------------------------------------------------------------------
 
 
-def _trayectoria(
-    sim, land_use, outer_max_iter: int = 12, outer_tol: float = 1.0
-) -> list[dict]:
+def _trayectoria(sim, land_use, outer_max_iter: int = 12, outer_tol: float = 1.0) -> list[dict]:
     filas = []
     Q_prev = None
     T_state_prev = None
@@ -391,22 +394,14 @@ def _trayectoria(
         filas.append(
             {
                 "k": k,
-                "residual": None
-                if not np.isfinite(it.T_residual)
-                else round(it.T_residual, 5),
+                "residual": None if not np.isfinite(it.T_residual) else round(it.T_residual, 5),
                 "brecha_T_new": None
                 if T_new_prev is None
                 else round(float(np.max(np.abs(T_new - T_new_prev))), 6),
-                "max_dQ": None
-                if Q_prev is None
-                else float(f"{np.max(np.abs(Q - Q_prev)):.3e}"),
+                "max_dQ": None if Q_prev is None else float(f"{np.max(np.abs(Q - Q_prev)):.3e}"),
                 "theil": round(float(s.segregacion_theil), 5),
-                "dist_media_km": [
-                    round(float(e.dist_media_cbd_km), 4) for e in m.por_estrato
-                ],
-                "reparto_pct": {
-                    c: round(100.0 * v, 3) for c, v in s.reparto_modal.items()
-                },
+                "dist_media_km": [round(float(e.dist_media_cbd_km), 4) for e in m.por_estrato],
+                "reparto_pct": {c: round(100.0 * v, 3) for c, v in s.reparto_modal.items()},
                 "tiempo_medio_min": round(float(s.tiempo_medio_min), 4),
                 "frecuencia_metro_tph": round(float(s.frecuencia_metro), 4),
                 "delta_bienestar_total_clp": round(float(s.delta_bienestar_total_clp)),
@@ -451,6 +446,31 @@ def loop() -> dict:
     }
 
 
+def trayectoria_exigente() -> dict:
+    """La misma corrida con `outer_tol` cien veces menor, para ver al loop
+    seguir después de que la aplicación lo declara convergido: el residual
+    decae como residual₁/k cuando el mapa ya no se mueve, y la brecha del
+    iterado sin promediar dice si se mueve."""
+    filas = _trayectoria(
+        base._config_web(), base._land_use_web(), outer_max_iter=12, outer_tol=0.01
+    )
+    res1 = filas[1]["residual"]
+    return {
+        "outer_max_iter": 12,
+        "outer_tol": 0.01,
+        "iteraciones_corridas": len(filas),
+        "convergio": filas[-1]["convergio_nucleo"],
+        "trayectoria": [
+            {
+                **f,
+                "res1_sobre_k": None if f["k"] == 0 else round(res1 / f["k"], 5),
+                "residual_por_k": None if f["k"] == 0 else round(f["residual"] * f["k"], 4),
+            }
+            for f in filas
+        ],
+    }
+
+
 def anatomia_del_residual() -> dict:
     """¿De dónde sale el número que el loop compara contra `outer_tol`?
 
@@ -473,11 +493,17 @@ def anatomia_del_residual() -> dict:
     h, i = (int(x) for x in np.unravel_index(int(np.argmax(D)), D.shape))
     d_km = abs(i - ciudad.cbd_index) * ciudad.ancho_celda_km
     t_bici = [round(float(s.t_bici[i]), 4) for s in snaps]
-    # El tamaño del escalón que se cruza, en minutos-equivalentes en vehículo:
-    # (pen_bici_30) / |b_tiempo_viaje| del estrato del máximo.
+    # ¿La celda del máximo cruzó un escalón de penalización de la bici (10, 20
+    # o 30 min) entre las dos vueltas? Si sí, el salto de utilidad es
+    # `pen_bici_XX / |b_tiempo_viaje|` minutos-equivalentes en ese estrato.
     betas = DEFAULT_STRATA[h + 1]["betas"]
-    escalon = abs(betas["penalizaciones_fisicas"]["bici_30"]) / abs(
-        betas["b_tiempo_viaje"]
+    lo, hi = min(t_bici), max(t_bici)
+    escalon_cruzado = next((e for e in (10, 20, 30) if lo < e <= hi), None)
+    escalon = (
+        None
+        if escalon_cruzado is None
+        else abs(betas["penalizaciones_fisicas"][f"bici_{escalon_cruzado}"])
+        / abs(betas["b_tiempo_viaje"])
     )
     return {
         "max": round(float(D.max()), 4),
@@ -491,15 +517,16 @@ def anatomia_del_residual() -> dict:
             "indice": i,
             "km_del_cbd": round(d_km, 4),
             "t_bici_min": t_bici,
-            "escalon_cruzado_min": 30.0,
-            "escalon_min_equivalentes": round(float(escalon), 2),
-            "escalon_utiles": round(float(escalon * abs(betas["b_tiempo_viaje"])), 4),
+            "escalon_cruzado_min": escalon_cruzado,
+            "escalon_min_equivalentes": None if escalon is None else round(float(escalon), 2),
+            "escalon_utiles": None
+            if escalon is None
+            else round(float(escalon * abs(betas["b_tiempo_viaje"])), 4),
         },
         "nota": (
-            "El máximo lo pone una celda donde el tiempo en bici cruza los 30 min "
-            "entre una vuelta y la siguiente: 0,1 min de viaje activan el escalón "
-            "`bici_30` de la utilidad. El resto de la ciudad se mueve dos órdenes "
-            "de magnitud menos."
+            "Si la celda del máximo cruza un escalón de penalización de la bici "
+            "entre las dos vueltas, el salto de utilidad ×VIAJES_MES fija el "
+            "residual de toda la ciudad; si no, el máximo es un cambio continuo."
         ),
     }
 
@@ -526,9 +553,7 @@ def criterio(datos_loop: dict) -> dict:
     ]
     k_conv = next((f["k"] for f in filas if f["convergio_nucleo"]), None)
     # La primera vuelta en que la ciudad ya no se mueve más que 1e-2 en Q.
-    k_quieta = next(
-        (f["k"] for f in filas if f["max_dQ"] is not None and f["max_dQ"] < 1e-2), None
-    )
+    k_quieta = next((f["k"] for f in filas if f["max_dQ"] is not None and f["max_dQ"] < 1e-2), None)
     f_conv = filas[k_conv] if k_conv is not None else filas[-1]
     f_quieta = filas[k_quieta] if k_quieta is not None else filas[-1]
 
@@ -562,8 +587,7 @@ def criterio(datos_loop: dict) -> dict:
             "hasta_k": k_conv,
             "delta_theil": round(f_conv["theil"] - f_quieta["theil"], 6),
             "delta_dist_media_km": [
-                round(a - b, 5)
-                for a, b in zip(f_conv["dist_media_km"], f_quieta["dist_media_km"])
+                round(a - b, 5) for a, b in zip(f_conv["dist_media_km"], f_quieta["dist_media_km"])
             ],
             "delta_reparto_pp": {
                 c: round(f_conv["reparto_pct"][c] - f_quieta["reparto_pct"][c], 4)
@@ -616,6 +640,64 @@ def poblacion() -> list[dict]:
     return filas
 
 
+def parametros_vigentes() -> dict:
+    """Los parámetros del acoplado y de dónde los toma cada consumidor.
+
+    El módulo no introduce parámetros de modelo: `VIAJES_MES`, `alpha`, `rho` y
+    `lambda_h` son de suelo y transporte. Los suyos son de método —el paso, la
+    tolerancia exterior y el tope de vueltas— y cada consumidor fija los dos
+    últimos por su cuenta. Se leen de su fuente, no se tipean.
+    """
+    import inspect
+    import re
+
+    from titirilquen_core.constantes import VIAJES_MES
+
+    firma = inspect.signature(iter_coupled).parameters
+    lu = base._land_use_web()
+
+    def _lee(rel: str, patron: str) -> str:
+        txt = (RAIZ / rel).read_text(encoding="utf-8")
+        m = re.search(patron, txt)
+        assert m, f"{rel}: no se encontró {patron!r}"
+        return m.group(1)
+
+    api = "apps/api/src/api/main.py"
+    worker = "apps/web/src/workers/pyodide.worker.ts"
+    return {
+        "viajes_mes": int(VIAJES_MES),
+        "alpha": [float(e.alpha) for e in lu.estratos],
+        "rho": [float(e.rho) for e in lu.estratos],
+        "lambda_h": [float(e.lambda_) for e in lu.estratos],
+        "theta": "1/(k+1)",
+        "assignment_forzado": "expected",
+        "tolerancia_interior_min": float(base._config_web().tolerance),
+        "outer_tol": {
+            "nucleo": float(firma["outer_tol"].default),
+            "app": float(_lee("apps/web/src/pages/CoupledPage.tsx", r"outer_tol:\s*([\d.]+)")),
+            "comparador": float(
+                _lee("apps/web/src/pages/ComparePage.tsx", r"outer_tol:\s*([\d.]+)")
+            ),
+            "api": float(_lee(api, r"outer_tol: float = Field\(\s*default=([\d.]+)")),
+            "worker": float(_lee(worker, r'"outer_tol",\s*([\d.]+)')),
+        },
+        "outer_max_iter": {
+            "nucleo": int(firma["outer_max_iter"].default),
+            "app": int(
+                _lee("apps/web/src/store/landUseStore.ts", r"coupledOuterMaxIter:\s*(\d+),")
+            ),
+            "comparador": int(
+                _lee("apps/web/src/pages/ComparePage.tsx", r"COMPARE_OUTER_MAX = (\d+)")
+            ),
+            "api": int(_lee(api, r"outer_max_iter: int = Field\(default=(\d+)")),
+            "api_tope": int(
+                _lee(api, r"outer_max_iter: int = Field\(default=\d+, ge=\d+, le=(\d+)")
+            ),
+            "worker": int(_lee(worker, r'"outer_max_iter",\s*(\d+)')),
+        },
+    }
+
+
 def main() -> None:
     datos_loop = loop()
     datos = {
@@ -631,16 +713,17 @@ def main() -> None:
                 "lo que manda `CoupledPage.tsx`."
             ),
         },
+        "fuentes_externas": FUENTES_EXTERNAS,
+        "parametros_vigentes": parametros_vigentes(),
         "accesibilidad": accesibilidad(),
         "quien_remueve_la_inversion": quien_remueve_la_inversion(),
         "red_configurada": red_configurada(),
         "loop": datos_loop,
+        "trayectoria_exigente": trayectoria_exigente(),
         "criterio": criterio(datos_loop),
         "poblacion": poblacion(),
     }
-    SALIDA.write_text(
-        json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    SALIDA.write_text(json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
     a = datos["accesibilidad"]
     print("Pendiente de la accesibilidad (1–9 km):")
