@@ -28,7 +28,7 @@ El contrato, que fija `tests/test_libro.py`:
 Correr uno a mano, desde `packages/titirilquen_core`:
 
 ```bash
-uv run python ../../docs/libro/datos/datos_cap05.py
+uv run python ../../docs/libro/datos/datos_cap02.py
 ```
 
 Los scripts importan el núcleo instalado, no una copia: si el modelo cambia, el

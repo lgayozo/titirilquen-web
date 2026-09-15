@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Titirilquen — Cap. 4: Equilibrio de transporte</title>
+<title>Titirilquen — Cap. 5: Equilibrio de transporte</title>
 <link rel="stylesheet" href="libro.css">
 </head>
 <body>
@@ -40,14 +40,14 @@
 <h2 id="s1"><span class="num">§1</span> Teoría</h2>
 
 <p>
-  Los capítulos 2 y 3 definen dos funciones que se muerden la cola. La oferta
+  Los capítulos 3 y 3 definen dos funciones que se muerden la cola. La oferta
   dice qué tiempos resultan de una carga, <em>t = c(x)</em>; la demanda dice qué
   carga resulta de unos tiempos, <em>x = d(t)</em>. El equilibrio es el punto
   fijo:
 </p>
 
-<div class="ecuacion" data-tex="x^{\star} = d\bigl(c(x^{\star})\bigr)" data-id="(4.1)">
-  <span class="id">(4.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>x</mi><mo lspace="0em" rspace="0em">⋆</mo></msup><mo>=</mo><mi>d</mi><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mi>c</mi><mo stretchy="false">(</mo><msup><mi>x</mi><mo lspace="0em" rspace="0em">⋆</mo></msup><mo stretchy="false">)</mo><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo></mrow><annotation encoding="application/x-tex">x^{\star} = d\bigl(c(x^{\star})\bigr)</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="x^{\star} = d\bigl(c(x^{\star})\bigr)" data-id="(5.1)">
+  <span class="id">(5.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>x</mi><mo lspace="0em" rspace="0em">⋆</mo></msup><mo>=</mo><mi>d</mi><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mi>c</mi><mo stretchy="false">(</mo><msup><mi>x</mi><mo lspace="0em" rspace="0em">⋆</mo></msup><mo stretchy="false">)</mo><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo></mrow><annotation encoding="application/x-tex">x^{\star} = d\bigl(c(x^{\star})\bigr)</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -57,8 +57,8 @@
   mezcla el estado nuevo con el viejo en proporción decreciente:
 </p>
 
-<div class="ecuacion" data-tex="x^{(n+1)} = \frac{1}{n+1}\, x^{\star(n)} + \frac{n}{n+1}\, x^{(n)}" data-id="(4.2)">
-  <span class="id">(4.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>x</mi><mrow><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo>=</mo><mfrac><mn>1</mn><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mtext> </mtext><msup><mi>x</mi><mrow><mo>⋆</mo><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow></msup><mo>+</mo><mfrac><mi>n</mi><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mtext> </mtext><msup><mi>x</mi><mrow><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">x^{(n+1)} = \frac{1}{n+1}\, x^{\star(n)} + \frac{n}{n+1}\, x^{(n)}</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="x^{(n+1)} = \frac{1}{n+1}\, x^{\star(n)} + \frac{n}{n+1}\, x^{(n)}" data-id="(5.2)">
+  <span class="id">(5.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>x</mi><mrow><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo>=</mo><mfrac><mn>1</mn><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mtext> </mtext><msup><mi>x</mi><mrow><mo>⋆</mo><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow></msup><mo>+</mo><mfrac><mi>n</mi><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mtext> </mtext><msup><mi>x</mi><mrow><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">x^{(n+1)} = \frac{1}{n+1}\, x^{\star(n)} + \frac{n}{n+1}\, x^{(n)}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -102,19 +102,19 @@
   </thead>
   <tbody>
     <tr>
-      <td class="n">(4.2)</td>
+      <td class="n">(5.2)</td>
       <td class="ruta py">equilibrium/msa.py</td>
       <td class="n">333</td>
       <td><code>_iter_loop</code> — el loop; su docstring compara las dos variantes</td>
     </tr>
     <tr>
-      <td class="n">(4.1)</td>
+      <td class="n">(5.1)</td>
       <td class="ruta py">equilibrium/msa.py</td>
       <td class="n">155</td>
       <td><code>_correr_iteracion</code> — el lado <em>d(t)</em>: carga por grupo, no por agente</td>
     </tr>
     <tr>
-      <td class="n">(4.2)</td>
+      <td class="n">(5.2)</td>
       <td class="ruta py">equilibrium/msa.py</td>
       <td class="n">419</td>
       <td>el paso <code>f</code>: 1/(it+1) al promediar tiempos, 1 al promediar flujos</td>
@@ -202,7 +202,7 @@
 
 <h2 id="s4"><span class="num">§4</span> Resultados</h2>
 
-<p>Todo sale de <code>datos/cap04.json</code>.</p>
+<p>Todo sale de <code>datos/cap05.json</code>.</p>
 
 <h3>La brecha es siete veces el residuo</h3>
 
@@ -363,10 +363,10 @@
 <div class="paso">
   <h3>Protocolo aplicado <span class="ref">2026-09-07</span></h3>
   <p>
-    (a) lectura estática de (4.1)–(4.2) contra el loop; (b) trayectoria de
+    (a) lectura estática de (5.1)–(5.2) contra el loop; (b) trayectoria de
     convergencia y barrido de tolerancia; (c) invariancia frente a la semilla y
     comparación de las dos variantes del algoritmo; (d) consistencia con los
-    capítulos 2 y 3 — el equilibrio consume las funciones de costo y la regla de
+    capítulos 3 y 3 — el equilibrio consume las funciones de costo y la regla de
     elección tal como las dejaron; (e) contraste de lo que la interfaz declara
     como convergencia contra lo que el núcleo verifica, que ya había producido
     D-39.
@@ -448,8 +448,8 @@
 <footer>
   <p class="meta">
     El libro de Titirilquén · <a href="index.html">índice</a> ·
-    <a href="cap03-demanda-eleccion-modal.html">← capítulo 3</a> ·
-    datos en <code>datos/cap04.json</code>
+    <a href="cap04-demanda-eleccion-modal.html">← capítulo 4</a> ·
+    datos en <code>datos/cap05.json</code>
   </p>
 </footer>
 

@@ -1,23 +1,26 @@
-"""Datos del capítulo 3 — Demanda y elección modal.
+"""Datos del capítulo 3 — Oferta de transporte.
 
-Produce `cap03.json`. Todo se mide en **minutos-equivalentes en vehículo**:
-dividir cada término de la utilidad por `|b_tiempo_viaje|` del estrato cancela la
-escala de su utilidad, que es lo único que hace comparables los coeficientes
-entre estratos y entre modos. Es la misma cuenta que hace
-`scripts/diagnostico_calibracion.py`, y desde D-33 el denominador es común.
+Produce `cap03.json`. El capítulo tiene que sostener tres cosas: que las
+funciones de costo son las que dicen ser (Greenshields, BPR, Mohring), que sus
+salvaguardas —el piso de la bicicleta, los topes de frecuencia, la congestión de
+andén— hacen lo que prometen, y que los tres modos ven la misma geometría que el
+capítulo 1 describió.
 
-Cinco bloques:
+Seis bloques:
 
-1. `anatomia` — los betas por estrato en minutos-equivalentes: qué pesa cada
-   componente de tiempo, cada ASC y cada penalización.
-2. `costo_por_modo` — el costo generalizado completo de un viaje según la
-   distancia, modo por modo, con sus saltos.
-3. `factibilidad` — qué modos existen a cada distancia, y cuánta población queda
-   de cada lado de los cortes.
-4. `elasticidades` — respuesta del reparto a la tarifa del metro y al combustible.
-5. `logit_vs_determinista` — cuánto cambia el reparto según el método.
+1. `geometria_compartida` — dónde pone el CBD cada modo. Es la consistencia con
+   el capítulo 1: si los tres no coinciden, todo lo demás se mide contra
+   distancias distintas.
+2. `auto` — Greenshields (capacidad desde el fundamental) y BPR (demora contra
+   grado de saturación), contrastados con la fórmula cerrada.
+3. `bici` — el piso de caminata (D-15) y el efecto de la pendiente (D-01, AT-05).
+4. `metro` — el efecto Mohring (más demanda ⇒ más frecuencia ⇒ menos espera), y
+   si los topes `frec_min`/`frec_max` están mordiendo (AT-08/AT-09).
+5. `anden` — cuánto pesa realmente la congestión de andén (D-12, D-16).
+6. `red_vacia` — el contrafactual que usan el ΔCS del acoplado y, desde D-42, la
+   accesibilidad del suelo.
 
-Correr desde `packages/titirilquen_core` (~2 min):
+Correr desde `packages/titirilquen_core` (~1 min):
 
     uv run python ../../docs/libro/datos/datos_cap03.py
 """
@@ -37,17 +40,12 @@ sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 import test_linea_base as base
 from titirilquen_core.city import CiudadLineal
-from titirilquen_core.demand.choice import (
-    probabilidades_logit,
-    probabilidades_todo_o_nada,
-)
-from titirilquen_core.demand.utility import calcular_utilidades
-from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
-from titirilquen_core.presets import DEFAULT_STRATA
+from titirilquen_core.supply.bike import demora_bici_tramo
+from titirilquen_core.supply.car import demora_auto_tramo
+from titirilquen_core.supply.oferta import resolver_oferta, resolver_red_vacia
+from titirilquen_core.supply.train import oferta_tren
 
 SALIDA = Path(__file__).parent / "cap03.json"
-ESTRATOS = (1, 2, 3)
-NOMBRES = {1: "alto", 2: "medio", 3: "bajo"}
 
 
 def _commit() -> str:
@@ -63,209 +61,372 @@ def _commit() -> str:
         return "desconocido"
 
 
-def anatomia() -> dict:
-    """Los betas en minutos-equivalentes en vehículo (dividir por |b_tiempo_viaje|)."""
-    filas = {}
-    for h in ESTRATOS:
-        b = DEFAULT_STRATA[h]["betas"]
-        bt = abs(b["b_tiempo_viaje"])
-        pen = b["penalizaciones_fisicas"]
-        filas[NOMBRES[h]] = {
-            "b_tiempo_viaje": b["b_tiempo_viaje"],
-            "b_costo": b["b_costo"],
-            "vot_clp_hora": round(b["b_tiempo_viaje"] / b["b_costo"] * 60, 1),
-            # Cuánto pesa un minuto de cada modo, en minutos de viaje en vehículo.
-            "peso_min_en_vehiculo": 1.0,
-            "peso_min_bici": 1.0,  # usa b_tiempo_viaje, igual que ir sentado
-            "peso_min_caminata": round(abs(b["b_tiempo_caminata"]) / bt, 3),
-            "peso_min_espera": round(abs(b["b_tiempo_espera"]) / bt, 3),
-            "peso_min_acceso": round(abs(b["b_tiempo_acceso"]) / bt, 3),
-            # ASC en minutos-equivalentes, respecto del metro.
-            "asc_auto_min": round(
-                -(b["asc_auto"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
-            ),
-            "asc_bici_min": round(
-                -(b["asc_bici"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
-            ),
-            "asc_caminata_min": round(
-                -(b["asc_caminata"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
-            ),
-            # Penalizaciones escalonadas, acumuladas, en minutos-equivalentes.
-            "pen_bici_min": {
-                ">10": round(abs(pen["bici_10"]) / bt, 2),
-                ">20": round(abs(pen["bici_10"] + pen["bici_20"]) / bt, 2),
-                ">30": round(
-                    abs(pen["bici_10"] + pen["bici_20"] + pen["bici_30"]) / bt, 2
-                ),
-            },
-            "pen_caminata_min": {
-                ">5": round(abs(pen["walk_5"]) / bt, 2),
-                ">15": round(abs(pen["walk_5"] + pen["walk_15"]) / bt, 2),
-                ">25": round(
-                    abs(pen["walk_5"] + pen["walk_15"] + pen["walk_25"]) / bt, 2
-                ),
-            },
-        }
-    return filas
-
-
-def _utils(h: int, celda: int, ciudad, cfg, tiene_auto: bool):
-    return calcular_utilidades(
-        estrato=h,
-        celda_origen=celda,
-        tiene_auto=tiene_auto,
-        ciudad=ciudad,
-        config=cfg.demand,
-        tiempos_observados=None,
+def _ciudad():
+    c = base._config_web()
+    return c, CiudadLineal(
+        n_celdas=c.city.n_celdas, largo_total_km=c.city.largo_ciudad_km
     )
 
 
-def costo_por_modo() -> dict:
-    """El costo generalizado a flujo libre, en minutos-equivalentes, por distancia."""
-    cfg = base._config_web()
-    ciudad = CiudadLineal(
-        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
-    )
-    bt = abs(DEFAULT_STRATA[2]["betas"]["b_tiempo_viaje"])
+def geometria_compartida() -> dict:
+    """¿Los tres modos ponen el CBD en la misma celda que el capítulo 1?
+
+    Auto y bici reconvierten `cbd_km` con `int(cbd_km/L·N)`; el tren hace lo
+    mismo para la parcela del CBD pero además construye sus estaciones sobre
+    **centroides** (`arange(N)·dx + dx/2`). Se comprueba que la celda coincida y
+    se anota la diferencia de convención.
+    """
     filas = []
-    for km in (0.5, 1, 2, 3, 5, 7, 10):
-        celda = ciudad.cbd_index + int(round(km / ciudad.ancho_celda_km))
-        celda = min(celda, ciudad.n_celdas - 1)
-        u = _utils(2, celda, ciudad, cfg, True)
-        fila = {"km": km}
-        for m, bd in u.items():
-            fila[m] = None if not bd.feasible else round(-bd.valor / bt, 2)
-        filas.append(fila)
-    return {
-        "estrato": "medio",
-        "unidad": "minutos-equivalentes en vehículo (−V/|b_t|); menor es mejor",
-        "nota": "A flujo libre. Incluye ASC, tiempo, dinero y penalizaciones.",
-        "filas": filas,
-    }
-
-
-def factibilidad() -> dict:
-    """Qué modos existen a cada distancia, y cuánta gente queda de cada lado."""
-    cfg = base._config_web()
-    ciudad = CiudadLineal(
-        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
-    )
-    gl = cfg.demand.globales
-    umbral_cam = gl.corte_caminata_min * gl.v_caminata / 60
-    umbral_bici = gl.corte_bici_min * gl.v_bici / 60
-
-    perfil = []
-    for km in (0.5, 1, 2, 2.4, 3, 5, 7, 10):
-        celda = min(
-            ciudad.cbd_index + int(round(km / ciudad.ancho_celda_km)),
-            ciudad.n_celdas - 1,
+    # Sólo impares: desde sep-2026 `CiudadLineal` rechaza n par (D-45).
+    for n in (201, 101, 51, 1001):
+        c = CiudadLineal(n_celdas=n, largo_total_km=20.0)
+        idx_reconvertido = max(0, min(int((c.cbd_km / c.largo_total_km) * n), n - 1))
+        filas.append(
+            {
+                "n_celdas": n,
+                "cbd_index_cap1": c.cbd_index,
+                "idx_centro_auto_bici": idx_reconvertido,
+                "idx_cbd_parcela_tren": int((c.cbd_km / c.largo_total_km) * n),
+                "coinciden": idx_reconvertido == c.cbd_index,
+            }
         )
-        u = _utils(2, celda, ciudad, cfg, True)
-        perfil.append({"km": km, **{m: bool(bd.feasible) for m, bd in u.items()}})
-
-    # Fracción de celdas (y de la ciudad) más allá de cada umbral.
-    d = np.abs(np.arange(ciudad.n_celdas) - ciudad.cbd_index) * ciudad.ancho_celda_km
     return {
-        "umbral_caminata_km": round(umbral_cam, 3),
-        "umbral_bici_km": round(umbral_bici, 3),
-        "corte_caminata_min": gl.corte_caminata_min,
-        "corte_bici_min": gl.corte_bici_min,
-        "celdas_sin_caminata_pct": round(100.0 * float(np.mean(d > umbral_cam)), 2),
-        "celdas_sin_bici_pct": round(100.0 * float(np.mean(d > umbral_bici)), 2),
-        "perfil": perfil,
+        "filas": filas,
+        "nota": (
+            "int(L/2 / L · n) == n//2 para todo n > 0: los tres modos usan la celda "
+            "del capítulo 1 (y desde sep-2026 n es impar por schema). El tren, además, sitúa sus "
+            "estaciones sobre centroides (x_i = (i+½)·Δx), que es la convención "
+            "continua de `CiudadLineal` — coherente, porque el acceso a la estación "
+            "es una distancia física, no un conteo de celdas."
+        ),
     }
 
 
-def _corre(sim) -> dict:
-    trace = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(
-        sim, base._land_use_web(), trace, localizacion="original"
-    ):
-        pass
-    s = trace.iteraciones[-1].modal_split
-    t = sum(s.values())
-    return {m: round(100.0 * v / t, 3) for m, v in s.items()}
-
-
-def elasticidades() -> dict:
-    """Respuesta del reparto a las dos palancas de precio."""
-    out = {}
-    for campo, valores in (
-        ("costo_tarifa_metro", (0, 400, 800, 1200, 1600)),
-        ("costo_combustible_km", (60, 120, 240, 480)),
-    ):
-        filas = []
-        for v in valores:
-            sim = base._config_web()
-            gl = sim.demand.globales.model_copy(update={campo: v})
-            dem = sim.demand.model_copy(update={"globales": gl})
-            filas.append({campo: v, **_corre(sim.model_copy(update={"demand": dem}))})
-        out[campo] = filas
-    return out
-
-
-def logit_vs_determinista() -> dict:
-    """El mismo escenario con las dos reglas de elección."""
-    out = {}
-    for metodo in ("expected", "todo_o_nada"):
-        sim = base._config_web()
-        out[metodo] = _corre(sim.model_copy(update={"assignment": metodo}))
-    # Y en una celda concreta: probabilidades contra el argmax.
-    cfg = base._config_web()
-    ciudad = CiudadLineal(
-        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
+def auto() -> dict:
+    """Greenshields y BPR contra su fórmula cerrada."""
+    cfg, ciudad = _ciudad()
+    p = cfg.supply.car
+    k_j = 1000 / (p.largo_vehiculo_m + p.gap_m)
+    factor_ancho = (
+        1.0 if p.ancho_pista_m >= 3.5 else (0.9 if p.ancho_pista_m >= 3.0 else 0.75)
     )
-    celda = ciudad.cbd_index + int(round(3.0 / ciudad.ancho_celda_km))
-    u = _utils(2, celda, ciudad, cfg, True)
-    out["celda_a_3km_estrato_medio"] = {
-        "logit": {m: round(p, 4) for m, p in probabilidades_logit(u).items()},
-        "todo_o_nada": {
-            m: round(p, 4) for m, p in probabilidades_todo_o_nada(u).items()
+    v_l = p.v_max_kmh * factor_ancho
+    cap_teorica = (k_j * v_l) / 4 * max(1, p.num_pistas)
+
+    r = demora_auto_tramo(
+        ubicacion_centro_km=ciudad.cbd_km,
+        demanda=np.zeros(ciudad.n_celdas),
+        v_max_kmh=p.v_max_kmh,
+        ancho_pista_m=p.ancho_pista_m,
+        largo_vehiculo_m=p.largo_vehiculo_m,
+        gap_m=p.gap_m,
+        L_ciudad_km=ciudad.largo_total_km,
+        num_pistas=p.num_pistas,
+        alpha_bpr=p.alpha_bpr,
+        beta_bpr=p.beta_bpr,
+        capacidad_pista=p.capacidad_pista,
+    )
+
+    # BPR: demora relativa contra grado de saturación, con demanda uniforme.
+    curva = []
+    for vc in (0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0):
+        # Demanda uniforme tal que el flujo máximo (junto al CBD) sea vc·C.
+        n_media = ciudad.n_celdas // 2
+        d = np.full(ciudad.n_celdas, vc * r.capacidad_direccion / max(n_media, 1))
+        rr = demora_auto_tramo(
+            ubicacion_centro_km=ciudad.cbd_km,
+            demanda=d,
+            v_max_kmh=p.v_max_kmh,
+            ancho_pista_m=p.ancho_pista_m,
+            largo_vehiculo_m=p.largo_vehiculo_m,
+            gap_m=p.gap_m,
+            L_ciudad_km=ciudad.largo_total_km,
+            num_pistas=p.num_pistas,
+            alpha_bpr=p.alpha_bpr,
+            beta_bpr=p.beta_bpr,
+            capacidad_pista=p.capacidad_pista,
+        )
+        libre = float(r.t_usuarios_min[0])
+        curva.append(
+            {
+                "vc_borde": round(
+                    float(rr.flujos_veh_por_hora.max() / rr.capacidad_direccion), 4
+                ),
+                "t_borde_min": round(float(rr.t_usuarios_min[0]), 3),
+                "razon_vs_flujo_libre": round(float(rr.t_usuarios_min[0] / libre), 4)
+                if libre > 0
+                else None,
+            }
+        )
+
+    return {
+        "densidad_embotellamiento_veh_km": round(k_j, 3),
+        "factor_ancho": factor_ancho,
+        "v_libre_kmh": round(v_l, 2),
+        "capacidad_teorica_veh_h": round(cap_teorica, 1),
+        "capacidad_del_codigo_veh_h": round(float(r.capacidad_direccion), 1),
+        "capacidad_explicita_configurada": p.capacidad_pista,
+        "alpha_bpr": p.alpha_bpr,
+        "beta_bpr": p.beta_bpr,
+        "t_flujo_libre_borde_min": round(float(r.t_usuarios_min[0]), 3),
+        "curva_bpr": curva,
+    }
+
+
+def bici() -> dict:
+    """El piso de caminata (D-15) y la pendiente (D-01, AT-05)."""
+    cfg, ciudad = _ciudad()
+    p = cfg.supply.bike
+    v_cam = cfg.demand.globales.v_caminata
+    dx = ciudad.ancho_celda_km
+
+    def corre(demanda_por_celda: float, pendiente: float = 0.0):
+        return demora_bici_tramo(
+            ubicacion_centro_km=ciudad.cbd_km,
+            capacidad=p.capacidad_pista,
+            demanda=np.full(ciudad.n_celdas, demanda_por_celda),
+            v_media=p.v_media_kmh,
+            L_ciudad_km=ciudad.largo_total_km,
+            alpha=p.alpha_bpr,
+            beta=p.beta_bpr,
+            pendiente_porcentaje=pendiente,
+            v_caminata=v_cam,
+        )
+
+    t_tramo_walk = (dx / v_cam) * 60
+    t0 = (dx / p.v_media_kmh) * 60
+    saturacion = []
+    for d in (0.0, 5.0, 20.0, 50.0, 200.0, 1000.0):
+        r = corre(d)
+        # El piso actúa TRAMO A TRAMO, no sobre el acumulado: se cuenta en
+        # cuántos tramos la BPR cruda habría superado el tiempo de caminar.
+        crudo = t0 * (
+            1
+            + p.alpha_bpr * ((r.flujos_bici_por_hora / p.capacidad_pista) ** p.beta_bpr)
+        )
+        saturacion.append(
+            {
+                "demanda_por_celda": d,
+                "flujo_max_bici_h": round(float(r.flujos_bici_por_hora.max()), 1),
+                "t_borde_min": round(float(r.t_usuarios_min[0]), 3),
+                "tramos_con_piso_activo": int(np.sum(crudo > t_tramo_walk)),
+                "tramos_totales": int(ciudad.n_celdas),
+            }
+        )
+
+    pendientes = []
+    for pend in (-6.0, -3.0, 0.0, 3.0, 6.0):
+        r = corre(20.0, pend)
+        pendientes.append(
+            {"pendiente_pct": pend, "t_borde_min": round(float(r.t_usuarios_min[0]), 3)}
+        )
+
+    return {
+        "v_media_kmh": p.v_media_kmh,
+        "capacidad_pista": p.capacidad_pista,
+        "v_caminata_kmh": v_cam,
+        "t_tramo_caminando_min": round(t_tramo_walk, 4),
+        "saturacion": saturacion,
+        "pendiente": pendientes,
+        "pendiente_es_simetrica": None,  # se completa abajo
+    }
+
+
+def metro() -> dict:
+    """Mohring, los topes de frecuencia y la congestión de andén."""
+    cfg, ciudad = _ciudad()
+    p = cfg.supply.train
+
+    def corre(demanda_por_celda: float, **kw):
+        args = {
+            "demanda": np.full(ciudad.n_celdas, demanda_por_celda),
+            "L_ciudad_km": ciudad.largo_total_km,
+            "x_centro_km": ciudad.cbd_km,
+            "v_tren_kmh": p.v_tren_kmh,
+            "capacidad_tren": p.capacidad_tren,
+            "num_estaciones": p.num_estaciones,
+            "v_caminata_kmh": p.v_caminata_kmh,
+            "tiempo_detencion_min": p.tiempo_detencion_min,
+            "frec_min": p.frec_min,
+            "frec_max": p.frec_max,
+            "anden_alpha": p.anden_alpha,
+            "anden_beta": p.anden_beta,
+        }
+        args.update(kw)
+        return oferta_tren(**args)
+
+    mohring = []
+    for d in (0.0, 2.0, 5.0, 10.0, 20.0, 40.0, 80.0):
+        r = corre(d)
+        mohring.append(
+            {
+                "demanda_por_celda": d,
+                "carga_max_pax": round(
+                    float(r.carga_por_tramo.max()) if r.carga_por_tramo.size else 0.0, 1
+                ),
+                "frecuencia_teorica_tph": round(float(r.frecuencia_teorica), 3),
+                "frecuencia_operativa_tph": round(float(r.frecuencia_operativa), 3),
+                "topada_en": (
+                    "frec_min"
+                    if r.frecuencia_teorica < p.frec_min
+                    else ("frec_max" if r.frecuencia_teorica > p.frec_max else "no")
+                ),
+                "espera_media_min": round(float(np.mean(r.t_espera_min)), 3),
+                "acceso_medio_min": round(float(np.mean(r.t_acceso_min)), 3),
+            }
+        )
+
+    # ¿Cuánto pesa la BPR de andén? Se compara con anden_alpha = 0.
+    anden = []
+    for d in (10.0, 40.0, 80.0, 160.0):
+        con = corre(d)
+        sin = corre(d, anden_alpha=0.0)
+        e_con, e_sin = (
+            float(np.mean(con.t_espera_min)),
+            float(np.mean(sin.t_espera_min)),
+        )
+        anden.append(
+            {
+                "demanda_por_celda": d,
+                "espera_con_anden_min": round(e_con, 4),
+                "espera_sin_anden_min": round(e_sin, 4),
+                "sobrecosto_pct": round(100.0 * (e_con / e_sin - 1.0), 4)
+                if e_sin > 0
+                else None,
+            }
+        )
+
+    # Estaciones: más estaciones acortan el acceso pero agregan detenciones.
+    # `num_estaciones` no es el número de estaciones: la construcción parte del
+    # CBD hacia ambos lados con paso L/n y luego filtra a [0, L], así que el
+    # conteo real depende de si los bordes caen exactos (ver §6).
+    conteo_estaciones = []
+    for n_est in (2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 30):
+        r = corre(0.0, num_estaciones=n_est)
+        conteo_estaciones.append(
+            {
+                "pedidas": n_est,
+                "reales": len(r.estaciones_km),
+                "diferencia": len(r.estaciones_km) - n_est,
+                "separacion_km": round(ciudad.largo_total_km / n_est, 4),
+            }
+        )
+
+    # Rango amplio: el óptimo interior que promete la interfaz existe, pero
+    # está lejos del default (ver §4).
+    estaciones = []
+    for n_est in (2, 4, 6, 8, 10, 14, 20, 30, 40, 60, 80, 120):
+        r = corre(20.0, num_estaciones=n_est)
+        estaciones.append(
+            {
+                "num_estaciones": n_est,
+                "estaciones_reales": len(r.estaciones_km),
+                "acceso_medio_min": round(float(np.mean(r.t_acceso_min)), 3),
+                "viaje_medio_min": round(float(np.mean(r.t_viaje_min)), 3),
+                "suma_min": round(float(np.mean(r.t_acceso_min + r.t_viaje_min)), 3),
+            }
+        )
+
+    return {
+        "capacidad_tren_pax": p.capacidad_tren,
+        "num_estaciones": p.num_estaciones,
+        "frec_min_tph": p.frec_min,
+        "frec_max_tph": p.frec_max,
+        "anden_alpha": p.anden_alpha,
+        "anden_beta": p.anden_beta,
+        "tiempo_detencion_min": p.tiempo_detencion_min,
+        "mohring": mohring,
+        "anden": anden,
+        "conteo_estaciones": conteo_estaciones,
+        "estaciones": estaciones,
+    }
+
+
+def red_vacia() -> dict:
+    """El contrafactual: la red sin nadie encima."""
+    cfg, ciudad = _ciudad()
+    r = resolver_red_vacia(cfg, ciudad)
+    cero = np.zeros(ciudad.n_celdas)
+    cargada = resolver_oferta(cfg, ciudad, cero + 30.0, cero + 20.0, cero + 20.0)
+    return {
+        "vacia": {
+            "auto_borde_min": round(float(r.auto.t_usuarios_min[0]), 3),
+            "bici_borde_min": round(float(r.bici.t_usuarios_min[0]), 3),
+            "metro_borde_min": round(
+                float(
+                    r.tren.t_acceso_min[0]
+                    + r.tren.t_espera_min[0]
+                    + r.tren.t_viaje_min[0]
+                ),
+                3,
+            ),
+            "frecuencia_tph": round(float(r.tren.frecuencia_operativa), 3),
+        },
+        "cargada": {
+            "auto_borde_min": round(float(cargada.auto.t_usuarios_min[0]), 3),
+            "bici_borde_min": round(float(cargada.bici.t_usuarios_min[0]), 3),
+            "metro_borde_min": round(
+                float(
+                    cargada.tren.t_acceso_min[0]
+                    + cargada.tren.t_espera_min[0]
+                    + cargada.tren.t_viaje_min[0]
+                ),
+                3,
+            ),
+            "frecuencia_tph": round(float(cargada.tren.frecuencia_operativa), 3),
         },
     }
-    return out
 
 
 def main() -> None:
+    b = bici()
+    # AT-05: con la topografía monocéntrica, +p y −p NO pueden dar lo mismo.
+    por_pend = {f["pendiente_pct"]: f["t_borde_min"] for f in b["pendiente"]}
+    b["pendiente_es_simetrica"] = bool(
+        abs(por_pend[3.0] - por_pend[-3.0]) < 1e-9
+        and abs(por_pend[6.0] - por_pend[-6.0]) < 1e-9
+    )
+
     datos = {
         "_meta": {
             "fecha": datetime.now(UTC).date().isoformat(),
             "commit": _commit(),
             "script": "docs/libro/datos/datos_cap03.py",
             "configuracion": (
-                "Demanda de la aplicación (`presets.DEFAULT_STRATA`, homoscedástica "
-                "desde D-33) sobre la ciudad por defecto: 201 celdas, 20 km, "
-                "localización «original». Los costos por modo son a flujo libre."
+                "Oferta de la aplicación (`test_linea_base._config_web().supply`) sobre "
+                "la ciudad por defecto: 201 celdas, 20 km. Las demandas son uniformes "
+                "y sintéticas — el capítulo mide las funciones de costo, no el "
+                "equilibrio, que es el capítulo 5."
             ),
         },
-        "anatomia": anatomia(),
-        "costo_por_modo": costo_por_modo(),
-        "factibilidad": factibilidad(),
-        "elasticidades": elasticidades(),
-        "logit_vs_determinista": logit_vs_determinista(),
+        "geometria_compartida": geometria_compartida(),
+        "auto": auto(),
+        "bici": b,
+        "metro": metro(),
+        "red_vacia": red_vacia(),
     }
     SALIDA.write_text(
         json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
     )
 
-    a = datos["anatomia"]["medio"]
-    print("Pesos relativos (minutos-equivalentes en vehículo), estrato medio:")
+    a = datos["auto"]
     print(
-        f"  en vehículo {a['peso_min_en_vehiculo']}  ·  bici {a['peso_min_bici']}  ·  "
-        f"caminata {a['peso_min_caminata']}  ·  espera {a['peso_min_espera']}  ·  "
-        f"acceso {a['peso_min_acceso']}"
-    )
-    print(f"  penalización bici acumulada: {a['pen_bici_min']}")
-    print(f"  penalización caminata:       {a['pen_caminata_min']}")
-    f = datos["factibilidad"]
-    print(
-        f"\nCortes: caminata {f['corte_caminata_min']} min = {f['umbral_caminata_km']} km "
-        f"({f['celdas_sin_caminata_pct']}% de las celdas sin ella)"
+        f"Auto: k_j={a['densidad_embotellamiento_veh_km']} veh/km · v_l={a['v_libre_kmh']} km/h"
     )
     print(
-        f"        bici     {f['corte_bici_min']} min = {f['umbral_bici_km']} km "
-        f"({f['celdas_sin_bici_pct']}%)"
+        f"  capacidad teórica {a['capacidad_teorica_veh_h']} vs código {a['capacidad_del_codigo_veh_h']}"
     )
+    print("\nMetro (Mohring):")
+    for m in datos["metro"]["mohring"]:
+        print(
+            f"  d={m['demanda_por_celda']:>6}  f_teo={m['frecuencia_teorica_tph']:>8.3f}  "
+            f"f_op={m['frecuencia_operativa_tph']:>6.3f}  topada={m['topada_en']:>8}  "
+            f"espera={m['espera_media_min']:>6.3f}"
+        )
+    print("\nAndén (sobrecosto sobre la espera):")
+    for x in datos["metro"]["anden"]:
+        print(f"  d={x['demanda_por_celda']:>6}  {x['sobrecosto_pct']}%")
+    print(f"\nBici: pendiente simétrica = {b['pendiente_es_simetrica']}")
     print(f"\nEscrito: {SALIDA}")
 
 

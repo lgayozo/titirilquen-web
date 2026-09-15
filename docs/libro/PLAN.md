@@ -36,10 +36,10 @@ hacia adelante.
 | Cap. | Módulo | Código | Material existente que se absorbe |
 | --- | --- | --- | --- |
 | 1 | La ciudad lineal | `city.py`, `CityConfig` | tutorial 02, D-26, D-28 |
-| 2 | Oferta de transporte | `supply/car`, `supply/bike`, `supply/train`, `supply/oferta` | tutorial 03, `informe-wardrop`, D-12, D-16, D-18, D-21 |
-| 3 | Demanda y elección modal | `demand/utility`, `demand/choice`, `population`, `presets` | tutorial 04, `diagnostico_calibracion`, D-01…D-05, D-33 |
-| 4 | Equilibrio de transporte | `equilibrium/msa`, `emissions` | tutoriales 05 y 06, `informe-downs-thomson`, `informe-wardrop`, D-10, D-29, D-39 |
-| 5 | Uso de suelo: oferta y subasta | `land_use/supply`, `equilibrium`, `hev`, `allocation`, `ciudad` | `informe-uso-suelo`, `informe-hev`, `hev-cuadratura`, los tres sandboxes, AU-01…AU-13, D-08, D-25, D-31, D-32 |
+| 2 | Uso de suelo: oferta y subasta | `land_use/supply`, `equilibrium`, `hev`, `allocation`, `ciudad` | `informe-uso-suelo`, `informe-hev`, `hev-cuadratura`, los tres sandboxes, AU-01…AU-13, D-08, D-25, D-31, D-32 |
+| 3 | Oferta de transporte | `supply/car`, `supply/bike`, `supply/train`, `supply/oferta` | tutorial 03, `informe-wardrop`, D-12, D-16, D-18, D-21 |
+| 4 | Demanda y elección modal | `demand/utility`, `demand/choice`, `population`, `presets` | tutorial 04, `diagnostico_calibracion`, D-01…D-05, D-33 |
+| 5 | Equilibrio de transporte | `equilibrium/msa`, `emissions` | tutoriales 05 y 06, `informe-downs-thomson`, `informe-wardrop`, D-10, D-29, D-39 |
 | 6 | Accesibilidad y acoplamiento | `land_use/accesibilidad`, `coupled` | D-14, D-22, D-23, D-24, D-34, D-40, D-42 |
 | 7 | Bienestar e indicadores | `bienestar`, `coupled_metrics` | `informe-bienestar`, D-27, D-35…D-38 |
 | 8 | Contrato y runtimes | `serializacion`, API, worker, `src/lib/gen`, goldens | `arquitectura.html`, `diagrama-flujo.html`, C-02 |
@@ -129,10 +129,10 @@ Los hallazgos van a `DISCREPANCIES.md` como D-45 en adelante, con evidencia,
 veredicto y estado, y de ahí a la sección 6 del capítulo. Los pendientes
 parciales de la auditoría externa entran por esta vía:
 
-- Cap. 4: mostrar `gap_final_min` en la tabla de transporte y decidir si el
+- Cap. 5: mostrar `gap_final_min` en la tabla de transporte y decidir si el
   criterio de parada del MSA usa la brecha (mueve la línea base; es cambio de
   modelo y hay que declararlo).
-- Cap. 5: exigir balance de hogares (`Σ_i S_i·Q_hi = H_h`) al declarar
+- Cap. 2: exigir balance de hogares (`Σ_i S_i·Q_hi = H_h`) al declarar
   convergencia HEV.
 - Cap. 6: los redondeos aceptados de D-44 (población entera que conserva `S_i`
   y no `H_h`; medio tramo en auto y bici), o corregirlos y declarar la línea
@@ -150,7 +150,7 @@ parciales de la auditoría externa entran por esta vía:
    migrados. No se escribió ningún capítulo: eso es la fase 1.
 2. **Fase 1 — capítulos 1 a 4 (transporte).** Son los que menos auditoría
    formal tienen. `informe-wardrop` e `informe-downs-thomson` se absorben.
-3. **Fase 2 — capítulos 5 a 7 (suelo, acoplado, bienestar).** Donde más
+3. **Fase 2 — capítulos 2 a 7 (suelo, acoplado, bienestar).** Donde más
    material hay y donde se concentró el cambio de septiembre de 2026. Los
    informes actuales se migran y se **actualizan**: todos narran las unidades
    y parámetros anteriores a D-34.

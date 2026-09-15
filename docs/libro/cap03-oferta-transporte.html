@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Titirilquen — Cap. 2: Oferta de transporte</title>
+<title>Titirilquen — Cap. 3: Oferta de transporte</title>
 <link rel="stylesheet" href="libro.css">
 </head>
 <body>
@@ -42,8 +42,8 @@
 
 <p>
   La oferta responde una sola pregunta: <em>dada una carga, ¿cuánto tarda cada
-  modo?</em> No decide quién viaja —eso es el capítulo 3— ni busca el punto fijo
-  entre ambas —el capítulo 4—. Aquí sólo están las funciones de costo.
+  modo?</em> No decide quién viaja —eso es el capítulo 4— ni busca el punto fijo
+  entre ambas —el capítulo 5—. Aquí sólo están las funciones de costo.
 </p>
 
 <h3>Auto: Greenshields y BPR</h3>
@@ -54,8 +54,8 @@
   libre y media densidad de embotellamiento.
 </p>
 
-<div class="ecuacion" data-tex="k_j = \frac{1000}{\ell + g}, \qquad C = \frac{k_j \cdot v_l}{4}" data-id="(2.1)">
-  <span class="id">(2.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>k</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1000</mn><mrow><mi mathvariant="normal">ℓ</mi><mo>+</mo><mi>g</mi></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>C</mi><mo>=</mo><mfrac><mrow><msub><mi>k</mi><mi>j</mi></msub><mo>⋅</mo><msub><mi>v</mi><mi>l</mi></msub></mrow><mn>4</mn></mfrac></mrow><annotation encoding="application/x-tex">k_j = \frac{1000}{\ell + g}, \qquad C = \frac{k_j \cdot v_l}{4}</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="k_j = \frac{1000}{\ell + g}, \qquad C = \frac{k_j \cdot v_l}{4}" data-id="(3.1)">
+  <span class="id">(3.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>k</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1000</mn><mrow><mi mathvariant="normal">ℓ</mi><mo>+</mo><mi>g</mi></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>C</mi><mo>=</mo><mfrac><mrow><msub><mi>k</mi><mi>j</mi></msub><mo>⋅</mo><msub><mi>v</mi><mi>l</mi></msub></mrow><mn>4</mn></mfrac></mrow><annotation encoding="application/x-tex">k_j = \frac{1000}{\ell + g}, \qquad C = \frac{k_j \cdot v_l}{4}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -64,8 +64,8 @@
   pista. La demora sobre esa capacidad es la curva BPR:
 </p>
 
-<div class="ecuacion" data-tex="t = t_0 \left[ 1 + \alpha \left(\frac{q}{C}\right)^{\beta} \right]" data-id="(2.2)">
-  <span class="id">(2.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>t</mi><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub><mrow><mo fence="true">[</mo><mn>1</mn><mo>+</mo><mi>α</mi><msup><mrow><mo fence="true">(</mo><mfrac><mi>q</mi><mi>C</mi></mfrac><mo fence="true">)</mo></mrow><mi>β</mi></msup><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">t = t_0 \left[ 1 + \alpha \left(\frac{q}{C}\right)^{\beta} \right]</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="t = t_0 \left[ 1 + \alpha \left(\frac{q}{C}\right)^{\beta} \right]" data-id="(3.2)">
+  <span class="id">(3.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>t</mi><mo>=</mo><msub><mi>t</mi><mn>0</mn></msub><mrow><mo fence="true">[</mo><mn>1</mn><mo>+</mo><mi>α</mi><msup><mrow><mo fence="true">(</mo><mfrac><mi>q</mi><mi>C</mi></mfrac><mo fence="true">)</mo></mrow><mi>β</mi></msup><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">t = t_0 \left[ 1 + \alpha \left(\frac{q}{C}\right)^{\beta} \right]</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -79,7 +79,7 @@
 <h3>Bicicleta: la misma curva, con un piso</h3>
 
 <p>
-  La bicicleta usa (2.2) sobre la capacidad de la ciclovía, con dos añadidos.
+  La bicicleta usa (3.2) sobre la capacidad de la ciclovía, con dos añadidos.
   La pendiente modifica la velocidad de forma lineal y asimétrica —subir cuesta
   más de lo que bajar ahorra—, y el tiempo de cada tramo se acota por arriba al
   de <strong>caminar</strong> ese tramo: una bicicleta congestionada nunca puede
@@ -93,8 +93,8 @@
   tiempo. La frecuencia es endógena a la carga:
 </p>
 
-<div class="ecuacion" data-tex="f = \mathrm{clip}\!\left(\frac{Q_{\max}}{K},\; f_{\min},\; f_{\max}\right), \qquad t_{\text{espera}} = \frac{60}{2f}" data-id="(2.3)">
-  <span class="id">(2.3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo>=</mo><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">p</mi></mrow><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><msub><mi>Q</mi><mi>max</mi><mo>⁡</mo></msub><mi>K</mi></mfrac><mo separator="true">,</mo><mtext>  </mtext><msub><mi>f</mi><mi>min</mi><mo>⁡</mo></msub><mo separator="true">,</mo><mtext>  </mtext><msub><mi>f</mi><mi>max</mi><mo>⁡</mo></msub><mo fence="true">)</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><msub><mi>t</mi><mtext>espera</mtext></msub><mo>=</mo><mfrac><mn>60</mn><mrow><mn>2</mn><mi>f</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">f = \mathrm{clip}\!\left(\frac{Q_{\max}}{K},\; f_{\min},\; f_{\max}\right), \qquad t_{\text{espera}} = \frac{60}{2f}</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="f = \mathrm{clip}\!\left(\frac{Q_{\max}}{K},\; f_{\min},\; f_{\max}\right), \qquad t_{\text{espera}} = \frac{60}{2f}" data-id="(3.3)">
+  <span class="id">(3.3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo>=</mo><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">p</mi></mrow><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><msub><mi>Q</mi><mi>max</mi><mo>⁡</mo></msub><mi>K</mi></mfrac><mo separator="true">,</mo><mtext>  </mtext><msub><mi>f</mi><mi>min</mi><mo>⁡</mo></msub><mo separator="true">,</mo><mtext>  </mtext><msub><mi>f</mi><mi>max</mi><mo>⁡</mo></msub><mo fence="true">)</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><msub><mi>t</mi><mtext>espera</mtext></msub><mo>=</mo><mfrac><mn>60</mn><mrow><mn>2</mn><mi>f</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">f = \mathrm{clip}\!\left(\frac{Q_{\max}}{K},\; f_{\min},\; f_{\max}\right), \qquad t_{\text{espera}} = \frac{60}{2f}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -115,25 +115,25 @@
   </thead>
   <tbody>
     <tr>
-      <td class="n">(2.1)</td>
+      <td class="n">(3.1)</td>
       <td class="ruta py">supply/car.py</td>
       <td class="n">55</td>
       <td><code>cap_pista</code> — Greenshields, o el valor explícito de S-04; <code>_factor_ancho</code> (25) penaliza <em>v_l</em></td>
     </tr>
     <tr>
-      <td class="n">(2.2)</td>
+      <td class="n">(3.2)</td>
       <td class="ruta py">supply/car.py</td>
       <td class="n">36</td>
       <td><code>demora_auto_tramo</code> — BPR sobre el flujo acumulado</td>
     </tr>
     <tr>
-      <td class="n">(2.2)</td>
+      <td class="n">(3.2)</td>
       <td class="ruta py">supply/bike.py</td>
       <td class="n">32</td>
       <td><code>demora_bici_tramo</code> — ídem; <code>_velocidad_con_pendiente</code> (21) aplica D-01</td>
     </tr>
     <tr>
-      <td class="n">(2.3)</td>
+      <td class="n">(3.3)</td>
       <td class="ruta py">supply/train.py</td>
       <td class="n">33</td>
       <td><code>oferta_tren</code> — frecuencia endógena, espera, acceso y detenciones</td>
@@ -238,7 +238,7 @@
 <h2 id="s4"><span class="num">§4</span> Resultados</h2>
 
 <p>
-  Todo sale de <code>datos/cap02.json</code>. Las demandas son uniformes y
+  Todo sale de <code>datos/cap03.json</code>. Las demandas son uniformes y
   sintéticas: aquí se miden las funciones de costo, no el equilibrio.
 </p>
 
@@ -246,7 +246,7 @@
 
 <p>
   Con ℓ+g = 7 m, <em>k_j</em> = 142,857 veh/km; con ancho 3,5 m el factor es 1,0
-  y <em>v_l</em> = 31 km/h. La capacidad por dirección que predice (2.1) es
+  y <em>v_l</em> = 31 km/h. La capacidad por dirección que predice (3.1) es
   <strong>2.214,3 veh/h</strong> y la que devuelve el código es
   <strong>2.214,3 veh/h</strong>. La curva BPR sobre esa capacidad:
 </p>
@@ -401,7 +401,7 @@
       <td><code class="ruta py">tests/test_supply_car.py</code></td>
       <td class="n">4</td>
       <td>El factor de ancho, que más pistas bajan la congestión, que la capacidad escala con pistas y que la capacidad explícita desacopla la velocidad (S-04).</td>
-      <td>Que la capacidad reproduzca Greenshields; que la BPR tenga la forma de (2.2).</td>
+      <td>Que la capacidad reproduzca Greenshields; que la BPR tenga la forma de (3.2).</td>
     </tr>
     <tr>
       <td><code class="ruta py">tests/test_supply_bike.py</code></td>
@@ -424,7 +424,7 @@
 <div class="paso">
   <h3>Protocolo aplicado <span class="ref">2026-09-07</span></h3>
   <p>
-    (a) lectura estática de los tres modos contra (2.1)–(2.3); (b) reproducción
+    (a) lectura estática de los tres modos contra (3.1)–(3.3); (b) reproducción
     de Greenshields contra su fórmula cerrada y barridos de carga en los tres
     modos; (c) invariancia del CBD frente a la paridad; (d) consistencia con el
     capítulo 1 — los tres modos y la demanda comparten celda del CBD; (e)
@@ -530,7 +530,7 @@
   <p class="meta">
     El libro de Titirilquén · <a href="index.html">índice</a> ·
     <a href="cap01-ciudad-lineal.html">← capítulo 1</a> ·
-    datos en <code>datos/cap02.json</code>
+    datos en <code>datos/cap03.json</code>
   </p>
 </footer>
 

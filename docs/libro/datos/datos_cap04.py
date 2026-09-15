@@ -1,25 +1,23 @@
-"""Datos del capítulo 4 — Equilibrio de transporte.
+"""Datos del capítulo 4 — Demanda y elección modal.
 
-Produce `cap04.json`. El capítulo tiene que responder tres preguntas incómodas:
-si el MSA converge de verdad, si converge al mismo punto por caminos distintos,
-y qué tan lejos del punto fijo queda la corrida que la aplicación declara
-convergida.
+Produce `cap04.json`. Todo se mide en **minutos-equivalentes en vehículo**:
+dividir cada término de la utilidad por `|b_tiempo_viaje|` del estrato cancela la
+escala de su utilidad, que es lo único que hace comparables los coeficientes
+entre estratos y entre modos. Es la misma cuenta que hace
+`scripts/diagnostico_calibracion.py`, y desde D-33 el denominador es común.
 
-La tercera es D-39: el residuo mide el cambio del iterado **amortiguado**, y con
-paso 1/n subestima el desajuste real. Desde sep-2026 el núcleo publica además
-`gap_final_min`, la brecha no amortiguada, y este capítulo la usa como vara.
+Cinco bloques:
 
-Seis bloques:
+1. `anatomia` — los betas por estrato en minutos-equivalentes: qué pesa cada
+   componente de tiempo, cada ASC y cada penalización.
+2. `costo_por_modo` — el costo generalizado completo de un viaje según la
+   distancia, modo por modo, con sus saltos.
+3. `factibilidad` — qué modos existen a cada distancia, y cuánta población queda
+   de cada lado de los cortes.
+4. `elasticidades` — respuesta del reparto a la tarifa del metro y al combustible.
+5. `logit_vs_determinista` — cuánto cambia el reparto según el método.
 
-1. `trayectoria` — residuo y brecha iteración a iteración.
-2. `tolerancia` — qué cambia al exigir más: reparto, iteraciones y brecha.
-3. `variantes` — promediar tiempos (el default) contra promediar flujos (el
-   algoritmo estándar de Boyles, §6.2, el único con argumento de convergencia).
-4. `unicidad` — ¿el punto fijo depende del punto de partida?
-5. `emisiones` — el reparto entre auto y metro (D-29, tren-km).
-6. `downs_thomson` — el barrido de pistas que absorbe el informe homónimo.
-
-Correr desde `packages/titirilquen_core` (~4 min):
+Correr desde `packages/titirilquen_core` (~2 min):
 
     uv run python ../../docs/libro/datos/datos_cap04.py
 """
@@ -38,9 +36,18 @@ RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 import test_linea_base as base
+from titirilquen_core.city import CiudadLineal
+from titirilquen_core.demand.choice import (
+    probabilidades_logit,
+    probabilidades_todo_o_nada,
+)
+from titirilquen_core.demand.utility import calcular_utilidades
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
+from titirilquen_core.presets import DEFAULT_STRATA
 
 SALIDA = Path(__file__).parent / "cap04.json"
+ESTRATOS = (1, 2, 3)
+NOMBRES = {1: "alto", 2: "medio", 3: "bajo"}
 
 
 def _commit() -> str:
@@ -56,170 +63,167 @@ def _commit() -> str:
         return "desconocido"
 
 
-def _corre(sim, *, promediar_flujos: bool = False, localizacion: str = "original"):
+def anatomia() -> dict:
+    """Los betas en minutos-equivalentes en vehículo (dividir por |b_tiempo_viaje|)."""
+    filas = {}
+    for h in ESTRATOS:
+        b = DEFAULT_STRATA[h]["betas"]
+        bt = abs(b["b_tiempo_viaje"])
+        pen = b["penalizaciones_fisicas"]
+        filas[NOMBRES[h]] = {
+            "b_tiempo_viaje": b["b_tiempo_viaje"],
+            "b_costo": b["b_costo"],
+            "vot_clp_hora": round(b["b_tiempo_viaje"] / b["b_costo"] * 60, 1),
+            # Cuánto pesa un minuto de cada modo, en minutos de viaje en vehículo.
+            "peso_min_en_vehiculo": 1.0,
+            "peso_min_bici": 1.0,  # usa b_tiempo_viaje, igual que ir sentado
+            "peso_min_caminata": round(abs(b["b_tiempo_caminata"]) / bt, 3),
+            "peso_min_espera": round(abs(b["b_tiempo_espera"]) / bt, 3),
+            "peso_min_acceso": round(abs(b["b_tiempo_acceso"]) / bt, 3),
+            # ASC en minutos-equivalentes, respecto del metro.
+            "asc_auto_min": round(
+                -(b["asc_auto"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
+            ),
+            "asc_bici_min": round(
+                -(b["asc_bici"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
+            ),
+            "asc_caminata_min": round(
+                -(b["asc_caminata"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
+            ),
+            # Penalizaciones escalonadas, acumuladas, en minutos-equivalentes.
+            "pen_bici_min": {
+                ">10": round(abs(pen["bici_10"]) / bt, 2),
+                ">20": round(abs(pen["bici_10"] + pen["bici_20"]) / bt, 2),
+                ">30": round(
+                    abs(pen["bici_10"] + pen["bici_20"] + pen["bici_30"]) / bt, 2
+                ),
+            },
+            "pen_caminata_min": {
+                ">5": round(abs(pen["walk_5"]) / bt, 2),
+                ">15": round(abs(pen["walk_5"] + pen["walk_15"]) / bt, 2),
+                ">25": round(
+                    abs(pen["walk_5"] + pen["walk_15"] + pen["walk_25"]) / bt, 2
+                ),
+            },
+        }
+    return filas
+
+
+def _utils(h: int, celda: int, ciudad, cfg, tiene_auto: bool):
+    return calcular_utilidades(
+        estrato=h,
+        celda_origen=celda,
+        tiene_auto=tiene_auto,
+        ciudad=ciudad,
+        config=cfg.demand,
+        tiempos_observados=None,
+    )
+
+
+def costo_por_modo() -> dict:
+    """El costo generalizado a flujo libre, en minutos-equivalentes, por distancia."""
+    cfg = base._config_web()
+    ciudad = CiudadLineal(
+        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
+    )
+    bt = abs(DEFAULT_STRATA[2]["betas"]["b_tiempo_viaje"])
+    filas = []
+    for km in (0.5, 1, 2, 3, 5, 7, 10):
+        celda = ciudad.cbd_index + int(round(km / ciudad.ancho_celda_km))
+        celda = min(celda, ciudad.n_celdas - 1)
+        u = _utils(2, celda, ciudad, cfg, True)
+        fila = {"km": km}
+        for m, bd in u.items():
+            fila[m] = None if not bd.feasible else round(-bd.valor / bt, 2)
+        filas.append(fila)
+    return {
+        "estrato": "medio",
+        "unidad": "minutos-equivalentes en vehículo (−V/|b_t|); menor es mejor",
+        "nota": "A flujo libre. Incluye ASC, tiempo, dinero y penalizaciones.",
+        "filas": filas,
+    }
+
+
+def factibilidad() -> dict:
+    """Qué modos existen a cada distancia, y cuánta gente queda de cada lado."""
+    cfg = base._config_web()
+    ciudad = CiudadLineal(
+        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
+    )
+    gl = cfg.demand.globales
+    umbral_cam = gl.corte_caminata_min * gl.v_caminata / 60
+    umbral_bici = gl.corte_bici_min * gl.v_bici / 60
+
+    perfil = []
+    for km in (0.5, 1, 2, 2.4, 3, 5, 7, 10):
+        celda = min(
+            ciudad.cbd_index + int(round(km / ciudad.ancho_celda_km)),
+            ciudad.n_celdas - 1,
+        )
+        u = _utils(2, celda, ciudad, cfg, True)
+        perfil.append({"km": km, **{m: bool(bd.feasible) for m, bd in u.items()}})
+
+    # Fracción de celdas (y de la ciudad) más allá de cada umbral.
+    d = np.abs(np.arange(ciudad.n_celdas) - ciudad.cbd_index) * ciudad.ancho_celda_km
+    return {
+        "umbral_caminata_km": round(umbral_cam, 3),
+        "umbral_bici_km": round(umbral_bici, 3),
+        "corte_caminata_min": gl.corte_caminata_min,
+        "corte_bici_min": gl.corte_bici_min,
+        "celdas_sin_caminata_pct": round(100.0 * float(np.mean(d > umbral_cam)), 2),
+        "celdas_sin_bici_pct": round(100.0 * float(np.mean(d > umbral_bici)), 2),
+        "perfil": perfil,
+    }
+
+
+def _corre(sim) -> dict:
     trace = ConvergenceTrace()
     for _ in iter_msa_desde_suelo(
-        sim,
-        base._land_use_web(),
-        trace,
-        localizacion=localizacion,
-        promediar_flujos=promediar_flujos,
+        sim, base._land_use_web(), trace, localizacion="original"
     ):
         pass
-    return trace
-
-
-def _reparto(trace) -> dict:
     s = trace.iteraciones[-1].modal_split
     t = sum(s.values())
     return {m: round(100.0 * v / t, 3) for m, v in s.items()}
 
 
-def _resumen(trace) -> dict:
-    return {
-        "iteraciones": len(trace.iteraciones),
-        "convergio": bool(trace.converged),
-        "residuo_final_min": round(float(trace.iteraciones[-1].residuo), 5),
-        "gap_final_min": round(float(trace.gap_final_min), 5),
-        "reparto_pct": _reparto(trace),
-        "emisiones_kg_h": round(float(trace.emisiones_total_kg), 1),
-    }
-
-
-def trayectoria() -> dict:
-    """Residuo iteración a iteración, con la brecha final como vara."""
-    trace = _corre(base._config_web())
-    return {
-        "tolerancia": base._config_web().tolerance,
-        "residuo_por_iteracion": [
-            None if not np.isfinite(s.residuo) else round(float(s.residuo), 5)
-            for s in trace.iteraciones
-        ],
-        "paso_msa_por_iteracion": [round(float(s.f_msa), 5) for s in trace.iteraciones],
-        **_resumen(trace),
-        "razon_gap_sobre_residuo": round(
-            float(trace.gap_final_min / trace.iteraciones[-1].residuo), 2
-        ),
-    }
-
-
-def tolerancia() -> list[dict]:
-    """Qué compra exigir más precisión."""
-    filas = []
-    for tol, max_iter in ((0.5, 100), (0.1, 100), (0.01, 100), (0.001, 100)):
-        sim = base._config_web()
-        filas.append(
-            {
-                "tolerancia": tol,
-                **_resumen(
-                    _corre(
-                        sim.model_copy(update={"tolerance": tol, "max_iter": max_iter})
-                    )
-                ),
-            }
-        )
-    return filas
-
-
-def variantes() -> dict:
-    """Promediar tiempos (default) contra promediar flujos (Boyles §6.2).
-
-    El argumento de convergencia del MSA se apoya en promediar la variable
-    PRIMAL —los flujos—: con la carga todo-o-nada, `x* − x` es dirección de
-    descenso de la función de Beckmann. Promediando tiempos no hay tal
-    argumento. La aplicación usa la segunda.
-    """
-    sim = base._config_web()
+def elasticidades() -> dict:
+    """Respuesta del reparto a las dos palancas de precio."""
     out = {}
-    for nombre, pf in (
-        ("promedia_tiempos_default", False),
-        ("promedia_flujos_boyles", True),
+    for campo, valores in (
+        ("costo_tarifa_metro", (0, 400, 800, 1200, 1600)),
+        ("costo_combustible_km", (60, 120, 240, 480)),
     ):
-        out[nombre] = _resumen(_corre(sim.model_copy(deep=True), promediar_flujos=pf))
-    a, b = (
-        out["promedia_tiempos_default"]["reparto_pct"],
-        out["promedia_flujos_boyles"]["reparto_pct"],
-    )
-    out["diferencia_maxima_pp"] = round(max(abs(a[m] - b[m]) for m in a), 3)
+        filas = []
+        for v in valores:
+            sim = base._config_web()
+            gl = sim.demand.globales.model_copy(update={campo: v})
+            dem = sim.demand.model_copy(update={"globales": gl})
+            filas.append({campo: v, **_corre(sim.model_copy(update={"demand": dem}))})
+        out[campo] = filas
     return out
 
 
-def unicidad() -> dict:
-    """¿El punto fijo depende de por dónde se entre?
-
-    Se cambia la semilla y el método de asignación de arranque; si el equilibrio
-    es único, el reparto final no debería moverse más que el ruido de muestreo.
-    """
-    sim = base._config_web()
-    filas = []
-    for semilla in (1, 42, 777):
-        filas.append(
-            {
-                "semilla": semilla,
-                **_resumen(_corre(sim.model_copy(update={"seed": semilla}))),
-            }
-        )
-    repartos = [f["reparto_pct"] for f in filas]
-    return {
-        "por_semilla": filas,
-        "dispersion_maxima_pp": round(
-            max(
-                max(r[m] for r in repartos) - min(r[m] for r in repartos)
-                for m in repartos[0]
-            ),
-            4,
-        ),
-        "nota": (
-            "Con `assignment='expected'` la asignación es determinista (flujos "
-            "fraccionales), así que la semilla sólo afecta la generación de la "
-            "población. Una dispersión nula indica que el punto fijo no depende "
-            "del sorteo."
-        ),
-    }
-
-
-def emisiones() -> dict:
-    """El reparto de CO₂ entre auto y metro (D-29: el metro va por tren-km)."""
-    trace = _corre(base._config_web())
-    total = float(trace.emisiones_total_kg)
-    return {
-        "total_kg_h": round(total, 1),
-        "auto_kg_h": round(float(trace.emisiones_auto_kg), 1),
-        "metro_kg_h": round(float(trace.emisiones_metro_kg), 1),
-        "metro_pct_del_total": round(100.0 * float(trace.emisiones_metro_kg) / total, 2)
-        if total > 0
-        else None,
-        "nota": (
-            "El metro emite por tren-km circulando (D-29), no por pasajero: su "
-            "huella no baja si viaja menos gente, sólo si baja la frecuencia."
-        ),
-    }
-
-
-def downs_thomson() -> list[dict]:
-    """Barrido de pistas: ¿ampliar la vía mejora el sistema?"""
-    filas = []
-    for pistas in (1, 2, 3, 4):
+def logit_vs_determinista() -> dict:
+    """El mismo escenario con las dos reglas de elección."""
+    out = {}
+    for metodo in ("expected", "todo_o_nada"):
         sim = base._config_web()
-        car = sim.supply.car.model_copy(update={"num_pistas": pistas})
-        sup = sim.supply.model_copy(update={"car": car})
-        trace = _corre(sim.model_copy(update={"supply": sup}))
-        snap = trace.iteraciones[-1]
-        n = sum(snap.modal_split.values()) - snap.modal_split.get("Teletrabajo", 0)
-        t_medio = float(
-            np.sum(snap.demanda_auto * snap.t_auto)
-            + np.sum(snap.demanda_bici * snap.t_bici)
-        ) / max(n, 1)
-        filas.append(
-            {
-                "num_pistas": pistas,
-                **_resumen(trace),
-                "frecuencia_metro_tph": round(float(snap.frecuencia_metro), 3),
-                "t_auto_borde_min": round(float(snap.t_auto[0]), 3),
-                "t_medio_auto_bici_min": round(t_medio, 3),
-            }
-        )
-    return filas
+        out[metodo] = _corre(sim.model_copy(update={"assignment": metodo}))
+    # Y en una celda concreta: probabilidades contra el argmax.
+    cfg = base._config_web()
+    ciudad = CiudadLineal(
+        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
+    )
+    celda = ciudad.cbd_index + int(round(3.0 / ciudad.ancho_celda_km))
+    u = _utils(2, celda, ciudad, cfg, True)
+    out["celda_a_3km_estrato_medio"] = {
+        "logit": {m: round(p, 4) for m, p in probabilidades_logit(u).items()},
+        "todo_o_nada": {
+            m: round(p, 4) for m, p in probabilidades_todo_o_nada(u).items()
+        },
+    }
+    return out
 
 
 def main() -> None:
@@ -229,51 +233,39 @@ def main() -> None:
             "commit": _commit(),
             "script": "docs/libro/datos/datos_cap04.py",
             "configuracion": (
-                "La de la aplicación (`test_linea_base._config_web`), localización "
-                "«original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, "
-                "asignación esperada, tolerancia 0,1, máximo 20 iteraciones."
+                "Demanda de la aplicación (`presets.DEFAULT_STRATA`, homoscedástica "
+                "desde D-33) sobre la ciudad por defecto: 201 celdas, 20 km, "
+                "localización «original». Los costos por modo son a flujo libre."
             ),
         },
-        "trayectoria": trayectoria(),
-        "tolerancia": tolerancia(),
-        "variantes": variantes(),
-        "unicidad": unicidad(),
-        "emisiones": emisiones(),
-        "downs_thomson": downs_thomson(),
+        "anatomia": anatomia(),
+        "costo_por_modo": costo_por_modo(),
+        "factibilidad": factibilidad(),
+        "elasticidades": elasticidades(),
+        "logit_vs_determinista": logit_vs_determinista(),
     }
     SALIDA.write_text(
         json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
     )
 
-    t = datos["trayectoria"]
+    a = datos["anatomia"]["medio"]
+    print("Pesos relativos (minutos-equivalentes en vehículo), estrato medio:")
     print(
-        f"Trayectoria: {t['iteraciones']} iter · residuo final {t['residuo_final_min']} · "
-        f"brecha {t['gap_final_min']} min  (×{t['razon_gap_sobre_residuo']})"
+        f"  en vehículo {a['peso_min_en_vehiculo']}  ·  bici {a['peso_min_bici']}  ·  "
+        f"caminata {a['peso_min_caminata']}  ·  espera {a['peso_min_espera']}  ·  "
+        f"acceso {a['peso_min_acceso']}"
     )
-    print("\nTolerancia:")
-    for f in datos["tolerancia"]:
-        print(
-            f"  tol={f['tolerancia']:<6} iter={f['iteraciones']:>3}  residuo={f['residuo_final_min']:>8.5f}  "
-            f"brecha={f['gap_final_min']:>8.5f}  auto={f['reparto_pct']['Auto']:.3f}"
-        )
-    v = datos["variantes"]
-    print(f"\nVariantes del MSA (diferencia máxima {v['diferencia_maxima_pp']} pp):")
-    for k in ("promedia_tiempos_default", "promedia_flujos_boyles"):
-        r = v[k]
-        print(
-            f"  {k:<26} iter={r['iteraciones']:>3} brecha={r['gap_final_min']:>8.5f} "
-            f"auto={r['reparto_pct']['Auto']:.3f} metro={r['reparto_pct']['Metro']:.3f}"
-        )
+    print(f"  penalización bici acumulada: {a['pen_bici_min']}")
+    print(f"  penalización caminata:       {a['pen_caminata_min']}")
+    f = datos["factibilidad"]
     print(
-        f"\nUnicidad: dispersión máxima {datos['unicidad']['dispersion_maxima_pp']} pp entre semillas"
+        f"\nCortes: caminata {f['corte_caminata_min']} min = {f['umbral_caminata_km']} km "
+        f"({f['celdas_sin_caminata_pct']}% de las celdas sin ella)"
     )
-    print("\nDowns-Thomson:")
-    for f in datos["downs_thomson"]:
-        print(
-            f"  {f['num_pistas']} pista(s): auto={f['reparto_pct']['Auto']:>6.2f}  "
-            f"metro={f['reparto_pct']['Metro']:>6.2f}  f={f['frecuencia_metro_tph']:>5.2f}  "
-            f"CO₂={f['emisiones_kg_h']:>8.1f}"
-        )
+    print(
+        f"        bici     {f['corte_bici_min']} min = {f['umbral_bici_km']} km "
+        f"({f['celdas_sin_bici_pct']}%)"
+    )
     print(f"\nEscrito: {SALIDA}")
 
 

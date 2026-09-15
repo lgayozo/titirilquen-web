@@ -1253,7 +1253,7 @@ cumple, y eso está en D-39.
 ## D-45 — Ciudad: dos convenciones de distancia al CBD, y la paridad que nadie valida
 
 - **Hallado**: auditoría del capítulo 1 del libro, 2026-09-07.
-- **Corregido el 2026-09-07, al auditar el capítulo 2.** La primera redacción
+- **Corregido el 2026-09-07, al auditar el capítulo 3.** La primera redacción
   afirmaba que la oferta usaba una convención distinta de la demanda y que las
   dos se separaban con `n` par. **Es falso**: `supply/car.py` recibe `cbd_km`
   pero lo reconvierte a índice con `int(cbd_km/L · n)`, y como
@@ -1334,7 +1334,7 @@ cumple, y eso está en D-39.
 
 ## D-47 — Metro: `num_estaciones` no es el número de estaciones
 
-- **Hallado**: auditoría del capítulo 2 del libro, 2026-09-07.
+- **Hallado**: auditoría del capítulo 3 del libro, 2026-09-07.
 - **Evidencia**: `oferta_tren` construye la línea partiendo del CBD hacia ambos
   lados con paso `L/num_estaciones`, y después filtra a `[0, L]` y aplica
   `np.unique`. El conteo resultante depende de si los bordes caen exactos: con
@@ -1356,7 +1356,7 @@ cumple, y eso está en D-39.
 
 ## D-48 — Demanda: pedalear se valora como ir sentado, y las penalizaciones que lo compensan tienen un gradiente sin justificar
 
-- **Hallado**: auditoría del capítulo 3 del libro, 2026-09-07.
+- **Hallado**: auditoría del capítulo 4 del libro, 2026-09-07.
 - **Evidencia**: la utilidad de la bicicleta usa `b_tiempo_viaje` —el mismo
   coeficiente que el tiempo dentro del auto o del tren— mientras la caminata
   tiene el suyo (`b_tiempo_caminata`, 1,7×) y la espera y el acceso pesan 2×.
@@ -1388,7 +1388,7 @@ cumple, y eso está en D-39.
 
 ## D-49 — Demanda: el corte de factibilidad de la bicicleta es inerte en la ciudad por defecto
 
-- **Hallado**: auditoría del capítulo 3 del libro, 2026-09-07.
+- **Hallado**: auditoría del capítulo 4 del libro, 2026-09-07.
 - **Evidencia**: `corte_bici_min` = 45 min a 14 km/h equivale a **10,5 km**,
   pero el radio de la ciudad por defecto es 10 km. Ningún viaje puede superarlo:
   el 0 % de las celdas pierde la bicicleta por este corte. Sólo mordería en
@@ -1396,7 +1396,7 @@ cumple, y eso está en D-39.
   está muy activo: 30 min a 4,8 km/h son 2,4 km, y el **75,6 %** de las celdas
   quedan sin ese modo.
 - **Veredicto**: tercer parámetro inerte que encuentra esta auditoría, tras
-  `densidad_hab_km` (D-46) y la congestión de andén (cap. 2). No es un bug —el
+  `densidad_hab_km` (D-46) y la congestión de andén (cap. 3). No es un bug —el
   corte existe para ciudades grandes— pero conviene que la interfaz no lo
   presente como una palanca activa, igual que en los otros dos casos.
 - **Estado**: pendiente.
@@ -1405,7 +1405,7 @@ cumple, y eso está en D-39.
 
 ## D-50 — MSA: el simulador usa la variante sin argumento de convergencia, teniendo la otra implementada
 
-- **Hallado**: auditoría del capítulo 4 del libro, 2026-09-07.
+- **Hallado**: auditoría del capítulo 5 del libro, 2026-09-07.
 - **Evidencia**: `_iter_loop` tiene dos variantes y su propio docstring lo dice
   con todas las letras. Con `promediar_flujos=False` —el default y la única que
   usa producción— se promedian los **tiempos**:
@@ -1436,7 +1436,7 @@ cumple, y eso está en D-39.
 
 ## D-51 — Suelo: hay dos discretizaciones y sólo una conserva las dos marginales
 
-- **Hallado**: auditoría del capítulo 5 del libro, 2026-09-07.
+- **Hallado**: auditoría del capítulo 2 del libro, 2026-09-07.
 - **Evidencia**: el reparto de hogares enteros se hace en dos lugares distintos y
   con dos técnicas distintas.
   `land_use/allocation.py::asignar_hogares_simple` sortea secuencialmente **con
@@ -2009,11 +2009,11 @@ cumple, y eso está en D-39.
 | D-44 | Redondeos, muestras y convenciones geométricas                                                             | Corregido 2026-09-06                                 | Baja                       |
 | D-45 | Ciudad: `CiudadLineal` expone una convención de distancia que nadie usa; paridad de `n_celdas` sin validar | Corregido 2026-09-10 (libro, cap. 1) | Baja                       |
 | D-46 | Ciudad: dos fuentes de población; el schema y dos textos nombran la inerte                                 | Corregido 2026-09-10 (una sola fuente de población; cierra C-02) | Media                      |
-| D-47 | Metro: `num_estaciones` entrega n±1 estaciones; la etiqueta promete el número pedido                       | Pendiente (libro, cap. 2)                            | Baja                       |
-| D-48 | Demanda: la bici usa `b_tiempo_viaje` (esfuerzo = ir sentado); penalizaciones con gradiente opuesto entre modos | Pendiente (libro, cap. 3) | Media |
-| D-49 | Demanda: `corte_bici_min` inerte con la ciudad por defecto (10,5 km > radio 10 km) | Pendiente (libro, cap. 3) | Baja |
-| D-50 | MSA: producción usa la variante sin argumento de convergencia; la de Boyles está implementada y da 0,13 pp | Pendiente (libro, cap. 4) | Media |
-| D-51 | Suelo: `allocation` conserva las dos marginales y `population` sólo una; es la segunda la que alimenta el transporte | Pendiente (libro, cap. 5) | Media |
+| D-47 | Metro: `num_estaciones` entrega n±1 estaciones; la etiqueta promete el número pedido                       | Pendiente (libro, cap. 3)                            | Baja                       |
+| D-48 | Demanda: la bici usa `b_tiempo_viaje` (esfuerzo = ir sentado); penalizaciones con gradiente opuesto entre modos | Pendiente (libro, cap. 4) | Media |
+| D-49 | Demanda: `corte_bici_min` inerte con la ciudad por defecto (10,5 km > radio 10 km) | Pendiente (libro, cap. 4) | Baja |
+| D-50 | MSA: producción usa la variante sin argumento de convergencia; la de Boyles está implementada y da 0,13 pp | Pendiente (libro, cap. 5) | Media |
+| D-51 | Suelo: `allocation` conserva las dos marginales y `population` sólo una; es la segunda la que alimenta el transporte | Pendiente (libro, cap. 2) | Media |
 | D-52 | Acoplado: la inversión de Alonso la remueve `λ` heterogéneo, no el logsum; `λ` uniforme sigue admitida e invierte en silencio | Pendiente (libro, cap. 6) | Alta |
 | D-53 | Acoplado: el residual exterior mide el rezago del promedio (`residual₁/k`) y su máximo lo pone un escalón de la bici en 2 celdas de 603 | Pendiente (libro, cap. 6) | Alta |
 | D-54 | Acoplado: `outer_tol` rotulado en minutos en cuatro lugares y sin recalibrar desde D-34 | Pendiente (libro, cap. 6) | Media |

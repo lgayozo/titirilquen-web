@@ -225,7 +225,7 @@ ruido). Persiste un piso de residual por el remuestreo estocástico de població
 ---
 
 ## Referencias
-- Martínez, F. *Microeconomic Modeling in Urban Science*, cap. 3–5 (uso de suelo).
+- Martínez, F. *Microeconomic Modeling in Urban Science*, cap. 4–5 (uso de suelo).
 - Overleaf original en `reference/overleaf_original/` y versión modificada en
   `reference/overleaf_modificado/` (ninguna versionada en git).
 - Divergencias código↔Overleaf y mejoras V2: [`DISCREPANCIES.md`](DISCREPANCIES.md);

@@ -44,7 +44,7 @@
 <h3>La accesibilidad es la utilidad esperada del viaje</h3>
 
 <p>
-  El capítulo 5 dejó una incógnita en la función de puje: <em>T_h(i)</em>, «lo
+  El capítulo 2 dejó una incógnita en la función de puje: <em>T_h(i)</em>, «lo
   que le cuesta a un hogar del estrato <em>h</em> vivir en la parcela <em>i</em>
   y tener que viajar». Cualquier función decreciente en la accesibilidad
   produce un gradiente de Alonso, así que el modelo no obliga a nada — y por eso
@@ -52,7 +52,7 @@
 </p>
 
 <p>
-  El objeto correcto ya está calculado en el capítulo 3. Un hogar que elige modo
+  El objeto correcto ya está calculado en el capítulo 4. Un hogar que elige modo
   con un logit tiene una utilidad esperada del viaje que es el <strong>logsum</strong>,
   y ése es el excedente del viajero en útiles de transporte:
 </p>
@@ -94,7 +94,7 @@
   El modelo de Alonso ordena a los hogares por la <em>pendiente</em> de su
   disposición a pagar: quien tiene la curva de puja más empinada ocupa el
   centro. Con <em>α</em> común y la utilidad lineal en el ingreso disponible del
-  capítulo 5, esa pendiente en pesos por kilómetro es
+  capítulo 2, esa pendiente en pesos por kilómetro es
 </p>
 
 <div class="ecuacion" data-tex="\left|\frac{\partial p_h}{\partial x}\right| \;=\; \frac{\alpha}{\lambda_h}\left|\frac{\partial T_h}{\partial x}\right|" data-id="(6.3)">
@@ -135,7 +135,7 @@
 
 <p>
   Nada garantiza que <em>F</em> sea contractiva, así que se itera con el mismo
-  promedio de sucesivas medias del capítulo 4, ahora en el loop de afuera:
+  promedio de sucesivas medias del capítulo 5, ahora en el loop de afuera:
 </p>
 
 <div class="ecuacion" data-tex="T^{(k)} \;=\; \theta_k\, F\!\big(T^{(k-1)}\big) + (1-\theta_k)\, T^{(k-1)}, \qquad \theta_k = \frac{1}{k+1}" data-id="(6.6)">
@@ -160,13 +160,13 @@
     <tr>
       <td class="n">(6.1)</td>
       <td class="ruta py">land_use/accesibilidad.py</td>
-      <td class="n">44</td>
+      <td class="n">45</td>
       <td><code>logsum_por_celda</code> — log-suma-exp estabilizada, esperanza sobre <code>prob_auto</code>; una celda sin ningún modo factible vale <code>UTIL_IMPOSIBLE</code></td>
     </tr>
     <tr>
       <td class="n">(6.2)</td>
       <td class="ruta py">land_use/accesibilidad.py</td>
-      <td class="n">90</td>
+      <td class="n">91</td>
       <td><code>T_desde_logsum</code> — el signo y el factor mensual, en una línea</td>
     </tr>
     <tr>
@@ -178,8 +178,8 @@
     <tr>
       <td class="n">(6.2)</td>
       <td class="ruta py">land_use/accesibilidad.py</td>
-      <td class="n">115</td>
-      <td><code>T_flujo_libre</code> — la <em>T</em> del suelo standalone y del arranque del acoplado, sobre <code>tiempos_red_vacia</code> (96)</td>
+      <td class="n">116</td>
+      <td><code>T_flujo_libre</code> — la <em>T</em> del suelo standalone y del arranque del acoplado, sobre <code>tiempos_red_vacia</code> (97)</td>
     </tr>
     <tr>
       <td class="n">(6.2)</td>
@@ -559,7 +559,7 @@
   mueve una décima de punto (bici +0,11 pp, metro −0,05). La frecuencia del
   metro pasa de 5,7702 a 5,7687 trenes/h. Lo que responde fuerte al transporte
   no es <em>dónde vive</em> la gente, sino <em>cómo viaja</em> — y eso ya lo
-  resuelve el capítulo 4.
+  resuelve el capítulo 5.
 </p>
 
 <h3>4.5 Qué mide, en realidad, el criterio de parada</h3>
@@ -726,7 +726,7 @@
   <tbody>
     <tr>
       <td><code>test_accesibilidad.py::test_el_logsum_es_el_del_logit_modal</code></td>
-      <td>Que (6.1) sea el logsum del mismo logit del capítulo 3, recalculado a mano en una celda con <code>prob_auto = 1</code>.</td>
+      <td>Que (6.1) sea el logsum del mismo logit del capítulo 4, recalculado a mano en una celda con <code>prob_auto = 1</code>.</td>
       <td>La esperanza sobre tenencia de auto: se elige justamente el caso en que no hay mezcla.</td>
     </tr>
     <tr>
@@ -795,7 +795,7 @@
     de la corrida acoplada de la aplicación y barridos de estaciones y
     población; (c) invariancias: unidades de <em>T</em>, escala de <em>λ</em>,
     reconstrucción del iterado sin amortiguar; (d) consistencia con los
-    capítulos 3 (el logsum es el mismo) y 5 (la subasta recibe lo que espera);
+    capítulos 4 (el logsum es el mismo) y 5 (la subasta recibe lo que espera);
     (e) rótulos y criterios de la interfaz contra los del núcleo.
   </p>
 </div>
@@ -933,7 +933,7 @@
     <li>
       <strong>Rehacer el criterio de parada</strong> (D-53). Comparar contra la
       brecha no amortiguada —el análogo de <code>gap_final_min</code> del
-      capítulo 4— y sobre una norma que no sea el supremo: una <em>ℓ₂</em>
+      capítulo 5— y sobre una norma que no sea el supremo: una <em>ℓ₂</em>
       ponderada por hogares, o directamente el cambio en <em>Q</em>, que es lo
       que el usuario lee. Mueve la línea base del acoplado, así que es cambio
       declarado, no refactor.
@@ -947,7 +947,7 @@
       <strong>La discontinuidad de fondo</strong>. Las penalizaciones
       escalonadas de bici y caminata hacen que la utilidad —y por lo tanto el
       logsum, y por lo tanto <em>T</em>— salte en función del tiempo de viaje.
-      Suavizarlas es una decisión de modelo del capítulo 3, no de éste, pero es
+      Suavizarlas es una decisión de modelo del capítulo 4, no de éste, pero es
       acá donde el salto se vuelve visible.
     </li>
     <li>
@@ -962,7 +962,7 @@
   <p class="meta">
     El libro de Titirilquén · <a href="index.html">índice</a> ·
     plan en <a href="PLAN.md">PLAN.md</a> ·
-    capítulo anterior: <a href="cap05-uso-de-suelo.html">Uso de suelo</a>
+    capítulo anterior: <a href="cap02-uso-de-suelo.html">Uso de suelo</a>
   </p>
 </footer>
 

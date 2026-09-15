@@ -1,28 +1,28 @@
-"""Datos del capítulo 2 — Oferta de transporte.
+"""Datos del capítulo 5 — Uso de suelo: oferta y subasta.
 
-Produce `cap02.json`. El capítulo tiene que sostener tres cosas: que las
-funciones de costo son las que dicen ser (Greenshields, BPR, Mohring), que sus
-salvaguardas —el piso de la bicicleta, los topes de frecuencia, la congestión de
-andén— hacen lo que prometen, y que los tres modos ven la misma geometría que el
-capítulo 1 describió.
+Produce `cap05.json`. El módulo ya tiene tres informes y trece hallazgos (AU-01
+a AU-13), así que este capítulo no repite lo medido: audita lo que quedó sin
+mirar y verifica las conservaciones que sostienen todo lo demás.
 
 Seis bloques:
 
-1. `geometria_compartida` — dónde pone el CBD cada modo. Es la consistencia con
-   el capítulo 1: si los tres no coinciden, todo lo demás se mide contra
-   distancias distintas.
-2. `auto` — Greenshields (capacidad desde el fundamental) y BPR (demora contra
-   grado de saturación), contrastados con la fórmula cerrada.
-3. `bici` — el piso de caminata (D-15) y el efecto de la pendiente (D-01, AT-05).
-4. `metro` — el efecto Mohring (más demanda ⇒ más frecuencia ⇒ menos espera), y
-   si los topes `frec_min`/`frec_max` están mordiendo (AT-08/AT-09).
-5. `anden` — cuánto pesa realmente la congestión de andén (D-12, D-16).
-6. `red_vacia` — el contrafactual que usan el ΔCS del acoplado y, desde D-42, la
-   accesibilidad del suelo.
+1. `formas` — las seis ofertas de vivienda: perfil, conservación `Σ S = N` y
+   CBD vacío. Es el único módulo del capítulo sin auditoría previa.
+2. `conservacion` — `Σ_i S_i·Q_hi = H_h` (D-25) por forma y por escala. Es la
+   ecuación (5.1) de Martínez y la condición que hace interpretable todo el
+   equilibrio.
+3. `despacho` — cuándo `solve_subasta` va a la forma cerrada y cuándo a HEV, y
+   si el balance de hogares se cumple igual en ambas ramas. Es el pendiente que
+   dejó la auditoría externa del 2026-09-05.
+4. `asignacion_entera` — `allocation.py` conserva `S_i` por celda pero no `H_h`
+   por estrato (D-44): cuánto se desvía.
+5. `perillas` — β y ρ, los dos parámetros propios del módulo, con sus rangos
+   medidos.
+6. `invariancias` — grilla (D-26) y tamaño físico, sobre la configuración vigente.
 
-Correr desde `packages/titirilquen_core` (~1 min):
+Correr desde `packages/titirilquen_core` (~3 min):
 
-    uv run python ../../docs/libro/datos/datos_cap02.py
+    uv run python ../../docs/libro/datos/datos_cap05.py
 """
 
 from __future__ import annotations
@@ -38,14 +38,18 @@ import numpy as np
 RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
-import test_linea_base as base
-from titirilquen_core.city import CiudadLineal
-from titirilquen_core.supply.bike import demora_bici_tramo
-from titirilquen_core.supply.car import demora_auto_tramo
-from titirilquen_core.supply.oferta import resolver_oferta, resolver_red_vacia
-from titirilquen_core.supply.train import oferta_tren
+from titirilquen_core.config import DemandConfig, SupplyConfig
+from titirilquen_core.land_use import LandUseCity, LandUseConfig
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.config import LandUseStratumConfig
+from titirilquen_core.land_use.supply import generar_oferta
+from titirilquen_core.presets import DEFAULT_STRATA
 
-SALIDA = Path(__file__).parent / "cap02.json"
+SALIDA = Path(__file__).parent / "cap05.json"
+FORMAS = ("normal", "uniforme", "exponencial", "meseta", "bimodal", "valle")
+L, CBD, LARGO = 201, 100, 20.0
+DX = LARGO / L
+H_APP = (7200, 18000, 10800)
 
 
 def _commit() -> str:
@@ -61,372 +65,321 @@ def _commit() -> str:
         return "desconocido"
 
 
-def _ciudad():
-    c = base._config_web()
-    return c, CiudadLineal(
-        n_celdas=c.city.n_celdas, largo_total_km=c.city.largo_ciudad_km
+def _demanda() -> DemandConfig:
+    return DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
+
+
+def _T():
+    return T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig())
+
+
+def _ciudad(cfg: LandUseConfig, T=None):
+    return LandUseCity.build(
+        L=L,
+        CBD=CBD,
+        cfg=cfg,
+        ancho_celda_km=DX,
+        T=_T() if T is None else T,
+        rng=np.random.default_rng(42),
     )
 
 
-def geometria_compartida() -> dict:
-    """¿Los tres modos ponen el CBD en la misma celda que el capítulo 1?
-
-    Auto y bici reconvierten `cbd_km` con `int(cbd_km/L·N)`; el tren hace lo
-    mismo para la parcela del CBD pero además construye sus estaciones sobre
-    **centroides** (`arange(N)·dx + dx/2`). Se comprueba que la celda coincida y
-    se anota la diferencia de convención.
-    """
+def formas() -> list[dict]:
+    """Las seis ofertas: qué perfil dan y si conservan la población."""
+    N = sum(H_APP)
     filas = []
-    # Sólo impares: desde sep-2026 `CiudadLineal` rechaza n par (D-45).
-    for n in (201, 101, 51, 1001):
-        c = CiudadLineal(n_celdas=n, largo_total_km=20.0)
-        idx_reconvertido = max(0, min(int((c.cbd_km / c.largo_total_km) * n), n - 1))
+    for f in FORMAS:
+        S = generar_oferta(forma=f, I=L, N=N, CBD=CBD, sigma_frac=0.5, forma_param=0.5)
+        dens = S / DX
         filas.append(
             {
-                "n_celdas": n,
-                "cbd_index_cap1": c.cbd_index,
-                "idx_centro_auto_bici": idx_reconvertido,
-                "idx_cbd_parcela_tren": int((c.cbd_km / c.largo_total_km) * n),
-                "coinciden": idx_reconvertido == c.cbd_index,
+                "forma": f,
+                "suma_S": int(S.sum()),
+                "conserva_N": bool(int(S.sum()) == N),
+                "cbd_vacio": bool(S[CBD] == 0),
+                "celdas_con_oferta": int(np.sum(S > 0)),
+                "densidad_min_hab_km": round(float(dens.min()), 1),
+                "densidad_max_hab_km": round(float(dens.max()), 1),
+                "densidad_pico_en_km": round(
+                    float(abs(int(np.argmax(S)) - CBD) * DX), 2
+                ),
+            }
+        )
+    return filas
+
+
+def conservacion() -> dict:
+    """`Σ_i S_i·Q_hi = H_h` — la ec. (5.1) de Martínez, por forma y por escala."""
+    por_forma = []
+    for f in FORMAS:
+        cfg = LandUseConfig(H_por_estrato=H_APP, forma=f, max_iter=5000)
+        c = _ciudad(cfg)
+        H_obt = np.asarray(c.result.Q, float) @ np.asarray(c.S, float)
+        err = np.abs(H_obt - np.asarray(H_APP, float))
+        por_forma.append(
+            {
+                "forma": f,
+                "convergio": bool(c.result.converged),
+                "iteraciones": int(c.result.iterations),
+                "error_max_hogares": float(f"{err.max():.3e}"),
+                "error_relativo_max": float(f"{(err / np.asarray(H_APP)).max():.3e}"),
+            }
+        )
+    por_escala = []
+    for total in (3_600, 36_000, 144_000):
+        H = (
+            int(total * 0.2),
+            int(total * 0.5),
+            total - int(total * 0.2) - int(total * 0.5),
+        )
+        cfg = LandUseConfig(H_por_estrato=H, max_iter=5000)
+        c = _ciudad(cfg)
+        H_obt = np.asarray(c.result.Q, float) @ np.asarray(c.S, float)
+        err = np.abs(H_obt - np.asarray(H, float))
+        por_escala.append(
+            {
+                "suma_H": total,
+                "error_max_hogares": float(f"{err.max():.3e}"),
+                "iteraciones": int(c.result.iterations),
+            }
+        )
+    return {"por_forma": por_forma, "por_escala": por_escala}
+
+
+def despacho() -> dict:
+    """Forma cerrada contra HEV: cuál corre, y si ambas conservan los hogares.
+
+    `solve_subasta` elige según los datos: λ uniformes → forma cerrada (exacta
+    ahí), λ distintos → HEV. El pendiente que dejó la auditoría externa era
+    comprobar el balance de hogares al declarar convergencia en la rama HEV.
+    """
+    filas = []
+    casos = (
+        ("lambda uniforme (forma cerrada)", (1.0, 1.0, 1.0)),
+        ("lambda del default (HEV)", None),
+        ("lambda razon 10 (HEV)", (0.1, 1.0, 1.0)),
+        ("lambda razon 100 (HEV)", (0.01, 1.0, 1.0)),
+    )
+    base_cfg = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
+    for nombre, lams in casos:
+        if lams is None:
+            cfg = base_cfg
+            lams_reales = tuple(e.lambda_ for e in base_cfg.estratos)
+        else:
+            cfg = base_cfg.model_copy(
+                update={
+                    "estratos": tuple(
+                        LandUseStratumConfig(
+                            y=e.y, alpha=e.alpha, rho=e.rho, **{"lambda": lam}
+                        )
+                        for e, lam in zip(base_cfg.estratos, lams, strict=True)
+                    )
+                }
+            )
+            lams_reales = lams
+        c = _ciudad(cfg)
+        Q = np.asarray(c.result.Q, float)
+        H_obt = Q @ np.asarray(c.S, float)
+        err = np.abs(H_obt - np.asarray(H_APP, float))
+        cols = Q.sum(axis=0)
+        con_oferta = np.asarray(c.S) > 0
+        filas.append(
+            {
+                "caso": nombre,
+                "lambdas": [round(float(x), 6) for x in lams_reales],
+                "rama": "forma cerrada" if len(set(lams_reales)) == 1 else "HEV",
+                "razon_escalas": round(max(lams_reales) / min(lams_reales), 1),
+                "convergio": bool(c.result.converged),
+                "iteraciones": int(c.result.iterations),
+                "error_balance_hogares": float(f"{err.max():.3e}"),
+                "columnas_suman_uno_error": float(
+                    f"{np.abs(cols[con_oferta] - 1).max():.3e}"
+                ),
             }
         )
     return {
         "filas": filas,
         "nota": (
-            "int(L/2 / L · n) == n//2 para todo n > 0: los tres modos usan la celda "
-            "del capítulo 1 (y desde sep-2026 n es impar por schema). El tren, además, sitúa sus "
-            "estaciones sobre centroides (x_i = (i+½)·Δx), que es la convención "
-            "continua de `CiudadLineal` — coherente, porque el acceso a la estación "
-            "es una distancia física, no un conteo de celdas."
+            "El balance `Σ_i S_i·Q_hi = H_h` se cumple a precisión de máquina en "
+            "las dos ramas, pero NINGUNA lo exige para declarar `converged`: la "
+            "bandera sale del residuo del punto fijo. Es el pendiente que dejó la "
+            "auditoría externa del 2026-09-05."
         ),
     }
 
 
-def auto() -> dict:
-    """Greenshields y BPR contra su fórmula cerrada."""
-    cfg, ciudad = _ciudad()
-    p = cfg.supply.car
-    k_j = 1000 / (p.largo_vehiculo_m + p.gap_m)
-    factor_ancho = (
-        1.0 if p.ancho_pista_m >= 3.5 else (0.9 if p.ancho_pista_m >= 3.0 else 0.75)
-    )
-    v_l = p.v_max_kmh * factor_ancho
-    cap_teorica = (k_j * v_l) / 4 * max(1, p.num_pistas)
-
-    r = demora_auto_tramo(
-        ubicacion_centro_km=ciudad.cbd_km,
-        demanda=np.zeros(ciudad.n_celdas),
-        v_max_kmh=p.v_max_kmh,
-        ancho_pista_m=p.ancho_pista_m,
-        largo_vehiculo_m=p.largo_vehiculo_m,
-        gap_m=p.gap_m,
-        L_ciudad_km=ciudad.largo_total_km,
-        num_pistas=p.num_pistas,
-        alpha_bpr=p.alpha_bpr,
-        beta_bpr=p.beta_bpr,
-        capacidad_pista=p.capacidad_pista,
-    )
-
-    # BPR: demora relativa contra grado de saturación, con demanda uniforme.
-    curva = []
-    for vc in (0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0):
-        # Demanda uniforme tal que el flujo máximo (junto al CBD) sea vc·C.
-        n_media = ciudad.n_celdas // 2
-        d = np.full(ciudad.n_celdas, vc * r.capacidad_direccion / max(n_media, 1))
-        rr = demora_auto_tramo(
-            ubicacion_centro_km=ciudad.cbd_km,
-            demanda=d,
-            v_max_kmh=p.v_max_kmh,
-            ancho_pista_m=p.ancho_pista_m,
-            largo_vehiculo_m=p.largo_vehiculo_m,
-            gap_m=p.gap_m,
-            L_ciudad_km=ciudad.largo_total_km,
-            num_pistas=p.num_pistas,
-            alpha_bpr=p.alpha_bpr,
-            beta_bpr=p.beta_bpr,
-            capacidad_pista=p.capacidad_pista,
-        )
-        libre = float(r.t_usuarios_min[0])
-        curva.append(
-            {
-                "vc_borde": round(
-                    float(rr.flujos_veh_por_hora.max() / rr.capacidad_direccion), 4
-                ),
-                "t_borde_min": round(float(rr.t_usuarios_min[0]), 3),
-                "razon_vs_flujo_libre": round(float(rr.t_usuarios_min[0] / libre), 4)
-                if libre > 0
-                else None,
-            }
-        )
-
+def asignacion_entera() -> dict:
+    """`allocation.py` reparte hogares enteros: conserva S_i, no H_h (D-44)."""
+    cfg = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
+    c = _ciudad(cfg)
+    conteos = c.hogares_por_parcela_estrato()  # (3, L)
+    por_celda = conteos.sum(axis=0)
+    por_estrato = conteos.sum(axis=1)
+    S = np.asarray(c.S)
     return {
-        "densidad_embotellamiento_veh_km": round(k_j, 3),
-        "factor_ancho": factor_ancho,
-        "v_libre_kmh": round(v_l, 2),
-        "capacidad_teorica_veh_h": round(cap_teorica, 1),
-        "capacidad_del_codigo_veh_h": round(float(r.capacidad_direccion), 1),
-        "capacidad_explicita_configurada": p.capacidad_pista,
-        "alpha_bpr": p.alpha_bpr,
-        "beta_bpr": p.beta_bpr,
-        "t_flujo_libre_borde_min": round(float(r.t_usuarios_min[0]), 3),
-        "curva_bpr": curva,
+        "S_conservado_por_celda": bool(np.array_equal(por_celda, S)),
+        "H_objetivo": list(H_APP),
+        "H_obtenido": [int(x) for x in por_estrato],
+        "desvio_por_estrato": [
+            int(a - b) for a, b in zip(por_estrato, H_APP, strict=True)
+        ],
+        "desvio_total_abs": int(np.abs(por_estrato - np.asarray(H_APP)).sum()),
+        "desvio_relativo_max_pct": round(
+            100.0 * float(np.abs(por_estrato - np.asarray(H_APP)).max() / max(H_APP)), 4
+        ),
     }
 
 
-def bici() -> dict:
-    """El piso de caminata (D-15) y la pendiente (D-01, AT-05)."""
-    cfg, ciudad = _ciudad()
-    p = cfg.supply.bike
-    v_cam = cfg.demand.globales.v_caminata
-    dx = ciudad.ancho_celda_km
-
-    def corre(demanda_por_celda: float, pendiente: float = 0.0):
-        return demora_bici_tramo(
-            ubicacion_centro_km=ciudad.cbd_km,
-            capacidad=p.capacidad_pista,
-            demanda=np.full(ciudad.n_celdas, demanda_por_celda),
-            v_media=p.v_media_kmh,
-            L_ciudad_km=ciudad.largo_total_km,
-            alpha=p.alpha_bpr,
-            beta=p.beta_bpr,
-            pendiente_porcentaje=pendiente,
-            v_caminata=v_cam,
-        )
-
-    t_tramo_walk = (dx / v_cam) * 60
-    t0 = (dx / p.v_media_kmh) * 60
-    saturacion = []
-    for d in (0.0, 5.0, 20.0, 50.0, 200.0, 1000.0):
-        r = corre(d)
-        # El piso actúa TRAMO A TRAMO, no sobre el acumulado: se cuenta en
-        # cuántos tramos la BPR cruda habría superado el tiempo de caminar.
-        crudo = t0 * (
-            1
-            + p.alpha_bpr * ((r.flujos_bici_por_hora / p.capacidad_pista) ** p.beta_bpr)
-        )
-        saturacion.append(
-            {
-                "demanda_por_celda": d,
-                "flujo_max_bici_h": round(float(r.flujos_bici_por_hora.max()), 1),
-                "t_borde_min": round(float(r.t_usuarios_min[0]), 3),
-                "tramos_con_piso_activo": int(np.sum(crudo > t_tramo_walk)),
-                "tramos_totales": int(ciudad.n_celdas),
-            }
-        )
-
-    pendientes = []
-    for pend in (-6.0, -3.0, 0.0, 3.0, 6.0):
-        r = corre(20.0, pend)
-        pendientes.append(
-            {"pendiente_pct": pend, "t_borde_min": round(float(r.t_usuarios_min[0]), 3)}
-        )
-
+def _metricas(c) -> dict:
+    S = np.asarray(c.S, float)
+    Q = np.asarray(c.result.Q, float)
+    p = np.asarray(c.result.p, float)
+    dist = np.abs(np.arange(L) - CBD) * DX
+    ocup = S[None, :] * Q
+    d = (ocup * dist[None, :]).sum(1) / ocup.sum(1)
+    tot = ocup.sum()
+    pi = ocup.sum(1) / tot
+    th = 0.0
+    for i in range(L):
+        n_i = ocup[:, i].sum()
+        if n_i <= 0:
+            continue
+        for h in range(3):
+            q = ocup[h, i] / n_i
+            if q > 0:
+                th += (n_i / tot) * q * np.log(q / pi[h])
+    hab = np.flatnonzero(np.asarray(c.S) > 0)
+    cc = int(hab[np.argmin(np.abs(hab - CBD))])
+    per = float(np.nanmean([p[hab[0]], p[hab[-1]]]))
+    rango = float(np.nanmax(p) - np.nanmin(p))
     return {
-        "v_media_kmh": p.v_media_kmh,
-        "capacidad_pista": p.capacidad_pista,
-        "v_caminata_kmh": v_cam,
-        "t_tramo_caminando_min": round(t_tramo_walk, 4),
-        "saturacion": saturacion,
-        "pendiente": pendientes,
-        "pendiente_es_simetrica": None,  # se completa abajo
+        "dist_km": [round(float(x), 3) for x in d],
+        "theil": round(th, 4),
+        "grad_p": round((float(p[cc]) - per) / rango if rango > 1e-12 else 0.0, 3),
+        "iteraciones": int(c.result.iterations),
     }
 
 
-def metro() -> dict:
-    """Mohring, los topes de frecuencia y la congestión de andén."""
-    cfg, ciudad = _ciudad()
-    p = cfg.supply.train
-
-    def corre(demanda_por_celda: float, **kw):
-        args = {
-            "demanda": np.full(ciudad.n_celdas, demanda_por_celda),
-            "L_ciudad_km": ciudad.largo_total_km,
-            "x_centro_km": ciudad.cbd_km,
-            "v_tren_kmh": p.v_tren_kmh,
-            "capacidad_tren": p.capacidad_tren,
-            "num_estaciones": p.num_estaciones,
-            "v_caminata_kmh": p.v_caminata_kmh,
-            "tiempo_detencion_min": p.tiempo_detencion_min,
-            "frec_min": p.frec_min,
-            "frec_max": p.frec_max,
-            "anden_alpha": p.anden_alpha,
-            "anden_beta": p.anden_beta,
-        }
-        args.update(kw)
-        return oferta_tren(**args)
-
-    mohring = []
-    for d in (0.0, 2.0, 5.0, 10.0, 20.0, 40.0, 80.0):
-        r = corre(d)
-        mohring.append(
-            {
-                "demanda_por_celda": d,
-                "carga_max_pax": round(
-                    float(r.carga_por_tramo.max()) if r.carga_por_tramo.size else 0.0, 1
-                ),
-                "frecuencia_teorica_tph": round(float(r.frecuencia_teorica), 3),
-                "frecuencia_operativa_tph": round(float(r.frecuencia_operativa), 3),
-                "topada_en": (
-                    "frec_min"
-                    if r.frecuencia_teorica < p.frec_min
-                    else ("frec_max" if r.frecuencia_teorica > p.frec_max else "no")
-                ),
-                "espera_media_min": round(float(np.mean(r.t_espera_min)), 3),
-                "acceso_medio_min": round(float(np.mean(r.t_acceso_min)), 3),
-            }
-        )
-
-    # ¿Cuánto pesa la BPR de andén? Se compara con anden_alpha = 0.
-    anden = []
-    for d in (10.0, 40.0, 80.0, 160.0):
-        con = corre(d)
-        sin = corre(d, anden_alpha=0.0)
-        e_con, e_sin = (
-            float(np.mean(con.t_espera_min)),
-            float(np.mean(sin.t_espera_min)),
-        )
-        anden.append(
-            {
-                "demanda_por_celda": d,
-                "espera_con_anden_min": round(e_con, 4),
-                "espera_sin_anden_min": round(e_sin, 4),
-                "sobrecosto_pct": round(100.0 * (e_con / e_sin - 1.0), 4)
-                if e_sin > 0
-                else None,
-            }
-        )
-
-    # Estaciones: más estaciones acortan el acceso pero agregan detenciones.
-    # `num_estaciones` no es el número de estaciones: la construcción parte del
-    # CBD hacia ambos lados con paso L/n y luego filtra a [0, L], así que el
-    # conteo real depende de si los bordes caen exactos (ver §6).
-    conteo_estaciones = []
-    for n_est in (2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 30):
-        r = corre(0.0, num_estaciones=n_est)
-        conteo_estaciones.append(
-            {
-                "pedidas": n_est,
-                "reales": len(r.estaciones_km),
-                "diferencia": len(r.estaciones_km) - n_est,
-                "separacion_km": round(ciudad.largo_total_km / n_est, 4),
-            }
-        )
-
-    # Rango amplio: el óptimo interior que promete la interfaz existe, pero
-    # está lejos del default (ver §4).
-    estaciones = []
-    for n_est in (2, 4, 6, 8, 10, 14, 20, 30, 40, 60, 80, 120):
-        r = corre(20.0, num_estaciones=n_est)
-        estaciones.append(
-            {
-                "num_estaciones": n_est,
-                "estaciones_reales": len(r.estaciones_km),
-                "acceso_medio_min": round(float(np.mean(r.t_acceso_min)), 3),
-                "viaje_medio_min": round(float(np.mean(r.t_viaje_min)), 3),
-                "suma_min": round(float(np.mean(r.t_acceso_min + r.t_viaje_min)), 3),
-            }
-        )
-
-    return {
-        "capacidad_tren_pax": p.capacidad_tren,
-        "num_estaciones": p.num_estaciones,
-        "frec_min_tph": p.frec_min,
-        "frec_max_tph": p.frec_max,
-        "anden_alpha": p.anden_alpha,
-        "anden_beta": p.anden_beta,
-        "tiempo_detencion_min": p.tiempo_detencion_min,
-        "mohring": mohring,
-        "anden": anden,
-        "conteo_estaciones": conteo_estaciones,
-        "estaciones": estaciones,
-    }
-
-
-def red_vacia() -> dict:
-    """El contrafactual: la red sin nadie encima."""
-    cfg, ciudad = _ciudad()
-    r = resolver_red_vacia(cfg, ciudad)
-    cero = np.zeros(ciudad.n_celdas)
-    cargada = resolver_oferta(cfg, ciudad, cero + 30.0, cero + 20.0, cero + 20.0)
-    return {
-        "vacia": {
-            "auto_borde_min": round(float(r.auto.t_usuarios_min[0]), 3),
-            "bici_borde_min": round(float(r.bici.t_usuarios_min[0]), 3),
-            "metro_borde_min": round(
-                float(
-                    r.tren.t_acceso_min[0]
-                    + r.tren.t_espera_min[0]
-                    + r.tren.t_viaje_min[0]
-                ),
-                3,
+def perillas() -> dict:
+    """β (nitidez) y ρ (densidad): los dos parámetros propios del módulo."""
+    out = {"beta": [], "rho": []}
+    for b in (0.05, 0.15, 0.5, 1.0):
+        cfg = LandUseConfig(H_por_estrato=H_APP, beta=b, max_iter=5000)
+        out["beta"].append({"beta": b, **_metricas(_ciudad(cfg))})
+    for r in (0.0, 0.0052, 0.01, 0.02):
+        cfg = LandUseConfig(
+            H_por_estrato=H_APP,
+            max_iter=5000,
+            estratos=tuple(
+                LandUseStratumConfig(
+                    y=e.y, alpha=e.alpha, rho=r, **{"lambda": e.lambda_}
+                )
+                for e in LandUseConfig().estratos
             ),
-            "frecuencia_tph": round(float(r.tren.frecuencia_operativa), 3),
-        },
-        "cargada": {
-            "auto_borde_min": round(float(cargada.auto.t_usuarios_min[0]), 3),
-            "bici_borde_min": round(float(cargada.bici.t_usuarios_min[0]), 3),
-            "metro_borde_min": round(
-                float(
-                    cargada.tren.t_acceso_min[0]
-                    + cargada.tren.t_espera_min[0]
-                    + cargada.tren.t_viaje_min[0]
-                ),
-                3,
-            ),
-            "frecuencia_tph": round(float(cargada.tren.frecuencia_operativa), 3),
-        },
-    }
+        )
+        out["rho"].append({"rho": r, **_metricas(_ciudad(cfg))})
+    return out
+
+
+def invariancias() -> dict:
+    """Grilla (D-26) y tamaño físico, con la configuración vigente."""
+    grilla = []
+    for n in (101, 201, 401):
+        cbd = n // 2
+        dx = LARGO / n
+        T = T_flujo_libre(_demanda(), n, cbd, dx, supply=SupplyConfig())
+        c = LandUseCity.build(
+            L=n,
+            CBD=cbd,
+            cfg=LandUseConfig(H_por_estrato=H_APP, max_iter=5000),
+            ancho_celda_km=dx,
+            T=T,
+            rng=np.random.default_rng(42),
+        )
+        S = np.asarray(c.S, float)
+        Q = np.asarray(c.result.Q, float)
+        dist = np.abs(np.arange(n) - cbd) * dx
+        ocup = S[None, :] * Q
+        d = (ocup * dist[None, :]).sum(1) / ocup.sum(1)
+        tot = ocup.sum()
+        pi = ocup.sum(1) / tot
+        th = 0.0
+        for i in range(n):
+            n_i = ocup[:, i].sum()
+            if n_i <= 0:
+                continue
+            for h in range(3):
+                q = ocup[h, i] / n_i
+                if q > 0:
+                    th += (n_i / tot) * q * np.log(q / pi[h])
+        grilla.append(
+            {
+                "n_celdas": n,
+                "theil": round(th, 4),
+                "dist_km": [round(float(x), 3) for x in d],
+            }
+        )
+    fisico = []
+    for largo in (10.0, 20.0, 40.0):
+        dx = largo / L
+        T = T_flujo_libre(_demanda(), L, CBD, dx, supply=SupplyConfig())
+        c = LandUseCity.build(
+            L=L,
+            CBD=CBD,
+            cfg=LandUseConfig(H_por_estrato=H_APP, max_iter=5000),
+            ancho_celda_km=dx,
+            T=T,
+            rng=np.random.default_rng(42),
+        )
+        fisico.append({"largo_km": largo, **_metricas(c)})
+    return {"grilla": grilla, "tamano_fisico": fisico}
 
 
 def main() -> None:
-    b = bici()
-    # AT-05: con la topografía monocéntrica, +p y −p NO pueden dar lo mismo.
-    por_pend = {f["pendiente_pct"]: f["t_borde_min"] for f in b["pendiente"]}
-    b["pendiente_es_simetrica"] = bool(
-        abs(por_pend[3.0] - por_pend[-3.0]) < 1e-9
-        and abs(por_pend[6.0] - por_pend[-6.0]) < 1e-9
-    )
-
     datos = {
         "_meta": {
             "fecha": datetime.now(UTC).date().isoformat(),
             "commit": _commit(),
-            "script": "docs/libro/datos/datos_cap02.py",
+            "script": "docs/libro/datos/datos_cap05.py",
             "configuracion": (
-                "Oferta de la aplicación (`test_linea_base._config_web().supply`) sobre "
-                "la ciudad por defecto: 201 celdas, 20 km. Las demandas son uniformes "
-                "y sintéticas — el capítulo mide las funciones de costo, no el "
-                "equilibrio, que es el capítulo 4."
+                "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 "
+                "(20/50/30), oferta normal σ=0,5, α=1, ρ=5,2e-3, β=0,15, "
+                "λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
             ),
         },
-        "geometria_compartida": geometria_compartida(),
-        "auto": auto(),
-        "bici": b,
-        "metro": metro(),
-        "red_vacia": red_vacia(),
+        "formas": formas(),
+        "conservacion": conservacion(),
+        "despacho": despacho(),
+        "asignacion_entera": asignacion_entera(),
+        "perillas": perillas(),
+        "invariancias": invariancias(),
     }
     SALIDA.write_text(
         json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
     )
 
-    a = datos["auto"]
-    print(
-        f"Auto: k_j={a['densidad_embotellamiento_veh_km']} veh/km · v_l={a['v_libre_kmh']} km/h"
-    )
-    print(
-        f"  capacidad teórica {a['capacidad_teorica_veh_h']} vs código {a['capacidad_del_codigo_veh_h']}"
-    )
-    print("\nMetro (Mohring):")
-    for m in datos["metro"]["mohring"]:
+    print("Formas de oferta:")
+    for f in datos["formas"]:
         print(
-            f"  d={m['demanda_por_celda']:>6}  f_teo={m['frecuencia_teorica_tph']:>8.3f}  "
-            f"f_op={m['frecuencia_operativa_tph']:>6.3f}  topada={m['topada_en']:>8}  "
-            f"espera={m['espera_media_min']:>6.3f}"
+            f"  {f['forma']:<12} ΣS={f['suma_S']} conserva={f['conserva_N']} "
+            f"CBD vacío={f['cbd_vacio']}  dens {f['densidad_min_hab_km']}–{f['densidad_max_hab_km']}"
         )
-    print("\nAndén (sobrecosto sobre la espera):")
-    for x in datos["metro"]["anden"]:
-        print(f"  d={x['demanda_por_celda']:>6}  {x['sobrecosto_pct']}%")
-    print(f"\nBici: pendiente simétrica = {b['pendiente_es_simetrica']}")
+    print("\nConservación Σ S·Q = H (error máx. en hogares):")
+    for f in datos["conservacion"]["por_forma"]:
+        print(
+            f"  {f['forma']:<12} {f['error_max_hogares']:>10.2e}  ({f['iteraciones']} iter)"
+        )
+    print("\nDespacho forma cerrada / HEV:")
+    for f in datos["despacho"]["filas"]:
+        print(
+            f"  {f['caso']:<32} {f['rama']:<14} razón={f['razon_escalas']:>7} "
+            f"balance={f['error_balance_hogares']:>10.2e} conv={f['convergio']}"
+        )
+    a = datos["asignacion_entera"]
+    print(
+        f"\nAsignación entera: S por celda conservado={a['S_conservado_por_celda']} · "
+        f"desvío por estrato {a['desvio_por_estrato']} (máx {a['desvio_relativo_max_pct']}%)"
+    )
     print(f"\nEscrito: {SALIDA}")
 
 
