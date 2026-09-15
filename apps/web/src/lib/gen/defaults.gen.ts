@@ -24,8 +24,8 @@ export const DEFAULTS_CORE: SimulationConfig = {
       largo_vehiculo_m: 5.0,
       gap_m: 2.0,
       num_pistas: 2,
-      alpha_bpr: 0.8,
-      beta_bpr: 2.0,
+      alpha_bpr: 0.15,
+      beta_bpr: 4.0,
       capacidad_pista: null,
     },
     train: {

@@ -416,6 +416,89 @@ def parametros_vigentes() -> dict:
     }
 
 
+def curva_bpr_heredada() -> dict:
+    """La BPR que el simulador heredaba del original (0,8 / 2,0), sobre la misma
+    grilla de v/c que `auto.curva_bpr`, para contrastarla con la de la FHWA."""
+    alpha, beta = 0.8, 2.0
+    return {
+        "alpha_bpr": alpha,
+        "beta_bpr": beta,
+        "curva": [
+            {"vc": vc, "razon_vs_flujo_libre": round(1 + alpha * vc**beta, 3)}
+            for vc in (0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
+        ],
+        "curva_fhwa": [
+            {"vc": vc, "razon_vs_flujo_libre": round(1 + 0.15 * vc**4, 3)}
+            for vc in (0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
+        ],
+    }
+
+
+def metro_en_equilibrio() -> dict:
+    """El metro con la demanda que sale del equilibrio completo (suelo +
+    transporte), no con cargas sintéticas: cuándo la frecuencia está entre sus
+    topes y cuánto se espera, por población y por largo de ciudad."""
+    from titirilquen_core.city import CiudadLineal
+    from titirilquen_core.equilibrium.msa import run_msa
+    from titirilquen_core.supply.oferta import resolver_oferta
+
+    sim0 = base._config_web()
+    lu0 = base._land_use_web()
+
+    def medir(sim, lu):
+        tr = run_msa(sim, lu, "equilibrio")
+        snap = tr.iteraciones[-1]
+        split = snap.modal_split
+        total = sum(split.values())
+        ciudad = CiudadLineal(
+            n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km
+        )
+        of = resolver_oferta(
+            sim, ciudad, snap.demanda_auto, snap.demanda_bici, snap.demanda_metro
+        )
+        tren = of.tren
+        f = float(tren.frecuencia_teorica)
+        fmin, fmax = sim.supply.train.frec_min, sim.supply.train.frec_max
+        tope = "frec_min" if f < fmin else ("frec_max" if f > fmax else "no")
+        espera = tren.t_espera_min[tren.t_espera_min > 0]
+        return {
+            "metro_pct": round(100.0 * split["Metro"] / total, 2),
+            "auto_pct": round(100.0 * split["Auto"] / total, 2),
+            "carga_maxima_pax_h": round(float(tren.carga_por_tramo.max())),
+            "frecuencia_teorica_tph": round(f, 2),
+            "frecuencia_operativa_tph": round(float(tren.frecuencia_operativa), 2),
+            "topada_en": tope,
+            "espera_media_min": round(float(np.mean(espera)), 2),
+            "vc_auto_maximo": round(
+                float(of.auto.flujos_veh_por_hora.max() / of.auto.capacidad_direccion),
+                2,
+            ),
+        }
+
+    H = np.asarray(lu0.H_por_estrato, dtype=float)
+    shares = H / H.sum()
+    por_poblacion = []
+    for total in (9_000, 18_000, 36_000, 72_000, 144_000, 288_000):
+        h = [round(total * s) for s in shares]
+        h[1] += total - sum(h)
+        lu = lu0.model_copy(update={"H_por_estrato": (h[0], h[1], h[2])})
+        por_poblacion.append({"suma_H": total, **medir(sim0, lu)})
+    por_largo = []
+    for largo in (10.0, 20.0, 30.0, 40.0, 60.0):
+        sim = sim0.model_copy(
+            update={"city": sim0.city.model_copy(update={"largo_ciudad_km": largo})}
+        )
+        por_largo.append({"largo_km": largo, **medir(sim, lu0)})
+    return {
+        "por_poblacion": por_poblacion,
+        "por_largo": por_largo,
+        "umbral_frec_min_pax_h": sim0.supply.train.frec_min
+        * sim0.supply.train.capacidad_tren,
+        "umbral_frec_max_pax_h": sim0.supply.train.frec_max
+        * sim0.supply.train.capacidad_tren,
+    }
+
+
 def main() -> None:
     b = bici()
     # AT-05: con la topografía monocéntrica, +p y −p NO pueden dar lo mismo.
@@ -443,6 +526,8 @@ def main() -> None:
         "bici": b,
         "metro": metro(),
         "red_vacia": red_vacia(),
+        "curva_bpr_heredada": curva_bpr_heredada(),
+        "metro_en_equilibrio": metro_en_equilibrio(),
     }
     SALIDA.write_text(
         json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"

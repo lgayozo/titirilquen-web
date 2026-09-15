@@ -69,18 +69,22 @@ ESPERADO = {
     #     vez de 0,17, el alto a 1,9 km en vez de 2,2). Los viajes cortos del
     #     centro migran a metro y auto: metro +0,60, caminata −0,31, bici −0,10,
     #     auto −0,09; una iteración más del MSA. `original` sigue intacta.
+    #  7. BPR del auto = FHWA, 0,15 / 4 en vez de 0,8 / 2 heredados (2026-09-15).
+    #     Bajo capacidad la curva castiga menos y el auto gana: original auto
+    #     +1,08, metro −0,81, bici −0,22, caminata −0,06; equilibrio auto +0,78,
+    #     metro −0,52, bici −0,19, caminata −0,07. Mismas iteraciones.
     "equilibrio": {
-        "Auto": 15.30,
-        "Metro": 32.66,
-        "Bici": 23.79,
-        "Caminata": 8.83,
+        "Auto": 16.08,
+        "Metro": 32.14,
+        "Bici": 23.60,
+        "Caminata": 8.76,
         "Teletrabajo": 19.42,
     },
     "original": {
-        "Auto": 15.81,
-        "Metro": 28.32,
-        "Bici": 24.96,
-        "Caminata": 11.42,
+        "Auto": 16.89,
+        "Metro": 27.51,
+        "Bici": 24.74,
+        "Caminata": 11.36,
         "Teletrabajo": 19.49,
     },
 }

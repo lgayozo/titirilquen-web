@@ -153,7 +153,7 @@
     <tr><td><code>ancho_pista_m</code></td><td class="n">3,5</td><td>m</td><td><span class="etiqueta lim">heredado</span> el factor de ancho vale 1: inerte en la base</td></tr>
     <tr><td><code>largo_vehiculo_m</code> + <code>gap_m</code></td><td class="n">5 + 2</td><td>m</td><td><span class="etiqueta lim">heredado</span> dan <em>k_j</em> = 142,857 veh/km y una capacidad de 2.214,3 veh/h por pista</td></tr>
     <tr><td><code>num_pistas</code></td><td class="n">2</td><td>pistas</td><td><span class="etiqueta lim">heredado</span> por dirección; es el control de política vial de la interfaz</td></tr>
-    <tr><td><code>alpha_bpr</code> / <code>beta_bpr</code> (auto)</td><td class="n">0,8 / 2,0</td><td>—</td><td><span class="etiqueta lim">heredado</span> no son los de la FHWA, 0,15 / 4,0: castigan más la congestión moderada y menos la severa</td></tr>
+    <tr><td><code>alpha_bpr</code> / <code>beta_bpr</code> (auto)</td><td class="n">0,15 / 4,0</td><td>—</td><td><span class="etiqueta frio">norma</span> la BPR estándar del Bureau of Public Roads, la que usa la FHWA</td></tr>
     <tr><td><code>capacidad_pista</code> (auto)</td><td class="n">—</td><td>veh/h</td><td><span class="etiqueta neutra">decisión</span> vacío: la capacidad sale de Greenshields; un valor explícito la desacopla de la velocidad</td></tr>
     <tr><td><code>v_media_kmh</code> (bici)</td><td class="n">14</td><td>km/h</td><td><span class="etiqueta lim">heredado</span></td></tr>
     <tr><td><code>capacidad_pista</code> (bici)</td><td class="n">2.500</td><td>bici/h</td><td><span class="etiqueta lim">heredado</span> el piso de caminata muerde recién al doble</td></tr>
@@ -173,11 +173,13 @@
 
 <p>
   Casi todo es herencia del simulador original, y conviene decir qué
-  significa cada herencia. <strong>La BPR del auto</strong> no usa los
-  coeficientes estándar de la FHWA: con α = 0,8 y β = 2 la curva sube antes y
-  más suave, y en saturación plena el viaje tarda un 27 % más que a flujo
-  libre, contra un 15 % con 0,15 y 4. No hay fuente en el repositorio para
-  esa elección; es la que traía el original, y cambiarla mueve la línea base.
+  significa cada herencia. <strong>La BPR del auto</strong> es la única
+  función de costo con norma: los coeficientes 0,15 y 4 del Bureau of Public
+  Roads, que castigan poco bajo capacidad, un 15 % en v/c = 1, y mucho por
+  encima. El simulador original traía 0,8 y 2, sin fuente, con un 80 % en
+  v/c = 1 y una curva mucho más suave; la §5 contrasta las dos. Con la norma,
+  la corrida por defecto queda con la vía por sobre su capacidad, v/c 1,31 en
+  el tramo junto al CBD, que es donde la curva estándar sí muerde.
   <strong>Greenshields</strong> da una capacidad por pista que el código
   reproduce al decimal; el campo <code>capacidad_pista</code> permite fijarla a
   mano cuando se quiere separar capacidad de velocidad, y vacío conserva la
@@ -225,9 +227,9 @@
     <tr><td class="n">(3.2)</td><td class="ruta py">supply/bike.py</td><td class="n">32</td><td><code>demora_bici_tramo</code> — ídem con el piso de caminata por tramo</td></tr>
     <tr><td class="n">(3.3)</td><td class="ruta py">supply/bike.py</td><td class="n">21</td><td><code>_velocidad_con_pendiente</code> — el factor asimétrico, acotado a 5–45 km/h</td></tr>
     <tr><td class="n">(3.4)</td><td class="ruta py">supply/train.py</td><td class="n">33</td><td><code>oferta_tren</code> — estaciones sobre centroides, carga por tramo, frecuencia, espera, acceso y detenciones</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">233</td><td><code>CarSupplyParams</code> — <code>capacidad_pista</code> (252) opcional</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">233</td><td><code>CarSupplyParams</code> — <code>capacidad_pista</code> (256) opcional</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">220</td><td><code>BikeSupplyParams</code> — <code>capacidad_pista</code> (228)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">255</td><td><code>TrainSupplyParams</code> — <code>num_estaciones</code> (267), <code>tiempo_detencion_min</code> (311), <code>frec_min</code> (316), <code>frec_max</code> (323), <code>anden_alpha</code> (324)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">259</td><td><code>TrainSupplyParams</code> — <code>num_estaciones</code> (271), <code>tiempo_detencion_min</code> (315), <code>frec_min</code> (320), <code>frec_max</code> (327), <code>anden_alpha</code> (328)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">components/modules/SupplyBuilder.tsx</td><td class="n">89</td><td><code>num_pistas</code> — los controles de oferta de la interfaz: pistas, capacidad explícita, estaciones, frecuencia máxima, capacidad del tren y de la ciclovía</td></tr>
   </tbody>
 </table>
@@ -307,36 +309,62 @@
   física, no un conteo de celdas.
 </p>
 
-<h3>5.2 El auto reproduce Greenshields</h3>
+<h3>5.2 El auto: Greenshields y la BPR</h3>
 
 <p>
   Con ℓ + g = 7 m, <em>k_j</em> = 142,857 veh/km; con ancho 3,5 m el factor es
   1,0 y <em>v_l</em> = 31 km/h. La capacidad por pista que predice (3.1) es
   <strong>2.214,3 veh/h</strong> y la que devuelve el código es
   <strong>2.214,3 veh/h</strong>. Desde el borde, a flujo libre, el viaje toma
-  19,162 min. La curva BPR sobre esa capacidad, en el viaje desde el borde:
+  19,162 min. Con demanda uniforme tal que el tramo junto al CBD, el más
+  cargado, esté a un v/c dado, el viaje entero desde el borde tarda:
 </p>
 
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th class="n">v/c en el borde</th><th class="n">0,00</th><th class="n">0,25</th><th class="n">0,50</th><th class="n">0,75</th><th class="n">1,00</th><th class="n">1,25</th><th class="n">1,50</th><th class="n">2,00</th></tr>
+    <tr><th class="n">v/c junto al CBD</th><th class="n">0,00</th><th class="n">0,25</th><th class="n">0,50</th><th class="n">0,75</th><th class="n">1,00</th><th class="n">1,25</th><th class="n">1,50</th><th class="n">2,00</th></tr>
   </thead>
   <tbody>
     <tr>
       <td><strong>t / t libre</strong></td>
-      <td class="n">1,000</td><td class="n">1,017</td><td class="n">1,068</td><td class="n">1,153</td>
-      <td class="n">1,272</td><td class="n">1,425</td><td class="n">1,612</td><td class="n">2,088</td>
+      <td class="n">1,0000</td>
+      <td class="n">1,0001</td>
+      <td class="n">1,0019</td>
+      <td class="n">1,0098</td>
+      <td class="n">1,0309</td>
+      <td class="n">1,0755</td>
+      <td class="n">1,1565</td>
+      <td class="n">1,4946</td>
     </tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  En saturación plena el viaje tarda 27 % más que a flujo libre. Con los
-  parámetros de la FHWA serían 15 %, con una curva mucho más plana antes de
-  v/c = 1 y mucho más brusca después. La calibración heredada reparte el
-  castigo de otra manera.
+  El viaje entero crece menos que el tramo crítico porque los tramos
+  exteriores van descargados. La forma de la curva por tramo, contra la que el
+  simulador heredaba del original:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">v/c del tramo</th><th class="n">0,00</th><th class="n">0,25</th><th class="n">0,50</th><th class="n">0,75</th><th class="n">1,00</th><th class="n">1,25</th><th class="n">1,50</th><th class="n">2,00</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>FHWA, 0,15 / 4</strong></td><td class="n">1,000</td><td class="n">1,001</td><td class="n">1,009</td><td class="n">1,047</td><td class="n">1,150</td><td class="n">1,366</td><td class="n">1,759</td><td class="n">3,400</td></tr>
+    <tr><td><strong>heredada, 0,8 / 2</strong></td><td class="n">1,000</td><td class="n">1,050</td><td class="n">1,200</td><td class="n">1,450</td><td class="n">1,800</td><td class="n">2,250</td><td class="n">2,800</td><td class="n">4,200</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  La estándar es plana hasta cerca de la capacidad y brusca después; la
+  heredada repartía el castigo desde el principio. Como la ciudad por defecto
+  opera por sobre la capacidad en el centro, el cambio no descongestiona el
+  auto: lo hace más atractivo en los tramos exteriores y más caro en el
+  central.
 </p>
 
 <h3>5.3 La bicicleta: el piso funciona, y tarde</h3>
@@ -466,7 +494,7 @@
     <tr><th>Desde el borde</th><th class="n">Red vacía (min)</th><th class="n">Con 30 / 20 / 20 por celda (min)</th></tr>
   </thead>
   <tbody>
-    <tr><td>auto</td><td class="n">19,162</td><td class="n">28,731</td></tr>
+    <tr><td>auto</td><td class="n">19,162</td><td class="n">21,158</td></tr>
     <tr><td>bicicleta</td><td class="n">42,431</td><td class="n">47,048</td></tr>
     <tr><td>metro, acceso + espera + viaje</td><td class="n">34,765</td><td class="n">34,765</td></tr>
     <tr><td>frecuencia del metro (tren/h)</td><td class="n">2,0</td><td class="n">2,0</td></tr>
@@ -476,9 +504,63 @@
 
 <p>
   Es el contrafactual que consumen los capítulos 2 y 7. Con una carga
-  sintética moderada el auto pierde diez minutos y la bicicleta cinco, pero el
+  sintética moderada el auto pierde dos minutos y la bicicleta cinco, pero el
   metro no cambia: veinte pasajeros por celda no sacan a la frecuencia de su
   mínimo, y en esa zona el metro es indiferente a la demanda.
+</p>
+
+<h3>5.7 El metro con la demanda del equilibrio</h3>
+
+<p>
+  Las tablas anteriores usan cargas sintéticas. Ésta usa la demanda que sale
+  del equilibrio completo, suelo y transporte, para responder cuándo el metro
+  opera entre sus topes: la frecuencia teórica cae bajo <em>f_mín</em> cuando
+  la carga del tramo crítico baja de 2.000 pasajeros por hora, y supera
+  <em>f_máx</em> por sobre 40.000.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ΣH</th><th class="n">Metro %</th><th class="n">Auto %</th><th class="n">Carga crítica (pax/h)</th><th class="n">f teórica</th><th class="n">f operativa</th><th>Tope</th><th class="n">Espera (min)</th><th class="n">v/c auto</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">9.000</td><td class="n">15,87</td><td class="n">16,47</td><td class="n">714</td><td class="n">0,71</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,33</td></tr>
+    <tr><td class="n">18.000</td><td class="n">20,04</td><td class="n">17,47</td><td class="n">1.803</td><td class="n">1,80</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,71</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">32,14</td><td class="n">16,08</td><td class="n">5.786</td><td class="n">5,79</td><td class="n">5,79</td><td>—</td><td class="n">5,19</td><td class="n">1,31</td></tr>
+    <tr><td class="n">72.000</td><td class="n">40,55</td><td class="n">14,14</td><td class="n">14.598</td><td class="n">14,60</td><td class="n">14,60</td><td>—</td><td class="n">2,06</td><td class="n">2,30</td></tr>
+    <tr><td class="n">144.000</td><td class="n">47,11</td><td class="n">9,89</td><td class="n">33.919</td><td class="n">33,92</td><td class="n">33,92</td><td>—</td><td class="n">0,96</td><td class="n">3,22</td></tr>
+    <tr><td class="n">288.000</td><td class="n">52,36</td><td class="n">1,56</td><td class="n">75.405</td><td class="n">75,40</td><td class="n">40,00</td><td>f_máx</td><td class="n">2,29</td><td class="n">1,01</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">L (km)</th><th class="n">Metro %</th><th class="n">Auto %</th><th class="n">Carga crítica (pax/h)</th><th class="n">f teórica</th><th class="n">Espera (min)</th><th class="n">v/c auto</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">10</td><td class="n">19,37</td><td class="n">14,47</td><td class="n">3.487</td><td class="n">3,49</td><td class="n">8,60</td><td class="n">1,18</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">32,14</td><td class="n">16,08</td><td class="n">5.786</td><td class="n">5,79</td><td class="n">5,19</td><td class="n">1,31</td></tr>
+    <tr><td class="n">30</td><td class="n">38,54</td><td class="n">16,69</td><td class="n">6.940</td><td class="n">6,94</td><td class="n">4,32</td><td class="n">1,36</td></tr>
+    <tr><td class="n">40</td><td class="n">42,60</td><td class="n">17,34</td><td class="n">7.668</td><td class="n">7,67</td><td class="n">3,91</td><td class="n">1,41</td></tr>
+    <tr><td class="n">60</td><td class="n">46,38</td><td class="n">18,45</td><td class="n">8.349</td><td class="n">8,35</td><td class="n">3,59</td><td class="n">1,50</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  La ciudad por defecto está dentro del rango, con 5,8 trenes por hora y algo
+  más de cinco minutos de espera: Mohring opera, pero con una frecuencia de
+  tren de cercanías, no de metro. La zona muerta termina cerca de los 20.000
+  hogares en 20 km; una frecuencia de metro urbano, con esperas de dos
+  minutos, aparece hacia los 72.000, y el tope superior recién por sobre los
+  144.000. El largo ayuda poco: pasar de 20 a 60 km sube la frecuencia de 5,8
+  a 8,4, porque lo que carga al tramo crítico es cuánta gente hay, no cuán
+  lejos vive. La misma población que hace funcionar al metro lleva la vía a
+  más del doble de su capacidad con dos pistas: un escenario de «ciudad con
+  metro» pide más hogares y más pistas a la vez.
 </p>
 
 <h2 id="s6"><span class="num">§6</span> Discusión</h2>
@@ -493,8 +575,7 @@
 <p>
   Lo que queda es de <strong>calibración</strong>, no de implementación. Hay
   parámetros heredados que se comportan de maneras que el usuario no puede
-  adivinar: la BPR del auto no usa los coeficientes estándar, la congestión de
-  andén es un control que no mueve nada, el número de estaciones es un número
+  adivinar: la congestión de andén es un control que no mueve nada, el número de estaciones es un número
   de intervalos, y por debajo de una carga modesta el metro deja de responder
   a la demanda. Ninguno es un error de cálculo; todos son distancias entre lo
   que el modelo declara y lo que calcula.
@@ -509,9 +590,9 @@
     afecta a lo que el usuario cree estar configurando.
   </li>
   <li>
-    <strong>La BPR del auto.</strong> Decidir si 0,8 y 2 se justifican o se
-    migra a los valores de la FHWA. Mueve la línea base y es decisión de
-    modelo.
+    <strong>Un escenario con metro de verdad.</strong> La §5.7 dice qué
+    población y qué vía lo sostienen; falta convertirlo en un preset de la
+    aplicación, con sus hogares, sus pistas y su frecuencia declarados.
   </li>
   <li>
     <strong>La congestión de andén.</strong> Recalibrarla para que muerda en el

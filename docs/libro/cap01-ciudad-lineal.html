@@ -395,11 +395,11 @@
     <tr><th class="n">n</th><th class="n">Población</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">51</td><td class="n">36.000</td><td class="n">15,873</td><td class="n">28,821</td><td class="n">25,012</td><td class="n">10,790</td><td class="n">7.742,7</td></tr>
-    <tr><td class="n">101</td><td class="n">36.000</td><td class="n">15,825</td><td class="n">28,345</td><td class="n">25,060</td><td class="n">11,271</td><td class="n">7.555,4</td></tr>
-    <tr class="destacada"><td class="n">201</td><td class="n">36.000</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">7.496,3</td></tr>
-    <tr><td class="n">401</td><td class="n">36.000</td><td class="n">15,791</td><td class="n">28,332</td><td class="n">24,855</td><td class="n">11,511</td><td class="n">7.496,3</td></tr>
-    <tr><td class="n">801</td><td class="n">36.000</td><td class="n">15,729</td><td class="n">28,358</td><td class="n">24,851</td><td class="n">11,517</td><td class="n">7.505,2</td></tr>
+    <tr><td class="n">51</td><td class="n">36.000</td><td class="n">16,946</td><td class="n">28,014</td><td class="n">24,805</td><td class="n">10,730</td><td class="n">6.727,0</td></tr>
+    <tr><td class="n">101</td><td class="n">36.000</td><td class="n">16,916</td><td class="n">27,515</td><td class="n">24,857</td><td class="n">11,211</td><td class="n">6.594,0</td></tr>
+    <tr class="destacada"><td class="n">201</td><td class="n">36.000</td><td class="n">16,889</td><td class="n">27,513</td><td class="n">24,744</td><td class="n">11,359</td><td class="n">6.538,0</td></tr>
+    <tr><td class="n">401</td><td class="n">36.000</td><td class="n">16,854</td><td class="n">27,448</td><td class="n">24,737</td><td class="n">11,451</td><td class="n">6.527,4</td></tr>
+    <tr><td class="n">801</td><td class="n">36.000</td><td class="n">16,794</td><td class="n">27,508</td><td class="n">24,703</td><td class="n">11,451</td><td class="n">6.547,7</td></tr>
   </tbody>
 </table>
 </div>
@@ -416,16 +416,17 @@
     <tr><th>Refinamiento</th><th class="n">Δ máx (pp)</th></tr>
   </thead>
   <tbody>
-    <tr><td>51 → 101</td><td class="n">0,481</td></tr>
-    <tr><td>101 → 201</td><td class="n">0,151</td></tr>
-    <tr class="destacada"><td>201 → 401</td><td class="n">0,100</td></tr>
-    <tr><td>401 → 801</td><td class="n">0,062</td></tr>
+    <tr><td>51 → 101</td><td class="n">0,499</td></tr>
+    <tr><td>101 → 201</td><td class="n">0,148</td></tr>
+    <tr class="destacada"><td>201 → 401</td><td class="n">0,092</td></tr>
+    <tr><td>401 → 801</td><td class="n">0,060</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Cada duplicación reduce el salto a cerca de dos tercios del anterior. La
+  A partir de 101 celdas cada duplicación reduce el salto a cerca de dos
+  tercios del anterior. La
   causa está en la demanda, no en la geometría: los cortes de caminata y
   bicicleta y las penalizaciones físicas por tramo son <strong>funciones
   escalón de la distancia</strong>, y con cada Δx el escalón cae en una
@@ -447,20 +448,20 @@
     <tr><th class="n">ΣH</th><th class="n">hab/km</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th><th class="n">Iter.</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">18.000</td><td class="n">900</td><td class="n">17,768</td><td class="n">16,976</td><td class="n">34,250</td><td class="n">11,483</td><td class="n">3.503,5</td><td class="n">5</td></tr>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">7.496,3</td><td class="n">8</td></tr>
-    <tr><td class="n">54.000</td><td class="n">2.700</td><td class="n">14,465</td><td class="n">34,003</td><td class="n">20,482</td><td class="n">11,524</td><td class="n">12.313,7</td><td class="n">10</td></tr>
-    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">13,275</td><td class="n">37,115</td><td class="n">18,468</td><td class="n">11,630</td><td class="n">17.255,1</td><td class="n">11</td></tr>
+    <tr><td class="n">18.000</td><td class="n">900</td><td class="n">18,161</td><td class="n">16,810</td><td class="n">34,054</td><td class="n">11,453</td><td class="n">3.209,0</td><td class="n">5</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">16,889</td><td class="n">27,513</td><td class="n">24,744</td><td class="n">11,359</td><td class="n">6.538,0</td><td class="n">8</td></tr>
+    <tr><td class="n">54.000</td><td class="n">2.700</td><td class="n">15,598</td><td class="n">32,998</td><td class="n">20,385</td><td class="n">11,492</td><td class="n">11.173,3</td><td class="n">11</td></tr>
+    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">14,103</td><td class="n">36,411</td><td class="n">18,349</td><td class="n">11,625</td><td class="n">16.610,7</td><td class="n">12</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Con el largo fijo, más gente es más congestión: el auto cae de 17,77 % a
-  13,28 %, la bicicleta pierde la mitad de su cuota cuando la ciclovía satura,
-  y el metro, con economías de escala, sube de 16,98 % a 37,12 %. La caminata
+  Con el largo fijo, más gente es más congestión: el auto cae de 18,16 % a
+  14,10 %, la bicicleta pierde la mitad de su cuota cuando la ciclovía satura,
+  y el metro, con economías de escala, sube de 16,81 % a 36,41 %. La caminata
   casi no se mueve porque su tiempo no depende del flujo. Las emisiones crecen
-  casi cinco veces con cuatro veces la población, y el MSA necesita más
+  cinco veces con cuatro veces la población, y el MSA necesita más
   iteraciones para cerrar.
 </p>
 
@@ -472,18 +473,18 @@
     <tr><th class="n">L (km)</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">10</td><td class="n">14,73</td><td class="n">16,59</td><td class="n">20,86</td><td class="n">3.391,7</td></tr>
-    <tr class="destacada"><td class="n">20</td><td class="n">15,81</td><td class="n">28,32</td><td class="n">11,42</td><td class="n">7.496,3</td></tr>
-    <tr><td class="n">30</td><td class="n">16,17</td><td class="n">34,61</td><td class="n">8,07</td><td class="n">11.398,7</td></tr>
-    <tr><td class="n">40</td><td class="n">16,39</td><td class="n">38,27</td><td class="n">6,24</td><td class="n">15.118,3</td></tr>
+    <tr><td class="n">10</td><td class="n">15,24</td><td class="n">16,28</td><td class="n">20,79</td><td class="n">2.839,1</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">16,89</td><td class="n">27,51</td><td class="n">11,36</td><td class="n">6.538,0</td></tr>
+    <tr><td class="n">30</td><td class="n">17,61</td><td class="n">33,18</td><td class="n">8,02</td><td class="n">10.253,6</td></tr>
+    <tr><td class="n">40</td><td class="n">18,23</td><td class="n">36,74</td><td class="n">6,20</td><td class="n">14.082,8</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Con la población fija en 36.000, estirar la ciudad alarga los viajes: la
-  caminata se derrumba de 20,9 % a 6,2 %, el metro se duplica y las emisiones se
-  cuadruplican. La dirección y la magnitud son las que la teoría predice.
+  caminata se derrumba de 20,8 % a 6,2 %, el metro se duplica y las emisiones se
+  quintuplican. La dirección y la magnitud son las que la teoría predice.
 </p>
 
 <h3>Por qué n impar</h3>

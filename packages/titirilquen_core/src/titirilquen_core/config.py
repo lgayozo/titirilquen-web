@@ -243,8 +243,12 @@ class CarSupplyParams(BaseModel):
     # efecto vive cerca de v/c = 1. No se puede tener a la vez una ciudad base
     # descongestionada y una oferta vial que mueva el reparto.
     num_pistas: int = Field(default=2, ge=1)
-    alpha_bpr: float = 0.8
-    beta_bpr: float = 2.0
+    # BPR estándar del Bureau of Public Roads (1964), la que usa la FHWA:
+    # t = t0·[1 + 0,15·(v/c)^4]. Castiga poco bajo capacidad (+15 % en v/c = 1)
+    # y mucho por encima. Hasta sep-2026 el simulador heredaba 0,8 / 2,0 del
+    # original, sin fuente: +27 % en v/c = 1 y una curva mucho más suave.
+    alpha_bpr: float = 0.15
+    beta_bpr: float = 4.0
     # Capacidad por pista (veh/h). None ⇒ Greenshields q_max = k_j·v_l/4, que
     # ACOPLA capacidad y velocidad (subir v_max sube C en igual proporción y la
     # velocidad nunca puede empeorar la congestión). Un valor explícito separa
