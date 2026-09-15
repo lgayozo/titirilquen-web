@@ -499,6 +499,75 @@ def metro_en_equilibrio() -> dict:
     }
 
 
+def presets_de_escala() -> dict:
+    """Los presets de ciudad que fijan la escala, medidos en el equilibrio
+    completo: qué condición dejan a cada modo."""
+    from titirilquen_core.city import CiudadLineal
+    from titirilquen_core.equilibrium.msa import run_msa
+    from titirilquen_core.presets import CITY_PRESETS
+    from titirilquen_core.supply.oferta import resolver_oferta
+
+    sim0 = base._config_web()
+    lu0 = base._land_use_web()
+    H = np.asarray(lu0.H_por_estrato, dtype=float)
+    shares = H / H.sum()
+    out = {}
+    for nombre in ("Base", "Ciudad con metro", "Metrópolis"):
+        p = CITY_PRESETS[nombre]
+        h = [round(p["poblacion"] * s) for s in shares]
+        h[1] += p["poblacion"] - sum(h)
+        lu = lu0.model_copy(
+            update={
+                "H_por_estrato": (h[0], h[1], h[2]),
+                "oferta_sigma_frac": p["sigma"],
+            }
+        )
+        sim = sim0.model_copy(
+            update={
+                "city": sim0.city.model_copy(
+                    update={"largo_ciudad_km": float(p["largo_ciudad"])}
+                ),
+                "supply": sim0.supply.model_copy(
+                    update={
+                        "car": sim0.supply.car.model_copy(
+                            update={"num_pistas": p["num_pistas"]}
+                        ),
+                        "bike": sim0.supply.bike.model_copy(
+                            update={"capacidad_pista": p["cap_bici"]}
+                        ),
+                    }
+                ),
+            }
+        )
+        tr = run_msa(sim, lu, "equilibrio")
+        snap = tr.iteraciones[-1]
+        split = snap.modal_split
+        total = sum(split.values())
+        ciudad = CiudadLineal(
+            n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km
+        )
+        of = resolver_oferta(
+            sim, ciudad, snap.demanda_auto, snap.demanda_bici, snap.demanda_metro
+        )
+        espera = of.tren.t_espera_min[of.tren.t_espera_min > 0]
+        out[nombre] = {
+            "poblacion": p["poblacion"],
+            "num_pistas": p["num_pistas"],
+            "cap_bici": p["cap_bici"],
+            "reparto_pct": {m: round(100.0 * v / total, 2) for m, v in split.items()},
+            "vc_auto": round(
+                float(of.auto.flujos_veh_por_hora.max() / of.auto.capacidad_direccion),
+                2,
+            ),
+            "vc_bici": round(
+                float(of.bici.flujos_bici_por_hora.max() / p["cap_bici"]), 2
+            ),
+            "frecuencia_tph": round(float(of.tren.frecuencia_operativa), 1),
+            "espera_media_min": round(float(np.mean(espera)), 2),
+        }
+    return out
+
+
 def main() -> None:
     b = bici()
     # AT-05: con la topografía monocéntrica, +p y −p NO pueden dar lo mismo.
@@ -528,6 +597,7 @@ def main() -> None:
         "red_vacia": red_vacia(),
         "curva_bpr_heredada": curva_bpr_heredada(),
         "metro_en_equilibrio": metro_en_equilibrio(),
+        "presets_de_escala": presets_de_escala(),
     }
     SALIDA.write_text(
         json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"

@@ -208,13 +208,17 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
       // no compara lo que dice comparar. Los de iso-población (Compacta,
       // Dispersa) no la declaran y conservan la del usuario, igual que hacen
       // con la población.
-      supply:
-        p.num_pistas === undefined
-          ? c.supply
-          : {
-              ...c.supply,
-              car: { ...c.supply.car, num_pistas: p.num_pistas },
-            },
+      supply: {
+        ...c.supply,
+        car: {
+          ...c.supply.car,
+          ...(p.num_pistas !== undefined && { num_pistas: p.num_pistas }),
+        },
+        bike: {
+          ...c.supply.bike,
+          ...(p.cap_bici !== undefined && { capacidad_pista: p.cap_bici }),
+        },
+      },
     }));
     // La concentración de la oferta (σ) es la segunda dimensión de la forma:
     // sin ella el preset movía la mitad del efecto.

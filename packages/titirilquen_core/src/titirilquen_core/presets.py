@@ -25,6 +25,11 @@ class CityPreset(TypedDict, total=False):
     # de estar en la rodilla de la BPR donde las palancas responden. Lo declaran
     # los mismos presets que declaran `poblacion`: los que fijan la escala.
     num_pistas: int
+    # Capacidad de la ciclovía (bici/h). Misma lógica que `num_pistas`: los
+    # presets de escala la declaran para que la bicicleta compita en la misma
+    # condición que en Base (v/c ≈ 1,2–1,3); sin ella, escalar la población
+    # dejaba la ciclovía a v/c 2,4–2,7 y la bici fuera de competencia.
+    cap_bici: int
 
 
 class PolicyPreset(TypedDict, total=False):
@@ -64,6 +69,21 @@ CITY_PRESETS: dict[str, CityPreset] = {
         "sigma": 0.50,
         "poblacion": 36_000,
         "num_pistas": 2,
+        "cap_bici": 4_000,
+    },
+    # ESCALA intermedia: el preset «ciudad con metro». Con 72.000 hogares la
+    # carga del tramo crítico del metro pasa de 5.800 a 14.600 pax/h y la
+    # frecuencia de 5,8 a ~11 tph (espera de 3 min): un metro urbano, no un tren
+    # de cercanías. Para que auto y bici sigan compitiendo en la misma condición
+    # que en Base, 4 pistas y 7.500 bici/h dejan la vía y la ciclovía a v/c
+    # 1,2–1,3. Medido (equilibrio completo, cap03.json): auto 14,8 · metro 30,8
+    # · bici 26,5 · caminata 8,4.
+    "Ciudad con metro": {
+        "largo_ciudad": 20,
+        "sigma": 0.50,
+        "poblacion": 72_000,
+        "num_pistas": 4,
+        "cap_bici": 7_500,
     },
     "Dispersa": {"largo_ciudad": 40, "sigma": 0.90},
     # ESCALA, no forma: misma geometría que Base (20 km, sigma 0.50) con 4x la
@@ -81,22 +101,17 @@ CITY_PRESETS: dict[str, CityPreset] = {
         "largo_ciudad": 20,
         "sigma": 0.50,
         "poblacion": 144_000,
-        # 12 y no 2: es el número que deja el corredor en v/c 0,97 con esta
-        # población, o sea la MISMA condición que las 2 pistas dan en Base. Con
-        # el default de 2 el v/c era 3,68 y el auto tardaba 52,3 min: no competía
-        # con el metro y agregar vialidad no movía nada porque la BPR ya estaba
-        # muy pasada la rodilla. Medido (expected, ΣH 144.000):
-        #
-        #   pistas   v/c    auto%   metro%   t_auto
-        #        2   3,68   11,33    47,54   52,3 min
-        #        4   2,44   15,00    45,15   34,8
-        #        8   1,41   17,30    43,37   24,5
-        #       12   0,97   17,95    42,93   21,7   <- rodilla
-        #
-        # Ojo con leer las 12 pistas como un dato urbano: en la ciudad lineal
-        # TODA la población atraviesa un único corredor, así que este número
-        # agrega la capacidad vial completa de la ciudad, no la de una avenida.
-        "num_pistas": 12,
+        # 8 pistas y 16.000 bici/h: el número que deja la vía y la ciclovía en
+        # v/c 1,16 y 1,19 con esta población, o sea la MISMA condición que las 2
+        # pistas y 4.000 bici/h dan en Base, y el metro a 22,6 tph. Con el
+        # default de 2 pistas el v/c era 3,2 y el auto no competía; con 12 (la
+        # calibración anterior, hecha con la BPR heredada) la vía queda a v/c
+        # 0,78–0,87 y la palanca vial muere porque la BPR estándar es plana bajo
+        # capacidad. Ojo con leer 8 pistas como un dato urbano: en la ciudad
+        # lineal TODA la población atraviesa un único corredor, así que este
+        # número agrega la capacidad vial completa, no la de una avenida.
+        "num_pistas": 8,
+        "cap_bici": 16_000,
     },
 }
 
@@ -134,7 +149,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
-        "cap_bici": 2500,
+        "cap_bici": 4000,
         "frec_max": 40,
         "cap_tren": 1000,
         "factor_flota": 1.0,
@@ -145,7 +160,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
-        "cap_bici": 2500,
+        "cap_bici": 4000,
         "frec_max": 50,
         "cap_tren": 1000,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
@@ -159,7 +174,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_estaciones": 10,
         "bencina": 120,
         "cap_tren": 1000,
-        "cap_bici": 2500,
+        "cap_bici": 4000,
         "frec_max": 40,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
         # hibridos» dejaba la flota en 0.7 en silencio.
@@ -172,7 +187,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_estaciones": 8,
         "bencina": 100,
         "cap_tren": 800,
-        "cap_bici": 1250,
+        "cap_bici": 2000,
         "frec_max": 6,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
         # hibridos» dejaba la flota en 0.7 en silencio.
@@ -182,7 +197,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "tarifa": 800,
         "parking": 2000,
         "num_pistas": 2,
-        "cap_bici": 5000,
+        "cap_bici": 8000,
         "frec_max": 40,
         "bencina": 120,
         "cap_tren": 1000,
@@ -201,7 +216,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "frec_max": 40,
         "cap_tren": 1000,
         "num_estaciones": 10,
-        "cap_bici": 2500,
+        "cap_bici": 4000,
         "factor_flota": 0.7,
     },
     "Máx Metro": {
@@ -212,7 +227,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "parking": 2000,
         "bencina": 120,
         "num_pistas": 2,
-        "cap_bici": 2500,
+        "cap_bici": 4000,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
         # hibridos» dejaba la flota en 0.7 en silencio.
         "factor_flota": 1.0,
@@ -223,7 +238,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         # escenario que aplicarla desde el default. Completada con 10 = default,
         # para que el preset sea reproducible.
         "num_pistas": 1,
-        "cap_bici": 6000,
+        "cap_bici": 9600,
         "tarifa": 800,
         "parking": 2000,
         "bencina": 120,

@@ -14,7 +14,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
   supply: {
     bike: {
       v_media_kmh: 14,
-      capacidad_pista: 2500,
+      capacidad_pista: 4000,
       alpha_bpr: 0.5,
       beta_bpr: 2.0,
     },

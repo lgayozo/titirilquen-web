@@ -11,6 +11,7 @@ export interface CityPresetValues {
   sigma?: number;
   poblacion?: number;
   num_pistas?: number;
+  cap_bici?: number;
 }
 
 /** Parámetros de política. */
@@ -37,6 +38,14 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
     sigma: 0.5,
     poblacion: 36000,
     num_pistas: 2,
+    cap_bici: 4000,
+  },
+  "Ciudad con metro": {
+    largo_ciudad: 20,
+    sigma: 0.5,
+    poblacion: 72000,
+    num_pistas: 4,
+    cap_bici: 7500,
   },
   Dispersa: {
     largo_ciudad: 40,
@@ -46,7 +55,8 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
     largo_ciudad: 20,
     sigma: 0.5,
     poblacion: 144000,
-    num_pistas: 12,
+    num_pistas: 8,
+    cap_bici: 16000,
   },
 };
 
@@ -58,7 +68,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
-    cap_bici: 2500,
+    cap_bici: 4000,
     frec_max: 40,
     cap_tren: 1000,
     factor_flota: 1.0,
@@ -69,7 +79,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
-    cap_bici: 2500,
+    cap_bici: 4000,
     frec_max: 50,
     cap_tren: 1000,
     factor_flota: 1.0,
@@ -81,7 +91,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_estaciones: 10,
     bencina: 120,
     cap_tren: 1000,
-    cap_bici: 2500,
+    cap_bici: 4000,
     frec_max: 40,
     factor_flota: 1.0,
   },
@@ -92,7 +102,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_estaciones: 8,
     bencina: 100,
     cap_tren: 800,
-    cap_bici: 1250,
+    cap_bici: 2000,
     frec_max: 6,
     factor_flota: 1.0,
   },
@@ -100,7 +110,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     tarifa: 800,
     parking: 2000,
     num_pistas: 2,
-    cap_bici: 5000,
+    cap_bici: 8000,
     frec_max: 40,
     bencina: 120,
     cap_tren: 1000,
@@ -115,7 +125,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     frec_max: 40,
     cap_tren: 1000,
     num_estaciones: 10,
-    cap_bici: 2500,
+    cap_bici: 4000,
     factor_flota: 0.7,
   },
   "Máx Metro": {
@@ -126,12 +136,12 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     parking: 2000,
     bencina: 120,
     num_pistas: 2,
-    cap_bici: 2500,
+    cap_bici: 4000,
     factor_flota: 1.0,
   },
   Ciclorrecreovía: {
     num_pistas: 1,
-    cap_bici: 6000,
+    cap_bici: 9600,
     tarifa: 800,
     parking: 2000,
     bencina: 120,

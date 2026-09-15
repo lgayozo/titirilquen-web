@@ -221,11 +221,16 @@ class BikeSupplyParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     v_media_kmh: float = 14
-    # 2500 bici/h = flujo de saturacion realista de una ciclovia. Antes 800, que
-    # dejaba el modo operando a v/c ~2.4, POR ENCIMA del techo de caminata (que
-    # se activa sobre v/c = ((v_bici/v_caminata - 1)/alpha)^(1/beta) = 1.96): en
-    # esa zona la BPR ya no opera y alpha/beta no significan nada.
-    capacidad_pista: int = 2500
+    # 4000 bici/h (2026-09-15). Con la ciudad por defecto la ciclovía queda a
+    # v/c ≈ 1,3, la misma saturación que la vía con 2 pistas, y la bicicleta
+    # empata con el metro (≈ 28 % cada uno): las dos palancas de capacidad
+    # responden en ambas direcciones y ningún modo queda dominado. Con 2500 la
+    # ciclovía operaba a v/c 1,7 y era la restricción que ataba la base; la
+    # capacidad de ciclovía es la palanca de oferta más fuerte del simulador
+    # (1000 → 5000 mueve la bici de 15 a 31 %). El techo de caminata se activa
+    # sobre v/c = ((v_bici/v_caminata - 1)/alpha)^(1/beta) = 1,96: por encima la
+    # BPR ya no opera. Medido en docs/libro/datos/cap03.json.
+    capacidad_pista: int = 4000
     alpha_bpr: float = 0.5
     beta_bpr: float = 2.0
 

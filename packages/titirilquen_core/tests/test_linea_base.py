@@ -73,18 +73,23 @@ ESPERADO = {
     #     Bajo capacidad la curva castiga menos y el auto gana: original auto
     #     +1,08, metro −0,81, bici −0,22, caminata −0,06; equilibrio auto +0,78,
     #     metro −0,52, bici −0,19, caminata −0,07. Mismas iteraciones.
+    #  8. Ciclovía de 4.000 bici/h en vez de 2.500 (2026-09-15): la ciclovía deja
+    #     de ser la restricción que ataba la base (v/c 1,7 → 1,3, la misma que
+    #     la vía) y la bici empata con el metro. Original: bici +4,65, metro
+    #     −3,89, auto −0,53, caminata −0,24; equilibrio: bici +4,88, metro −4,27,
+    #     auto −0,48, caminata −0,13. El MSA cierra en 7 iteraciones en ambas.
     "equilibrio": {
-        "Auto": 16.08,
-        "Metro": 32.14,
-        "Bici": 23.60,
-        "Caminata": 8.76,
+        "Auto": 15.60,
+        "Metro": 27.87,
+        "Bici": 28.48,
+        "Caminata": 8.63,
         "Teletrabajo": 19.42,
     },
     "original": {
-        "Auto": 16.89,
-        "Metro": 27.51,
-        "Bici": 24.74,
-        "Caminata": 11.36,
+        "Auto": 16.36,
+        "Metro": 23.62,
+        "Bici": 29.39,
+        "Caminata": 11.12,
         "Teletrabajo": 19.49,
     },
 }
@@ -94,7 +99,7 @@ ESPERADO = {
 #: `equilibrio` pasó de 7 a 8 con los `lambda` heterogéneos (sep-2026): la ciudad
 #: de partida es más segregada y el MSA necesita una pasada más. El reescalado
 #: homoscedástico de transporte no cambió el conteo.
-ITERACIONES_ESPERADAS = {"equilibrio": 9, "original": 8}
+ITERACIONES_ESPERADAS = {"equilibrio": 7, "original": 7}
 
 
 def _config_web() -> SimulationConfig:
