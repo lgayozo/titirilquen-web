@@ -18,12 +18,15 @@ import numpy as np
 
 SALIDA = Path(__file__).parent / "salida"
 D = json.loads((SALIDA / "impacto.json").read_text(encoding="utf-8"))
-F = D["filas"]
+#: El barrido geométrico, en orden de r. La fila «vigente» se marca aparte.
+F = [f for f in D["filas"] if not f["vigente"]]
+VIG = next(f for f in D["filas"] if f["vigente"])
 
 ALTO, MEDIO, BAJO = "#b4532a", "#2f6690", "#2e6e4e"
 COL = (ALTO, MEDIO, BAJO)
 EST = ("Alto", "Medio", "Bajo")
 TINTA, GRIS, REGLA = "#1a1a1a", "#6b6b6b", "#d8d4cc"
+XLABEL_R = "razón de heterogeneidad  r   (λ = λm/r · λm · λm·r)"
 
 plt.rcParams.update(
     {
@@ -62,6 +65,19 @@ def km():
     return (np.arange(D["L"]) - D["CBD"]) * D["dx"]
 
 
+def marca_vigente(ax, y, etiqueta="λ vigente"):
+    """El punto de la calibración vigente, en su r equivalente."""
+    ax.plot(VIG["r_eq"], y, marker="D", color=TINTA, ms=6, ls="none", zorder=5)
+    ax.annotate(
+        etiqueta,
+        (VIG["r_eq"], y),
+        xytext=(6, 6),
+        textcoords="offset points",
+        fontsize=8,
+        color=TINTA,
+    )
+
+
 # --------------------------------------------------------------------------- #
 def fig1_impacto_vs_r():
     """Cuánto cambia el resultado según cuán heterogéneos sean los λ."""
@@ -69,7 +85,8 @@ def fig1_impacto_vs_r():
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(8.6, 3.5))
 
     a1.plot(r, [f["max_dQ"] for f in F], "o-", color=ALTO, lw=2, ms=5)
-    a1.set_xlabel("razón de heterogeneidad  r   (λ = 1/r · 1 · r)")
+    marca_vigente(a1, VIG["max_dQ"])
+    a1.set_xlabel(XLABEL_R)
     a1.set_ylabel("max |ΔQ|")
     a1.set_title("Diferencia máxima en una celda")
     a1.axhline(0, color=GRIS, lw=1)
@@ -77,6 +94,7 @@ def fig1_impacto_vs_r():
 
     tot = sum(F[0]["H"])
     a2.plot(r, [100 * f["movidos_total"] / tot for f in F], "o-", color=TINTA, lw=2, ms=5)
+    marca_vigente(a2, 100 * VIG["movidos_total"] / tot)
     a2.set_xlabel("razón de heterogeneidad  r")
     a2.set_ylabel("% de los hogares")
     a2.set_title("Hogares que cambian de celda")
@@ -86,9 +104,9 @@ def fig1_impacto_vs_r():
 
 
 # --------------------------------------------------------------------------- #
-def fig2_donde(r="2.0"):
+def fig2_donde(clave="vigente"):
     """El resultado central: la diferencia no está repartida."""
-    P = D["perfiles"][r]
+    P = D["perfiles"][clave]
     S = np.array(P["S"], dtype=float)
     Qa, Qb = np.array(P["Q_antes"]), np.array(P["Q_ahora"])
     x = km()
@@ -111,9 +129,8 @@ def fig2_donde(r="2.0"):
     a2.set_xlim(-8, 8)
     limpia(a2)
 
-    # Las FRONTERAS: donde se cruzan las composiciones. Ahi caen los picos, y es
-    # el resultado del informe. Marcar la distancia media seria otra cosa y no
-    # coincide: la media del Alto esta en 1,05 km y la frontera cerca de 2.
+    # Las FRONTERAS: donde se cruzan las composiciones del HEV. Ahí caen los
+    # picos, y es el resultado del informe.
     def cruce(a, b):
         """Primer x > 0 donde la curva `a` deja de ir por encima de `b`."""
         dif = Qb[a] - Qb[b]
@@ -144,9 +161,9 @@ def fig2_donde(r="2.0"):
 
 
 # --------------------------------------------------------------------------- #
-def fig3_composicion(r="2.0"):
+def fig3_composicion(clave="vigente"):
     """La composición por celda, con los dos modelos superpuestos."""
-    P = D["perfiles"][r]
+    P = D["perfiles"][clave]
     Qa, Qb = np.array(P["Q_antes"]), np.array(P["Q_ahora"])
     x = km()
     fig, ax = plt.subplots(figsize=(7.6, 3.8))
@@ -166,12 +183,13 @@ def fig3_composicion(r="2.0"):
 
 # --------------------------------------------------------------------------- #
 def fig4_agregados():
-    """Los agregados casi no se mueven: hay que decirlo."""
+    """Los agregados por estrato, en los dos modelos, a lo largo del barrido."""
     r = [f["r"] for f in F]
-    fig, ax = plt.subplots(figsize=(7.6, 3.6))
+    fig, ax = plt.subplots(figsize=(7.6, 3.8))
     for h in range(3):
         ax.plot(r, [f["d_antes"][h] for f in F], "-", color=COL[h], lw=2.6, alpha=0.30)
         ax.plot(r, [f["d_ahora"][h] for f in F], "--", color=COL[h], lw=1.5)
+        ax.plot(VIG["r_eq"], VIG["d_ahora"][h], marker="D", color=COL[h], ms=6, ls="none")
         ax.annotate(
             EST[h],
             (r[-1], F[-1]["d_ahora"][h]),
@@ -183,9 +201,10 @@ def fig4_agregados():
         )
     ax.plot([], [], color=TINTA, lw=2.6, alpha=0.30, label="antes (forma cerrada)")
     ax.plot([], [], color=TINTA, lw=1.5, ls="--", label="ahora (HEV)")
-    ax.set_xlabel("razón de heterogeneidad  r")
+    ax.plot([], [], marker="D", color=TINTA, ms=6, ls="none", label="λ vigente (HEV)")
+    ax.set_xlabel(XLABEL_R)
     ax.set_ylabel("distancia media al CBD (km)")
-    ax.set_title("El agregado por estrato apenas se mueve — las curvas se pisan")
+    ax.set_title("El agregado por estrato, antes y ahora")
     ax.legend(loc="center right")
     limpia(ax)
     guarda(fig, "fig4-agregados.png")

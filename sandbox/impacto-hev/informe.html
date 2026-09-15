@@ -120,7 +120,10 @@
   <p class="meta">
     Código: <code>sandbox/impacto-hev/</code> ·
     Correr: <code>uv run python impacto.py &amp;&amp; uv run python figuras.py</code><br>
-    Ciudad: 201 celdas · 20 km · ΣH = 99.900 · α = 6,5/6,0/5,5 · ρ = 0,0025 · β = 1
+    Ciudad: 201 celdas · 20 km · ΣH = 99.900 · α = 1 · ρ = 0 · β = 1/√44 ≈ 0,151 ·
+    λ vigente = 0,320 / 0,641 / 1,241 ×10⁻³ útiles/$ · T = logsum de transporte a flujo libre (D-34)<br>
+    Calibración vigente al 15-sep-2026. La versión del 1-sep (α = 6,5/6,0/5,5 · ρ = 0,0025 · β = 1 · λ ≈ 1)
+    contaba otra historia —el error concentrado en dos fronteras— y quedó en el historial git.
   </p>
 </header>
 
@@ -131,7 +134,7 @@
     <li><a href="#s2">Las dos formulaciones</a> — y si el código las implementa</li>
     <li><a href="#s3">Cuánto cambia</a> — la magnitud</li>
     <li><a href="#s4">Dónde cambia</a> — el resultado central</li>
-    <li><a href="#s5">Lo que no se mueve</a> — los agregados</li>
+    <li><a href="#s5">Los agregados</a> — cuánto se mueven</li>
     <li><a href="#s6">Qué concluir</a></li>
   </ol>
 </div>
@@ -150,7 +153,7 @@
 <p>
   Este documento mide cuánto cuesta esa diferencia. Dos corridas de la misma
   ciudad, con los mismos <code>y</code>, <code>α</code>, <code>ρ</code>,
-  <code>λ</code> y <code>β</code>:
+  <code>λ</code>, <code>β</code> y la misma accesibilidad <code>T</code>:
 </p>
 
 <div class="envoltorio-tabla">
@@ -159,7 +162,7 @@
   <tr>
     <td><strong>antes</strong></td>
     <td><code>solve_logit</code></td>
-    <td>La forma cerrada. Es literalmente lo que hacía el simulador: hasta el commit del HEV, <code>ciudad.py</code> llamaba <code>solve_logit(..., beta=cfg.beta, ...)</code> con estos mismos argumentos.</td>
+    <td>La forma cerrada, con <strong>una</strong> precisión en dinero común a los tres estratos, <span class="mono">b = β·λ<sub>medio</sub></span>. Es lo que hacía el simulador hasta el commit del HEV: <code>ciudad.py</code> llamaba <code>solve_logit(..., beta=cfg.beta, ...)</code>, y esa función aplica <code>beta</code> tal cual sobre la puja en dinero. Entonces λ valía 1 en los tres estratos, así que <span class="mono">b = β</span>.</td>
   </tr>
   <tr>
     <td><strong>ahora</strong></td>
@@ -175,8 +178,19 @@
     No hace falta desenterrar código viejo: <code>solve_logit</code>
     <strong>conservó su semántica</strong> a través de D-31 —se la dejó intacta a
     propósito, por ser la referencia homoscedástica con la que se demuestra
-    D-08—, así que hoy reproduce exactamente el comportamiento anterior. Y los
-    tests que fijan esa función no cambiaron y siguen pasando.
+    D-08—, así que sigue aplicando su <code>beta</code> como precisión en dinero,
+    igual que antes. Y los tests que fijan esa función siguen pasando.
+  </p>
+  <p>
+    Lo que sí cambió desde entonces es la <strong>calibración</strong>: hoy λ está
+    en útiles por peso (D-34) y β = 1/√44 es una precisión en útiles, así que la
+    conversión honesta a dinero es <span class="mono">b<sub>h</sub> = β·λ<sub>h</sub></span>
+    (D-31). La forma cerrada sólo admite un <span class="mono">b</span>, y hay que
+    elegirlo: se toma el del estrato medio, <span class="mono">b = β·λ<sub>medio</sub> =
+    9,66·10⁻⁵ $⁻¹</span>, o sea un ruido de puja de 10.354 $ para los tres. Es una
+    elección; con otro <span class="mono">b</span> común los números cambian, y
+    por eso el barrido se ancla en <em>r</em> = 1, donde la elección no importa
+    porque ahí los dos modelos son el mismo.
   </p>
 </div>
 
@@ -184,10 +198,15 @@
   <strong>Por qué un barrido y no un caso.</strong> No sabemos el
   <span class="mono">λ</span> verdadero. Lo que sí se puede afirmar es cómo crece
   el impacto con la heterogeneidad, así que se barre la razón <em>r</em> con
-  <span class="mono">λ = (1/r, 1, r)</span>. En <em>r</em> = 1 los dos modelos
-  son el mismo y sirve de ancla: <strong>esa fila tiene que dar cero exacto</strong>,
-  y da, lo que confirma que la comparación mide el modelo y no una diferencia de
-  implementación.
+  <span class="mono">λ = (λ<sub>m</sub>/r, λ<sub>m</sub>, λ<sub>m</sub>·r)</span>,
+  donde <span class="mono">λ<sub>m</sub> = 0,641·10⁻³</span> es el λ vigente del
+  estrato medio. En <em>r</em> = 1 los dos modelos son el mismo y sirve de ancla:
+  <strong>esa fila tiene que dar cero exacto</strong>, y da, lo que confirma que la
+  comparación mide el modelo y no una diferencia de implementación. Se agrega la
+  fila <strong>vigente</strong>: los tres λ literales de la app
+  (0,320 / 0,641 / 1,241 ×10⁻³, iguales a |b<sub>costo</sub>| de transporte, D-34),
+  que no son exactamente geométricos; su razón equivalente
+  <span class="mono">√(λ<sub>bajo</sub>/λ<sub>alto</sub>)</span> es 1,97.
 </p>
 
 <div class="aviso ok">
@@ -198,8 +217,8 @@
     <span class="mono">λ_alto &lt; λ_medio &lt; λ_bajo</span>. Martínez lo dice
     explícitamente (p. 77) al derivar la disposición a pagar, y de ahí concluye
     que <em>la varianza de la disposición a pagar crece con el ingreso</em>. La
-    forma <span class="mono">λ = (1/r, 1, r)</span> cumple esa monotonía en todas
-    las filas.
+    forma <span class="mono">λ = (λ<sub>m</sub>/r, λ<sub>m</sub>, λ<sub>m</sub>·r)</span>
+    cumple esa monotonía en todas las filas.
   </p>
   <p>
     No es una formalidad: <strong>es la configuración que el HEV existe para
@@ -208,12 +227,16 @@
     este documento mide.
   </p>
   <p>
-    Y la región importa. Si en vez de esto se sube
-    <span class="mono">λ_alto</span> por encima de los otros —económicamente al
-    revés— la respuesta del modelo se vuelve mucho más violenta: el estrato alto
-    llega a 6,25 km en lugar de moverse entre 1,47 y 1,05 km. Esos números
-    circularon en documentación vieja de este repo; no describen el modelo en su
-    régimen válido.
+    Y el ancla lo muestra a su manera. En <em>r</em> = 1 —λ común— la ciudad
+    sale <strong>invertida</strong>: el estrato alto a 5,3 km del CBD y el bajo
+    a 2,1. Con α = 1 común y λ común, el valor del tiempo α/λ es el mismo para
+    los tres, y la puja en pesos del alto es la más plana porque su logsum de
+    transporte en útiles lo es. Alonso se recupera con λ heterogéneo: en
+    <em>r</em> = 1,25 el orden todavía es plano (3,9 / 3,4 / 3,6 km) y en
+    <em>r</em> = 1,5 ya es el de Alonso (Fig. 04). O sea que la fila ancla es matemática, no una
+    ciudad realista, y la heterogeneidad de λ no es un refinamiento: es lo que
+    ordena la ciudad. Barrer <span class="mono">λ_alto</span> por encima de los
+    otros —económicamente al revés— no se hace, por la misma razón.
   </p>
 </div>
 
@@ -278,21 +301,24 @@ p     = log_p / b</code></pre>
   <h4>Pero el nivel de precios no es comparable, y no es por eso</h4>
   <p>
     La distinción de arriba es de <strong>segundo orden</strong>. Con
-    <span class="mono">β = 1</span> vale <span class="mono">γ/β = 0,577</span>,
-    un 0,6 % del rango de precios. La brecha que se mide entre las dos ramas es
+    <span class="mono">b = β·λ<sub>m</sub></span> vale <span class="mono">γ/b = 5.976 $</span>,
+    un 4 % del rango de precios. La brecha que se mide entre las dos ramas es
     mucho mayor, y la explica otra cosa:
   </p>
   <div class="envoltorio-tabla">
     <table>
-      <tr><th class="simb">λ (a/m/b)</th><th class="n">rango de p</th><th class="n">brecha medida</th><th class="simb n">γ/β</th><th class="simb">ū<sub>HEV</sub> − ū<sub>cerrada</sub></th></tr>
-      <tr><td>1,00 / 1,00 / 1,00</td><td class="n">96,8</td><td class="n">0,000</td><td class="n">0,577</td><td>[0 · 0 · 0]</td></tr>
-      <tr><td>0,80 / 1,00 / 1,25</td><td class="n">93,0</td><td class="n">3,331</td><td class="n">0,577</td><td>[0 · −2,74 · −4,96]</td></tr>
-      <tr><td>0,50 / 1,00 / 2,00</td><td class="n">96,4</td><td class="n">11,582</td><td class="n">0,577</td><td>[0 · −10,98 · −16,50]</td></tr>
-      <tr><td>0,25 / 1,00 / 4,00</td><td class="n">132,2</td><td class="n">33,580</td><td class="n">0,577</td><td>[0 · −32,97 · −41,23]</td></tr>
+      <tr><th class="simb">λ ×10⁻³ (a/m/b)</th><th class="n">rango de p ($)</th><th class="n">brecha medida ($)</th><th class="simb n">γ/b ($)</th><th class="simb">ū<sub>HEV</sub> − ū<sub>cerrada</sub> ($)</th></tr>
+      <tr><td>0,641 / 0,641 / 0,641</td><td class="n">139.197</td><td class="n">0</td><td class="n">5.976</td><td>[0 · 0 · 0]</td></tr>
+      <tr><td>0,513 / 0,641 / 0,801</td><td class="n">138.177</td><td class="n">35.022</td><td class="n">5.976</td><td>[0 · −28.887 · −51.700]</td></tr>
+      <tr><td>0,320 / 0,641 / 1,281</td><td class="n">142.886</td><td class="n">122.421</td><td class="n">5.976</td><td>[0 · −114.521 · −172.643]</td></tr>
+      <tr class="destacada"><td>0,320 / 0,641 / 1,241 (vigente)</td><td class="n">144.021</td><td class="n">122.446</td><td class="n">5.976</td><td>[0 · −114.570 · −170.812]</td></tr>
+      <tr><td>0,160 / 0,641 / 2,563</td><td class="n">188.467</td><td class="n">347.043</td><td class="n">5.976</td><td>[0 · −336.991 · −423.402]</td></tr>
     </table>
   </div>
   <p class="pie-tabla">
-    La brecha sigue a la última columna, no a <span class="mono">γ/β</span>.
+    La brecha sigue a la última columna, no a <span class="mono">γ/b</span>.
+    La brecha es la media de <span class="mono">p<sub>HEV</sub> − p<sub>cerrada</sub></span>
+    sobre las celdas con oferta; el rango es el de <span class="mono">p<sub>cerrada</sub></span>.
   </p>
   <p>
     <strong>El nivel absoluto del precio no está determinado por el modelo</strong>
@@ -315,7 +341,8 @@ p     = log_p / b</code></pre>
   </p>
   <p>
     <strong>El gradiente sí sirve, y por una razón concreta: es invariante a esa
-    constante.</strong> Se verifica más abajo — coincide entre ramas al 0,10 %.
+    constante.</strong> Se verifica más abajo — en la calibración vigente
+    difiere entre ramas un 1,4 %.
   </p>
 </div>
 
@@ -348,8 +375,8 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 <div class="envoltorio-tabla">
 <table>
   <tr><th></th><th class="simb">escala del ruido de la puja</th><th>qué supone</th></tr>
-  <tr><td><strong>cerrada</strong></td><td class="simb"><span class="mono">1/β</span>, común</td><td>que la varianza de la disposición a pagar es igual entre estratos</td></tr>
-  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mono">θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</span></td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
+  <tr><td><strong>cerrada</strong></td><td class="simb"><span class="mono">1/b = 1/(β·λ<sub>m</sub>)</span>, común: 10.354 $</td><td>que la varianza de la disposición a pagar es igual entre estratos</td></tr>
+  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mono">θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</span>: 20.708 / 10.354 / 5.344 $</td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
 </table>
 </div>
 
@@ -371,22 +398,26 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
     <em>exactamente</em> constante, y no tiene por qué serlo: las dos ramas
     devuelven resúmenes distintos —parámetro de localización vs máximo
     esperado— y con θ heterogéneos esa diferencia puede variar de parcela a
-    parcela y torcer el ajuste. Medido: la brecha tiene desviación estándar de
-    0,03 a 0,18 sobre un rango de precios de ~130, y el gradiente ajustado
-    difiere en:
+    parcela y torcer el ajuste. Medido: hasta la calibración vigente la brecha
+    tiene desviación estándar de 19 a 674 $ sobre un rango de precios de
+    ~140.000 $ (0,5 %); en <em>r</em> = 4 sube a 4.257 $ sobre 190.000 (2,2 %).
+    El gradiente ajustado, en $/km, difiere en:
   </p>
   <div class="envoltorio-tabla">
     <table>
-      <tr><th class="simb">λ (a/m/b)</th><th class="n">cerrada</th><th class="n">HEV</th><th class="n">dif. relativa</th></tr>
-      <tr><td>1,00 / 1,00 / 1,00</td><td class="n">−9,4949</td><td class="n">−9,4949</td><td class="n">0,00 %</td></tr>
-      <tr><td>0,80 / 1,00 / 1,25</td><td class="n">−8,7740</td><td class="n">−8,7750</td><td class="n">0,01 %</td></tr>
-      <tr><td>0,50 / 1,00 / 2,00</td><td class="n">−8,2119</td><td class="n">−8,2157</td><td class="n">0,05 %</td></tr>
-      <tr><td>0,25 / 1,00 / 4,00</td><td class="n">−9,5159</td><td class="n">−9,5254</td><td class="n">0,10 %</td></tr>
+      <tr><th class="simb">λ ×10⁻³ (a/m/b)</th><th class="n">cerrada</th><th class="n">HEV</th><th class="n">dif. relativa</th></tr>
+      <tr><td>0,641 / 0,641 / 0,641</td><td class="n">−12.932</td><td class="n">−12.932</td><td class="n">0,00 %</td></tr>
+      <tr><td>0,513 / 0,641 / 0,801</td><td class="n">−13.112</td><td class="n">−13.113</td><td class="n">0,01 %</td></tr>
+      <tr><td>0,320 / 0,641 / 1,281</td><td class="n">−12.609</td><td class="n">−12.790</td><td class="n">1,44 %</td></tr>
+      <tr class="destacada"><td>0,320 / 0,641 / 1,241 (vigente)</td><td class="n">−12.730</td><td class="n">−12.913</td><td class="n">1,44 %</td></tr>
+      <tr><td>0,214 / 0,641 / 1,922</td><td class="n">−12.884</td><td class="n">−13.474</td><td class="n">4,58 %</td></tr>
+      <tr><td>0,160 / 0,641 / 2,563</td><td class="n">−13.541</td><td class="n">−14.666</td><td class="n">8,31 %</td></tr>
     </table>
   </div>
   <p class="pie-tabla">
-    Como máximo 0,10 %. La comparación de gradientes de la §5 es válida; la de
-    niveles no se hace, y por eso.
+    En la calibración vigente, 1,4 %: la comparación de gradientes de la §5 vale
+    a esa precisión. Con <em>r</em> ≥ 3 la brecha deja de ser constante y el
+    gradiente ya no es comparable sin más. La de niveles no se hace nunca, y por eso.
   </p>
 </div>
 
@@ -395,15 +426,16 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 <div class="envoltorio-tabla">
 <table>
   <tr>
-    <th class="simb n">r</th><th class="simb">λ (alto / medio / bajo)</th>
+    <th class="simb n">r</th><th class="simb">λ ×10⁻³ (alto / medio / bajo)</th>
     <th class="simb n">max |ΔQ|</th><th class="n">hogares reubicados</th><th class="n">% del total</th>
   </tr>
-  <tr class="destacada"><td class="n">1,00</td><td>1,00 / 1,00 / 1,00</td><td class="n">0,0000</td><td class="n">0</td><td class="n">0,00 %</td></tr>
-  <tr><td class="n">1,25</td><td>0,80 / 1,00 / 1,25</td><td class="n">0,0329</td><td class="n">1.229</td><td class="n">1,23 %</td></tr>
-  <tr><td class="n">1,50</td><td>0,67 / 1,00 / 1,50</td><td class="n">0,0660</td><td class="n">1.562</td><td class="n">1,56 %</td></tr>
-  <tr><td class="n">2,00</td><td>0,50 / 1,00 / 2,00</td><td class="n">0,1199</td><td class="n">1.735</td><td class="n">1,74 %</td></tr>
-  <tr><td class="n">3,00</td><td>0,33 / 1,00 / 3,00</td><td class="n">0,2133</td><td class="n">1.740</td><td class="n">1,74 %</td></tr>
-  <tr><td class="n">4,00</td><td>0,25 / 1,00 / 4,00</td><td class="n">0,2547</td><td class="n">1.658</td><td class="n">1,66 %</td></tr>
+  <tr><td class="n">1,00</td><td>0,641 / 0,641 / 0,641</td><td class="n">0,0000</td><td class="n">0</td><td class="n">0,00 %</td></tr>
+  <tr><td class="n">1,25</td><td>0,513 / 0,641 / 0,801</td><td class="n">0,0207</td><td class="n">730</td><td class="n">0,73 %</td></tr>
+  <tr><td class="n">1,50</td><td>0,427 / 0,641 / 0,961</td><td class="n">0,0663</td><td class="n">3.230</td><td class="n">3,23 %</td></tr>
+  <tr class="destacada"><td class="n">1,97 (vigente)</td><td>0,320 / 0,641 / 1,241</td><td class="n">0,1369</td><td class="n">8.956</td><td class="n">8,96 %</td></tr>
+  <tr><td class="n">2,00</td><td>0,320 / 0,641 / 1,281</td><td class="n">0,1370</td><td class="n">9.028</td><td class="n">9,04 %</td></tr>
+  <tr><td class="n">3,00</td><td>0,214 / 0,641 / 1,922</td><td class="n">0,2080</td><td class="n">12.932</td><td class="n">12,95 %</td></tr>
+  <tr><td class="n">4,00</td><td>0,160 / 0,641 / 2,563</td><td class="n">0,2391</td><td class="n">12.915</td><td class="n">12,93 %</td></tr>
 </table>
 </div>
 <p class="pie-tabla">
@@ -416,28 +448,32 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   <img src="salida/fig1-impacto.png" alt="Impacto contra la razón de heterogeneidad">
   <figcaption>
     <span class="n">Fig. 01</span>
-    Izquierda: la diferencia máxima en una celda crece sin techo con la
-    heterogeneidad. Derecha: los hogares que efectivamente cambian de celda se
-    estancan cerca del 1,7 %.
+    Izquierda: la diferencia máxima en una celda crece con la heterogeneidad y
+    llega a 0,24 en <em>r</em> = 4. Derecha: los hogares que cambian de celda
+    crecen hasta ~13 % y saturan en <em>r</em> = 3. El rombo es la calibración
+    vigente: 0,137 y 9,0 %.
   </figcaption>
 </figure>
 
 <p>
-  Las dos columnas cuentan cosas distintas y conviene no confundirlas.
-  <strong><span class="mono">max |ΔQ|</span> crece sin techo</strong> —llega a
-  0,25 en <em>r</em> = 4, o sea 25 puntos de composición en una celda— mientras
-  que <strong>los hogares reubicados se estancan en ~1,7 %</strong>. Eso sólo
-  puede significar una cosa: las diferencias grandes ocurren en <em>pocas</em>
-  celdas. La §3 muestra en cuáles.
+  Con la calibración vigente, <strong>casi uno de cada once hogares queda en
+  otra celda</strong>: 8.956 de 99.900. Y a diferencia de lo que pasaba con la
+  calibración del 1-sep —donde los reubicados se estancaban en 1,7 % mientras
+  <span class="mono">max |ΔQ|</span> seguía subiendo, o sea que todo el error
+  estaba en pocas celdas—, acá las dos columnas crecen juntas hasta
+  <em>r</em> = 3. Eso ya adelanta que el error <em>no</em> está concentrado. La
+  §4 muestra dónde está.
 </p>
 
 <!-- ==================================================================== -->
 <h2 id="s4"><span class="num">4</span>Dónde cambia</h2>
 
 <p>
-  Éste es el resultado del documento, y no es el que yo esperaba: la diferencia
-  <strong>no está repartida por la ciudad</strong>. Es cero en casi todas partes
-  y se concentra en dos picos estrechos.
+  Éste es el resultado del documento: la diferencia <strong>está repartida por
+  toda la ciudad</strong>, con un patrón que se lee de una vez. En el centro el
+  HEV le quita composición al estrato alto y se la da al medio; entre las dos
+  fronteras hace lo contrario; y en la periferia vuelve a subir al alto y al
+  bajo a costa del medio.
 </p>
 
 <figure>
@@ -445,102 +481,114 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   <figcaption>
     <span class="n">Fig. 02</span>
     Arriba, dónde está la vivienda. Abajo, <span class="mono">ΔQ</span> celda a
-    celda con <em>r</em> = 2. Los picos caen exactamente sobre las dos fronteras
-    entre estratos — 2,1 km y 4,5 km del CBD — y entre ellas el error es nulo.
+    celda con la calibración vigente. Los cambios de signo caen sobre las
+    fronteras entre estratos —2,2 y 4,3 km del CBD— pero entre ellas el error
+    no es nulo: en 166 de las 200 celdas con oferta, algún estrato cambia más de
+    0,05.
   </figcaption>
 </figure>
 
 <p>
-  Los picos no están en la periferia despoblada, que sería la explicación
-  cómoda: caen a <strong>2,1 y 4,5 km</strong>, con oferta normal, y coinciden
-  con los cruces de composición. <strong>El modelo incorrecto se equivocaba en
-  las fronteras de la segregación</strong>, que es justamente lo que un modelo de
-  uso de suelo existe para predecir.
+  Lo que se ve es <strong>un error de dispersión, no de frontera</strong>. La
+  forma cerrada le da a los tres estratos el mismo ruido de puja, 10.354 $; el
+  HEV le da al alto el doble (20.708 $) y al bajo la mitad (5.344 $). Con la
+  mitad del ruido que le corresponde, el alto quedaba demasiado concentrado en
+  el centro —<span class="mono">Q</span> de 0,90 en las celdas junto al CBD,
+  contra 0,79 con el HEV— y el medio, expulsado de ahí (0,09 contra 0,21),
+  quedaba demasiado afuera. Las
+  fronteras también se corren, y las dos hacia adentro:
 </p>
 
 <div class="envoltorio-tabla">
 <table>
   <tr><th>frontera</th><th class="n">antes</th><th class="n">ahora</th><th class="n">corrimiento</th></tr>
-  <tr><td>Alto / Medio</td><td class="n">2,078 km</td><td class="n">2,057 km</td><td class="n">−21 m</td></tr>
-  <tr><td>Medio / Bajo</td><td class="n">4,561 km</td><td class="n">4,531 km</td><td class="n">−30 m</td></tr>
+  <tr><td>Alto / Medio</td><td class="n">2,352 km</td><td class="n">2,163 km</td><td class="n">−189 m</td></tr>
+  <tr><td>Medio / Bajo</td><td class="n">4,518 km</td><td class="n">4,321 km</td><td class="n">−197 m</td></tr>
 </table>
 </div>
 <p class="pie-tabla">
-  Con <em>r</em> = 2. El cruce se interpola entre celdas; el ancho de celda es
-  99,5 m, así que el corrimiento es una fracción de celda.
+  Con la calibración vigente. El cruce se interpola entre celdas; el ancho de
+  celda es 99,5 m, así que cada frontera se corre unas dos celdas.
 </p>
 
 <figure>
   <img src="salida/fig3-composicion.png" alt="Composición por celda con los dos modelos superpuestos">
   <figcaption>
     <span class="n">Fig. 03</span>
-    La composición es casi un escalón —anillos nítidos— y los dos modelos
-    difieren en <em>dónde ponen el escalón</em>. En el interior de cada anillo las
-    curvas se pisan.
+    La composición no es un escalón: con el ruido vigente los anillos son
+    graduales, y los dos modelos difieren en la <em>altura</em> de las curvas en
+    toda la ciudad, no sólo en dónde se cruzan.
   </figcaption>
 </figure>
 
 <p>
-  Ahí está la reconciliación entre las dos columnas de la §2. La frontera se
-  corre unas <strong>decenas de metros</strong>, pero como la transición es
-  abrupta, ese corrimiento produce un <span class="mono">ΔQ</span> grande
-  <em>localmente</em>. Medido: con <em>r</em> = 2, <strong>20 celdas de 201
-  concentran el 61 %</strong> de la reubicación total, y 30 celdas el 78 %.
+  Medido: con la calibración vigente, <strong>las 20 celdas con más cambio
+  concentran el 24 %</strong> de la reubicación total, y 30 celdas el 35 %. En
+  la versión del 1-sep eran 61 % y 78 %: la corrección pasó de ser local a ser
+  global. La razón es la escala del ruido. Con β = 1 y λ ≈ 1 el ruido de la puja
+  era ~1 contra un rango de precios de ~100, la asignación era casi
+  determinista y las transiciones abruptas, así que el error sólo podía vivir en
+  las fronteras. Con β = 1/√44 y λ en útiles por peso el ruido es de 5.000 a
+  20.000 $ sobre un rango de 144.000 $, la composición es gradual, y la escala
+  del ruido de cada estrato se nota en todas partes.
 </p>
 
 <!-- ==================================================================== -->
-<h2 id="s5"><span class="num">5</span>Lo que no se mueve</h2>
+<h2 id="s5"><span class="num">5</span>Los agregados: cuánto se mueven</h2>
 
 <p>
-  Hay que decirlo con la misma claridad: <strong>los agregados de ciudad
-  prácticamente no cambian.</strong>
+  Hay que decirlo con la misma claridad: <strong>los agregados de ciudad sí
+  cambian</strong>, y en la calibración vigente cambian en la primera cifra.
 </p>
 
 <div class="envoltorio-tabla">
 <table>
   <tr><th class="simb n">r</th><th class="n">d_alto</th><th class="n">d_medio</th><th class="n">d_bajo</th><th class="n">gradiente p</th></tr>
-  <tr><td class="n">1,00</td><td class="n">1,47 → 1,47</td><td class="n">3,20 → 3,20</td><td class="n">6,23 → 6,23</td><td class="n">−9,5 → −9,5</td></tr>
-  <tr><td class="n">1,25</td><td class="n">1,10 → 1,11</td><td class="n">3,27 → 3,24</td><td class="n">6,53 → 6,54</td><td class="n">−8,8 → −8,8</td></tr>
-  <tr><td class="n">2,00</td><td class="n">1,05 → 1,06</td><td class="n">3,26 → 3,25</td><td class="n">6,58 → 6,59</td><td class="n">−8,2 → −8,2</td></tr>
-  <tr><td class="n">4,00</td><td class="n">1,05 → 1,05</td><td class="n">3,26 → 3,25</td><td class="n">6,59 → 6,60</td><td class="n">−9,5 → −9,5</td></tr>
+  <tr><td class="n">1,00</td><td class="n">5,26 → 5,26</td><td class="n">3,50 → 3,50</td><td class="n">2,14 → 2,14</td><td class="n">−12,9 → −12,9</td></tr>
+  <tr><td class="n">1,25</td><td class="n">3,97 → 3,92</td><td class="n">3,34 → 3,37</td><td class="n">3,58 → 3,61</td><td class="n">−13,1 → −13,1</td></tr>
+  <tr><td class="n">1,50</td><td class="n">2,60 → 2,78</td><td class="n">3,37 → 3,12</td><td class="n">4,93 → 5,00</td><td class="n">−12,9 → −13,0</td></tr>
+  <tr class="destacada"><td class="n">1,97 (vigente)</td><td class="n">1,59 → 2,02</td><td class="n">3,61 → 3,06</td><td class="n">5,70 → 5,82</td><td class="n">−12,7 → −12,9</td></tr>
+  <tr><td class="n">2,00</td><td class="n">1,59 → 2,01</td><td class="n">3,58 → 3,03</td><td class="n">5,73 → 5,85</td><td class="n">−12,6 → −12,8</td></tr>
+  <tr><td class="n">3,00</td><td class="n">1,17 → 1,62</td><td class="n">3,76 → 3,15</td><td class="n">5,97 → 6,12</td><td class="n">−12,9 → −13,5</td></tr>
+  <tr><td class="n">4,00</td><td class="n">1,09 → 1,49</td><td class="n">3,76 → 3,21</td><td class="n">6,05 → 6,20</td><td class="n">−13,5 → −14,7</td></tr>
 </table>
 </div>
 <p class="pie-tabla">
   Distancia media al CBD por estrato, en km, antes → ahora. El gradiente de
-  precio es la pendiente ajustada sobre las celdas con oferta.
+  precio va en miles de $/km: la pendiente ajustada sobre las celdas con oferta.
 </p>
 
 <figure>
   <img src="salida/fig4-agregados.png" alt="Distancia media al CBD por estrato bajo los dos modelos">
   <figcaption>
     <span class="n">Fig. 04</span>
-    Las curvas de los dos modelos se pisan. Lo que sí se mueve —y mucho— es el
-    efecto de λ: el estrato alto pasa de 1,47 a 1,10 km al volver λ heterogéneo.
-    Pero ese movimiento lo produce el canal de la puja, que <em>los dos modelos
-    comparten</em>.
+    Las curvas de los dos modelos se separan a partir de <em>r</em> ≈ 1,5 y la
+    brecha crece con la heterogeneidad. En <em>r</em> = 1 la ciudad está
+    invertida —el alto afuera— y es λ heterogéneo lo que la ordena; eso lo
+    hacen los dos modelos, porque es el canal de la puja, que <em>comparten</em>.
+    Los rombos son la calibración vigente.
   </figcaption>
 </figure>
 
 <div class="aviso alerta">
-  <h4>El corolario incómodo, y es el importante</h4>
+  <h4>El corolario, y es el importante</h4>
   <p>
-    <strong>En los agregados</strong>, el efecto de λ sobre la localización es
-    casi idéntico en los dos modelos: el estrato alto pasa de
-    <strong>1,47 → 1,10 km</strong> con la forma cerrada y de
-    <strong>1,47 → 1,11 km</strong> con el HEV, y esa distancia de 0,01 km se
-    mantiene en todo el barrido. Ahí la respuesta que daba el simulador antes
-    era, en magnitud, casi la correcta.
+    <strong>En los agregados</strong>, con la calibración vigente el estrato
+    alto vive a <strong>1,59 km</strong> del CBD según la forma cerrada y a
+    <strong>2,02 km</strong> según el HEV: 430 m, un 27 %. El medio, 3,61 contra
+    3,06 km. El bajo casi no se mueve (5,70 → 5,82). La respuesta que daba el
+    simulador antes <strong>sobreestimaba la segregación</strong>: ponía al alto
+    más al centro y al medio más afuera de lo que el modelo bien resuelto dice.
   </p>
   <p>
-    <strong>En el detalle espacial no</strong>, y conviene no perderlo de vista
-    al leer el párrafo anterior: en las fronteras entre estratos la composición
-    de una celda cambia hasta 25 puntos, y 1.700 hogares quedan en otro lado.
-    El agregado promedia justamente lo que el modelo estaba errando.
+    <strong>El gradiente de precio, en cambio, cambia 1,4 %.</strong> La
+    pendiente del precio la fija sobre todo la accesibilidad, que las dos ramas
+    comparten; la escala del ruido mueve quién gana cada parcela, no cuánto
+    vale.
   </p>
   <p>
-    Aun así, nada de eso vuelve inocua la formulación vieja. La vuelve
-    <em>afortunada</em>. El problema nunca fue el tamaño del número: era que la
-    forma cerrada aplicada a pujas heteroscedásticas supone
+    Y el problema nunca fue sólo el tamaño del número: era que la forma cerrada
+    aplicada a pujas heteroscedásticas supone
     <span class="mono">μ_h = b/λ_h</span>, y como
     <span class="mono">μ</span> es una <strong>precisión</strong>, eso implica
     que la escala del ruido de utilidad —<span class="mono">1/μ_h = λ_h/b</span>—
@@ -550,7 +598,8 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
     <span class="mono">μ_h = β</span> común —misma dispersión en utilidad para
     todos, y la de la puja hereda λ—, que es la lectura que el propio Martínez
     respalda al concluir que la varianza de la disposición a pagar crece con el
-    ingreso. La ganancia es epistémica antes que numérica.
+    ingreso. Con la calibración vigente, ese supuesto accidental es además
+    numéricamente caro.
   </p>
 </div>
 
@@ -560,9 +609,11 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 <h3>Lo que el cambio compra</h3>
 <ul>
   <li>
-    <strong>Las fronteras de la segregación, bien puestas.</strong> Es donde
-    estaba todo el error, y es donde un modelo de uso de suelo se juega la
-    predicción: 20 celdas de 201 concentran el 61 % de la corrección.
+    <strong>La dispersión de cada estrato, bien puesta.</strong> La forma
+    cerrada le daba al alto la mitad del ruido de puja que le corresponde y al
+    bajo el doble. Corregirlo reubica el 9 % de los hogares, corre las fronteras
+    unos 190 m hacia el centro y mueve 430 m la distancia media del estrato
+    alto: el modelo viejo sobreestimaba la segregación.
   </li>
   <li>
     <strong>Un supuesto declarado en lugar de uno accidental.</strong> Ahora se
@@ -580,17 +631,22 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 <h3>Lo que no cambia, y conviene decirlo antes de que lo pregunten</h3>
 <ul>
   <li>
-    Los <strong>agregados por estrato y el gradiente de precios</strong> se mueven
-    en la segunda o tercera cifra. Cualquier conclusión previa que se apoyara en
-    ellos <strong>sobrevive</strong>.
+    El <strong>gradiente de precios</strong> se mueve 1,4 % en la calibración
+    vigente. Las conclusiones que se apoyen en él <strong>sobreviven</strong>;
+    las que se apoyen en distancias medias por estrato o en composición por
+    celda, no.
   </li>
   <li>
-    La <strong>línea base del simulador no se movió en absoluto</strong>: corre
-    con λ = 1 en los tres estratos, donde los dos modelos coinciden bit a bit.
+    La <strong>línea base del simulador ya corre con HEV</strong>: desde sep-2026
+    λ es heterogéneo por defecto (= |b<sub>costo</sub>| de transporte, D-34), así
+    que la app usa la formulación correcta. Lo que este documento mide es cuánto
+    se equivocaría la versión anterior con los datos de hoy.
   </li>
   <li>
-    El impacto medido <strong>depende de la razón de heterogeneidad supuesta</strong>,
-    que no está calibrada. Con λ realmente uniforme el cambio es exactamente cero.
+    El impacto medido <strong>depende de la razón de heterogeneidad</strong>. La
+    vigente no está calibrada contra datos de suelo: sale de los valores del
+    tiempo de transporte (6.200 / 3.100 / 1.600 $/h). Con λ realmente uniforme
+    el cambio es exactamente cero.
   </li>
 </ul>
 
@@ -617,7 +673,14 @@ uv run python figuras.py     # las 4 figuras desde el JSON</code></pre>
 <p>
   Determinista: la ciudad se arma con <code>seed 42</code> y los dos solvers
   reciben exactamente el mismo diccionario de argumentos, construido una sola
-  vez por cada <em>r</em>.
+  vez por cada <em>r</em>. Los defaults (α, ρ, β, λ vigente) se leen de
+  <code>LandUseConfig()</code>, y <code>T</code> de <code>T_flujo_libre</code>,
+  así que el informe sigue a la calibración del núcleo.
+</p>
+<p>
+  Ojo: el sandbox instala <code>titirilquen-core</code> por ruta y uv cachea el
+  build. Tras tocar el núcleo, <code>uv sync --reinstall-package titirilquen-core</code>,
+  o se corre contra una copia vieja sin que nada lo avise.
 </p>
 
 <h2>Documentación relacionada</h2>
