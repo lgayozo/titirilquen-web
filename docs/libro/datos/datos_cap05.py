@@ -222,6 +222,36 @@ def downs_thomson() -> list[dict]:
     return filas
 
 
+def parametros_vigentes() -> dict:
+    """Los parámetros del equilibrio con los que corre la aplicación."""
+    from titirilquen_core.config import SimulationConfig
+
+    sim = base._config_web()
+    return {
+        "app": {
+            "tolerance_min": sim.tolerance,
+            "max_iter": sim.max_iter,
+            "assignment": sim.assignment,
+            "seed": sim.seed,
+            "modos_habilitados": list(sim.modos_habilitados),
+            "factor_emision_metro_tren_km": sim.demand.globales.factor_emision_metro_tren_km,
+            "factor_flota_auto": sim.demand.globales.factor_flota_auto,
+        },
+        "nucleo": {
+            "tolerance_min": SimulationConfig.model_fields["tolerance"].default,
+            "max_iter": SimulationConfig.model_fields["max_iter"].default,
+            "assignment": SimulationConfig.model_fields["assignment"].default,
+        },
+        "promediar_flujos_default": False,
+        "curva_emision_auto": {
+            "a_g_km": 2467.4,
+            "exponente": -0.699,
+            "v_min_kmh": 1.0,
+            "v_max_kmh": 120.0,
+        },
+    }
+
+
 def main() -> None:
     datos = {
         "_meta": {
@@ -234,6 +264,7 @@ def main() -> None:
                 "asignación esperada, tolerancia 0,1, máximo 20 iteraciones."
             ),
         },
+        "parametros_vigentes": parametros_vigentes(),
         "trayectoria": trayectoria(),
         "tolerancia": tolerancia(),
         "variantes": variantes(),
