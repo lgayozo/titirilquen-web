@@ -1,9 +1,37 @@
 {
  "_meta": {
-  "fecha": "2026-09-10",
-  "commit": "87469b7",
+  "fecha": "2026-09-15",
+  "commit": "d32fd6b",
   "script": "docs/libro/datos/datos_cap07.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web`), rama «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, tolerancia 0,1. El barrido de pistas repite además el método del informe de bienestar (`todo_o_nada`, tolerancia 0,02, 120 iteraciones)."
+ },
+ "fuentes_externas": {
+  "precios_sociales_2026": "Ministerio de Desarrollo Social y Familia (2026). Precios Sociales vigentes 2026. Sistema Nacional de Inversiones, tabla 2.1 (valor social del tiempo de viaje y ponderadores de espera y acceso).",
+  "williams_1977": "Williams, H. C. W. L. (1977). On the formation of travel demand models and economic evaluation measures of user benefit. Environment and Planning A, 9(3), 285–344.",
+  "small_rosen_1981": "Small, K. A. y Rosen, H. S. (1981). Applied welfare economics with discrete choice models. Econometrica, 49(1), 105–130.",
+  "reardon_osullivan_2004": "Reardon, S. F. y O'Sullivan, D. (2004). Measures of spatial segregation. Sociological Methodology, 34(1), 121–162.",
+  "openshaw_1984": "Openshaw, S. (1984). The modifiable areal unit problem. Concepts and Techniques in Modern Geography 38. Geo Books, Norwich."
+ },
+ "parametros_vigentes": {
+  "vot_social_clp_hora": 3338.0,
+  "ponderador_sni_espera": 2.0,
+  "ponderador_sni_acceso": 2.0,
+  "ponderador_caminata_social": 1.0,
+  "costo_operacion_tren_km": 12000.0,
+  "factor_dia_punta": 2.0,
+  "ingreso_mensual_clp": [
+   3500000.0,
+   1500000.0,
+   500000.0
+  ],
+  "costo_parking_clp": 2000.0,
+  "costo_tarifa_metro_clp": 800.0,
+  "costo_combustible_km_clp": 120.0,
+  "vot_conductual_clp_hora": [
+   6200.0,
+   3100.0,
+   1600.0
+  ]
  },
  "dos_monedas": {
   "vot_social_clp_hora": 3338.0,
@@ -46,13 +74,13 @@
   "nota": "Desde D-33 el transporte es homoscedástico: `b_tiempo_viaje` es común a los tres estratos, así que `λ^soc` también lo es y la medida social es la suma LLANA de útiles. La que pondera es la conductual, y pondera a favor del estrato alto. Antes de D-33 era al revés, y el informe de bienestar todavía cuenta esa versión."
  },
  "el_dinero_tambien_se_reprecia": {
-  "viajes_de_metro": 10201.6,
-  "derivada_conductual": -10194.3,
-  "derivada_social": -14355.6,
-  "prediccion_si_el_peso_vale_un_peso": -10201.6,
-  "prediccion_si_el_dinero_se_reprecia": -14362.4,
-  "error_relativo_conductual": 0.00072,
-  "error_relativo_social": 0.00047,
+  "viajes_de_metro": 8512.1,
+  "derivada_conductual": -8503.9,
+  "derivada_social": -11901.0,
+  "prediccion_si_el_peso_vale_un_peso": -8512.1,
+  "prediccion_si_el_dinero_se_reprecia": -11908.2,
+  "error_relativo_conductual": 0.00096,
+  "error_relativo_social": 0.00061,
   "pesos_por_peso_de_tarifa": {
    "alto": 0.5384,
    "medio": 1.0768,
@@ -66,53 +94,53 @@
    "filas": [
     {
      "num_pistas": 1,
-     "iteraciones": 12,
+     "iteraciones": 10,
      "convergio": true,
-     "metro_pct": 37.72,
-     "exc_conductual_por_viajero": -532.1,
-     "exc_social_por_viajero": -643.2,
+     "metro_pct": 31.59,
+     "exc_conductual_por_viajero": -406.0,
+     "exc_social_por_viajero": -498.7,
      "delta_conductual": 0.0,
      "delta_social": 0.0
     },
     {
      "num_pistas": 2,
-     "iteraciones": 8,
+     "iteraciones": 7,
      "convergio": true,
-     "metro_pct": 35.2,
-     "exc_conductual_por_viajero": -437.4,
-     "exc_social_por_viajero": -569.4,
-     "delta_conductual": 94.7,
-     "delta_social": 73.8
+     "metro_pct": 29.37,
+     "exc_conductual_por_viajero": -309.5,
+     "exc_social_por_viajero": -424.1,
+     "delta_conductual": 96.5,
+     "delta_social": 74.6
     },
     {
      "num_pistas": 3,
-     "iteraciones": 8,
+     "iteraciones": 7,
      "convergio": true,
-     "metro_pct": 34.48,
-     "exc_conductual_por_viajero": -403.7,
-     "exc_social_por_viajero": -542.6,
-     "delta_conductual": 128.4,
-     "delta_social": 100.6
+     "metro_pct": 29.13,
+     "exc_conductual_por_viajero": -296.0,
+     "exc_social_por_viajero": -413.1,
+     "delta_conductual": 110.0,
+     "delta_social": 85.6
     },
     {
      "num_pistas": 4,
-     "iteraciones": 8,
+     "iteraciones": 7,
      "convergio": true,
-     "metro_pct": 34.2,
-     "exc_conductual_por_viajero": -389.8,
-     "exc_social_por_viajero": -531.6,
-     "delta_conductual": 142.3,
-     "delta_social": 111.6
+     "metro_pct": 29.09,
+     "exc_conductual_por_viajero": -293.6,
+     "exc_social_por_viajero": -411.2,
+     "delta_conductual": 112.4,
+     "delta_social": 87.5
     },
     {
      "num_pistas": 6,
-     "iteraciones": 8,
+     "iteraciones": 7,
      "convergio": true,
-     "metro_pct": 33.9,
-     "exc_conductual_por_viajero": -377.0,
-     "exc_social_por_viajero": -520.2,
-     "delta_conductual": 155.1,
-     "delta_social": 123.0
+     "metro_pct": 29.07,
+     "exc_conductual_por_viajero": -292.7,
+     "exc_social_por_viajero": -410.5,
+     "delta_conductual": 113.3,
+     "delta_social": 88.2
     }
    ],
    "conductual_monotono_creciente": true,
@@ -124,53 +152,53 @@
    "filas": [
     {
      "num_pistas": 1,
-     "iteraciones": 30,
+     "iteraciones": 39,
      "convergio": true,
-     "metro_pct": 40.41,
-     "exc_conductual_por_viajero": -1598.7,
-     "exc_social_por_viajero": -1766.2,
+     "metro_pct": 28.05,
+     "exc_conductual_por_viajero": -1580.2,
+     "exc_social_por_viajero": -1745.4,
      "delta_conductual": 0.0,
      "delta_social": 0.0
     },
     {
      "num_pistas": 2,
-     "iteraciones": 33,
+     "iteraciones": 120,
      "convergio": true,
-     "metro_pct": 29.02,
-     "exc_conductual_por_viajero": -1609.9,
-     "exc_social_por_viajero": -1810.7,
-     "delta_conductual": -11.2,
-     "delta_social": -44.5
+     "metro_pct": 9.3,
+     "exc_conductual_por_viajero": -1754.7,
+     "exc_social_por_viajero": -1979.2,
+     "delta_conductual": -174.5,
+     "delta_social": -233.8
     },
     {
      "num_pistas": 3,
-     "iteraciones": 18,
+     "iteraciones": 15,
      "convergio": true,
-     "metro_pct": 20.47,
-     "exc_conductual_por_viajero": -1617.2,
-     "exc_social_por_viajero": -1856.8,
-     "delta_conductual": -18.5,
-     "delta_social": -90.6
+     "metro_pct": 7.67,
+     "exc_conductual_por_viajero": -1535.1,
+     "exc_social_por_viajero": -1782.4,
+     "delta_conductual": 45.1,
+     "delta_social": -37.0
     },
     {
      "num_pistas": 4,
-     "iteraciones": 20,
+     "iteraciones": 15,
      "convergio": true,
-     "metro_pct": 17.44,
-     "exc_conductual_por_viajero": -1583.4,
-     "exc_social_por_viajero": -1846.1,
-     "delta_conductual": 15.3,
-     "delta_social": -79.9
+     "metro_pct": 7.67,
+     "exc_conductual_por_viajero": -1477.1,
+     "exc_social_por_viajero": -1735.3,
+     "delta_conductual": 103.1,
+     "delta_social": 10.1
     },
     {
      "num_pistas": 6,
-     "iteraciones": 34,
+     "iteraciones": 15,
      "convergio": true,
-     "metro_pct": 16.13,
-     "exc_conductual_por_viajero": -1537.7,
-     "exc_social_por_viajero": -1819.0,
-     "delta_conductual": 61.0,
-     "delta_social": -52.8
+     "metro_pct": 7.67,
+     "exc_conductual_por_viajero": -1454.6,
+     "exc_social_por_viajero": -1716.9,
+     "delta_conductual": 125.6,
+     "delta_social": 28.5
     }
    ],
    "conductual_monotono_creciente": false,
@@ -184,60 +212,60 @@
    "factor_dia_punta_default": 2.0
   },
   "composicion": {
-   "excedente_emparejado_clp": -12677996,
-   "recaudacion_parking_clp": 11386225,
-   "recaudacion_tarifa_clp": 8161318,
-   "costo_operador_clp": 4893107,
-   "bienestar_social_clp": 1976440
+   "excedente_emparejado_clp": -8970221,
+   "recaudacion_parking_clp": 11771089,
+   "recaudacion_tarifa_clp": 6809658,
+   "costo_operador_clp": 4082396,
+   "bienestar_social_clp": 5528130
   },
   "sensibilidad_factor_dia_punta": [
    {
     "factor_dia_punta": 1.0,
-    "costo_operador_clp": 2446554,
-    "subsidio_metro_clp": -5714765,
+    "costo_operador_clp": 2041198,
+    "subsidio_metro_clp": -4768460,
     "autofinancia": true,
-    "bienestar_social_clp": 4422993
+    "bienestar_social_clp": 7569328
    },
    {
     "factor_dia_punta": 2.0,
-    "costo_operador_clp": 4893107,
-    "subsidio_metro_clp": -3268211,
+    "costo_operador_clp": 4082396,
+    "subsidio_metro_clp": -2727262,
     "autofinancia": true,
-    "bienestar_social_clp": 1976440
+    "bienestar_social_clp": 5528130
    },
    {
     "factor_dia_punta": 3.0,
-    "costo_operador_clp": 7339661,
-    "subsidio_metro_clp": -821658,
+    "costo_operador_clp": 6123594,
+    "subsidio_metro_clp": -686064,
     "autofinancia": true,
-    "bienestar_social_clp": -470114
+    "bienestar_social_clp": 3486932
    },
    {
     "factor_dia_punta": 3.7,
-    "costo_operador_clp": 9052248,
-    "subsidio_metro_clp": 890930,
+    "costo_operador_clp": 7552432,
+    "subsidio_metro_clp": 742774,
     "autofinancia": false,
-    "bienestar_social_clp": -2182701
+    "bienestar_social_clp": 2058094
    }
   ],
   "efecto_en_el_delta_2_a_4_pistas": [
    {
     "factor_dia_punta": 1.0,
-    "d_costo_operador_clp": -69846,
-    "d_bienestar_social_clp": 2004641
+    "d_costo_operador_clp": -19014,
+    "d_bienestar_social_clp": 658907
    },
    {
     "factor_dia_punta": 2.0,
-    "d_costo_operador_clp": -139692,
-    "d_bienestar_social_clp": 2074487
+    "d_costo_operador_clp": -38027,
+    "d_bienestar_social_clp": 677921
    },
    {
     "factor_dia_punta": 3.0,
-    "d_costo_operador_clp": -209538,
-    "d_bienestar_social_clp": 2144333
+    "d_costo_operador_clp": -57041,
+    "d_bienestar_social_clp": 696935
    }
   ],
-  "salto_de_factor_1_a_2_sobre_el_titular": -1.2379,
+  "salto_de_factor_1_a_2_sobre_el_titular": -0.3692,
   "nota": "El excedente tiene cero arbitrario (arrastra las ASC), así que el NIVEL del titular no significa nada por sí solo: la interfaz lo muestra contra un escenario de referencia. Lo que sí es propio de este número es la base contable mixta — tres términos de hora punta y uno llevado a día."
  },
  "poblacion_que_desaparece": [
@@ -253,12 +281,12 @@
    "agentes_varados": 0,
    "varados_pct_de_la_poblacion": 0.0,
    "varados_pct_de_quienes_viajarian": 0.0,
-   "excedente_total_clp": -12677996,
-   "excedente_por_viajero_clp": -437.4,
-   "bienestar_social_clp": 1976440,
-   "tren_km_hora": 203.9,
-   "costo_operador_clp": 4893107,
-   "recaudacion_tarifa_clp": 8161318
+   "excedente_total_clp": -8970221,
+   "excedente_por_viajero_clp": -309.5,
+   "bienestar_social_clp": 5528130,
+   "tren_km_hora": 170.1,
+   "costo_operador_clp": 4082396,
+   "recaudacion_tarifa_clp": 6809658
   },
   {
    "escenario": "sin metro",
@@ -267,13 +295,13 @@
     "Bici",
     "Caminata"
    ],
-   "viajeros_en_el_agregado": 25714.0,
-   "agentes_varados": 3268,
-   "varados_pct_de_la_poblacion": 9.08,
-   "varados_pct_de_quienes_viajarian": 11.28,
-   "excedente_total_clp": -34634792,
-   "excedente_por_viajero_clp": -1346.9,
-   "bienestar_social_clp": -18334792,
+   "viajeros_en_el_agregado": 27220.0,
+   "agentes_varados": 1762,
+   "varados_pct_de_la_poblacion": 4.89,
+   "varados_pct_de_quienes_viajarian": 6.08,
+   "excedente_total_clp": -28686016,
+   "excedente_por_viajero_clp": -1053.9,
+   "bienestar_social_clp": -13500390,
    "tren_km_hora": 80.0,
    "costo_operador_clp": 1920000,
    "recaudacion_tarifa_clp": 0
@@ -289,12 +317,12 @@
    "agentes_varados": 0,
    "varados_pct_de_la_poblacion": 0.0,
    "varados_pct_de_quienes_viajarian": 0.0,
-   "excedente_total_clp": -27790637,
-   "excedente_por_viajero_clp": -958.9,
-   "bienestar_social_clp": -23205023,
-   "tren_km_hora": 286.2,
-   "costo_operador_clp": 6869628,
-   "recaudacion_tarifa_clp": 11455242
+   "excedente_total_clp": -24495094,
+   "excedente_por_viajero_clp": -845.2,
+   "bienestar_social_clp": -20509455,
+   "tren_km_hora": 249.2,
+   "costo_operador_clp": 5979784,
+   "recaudacion_tarifa_clp": 9965423
   },
   {
    "escenario": "sin bici ni caminata",
@@ -306,19 +334,19 @@
    "agentes_varados": 2318,
    "varados_pct_de_la_poblacion": 6.44,
    "varados_pct_de_quienes_viajarian": 8.0,
-   "excedente_total_clp": -32655671,
-   "excedente_por_viajero_clp": -1224.7,
-   "bienestar_social_clp": -9831630,
-   "tren_km_hora": 363.2,
-   "costo_operador_clp": 8716893,
-   "recaudacion_tarifa_clp": 14524710
+   "excedente_total_clp": -31031882,
+   "excedente_por_viajero_clp": -1163.8,
+   "bienestar_social_clp": -7523228,
+   "tren_km_hora": 355.0,
+   "costo_operador_clp": 8521166,
+   "recaudacion_tarifa_clp": 14198787
   },
   {
    "escenario": "_cota",
-   "cota_inferior_del_excedente_no_contado_clp": -4401669,
-   "dano_medido_clp": -21956796,
-   "dano_con_los_varados_al_promedio_clp": -26358465,
-   "subestimacion_del_dano_pct": 20.05,
+   "cota_inferior_del_excedente_no_contado_clp": -1856972,
+   "dano_medido_clp": -19715795,
+   "dano_con_los_varados_al_promedio_clp": -21572767,
+   "subestimacion_del_dano_pct": 9.42,
    "nota": "Cota INFERIOR: valora a los varados al excedente del viajero medio del mismo escenario. Su pérdida real es mayor —por eso quedaron varados— así que el agregado subestima el daño por al menos esto."
   }
  ],
@@ -326,37 +354,37 @@
   "filas": [
    {
     "n_celdas": 51,
-    "theil_poblacional": 0.15684,
-    "theil_territorial": 0.17027
+    "theil_poblacional": 0.22572,
+    "theil_territorial": 0.25807
    },
    {
     "n_celdas": 101,
-    "theil_poblacional": 0.16085,
-    "theil_territorial": 0.17403
+    "theil_poblacional": 0.22777,
+    "theil_territorial": 0.25942
    },
    {
     "n_celdas": 201,
-    "theil_poblacional": 0.16441,
-    "theil_territorial": 0.17729
+    "theil_poblacional": 0.23,
+    "theil_territorial": 0.26114
    },
    {
     "n_celdas": 401,
-    "theil_poblacional": 0.16632,
-    "theil_territorial": 0.17908
+    "theil_poblacional": 0.23127,
+    "theil_territorial": 0.26218
    },
    {
     "n_celdas": 801,
-    "theil_poblacional": 0.16726,
-    "theil_territorial": 0.17996
+    "theil_poblacional": 0.23179,
+    "theil_territorial": 0.26259
    }
   ],
   "diferencias_sucesivas": [
-   0.00401,
-   0.00356,
-   0.00191,
-   0.00094
+   0.00205,
+   0.00223,
+   0.00127,
+   0.00052
   ],
-  "brecha_territorial_vs_poblacional_pct_en_la_base": 7.83,
+  "brecha_territorial_vs_poblacional_pct_en_la_base": 13.54,
   "nota": "Converge al refinar la grilla —las diferencias sucesivas se reducen a la mitad al duplicar `n_celdas`—, así que el índice es una propiedad de la ciudad y no del enrejado. El valor de la aplicación (201) queda un ~2 % por debajo del límite."
  },
  "costo_generalizado": {
@@ -382,15 +410,15 @@
    "acceso": 2.0,
    "caminata": 1.0
   },
-  "minutos_totales_planos": 542911.4,
-  "minutos_totales_sni": 664954.2,
-  "minutos_totales_percibidos": 700548.1,
-  "recargo_sni_pct": 22.48,
-  "recargo_percibido_pct": 29.04,
-  "cg_social_clp": 59219557,
-  "cg_social_con_minutos_planos_clp": 52429911,
-  "efecto_d37_sobre_el_cg_social_pct": 12.95,
-  "cg_percibido_clp": 55980965,
+  "minutos_totales_planos": 505959.1,
+  "minutos_totales_sni": 617583.5,
+  "minutos_totales_percibidos": 651954.5,
+  "recargo_sni_pct": 22.06,
+  "recargo_percibido_pct": 28.86,
+  "cg_social_clp": 55729246,
+  "cg_social_con_minutos_planos_clp": 49519213,
+  "efecto_d37_sobre_el_cg_social_pct": 12.54,
+  "cg_percibido_clp": 52416622,
   "nota": "Las penalizaciones escalonadas de bici y caminata quedan fuera a propósito: son desutilidad, no tiempo. Los ponderadores de espera y acceso del percibido COINCIDEN con los del SNI (2,0 y 2,0) porque `presets.py` calibró los betas contra esa misma tabla; toda la diferencia entre los dos recargos la pone la caminata, 1,7 en la utilidad y 1,0 en la norma, que no la cubre. Y desde D-33 los tres estratos comparten los tres ponderadores."
  }
 }

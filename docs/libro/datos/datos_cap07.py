@@ -64,6 +64,31 @@ from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 from titirilquen_core.land_use.ciudad import LandUseCity
 
 SALIDA = Path(__file__).parent / "cap07.json"
+#: Referencias externas que cita el capítulo, en la forma en que se citan.
+FUENTES_EXTERNAS = {
+    "precios_sociales_2026": (
+        "Ministerio de Desarrollo Social y Familia (2026). Precios Sociales "
+        "vigentes 2026. Sistema Nacional de Inversiones, tabla 2.1 (valor social "
+        "del tiempo de viaje y ponderadores de espera y acceso)."
+    ),
+    "williams_1977": (
+        "Williams, H. C. W. L. (1977). On the formation of travel demand models "
+        "and economic evaluation measures of user benefit. Environment and "
+        "Planning A, 9(3), 285–344."
+    ),
+    "small_rosen_1981": (
+        "Small, K. A. y Rosen, H. S. (1981). Applied welfare economics with "
+        "discrete choice models. Econometrica, 49(1), 105–130."
+    ),
+    "reardon_osullivan_2004": (
+        "Reardon, S. F. y O'Sullivan, D. (2004). Measures of spatial "
+        "segregation. Sociological Methodology, 34(1), 121–162."
+    ),
+    "openshaw_1984": (
+        "Openshaw, S. (1984). The modifiable areal unit problem. Concepts and "
+        "Techniques in Modern Geography 38. Geo Books, Norwich."
+    ),
+}
 NOMBRES = ("alto", "medio", "bajo")
 ESTRATOS = (1, 2, 3)
 
@@ -160,9 +185,7 @@ def el_dinero_tambien_se_reprecia() -> dict:
     gl = sim.demand.globales.model_copy(
         update={"costo_tarifa_metro": sim.demand.globales.costo_tarifa_metro + d}
     )
-    sim2 = sim.model_copy(
-        update={"demand": sim.demand.model_copy(update={"globales": gl})}
-    )
+    sim2 = sim.model_copy(update={"demand": sim.demand.model_copy(update={"globales": gl})})
     b = calcular_agregados(sim2, trace)
     assert a is not None and b is not None
 
@@ -239,9 +262,7 @@ def downs_thomson_por_unidad() -> dict:
                     "convergio": bool(trace.converged),
                     "metro_pct": round(100.0 * a["viajes_por_modo"]["Metro"] / n, 2),
                     "exc_conductual_por_viajero": round(emparejado / n, 1),
-                    "exc_social_por_viajero": round(
-                        a["excedente_social_total_clp"] / n, 1
-                    ),
+                    "exc_social_por_viajero": round(a["excedente_social_total_clp"] / n, 1),
                 }
             )
         base_c = filas[0]["exc_conductual_por_viajero"]
@@ -254,9 +275,7 @@ def downs_thomson_por_unidad() -> dict:
         out[metodo] = {
             "medida": "utilidad_maxima" if metodo == "todo_o_nada" else "logsum",
             "filas": filas,
-            "conductual_monotono_creciente": all(
-                b >= a - 1e-9 for a, b in pairwise(dc)
-            ),
+            "conductual_monotono_creciente": all(b >= a - 1e-9 for a, b in pairwise(dc)),
             "social_monotono_creciente": all(b >= a - 1e-9 for a, b in pairwise(ds)),
             "las_dos_unidades_dan_el_mismo_orden": [x > 0 for x in dc[1:]]
             == [x > 0 for x in ds[1:]],
@@ -294,9 +313,7 @@ def bienestar_social() -> dict:
     sensibilidad = []
     for f in (1.0, 2.0, 3.0, 3.7):
         train = sim.supply.train.model_copy(update={"factor_dia_punta": f})
-        s = sim.model_copy(
-            update={"supply": sim.supply.model_copy(update={"train": train})}
-        )
+        s = sim.model_copy(update={"supply": sim.supply.model_copy(update={"train": train})})
         b, _ = _corre(s)
         assert b is not None
         sensibilidad.append(
@@ -322,9 +339,7 @@ def bienestar_social() -> dict:
             train = sim.supply.train.model_copy(update={"factor_dia_punta": f})
             car = sim.supply.car.model_copy(update={"num_pistas": pistas})
             s2 = sim.model_copy(
-                update={
-                    "supply": sim.supply.model_copy(update={"train": train, "car": car})
-                }
+                update={"supply": sim.supply.model_copy(update={"train": train, "car": car})}
             )
             c, _ = _corre(s2)
             assert c is not None
@@ -387,9 +402,7 @@ def poblacion_que_desaparece() -> list[dict]:
         a, trace = _corre(s)
         assert a is not None
         agentes = trace.agentes
-        varados = sum(
-            1 for x in agentes if not x.teletrabaja and x.modo_elegido is None
-        )
+        varados = sum(1 for x in agentes if not x.teletrabaja and x.modo_elegido is None)
         no_teletrabajan = sum(1 for x in agentes if not x.teletrabaja)
         n = a["viajeros"]
         filas.append(
@@ -399,9 +412,7 @@ def poblacion_que_desaparece() -> list[dict]:
                 "viajeros_en_el_agregado": round(n, 1),
                 "agentes_varados": varados,
                 "varados_pct_de_la_poblacion": round(100.0 * varados / len(agentes), 2),
-                "varados_pct_de_quienes_viajarian": round(
-                    100.0 * varados / no_teletrabajan, 2
-                ),
+                "varados_pct_de_quienes_viajarian": round(100.0 * varados / no_teletrabajan, 2),
                 "excedente_total_clp": round(a["excedente_total_clp"]),
                 "excedente_por_viajero_clp": round(a["excedente_total_clp"] / n, 1),
                 "bienestar_social_clp": round(a["bienestar_social_clp"]),
@@ -428,9 +439,7 @@ def poblacion_que_desaparece() -> list[dict]:
                 sin_metro["excedente_total_clp"] - todos["excedente_total_clp"]
             ),
             "dano_con_los_varados_al_promedio_clp": round(
-                sin_metro["excedente_total_clp"]
-                + faltante
-                - todos["excedente_total_clp"]
+                sin_metro["excedente_total_clp"] + faltante - todos["excedente_total_clp"]
             ),
             "subestimacion_del_dano_pct": round(
                 100.0
@@ -460,9 +469,7 @@ def segregacion() -> dict:
     for n in (51, 101, 201, 401, 801):
         ciudad = CiudadLineal(n_celdas=n, largo_total_km=sim.city.largo_ciudad_km)
         s = sim.model_copy(update={"city": sim.city.model_copy(update={"n_celdas": n})})
-        T = T_flujo_libre(
-            s.demand, n, ciudad.cbd_index, ciudad.ancho_celda_km, supply=s.supply
-        )
+        T = T_flujo_libre(s.demand, n, ciudad.cbd_index, ciudad.ancho_celda_km, supply=s.supply)
         city = LandUseCity.build(
             L=n,
             CBD=ciudad.cbd_index,
@@ -513,9 +520,7 @@ def costo_generalizado() -> dict:
     sim = base._config_web()
     a, trace = _corre(sim)
     assert a is not None and trace.demanda_estrato is not None
-    ciudad = CiudadLineal(
-        n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km
-    )
+    ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
     snap = trace.iteraciones[-1]
     d_soc = d_plano = d_perc = d_perc_plano = 0.0
     for i in range(ciudad.n_celdas):
@@ -598,6 +603,26 @@ def costo_generalizado() -> dict:
     }
 
 
+def parametros_vigentes() -> dict:
+    """Los números que el módulo usa, leídos del núcleo y de la app."""
+    sim = base._config_web()
+    lu = base._land_use_web()
+    gl = sim.demand.globales
+    return {
+        "vot_social_clp_hora": VOT_SOCIAL_CLP_HORA,
+        "ponderador_sni_espera": PONDERADOR_SNI_ESPERA,
+        "ponderador_sni_acceso": PONDERADOR_SNI_ACCESO,
+        "ponderador_caminata_social": 1.0,
+        "costo_operacion_tren_km": float(sim.supply.train.costo_operacion_tren_km),
+        "factor_dia_punta": float(sim.supply.train.factor_dia_punta),
+        "ingreso_mensual_clp": [float(e.y) for e in lu.estratos],
+        "costo_parking_clp": float(gl.costo_parking),
+        "costo_tarifa_metro_clp": float(gl.costo_tarifa_metro),
+        "costo_combustible_km_clp": float(gl.costo_combustible_km),
+        "vot_conductual_clp_hora": [round(vot_clp_hora(sim, h), 1) for h in ESTRATOS],  # type: ignore[arg-type]
+    }
+
+
 def main() -> None:
     datos = {
         "_meta": {
@@ -612,6 +637,8 @@ def main() -> None:
                 "tolerancia 0,02, 120 iteraciones)."
             ),
         },
+        "fuentes_externas": FUENTES_EXTERNAS,
+        "parametros_vigentes": parametros_vigentes(),
         "dos_monedas": dos_monedas(),
         "el_dinero_tambien_se_reprecia": el_dinero_tambien_se_reprecia(),
         "downs_thomson_por_unidad": downs_thomson_por_unidad(),
@@ -620,9 +647,7 @@ def main() -> None:
         "segregacion": segregacion(),
         "costo_generalizado": costo_generalizado(),
     }
-    SALIDA.write_text(
-        json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    SALIDA.write_text(json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
     m = datos["dos_monedas"]
     print("Un útil, en pesos:")
