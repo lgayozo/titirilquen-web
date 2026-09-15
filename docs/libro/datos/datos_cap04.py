@@ -226,6 +226,48 @@ def logit_vs_determinista() -> dict:
     return out
 
 
+def parametros_vigentes() -> dict:
+    """Los parámetros de demanda con los que corre la aplicación, tal como
+    están en el schema y en `presets.DEFAULT_STRATA`."""
+    sim = base._config_web()
+    g = sim.demand.globales
+    por_estrato = {}
+    for h, nombre in ((1, "alto"), (2, "medio"), (3, "bajo")):
+        e = sim.demand.estratos[h]
+        b = e.betas
+        por_estrato[nombre] = {
+            "prob_auto": e.prob_auto,
+            "prob_teletrabajo": e.prob_teletrabajo,
+            "asc_auto": b.asc_auto,
+            "asc_metro": b.asc_metro,
+            "asc_bici": b.asc_bici,
+            "asc_caminata": b.asc_caminata,
+            "b_tiempo_viaje": b.b_tiempo_viaje,
+            "b_costo": b.b_costo,
+            "b_tiempo_espera": b.b_tiempo_espera,
+            "b_tiempo_acceso": b.b_tiempo_acceso,
+            "b_tiempo_caminata": b.b_tiempo_caminata,
+            "penalizaciones": dict(b.penalizaciones_fisicas.model_dump()),
+        }
+    return {
+        "globales": {
+            "v_auto": g.v_auto,
+            "v_metro": g.v_metro,
+            "v_bici": g.v_bici,
+            "v_caminata": g.v_caminata,
+            "costo_parking": g.costo_parking,
+            "costo_combustible_km": g.costo_combustible_km,
+            "costo_tarifa_metro": g.costo_tarifa_metro,
+            "corte_caminata_min": g.corte_caminata_min,
+            "corte_bici_min": g.corte_bici_min,
+            "teletrabajo_factor": g.teletrabajo_factor,
+            "factor_flota_auto": g.factor_flota_auto,
+        },
+        "iteracion_cero": {"tren_acceso_min": 10.0, "tren_espera_min": 5.0},
+        "por_estrato": por_estrato,
+    }
+
+
 def main() -> None:
     datos = {
         "_meta": {
@@ -238,6 +280,7 @@ def main() -> None:
                 "localización «original». Los costos por modo son a flujo libre."
             ),
         },
+        "parametros_vigentes": parametros_vigentes(),
         "anatomia": anatomia(),
         "costo_por_modo": costo_por_modo(),
         "factibilidad": factibilidad(),
