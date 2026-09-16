@@ -49,6 +49,11 @@ const ARCHIVOS = [
 
 /** `<div class="ecuacion…" data-tex="…" [data-id="…"]> … </div>` */
 const ECUACION = /<div class="(ecuacion[^"]*)"([^>]*?)>([\s\S]*?)<\/div>/g;
+/** Matematica EN LINEA, dentro de la prosa: `<span class="mat" data-tex="…"></span>`.
+ *  Se rellena con el `<math>` a secas (sin el `<span class="katex">` que
+ *  envuelve KaTeX) para que el contenido no tenga ningun `</span>` y la
+ *  expresion regular pueda encontrar el cierre. */
+const EN_LINEA = /<span class="mat" data-tex="([^"]*)">[\s\S]*?<\/span>/g;
 
 function atributo(attrs, nombre) {
   const m = attrs.match(new RegExp(`${nombre}="([^"]*)"`));
@@ -75,13 +80,30 @@ function renderiza(tex, id) {
   return `\n  ${marca}${mathml}\n`;
 }
 
+function renderizaEnLinea(tex) {
+  const html = katex.renderToString(desescapa(tex), {
+    output: "mathml",
+    displayMode: false,
+    throwOnError: true,
+    strict: "ignore",
+  });
+  const m = html.match(/<math[\s\S]*<\/math>/);
+  if (!m) throw new Error(`sin <math> para ${tex}`);
+  return m[0];
+}
+
 function procesa(rel, comprobar) {
   const abs = path.join(RAIZ, rel);
   const antes = fs.readFileSync(abs, "utf8");
   let n = 0;
   let saltadas = 0;
 
-  const despues = antes.replace(ECUACION, (todo, clase, attrs, cuerpo) => {
+  let enLinea = 0;
+  const conLinea = antes.replace(EN_LINEA, (todo, tex) => {
+    enLinea++;
+    return `<span class="mat" data-tex="${tex}">${renderizaEnLinea(tex)}</span>`;
+  });
+  const despues = conLinea.replace(ECUACION, (todo, clase, attrs, cuerpo) => {
     const tex = atributo(attrs, "data-tex");
     if (!tex) {
       // Ecuacion todavia escrita a mano: se deja como esta. Convertirla es
@@ -95,7 +117,7 @@ function procesa(rel, comprobar) {
 
   const cambio = despues !== antes;
   if (cambio && !comprobar) fs.writeFileSync(abs, despues);
-  return { rel, n, saltadas, cambio };
+  return { rel, n, saltadas, cambio, enLinea };
 }
 
 function main() {
@@ -116,6 +138,7 @@ function main() {
       : "al dia";
     console.log(
       `  ${r.rel.padEnd(40)} ${String(r.n).padStart(2)} en MathML` +
+        (r.enLinea ? ` + ${r.enLinea} en linea` : "") +
         (r.saltadas ? `, ${r.saltadas} a mano` : "") +
         `   ${estado}`,
     );

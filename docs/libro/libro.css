@@ -56,6 +56,12 @@
   }
   .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
   .ecuacion.suelta { background: none; border: none; }
+  /* Variables en la prosa: `<span class="mat" data-tex="\lambda_h">`, que el
+     renderizador rellena con MathML en linea. Misma fuente que las ecuaciones. */
+  .mat math { font-family: "Cambria Math", Georgia, serif; font-size: 1.05em; }
+  /* La lista «donde» que sigue a cada ecuacion: un simbolo por linea. */
+  ul.donde { max-width: 660px; margin: -4px auto 16px; padding-left: 22px; font-size: 14px; }
+  ul.donde li { margin: 2px 0; }
   /* Recuadro para una idea PROPIA que merece destacarse. Se usa en vez de
      una cita a proposito: en un documento que cita a Martinez, el formato
      de cita tiene que significar «esto lo dijo otro». */

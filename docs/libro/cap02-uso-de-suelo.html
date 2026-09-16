@@ -43,81 +43,102 @@
   5), que a su vez formaliza a Ellickson (1981): cada localización se la lleva
   quien más puja por ella, y el precio es lo que ofrece el mejor postor. La
   ciudad del capítulo 1 aporta las celdas y, en cada una, una oferta de
-  vivienda <em>S_i</em>; la demanda son <em>H_h</em> hogares de cada estrato
-  <em>h</em>, con ingreso <em>y_h</em>. El módulo decide la composición de cada
-  celda, no cuántos viven en ella: la densidad la fija la oferta (cap. 1).
+  vivienda <span class="mat" data-tex="S_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">S_i</annotation></semantics></math></span>; la demanda son <span class="mat" data-tex="H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H_h</annotation></semantics></math></span> hogares de cada estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span>, con
+  ingreso <span class="mat" data-tex="y_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">y_h</annotation></semantics></math></span>. El módulo decide la composición de cada celda, no cuántos
+  viven en ella: la densidad la fija la oferta (cap. 1).
 </p>
 
 <h3>La utilidad y la puja</h3>
 
 <p>
-  Un hogar del estrato <em>h</em> que vive en la celda <em>i</em> y paga el
-  arriendo <em>p_i</em> tiene una utilidad lineal en el ingreso disponible:
+  Un hogar del estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span> que vive en la celda <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span> y paga el arriendo <span class="mat" data-tex="p_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">p_i</annotation></semantics></math></span>
+  tiene una utilidad lineal en el ingreso disponible:
 </p>
 
 <div class="ecuacion" data-tex="u_{hi} = \lambda_h (y_h - p_i) + f_h(i), \qquad f_h(i) = -\alpha_h\, T_h(i) - \rho_h\, \mathrm{dens}(i)" data-id="(2.1)">
   <span class="id">(2.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>u</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi>α</mi><mi>h</mi></msub><mtext> </mtext><msub><mi>T</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>ρ</mi><mi>h</mi></msub><mtext> </mtext><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">u_{hi} = \lambda_h (y_h - p_i) + f_h(i), \qquad f_h(i) = -\alpha_h\, T_h(i) - \rho_h\, \mathrm{dens}(i)</annotation></semantics></math></span>
 </div>
+<ul class="donde">
+  <li><span class="mat" data-tex="u_{hi}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">u_{hi}</annotation></semantics></math></span>: utilidad de un hogar del estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span> en la celda <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span>, en útiles.</li>
+  <li><span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span>: utilidad marginal del ingreso del estrato, en útiles por peso.</li>
+  <li><span class="mat" data-tex="y_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">y_h</annotation></semantics></math></span> y <span class="mat" data-tex="p_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">p_i</annotation></semantics></math></span>: ingreso mensual del estrato y arriendo mensual de la celda, en pesos.</li>
+  <li><span class="mat" data-tex="f_h(i)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f_h(i)</annotation></semantics></math></span>: lo que la celda vale por sí misma para el estrato, en útiles; suma la accesibilidad y la densidad.</li>
+  <li><span class="mat" data-tex="\alpha_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\alpha_h</annotation></semantics></math></span>: multiplicador de la accesibilidad, adimensional; vale 1 para los tres estratos, de modo que la puja lee la accesibilidad tal cual (§2).</li>
+  <li><span class="mat" data-tex="T_h(i)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">T_h(i)</annotation></semantics></math></span>: accesibilidad, el costo mensual de vivir en <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span> y tener que viajar, en útiles de transporte; crece con la distancia al CBD y la define (2.2).</li>
+  <li><span class="mat" data-tex="\rho_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\rho_h</annotation></semantics></math></span>: penalización por densidad, en útiles-mes por hogar por kilómetro; vale 0 por defecto (§2).</li>
+  <li><span class="mat" data-tex="\mathrm{dens}(i) = S_i/\Delta x"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>S</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\mathrm{dens}(i) = S_i/\Delta x</annotation></semantics></math></span>: densidad de la celda, en hogares por kilómetro, con <span class="mat" data-tex="\Delta x"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\Delta x</annotation></semantics></math></span> el ancho de celda.</li>
+</ul>
 
 <p>
-  <em>λ_h</em> es la utilidad marginal del ingreso, en utiles por peso;
-  <em>f_h(i)</em> es lo que la celda vale por sí misma: la accesibilidad
-  <em>T_h(i)</em>, que es un costo y crece con la distancia al CBD, y la
-  densidad <em>dens(i) = S_i/Δx</em>, en hogares por kilómetro, con una
-  penalización <em>ρ_h</em>. La accesibilidad es la utilidad esperada mensual
-  del viaje desde <em>i</em>, en utiles de transporte:
+  La accesibilidad es la utilidad esperada mensual del viaje desde <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span>, en
+  útiles de transporte:
 </p>
 
 <div class="ecuacion" data-tex="T_h(i) = -\,\mathrm{VIAJES\_MES}\cdot \ln \sum_m e^{V_{hm}(i)}" data-id="(2.2)">
   <span class="id">(2.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>T</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><mtext> </mtext><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">J</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">_</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi></mrow><mo>⋅</mo><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>m</mi></munder><msup><mi>e</mi><mrow><msub><mi>V</mi><mrow><mi>h</mi><mi>m</mi></mrow></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">T_h(i) = -\,\mathrm{VIAJES\_MES}\cdot \ln \sum_m e^{V_{hm}(i)}</annotation></semantics></math></span>
 </div>
+<ul class="donde">
+  <li><span class="mat" data-tex="\mathrm{VIAJES\_MES}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">J</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">_</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi></mrow><annotation encoding="application/x-tex">\mathrm{VIAJES\_MES}</annotation></semantics></math></span>: viajes por mes, 44: 22 días hábiles, ida y vuelta.</li>
+  <li><span class="mat" data-tex="V_{hm}(i)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>h</mi><mi>m</mi></mrow></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">V_{hm}(i)</annotation></semantics></math></span>: utilidad determinística del modo <span class="mat" data-tex="m"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi></mrow><annotation encoding="application/x-tex">m</annotation></semantics></math></span> para el estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span> desde la celda <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span>, la del logit de elección modal del capítulo 4; la suma corre sobre los modos factibles desde <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span>.</li>
+  <li><span class="mat" data-tex="\ln \sum_m e^{V_{hm}(i)}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ln</mi><mo>⁡</mo><msub><mo>∑</mo><mi>m</mi></msub><msup><mi>e</mi><mrow><msub><mi>V</mi><mrow><mi>h</mi><mi>m</mi></mrow></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">\ln \sum_m e^{V_{hm}(i)}</annotation></semantics></math></span>: el logsum, la utilidad esperada del viaje; el signo lo convierte en costo.</li>
+</ul>
 
 <p>
-  El logsum <em>ln Σ_m e^{V}</em> es la utilidad esperada del logit de elección
-  modal que define el capítulo 4; aquí entra como dato. Se mensualiza por
-  VIAJES_MES = 44 viajes para que sea comparable con un arriendo y un ingreso
-  mensuales. Con <em>α_h</em> = 1 la puja lee esa cantidad tal cual, y con
-  <em>λ_h</em> igual al coeficiente de costo del logit modal el mismo hogar
-  tiene <strong>una sola función de utilidad</strong> en los dos módulos: la
-  tasa a la que cambia tiempo por dinero, <em>α_h/λ_h</em>, es el mismo valor
-  del tiempo con el que elige modo.
+  El logsum entra aquí como dato. Se mensualiza por <span class="mat" data-tex="\mathrm{VIAJES\_MES}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">J</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">_</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi></mrow><annotation encoding="application/x-tex">\mathrm{VIAJES\_MES}</annotation></semantics></math></span>
+  para que sea comparable con un arriendo y un ingreso mensuales. Con
+  <span class="mat" data-tex="\alpha_h = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_h = 1</annotation></semantics></math></span> la puja lee esa cantidad tal cual, y con <span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span> igual
+  al coeficiente de costo del logit modal el mismo hogar tiene <strong>una
+  sola función de utilidad</strong> en los dos módulos: la tasa a la que
+  cambia tiempo por dinero, <span class="mat" data-tex="\alpha_h/\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mi mathvariant="normal">/</mi><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\alpha_h/\lambda_h</annotation></semantics></math></span>, es el mismo valor del
+  tiempo con el que elige modo.
 </p>
 
 <p>
-  Despejando el precio de (2.1) a un nivel de utilidad <em>ū_h</em> se obtiene
+  Despejando el precio de (2.1) a un nivel de utilidad <span class="mat" data-tex="\bar u_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\bar u_h</annotation></semantics></math></span> se obtiene
   la disposición a pagar, o puja:
 </p>
 
 <div class="ecuacion" data-tex="w_{hi} = y_h + \frac{f_h(i) - \bar u_h}{\lambda_h}" data-id="(2.3)">
   <span class="id">(2.3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mfrac><mrow><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub></mrow><msub><mi>λ</mi><mi>h</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">w_{hi} = y_h + \frac{f_h(i) - \bar u_h}{\lambda_h}</annotation></semantics></math></span>
 </div>
+<ul class="donde">
+  <li><span class="mat" data-tex="w_{hi}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">w_{hi}</annotation></semantics></math></span>: disposición a pagar, el arriendo máximo que el hogar pagaría por <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span> sin bajar de <span class="mat" data-tex="\bar u_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\bar u_h</annotation></semantics></math></span>, en pesos por mes.</li>
+  <li><span class="mat" data-tex="\bar u_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\bar u_h</annotation></semantics></math></span>: nivel de utilidad del estrato, común a todas sus celdas; es la incógnita que fija el equilibrio (2.5).</li>
+</ul>
 
 <p>
   Es la ecuación (4.3) de Martínez (p. 77). La puja hereda el término aleatorio
-  de la utilidad dividido por <em>λ_h</em>: si la utilidad tiene un shock
-  Gumbel de escala <em>1/β</em>, la puja lo tiene de escala <em>1/(β λ_h)</em>,
-  en pesos. Esa escala es distinta para cada estrato en cuanto los
-  <em>λ_h</em> difieren, y de ahí sale la rama heteroscedástica de abajo.
+  de la utilidad dividido por <span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span>: si la utilidad tiene un shock
+  Gumbel de escala <span class="mat" data-tex="1/\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>β</mi></mrow><annotation encoding="application/x-tex">1/\beta</annotation></semantics></math></span>, la puja lo tiene de escala
+  <span class="mat" data-tex="1/(\beta \lambda_h)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>β</mi><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/(\beta \lambda_h)</annotation></semantics></math></span>, en pesos. Esa escala es distinta para cada estrato
+  en cuanto los <span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span> difieren, y de ahí sale la rama heteroscedástica
+  de abajo.
 </p>
 
 <h3>La subasta y el precio</h3>
 
 <p>
-  Con <em>H_h</em> postores de cada tipo, la probabilidad de que un hogar del
-  estrato <em>h</em> gane la celda <em>i</em> es, cuando todas las pujas tienen
-  la misma escala <em>b = βλ</em>,
+  Con <span class="mat" data-tex="H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H_h</annotation></semantics></math></span> postores de cada tipo, la probabilidad de que un hogar del
+  estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span> gane la celda <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span> es, cuando todas las pujas tienen la misma
+  escala <span class="mat" data-tex="b = \beta \lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><mi>β</mi><mi>λ</mi></mrow><annotation encoding="application/x-tex">b = \beta \lambda</annotation></semantics></math></span>,
 </p>
 
 <div class="ecuacion" data-tex="Q_{h|i} = \frac{H_h\, e^{\,b\, w_{hi}}}{\sum_g H_g\, e^{\,b\, w_{gi}}}, \qquad p_i = \frac{1}{b}\ln \sum_g H_g\, e^{\,b\, w_{gi}}" data-id="(2.4)">
   <span class="id">(2.4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">∣</mi><mi>i</mi></mrow></msub><mo>=</mo><mfrac><mrow><msub><mi>H</mi><mi>h</mi></msub><mtext> </mtext><msup><mi>e</mi><mrow><mtext> </mtext><mi>b</mi><mtext> </mtext><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow></msup></mrow><mrow><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>H</mi><mi>g</mi></msub><mtext> </mtext><msup><mi>e</mi><mrow><mtext> </mtext><mi>b</mi><mtext> </mtext><msub><mi>w</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub></mrow></msup></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><msub><mi>p</mi><mi>i</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>b</mi></mfrac><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>H</mi><mi>g</mi></msub><mtext> </mtext><msup><mi>e</mi><mrow><mtext> </mtext><mi>b</mi><mtext> </mtext><msub><mi>w</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub></mrow></msup></mrow><annotation encoding="application/x-tex">Q_{h|i} = \frac{H_h\, e^{\,b\, w_{hi}}}{\sum_g H_g\, e^{\,b\, w_{gi}}}, \qquad p_i = \frac{1}{b}\ln \sum_g H_g\, e^{\,b\, w_{gi}}</annotation></semantics></math></span>
 </div>
+<ul class="donde">
+  <li><span class="mat" data-tex="Q_{h|i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">∣</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">Q_{h|i}</annotation></semantics></math></span>: probabilidad de que la celda <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span> la gane un hogar del estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span>; sobre los estratos de una celda suma 1.</li>
+  <li><span class="mat" data-tex="H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H_h</annotation></semantics></math></span> y <span class="mat" data-tex="H_g"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">H_g</annotation></semantics></math></span>: número de postores de cada estrato; <span class="mat" data-tex="g"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> recorre todos los estratos, <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span> incluido.</li>
+  <li><span class="mat" data-tex="b"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span>: precisión del ruido de la puja, en 1 por peso; es <span class="mat" data-tex="\beta \lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mi>λ</mi></mrow><annotation encoding="application/x-tex">\beta \lambda</annotation></semantics></math></span>, común a los estratos en esta rama.</li>
+  <li><span class="mat" data-tex="p_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">p_i</annotation></semantics></math></span>: precio de equilibrio de la celda, el máximo esperado de las pujas, en pesos por mes.</li>
+</ul>
 
 <p>
   Son las ecuaciones (4.26) y (4.27) de Martínez (p. 86), la segunda sin la
   constante de Euler, que sólo desplaza el nivel del precio. El factor
-  <em>H_h</em> es lo que distingue la subasta de una elección: más postores de
+  <span class="mat" data-tex="H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H_h</annotation></semantics></math></span> es lo que distingue la subasta de una elección: más postores de
   un tipo hacen más probable que uno de ellos gane, y el precio sube con el
-  logaritmo del número de postores. Cuando los <em>λ_h</em> difieren, las
+  logaritmo del número de postores. Cuando los <span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span> difieren, las
   pujas tienen escalas distintas y (2.4) deja de valer; la probabilidad es la
   integral heteroscedástica de Train (2009, §4.5), sin forma cerrada, que se
   resuelve por cuadratura:
@@ -126,54 +147,65 @@
 <div class="ecuacion" data-tex="Q_{h|i} = \int_{-\infty}^{\infty} \left[\prod_{g \neq h} \exp\!\left(-e^{-(\ell_{hi} - \ell_{gi} + \theta_h w)/\theta_g}\right)\right] e^{-e^{-w}}\, e^{-w}\, dw, \qquad \theta_h = \frac{1}{\beta\,\lambda_h}, \quad \ell_{hi} = w_{hi} + \theta_h \ln H_h" data-id="(2.4b)">
   <span class="id">(2.4b)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">∣</mi><mi>i</mi></mrow></msub><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi mathvariant="normal">∞</mi></mrow><mi mathvariant="normal">∞</mi></msubsup><mrow><mo fence="true">[</mo><munder><mo>∏</mo><mrow><mi>g</mi><mo mathvariant="normal">≠</mo><mi>h</mi></mrow></munder><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mo stretchy="false">(</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>θ</mi><mi>g</mi></msub></mrow></msup><mo fence="true">)</mo></mrow><mo fence="true">]</mo></mrow><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup></mrow></msup><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup><mtext> </mtext><mi>d</mi><mi>w</mi><mo separator="true">,</mo><mspace width="2em"/><msub><mi>θ</mi><mi>h</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi>β</mi><mtext> </mtext><msub><mi>λ</mi><mi>h</mi></msub></mrow></mfrac><mo separator="true">,</mo><mspace width="1em"/><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">Q_{h|i} = \int_{-\infty}^{\infty} \left[\prod_{g \neq h} \exp\!\left(-e^{-(\ell_{hi} - \ell_{gi} + \theta_h w)/\theta_g}\right)\right] e^{-e^{-w}}\, e^{-w}\, dw, \qquad \theta_h = \frac{1}{\beta\,\lambda_h}, \quad \ell_{hi} = w_{hi} + \theta_h \ln H_h</annotation></semantics></math></span>
 </div>
+<ul class="donde">
+  <li><span class="mat" data-tex="\theta_h = 1/(\beta \lambda_h)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>β</mi><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\theta_h = 1/(\beta \lambda_h)</annotation></semantics></math></span>: escala Gumbel de la puja del estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span>, en pesos; la desviación de su ruido.</li>
+  <li><span class="mat" data-tex="\ell_{hi} = w_{hi} + \theta_h \ln H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\ell_{hi} = w_{hi} + \theta_h \ln H_h</annotation></semantics></math></span>: localización de la mejor puja del estrato en la celda: la puja media más el corrimiento que produce tomar el máximo de <span class="mat" data-tex="H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H_h</annotation></semantics></math></span> pujas.</li>
+  <li><span class="mat" data-tex="w"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi></mrow><annotation encoding="application/x-tex">w</annotation></semantics></math></span>: variable de integración, el ruido estandarizado de la puja ganadora del estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span>.</li>
+  <li><span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>: escala común del ruido de la subasta, en 1 por útil; es el único parámetro propio del módulo y lo trata el apartado siguiente.</li>
+</ul>
 
 <p>
-  Cada estrato puja con su propia escala <em>θ_h</em> —la desviación de su
-  ruido en pesos—, y el número de postores ya no puede multiplicar por fuera:
-  entra como el desplazamiento <em>θ_h ln H_h</em> de la localización, que es
-  lo que hace un máximo de <em>H_h</em> variables Gumbel de escala <em>θ_h</em>.
-  El precio es el máximo esperado de las pujas, sin forma cerrada. Con un
-  <em>θ</em> común (2.4b) se reduce exactamente a (2.4); lo fija
-  <code>tests/test_hev.py</code>. Ésta es la rama que corre la app por
-  defecto, porque los <em>λ_h</em> del default difieren (§2). La derivación y
-  la cuadratura están en los informes <a href="informe-hev.html">HEV</a> y
+  Cada estrato puja con su propia escala <span class="mat" data-tex="\theta_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\theta_h</annotation></semantics></math></span>, y el número de postores
+  ya no puede multiplicar por fuera: entra como el desplazamiento
+  <span class="mat" data-tex="\theta_h \ln H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\theta_h \ln H_h</annotation></semantics></math></span> de la localización, que es lo que hace un máximo de
+  <span class="mat" data-tex="H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H_h</annotation></semantics></math></span> variables Gumbel de escala <span class="mat" data-tex="\theta_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\theta_h</annotation></semantics></math></span>. El precio es el máximo
+  esperado de las pujas, sin forma cerrada. Con un <span class="mat" data-tex="\theta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span> común (2.4b) se
+  reduce exactamente a (2.4); lo fija <code>tests/test_hev.py</code>. Ésta es
+  la rama que corre la app por defecto, porque los <span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span> del default
+  difieren (§2). La derivación y la cuadratura están en los informes
+  <a href="informe-hev.html">HEV</a> y
   <a href="hev-cuadratura.html">cuadratura</a>.
 </p>
 
 <h3>El equilibrio</h3>
 
 <p>
-  Los niveles de utilidad <em>ū_h</em> se ajustan hasta que cada estrato coloca
+  Los niveles de utilidad <span class="mat" data-tex="\bar u_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\bar u_h</annotation></semantics></math></span> se ajustan hasta que cada estrato coloca
   exactamente a todos sus hogares:
 </p>
 
 <div class="ecuacion" data-tex="\sum_i S_i\, Q_{h|i}(\bar u) = H_h \quad \forall h" data-id="(2.5)">
   <span class="id">(2.5)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>S</mi><mi>i</mi></msub><mtext> </mtext><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">∣</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mo stretchy="false">)</mo><mo>=</mo><msub><mi>H</mi><mi>h</mi></msub><mspace width="1em"/><mi mathvariant="normal">∀</mi><mi>h</mi></mrow><annotation encoding="application/x-tex">\sum_i S_i\, Q_{h|i}(\bar u) = H_h \quad \forall h</annotation></semantics></math></span>
 </div>
+<ul class="donde">
+  <li><span class="mat" data-tex="S_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">S_i</annotation></semantics></math></span>: oferta de vivienda de la celda, en hogares; <span class="mat" data-tex="S_i\, Q_{h|i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>i</mi></msub><mtext> </mtext><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">∣</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">S_i\, Q_{h|i}</annotation></semantics></math></span> son los hogares del estrato <span class="mat" data-tex="h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span> esperados en <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span>.</li>
+  <li><span class="mat" data-tex="Q_{h|i}(\bar u)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">∣</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">Q_{h|i}(\bar u)</annotation></semantics></math></span>: la probabilidad (2.4) o (2.4b), como función de los niveles de utilidad de todos los estratos.</li>
+  <li><span class="mat" data-tex="H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H_h</annotation></semantics></math></span>: hogares del estrato que hay que localizar; la condición vale para cada estrato.</li>
+</ul>
 
 <p>
   Es la ecuación (5.3) de Martínez (p. 106), «todo hogar se localiza», y la
-  condición que hace interpretable el resto: si no se cumple, <em>Q</em> no es
+  condición que hace interpretable el resto: si no se cumple, <span class="mat" data-tex="Q"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span> no es
   una distribución de la población. Como la oferta total iguala a la demanda
-  total, Σ S = Σ H, el mercado se vacía, cada celda queda llena y la densidad
-  realizada es la ofrecida. Los precios quedan definidos salvo una constante:
-  falta la condición de borde de Alonso, que iguala la renta del borde a la
-  agrícola y fija el nivel (cap. 1).
+  total, <span class="mat" data-tex="\sum_i S_i = \sum_h H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>S</mi><mi>i</mi></msub><mo>=</mo><msub><mo>∑</mo><mi>h</mi></msub><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\sum_i S_i = \sum_h H_h</annotation></semantics></math></span>, el mercado se vacía, cada celda queda
+  llena y la densidad realizada es la ofrecida. Los precios quedan definidos
+  salvo una constante: falta la condición de borde de Alonso, que iguala la
+  renta del borde a la agrícola y fija el nivel (cap. 1).
 </p>
 
 <h3>La escala de la subasta</h3>
 
 <p>
-  En Martínez la escala <em>b_h = λ_h μ_h</em> no se normaliza: a diferencia
-  de un modelo de elección, donde el parámetro de escala no es identificable,
-  las ecuaciones de precio permiten identificarlo con rentas observadas
-  (pp. 89 y 242), y el punto fijo es único sólo si la dispersión de las pujas
-  es suficiente, <em>β &lt; β_c</em> (p. 148). Aquí no hay rentas observadas.
-  La normalización de escala ya la hizo el logit de transporte, que fija en 1
-  el shock de un viaje, y <em>β</em> es entonces la <strong>razón entre la
-  escala del ruido de elegir casa y la de elegir modo</strong>. Es el único
-  parámetro propio del módulo, y la §2 explica su valor. Las tres escalas, con
-  sus unidades, son:
+  En Martínez la escala <span class="mat" data-tex="b_h = \lambda_h \mu_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>h</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><msub><mi>μ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">b_h = \lambda_h \mu_h</annotation></semantics></math></span> no se normaliza: a
+  diferencia de un modelo de elección, donde el parámetro de escala no es
+  identificable, las ecuaciones de precio permiten identificarlo con rentas
+  observadas (pp. 89 y 242), y el punto fijo es único sólo si la dispersión
+  de las pujas es suficiente, <span class="mat" data-tex="\beta &lt; \beta_c"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>&lt;</mo><msub><mi>β</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\beta &lt; \beta_c</annotation></semantics></math></span> (p. 148). Aquí no hay
+  rentas observadas. La normalización de escala ya la hizo el logit de
+  transporte, que fija en 1 el shock de un viaje, y <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> es entonces la
+  <strong>razón entre la escala del ruido de elegir casa y la de elegir
+  modo</strong>. Es el único parámetro propio del módulo, y la §2 explica su
+  valor. Las tres escalas, con sus unidades, son:
 </p>
 
 <div class="envoltorio-tabla">
@@ -182,21 +214,21 @@
     <tr><th>Símbolo</th><th>Qué es</th><th>Unidad</th><th class="n">Alto</th><th class="n">Medio</th><th class="n">Bajo</th></tr>
   </thead>
   <tbody>
-    <tr><td><em>μ_h</em> = β</td><td>precisión del ruido de la utilidad</td><td>1/útil</td><td class="n">0,1508</td><td class="n">0,1508</td><td class="n">0,1508</td></tr>
-    <tr><td><em>λ_h</em></td><td>utilidad marginal del ingreso</td><td>utiles/$</td><td class="n">3,20 ·10⁻⁴</td><td class="n">6,41 ·10⁻⁴</td><td class="n">12,41 ·10⁻⁴</td></tr>
-    <tr><td><em>b_h</em> = λ_h·μ_h</td><td>precisión del ruido de la puja, en dinero</td><td>1/$</td><td class="n">4,83 ·10⁻⁵</td><td class="n">9,66 ·10⁻⁵</td><td class="n">18,71 ·10⁻⁵</td></tr>
-    <tr><td>1/<em>b_h</em></td><td>escala Gumbel de la puja</td><td>$/mes</td><td class="n">20.708</td><td class="n">10.354</td><td class="n">5.344</td></tr>
+    <tr><td><span class="mat" data-tex="\mu_h = \beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>h</mi></msub><mo>=</mo><mi>β</mi></mrow><annotation encoding="application/x-tex">\mu_h = \beta</annotation></semantics></math></span></td><td>precisión del ruido de la utilidad</td><td>1/útil</td><td class="n">0,1508</td><td class="n">0,1508</td><td class="n">0,1508</td></tr>
+    <tr><td><span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span></td><td>utilidad marginal del ingreso</td><td>utiles/$</td><td class="n">3,20 ·10⁻⁴</td><td class="n">6,41 ·10⁻⁴</td><td class="n">12,41 ·10⁻⁴</td></tr>
+    <tr><td><span class="mat" data-tex="b_h = \lambda_h \mu_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>h</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><msub><mi>μ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">b_h = \lambda_h \mu_h</annotation></semantics></math></span></td><td>precisión del ruido de la puja, en dinero</td><td>1/$</td><td class="n">4,83 ·10⁻⁵</td><td class="n">9,66 ·10⁻⁵</td><td class="n">18,71 ·10⁻⁵</td></tr>
+    <tr><td><span class="mat" data-tex="1/b_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>b</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">1/b_h</annotation></semantics></math></span></td><td>escala Gumbel de la puja</td><td>$/mes</td><td class="n">20.708</td><td class="n">10.354</td><td class="n">5.344</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  <em>β</em> es común a los estratos porque el ruido de vivienda se supone
-  igual para todos en utiles; la heterogeneidad en dinero, que Martínez subraya
-  cuando dice que la varianza de la disposición a pagar crece con el ingreso,
-  aparece sola al dividir por <em>λ_h</em>: el estrato alto tiene un ruido de
-  puja cuatro veces mayor en pesos que el bajo porque cada útil le cuesta
-  cuatro veces más pesos.
+  <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> es común a los estratos porque el ruido de vivienda se supone
+  igual para todos en útiles; la heterogeneidad en dinero, que Martínez
+  subraya cuando dice que la varianza de la disposición a pagar crece con el
+  ingreso, aparece sola al dividir por <span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span>: el estrato alto tiene
+  un ruido de puja cuatro veces mayor en pesos que el bajo porque cada útil
+  le cuesta cuatro veces más pesos.
 </p>
 
 <div class="aviso idea">
@@ -204,10 +236,10 @@
   <p>
     El módulo decide la composición por estrato de cada celda, los precios
     implícitos y las utilidades de reserva. Toma como dados la oferta
-    <em>S_i</em> y su forma, los hogares <em>H_h</em>, los ingresos, la
-    accesibilidad y la escala <em>β</em>. No hay elección de tamaño de lote, así
-    que la densidad no responde a los precios; y la penalización por densidad,
-    que por defecto no actúa, penaliza una cantidad exógena, así que no hay
+    <span class="mat" data-tex="S_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">S_i</annotation></semantics></math></span> y su forma, los hogares <span class="mat" data-tex="H_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H_h</annotation></semantics></math></span>, los ingresos, la accesibilidad y
+    la escala <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>. No hay elección de tamaño de lote, así que la
+    densidad no responde a los precios; y la penalización por densidad, que
+    por defecto no actúa, penaliza una cantidad exógena, así que no hay
     externalidades de localización ni las cascadas que Martínez asocia a
     ellas. En la geometría por defecto, densidad y accesibilidad son casi la
     misma variable, con una correlación de −0,996, y la puja identifica sobre

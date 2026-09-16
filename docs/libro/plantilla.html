@@ -63,7 +63,12 @@
 <p>
   Las ecuaciones del módulo, con su fuente. Cada una se numera para poder
   citarla desde la §3. El LaTeX va en <code>data-tex</code> y lo pre-renderiza
-  <code>tools/renderiza_ecuaciones.js</code>. La sección termina con el
+  <code>tools/renderiza_ecuaciones.js</code>. Debajo de cada ecuación va una
+  lista <code>ul.donde</code> con <strong>todos</strong> sus símbolos, uno por
+  línea, con su significado y su unidad. En la prosa, una variable se escribe
+  <code>&lt;span class="mat" data-tex="\lambda_h"&gt;&lt;/span&gt;</code>, que el
+  mismo script rellena con MathML en línea; no se escribe con
+  <code>&lt;em&gt;</code> ni con caracteres sueltos. La sección termina con el
   alcance: qué decide el módulo y qué toma como dado de los anteriores.
 </p>
 
@@ -71,6 +76,10 @@
   <span class="id">(NN.1)</span>
   u_h = λ_h (y_h − p_i) + f_h(i)
 </div>
+<ul class="donde">
+  <li><span class="mat" data-tex="u_h"></span>: utilidad del hogar, en útiles.</li>
+  <li><span class="mat" data-tex="\lambda_h"></span>: utilidad marginal del ingreso, en útiles por peso.</li>
+</ul>
 
 <p>
   Después de cada ecuación, qué significa cada símbolo y de dónde sale la forma
