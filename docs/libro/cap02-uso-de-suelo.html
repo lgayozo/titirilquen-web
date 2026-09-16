@@ -120,7 +120,24 @@
   logaritmo del número de postores. Cuando los <em>λ_h</em> difieren, las
   pujas tienen escalas distintas y (2.4) deja de valer; la probabilidad es la
   integral heteroscedástica de Train (2009, §4.5), sin forma cerrada, que se
-  resuelve por cuadratura.
+  resuelve por cuadratura:
+</p>
+
+<div class="ecuacion" data-tex="Q_{h|i} = \int_{-\infty}^{\infty} \left[\prod_{g \neq h} \exp\!\left(-e^{-(\ell_{hi} - \ell_{gi} + \theta_h w)/\theta_g}\right)\right] e^{-e^{-w}}\, e^{-w}\, dw, \qquad \theta_h = \frac{1}{\beta\,\lambda_h}, \quad \ell_{hi} = w_{hi} + \theta_h \ln H_h" data-id="(2.4b)">
+  <span class="id">(2.4b)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">∣</mi><mi>i</mi></mrow></msub><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi mathvariant="normal">∞</mi></mrow><mi mathvariant="normal">∞</mi></msubsup><mrow><mo fence="true">[</mo><munder><mo>∏</mo><mrow><mi>g</mi><mo mathvariant="normal">≠</mo><mi>h</mi></mrow></munder><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mo stretchy="false">(</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>θ</mi><mi>g</mi></msub></mrow></msup><mo fence="true">)</mo></mrow><mo fence="true">]</mo></mrow><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup></mrow></msup><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup><mtext> </mtext><mi>d</mi><mi>w</mi><mo separator="true">,</mo><mspace width="2em"/><msub><mi>θ</mi><mi>h</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi>β</mi><mtext> </mtext><msub><mi>λ</mi><mi>h</mi></msub></mrow></mfrac><mo separator="true">,</mo><mspace width="1em"/><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><msub><mi>H</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">Q_{h|i} = \int_{-\infty}^{\infty} \left[\prod_{g \neq h} \exp\!\left(-e^{-(\ell_{hi} - \ell_{gi} + \theta_h w)/\theta_g}\right)\right] e^{-e^{-w}}\, e^{-w}\, dw, \qquad \theta_h = \frac{1}{\beta\,\lambda_h}, \quad \ell_{hi} = w_{hi} + \theta_h \ln H_h</annotation></semantics></math></span>
+</div>
+
+<p>
+  Cada estrato puja con su propia escala <em>θ_h</em> —la desviación de su
+  ruido en pesos—, y el número de postores ya no puede multiplicar por fuera:
+  entra como el desplazamiento <em>θ_h ln H_h</em> de la localización, que es
+  lo que hace un máximo de <em>H_h</em> variables Gumbel de escala <em>θ_h</em>.
+  El precio es el máximo esperado de las pujas, sin forma cerrada. Con un
+  <em>θ</em> común (2.4b) se reduce exactamente a (2.4); lo fija
+  <code>tests/test_hev.py</code>. Ésta es la rama que corre la app por
+  defecto, porque los <em>λ_h</em> del default difieren (§2). La derivación y
+  la cuadratura están en los informes <a href="informe-hev.html">HEV</a> y
+  <a href="hev-cuadratura.html">cuadratura</a>.
 </p>
 
 <h3>El equilibrio</h3>
