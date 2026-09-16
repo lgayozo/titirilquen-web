@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. NN: título del capítulo</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<!--
+  PLANTILLA DE CAPÍTULO. Copiar a `capNN-nombre.html` y rellenar.
+
+  Este archivo queda FUERA de la verificación de punteros (`documentos()` lo
+  excluye junto con `index.html`), porque sus `archivo:línea` son de ejemplo y
+  envejecerían a propósito. En un capítulo de verdad, todos se verifican.
+
+  Reglas que hacen que el capítulo no mienta:
+
+  1. Ningún número se tipea a mano. Van en `datos/capNN.json`, los escribe
+     `datos/datos_capNN.py` y el HTML los transcribe desde ahí. Si un número no
+     está en el JSON, no va en el capítulo.
+  2. Todo `archivo:línea` se escribe con el formato de la tabla de la §3: es lo
+     que el verificador sabe leer.
+  3. Todo parámetro lleva etiqueta de origen. Sin excepción: cuando no se sabe
+     de dónde salió, la etiqueta es «heredado» y eso ya es información.
+  4. Las seis secciones van todas, en este orden, aunque alguna sea corta.
+     Una sección vacía se escribe «nada que declarar», que es distinto de
+     omitirla.
+  5. El capítulo describe el simulador tal como está y permite verificar sus
+     resultados. No es un historial de cambios: las fechas, las correcciones y
+     los hallazgos de auditoría viven en git y en `DISCREPANCIES.md`. Una
+     decisión de modelo se cuenta con su razón, no con su cronología.
+-->
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo NN</div>
+  <h1>Título del capítulo</h1>
+  <p class="bajada">
+    Una o dos frases sobre qué hace este módulo y por qué está donde está en la
+    cadena de dependencias.
+  </p>
+  <p class="meta">
+    Módulo: <code>ruta/al/modulo.py</code> ·
+    datos regenerados el AAAA-MM-DD ·
+    <span class="estado borrador">borrador</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Parámetros</a></li>
+    <li><a href="#s3">Código</a></li>
+    <li><a href="#s4">Pruebas</a></li>
+    <li><a href="#s5">Resultados</a></li>
+    <li><a href="#s6">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<p>
+  Las ecuaciones del módulo, con su fuente. Cada una se numera para poder
+  citarla desde la §3. El LaTeX va en <code>data-tex</code> y lo pre-renderiza
+  <code>tools/renderiza_ecuaciones.js</code>. Debajo de cada ecuación va una
+  lista <code>ul.donde</code> con <strong>todos</strong> sus símbolos, uno por
+  línea, con su significado y su unidad. En la prosa, una variable se escribe
+  <code>&lt;span class="mat" data-tex="\lambda_h"&gt;&lt;/span&gt;</code>, que el
+  mismo script rellena con MathML en línea; no se escribe con
+  <code>&lt;em&gt;</code> ni con caracteres sueltos. La sección termina con el
+  alcance: qué decide el módulo y qué toma como dado de los anteriores.
+</p>
+
+<div class="ecuacion" data-tex="u_h = \lambda_h (y_h - p_i) + f_h(i)">
+  <span class="id">(NN.1)</span>
+  u_h = λ_h (y_h − p_i) + f_h(i)
+</div>
+<ul class="donde">
+  <li><span class="mat" data-tex="u_h"></span>: utilidad del hogar, en útiles.</li>
+  <li><span class="mat" data-tex="\lambda_h"></span>: utilidad marginal del ingreso, en útiles por peso.</li>
+</ul>
+
+<p>
+  Después de cada ecuación, qué significa cada símbolo y de dónde sale la forma
+  funcional. Las citas textuales van en <code>blockquote</code>, con página:
+</p>
+
+<blockquote>
+  Cita breve de la fuente, con la página exacta. — Martínez (2018), p. NN.
+</blockquote>
+
+<h2 id="s2"><span class="num">§2</span> Parámetros</h2>
+
+<p>
+  Cada número del módulo con su origen y la razón de su valor. Las etiquetas
+  son cuatro y no hay quinta: <span class="etiqueta ok">estimado</span> con
+  datos, <span class="etiqueta frio">norma</span> de una fuente oficial,
+  <span class="etiqueta lim">heredado</span> del código original sin
+  justificación conocida, <span class="etiqueta neutra">decisión</span> tomada y
+  declarada en el repositorio. Después de la tabla, un párrafo por parámetro
+  cuyo valor merezca explicación: por qué ese número y no otro, y qué mueve.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Parámetro</th><th>Valor</th><th>Unidad</th><th>Origen</th><th>Dónde se fija</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>alpha</code></td>
+      <td class="n">1,0</td>
+      <td>adimensional</td>
+      <td><span class="etiqueta neutra">decisión</span> lee el logsum tal cual</td>
+      <td><code class="ruta py">land_use/config.py</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s3"><span class="num">§3</span> Código</h2>
+
+<p>
+  Qué implementa cada ecuación y dónde, y qué toma este módulo de los
+  anteriores. La columna <em>Lín.</em> y los símbolos entre
+  <code>&lt;code&gt;</code> los verifica <code>tests/test_libro.py</code>: si el
+  símbolo se mueve, el test dice dónde quedó.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">(NN.1)</td>
+      <td class="ruta py">land_use/equilibrium.py</td>
+      <td class="n">97</td>
+      <td><code>_f</code> — la atractividad; <code>solve_subasta</code> (259) despacha</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Si el código se aparta de la fuente en algo que cambia un resultado, se dice
+  aquí en una frase con su razón, y el detalle va al registro de discrepancias.
+</p>
+
+<h2 id="s4"><span class="num">§4</span> Pruebas</h2>
+
+<p>
+  Qué invariante fija cada test, y —tan importante— qué no cubre. La segunda
+  columna es la que da la medida real de la red de seguridad.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Test</th><th>Qué fija</th><th>Qué NO cubre</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="ruta py">tests/test_algo.py</code>:NN</td>
+      <td>La propiedad que sostiene el resultado.</td>
+      <td>El caso que quedaría roto sin que nadie se entere.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s5"><span class="num">§5</span> Resultados</h2>
+
+<p>
+  La línea base del módulo y las figuras. <strong>Todos los números vienen de
+  <code>datos/capNN.json</code></strong>, que escribe
+  <code>datos/datos_capNN.py</code>; ninguno se tipea acá. Cada tabla o figura
+  dice con qué configuración se generó, y el texto explica qué mueve qué y por
+  qué.
+</p>
+
+<p class="pie-tabla">
+  Fuente: <code>datos/capNN.json</code>, regenerado el AAAA-MM-DD con
+  <code>uv run python ../../docs/libro/datos/datos_capNN.py</code>.
+</p>
+
+<h2 id="s6"><span class="num">§6</span> Discusión</h2>
+
+<p>
+  Qué hace bien el módulo y hasta dónde llega. Las decisiones de modelo con su
+  razón; las alternativas medidas y descartadas, con el número que las
+  descartó; los pendientes con nombre. Es donde el capítulo admite lo que no
+  sabe, sin contar cuándo lo supo.
+</p>
+
+<div class="aviso idea">
+  <h4>Pendiente</h4>
+  <p>Qué falta, qué lo bloquea, y qué habría que medir para resolverlo.</p>
+</div>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    plan en <a href="PLAN.md">PLAN.md</a> · referencias completas del capítulo
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

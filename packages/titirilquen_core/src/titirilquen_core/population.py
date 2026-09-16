@@ -1,10 +1,12 @@
-"""Generador de población sintética — ciudad lineal.
+"""Los agentes del transporte, generados desde el uso de suelo.
 
-Modo V1 (sin uso de suelo): reparte hogares por estrato proporcionalmente a
-`share_estratos` y uniformemente en el espacio excluyendo el CBD.
-
-Ver D-11 del registro de discrepancias: NO portamos `generar_poblacion` del
-código original (uniforme en estratos), usamos los shares configurables.
+Una sola fábrica: `generar_poblacion_desde_land_use_det` reparte los `S_i`
+hogares que la ciudad ofrece en cada celda entre estratos según `Q`, y sortea
+teletrabajo y tenencia de auto una vez por agente. Hasta sep-2026 convivía con
+`generar_poblacion`, que poblaba con una densidad plana (`densidad_hab_km` ×
+`share_estratos`) sin pasar por el suelo: dos fuentes de población para la
+misma ciudad, y la app sólo usaba una (D-46). La densidad plana se reproduce
+con `forma="uniforme"` y `localizacion="original"`.
 """
 
 from __future__ import annotations
@@ -13,9 +15,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, StratumId
-from titirilquen_core.land_use.ciudad import LandUseCity
 
 
 @dataclass
@@ -29,99 +29,83 @@ class Agente:
     utilidad_elegida: float = 0.0
 
 
-def generar_poblacion(
+def _mayor_residuo(target: np.ndarray, total: int) -> np.ndarray:
+    """Redondea `target` (que suma ~`total`) a enteros que suman EXACTO `total`,
+    por el método del mayor residuo. Determinista."""
+    base = np.floor(target).astype(int)
+    falta = total - int(base.sum())
+    if falta > 0:
+        frac = target - np.floor(target)
+        orden = np.argsort(-frac, kind="stable")
+        for k in range(falta):
+            base[orden[k % len(orden)]] += 1
+    elif falta < 0:  # raro (fp): quitar del menor residuo
+        frac = target - np.floor(target)
+        orden = np.argsort(frac, kind="stable")
+        for k in range(-falta):
+            base[orden[k % len(orden)]] = max(0, base[orden[k % len(orden)]] - 1)
+    return base
+
+
+def generar_poblacion_desde_land_use_det(
     *,
-    ciudad: CiudadLineal,
-    densidad_por_celda: int,
-    share_estratos: tuple[float, float, float],
+    Q: np.ndarray,
+    S: np.ndarray,
+    cbd_index: int,
     demand_config: DemandConfig,
     teletrabajo_factor: float = 1.0,
-    rng: np.random.Generator | None = None,
 ) -> list[Agente]:
-    """Genera agentes según densidad y shares configurados.
+    """Genera la población a partir del uso de suelo, de forma **determinista**.
 
-    El sorteo está **vectorizado** (3 llamadas a `rng` en total en vez de 3 por
-    agente): clave para que el costo no explote con densidad alta.
+    Existió una variante estocástica (`generar_poblacion_desde_land_use`, que
+    remuestreaba con `rng`); se retiró por no tener llamadores: el piso de ruido
+    del remuestreo impedía que el loop acoplado convergiera (D-14), así que en
+    la práctica siempre se usó esta.
+
+    Reparte los `S_i` hogares de cada celda entre estratos por **mayor residuo**
+    sobre `S_i·Q[:,i]` (Σ_h = S_i exacto), y fija teletrabajo/auto por conteos
+    redondeados (no por sorteo). La usa el loop acoplado para que el equilibrio
+    suelo↔transporte sea reproducible y **converja** (sin el piso estocástico del
+    remuestreo; ver D-14). El CBD se omite (no se viaja hacia sí mismo).
     """
-    if rng is None:
-        rng = np.random.default_rng()
-
-    estratos: tuple[StratumId, ...] = (1, 2, 3)
-    celdas_validas = np.array(
-        [i for i in range(ciudad.n_celdas) if i != ciudad.cbd_index], dtype=np.int64
-    )
-    total = int(celdas_validas.size) * densidad_por_celda
-    if total == 0:
-        return []
-
-    # Sorteos vectorizados (mismo orden conceptual: celda externa, densidad interna).
-    estrato_idx = rng.choice(3, size=total, p=share_estratos)
-    u_tele = rng.random(total)
-    u_auto = rng.random(total)
-
-    prob_tele_por = np.array(
-        [
-            min(1.0, demand_config.estratos[e].prob_teletrabajo * teletrabajo_factor)
-            for e in estratos
-        ]
-    )
-    prob_auto_por = np.array([demand_config.estratos[e].prob_auto for e in estratos])
-
-    teletrabaja = u_tele < prob_tele_por[estrato_idx]
-    tiene_auto = u_auto < prob_auto_por[estrato_idx]
-    celda_de = np.repeat(celdas_validas, densidad_por_celda)
-
-    return [
-        Agente(
-            id=k + 1,
-            celda_origen=int(celda_de[k]),
-            estrato=estratos[int(estrato_idx[k])],
-            teletrabaja=bool(teletrabaja[k]),
-            tiene_auto=bool(tiene_auto[k]),
-        )
-        for k in range(total)
-    ]
-
-
-def generar_poblacion_desde_land_use(
-    *,
-    land_use_city: LandUseCity,
-    demand_config: DemandConfig,
-    teletrabajo_factor: float = 1.0,
-    rng: np.random.Generator | None = None,
-) -> list[Agente]:
-    """Genera agentes respetando la asignación espacial del uso de suelo.
-
-    Cada hogar en `land_use_city.parcelas[i]` se convierte en un agente en la
-    celda `i`. Los atributos teletrabajo/auto se sortean según la config del
-    estrato. Los hogares en el CBD se omiten (no trabajan yendo hacia sí
-    mismos).
-    """
-    if rng is None:
-        rng = np.random.default_rng()
+    Q = np.asarray(Q, dtype=float)
+    S = np.asarray(S, dtype=int)
+    n_strata, n_celdas = Q.shape
 
     agentes: list[Agente] = []
     id_counter = 1
     estratos_valid: tuple[StratumId, ...] = (1, 2, 3)
 
-    for i, parcela in enumerate(land_use_city.parcelas):
-        if i == land_use_city.cbd_index:
+    for i in range(n_celdas):
+        if i == cbd_index:
             continue
-        for h in parcela:
-            if h not in (1, 2, 3):
+        Si = int(S[i])
+        if Si <= 0:
+            continue
+        N_h = _mayor_residuo(Q[:, i] * Si, Si)  # hogares por estrato en la celda i
+        for h in range(n_strata):
+            n = int(N_h[h])
+            if n <= 0:
                 continue
-            estrato: StratumId = estratos_valid[h - 1]
+            estrato: StratumId = estratos_valid[h]
             s = demand_config.estratos[estrato]
             prob_tele = min(1.0, s.prob_teletrabajo * teletrabajo_factor)
-            agentes.append(
-                Agente(
-                    id=id_counter,
-                    celda_origen=i,
-                    estrato=estrato,
-                    teletrabaja=bool(rng.random() < prob_tele),
-                    tiene_auto=bool(rng.random() < s.prob_auto),
+            n_tele = round(n * prob_tele)
+            n_work = n - n_tele
+            n_auto = round(n_work * s.prob_auto)
+            for k in range(n):
+                tele = k < n_tele
+                # entre los trabajadores, los primeros `n_auto` tienen auto
+                tiene_auto = (not tele) and (k - n_tele) < n_auto
+                agentes.append(
+                    Agente(
+                        id=id_counter,
+                        celda_origen=i,
+                        estrato=estrato,
+                        teletrabaja=tele,
+                        tiene_auto=tiene_auto,
+                    )
                 )
-            )
-            id_counter += 1
+                id_counter += 1
 
     return agentes

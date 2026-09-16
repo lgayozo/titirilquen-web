@@ -1,0 +1,194 @@
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from titirilquen_core.config import (
+    CityConfig,
+    DemandConfig,
+    SimulationConfig,
+    SupplyConfig,
+)
+from titirilquen_core.coupled import run_coupled
+from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
+
+
+def _sim_small(demanda_sintetica: DemandConfig) -> SimulationConfig:
+    return SimulationConfig(
+        city=CityConfig(n_celdas=51, largo_ciudad_km=5),
+        supply=SupplyConfig(),
+        demand=demanda_sintetica,
+        max_iter=3,
+        seed=42,
+    )
+
+
+def _land_use_config() -> LandUseConfig:
+    return LandUseConfig(
+        H_por_estrato=(50, 100, 100),
+        estratos=(
+            LandUseStratumConfig(y=100.0, alpha=1.3, rho=1.0),
+            LandUseStratumConfig(y=50.0, alpha=1.2, rho=1.0),
+            LandUseStratumConfig(y=10.0, alpha=1.1, rho=1.0),
+        ),
+        max_iter=2000,
+    )
+
+
+@pytest.fixture(scope="module")
+def corrida(demanda_sintetica_modulo: DemandConfig):
+    sim = _sim_small(demanda_sintetica_modulo)
+    lu = _land_use_config()
+    res = run_coupled(sim=sim, land_use_config=lu, outer_max_iter=2, outer_tol=0.1)
+    return res.iterations[-1].metrics, sim, lu
+
+
+def test_estructura_basica(corrida) -> None:
+    m, _sim, lu = corrida
+    assert len(m.por_estrato) == 3
+    for h, sm in enumerate(m.por_estrato):
+        assert sm.estrato == h + 1
+    # n_hogares total ≈ Σ H (la oferta redistribuye el CBD, Σ S = Σ H)
+    total = sum(s.n_hogares for s in m.por_estrato)
+    assert abs(total - sum(lu.H_por_estrato)) < 1.0
+
+
+def test_reparto_modal_suma_uno(corrida) -> None:
+    m, _sim, _lu = corrida
+    for sm in m.por_estrato:
+        assert abs(sum(sm.reparto_modal.values()) - 1.0) < 1e-9
+        assert set(sm.reparto_modal) == {
+            "Auto",
+            "Metro",
+            "Bici",
+            "Caminata",
+            "Teletrabajo",
+            "Varado",
+        }
+    assert abs(sum(m.sistema.reparto_modal.values()) - 1.0) < 1e-9
+
+
+def test_valores_finitos_y_signos(corrida) -> None:
+    m, _sim, _lu = corrida
+    for sm in m.por_estrato:
+        assert np.isfinite(sm.dist_media_cbd_km) and sm.dist_media_cbd_km >= 0
+        assert np.isfinite(sm.tiempo_medio_min) and sm.tiempo_medio_min >= 0
+        assert np.isfinite(sm.costo_medio_clp) and sm.costo_medio_clp >= 0
+        # ΔCS vs red vacía: signo libre (congestión <0, Mohring >0), pero finito.
+        assert np.isfinite(sm.delta_excedente_clp)
+        assert np.isfinite(sm.carga_costo_ingreso) and sm.carga_costo_ingreso >= 0
+    s = m.sistema
+    assert 0.0 <= s.segregacion_theil <= 1.0
+    assert s.tiempo_total_pax_min >= 0
+    assert s.emisiones_total_kg >= 0
+    assert s.iteraciones_exteriores >= 1
+
+
+def test_consistencia_tiempo_sistema(corrida) -> None:
+    """El tiempo medio del sistema = total / nº de viajeros; coherente con estratos."""
+    m, _sim, _lu = corrida
+    s = m.sistema
+    if s.tiempo_total_pax_min > 0:
+        assert s.tiempo_medio_min > 0
+        # El medio del sistema debe caer dentro del rango de los medios por estrato
+        medios = [sm.tiempo_medio_min for sm in m.por_estrato if sm.tiempo_medio_min > 0]
+        assert min(medios) - 1e-6 <= s.tiempo_medio_min <= max(medios) + 1e-6
+
+
+def test_regresividad_por_ingreso(corrida) -> None:
+    """Con ingresos 100/50/10 y betas iguales, la carga costo/ingreso del estrato
+    bajo supera a la del alto (regresivo)."""
+    m, _sim, _lu = corrida
+    if m.sistema.ratio_carga_bajo_alto is not None:
+        assert m.sistema.ratio_carga_bajo_alto > 1.0
+
+
+def test_bienestar_total_es_suma_sobre_quienes_viajan(corrida) -> None:
+    """D-35: el promedio por viajero se multiplica por los VIAJEROS, no por
+    todos los hogares (teletrabajo tiene ΔCS = 0 y el varado no tiene medida)."""
+    m, _sim, _lu = corrida
+    esperado = sum(sm.delta_excedente_clp * sm.n_viajeros for sm in m.por_estrato)
+    assert abs(m.sistema.delta_bienestar_total_clp - esperado) < 1e-3
+    inflado = sum(sm.delta_excedente_clp * sm.n_hogares for sm in m.por_estrato)
+    assert abs(inflado) > abs(esperado), (
+        "n_hogares ≥ n_viajeros: el viejo total era mayor en magnitud"
+    )
+
+
+# ---------------------------------------------------------------------------
+# La medida del excedente sigue al método (emparejamiento con el Sandbox)
+# ---------------------------------------------------------------------------
+#
+# Esta página calculaba su propio logsum y no aplicaba el emparejamiento, así
+# que bajo `todo_o_nada` medía el bienestar con una regla distinta de la del
+# Sandbox para el mismo escenario. Nada lo detectaba: los dos números eran
+# plausibles.
+
+
+@pytest.mark.parametrize("metodo", ["montecarlo", "expected", "todo_o_nada"])
+def test_la_medida_sigue_al_metodo_efectivo(demanda_sintetica: DemandConfig, metodo: str) -> None:
+    """D-40: el acoplado SIEMPRE corre el transporte con `expected` (flujos
+    fraccionales, logit), así que la medida emparejada es el logsum pida lo que
+    pida la configuración. Antes las métricas recibían la configuración original
+    y con `todo_o_nada` rotulaban `utilidad_maxima` un flujo que era logit."""
+    sim = _sim_small(demanda_sintetica)
+    sim.assignment = metodo
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
+    assert res.iterations[-1].metrics.sistema.medida_bienestar == "logsum"
+
+
+def test_el_nucleo_decide_la_medida_una_sola_vez(demanda_sintetica: DemandConfig) -> None:
+    """La página acoplada y el Sandbox deben coincidir para la misma config.
+
+    Es el punto del refactor: una sola implementación (`medidas_de_utilidad`) y
+    un solo criterio (`medida_emparejada`). Si alguien reintroduce un logsum
+    local en `coupled_metrics`, este test no lo ve — pero sí ve que el criterio
+    se bifurque, que es como empezaría.
+    """
+    from titirilquen_core.bienestar import medida_emparejada
+
+    sim = _sim_small(demanda_sintetica)
+    sim.assignment = "todo_o_nada"
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
+    acoplada = res.iterations[-1].metrics.sistema.medida_bienestar
+    # El criterio es uno solo, aplicado a la configuración EFECTIVA del acoplado.
+    assert acoplada == medida_emparejada("expected")
+
+
+def test_el_estado_final_es_el_de_la_ultima_iteracion(demanda_sintetica: DemandConfig) -> None:
+    """D-40: al agotar `outer_max_iter`, `final_city` es la ciudad cuyo transporte
+    se simuló en la última iteración, no una actualizada después."""
+    import numpy as np
+
+    sim = _sim_small(demanda_sintetica)
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=1e-9)
+    assert res.final_city is not None and res.final_city.result is not None
+    np.testing.assert_array_equal(res.final_city.result.Q, res.iterations[-1].land_use.Q)
+
+
+def test_el_acoplado_no_converge_si_el_transporte_no_convergio(
+    demanda_sintetica: DemandConfig,
+) -> None:
+    """D-39: con `max_iter=1` interior el MSA no puede converger; el acoplado no
+    puede declararse convergido aunque su residual exterior sea chico."""
+    sim = _sim_small(demanda_sintetica)
+    sim.max_iter = 1
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=3, outer_tol=1e9)
+    assert not any(it.transport.converged for it in res.iterations)
+    assert res.converged is False
+    assert all(not it.metrics.sistema.convergio_exterior for it in res.iterations)
+
+
+def test_el_theil_pesa_por_hogares_no_por_celdas() -> None:
+    """D-38: dos celdas, una con 100 hogares mezclados y otra con 1 hogar de un
+    solo estrato. Por celdas la segregada pesa la mitad; por hogares, casi nada."""
+    import numpy as np
+
+    from titirilquen_core.coupled_metrics import _theil
+
+    Q = np.array([[0.5, 1.0], [0.5, 0.0]])
+    S = np.array([100.0, 1.0])
+    territorial = _theil(Q)
+    poblacional = _theil(Q, S)
+    assert territorial > 0.3
+    assert poblacional < 0.05

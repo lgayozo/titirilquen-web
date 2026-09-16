@@ -1,27 +1,49 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CityStrip } from "@/components/CityStrip";
-import { CityBuilder } from "@/components/modules/CityBuilder";
+import {
+  CityStrip,
+  MODE_CUTOFF_MIN,
+  type CityView,
+  type SingleMode,
+} from "@/components/CityStrip";
+import { CalibrationPanel } from "@/components/modules/CalibrationPanel";
 import { EconomyBuilder } from "@/components/modules/EconomyBuilder";
+import { PresetGallery } from "@/components/modules/PresetGallery";
 import { SupplyBuilder } from "@/components/modules/SupplyBuilder";
 import { RunStatus } from "@/components/RunStatus";
 import { SimulationSkeleton } from "@/components/SimulationSkeleton";
+import { DemandInspector } from "@/components/modules/DemandInspector";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
-import { SidebarSection } from "@/components/ui/SidebarSection";
-import { CityPreview } from "@/components/viz/CityPreview";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import {
+  CITY_PREVIEW_X_LAYOUT,
+  CityPreview,
+} from "@/components/viz/CityPreview";
 import { ConvergenceTrace } from "@/components/viz/ConvergenceTrace";
+import { EsperaMetro } from "@/components/viz/EsperaMetro";
+import { CorridorFlowFigure } from "@/components/viz/CorridorFlowFigure";
 import { FlowProfile } from "@/components/viz/FlowProfile";
 import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
 import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
 import { NetworkDiagram } from "@/components/viz/NetworkDiagram";
-import { StatBars, type StatBar } from "@/components/viz/StatBars";
-import { UtilityScatter } from "@/components/viz/UtilityScatter";
-import { pyodideEngine } from "@/lib/pyodide-engine";
+import { ReferenceComparison } from "@/components/viz/ReferenceComparison";
+import type { StatBar } from "@/lib/tipos-ui";
+import { StratumDistribution } from "@/components/viz/StratumDistribution";
+import {
+  CargaDeRed,
+  TransportMetricsTable,
+  type TransportMetricsData,
+} from "@/components/viz/TransportMetricsTable";
+import { agregadosDe } from "@/lib/agregados";
+import { expectedComposition, smoothSupply } from "@/lib/citySupply";
+import { simularTransporte } from "@/lib/api";
+import { calcularFlujo } from "@/lib/derivados";
 import type { Modo } from "@/lib/types";
-import { useSimulationStore } from "@/store/simulationStore";
+import { useLandUseStore } from "@/store/landUseStore";
+import { isResultStale, useSimulationStore } from "@/store/simulationStore";
 
 type HeatMode =
   | "auto"
@@ -30,26 +52,32 @@ type HeatMode =
   | "caminata"
   | "todos"
   | "espera"
-  | "plano";
+  | "ciudad";
 
-/** Opciones del toggle de la Figura 1, en orden. "plano" vuelve a la vista de
- *  infraestructura (CityPreview) sin perder los resultados. */
+/** Opciones del toggle con resultados. "todos" primero porque ahora es el
+ *  default: la figura dibuja SIEMPRE los cuatro modos y el toggle elige cuál
+ *  resaltar, no cuál mostrar. "ciudad" salió de acá — es un insumo, no un
+ *  resultado, y vive en el bloque de ciudad. */
 const VIEW_OPTIONS: readonly HeatMode[] = [
+  "todos",
   "auto",
   "metro",
   "bici",
   "caminata",
-  "todos",
   "espera",
-  "plano",
 ];
 
-/** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
- *  elegible. Ver demand/utility.py — caminata > 30, bici > 45. */
-const MODE_CUTOFF: Partial<Record<HeatMode, number>> = {
-  caminata: 30,
-  bici: 45,
-};
+/** Vistas disponibles ANTES de simular. Las demás leen el perfil de tiempos de
+ *  la última iteración, que todavía no existe: sin datos solo se sostiene la
+ *  vista de ciudad, que no depende del equilibrio. */
+const PRE_VIEW_OPTIONS: readonly HeatMode[] = ["ciudad"];
+
+/** Modos del panel de carga del corredor (FIG. 02), en orden. */
+type FlowMode = "auto" | "bici" | "metro" | "caminata";
+const FLOW_MODES: readonly FlowMode[] = ["auto", "bici", "metro", "caminata"];
+
+// El umbral de factibilidad por modo lo exporta CityStrip (`MODE_CUTOFF_MIN`):
+// es un parámetro del modelo, no de la página, y tenerlo dos veces derivaba.
 
 export function SandboxPage() {
   const { t } = useTranslation("simulator");
@@ -67,16 +95,44 @@ export function SandboxPage() {
   const failRun = useSimulationStore((s) => s.failRun);
   const pushIteration = useSimulationStore((s) => s.pushIteration);
   const reset = useSimulationStore((s) => s.reset);
+  const configUsed = useSimulationStore((s) => s.configUsed);
+  const landUseUsed = useSimulationStore((s) => s.landUseUsed);
+  const cancelRun = useSimulationStore((s) => s.cancelRun);
+  const reference = useSimulationStore((s) => s.reference);
+  const pinReference = useSimulationStore((s) => s.pinReference);
+  const clearReference = useSimulationStore((s) => s.clearReference);
 
-  const [heatMode, setHeatMode] = useState<HeatMode>("auto");
+  // Opción A: la población del transporte se deriva del uso de suelo (densidad
+  // por estrato → por celda). La config de suelo vive en su propio store y la
+  // definen en la pestaña Uso de Suelo.
+  const landUseConfig = useLandUseStore((s) => s.config);
+  const landUseResult = useLandUseStore((s) => s.result);
+  // La mezcla de estratos de la corrida: ΣH normalizado. Era `city.share_estratos`,
+  // un campo que la app no usaba para poblar (D-46).
+  const shareEstratos = useMemo((): readonly [number, number, number] => {
+    const H = (landUseUsed ?? landUseConfig).H_por_estrato;
+    const total = H[0] + H[1] + H[2];
+    return [H[0] / total, H[1] / total, H[2] / total];
+  }, [landUseUsed, landUseConfig]);
+
+  // Config de la corrida visible: el snapshot usado por el resultado, no la
+  // viva — así las figuras no mezclan geometrías si el usuario mueve sliders.
+  const cfgRes = configUsed ?? config;
+  const stale = useMemo(
+    () => isResultStale({ stage, config, configUsed }),
+    [stage, config, configUsed],
+  );
+
+  const [heatMode, setHeatMode] = useState<HeatMode>("todos");
+  const [flowMode, setFlowMode] = useState<FlowMode>("auto");
 
   const viewLabel = (m: HeatMode) =>
     m === "todos"
       ? t("sandbox.view_all")
       : m === "espera"
         ? t("sandbox.view_wait")
-        : m === "plano"
-          ? t("preview.tab")
+        : m === "ciudad"
+          ? t("sandbox.view_city")
           : t(`modes.${m}`);
 
   const lastIter = liveIterations.at(-1) ?? result?.iteraciones.at(-1);
@@ -84,10 +140,70 @@ export function SandboxPage() {
   // "plano" (CityPreview) en vez de la cinta de tiempos (CityStrip). Con
   // resultados, la pestaña "plano" del toggle vuelve a esa misma vista.
   const hasData = lastIter != null;
-  const showPreview = !hasData || heatMode === "plano";
-  const cellKm = config.city.largo_ciudad_km / config.city.n_celdas;
-  const cbdIdx = Math.floor(config.city.n_celdas / 2);
-  const vCaminata = config.demand.globales.v_caminata || 4.8;
+  // Vista efectiva de la cinta. Sin datos, las vistas de resultados no tienen
+  // qué dibujar, así que se cae al plano de infraestructura salvo que el
+  // usuario haya pedido explícitamente la de uso de suelo. Es derivado y no
+  // estado: así el toggle conserva la vista de resultados elegida y volver a
+  // ella tras simular no requiere un efecto que la reescriba.
+  const effHeatMode: HeatMode = hasData ? heatMode : "ciudad";
+  const viewOptions = hasData ? VIEW_OPTIONS : PRE_VIEW_OPTIONS;
+  // Uso de suelo (quién habita) e infraestructura (qué se construyó) se leen
+  // juntas: son los dos insumos del equilibrio y comparten el eje x, así que
+  // separarlas en dos pestañas obligaba a alternar para comparar. Un solo
+  // booleano derivado, además, deja que TypeScript estreche `effHeatMode` a
+  // `CityView` en la rama de abajo (CityStrip no acepta "ciudad").
+  const showCiudad = effHeatMode === "ciudad";
+
+  // La figura de tiempos dibuja SIEMPRE los cuatro modos; el toggle pasa de
+  // "qué serie veo" a "qué serie resalto". Así comparar auto contra metro en la
+  // periferia deja de exigir alternar entre dos vistas y recordar el número.
+  // "Espera tren" es la excepción: no es un modo sino una componente del tiempo
+  // del metro, y conserva su propia vista de barras.
+  const esEspera = effHeatMode === "espera";
+  const stripMode: CityView = esEspera ? "espera" : "todos";
+  const stripHighlight = (["auto", "metro", "bici", "caminata"] as const).find(
+    (m) => m === effHeatMode,
+  ) as SingleMode | undefined;
+
+  // Composición de estratos por celda para la imagen inicial de la ciudad,
+  // derivada de Uso de Suelo: si hay un resultado de suelo con geometría
+  // concordante, la composición de equilibrio (S·Q); si no, el estado inicial
+  // (π_h = H_h/ΣH sobre la forma de la ciudad). Misma envolvente que las figuras
+  // de Uso de Suelo (smoothSupply), así se lee como la misma ciudad.
+  const landUseCity = useMemo(() => {
+    const L = config.city.n_celdas;
+    const CBD = Math.floor(L / 2);
+    const lu = landUseConfig;
+    const N = lu.H_por_estrato.reduce((a, b) => a + b, 0);
+    if (N <= 0) return { comp: null as number[][] | null, isPost: false };
+    const S = smoothSupply(
+      lu.forma,
+      L,
+      CBD,
+      lu.oferta_sigma_frac,
+      lu.forma_param,
+      N,
+    );
+    if (
+      landUseResult &&
+      landUseResult.L === L &&
+      landUseResult.result?.Q?.length
+    ) {
+      return {
+        comp: expectedComposition(landUseResult.result.Q, S),
+        isPost: true,
+      };
+    }
+    const pi = lu.H_por_estrato.map((h) => h / N);
+    return {
+      comp: S.map((s) => [s * pi[0]!, s * pi[1]!, s * pi[2]!]),
+      isPost: false,
+    };
+  }, [config.city.n_celdas, landUseConfig, landUseResult]);
+
+  const cellKm = cfgRes.city.largo_ciudad_km / cfgRes.city.n_celdas;
+  const cbdIdx = Math.floor(cfgRes.city.n_celdas / 2);
+  const vCaminata = cfgRes.demand.globales.v_caminata || 4.8;
   const profile = lastIter
     ? lastIter.t_auto.map((t_auto, i) => ({
         t_auto,
@@ -104,29 +220,168 @@ export function SandboxPage() {
       }))
     : undefined;
 
+  // Datos del panel de flujos. La escala Y es el máximo GLOBAL entre modos:
+  // cambiar de modo no debe reescalar el eje o la comparación visual engaña.
+  // Serie del panel de flujos: el flujo ACUMULADO del corredor, que es lo que
+  // se compara contra la capacidad. Antes se graficaba la demanda originada por
+  // celda junto a una capacidad de corredor —magnitudes que difieren ~60×—, así
+  // que un corredor saturado se leía como vacío.
+  const flowData = useMemo(
+    () => calcularFlujo(result, lastIter, cfgRes, flowMode),
+    [result, lastIter, cfgRes, flowMode],
+  );
+
+  // El título tiene que decir QUÉ magnitud se grafica: para caminata sigue
+  // siendo demanda originada, y llamarla "flujo del corredor" sería mentir.
+  // Uso de suelo ARRIBA, plano ABAJO, con el mismo margen izquierdo: la base de
+  // las barras se apoya sobre la infraestructura y la celda i cae en la misma
+  // columna en ambas. Antes de simular es la vista principal; después vive
+  // plegado, porque es el insumo del equilibrio y no su resultado.
+  const bloqueCiudad = (
+    <>
+      {landUseCity.comp && (
+        <ExportableFigure
+          name="ciudad-uso-suelo"
+          title={t("sandbox.land_use_city_heading")}
+          description={t("sandbox.land_use_city_desc", {
+            length: config.city.largo_ciudad_km,
+            cells: config.city.n_celdas,
+          })}
+          exportSize={{ width: 1200, height: 320 }}
+        >
+          <StratumDistribution
+            composition={landUseCity.comp}
+            height={230}
+            largoKm={config.city.largo_ciudad_km}
+            xLayout={CITY_PREVIEW_X_LAYOUT}
+          />
+        </ExportableFigure>
+      )}
+      <ExportableFigure
+        name="plano-ciudad"
+        title={t("preview.heading")}
+        description={t("preview.export_desc")}
+        exportSize={{ width: 1200, height: 360 }}
+      >
+        <CityPreview config={config} />
+      </ExportableFigure>
+      <p className="kpi-caption" style={{ marginTop: 6 }}>
+        {landUseCity.comp
+          ? `${t("sandbox.city_view_caption")} ${
+              landUseCity.isPost
+                ? t("sandbox.land_use_city_caption_post")
+                : t("sandbox.land_use_city_caption_pre")
+            }`
+          : t("sandbox.land_use_city_caption_none")}
+      </p>
+    </>
+  );
+
+  const cintaTiempos = () =>
+    esEspera && lastIter ? (
+      <EsperaMetro
+        esperaPorCelda={lastIter.t_tren_espera}
+        fOp={lastIter.frecuencia_metro}
+        rhoAnden={operatingRatios.metro ?? 0}
+        alphaAnden={cfgRes.supply.train.anden_alpha}
+        betaAnden={cfgRes.supply.train.anden_beta}
+      />
+    ) : (
+      <CityStripInterna />
+    );
+
+  const CityStripInterna = () => (
+    <CityStrip
+      nCeldas={cfgRes.city.n_celdas}
+      largoKm={cfgRes.city.largo_ciudad_km}
+      pendientePct={cfgRes.city.pendiente_porcentaje}
+      modeProfile={profile}
+      heatMode={stripMode}
+      highlight={stripHighlight ?? null}
+      cutoffMin={stripHighlight ? MODE_CUTOFF_MIN[stripHighlight] : undefined}
+      cutoffLabel={
+        stripHighlight && MODE_CUTOFF_MIN[stripHighlight] != null
+          ? t("sandbox.cutoff_label", {
+              min: MODE_CUTOFF_MIN[stripHighlight],
+            })
+          : undefined
+      }
+      estacionesKm={result?.estaciones_km ?? undefined}
+      shareEstratos={shareEstratos}
+      iterationToken={lastIter?.iter ?? -1}
+    />
+  );
+
+  const flowTitle = flowData
+    ? t(
+        flowData.esCorredor ? "sandbox.corridor_flow" : "sandbox.origin_demand",
+        { mode: t(`modes.${flowMode}`) },
+      )
+    : "";
+
+  // v/c del equilibrio = flujo máximo ACUMULADO del corredor / capacidad.
+  // La demanda originada por celda (demanda_auto[i]) NO sirve de numerador:
+  // subestima el v/c ~60× porque ignora el cumsum hacia el CBD.
   const operatingRatios = {
     car:
-      result && lastIter
-        ? Math.max(...lastIter.demanda_auto) / result.capacidad_auto
+      result?.flujos_auto_veh_h?.length && result.capacidad_auto > 0
+        ? Math.max(...result.flujos_auto_veh_h) / result.capacidad_auto
         : null,
-    bike: lastIter
-      ? Math.max(...lastIter.demanda_bici) / config.supply.bike.capacidad_pista
+    bike: result?.flujos_bici_veh_h?.length
+      ? Math.max(...result.flujos_bici_veh_h) /
+        cfgRes.supply.bike.capacidad_pista
       : null,
+    // Metro: carga máxima del tramo / capacidad POTENCIAL (frec_max · K).
+    //
+    // Antes el denominador era la capacidad OPERATIVA (f_op · K), y eso daba
+    // 1,0000 SIEMPRE: el modelo define `f_op = carga_max / K`, así que el
+    // cociente se cancela por construcción y sólo se despegaba de 1 cuando un
+    // tope mordía. Medido en la corrida por defecto: carga 5.017, f_op 5,017,
+    // cociente 1,0000 exacto. Y la FIG. 00 pinta sus tramos contra `frec_max·K`
+    // llamándolo también «v/c metro»: el mismo rótulo con dos números que no se
+    // parecían (1,00 contra 0,13). Así se detectó.
+    //
+    // Queda la potencial, que es la que responde algo: cuánto del servicio que
+    // la red PODRÍA prestar se está usando. Es además la misma que dibuja la
+    // figura, así que la cifra y el color coinciden.
+    metro:
+      result?.carga_metro?.length && cfgRes.supply.train.frec_max > 0
+        ? Math.max(...result.carga_metro) /
+          (cfgRes.supply.train.frec_max * cfgRes.supply.train.capacidad_tren)
+        : null,
   };
 
+  const abortRef = useRef<AbortController | null>(null);
+
   const handleRun = async () => {
-    // Si el toggle quedó en "plano", volver a una vista de resultados para no
-    // tapar la convergencia en vivo con la infraestructura estática.
-    if (heatMode === "plano") setHeatMode("auto");
-    startRun(config.max_iter);
+    // Si el toggle quedó en la vista estática de ciudad, volver a una vista de
+    // resultados para no tapar la convergencia en vivo.
+    if (heatMode === "ciudad") setHeatMode("todos");
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    startRun(config.max_iter, landUseConfig);
     try {
-      const final = await pyodideEngine.simulateStream(config, (snap) =>
-        pushIteration(snap),
+      // Localización de estratos: si el equilibrio de pujas se corrió (hay
+      // resultado de Uso de Suelo con geometría concordante), la población usa
+      // esa localización de equilibrio; si no, la original (mezcla uniforme).
+      // Mismo criterio que la imagen inicial (landUseCity.isPost).
+      const final = await simularTransporte(
+        config,
+        landUseConfig,
+        landUseCity.isPost ? "equilibrio" : "original",
+        (snap) => pushIteration(snap),
+        ctrl.signal,
       );
       finishRun(final);
     } catch (e) {
+      if (ctrl.signal.aborted) return; // cancelado por el usuario
       failRun(e instanceof Error ? e.message : String(e));
     }
+  };
+
+  const handleCancel = () => {
+    abortRef.current?.abort();
+    cancelRun();
   };
 
   const totalAgents = lastIter
@@ -146,7 +401,6 @@ export function SandboxPage() {
         { label: t("kpi.walk_pct"), value: "—" },
         { label: t("kpi.tele_pct"), value: "—" },
         { label: t("kpi.frequency"), value: "—" },
-        { label: t("kpi.residual"), value: "—" },
         { label: t("kpi.co2"), value: "—" },
       ];
     }
@@ -155,11 +409,15 @@ export function SandboxPage() {
     const tot = total > 0 ? total : 1;
     const pct = (m: Modo) => `${(((modal[m] ?? 0) / tot) * 100).toFixed(1)}%`;
     const count = (m: Modo) =>
-      t("kpi.trips_subline", { n: Math.round(modal[m] ?? 0).toLocaleString() });
+      t("kpi.trips_subline", {
+        n: Math.round(modal[m] ?? 0).toLocaleString("es-CL"),
+      });
     return [
       {
         label: t("kpi.trips"),
-        value: Math.round(total - (modal.Teletrabajo ?? 0)).toLocaleString(),
+        value: Math.round(total - (modal.Teletrabajo ?? 0)).toLocaleString(
+          "es-CL",
+        ),
       },
       {
         label: t("kpi.auto_pct"),
@@ -190,48 +448,65 @@ export function SandboxPage() {
         value: pct("Teletrabajo"),
         color: "var(--tele)",
         delta: t("kpi.tele_subline", {
-          n: Math.round(modal.Teletrabajo ?? 0).toLocaleString(),
+          n: Math.round(modal.Teletrabajo ?? 0).toLocaleString("es-CL"),
         }),
       },
       {
         label: t("kpi.frequency"),
         value: lastIter.frecuencia_metro.toFixed(1),
         unit: "tph",
+        // Si la teórica (carga/K) difiere de la operativa, un tope está
+        // mordiendo: sin ese dato el usuario no distingue «subí el tope y no
+        // pasó nada» de «el tope no estaba activo» (AT-08).
+        delta:
+          Math.abs(
+            lastIter.frecuencia_teorica_metro - lastIter.frecuencia_metro,
+          ) > 0.05
+            ? t("kpi.frequency_capped", {
+                teo: lastIter.frecuencia_teorica_metro.toFixed(1),
+              })
+            : undefined,
       },
-      {
-        label: t("kpi.residual"),
-        value:
-          lastIter.residuo == null || !isFinite(lastIter.residuo)
-            ? "—"
-            : lastIter.residuo.toFixed(3),
-        unit: "min",
-      },
+      // El residuo salió de acá: es el diagnóstico de convergencia y lo dice el
+      // veredicto del primer panel, con su tolerancia al lado. Suelto en la
+      // tira pesaba lo mismo que el CO₂ y no significaba nada por sí solo.
       {
         label: t("kpi.co2"),
         value:
           result.emisiones_total_kg >= 100
-            ? Math.round(result.emisiones_total_kg).toLocaleString()
+            ? Math.round(result.emisiones_total_kg).toLocaleString("es-CL")
             : result.emisiones_total_kg.toFixed(1),
         unit: "kg/h",
         color: "var(--ink)",
         delta: t("kpi.co2_split", {
-          auto: Math.round(result.emisiones_auto_kg).toLocaleString(),
-          metro: Math.round(result.emisiones_metro_kg).toLocaleString(),
+          auto: Math.round(result.emisiones_auto_kg).toLocaleString("es-CL"),
+          metro: Math.round(result.emisiones_metro_kg).toLocaleString("es-CL"),
         }),
       },
     ];
   }, [result, lastIter, t]);
 
-  const kpiCaption = useMemo(() => {
+  // El caption "última iteración N/M · convergió" se eliminó: el panel de
+  // veredicto, que ahora abre los resultados, dice las dos cosas y además
+  // contra qué tolerancia. Era la tercera aparición del mismo dato.
+
+  // Veredicto de convergencia. El panel afirmaba "Equilibrio alcanzado" de
+  // forma incondicional, incluso cuando la corrida agotaba las iteraciones sin
+  // converger: el alumno no tenía cómo saber que lo que leía no era un
+  // equilibrio. Con `tolerance = 0` el core nunca corta por residuo (corre
+  // max_iter fijas), así que ese caso se dice aparte.
+  const convergencia = useMemo(() => {
     if (!result || !lastIter) return null;
-    const totalIters = result.iteraciones.length;
-    const base = t("kpi.last_iteration", {
-      n: lastIter.iter + 1,
-      total: totalIters,
-    });
-    const status = result.converged ? t("kpi.converged") : t("kpi.maxiter");
-    return `${base} · ${status}`;
-  }, [result, lastIter, t]);
+    const res = lastIter.residuo;
+    return {
+      ok: result.converged,
+      sinCriterio: !(cfgRes.tolerance > 0),
+      res: res == null || !isFinite(res) ? null : res,
+      tol: cfgRes.tolerance,
+      usadas: lastIter.iter + 1,
+      total: cfgRes.max_iter,
+    };
+  }, [result, lastIter, cfgRes]);
 
   // Grupos de agentes para las figuras de reparto por estrato y tenencia.
   const STRATUM_KEY = ["alto", "medio", "bajo"] as const;
@@ -245,30 +520,11 @@ export function SandboxPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, t]);
 
-  const carGroups = useMemo<AgentGroup[]>(() => {
-    const agents = result?.agentes;
-    if (!agents) return [];
-    const groups: AgentGroup[] = [];
-    for (const s of [1, 2, 3]) {
-      const label = t(`sandbox.stratum_${STRATUM_KEY[s - 1]}`);
-      groups.push({
-        label,
-        tag: t("sandbox.with_car"),
-        agents: agents.filter((a) => a.estrato === s && a.tiene_auto),
-      });
-      groups.push({
-        label,
-        tag: t("sandbox.without_car"),
-        agents: agents.filter((a) => a.estrato === s && !a.tiene_auto),
-      });
-    }
-    return groups;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result, t]);
-
   // Estadísticas agregadas: el tiempo de viaje no está por agente, así que se
   // reconstruye combinando el snapshot final (tiempos por celda y modo) con la
   // celda/modo de cada agente. Teletrabajo se excluye (no viaja).
+  // Presentación: calcula promedios pero además rotula cada barra con i18n.
+  // Ver la nota de `lib/derivados`.
   const avgStats = useMemo(() => {
     const agents = result?.agentes;
     if (!agents || !lastIter) return null;
@@ -313,11 +569,6 @@ export function SandboxPage() {
       2: [0, 0],
       3: [0, 0],
     };
-    const strUtil: Record<number, [number, number]> = {
-      1: [0, 0],
-      2: [0, 0],
-      3: [0, 0],
-    };
     for (const a of agents) {
       const tt = timeOf(a);
       if (tt != null) {
@@ -330,13 +581,6 @@ export function SandboxPage() {
         if (st) {
           st[0] += tt;
           st[1] += 1;
-        }
-      }
-      if (a.modo_elegido && a.modo_elegido !== "Teletrabajo") {
-        const su = strUtil[a.estrato];
-        if (su) {
-          su[0] += a.utilidad_elegida;
-          su[1] += 1;
         }
       }
     }
@@ -354,27 +598,204 @@ export function SandboxPage() {
       value: mean(strTime[s]!),
       color: STR_C[s]!,
     }));
-    const utilByStratum: StatBar[] = [1, 2, 3].map((s) => ({
-      label: strLabel(s),
-      value: mean(strUtil[s]!),
-      color: STR_C[s]!,
-    }));
-    return { timeByMode, timeByStratum, utilByStratum };
+    return { timeByMode, timeByStratum };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, lastIter, t]);
+
+  // Teletrabajo por celda de origen (determinista: no viaja, no está en las
+  // demandas de modo). Alimenta la Fig. 9 junto con el flujo esperado por celda.
+  const teleByCell = useMemo(() => {
+    const arr = new Array<number>(cfgRes.city.n_celdas).fill(0);
+    for (const a of result?.agentes ?? []) {
+      if (a.modo_elegido === "Teletrabajo") {
+        arr[a.celda_origen] = (arr[a.celda_origen] ?? 0) + 1;
+      }
+    }
+    return arr;
+  }, [result, cfgRes.city.n_celdas]);
+
+  // Reparto modal espacial POR ESTRATO: la demanda esperada por estrato·modo·celda
+  // (del core) + teletrabajo por estrato·celda (de los agentes, determinista).
+  // Alimenta los 3 minigráficos (alto/medio/bajo).
+  const modeShareByStratum = useMemo(() => {
+    const de = result?.demanda_estrato;
+    if (!de || de.length < 3) return null;
+    const n = cfgRes.city.n_celdas;
+    const tele: number[][] = [
+      new Array<number>(n).fill(0),
+      new Array<number>(n).fill(0),
+      new Array<number>(n).fill(0),
+    ];
+    for (const a of result?.agentes ?? []) {
+      if (a.modo_elegido === "Teletrabajo") {
+        const e = a.estrato - 1;
+        if (e >= 0 && e < 3) {
+          tele[e]![a.celda_origen] = (tele[e]![a.celda_origen] ?? 0) + 1;
+        }
+      }
+    }
+    // de[estrato][modo][celda], modos en orden Auto·Metro·Bici·Caminata.
+    return [1, 2, 3].map((s, idx) => ({
+      key: `s${s}`,
+      label: t(`sandbox.stratum_${STRATUM_KEY[idx]}`),
+      color: `var(--s${s})`,
+      demandByCell: {
+        Auto: de[idx]![0]!,
+        Metro: de[idx]![1]!,
+        Bici: de[idx]![2]!,
+        Caminata: de[idx]![3]!,
+      },
+      teleByCell: tele[idx]!,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, cfgRes.city.n_celdas, t]);
+
+  // Consolidado de métricas para la tabla final (sistema · reparto · estrato ·
+  // modo). Reutiliza lo ya agregado (modal_split, avgStats, operatingRatios).
+  // Se queda acá y no en `lib/derivados`: arma las etiquetas de la tabla con
+  // i18n, así que depende del idioma activo. Es presentación, no cálculo.
+  const transportMetrics = useMemo<TransportMetricsData | null>(() => {
+    if (!result || !lastIter || !avgStats) return null;
+    const modal = lastIter.modal_split;
+    const totalAll =
+      (Object.values(modal) as number[]).reduce((s, n) => s + n, 0) || 1;
+    const MODE_ORDER: Modo[] = [
+      "Auto",
+      "Metro",
+      "Bici",
+      "Caminata",
+      "Teletrabajo",
+    ];
+    /** Los cuatro modos que efectivamente viajan, en el orden de
+     *  `constantes.MODOS`. El teletrabajo no es una alternativa del mismo
+     *  conjunto: se decide antes y no viaja. */
+    const MODOS_FISICOS = ["Auto", "Metro", "Bici", "Caminata"] as const;
+    const MODE_COLOR: Record<string, string> = {
+      Auto: "var(--auto)",
+      Metro: "var(--metro)",
+      Bici: "var(--bici)",
+      Caminata: "var(--walk)",
+      Teletrabajo: "var(--tele)",
+    };
+    const reparto = MODE_ORDER.map((m) => ({
+      modo: m,
+      label: t(`modes.${m.toLowerCase()}`),
+      count: modal[m] ?? 0,
+      pct: ((modal[m] ?? 0) / totalAll) * 100,
+      color: MODE_COLOR[m]!,
+    }));
+    // avgStats.timeByMode está en orden Auto · Metro · Bici · Caminata.
+    const MODE4: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
+    const tiempoPorModo = avgStats.timeByMode.map((b, i) => ({
+      modo: MODE4[i]!,
+      label: b.label,
+      min: b.value,
+      color: b.color,
+    }));
+    // Tiempo medio del sistema = promedio por modo ponderado por su conteo
+    // (cada agente cuenta una vez bajo su modo; teletrabajo no viaja).
+    let twSum = 0;
+    let wSum = 0;
+    for (const tm of tiempoPorModo) {
+      const c = modal[tm.modo as Modo] ?? 0;
+      twSum += tm.min * c;
+      wSum += c;
+    }
+    const agg = agregadosDe(result);
+    const porEstratoUtil =
+      agg == null
+        ? null
+        : agg.medida_bienestar === "utilidad_maxima"
+          ? agg.util_maxima_por_estrato
+          : agg.logsum_por_estrato;
+    const porEstrato = [1, 2, 3].map((sNum, idx) => {
+      const h = String(sNum) as "1" | "2" | "3";
+      const viajesModo = agg?.viajes_por_modo_estrato?.[h];
+      // El denominador es el MISMO que el de la tabla de agregados: los viajes
+      // físicos del estrato, o sea Σ_m. El teletrabajo queda como la diferencia
+      // contra `nHogares`, visible por resta y sin distorsionar los shares.
+      const viajesS = viajesModo
+        ? MODOS_FISICOS.reduce((acc, m) => acc + (viajesModo[m] ?? 0), 0)
+        : 0;
+      return {
+        key: `s${sNum}`,
+        label: t(`sandbox.stratum_${STRATUM_KEY[idx]}`),
+        color: `var(--s${sNum})`,
+        nHogares: result.agentes.filter((a) => a.estrato === sNum).length,
+        viajes: viajesModo ? viajesS : null,
+        tiempoMin: avgStats.timeByStratum[idx]?.value ?? 0,
+        utilidad: porEstratoUtil?.[h] ?? null,
+        reparto: MODOS_FISICOS.map((m) => ({
+          modo: m,
+          pct: viajesS > 0 ? ((viajesModo?.[m] ?? 0) / viajesS) * 100 : 0,
+        })),
+      };
+    });
+    return {
+      viajesFisicos: Math.round(totalAll - (modal.Teletrabajo ?? 0)),
+      reparto,
+      tiempoSistemaMin: wSum > 0 ? twSum / wSum : 0,
+      frecuenciaMetro: lastIter.frecuencia_metro,
+      residuoMin:
+        lastIter.residuo == null || !isFinite(lastIter.residuo)
+          ? null
+          : lastIter.residuo,
+      co2Total: result.emisiones_total_kg,
+      co2Auto: result.emisiones_auto_kg,
+      co2Metro: result.emisiones_metro_kg,
+      iteraciones: lastIter.iter + 1,
+      totalIteraciones: result.iteraciones.length,
+      converged: result.converged,
+      capacidadAuto: result.capacidad_auto,
+      vcAuto: operatingRatios.car,
+      vcBici: operatingRatios.bike,
+      vcMetro: operatingRatios.metro,
+      tiempoPorModo,
+      porEstrato,
+      medidaBienestar: agg?.medida_bienestar ?? null,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, lastIter, avgStats, t]);
 
   return (
     <div className="page">
       <aside className="sidebar">
-        <CityBuilder config={config} onChange={setConfig} />
+        {/* F-01: escenarios con nombre (ciudad × política) como punto de
+            partida, en vez de mover sliders a ciegas desde los defaults. */}
+        <PresetGallery variant="policy" />
+        {/* La ciudad (largo, celdas, pendiente, teletrabajo, densidad y estratos)
+            se define en Uso de Suelo y alimenta esta simulación. */}
+        <CollapsibleSection
+          title={t("sections.city")}
+          meta={t("city_params.meta", {
+            km: config.city.largo_ciudad_km,
+            n: config.city.n_celdas,
+          })}
+        >
+          <p className="text-[11px] leading-snug text-muted">
+            {t("city_params.defined_in_land_use")}
+          </p>
+        </CollapsibleSection>
         <SupplyBuilder
           config={config}
           onChange={setConfig}
           operatingRatios={operatingRatios}
+          metroFreq={
+            lastIter
+              ? {
+                  operativa: lastIter.frecuencia_metro,
+                  teorica: lastIter.frecuencia_teorica_metro,
+                }
+              : undefined
+          }
         />
         <EconomyBuilder config={config} onChange={setConfig} />
+        {/* Después de las palancas y antes del solver: los betas no son
+            política, pero son lo que traduce cualquier política en reparto
+            modal. Hasta ahora no eran visibles en ninguna parte. */}
+        <CalibrationPanel config={config} onChange={setConfig} />
 
-        <SidebarSection
+        <CollapsibleSection
           title={t("sections.equilibrium")}
           meta={`${config.max_iter} iter`}
           defaultOpen={false}
@@ -426,7 +847,7 @@ export function SandboxPage() {
               {t("equilibrium.assignment")}
             </div>
             <div className="seg" style={{ width: "100%" }}>
-              {(["montecarlo", "expected"] as const).map((m) => (
+              {(["montecarlo", "expected", "todo_o_nada"] as const).map((m) => (
                 <button
                   key={m}
                   type="button"
@@ -434,9 +855,7 @@ export function SandboxPage() {
                   onClick={() => setConfig((c) => ({ ...c, assignment: m }))}
                   style={{ flex: 1 }}
                 >
-                  {m === "montecarlo"
-                    ? t("equilibrium.assignment_mc")
-                    : t("equilibrium.assignment_expected")}
+                  {t(`equilibrium.assignment_${m}`)}
                 </button>
               ))}
             </div>
@@ -478,7 +897,7 @@ export function SandboxPage() {
               {t("equilibrium.modos_hint")}
             </p>
           </div>
-        </SidebarSection>
+        </CollapsibleSection>
 
         {(stage === "done" || stage === "error") && (
           <button
@@ -505,6 +924,12 @@ export function SandboxPage() {
             : `▶ ${tCommon("actions.run")}`}
         </button>
 
+        {running && (
+          <button type="button" className="reset-btn" onClick={handleCancel}>
+            {`✕ ${tCommon("actions.cancel")}`}
+          </button>
+        )}
+
         {error && (
           <div
             className="callout"
@@ -516,6 +941,15 @@ export function SandboxPage() {
       </aside>
 
       <section className="main">
+        {stale && (
+          <div className="stale-banner" role="status">
+            <span>{t("stale.banner")}</span>
+            <button type="button" onClick={() => void handleRun()}>
+              {`▶ ${t("stale.rerun")}`}
+            </button>
+          </div>
+        )}
+
         {/* HERO */}
         <div className="hero">
           <div className="hero-head">
@@ -533,67 +967,56 @@ export function SandboxPage() {
           <div className="ribbon-wrap">
             <div className="mb-2 flex items-center justify-between">
               <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-                {showPreview ? t("preview.heading") : t("sandbox.city_heading")}
+                {showCiudad
+                  ? t("sandbox.city_view_heading")
+                  : t("sandbox.city_heading")}
               </span>
-              {hasData ? (
+              {/* Con una sola vista disponible el selector no ofrece nada que
+                  elegir: antes de simular sobra. */}
+              {viewOptions.length > 1 && (
                 <div className="seg">
-                  {VIEW_OPTIONS.map((m) => (
+                  {viewOptions.map((m) => (
                     <button
                       key={m}
                       type="button"
                       onClick={() => setHeatMode(m)}
-                      className={heatMode === m ? "active" : ""}
+                      className={effHeatMode === m ? "active" : ""}
                     >
                       {viewLabel(m)}
                     </button>
                   ))}
                 </div>
-              ) : (
-                <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
-                  {t("preview.meta")}
-                </span>
               )}
             </div>
 
-            {showPreview ? (
-              <ExportableFigure
-                name="plano-ciudad"
-                title={t("preview.heading")}
-                description={t("preview.export_desc")}
-                exportSize={{ width: 1200, height: 360 }}
-              >
-                <CityPreview config={config} />
-              </ExportableFigure>
+            {showCiudad ? (
+              bloqueCiudad
             ) : (
               <ExportableFigure
-                name={`ciudad-${heatMode}`}
-                title={`${t("sandbox.city_heading")} — ${viewLabel(heatMode)}`}
+                name={`ciudad-${effHeatMode}`}
+                title={`${t("sandbox.city_heading")} — ${viewLabel(effHeatMode)}`}
                 description={t("sandbox.city_figure_desc", {
-                  length: config.city.largo_ciudad_km,
-                  cells: config.city.n_celdas,
-                  mode: viewLabel(heatMode),
+                  length: cfgRes.city.largo_ciudad_km,
+                  cells: cfgRes.city.n_celdas,
+                  mode: viewLabel(effHeatMode),
                 })}
                 exportSize={{ width: 1200, height: 200 }}
               >
-                <CityStrip
-                  nCeldas={config.city.n_celdas}
-                  largoKm={config.city.largo_ciudad_km}
-                  pendientePct={config.city.pendiente_porcentaje}
-                  modeProfile={profile}
-                  heatMode={heatMode}
-                  cutoffMin={MODE_CUTOFF[heatMode]}
-                  cutoffLabel={
-                    MODE_CUTOFF[heatMode] != null
-                      ? t("sandbox.cutoff_label", {
-                          min: MODE_CUTOFF[heatMode],
-                        })
-                      : undefined
-                  }
-                  estacionesKm={result?.estaciones_km ?? undefined}
-                  shareEstratos={config.city.share_estratos}
-                  iterationToken={lastIter?.iter ?? -1}
-                />
+                {cintaTiempos()}
               </ExportableFigure>
+            )}
+
+            {/* La ciudad y el plano siguen alcanzables después de simular, pero
+                PLEGADOS: son el insumo, no el resultado, y desplegados empujan
+                los KPI y el veredicto fuera de la primera pantalla. `details`
+                nativo, así que abre con teclado y se anuncia a lectores. */}
+            {hasData && (
+              <CollapsibleSection
+                title={t("sandbox.city_view_heading")}
+                className="mt-3"
+              >
+                {bloqueCiudad}
+              </CollapsibleSection>
             )}
 
             <div className="ribbon-legend">
@@ -612,9 +1035,9 @@ export function SandboxPage() {
                     {
                       "--c": c,
                       opacity:
-                        heatMode === "todos" ||
-                        heatMode === m ||
-                        (heatMode === "espera" && m === "metro")
+                        effHeatMode === "todos" ||
+                        effHeatMode === m ||
+                        (effHeatMode === "espera" && m === "metro")
                           ? 1
                           : 0.4,
                     } as React.CSSProperties
@@ -625,35 +1048,59 @@ export function SandboxPage() {
               ))}
               <span style={{ marginLeft: "auto", textTransform: "none" }}>
                 {t("hero.stats_line", {
-                  total: totalAgents > 0 ? totalAgents.toLocaleString() : "—",
-                  length: config.city.largo_ciudad_km,
-                  stations: config.supply.train.num_estaciones,
-                  lanes: config.supply.car.num_pistas,
+                  total:
+                    totalAgents > 0 ? totalAgents.toLocaleString("es-CL") : "—",
+                  length: cfgRes.city.largo_ciudad_km,
+                  stations: cfgRes.supply.train.num_estaciones,
+                  lanes: cfgRes.supply.car.num_pistas,
                 })}
               </span>
             </div>
           </div>
         </div>
 
-        {/* KPIs */}
-        {kpiCaption && <div className="kpi-caption">{kpiCaption}</div>}
+        {/* Si la corrida NO convergió, el aviso va ANTES de los números y no
+            solo en el veredicto de más abajo. El orden de la página dice que
+            primero se valida y después se lee, pero los KPI son lo primero que
+            entra por los ojos: sin esta marca, el alumno lee seis cifras como
+            si fueran un equilibrio y recién 500 px más abajo se entera de que
+            no lo son. */}
+        {hasData && convergencia && !convergencia.ok && (
+          <p
+            className="mb-2 font-fig text-[11px] uppercase leading-snug tracking-[0.08em]"
+            style={{
+              color: "var(--s1)",
+              border: "1px solid var(--s1)",
+              padding: "6px 10px",
+            }}
+            role="status"
+          >
+            {t("equilibrium.kpis_sin_equilibrio")}
+          </p>
+        )}
+
+        {/* KPIs — el resultado en una línea: viajes, reparto modal, frecuencia
+            y CO₂. Convergencia y residuo los dice el veredicto. */}
         <KPIStrip items={kpis} />
 
-        {/* Hint row — guía pedagógica */}
-        <div className="hint-row">
-          <div className="hint">
-            <strong>{t("hints.demand_title")}</strong>
-            {t("hints.demand_body")}
+        {/* Hint row — guía pedagógica (solo antes de la primera corrida: tras
+            simular, los resultados mandan y los hints serían ruido) */}
+        {!hasData && (
+          <div className="hint-row">
+            <div className="hint">
+              <strong>{t("hints.demand_title")}</strong>
+              {t("hints.demand_body")}
+            </div>
+            <div className="hint">
+              <strong>{t("hints.supply_title")}</strong>
+              {t("hints.supply_body")}
+            </div>
+            <div className="hint">
+              <strong>{t("hints.equilibrium_title")}</strong>
+              {t("hints.equilibrium_body")}
+            </div>
           </div>
-          <div className="hint">
-            <strong>{t("hints.supply_title")}</strong>
-            {t("hints.supply_body")}
-          </div>
-          <div className="hint">
-            <strong>{t("hints.equilibrium_title")}</strong>
-            {t("hints.equilibrium_body")}
-          </div>
-        </div>
+        )}
 
         {/* Estado de corrida (mantiene animaciones) */}
         {(stage === "booting" || stage === "running") && progress && (
@@ -671,20 +1118,135 @@ export function SandboxPage() {
         {(stage === "booting" ||
           (stage === "running" && liveIterations.length === 0)) && (
           <div style={{ marginBottom: "var(--gap)" }}>
-            <SimulationSkeleton nCeldas={config.city.n_celdas} />
+            <SimulationSkeleton nCeldas={cfgRes.city.n_celdas} />
           </div>
         )}
 
-        {/* Grid de paneles FIG. NN */}
+        {/* Grid de resultados. El orden ES la jerarquía: primero VALIDAR que la
+            corrida convergió —sin eso ningún número de abajo es un equilibrio—,
+            después los agregados, que son con lo que se comparan escenarios, y
+            recién ahí el diagnóstico de red. Lo desagregado por estrato cierra.
+
+            Los tres primeros paneles van SIN número de figura: son el resultado,
+            no ilustraciones. Así la secuencia FIG. 00-05 queda contigua en vez
+            de partida por dos tablas intercaladas. */}
         {liveIterations.length > 0 && (
           <div className="panel-grid">
+            {/* 1. VALIDACIÓN */}
+            {convergencia && (
+              <Panel
+                title={
+                  convergencia.ok
+                    ? t("equilibrium.converged")
+                    : t("equilibrium.not_converged")
+                }
+                meta="MSA"
+                cls="col-12"
+              >
+                <p
+                  className="mb-2 text-[11px] leading-snug"
+                  style={{
+                    color: convergencia.ok ? "var(--ink-2)" : "var(--s1)",
+                  }}
+                >
+                  {convergencia.sinCriterio
+                    ? t("equilibrium.verdict_no_tol", {
+                        total: convergencia.total,
+                        res: convergencia.res?.toFixed(3) ?? "—",
+                      })
+                    : convergencia.ok
+                      ? t("equilibrium.verdict_ok", {
+                          n: convergencia.usadas,
+                          total: convergencia.total,
+                          res: convergencia.res?.toFixed(3) ?? "—",
+                          // 3 decimales como el residuo: con toFixed(2) una
+                          // tolerancia de 0,001 se imprimía "0.00" y se leía
+                          // como si no hubiera criterio.
+                          tol: convergencia.tol.toFixed(3),
+                        })
+                      : t("equilibrium.verdict_fail", {
+                          total: convergencia.total,
+                          res: convergencia.res?.toFixed(3) ?? "—",
+                          // 3 decimales como el residuo: con toFixed(2) una
+                          // tolerancia de 0,001 se imprimía "0.00" y se leía
+                          // como si no hubiera criterio.
+                          tol: convergencia.tol.toFixed(3),
+                        })}
+                </p>
+                <ConvergenceTrace iterations={liveIterations} />
+              </Panel>
+            )}
+
+            {/* 2. AGREGADOS — el panel más importante una vez validada la
+                corrida: es la tabla con la que se comparan escenarios (fijar
+                una corrida de referencia y leer el delta). Por eso va apenas
+                debajo del veredicto y no en el puesto 4 de 10. */}
+            {result && configUsed && (
+              <Panel
+                title={t("agg.title")}
+                meta={reference ? t("agg.pinned") : t("agg.meta")}
+                cls="col-12"
+              >
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={pinReference}
+                    className="btn"
+                    disabled={stale}
+                  >
+                    {t("agg.pin")}
+                  </button>
+                  {reference && (
+                    <button
+                      type="button"
+                      onClick={clearReference}
+                      className="btn"
+                    >
+                      {t("agg.unpin")}
+                    </button>
+                  )}
+                </div>
+                <ReferenceComparison
+                  config={configUsed}
+                  landUse={landUseUsed}
+                  result={result}
+                  reference={reference}
+                />
+              </Panel>
+            )}
+
+            {/* 3. Métricas del sistema: acompaña a los agregados, mismo nivel
+                de lectura (ciudad completa). */}
+            {transportMetrics && (
+              <Panel
+                title={t("metrics_table.panel_title")}
+                meta={t("metrics_table.meta")}
+                cls="col-12"
+              >
+                <TransportMetricsTable data={transportMetrics} />
+              </Panel>
+            )}
+
+            {/* 4. DIAGNÓSTICO DE RED — de acá para abajo empiezan las figuras. */}
             {lastIter && result && (
               <Panel
                 n="00"
                 title={t("network.title")}
-                meta="auto · metro · bici · caminata"
+                meta={t("panel_meta.modes_all")}
                 cls="col-12"
               >
+                {/* El v/c de los tres modos congestionables es el resumen
+                    numérico de esta misma figura, así que va acá y no dentro
+                    del panel de tablas, donde estaba. */}
+                {transportMetrics && (
+                  <div className="mb-3">
+                    <CargaDeRed
+                      vcAuto={transportMetrics.vcAuto}
+                      vcMetro={transportMetrics.vcMetro}
+                      vcBici={transportMetrics.vcBici}
+                    />
+                  </div>
+                )}
                 <NetworkDiagram
                   snapshot={lastIter}
                   result={result}
@@ -693,96 +1255,61 @@ export function SandboxPage() {
               </Panel>
             )}
 
-            <Panel
-              n="01"
-              title={t("equilibrium.converged")}
-              meta="MSA"
-              cls="col-12"
-            >
-              <ConvergenceTrace iterations={liveIterations} />
-            </Panel>
-
-            {lastIter &&
-              result &&
-              (() => {
-                // Escala Y compartida: el máximo global entre los 3 modos.
-                // Permite comparar la magnitud relativa visualmente sin engañar
-                // con el auto-scale por panel.
-                const globalMax = Math.max(
-                  ...lastIter.demanda_auto,
-                  ...lastIter.demanda_bici,
-                  ...lastIter.demanda_metro,
-                  ...lastIter.demanda_caminata,
-                  1,
-                );
-                const flowPanels = [
-                  {
-                    n: "02",
-                    mode: "auto",
-                    flows: lastIter.demanda_auto,
-                    color: "var(--auto)",
-                    cap: `${Math.round(result.capacidad_auto)} veh/h corredor`,
-                  },
-                  {
-                    n: "03",
-                    mode: "bici",
-                    flows: lastIter.demanda_bici,
-                    color: "var(--bici)",
-                    cap: `${config.supply.bike.capacidad_pista} bici/h`,
-                  },
-                  {
-                    n: "04",
-                    mode: "metro",
-                    flows: lastIter.demanda_metro,
-                    color: "var(--metro)",
-                    cap: `${config.supply.train.capacidad_tren} pax/tren`,
-                  },
-                  {
-                    n: "4b",
-                    mode: "caminata",
-                    flows: lastIter.demanda_caminata,
-                    color: "var(--walk)",
-                    cap: undefined as string | undefined,
-                  },
-                ] as const;
-                return (
-                  <>
-                    {flowPanels.map((fp) => (
-                      <Panel
-                        key={fp.n}
-                        n={fp.n}
-                        title={t(`modes.${fp.mode}`)}
-                        meta={t("sandbox.flow_per_cell", {
-                          mode: t(`modes.${fp.mode}`),
-                        })}
-                        cls="col-6"
+            {/* UN panel de flujos con selector de modo, en vez de cuatro paneles
+                que repetían la misma forma. El profesor reportó que tanto
+                gráfico marea; cuatro figuras para una sola lectura es
+                justamente el caso. La escala Y sigue siendo la global para que
+                cambiar de modo no engañe con auto-scale. */}
+            {lastIter && result && flowData && (
+              <Panel
+                n="01"
+                title={flowTitle}
+                meta={
+                  <div className="flex flex-wrap gap-1">
+                    {FLOW_MODES.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setFlowMode(m)}
+                        className="tab"
+                        aria-pressed={flowMode === m}
+                        style={{
+                          color: flowMode === m ? "var(--paper)" : undefined,
+                          background: flowMode === m ? "var(--ink)" : undefined,
+                        }}
                       >
-                        <ExportableFigure
-                          name={`flujo-${fp.mode}`}
-                          title={t("sandbox.flow_per_cell", {
-                            mode: t(`modes.${fp.mode}`),
-                          })}
-                          exportSize={{ width: 600, height: 200 }}
-                        >
-                          <FlowProfile
-                            flows={fp.flows}
-                            largoKm={config.city.largo_ciudad_km}
-                            color={fp.color}
-                            yMax={globalMax}
-                            capacityHint={fp.cap}
-                          />
-                        </ExportableFigure>
-                      </Panel>
+                        {t(`modes.${m}`)}
+                      </button>
                     ))}
-                  </>
-                );
-              })()}
+                  </div>
+                }
+                cls="col-12"
+              >
+                <ExportableFigure
+                  name={`flujo-${flowMode}`}
+                  title={flowTitle}
+                  exportSize={{ width: 1000, height: 200 }}
+                >
+                  {/* El botón de la animación es HTML, y ExportableFigure
+                      captura el primer <svg>: no sale en la exportación. */}
+                  <CorridorFlowFigure
+                    flujo={flowData.flujo}
+                    demanda={flowData.demanda}
+                    capacidad={flowData.capacidad}
+                    capacidadLabel={flowData.capacidadLabel}
+                    unidad={flowData.unidad}
+                    color={flowData.color}
+                    largoKm={cfgRes.city.largo_ciudad_km}
+                  />
+                </ExportableFigure>
+              </Panel>
+            )}
 
             {result && result.emisiones_perfil_kg && (
               <Panel
-                n="4c"
+                n="02"
                 title={t("sandbox.co2_profile")}
-                meta="kg/h · por celda"
+                meta={t("panel_meta.co2")}
                 cls="col-12"
               >
                 <ExportableFigure
@@ -792,8 +1319,8 @@ export function SandboxPage() {
                 >
                   <FlowProfile
                     flows={result.emisiones_perfil_kg}
-                    largoKm={config.city.largo_ciudad_km}
-                    color="var(--accent)"
+                    largoKm={cfgRes.city.largo_ciudad_km}
+                    color="var(--co2)"
                     label="kg/h"
                     valueFmt={(v) => v.toFixed(1)}
                     height={130}
@@ -804,11 +1331,18 @@ export function SandboxPage() {
 
             {result && result.agentes.length > 0 && (
               <>
+                {/* Las tres van a ancho completo. FIG. 04 y 05 porque son
+                    espaciales y tienen que alinear columna a columna con las
+                    demás del mismo eje (en col-5 la 04 quedaba con 387 px de
+                    área de datos contra ~930, 2,6× más comprimida). Y la 03
+                    porque sus barras son 100 % apiladas: cuanto más ancha, más
+                    finas son las diferencias de reparto que se pueden leer, y
+                    los segmentos chicos dejan de ser inclicables. */}
                 <Panel
-                  n="05"
+                  n="03"
                   title={t("sandbox.trips_by_stratum")}
-                  meta="reparto · estrato"
-                  cls="col-6"
+                  meta={t("panel_meta.share_stratum")}
+                  cls="col-12"
                 >
                   <ExportableFigure
                     name="reparto-por-estrato"
@@ -820,110 +1354,95 @@ export function SandboxPage() {
                 </Panel>
 
                 <Panel
-                  n="06"
-                  title={t("sandbox.trips_by_car_ownership")}
-                  meta="tenencia · estrato"
-                  cls="col-6"
-                >
-                  <ExportableFigure
-                    name="reparto-tenencia-auto"
-                    title={t("sandbox.trips_by_car_ownership")}
-                    exportSize={{ width: 700, height: 340 }}
-                  >
-                    <ModeShareBars groups={carGroups} />
-                  </ExportableFigure>
-                </Panel>
-
-                <Panel
-                  n="07"
-                  title={t("sandbox.utility_scatter")}
-                  meta="utilidad · posición"
-                  cls="col-7"
-                >
-                  <ExportableFigure
-                    name="dispersion-utilidades"
-                    title={t("sandbox.utility_scatter")}
-                    exportSize={{ width: 800, height: 280 }}
-                  >
-                    <UtilityScatter
-                      agents={result.agentes}
-                      nCeldas={config.city.n_celdas}
-                      largoKm={config.city.largo_ciudad_km}
-                    />
-                  </ExportableFigure>
-                </Panel>
-
-                <Panel
-                  n="08"
+                  n="04"
                   title={t("sandbox.mode_share_by_location")}
-                  meta="stacked · 100%"
-                  cls="col-5"
+                  meta={t("panel_meta.stacked_por_celda")}
+                  cls="col-12"
                 >
                   <ExportableFigure
                     name="reparto-modal-por-ubicacion"
                     title={t("sandbox.mode_share_by_location")}
                     exportSize={{ width: 800, height: 280 }}
                   >
-                    <ModeShareByLocation
-                      agents={result.agentes}
-                      nCeldas={config.city.n_celdas}
-                      largoKm={config.city.largo_ciudad_km}
-                    />
+                    {lastIter && (
+                      <ModeShareByLocation
+                        demandByCell={{
+                          Auto: lastIter.demanda_auto,
+                          Metro: lastIter.demanda_metro,
+                          Bici: lastIter.demanda_bici,
+                          Caminata: lastIter.demanda_caminata,
+                        }}
+                        teleByCell={teleByCell}
+                        largoKm={cfgRes.city.largo_ciudad_km}
+                      />
+                    )}
                   </ExportableFigure>
                 </Panel>
 
-                {avgStats && (
-                  <>
-                    <Panel
-                      n="09"
-                      title={t("sandbox.avg_time_by_mode")}
-                      meta="promedio · min"
-                      cls="col-4"
-                    >
-                      <ExportableFigure
-                        name="tiempo-medio-por-modo"
-                        title={t("sandbox.avg_time_by_mode")}
-                        exportSize={{ width: 500, height: 240 }}
-                      >
-                        <StatBars bars={avgStats.timeByMode} unit="min" />
-                      </ExportableFigure>
-                    </Panel>
-
-                    <Panel
-                      n="10"
-                      title={t("sandbox.avg_time_by_stratum")}
-                      meta="promedio · min"
-                      cls="col-4"
-                    >
-                      <ExportableFigure
-                        name="tiempo-medio-por-estrato"
-                        title={t("sandbox.avg_time_by_stratum")}
-                        exportSize={{ width: 500, height: 240 }}
-                      >
-                        <StatBars bars={avgStats.timeByStratum} unit="min" />
-                      </ExportableFigure>
-                    </Panel>
-
-                    <Panel
-                      n="11"
-                      title={t("sandbox.avg_utility_by_stratum")}
-                      meta="promedio · util"
-                      cls="col-4"
-                    >
-                      <ExportableFigure
-                        name="utilidad-media-por-estrato"
-                        title={t("sandbox.avg_utility_by_stratum")}
-                        exportSize={{ width: 500, height: 240 }}
-                      >
-                        <StatBars bars={avgStats.utilByStratum} decimals={2} />
-                      </ExportableFigure>
-                    </Panel>
-                  </>
+                {modeShareByStratum && (
+                  <Panel
+                    n="05"
+                    title={t("sandbox.mode_share_by_location_stratum")}
+                    meta={t("sandbox.mode_share_stratum_meta")}
+                    cls="col-12"
+                  >
+                    <div style={{ display: "grid", gap: "var(--gap)" }}>
+                      {modeShareByStratum.map((s) => (
+                        <div key={s.key}>
+                          <div
+                            className="mb-1 flex items-center gap-1.5 font-fig text-[10px] uppercase tracking-[0.08em]"
+                            style={{ color: "var(--muted)" }}
+                          >
+                            <span
+                              style={{
+                                width: 9,
+                                height: 9,
+                                background: s.color,
+                                display: "inline-block",
+                              }}
+                            />
+                            {s.label}
+                          </div>
+                          <ExportableFigure
+                            name={`reparto-ubicacion-${s.key}`}
+                            title={`${t("sandbox.mode_share_by_location_stratum")} — ${s.label}`}
+                            exportSize={{ width: 800, height: 180 }}
+                          >
+                            <ModeShareByLocation
+                              demandByCell={s.demandByCell}
+                              teleByCell={s.teleByCell}
+                              largoKm={cfgRes.city.largo_ciudad_km}
+                              height={130}
+                              normalize={false}
+                            />
+                          </ExportableFigure>
+                        </div>
+                      ))}
+                    </div>
+                  </Panel>
                 )}
               </>
             )}
           </div>
         )}
+
+        {/* Inspector de utilidad — descomposición del logit para una celda/
+            estrato; lo referencia el tutorial de demanda. Antes de correr usa
+            tiempos de flujo libre; después, los de la última iteración. */}
+        <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
+          <Panel
+            n="06"
+            title={t("demand_inspector.title")}
+            meta={
+              lastIter
+                ? t("demand_inspector.hint_with_sim")
+                : t("demand_inspector.hint_no_sim")
+            }
+            cls="col-12"
+          >
+            <DemandInspector config={cfgRes} lastIter={lastIter} />
+          </Panel>
+        </div>
       </section>
     </div>
   );

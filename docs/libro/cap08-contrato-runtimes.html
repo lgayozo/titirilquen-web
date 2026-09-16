@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 8: Contrato y runtimes</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 8</div>
+  <h1>Contrato y runtimes</h1>
+  <p class="bajada">
+    Un núcleo, dos motores. Este capítulo no audita una ecuación sino una
+    promesa: que el mismo Python corrido en el servidor y en el navegador dé el
+    mismo número, y que lo que el frontend cree del núcleo —tipos, defaults,
+    presets— sea lo que el núcleo es.
+  </p>
+  <p class="meta">
+    Módulos: <code>serializacion.py</code> · <code>apps/api</code> ·
+    <code>pyodide.worker.ts</code> · <code>lib/api.ts</code> ·
+    <code>lib/gen/</code> · goldens ·
+    auditado el 2026-09-08 ·
+    datos regenerados el 2026-09-08 ·
+    <span class="estado auditado">auditado</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Cotejo con el código</a></li>
+    <li><a href="#s3">Parámetros</a></li>
+    <li><a href="#s4">Resultados</a></li>
+    <li><a href="#s5">Pruebas</a></li>
+    <li><a href="#s6">Auditorías</a></li>
+    <li><a href="#s7">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<p>
+  No hay ecuaciones en este capítulo; hay tres invariantes de arquitectura, y
+  cada uno se puede medir.
+</p>
+
+<h3>Invariante 1 — una sola implementación</h3>
+
+<p>
+  La matemática vive una vez, en Python. Lo que la interfaz necesita
+  <em>antes</em> de tener un resultado del motor —la utilidad por modo para el
+  inspector, la oferta de vivienda para la vista previa— se duplica en
+  TypeScript y se pinea con un fixture golden que escribe el núcleo. Todo lo
+  demás se calcula en Python y cruza serializado. La regla la fija
+  <code>arquitectura.html</code> §6: «se duplica sólo lo que la UI necesita antes
+  de tener un resultado, y todo lo duplicado va pineado».
+</p>
+
+<h3>Invariante 2 — dos runtimes, un número</h3>
+
+<p>
+  El mismo wheel corre en FastAPI (<code>engine = "api"</code>) y en un Web
+  Worker con Pyodide (<code>engine = "local"</code>, el default). Para la
+  misma petición tienen que devolver el mismo JSON. La única pieza que difiere
+  entre ambos es el <strong>pegamento</strong>: cuatro funciones de Python
+  embebidas como string en <code>pyodide.worker.ts</code>, y los cuatro
+  endpoints de <code>main.py</code>. Si los dos pegamentos llaman al núcleo con
+  los mismos argumentos, la paridad está garantizada por construcción; si no,
+  no hay test que lo diga.
+</p>
+
+<h3>Invariante 3 — el contrato se proyecta, no se transcribe</h3>
+
+<p>
+  Los tipos, defaults, presets y constantes que el frontend conoce se
+  <strong>generan</strong> desde Pydantic y los <code>TypedDict</code> de
+  <code>serializacion.py</code> con <code>genera_contrato.py</code>. Las
+  divergencias deliberadas entre los defaults del núcleo y los de la aplicación
+  viven declaradas en <code>overrides.ts</code>. Un job del CI regenera todo y
+  falla si el diff no está vacío.
+</p>
+
+<p>
+  Los tres se evalúan en la §4. El tercero, además, tiene una condición previa
+  que resultó ser falsa: que el CI corra.
+</p>
+
+<h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Inv.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">1, 2</td>
+      <td class="ruta py">serializacion.py</td>
+      <td class="n">235</td>
+      <td><code>trace_to_dict</code> — la forma de una corrida; <code>iteration_to_dict</code> (215) por snapshot, <code>agente_to_dict</code> (203) por agente</td>
+    </tr>
+    <tr>
+      <td class="n">1, 2</td>
+      <td class="ruta py">serializacion.py</td>
+      <td class="n">301</td>
+      <td><code>outer_iteration_to_dict</code> — una vuelta del acoplado, con el trace de transporte ENTERO adentro; <code>coupled_result_to_dict</code> (312)</td>
+    </tr>
+    <tr>
+      <td class="n">1, 2</td>
+      <td class="ruta py">serializacion.py</td>
+      <td class="n">286</td>
+      <td><code>land_use_city_to_dict</code> — respuesta del suelo standalone; el Theil se calcula acá (295) y no en TS</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta py">apps/api/src/api/main.py</td>
+      <td class="n">88</td>
+      <td><code>simulate</code> — <code>run_msa(sim, land_use, localizacion)</code>; <code>SimulateRequest</code> (70) trae el uso de suelo desde el 2026-09-10 (C-02, cerrado); <code>land_use_solve</code> (119), <code>coupled_solve</code> (144), <code>coupled_stream</code> (160)</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta py">apps/api/src/api/main.py</td>
+      <td class="n">132</td>
+      <td><code>CoupledRequest</code> — <code>outer_max_iter</code> con <code>le=10</code>: la cota que la interfaz no cumple (D-61)</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta ts">workers/pyodide.worker.ts</td>
+      <td class="n">82</td>
+      <td><code>runPythonAsync</code> — el bloque Python embebido: 71 líneas que ninguna herramienta lee</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta ts">workers/pyodide.worker.ts</td>
+      <td class="n">159</td>
+      <td><code>iter_from_json_suelo</code> — la entrada del Sandbox; <code>land_use_solve_from_json</code> (177), <code>coupled_iter_from_json</code> (192). <code>simulate_from_json</code>, sin llamadores, se borró el 2026-09-10 (D-63)</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta ts">workers/pyodide.worker.ts</td>
+      <td class="n">77</td>
+      <td><code>PYODIDE_VERSION</code> — 0.26.4, el que trae pydantic 2.7.0 precompilado</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta ts">lib/api.ts</td>
+      <td class="n">41</td>
+      <td><code>motorLocal</code> — la única decisión de motor; <code>simularTransporte</code> (106), <code>resolverUsoDeSuelo</code> (138), <code>resolverAcoplado</code> (163), <code>resolverAcopladoStream</code> (185)</td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td class="ruta ts">lib/pyodide-engine.ts</td>
+      <td class="n">72</td>
+      <td><code>PyodideEngine</code> — el cliente del worker; <code>simulateStream</code> (192), <code>solveLandUse</code> (220), <code>solveCoupledStream</code> (249). El <code>simulate</code> sin llamadores se borró el 2026-09-10 (D-63)</td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta py">packages/titirilquen_core/tools/genera_contrato.py</td>
+      <td class="n">78</td>
+      <td><code>DESTINO</code> — <code>lib/gen/</code>; <code>emite_tipos</code> (177), <code>emite_trace</code> (279), <code>emite_defaults</code> (313)</td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta ts">lib/overrides.ts</td>
+      <td class="n">29</td>
+      <td><code>defaultSimulationConfig</code> — las divergencias deliberadas; <code>defaultLandUseConfig</code> (52)</td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta py">packages/titirilquen_core/tests/test_contract_frontend.py</td>
+      <td class="n">67</td>
+      <td><code>_defaults</code> — escribe el golden de defaults; <code>test_defaults_golden_vigente</code> (99), <code>test_utilidad_golden_vigente</code> (183)</td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta ts">store/landUseStore.ts</td>
+      <td class="n">85</td>
+      <td><code>coupledOuterMaxIter</code> — 12, el cuarto default del mismo parámetro</td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td class="ruta ts">lib/serialization.ts</td>
+      <td class="n">35</td>
+      <td><code>TTRQ_SCHEMA</code> — <code>titirilquen-scenario/v3</code>, sin migraciones; <code>parseTtrqJson</code> (70) falla explícito con un schema anterior</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Diferencias con la fuente</h3>
+
+<p>
+  La «fuente» acá es el propio diseño declarado en <code>arquitectura.html</code>
+  y <code>diagrama-flujo.html</code>, los dos informes que este capítulo
+  absorbe. Tres afirmaciones suyas quedaron desfasadas:
+</p>
+
+<div class="aviso neutro">
+  <h4>«El Sandbox corre SIEMPRE el motor Pyodide (ignora engine)»</h4>
+  <p>
+    Era cierto cuando se escribió el diagrama. Hoy <code>SandboxPage.tsx</code>
+    importa <code>simularTransporte</code> de <code>lib/api.ts</code> y respeta el
+    motor, igual que las otras páginas. Y desde el 2026-09-10 tampoco vale la
+    salvedad de C-02: con motor api va a <code>/simulate</code> con el mismo uso
+    de suelo que el motor local.
+  </p>
+</div>
+
+<div class="aviso neutro">
+  <h4>«Quedan exactamente dos espejos»</h4>
+  <p>
+    Sigue siendo verdad para la <em>matemática</em>: <code>utility.ts</code> y
+    <code>citySupply.ts</code>, los dos con golden. Pero hay un tercer espejo que
+    no es matemático y no está pineado: el <strong>criterio de convergencia</strong>
+    del acoplado, reimplementado en <code>api.ts</code> con una sola de las tres
+    condiciones del núcleo (D-55, cap. 6).
+  </p>
+</div>
+
+<div class="aviso alerta">
+  <h4>«El CI corre <code>sync:core</code> y falla si el diff no está vacío»</h4>
+  <p>
+    El job existe. No ha corrido nunca. Ver D-60 en la §4.6.
+  </p>
+</div>
+
+<h2 id="s3"><span class="num">§3</span> Parámetros</h2>
+
+<p>
+  Este capítulo no tiene parámetros de modelo; tiene <strong>pines</strong>:
+  versiones y números fijados a mano, a veces en más de un lugar.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Pin</th><th>Valor</th><th>Dónde</th><th>Origen</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>versión del núcleo</td>
+      <td class="n">0.2.0</td>
+      <td><code>pyproject.toml</code> y, a mano, el nombre del wheel en el worker</td>
+      <td><span class="etiqueta neutra">decisión</span> coinciden hoy; si se sube una y no la otra, el motor local no arranca</td>
+    </tr>
+    <tr>
+      <td><code>PYODIDE_VERSION</code></td>
+      <td class="n">0.26.4</td>
+      <td><code>pyodide.worker.ts</code></td>
+      <td><span class="etiqueta neutra">decisión</span> fija qué pydantic viene precompilado</td>
+    </tr>
+    <tr>
+      <td>piso de pydantic</td>
+      <td class="n">&gt;=2.7</td>
+      <td><code>pyproject.toml</code></td>
+      <td><span class="etiqueta lim">heredado</span> del pin de Pyodide: subirlo rompe <code>micropip</code>; sólo lo detecta un test que no corre en CI</td>
+    </tr>
+    <tr>
+      <td><code>outer_max_iter</code></td>
+      <td class="n">5 · 3 · 3 · 12</td>
+      <td>núcleo · API · worker · interfaz</td>
+      <td><span class="etiqueta lim">heredado</span> cuatro defaults para un parámetro; la API además impone <code>le=10</code> (D-61)</td>
+    </tr>
+    <tr>
+      <td><code>outer_tol</code></td>
+      <td class="n">1,0</td>
+      <td>núcleo · API · worker · páginas</td>
+      <td><span class="etiqueta lim">heredado</span> ver D-54: rotulado en minutos, en útiles/mes</td>
+    </tr>
+    <tr>
+      <td>overrides de la app</td>
+      <td class="n">6</td>
+      <td><code>lib/overrides.ts</code></td>
+      <td><span class="etiqueta neutra">decisión</span> 201 celdas, 1.800 hab/km, semilla 42, <code>expected</code>, 36.000 hogares, 2.000 iteraciones del suelo</td>
+    </tr>
+    <tr>
+      <td><code>$schema</code> de escenarios</td>
+      <td class="n">v3</td>
+      <td><code>lib/serialization.ts</code></td>
+      <td><span class="etiqueta neutra">decisión</span> sin migraciones: un archivo anterior falla explícito</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="s4"><span class="num">§4</span> Resultados</h2>
+
+<h3>4.1 Los dos runtimes dan el mismo número</h3>
+
+<p>
+  El bloque Python del worker se extrae de <code>pyodide.worker.ts</code>, se le
+  quitan las dos líneas de <code>micropip</code> y se ejecuta en CPython contra el
+  núcleo instalado. Cada una de sus entradas se compara con lo que devuelve la
+  ruta equivalente de la API, sobre la configuración de la aplicación:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>entrada del worker</th><th>ruta de la API</th><th>resultado</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td><code>iter_from_json_suelo</code> (<code>simulateStream</code>)</td><td><code>/simulate</code></td><td>idénticos (0 claves distintas): la entrada del Sandbox, contra la ruta que la API recorre con motor api</td></tr>
+    <tr><td><code>land_use_solve_from_json</code></td><td><code>/land-use/solve</code></td><td>idénticos salvo <code>parcelas</code>, que ninguno de los dos siembra</td></tr>
+    <tr><td><code>coupled_iter_from_json</code></td><td><code>/coupled/stream</code></td><td>idénticos, vuelta a vuelta (2 vueltas)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Comparación JSON con tolerancia relativa 10⁻¹². Son 71 líneas de Python
+  dentro de un string de TypeScript.
+</p>
+
+<p>
+  El invariante 2 se cumple en las tres entradas, y desde el 2026-09-10 la
+  del Sandbox tiene contraparte: hasta entonces <code>/simulate</code>
+  corría otra población (C-02). Es la primera vez que se verifica en CPython: el único test que ejecuta ese bloque
+  (<code>simulation.spec.ts</code>, @slow) comprueba que un KPI deja de ser «—»
+  y que otro contiene «%». Que el motor arranca, no qué calcula.
+</p>
+
+<h3>4.2 C-02, cuantificado y cerrado</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>motor</th><th class="n">auto</th><th class="n">metro</th><th class="n">bici</th><th class="n">caminata</th><th class="n">teletrabajo</th><th class="n">agentes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>api — <code>run_msa(sim, suelo, «original»)</code>, lo que corre <code>/simulate</code></td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">19,494</td><td class="n">36.000</td></tr>
+    <tr class="destacada"><td>local — <code>iter_msa_desde_suelo</code>, lo que corre el worker</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">19,494</td><td class="n">36.000</td></tr>
+    <tr><td>diferencia (pp)</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Antes del cierre, <code>api.ts</code> declaraba la diferencia («es una
+  diferencia real entre motores, no un bug») sin decir cuánto era: la auditoría
+  del 2026-09-08 midió <strong>9,15 puntos de metro</strong> y 179 agentes
+  menos en el servidor, porque <code>/simulate</code> poblaba la ciudad con la
+  densidad plana. El 2026-09-10 esa ruta se borró del núcleo (D-46, cap. 1):
+  <code>/simulate</code> recibe el uso de suelo y la localización, y los dos
+  motores corren exactamente la misma población. La diferencia medida es cero
+  en las cinco categorías y en el conteo de agentes.
+</p>
+
+<h3>4.3 Los defaults cierran</h3>
+
+<p>
+  Golden del núcleo (<code>defaults-golden.json</code>) más los cinco overrides
+  leídos de <code>overrides.ts</code>, contra la configuración que
+  <code>test_linea_base</code> dice que corre la aplicación:
+  <strong>iguales, 0 claves distintas</strong>. Los tres documentos —golden,
+  overrides, línea base— cuentan la misma historia. El docstring de
+  <code>overrides.ts</code> dice «cinco diferencias» y son cinco (eran seis
+  hasta que la densidad dejó de ser un campo, D-46):
+  <code>estratos: ESTRATOS_CALIBRADOS</code> no cuenta, porque
+  <code>DemandConfig</code> no tiene default para <code>estratos</code> y el
+  frontend rellena un campo obligatorio en vez de cambiarlo.
+</p>
+
+<h3>4.4 Un parámetro, cuatro defaults y una cota</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>dónde</th><th class="n"><code>outer_max_iter</code></th><th>cota</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>núcleo, <code>coupled.py</code></td><td class="n">5</td><td>—</td></tr>
+    <tr><td>API, <code>main.py</code></td><td class="n">3</td><td><code>ge=1, le=10</code></td></tr>
+    <tr><td>worker, <code>pyodide.worker.ts</code></td><td class="n">3</td><td>—</td></tr>
+    <tr class="destacada"><td>interfaz, <code>landUseStore.ts</code></td><td class="n">12</td><td>—</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso alerta">
+  <h4>D-61 — con motor api, la página acoplada no puede correr con su default</h4>
+  <p>
+    Medido con <code>TestClient</code>: <code>outer_max_iter = 10</code> → 200;
+    <code>outer_max_iter = 12</code> → <strong>422</strong>. La interfaz envía 12.
+    Nadie lo notó porque el motor por defecto es el local, que no valida la
+    cota, y porque ningún e2e ejercita el motor api.
+  </p>
+</div>
+
+<h3>4.5 Lo que cruza la frontera y lo que se lee</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>objeto</th><th class="n">bytes</th><th>de qué está hecho</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>trace_to_dict</code> (una corrida)</td><td class="n">5.897.623</td><td><code>agentes</code> 94,87 % · <code>iteraciones</code> 4,28 % · <code>demanda_estrato</code> 0,63 %</td></tr>
+    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">5.923.962</td><td><code>transport</code> 99,49 % · <code>land_use</code> 0,28 % · <code>T_matrix</code> 0,20 % · <code>metrics</code> 0,04 %</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>campo de <code>OuterIteration</code></th><th class="n">referencias en el frontend</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>land_use</code></td><td class="n">13</td></tr>
+    <tr><td><code>metrics</code></td><td class="n">9</td></tr>
+    <tr><td><code>outer_iter</code></td><td class="n">5</td></tr>
+    <tr><td><code>T_residual</code></td><td class="n">4</td></tr>
+    <tr><td><code>T_matrix</code></td><td class="n">0</td></tr>
+    <tr class="destacada"><td><code>transport</code></td><td class="n"><strong>0</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso alerta">
+  <h4>D-62 — 71,1 MB por corrida acoplada, 0,22 MB abiertos</h4>
+  <p>
+    Cada vuelta del acoplado transporta el trace de transporte entero —36.000
+    agentes con seis campos— y la interfaz no lee <code>transport</code> ni una
+    vez. Con las 12 vueltas del default cruzan la frontera 71,1 MB, de los que
+    el frontend abre 0,22 MB. En el motor local cada mensaje pasa además por
+    <code>jsFromPy</code> antes de descartarse. Es la misma familia que
+    <code>T_matrix</code> (cap. 6), tres órdenes de magnitud más grande.
+  </p>
+</div>
+
+<h3>4.6 Campos sin lector, y el CI que no corre</h3>
+
+<p>
+  De los 112 campos del contrato, <strong>15</strong> no aparecen en ningún
+  archivo del frontend fuera de <code>lib/gen/</code>: <code>gap_final_min</code>,
+  <code>v_libre_auto</code>, <code>alpha_auto_bpr</code>, <code>beta_auto_bpr</code>,
+  <code>f_msa</code>, <code>teletrabaja</code>, <code>tiene_auto</code>,
+  <code>T_matrix</code>, <code>excedente_social_por_estrato_clp</code>,
+  <code>viajeros_por_estrato</code>, <code>excedente_total_clp</code>,
+  <code>excedente_max_total_clp</code>, <code>n_viajeros</code>,
+  <code>convergio_msa</code> y <code>tiempo_total_pax_min</code>. Dos son
+  pendientes declarados que siguen abiertos: <code>gap_final_min</code> (D-39) y
+  <code>n_viajeros</code> (D-35).
+</p>
+
+<div class="aviso alerta">
+  <h4>D-60 — los guardas existen en el YAML y no han corrido nunca</h4>
+  <p>
+    <code>ci.yml</code> declara cuatro jobs y dispara sólo en <code>push</code> a
+    <code>main</code>. El último run es del 2026-06-09; los jobs
+    <code>contrato</code> y <code>pyodide</code> se agregaron en agosto, y todo
+    el trabajo posterior está en una rama sin PR, 168 commits por delante. Al
+    correr <code>sync:core</code> para este capítulo, el wheel servido estaba
+    <strong>desfasado un commit</strong> —tres rutas de comentarios en
+    <code>bienestar.py</code> y <code>config.py</code>—, que es exactamente lo
+    que el job atraparía. El bloque <code>wheel_al_dia</code> de este capítulo
+    recompila el wheel y compara los 31 hashes de <code>RECORD</code> en cada
+    regeneración; hoy dice al día porque el wheel se regeneró y va en el mismo
+    commit.
+  </p>
+</div>
+
+<h3>4.7 Determinismo y consistencia entre páginas</h3>
+
+<ul>
+  <li>
+    El suelo standalone (<code>/land-use/solve</code> y el worker) construye la
+    ciudad <strong>sin semilla</strong>: dos corridas dan <code>Q</code> idéntico
+    y <code>parcelas</code> distintas. Es lo que D-44 declara —la asignación
+    entera sirve para dibujar, no para comparar—, pero significa que la misma
+    configuración pinta dos ciudades distintas en la página de suelo y siempre
+    la misma en la acoplada, que sí siembra.
+  </li>
+  <li>
+    La vuelta 0 del acoplado y el suelo standalone resuelven <strong>la misma
+    ciudad</strong>: <code>max|ΔQ| = 0,0</code>. Lo que el usuario ve en «Uso de
+    suelo» es exactamente el punto de partida de «Ciudad en equilibrio».
+  </li>
+</ul>
+
+<p class="pie-tabla">
+  Fuente: <code>datos/cap08.json</code>, regenerado el 2026-09-08 con
+  <code>uv run python ../../docs/libro/datos/datos_cap08.py</code>. Goldens:
+  18 casos de oferta, 27 de utilidad. Contrato generado: 5 archivos, 896 líneas,
+  29 interfaces.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Pruebas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Test</th><th>Qué fija</th><th>Qué NO cubre</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>test_contract_frontend.py::test_supply_golden_vigente</code> y <code>contract.spec.ts</code> «citySupply ↔ supply.py»</td>
+      <td>El espejo de la oferta de vivienda, 18 casos.</td>
+      <td>Nada relevante: es el espejo mejor cubierto del repo.</td>
+    </tr>
+    <tr>
+      <td><code>test_contract_frontend.py::test_utilidad_golden_vigente</code> y <code>contract.spec.ts</code> «utility.ts ↔ utility.py»</td>
+      <td>El espejo de la utilidad, 27 casos en los bordes de factibilidad.</td>
+      <td>Que el inspector use esa función con la misma configuración que el motor.</td>
+    </tr>
+    <tr>
+      <td><code>test_contract_frontend.py::test_defaults_golden_vigente</code></td>
+      <td>Que el golden de defaults sea el del núcleo.</td>
+      <td>Que <code>overrides.ts</code> aplicado al golden dé la app: lo verifica este capítulo, no un test.</td>
+    </tr>
+    <tr>
+      <td>job <code>contrato</code> del CI</td>
+      <td><code>sync:core</code> sin diff: wheel, <code>lib/gen/</code> y goldens al día.</td>
+      <td><strong>Nunca ha corrido</strong> (D-60).</td>
+    </tr>
+    <tr>
+      <td><code>simulation.spec.ts</code> (@slow) y job <code>pyodide</code></td>
+      <td>Que el motor local arranca en un navegador real y llena un KPI.</td>
+      <td>Qué número calcula. Y el job tampoco ha corrido.</td>
+    </tr>
+    <tr>
+      <td><code>apps/api/tests</code> (4 tests)</td>
+      <td>Que los cuatro endpoints responden 200 con una petición chica.</td>
+      <td>La cota <code>le=10</code> contra el default de la interfaz (D-61); la paridad con el worker.</td>
+    </tr>
+    <tr>
+      <td><code>scenario.spec.ts</code></td>
+      <td>Exportar e importar un <code>.ttrq.json</code> y compartir por <code>?s=</code>.</td>
+      <td>Un archivo de schema anterior: falla explícito por diseño, sin test que lo fije.</td>
+    </tr>
+    <tr>
+      <td><em>ninguno</em></td>
+      <td>—</td>
+      <td>La paridad numérica worker ↔ API, que este capítulo mide por primera vez, y cualquier corrida con <code>engine = "api"</code> desde la interfaz.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  El patrón: la frontera está bien cubierta donde hay un <em>espejo</em> —los
+  dos goldens son ejemplares— y descubierta donde hay un <em>segundo
+  runtime</em>. Los tests miran que Python y TypeScript coincidan; nadie mira
+  que Python y Python coincidan.
+</p>
+
+<h2 id="s6"><span class="num">§6</span> Auditorías</h2>
+
+<div class="paso">
+  <h3>Protocolo aplicado <span class="ref">2026-09-08</span></h3>
+  <p>
+    (a) lectura estática del worker, la API, <code>api.ts</code>,
+    <code>serializacion.py</code> y el generador; (b) reproducción: ejecutar el
+    pegamento del worker en CPython y <code>sync:core</code> en limpio;
+    (c) invariancias: paridad de los tres endpoints con contraparte, golden +
+    overrides = línea base, wheel recompilado = wheel servido; (d) consistencia
+    entre páginas: vuelta 0 del acoplado = suelo standalone; (e) lo que la
+    interfaz manda contra lo que la API acepta.
+  </p>
+</div>
+
+<h3>Hallazgos previos del módulo</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ID</th><th>Qué era</th><th>Estado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">C-02</td><td><code>/simulate</code> no recibía uso de suelo: con motor api la población era la de densidad plana.</td><td>cuantificado el 2026-09-08 (9,15 pp de metro); cerrado el 2026-09-10: 0,0 pp</td></tr>
+    <tr><td class="n">—</td><td>La serialización estaba escrita dos veces (API y worker) y divergió: los KPI salían en cero con motor api.</td><td>corregido (ago-2026): <code>serializacion.py</code></td></tr>
+    <tr><td class="n">—</td><td>Tipos, defaults y presets transcritos a mano, ~130 valores y 14 interfaces.</td><td>corregido (ago-2026): generados</td></tr>
+    <tr><td class="n">—</td><td>El piso de pydantic subió a ≥2.8 y el motor local dejó de arrancar con la suite en verde.</td><td>corregido; guarda: el job <code>pyodide</code>, que no ha corrido</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Hallazgos de esta auditoría</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ID</th><th>Hallazgo</th><th>Veredicto</th><th>Estado</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="n">D-60</td>
+      <td>Los jobs <code>contrato</code> y <code>pyodide</code> no han corrido nunca; el wheel estaba desfasado un commit.</td>
+      <td>La documentación describe una red que no está tendida.</td>
+      <td>pendiente — wheel regenerado en este commit</td>
+    </tr>
+    <tr>
+      <td class="n">D-61</td>
+      <td>El default de vueltas de la interfaz (12) supera la cota de la API (10): 422 con motor api.</td>
+      <td>Contrato roto entre dos runtimes que dicen ser el mismo.</td>
+      <td>pendiente</td>
+    </tr>
+    <tr>
+      <td class="n">D-62</td>
+      <td>Cada vuelta del acoplado lleva 5,9 MB de agentes que la interfaz no abre: 71,1 MB por corrida, 0,22 usados.</td>
+      <td>Carga útil que nadie abre.</td>
+      <td>pendiente</td>
+    </tr>
+    <tr>
+      <td class="n">D-63</td>
+      <td>La entrada <code>simulate</code> del worker no tenía llamadores (borrada el 2026-09-10), y 15 campos del contrato no tienen lector.</td>
+      <td>Código y contrato muertos, sin efecto sobre los números.</td>
+      <td>pendiente (baja)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Observaciones sin discrepancia</h3>
+
+<ul>
+  <li>
+    <strong>El suelo standalone no siembra el rng.</strong> Declarado en D-44
+    como «sirve para dibujar»; se anota que la página acoplada sí siembra, así
+    que las dos páginas no son igual de reproducibles para la misma entrada.
+  </li>
+  <li>
+    <strong>Cuatro defaults y dos cotas para <code>outer_max_iter</code></strong>
+    son síntoma de que el generador proyecta <em>salidas</em> del núcleo pero no
+    <em>peticiones</em>: <code>CoupledRequest</code> se escribe a mano en la API,
+    en <code>types-v2.ts</code> y en el worker.
+  </li>
+  <li>
+    <strong>CORS de la API</strong> admite sólo <code>localhost</code>; en
+    producción el frontend llega vía <code>VITE_API_BASE</code> y el despliegue
+    en Fly lo documenta <code>DEPLOY.md</code>. No se verificó en vivo.
+  </li>
+</ul>
+
+<h2 id="s7"><span class="num">§7</span> Discusión</h2>
+
+<h3>Lo que la cirugía de agosto dejó bien</h3>
+
+<p>
+  Los tres invariantes de la §1 se cumplen donde se pueden medir. Los dos
+  espejos matemáticos están pineados y coinciden; los defaults generados más los
+  overrides declarados reproducen exactamente la línea base; y el pegamento del
+  worker, ejecutado en CPython, devuelve lo mismo que la API en las tres
+  entradas que tienen contraparte. Ninguno de los cuatro hallazgos nuevos
+  toca un número que el usuario ve.
+</p>
+
+<h3>La lección de D-60</h3>
+
+<p>
+  Es la más incómoda del libro hasta acá, porque no es del código. El repo
+  construyó dos guardas buenos —el diff de <code>sync:core</code> y el arranque
+  real de Pyodide— y los describió en tres documentos como si estuvieran
+  vigilando. Vigilarían si el trabajo llegara a <code>main</code>. Cinco
+  capítulos de este libro dicen «180 tests verdes» como cierre, y todos son
+  tests de CPython corridos a mano: el runtime por defecto de la aplicación no
+  ha sido ejecutado por ninguna máquina que no fuera la del autor desde junio.
+</p>
+
+<h3>Lo que el generador no proyecta</h3>
+
+<p>
+  D-61 y D-55 comparten causa. <code>genera_contrato.py</code> proyecta lo que
+  el núcleo <em>devuelve</em> —tipos de resultado, defaults de configuración—
+  pero no lo que el núcleo <em>acepta</em> ni lo que <em>decide</em>. La petición
+  del acoplado se escribe tres veces a mano con tres defaults y una cota
+  suelta; el criterio de convergencia se reescribió en TypeScript con una
+  condición de tres. Ambos son el mismo hueco: cuando un dato del núcleo no
+  tiene una forma que el generador reconozca, alguien lo transcribe, y la
+  transcripción envejece.
+</p>
+
+<div class="aviso idea">
+  <h4>Pendientes</h4>
+  <ul>
+    <li>
+      <strong>Que el CI corra</strong> (D-60): abrir el PR de la rama, o
+      disparar en ella. Hasta entonces, cerrar cada capítulo con
+      <code>sync:core</code> en limpio y <code>npx playwright test --grep @slow</code>.
+    </li>
+    <li>
+      <strong>Un solo <code>CoupledRequest</code></strong> (D-61): default y cota
+      en el núcleo, proyectados como el resto del contrato.
+    </li>
+    <li>
+      <strong>Adelgazar la vuelta</strong> (D-62): <code>transport</code> sin
+      agentes en <code>OuterIterationDict</code>; el Sandbox, único consumidor de
+      agentes, los pide por su ruta.
+    </li>
+    <li>
+      <strong>Un test de paridad Python ↔ Python</strong>: el bloque
+      <code>paridad_worker_api</code> de este capítulo es ese test; conviene
+      moverlo a <code>tests/</code> del núcleo para que corra con pytest.
+    </li>
+    <li>
+      <strong>Podar el contrato</strong> (D-63), empezando por cerrar los dos
+      pendientes que quedaron en el aire: mostrar <code>gap_final_min</code> y
+      <code>n_viajeros</code>.
+    </li>
+  </ul>
+</div>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    plan en <a href="PLAN.md">PLAN.md</a> ·
+    capítulo anterior: <a href="cap07-bienestar-indicadores.html">Bienestar e indicadores</a> ·
+    informes absorbidos: <a href="arquitectura.html">arquitectura</a> ·
+    <a href="diagrama-flujo.html">diagrama-flujo</a>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

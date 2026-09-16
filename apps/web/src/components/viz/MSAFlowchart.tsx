@@ -1,7 +1,11 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Flowchart, type FlowEdge, type FlowNode } from "@/components/viz/Flowchart";
+import {
+  Flowchart,
+  type FlowEdge,
+  type FlowNode,
+} from "@/components/viz/Flowchart";
 
 const CENTER_X = 220;
 const NODE_W = 300;
@@ -110,7 +114,7 @@ export function MSAFlowchart() {
         },
       },
     ],
-    [t]
+    [t],
   );
 
   const edges: FlowEdge[] = useMemo(() => {
@@ -143,7 +147,14 @@ export function MSAFlowchart() {
     ];
   }, [t]);
 
-  const playback = ["initial", "logit", "congestion", "smooth", "check", "done"];
+  const playback = [
+    "initial",
+    "logit",
+    "congestion",
+    "smooth",
+    "check",
+    "done",
+  ];
 
   return (
     <Flowchart

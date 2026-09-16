@@ -1,0 +1,144 @@
+/**
+ * Oferta de vivienda S(i) para las visualizaciones del frontend — **espejo de
+ * presentación** de `land_use/supply.py:generar_oferta` (+ `_discretizar`).
+ *
+ * El vector S entero que realmente se resuelve lo genera el core Python; acá
+ * reproducimos la *forma* para que la vista previa (`CityShapePreview`) y la
+ * distribución de resultados (`StratumDistribution`) compartan exactamente la
+ * misma envolvente. Antes el resultado ignoraba S y dibujaba una ciudad plana
+ * que no coincidía con la figura de la forma elegida.
+ */
+
+import type { FormaOferta } from "@/lib/types-v2";
+
+/**
+ * Densidad derivada ρ = ΣH / largo (hab/km).
+ *
+ * La densidad NO es un input: la escala de demanda la fija ΣH del uso de suelo,
+ * en todos los motores desde sep-2026 (D-46). Esta función sólo la DERIVA para
+ * mostrarla (hints, tarjetas): ΣH / largo.
+ */
+export function densidadDerivadaHabKm(sumaH: number, largoKm: number): number {
+  return largoKm > 0 ? Math.round(sumaH / largoKm) : 0;
+}
+
+/** Pesos w(d) del perfil de oferta (sin discretizar). Mismo modelo que el core. */
+export function cityShapeWeights(
+  forma: FormaOferta,
+  L: number,
+  CBD: number,
+  sigmaFrac: number,
+  formaParam: number,
+): number[] {
+  const semi = Math.max(1, Math.min(CBD, L - 1 - CBD));
+  const sigma = Math.max(sigmaFrac * semi, 1e-6);
+  const w = new Array<number>(L).fill(0);
+  for (let i = 0; i < L; i++) {
+    const d = Math.abs(i - CBD);
+    let v = 0;
+    switch (forma) {
+      case "normal":
+        v = Math.exp(-0.5 * (d / sigma) ** 2);
+        break;
+      case "uniforme":
+        v = 1;
+        break;
+      case "exponencial":
+        v = Math.exp(-d / sigma);
+        break;
+      case "meseta":
+        v = Math.exp(-((d / sigma) ** 8));
+        break;
+      case "bimodal": {
+        const sp = sigma * 0.5;
+        const sep = formaParam * semi;
+        v =
+          Math.exp(-0.5 * ((i - (CBD - sep)) / sp) ** 2) +
+          Math.exp(-0.5 * ((i - (CBD + sep)) / sp) ** 2);
+        break;
+      }
+      case "valle":
+        v = (d / semi) ** (2 * sigmaFrac);
+        break;
+    }
+    w[i] = v;
+  }
+  w[CBD] = 0; // no se construye sobre el CBD
+  return w;
+}
+
+/**
+ * Vector de oferta entero S(i) con Σ S = N y CBD vacío, por el método del mayor
+ * residuo. Espejo de `_discretizar` del core. Para uso en visualizaciones.
+ */
+export function supplyVector(
+  forma: FormaOferta,
+  L: number,
+  CBD: number,
+  sigmaFrac: number,
+  formaParam: number,
+  N: number,
+): number[] {
+  const w = cityShapeWeights(forma, L, CBD, sigmaFrac, formaParam);
+  let total = w.reduce((a, b) => a + b, 0);
+  if (total <= 0) {
+    for (let i = 0; i < L; i++) w[i] = i === CBD ? 0 : 1;
+    total = w.reduce((a, b) => a + b, 0);
+  }
+  const target = w.map((x) => (x / total) * N);
+  const S = target.map((x) => Math.floor(x));
+  let resto = N - S.reduce((a, b) => a + b, 0);
+  const orden = target
+    .map((x, i) => ({ frac: i === CBD ? -1 : x - Math.floor(x), i }))
+    .sort((a, b) => b.frac - a.frac);
+  for (let k = 0; resto > 0 && k < orden.length; k++, resto--) {
+    S[orden[k]!.i] = (S[orden[k]!.i] ?? 0) + 1;
+  }
+  return S;
+}
+
+/**
+ * Perfil de oferta **suave** (float, sin discretizar): `w(d)` normalizado para
+ * sumar `N`, con el CBD vacío. A diferencia de `supplyVector` (que redondea a
+ * enteros por mayor residuo y produce una "escalera" de mesetas donde el conteo
+ * por celda es chico), esto es continuo. Es un **espejo de presentación** para
+ * las figuras (la campana se ve suave); la oferta entera que resuelve el core es
+ * `supplyVector`/`generar_oferta`. Mismo perfil, sin el dentado de la
+ * discretización.
+ */
+export function smoothSupply(
+  forma: FormaOferta,
+  L: number,
+  CBD: number,
+  sigmaFrac: number,
+  formaParam: number,
+  N: number,
+): number[] {
+  const w = cityShapeWeights(forma, L, CBD, sigmaFrac, formaParam);
+  const total = w.reduce((a, b) => a + b, 0);
+  if (total <= 0) return w.map(() => 0);
+  return w.map((x) => (x / total) * N);
+}
+
+/**
+ * Composición ESPERADA por celda en floats: comp[i][h] = S_i · Q[h][i] (hogares
+ * esperados del estrato h en la celda i, **sin redondear**). A diferencia de
+ * la asignación estocástica del core, esto es pseudocontinuo: deriva directo de la composición de equilibrio Q. La
+ * suma por celda sigue siendo S_i (Σ_h Q[h][i] = 1), así que la envolvente
+ * coincide con la oferta. Formato para el prop `composition` de
+ * `StratumDistribution`.
+ */
+export function expectedComposition(
+  Q: readonly (readonly number[])[],
+  S: readonly number[],
+): number[][] {
+  const nStrata = Q.length;
+  const I = S.length;
+  const comp: number[][] = Array.from({ length: I }, () => []);
+  for (let i = 0; i < I; i++) {
+    for (let h = 0; h < nStrata; h++) {
+      comp[i]!.push((S[i] ?? 0) * (Q[h]?.[i] ?? 0));
+    }
+  }
+  return comp;
+}

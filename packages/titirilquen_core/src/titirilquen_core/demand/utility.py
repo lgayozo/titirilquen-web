@@ -80,7 +80,9 @@ def calcular_utilidades(
 
     dist_km = abs(ciudad.cbd_index - celda_origen) * ciudad.ancho_celda_km
 
-    tiempos = tiempos_observados if tiempos_observados is not None else _tiempos_flujo_libre(dist_km, gl)
+    tiempos = (
+        tiempos_observados if tiempos_observados is not None else _tiempos_flujo_libre(dist_km, gl)
+    )
     t_cam = (dist_km / gl.v_caminata) * 60
 
     # AUTO
@@ -90,7 +92,9 @@ def calcular_utilidades(
     v_c_auto = betas.b_costo * c_auto
     if tiene_auto:
         v_auto = asc_auto + v_t_auto + v_c_auto
-        auto_breakdown = UtilityBreakdown("Auto", v_auto, asc_auto, v_t_auto, v_c_auto, feasible=True)
+        auto_breakdown = UtilityBreakdown(
+            "Auto", v_auto, asc_auto, v_t_auto, v_c_auto, feasible=True
+        )
     else:
         auto_breakdown = UtilityBreakdown("Auto", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
 
@@ -100,14 +104,27 @@ def calcular_utilidades(
     v_t_metro = (
         betas.b_tiempo_viaje * tiempos.tren_viaje
         + betas.b_tiempo_espera * tiempos.tren_espera
-        + betas.b_tiempo_caminata * tiempos.tren_acceso
+        + betas.b_tiempo_acceso * tiempos.tren_acceso
     )
     v_c_metro = betas.b_costo * c_metro
     v_metro = asc_metro + v_t_metro + v_c_metro
-    metro_breakdown = UtilityBreakdown("Metro", v_metro, asc_metro, v_t_metro, v_c_metro, feasible=True)
+    # Sin tramo en tren no hay viaje en metro. `tren_viaje == 0` significa que la
+    # estación más cercana es la del CBD, o sea el destino: "tomar el metro"
+    # sería caminar hasta donde uno va y no subirse a nada. Ese caso entraba como
+    # factible y esquivaba el corte de 30 min de la caminata, porque el acceso no
+    # tiene umbral: con 3 estaciones (espaciado 10 km) la celda a 15 km asignaba
+    # 10,9% de sus viajes a un "metro" de 62 min de caminata y 0 min de tren, y
+    # la banda 12-15 km rondaba 11-17%. La caminata pura de esa misma distancia
+    # estaba prohibida. Ver también `paradas_intermedias` en supply/train.py.
+    if tiempos.tren_viaje <= 0:
+        metro_breakdown = UtilityBreakdown("Metro", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
+    else:
+        metro_breakdown = UtilityBreakdown(
+            "Metro", v_metro, asc_metro, v_t_metro, v_c_metro, feasible=True
+        )
 
     # BICI — penalizaciones aditivas escalonadas (ver D-02)
-    if tiempos.bici_total > 45:
+    if tiempos.bici_total > gl.corte_bici_min:
         bici_breakdown = UtilityBreakdown("Bici", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
     else:
         p = 0.0
@@ -120,10 +137,12 @@ def calcular_utilidades(
         asc_bici = betas.asc_bici
         v_t_bici = betas.b_tiempo_viaje * tiempos.bici_total
         v_bici = asc_bici + v_t_bici + p
-        bici_breakdown = UtilityBreakdown("Bici", v_bici, asc_bici, v_t_bici, 0.0, v_penalizaciones=p, feasible=True)
+        bici_breakdown = UtilityBreakdown(
+            "Bici", v_bici, asc_bici, v_t_bici, 0.0, v_penalizaciones=p, feasible=True
+        )
 
     # CAMINATA — usa b_tiempo_caminata (no b_tiempo_viaje); ver D-03
-    if t_cam > 30:
+    if t_cam > gl.corte_caminata_min:
         cam_breakdown = UtilityBreakdown("Caminata", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
     else:
         p = 0.0
@@ -136,7 +155,9 @@ def calcular_utilidades(
         asc_cam = betas.asc_caminata
         v_t_cam = betas.b_tiempo_caminata * t_cam
         v_cam = asc_cam + v_t_cam + p
-        cam_breakdown = UtilityBreakdown("Caminata", v_cam, asc_cam, v_t_cam, 0.0, v_penalizaciones=p, feasible=True)
+        cam_breakdown = UtilityBreakdown(
+            "Caminata", v_cam, asc_cam, v_t_cam, 0.0, v_penalizaciones=p, feasible=True
+        )
 
     resultado = {
         "Auto": auto_breakdown,

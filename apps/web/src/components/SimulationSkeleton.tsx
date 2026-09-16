@@ -15,7 +15,10 @@ interface SimulationSkeletonProps {
  * CBD se marca con una barra `--ink` sólida. Flechas mono acompañan la
  * narrativa "hacia el centro".
  */
-export function SimulationSkeleton({ nCeldas, className }: SimulationSkeletonProps) {
+export function SimulationSkeleton({
+  nCeldas,
+  className,
+}: SimulationSkeletonProps) {
   const { t } = useTranslation("simulator");
   const nBars = Math.min(nCeldas, 60);
   const cbdBar = Math.floor(nBars / 2);
@@ -36,7 +39,10 @@ export function SimulationSkeleton({ nCeldas, className }: SimulationSkeletonPro
             return (
               <div
                 key={i}
-                className={cn("sim-skeleton-bar", isCbd && "sim-skeleton-bar--cbd")}
+                className={cn(
+                  "sim-skeleton-bar",
+                  isCbd && "sim-skeleton-bar--cbd",
+                )}
                 style={{
                   height: `${heightPct}%`,
                   animationDelay: isCbd ? undefined : `${delay}ms`,

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Elegir el modo aprendiendo día a día</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
+    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
+    --alerta: #8a5a12; --frio: #2f6690;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
+  .kicker {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
+  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
+  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
+  h2 {
+    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
+  p { margin: 8px 0; max-width: 74ch; }
+  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
+  li { margin: 4px 0; }
+  code, .mono {
+    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
+    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
+  }
+  pre {
+    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
+    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; }
+  .ecuacion {
+    font-family: "Cambria Math", Georgia, serif; font-size: 16.5px; text-align: center;
+    margin: 14px auto; padding: 12px; background: var(--paper-2); border: 1px solid var(--rule);
+    max-width: 680px; overflow-x: auto;
+  }
+  .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
+  .ecuacion .frac { display: inline-block; vertical-align: middle; text-align: center; }
+  .ecuacion .frac > span { display: block; padding: 0 4px; }
+  .ecuacion .frac > span:first-child { border-bottom: 1px solid var(--ink); }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
+  .envoltorio-tabla { overflow-x: auto; }
+  th {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
+    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
+  }
+  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
+  th.simb { text-transform: none; letter-spacing: .02em; font-size: 11.5px; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.destacada td { background: #f3e9e2; font-weight: 600; }
+  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
+  .aviso {
+    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
+  }
+  .aviso.ok { border-left-color: var(--ok); }
+  .aviso.neutro { border-left-color: var(--muted); }
+  .aviso.alerta { border-left-color: var(--alerta); }
+  .aviso p { margin: 4px 0; }
+  .aviso h4 { margin: 0 0 2px; font-size: 14px; }
+  figure { margin: 22px 0 8px; }
+  figure img { width: 100%; display: block; border: 1px solid var(--rule); }
+  figcaption {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; color: var(--muted);
+    margin-top: 6px; max-width: 78ch; line-height: 1.5;
+  }
+  figcaption .n {
+    font-weight: 700; color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
+    margin-right: 8px; font-size: 11px;
+  }
+  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
+  .indice ol { margin: 4px 0; }
+  .indice a { color: var(--ink); text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  .refs { font-size: 13.5px; }
+  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
+           font-size: 12.5px; color: var(--muted); }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { break-after: avoid; } table, pre, .aviso, figure { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Side project</div>
+  <h1>Elegir el modo aprendiendo día a día</h1>
+  <p class="bajada">
+    Un simulador paralelo al MSA: en vez de resolver un punto fijo, la gente
+    elige cada día con el tiempo que <em>cree</em> que tarda cada modo, lo
+    experimenta con un error propio, y aprende por instancias (IBL). Se busca
+    el <em>hot stove effect</em>: quien tuvo una mala experiencia temprana
+    deja de probar la alternativa que en media le conviene.
+  </p>
+  <p class="meta">
+    Código: <code>sandbox/ibl-dia-a-dia/</code> ·
+    Correr: <code>uv run pytest &amp;&amp; uv run python persona.py &amp;&amp; uv run python poblacion.py</code><br>
+    Ciudad y demanda de la app (201 celdas · 20 km · ΣH = 36.000 · betas de <code>DEFAULT_STRATA</code>) ·
+    día 0 = equilibrio MSA con localización de equilibrio · seed 42 · 15-sep-2026
+  </p>
+</header>
+
+<div class="indice">
+  <strong style="font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Recorrido</strong>
+  <ol>
+    <li><a href="#s1">Qué pide el documento, y qué se construyó</a></li>
+    <li><a href="#s2">El modelo</a> — el IBL, el prior, el error, y cómo entra la utilidad del núcleo</li>
+    <li><a href="#s3">Fase 0: una persona</a> — el hot stove en su forma mínima</li>
+    <li><a href="#s4">Fase 1: la ciudad</a> — con la congestión endógena</li>
+    <li><a href="#s5">Qué concluir</a></li>
+  </ol>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s1"><span class="num">1</span>Qué pide el documento, y qué se construyó</h2>
+
+<p>
+  El simulador resuelve la partición modal como un <strong>punto fijo</strong>:
+  el MSA itera hasta que los tiempos de la BPR y el logit son consistentes. No
+  hay días, ni memoria, ni experiencia. El documento
+  (<code>new_simulator/IBL Leandro.docx</code>) pide reemplazar eso por una
+  <strong>dinámica día a día</strong>:
+</p>
+<ol>
+  <li>Día 1: todos eligen con tiempos «de buena calidad sobre el promedio».</li>
+  <li>Cada día, cada persona viaja en el modo que eligió y experimenta el tiempo de ese día
+      más un error idiosincrático <span class="mono">ε</span>.</li>
+  <li>Al día siguiente decide con un tiempo <em>percibido</em>: una mezcla de sus
+      experiencias pasadas en ese modo, con pesos que decaen con la antigüedad
+      (<em>instance based learning</em>, IBL).</li>
+  <li>Se mira si existe el <em>hot stove effect</em> y cuánto pesa a nivel global.</li>
+</ol>
+<p>
+  Es un modelo de <strong>dinámica</strong> y no de equilibrio; ese cambio de
+  naturaleza ordena todo lo demás. Se construyó en dos fases, cada una
+  verificable sola, como sandbox que reutiliza el núcleo sin tocarlo:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>fase</th><th>archivo</th><th>qué hace</th></tr>
+  <tr><td><strong>IBL</strong></td><td><code>ibl.py</code> · <code>test_ibl.py</code></td><td>Las dos ecuaciones del documento, vectorizadas, con seis tests de respuesta conocida.</td></tr>
+  <tr><td><strong>0</strong></td><td><code>persona.py</code></td><td>Una persona elige entre auto y metro 100 días, con tiempos verdaderos fijos (los del equilibrio MSA en su celda) y <span class="mono">ε</span> sobre el auto. 500 réplicas por combinación de parámetros.</td></tr>
+  <tr><td><strong>1</strong></td><td><code>poblacion.py</code></td><td>Los 29.008 agentes del equilibrio MSA eligen cada día; los flujos cargan la red (<code>resolver_oferta</code>); <span class="mono">ε</span> sobre auto y metro. 100 días.</td></tr>
+</table>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s2"><span class="num">2</span>El modelo</h2>
+
+<h3>2.1 El IBL — las dos ecuaciones del documento</h3>
+
+<div class="ecuacion">
+  <span class="id">(1)</span>
+  <i>b</i><sub><i>ni</i></sub>(<i>t</i>) = Σ<sub><i>t′</i>=0</sub><sup><i>t</i>−1</sup> <i>w</i><sub><i>ni</i></sub>(<i>t′</i>, <i>t</i>) · <i>x</i><sub><i>i</i></sub>(<i>t′</i>)
+</div>
+<div class="ecuacion">
+  <span class="id">(2)</span>
+  <i>w</i><sub><i>ni</i></sub>(<i>t′</i>, <i>t</i>) =
+  <span class="frac"><span><i>a</i><sub><i>ni</i></sub>(<i>t′</i>) · (<i>t</i> − <i>t′</i>)<sup>−<i>d</i></sup></span><span>Σ<sub><i>τ</i>=0</sub><sup><i>t</i>−1</sup> <i>a</i><sub><i>ni</i></sub>(<i>τ</i>) · (<i>t</i> − <i>τ</i>)<sup>−<i>d</i></sup></span></span>
+</div>
+
+<p>
+  <span class="mono">b<sub>ni</sub>(t)</span> es el tiempo que la persona
+  <em>n</em> percibe para el modo <em>i</em> al decidir en el día <em>t</em>;
+  <span class="mono">x<sub>i</sub>(t′)</span> el que experimentó en <em>t′</em>;
+  <span class="mono">a<sub>ni</sub>(t′) = 1</span> si ese día eligió <em>i</em>;
+  <span class="mono">d ≥ 0</span> la tasa de decaimiento. Con
+  <span class="mono">d = 0</span> es el promedio simple de lo vivido; con
+  <span class="mono">d</span> grande sólo cuenta lo reciente. En
+  <code>ibl.py</code> se implementa tal cual, sobre matrices
+  <span class="mono">(personas, días, modos)</span>.
+</p>
+
+<div class="aviso alerta">
+  <h4>El documento no dice qué percibe un modo que nunca se eligió</h4>
+  <p>
+    Si la persona nunca eligió <em>i</em>, la suma de (2) es vacía y la fórmula
+    da 0/0. Se resuelve tratando la información exógena del día 1 como
+    <strong>una instancia más</strong>: en <span class="mono">t′ = 0</span>
+    todos los modos tienen <span class="mono">a = 1</span> y <span class="mono">x</span>
+    igual al tiempo de equilibrio. Así el prior decae con <span class="mono">d</span>
+    como cualquier experiencia, y <span class="mono">b<sub>ni</sub></span> queda
+    definido siempre. Es un supuesto; está en <code>ibl.py</code> y lo fija
+    <code>test_un_modo_nunca_elegido_da_peso_cero_no_nan</code>.
+  </p>
+</div>
+
+<h3>2.2 El error y la elección</h3>
+
+<p>
+  <span class="mono">ε ~ N(0, σ)</span>, i.i.d. por persona y día, como pide el
+  documento: normal con media y varianza paramétricas. La media es cero.
+  <strong>No se trunca en flujo libre</strong>, y no es un detalle: en el caso
+  de la fase 0 el auto en equilibrio (12,0 min) está a 0,8 min del flujo libre
+  (11,2), así que truncar por abajo sesga la media experimentada varios minutos
+  hacia arriba. Con una ventaja real del auto de 0,8 min, ese sesgo vuelca a
+  todos y parece hot stove sin serlo — medido: «cree que el auto es peor»
+  ≈ 100 % en las 27 combinaciones de la primera corrida. Se sacó el
+  truncamiento; sólo se impide un tiempo negativo.
+</p>
+<p>
+  La elección es el logit del núcleo con una <strong>escala
+  <span class="mono">μ</span></strong> sobre las utilidades antes del softmax:
+  <span class="mono">P<sub>i</sub> ∝ exp(μ·V<sub>i</sub>)</span>. Con
+  <span class="mono">μ = 1</span> es exactamente <code>probabilidades_logit</code>.
+  Se barre <span class="mono">μ</span> porque la escala decide si el efecto se
+  ve: en la figura 6.b del paper de Henríquez-Jara y Guevara la elección es casi
+  determinista (<span class="mono">β<sub>RU</sub> = 20</span>).
+</p>
+
+<h3>2.3 Cómo entra la utilidad del núcleo, sin reimplementarla</h3>
+
+<p>
+  La utilidad de cada modo la calcula <code>calcular_utilidades</code>, la del
+  simulador. En la fase 0 se la llama por día con el tiempo percibido en lugar
+  del observado. En la fase 1, con 29.008 personas, eso sería lento en Python;
+  pero la utilidad es <strong>lineal</strong> en el tiempo de viaje,
+  <span class="mono">V = … + b<sub>tiempo_viaje</sub>·t</span>, así que se la
+  llama <strong>una vez por grupo</strong> (estrato, celda, tiene_auto: 1.108
+  grupos) con los tiempos del día 0 —<span class="mono">V<sub>ref</sub></span>—
+  y la utilidad de cada persona cada día es
+</p>
+<div class="ecuacion">
+  <i>V</i><sub><i>ni</i></sub>(<i>t</i>) = <i>V</i><sub>ref,<i>i</i></sub> + <i>b</i><sub>tiempo_viaje</sub> · (<i>b</i><sub><i>ni</i></sub>(<i>t</i>) − <i>t</i><sub>ref,<i>i</i></sub>)
+</div>
+<p>
+  Todo lo que cambia día a día vive en <span class="mono">b<sub>ni</sub></span>;
+  las constantes modales, el costo, las penalizaciones y la factibilidad quedan
+  tal como las calcula el núcleo. Es el mismo criterio del proyecto: la
+  matemática vive en Python y no se copia.
+</p>
+
+<div class="aviso neutro">
+  <h4>Supuestos declarados de la fase 1</h4>
+  <p>
+    <strong>ε en auto y metro.</strong> En el auto sobre el tiempo total; en el
+    metro sobre el tiempo en vehículo, que es el que pesa
+    <span class="mono">b<sub>tiempo_viaje</sub></span> (espera y acceso quedan
+    en <span class="mono">V<sub>ref</sub></span>).
+    <strong>Bici y caminata</strong> no tienen ε y su utilidad queda congelada
+    en el día 0: sus penalizaciones por umbral no son lineales en el tiempo y no
+    son el objeto del documento; sus flujos sí cargan la red cada día.
+    <strong>Teletrabajadores</strong> fuera: no eligen.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s3"><span class="num">3</span>Fase 0: una persona</h2>
+
+<h3>3.1 El caso de prueba, y por qué no es el primero que se probó</h3>
+
+<p>
+  La primera corrida fue el estrato Alto a 5 km del CBD: auto 10,4 min, metro
+  25,7. Ahí el auto gana por <strong>1,2 útiles</strong>, que a
+  <span class="mono">b<sub>tiempo_viaje</sub> = −0,0331</span> son 36 minutos
+  equivalentes, y ningún shock razonable lo da vuelta: hot stove cero en las 27
+  combinaciones. El efecto vive donde las alternativas <em>compiten</em>, como
+  en la figura del paper. Se barrieron todas las celdas y estratos:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>estrato</th><th class="n">km</th><th class="n">auto (min)</th><th class="n">metro (min)</th><th class="n">V<sub>auto</sub></th><th class="n">V<sub>metro</sub></th><th class="n">ventaja del auto</th></tr>
+  <tr><td>Alto</td><td class="n">5,0</td><td class="n">10,4</td><td class="n">25,7</td><td class="n">−0,635</td><td class="n">−1,837</td><td class="n">+36 min eq.</td></tr>
+  <tr class="destacada"><td>Medio</td><td class="n">5,8</td><td class="n">12,0</td><td class="n">20,3</td><td class="n">−1,355</td><td class="n">−1,382</td><td class="n">+0,8 min eq.</td></tr>
+  <tr><td>Bajo</td><td class="n">1,2</td><td class="n">2,8</td><td class="n">19,7</td><td class="n">−1,540</td><td class="n">−1,632</td><td class="n">+2,8 min eq.</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Tiempos del equilibrio MSA de la app, sólo auto y metro habilitados. El caso es
+  el Medio a 5,8 km: <span class="mono">P(auto | μ = 1) = 0,507</span>, indiferencia casi exacta.
+</p>
+
+<h3>3.2 Qué se mide</h3>
+<ul>
+  <li><strong>Share final</strong>: fracción de los últimos 20 días en auto, promedio de las 500 réplicas, contra <span class="mono">P(auto)</span> con los tiempos verdaderos.</li>
+  <li><strong>Abandono</strong>: réplicas que no tomaron el auto ni un día en los últimos 20.</li>
+  <li><strong>Mala suerte temprana</strong>: share final de quienes tuvieron su <em>primera</em> experiencia en auto en el decil peor de <span class="mono">ε</span>, contra el decil mejor. Es la prueba que pide el documento, literal.</li>
+</ul>
+
+<figure>
+  <img src="salida/fig1-trayectoria.png" alt="Trayectoria de una persona con la peor primera experiencia">
+  <figcaption>
+    <span class="n">Fig. 01</span>
+    La réplica con la peor primera experiencia (σ = 10, μ = 3, d = 0,5). El día 1
+    experimenta 44 min; su percepción del auto salta a 30, por encima del metro,
+    y pasa varios días en metro (bandas azules) sin actualizar el auto. Vuelve a
+    probarlo porque el logit con μ = 3 todavía deja probabilidad, y la
+    percepción se corrige. Ése es el mecanismo, y también su límite.
+  </figcaption>
+</figure>
+
+<h3>3.3 Resultado</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">σ (min)</th><th class="simb n">μ</th><th class="n">P(auto) verdadera</th><th class="n">share final</th><th class="n">abandono</th><th class="n">final · mala suerte</th><th class="n">final · buena suerte</th></tr>
+  <tr><td class="n">5</td><td class="n">1</td><td class="n">0,507</td><td class="n">0,504</td><td class="n">0 %</td><td class="n">0,51</td><td class="n">0,51</td></tr>
+  <tr><td class="n">5</td><td class="n">10</td><td class="n">0,567</td><td class="n">0,561</td><td class="n">0 %</td><td class="n">0,55</td><td class="n">0,58</td></tr>
+  <tr><td class="n">10</td><td class="n">1</td><td class="n">0,507</td><td class="n">0,499</td><td class="n">0 %</td><td class="n">0,50</td><td class="n">0,51</td></tr>
+  <tr><td class="n">10</td><td class="n">10</td><td class="n">0,567</td><td class="n">0,502</td><td class="n">0,6 %</td><td class="n">0,44</td><td class="n">0,53</td></tr>
+  <tr><td class="n">20</td><td class="n">1</td><td class="n">0,507</td><td class="n">0,477</td><td class="n">0 %</td><td class="n">0,49</td><td class="n">0,48</td></tr>
+  <tr><td class="n">20</td><td class="n">3</td><td class="n">0,520</td><td class="n">0,439</td><td class="n">0 %</td><td class="n">0,44</td><td class="n">0,44</td></tr>
+  <tr class="destacada"><td class="n">20</td><td class="n">10</td><td class="n">0,567</td><td class="n">0,255</td><td class="n">20 %</td><td class="n">0,07</td><td class="n">0,29</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  d = 0,5. Las 27 combinaciones están en <code>salida/persona.json</code>. El
+  decaimiento mueve poco: con σ = 20 y μ = 10 el abandono va de 17 % (d = 0) a 25 % (d = 1).
+</p>
+
+<figure>
+  <img src="salida/fig2-share.png" alt="Share del auto por día">
+  <figcaption>
+    <span class="n">Fig. 02</span>
+    Con μ = 1 el share se queda en la probabilidad verdadera: la persona sigue
+    probando el auto la mitad de los días y corrige. Con μ = 10 y σ = 20 cae de
+    0,57 a 0,25 en veinte días y no vuelve.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="salida/fig3-hot-stove.png" alt="Abandono y mala suerte temprana">
+  <figcaption>
+    <span class="n">Fig. 03</span>
+    Izquierda: el abandono sólo aparece con μ = 10. Derecha: con μ = 10 y σ = 20,
+    quien tuvo su primera experiencia en el decil peor usa el auto el 7 % de
+    los días al final; quien la tuvo en el decil mejor, el 29 %. Con μ = 1 las
+    dos barras son iguales.
+  </figcaption>
+</figure>
+
+<div class="aviso alerta">
+  <h4>El hot stove no es sólo función de ε: necesita una elección suficientemente determinista</h4>
+  <p>
+    Con la escala del logit del simulador (<span class="mono">μ = 1</span>) el
+    aprendizaje es <strong>autocorrectivo</strong>: una mala percepción baja la
+    probabilidad del auto, pero no la anula, la persona lo vuelve a probar y la
+    percepción se arregla. El efecto que describe el documento exige que una
+    mala percepción <em>bloquee</em> la exploración, y eso pasa recién con
+    <span class="mono">μ ≈ 10</span>, que es el orden de la figura del paper.
+    Es una decisión de calibración, no un hecho del modelo, y hay que
+    declararla al presentar cualquier número.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s4"><span class="num">4</span>Fase 1: la ciudad</h2>
+
+<h3>4.1 Qué cambia respecto de la fase 0</h3>
+<p>
+  Todo el mundo aprende a la vez y la red responde: los flujos de cada día
+  cargan la BPR del auto, la frecuencia del metro y la ciclovía
+  (<code>resolver_oferta</code>, el mismo código que usa el MSA), y el tiempo que
+  cada persona experimenta es el real de ese día en su celda más su ε. Los
+  tiempos del día 0 son los del equilibrio MSA de la app; la población también.
+</p>
+
+<div class="aviso ok">
+  <h4>Verificación: con μ = 1 y σ = 0 la dinámica se queda en el equilibrio MSA</h4>
+  <p>
+    Sin ruido y con el logit del núcleo, el loop día a día reproduce la
+    partición del MSA: auto <strong>19,3 %</strong> contra 19,4 %, metro
+    <strong>34,5 %</strong> contra 34,6 %, y el tiempo real del auto 6,50 min.
+    El acoplamiento IBL + oferta tiene al punto fijo del simulador como caso
+    particular, que es lo que tenía que pasar.
+  </p>
+</div>
+
+<h3>4.2 Un confundidor, y cómo se corrige</h3>
+<p>
+  Cambiar <span class="mono">μ</span> cambia el modelo de elección, y por lo
+  tanto su equilibrio: con <span class="mono">μ = 10</span> y sin ruido el
+  auto sube a 28,9 % y su tiempo real a 8,8 min, porque el logit nítido manda
+  al auto a todos los que lo prefieren por poco. Comparar
+  <span class="mono">μ = 10</span> contra el MSA mezclaría ese efecto con el
+  del aprendizaje. Por eso <strong>la referencia de cada μ es la misma
+  dinámica con σ = 0</strong>, y el hot stove se mide como <em>delta</em>
+  respecto de ella.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">μ</th><th class="n">auto (σ = 0)</th><th class="n">metro (σ = 0)</th><th class="n">abandono auto</th><th class="n">abandono metro</th><th class="n">t real del auto</th></tr>
+  <tr><td class="n">1</td><td class="n">19,3 %</td><td class="n">34,5 %</td><td class="n">0,5 %</td><td class="n">0,5 %</td><td class="n">6,50 min</td></tr>
+  <tr><td class="n">3</td><td class="n">24,4 %</td><td class="n">32,3 %</td><td class="n">10,1 %</td><td class="n">8,2 %</td><td class="n">7,13 min</td></tr>
+  <tr><td class="n">10</td><td class="n">28,9 %</td><td class="n">30,5 %</td><td class="n">21,8 %</td><td class="n">38,6 %</td><td class="n">8,79 min</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Las referencias σ = 0, d = 0,5, últimos 20 días. El «abandono» con σ = 0 no es
+  hot stove: es gente que con un logit nítido nunca elige el modo que le
+  conviene menos. Lo que cuenta es cuánto sube con σ.
+</p>
+
+<figure>
+  <img src="salida/fig4-split.png" alt="Partición modal día a día">
+  <figcaption>
+    <span class="n">Fig. 04</span>
+    Auto y metro día a día con σ = 10 (líneas gruesas) contra σ = 0 (finas) y
+    el equilibrio MSA (punteado). Con μ = 1 todo coincide. Con μ = 10 la
+    dinámica se aleja del MSA en los primeros cinco días —eso es el cambio de
+    μ— y el ruido la deja un poco más abajo que σ = 0 —eso es el aprendizaje—.
+    En ningún caso oscila: se estabiliza en veinte días.
+  </figcaption>
+</figure>
+
+<h3>4.3 Resultado: el efecto del ruido y del aprendizaje</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">σ</th><th class="simb n">μ</th><th class="n">Δ share auto</th><th class="n">Δ share metro</th><th class="n">Δ abandono auto</th><th class="n">Δ abandono metro</th><th class="n">auto final · mala vs buena suerte</th><th class="n">Δ bienestar</th></tr>
+  <tr><td class="n">10</td><td class="n">1</td><td class="n">−0,5 pp</td><td class="n">−0,6 pp</td><td class="n">+0,0 pp</td><td class="n">+0,2 pp</td><td class="n">0,35 vs 0,36</td><td class="n">−0,0003</td></tr>
+  <tr><td class="n">10</td><td class="n">3</td><td class="n">−1,0 pp</td><td class="n">−1,4 pp</td><td class="n">+0,5 pp</td><td class="n">+1,7 pp</td><td class="n">0,44 vs 0,46</td><td class="n">+0,0003</td></tr>
+  <tr><td class="n">10</td><td class="n">10</td><td class="n">−1,3 pp</td><td class="n">−2,2 pp</td><td class="n">+2,6 pp</td><td class="n">+4,8 pp</td><td class="n">0,62 vs 0,65</td><td class="n">+0,0015</td></tr>
+  <tr><td class="n">20</td><td class="n">1</td><td class="n">−1,3 pp</td><td class="n">−2,0 pp</td><td class="n">+0,2 pp</td><td class="n">+0,3 pp</td><td class="n">0,34 vs 0,35</td><td class="n">−0,0017</td></tr>
+  <tr><td class="n">20</td><td class="n">3</td><td class="n">−3,0 pp</td><td class="n">−4,4 pp</td><td class="n">+1,6 pp</td><td class="n">+4,7 pp</td><td class="n">0,40 vs 0,42</td><td class="n">−0,0033</td></tr>
+  <tr class="destacada"><td class="n">20</td><td class="n">10</td><td class="n">−5,0 pp</td><td class="n">−6,8 pp</td><td class="n">+9,1 pp</td><td class="n">+13,0 pp</td><td class="n">0,44 vs 0,58</td><td class="n">+0,0001</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Deltas respecto de σ = 0 con la misma μ, d = 0,5, últimos 20 días. «Bienestar»
+  es la utilidad <em>verdadera</em> media del modo elegido, en útiles, con los
+  tiempos reales de cada día. Las 36 combinaciones están en <code>salida/poblacion.json</code>.
+</p>
+
+<figure>
+  <img src="salida/fig5-abandono.png" alt="Abandono del auto y del metro contra sigma">
+  <figcaption>
+    <span class="n">Fig. 05</span>
+    Abandono contra σ, por μ, con el punto σ = 0 como referencia. Con μ = 1 la
+    curva es plana: no hay hot stove a escala de ciudad con el logit del
+    simulador. Con μ = 10 sube 9 puntos en el auto y 13 en el metro.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="salida/fig6-suerte-congestion.png" alt="Mala suerte temprana y tiempo real del auto">
+  <figcaption>
+    <span class="n">Fig. 06</span>
+    Izquierda: la prueba del documento en la población. Con μ = 10 y σ = 20,
+    quienes tuvieron su primer ε en el decil peor usan el auto el 44 % de los
+    días; los del decil mejor, el 58 %. Sin ruido las dos barras valen 0,68.
+    Derecha: el tiempo real del auto por día. El logit nítido lo congestiona
+    (8,8 min contra 6,5), y el día 1 con μ = 10 es una sobrecarga transitoria.
+  </figcaption>
+</figure>
+
+<div class="aviso alerta">
+  <h4>Tres lecturas que conviene separar</h4>
+  <p>
+    <strong>1. La pérdida de share de los modos ruidosos ocurre incluso con
+    μ = 1</strong>, donde no hay abandono. Eso no es hot stove: es la
+    asimetría del aprendizaje. Sólo se actualiza el modo que se usó, y una
+    experiencia mala aleja más de lo que una buena acerca, así que auto y metro
+    pierden 1 a 2 puntos frente a bici y caminata, que no tienen ε. Con σ igual
+    en los dos modos ruidosos el efecto es simétrico entre ellos.
+  </p>
+  <p>
+    <strong>2. El hot stove propiamente tal</strong> —abandono, y mala suerte
+    temprana que persiste— aparece con μ = 3 y es grande con μ = 10. El metro
+    sufre más que el auto, porque está más cerca de la indiferencia para más
+    gente.
+  </p>
+  <p>
+    <strong>3. El bienestar agregado casi no cambia</strong>, y con μ = 10 no
+    baja. Es un resultado de sistema que la fase 0 no podía mostrar: el logit
+    nítido sobrecarga el auto, el ruido saca gente de él, la congestión baja y
+    eso compensa el error individual. Un hot stove que a nivel de persona es
+    una pérdida puede ser neutro a nivel de ciudad.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s5"><span class="num">5</span>Qué concluir</h2>
+
+<h3>Lo que el prototipo establece</h3>
+<ul>
+  <li><strong>Es factible y barato.</strong> Toda la ciudad, 100 días, 36 combinaciones, en cuatro minutos; el núcleo no se tocó.</li>
+  <li><strong>Es consistente con el simulador.</strong> Sin ruido y con el logit del núcleo, la dinámica día a día reproduce el equilibrio MSA.</li>
+  <li><strong>El hot stove existe, y su tamaño lo decide la escala del logit</strong>, no σ. Con la calibración vigente el efecto es de 1 a 2 puntos y sin abandono; con una elección casi determinista llega a 5–7 puntos de share y 9–13 de abandono.</li>
+  <li><strong>A escala de ciudad el efecto interactúa con la congestión</strong>, y el bienestar agregado puede no caer aunque muchas personas estén eligiendo mal.</li>
+</ul>
+
+<h3>Lo que no prueba, y los pendientes</h3>
+<ul>
+  <li>No replica la figura 6.b del paper: ésa usa la formulación EBCM completa, con otros parámetros. Acá se implementaron las dos ecuaciones del documento, que son una simplificación del IBL de ACT-R (sin activación logarítmica ni ruido de recuperación).</li>
+  <li>El ε normal centrado en cero es lo que pide el documento; los incidentes reales son asimétricos hacia arriba. Una lognormal cambiaría los números, y probablemente el signo de la asimetría del aprendizaje.</li>
+  <li>El ε del metro va sobre el tiempo en vehículo. Ponerlo sobre la espera, que pesa el doble, agrandaría el efecto en el metro.</li>
+  <li>Bici y caminata quedaron congeladas. Con ε también en ellas desaparecería el «refugio sin ruido» y la pérdida de share de auto y metro se repartiría distinto.</li>
+  <li>El decaimiento <span class="mono">d</span> movió poco en todo el barrido. Con 100 días y prior fuerte, el promedio y la recencia dan casi lo mismo; con series más largas o shocks persistentes podría no ser así.</li>
+</ul>
+
+<!-- ==================================================================== -->
+<h2>Reproducir</h2>
+
+<pre><code>cd sandbox/ibl-dia-a-dia
+uv sync --extra dev --reinstall-package titirilquen-core   # el núcleo actual, no el cacheado
+uv run pytest                    # las propiedades del IBL
+uv run python persona.py         # fase 0: salida/persona.json   (~12 s)
+uv run python figuras.py
+uv run python poblacion.py       # fase 1: salida/poblacion.json (~4 min)
+uv run python figuras_poblacion.py</code></pre>
+<p>
+  Determinista con <code>seed 42</code>. Los tiempos verdaderos y la población
+  salen de <code>run_msa</code> con la configuración web de
+  <code>tests/test_linea_base.py</code>; si la línea base cambia, cambian.
+</p>
+
+<h2>Documentación relacionada</h2>
+<ul class="refs">
+  <li><code>new_simulator/IBL Leandro.docx</code> — el pedido, con las ecuaciones (1) y (2) y la figura 6.b de Henríquez-Jara &amp; Guevara (2025), <em>Journal of Choice Modelling</em> 55, 100552.</li>
+  <li><a href="../impacto-hev/informe.html">Qué cambió al pasar al HEV</a> — el patrón de sandbox que sigue este informe.</li>
+  <li><a href="../../docs/libro/index.html">El libro</a> — cap. 4 (demanda y elección modal) y cap. 5 (equilibrio de transporte), que este prototipo pone en dinámica.</li>
+</ul>
+
+<footer>
+  <strong>Titirilquen</strong> · Simulador educativo de transporte urbano ·
+  Facultad de Ciencias Físicas y Matemáticas, Universidad de Chile.<br>
+  Side project: <code>sandbox/ibl-dia-a-dia/</code>. Todos los números salen de
+  <code>salida/persona.json</code> y <code>salida/poblacion.json</code>; las figuras no calculan nada.
+</footer>
+
+</div>
+</body>
+</html>

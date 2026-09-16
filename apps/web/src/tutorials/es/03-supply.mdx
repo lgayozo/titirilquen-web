@@ -14,18 +14,22 @@ Tres submódulos distintos, unidos por una idea: **el tiempo de viaje depende de
 Capacidad por pista derivada de la densidad de embotellamiento:
 
 $$
-Q = \frac{v_l \cdot k_e}{4}, \quad k_e = \frac{1000}{l_{\text{veh}} + \text{gap}}
+Q = \frac{v_l \cdot k_e}{4}, \quad k_e = \frac{1000}{l + \text{gap}}
 $$
+
+<OverleafRef sec="Oferta de autos" />
 
 Tiempo por tramo con congestión (Bureau of Public Roads):
 
 $$
-t_i = t_0 \left( 1 + \alpha \left( \frac{q_i}{N_p \cdot Q} \right)^\beta \right)
+t_i = t_{i_0} \left( 1 + \alpha \left( \frac{q_i}{N_p \cdot Q} \right)^\beta \right)
 $$
 
-donde $q_i$ es el flujo acumulado hacia el CBD y $N_p$ el número de pistas.
+<OverleafRef sec="Oferta de autos" />
 
-## Bicicleta (BPR con pendiente)
+donde $q_i$ es el flujo acumulado hacia el CBD, $N_p$ el número de pistas y $t_{i_0} = \frac{L/N}{v_l}$ el tiempo a flujo libre del tramo.
+
+## Bicicleta (BPR con pendiente y piso físico)
 
 Factor de ajuste por pendiente:
 
@@ -33,11 +37,19 @@ $$
 f_p = \begin{cases} -0.0579\,p + 0.9992 & p > 0 \\ -0.0455\,p + 1 & p \le 0 \end{cases}
 $$
 
-<Callout type="warn">
-El Overleaf original dice $f_p = -0.0579 p + 0{.}09992$ — es un error tipográfico. El código implementa $0{.}9992$. Ver <DocLink path="/docs/DISCREPANCIES.md#d-01-factor-de-ajuste-por-pendiente-bici-subida">D-01</DocLink>.
-</Callout>
+<OverleafRef sec="Oferta de bicicletas" tag="R-1" />
 
-A partir de $f_p$, se derivan dos velocidades (lado izquierdo y derecho del CBD), clampeadas a $[5, 45]$ km/h.
+A partir de $f_p$ se derivan dos velocidades (lado izquierdo y derecho del CBD), clampeadas a $[5, 45]$ km/h. El tiempo por tramo aplica la BPR **acotada al tiempo de caminar el tramo**:
+
+$$
+t_i = \min\left\{ t_{i_0} \left( 1 + \alpha \left( \frac{q_i}{Q} \right)^\beta \right),\ \frac{L/N}{v_c} \cdot 60 \right\}
+$$
+
+<OverleafRef sec="Oferta de bicicletas" tag="R-7" />
+
+<Callout type="info">
+El piso es físico: una ciclovía congestionada nunca puede ser más lenta que **desmontar y empujar** la bicicleta ($v_c$ = velocidad de caminata). Sin la cota, la BPR acumulada producía tiempos absurdos en la periferia bajo congestión fuerte.
+</Callout>
 
 ## Metro (sistema cíclico)
 
@@ -47,14 +59,40 @@ $$
 f_{\text{op}} = \min\!\left(f_{\max},\ \max\!\left(f_{\min},\ \frac{L_{\max}}{K}\right)\right)
 $$
 
-donde $L_{\max}$ es el flujo máximo observado y $K$ la capacidad por tren.
+<OverleafRef sec="Oferta de trenes" />
 
-Tiempo de espera con llegada aleatoria + penalización si la estación satura:
+donde $L_{\max}$ es el flujo máximo observado y $K$ la capacidad por tren. La frecuencia endógena induce el **efecto Mohring**: más demanda ⇒ más frecuencia ⇒ menos espera para todos (economía de escala del transporte público).
+
+Tiempo de espera con llegadas aleatorias y congestión de andén **continua** (tipo BPR):
 
 $$
-t_e = \frac{1}{2 f_{\text{op}}} \cdot 60 \cdot \begin{cases} 1 & \rho \le 1 \\ \alpha \rho^\beta & \rho > 1 \end{cases}
+t_{e,s} = \frac{30}{f_{\text{op}}} \cdot \left(1 + \alpha\, \rho_s^{\,\beta}\right), \qquad \alpha = 0.5,\ \beta = 4
 $$
 
-con $\rho = L_s / (f_{\max} K)$ el grado de saturación.
+<OverleafRef sec="Oferta de trenes" tag="R-5" />
+
+con $\rho_s = L_s / (f_{\max} K)$ el grado de saturación de la estación. La espera base $30/f_{\text{op}} = \tfrac{1}{2 f_{\text{op}}} \cdot 60$ es el tiempo medio con llegadas aleatorias a un servicio de frecuencia $f_{\text{op}}$.
+
+## Emisiones de CO₂
+
+El auto emite según su **velocidad local de circulación** (reconstruida invirtiendo la BPR en cada parcela):
+
+$$
+FE_{\text{auto}}(v) = 2467.4 \cdot v^{-0.699} \ \ [\text{g/km}], \qquad E_{\text{auto}} = \sum_i q_i \cdot \Delta x \cdot FE_{\text{auto}}(v_i)
+$$
+
+<OverleafRef sec="Modelo de Emisiones" tag="R-9" />
+
+El metro emite **por tren-kilómetro** — el costo ambiental es por servicio circulando, no por pasajero:
+
+$$
+E_{\text{metro}} = \phi \cdot f_{\text{op}} \cdot L_{\text{línea}} \cdot 2, \qquad \phi = 2.5\ \text{kg CO}_2/\text{tren-km}
+$$
+
+<OverleafRef sec="Modelo de Emisiones" tag="R-9" />
+
+<Callout type="info">
+A frecuencia fija, atraer pasajeros al metro **no** sube sus emisiones (costo fijo del servicio); con demanda creciente la frecuencia sube y las emisiones *por pasajero* caen — el análogo en emisiones del efecto Mohring. Bicicleta y caminata se asumen con emisión nula.
+</Callout>
 
 <NextStep to="demand">Módulo Demanda →</NextStep>

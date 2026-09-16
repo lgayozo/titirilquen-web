@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:core-wheel": "node scripts/build-core-wheel.mjs",
+    "sync:core": "node scripts/sync-core.mjs",
+    "build:core-wheel": "npm run sync:core",
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { SimulationConfig } from "@/lib/types";
+import { useLandUseStore } from "@/store/landUseStore";
 
 interface CityPreviewProps {
   config: SimulationConfig;
@@ -10,6 +11,20 @@ interface CityPreviewProps {
 }
 
 const MARGIN = { top: 30, right: 16, bottom: 34, left: 130 };
+
+/** Ancho mínimo del SVG: bajo esto la figura deja de encoger y desborda. */
+const MIN_W = 420;
+
+/** Geometría horizontal del área de dibujo. La exporta para que las figuras que
+ *  se apilan sobre el plano (StratumDistribution en la vista de ciudad) alineen
+ *  su eje x con el de acá. Van los tres datos: con distinto margen derecho el
+ *  ancho útil difiere y el eje deriva, y con distinto `minWidth` se desalinean
+ *  justo cuando el contenedor es más angosto que el piso de una de las dos. */
+export const CITY_PREVIEW_X_LAYOUT = {
+  marginLeft: MARGIN.left,
+  marginRight: MARGIN.right,
+  minWidth: MIN_W,
+};
 
 /**
  * Posiciones (km) de las estaciones de metro, replicando el cálculo del core
@@ -51,25 +66,49 @@ export function CityPreview({ config, className }: CityPreviewProps) {
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
-    const update = () => setW(Math.max(420, el.clientWidth));
+    const update = () => setW(Math.max(MIN_W, el.clientWidth));
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
+  // Opción A: la composición de estratos y la densidad las define Uso de Suelo.
+  // La composición (proporciones) sale de H_por_estrato; la población exacta del
+  // perfil densidad_celda del último resultado de suelo (si lo hay).
+  const luConfig = useLandUseStore((s) => s.config);
+  const luResult = useLandUseStore((s) => s.result);
+
   const largoKm = config.city.largo_ciudad_km;
   const nCeldas = config.city.n_celdas;
   const cbdIdx = Math.floor(nCeldas / 2);
-  const densidad = config.city.densidad_por_celda;
   const numPistas = config.supply.car.num_pistas;
   const numEst = config.supply.train.num_estaciones;
   const pendiente = config.city.pendiente_porcentaje;
-  const share = config.city.share_estratos;
-  // Ancho de celda en metros (Δx = L/N) y población total EXCLUYENDO el CBD
-  // (nadie viaja hacia sí mismo). Coincide con population.py: (N−1)·densidad.
+
+  // Proporciones de estratos = H_por_estrato normalizado (siempre disponible).
+  const hTot = luConfig.H_por_estrato.reduce((a, b) => a + b, 0) || 1;
+  const share = luConfig.H_por_estrato.map((h) => h / hTot) as [
+    number,
+    number,
+    number,
+  ];
+
   const dxMetros = Math.round((largoKm / nCeldas) * 1000);
-  const poblacion = Math.round(densidad * (nCeldas - 1));
+  // Perfil densidad_celda válido solo si la geometría coincide con la del
+  // resultado de suelo (si el usuario cambió L, el perfil viejo no aplica).
+  const densidadCelda =
+    luResult && luResult.densidad_celda.length === nCeldas
+      ? luResult.densidad_celda
+      : null;
+  const densidadMediaKm = densidadCelda
+    ? densidadCelda.reduce((a, b) => a + b, 0) /
+      Math.max(densidadCelda.length, 1)
+    : null;
+  // Población = Σ_i densidad_celda(i)·Δx (exacta) cuando hay resultado de suelo.
+  const poblacion = densidadCelda
+    ? Math.round(densidadCelda.reduce((a, b) => a + b, 0) * (largoKm / nCeldas))
+    : null;
 
   const H = 320;
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
@@ -302,7 +341,11 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             className="label"
             fill="var(--muted)"
           >
-            {t("preview.spec_demand", { pop: densidad })}
+            {densidadMediaKm != null
+              ? t("preview.spec_demand_mean", {
+                  dens: Math.round(densidadMediaKm),
+                })
+              : t("preview.spec_demand_land_use")}
           </text>
         </g>
 
@@ -384,12 +427,18 @@ export function CityPreview({ config, className }: CityPreviewProps) {
           ))}
         </div>
         <p className="cpf-caption">
-          {t("preview.caption", {
-            length: largoKm,
-            cells: nCeldas,
-            dx: dxMetros,
-            pop: poblacion.toLocaleString(),
-          })}
+          {poblacion != null
+            ? t("preview.caption", {
+                length: largoKm,
+                cells: nCeldas,
+                dx: dxMetros,
+                pop: poblacion.toLocaleString("es-CL"),
+              })
+            : t("preview.caption_no_pop", {
+                length: largoKm,
+                cells: nCeldas,
+                dx: dxMetros,
+              })}
         </p>
       </div>
     </div>

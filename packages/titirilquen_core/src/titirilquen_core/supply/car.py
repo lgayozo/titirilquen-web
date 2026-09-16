@@ -23,9 +23,12 @@ class CarSupplyResult:
 
 
 def _factor_ancho(ancho_m: float) -> float:
+    # El borde en 3.0 es INCLUSIVO (§4.2 del Overleaf: «0.9·v_max si 3 ≤ a <
+    # 3.5»). Estaba como `3.0 < ancho_m`, así que un ancho de exactamente 3.0 m
+    # —alcanzable con el slider, paso 0.1— caía en 0.75 en vez de 0.9.
     if ancho_m >= 3.5:
         return 1.0
-    if 3.0 < ancho_m < 3.5:
+    if ancho_m >= 3.0:
         return 0.9
     return 0.75
 
@@ -42,11 +45,14 @@ def demora_auto_tramo(
     num_pistas: int,
     alpha_bpr: float,
     beta_bpr: float,
+    capacidad_pista: float | None = None,
 ) -> CarSupplyResult:
     f_a = _factor_ancho(ancho_pista_m)
     v_l = v_max_kmh * f_a
     densidad_emb = 1000 / (largo_vehiculo_m + gap_m)
-    cap_pista = (densidad_emb * v_l) / 4
+    # S-04: capacidad explícita desacoplada de la velocidad; None conserva
+    # Greenshields (q_max = k_j·v_l/4), donde C ∝ v_l.
+    cap_pista = capacidad_pista if capacidad_pista is not None else (densidad_emb * v_l) / 4
     num_pistas = max(1, num_pistas)
     capacidad_direccion = cap_pista * num_pistas
 

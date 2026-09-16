@@ -2,7 +2,11 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { UtilityBreakdown } from "@/components/viz/UtilityBreakdown";
-import type { IterationSnapshot, SimulationConfig, StratumId } from "@/lib/types";
+import type {
+  IterationSnapshot,
+  SimulationConfig,
+  StratumId,
+} from "@/lib/types";
 import { calcularUtilidades } from "@/lib/utility";
 
 interface DemandInspectorProps {
@@ -19,24 +23,28 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
 
   const cbdIdx = Math.floor(config.city.n_celdas / 2);
   const [celda, setCelda] = useState(
-    Math.max(0, cbdIdx - Math.floor(config.city.n_celdas / 4))
+    Math.max(0, cbdIdx - Math.floor(config.city.n_celdas / 4)),
   );
   const [estrato, setEstrato] = useState<StratumId>(2);
   const [tieneAuto, setTieneAuto] = useState(true);
 
-  const distKm =
-    Math.abs(cbdIdx - celda) * (config.city.largo_ciudad_km / config.city.n_celdas);
+  // Clamp por si la grilla se achicó después de elegir la celda.
+  const celdaEff = Math.min(celda, config.city.n_celdas - 1);
+
+  const cellKm = config.city.largo_ciudad_km / config.city.n_celdas;
+  const distKm = Math.abs(cbdIdx - celdaEff) * cellKm;
+  const posKm = (celdaEff + 0.5) * cellKm;
 
   const tiempos = useMemo(() => {
     if (!lastIter) return null;
     return {
-      auto_total: lastIter.t_auto[celda] ?? 0,
-      bici_total: lastIter.t_bici[celda] ?? 0,
-      tren_acceso: lastIter.t_tren_acceso[celda] ?? 0,
-      tren_espera: lastIter.t_tren_espera[celda] ?? 0,
-      tren_viaje: lastIter.t_tren_viaje[celda] ?? 0,
+      auto_total: lastIter.t_auto[celdaEff] ?? 0,
+      bici_total: lastIter.t_bici[celdaEff] ?? 0,
+      tren_acceso: lastIter.t_tren_acceso[celdaEff] ?? 0,
+      tren_espera: lastIter.t_tren_espera[celdaEff] ?? 0,
+      tren_viaje: lastIter.t_tren_viaje[celdaEff] ?? 0,
     };
-  }, [lastIter, celda]);
+  }, [lastIter, celdaEff]);
 
   const utilities = useMemo(
     () =>
@@ -46,8 +54,16 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
         tieneAuto,
         config: config.demand,
         tiempos,
+        modosHabilitados: config.modos_habilitados,
       }),
-    [estrato, distKm, tieneAuto, config.demand, tiempos]
+    [
+      estrato,
+      distKm,
+      tieneAuto,
+      config.demand,
+      tiempos,
+      config.modos_habilitados,
+    ],
   );
 
   return (
@@ -88,7 +104,10 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
               {t("demand_inspector.origin_km")}
             </span>
             <span className="srow-val tabular-nums" aria-hidden>
-              {distKm.toFixed(2)} km
+              {t("demand_inspector.position_value", {
+                pos: posKm.toFixed(1),
+                dist: distKm.toFixed(1),
+              })}
             </span>
           </div>
           <input
@@ -96,10 +115,22 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
             min={0}
             max={config.city.n_celdas - 1}
             step={1}
-            value={celda}
+            value={celdaEff}
             onChange={(e) => setCelda(Number(e.target.value))}
             className="w-full"
           />
+          {/* Escala: el slider recorre la ciudad de oeste a este; el CBD (el
+              destino) está al CENTRO, no al inicio — por eso la distancia baja
+              y vuelve a subir. */}
+          <div className="flex justify-between font-fig text-[9px] uppercase tracking-[0.06em] text-muted">
+            <span>0 km</span>
+            <span style={{ color: "var(--accent)" }}>
+              {t("demand_inspector.cbd_center", {
+                km: (config.city.largo_ciudad_km / 2).toFixed(0),
+              })}
+            </span>
+            <span>{config.city.largo_ciudad_km} km</span>
+          </div>
         </label>
 
         <label
@@ -122,8 +153,30 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
       <UtilityBreakdown utilities={utilities} />
 
       <p className="font-fig text-[10px] uppercase tracking-[0.06em] text-muted">
-        {lastIter ? t("demand_inspector.hint_with_sim") : t("demand_inspector.hint_no_sim")}
+        {lastIter
+          ? t("demand_inspector.hint_with_sim")
+          : t("demand_inspector.hint_no_sim")}
       </p>
+      <p
+        className="text-[11px] leading-snug text-muted"
+        style={{ marginTop: -6 }}
+      >
+        {t("demand_inspector.interpretation")}
+      </p>
+
+      {/* P siempre es logit, incluso con `assignment: "todo_o_nada"`: el inspector
+          existe para leer la función de utilidad, y Wardrop es el límite del
+          logit cuando la escala crece. Pero entonces la P de acá NO es el
+          reparto que produjo la corrida, así que hay que decirlo. Con
+          "montecarlo" y "expected" sí coinciden y no se advierte nada. */}
+      {config.assignment === "todo_o_nada" && (
+        <p
+          className="text-[11px] leading-snug"
+          style={{ marginTop: -6, color: "var(--s1)" }}
+        >
+          {t("demand_inspector.todo_o_nada_notice")}
+        </p>
+      )}
     </div>
   );
 }

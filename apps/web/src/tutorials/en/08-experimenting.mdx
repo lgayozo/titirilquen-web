@@ -1,0 +1,73 @@
+---
+slug: experimenting
+order: 8
+title: Experimenting
+tagline: Presets, comparison, suggested activities
+---
+
+# 7. Experimenting
+
+## Available tools
+
+**Transport** ([go](/sandbox)): free experimentation with the supply–demand equilibrium. Adjust any parameter and see results live.
+
+**Land use** ([go](/land-use)): standalone Alonso equilibrium (logit auction). **City at equilibrium** ([go](/coupled)): the full land ↔ transport loop.
+
+**Compare** ([go](/compare)): load up to 4 configurations in parallel and see deltas side by side.
+
+## Suggested activities
+
+### A. Parking price effect
+1. In Transport, vary parking between free, 2,500 and 10,000 pesos.
+2. Watch car mode share change.
+3. Which stratum is more sensitive? (Hint: $\beta_c$ parameter)
+
+{/* No "$" in labels: remark-math would treat them as delimiters. */}
+<LoadScenario id="parking_bajo">Free parking</LoadScenario>
+<LoadScenario id="parking_base">Parking 2.5k (base)</LoadScenario>
+<LoadScenario id="parking_alto">Parking 10k</LoadScenario>
+
+### B. The logit artifact
+1. Under Land use, vary the high stratum's λ (0.5 → 3). Once it differs from the other two, the core switches to the heteroskedastic auction on its own.
+2. Watch the allocation change — even though λ is the marginal utility of income.
+3. Measured: at λ = 0.5 the high stratum sits **1.06 km** from the CBD and at λ = 3 it sits **6.59 km** away. So *raising* it pushes them out.
+4. Is that an income effect? No: λ enters through α_eff = α/λ, so lowering it makes the stratum value access more. In an auction the price cancels between bidders, so λ cannot act through price sensitivity. (Hint: Land-use tutorial, correction section.)
+
+<LoadScenario id="lambda_alto_05">High λ = 0.5</LoadScenario>
+<LoadScenario id="lambda_alto_3">High λ = 3</LoadScenario>
+
+### C. Bikeway capacity
+1. Start with `cap_bike` = 800 bikes/h.
+2. Raise to 5000 (*Pro-Bike* preset).
+3. Where does demand migrate from?
+
+<LoadScenario id="bici_base">Bikeway 800 bikes/h (base)</LoadScenario>
+<LoadScenario id="bici_probici">Bikeway 5,000 (Pro-Bike)</LoadScenario>
+
+### D. Alonso effect
+1. Under Land use, set $\alpha_h$ = 12 for the high stratum and 3 for the low one (utils/min).
+2. Observe the distribution. Who lives near the CBD?
+3. Invert $\alpha$ values and repeat.
+
+<LoadScenario id="alonso_directo">α high 12 · low 3</LoadScenario>
+<LoadScenario id="alonso_invertido">α high 3 · low 12 (inverted)</LoadScenario>
+
+
+### E. MSA sensitivity
+1. Under Transport, lower `max_iter` to 3.
+2. Does it converge? What happens to the residual?
+3. Raise it to 20 and watch the asymptotic behavior.
+
+<LoadScenario id="msa_corto">max_iter = 3</LoadScenario>
+<LoadScenario id="msa_largo">max_iter = 20</LoadScenario>
+
+## Persistence
+
+Every configuration can be exported as `.ttrq.json`:
+- **Export**: share with peers or save for grading.
+- **Import**: load teacher's scenario.
+- **Share via link**: state is URL-compressed.
+
+<Callout type="info">
+**For instructors**: every activity can be shared as a link. Students open the link, run, and export their observations for submission.
+</Callout>

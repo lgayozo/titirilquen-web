@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 7: Bienestar e indicadores</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 7</div>
+  <h1>Bienestar e indicadores</h1>
+  <p class="bajada">
+    La pregunta que el reparto modal no contesta: ¿esta política mejora al
+    sistema? Un modo puede mejorar mientras el conjunto empeora, y el signo del
+    agregado depende de una elección que no es técnica: con qué se suman los
+    útiles de personas distintas.
+  </p>
+  <p class="meta">
+    Módulos: <code>bienestar.py</code> · <code>coupled_metrics.py</code> ·
+    datos regenerados el 2026-09-15 ·
+    <span class="estado vigente">vigente</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Parámetros</a></li>
+    <li><a href="#s3">Código</a></li>
+    <li><a href="#s4">Pruebas</a></li>
+    <li><a href="#s5">Resultados</a></li>
+    <li><a href="#s6">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<h3>El excedente del viajero</h3>
+
+<p>
+  Bajo el logit, la utilidad esperada del mejor viaje disponible tiene forma
+  cerrada. Es el resultado de Williams (1977) y Small y Rosen (1981) que el
+  capítulo 6 usó como accesibilidad, ahora aplicado a medir bienestar:
+</p>
+
+<div class="ecuacion" data-tex="E\big[\max_m (V_m + \varepsilon_m)\big] \;=\; \ln \sum_{m} e^{V_m} \;+\; \gamma" data-id="(7.1)">
+  <span class="id">(7.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>E</mi><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">[</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><mo stretchy="false">(</mo><msub><mi>V</mi><mi>m</mi></msub><mo>+</mo><msub><mi>ε</mi><mi>m</mi></msub><mo stretchy="false">)</mo><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">]</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mi>ln</mi><mo>⁡</mo><munder><mo>∑</mo><mi>m</mi></munder><msup><mi>e</mi><msub><mi>V</mi><mi>m</mi></msub></msup><mtext>  </mtext><mo>+</mo><mtext>  </mtext><mi>γ</mi></mrow><annotation encoding="application/x-tex">E\big[\max_m (V_m + \varepsilon_m)\big] \;=\; \ln \sum_{m} e^{V_m} \;+\; \gamma</annotation></semantics></math></span>
+</div>
+
+<p>
+  Sin término aleatorio, que es el caso de la carga todo o nada, el agente
+  toma determinísticamente el mejor modo y su valor esperado es el máximo a
+  secas:
+</p>
+
+<div class="ecuacion" data-tex="E\big[\max_m V_m\big] \;=\; \max_m V_m" data-id="(7.2)">
+  <span class="id">(7.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>E</mi><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">[</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><msub><mi>V</mi><mi>m</mi></msub><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">]</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>m</mi></munder><msub><mi>V</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">E\big[\max_m V_m\big] \;=\; \max_m V_m</annotation></semantics></math></span>
+</div>
+
+<p>
+  Por log-sum-exp, (7.1) es mayor o igual que (7.2), con brecha acotada por el
+  logaritmo del número de modos factibles: es el valor que el logit le
+  atribuye a la dispersión de gustos. Como esa cuenta cambia entre escenarios,
+  una política puede volver infactible la bici, la brecha también cambia, y
+  las dos medidas <strong>no</strong> son intercambiables por un
+  desplazamiento constante. Por eso el núcleo empareja la medida con el
+  método de carga y no deja elegir: logsum bajo los métodos logit, utilidad
+  máxima bajo todo o nada.
+</p>
+
+<h3>De útiles a pesos: la elección que decide el signo</h3>
+
+<p>
+  Los útiles de estratos distintos no son sumables tal cual. Para agregar hay
+  que dividir por una utilidad marginal del ingreso, y ahí aparecen dos
+  candidatas. La <strong>conductual</strong> es la del propio agente:
+</p>
+
+<div class="ecuacion" data-tex="\lambda_h \;=\; |\beta_{c,h}| \qquad\Longrightarrow\qquad CS_h \;=\; \frac{E[\max]_h}{\lambda_h}" data-id="(7.3)">
+  <span class="id">(7.3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mi mathvariant="normal">∣</mi><msub><mi>β</mi><mrow><mi>c</mi><mo separator="true">,</mo><mi>h</mi></mrow></msub><mi mathvariant="normal">∣</mi><mspace width="2em"/><mo>⟹</mo><mspace width="2em"/><mi>C</mi><msub><mi>S</mi><mi>h</mi></msub><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mrow><mi>E</mi><mo stretchy="false">[</mo><mi>max</mi><mo>⁡</mo><msub><mo stretchy="false">]</mo><mi>h</mi></msub></mrow><msub><mi>λ</mi><mi>h</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">\lambda_h \;=\; |\beta_{c,h}| \qquad\Longrightarrow\qquad CS_h \;=\; \frac{E[\max]_h}{\lambda_h}</annotation></semantics></math></span>
+</div>
+
+<p>
+  La <strong>social</strong> reemplaza el precio del minuto por un valor de
+  norma, despejándolo del propio valor del tiempo:
+</p>
+
+<div class="ecuacion" data-tex="VoT_h = \frac{\beta_{t,h}}{\beta_{c,h}}\cdot 60 \qquad\Longrightarrow\qquad \lambda^{soc}_h = \frac{|\beta_{t,h}|\cdot 60}{VoT_{social}}" data-id="(7.4)">
+  <span class="id">(7.4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>V</mi><mi>o</mi><msub><mi>T</mi><mi>h</mi></msub><mo>=</mo><mfrac><msub><mi>β</mi><mrow><mi>t</mi><mo separator="true">,</mo><mi>h</mi></mrow></msub><msub><mi>β</mi><mrow><mi>c</mi><mo separator="true">,</mo><mi>h</mi></mrow></msub></mfrac><mo>⋅</mo><mn>60</mn><mspace width="2em"/><mo>⟹</mo><mspace width="2em"/><msubsup><mi>λ</mi><mi>h</mi><mrow><mi>s</mi><mi>o</mi><mi>c</mi></mrow></msubsup><mo>=</mo><mfrac><mrow><mi mathvariant="normal">∣</mi><msub><mi>β</mi><mrow><mi>t</mi><mo separator="true">,</mo><mi>h</mi></mrow></msub><mi mathvariant="normal">∣</mi><mo>⋅</mo><mn>60</mn></mrow><mrow><mi>V</mi><mi>o</mi><msub><mi>T</mi><mrow><mi>s</mi><mi>o</mi><mi>c</mi><mi>i</mi><mi>a</mi><mi>l</mi></mrow></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">VoT_h = \frac{\beta_{t,h}}{\beta_{c,h}}\cdot 60 \qquad\Longrightarrow\qquad \lambda^{soc}_h = \frac{|\beta_{t,h}|\cdot 60}{VoT_{social}}</annotation></semantics></math></span>
+</div>
+
+<p>
+  El cociente entre ambas conversiones es lo que separa las dos lecturas, y se
+  simplifica entero:
+</p>
+
+<div class="ecuacion" data-tex="\frac{CS^{soc}_h}{CS_h} \;=\; \frac{\lambda_h}{\lambda^{soc}_h} \;=\; \frac{VoT_{social}}{VoT_h}" data-id="(7.5)">
+  <span class="id">(7.5)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi>C</mi><msubsup><mi>S</mi><mi>h</mi><mrow><mi>s</mi><mi>o</mi><mi>c</mi></mrow></msubsup></mrow><mrow><mi>C</mi><msub><mi>S</mi><mi>h</mi></msub></mrow></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><msub><mi>λ</mi><mi>h</mi></msub><msubsup><mi>λ</mi><mi>h</mi><mrow><mi>s</mi><mi>o</mi><mi>c</mi></mrow></msubsup></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mrow><mi>V</mi><mi>o</mi><msub><mi>T</mi><mrow><mi>s</mi><mi>o</mi><mi>c</mi><mi>i</mi><mi>a</mi><mi>l</mi></mrow></msub></mrow><mrow><mi>V</mi><mi>o</mi><msub><mi>T</mi><mi>h</mi></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{CS^{soc}_h}{CS_h} \;=\; \frac{\lambda_h}{\lambda^{soc}_h} \;=\; \frac{VoT_{social}}{VoT_h}</annotation></semantics></math></span>
+</div>
+
+<p>
+  Es decir: la medida social <strong>no revalúa el tiempo</strong>, pondera a
+  cada estrato por la inversa de su valor del tiempo, y ese ponderador cae
+  sobre la utilidad completa, dinero incluido. Es una forma legítima de
+  ponderación distributiva, pesar por la inversa de la utilidad marginal del
+  ingreso, y conviene llamarla por su nombre. La §5.2 lo mide.
+</p>
+
+<h3>El costo generalizado</h3>
+
+<p>
+  La tercera medida no pasa por la utilidad: suma tiempo valorado y dinero
+  sobre la demanda de cada celda, estrato y modo, con los minutos de espera y
+  de acceso ponderados como corresponde:
+</p>
+
+<div class="ecuacion" data-tex="CG \;=\; \sum_{i,h,m} d_{ihm}\left[\frac{\tilde t_{im}}{60}\,VoT + \text{dinero}_{im}\right], \qquad \tilde t_{im} = t^{veh}_{im} + w_e\, t^{esp}_{im} + w_a\, t^{acc}_{im}" data-id="(7.6)">
+  <span class="id">(7.6)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mi>G</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><munder><mo>∑</mo><mrow><mi>i</mi><mo separator="true">,</mo><mi>h</mi><mo separator="true">,</mo><mi>m</mi></mrow></munder><msub><mi>d</mi><mrow><mi>i</mi><mi>h</mi><mi>m</mi></mrow></msub><mrow><mo fence="true">[</mo><mfrac><msub><mover accent="true"><mi>t</mi><mo>~</mo></mover><mrow><mi>i</mi><mi>m</mi></mrow></msub><mn>60</mn></mfrac><mtext> </mtext><mi>V</mi><mi>o</mi><mi>T</mi><mo>+</mo><msub><mtext>dinero</mtext><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo fence="true">]</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><msub><mover accent="true"><mi>t</mi><mo>~</mo></mover><mrow><mi>i</mi><mi>m</mi></mrow></msub><mo>=</mo><msubsup><mi>t</mi><mrow><mi>i</mi><mi>m</mi></mrow><mrow><mi>v</mi><mi>e</mi><mi>h</mi></mrow></msubsup><mo>+</mo><msub><mi>w</mi><mi>e</mi></msub><mtext> </mtext><msubsup><mi>t</mi><mrow><mi>i</mi><mi>m</mi></mrow><mrow><mi>e</mi><mi>s</mi><mi>p</mi></mrow></msubsup><mo>+</mo><msub><mi>w</mi><mi>a</mi></msub><mtext> </mtext><msubsup><mi>t</mi><mrow><mi>i</mi><mi>m</mi></mrow><mrow><mi>a</mi><mi>c</mi><mi>c</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">CG \;=\; \sum_{i,h,m} d_{ihm}\left[\frac{\tilde t_{im}}{60}\,VoT + \text{dinero}_{im}\right], \qquad \tilde t_{im} = t^{veh}_{im} + w_e\, t^{esp}_{im} + w_a\, t^{acc}_{im}</annotation></semantics></math></span>
+</div>
+
+<p>
+  En la versión <em>percibida</em> el valor del tiempo y los ponderadores son
+  los del estrato, los mismos con que el logit elige; en la <em>social</em>,
+  el valor único de norma y los ponderadores del Sistema Nacional de
+  Inversiones. Las penalizaciones escalonadas de bici y caminata quedan fuera:
+  son desutilidad, no tiempo.
+</p>
+
+<h3>La función objetivo</h3>
+
+<p>
+  Para evaluar políticas de precio no basta el excedente: subir el
+  estacionamiento empeora al viajero y a la vez recauda. La función objetivo
+  estándar suma las transferencias y resta el consumo real de recursos:
+</p>
+
+<div class="ecuacion" data-tex="W \;=\; CS \;+\; R_{parking} \;+\; R_{tarifa} \;-\; C_{operador}, \qquad C_{operador} = \text{tren-km}\cdot c_{km}\cdot f_{día/punta}" data-id="(7.7)">
+  <span class="id">(7.7)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>W</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mi>C</mi><mi>S</mi><mtext>  </mtext><mo>+</mo><mtext>  </mtext><msub><mi>R</mi><mrow><mi>p</mi><mi>a</mi><mi>r</mi><mi>k</mi><mi>i</mi><mi>n</mi><mi>g</mi></mrow></msub><mtext>  </mtext><mo>+</mo><mtext>  </mtext><msub><mi>R</mi><mrow><mi>t</mi><mi>a</mi><mi>r</mi><mi>i</mi><mi>f</mi><mi>a</mi></mrow></msub><mtext>  </mtext><mo>−</mo><mtext>  </mtext><msub><mi>C</mi><mrow><mi>o</mi><mi>p</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>d</mi><mi>o</mi><mi>r</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>C</mi><mrow><mi>o</mi><mi>p</mi><mi>e</mi><mi>r</mi><mi>a</mi><mi>d</mi><mi>o</mi><mi>r</mi></mrow></msub><mo>=</mo><mtext>tren-km</mtext><mo>⋅</mo><msub><mi>c</mi><mrow><mi>k</mi><mi>m</mi></mrow></msub><mo>⋅</mo><msub><mi>f</mi><mrow><mi>d</mi><mover accent="true"><mi mathvariant="normal">ı</mi><mo>ˊ</mo></mover><mi>a</mi><mi mathvariant="normal">/</mi><mi>p</mi><mi>u</mi><mi>n</mi><mi>t</mi><mi>a</mi></mrow></msub></mrow><annotation encoding="application/x-tex">W \;=\; CS \;+\; R_{parking} \;+\; R_{tarifa} \;-\; C_{operador}, \qquad C_{operador} = \text{tren-km}\cdot c_{km}\cdot f_{día/punta}</annotation></semantics></math></span>
+</div>
+
+<p>
+  La bencina queda fuera de la recaudación a propósito: se consume, no la
+  recibe nadie. El excedente es el de la medida emparejada. Y el nivel de
+  <em>W</em> tiene cero arbitrario, porque <em>CS</em> arrastra las constantes
+  específicas de modo: sólo la diferencia contra otro escenario significa
+  algo.
+</p>
+
+<h3>Segregación</h3>
+
+<p>
+  El indicador de localización es el índice <em>H</em> de Theil sobre la
+  distribución de estratos por parcela, con <em>N_hi = S_i·Q_hi</em> hogares:
+</p>
+
+<div class="ecuacion" data-tex="H \;=\; 1 - \sum_i \frac{N_i}{N}\,\frac{E_i}{E}, \qquad E = -\sum_h \pi_h \ln \pi_h" data-id="(7.8)">
+  <span class="id">(7.8)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mn>1</mn><mo>−</mo><munder><mo>∑</mo><mi>i</mi></munder><mfrac><msub><mi>N</mi><mi>i</mi></msub><mi>N</mi></mfrac><mtext> </mtext><mfrac><msub><mi>E</mi><mi>i</mi></msub><mi>E</mi></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>E</mi><mo>=</mo><mo>−</mo><munder><mo>∑</mo><mi>h</mi></munder><msub><mi>π</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><msub><mi>π</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">H \;=\; 1 - \sum_i \frac{N_i}{N}\,\frac{E_i}{E}, \qquad E = -\sum_h \pi_h \ln \pi_h</annotation></semantics></math></span>
+</div>
+
+<p>
+  Cero es cada parcela reproduciendo la composición de la ciudad; uno, cada
+  parcela con un solo estrato. La ponderación por <strong>hogares</strong> y
+  no por celdas es lo que lo vuelve un índice poblacional (Reardon y
+  O'Sullivan, 2004): una parcela con cinco hogares no puede pesar lo mismo que
+  una con trescientos.
+</p>
+
+<div class="aviso idea">
+  <h4>Alcance</h4>
+  <p>
+    El módulo mide; no decide nada del equilibrio. Dos convenciones que hay
+    que tener escritas. La constante de Euler de (7.1) se omite, como es
+    habitual: no afecta ningún Δ, pero la brecha entre las dos medidas que
+    reporta el módulo subestima el valor de la variedad en esa constante, y
+    por eso los niveles no se comparan entre métodos. Y quien no tiene ningún
+    modo factible <strong>queda fuera</strong> del promedio y del denominador:
+    una política que deja gente sin alternativas no la cuenta como bienestar
+    muy bajo, la hace desaparecer del cálculo. La §5.5 mide cuánto pesa. Las
+    dos páginas de la aplicación miden sobre poblaciones distintas: el sandbox
+    sobre la demanda esperada por estrato, la página acoplada sobre la
+    microdata de agentes, y en la acoplada el excedente se reporta como Δ
+    contra la red vacía.
+  </p>
+</div>
+
+<h2 id="s2"><span class="num">§2</span> Parámetros</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Parámetro</th><th class="n">Valor</th><th>Unidad</th><th>Origen</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>VOT_SOCIAL_CLP_HORA</code></td><td class="n">3.338</td><td>$/hora-pasajero</td><td><span class="etiqueta frio">norma</span> Precios Sociales 2026 del SNI, tabla 2.1, viaje en vehículo; se actualiza cada año</td></tr>
+    <tr><td><code>PONDERADOR_SNI_ESPERA</code> · <code>ACCESO</code></td><td class="n">2,0 · 2,0</td><td>—</td><td><span class="etiqueta frio">norma</span> misma tabla, transporte público mayor</td></tr>
+    <tr><td>ponderador de caminata (social)</td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> el viaje entero a pie no está en la tabla 2.1</td></tr>
+    <tr><td><code>costo_operacion_tren_km</code></td><td class="n">12.000</td><td>$/tren-km</td><td><span class="etiqueta lim">heredado</span> el propio código lo declara provisorio</td></tr>
+    <tr><td><code>factor_dia_punta</code></td><td class="n">2,0</td><td>—</td><td><span class="etiqueta lim">heredado</span> orden de magnitud, declarado provisorio</td></tr>
+    <tr><td><code>y</code> (ingreso mensual)</td><td class="n">3.500.000 · 1.500.000 · 500.000</td><td>$/mes</td><td><span class="etiqueta neutra">decisión</span> deciles estilizados (cap. 2); sólo entra a la carga costo/ingreso</td></tr>
+    <tr><td><code>costo_tarifa_metro</code> · <code>costo_parking</code> · <code>costo_combustible_km</code></td><td class="n">800 · 2.000 · 120</td><td>$</td><td><span class="etiqueta lim">heredado</span> los precios del capítulo 4; acá son recaudación y dinero del costo generalizado</td></tr>
+    <tr><td>VoT conductual</td><td class="n">6.200 · 3.100 · 1.600</td><td>$/hora</td><td><span class="etiqueta neutra">decisión</span> el cociente de betas del capítulo 4; es lo que la medida social reemplaza</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>La elección de los valores</h3>
+
+<p>
+  <strong>Los tres primeros son norma</strong> y no se eligen: el valor social
+  del tiempo y los ponderadores de espera y acceso salen de la tabla oficial
+  con que Chile evalúa proyectos, y cambian con ella. El de caminata es la
+  única decisión propia, porque la tabla no cubre el viaje entero a pie, y se
+  deja en uno para no inventar un número.
+</p>
+
+<p>
+  <strong>Los dos del metro son provisorios</strong>, y el código lo dice. El
+  costo por tren-km no tiene fuente. El factor día/punta existe porque el
+  modelo simula sólo la hora punta y el autofinanciamiento se pregunta sobre
+  el día: es cuánto más caro sale operar el día completo por viaje que si
+  todo el día tuviera la carga de la punta, y dos es un orden de magnitud. La
+  §5.4 mide qué pesa: mueve el nivel de la función objetivo, cambia el signo
+  del subsidio cerca de 3,7 como el propio comentario predice, y casi no toca
+  el Δ entre escenarios, que es lo que se lee.
+</p>
+
+<p>
+  <strong>El VoT conductual no es un parámetro de este módulo</strong>, pero
+  es el número que la medida social sustituye. Con el valor de norma en
+  3.338 y los conductuales en 6.200, 3.100 y 1.600, el ponderador implícito
+  de (7.5) es menor que uno para el estrato alto y mayor que dos para el
+  bajo, y ésa es toda la diferencia entre las dos columnas.
+</p>
+
+<h2 id="s3"><span class="num">§3</span> Código</h2>
+
+<p>
+  <code>calcular_agregados</code> recorre celda × estrato × modo sobre la
+  demanda esperada del estado final y acumula minutos, dinero, recaudación y
+  las dos medidas de utilidad; al final convierte a pesos con las dos
+  <em>λ</em> y arma la función objetivo. La página acoplada usa la misma
+  implementación de las medidas, <code>medidas_de_utilidad</code>, pero sobre
+  los agentes, y reporta el Δ contra la red vacía.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">(7.1) (7.2)</td><td class="ruta py">bienestar.py</td><td class="n">253</td><td><code>medidas_de_utilidad</code> — devuelve las dos del mismo set de utilidades; única implementación del núcleo</td></tr>
+    <tr><td class="n">(7.1)</td><td class="ruta py">bienestar.py</td><td class="n">242</td><td><code>medida_emparejada</code> — la regla vive acá y no en cada consumidor</td></tr>
+    <tr><td class="n">(7.3)</td><td class="ruta py">bienestar.py</td><td class="n">296</td><td><code>calcular_agregados</code> — el recorrido; la conversión conductual en <code>lam</code> (430)</td></tr>
+    <tr><td class="n">(7.4)</td><td class="ruta py">bienestar.py</td><td class="n">444</td><td><code>lam_social</code> — despejado del VoT; <code>excedente_social</code> (450)</td></tr>
+    <tr><td class="n">(7.4)</td><td class="ruta py">constantes.py</td><td class="n">48</td><td><code>VOT_SOCIAL_CLP_HORA</code> — 3.338 $/h</td></tr>
+    <tr><td class="n">(7.4)</td><td class="ruta py">bienestar.py</td><td class="n">223</td><td><code>vot_clp_hora</code> — el valor del tiempo conductual del estrato</td></tr>
+    <tr><td class="n">(7.6)</td><td class="ruta py">bienestar.py</td><td class="n">197</td><td><code>minutos_ponderados</code> — el tiempo por componente; <code>PONDERADOR_SNI_ESPERA</code> (193); <code>cg_percibido</code> (373) y <code>cg_social</code> (374)</td></tr>
+    <tr><td class="n">(7.7)</td><td class="ruta py">bienestar.py</td><td class="n">479</td><td><code>bienestar_social_clp</code> — con el excedente de la medida emparejada; <code>costo_operador</code> (410) lleva el factor día/punta</td></tr>
+    <tr><td class="n">(7.7)</td><td class="ruta py">emissions.py</td><td class="n">43</td><td><code>tren_km_hora</code> — única definición de los tren-km; el costo del operador y las emisiones la comparten</td></tr>
+    <tr><td class="n">(7.7)</td><td class="ruta py">config.py</td><td class="n">288</td><td><code>costo_operacion_tren_km</code> — y <code>factor_dia_punta</code> (308), con el razonamiento del factor en el comentario</td></tr>
+    <tr><td class="n">(7.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">255</td><td><code>_theil</code> — con <code>S</code> pesa por hogares; sin él, por celda</td></tr>
+    <tr><td class="n">(7.8)</td><td class="ruta py">serializacion.py</td><td class="n">295</td><td><code>_theil</code> — el suelo standalone lo publica con la misma función</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">392</td><td><code>cs_sum</code> — ΔCS contra la red vacía, agente a agente; <code>bienestar_total</code> (438) suma sobre quienes viajan</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">407</td><td><code>carga</code> — costo mensual sobre ingreso mensual; los ratios de equidad en <code>ratio_t</code> (442) y <code>ratio_carga</code> (445)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">land_use/config.py</td><td class="n">25</td><td><code>LandUseStratumConfig</code> — el ingreso <code>y</code> por estrato que la carga divide</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">260</td><td><code>calcular_agregados</code> — los agregados viajan en el trace, una sola vez para API y worker</td></tr>
+    <tr><td class="n">—</td><td class="ruta tsx">components/viz/ReferenceComparison.tsx</td><td class="n">75</td><td><code>ReferenceComparison</code> — la tabla del sandbox; <code>excedenteComparable</code> (108) bloquea el Δ cuando las medidas o los modos no coinciden</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">842</td><td><code>excedente_social_nota</code> — «el minuto de todos vale lo mismo»; <code>bienestar</code> (834) enuncia (7.7) sin decir que un término está en otra base</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">680</td><td><code>welfare_total_sub</code> — «Σ hogares · ΔCS»: describe una suma sobre hogares que el núcleo hace sobre viajeros; <code>cs</code> (655) dice «logsum» en duro</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Cuatro hechos del código que la §5 mide o que conviene tener escritos. No
+  existe una función objetivo en unidad social: (7.7) usa siempre el
+  excedente conductual, y el excedente social es una columna aparte. Tres
+  rótulos de la interfaz describen otra cosa que lo que el núcleo calcula: la
+  nota de la medida social promete revaluar minutos, el subtítulo del
+  bienestar total del acoplado describe una suma sobre hogares, y el rótulo
+  del Δ excedente dice logsum aunque bajo todo o nada la medida es la
+  utilidad máxima. Apagar un modo lo saca del conjunto de elección, no de la
+  oferta: sin metro el servicio sigue circulando a frecuencia mínima y
+  costando, con recaudación cero. Y «viajeros» no es el mismo número en las
+  dos páginas, porque miden sobre poblaciones distintas.
+</p>
+
+<h2 id="s4"><span class="num">§4</span> Pruebas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Test</th><th>Qué fija</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:48</td><td>La desigualdad log-sum-exp, (7.1) mayor o igual que (7.2), por estrato; y su cota, el logaritmo del número de modos (65).</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:92</td><td>El emparejamiento medida ↔ método de carga; la función objetivo usa la medida emparejada (108); las dos medidas no coinciden (123).</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:144</td><td>(7.4) despejada del VoT; el excedente social sigue la medida emparejada (162); social y conductual difieren (178).</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:193</td><td>Las identidades del reparto: los viajes por modo suman los viajeros y el reparto por estrato agrega al de ciudad (209); el reparto reacciona a la política (224).</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:243</td><td>Un metro sin emisiones sigue costando operarlo: los tren-km salen del servicio.</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:257</td><td>(7.6): los minutos ponderados pesan espera y acceso, y el costo social supera al de minutos planos (275).</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:98</td><td>Con ingresos 100/50/10 la carga del estrato bajo es la mayor.</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:106</td><td>El bienestar total del acoplado es la suma sobre quienes viajan, no sobre los hogares.</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:182</td><td>(7.8) pesa por hogares: dos celdas de tamaños distintos no pesan igual.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Los tests fijan las fórmulas y no sus alcances. Que el excedente social sea
+  la utilidad sobre <em>λ</em> social está fijado; que ese <em>λ</em> alcance
+  también al dinero, no. Que las identidades del reparto cierren está
+  fijado; que cierren sobre la población correcta cuando alguien queda
+  varado, no. Que los ponderadores de espera y acceso pesen está fijado; que
+  el percibido y el social compartan el mismo número en esos dos componentes,
+  nadie lo compara. Y la convergencia de grilla del Theil se cumple sin que
+  ningún test la vigile.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Resultados</h2>
+
+<p>
+  Todo sale de <code>datos/cap07.json</code>: la configuración de la
+  aplicación con localización «original», 201 celdas, 20 km, 36.000 hogares,
+  semilla 42, carga esperada, tolerancia 0,1. El barrido de pistas repite
+  además la carga todo o nada con tolerancia 0,02 y 120 iteraciones.
+</p>
+
+<h3>5.1 Las dos monedas</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr>
+      <th>estrato</th><th class="n">β_costo</th><th class="n">β_tiempo</th>
+      <th class="n">VoT conductual</th>
+      <th class="n">1 útil, conductual</th><th class="n">1 útil, social</th>
+      <th class="n">peso social/conductual</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>alto</td><td class="n">−0,000320323</td><td class="n">−0,0331</td><td class="n">6.200,0</td><td class="n">3.121,8</td><td class="n">1.680,8</td><td class="n">0,5384</td></tr>
+    <tr><td>medio</td><td class="n">−0,00064065</td><td class="n">−0,0331</td><td class="n">3.100,0</td><td class="n">1.560,9</td><td class="n">1.680,8</td><td class="n">1,0768</td></tr>
+    <tr><td>bajo</td><td class="n">−0,00124125</td><td class="n">−0,0331</td><td class="n">1.600,0</td><td class="n">805,6</td><td class="n">1.680,8</td><td class="n">2,0863</td></tr>
+    <tr class="destacada"><td>razón extremos</td><td class="n">—</td><td class="n">—</td><td class="n">3,8751</td><td class="n">3,8751</td><td class="n">1,0000</td><td class="n">3,8750</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  VoT en $/hora; «1 útil» en $. VoT social: $3.338/h.
+</p>
+
+<p>
+  El dato estructural: el transporte es homoscedástico, <em>β_tiempo</em> es
+  común a los tres estratos, y por (7.4) <em>λ^soc</em> también lo es:
+  1.680,8 $ por útil para todos. Es decir que <strong>la medida social es la
+  suma llana de útiles</strong>, sin ponderación alguna, y la que pondera es
+  la <strong>conductual</strong>: 3,875 veces a favor del estrato alto. Las
+  dos lecturas son coherentes con (7.5), que sólo depende del cociente de
+  valores del tiempo, pero la intuición de que la medida social «pondera» y
+  la conductual «no» es exactamente la inversa de lo que ocurre en la escala
+  de útiles.
+</p>
+
+<h3>5.2 Y el dinero también se reprecia</h3>
+
+<p>
+  La nota de la interfaz dice que en la medida social «el minuto de todos vale
+  lo mismo». Si eso fuera literal, el dinero seguiría valiendo un peso.
+  Prueba de envolvente: subir la tarifa del metro en $1 con los
+  <strong>tiempos y la demanda fijos</strong>, sobre el mismo estado final, de
+  modo que no hay respuesta de equilibrio, tiene que costar exactamente un
+  peso por viaje de metro.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>medida</th><th class="n">derivada medida</th><th class="n">si $1 vale $1</th><th class="n">si el dinero se reprecia</th><th class="n">error</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>conductual</td><td class="n">−8.503,9</td><td class="n">−8.512,1</td><td class="n">—</td><td class="n">0,10 %</td></tr>
+    <tr class="destacada"><td>social</td><td class="n">−11.901,0</td><td class="n">−8.512,1</td><td class="n">−11.908,2</td><td class="n">0,06 %</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Los 8.512,1 son los viajes de metro de la corrida. La predicción «se
+  reprecia» es la suma por estrato de los viajes de metro por
+  <em>VoT_social/VoT_h</em>.
+</p>
+
+<p>
+  La medida conductual cobra <strong>$1 por cada $1</strong> de tarifa; la
+  social cobra <strong>$0,54 al estrato alto, $1,08 al medio y $2,09 al
+  bajo</strong>. El reescalado de (7.5) no toca sólo el tiempo, toca la
+  utilidad entera. Es un ponderador distributivo legítimo; lo que no
+  corresponde es el rótulo, que promete revaluar minutos y entrega reponderar
+  personas.
+</p>
+
+<h3>5.3 Downs-Thomson según la unidad y el método</h3>
+
+<p>
+  Ampliar la vía puede empeorar al sistema si el metro pierde frecuencia. Se
+  barre el número de pistas con las dos medidas y los dos métodos de carga.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr>
+      <th class="n">pistas</th><th class="n">metro %</th>
+      <th class="n">exc. conductual</th><th class="n">Δ</th>
+      <th class="n">exc. social</th><th class="n">Δ</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="6"><strong><code>expected</code> · medida logsum · el método de la aplicación</strong></td></tr>
+    <tr><td class="n">1</td><td class="n">31,59</td><td class="n">−406,0</td><td class="n">+0,0</td><td class="n">−498,7</td><td class="n">+0,0</td></tr>
+    <tr><td class="n">2</td><td class="n">29,37</td><td class="n">−309,5</td><td class="n">+96,5</td><td class="n">−424,1</td><td class="n">+74,6</td></tr>
+    <tr><td class="n">3</td><td class="n">29,13</td><td class="n">−296,0</td><td class="n">+110,0</td><td class="n">−413,1</td><td class="n">+85,6</td></tr>
+    <tr><td class="n">4</td><td class="n">29,09</td><td class="n">−293,6</td><td class="n">+112,4</td><td class="n">−411,2</td><td class="n">+87,5</td></tr>
+    <tr><td class="n">6</td><td class="n">29,07</td><td class="n">−292,7</td><td class="n">+113,3</td><td class="n">−410,5</td><td class="n">+88,2</td></tr>
+    <tr><td colspan="6"><strong><code>todo_o_nada</code> · medida utilidad máxima · carga determinística</strong></td></tr>
+    <tr><td class="n">1</td><td class="n">28,05</td><td class="n">−1.580,2</td><td class="n">+0,0</td><td class="n">−1.745,4</td><td class="n">+0,0</td></tr>
+    <tr class="destacada"><td class="n">2</td><td class="n">9,30</td><td class="n">−1.754,7</td><td class="n">−174,5</td><td class="n">−1.979,2</td><td class="n">−233,8</td></tr>
+    <tr class="destacada"><td class="n">3</td><td class="n">7,67</td><td class="n">−1.535,1</td><td class="n">+45,1</td><td class="n">−1.782,4</td><td class="n">−37,0</td></tr>
+    <tr><td class="n">4</td><td class="n">7,67</td><td class="n">−1.477,1</td><td class="n">+103,1</td><td class="n">−1.735,3</td><td class="n">+10,1</td></tr>
+    <tr><td class="n">6</td><td class="n">7,67</td><td class="n">−1.454,6</td><td class="n">+125,6</td><td class="n">−1.716,9</td><td class="n">+28,5</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Pesos por viajero. Δ contra el escenario de una pista. Todas las corridas
+  convergieron. Las filas destacadas tienen algún Δ negativo.
+</p>
+
+<p>
+  <strong>Con el método de la aplicación no hay paradoja en ninguna
+  unidad.</strong> Ampliar la vía mejora el excedente monótonamente, el metro
+  cede dos puntos y medio y se estabiliza, y las dos monedas coinciden en el
+  orden; con la BPR estándar la palanca vial se agota desde la tercera pista.
+</p>
+
+<p>
+  <strong>Con la carga determinística la paradoja aparece, y su signo depende
+  de la unidad.</strong> Es el límite del capítulo 4 en que el segundo mejor
+  modo no recibe nada: al pasar de una a dos pistas el metro se desploma de
+  28,05 % a 9,30 %, la frecuencia cae con él, y el excedente baja en las dos
+  medidas, 174,5 $ por viajero en la conductual y 233,8 en la social. Con
+  tres pistas la conductual ya recuperó y la social sigue bajo el punto de
+  partida: <strong>el signo de la política lo decide la convención de
+  agregación</strong>. La pregunta «¿al mejorar la vialidad todos terminan
+  peor?» no tiene respuesta única, y en este simulador tampoco es
+  independiente del método de carga.
+</p>
+
+<h3>5.4 De qué está hecho el «bienestar social»</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>término</th><th class="n">$</th><th>base contable</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>excedente emparejado</td><td class="n">−8.970.221</td><td>hora punta</td></tr>
+    <tr><td>+ recaudación de estacionamiento</td><td class="n">+11.771.089</td><td>hora punta</td></tr>
+    <tr><td>+ recaudación de tarifa</td><td class="n">+6.809.658</td><td>hora punta</td></tr>
+    <tr><td>− costo del operador</td><td class="n">−4.082.396</td><td><strong>día, vía el factor día/punta</strong></td></tr>
+    <tr class="destacada"><td>= bienestar social</td><td class="n">+5.528.130</td><td>mixta</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">factor día/punta</th><th class="n">costo operador</th><th class="n">subsidio</th><th>autofinancia</th><th class="n">bienestar social</th><th class="n">Δ 2→4 pistas</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">1,0</td><td class="n">2.041.198</td><td class="n">−4.768.460</td><td><strong>sí</strong></td><td class="n">+7.569.328</td><td class="n">+658.907</td></tr>
+    <tr class="destacada"><td class="n">2,0</td><td class="n">4.082.396</td><td class="n">−2.727.262</td><td><strong>sí</strong></td><td class="n">+5.528.130</td><td class="n">+677.921</td></tr>
+    <tr><td class="n">3,0</td><td class="n">6.123.594</td><td class="n">−686.064</td><td><strong>sí</strong></td><td class="n">+3.486.932</td><td class="n">+696.935</td></tr>
+    <tr><td class="n">3,7</td><td class="n">7.552.432</td><td class="n">+742.774</td><td><strong>no</strong></td><td class="n">+2.058.094</td><td class="n">—</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  <strong>El código acierta su propia predicción.</strong> El comentario del
+  factor dice que haría falta cerca de 3,7 para que el metro requiera
+  subsidio. Medido: autofinancia con 1, 2 y 3, y a 3,7 el subsidio se vuelve
+  positivo.
+</p>
+
+<p>
+  <strong>El titular es de base mixta y su nivel no significa nada.</strong>
+  Tres de los cuatro términos son flujos de la hora punta que el modelo
+  simula; el cuarto lleva un factor que lo pasa a base diaria. Pasarlo de 2 a
+  1 mueve el titular un 37 % de su propio valor. Pero el excedente arrastra
+  las constantes de modo, así que el nivel nunca significó nada: la interfaz
+  lo muestra contra una referencia.
+</p>
+
+<p>
+  <strong>En el Δ, que es lo que se lee, el factor casi se cancela.</strong>
+  El Δ de 2 a 4 pistas va de 658.907 a 696.935 $ entre factor 1 y 3. No se
+  cancela del todo porque la frecuencia del metro es endógena y el costo del
+  operador cambia entre escenarios. La inconsistencia contable es real y su
+  efecto práctico es chico.
+</p>
+
+<h3>5.5 La población que desaparece</h3>
+
+<p>
+  La interfaz permite apagar un modo. Quien queda sin ningún modo factible
+  sale del agregado en vez de contar como bienestar muy bajo:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>escenario</th><th class="n">viajeros en el agregado</th><th class="n">varados</th><th class="n">% de quienes viajarían</th><th class="n">excedente total</th><th class="n">por viajero</th><th class="n">tren-km/h</th><th class="n">costo operador</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>todos los modos</td><td class="n">28.982,0</td><td class="n">0</td><td class="n">0,00</td><td class="n">−8.970.221</td><td class="n">−309,5</td><td class="n">170,1</td><td class="n">4.082.396</td></tr>
+    <tr class="destacada"><td>sin metro</td><td class="n">27.220,0</td><td class="n">1.762</td><td class="n">6,08</td><td class="n">−28.686.016</td><td class="n">−1.053,9</td><td class="n">80,0</td><td class="n">1.920.000</td></tr>
+    <tr><td>sin auto</td><td class="n">28.982,0</td><td class="n">0</td><td class="n">0,00</td><td class="n">−24.495.094</td><td class="n">−845,2</td><td class="n">249,2</td><td class="n">5.979.784</td></tr>
+    <tr><td>sin bici ni caminata</td><td class="n">26.664,0</td><td class="n">2.318</td><td class="n">8,00</td><td class="n">−31.031.882</td><td class="n">−1.163,8</td><td class="n">355,0</td><td class="n">8.521.166</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Apagar el metro deja <strong>1.762 personas varadas, el 6,08 % de quienes
+  viajarían</strong>, y las saca del cálculo. El daño medido es de
+  −19.715.795 $. Valorando a esos varados al excedente del viajero medio del
+  mismo escenario, una cota inferior porque quedaron varados justamente por
+  estar peor que el promedio, el daño sería −21.572.767 $: el agregado
+  <strong>lo subestima en al menos un 9,42 %</strong>. Y no es sólo el
+  promedio: el total también se contrae porque <em>n</em> cae. La política
+  sale mejor evaluada por haber expulsado gente del denominador. La columna
+  de tren-km muestra el otro hecho: sin metro el servicio sigue circulando a
+  frecuencia mínima, 80 tren-km por hora, y costando 1.920.000 $ con
+  recaudación cero.
+</p>
+
+<h3>5.6 Segregación: el índice es una propiedad de la ciudad</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">n_celdas</th><th class="n">Theil poblacional</th><th class="n">Δ sucesivo</th><th class="n">Theil territorial</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">51</td><td class="n">0,22572</td><td class="n">—</td><td class="n">0,25807</td></tr>
+    <tr><td class="n">101</td><td class="n">0,22777</td><td class="n">0,00205</td><td class="n">0,25942</td></tr>
+    <tr class="destacada"><td class="n">201</td><td class="n">0,23000</td><td class="n">0,00223</td><td class="n">0,26114</td></tr>
+    <tr><td class="n">401</td><td class="n">0,23127</td><td class="n">0,00127</td><td class="n">0,26218</td></tr>
+    <tr><td class="n">801</td><td class="n">0,23179</td><td class="n">0,00052</td><td class="n">0,26259</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Es la prueba que un índice de segregación normalmente no pasa. El problema
+  de la unidad areal modificable (Openshaw, 1984) dice que estos índices
+  dependen de cómo se tracen las zonas; acá <strong>convergen</strong>: de 101
+  celdas en adelante, cada vez que se duplica la grilla la diferencia se
+  reduce a la mitad, así que el índice tiene un límite continuo y es una
+  propiedad de la ciudad, no del enrejado. La razón es que <em>Q</em> es una
+  función suave de la posición y refinar la grilla resuelve mejor la misma
+  curva; el resultado no se transfiere a datos censales reales. El índice
+  territorial, que pesa cada celda igual, sobreestima la segregación en un
+  13,54 % en la base.
+</p>
+
+<h3>5.7 Los ponderadores del costo generalizado</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>ponderador</th><th class="n">espera</th><th class="n">acceso</th><th class="n">caminata</th><th class="n">minutos totales</th><th class="n">recargo</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>plano</td><td class="n">1,0</td><td class="n">1,0</td><td class="n">1,0</td><td class="n">505.959,1</td><td class="n">—</td></tr>
+    <tr><td>SNI (costo social)</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,0</td><td class="n">617.583,5</td><td class="n">+22,06 %</td></tr>
+    <tr><td>utilidad (costo percibido)</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">651.954,5</td><td class="n">+28,86 %</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Minutos-equivalentes en vehículo, sobre la demanda esperada de la corrida.
+  Los tres estratos comparten los tres ponderadores percibidos.
+</p>
+
+<p>
+  El costo generalizado social sube de 49.519.213 $ con minutos planos a
+  <strong>55.729.246 $</strong> al ponderar, un 12,54 %. Y los ponderadores de
+  espera y acceso de la utilidad <strong>coinciden exactamente</strong> con
+  los del SNI, 2,0 y 2,0, porque los betas del capítulo 4 se calibraron
+  contra esa misma tabla. Toda la diferencia entre los dos recargos la pone
+  la caminata: 1,7 en la utilidad y 1,0 en la norma, que no la cubre. El
+  «costo percibido» y el «costo social» se presentan como dos miradas
+  independientes, la del usuario y la del evaluador, pero en el componente
+  donde más pesan comparten el mismo número de la misma tabla.
+</p>
+
+<h2 id="s6"><span class="num">§6</span> Discusión</h2>
+
+<p>
+  Es el módulo con la mejor doctrina escrita del repositorio. Separa tres
+  medidas que responden preguntas distintas y se niega a colapsarlas; declara
+  que promediar utilidades entre personas no es bienestar; empareja la medida
+  con el supuesto de comportamiento en el núcleo para que dos páginas no
+  puedan contestar distinto; deja por escrito que la constante de Euler se
+  omite y en qué dirección sesga; y anticipa, textualmente, el sesgo del
+  varado que la §5.5 midió. Lo que queda por resolver es de rótulos y de
+  alcances, no de matemática: la medida social se presenta como una
+  revaluación del tiempo cuando es una reponderación de personas, y un
+  estudiante que vea cambiar el signo entre las dos columnas concluirá lo
+  primero. La diferencia es una decisión distributiva explícita y merece
+  decirse así.
+</p>
+
+<h3>Alternativas medidas</h3>
+
+<ul>
+  <li>
+    <strong>Costo generalizado con minutos planos</strong>: subvalúa el costo
+    social en 12,54 % y no cumple la tabla que dice cumplir.
+  </li>
+  <li>
+    <strong>Theil territorial</strong>: se conserva en el código como la rama
+    sin <em>S</em>, y difiere 13,54 % del poblacional en la base.
+  </li>
+  <li>
+    <strong>Tren-km despejados de las emisiones</strong>: con factor de
+    emisión cero el costo del operador se evaporaba; hoy salen del servicio.
+  </li>
+</ul>
+
+<h3>Pendientes</h3>
+
+<ul>
+  <li>
+    <strong>Contar al varado.</strong> Lo correcto es una utilidad de reserva
+    explícita, el valor del viaje que no se hace; lo mínimo, publicar el
+    conteo de varados junto al agregado para que se vea que el denominador se
+    movió.
+  </li>
+  <li>
+    <strong>Los tres rótulos.</strong> La nota de la medida social, el
+    subtítulo del bienestar total del acoplado y el rótulo del Δ excedente
+    describen otra cosa que lo que el núcleo calcula.
+  </li>
+  <li>
+    <strong>Una función objetivo en unidad social</strong>, o decidir que no
+    la hay: la §5.3 muestra que la unidad puede dar vuelta el signo, y hoy
+    (7.7) sólo existe en la conductual.
+  </li>
+  <li>
+    <strong>El costo por tren-km y el factor día/punta</strong> siguen siendo
+    provisorios; su efecto sobre el Δ está acotado, no resuelto. Declarar la
+    base contable en el rótulo, o llevar los cuatro términos a la misma.
+  </li>
+  <li>
+    <strong>El informe de bienestar</strong> describe la versión anterior del
+    módulo: su explicación del mecanismo y su tabla de Downs-Thomson son de
+    antes del transporte homoscedástico y de la BPR estándar.
+  </li>
+</ul>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    <a href="cap06-accesibilidad-acoplamiento.html">← capítulo 6</a> ·
+    datos en <code>datos/cap07.json</code>, regenerados con
+    <code>uv run python ../../docs/libro/datos/datos_cap07.py</code> ·
+    informe absorbido: <a href="informe-bienestar.html">informe-bienestar</a> ·
+    Ministerio de Desarrollo Social y Familia (2026), <em>Precios Sociales
+    vigentes 2026</em>, SNI, tabla 2.1 · Williams (1977) y Small y Rosen
+    (1981), citados en el capítulo 6 · Reardon, S. F. y O'Sullivan, D. (2004).
+    Measures of spatial segregation. <em>Sociological Methodology</em>, 34(1),
+    121–162 · Openshaw, S. (1984). <em>The modifiable areal unit problem</em>.
+    CATMOG 38, Geo Books.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

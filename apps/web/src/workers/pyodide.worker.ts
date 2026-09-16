@@ -4,7 +4,6 @@
  *
  * Protocolo (main thread → worker):
  *   { id, type: "init" }
- *   { id, type: "simulate", config }
  *   { id, type: "simulateStream", config }
  *
  * Respuestas (worker → main thread):
@@ -14,7 +13,13 @@
  *   { id, type: "error", message }
  */
 
-import type { IterationSnapshot, SimulationConfig, SimulationResult } from "@/lib/types";
+import type {
+  DemandConfig,
+  SupplyConfig,
+  IterationSnapshot,
+  SimulationConfig,
+  SimulationResult,
+} from "@/lib/types";
 import type {
   CoupledRequest,
   LandUseConfig,
@@ -24,17 +29,41 @@ import type {
 
 type InMsg =
   | { id: string; type: "init" }
-  | { id: string; type: "simulate"; config: SimulationConfig }
-  | { id: string; type: "simulateStream"; config: SimulationConfig }
+  | {
+      id: string;
+      type: "simulateStream";
+      config: SimulationConfig;
+      /** La población SIEMPRE se deriva del uso de suelo (hogares por estrato
+       *  → hogares por celda). Hasta sep-2026 era opcional y sin él se poblaba
+       *  con densidad plana: dos poblaciones para una ciudad (D-46). */
+      land_use: LandUseConfig;
+      /** Localización de los estratos: "original" = mezcla uniforme π_h (el
+       *  equilibrio de pujas no se ha movido); "equilibrio" = producto del
+       *  bid-rent. Solo aplica con `land_use`. Default "equilibrio". */
+      localizacion?: "equilibrio" | "original";
+    }
   | {
       id: string;
       type: "landUseSolve";
-      req: { L: number; CBD: number; land_use: LandUseConfig };
+      req: {
+        L: number;
+        CBD: number;
+        largo_km: number;
+        land_use: LandUseConfig;
+        demand: DemandConfig;
+        supply: SupplyConfig;
+        modos_habilitados?: readonly string[] | null;
+      };
     }
-  | { id: string; type: "coupledStream"; req: CoupledRequest };
+  | { id: string; type: "coupledStream"; req: CoupledRequest }
+  /** Cancelación cooperativa (F-03): marca la corrida `targetId` para que su
+   *  loop de streaming se detenga en el próximo borde de iteración, SIN
+   *  terminar el worker (Pyodide sobrevive; no se re-paga el boot). */
+  | { id: string; type: "cancel"; targetId: string };
 
 type OutMsg =
   | { id: string; type: "ready" }
+  | { id: string; type: "bootStage"; stage: "runtime" | "packages" | "wheel" }
   | { id: string; type: "iteration"; snapshot: IterationSnapshot }
   | { id: string; type: "done"; result: SimulationResult }
   | { id: string; type: "landUseDone"; result: LandUseSolveResponse }
@@ -57,8 +86,7 @@ interface PyodideInterface {
 type LoadPyodide = (opts: { indexURL: string }) => Promise<PyodideInterface>;
 
 let pyodide: PyodideInterface | null = null;
-let simulateFn: ((config: unknown) => unknown) | null = null;
-let iterFn: ((config: unknown) => unknown) | null = null;
+let iterSueloFn: ((req: unknown) => unknown) | null = null;
 let lastTraceFn: (() => unknown) | null = null;
 let landUseSolveFn: ((req: unknown) => unknown) | null = null;
 let coupledIterFn: ((req: unknown) => unknown) | null = null;
@@ -67,128 +95,99 @@ function post(msg: OutMsg): void {
   self.postMessage(msg);
 }
 
+/** Corridas marcadas para cancelar (F-03). Los loops de streaming ceden el
+ * event loop entre iteraciones (yield0) para que el mensaje "cancel" pueda
+ * procesarse mientras corren; sin ese yield el loop es síncrono y el mensaje
+ * quedaría encolado hasta el final. */
+const cancelledIds = new Set<string>();
+
+const yield0 = () => new Promise<void>((r) => setTimeout(r, 0));
+
 async function init(): Promise<void> {
   if (pyodide) return;
 
   // En module workers no existe `importScripts`. Usamos la build .mjs que
   // Pyodide distribuye para contextos ESM. `@vite-ignore` evita que Vite
   // intente resolver/bundlear la URL remota.
-  const mod = (await import(/* @vite-ignore */ `${PYODIDE_CDN}pyodide.mjs`)) as {
+  post({ id: "boot", type: "bootStage", stage: "runtime" });
+  const mod = (await import(
+    /* @vite-ignore */ `${PYODIDE_CDN}pyodide.mjs`
+  )) as {
     loadPyodide: LoadPyodide;
   };
   const py = await mod.loadPyodide({ indexURL: PYODIDE_CDN });
   pyodide = py;
 
+  post({ id: "boot", type: "bootStage", stage: "packages" });
   await py.loadPackage(["micropip", "numpy", "scipy"]);
 
   // Descargar y registrar el wheel del core.
-  const whlUrl = new URL("/pyodide/titirilquen_core-0.1.0-py3-none-any.whl", self.location.origin)
-    .toString();
+  post({ id: "boot", type: "bootStage", stage: "wheel" });
+  const whlUrl = new URL(
+    "/pyodide/titirilquen_core-0.2.0-py3-none-any.whl",
+    self.location.origin,
+  ).toString();
 
   await py.runPythonAsync(`
 import micropip
 await micropip.install("pydantic")
 await micropip.install(${JSON.stringify(whlUrl)})
 
-from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig, run_msa
+from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig
 from titirilquen_core.coupled import iter_coupled
-from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa
+from titirilquen_core.config import DemandConfig, SupplyConfig
+from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
 import json
-import numpy as np
 
-def _snap_to_py(snap):
-    return {
-        "iter": snap.iter,
-        "f_msa": snap.f_msa,
-        "modal_split": snap.modal_split,
-        "t_auto": snap.t_auto.tolist(),
-        "t_bici": snap.t_bici.tolist(),
-        "t_tren_acceso": snap.t_tren_acceso.tolist(),
-        "t_tren_espera": snap.t_tren_espera.tolist(),
-        "t_tren_viaje": snap.t_tren_viaje.tolist(),
-        "demanda_auto": snap.demanda_auto.tolist(),
-        "demanda_metro": snap.demanda_metro.tolist(),
-        "demanda_bici": snap.demanda_bici.tolist(),
-        "demanda_caminata": snap.demanda_caminata.tolist(),
-        "frecuencia_metro": snap.frecuencia_metro,
-        "residuo": None if snap.residuo == float("inf") else snap.residuo,
-    }
+# La forma del resultado la define el CORE, en titirilquen_core.serializacion.
+# Antes estaba reescrita acá dentro, en un string que ninguna herramienta
+# revisa; divergió del gemelo de la API y el frontend terminó mostrando ceros.
+# Este bloque ya solo es el pegamento entre el worker y el núcleo.
+from titirilquen_core.serializacion import (
+    iteration_to_dict,
+    land_use_city_to_dict,
+    outer_iteration_to_dict,
+    trace_to_dict,
+)
 
-def _trace_to_py(trace):
-    return {
-        "converged": trace.converged,
-        "capacidad_auto": trace.capacidad_auto,
-        "v_libre_auto": trace.v_libre_auto,
-        "alpha_auto_bpr": trace.alpha_auto_bpr,
-        "beta_auto_bpr": trace.beta_auto_bpr,
-        "carga_metro": None if trace.carga_metro is None else trace.carga_metro.tolist(),
-        "estaciones_km": None if trace.estaciones_km is None else trace.estaciones_km.tolist(),
-        "emisiones_total_kg": trace.emisiones_total_kg,
-        "emisiones_auto_kg": trace.emisiones_auto_kg,
-        "emisiones_metro_kg": trace.emisiones_metro_kg,
-        "emisiones_perfil_kg": None if trace.emisiones_perfil_kg is None else trace.emisiones_perfil_kg.tolist(),
-        "iteraciones": [_snap_to_py(s) for s in trace.iteraciones],
-        "agentes": [
-            {
-                "id": a.id, "celda_origen": a.celda_origen, "estrato": a.estrato,
-                "teletrabaja": a.teletrabaja, "tiene_auto": a.tiene_auto,
-                "modo_elegido": a.modo_elegido, "utilidad_elegida": a.utilidad_elegida,
-            }
-            for a in trace.agentes
-        ],
-    }
+# Streaming en una sola corrida: iter_msa_desde_suelo popula el trace completo
+# mientras emite los snapshots. Tras agotar el generador, last_trace_to_py()
+# devuelve el resultado final (agentes/emisiones) SIN volver a correr.
+_LAST_TRACE = {"trace": None, "cfg": None}
 
-def simulate_from_json(config_json: str):
-    cfg = SimulationConfig.model_validate_json(config_json)
-    return _trace_to_py(run_msa(cfg))
-
-# Streaming en una sola corrida: iter_msa popula el trace completo mientras
-# emite los snapshots. Tras agotar el generador, last_trace_to_py() devuelve el
-# resultado final (agentes/emisiones) SIN volver a correr la simulación.
-_LAST_TRACE = {"trace": None}
-
-def iter_from_json(config_json: str):
-    cfg = SimulationConfig.model_validate_json(config_json)
+def iter_from_json_suelo(req_json: str):
+    # La población del transporte se deriva del uso de suelo (hogares por
+    # estrato → hogares por celda); es la única ruta desde sep-2026.
+    req = json.loads(req_json)
+    cfg = SimulationConfig.model_validate(req["config"])
+    lu = LandUseConfig.model_validate(req["land_use"])
+    localizacion = req.get("localizacion", "equilibrio")
     trace = ConvergenceTrace()
     _LAST_TRACE["trace"] = None
-    for snap in iter_msa(cfg, trace):
-        yield _snap_to_py(snap)
+    _LAST_TRACE["cfg"] = cfg
+    for snap in iter_msa_desde_suelo(cfg, lu, trace, localizacion=localizacion):
+        yield iteration_to_dict(snap)
     _LAST_TRACE["trace"] = trace
 
 def last_trace_to_py():
     t = _LAST_TRACE["trace"]
-    return None if t is None else _trace_to_py(t)
-
-def _land_use_result_to_py(res):
-    return {
-        "u": res.u.tolist(),
-        "p": res.p.tolist(),
-        "Q": res.Q.tolist(),
-        "converged": res.converged,
-        "iterations": res.iterations,
-    }
-
-def _outer_iter_to_py(outer):
-    return {
-        "outer_iter": outer.outer_iter,
-        "land_use": _land_use_result_to_py(outer.land_use),
-        "transport": _trace_to_py(outer.transport),
-        "T_matrix": outer.T_matrix.tolist(),
-        "T_residual": None if outer.T_residual == float("inf") else outer.T_residual,
-    }
+    return None if t is None else trace_to_dict(t, _LAST_TRACE["cfg"])
 
 def land_use_solve_from_json(req_json: str):
+    # La accesibilidad de la puja es el logsum de transporte a flujo libre,
+    # mensualizado: por eso el standalone también necesita la demanda (D-34).
     req = json.loads(req_json)
     cfg = LandUseConfig.model_validate(req["land_use"])
-    city = LandUseCity.build(L=int(req["L"]), CBD=int(req["CBD"]), cfg=cfg)
-    assert city.result is not None
-    return {
-        "L": city.L,
-        "CBD": city.cbd_index,
-        "S": city.S.tolist(),
-        "parcelas": city.parcelas,
-        "result": _land_use_result_to_py(city.result),
-    }
+    demand = DemandConfig.model_validate(req["demand"])
+    supply = SupplyConfig.model_validate(req["supply"])
+    modos = req.get("modos_habilitados")
+    L = int(req["L"]); CBD = int(req["CBD"])
+    largo_km = float(req.get("largo_km", 20.0))
+    dx = largo_km / L
+    T = T_flujo_libre(demand, L, CBD, dx, tuple(modos) if modos else None, supply=supply)
+    city = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=dx, T=T)
+    return land_use_city_to_dict(city)
 
 def coupled_iter_from_json(req_json: str):
     req = json.loads(req_json)
@@ -202,18 +201,16 @@ def coupled_iter_from_json(req_json: str):
         outer_max_iter=outer_max_iter,
         outer_tol=outer_tol,
     ):
-        yield _outer_iter_to_py(outer)
+        yield outer_iteration_to_dict(outer)
 `);
 
   const globals = py.pyimport("__main__") as {
-    simulate_from_json: unknown;
-    iter_from_json: unknown;
+    iter_from_json_suelo: unknown;
     last_trace_to_py: unknown;
     land_use_solve_from_json: unknown;
     coupled_iter_from_json: unknown;
   };
-  simulateFn = globals.simulate_from_json as (c: unknown) => unknown;
-  iterFn = globals.iter_from_json as (c: unknown) => unknown;
+  iterSueloFn = globals.iter_from_json_suelo as (r: unknown) => unknown;
   lastTraceFn = globals.last_trace_to_py as () => unknown;
   landUseSolveFn = globals.land_use_solve_from_json as (r: unknown) => unknown;
   coupledIterFn = globals.coupled_iter_from_json as (r: unknown) => unknown;
@@ -221,7 +218,11 @@ def coupled_iter_from_json(req_json: str):
 
 function jsFromPy(value: unknown): unknown {
   if (value && typeof (value as { toJs?: unknown }).toJs === "function") {
-    const obj = (value as { toJs: (opts: { dict_converter: typeof Object.fromEntries }) => unknown }).toJs({
+    const obj = (
+      value as {
+        toJs: (opts: { dict_converter: typeof Object.fromEntries }) => unknown;
+      }
+    ).toJs({
       dict_converter: Object.fromEntries,
     });
     if (typeof (value as { destroy?: unknown }).destroy === "function") {
@@ -235,26 +236,40 @@ function jsFromPy(value: unknown): unknown {
 self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
   const msg = ev.data;
   try {
+    // La cancelación no necesita Pyodide y debe procesarse aunque el init
+    // esté en curso: antes del await.
+    if (msg.type === "cancel") {
+      cancelledIds.add(msg.targetId);
+      return;
+    }
     await init();
     if (msg.type === "init") {
       post({ id: msg.id, type: "ready" });
       return;
     }
-    if (msg.type === "simulate") {
-      const result = jsFromPy(simulateFn!(JSON.stringify(msg.config))) as SimulationResult;
-      post({ id: msg.id, type: "done", result });
-      return;
-    }
     if (msg.type === "simulateStream") {
-      const gen = iterFn!(JSON.stringify(msg.config)) as {
+      const gen = iterSueloFn!(
+        JSON.stringify({
+          config: msg.config,
+          land_use: msg.land_use,
+          localizacion: msg.localizacion ?? "equilibrio",
+        }),
+      ) as {
         [Symbol.iterator](): Iterator<unknown>;
       };
       const iter = gen[Symbol.iterator]();
-      while (true) {
-        const { value, done } = iter.next();
-        if (done) break;
-        const snapshot = jsFromPy(value) as IterationSnapshot;
-        post({ id: msg.id, type: "iteration", snapshot });
+      try {
+        while (true) {
+          const { value, done } = iter.next();
+          if (done) break;
+          const snapshot = jsFromPy(value) as IterationSnapshot;
+          post({ id: msg.id, type: "iteration", snapshot });
+          // Ceder el event loop: permite procesar un "cancel" en vuelo.
+          await yield0();
+          if (cancelledIds.delete(msg.id)) return;
+        }
+      } finally {
+        (gen as { destroy?: () => void }).destroy?.();
       }
       // El trace completo (agentes, carga_metro final, emisiones) ya quedó poblado
       // durante el streaming (iter_msa con trace) — lo leemos sin volver a correr.
@@ -264,7 +279,7 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
     }
     if (msg.type === "landUseSolve") {
       const result = jsFromPy(
-        landUseSolveFn!(JSON.stringify(msg.req))
+        landUseSolveFn!(JSON.stringify(msg.req)),
       ) as LandUseSolveResponse;
       post({ id: msg.id, type: "landUseDone", result });
       return;
@@ -274,11 +289,17 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
         [Symbol.iterator](): Iterator<unknown>;
       };
       const iter = gen[Symbol.iterator]();
-      while (true) {
-        const { value, done } = iter.next();
-        if (done) break;
-        const outer = jsFromPy(value) as OuterIteration;
-        post({ id: msg.id, type: "outerIteration", outer });
+      try {
+        while (true) {
+          const { value, done } = iter.next();
+          if (done) break;
+          const outer = jsFromPy(value) as OuterIteration;
+          post({ id: msg.id, type: "outerIteration", outer });
+          await yield0();
+          if (cancelledIds.delete(msg.id)) return;
+        }
+      } finally {
+        (gen as { destroy?: () => void }).destroy?.();
       }
       post({ id: msg.id, type: "coupledDone" });
       return;

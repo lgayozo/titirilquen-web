@@ -1,0 +1,94 @@
+---
+slug: land-use
+order: 7
+title: Land use
+tagline: Bid-rent, logit auction and the lambda artifact
+---
+
+# 6. Land use
+
+The land module (**Land use** page) solves where each household lives through an Alonso–Muth–Mills style **auction**: each stratum bids for parcels and the one valuing each location the most wins it, pushing the rest toward the periphery.
+
+## Utility and willingness to pay
+
+The utility of a stratum-$h$ household at parcel $i$, paying rent $p_i$, is **linear in income**:
+
+$$
+u_h = \lambda_h\,(y_h - p_i) + f_h(i)
+$$
+
+<OverleafRef sec="Suelo · Función de puje" />
+
+where $\lambda_h$ is the marginal utility of income, $y_h$ the stratum's monthly income and $f_h(i)$ the **amenity function**, in physical units:
+
+$$
+f_h(i) = -\alpha_h\, T(i) - \rho_h \cdot \frac{S_i}{\Delta x}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-2" />
+
+with $T(i)$ the travel time to the CBD in **minutes** (free-flow in the standalone mode; from the transport equilibrium in the coupled one), $\alpha_h$ in utils/min and $\rho_h$ the **density** penalty (households/km). Physical units make the equilibrium invariant to grid resolution — refining the discretization does not change the conclusions.
+
+Solving for the price yields the **willingness to pay** at utility level $u_h$:
+
+$$
+w_h(u, i) = y_h - \frac{u_h - f_h(i)}{\lambda_h}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-3" />
+
+## The logit auction
+
+With an idiosyncratic Gumbel term in utility, the probability that a stratum-$h$ household wins the auction for parcel $i$ is:
+
+$$
+Q_{hi} = \frac{H_h\, e^{\beta\, w_{hi}}}{\sum_{g} H_g\, e^{\beta\, w_{gi}}}
+$$
+
+<OverleafRef sec="Suelo · Asignación probabilística" />
+
+The $H_h$ weighting (number of bidders of each type) guarantees **per-stratum conservation** at equilibrium: $\sum_i S_i\, Q_{hi} = H_h$.
+
+<OverleafRef sec="Suelo · Asignación probabilística" tag="S-4" />
+
+The equilibrium is a fixed point over the utilities $\bar{u}_h$ (each stratum places exactly its $H_h$ households), and the **implicit land prices** come from the identity:
+
+$$
+p_i^{*} = \frac{1}{\beta} \ln\left( \sum_g H_g\, e^{\beta\, w_{gi}} \right)
+$$
+
+<OverleafRef sec="Suelo · Interpretación del punto fijo" />
+
+defined up to a constant: only the spatial **gradient** is informative.
+
+## A limitation: $\lambda$ is not identified
+
+The model above has a problem when $\lambda_h$ is heterogeneous, and it is worth understanding because the simulator **does not fix it**.
+
+The bid divides attractiveness by $\lambda_h$, and $f$ is linear in $\alpha_h$ and $\rho_h$. Therefore:
+
+$$
+y_h + \frac{f_h(i)}{\lambda_h} \;\equiv\; y_h + f\!\left(i;\; \frac{\alpha_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
+$$
+
+This is an **identity**, not an approximation: moving $\lambda_h$ is exactly the same as rescaling that stratum's preferences by $1/\lambda_h$. And since $\beta$ is uniform, it also rescales its choice noise to $1/(\beta\lambda_h)$. All three move together and cannot be separated: in this model $\lambda$ is **not an independent economic parameter**, it is a redundant reparameterisation of $\alpha$ and $\rho$.
+
+<Callout type="warn">
+**This holds as long as the $\lambda_h$ are equal to each other.** As soon as they differ, the identity above breaks and the core switches models on its own: it uses the **heteroskedastic auction** (HEV), the correct formulation when bid variance differs across bidders (Train, §4.5). There $\lambda$ also moves the noise scale, which rescaling preferences does not touch, and that is what identifies it.
+
+It is not a full fix: $\lambda$ still enters through $f_h/\lambda_h$ too, so it moves preferences and dispersion at once. For it to act purely through price sensitivity you would need a **choice** model rather than an auction — in an auction every bidder for a plot pays the same, so the price cancels.
+</Callout>
+
+<Callout type="info">
+Try varying the high stratum's $\lambda$ and watch the allocation. It moves — and that is the limitation, not a result. Lowering it to 0.5 **sends the high stratum to the periphery** (8.5 km from the CBD), the opposite of what any income story would say: as $\rho/\lambda$ grows, the density penalty hits precisely the central cells, which are the dense ones. The contrast that confirms it: income $y$ —which *is* an economic parameter— **reallocates nobody**, because it enters as a constant and is absorbed into $\bar{u}$.
+</Callout>
+
+## The shape of the city
+
+The supply $S(i)$ is generated **deterministically** (largest-remainder discretization, $\sum_i S_i = \sum_h H_h$ exact, empty CBD) with six parameterizable shapes: normal, uniform, exponential, plateau, bimodal and valley, with dispersion $\sigma$ as a fraction of the half-city.
+
+The **per-cell density** is a direct consequence of supply: $\text{dens}(i) = S_i/\Delta x$, so it follows the chosen shape (not an imposed gradient). The population figures and the strata heatmap share that envelope; bid-rent only reorders *who* lives where, without changing *how many* per cell.
+
+<OverleafRef sec="Suelo (oferta S)" tag="S-1" />
+
+<NextStep to="experimenting">Experiment →</NextStep>

@@ -27,4 +27,13 @@ void i18n
     },
   });
 
+// El lang del documento gobierna la silabación (hyphens: auto) de la prosa
+// justificada: sincronizarlo al cargar y en cada cambio de idioma.
+i18n.on("languageChanged", (lng) => {
+  document.documentElement.lang = lng;
+});
+if (i18n.resolvedLanguage) {
+  document.documentElement.lang = i18n.resolvedLanguage;
+}
+
 export default i18n;

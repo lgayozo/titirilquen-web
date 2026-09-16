@@ -10,21 +10,25 @@ Portado y extendido desde `titirilquen-repo/app.py:470-524`. Cambios:
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Iterator
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, SimulationConfig, StratumId
-from titirilquen_core.demand.choice import probabilidades_logit
-from titirilquen_core.emissions import calcular_emisiones
+from titirilquen_core.constantes import MODOS
+from titirilquen_core.demand.choice import probabilidades_logit, probabilidades_todo_o_nada
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
-from titirilquen_core.population import Agente, generar_poblacion
-from titirilquen_core.supply.bike import demora_bici_tramo
-from titirilquen_core.supply.car import demora_auto_tramo
-from titirilquen_core.supply.train import oferta_tren
+from titirilquen_core.emissions import calcular_emisiones
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.ciudad import LandUseCity
+from titirilquen_core.land_use.config import LandUseConfig
+from titirilquen_core.land_use.supply import generar_oferta
+from titirilquen_core.population import Agente, generar_poblacion_desde_land_use_det
+from titirilquen_core.supply.oferta import resolver_oferta
 
 ModalSplit = dict[str, float]
 
@@ -46,6 +50,9 @@ class IterationSnapshot:
     t_tren_espera: NDArray[np.float64]
     t_tren_viaje: NDArray[np.float64]
     frecuencia_metro: float
+    #: Frecuencia sin recortar (`carga/K`). Comparada con `frecuencia_metro`
+    #: revela si `frec_min`/`frec_max` estan mordiendo — ver AT-08/AT-09.
+    frecuencia_teorica_metro: float
     residuo: float
 
 
@@ -55,6 +62,12 @@ class ConvergenceTrace:
 
     iteraciones: list[IterationSnapshot] = field(default_factory=list)
     converged: bool = False
+    #: Brecha NO amortiguada del estado final (min): se recalcula la demanda con
+    #: los tiempos finales, se resuelve la oferta con ESA demanda y se mide el
+    #: máximo cambio de tiempo en cualquier modo y celda. `residuo` mide el cambio
+    #: del iterado amortiguado, que con paso 1/n subestima el desajuste real en
+    #: ~n veces (D-39): esta es la cifra que acota lo que «convergió» sugiere.
+    gap_final_min: float = float("nan")
     capacidad_auto: float = 0.0
     v_libre_auto: float = 0.0
     alpha_auto_bpr: float = 0.0
@@ -66,22 +79,20 @@ class ConvergenceTrace:
     emisiones_auto_kg: float = 0.0
     emisiones_metro_kg: float = 0.0
     emisiones_perfil_kg: NDArray[np.float64] | None = None
+    # Flujo ACUMULADO por corredor hacia el CBD del estado final (cumsum de la
+    # demanda originada, por dirección) — veh/h y bici/h por celda. Es el numerador
+    # correcto del v/c: la demanda originada por celda NO lo es (subestima ~60×).
+    flujos_auto_veh_h: NDArray[np.float64] | None = None
+    flujos_bici_veh_h: NDArray[np.float64] | None = None
+    # Demanda ESPERADA por (estrato, modo, celda) del estado final — forma
+    # [3, len(_MODOS), n_celdas], estratos 0..2 = 1..3, modos en orden _MODOS.
+    # Es la demanda por celda (misma que las Fig. 2/3/4) desagregada por estrato,
+    # para el reparto modal espacial por estrato.
+    demanda_estrato: NDArray[np.float64] | None = None
 
 
-def _tiempos_de_snapshot(snap: IterationSnapshot, n_celdas: int) -> list[TiemposObservados]:
-    return [
-        TiemposObservados(
-            auto_total=float(snap.t_auto[i]),
-            bici_total=float(snap.t_bici[i]),
-            tren_acceso=float(snap.t_tren_acceso[i]),
-            tren_espera=float(snap.t_tren_espera[i]),
-            tren_viaje=float(snap.t_tren_viaje[i]),
-        )
-        for i in range(n_celdas)
-    ]
-
-
-_MODOS: tuple[str, ...] = ("Auto", "Metro", "Bici", "Caminata")
+#: Alias local del orden canónico (`titirilquen_core.constantes.MODOS`).
+_MODOS = MODOS
 
 
 @dataclass
@@ -125,6 +136,7 @@ def _probs_grupo(
     demand: DemandConfig,
     tiempos_por_celda: list[TiemposObservados] | None,
     modos_habilitados: tuple[str, ...] | None,
+    todo_o_nada: bool = False,
 ):
     tiempos = tiempos_por_celda[g.celda] if tiempos_por_celda is not None else None
     utils = calcular_utilidades(
@@ -136,7 +148,8 @@ def _probs_grupo(
         tiempos_observados=tiempos,
         modos_habilitados=modos_habilitados,
     )
-    return utils, probabilidades_logit(utils)
+    reparto = probabilidades_todo_o_nada if todo_o_nada else probabilidades_logit
+    return utils, reparto(utils)
 
 
 def _correr_iteracion(
@@ -148,6 +161,7 @@ def _correr_iteracion(
     rng: np.random.Generator,
     expected: bool = False,
     modos_habilitados: tuple[str, ...] | None = None,
+    todo_o_nada: bool = False,
 ) -> tuple[
     ModalSplit,
     NDArray[np.float64],
@@ -174,7 +188,9 @@ def _correr_iteracion(
     dem = {"Auto": dem_auto, "Metro": dem_metro, "Bici": dem_bici, "Caminata": dem_caminata}
 
     for g in grupos:
-        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
+        _, probs = _probs_grupo(
+            g, ciudad, demand, tiempos_por_celda, modos_habilitados, todo_o_nada
+        )
         n = len(g.agentes)
         i = g.celda
         if expected:
@@ -208,14 +224,22 @@ def _asignar_modos_agentes(
     tiempos_por_celda: list[TiemposObservados] | None,
     rng: np.random.Generator,
     modos_habilitados: tuple[str, ...] | None = None,
+    todo_o_nada: bool = False,
 ) -> None:
     """Asigna `modo_elegido`/`utilidad_elegida` a cada agente **una sola vez**, a
     partir del estado final, muestreando de las probabilidades del grupo
     (vectorizado: `rng.choice(size=nₐ)`). Los registros por agente alimentan las
     figuras agente‑nivel; el muestreo (no argmax) preserva modos minoritarios
-    como la bici."""
+    como la bici.
+
+    Con `todo_o_nada=True` el reparto del grupo ya es degenerado —toda la masa en el
+    mejor modo—, así que muestrear de él devuelve ese modo para todos los
+    agentes del grupo. Es lo correcto: bajo equilibrio determinístico no hay
+    heterogeneidad de gustos que separe a dos agentes idénticos."""
     for g in grupos:
-        utils, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
+        utils, probs = _probs_grupo(
+            g, ciudad, demand, tiempos_por_celda, modos_habilitados, todo_o_nada
+        )
         n = len(g.agentes)
         pvec = np.array([probs.get(m, 0.0) for m in _MODOS])
         total = float(pvec.sum())
@@ -232,29 +256,78 @@ def _asignar_modos_agentes(
             a.utilidad_elegida = utils[modo].valor
 
 
-def iter_msa(
-    sim: SimulationConfig, trace: ConvergenceTrace | None = None
+def iter_msa_desde_suelo(
+    sim: SimulationConfig,
+    land_use_config: LandUseConfig,
+    trace: ConvergenceTrace | None = None,
+    localizacion: Literal["equilibrio", "original"] = "equilibrio",
+    promediar_flujos: bool = False,
 ) -> Iterator[IterationSnapshot]:
-    """Generador que emite una IterationSnapshot por iteración (streaming).
+    """El MSA de transporte con la población derivada del **uso de suelo**: los
+    `S_i` hogares que la ciudad ofrece en cada celda se reparten entre estratos
+    según una matriz `Q` (`N[h,i] = mayor_residuo(S_i·Q[h,i])`, con `Σ_h = S_i`
+    exacto). Es la ÚNICA ruta desde sep-2026; antes existía `iter_msa` con una
+    densidad plana que la app no usaba (D-46, C-02). La envolvente
+    de población es la oferta `S` (misma que las figuras y que el loop acoplado);
+    conserva los hogares por estrato (`Σ_i N[h,i] = H_h`).
 
-    Si se pasa `trace`, **popula el ConvergenceTrace completo en el mismo
-    recorrido**: snapshots, registros por agente (estado final), capacidades y
-    emisiones. Así el resultado completo se obtiene en **una sola corrida** (antes
-    el worker corría la simulación dos veces). `run_msa` no es más que consumir
-    este generador con un `trace`.
-    """
+    El parámetro `localizacion` decide de dónde sale `Q` — es decir, **dónde vive
+    cada estrato**:
+
+    - ``"equilibrio"`` (default): se resuelve el equilibrio de pujas de suelo y se
+      usa su `Q`. Usa la accesibilidad a flujo libre (logsum mensual, D-34),
+      igual que la pestaña *Uso de Suelo*, así que el `Q` coincide con el que se
+      visualiza ahí para la misma config.
+    - ``"original"``: el equilibrio de pujas **no se ha aplicado**, así que la
+      localización es la ORIGINAL — mezcla uniforme `π_h = H_h/ΣH` en todas las
+      celdas (`Q[h,i] = π_h`). No se resuelve el suelo. La envolvente `S` es la
+      misma; sólo cambia la composición por estrato de cada celda.
+
+    El loop iterativo completo (feedback suelo↔transporte) sigue viviendo en el
+    módulo acoplado."""
     rng = np.random.default_rng(sim.seed)
-    ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
-
-    agentes = generar_poblacion(
-        ciudad=ciudad,
-        densidad_por_celda=sim.city.densidad_por_celda,
-        share_estratos=sim.city.share_estratos,
-        demand_config=sim.demand,
-        teletrabajo_factor=sim.city.teletrabajo_factor,
-        rng=rng,
+    L = sim.city.n_celdas
+    CBD = L // 2
+    ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
+    # Envolvente de oferta S(i): la misma en ambos modos (dónde hay vivienda).
+    N_total = int(sum(land_use_config.H_por_estrato))
+    S = generar_oferta(
+        forma=land_use_config.forma,
+        I=L,
+        N=N_total,
+        CBD=CBD,
+        sigma_frac=land_use_config.oferta_sigma_frac,
+        forma_param=land_use_config.forma_param,
     )
-    yield from _iter_loop(sim, ciudad, agentes, rng, trace)
+    if localizacion == "original":
+        # Localización original: mezcla uniforme π_h en cada celda (sin resolver).
+        H = np.asarray(land_use_config.H_por_estrato, dtype=float)
+        total = float(H.sum())
+        pi = H / total if total > 0 else np.full(len(H), 1.0 / max(len(H), 1))
+        Q = np.tile(pi.reshape(-1, 1), (1, L))
+    else:
+        # Localización de equilibrio de pujas: se resuelve con esta misma oferta S.
+        city = LandUseCity.build(
+            L=L,
+            CBD=CBD,
+            cfg=land_use_config,
+            rng=rng,
+            ancho_celda_km=ciudad.ancho_celda_km,
+            S=S,
+            T=T_flujo_libre(
+                sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
+            ),
+        )
+        assert city.result is not None
+        Q = city.result.Q
+    agentes = generar_poblacion_desde_land_use_det(
+        Q=Q,
+        S=S,
+        cbd_index=CBD,
+        demand_config=sim.demand,
+        teletrabajo_factor=sim.demand.globales.teletrabajo_factor,
+    )
+    yield from _iter_loop(sim, ciudad, agentes, rng, trace, promediar_flujos)
 
 
 def _iter_loop(
@@ -263,13 +336,33 @@ def _iter_loop(
     agentes: list[Agente],
     rng: np.random.Generator,
     trace: ConvergenceTrace | None = None,
+    promediar_flujos: bool = False,
 ) -> Iterator[IterationSnapshot]:
-    """Loop MSA sobre una **población ya construida** (compartido por `iter_msa`
-    y el loop acoplado). Si se pasa `trace`, lo popula por completo."""
+    """Loop MSA sobre una **población ya construida** (compartido por
+    `iter_msa_desde_suelo` y el loop acoplado). Si se pasa `trace`, lo popula por completo.
+
+    `promediar_flujos` cambia CUÁL variable promedia el MSA, y existe solo para
+    medir: el default (`False`) es el comportamiento histórico y ninguna ruta de
+    producción lo activa. No es un campo del schema a propósito — moverlo ahí
+    obligaría a tocar los espejos TS, el golden y los escenarios guardados.
+
+      * `False` — promedia los TIEMPOS: `t <- f·c(x(t)) + (1−f)·t`, y los flujos
+        se recalculan frescos cada iteración desde los tiempos promediados.
+      * `True` — promedia los FLUJOS y recalcula los tiempos desde el flujo
+        promediado: `x <- f·x* + (1−f)·x`, `t = c(x)`. Es el algoritmo estándar
+        (Boyles, Lownes & Unnikrishnan, "Transportation Network Analysis", §6.2
+        p. 159), y el único para el que vale el argumento de convergencia: con
+        `x*` todo-o-nada, `x*−x` es dirección de descenso de la función de
+        Beckmann (p. 160), y eso se apoya en promediar la variable primal.
+
+    El paso `f = 1/(it+1)` es el mismo en ambos, e incluye la inicialización
+    `x <- x*` de la iteración 0 (con `it=0`, `f=1`).
+    """
     grupos, n_tele = _agrupar_agentes(agentes)
     if trace is not None:
         trace.agentes = agentes
 
+    d_ac: tuple[NDArray[np.float64], ...] | None = None
     tiempos_actuales: list[TiemposObservados] | None = None
     t_auto_ac = np.zeros(ciudad.n_celdas)
     t_bici_ac = np.zeros(ciudad.n_celdas)
@@ -281,52 +374,36 @@ def _iter_loop(
 
     for it in range(sim.max_iter):
         conteo, d_auto, d_metro, d_bici, d_caminata = _correr_iteracion(
-            grupos, n_tele, ciudad, sim.demand, tiempos_actuales, rng,
-            sim.assignment == "expected", sim.modos_habilitados,
+            grupos,
+            n_tele,
+            ciudad,
+            sim.demand,
+            tiempos_actuales,
+            rng,
+            # 'todo_o_nada' carga de forma fraccional igual que 'expected': su
+            # reparto ya es degenerado (todo al mejor modo), asi que sortearlo
+            # solo agregaria ruido sin cambiar el valor esperado.
+            sim.assignment in ("expected", "todo_o_nada"),
+            sim.modos_habilitados,
+            sim.assignment == "todo_o_nada",
         )
 
-        car_p = sim.supply.car
-        bike_p = sim.supply.bike
-        train_p = sim.supply.train
+        if promediar_flujos:
+            # `d_*` recién salido de `_correr_iteracion` es el target x*: la
+            # asignación a los tiempos actuales. Se promedia ACÁ, antes de las
+            # funciones de oferta, para que los tiempos salgan del flujo
+            # promediado y no al revés.
+            f_x = 1.0 / (it + 1)
+            nuevos = (d_auto, d_metro, d_bici, d_caminata)
+            d_ac = (
+                nuevos
+                if d_ac is None
+                else tuple(f_x * n + (1 - f_x) * a for n, a in zip(nuevos, d_ac, strict=True))
+            )
+            d_auto, d_metro, d_bici, d_caminata = d_ac
 
-        car_result = demora_auto_tramo(
-            ubicacion_centro_km=ciudad.cbd_km,
-            demanda=d_auto,
-            v_max_kmh=car_p.v_max_kmh,
-            ancho_pista_m=car_p.ancho_pista_m,
-            largo_vehiculo_m=car_p.largo_vehiculo_m,
-            gap_m=car_p.gap_m,
-            L_ciudad_km=ciudad.largo_total_km,
-            num_pistas=car_p.num_pistas,
-            alpha_bpr=car_p.alpha_bpr,
-            beta_bpr=car_p.beta_bpr,
-        )
-        bike_result = demora_bici_tramo(
-            ubicacion_centro_km=ciudad.cbd_km,
-            capacidad=bike_p.capacidad_pista,
-            demanda=d_bici,
-            v_media=bike_p.v_media_kmh,
-            L_ciudad_km=ciudad.largo_total_km,
-            alpha=bike_p.alpha_bpr,
-            beta=bike_p.beta_bpr,
-            pendiente_porcentaje=sim.city.pendiente_porcentaje,
-            v_caminata=sim.demand.globales.v_caminata,
-        )
-        train_result = oferta_tren(
-            demanda=d_metro,
-            L_ciudad_km=ciudad.largo_total_km,
-            x_centro_km=ciudad.cbd_km,
-            v_tren_kmh=train_p.v_tren_kmh,
-            capacidad_tren=train_p.capacidad_tren,
-            num_estaciones=train_p.num_estaciones,
-            v_caminata_kmh=train_p.v_caminata_kmh,
-            tasa_carga=train_p.tasa_carga,
-            frec_min=train_p.frec_min,
-            frec_max=train_p.frec_max,
-            anden_alpha=train_p.anden_alpha,
-            anden_beta=train_p.anden_beta,
-        )
-
+        oferta = resolver_oferta(sim, ciudad, d_auto, d_bici, d_metro)
+        car_result, bike_result, train_result = oferta.auto, oferta.bici, oferta.tren
         if tiempos_actuales is None:
             t_auto_ac = car_result.t_usuarios_min.copy()
             t_bici_ac = bike_result.t_usuarios_min.copy()
@@ -335,7 +412,11 @@ def _iter_loop(
             t_tren_v_ac = train_result.t_viaje_min.copy()
             residuo = float("inf")
         else:
-            f = 1.0 / (it + 1)
+            # Con `promediar_flujos` el suavizado ya ocurrió sobre `d_*`, así que
+            # los tiempos se toman tal como salen de la oferta (f = 1). Promediar
+            # las dos variables amortiguaría dos veces y frenaría la convergencia
+            # sin cambiar el punto fijo. El residuo se sigue midiendo igual.
+            f = 1.0 if promediar_flujos else 1.0 / (it + 1)
             old_auto = t_auto_ac.copy()
             old_bici = t_bici_ac.copy()
             old_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
@@ -380,6 +461,7 @@ def _iter_loop(
             t_tren_espera=t_tren_esp_ac.copy(),
             t_tren_viaje=t_tren_v_ac.copy(),
             frecuencia_metro=train_result.frecuencia_operativa,
+            frecuencia_teorica_metro=train_result.frecuencia_teorica,
             residuo=residuo,
         )
         if trace is not None:
@@ -391,7 +473,9 @@ def _iter_loop(
                 "beta": car_result.beta_bpr,
                 "carga_metro": train_result.carga_por_tramo,
                 "estaciones": train_result.estaciones_km,
+                "frecuencia": train_result.frecuencia_operativa,
                 "flujos_auto": car_result.flujos_veh_por_hora,
+                "flujos_bici": bike_result.flujos_bici_por_hora,
             }
         yield snap
 
@@ -411,14 +495,26 @@ def _iter_loop(
         _finalizar_trace(trace, sim, ciudad, grupos, tiempos_actuales, rng, last_state)
 
 
-def run_msa(sim: SimulationConfig) -> ConvergenceTrace:
+def run_msa(
+    sim: SimulationConfig,
+    land_use_config: LandUseConfig,
+    localizacion: Literal["equilibrio", "original"] = "original",
+) -> ConvergenceTrace:
     """Ejecuta el loop MSA completo hasta convergencia o `max_iter`.
 
-    Es simplemente consumir `iter_msa` con un `trace`: un único recorrido que
-    produce el resultado completo (snapshots + agentes + capacidades + emisiones).
+    Es simplemente consumir `iter_msa_desde_suelo` con un `trace`: un único
+    recorrido que produce el resultado completo (snapshots + agentes +
+    capacidades + emisiones).
+
+    Hasta sep-2026 existía una segunda ruta, `iter_msa`, que poblaba la ciudad
+    con una densidad plana (`densidad_hab_km` × `share_estratos`) sin pasar por
+    el uso de suelo. Era la ruta de `/simulate` y de los tests, y la app nunca
+    la usaba: dos fuentes de población para una misma ciudad (D-46, C-02). La
+    población viene ahora siempre de `LandUseConfig`; la densidad plana se
+    reproduce con `forma="uniforme"` y `localizacion="original"`.
     """
     trace = ConvergenceTrace()
-    for _ in iter_msa(sim, trace=trace):
+    for _ in iter_msa_desde_suelo(sim, land_use_config, trace, localizacion=localizacion):
         pass
     return trace
 
@@ -437,6 +533,32 @@ def run_msa_con_poblacion(
     return trace
 
 
+def _demanda_esperada_por_estrato(
+    grupos: list[_GrupoDemanda],
+    ciudad: CiudadLineal,
+    demand: DemandConfig,
+    tiempos_por_celda: list[TiemposObservados] | None,
+    modos_habilitados: tuple[str, ...] | None,
+    todo_o_nada: bool = False,
+) -> NDArray[np.float64]:
+    """Demanda esperada (nₐ·prob) por estrato·modo·celda del estado dado —
+    forma [estrato 0..2, modo (orden _MODOS), celda]. Es la Fig. 9 desagregada
+    por estrato: al usar el flujo esperado (no el modo sorteado por agente) sale
+    continua bajo cualquier asignación. Teletrabajo va aparte (no viaja)."""
+    arr = np.zeros((3, len(_MODOS), ciudad.n_celdas))
+    for g in grupos:
+        _, probs = _probs_grupo(
+            g, ciudad, demand, tiempos_por_celda, modos_habilitados, todo_o_nada
+        )
+        e = int(g.estrato) - 1
+        if not 0 <= e < 3:
+            continue
+        n = len(g.agentes)
+        for k, m in enumerate(_MODOS):
+            arr[e, k, g.celda] += n * probs.get(m, 0.0)
+    return arr
+
+
 def _finalizar_trace(
     trace: ConvergenceTrace,
     sim: SimulationConfig,
@@ -450,10 +572,50 @@ def _finalizar_trace(
     capacidades del estado final y emisiones de CO₂."""
     # Registros por agente a partir del estado convergido, para figuras agente‑nivel.
     _asignar_modos_agentes(
-        grupos, ciudad, sim.demand, tiempos_actuales, rng, sim.modos_habilitados
+        grupos,
+        ciudad,
+        sim.demand,
+        tiempos_actuales,
+        rng,
+        sim.modos_habilitados,
+        sim.assignment == "todo_o_nada",
+    )
+    # Demanda esperada por estrato·modo·celda (reparto modal espacial por estrato).
+    trace.demanda_estrato = _demanda_esperada_por_estrato(
+        grupos,
+        ciudad,
+        sim.demand,
+        tiempos_actuales,
+        sim.modos_habilitados,
+        sim.assignment == "todo_o_nada",
     )
     if last_state is None:
         return
+
+    # Brecha no amortiguada (D-39): demanda fresca con los tiempos finales →
+    # oferta → tiempos; cuánto difieren de los que el loop declaró finales.
+    snap = trace.iteraciones[-1]
+    _, da, dm, db, _ = _correr_iteracion(
+        grupos,
+        0,
+        ciudad,
+        sim.demand,
+        tiempos_actuales,
+        rng,
+        expected=True,
+        modos_habilitados=sim.modos_habilitados,
+        todo_o_nada=sim.assignment == "todo_o_nada",
+    )
+    fresca = resolver_oferta(sim, ciudad, da, db, dm)
+    metro_final = snap.t_tren_acceso + snap.t_tren_espera + snap.t_tren_viaje
+    metro_fresco = fresca.tren.t_acceso_min + fresca.tren.t_espera_min + fresca.tren.t_viaje_min
+    trace.gap_final_min = float(
+        max(
+            np.max(np.abs(fresca.auto.t_usuarios_min - snap.t_auto)),
+            np.max(np.abs(fresca.bici.t_usuarios_min - snap.t_bici)),
+            np.max(np.abs(metro_fresco - metro_final)),
+        )
+    )
 
     trace.capacidad_auto = last_state["capacidad"]
     trace.v_libre_auto = last_state["v_libre"]
@@ -461,12 +623,15 @@ def _finalizar_trace(
     trace.beta_auto_bpr = last_state["beta"]
     trace.carga_metro = last_state["carga_metro"]
     trace.estaciones_km = last_state["estaciones"]
+    trace.flujos_auto_veh_h = last_state["flujos_auto"]
+    trace.flujos_bici_veh_h = last_state["flujos_bici"]
 
-    # Emisiones de CO₂ a partir del estado físico final (flujos + BPR → v_local).
-    if last_state["carga_metro"] is not None and last_state["estaciones"] is not None:
+    # Emisiones de CO₂ a partir del estado físico final (flujos + BPR → v_local;
+    # metro por tren-km con la frecuencia del equilibrio — ver D-29).
+    if last_state["estaciones"] is not None:
         em = calcular_emisiones(
             flujos_auto=last_state["flujos_auto"],
-            carga_metro_tramos=last_state["carga_metro"],
+            frecuencia_metro=last_state["frecuencia"],
             estaciones_km=last_state["estaciones"],
             capacidad_auto=last_state["capacidad"],
             alpha_bpr=last_state["alpha"],
@@ -474,7 +639,8 @@ def _finalizar_trace(
             v_libre_kmh=last_state["v_libre"],
             largo_ciudad_km=ciudad.largo_total_km,
             n_celdas=ciudad.n_celdas,
-            factor_emision_metro=sim.demand.globales.factor_emision_metro,
+            factor_emision_metro_tren_km=sim.demand.globales.factor_emision_metro_tren_km,
+            factor_flota_auto=sim.demand.globales.factor_flota_auto,
         )
         trace.emisiones_total_kg = em.total_kg_hora
         trace.emisiones_auto_kg = em.auto_kg_hora

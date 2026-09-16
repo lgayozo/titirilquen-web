@@ -1,0 +1,73 @@
+---
+slug: experimenting
+order: 8
+title: Experimentar
+tagline: Presets, comparación, y actividades sugeridas
+---
+
+# 7. Experimentar
+
+## Herramientas disponibles
+
+**Transporte** ([ir](/sandbox)): experimentación libre del equilibrio oferta–demanda. Ajusta cualquier parámetro y observa resultados en vivo — utilidad por modo, modal split, convergencia, flujos, tiempos por celda.
+
+**Uso de suelo** ([ir](/land-use)): equilibrio Alonso aislado (subasta logit). **Ciudad en equilibrio** ([ir](/coupled)): el loop completo suelo ↔ transporte.
+
+**Comparar** ([ir](/compare)): carga hasta 4 configuraciones en paralelo y ve los deltas lado a lado. Ideal para evaluar políticas.
+
+## Actividades sugeridas para estudiantes
+
+### A. Efecto del precio del parking
+1. En Transporte, cambia el parking entre gratis, 2.500 y 10.000 pesos.
+2. Observa cómo cambia la participación modal del auto.
+3. ¿Por qué estrato es más sensible? (Pista: mira el parámetro $\beta_c$)
+
+{/* Sin "$" en las etiquetas: remark-math los tomaría como delimitadores. */}
+<LoadScenario id="parking_bajo">Parking gratis</LoadScenario>
+<LoadScenario id="parking_base">Parking 2.5k (base)</LoadScenario>
+<LoadScenario id="parking_alto">Parking 10k</LoadScenario>
+
+### B. El artefacto del logit
+1. En Uso de suelo, varía λ del estrato alto (0.5 → 3). Al separarlo de los otros dos, el núcleo pasa solo a la subasta heteroscedástica.
+2. Observa cómo cambia la asignación — siendo que λ es la utilidad marginal del ingreso.
+3. Medido: con λ = 0.5 el estrato alto queda a **1.06 km** del CBD y con λ = 3 a **6.59 km**. O sea que *subirlo* lo aleja.
+4. ¿Es eso un efecto-ingreso? No: λ entra por α_ef = α/λ, así que bajarlo hace que el estrato valore más el acceso. En una subasta el precio se cancela entre postores, así que λ no puede actuar por sensibilidad al precio. (Pista: tutorial de Uso de suelo, sección de la corrección.)
+
+<LoadScenario id="lambda_alto_05">λ alto = 0.5</LoadScenario>
+<LoadScenario id="lambda_alto_3">λ alto = 3</LoadScenario>
+
+### C. Capacidad de ciclovía
+1. Empieza con cap_bici = 800 bici/h.
+2. Sube a 5000 (preset *Pro-Bici*).
+3. ¿De qué modos migra la demanda hacia la bicicleta?
+4. ¿Cambia la frecuencia operativa del metro?
+
+<LoadScenario id="bici_base">Ciclovía 800 bici/h (base)</LoadScenario>
+<LoadScenario id="bici_probici">Ciclovía 5.000 (Pro-Bici)</LoadScenario>
+
+### D. Efecto Alonso
+1. En Uso de suelo, pon $\alpha_h$ del estrato alto en 12 y del bajo en 3 (utiles/min).
+2. Observa la distribución. ¿Quién vive cerca del CBD?
+3. Invierte los $\alpha$ y repite. ¿Cambia la segregación? ¿Por qué?
+
+<LoadScenario id="alonso_directo">α alto 12 · bajo 3</LoadScenario>
+<LoadScenario id="alonso_invertido">α alto 3 · bajo 12 (invertido)</LoadScenario>
+
+### E. Sensibilidad al MSA
+1. En Transporte, baja `max_iter` a 3.
+2. ¿Converge? ¿Qué pasa con el residuo?
+3. Sube a 20 y observa el comportamiento asintótico.
+
+<LoadScenario id="msa_corto">max_iter = 3</LoadScenario>
+<LoadScenario id="msa_largo">max_iter = 20</LoadScenario>
+
+## Persistencia
+
+Cada configuración puede exportarse como `.ttrq.json`:
+- **Exportar**: descarga tu configuración actual para compartir con compañeros o guardar para una evaluación.
+- **Importar**: carga el archivo de otro estudiante o de la guía docente.
+- **Compartir por link**: el estado se comprime en la URL — copia-pega y quien abra el link verá exactamente tu escenario.
+
+<Callout type="info">
+**Para docentes**: cada actividad puede compartirse como link. Los estudiantes abren el link, corren, y exportan sus observaciones para entrega.
+</Callout>

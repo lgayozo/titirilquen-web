@@ -7,24 +7,53 @@ tagline: MSA — Method of Successive Averages
 
 # 4. Equilibrium
 
-First iteration has no congestion info, so agents assume **free flow**. After assignment, cars overload (fastest mode). To avoid oscillations we use **MSA**:
+In the first iteration agents have no congestion information and assume **free flow**. When demand is assigned, the car overloads (it's the fastest). To avoid oscillations, the **Method of Successive Averages** is used:
 
 $$
-T^{(n+1)} = f_n \cdot T_{\text{obs}}^{(n)} + (1 - f_n) \cdot T^{(n)}, \quad f_n = \frac{1}{n + 1}
+T_{\text{actuales}}^{*} = f \cdot T_{\text{nuevos}} + (1 - f) \cdot T_{\text{actuales}}, \qquad f = \frac{1}{it + 1}
 $$
 
-The weight of new information decays with $1/n$: first iteration fully replaces, second averages 50/50, third weights 1/3 and 2/3, etc.
+<OverleafRef sec="Bucle de equilibrio" />
 
-The residual shown live is $\|T^{(n+1)} - T^{(n)}\|_\infty$ in minutes. Values near 0.01 mean the system is essentially in equilibrium.
+The weight of new information decreases as $1/it$: the first iteration replaces fully, the second averages 50/50, the third weighs 1/3 and 2/3, etc.
+
+## Interpretation
+
+- Large $f$ in early iterations → fast adaptation (the city "learns")
+- Small $f$ in late iterations → stabilization (the city "remembers")
+
+## Stopping criterion
+
+The loop stops when the residual
+
+$$
+r^{(it)} = \left\lVert T^{(it)} - T^{(it-1)} \right\rVert_{\infty}
+$$
+
+<OverleafRef sec="Criterio de Parada" tag="R-11" />
+
+— the maximum travel-time change over any mode and parcel — falls below the tolerance (reference: **0.1 min**) for **two consecutive iterations** (robust to Monte Carlo noise). `MAX_ITER` (reference: 20) remains as a safety cap: the MSA's $\sim 1/it$ tail can need 20–25 iterations in stiff scenarios.
 
 <MSAFlowchart />
 
-## V2: coupled land-use↔transport loop
+## Coupled land ↔ transport loop
 
-The outer loop (Land use page, *Coupled* mode) adds another layer:
+The outer loop (**City at equilibrium** page) alternates both modules to the joint fixed point: land use allocates households given accessibility $T$, that population runs the MSA, and the new times update $T$. Each parcel's accessibility is the expected travel time to the CBD, **common to all strata** (population-weighted mean):
+
+$$
+T^{\text{new}}(i) = \sum_h \frac{H_h}{\sum_g H_g} \cdot \mathbb{E}\left[\, t \mid h, i \,\right]
+$$
+
+<OverleafRef sec="Acoplamiento suelo–transporte" tag="R-12" />
+
+with outer damping $T \leftarrow \theta\, T^{\text{new}} + (1-\theta)\, T$, $\theta = 1/(n+1)$, and residual $\lVert T^{\text{new}} - T \rVert_\infty$ in **minutes** (reference tolerance: 1 min).
+
+<Callout type="info">
+Why a common $T$ and not per stratum? Accessibility is an attribute of the **location**; if it were per stratum, the lower times of motorized strata would read as "distance doesn't bother them" and would **invert** the bid-rent ordering (rich at the periphery). Valuation heterogeneity is captured by $\alpha_h$.
+</Callout>
 
 <CoupledFlowchart />
 
-Outer convergence usually needs more iterations than inner because two processes feed back into each other.
+External convergence usually needs more iterations than the inner one because two processes feed back on each other: more congestion downtown → households redistribute → congestion changes…
 
-<NextStep to="experimenting">Experiment →</NextStep>
+<NextStep to="land-use">Land-use module →</NextStep>

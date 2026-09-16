@@ -4,7 +4,12 @@
  * descomposición en tiempo real sin re-correr la simulación.
  */
 
-import type { DemandConfig, Modo, StratumId } from "@/lib/types";
+import type {
+  DemandConfig,
+  Modo,
+  ModoTransporte,
+  StratumId,
+} from "@/lib/types";
 
 export interface TiemposObservados {
   auto_total: number;
@@ -26,7 +31,10 @@ export interface UtilityBreakdown {
 
 const UTIL_IMPOSIBLE = -9999;
 
-function flujoLibreTiempos(distKm: number, g: DemandConfig["globales"]): TiemposObservados {
+function flujoLibreTiempos(
+  distKm: number,
+  g: DemandConfig["globales"],
+): TiemposObservados {
   return {
     auto_total: (distKm / g.v_auto) * 60,
     bici_total: (distKm / g.v_bici) * 60,
@@ -42,12 +50,15 @@ export function calcularUtilidades({
   tieneAuto,
   config,
   tiempos,
+  modosHabilitados,
 }: {
   estrato: StratumId;
   distKm: number;
   tieneAuto: boolean;
   config: DemandConfig;
   tiempos?: TiemposObservados | null;
+  /** Set de elección. `undefined` ⇒ todos habilitados (igual que `None` en el core). */
+  modosHabilitados?: readonly ModoTransporte[];
 }): Record<Modo, UtilityBreakdown> {
   const stratum = config.estratos[estrato];
   if (!stratum) throw new Error(`Stratum ${estrato} not configured`);
@@ -87,17 +98,32 @@ export function calcularUtilidades({
   const vTMetro =
     betas.b_tiempo_viaje * tt.tren_viaje +
     betas.b_tiempo_espera * tt.tren_espera +
-    betas.b_tiempo_caminata * tt.tren_acceso;
+    betas.b_tiempo_acceso * tt.tren_acceso;
   const vCMetro = betas.b_costo * cMetro;
-  const metro: UtilityBreakdown = {
-    modo: "Metro",
-    asc: betas.asc_metro,
-    v_tiempo: vTMetro,
-    v_costo: vCMetro,
-    v_penalizaciones: 0,
-    valor: betas.asc_metro + vTMetro + vCMetro,
-    feasible: true,
-  };
+  // Espejo de `calcular_utilidades`: sin tramo en tren no hay viaje en metro.
+  // `tren_viaje == 0` ⇒ la estación más cercana es la del CBD (el destino), así
+  // que "tomar el metro" sería caminar hasta el destino sin subirse a nada —
+  // caso que además esquivaba el corte de 30 min de la caminata.
+  const metro: UtilityBreakdown =
+    tt.tren_viaje <= 0
+      ? {
+          modo: "Metro",
+          asc: 0,
+          v_tiempo: 0,
+          v_costo: 0,
+          v_penalizaciones: 0,
+          valor: UTIL_IMPOSIBLE,
+          feasible: false,
+        }
+      : {
+          modo: "Metro",
+          asc: betas.asc_metro,
+          v_tiempo: vTMetro,
+          v_costo: vCMetro,
+          v_penalizaciones: 0,
+          valor: betas.asc_metro + vTMetro + vCMetro,
+          feasible: true,
+        };
 
   // Bici
   let bici: UtilityBreakdown;
@@ -157,24 +183,67 @@ export function calcularUtilidades({
     };
   }
 
-  return { Auto: auto, Metro: metro, Bici: bici, Caminata: cam, Teletrabajo: {
-    modo: "Teletrabajo",
-    asc: 0, v_tiempo: 0, v_costo: 0, v_penalizaciones: 0, valor: 0, feasible: false,
-  } };
+  const resultado: Record<Modo, UtilityBreakdown> = {
+    Auto: auto,
+    Metro: metro,
+    Bici: bici,
+    Caminata: cam,
+    Teletrabajo: {
+      modo: "Teletrabajo",
+      asc: 0,
+      v_tiempo: 0,
+      v_costo: 0,
+      v_penalizaciones: 0,
+      valor: 0,
+      feasible: false,
+    },
+  };
+
+  // Espejo de `modos_habilitados` en el core: un modo fuera del set de elección
+  // se trata como infeasible (utilidad −∞), no como un modo con V baja. Sin
+  // esto, deshabilitar un modo no cambiaba nada aguas abajo.
+  if (modosHabilitados) {
+    const habilitados = new Set<string>(modosHabilitados);
+    for (const modo of Object.keys(resultado) as Modo[]) {
+      if (!habilitados.has(modo) && resultado[modo].feasible) {
+        resultado[modo] = {
+          modo,
+          asc: 0,
+          v_tiempo: 0,
+          v_costo: 0,
+          v_penalizaciones: 0,
+          valor: UTIL_IMPOSIBLE,
+          feasible: false,
+        };
+      }
+    }
+  }
+
+  return resultado;
 }
 
-export function probabilidadesLogit(utils: Record<Modo, UtilityBreakdown>): Record<Modo, number> {
+export function probabilidadesLogit(
+  utils: Record<Modo, UtilityBreakdown>,
+): Record<Modo, number> {
   const feasibles = Object.values(utils).filter((u) => u.feasible);
   if (feasibles.length === 0) {
     return {
-      Auto: 0, Metro: 0, Bici: 0, Caminata: 0, Teletrabajo: 0,
+      Auto: 0,
+      Metro: 0,
+      Bici: 0,
+      Caminata: 0,
+      Teletrabajo: 0,
     } as Record<Modo, number>;
   }
   const maxV = Math.max(...feasibles.map((u) => u.valor));
   const exps = feasibles.map((u) => Math.exp(u.valor - maxV));
   const sum = exps.reduce((a, b) => a + b, 0);
   const out: Record<Modo, number> = {
-    Auto: 0, Metro: 0, Bici: 0, Caminata: 0, Teletrabajo: 0,
+    Auto: 0,
+    Metro: 0,
+    Bici: 0,
+    Caminata: 0,
+    Teletrabajo: 0,
   };
   feasibles.forEach((u, i) => {
     out[u.modo] = (exps[i] ?? 0) / sum;
