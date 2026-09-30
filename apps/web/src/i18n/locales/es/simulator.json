@@ -301,6 +301,12 @@
     "cortes_hint": "Sobre este tiempo la alternativa sale del conjunto de elección: no recibe una penalización grande, deja de existir para ese viaje. Es un supuesto de comportamiento, no una política de transporte. Son globales —no dependen del estrato— y mover el corte cambia cuántas alternativas hay, así que también mueve la brecha entre el excedente logsum y el de utilidad máxima."
   },
   "calibration_page": {
+    "het_section": "Valor del tiempo entre estratos",
+    "het_label": "s: 0 = λ iguales · 1 = calibrada",
+    "het_hint": "Mueve los β costo del estrato alto y del bajo con el medio fijo: λₕ = λ_medio·(λₕ/λ_medio calibrado)^s. En s = 0 los tres valoran igual su tiempo, en Transporte y en la puja por suelo; en 1 es la calibración exacta; en 2, el doble de dispersión. Es una herramienta pedagógica, no una calibración.",
+    "het_custom": "personalizado",
+    "het_iguales": "Iguales (s = 0)",
+    "het_calibrada": "Calibrada (s = 1)",
     "title": "Calibración",
     "subtitle": "El modelo de comportamiento del hogar, común a los dos módulos",
     "intro": "Antes de simular una ciudad hay que decidir cómo se comporta quien vive en ella. Estos coeficientes son los del logit de elección modal, pero no son sólo de Transporte: un hogar tiene una sola función de utilidad, y el que elige modo es el mismo que puja por una parcela. Por eso fijan a la vez el reparto modal, la accesibilidad T con que se puja por suelo y la utilidad marginal del ingreso λₕ = |β costo| de la puja. No son políticas: moverlos cambia el modelo, no la ciudad.",

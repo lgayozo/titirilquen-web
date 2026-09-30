@@ -301,6 +301,12 @@
     "cortes_hint": "Above this time the alternative leaves the choice set: it does not get a large penalty, it stops existing for that trip. It is a behavioural assumption, not a transport policy. These are global —they do not vary by stratum— and moving a cutoff changes how many alternatives there are, so it also moves the gap between logsum and max-utility surplus."
   },
   "calibration_page": {
+    "het_section": "Value of time across strata",
+    "het_label": "s: 0 = equal λ · 1 = calibrated",
+    "het_hint": "Moves the β cost of the high and low strata with the middle one fixed: λₕ = λ_middle·(calibrated λₕ/λ_middle)^s. At s = 0 all three value their time equally, in Transport and in the land bid; at 1 it is the exact calibration; at 2, twice the dispersion. It is a teaching tool, not a calibration.",
+    "het_custom": "custom",
+    "het_iguales": "Equal (s = 0)",
+    "het_calibrada": "Calibrated (s = 1)",
     "title": "Calibration",
     "subtitle": "The household's behavioral model, shared by both modules",
     "intro": "Before simulating a city you have to decide how its residents behave. These coefficients are those of the mode-choice logit, but they do not belong to Transport alone: a household has a single utility function, and the one choosing a mode is the one bidding for a plot. So they set at once the modal split, the accessibility T used to bid for land and the marginal utility of income λₕ = |β cost| of the bid. They are not policies: moving them changes the model, not the city.",

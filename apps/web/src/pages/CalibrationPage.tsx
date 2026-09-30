@@ -5,6 +5,7 @@ import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { Panel } from "@/components/ui/Panel";
 import { votClpHora } from "@/lib/agregados";
+import { conHeterogeneidad, sDeDemanda } from "@/lib/heterogeneidadLambda";
 import type { StratumId } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -37,6 +38,9 @@ export function CalibrationPage() {
   const setLuConfig = useLandUseStore((s) => s.setConfig);
 
   const mu = luConfig.mu;
+  // Heterogeneidad de λ: `null` si los b_costo no caen en la curva.
+  const sLam = sDeDemanda(config.demand);
+  const setS = (v: number) => setConfig((c) => conHeterogeneidad(c, v));
   const filas = STRATA.map((h) => {
     const e = config.demand.estratos[h];
     const lam = -e.betas.b_costo;
@@ -54,6 +58,46 @@ export function CalibrationPage() {
   return (
     <div className="page">
       <aside className="sidebar">
+        <CollapsibleSection
+          title={t("calibration_page.het_section")}
+          meta={
+            sLam == null
+              ? t("calibration_page.het_custom")
+              : `s=${sLam.toFixed(2)}`
+          }
+          defaultOpen
+        >
+          <LabeledSlider
+            label={t("calibration_page.het_label")}
+            value={sLam ?? 1}
+            min={0}
+            max={2}
+            step={0.05}
+            format={(v) =>
+              sLam == null ? t("calibration_page.het_custom") : v.toFixed(2)
+            }
+            hint={t("calibration_page.het_hint")}
+            onChange={setS}
+          />
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              className="chip-toggle"
+              style={{ flex: 1 }}
+              onClick={() => setS(0)}
+            >
+              {t("calibration_page.het_iguales")}
+            </button>
+            <button
+              type="button"
+              className="chip-toggle"
+              style={{ flex: 1 }}
+              onClick={() => setS(1)}
+            >
+              {t("calibration_page.het_calibrada")}
+            </button>
+          </div>
+        </CollapsibleSection>
         <CalibrationPanel config={config} onChange={setConfig} defaultOpen />
         <CollapsibleSection
           title={t("calibration_page.mu_section")}
