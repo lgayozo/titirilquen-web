@@ -1992,6 +1992,44 @@ cumple, y eso está en D-39.
   e2e»: es correcto para `test:e2e:fast`; los 59 que lista Playwright incluyen
   el `@slow`. D-30 sigue pendiente de marcarse como superado.
 
+## D-69 — Suelo/Transporte: la accesibilidad salta a 1 km del CBD porque ahí el metro sale del conjunto de elección
+
+- **Hallado**: revisión de la asignación de suelo, 2026-09-30. En la figura de
+  distribución, el estrato alto cae entre los km 8,9 y 9,0 (y su simétrico
+  11,0–11,1): `Q_alto` pasa de 0,383 en la celda 89 a 0,344 en la 90, más
+  cerca del centro.
+- **Evidencia**: el salto no lo genera la subasta; está en `T`. Cada celda usa
+  la estación más cercana (`supply/train.py`, `argmin`), y si esa estación es
+  la del CBD el metro es infactible (`demand/utility.py`, `tren_viaje <= 0`).
+  Con estaciones cada 2 km, el cambio de estación ocurre a 1,0 km: la celda 89
+  (1,09 km) tiene metro vía la estación a 2 km, la 90 (1,0 km) no. En un logit,
+  perder una alternativa baja el logsum en su valor de opción,
+  `−ln(1 − P_metro)` ≈ 0,064 útiles por viaje con `P_metro` ≈ 6 %, o sea
+  `T` sube ~2,8 útiles/mes, unos $8.600/mes para el estrato alto.
+- **Alternativa probada y descartada** («estación más cercana distinta de la
+  del CBD»): el salto desaparece (`T` y `Q` monótonos hacia el centro), pero
+  el logit le da al metro 2–8 % de los viajes de las celdas a menos de 1 km,
+  que caminan 13–24 min ALEJÁNDOSE del destino, esperan 15 y vuelven en tren.
+  Es una alternativa dominada en tiempo —el acceso solo ya es más largo que
+  caminar directo— que recibe probabilidad sólo por el término aleatorio: el
+  artefacto conocido del logit con errores Gumbel IID (toda alternativa del
+  conjunto recibe probabilidad positiva, y el logsum sube con cualquier
+  alternativa agregada). Medido: metro +1,0 pp (equilibrio) y +1,2 pp
+  (original), ~330 viajes nuevos a menos de 2 km del CBD, una iteración más
+  del MSA en `equilibrio`.
+- **Veredicto**: comportamiento correcto del modelo, no un error. La regla
+  vigente funciona como un filtro de dominancia: 1,0 km es casi exactamente
+  el punto donde caminar a la estación toma más que caminar al destino, así
+  que el salto marca el borde donde el metro deja de tener sentido. No existe
+  una regla dura de factibilidad que sea a la vez realista y continua; una
+  salida continua requeriría conjuntos de elección suaves (logit restringido,
+  CMNL) o un filtro de dominancia explícito con transición gradual.
+- **Estado**: documentado 2026-09-30; sin cambio de código. Se relaciona con
+  los escalones de las penalizaciones de caminata y bici (umbrales en
+  minutos, D-02), que producen saltos del mismo tipo en `T` a 0,4 / 1,2 /
+  2,0 / 2,3 / 2,4 / 4,7 / 7,0 km del CBD; esos sí son artefactos de
+  especificación y quedan pendientes de decisión.
+
 ---
 
 ## Tabla resumen
@@ -2066,3 +2104,4 @@ cumple, y eso está en D-39.
 | D-66 | Calibración: `ANALISIS_SENSIBILIDAD.md` y comentarios con defaults que ya no existen | Pendiente (libro, cap. 9) | Baja |
 | D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Pendiente (libro, cap. 10) | Media |
 | D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Pendiente (libro, cap. 10) | Media |
+| D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia) | Baja |

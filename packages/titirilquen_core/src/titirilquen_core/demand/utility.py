@@ -116,6 +116,11 @@ def calcular_utilidades(
     # 10,9% de sus viajes a un "metro" de 62 min de caminata y 0 min de tren, y
     # la banda 12-15 km rondaba 11-17%. La caminata pura de esa misma distancia
     # estaba prohibida. Ver también `paradas_intermedias` en supply/train.py.
+    # La regla hace saltar el logsum —y la T del suelo— a media distancia entre
+    # el CBD y la primera estación. Es deliberado (D-69): usar ahí la estación
+    # siguiente elimina el salto pero le da al logit viajes de metro dominados
+    # (caminar alejándose del destino), así que la regla actúa como filtro de
+    # dominancia.
     if tiempos.tren_viaje <= 0:
         metro_breakdown = UtilityBreakdown("Metro", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
     else:
