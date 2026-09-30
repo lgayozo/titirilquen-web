@@ -122,7 +122,9 @@
     Correr: <code>uv run python impacto.py &amp;&amp; uv run python figuras.py</code><br>
     Ciudad: 201 celdas · 20 km · ΣH = 99.900 · α = 1 · ρ = 0 · μ = 1/√44 ≈ 0,151 ·
     λ vigente = 0,320 / 0,641 / 1,241 ×10⁻³ útiles/$ · T = logsum de transporte a flujo libre (D-34)<br>
-    Calibración vigente al 15-sep-2026. La versión del 1-sep (α = 6,5/6,0/5,5 · ρ = 0,0025 · μ = 1 · λ ≈ 1)
+    Calibración vigente al 15-sep-2026; reverificada el 30-sep-2026 con el núcleo en
+    schema v6 (λ derivado de b<sub>costo</sub>): mismo <code>impacto.json</code>, byte a byte.
+    La versión del 1-sep (α = 6,5/6,0/5,5 · ρ = 0,0025 · μ = 1 · λ ≈ 1)
     contaba otra historia —el error concentrado en dos fronteras— y quedó en el historial git.
   </p>
 </header>
@@ -203,8 +205,9 @@
   estrato medio. En <em>r</em> = 1 los dos modelos son el mismo y sirve de ancla:
   <strong>esa fila tiene que dar cero exacto</strong>, y da, lo que confirma que la
   comparación mide el modelo y no una diferencia de implementación. Se agrega la
-  fila <strong>vigente</strong>: los tres λ literales de la app
-  (0,320 / 0,641 / 1,241 ×10⁻³, iguales a |b<sub>costo</sub>| de transporte, D-34),
+  fila <strong>vigente</strong>: los tres λ de la app
+  (0,320 / 0,641 / 1,241 ×10⁻³), que son |b<sub>costo</sub>| de transporte (D-34):
+  desde el schema v6 el núcleo los deriva de la demanda en vez de guardar una copia (D-41),
   que no son exactamente geométricos; su razón equivalente
   <span class="mono">√(λ<sub>bajo</sub>/λ<sub>alto</sub>)</span> es 1,97.
 </p>
@@ -281,8 +284,8 @@ Q[:, i] = np.exp(log_q - logsumexp(log_q))</code></pre>
 
 <h3>2.2 El precio — Martínez, ec. (4.27)</h3>
 
-<div class="ecuacion" data-tex="p^*_i = p_i + \frac{\gamma}{\beta_i} = \frac{1}{\beta_i}\ln\left[\sum_h H_h e^{\beta_i w_{hi}}\right] + \frac{\gamma}{\beta_i}" data-id="(4.27) p. 86">
-  <span class="id">(4.27) p. 86</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>p</mi><mi>i</mi><mo>∗</mo></msubsup><mo>=</mo><msub><mi>p</mi><mi>i</mi></msub><mo>+</mo><mfrac><mi>γ</mi><msub><mi>β</mi><mi>i</mi></msub></mfrac><mo>=</mo><mfrac><mn>1</mn><msub><mi>β</mi><mi>i</mi></msub></mfrac><mi>ln</mi><mo>⁡</mo><mrow><mo fence="true">[</mo><munder><mo>∑</mo><mi>h</mi></munder><msub><mi>H</mi><mi>h</mi></msub><msup><mi>e</mi><mrow><msub><mi>β</mi><mi>i</mi></msub><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow></msup><mo fence="true">]</mo></mrow><mo>+</mo><mfrac><mi>γ</mi><msub><mi>β</mi><mi>i</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">p^*_i = p_i + \frac{\gamma}{\beta_i} = \frac{1}{\beta_i}\ln\left[\sum_h H_h e^{\beta_i w_{hi}}\right] + \frac{\gamma}{\beta_i}</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="p^*_i = p_i + \frac{\gamma}{\beta_i} = \frac{1}{\beta_i}\ln\left[\sum_{g \in B_i} H_g e^{\beta_i w_{gi}}\right] + \frac{\gamma}{\beta_i}" data-id="(4.27) p. 86">
+  <span class="id">(4.27) p. 86</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>p</mi><mi>i</mi><mo>∗</mo></msubsup><mo>=</mo><msub><mi>p</mi><mi>i</mi></msub><mo>+</mo><mfrac><mi>γ</mi><msub><mi>β</mi><mi>i</mi></msub></mfrac><mo>=</mo><mfrac><mn>1</mn><msub><mi>β</mi><mi>i</mi></msub></mfrac><mi>ln</mi><mo>⁡</mo><mrow><mo fence="true">[</mo><munder><mo>∑</mo><mrow><mi>g</mi><mo>∈</mo><msub><mi>B</mi><mi>i</mi></msub></mrow></munder><msub><mi>H</mi><mi>g</mi></msub><msup><mi>e</mi><mrow><msub><mi>β</mi><mi>i</mi></msub><msub><mi>w</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub></mrow></msup><mo fence="true">]</mo></mrow><mo>+</mo><mfrac><mi>γ</mi><msub><mi>β</mi><mi>i</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">p^*_i = p_i + \frac{\gamma}{\beta_i} = \frac{1}{\beta_i}\ln\left[\sum_{g \in B_i} H_g e^{\beta_i w_{gi}}\right] + \frac{\gamma}{\beta_i}</annotation></semantics></math></span>
 </div>
 
 <pre><code>log_p = logsumexp(np.log(H_arr)[:, None] + beta_i * (score - u_bar[:, None]), axis=0)
@@ -350,9 +353,30 @@ p_esperado = p + np.euler_gamma / beta_i    # p*_i, lo que se devuelve</code></p
 
 <h3>2.3 El HEV — Train §4.5, siguiendo a Bhat (1995)</h3>
 
-<div class="ecuacion" data-tex="P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni}-V_{nj}+\theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw" data-id="§4.5">
-  <span class="id">§4.5</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>=</mo><mo>∫</mo><mrow><mo fence="true">[</mo><munder><mo>∏</mo><mrow><mi>j</mi><mo mathvariant="normal">≠</mo><mi>i</mi></mrow></munder><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mo stretchy="false">(</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>i</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>θ</mi><mi>j</mi></msub></mrow></msup></mrow></msup><mo fence="true">]</mo></mrow><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup></mrow></msup><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup><mtext> </mtext><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni}-V_{nj}+\theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="Q_{h/i} = \int_{-\infty}^{\infty} \prod_{g \neq h} \exp\!\left(-e^{-\beta_g\,(\ell_{hi} - \ell_{gi} + s/\beta_h)}\right) e^{-e^{-s}}\, e^{-s}\, ds" data-id="cap. 2 (2.4b)">
+  <span class="id">cap. 2 (2.4b)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Q</mi><mrow><mi>h</mi><mi mathvariant="normal">/</mi><mi>i</mi></mrow></msub><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi mathvariant="normal">∞</mi></mrow><mi mathvariant="normal">∞</mi></msubsup><munder><mo>∏</mo><mrow><mi>g</mi><mo mathvariant="normal">≠</mo><mi>h</mi></mrow></munder><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><msub><mi>β</mi><mi>g</mi></msub><mtext> </mtext><mo stretchy="false">(</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>+</mo><mi>s</mi><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow></msup><mo fence="true">)</mo></mrow><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>s</mi></mrow></msup></mrow></msup><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>s</mi></mrow></msup><mtext> </mtext><mi>d</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">Q_{h/i} = \int_{-\infty}^{\infty} \prod_{g \neq h} \exp\!\left(-e^{-\beta_g\,(\ell_{hi} - \ell_{gi} + s/\beta_h)}\right) e^{-e^{-s}}\, e^{-s}\, ds</annotation></semantics></math></span>
 </div>
+<p>
+  Es la (2.4b) del cap. 2 del libro, en letras de Martínez:
+  <span class="mono">ℓ<sub>hi</sub> = w<sub>hi</sub> + (ln H<sub>h</sub>)/β<sub>h</sub></span>
+  es la localización de la puja de <em>h</em> en <em>i</em>,
+  <span class="mono">β<sub>h</sub> = λ<sub>h</sub>·μ</span> su precisión y <em>s</em> la
+  variable de integración, con peso Gumbel estándar. Train la escribe para un decisor
+  que elige entre alternativas:
+</p>
+<div class="ecuacion" data-tex="P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni}-V_{nj}+\theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw" data-id="Train §4.5">
+  <span class="id">Train §4.5</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>=</mo><mo>∫</mo><mrow><mo fence="true">[</mo><munder><mo>∏</mo><mrow><mi>j</mi><mo mathvariant="normal">≠</mo><mi>i</mi></mrow></munder><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mo stretchy="false">(</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>i</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>θ</mi><mi>j</mi></msub></mrow></msup></mrow></msup><mo fence="true">]</mo></mrow><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup></mrow></msup><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup><mtext> </mtext><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni}-V_{nj}+\theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw</annotation></semantics></math></span>
+</div>
+<p>
+  con la traducción <span class="mono">V<sub>ni</sub> → ℓ<sub>hi</sub></span>,
+  <span class="mono">θ<sub>j</sub> → 1/β<sub>g</sub></span> y
+  <span class="mono"><em>w</em> → <em>s</em></span>. Dos letras de Train chocan con las de
+  Martínez: su θ es una <strong>escala</strong>, mientras que la
+  <span class="mono">θ<sub>hi</sub></span> de Martínez es la puja aleatoria; y su <em>w</em>
+  es la variable de integración, mientras que
+  <span class="mono">w<sub>hi</sub></span> es la disposición a pagar. El código sigue a Train,
+  con <code>theta</code> = <span class="mono">1/β<sub>h</sub></span> y <code>_W</code> = <em>s</em>.
+</p>
 
 <p>En <code>q_hev</code>:</p>
 <pre><code>arg = (loc[h] - loc[g])[None, :] + theta[h] * _W[:, None]
@@ -360,10 +384,11 @@ np.multiply(z, np.exp(-np.exp(-np.clip(arg / theta[g], -_TOPE, _TOPE))), out=z)
 acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 
 <p>
-  Coincide término a término: el argumento lleva
-  <span class="mono">θ<sub>i</sub></span> multiplicando a <em>w</em> y
-  <span class="mono">θ<sub>j</sub></span> dividiendo, y el peso tabulado es
-  exactamente la densidad de valor extremo por el ancho del trapecio.
+  Coincide término a término: en el argumento, la escala del estrato
+  <em>h</em> (<code>theta[h]</code> = <span class="mono">1/β<sub>h</sub></span>) multiplica a
+  <em>s</em> y la del rival (<code>theta[g]</code> = <span class="mono">1/β<sub>g</sub></span>)
+  divide, y el peso tabulado es exactamente la densidad de valor extremo por el
+  ancho del trapecio.
 </p>
 
 <h3>2.4 El puente entre las dos</h3>
@@ -378,14 +403,14 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 <table>
   <tr><th></th><th class="simb">escala del ruido de la puja</th><th>qué supone</th></tr>
   <tr><td><strong>cerrada</strong></td><td class="simb"><span class="mono">1/β = 1/(μ·λ<sub>m</sub>)</span>, común: 10.354 $</td><td>que la varianza de la disposición a pagar es igual entre estratos</td></tr>
-  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mono">θ<sub>h</sub> = 1/β<sub>h</sub> = 1/(μ·λ<sub>h</sub>)</span>: 20.708 / 10.354 / 5.344 $</td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
+  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mono">1/β<sub>h</sub> = 1/(μ·λ<sub>h</sub>)</span> (el θ<sub>h</sub> de Train): 20.708 / 10.354 / 5.344 $</td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
 </table>
 </div>
 
 <p>
-  El <span class="mono">θ<sub>h</sub></span> del HEV sale de la ec. (4.3) del
+  La escala <span class="mono">1/β<sub>h</sub></span> del HEV sale de la ec. (4.3) del
   libro: la disposición a pagar es
-  <span class="mono">q<sub>hi</sub> = y<sub>h</sub> + (f<sub>h</sub>−u<sub>h</sub>)/λ<sub>h</sub> + ε<sub>hi</sub>/λ<sub>h</sub></span>,
+  <span class="mono">θ<sub>hi</sub> = y<sub>h</sub> + (f<sub>h</sub>−u<sub>h</sub>)/λ<sub>h</sub> + ε<sub>hi</sub>/λ<sub>h</sub></span>,
   con <span class="mono">ε/λ ~ Gumbel(0, β<sub>h</sub>)</span> y
   <span class="mono">β<sub>h</sub> = λ<sub>h</sub>·μ<sub>h</sub></span>. La
   precisión en dinero <strong>lleva λ</strong>; la forma cerrada la omite, y ése
@@ -398,7 +423,7 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
     El gradiente es invariante a la constante que separa los niveles, así que en
     principio sí se puede comparar. Pero eso vale si la brecha es
     <em>exactamente</em> constante, y no tiene por qué serlo: las dos ramas
-    son modelos distintos —con θ heterogéneos el máximo esperado del HEV no
+    son modelos distintos —con escalas 1/β<sub>h</sub> heterogéneas el máximo esperado del HEV no
     es un corrimiento fijo del de la forma cerrada— y esa diferencia puede variar de parcela a
     parcela y torcer el ajuste. Medido: hasta la calibración vigente la brecha
     tiene desviación estándar de 19 a 674 $ sobre un rango de precios de
@@ -648,7 +673,12 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
     El impacto medido <strong>depende de la razón de heterogeneidad</strong>. La
     vigente no está calibrada contra datos de suelo: sale de los valores del
     tiempo de transporte (6.200 / 3.100 / 1.600 $/h). Con λ realmente uniforme
-    el cambio es exactamente cero.
+    el cambio es exactamente cero. En la app, el slider <em>s</em> de la página
+    Calibración recorre esa heterogeneidad: <em>s</em> = 0 iguala los λ, <em>s</em> = 1
+    es la vigente (razón equivalente 1,97) y <em>s</em> = 2 la lleva a ≈ 3,9. No es el
+    mismo experimento: ahí mover λ es mover b<sub>costo</sub>, que cambia también
+    <span class="mono">T</span>; este informe mueve λ con <span class="mono">T</span> fija
+    para aislar el modelo de la subasta.
   </li>
 </ul>
 
@@ -675,9 +705,10 @@ uv run python figuras.py     # las 4 figuras desde el JSON</code></pre>
 <p>
   Determinista: la ciudad se arma con <code>seed 42</code> y los dos solvers
   reciben exactamente el mismo diccionario de argumentos, construido una sola
-  vez por cada <em>r</em>. Los defaults (α, ρ, μ, λ vigente) se leen de
-  <code>LandUseConfig()</code>, y <code>T</code> de <code>T_flujo_libre</code>,
-  así que el informe sigue a la calibración del núcleo.
+  vez por cada <em>r</em>. α, ρ y μ se leen de <code>LandUseConfig()</code>; el λ
+  vigente, de la demanda calibrada con <code>lambda_desde_demanda</code> (schema v6), y
+  <code>T</code> de <code>T_flujo_libre</code>, así que el informe sigue a la calibración
+  del núcleo.
 </p>
 <p>
   Ojo: el sandbox instala <code>titirilquen-core</code> por ruta y uv cachea el
@@ -690,7 +721,8 @@ uv run python figuras.py     # las 4 figuras desde el JSON</code></pre>
   <li><a href="../../docs/libro/informe-hev.html">La subasta heteroscedástica, paso a paso</a> — la formulación, la validación y el contraste con la teoría.</li>
   <li><a href="../hev-paso-a-paso/informe.html">La subasta resuelta a mano</a> — el caso mínimo, con tres verificaciones independientes.</li>
   <li><a href="../../docs/libro/hev-cuadratura.html">La cuadratura del HEV, en imágenes</a> — de dónde sale la integral.</li>
-  <li><code>docs/DISCREPANCIES.md</code> D-08 (λ no identificado) y D-31 (μ y β, las dos precisiones).</li>
+  <li><code>docs/DISCREPANCIES.md</code> D-08 (λ no identificado), D-31 (μ y β, las dos precisiones)
+    y D-41 (λ derivado de b<sub>costo</sub>, schema v6).</li>
 </ul>
 
 <footer>
