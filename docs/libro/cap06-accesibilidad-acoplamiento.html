@@ -246,15 +246,15 @@
     <tr><td class="n">(6.1)</td><td class="ruta py">land_use/accesibilidad.py</td><td class="n">45</td><td><code>logsum_por_celda</code> — log-suma-exp estabilizada, esperanza sobre <code>prob_auto</code>; una celda sin ningún modo factible vale <code>UTIL_IMPOSIBLE</code></td></tr>
     <tr><td class="n">(6.2)</td><td class="ruta py">land_use/accesibilidad.py</td><td class="n">91</td><td><code>T_desde_logsum</code> — el signo y el factor mensual; <code>VIAJES_MES</code> vive en <code>constantes.py</code></td></tr>
     <tr><td class="n">(6.2)</td><td class="ruta py">constantes.py</td><td class="n">54</td><td><code>VIAJES_MES</code> — 44 viajes al mes</td></tr>
-    <tr><td class="n">(6.2)</td><td class="ruta py">land_use/accesibilidad.py</td><td class="n">116</td><td><code>T_flujo_libre</code> — la <em>T</em> del suelo standalone y de la iteración cero, sobre <code>tiempos_red_vacia</code> (97)</td></tr>
+    <tr><td class="n">(6.2)</td><td class="ruta py">land_use/accesibilidad.py</td><td class="n">131</td><td><code>T_flujo_libre</code> — la <em>T</em> del suelo standalone y de la iteración cero, sobre <code>tiempos_red_vacia</code> (97)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">supply/oferta.py</td><td class="n">93</td><td><code>resolver_red_vacia</code> — la infraestructura configurada con demanda cero: BPR(0), tren a frecuencia mínima, estaciones reales</td></tr>
-    <tr><td class="n">(6.5)</td><td class="ruta py">coupled.py</td><td class="n">123</td><td><code>iter_coupled</code> — el loop exterior; <code>run_coupled</code> (230) lo consume</td></tr>
-    <tr><td class="n">(6.5)</td><td class="ruta py">coupled.py</td><td class="n">151</td><td><code>LandUseCity</code> — la subasta; <code>generar_poblacion_desde_land_use_det</code> (164) y <code>_T_logsum_snapshot</code> (172) cierran el ciclo</td></tr>
-    <tr><td class="n">(6.1)</td><td class="ruta py">coupled.py</td><td class="n">88</td><td><code>_T_logsum_snapshot</code> — el mismo logsum sobre los tiempos congestionados; <code>_tiempos_del_snapshot</code> (75) los desempaqueta</td></tr>
-    <tr><td class="n">(6.6)</td><td class="ruta py">coupled.py</td><td class="n">179</td><td><code>theta</code> — el paso 1/(k+1); la vuelta a la ciudad en <code>city.update</code> (222), sólo si viene otra iteración</td></tr>
-    <tr><td class="n">(6.7)</td><td class="ruta py">coupled.py</td><td class="n">174</td><td><code>residual</code> — <em>‖T_new − T_state‖<sub>∞</sub></em>; el criterio compuesto en <code>is_converged</code> (185): residual, MSA interior y subasta, los tres</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">coupled.py</td><td class="n">235</td><td><code>outer_tol</code> — el default de <code>run_coupled</code>, comentado «minutos»; la unidad real es útiles de transporte por mes</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">coupled.py</td><td class="n">52</td><td><code>OuterIteration</code> — lo que se emite por vuelta; <code>CoupledResult</code> (66) lo agrega</td></tr>
+    <tr><td class="n">(6.5)</td><td class="ruta py">coupled.py</td><td class="n">124</td><td><code>iter_coupled</code> — el loop exterior; <code>run_coupled</code> (232) lo consume</td></tr>
+    <tr><td class="n">(6.5)</td><td class="ruta py">coupled.py</td><td class="n">152</td><td><code>LandUseCity</code> — la subasta; <code>generar_poblacion_desde_land_use_det</code> (166) y <code>_T_logsum_snapshot</code> (174) cierran el ciclo</td></tr>
+    <tr><td class="n">(6.1)</td><td class="ruta py">coupled.py</td><td class="n">89</td><td><code>_T_logsum_snapshot</code> — el mismo logsum sobre los tiempos congestionados; <code>_tiempos_del_snapshot</code> (76) los desempaqueta</td></tr>
+    <tr><td class="n">(6.6)</td><td class="ruta py">coupled.py</td><td class="n">181</td><td><code>theta</code> — el paso 1/(k+1); la vuelta a la ciudad en <code>city.update</code> (224), sólo si viene otra iteración</td></tr>
+    <tr><td class="n">(6.7)</td><td class="ruta py">coupled.py</td><td class="n">176</td><td><code>residual</code> — <em>‖T_new − T_state‖<sub>∞</sub></em>; el criterio compuesto en <code>is_converged</code> (187): residual, MSA interior y subasta, los tres</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">coupled.py</td><td class="n">237</td><td><code>outer_tol</code> — el default de <code>run_coupled</code>, comentado «minutos»; la unidad real es útiles de transporte por mes</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">coupled.py</td><td class="n">53</td><td><code>OuterIteration</code> — lo que se emite por vuelta; <code>CoupledResult</code> (67) lo agrega</td></tr>
     <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">289</td><td><code>compute_equilibrium_metrics</code> — métricas por estrato y de sistema, por vuelta; el baseline del ΔCS es <code>tiempos_red_vacia</code> (348), el mismo objeto que la <em>T</em> del standalone</td></tr>
     <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">112</td><td><code>convergio_exterior</code> — el veredicto del núcleo, que viaja en las métricas; <code>residual_final</code> (116) en útiles/mes</td></tr>
     <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">301</td><td><code>outer_iteration_to_dict</code> — la forma JSON de cada vuelta, una sola vez para API y worker</td></tr>
@@ -262,10 +262,10 @@
     <tr><td class="n">—</td><td class="ruta tsx">pages/CoupledPage.tsx</td><td class="n">113</td><td><code>outer_tol</code> — 1,0, fijo en la página; la página lee el veredicto del núcleo en <code>convergio_exterior</code> (149)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">85</td><td><code>coupledOuterMaxIter</code> — el 12 de la interfaz, ajustable por el usuario</td></tr>
     <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">39</td><td><code>COMPARE_OUTER_MAX</code> — el 8 del comparador; rotula cada escenario con <code>converged</code> (153), el reconstruido</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">137</td><td><code>outer_max_iter</code> — default 3, tope 10; <code>outer_tol</code> (138) con la unidad correcta en su descripción</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">196</td><td><code>outer_max_iter</code> — default 3 en el worker; <code>outer_tol</code> (197) 1,0</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">138</td><td><code>outer_max_iter</code> — default 3, tope 10; <code>outer_tol</code> (139) con la unidad correcta en su descripción</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">199</td><td><code>outer_max_iter</code> — default 3 en el worker; <code>outer_tol</code> (200) 1,0</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/types-v2.ts</td><td class="n">62</td><td><code>outer_tol</code> — el contrato de la petición; su comentario dice «en minutos»</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">670</td><td><code>conv_sub</code> — el rótulo que ve el usuario: «residual … min»</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">671</td><td><code>conv_sub</code> — el rótulo que ve el usuario: «residual … min»</td></tr>
   </tbody>
 </table>
 </div>

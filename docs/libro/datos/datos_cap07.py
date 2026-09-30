@@ -60,7 +60,7 @@ from titirilquen_core.constantes import MODOS, VOT_SOCIAL_CLP_HORA
 from titirilquen_core.coupled_metrics import _theil
 from titirilquen_core.demand.utility import TiemposObservados
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.ciudad import LandUseCity
 
 SALIDA = Path(__file__).parent / "cap07.json"
@@ -475,6 +475,7 @@ def segregacion() -> dict:
             CBD=ciudad.cbd_index,
             cfg=lu,
             T=T,
+            lambda_h=lambda_desde_demanda(s.demand),
             rng=np.random.default_rng(42),
             ancho_celda_km=ciudad.ancho_celda_km,
         )

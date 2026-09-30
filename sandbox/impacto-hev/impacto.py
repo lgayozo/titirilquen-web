@@ -23,8 +23,10 @@ misma ciudad. Lo único que cambia es el modelo de la subasta.
 **El barrido.** `λ = (λ_m/r, λ_m, λ_m·r)` con `λ_m` el λ vigente del estrato
 medio — decreciente en el ingreso, como manda Martínez (p. 77). En `r = 1` los
 dos modelos coinciden y sirve de ancla. Se agrega la fila **vigente**: los tres
-λ literales de `LandUseConfig()` (= |b_costo| de transporte, D-34), que no son
-exactamente geométricos; su `r_eq = sqrt(λ_bajo/λ_alto)` ≈ 1,97.
+λ vigentes (= |b_costo| de transporte, D-34), que no son
+exactamente geométricos; su `r_eq = sqrt(λ_bajo/λ_alto)` ≈ 1,97. Desde el
+schema v6 λ no es campo del suelo: el vigente se lee de la demanda
+(`lambda_desde_demanda`) y el barrido lo pasa explícito, con `T` fija.
 
 **La accesibilidad** `T` es la de la app standalone: el logsum mensual de
 transporte a flujo libre sobre la red vacía configurada (D-34, D-42), común a
@@ -38,9 +40,9 @@ from pathlib import Path
 
 import numpy as np
 from titirilquen_core.config import DemandConfig, SupplyConfig
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.ciudad import LandUseCity
-from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
+from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import solve_logit, solve_subasta
 from titirilquen_core.presets import DEFAULT_STRATA
 
@@ -55,29 +57,20 @@ PERFILES = (1.5, 2.0, 4.0)
 EULER_GAMMA = 0.5772156649015329
 
 
-def _config(lams: tuple[float, float, float]) -> LandUseConfig:
-    base = LandUseConfig()
-    return LandUseConfig(
-        **{
-            **base.model_dump(by_alias=True),
-            "estratos": tuple(
-                LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=e.rho, **{"lambda": lam})
-                for e, lam in zip(base.estratos, lams, strict=True)
-            ),
-        }
-    )
+def _demanda() -> DemandConfig:
+    return DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
 
 
 def _T() -> np.ndarray:
     """La T standalone de la app: logsum de transporte a flujo libre (D-34, D-42)."""
-    dem = DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
-    return T_flujo_libre(dem, L, CBD, DX, supply=SupplyConfig())
+    return T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig())
 
 
-def _entradas(cfg: LandUseConfig, T: np.ndarray) -> dict:
+def _entradas(cfg: LandUseConfig, T: np.ndarray, lams: tuple[float, float, float]) -> dict:
     """Los argumentos del solver, idénticos para las dos ramas."""
+    lam = np.asarray(lams, dtype=float)
     ciudad = LandUseCity.build(
-        L=L, CBD=CBD, cfg=cfg, ancho_celda_km=DX, T=T, rng=np.random.default_rng(42)
+        L=L, CBD=CBD, cfg=cfg, ancho_celda_km=DX, T=T, lambda_h=lam, rng=np.random.default_rng(42)
     )
     return {
         "H": np.asarray(cfg.H_por_estrato, dtype=int),
@@ -86,7 +79,7 @@ def _entradas(cfg: LandUseConfig, T: np.ndarray) -> dict:
         "T": T,
         "alpha": np.asarray([s.alpha for s in cfg.estratos], dtype=float),
         "rho": np.asarray([s.rho for s in cfg.estratos], dtype=float),
-        "lambda_h": np.asarray([s.lambda_ for s in cfg.estratos], dtype=float),
+        "lambda_h": lam,
         "mu": cfg.mu,
         "tol": cfg.tol,
         "max_iter": cfg.max_iter,
@@ -120,8 +113,8 @@ def _cruce(Q: np.ndarray, a: int, b: int) -> float | None:
 
 
 def _fila(r: float | None, lams: tuple[float, float, float], T: np.ndarray) -> tuple[dict, dict]:
-    cfg = _config(lams)
-    kw = _entradas(cfg, T)
+    cfg = LandUseConfig()
+    kw = _entradas(cfg, T, lams)
     S = np.asarray(kw["S"], dtype=float)
     lam_m = lams[1]
 
@@ -182,7 +175,7 @@ def _fila(r: float | None, lams: tuple[float, float, float], T: np.ndarray) -> t
 
 def main() -> None:
     base = LandUseConfig()
-    lam_vig = tuple(float(s.lambda_) for s in base.estratos)
+    lam_vig = tuple(float(x) for x in lambda_desde_demanda(_demanda()))
     lam_m = lam_vig[1]
     T = _T()
 

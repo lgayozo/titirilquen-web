@@ -38,23 +38,25 @@ DIST_KM = np.abs(np.arange(L) - CBD).astype(float) * DX
 GAMMA = 0.5772156649015329
 
 
-def _cfg(lams, H=H_BASE, rho=None, mu=1.0):
+def _cfg(H=H_BASE, rho=None, mu=1.0):
     r = LandUseStratumConfig(y=1.0).rho if rho is None else rho
     return LandUseConfig(
         H_por_estrato=H,
         mu=mu,
         estratos=tuple(
-            LandUseStratumConfig(y=y, alpha=a, rho=r, **{"lambda": lam})
-            for y, a, lam in zip(Y, ALPHA, lams, strict=True)
+            LandUseStratumConfig(y=y, alpha=a, rho=r) for y, a in zip(Y, ALPHA, strict=True)
         ),
     )
 
 
 def ciudad(lams, **kw):
+    # λ va explícito (schema v6: no es campo del suelo). Esta auditoría lo mueve
+    # con T fija a propósito, para aislar su efecto sobre la subasta.
     return LandUseCity.build(
         L=L,
         CBD=CBD,
-        cfg=_cfg(lams, **kw),
+        cfg=_cfg(**kw),
+        lambda_h=np.asarray(lams, dtype=float),
         ancho_celda_km=DX,
         rng=np.random.default_rng(42),
         T=T_flujo_libre(
@@ -82,7 +84,7 @@ def _kw_solver(lams, rho=None, mu=1.0):
     """Argumentos crudos para `solve_subasta`, sin pasar por LandUseCity.
 
     Para `solve_logit` pasar por `_a_logit`: recibe `beta_i`, no `mu`."""
-    cfg = _cfg(lams, rho=rho, mu=mu)
+    cfg = _cfg(rho=rho, mu=mu)
     c = ciudad(lams, rho=rho, mu=mu)
     return {
         "H": np.asarray(cfg.H_por_estrato),

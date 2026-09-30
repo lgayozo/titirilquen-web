@@ -44,8 +44,9 @@ sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 import test_linea_base as base
 from titirilquen_core import constantes
-from titirilquen_core.config import SimulationConfig
+from titirilquen_core.config import DemandConfig, SimulationConfig
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
+from titirilquen_core.land_use.accesibilidad import lambda_desde_demanda
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.presets import CITY_PRESETS, DEFAULT_STRATA, POLICY_PRESETS
 
@@ -226,6 +227,8 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "deciles chilenos estilizados (D-27); no mueve la asignación",
         False,
     ),
+    # Desde el schema v6 λ no es campo del suelo (se deriva de b_costo); la
+    # sensibilidad registrada en cap09.json es histórica: λ movido con T fija.
     "land_use.estratos.*.lambda": (
         NORMA,
         "= |b_costo| de transporte, literal (D-34)",
@@ -475,6 +478,8 @@ def herencia() -> dict:
 
 def cadena_vot() -> dict:
     out = {}
+    # λ_h ya no es campo del suelo (schema v6): se deriva de la demanda.
+    lam = lambda_desde_demanda(DemandConfig.model_validate({"estratos": DEFAULT_STRATA}))
     for h in (1, 2, 3):
         b = DEFAULT_STRATA[h]["betas"]
         bt = abs(b["b_tiempo_viaje"])
@@ -484,11 +489,8 @@ def cadena_vot() -> dict:
             "b_costo": b["b_costo"],
             "vot_clp_hora": round(vot, 2),
             "b_costo_reconstruido": round(bt * 60 / round(vot), 9),
-            "lambda_suelo": LandUseConfig().estratos[h - 1].lambda_,
-            "lambda_igual_a_b_costo": abs(
-                LandUseConfig().estratos[h - 1].lambda_ - abs(b["b_costo"])
-            )
-            < 1e-12,
+            "lambda_suelo": float(lam[h - 1]),
+            "lambda_igual_a_b_costo": abs(float(lam[h - 1]) - abs(b["b_costo"])) < 1e-12,
             "espera_sobre_viaje": round(abs(b["b_tiempo_espera"]) / bt, 3),
             "acceso_sobre_viaje": round(abs(b["b_tiempo_acceso"]) / bt, 3),
             "caminata_sobre_viaje": round(abs(b["b_tiempo_caminata"]) / bt, 3),
@@ -635,6 +637,8 @@ def sensibilidad() -> dict:
     for ruta in (
         "estratos.1.alpha",
         "estratos.1.rho",
+        # Histórico (schema ≤ v5): desde v6 λ no es campo del suelo, así que esta
+        # ruta ya no existe; lo registrado en cap09.json movía λ con T fija.
         "estratos.1.lambda",
         "estratos.1.y",
         "beta",

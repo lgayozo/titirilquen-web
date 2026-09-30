@@ -61,7 +61,7 @@ from titirilquen_core.equilibrium.msa import (
     iter_msa_desde_suelo,
     run_msa,
 )
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.serializacion import (
     AgenteDict,
@@ -259,7 +259,14 @@ def paridad_worker_api() -> dict:
     w = ns["land_use_solve_from_json"](json.dumps(req))
     T = T_flujo_libre(sim.demand, L, CBD, dx, None, supply=sim.supply)
     a = land_use_city_to_dict(
-        LandUseCity.build(L=L, CBD=CBD, cfg=lu, ancho_celda_km=dx, T=T)
+        LandUseCity.build(
+            L=L,
+            CBD=CBD,
+            cfg=lu,
+            ancho_celda_km=dx,
+            T=T,
+            lambda_h=lambda_desde_demanda(sim.demand),
+        )
     )
     w_sin, a_sin = dict(w), dict(a)
     w_sin.pop("parcelas")
@@ -563,8 +570,9 @@ def determinismo() -> dict:
     )
     dx, c, L = ciudad.ancho_celda_km, ciudad.cbd_index, sim.city.n_celdas
     T = T_flujo_libre(sim.demand, L, c, dx, supply=sim.supply)
-    a = LandUseCity.build(L=L, CBD=c, cfg=lu, T=T, ancho_celda_km=dx)
-    b = LandUseCity.build(L=L, CBD=c, cfg=lu, T=T, ancho_celda_km=dx)
+    lam = lambda_desde_demanda(sim.demand)
+    a = LandUseCity.build(L=L, CBD=c, cfg=lu, T=T, lambda_h=lam, ancho_celda_km=dx)
+    b = LandUseCity.build(L=L, CBD=c, cfg=lu, T=T, lambda_h=lam, ancho_celda_km=dx)
     assert a.result is not None and b.result is not None
     it0 = next(
         iter(iter_coupled(sim=sim, land_use_config=lu, outer_max_iter=1, outer_tol=1.0))

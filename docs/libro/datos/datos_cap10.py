@@ -56,7 +56,11 @@ from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.demand.choice import probabilidades_logit
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
-from titirilquen_core.land_use.accesibilidad import logsum_por_celda, tiempos_red_vacia
+from titirilquen_core.land_use.accesibilidad import (
+    lambda_desde_demanda,
+    logsum_por_celda,
+    tiempos_red_vacia,
+)
 from titirilquen_core.land_use.config import LandUseConfig
 
 SALIDA = Path(__file__).parent / "cap10.json"
@@ -156,10 +160,11 @@ def un_hogar_una_utilidad() -> dict:
                 }
             )
     vot = {}
+    lam = lambda_desde_demanda(sim.demand)  # λ_h = |b_costo_h| (schema v6)
     for h in (1, 2, 3):
         e = lu.estratos[h - 1]
         vt = vot_clp_hora(sim, h)  # type: ignore[arg-type]
-        vs = e.alpha / e.lambda_ * abs(sim.demand.estratos[h].betas.b_tiempo_viaje) * 60  # type: ignore[index]
+        vs = e.alpha / float(lam[h - 1]) * abs(sim.demand.estratos[h].betas.b_tiempo_viaje) * 60  # type: ignore[index]
         vot[NOMBRES[h]] = {
             "transporte_clp_hora": round(vt, 3),
             "suelo_alpha_sobre_lambda_clp_hora": round(vs, 3),

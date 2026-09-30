@@ -27,21 +27,16 @@ class LandUseStratumConfig(BaseModel):
 
     **Unidades (D-26/D-27/D-34)**: `T` es el logsum mensual de transporte
     (utiles de transporte por mes) y la densidad va en hogares/km; `alpha` es
-    adimensional (1 = la accesibilidad tal cual), `rho` en utiles-mes por
-    (hogar/km) y `lambda` en utiles por peso (= |b_costo| de transporte), con
-    lo que el score queda en $/mes. `y` está en $/mes (CLP); no mueve la
-    asignación (se absorbe en ū, ver D-08) pero sí la métrica de carga mensual
-    costo/ingreso del acoplado."""
+    adimensional (1 = la accesibilidad tal cual) y `rho` en utiles-mes por
+    (hogar/km). λ_h, la utilidad marginal del ingreso que pasa el score a $/mes,
+    NO es un campo: es |b_costo_h| de la demanda (`accesibilidad.lambda_desde_
+    demanda`, schema v6). `y` está en $/mes (CLP); no mueve la asignación (se
+    absorbe en ū, ver D-08) pero sí la métrica de carga mensual costo/ingreso
+    del acoplado."""
 
     model_config = ConfigDict(extra="forbid")
 
     y: float = Field(gt=0, description="Ingreso mensual del estrato ($/mes)")
-    lambda_: float = Field(
-        default=1.0,
-        gt=0,
-        alias="lambda",
-        description="Utilidad marginal del ingreso (λ_h)",
-    )
     alpha: float = Field(
         default=1.0,
         description=(
@@ -108,11 +103,14 @@ class LandUseConfig(BaseModel):
     #   * `alpha = 1`, común: la puja lee esa accesibilidad tal cual. Es el ancla
     #     que traía el original (`actualizar(T, alpha=[1,1,1])` sobre el logsum)
     #     y nunca se ejecutó. Un alpha ≠ 1 es un multiplicador sin fuente.
-    #   * `lambda_h = |b_costo_h|` de `presets.DEFAULT_STRATA`, literal, en
-    #     utiles de transporte por peso: 0,000320 / 0,000641 / 0,001241. Con eso
-    #     el score `y + f/lambda` queda en $/mes, como `p` e `y` (D-27), el VoT
-    #     `alpha/lambda` = 6.200 / 3.100 / 1.600 $/h coincide con transporte, y
-    #     el ruido de la puja `1/(mu·lambda_h)` = $3.122 / $1.561 / $806 al mes.
+    #   * `lambda_h = |b_costo_h|`, en utiles de transporte por peso: con los
+    #     presets, 0,000320 / 0,000641 / 0,001241. Con eso el score `y + f/lambda`
+    #     queda en $/mes, como `p` e `y` (D-27), el VoT `alpha/lambda` =
+    #     6.200 / 3.100 / 1.600 $/h coincide con transporte, y el ruido de la
+    #     puja `1/(mu·lambda_h)` = $3.122 / $1.561 / $806 al mes. Desde el schema
+    #     v6 NO se guarda acá: lo deriva `accesibilidad.lambda_desde_demanda`, y
+    #     calibrar `b_costo` mueve λ y T a la vez. Hasta v5 era una copia literal
+    #     que nada sincronizaba.
     #   * `mu`: ver el comentario del campo, más abajo. Es la única perilla
     #     propia del módulo.
     #   * `rho`: sin fuente; 0 por defecto (ver el comentario del campo).
@@ -123,15 +121,15 @@ class LandUseConfig(BaseModel):
     # cerrada (D-08) y T minutos a flujo libre.
     estratos: tuple[LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig] = Field(
         default=(
-            LandUseStratumConfig(y=3_500_000.0, alpha=1.0, rho=0.0, **{"lambda": 0.000320323}),
-            LandUseStratumConfig(y=1_500_000.0, alpha=1.0, rho=0.0, **{"lambda": 0.00064065}),
-            LandUseStratumConfig(y=500_000.0, alpha=1.0, rho=0.0, **{"lambda": 0.00124125}),
+            LandUseStratumConfig(y=3_500_000.0, alpha=1.0, rho=0.0),
+            LandUseStratumConfig(y=1_500_000.0, alpha=1.0, rho=0.0),
+            LandUseStratumConfig(y=500_000.0, alpha=1.0, rho=0.0),
         ),
         description=(
-            "Parámetros de puja de los tres estratos (alto, medio, bajo). Son la "
-            "palanca principal del módulo: `alpha` es común y la diferencia de "
-            "`lambda` entre estratos fija el valor del tiempo `alpha/lambda` de "
-            "cada uno, que es lo que produce el gradiente de Alonso."
+            "Parámetros de puja de los tres estratos (alto, medio, bajo). `alpha` "
+            "es común; la diferencia de λ_h = |b_costo_h| entre estratos (de la "
+            "demanda) fija el valor del tiempo `alpha/λ` de cada uno, que es lo "
+            "que produce el gradiente de Alonso."
         ),
     )
 

@@ -22,7 +22,7 @@ import pytest
 from tests._poblacion import suelo_uniforme
 from titirilquen_core.config import CityConfig, DemandConfig, SimulationConfig, SupplyConfig
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.presets import DEFAULT_STRATA
@@ -104,6 +104,7 @@ def test_uso_de_suelo_emite_las_claves_declaradas() -> None:
         cfg=LandUseConfig(H_por_estrato=(100, 200, 300)),
         ancho_celda_km=10 / 51,
         T=T_flujo_libre(_demanda_web(), 51, 25, 10 / 51, supply=SupplyConfig()),
+        lambda_h=lambda_desde_demanda(_demanda_web()),
     )
     salida = land_use_city_to_dict(city)
     assert set(salida) == set(get_type_hints(LandUseSolveDict))

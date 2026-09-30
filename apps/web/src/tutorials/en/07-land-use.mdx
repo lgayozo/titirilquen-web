@@ -29,7 +29,7 @@ $$
 
 $T_h(i)$ is **accessibility**: the monthly cost of living in $i$ and having to travel, equal to $-44$ times the logsum of the mode-choice logit of the Demand chapter, at free flow. It is in transport utils per month and differs by stratum, since each one has its own logit. $\alpha$ equals 1 for everyone, so the bid reads that accessibility as is; $\rho_h$ penalizes **density** $S_i/\Delta x$ (households/km) and is 0 by default.
 
-With $\lambda_h$ equal to the cost coefficient of the mode-choice logit, the same household has **a single utility function** in both modules: its value of time $\alpha/\lambda_h$ is 6,200, 3,100 and 1,600 pesos per hour for the high, middle and low strata, the same one it uses to choose a mode.
+With $\lambda_h$ equal to the cost coefficient of the mode-choice logit, the same household has **a single utility function** in both modules: its value of time $\alpha/\lambda_h$ is 6,200, 3,100 and 1,600 pesos per hour for the high, middle and low strata, the same one it uses to choose a mode. That is why land use has no $\lambda$ of its own: it reads it from demand, and it moves from "Model calibration" under Transport. Changing $b_{\text{cost}}$ moves both $\lambda_h$ and the accessibility $T_h$.
 
 Solving for the price at the reservation utility level $u_h$ gives the **willingness to pay**, which is also random:
 
@@ -82,8 +82,8 @@ Moving $\lambda_h$ would be exactly rescaling that stratum's preferences. The he
 <Callout type="info">
 Try, on the page's default configuration:
 
-- **Set the three $\lambda$ equal** to the middle stratum's. The value of time becomes the same for everyone and **the city inverts**: the high stratum ends up 5.5 km from the CBD and the low one 2.2 km. Without differences in value of time there is no Alonso.
-- **Double the high stratum's $\lambda$.** Its value of time halves and it moves away from the center: from 1.9 to 4.0 km. With $\lambda$ halved it moves closer, to 1.3 km.
+- **Set the three $\lambda$ equal** to the middle stratum's, that is, their $b_{\text{cost}}$. The value of time becomes the same for everyone and **segregation nearly vanishes**: Theil from 0.23 to 0.02, with the high stratum 4.3 km from the CBD and the low one 3.1 km. Without differences in value of time there is no Alonso. What little remains, slightly inverted, is car ownership: the high stratum has more cars, and the car flattens its accessibility.
+- **Double the high stratum's $\lambda$.** Its value of time halves and it moves away from the center: from 1.9 to 3.0 km. With $\lambda$ halved it moves closer, to 1.5 km.
 - **Double the high stratum's income $y$.** It reallocates nobody: income enters as a constant and is absorbed into the reservation utility $u_h$.
 </Callout>
 

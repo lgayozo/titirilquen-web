@@ -81,7 +81,7 @@ que queda, y está pineado con `e2e/fixtures/utility-golden.json`: si divergen, 
 test falla. Lo mismo `citySupply.ts` con su golden de oferta.
 
 **Estado serializable.** Export a archivo `.ttrq.json` (`$schema:
-"titirilquen-scenario/v5"`) y share por `?s=` (base64url), sin DB. No hay
+"titirilquen-scenario/v6"`) y share por `?s=` (base64url), sin DB. No hay
 migraciones: un archivo de un schema anterior falla con un error explícito.
 
 **i18n.** Las ecuaciones LaTeX no se traducen. Ojo al borrar claves: varias se

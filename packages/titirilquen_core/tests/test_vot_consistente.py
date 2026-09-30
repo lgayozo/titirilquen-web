@@ -17,10 +17,12 @@ Desde D-34 (sep-2026) la conciliación es literal, no sólo en razones: la
 accesibilidad que entra a la puja es el logsum mensual de transporte, `α = 1`
 lo lee tal cual y `λ_h = |b_costo_h|` lo pasa a pesos. Estos tests son un test
 de CONSISTENCIA ENTRE MÓDULOS: no verifican una cuenta interna del uso de
-suelo, sino que dos calibraciones que viven en archivos distintos sigan
-contando la misma historia. Si alguien mueve los betas de la demanda, acá salta
-el desfase — que es lo único que impide que los `λ` del schema vuelvan a ser
-números mágicos.
+suelo, sino que las dos mitades del hogar sigan contando la misma historia.
+
+Desde el schema v6 λ no vive en la config de suelo: lo deriva
+`lambda_desde_demanda`. Hasta v5 era una copia literal de |b_costo| que nada
+sincronizaba, y estos tests sólo vigilaban los DEFAULTS: calibrar `b_costo` en
+la app movía la accesibilidad y dejaba λ quieto, sin que nada fallara.
 """
 
 from __future__ import annotations
@@ -29,6 +31,7 @@ import numpy as np
 
 from titirilquen_core.bienestar import vot_clp_hora
 from titirilquen_core.config import DemandConfig, SimulationConfig, SupplyConfig
+from titirilquen_core.land_use.accesibilidad import lambda_desde_demanda
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.presets import DEFAULT_STRATA
 
@@ -37,13 +40,21 @@ from titirilquen_core.presets import DEFAULT_STRATA
 ESTRATOS_TRANSPORTE = (1, 2, 3)
 
 
+def _demanda() -> DemandConfig:
+    return DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
+
+
 def _b_costo() -> np.ndarray:
     return np.array([abs(DEFAULT_STRATA[h]["betas"]["b_costo"]) for h in ESTRATOS_TRANSPORTE])
 
 
+def _lambdas() -> np.ndarray:
+    return lambda_desde_demanda(_demanda())
+
+
 def _vot_transporte() -> np.ndarray:
     """VOT conductual por estrato ($/hora), del módulo de transporte."""
-    cfg = SimulationConfig(demand=DemandConfig.model_validate({"estratos": DEFAULT_STRATA}))
+    cfg = SimulationConfig(demand=_demanda())
     return np.array([vot_clp_hora(cfg, h) for h in ESTRATOS_TRANSPORTE])
 
 
@@ -51,25 +62,27 @@ def _vot_suelo() -> np.ndarray:
     """VOT implícito por estrato (`α/λ`, en utiles de transporte ÷ utiles/$),
     del uso de suelo. Con α = 1 y λ = |b_costo| sale en $ por utile de
     transporte, que ×b_tiempo·60 es exactamente el VOT en $/h."""
-    return np.array([e.alpha / e.lambda_ for e in LandUseConfig().estratos])
+    alphas = np.array([e.alpha for e in LandUseConfig().estratos])
+    return alphas / _lambdas()
 
 
 def test_lambda_es_literalmente_el_b_costo_de_transporte() -> None:
-    """`λ_h = |b_costo_h|`, sin normalizar: un hogar, una función de utilidad.
+    """`λ_h = |b_costo_h|`, sin normalizar y en el orden de estratos del suelo
+    (0 = alto): un hogar, una función de utilidad.
 
     Desde D-34 el nivel de λ ya no es libre: lo fija transporte, porque la
     accesibilidad entra en utiles de transporte y λ es lo que la pasa a pesos.
     """
-    lambdas = np.array([e.lambda_ for e in LandUseConfig().estratos])
-    np.testing.assert_allclose(
-        lambdas,
-        _b_costo(),
-        rtol=1e-9,
-        err_msg=(
-            "los lambda del schema dejaron de ser el |b_costo| de presets.DEFAULT_STRATA. "
-            "Si recalibraste transporte, copiá los nuevos b_costo acá (D-34)."
-        ),
-    )
+    np.testing.assert_allclose(_lambdas(), _b_costo(), rtol=1e-12)
+
+
+def test_calibrar_b_costo_mueve_lambda() -> None:
+    """El puente del schema v6: tocar `b_costo` de un estrato mueve SU λ y el de
+    nadie más. Es la regresión que motivó v6 (ver el docstring del módulo)."""
+    dem = _demanda().model_copy(deep=True)
+    dem.estratos[1].betas.b_costo *= 2
+    lam = lambda_desde_demanda(dem)
+    np.testing.assert_allclose(lam, _b_costo() * np.array([2.0, 1.0, 1.0]), rtol=1e-12)
 
 
 def test_alpha_es_uno_y_comun() -> None:
@@ -108,7 +121,7 @@ def test_la_utilidad_marginal_del_ingreso_decrece_con_el_ingreso() -> None:
     y puja más fuerte por las parcelas centrales.
     """
     estratos = LandUseConfig().estratos
-    lambdas = [e.lambda_ for e in estratos]
+    lambdas = list(_lambdas())
     ingresos = [e.y for e in estratos]
 
     assert ingresos[0] > ingresos[1] > ingresos[2], "los estratos no están ordenados por ingreso"
@@ -124,7 +137,7 @@ def test_el_default_usa_la_subasta_heteroscedastica() -> None:
     Si alguien devuelve los `λ` a uniformes, el modelo vuelve a ser el que D-08
     declaraba mal especificado. Esto lo detecta.
     """
-    lambdas = {e.lambda_ for e in LandUseConfig().estratos}
+    lambdas = set(_lambdas())
     assert len(lambdas) > 1, (
         "los `lambda` por defecto volvieron a ser uniformes: el módulo despacha a "
         "la forma cerrada y `lambda` deja de estar identificado (D-08)."
@@ -137,20 +150,13 @@ def test_una_escala_comun_de_lambda_no_mueve_la_asignacion() -> None:
     rentas. Por eso la UI no ofrece ese control."""
     from titirilquen_core.land_use import LandUseCity
     from titirilquen_core.land_use.accesibilidad import T_flujo_libre
-    from titirilquen_core.land_use.config import LandUseStratumConfig
 
     L, CBD, dx = 101, 50, 20 / 101
-    dem = DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
-    T = T_flujo_libre(dem, L, CBD, dx, supply=SupplyConfig())
+    T = T_flujo_libre(_demanda(), L, CBD, dx, supply=SupplyConfig())
     base = LandUseConfig(H_por_estrato=(720, 1800, 1080), max_iter=5000)
-    escalada = base.model_copy(
-        update={
-            "estratos": tuple(
-                LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=e.rho, **{"lambda": e.lambda_ * 10})
-                for e in base.estratos
-            )
-        }
-    )
-    Q0 = LandUseCity.build(L=L, CBD=CBD, cfg=base, ancho_celda_km=dx, T=T).result.Q
-    Q1 = LandUseCity.build(L=L, CBD=CBD, cfg=escalada, ancho_celda_km=dx, T=T).result.Q
+    lam = _lambdas()
+    Q0 = LandUseCity.build(L=L, CBD=CBD, cfg=base, ancho_celda_km=dx, T=T, lambda_h=lam).result.Q
+    Q1 = LandUseCity.build(
+        L=L, CBD=CBD, cfg=base, ancho_celda_km=dx, T=T, lambda_h=lam * 10
+    ).result.Q
     assert np.max(np.abs(Q0 - Q1)) < 1e-8

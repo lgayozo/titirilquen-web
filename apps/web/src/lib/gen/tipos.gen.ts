@@ -171,17 +171,16 @@ export interface SimulationConfig {
  *  Parámetros de la función de puje (bid function) por estrato. **Unidades
  *  (D-26/D-27/D-34)**: `T` es el logsum mensual de transporte (utiles de
  *  transporte por mes) y la densidad va en hogares/km; `alpha` es
- *  adimensional (1 = la accesibilidad tal cual), `rho` en utiles-mes por
- *  (hogar/km) y `lambda` en utiles por peso (= |b_costo| de transporte), con
- *  lo que el score queda en $/mes. `y` está en $/mes (CLP); no mueve la
- *  asignación (se absorbe en ū, ver D-08) pero sí la métrica de carga mensual
- *  costo/ingreso del acoplado.
+ *  adimensional (1 = la accesibilidad tal cual) y `rho` en utiles-mes por
+ *  (hogar/km). λ_h, la utilidad marginal del ingreso que pasa el score a
+ *  $/mes, NO es un campo: es |b_costo_h| de la demanda
+ *  (`accesibilidad.lambda_desde_ demanda`, schema v6). `y` está en $/mes
+ *  (CLP); no mueve la asignación (se absorbe en ū, ver D-08) pero sí la
+ *  métrica de carga mensual costo/ingreso del acoplado.
  */
 export interface LandUseStratumConfig {
   /** Ingreso mensual del estrato ($/mes) */
   y: number;
-  /** Utilidad marginal del ingreso (λ_h) */
-  lambda: number;
   /**
    *  Multiplicador de la accesibilidad (logsum mensual de transporte); 1 = tal
    *  cual
@@ -199,10 +198,10 @@ export interface LandUseConfig {
   /** Número de hogares por estrato (alto, medio, bajo) */
   H_por_estrato: [number, number, number];
   /**
-   *  Parámetros de puja de los tres estratos (alto, medio, bajo). Son la
-   *  palanca principal del módulo: `alpha` es común y la diferencia de `lambda`
-   *  entre estratos fija el valor del tiempo `alpha/lambda` de cada uno, que es
-   *  lo que produce el gradiente de Alonso.
+   *  Parámetros de puja de los tres estratos (alto, medio, bajo). `alpha` es
+   *  común; la diferencia de λ_h = |b_costo_h| entre estratos (de la demanda)
+   *  fija el valor del tiempo `alpha/λ` de cada uno, que es lo que produce el
+   *  gradiente de Alonso.
    */
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   /**

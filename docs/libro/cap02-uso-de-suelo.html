@@ -319,10 +319,10 @@
       <td><span class="etiqueta neutra">decisión</span> deciles estilizados; ver la comparación con CASEN 2022</td>
     </tr>
     <tr>
-      <td><code>lambda</code></td>
+      <td><em>λ<sub>h</sub></em> (derivado)</td>
       <td class="n">3,20 / 6,41 / 12,41 ·10⁻⁴</td>
       <td>utiles/$</td>
-      <td><span class="etiqueta frio">norma</span> el <code>|b_costo|</code> del logit modal, literal: un hogar, una utilidad</td>
+      <td><span class="etiqueta frio">norma</span> el <code>|b_costo|</code> del logit modal, literal: un hogar, una utilidad. No es un campo del suelo: lo deriva la demanda (schema v6)</td>
     </tr>
     <tr>
       <td><code>alpha</code></td>
@@ -356,7 +356,8 @@
 
 <p>
   <strong>λ y el valor del tiempo.</strong> Los <em>λ_h</em> no se eligen: son
-  el coeficiente de costo del logit modal, copiados tal cual, de modo que
+  el coeficiente de costo del logit modal, leído de la demanda en cada
+  corrida (<code>lambda_desde_demanda</code>, schema v6), de modo que
   <em>α/λ</em> reproduce el valor del tiempo de transporte, 6.200 / 3.100 /
   1.600 $/h. Esos tres valores son una decisión, no una estimación. Las
   referencias disponibles los acotan: los Precios Sociales 2026 del SNI dan un
@@ -441,13 +442,13 @@
       <td class="n">—</td>
       <td class="ruta py">land_use/config.py</td>
       <td class="n">25</td>
-      <td><code>LandUseStratumConfig</code> — <code>y</code> (38), <code>lambda_</code> (39), <code>alpha</code> (45), <code>rho</code> (51), con sus unidades en el docstring</td>
+      <td><code>LandUseStratumConfig</code> — <code>y</code> (39), <code>alpha</code> (40), <code>rho</code> (51), con sus unidades en el docstring. λ<sub>h</sub> no es campo desde el schema v6</td>
     </tr>
     <tr>
       <td class="n">—</td>
       <td class="ruta py">land_use/config.py</td>
-      <td class="n">61</td>
-      <td><code>LandUseConfig</code> — <code>H_por_estrato</code> (66), <code>estratos</code> (124), <code>mu</code> (165) derivado de VIAJES_MES, <code>forma</code> (179), <code>oferta_sigma_frac</code> (186)</td>
+      <td class="n">56</td>
+      <td><code>LandUseConfig</code> — <code>H_por_estrato</code> (61), <code>estratos</code> (122), <code>mu</code> (163) derivado de VIAJES_MES, <code>forma</code> (177), <code>oferta_sigma_frac</code> (184)</td>
     </tr>
     <tr>
       <td class="n">—</td>
@@ -458,8 +459,14 @@
     <tr>
       <td class="n">(2.2)</td>
       <td class="ruta py">land_use/accesibilidad.py</td>
-      <td class="n">116</td>
+      <td class="n">131</td>
       <td><code>T_flujo_libre</code> — la accesibilidad del módulo aislado, a red vacía; <code>logsum_por_celda</code> (45) y <code>T_desde_logsum</code> (91) la mensualizan</td>
+    </tr>
+    <tr>
+      <td class="n">(2.1)</td>
+      <td class="ruta py">land_use/accesibilidad.py</td>
+      <td class="n">116</td>
+      <td><code>lambda_desde_demanda</code> — λ<sub>h</sub> = |b_costo<sub>h</sub>| de la demanda, la otra mitad del puente con transporte; <code>LandUseCity.build</code> la exige igual que a <em>T</em></td>
     </tr>
     <tr>
       <td class="n">(2.2)</td>
@@ -495,7 +502,7 @@
       <td class="n">(2.5)</td>
       <td class="ruta py">land_use/ciudad.py</td>
       <td class="n">39</td>
-      <td><code>LandUseCity</code> — arma la ciudad y resuelve; <code>densidad_por_celda</code> (133) es <em>S/Δx</em></td>
+      <td><code>LandUseCity</code> — arma la ciudad y resuelve; <code>densidad_por_celda</code> (151) es <em>S/Δx</em></td>
     </tr>
     <tr>
       <td class="n">(2.5)</td>
@@ -512,7 +519,7 @@
     <tr>
       <td class="n">—</td>
       <td class="ruta ts">components/modules/LandUseBuilder.tsx</td>
-      <td class="n">206</td>
+      <td class="n">209</td>
       <td><code>param_mu</code> — el control de μ va de 0,01 a 2; α es común y λ se muestra sin editar</td>
     </tr>
   </tbody>

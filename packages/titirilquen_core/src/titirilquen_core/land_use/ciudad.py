@@ -40,14 +40,22 @@ class LandUseCity:
     """Ciudad lineal con uso de suelo resuelto.
 
     Uso típico:
-        city = LandUseCity.build(L=201, CBD=100, cfg=LandUseConfig(...))
+        city = LandUseCity.build(
+            L=201, CBD=100, cfg=LandUseConfig(...),
+            T=T_flujo_libre(demand, ...), lambda_h=lambda_desde_demanda(demand),
+        )
         # T: accesibilidad mensual de transporte por estrato (obligatoria):
         city.update(T=T_from_transport)
+
+    `T` y `lambda_h` vienen de la demanda (`land_use.accesibilidad`): el suelo
+    no tiene config propia para ninguno de los dos (D-34, D-41, schema v6).
     """
 
     L: int
     cbd_index: int
     cfg: LandUseConfig
+    # λ_h = |b_costo_h|, en utiles por peso. Ver `lambda_desde_demanda`.
+    lambda_h: NDArray[np.float64]
     # Ancho físico de cada celda. Ver `ANCHO_CELDA_KM_DEFAULT`.
     ancho_celda_km: float = ANCHO_CELDA_KM_DEFAULT
     S: NDArray[np.int_] = field(default_factory=lambda: np.zeros(0, dtype=int))
@@ -64,9 +72,18 @@ class LandUseCity:
         ancho_celda_km: float = ANCHO_CELDA_KM_DEFAULT,
         S: NDArray[np.int_] | None = None,
         T: NDArray[np.float64] | None = None,
+        lambda_h: NDArray[np.float64] | None = None,
         rng: np.random.Generator | None = None,
     ) -> LandUseCity:
         """Construye la ciudad, genera oferta si no se entrega, y resuelve equilibrio."""
+        if lambda_h is None:
+            raise ValueError(
+                "LandUseCity necesita lambda_h: "
+                "usá land_use.accesibilidad.lambda_desde_demanda(demand)"
+            )
+        lambda_h = np.asarray(lambda_h, dtype=float)
+        if lambda_h.shape != (len(cfg.H_por_estrato),) or np.any(lambda_h <= 0):
+            raise ValueError(f"lambda_h debe ser positivo, uno por estrato: {lambda_h}")
         if rng is None:
             rng = np.random.default_rng()
         N_total = int(sum(cfg.H_por_estrato))
@@ -82,7 +99,9 @@ class LandUseCity:
         if int(sum(S)) != N_total:
             raise ValueError(f"Σ S ({int(sum(S))}) ≠ Σ H ({N_total})")
 
-        city = cls(L=L, cbd_index=CBD, cfg=cfg, ancho_celda_km=ancho_celda_km, S=S)
+        city = cls(
+            L=L, cbd_index=CBD, cfg=cfg, lambda_h=lambda_h, ancho_celda_km=ancho_celda_km, S=S
+        )
         city.update(T=T, rng=rng)
         return city
 
@@ -105,7 +124,6 @@ class LandUseCity:
         y = np.asarray([s.y for s in self.cfg.estratos], dtype=float)
         alpha = np.asarray([s.alpha for s in self.cfg.estratos], dtype=float)
         rho = np.asarray([s.rho for s in self.cfg.estratos], dtype=float)
-        lambda_h = np.asarray([s.lambda_ for s in self.cfg.estratos], dtype=float)
 
         if T is None:
             raise ValueError(
@@ -122,7 +140,7 @@ class LandUseCity:
             T=T,
             alpha=alpha,
             rho=rho,
-            lambda_h=lambda_h,
+            lambda_h=self.lambda_h,
             mu=self.cfg.mu,
             tol=self.cfg.tol,
             max_iter=self.cfg.max_iter,

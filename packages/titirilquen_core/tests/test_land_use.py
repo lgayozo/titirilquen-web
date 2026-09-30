@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from titirilquen_core.config import DemandConfig
 from titirilquen_core.land_use import (
     LandUseCity,
     LandUseConfig,
@@ -9,7 +10,7 @@ from titirilquen_core.land_use import (
     generar_oferta_normal,
     solve_logit,
 )
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 
 
 def _toy_scenario(lam: np.ndarray):
@@ -136,14 +137,29 @@ def _T_toy(L: int, CBD: int) -> np.ndarray:
     return np.tile(np.abs(np.arange(L) - CBD).astype(float), (3, 1))
 
 
+def _demanda_web() -> DemandConfig:
+    from titirilquen_core.presets import DEFAULT_STRATA
+
+    return DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
+
+
+def _lam_web() -> np.ndarray:
+    """λ_h = |b_costo_h| de la demanda calibrada (schema v6)."""
+    return lambda_desde_demanda(_demanda_web())
+
+
+# Los tests de mecánica con parámetros de juguete usan λ = 1: era el default
+# del campo `lambda` hasta el schema v5.
+_LAM_TOY = np.ones(3)
+
+
 def _T_web(L: int, CBD: int, ancho_celda_km: float) -> np.ndarray:
     """La accesibilidad real (logsum mensual a flujo libre) con la demanda
     calibrada de la app, para los tests que usan los defaults físicos."""
-    from titirilquen_core.config import DemandConfig, SupplyConfig
-    from titirilquen_core.presets import DEFAULT_STRATA
+    from titirilquen_core.config import SupplyConfig
 
     return T_flujo_libre(
-        DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
+        _demanda_web(),
         L,
         CBD,
         ancho_celda_km,
@@ -163,7 +179,7 @@ def test_land_use_city_build_asigna_todos_los_hogares() -> None:
         max_iter=2000,
     )
     rng = np.random.default_rng(42)
-    city = LandUseCity.build(L=51, CBD=25, cfg=cfg, rng=rng, T=_T_toy(51, 25))
+    city = LandUseCity.build(L=51, CBD=25, cfg=cfg, rng=rng, T=_T_toy(51, 25), lambda_h=_LAM_TOY)
     asignados = sum(len(p) for p in city.parcelas)
     assert asignados == 900
     assert city.result is not None
@@ -172,7 +188,7 @@ def test_land_use_city_build_asigna_todos_los_hogares() -> None:
 def test_update_con_T_custom() -> None:
     cfg = LandUseConfig(H_por_estrato=(200, 200, 200), max_iter=2000)
     rng = np.random.default_rng(42)
-    city = LandUseCity.build(L=51, CBD=25, cfg=cfg, rng=rng, T=_T_toy(51, 25))
+    city = LandUseCity.build(L=51, CBD=25, cfg=cfg, rng=rng, T=_T_toy(51, 25), lambda_h=_lam_web())
     # Nueva T: distancia cúbica (hace transporte más penalizante)
     T_custom = np.tile((np.abs(np.arange(51) - 25) ** 1.5).astype(float), (3, 1))
     city.update(T=T_custom, rng=rng)
@@ -194,7 +210,7 @@ def test_alpha_mas_alto_atrae_cerca_del_cbd() -> None:
         max_iter=2000,
     )
     rng = np.random.default_rng(42)
-    city = LandUseCity.build(L=101, CBD=50, cfg=cfg, rng=rng, T=_T_toy(101, 50))
+    city = LandUseCity.build(L=101, CBD=50, cfg=cfg, rng=rng, T=_T_toy(101, 50), lambda_h=_LAM_TOY)
     conteos = city.hogares_por_parcela_estrato()  # (3, 101)
 
     # Distancia media al CBD por estrato
@@ -252,6 +268,7 @@ def test_invariancia_a_la_resolucion_de_la_grilla() -> None:
             cfg=_cfg_default_fisica(),
             ancho_celda_km=LARGO_KM / L,
             T=_T_web(L, L // 2, LARGO_KM / L),
+            lambda_h=_lam_web(),
             rng=np.random.default_rng(7),
         )
         assert city.result is not None and city.result.converged
@@ -280,6 +297,7 @@ def test_sensibilidad_al_tamano_fisico() -> None:
             cfg=_cfg_default_fisica(),
             ancho_celda_km=largo / L,
             T=_T_web(L, L // 2, largo / L),
+            lambda_h=_lam_web(),
             rng=np.random.default_rng(7),
         )
         assert city.result is not None
@@ -298,6 +316,7 @@ def test_densidad_por_celda_es_oferta_sobre_dx() -> None:
         cfg=_cfg_default_fisica(),
         ancho_celda_km=dx,
         T=_T_web(L, L // 2, dx),
+        lambda_h=_lam_web(),
         rng=np.random.default_rng(7),
     )
     dens = city.densidad_por_celda()
@@ -319,6 +338,7 @@ def test_densidad_y_equilibrio_conservan_hogares() -> None:
         cfg=_cfg_default_fisica(),
         ancho_celda_km=dx,
         T=_T_web(L, L // 2, dx),
+        lambda_h=_lam_web(),
         rng=np.random.default_rng(7),
     )
     assert city.result is not None
@@ -378,6 +398,7 @@ def _gradiente_alonso(cfg: LandUseConfig, *, L: int = 201, largo_km: float = 20.
         ancho_celda_km=largo_km / L,
         rng=np.random.default_rng(42),
         T=_T_web(L, CBD, largo_km / L),
+        lambda_h=_lam_web(),
     )
     assert city.result is not None
     p = city.result.p

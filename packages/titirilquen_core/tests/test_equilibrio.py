@@ -176,14 +176,20 @@ def test_sin_modos_factibles_los_agentes_quedan_varados(
 
 
 def test_las_dos_localizaciones_dan_ciudades_distintas(
-    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig, demanda_calibrada: DemandConfig
 ) -> None:
     """`"equilibrio"` aplica el bid-rent (cada estrato se ubica donde puja más);
     `"original"` reparte la mezcla uniforme π_h en todas las celdas.
 
     Deben diferir: si dieran lo mismo, el equilibrio de pujas no estaría
     haciendo nada y el módulo de uso de suelo sería decorativo.
+
+    Usa la demanda calibrada, no la sintética: en la sintética los tres
+    estratos son idénticos, y desde el schema v6 (λ_h = |b_costo_h|) pujan
+    idéntico, así que la ciudad de equilibrio ES la mezcla uniforme. Hasta v5
+    los diferenciaba un λ del suelo que no era el de su demanda.
     """
+    sim_liviana.demand = demanda_calibrada
     sim_liviana.assignment = "expected"
     eq = _drena(sim_liviana.model_copy(deep=True), lu_chica, localizacion="equilibrio")
     orig = _drena(sim_liviana.model_copy(deep=True), lu_chica, localizacion="original")

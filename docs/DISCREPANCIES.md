@@ -1226,6 +1226,15 @@ outer_tol`, sin exigir `transport_trace.converged` ni la convergencia del
   reetiquetarlo como unidad monetaria; corregir el comentario de `β`; agregar un
   test de que la escala común de λ no mueve `Q`.
 - **Estado**: corregido 2026-09-05. El control «λ · escala» se eliminó; λ se muestra como lo que es (el |b_costo| de transporte, no editable) y `test_una_escala_comun_de_lambda_no_mueve_la_asignacion` fija la invariancia. El comentario de `β` en `config.py` dice ahora «aproximación de segundo momento, no derivación».
+- **Actualización 2026-09-30 (schema v6)**: «λ no editable» no bastaba. El campo
+  `LandUseStratumConfig.lambda` era una copia literal de |b_costo| que nada
+  sincronizaba: calibrar `b_costo` en la app movía `T` (el logsum) y dejaba λ
+  quieto, y el hogar quedaba con dos valores del tiempo sin que nada fallara
+  (`test_vot_consistente.py` sólo vigilaba los defaults). El campo se eliminó:
+  `accesibilidad.lambda_desde_demanda` deriva `λ_h = |b_costo_h|` y
+  `LandUseCity.build` lo exige, igual que `T`. Mover λ en la interfaz es mover
+  `b_costo`, con sus dos efectos. Un escenario v5 falla explícito, sin
+  migración. La línea base no se movió: los defaults eran idénticos.
 
 ## D-42 — Suelo standalone: «flujo libre» no usa la red configurada (A09)
 

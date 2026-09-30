@@ -41,7 +41,7 @@ sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.constantes import VIAJES_MES
 from titirilquen_core.land_use import LandUseCity, LandUseConfig
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.config import LandUseStratumConfig
 from titirilquen_core.land_use.supply import generar_oferta
 from titirilquen_core.presets import DEFAULT_STRATA
@@ -74,13 +74,20 @@ def _T():
     return T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig())
 
 
-def _ciudad(cfg: LandUseConfig, T=None):
+def _lam() -> list[float]:
+    """λ_h de la aplicación: |b_costo_h| de la demanda (schema v6)."""
+    return [float(x) for x in lambda_desde_demanda(_demanda())]
+
+
+def _ciudad(cfg: LandUseConfig, T=None, lam=None):
+    # `lam` explícito = contrafactual: λ movido sin tocar la demanda ni T.
     return LandUseCity.build(
         L=L,
         CBD=CBD,
         cfg=cfg,
         ancho_celda_km=DX,
         T=_T() if T is None else T,
+        lambda_h=np.asarray(_lam() if lam is None else lam, float),
         rng=np.random.default_rng(42),
     )
 
@@ -163,22 +170,8 @@ def despacho() -> dict:
     )
     base_cfg = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
     for nombre, lams in casos:
-        if lams is None:
-            cfg = base_cfg
-            lams_reales = tuple(e.lambda_ for e in base_cfg.estratos)
-        else:
-            cfg = base_cfg.model_copy(
-                update={
-                    "estratos": tuple(
-                        LandUseStratumConfig(
-                            y=e.y, alpha=e.alpha, rho=e.rho, **{"lambda": lam}
-                        )
-                        for e, lam in zip(base_cfg.estratos, lams, strict=True)
-                    )
-                }
-            )
-            lams_reales = lams
-        c = _ciudad(cfg)
+        lams_reales = tuple(_lam()) if lams is None else lams
+        c = _ciudad(base_cfg, lam=lams_reales)
         Q = np.asarray(c.result.Q, float)
         H_obt = Q @ np.asarray(c.S, float)
         err = np.abs(H_obt - np.asarray(H_APP, float))
@@ -272,10 +265,7 @@ def perillas() -> dict:
             H_por_estrato=H_APP,
             max_iter=5000,
             estratos=tuple(
-                LandUseStratumConfig(
-                    y=e.y, alpha=e.alpha, rho=r, **{"lambda": e.lambda_}
-                )
-                for e in LandUseConfig().estratos
+                LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=r) for e in LandUseConfig().estratos
             ),
         )
         out["rho"].append({"rho": r, **_metricas(_ciudad(cfg))})
@@ -295,6 +285,7 @@ def invariancias() -> dict:
             cfg=LandUseConfig(H_por_estrato=H_APP, max_iter=5000),
             ancho_celda_km=dx,
             T=T,
+            lambda_h=np.asarray(_lam(), float),
             rng=np.random.default_rng(42),
         )
         S = np.asarray(c.S, float)
@@ -330,6 +321,7 @@ def invariancias() -> dict:
             cfg=LandUseConfig(H_por_estrato=H_APP, max_iter=5000),
             ancho_celda_km=dx,
             T=T,
+            lambda_h=np.asarray(_lam(), float),
             rng=np.random.default_rng(42),
         )
         fisico.append({"largo_km": largo, **_metricas(c)})
@@ -339,24 +331,23 @@ def invariancias() -> dict:
 def configuracion_vigente() -> dict:
     """Los parámetros con los que corre la aplicación, tal como están en el schema."""
     cfg = LandUseConfig(H_por_estrato=H_APP)
+    lam = _lam()
     bt = [abs(DEFAULT_STRATA[h]["betas"]["b_tiempo_viaje"]) for h in (1, 2, 3)]
     bc = [abs(DEFAULT_STRATA[h]["betas"]["b_costo"]) for h in (1, 2, 3)]
     return {
         "H_por_estrato": list(H_APP),
         "y_clp_mes": [e.y for e in cfg.estratos],
-        "lambda_utiles_por_clp": [e.lambda_ for e in cfg.estratos],
+        "lambda_utiles_por_clp": lam,
         "alpha": [e.alpha for e in cfg.estratos],
         "rho": [e.rho for e in cfg.estratos],
         "mu": round(cfg.mu, 4),
         "mu_formula": "1/√VIAJES_MES",
-        "beta_h_por_clp": [cfg.mu * e.lambda_ for e in cfg.estratos],
-        "escala_ruido_puja_clp_mes": [
-            round(1.0 / (cfg.mu * e.lambda_)) for e in cfg.estratos
-        ],
+        "beta_h_por_clp": [cfg.mu * x for x in lam],
+        "escala_ruido_puja_clp_mes": [round(1.0 / (cfg.mu * x)) for x in lam],
         "VIAJES_MES": VIAJES_MES,
         "vot_transporte_clp_h": [round(t * 60.0 / c) for t, c in zip(bt, bc)],
         "vot_suelo_alpha_sobre_lambda_clp_por_util": [
-            round(e.alpha / e.lambda_) for e in cfg.estratos
+            round(e.alpha / x) for e, x in zip(cfg.estratos, lam, strict=True)
         ],
         "forma": cfg.forma,
         "oferta_sigma_frac": cfg.oferta_sigma_frac,
@@ -367,10 +358,16 @@ def configuracion_vigente() -> dict:
     }
 
 
-def _ciudad_app(cfg: LandUseConfig):
+def _ciudad_app(cfg: LandUseConfig, lam=None):
     T = T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig())
     return LandUseCity.build(
-        L=L, CBD=CBD, cfg=cfg, ancho_celda_km=DX, T=T, rng=np.random.default_rng(42)
+        L=L,
+        CBD=CBD,
+        cfg=cfg,
+        ancho_celda_km=DX,
+        T=T,
+        lambda_h=np.asarray(_lam() if lam is None else lam, float),
+        rng=np.random.default_rng(42),
     ), T
 
 
@@ -382,15 +379,16 @@ def escalas() -> dict:
     Gumbel de la puja, 1/(β·λ_h). Con β = 1 el ruido sería el de un solo viaje."""
     cfg = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
     city, T = _ciudad_app(cfg)
+    lam = _lam()
     S = np.asarray(city.S, float)
     ok = S > 0
     dens = S / DX
     filas = []
     for h, e in enumerate(cfg.estratos):
-        senal_T = float((T[h, ok].max() - T[h, ok].min()) * e.alpha / e.lambda_)
-        senal_dens = float((dens[ok].max() - dens[ok].min()) * e.rho / e.lambda_)
-        ruido = 1.0 / (cfg.mu * e.lambda_)
-        ruido_1 = 1.0 / e.lambda_
+        senal_T = float((T[h, ok].max() - T[h, ok].min()) * e.alpha / lam[h])
+        senal_dens = float((dens[ok].max() - dens[ok].min()) * e.rho / lam[h])
+        ruido = 1.0 / (cfg.mu * lam[h])
+        ruido_1 = 1.0 / lam[h]
         filas.append(
             {
                 "estrato": ["alto", "medio", "bajo"][h],
@@ -420,42 +418,35 @@ def escalas() -> dict:
 def reescala_beta() -> dict:
     """μ = 1 con (λ, α, ρ) × μ_default reproduce el mismo equilibrio: sólo los
     productos μ·λ, μ·α y μ·ρ entran en la subasta. Se mide en la rama HEV (el
-    default) y en la cerrada (λ uniforme)."""
-    base = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
-    k = base.mu
+    default) y en la cerrada (λ uniforme). λ ya no está en la config (schema
+    v6): cada caso es un par (config, λ_h)."""
+    base = (LandUseConfig(H_por_estrato=H_APP, max_iter=5000), _lam())
+    k = base[0].mu
 
-    def reescalada(cfg: LandUseConfig, que: tuple[str, ...]) -> LandUseConfig:
+    def reescalada(caso: tuple, que: tuple[str, ...]) -> tuple:
+        cfg, lam = caso
         estr = tuple(
             LandUseStratumConfig(
                 y=e.y,
                 alpha=e.alpha * (k if "alpha" in que else 1),
                 rho=e.rho * (k if "rho" in que else 1),
-                **{"lambda": e.lambda_ * (k if "lambda" in que else 1)},
             )
             for e in cfg.estratos
         )
-        return cfg.model_copy(update={"estratos": estr, "mu": 1.0})
+        lam_k = [x * (k if "lambda" in que else 1) for x in lam]
+        return cfg.model_copy(update={"estratos": estr, "mu": 1.0}), lam_k
 
-    def compara(a: LandUseConfig, b: LandUseConfig) -> dict:
-        ra = _ciudad_app(a)[0].result
-        rb = _ciudad_app(b)[0].result
+    def compara(a: tuple, b: tuple) -> dict:
+        ra = _ciudad_app(*a)[0].result
+        rb = _ciudad_app(*b)[0].result
         return {
             "max_delta_Q": float(np.abs(ra.Q - rb.Q).max()),
             "max_delta_p_clp": float(np.abs(ra.p - rb.p).max()),
             "max_delta_u_clp": float(np.abs(ra.u - rb.u).max()),
         }
 
-    lam_med = base.estratos[1].lambda_
-    uniforme = base.model_copy(
-        update={
-            "estratos": tuple(
-                LandUseStratumConfig(
-                    y=e.y, alpha=e.alpha, rho=e.rho, **{"lambda": lam_med}
-                )
-                for e in base.estratos
-            )
-        }
-    )
+    lam_med = base[1][1]
+    uniforme = (base[0], [lam_med] * 3)
     return {
         "k": round(k, 4),
         "hev_beta_1_con_lambda_alpha_rho_por_k": compara(
@@ -468,9 +459,9 @@ def reescala_beta() -> dict:
             uniforme, reescalada(uniforme, ("lambda", "alpha", "rho"))
         ),
         "parametros_equivalentes_con_beta_1": {
-            "lambda": [e.lambda_ * k for e in base.estratos],
-            "alpha": base.estratos[0].alpha * k,
-            "rho": base.estratos[0].rho * k,
+            "lambda": [x * k for x in base[1]],
+            "alpha": base[0].estratos[0].alpha * k,
+            "rho": base[0].estratos[0].rho * k,
         },
     }
 
@@ -484,9 +475,7 @@ def rho_umbral() -> dict:
             H_por_estrato=H_APP,
             max_iter=5000,
             estratos=tuple(
-                LandUseStratumConfig(
-                    y=e.y, alpha=e.alpha, rho=rho, **{"lambda": e.lambda_}
-                )
+                LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=rho)
                 for e in LandUseConfig().estratos
             ),
         )

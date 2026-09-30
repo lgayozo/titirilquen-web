@@ -137,7 +137,7 @@ from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 import json
 
 # La forma del resultado la define el CORE, en titirilquen_core.serializacion.
@@ -186,7 +186,10 @@ def land_use_solve_from_json(req_json: str):
     largo_km = float(req.get("largo_km", 20.0))
     dx = largo_km / L
     T = T_flujo_libre(demand, L, CBD, dx, tuple(modos) if modos else None, supply=supply)
-    city = LandUseCity.build(L=L, CBD=CBD, cfg=cfg, ancho_celda_km=dx, T=T)
+    city = LandUseCity.build(
+        L=L, CBD=CBD, cfg=cfg, ancho_celda_km=dx, T=T,
+        lambda_h=lambda_desde_demanda(demand),
+    )
     return land_use_city_to_dict(city)
 
 def coupled_iter_from_json(req_json: str):

@@ -51,7 +51,11 @@ from titirilquen_core.city import CiudadLineal
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.demand.choice import probabilidades_logit
 from titirilquen_core.demand.utility import calcular_utilidades
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre, tiempos_red_vacia
+from titirilquen_core.land_use.accesibilidad import (
+    T_flujo_libre,
+    lambda_desde_demanda,
+    tiempos_red_vacia,
+)
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.presets import DEFAULT_STRATA
 
@@ -97,8 +101,7 @@ def _ciudad() -> CiudadLineal:
 
 
 def _lambdas() -> list[float]:
-    dem = base._config_web().demand
-    return [abs(float(dem.estratos[h].betas.b_costo)) for h in (1, 2, 3)]  # type: ignore[index]
+    return [float(x) for x in lambda_desde_demanda(base._config_web().demand)]
 
 
 def _celda(ciudad: CiudadLineal, km: float) -> int:
@@ -161,16 +164,14 @@ def _distancias_medias(T: np.ndarray, lambdas: list[float] | None = None) -> lis
     estrato, ponderada por hogares (`N_hi = S_i·Q_hi`)."""
     ciudad = _ciudad()
     cfg = base._land_use_web()
-    if lambdas is not None:
-        estratos = tuple(
-            e.model_copy(update={"lambda_": lam}) for e, lam in zip(cfg.estratos, lambdas)
-        )
-        cfg = cfg.model_copy(update={"estratos": estratos})
+    # `lambdas` explícito = contrafactual: λ movido sin tocar la demanda ni T.
+    lam = _lambdas() if lambdas is None else lambdas
     city = LandUseCity.build(
         L=ciudad.n_celdas,
         CBD=ciudad.cbd_index,
         cfg=cfg,
         T=T,
+        lambda_h=np.asarray(lam, dtype=float),
         rng=np.random.default_rng(42),
         ancho_celda_km=ciudad.ancho_celda_km,
     )
@@ -668,7 +669,7 @@ def parametros_vigentes() -> dict:
         "viajes_mes": int(VIAJES_MES),
         "alpha": [float(e.alpha) for e in lu.estratos],
         "rho": [float(e.rho) for e in lu.estratos],
-        "lambda_h": [float(e.lambda_) for e in lu.estratos],
+        "lambda_h": _lambdas(),
         "theta": "1/(k+1)",
         "assignment_forzado": "expected",
         "tolerancia_interior_min": float(base._config_web().tolerance),

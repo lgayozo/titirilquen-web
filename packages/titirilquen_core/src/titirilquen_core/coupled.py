@@ -37,6 +37,7 @@ from titirilquen_core.equilibrium.msa import (
 from titirilquen_core.land_use.accesibilidad import (
     T_desde_logsum,
     T_flujo_libre,
+    lambda_desde_demanda,
     logsum_por_celda,
 )
 from titirilquen_core.land_use.ciudad import LandUseCity
@@ -153,6 +154,7 @@ def iter_coupled(
         CBD=CBD,
         cfg=land_use_config,
         T=T_init,
+        lambda_h=lambda_desde_demanda(sim.demand),
         rng=rng,
         # Ancho físico real: la penalización ρ usa densidad hogares/km (D-26).
         ancho_celda_km=ciudad.ancho_celda_km,

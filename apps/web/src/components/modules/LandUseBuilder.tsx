@@ -9,6 +9,8 @@ interface LandUseBuilderProps {
   onChange: (updater: (prev: LandUseConfig) => LandUseConfig) => void;
   /** Largo de la ciudad (km), para el total de población derivado. */
   largoKm: number;
+  /** λ_h = |b_costo_h| de la demanda (alto, medio, bajo): sólo se muestra. */
+  lambdas: readonly [number, number, number];
 }
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
@@ -17,13 +19,14 @@ export function LandUseBuilder({
   config,
   onChange,
   largoKm,
+  lambdas,
 }: LandUseBuilderProps) {
   const { t } = useTranslation("simulator");
 
   // α es común a los tres estratos: el control mueve los tres valores a la
-  // vez. λ_h = |b_costo_h| viene de transporte y NO se edita: una escala común
-  // de λ no mueve la asignación (sólo la unidad monetaria de las rentas), así
-  // que un control para ella sería un botón inerte (D-41).
+  // vez. λ_h = |b_costo_h| no es parte de esta config (schema v6): el núcleo
+  // lo deriva de la demanda, y se mueve desde la calibración de Transporte,
+  // junto con la accesibilidad T que también depende de b_costo (D-41).
   const alpha = config.estratos[0].alpha;
   const setAlpha = (v: number) =>
     onChange((c) => ({
@@ -208,6 +211,7 @@ export function LandUseBuilder({
           min={0.01}
           max={2}
           step={0.01}
+          format={(v) => v.toFixed(3)}
           hint={t("land_use.mu_hint")}
           onChange={(v) => onChange((c) => ({ ...c, mu: v }))}
         />
@@ -222,9 +226,9 @@ export function LandUseBuilder({
         />
         <p className="-mt-1 text-[10px] text-muted">
           {t("land_use.lambda_values", {
-            l1: fmtLambda(config.estratos[0].lambda),
-            l2: fmtLambda(config.estratos[1].lambda),
-            l3: fmtLambda(config.estratos[2].lambda),
+            l1: fmtLambda(lambdas[0]),
+            l2: fmtLambda(lambdas[1]),
+            l3: fmtLambda(lambdas[2]),
           })}
         </p>
       </CollapsibleSection>

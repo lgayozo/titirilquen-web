@@ -113,6 +113,21 @@ def tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[Tiemp
     ]
 
 
+def lambda_desde_demanda(demand: DemandConfig) -> NDArray[np.float64]:
+    """`λ_h = |b_costo_h|`: la utilidad marginal del ingreso de la puja, en utiles
+    de transporte por peso, leída del logit modal del mismo hogar (D-34, D-41).
+
+    Es la otra mitad del puente con transporte, junto a `T`: el suelo no guarda
+    su propio λ (schema v6). Hasta v5 `LandUseStratumConfig.lambda` era una copia
+    literal de |b_costo| que nada sincronizaba, así que calibrar `b_costo` movía
+    la accesibilidad y no el λ, y el hogar quedaba con dos valores del tiempo.
+    `b_costo < 0` lo exige el schema de la demanda, así que λ_h > 0."""
+    return np.asarray(
+        [-float(demand.estratos[e].betas.b_costo) for e in sorted(demand.estratos)],
+        dtype=float,
+    )
+
+
 def T_flujo_libre(
     demand: DemandConfig,
     L: int,

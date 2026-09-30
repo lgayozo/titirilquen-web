@@ -19,6 +19,7 @@ from titirilquen_core.land_use import LandUseCity, LandUseConfig
 from titirilquen_core.land_use.accesibilidad import (
     T_desde_logsum,
     T_flujo_libre,
+    lambda_desde_demanda,
     logsum_por_celda,
 )
 from titirilquen_core.presets import DEFAULT_STRATA
@@ -109,6 +110,7 @@ def test_la_accesibilidad_por_estrato_no_invierte_alonso() -> None:
         cfg=cfg,
         ancho_celda_km=DX,
         T=T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig()),
+        lambda_h=lambda_desde_demanda(_demanda()),
         rng=np.random.default_rng(42),
     )
     assert city.result is not None and city.result.converged

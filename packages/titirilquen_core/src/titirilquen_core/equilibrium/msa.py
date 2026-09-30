@@ -23,7 +23,7 @@ from titirilquen_core.constantes import MODOS
 from titirilquen_core.demand.choice import probabilidades_logit, probabilidades_todo_o_nada
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.emissions import calcular_emisiones
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.supply import generar_oferta
@@ -317,6 +317,7 @@ def iter_msa_desde_suelo(
             T=T_flujo_libre(
                 sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
             ),
+            lambda_h=lambda_desde_demanda(sim.demand),
         )
         assert city.result is not None
         Q = city.result.Q

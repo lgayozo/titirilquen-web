@@ -46,27 +46,28 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     },
   },
 
-  // B. λ y el valor del tiempo. Con α = 1 común, el valor del tiempo es α/λ:
-  // igualar los λ lo iguala para todos y la ciudad se invierte (medido con la
-  // config de la app: alto 5,5 km, bajo 2,2 km). Los λ se escalan desde el
-  // default, que está en útiles por peso (~10⁻³): un valor absoluto como 0,5
-  // sería mil veces el de calibración.
+  // B. λ y el valor del tiempo. λ_h = |b_costo_h| (schema v6): se mueve
+  // desde la demanda, y con él la accesibilidad T, que también depende de
+  // b_costo. Medido con la config de la app: con los tres b_costo iguales al
+  // del medio el Theil cae de 0,23 a 0,02 (alto 4,3 km, bajo 3,1); con el del
+  // alto ×2, el alto pasa de 1,9 a 3,0 km. Devuelven también el suelo por
+  // defecto, para partir de un estado reproducible en los dos módulos.
   lambda_iguales: {
     to: "/land-use",
     build: () => {
-      const l = lu();
-      const medio = l.estratos[1]!.lambda;
-      l.estratos[0]!.lambda = medio;
-      l.estratos[2]!.lambda = medio;
-      return { landUse: l };
+      const s = sim();
+      const medio = s.demand.estratos[2].betas.b_costo;
+      s.demand.estratos[1].betas.b_costo = medio;
+      s.demand.estratos[3].betas.b_costo = medio;
+      return { sim: s, landUse: lu() };
     },
   },
   lambda_alto_doble: {
     to: "/land-use",
     build: () => {
-      const l = lu();
-      l.estratos[0]!.lambda *= 2;
-      return { landUse: l };
+      const s = sim();
+      s.demand.estratos[1].betas.b_costo *= 2;
+      return { sim: s, landUse: lu() };
     },
   },
 
@@ -90,14 +91,14 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
   // la interfaz) el alto pasa a 5,8 km y el bajo a 2,8 km.
   alonso_base: {
     to: "/land-use",
-    build: () => ({ landUse: lu() }),
+    build: () => ({ sim: sim(), landUse: lu() }),
   },
   alonso_invertido: {
     to: "/land-use",
     build: () => {
       const l = lu();
       for (const e of l.estratos) e.rho = 0.03;
-      return { landUse: l };
+      return { sim: sim(), landUse: l };
     },
   },
 

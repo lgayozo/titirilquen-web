@@ -30,7 +30,7 @@ from titirilquen_core import (
 )
 from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.coupled import iter_coupled
-from titirilquen_core.land_use.accesibilidad import T_flujo_libre
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.serializacion import (
     coupled_result_to_dict,
     land_use_city_to_dict,
@@ -125,6 +125,7 @@ def land_use_solve(req: LandUseOnlyRequest) -> dict[str, object]:
         cfg=req.land_use,
         ancho_celda_km=dx,
         T=T_flujo_libre(req.demand, req.L, req.CBD, dx, req.modos_habilitados, supply=req.supply),
+        lambda_h=lambda_desde_demanda(req.demand),
     )
     return land_use_city_to_dict(city)
 
