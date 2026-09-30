@@ -1,0 +1,5 @@
+# Los HTML del libro van siempre con LF, también en la copia de trabajo de
+# Windows. `tools/renderiza_ecuaciones.js` escribe LF y su modo `--check`
+# compara byte a byte: con `core.autocrlf=true` la copia salía en CRLF y el
+# chequeo marcaba como desactualizado un archivo cuyo contenido era idéntico.
+docs/libro/*.html text eol=lf
