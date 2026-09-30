@@ -20,6 +20,9 @@ interface NavItem {
 
 const navItems: readonly NavItem[] = [
   { to: "/", key: "nav.tutorial", end: true },
+  // Calibración antes que los módulos: el modelo de comportamiento del hogar
+  // (betas, valor del tiempo, λ) es común a Uso de suelo y Transporte.
+  { to: "/calibration", key: "nav.calibration" },
   // Uso de suelo va PRIMERO: define las características de la ciudad (forma +
   // estratos + densidad) que alimentan al módulo de transporte (Sandbox).
   { to: "/land-use", key: "nav.land_use" },

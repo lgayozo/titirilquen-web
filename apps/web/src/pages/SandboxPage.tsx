@@ -7,7 +7,7 @@ import {
   type CityView,
   type SingleMode,
 } from "@/components/CityStrip";
-import { CalibrationPanel } from "@/components/modules/CalibrationPanel";
+import { CalibrationSummary } from "@/components/modules/CalibrationPanel";
 import { EconomyBuilder } from "@/components/modules/EconomyBuilder";
 import { PresetGallery } from "@/components/modules/PresetGallery";
 import { SupplyBuilder } from "@/components/modules/SupplyBuilder";
@@ -792,8 +792,9 @@ export function SandboxPage() {
         <EconomyBuilder config={config} onChange={setConfig} />
         {/* Después de las palancas y antes del solver: los betas no son
             política, pero son lo que traduce cualquier política en reparto
-            modal. Hasta ahora no eran visibles en ninguna parte. */}
-        <CalibrationPanel config={config} onChange={setConfig} />
+            modal. Se editan en la página Calibración, porque fijan también el
+            uso de suelo (T y λ); acá sólo el resumen. */}
+        <CalibrationSummary config={config} />
 
         <CollapsibleSection
           title={t("sections.equilibrium")}

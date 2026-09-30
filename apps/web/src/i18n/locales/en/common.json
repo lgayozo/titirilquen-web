@@ -4,6 +4,7 @@
   "nav": {
     "label": "Main navigation",
     "tutorial": "Tutorial",
+    "calibration": "Calibration",
     "sandbox": "Transport",
     "land_use": "Land use",
     "coupled": "City at equilibrium",

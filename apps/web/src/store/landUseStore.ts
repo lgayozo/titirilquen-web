@@ -18,7 +18,17 @@ export interface LandUseRunContext {
   CBD: number;
   largoKm: number;
   config: LandUseConfig;
+  /** Lo que el suelo lee de Transporte: la demanda fija la accesibilidad T y
+   *  λ_h = |b_costo_h| (schema v6); la oferta y los modos habilitados, T. Se
+   *  editan en otras páginas (Calibración, Transporte), así que también dejan
+   *  el resultado desactualizado. */
+  transporte: LandUseTransportInputs;
 }
+
+export type LandUseTransportInputs = Pick<
+  SimulationConfig,
+  "demand" | "supply" | "modos_habilitados"
+>;
 
 /** Snapshot del escenario con el que se lanzó la corrida acoplada. */
 export interface CoupledRunSnapshot {
@@ -147,9 +157,14 @@ export function isLandUseStale(s: {
   runContext: LandUseRunContext | null;
   liveL: number;
   liveLargoKm: number;
+  liveTransporte: LandUseTransportInputs;
 }): boolean {
   if (s.stage !== "done" || s.runContext == null) return false;
   if (s.runContext.L !== s.liveL || s.runContext.largoKm !== s.liveLargoKm)
+    return true;
+  if (
+    JSON.stringify(s.liveTransporte) !== JSON.stringify(s.runContext.transporte)
+  )
     return true;
   return JSON.stringify(s.config) !== JSON.stringify(s.runContext.config);
 }

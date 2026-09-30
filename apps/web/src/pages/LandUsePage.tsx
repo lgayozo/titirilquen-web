@@ -37,9 +37,20 @@ export function LandUsePage() {
 
   const L = simConfig.city.n_celdas;
   const CBD = Math.floor(L / 2);
+  const transporte = {
+    demand: simConfig.demand,
+    supply: simConfig.supply,
+    modos_habilitados: simConfig.modos_habilitados,
+  };
 
   const handleRun = async () => {
-    startRun({ L, CBD, largoKm: simConfig.city.largo_ciudad_km, config });
+    startRun({
+      L,
+      CBD,
+      largoKm: simConfig.city.largo_ciudad_km,
+      config,
+      transporte,
+    });
     try {
       const r = await resolverUsoDeSuelo({
         L,
@@ -56,14 +67,16 @@ export function LandUsePage() {
     }
   };
 
-  // El resultado queda desactualizado si cambia la config de suelo O la
-  // geometría compartida con Transporte (n_celdas / largo de la ciudad).
+  // El resultado queda desactualizado si cambia la config de suelo, la
+  // geometría compartida con Transporte (n_celdas / largo de la ciudad) o lo
+  // que el suelo lee de la demanda y la oferta (T y λ; ver LandUseRunContext).
   const stale = isLandUseStale({
     stage,
     config,
     runContext,
     liveL: L,
     liveLargoKm: simConfig.city.largo_ciudad_km,
+    liveTransporte: transporte,
   });
 
   const parcelas = result?.parcelas;

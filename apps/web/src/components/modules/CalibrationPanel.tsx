@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { votClpHora } from "@/lib/agregados";
@@ -20,13 +21,16 @@ import type {
  * Va separado de las palancas de política a propósito y así rotulado: mover un
  * beta cambia el MODELO de comportamiento, no la ciudad ni la oferta. Un
  * escenario donde bajó el uso del auto porque se editó `asc_auto` no dice nada
- * sobre política de transporte.
+ * sobre política de transporte. Vive en su propia página (`CalibrationPage`),
+ * no dentro de Transporte: los mismos betas fijan la accesibilidad T y el λ_h
+ * del uso de suelo (D-34, schema v6). Transporte muestra `CalibrationSummary`.
  *
  * Dos decisiones de diseño:
  *
  * 1. **Campos numéricos, no sliders.** Los coeficientes cruzan órdenes de
- *    magnitud —`b_costo` va de −0,00008 (estrato alto) a −0,0006 (bajo), un
- *    factor 7,5— así que no hay rango común que poner en un slider. El
+ *    magnitud —`b_costo` va de −0,00032 (estrato alto) a −0,00124 (bajo), un
+ *    factor 3,9, mientras los ASC viven cerca de 1— así que no hay rango común
+ *    que poner en un slider. El
  *    contraste visual con los sliders de política además refuerza el rótulo.
  *
  * 2. **Las cifras derivadas arriba.** Catorce números en utiles son ilegibles;
@@ -41,6 +45,7 @@ import type {
 interface Props {
   config: SimulationConfig;
   onChange: (updater: (prev: SimulationConfig) => SimulationConfig) => void;
+  defaultOpen?: boolean;
 }
 
 const STRATA: StratumId[] = [1, 2, 3];
@@ -173,7 +178,41 @@ function Grupo({
   );
 }
 
-export function CalibrationPanel({ config, onChange }: Props) {
+/** Resumen plegado: el valor del tiempo de los tres estratos. Con β costo ≥ 0
+ *  no está definido, y mostrarlo igual daría un VoT negativo sin sentido. */
+function votResumen(config: SimulationConfig): string[] {
+  return STRATA.map((h) => {
+    const bc = config.demand.estratos[h].betas.b_costo;
+    return bc < 0 ? fmtMoney(votClpHora(config.demand, h)) : "—";
+  });
+}
+
+/** Resumen de solo lectura para las páginas de los módulos: el valor del
+ *  tiempo vigente y el enlace a la página de Calibración, que es donde se
+ *  edita. Un solo editor evita que el estudiante crea que Transporte y Uso de
+ *  suelo tienen calibraciones distintas. */
+export function CalibrationSummary({ config }: { config: SimulationConfig }) {
+  const { t } = useTranslation("simulator");
+  return (
+    <CollapsibleSection
+      title={t("calibration.title")}
+      meta={votResumen(config).join(" · ")}
+    >
+      <p className="text-[11px] leading-snug text-muted">
+        {t("calibration_page.summary")}
+      </p>
+      <Link
+        to="/calibration"
+        className="mt-2 inline-block text-[11px]"
+        style={{ color: "var(--accent)" }}
+      >
+        {t("calibration_page.edit_link")}
+      </Link>
+    </CollapsibleSection>
+  );
+}
+
+export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
   const { t } = useTranslation("simulator");
   const [estrato, setEstrato] = useState<StratumId>(2);
 
@@ -232,17 +271,13 @@ export function CalibrationPanel({ config, onChange }: Props) {
   const rCaminata = razon(betas.b_tiempo_caminata);
   const fmtRazon = (r: number | null) => (r == null ? "—" : `${r.toFixed(2)}×`);
 
-  // Resumen plegado: el valor del tiempo de los tres estratos. Con β costo ≥ 0
-  // no está definido, y mostrarlo igual daría un VoT negativo sin sentido.
-  const votTodos = STRATA.map((h) => {
-    const bc = config.demand.estratos[h].betas.b_costo;
-    return bc < 0 ? fmtMoney(votClpHora(config.demand, h)) : "—";
-  });
+  const votTodos = votResumen(config);
 
   return (
     <CollapsibleSection
       title={t("calibration.title")}
       meta={votTodos.join(" · ")}
+      defaultOpen={defaultOpen}
     >
       <p className="mb-3 text-[11px] leading-snug text-muted">
         {t("calibration.not_a_policy")}

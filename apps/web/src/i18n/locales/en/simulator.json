@@ -300,6 +300,44 @@
     "g_cortes": "Feasibility cutoffs (global)",
     "cortes_hint": "Above this time the alternative leaves the choice set: it does not get a large penalty, it stops existing for that trip. It is a behavioural assumption, not a transport policy. These are global —they do not vary by stratum— and moving a cutoff changes how many alternatives there are, so it also moves the gap between logsum and max-utility surplus."
   },
+  "calibration_page": {
+    "title": "Calibration",
+    "subtitle": "The household's behavioral model, shared by both modules",
+    "intro": "Before simulating a city you have to decide how its residents behave. These coefficients are those of the mode-choice logit, but they do not belong to Transport alone: a household has a single utility function, and the one choosing a mode is the one bidding for a plot. So they set at once the modal split, the accessibility T used to bid for land and the marginal utility of income λₕ = |β cost| of the bid. They are not policies: moving them changes the model, not the city.",
+    "mu_section": "Land use · auction noise",
+    "table_title": "What the calibration implies, by stratum",
+    "row": {
+      "vot": "Value of time",
+      "lambda": "λₕ (utils per peso)",
+      "ruido": "Bid noise, 1/(μ·λₕ)",
+      "auto": "Car ownership"
+    },
+    "row_hint": {
+      "vot": "β time ÷ β cost, in $/h. The same in Transport and in the land bid (α/λ).",
+      "lambda": "= |β cost|: turns transport utils into pesos when bidding.",
+      "ruido": "Scale of the bid shock, in $/month. Lower λ ⇒ wider noise in pesos.",
+      "auto": "Enters the mode-choice logit and, through the logsum, the accessibility T."
+    },
+    "knobs_title": "What each knob moves",
+    "knobs_meta": "transport · land",
+    "knob": {
+      "b_costo": "β cost",
+      "b_tiempo": "Time βs (in-vehicle, wait, access, walk)",
+      "asc": "Constants (ASC) and penalties",
+      "prob_auto": "Car ownership",
+      "mu": "μ (land use only)"
+    },
+    "knob_effect": {
+      "b_costo": "Transport: the value of time and the sensitivity to fares and parking. Land: λₕ, which sorts the strata by value of time (the Alonso gradient), and the accessibility T.",
+      "b_tiempo": "Transport: the value of time and the split between fast and slow modes. Land: the accessibility T, since it changes each cell's logsum.",
+      "asc": "Transport: the modal split. Land: the accessibility T, through the same logsum.",
+      "prob_auto": "Transport: who can choose the car. Land: each stratum's accessibility T; it is what, with equal λ, leaves the high stratum somewhat farther from the center.",
+      "mu": "Does not touch Transport. It is the precision of the noise of choosing a home relative to a trip: higher μ, sharper auction and a more segregated city. It is land use's only knob of its own."
+    },
+    "stale_note": "Any change here makes the Transport, Land use and City in equilibrium results stale: each page flags it and offers to rerun.",
+    "summary": "The logit coefficients are edited on the Calibration page: they also set land use's accessibility and λ.",
+    "edit_link": "Edit in Calibration →"
+  },
   "demand_inspector": {
     "title": "Utility inspector — multinomial logit",
     "stratum": "Stratum",
@@ -421,7 +459,7 @@
     "relation": "This module solves land use ONLY, with transport fixed at free flow. For the full land ↔ transport loop, see “City at equilibrium”.",
     "placeholder_title": "Land use · the auction for space",
     "placeholder_desc": "The Alonso equilibrium allocates households by auction: each stratum bids for parcels according to its valuation of accessibility (α·T/λ, in pesos) and its disutility of density (ρ·dens/λ). The stratum with the highest value of time wins the center; the rest sort toward the periphery. Adjust the city shape and per-stratum parameters on the left panel.",
-    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utils/$: it is each stratum's |b_cost|, the same number. It moves from \"Model calibration\" under Transport: changing b_cost changes both λ (the value of time α/λ used to bid) and the accessibility T. A common scale of all three does not move the allocation, only the rent unit (D-41).",
+    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utils/$: it is each stratum's |b_cost|, the same number. It moves from the Calibration page: changing b_cost changes both λ (the value of time α/λ used to bid) and the accessibility T. A common scale of all three does not move the allocation, only the rent unit (D-41).",
     "mu_hint": "The module's only knob of its own: Martínez's precision μ, how noisy choosing a home is relative to one trip. μ = 1 is one trip's noise against a monthly signal (near-deterministic city, Theil ≈ 0.76). The default 1/√44 ≈ 0.15 assumes the home-choice noise accumulates 44 independent trip shocks (Theil ≈ 0.23). Does not touch the value of time.",
     "alpha_hint": "1 = accessibility as is. Any other value is an unsourced multiplier; for more or less sharpness use μ. Common to the three strata: their differences in valuing time already come through λ.",
     "rho_hint": "No source in the original model; 0 by default (pure Alonso: only accessibility matters). It enters in pesos as ρ/λ_h, so the high stratum pays more for low density. Raising it mixes the city and flattens rents; near 0.019 the allocation inverts and the rich end up in the periphery."

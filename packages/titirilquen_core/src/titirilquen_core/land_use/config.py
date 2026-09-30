@@ -107,7 +107,8 @@ class LandUseConfig(BaseModel):
     #     presets, 0,000320 / 0,000641 / 0,001241. Con eso el score `y + f/lambda`
     #     queda en $/mes, como `p` e `y` (D-27), el VoT `alpha/lambda` =
     #     6.200 / 3.100 / 1.600 $/h coincide con transporte, y el ruido de la
-    #     puja `1/(mu·lambda_h)` = $3.122 / $1.561 / $806 al mes. Desde el schema
+    #     puja `1/(mu·lambda_h)` = $20.708 / $10.354 / $5.344 al mes (con
+    #     mu = 1/√44; `1/lambda_h` = $3.122 / $1.561 / $806). Desde el schema
     #     v6 NO se guarda acá: lo deriva `accesibilidad.lambda_desde_demanda`, y
     #     calibrar `b_costo` mueve λ y T a la vez. Hasta v5 era una copia literal
     #     que nada sincronizaba.
