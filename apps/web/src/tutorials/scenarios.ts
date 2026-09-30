@@ -46,20 +46,26 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     },
   },
 
-  // B. El artefacto del logit (λ del estrato alto)
-  lambda_alto_05: {
+  // B. λ y el valor del tiempo. Con α = 1 común, el valor del tiempo es α/λ:
+  // igualar los λ lo iguala para todos y la ciudad se invierte (medido con la
+  // config de la app: alto 5,5 km, bajo 2,2 km). Los λ se escalan desde el
+  // default, que está en útiles por peso (~10⁻³): un valor absoluto como 0,5
+  // sería mil veces el de calibración.
+  lambda_iguales: {
     to: "/land-use",
     build: () => {
       const l = lu();
-      l.estratos[0]!.lambda = 0.5;
+      const medio = l.estratos[1]!.lambda;
+      l.estratos[0]!.lambda = medio;
+      l.estratos[2]!.lambda = medio;
       return { landUse: l };
     },
   },
-  lambda_alto_3: {
+  lambda_alto_doble: {
     to: "/land-use",
     build: () => {
       const l = lu();
-      l.estratos[0]!.lambda = 3;
+      l.estratos[0]!.lambda *= 2;
       return { landUse: l };
     },
   },
@@ -78,22 +84,19 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     },
   },
 
-  // D. Efecto Alonso (α por estrato, utiles/min)
-  alonso_directo: {
+  // D. Efecto Alonso y su inversión. α es común y vale 1 (D-34): la inversión
+  // se produce con la penalización por densidad, que entra dividida por λ y
+  // castiga más en pesos al estrato alto. Con ρ = 0,03 en los tres (el tope de
+  // la interfaz) el alto pasa a 5,8 km y el bajo a 2,8 km.
+  alonso_base: {
     to: "/land-use",
-    build: () => {
-      const l = lu();
-      l.estratos[0]!.alpha = 12;
-      l.estratos[2]!.alpha = 3;
-      return { landUse: l };
-    },
+    build: () => ({ landUse: lu() }),
   },
   alonso_invertido: {
     to: "/land-use",
     build: () => {
       const l = lu();
-      l.estratos[0]!.alpha = 3;
-      l.estratos[2]!.alpha = 12;
+      for (const e of l.estratos) e.rho = 0.03;
       return { landUse: l };
     },
   },

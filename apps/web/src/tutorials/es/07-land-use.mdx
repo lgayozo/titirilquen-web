@@ -2,86 +2,94 @@
 slug: land-use
 order: 7
 title: Uso de suelo
-tagline: Bid-rent, subasta logit y el artefacto de lambda
+tagline: Bid-rent, subasta heteroscedástica y el valor del tiempo
 ---
 
 # 6. Uso de suelo
 
-El módulo de suelo (página **Uso de suelo**) resuelve dónde vive cada hogar mediante una **subasta** tipo Alonso–Muth–Mills: cada estrato puja por las parcelas y el que más valora cada ubicación la gana, empujando al resto hacia la periferia.
+El módulo de suelo (página **Uso de suelo**) resuelve dónde vive cada hogar mediante una **subasta** tipo Alonso–Muth–Mills: cada estrato puja por las parcelas y el que más valora cada ubicación la gana, empujando al resto hacia la periferia. La notación es la de Martínez (2018, cap. 4).
 
 ## Utilidad y disposición a pagar
 
-La utilidad de un hogar del estrato $h$ en la parcela $i$, pagando renta $p_i$, es **lineal en el ingreso**:
+La utilidad de un hogar del estrato $h$ en la parcela $i$, pagando renta $p_i$, es **lineal en el ingreso** y tiene un término aleatorio:
 
 $$
-u_h = \lambda_h\,(y_h - p_i) + f_h(i)
+v_{hi} = \lambda_h\,(y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad \varepsilon_{hi} \sim \text{Gumbel}(0, \mu)
 $$
 
 <OverleafRef sec="Suelo · Función de puje" />
 
-donde $\lambda_h$ es la utilidad marginal del ingreso, $y_h$ el ingreso mensual del estrato y $f_h(i)$ la **función de amenidad**, en unidades físicas:
+donde $\lambda_h$ es la utilidad marginal del ingreso, en utiles por peso, $y_h$ el ingreso mensual del estrato y $f_h(z_i)$ lo que la parcela vale por sí misma:
 
 $$
-f_h(i) = -\alpha_h\, T(i) - \rho_h \cdot \frac{S_i}{\Delta x}
+f_h(z_i) = -\alpha\, T_h(i) - \rho_h \cdot \frac{S_i}{\Delta x}
 $$
 
 <OverleafRef sec="Suelo · Función de puje" tag="S-2" />
 
-con $T(i)$ el tiempo de viaje al CBD en **minutos** (a flujo libre en el modo aislado; del equilibrio de transporte en el acoplado), $\alpha_h$ en utiles/min y $\rho_h$ la penalización a la **densidad** (hogares/km). Las unidades físicas hacen que el equilibrio sea invariante a la resolución de la grilla — refinar la discretización no cambia las conclusiones.
+$T_h(i)$ es la **accesibilidad**: el costo mensual de vivir en $i$ y tener que viajar, igual a $-44$ veces el logsum del logit modal del capítulo de Demanda, a flujo libre. Está en utiles de transporte por mes y es distinta para cada estrato, porque cada uno tiene su propio logit. $\alpha$ vale 1 para todos, de modo que la puja lee esa accesibilidad tal cual; $\rho_h$ penaliza la **densidad** $S_i/\Delta x$ (hogares/km) y vale 0 por defecto.
 
-Despejando el precio se obtiene la **disposición a pagar** (*willingness to pay*) al nivel de utilidad $u_h$:
+Con $\lambda_h$ igual al coeficiente de costo del logit modal, el mismo hogar tiene **una sola función de utilidad** en los dos módulos: su valor del tiempo $\alpha/\lambda_h$ es 6.200, 3.100 y 1.600 pesos por hora para los estratos alto, medio y bajo, el mismo con que elige modo.
+
+Despejando el precio al nivel de utilidad de reserva $u_h$ se obtiene la **disposición a pagar** (*willingness to pay*), que también es aleatoria:
 
 $$
-w_h(u, i) = y_h - \frac{u_h - f_h(i)}{\lambda_h}
+w_{hi} = y_h + \frac{f_h(z_i) - u_h}{\lambda_h}, \qquad \theta_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}
 $$
 
 <OverleafRef sec="Suelo · Función de puje" tag="S-3" />
 
-## La subasta logit
+Dividir por $\lambda_h$ pasa todo a pesos, también el ruido: la puja tiene precisión $\beta_h = \lambda_h\,\mu$. Como los $\lambda_h$ difieren, **cada estrato puja con un ruido distinto**: el alto, que valora menos cada peso, tiene el ruido más ancho en pesos.
 
-Con un término idiosincrático Gumbel en la utilidad, la probabilidad de que un hogar del estrato $h$ gane la subasta por la parcela $i$ es:
+## La subasta
+
+Si todos los postores de una parcela tuvieran la misma precisión $\beta_i$, la probabilidad de que la gane un hogar del estrato $h$ sería un logit:
 
 $$
-Q_{hi} = \frac{H_h\, e^{\beta\, w_{hi}}}{\sum_{g} H_g\, e^{\beta\, w_{gi}}}
+Q_{h/i} = \frac{H_h\, e^{\beta_i w_{hi}}}{\sum_{g} H_g\, e^{\beta_i w_{gi}}}
 $$
 
 <OverleafRef sec="Suelo · Asignación probabilística" />
 
-La ponderación por $H_h$ (número de postores de cada tipo) garantiza la **conservación por estrato** en el equilibrio: $\sum_i S_i\, Q_{hi} = H_h$.
+Eso pasa sólo si los tres $\lambda_h$ son iguales. Con los valores por defecto las precisiones difieren, y el simulador usa la **subasta heteroscedástica** (HEV, Train §4.5): la misma idea, pero con una integral en vez de una fracción, que se resuelve por cuadratura. El factor $H_h$ (número de postores de cada tipo) garantiza la **conservación por estrato** en el equilibrio: $\sum_i S_i\, Q_{h/i} = H_h$.
 
 <OverleafRef sec="Suelo · Asignación probabilística" tag="S-4" />
 
-El equilibrio se obtiene como punto fijo sobre las utilidades $\bar{u}_h$ (cada estrato coloca exactamente sus $H_h$ hogares), y los **precios implícitos** del suelo salen de la identidad:
+El equilibrio se obtiene como punto fijo sobre las utilidades de reserva $u_h$ (cada estrato coloca exactamente sus $H_h$ hogares). El **precio** de la parcela es el máximo esperado de las pujas; en el caso de precisión común tiene forma cerrada:
 
 $$
-p_i^{*} = \frac{1}{\beta} \ln\left( \sum_g H_g\, e^{\beta\, w_{gi}} \right)
+p_i^{*} = \frac{1}{\beta_i} \ln\left( \sum_g H_g\, e^{\beta_i w_{gi}} \right) + \frac{\gamma}{\beta_i}
 $$
 
 <OverleafRef sec="Suelo · Interpretación del punto fijo" />
 
-definidos salvo una constante: solo el **gradiente** espacial es informativo.
+con $\gamma \approx 0{,}577$ la constante de Euler. Los precios están definidos salvo una constante: solo el **gradiente** espacial es informativo.
 
-## Una limitación: $\lambda$ no está identificado
+## $\lambda$, el valor del tiempo y por qué importa la subasta heteroscedástica
 
-El modelo de arriba tiene un problema cuando $\lambda_h$ es heterogéneo, y conviene entenderlo porque el simulador **no lo corrige**.
-
-La puja divide la atractividad por $\lambda_h$, y $f$ es lineal en $\alpha_h$ y $\rho_h$. Entonces:
-
-$$
-y_h + \frac{f_h(i)}{\lambda_h} \;\equiv\; y_h + f\!\left(i;\; \frac{\alpha_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
-$$
-
-Es una **identidad**, no una aproximación: mover $\lambda_h$ es exactamente lo mismo que re-escalar las preferencias de ese estrato por $1/\lambda_h$. Y como $\beta$ es uniforme, de paso re-escala su ruido de elección a $1/(\beta\lambda_h)$. Las tres cosas se mueven juntas y no hay forma de separarlas: $\lambda$ **no es un parámetro económico independiente** en este modelo, es una re-parametrización redundante de $\alpha$ y $\rho$.
+Lo que ordena a los estratos en el espacio no es $\alpha$, que es común, sino **$\lambda$**: con $\alpha = 1$, el valor del tiempo $\alpha/\lambda_h$ es mayor para el estrato alto, que por eso puja más fuerte por la accesibilidad del centro.
 
 <Callout type="warn">
-**Esto vale mientras los $\lambda_h$ sean iguales entre sí.** En cuanto difieren, la identidad de arriba deja de valer y el núcleo cambia solo de modelo: usa la **subasta heteroscedástica** (HEV), que es la formulación correcta cuando la varianza de las pujas difiere entre postores (Train, §4.5). Ahí $\lambda$ mueve además la escala del ruido, que la re-escala de preferencias no toca, y por eso queda identificado.
+**Con la subasta logit de precisión común, $\lambda$ no se puede leer.** La puja divide $f$ por $\lambda_h$, y $f$ es lineal en $\alpha$ y $\rho$:
 
-No lo resuelve del todo: $\lambda$ sigue entrando también por $f_h/\lambda_h$, así que mueve preferencias y dispersión a la vez. Para que actúe puramente por sensibilidad al precio haría falta un modelo de **elección** y no de subasta — en una subasta todos los postores de una parcela pagan lo mismo, así que el precio se cancela.
+$$
+y_h + \frac{f_h(z_i)}{\lambda_h} \;\equiv\; y_h + f\!\left(z_i;\; \frac{\alpha}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
+$$
+
+Mover $\lambda_h$ sería exactamente re-escalar las preferencias de ese estrato. La subasta heteroscedástica rompe esa equivalencia, porque $\lambda_h$ mueve además la dispersión de la puja, que la re-escala de preferencias no toca. Por eso el simulador la usa: con ella $\lambda$ queda identificado. En una subasta, en cambio, $\lambda$ nunca actúa por sensibilidad al precio: todos los postores de una parcela pagan lo mismo, así que el precio se cancela.
 </Callout>
 
 <Callout type="info">
-Probá variar $\lambda$ del estrato alto y mirá la asignación. Se mueve — y eso es la limitación, no un resultado. Bajarlo a 0.5 **manda al estrato alto a la periferia** (8.5 km del CBD), lo contrario de lo que diría cualquier historia de ingreso: al crecer $\rho/\lambda$ la penalización de densidad castiga justo las celdas centrales, que son las densas. El contraste que lo confirma: el ingreso $y$ —que sí es un parámetro económico— **no reasigna a nadie**, porque entra como constante y se absorbe en $\bar{u}$.
+Probá, en la configuración por defecto de la página:
+
+- **Igualar los tres $\lambda$** al del estrato medio. El valor del tiempo pasa a ser el mismo para todos y **la ciudad se invierte**: el estrato alto queda a 5,5 km del CBD y el bajo a 2,2 km. Sin diferencias de valor del tiempo no hay Alonso.
+- **Duplicar $\lambda$ del estrato alto.** Su valor del tiempo baja a la mitad y se aleja del centro: pasa de 1,9 a 4,0 km. Con $\lambda$ a la mitad se acerca, a 1,3 km.
+- **Duplicar el ingreso $y$ del estrato alto.** No reasigna a nadie: el ingreso entra como constante y se absorbe en la utilidad de reserva $u_h$.
 </Callout>
+
+## La precisión $\mu$
+
+$\mu$ es la única perilla propia del módulo: cuánto ruido tiene elegir casa frente a elegir modo. Vale $1/\sqrt{44} \approx 0{,}15$ porque la accesibilidad es mensual, la suma de 44 viajes, y si cada viaje trae su propio shock la dispersión del mes crece como $\sqrt{44}$. Con $\mu = 1$ la subasta es casi determinista y la segregación de Theil sube de 0,23 a 0,76.
 
 ## La forma de la ciudad
 

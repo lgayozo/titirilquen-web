@@ -329,7 +329,7 @@ export function LandUsePage() {
                 <Panel
                   n="04"
                   title={tS("land_use.bid_price_title")}
-                  meta="log-sum"
+                  meta={tS("land_use.bid_price_meta")}
                   cls="col-12"
                 >
                   <ExportableFigure

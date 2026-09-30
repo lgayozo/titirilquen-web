@@ -193,7 +193,7 @@ export function LandUseBuilder({
         )}
       </CollapsibleSection>
 
-      {/* ---- PARÁMETROS DE PUJA (bid-rent): μ, α y la escala de λ ---- */}
+      {/* ---- PARÁMETROS DE PUJA (bid-rent): μ y α; λ solo se muestra (D-41) ---- */}
       <CollapsibleSection
         title={t("land_use.section_bidrent")}
         meta={`μ=${config.mu.toFixed(2)} · α=${alpha.toFixed(1)}`}

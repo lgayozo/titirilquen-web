@@ -27,14 +27,14 @@ tagline: Presets, comparison, suggested activities
 <LoadScenario id="parking_base">Parking 2.5k (base)</LoadScenario>
 <LoadScenario id="parking_alto">Parking 10k</LoadScenario>
 
-### B. The logit artifact
-1. Under Land use, vary the high stratum's λ (0.5 → 3). Once it differs from the other two, the core switches to the heteroskedastic auction on its own.
-2. Watch the allocation change — even though λ is the marginal utility of income.
-3. Measured: at λ = 0.5 the high stratum sits **1.06 km** from the CBD and at λ = 3 it sits **6.59 km** away. So *raising* it pushes them out.
-4. Is that an income effect? No: λ enters through α_eff = α/λ, so lowering it makes the stratum value access more. In an auction the price cancels between bidders, so λ cannot act through price sensitivity. (Hint: Land-use tutorial, correction section.)
+### B. λ and the value of time
+1. Under Land use, start from the default configuration: the high stratum lives 1.9 km from the CBD and the low one 5.9 km.
+2. Load "equal λ": the three strata with the middle stratum's λ. Where does each stratum end up?
+3. Measured: the city **inverts**, with the high stratum at 5.5 km and the low one at 2.2 km. With a common α = 1, the value of time is α/λ, and if the λ are equal nobody values access more than anyone else.
+4. Load "high λ × 2". The high stratum moves to 4.0 km. Is that an income effect? No: doubling λ halves its value of time. Income y, by contrast, reallocates nobody. (Hint: Land-use tutorial, section on λ.)
 
-<LoadScenario id="lambda_alto_05">High λ = 0.5</LoadScenario>
-<LoadScenario id="lambda_alto_3">High λ = 3</LoadScenario>
+<LoadScenario id="lambda_iguales">Equal λ</LoadScenario>
+<LoadScenario id="lambda_alto_doble">High λ × 2</LoadScenario>
 
 ### C. Bikeway capacity
 1. Start with `cap_bike` = 800 bikes/h.
@@ -44,13 +44,13 @@ tagline: Presets, comparison, suggested activities
 <LoadScenario id="bici_base">Bikeway 800 bikes/h (base)</LoadScenario>
 <LoadScenario id="bici_probici">Bikeway 5,000 (Pro-Bike)</LoadScenario>
 
-### D. Alonso effect
-1. Under Land use, set $\alpha_h$ = 12 for the high stratum and 3 for the low one (utils/min).
-2. Observe the distribution. Who lives near the CBD?
-3. Invert $\alpha$ values and repeat.
+### D. The Alonso effect and its inversion
+1. Under Land use, with the default configuration, who lives near the CBD? What is the Theil segregation?
+2. Load "density penalty": ρ = 0.03 for the three strata. Since it enters divided by λ, the high stratum pays more pesos to avoid the dense central cells.
+3. Measured: the high stratum moves from 1.9 to 5.8 km from the CBD and the low one from 5.9 to 2.8 km. It is the "rich in the periphery" pattern. Which force wins in each case, accessibility or density?
 
-<LoadScenario id="alonso_directo">α high 12 · low 3</LoadScenario>
-<LoadScenario id="alonso_invertido">α high 3 · low 12 (inverted)</LoadScenario>
+<LoadScenario id="alonso_base">Alonso (default)</LoadScenario>
+<LoadScenario id="alonso_invertido">Density penalty ρ = 0.03</LoadScenario>
 
 
 ### E. MSA sensitivity

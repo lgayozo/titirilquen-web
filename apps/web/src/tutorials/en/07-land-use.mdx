@@ -2,86 +2,94 @@
 slug: land-use
 order: 7
 title: Land use
-tagline: Bid-rent, logit auction and the lambda artifact
+tagline: Bid-rent, heteroskedastic auction and the value of time
 ---
 
 # 6. Land use
 
-The land module (**Land use** page) solves where each household lives through an Alonso–Muth–Mills style **auction**: each stratum bids for parcels and the one valuing each location the most wins it, pushing the rest toward the periphery.
+The land module (**Land use** page) decides where each household lives through an Alonso–Muth–Mills **auction**: each stratum bids for the plots and whoever values a location most wins it, pushing the rest towards the periphery. The notation is Martínez's (2018, ch. 4).
 
 ## Utility and willingness to pay
 
-The utility of a stratum-$h$ household at parcel $i$, paying rent $p_i$, is **linear in income**:
+The utility of a household of stratum $h$ in plot $i$, paying rent $p_i$, is **linear in income** and has a random term:
 
 $$
-u_h = \lambda_h\,(y_h - p_i) + f_h(i)
+v_{hi} = \lambda_h\,(y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad \varepsilon_{hi} \sim \text{Gumbel}(0, \mu)
 $$
 
 <OverleafRef sec="Suelo · Función de puje" />
 
-where $\lambda_h$ is the marginal utility of income, $y_h$ the stratum's monthly income and $f_h(i)$ the **amenity function**, in physical units:
+where $\lambda_h$ is the marginal utility of income, in utils per peso, $y_h$ the stratum's monthly income and $f_h(z_i)$ what the plot is worth by itself:
 
 $$
-f_h(i) = -\alpha_h\, T(i) - \rho_h \cdot \frac{S_i}{\Delta x}
+f_h(z_i) = -\alpha\, T_h(i) - \rho_h \cdot \frac{S_i}{\Delta x}
 $$
 
 <OverleafRef sec="Suelo · Función de puje" tag="S-2" />
 
-with $T(i)$ the travel time to the CBD in **minutes** (free-flow in the standalone mode; from the transport equilibrium in the coupled one), $\alpha_h$ in utils/min and $\rho_h$ the **density** penalty (households/km). Physical units make the equilibrium invariant to grid resolution — refining the discretization does not change the conclusions.
+$T_h(i)$ is **accessibility**: the monthly cost of living in $i$ and having to travel, equal to $-44$ times the logsum of the mode-choice logit of the Demand chapter, at free flow. It is in transport utils per month and differs by stratum, since each one has its own logit. $\alpha$ equals 1 for everyone, so the bid reads that accessibility as is; $\rho_h$ penalizes **density** $S_i/\Delta x$ (households/km) and is 0 by default.
 
-Solving for the price yields the **willingness to pay** at utility level $u_h$:
+With $\lambda_h$ equal to the cost coefficient of the mode-choice logit, the same household has **a single utility function** in both modules: its value of time $\alpha/\lambda_h$ is 6,200, 3,100 and 1,600 pesos per hour for the high, middle and low strata, the same one it uses to choose a mode.
+
+Solving for the price at the reservation utility level $u_h$ gives the **willingness to pay**, which is also random:
 
 $$
-w_h(u, i) = y_h - \frac{u_h - f_h(i)}{\lambda_h}
+w_{hi} = y_h + \frac{f_h(z_i) - u_h}{\lambda_h}, \qquad \theta_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}
 $$
 
 <OverleafRef sec="Suelo · Función de puje" tag="S-3" />
 
-## The logit auction
+Dividing by $\lambda_h$ turns everything into pesos, including the noise: the bid has precision $\beta_h = \lambda_h\,\mu$. Since the $\lambda_h$ differ, **each stratum bids with different noise**: the high stratum, which values each peso less, has the widest noise in pesos.
 
-With an idiosyncratic Gumbel term in utility, the probability that a stratum-$h$ household wins the auction for parcel $i$ is:
+## The auction
+
+If all bidders for a plot had the same precision $\beta_i$, the probability that a household of stratum $h$ wins it would be a logit:
 
 $$
-Q_{hi} = \frac{H_h\, e^{\beta\, w_{hi}}}{\sum_{g} H_g\, e^{\beta\, w_{gi}}}
+Q_{h/i} = \frac{H_h\, e^{\beta_i w_{hi}}}{\sum_{g} H_g\, e^{\beta_i w_{gi}}}
 $$
 
 <OverleafRef sec="Suelo · Asignación probabilística" />
 
-The $H_h$ weighting (number of bidders of each type) guarantees **per-stratum conservation** at equilibrium: $\sum_i S_i\, Q_{hi} = H_h$.
+That only happens if the three $\lambda_h$ are equal. With the default values the precisions differ, and the simulator uses the **heteroskedastic auction** (HEV, Train §4.5): the same idea, but with an integral instead of a fraction, solved by quadrature. The factor $H_h$ (number of bidders of each type) guarantees **conservation by stratum** at equilibrium: $\sum_i S_i\, Q_{h/i} = H_h$.
 
 <OverleafRef sec="Suelo · Asignación probabilística" tag="S-4" />
 
-The equilibrium is a fixed point over the utilities $\bar{u}_h$ (each stratum places exactly its $H_h$ households), and the **implicit land prices** come from the identity:
+Equilibrium is found as a fixed point on the reservation utilities $u_h$ (each stratum places exactly its $H_h$ households). The plot's **price** is the expected maximum of the bids; with a common precision it has a closed form:
 
 $$
-p_i^{*} = \frac{1}{\beta} \ln\left( \sum_g H_g\, e^{\beta\, w_{gi}} \right)
+p_i^{*} = \frac{1}{\beta_i} \ln\left( \sum_g H_g\, e^{\beta_i w_{gi}} \right) + \frac{\gamma}{\beta_i}
 $$
 
 <OverleafRef sec="Suelo · Interpretación del punto fijo" />
 
-defined up to a constant: only the spatial **gradient** is informative.
+with $\gamma \approx 0.577$ Euler's constant. Prices are defined up to a constant: only the spatial **gradient** is informative.
 
-## A limitation: $\lambda$ is not identified
+## $\lambda$, the value of time and why the heteroskedastic auction matters
 
-The model above has a problem when $\lambda_h$ is heterogeneous, and it is worth understanding because the simulator **does not fix it**.
-
-The bid divides attractiveness by $\lambda_h$, and $f$ is linear in $\alpha_h$ and $\rho_h$. Therefore:
-
-$$
-y_h + \frac{f_h(i)}{\lambda_h} \;\equiv\; y_h + f\!\left(i;\; \frac{\alpha_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
-$$
-
-This is an **identity**, not an approximation: moving $\lambda_h$ is exactly the same as rescaling that stratum's preferences by $1/\lambda_h$. And since $\beta$ is uniform, it also rescales its choice noise to $1/(\beta\lambda_h)$. All three move together and cannot be separated: in this model $\lambda$ is **not an independent economic parameter**, it is a redundant reparameterisation of $\alpha$ and $\rho$.
+What sorts the strata in space is not $\alpha$, which is common, but **$\lambda$**: with $\alpha = 1$, the value of time $\alpha/\lambda_h$ is higher for the high stratum, which therefore bids harder for the accessibility of the center.
 
 <Callout type="warn">
-**This holds as long as the $\lambda_h$ are equal to each other.** As soon as they differ, the identity above breaks and the core switches models on its own: it uses the **heteroskedastic auction** (HEV), the correct formulation when bid variance differs across bidders (Train, §4.5). There $\lambda$ also moves the noise scale, which rescaling preferences does not touch, and that is what identifies it.
+**Under the common-precision logit auction, $\lambda$ cannot be read.** The bid divides $f$ by $\lambda_h$, and $f$ is linear in $\alpha$ and $\rho$:
 
-It is not a full fix: $\lambda$ still enters through $f_h/\lambda_h$ too, so it moves preferences and dispersion at once. For it to act purely through price sensitivity you would need a **choice** model rather than an auction — in an auction every bidder for a plot pays the same, so the price cancels.
+$$
+y_h + \frac{f_h(z_i)}{\lambda_h} \;\equiv\; y_h + f\!\left(z_i;\; \frac{\alpha}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
+$$
+
+Moving $\lambda_h$ would be exactly rescaling that stratum's preferences. The heteroskedastic auction breaks that equivalence, because $\lambda_h$ also moves the dispersion of the bid, which rescaling preferences does not touch. That is why the simulator uses it: with it, $\lambda$ is identified. In an auction, however, $\lambda$ never acts through price sensitivity: all bidders for a plot pay the same, so the price cancels out.
 </Callout>
 
 <Callout type="info">
-Try varying the high stratum's $\lambda$ and watch the allocation. It moves — and that is the limitation, not a result. Lowering it to 0.5 **sends the high stratum to the periphery** (8.5 km from the CBD), the opposite of what any income story would say: as $\rho/\lambda$ grows, the density penalty hits precisely the central cells, which are the dense ones. The contrast that confirms it: income $y$ —which *is* an economic parameter— **reallocates nobody**, because it enters as a constant and is absorbed into $\bar{u}$.
+Try, on the page's default configuration:
+
+- **Set the three $\lambda$ equal** to the middle stratum's. The value of time becomes the same for everyone and **the city inverts**: the high stratum ends up 5.5 km from the CBD and the low one 2.2 km. Without differences in value of time there is no Alonso.
+- **Double the high stratum's $\lambda$.** Its value of time halves and it moves away from the center: from 1.9 to 4.0 km. With $\lambda$ halved it moves closer, to 1.3 km.
+- **Double the high stratum's income $y$.** It reallocates nobody: income enters as a constant and is absorbed into the reservation utility $u_h$.
 </Callout>
+
+## The precision $\mu$
+
+$\mu$ is the module's only knob of its own: how noisy choosing a home is relative to choosing a mode. It is $1/\sqrt{44} \approx 0.15$ because accessibility is monthly, the sum of 44 trips, and if each trip carries its own shock the month's dispersion grows like $\sqrt{44}$. With $\mu = 1$ the auction is nearly deterministic and Theil segregation rises from 0.23 to 0.76.
 
 ## The shape of the city
 

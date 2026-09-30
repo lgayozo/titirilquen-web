@@ -12,15 +12,16 @@ interface BidPriceCurveProps {
 const MARGIN = { top: 8, right: 8, bottom: 22, left: 52 };
 
 /**
- * Precio implícito del suelo por parcela en el equilibrio. El precio está
+ * Precio esperado del suelo por parcela en el equilibrio, el p*_i de Martínez
+ * (4.27): el máximo esperado de las pujas, en $/mes. El precio está
  * definido **salvo una constante aditiva** (la normalización u[0]=0 fija un cero
  * arbitrario), así que solo el *gradiente* tiene sentido. Para no mostrar
  * negativos confusos, se grafica **relativo al mínimo**; la forma de la curva
  * es idéntica.
  *
  * **La celda del CBD se excluye.** Es la única sin oferta de vivienda
- * (`S_CBD = 0`), así que ahí el tiempo de viaje y la densidad valen cero y la
- * amenidad es máxima por construcción: da un pico de precio en el único punto
+ * (`S_CBD = 0`), así que ahí la densidad vale cero y la accesibilidad es la
+ * mejor de la ciudad por construcción: da un pico de precio en el único punto
  * donde nadie puede vivir. Dejarlo dentro deformaba la escala —llegó a
  * ocupar la mitad del alto del gráfico— y ponía el máximo de la curva en una
  * parcela vacía. Se corta el trazo ahí, que es lo honesto: no hay mercado de
@@ -201,7 +202,7 @@ export function BidPriceCurve({
       >
         {t("bid_price.footer", { delta: fmt(max) })}
         <br />
-        {/* Único solver: la puja es `y + f/λ`, en $ (WTP). */}
+        {/* Las dos ramas (cerrada y HEV) devuelven p*, en $/mes. */}
         {t("bid_price.units_logit")}
       </div>
     </div>
