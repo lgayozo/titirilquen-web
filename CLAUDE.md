@@ -81,7 +81,7 @@ que queda, y está pineado con `e2e/fixtures/utility-golden.json`: si divergen, 
 test falla. Lo mismo `citySupply.ts` con su golden de oferta.
 
 **Estado serializable.** Export a archivo `.ttrq.json` (`$schema:
-"titirilquen-scenario/v3"`) y share por `?s=` (base64url), sin DB. No hay
+"titirilquen-scenario/v5"`) y share por `?s=` (base64url), sin DB. No hay
 migraciones: un archivo de un schema anterior falla con un error explícito.
 
 **i18n.** Las ecuaciones LaTeX no se traducen. Ojo al borrar claves: varias se
@@ -122,7 +122,7 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   `tests/test_linea_base.py` — ese archivo manda si estos números y él difieren. Si un cambio las mueve más de 0,05 pp,
   no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
   sep-2026 (λ heterogéneo en suelo; transporte homoscedástico; accesibilidad =
-  logsum de transporte, D-34; ρ = 0 y β = 1/√44 en el suelo; BPR del auto de la
+  logsum de transporte, D-34; ρ = 0 y μ = 1/√44 en el suelo; BPR del auto de la
   FHWA; ciclovía de 4.000 bici/h): ver ese test.
 - **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
   0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`

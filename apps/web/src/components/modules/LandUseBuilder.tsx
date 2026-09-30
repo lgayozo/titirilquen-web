@@ -193,23 +193,23 @@ export function LandUseBuilder({
         )}
       </CollapsibleSection>
 
-      {/* ---- PARÁMETROS DE PUJA (bid-rent): β, α y la escala de λ ---- */}
+      {/* ---- PARÁMETROS DE PUJA (bid-rent): μ, α y la escala de λ ---- */}
       <CollapsibleSection
         title={t("land_use.section_bidrent")}
-        meta={`β=${config.beta.toFixed(2)} · α=${alpha.toFixed(1)}`}
+        meta={`μ=${config.mu.toFixed(2)} · α=${alpha.toFixed(1)}`}
         defaultOpen={false}
       >
         <p className="mb-2 text-[10px] text-muted">
           {t("land_use.bidrent_hint")}
         </p>
         <LabeledSlider
-          label={t("land_use.param_beta")}
-          value={config.beta}
+          label={t("land_use.param_mu")}
+          value={config.mu}
           min={0.01}
           max={2}
           step={0.01}
-          hint={t("land_use.beta_hint")}
-          onChange={(v) => onChange((c) => ({ ...c, beta: v }))}
+          hint={t("land_use.mu_hint")}
+          onChange={(v) => onChange((c) => ({ ...c, mu: v }))}
         />
         <LabeledSlider
           label={t("land_use.param_alpha")}

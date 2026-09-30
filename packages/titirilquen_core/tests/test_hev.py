@@ -45,7 +45,7 @@ def _escenario() -> dict:
         "T": np.tile(d_km / 30.0 * 60.0, (3, 1)),
         "alpha": np.array([6.5, 6.0, 5.5]),
         "rho": np.full(3, 0.0025),
-        "beta": 1.0,
+        "mu": 1.0,
         "tol": 1e-8,
         "max_iter": 3000,
         "ancho_celda_km": DX,
@@ -105,13 +105,15 @@ def test_hev_reduce_al_logit_cuando_lambda_es_uniforme(lam: float) -> None:
     No «parecido»: idéntico. Si no lo fuera, activar el modelo nuevo movería en
     silencio la calibración y la línea base de todo el simulador.
 
-    El `beta` de `solve_logit` es la precisión en **dinero**; el de
-    `solve_subasta` es la precisión en **útiles**. La conversión es `b = β·λ`,
-    y hay que hacerla acá para comparar el mismo modelo — ver `solve_logit`.
+    `solve_logit` recibe `beta_i`, la precisión en **dinero** (el β de
+    Martínez); `solve_subasta` recibe `mu`, la precisión en **útiles** (el μ).
+    La conversión es `β = μ·λ`, ec. (4.3), y hay que hacerla acá para comparar
+    el mismo modelo — ver `solve_logit`.
     """
     esc = _escenario()
     lams = np.full(3, lam)
-    cerrado = {**esc, "beta": esc["beta"] * lam}
+    cerrado = {k: v for k, v in esc.items() if k != "mu"}
+    cerrado["beta_i"] = esc["mu"] * lam
     assert (
         np.max(
             np.abs(solve_subasta(lambda_h=lams, **esc).Q - solve_logit(lambda_h=lams, **cerrado).Q)
@@ -127,7 +129,7 @@ def test_el_despacho_no_salta_al_romper_la_uniformidad_de_lambda(lam: float) -> 
     Hacer los λ infinitesimalmente heterogéneos cambia de rama —de la forma
     cerrada al HEV— pero no puede cambiar el modelo: en el límite los dos son la
     misma subasta homoscedástica. Si salta, es que cada rama está interpretando
-    `beta` en un espacio distinto, que es el bug que esto fija (medido antes del
+    la precisión en un espacio distinto (μ o β), que es el bug que esto fija (medido antes del
     arreglo: 4,7 puntos con λ = 2 y 8,9 con λ = 0,5).
     """
     esc = _escenario()

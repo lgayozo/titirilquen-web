@@ -123,7 +123,7 @@ class LandUseCity:
             alpha=alpha,
             rho=rho,
             lambda_h=lambda_h,
-            beta=self.cfg.beta,
+            mu=self.cfg.mu,
             tol=self.cfg.tol,
             max_iter=self.cfg.max_iter,
             ancho_celda_km=self.ancho_celda_km,

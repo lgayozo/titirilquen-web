@@ -219,7 +219,7 @@ def paso_6_nucleo(caso, d) -> None:
         alpha=caso.alpha,
         rho=caso.rho,
         lambda_h=caso.lambda_h,
-        beta=caso.beta,
+        mu=caso.beta,  # el `beta` de este caso es la μ de Martínez
     )
     Q_demo, _, _ = equilibrio(caso, d)
     d_nucleo = float(r.u[1] - r.u[0])

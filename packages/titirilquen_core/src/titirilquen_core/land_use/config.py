@@ -94,10 +94,10 @@ class LandUseConfig(BaseModel):
     #
     # `lambda` HETEROGÉNEA (2026-09-02). Antes los tres valían 1,0, y eso no era
     # una decisión: era la única opción disponible. La forma cerrada de la
-    # ec. (4.26) aplica un `beta` escalar sobre las pujas, así que con ella
+    # ec. (4.26) aplica un `β` escalar sobre las pujas, así que con ella
     # `lambda_h` sólo entra dividiendo el determinístico y es idénticamente
     # re-escalar `(alpha_h, rho_h)` por `1/lambda_h` — D-08. Con HEV el ruido
-    # escala por estrato a `1/(beta·lambda_h)`, que la re-escala de preferencias
+    # escala por estrato a `1/β_h = 1/(mu·lambda_h)`, que la re-escala de preferencias
     # no toca, y `lambda` queda IDENTIFICADO (`test_hev.py`).
     #
     # De dónde salen estos números (D-34, sep-2026). Un hogar tiene UNA función
@@ -112,8 +112,8 @@ class LandUseConfig(BaseModel):
     #     utiles de transporte por peso: 0,000320 / 0,000641 / 0,001241. Con eso
     #     el score `y + f/lambda` queda en $/mes, como `p` e `y` (D-27), el VoT
     #     `alpha/lambda` = 6.200 / 3.100 / 1.600 $/h coincide con transporte, y
-    #     el ruido de la puja `1/(beta·lambda_h)` = $3.122 / $1.561 / $806 al mes.
-    #   * `beta`: ver el comentario del campo, más abajo. Es la única perilla
+    #     el ruido de la puja `1/(mu·lambda_h)` = $3.122 / $1.561 / $806 al mes.
+    #   * `mu`: ver el comentario del campo, más abajo. Es la única perilla
     #     propia del módulo.
     #   * `rho`: sin fuente; 0 por defecto (ver el comentario del campo).
     #
@@ -135,16 +135,20 @@ class LandUseConfig(BaseModel):
         ),
     )
 
-    # `beta` = 1/√VIAJES_MES ≈ 0,151. Es la razón entre la escala del ruido de
+    # `mu` = 1/√VIAJES_MES ≈ 0,151. Es el `μ_h` de Martínez (2018, ec. 4.2), la
+    # precisión del ruido de la UTILIDAD, común a los estratos; la de la puja en
+    # dinero es `β_h = λ_h·μ` (ec. 4.3). Hasta sep-2026 este campo se llamaba
+    # `beta`, que en Martínez es la otra precisión (schema v5, D-31).
+    # Es la razón entre la escala del ruido de
     # elegir casa y la de elegir modo: el logit de transporte fija su escala en 1
     # (un útil = un shock Gumbel de un viaje), y la puja lee la accesibilidad
     # mensual, la suma de VIAJES_MES viajes. Si cada viaje trae su propio shock
     # independiente, la desviación del shock mensual crece como √VIAJES_MES, y la
-    # escala del ruido de la puja, 1/(beta·lambda_h), tiene que crecer igual:
-    # beta = 1/√VIAJES_MES. Es una aproximación de segundo momento (la suma de
+    # escala del ruido de la puja, 1/(mu·lambda_h), tiene que crecer igual:
+    # mu = 1/√VIAJES_MES. Es una aproximación de segundo momento (la suma de
     # Gumbel no es Gumbel) y un supuesto: en Martínez (2018, pp. 89 y 242) la
     # escala de la subasta se identifica con rentas observadas, que acá no hay.
-    # beta = 1 sería «un solo shock por casa, igual al de un viaje», y da una
+    # mu = 1 sería «un solo shock por casa, igual al de un viaje», y da una
     # ciudad casi determinista (Theil ≈ 0,71 contra ≈ 0,17). Es la única
     # perilla propia del módulo: alpha y lambda vienen de transporte (D-34).
     @field_validator("H_por_estrato")
@@ -158,12 +162,14 @@ class LandUseConfig(BaseModel):
             raise ValueError("H_por_estrato: la ciudad necesita al menos un hogar")
         return v
 
-    beta: float = Field(
+    mu: float = Field(
         default=1 / math.sqrt(VIAJES_MES),
         gt=0,
         description=(
-            "Razón entre la escala del ruido de elegir casa y la de un viaje; el "
-            "ruido de la puja es 1/(beta·lambda). Default 1/√VIAJES_MES ≈ 0,151: "
+            "μ de Martínez: precisión del ruido de la utilidad de localizarse, en 1 "
+            "por útil. Es la razón entre la escala del ruido de elegir casa y la de "
+            "un viaje; el ruido de la puja tiene escala 1/(mu·lambda) = 1/β_h. "
+            "Default 1/√VIAJES_MES ≈ 0,151: "
             "el shock mensual acumula VIAJES_MES viajes independientes. 1 = un "
             "solo shock por casa (ciudad casi determinista)"
         ),

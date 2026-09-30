@@ -28,7 +28,7 @@ def _toy_scenario(lam: np.ndarray):
         "alpha": np.array([1.3, 1.2, 1.1]),
         "rho": np.array([1.0, 1.0, 1.0]),
         "lambda_h": lam,
-        "beta": 1.0,
+        "beta_i": 1.0,
         "tol": 1e-9,
         "max_iter": 20000,
     }
@@ -42,8 +42,8 @@ def test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho() -> None:
         f_h(i)/lambda_h  ==  f(i; alpha_h/lambda_h, rho_h/lambda_h)
 
     es una IDENTIDAD. Mover `lambda_h` no es un efecto-ingreso: es re-escalar
-    las preferencias de ese estrato y —con beta uniforme— tambien su ruido de
-    eleccion (~1/(beta*lambda)), las tres cosas juntas y sin poder separarlas.
+    las preferencias de ese estrato y —con β uniforme— tambien su ruido de
+    eleccion (~1/(mu*lambda)), las tres cosas juntas y sin poder separarlas.
     `lambda` no es un parametro economico independiente sino una
     re-parametrizacion redundante.
 
@@ -119,7 +119,7 @@ def test_solve_logit_converge_simple() -> None:
         alpha=np.array([1.3, 1.2, 1.1]),
         rho=np.array([1.0, 1.0, 1.0]),
         lambda_h=np.array([1.0, 1.0, 1.0]),
-        beta=1.0,
+        beta_i=1.0,
         tol=1e-6,
         max_iter=5000,
     )
@@ -159,7 +159,7 @@ def test_land_use_city_build_asigna_todos_los_hogares() -> None:
             LandUseStratumConfig(y=50.0, alpha=1.2, rho=1.0),
             LandUseStratumConfig(y=10.0, alpha=1.1, rho=1.0),
         ),
-        beta=1.0,
+        mu=1.0,
         max_iter=2000,
     )
     rng = np.random.default_rng(42)
@@ -190,7 +190,7 @@ def test_alpha_mas_alto_atrae_cerca_del_cbd() -> None:
             LandUseStratumConfig(y=50.0, alpha=1.0, rho=1.0),
             LandUseStratumConfig(y=10.0, alpha=0.5, rho=1.0),  # bajo α = indiferente
         ),
-        beta=1.0,
+        mu=1.0,
         max_iter=2000,
     )
     rng = np.random.default_rng(42)

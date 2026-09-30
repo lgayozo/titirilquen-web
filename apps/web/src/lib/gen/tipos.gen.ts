@@ -206,12 +206,13 @@ export interface LandUseConfig {
    */
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
   /**
-   *  Razón entre la escala del ruido de elegir casa y la de un viaje; el ruido
-   *  de la puja es 1/(beta·lambda). Default 1/√VIAJES_MES ≈ 0,151: el shock
-   *  mensual acumula VIAJES_MES viajes independientes. 1 = un solo shock por
-   *  casa (ciudad casi determinista)
+   *  μ de Martínez: precisión del ruido de la utilidad de localizarse, en 1 por
+   *  útil. Es la razón entre la escala del ruido de elegir casa y la de un
+   *  viaje; el ruido de la puja tiene escala 1/(mu·lambda) = 1/β_h. Default
+   *  1/√VIAJES_MES ≈ 0,151: el shock mensual acumula VIAJES_MES viajes
+   *  independientes. 1 = un solo shock por casa (ciudad casi determinista)
    */
-  beta: number;
+  mu: number;
   tol: number;
   max_iter: number;
   /**

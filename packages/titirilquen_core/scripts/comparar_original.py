@@ -412,7 +412,7 @@ def bidrent(resolver_orig) -> None:
     resolver_orig(stub, lam, ALPHA_ORIG, RHO_ORIG)
     res = solve_logit(
         H=H, S=S, y=Y_ORIG, T=T, alpha=ALPHA_ORIG, rho=RHO_ORIG, lambda_h=lam,
-        beta=1.0, tol=1e-8, max_iter=10000, ancho_celda_km=1.0,
+        beta_i=1.0, tol=1e-8, max_iter=10000, ancho_celda_km=1.0,
     )  # fmt: skip
 
     print(f"{'salida':<18}{'max |dif|':>14}{'veredicto':>12}")
@@ -465,7 +465,7 @@ def bidrent(resolver_orig) -> None:
         T_min = np.tile(np.abs(np.arange(n_c) - cbd_c) * dx / V_REF_KMH * 60.0, (3, 1))
         r = solve_logit(
             H=H, S=S_c, y=Y_ORIG, T=T_min, alpha=ALPHA_ORIG, rho=RHO_ORIG, lambda_h=lam,
-            beta=1.0, tol=1e-8, max_iter=10000, ancho_celda_km=dx,
+            beta_i=1.0, tol=1e-8, max_iter=10000, ancho_celda_km=dx,
         )  # fmt: skip
         i_sonda = cbd_c + max(1, round(d_sonda_km / dx))
         print(f"{n_c:>10}{np.asarray(st.Q)[0, i_sonda]:>16.4f}{r.Q[0, i_sonda]:>16.4f}")

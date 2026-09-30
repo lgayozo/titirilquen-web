@@ -38,11 +38,11 @@ DIST_KM = np.abs(np.arange(L) - CBD).astype(float) * DX
 GAMMA = 0.5772156649015329
 
 
-def _cfg(lams, H=H_BASE, rho=None, beta=1.0):
+def _cfg(lams, H=H_BASE, rho=None, mu=1.0):
     r = LandUseStratumConfig(y=1.0).rho if rho is None else rho
     return LandUseConfig(
         H_por_estrato=H,
-        beta=beta,
+        mu=mu,
         estratos=tuple(
             LandUseStratumConfig(y=y, alpha=a, rho=r, **{"lambda": lam})
             for y, a, lam in zip(Y, ALPHA, lams, strict=True)
@@ -78,10 +78,12 @@ def perfil(city):
     return out
 
 
-def _kw_solver(lams, rho=None, beta=1.0):
-    """Argumentos crudos para `solve_*`, sin pasar por LandUseCity."""
-    cfg = _cfg(lams, rho=rho, beta=beta)
-    c = ciudad(lams, rho=rho, beta=beta)
+def _kw_solver(lams, rho=None, mu=1.0):
+    """Argumentos crudos para `solve_subasta`, sin pasar por LandUseCity.
+
+    Para `solve_logit` pasar por `_a_logit`: recibe `beta_i`, no `mu`."""
+    cfg = _cfg(lams, rho=rho, mu=mu)
+    c = ciudad(lams, rho=rho, mu=mu)
     return {
         "H": np.asarray(cfg.H_por_estrato),
         "S": c.S,
@@ -89,11 +91,21 @@ def _kw_solver(lams, rho=None, beta=1.0):
         "T": np.tile(DIST_KM / 30.0 * 60.0, (3, 1)),
         "alpha": np.asarray(ALPHA),
         "rho": np.asarray([e.rho for e in cfg.estratos]),
-        "beta": beta,
+        "mu": mu,
         "tol": 1e-8,
         "max_iter": 4000,
         "ancho_celda_km": DX,
     }
+
+
+def _a_logit(kw):
+    """Los mismos argumentos para `solve_logit`: la forma cerrada recibe la
+    precisión en dinero `beta_i`. Se le pasa el MISMO número que `mu`, que es lo
+    que hacía el simulador antes de sep-2026 (β = μ, sin multiplicar por λ): es
+    la rama cerrada «vieja» que estas secciones comparan."""
+    out = {k: v for k, v in kw.items() if k != "mu"}
+    out["beta_i"] = kw["mu"]
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -188,11 +200,11 @@ def s2_reduccion() -> None:
         a = q_hev(w_det + (th * np.log(Hn))[:, None], th)
         lg = np.log(Hn)[:, None] + beta * w_det
         b = np.exp(lg - logsumexp(lg, axis=0)[None, :])
-        kw = _kw_solver((1.0, 1.0, 1.0), beta=beta)
+        kw = _kw_solver((1.0, 1.0, 1.0), mu=beta)
         d_solver = np.max(
             np.abs(
                 solve_subasta(lambda_h=np.ones(3), **kw).Q
-                - solve_logit(lambda_h=np.ones(3), **kw).Q
+                - solve_logit(lambda_h=np.ones(3), **_a_logit(kw)).Q
             )
         )
         print(f"{beta:>8}{np.max(np.abs(a - b)):>20.2e}{d_solver:>28.2e}")
@@ -248,8 +260,8 @@ def s5_identificacion() -> None:
         kw_r["alpha"] = np.array([ALPHA[0] / lam, ALPHA[1], ALPHA[2]])
         kw_r["rho"] = np.array([kw_l["rho"][0] / lam, kw_l["rho"][1], kw_l["rho"][2]])
 
-        c_l = solve_logit(lambda_h=np.array([lam, 1.0, 1.0]), **kw_l)
-        c_r = solve_logit(lambda_h=np.ones(3), **kw_r)
+        c_l = solve_logit(lambda_h=np.array([lam, 1.0, 1.0]), **_a_logit(kw_l))
+        c_r = solve_logit(lambda_h=np.ones(3), **_a_logit(kw_r))
         h_l = solve_subasta(lambda_h=np.array([lam, 1.0, 1.0]), **kw_l)
         h_r = solve_subasta(lambda_h=np.ones(3), **kw_r)
 
@@ -292,8 +304,8 @@ def s7_sensibilidad_escala() -> None:
     print("  Si lambda fuera solo una eleccion de unidades, esto no deberia")
     print("  cambiar nada. Se mide contra k=1.\n")
     print("  OJO: hasta D-31 esta tabla daba hasta 2,4e-1 y se concluia que NO")
-    print("  era invariante. Lo era el bug: la rama cerrada usaba b = beta en")
-    print("  vez de b = beta*lambda.\n")
+    print("  era invariante. Lo era el bug: la rama cerrada usaba beta = mu en")
+    print("  vez de beta = mu*lambda.\n")
     base = ciudad((1.0, 1.0, 1.0))
     print(f"{'k':>8}{'max|dQ| vs k=1':>18}{'d_alto':>9}{'d_medio':>9}{'d_bajo':>9}{'iters':>8}")
     print("-" * 62)
@@ -306,10 +318,10 @@ def s7_sensibilidad_escala() -> None:
             f"{c.result.iterations:>8}"
         )
     print()
-    print("  SI es invariante, y debe serlo. El mecanismo, con b = beta*lambda:")
+    print("  SI es invariante, y debe serlo. El mecanismo, con beta = mu*lambda:")
     print("    - la puja que varia entre parcelas es f/lambda: se encoge por k;")
-    print("    - la precision del ruido b = beta*lambda: crece por k;")
-    print("    - el cociente senal/ruido, (f/lambda)*b = f*beta, NO depende de k.")
+    print("    - la precision del ruido beta = mu*lambda: crece por k;")
+    print("    - el cociente senal/ruido, (f/lambda)*beta = f*mu, NO depende de k.")
     print("  El unico otro termino es el ingreso y, constante por estrato, que el")
     print("  punto fijo absorbe en u. Asi que la asignacion no se mueve.")
     print()
@@ -347,15 +359,15 @@ def s8_sensibilidad_poblacion() -> None:
 
 
 def s9_sensibilidad_beta() -> None:
-    print("\n### 9. SENSIBILIDAD (IV): interaccion con beta")
-    print("  theta_h = 1/(beta*lambda_h), asi que beta y lambda comparten escala.\n")
-    print(f"{'beta':>8}{'d_alto lam=0,8':>17}{'d_alto lam=1':>15}{'d_alto lam=1,25':>18}")
+    print("\n### 9. SENSIBILIDAD (IV): interaccion con mu")
+    print("  theta_h = 1/(mu*lambda_h), asi que mu y lambda comparten escala.\n")
+    print(f"{'mu':>8}{'d_alto lam=0,8':>17}{'d_alto lam=1':>15}{'d_alto lam=1,25':>18}")
     print("-" * 60)
     for beta in (0.5, 1.0, 2.0, 4.0):
-        fila = [perfil(ciudad((lam, 1.0, 1.0), beta=beta))[0][0] for lam in (0.8, 1.0, 1.25)]
+        fila = [perfil(ciudad((lam, 1.0, 1.0), mu=beta))[0][0] for lam in (0.8, 1.0, 1.25)]
         print(f"{beta:>8}{fila[0]:>17.2f}{fila[1]:>15.2f}{fila[2]:>18.2f}")
     print()
-    print("  Subir beta agudiza la subasta (menos ruido) y con eso el efecto de")
+    print("  Subir mu agudiza la subasta (menos ruido) y con eso el efecto de")
     print("  lambda se vuelve mas abrupto: son la misma escala.")
 
 
@@ -366,7 +378,7 @@ def main() -> None:
     print("=" * 78)
     print(
         f"Base: L={L} celdas · {LARGO_KM:.0f} km · SumaH=99.900 · "
-        f"alpha=6,5/6,0/5,5 · rho={LandUseStratumConfig(y=1.0).rho} · beta=1"
+        f"alpha=6,5/6,0/5,5 · rho={LandUseStratumConfig(y=1.0).rho} · mu=1"
     )
     s1_cuadratura()
     s2_reduccion()

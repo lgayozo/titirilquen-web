@@ -77,7 +77,7 @@ def test_alpha_es_uno_y_comun() -> None:
 
     Es el ancla del original (`actualizar(T, alpha=[1,1,1])` sobre el logsum).
     Cualquier otro valor es un multiplicador sin fuente; si se quiere más o
-    menos nitidez, la perilla es `beta`, no `alpha`.
+    menos nitidez, la perilla es `mu`, no `alpha`.
     """
     alphas = [e.alpha for e in LandUseConfig().estratos]
     assert alphas == [1.0, 1.0, 1.0], f"alpha = {alphas}"

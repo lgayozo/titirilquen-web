@@ -5,22 +5,23 @@ tienen la **misma varianza**. Eso deja de ser cierto en cuanto los `λ_h` difier
 entre estratos: por la ec. (4.3) de Martínez, al despejar el precio para obtener
 la disposición a pagar el término aleatorio queda dividido por `λ_h`,
 
-    q_hi = y_h + (f_h(z_i) − u_h)/λ_h + ε_hi/λ_h
+    θ_hi = w_hi + ε'_hi = y_h + (f_h(z_i) − u_h)/λ_h + ε_hi/λ_h
 
-o sea Gumbel con parámetro de forma `b_h = λ_h·μ_h`, **distinto por estrato**
-(Martínez, p. 77: `ε'_hi = ε_hi/λ_h` es Gumbel(0, b_h) con `b_h = λ_h·μ_h`).
+o sea Gumbel con parámetro de forma `β_h = λ_h·μ_h`, **distinto por estrato**
+(Martínez, p. 77: `ε'_hi = ε_hi/λ_h` es Gumbel(0, β_h) con `β_h = λ_h·μ_h`).
 Aplicar la forma cerrada ahí no es una aproximación: es otro modelo, y equivale a
-suponer `b_h = b` común, o sea `μ_h = b/λ_h`. Como `μ` es una PRECISION, eso
-implica que la **escala** del ruido de utilidad, `1/μ_h = λ_h/b`, es
+suponer `β_h = β` común, o sea `μ_h = β/λ_h`. Como `μ` es una PRECISION, eso
+implica que la **escala** del ruido de utilidad, `1/μ_h = λ_h/β`, es
 proporcional a `λ_h`: quien más valora el dinero tendría proporcionalmente
 **más** dispersión idiosincrática de utilidad. Es un supuesto sin fundamento
 conductual, y que nadie eligió: sale de conservar la forma cerrada.
 
-**Cuál es el `beta` de la configuración.** Es `μ`, la precisión del ruido en
-**útiles**, común a los estratos; la precisión en **dinero** es `b_h = β·λ_h` y
+**Cuál es el `mu` de la configuración.** Es `μ`, la precisión del ruido en
+**útiles**, común a los estratos; la precisión en **dinero** es `β_h = λ_h·μ` y
 es la que ve la subasta, porque la puja está en dinero. `solve_subasta` hace esa
-conversión en las dos ramas. Antes no: la rama cerrada recibía `β` crudo, lo que
-equivalía a fijar `b = β` en vez de `b = β·λ`, y hacía que el despacho saltara al
+conversión en las dos ramas. Antes no: la rama cerrada recibía el parámetro
+crudo, lo que equivalía a fijar `β = μ` en vez de `β = λ·μ`, y hacía que el
+despacho saltara al
 volver los λ infinitesimalmente heterogéneos (4,7 puntos con λ = 2). Con `λ = 1`
 las dos lecturas coinciden, que es por qué la línea base nunca lo notó.
 
@@ -34,6 +35,13 @@ es, en la forma de Bhat:
 que **no tiene forma cerrada** —el máximo de Gumbel de escalas distintas no es
 Gumbel—, pero cuya integral es de una sola dimensión y se resuelve bien por
 cuadratura (Train, §4.5).
+
+**Notación: la de Train, no la de Martínez.** En Train `θ_j` es la ESCALA del
+ruido de la alternativa j (varianza `(θ_j·π)²/6`) y `w = ε/θ` el shock
+estandarizado. En la subasta, `θ_h = 1/β_h = 1/(λ_h·μ)`. Las dos letras chocan
+con Martínez, donde `θ_hi` es la puja aleatoria y `w_hi` su parte
+determinística; se conservan aquí porque este módulo implementa la integral de
+Train literalmente, y la equivalencia está en el cap. 2 del libro.
 
 **Traducción a la subasta de suelo.** Las «alternativas» son los ESTRATOS que
 pujan por una parcela, no las parcelas:

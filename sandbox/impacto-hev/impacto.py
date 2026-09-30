@@ -7,8 +7,8 @@ heterogéneos, resueltos de las dos maneras:
 
 * **antes** — `solve_logit`, la forma cerrada, con UNA precisión en dinero
   común a los tres estratos. Es lo que hacía el simulador hasta el commit del
-  HEV: `ciudad.py` llamaba `solve_logit(..., beta=cfg.beta, ...)`, y esa
-  función aplica `beta` tal cual sobre la puja en dinero. Entonces λ valía 1 en
+  HEV: `ciudad.py` llamaba `solve_logit` con el parámetro de configuración, y esa
+  función lo aplica tal cual como precisión de la puja en dinero (`beta_i`). Entonces λ valía 1 en
   los tres estratos, así que `b = β`. Hoy λ está en útiles por peso (D-34) y la
   conversión honesta es `b_h = β·λ_h` (D-31); la forma cerrada sólo admite un
   `b`, y se toma `b = β·λ_medio`: el estrato medio es el ancla del barrido, y
@@ -87,7 +87,7 @@ def _entradas(cfg: LandUseConfig, T: np.ndarray) -> dict:
         "alpha": np.asarray([s.alpha for s in cfg.estratos], dtype=float),
         "rho": np.asarray([s.rho for s in cfg.estratos], dtype=float),
         "lambda_h": np.asarray([s.lambda_ for s in cfg.estratos], dtype=float),
-        "beta": cfg.beta,
+        "mu": cfg.mu,
         "tol": cfg.tol,
         "max_iter": cfg.max_iter,
         "ancho_celda_km": DX,
@@ -126,7 +126,9 @@ def _fila(r: float | None, lams: tuple[float, float, float], T: np.ndarray) -> t
     lam_m = lams[1]
 
     # La forma cerrada recibe UNA precisión en dinero: b = β·λ_medio.
-    antes = solve_logit(**{**kw, "beta": kw["beta"] * lam_m})
+    antes = solve_logit(
+        **{k: v for k, v in kw.items() if k != "mu"}, beta_i=kw["mu"] * lam_m
+    )
     ahora = solve_subasta(**kw)  # HEV si los λ difieren; cerrada si no
 
     # Hogares que cambian de celda. |ΔQ|·S sumado y dividido por 2 es el
@@ -150,9 +152,9 @@ def _fila(r: float | None, lams: tuple[float, float, float], T: np.ndarray) -> t
         "r_eq": float(np.sqrt(lams[2] / lams[0])),
         "vigente": r is None,
         "lambda": list(lams),
-        "b_cerrada": float(kw["beta"] * lam_m),
-        "theta_hev": [float(1.0 / (kw["beta"] * lam)) for lam in lams],
-        "gamma_sobre_b": float(EULER_GAMMA / (kw["beta"] * lam_m)),
+        "b_cerrada": float(kw["mu"] * lam_m),
+        "theta_hev": [float(1.0 / (kw["mu"] * lam)) for lam in lams],
+        "gamma_sobre_b": float(EULER_GAMMA / (kw["mu"] * lam_m)),
         "max_dQ": float(np.max(np.abs(ahora.Q - antes.Q))),
         "movidos": movidos,
         "movidos_total": total,
@@ -200,7 +202,7 @@ def main() -> None:
 
     print("\n  IMPACTO DE PASAR DE LA FORMA CERRADA AL HEV")
     print("  mismos datos, mismos lambda, dos solvers")
-    print(f"  beta = {base.beta:.4f}   lambda_m = {lam_m:.6f}   b_cerrada = beta*lambda_m\n")
+    print(f"  mu = {base.mu:.4f}   lambda_m = {lam_m:.6f}   beta_cerrada = mu*lambda_m\n")
     print(
         f"  {'r':>5}{'lambda (alto/medio/bajo) x1e-3':>32}{'max|dQ|':>10}{'movidos':>10}{'% tot':>8}"
     )
@@ -238,7 +240,7 @@ def main() -> None:
                 "L": L,
                 "CBD": CBD,
                 "dx": DX,
-                "beta": base.beta,
+                "mu": base.mu,
                 "lambda_vigente": list(lam_vig),
                 "alpha": [s.alpha for s in base.estratos],
                 "rho": [s.rho for s in base.estratos],

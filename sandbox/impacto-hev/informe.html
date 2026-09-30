@@ -120,9 +120,9 @@
   <p class="meta">
     Código: <code>sandbox/impacto-hev/</code> ·
     Correr: <code>uv run python impacto.py &amp;&amp; uv run python figuras.py</code><br>
-    Ciudad: 201 celdas · 20 km · ΣH = 99.900 · α = 1 · ρ = 0 · β = 1/√44 ≈ 0,151 ·
+    Ciudad: 201 celdas · 20 km · ΣH = 99.900 · α = 1 · ρ = 0 · μ = 1/√44 ≈ 0,151 ·
     λ vigente = 0,320 / 0,641 / 1,241 ×10⁻³ útiles/$ · T = logsum de transporte a flujo libre (D-34)<br>
-    Calibración vigente al 15-sep-2026. La versión del 1-sep (α = 6,5/6,0/5,5 · ρ = 0,0025 · β = 1 · λ ≈ 1)
+    Calibración vigente al 15-sep-2026. La versión del 1-sep (α = 6,5/6,0/5,5 · ρ = 0,0025 · μ = 1 · λ ≈ 1)
     contaba otra historia —el error concentrado en dos fronteras— y quedó en el historial git.
   </p>
 </header>
@@ -153,7 +153,7 @@
 <p>
   Este documento mide cuánto cuesta esa diferencia. Dos corridas de la misma
   ciudad, con los mismos <code>y</code>, <code>α</code>, <code>ρ</code>,
-  <code>λ</code>, <code>β</code> y la misma accesibilidad <code>T</code>:
+  <code>λ</code>, <code>μ</code> y la misma accesibilidad <code>T</code>:
 </p>
 
 <div class="envoltorio-tabla">
@@ -162,7 +162,7 @@
   <tr>
     <td><strong>antes</strong></td>
     <td><code>solve_logit</code></td>
-    <td>La forma cerrada, con <strong>una</strong> precisión en dinero común a los tres estratos, <span class="mono">b = β·λ<sub>medio</sub></span>. Es lo que hacía el simulador hasta el commit del HEV: <code>ciudad.py</code> llamaba <code>solve_logit(..., beta=cfg.beta, ...)</code>, y esa función aplica <code>beta</code> tal cual sobre la puja en dinero. Entonces λ valía 1 en los tres estratos, así que <span class="mono">b = β</span>.</td>
+    <td>La forma cerrada, con <strong>una</strong> precisión en dinero común a los tres estratos, <span class="mono">β = μ·λ<sub>medio</sub></span>. Es lo que hacía el simulador hasta el commit del HEV: <code>ciudad.py</code> llamaba <code>solve_logit(..., beta=cfg.beta, ...)</code>, y esa función aplica <code>beta</code> tal cual sobre la puja en dinero. Entonces λ valía 1 en los tres estratos, así que <span class="mono">β = μ</span>.</td>
   </tr>
   <tr>
     <td><strong>ahora</strong></td>
@@ -183,12 +183,12 @@
   </p>
   <p>
     Lo que sí cambió desde entonces es la <strong>calibración</strong>: hoy λ está
-    en útiles por peso (D-34) y β = 1/√44 es una precisión en útiles, así que la
-    conversión honesta a dinero es <span class="mono">b<sub>h</sub> = β·λ<sub>h</sub></span>
-    (D-31). La forma cerrada sólo admite un <span class="mono">b</span>, y hay que
-    elegirlo: se toma el del estrato medio, <span class="mono">b = β·λ<sub>medio</sub> =
+    en útiles por peso (D-34) y μ = 1/√44 es una precisión en útiles, así que la
+    conversión honesta a dinero es <span class="mono">β<sub>h</sub> = λ<sub>h</sub>·μ</span>,
+    la ec. (4.3) de Martínez (D-31). La forma cerrada sólo admite un <span class="mono">β</span>, y hay que
+    elegirlo: se toma el del estrato medio, <span class="mono">β = μ·λ<sub>medio</sub> =
     9,66·10⁻⁵ $⁻¹</span>, o sea un ruido de puja de 10.354 $ para los tres. Es una
-    elección; con otro <span class="mono">b</span> común los números cambian, y
+    elección; con otro <span class="mono">β</span> común los números cambian, y
     por eso el barrido se ancla en <em>r</em> = 1, donde la elección no importa
     porque ahí los dos modelos son el mismo.
   </p>
@@ -257,7 +257,7 @@
 </div>
 
 <p>En <code>_solve_fixed_point</code>:</p>
-<pre><code>log_q  = log_H + b * (score[:, i] - u_bar - p[i])
+<pre><code>log_q  = log_H + beta_i * (score[:, i] - u_bar - p[i])
 Q[:, i] = np.exp(log_q - logsumexp(log_q))</code></pre>
 
 <p>Coincide término a término, con dos cosas que conviene declarar:</p>
@@ -285,38 +285,40 @@ Q[:, i] = np.exp(log_q - logsumexp(log_q))</code></pre>
   <span class="id">(4.27) p. 86</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>p</mi><mi>i</mi><mo>∗</mo></msubsup><mo>=</mo><msub><mi>p</mi><mi>i</mi></msub><mo>+</mo><mfrac><mi>γ</mi><msub><mi>β</mi><mi>i</mi></msub></mfrac><mo>=</mo><mfrac><mn>1</mn><msub><mi>β</mi><mi>i</mi></msub></mfrac><mi>ln</mi><mo>⁡</mo><mrow><mo fence="true">[</mo><munder><mo>∑</mo><mi>h</mi></munder><msub><mi>H</mi><mi>h</mi></msub><msup><mi>e</mi><mrow><msub><mi>β</mi><mi>i</mi></msub><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow></msup><mo fence="true">]</mo></mrow><mo>+</mo><mfrac><mi>γ</mi><msub><mi>β</mi><mi>i</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">p^*_i = p_i + \frac{\gamma}{\beta_i} = \frac{1}{\beta_i}\ln\left[\sum_h H_h e^{\beta_i w_{hi}}\right] + \frac{\gamma}{\beta_i}</annotation></semantics></math></span>
 </div>
 
-<pre><code>log_p = logsumexp(np.log(H_arr)[:, None] + b * (score - u_bar[:, None]), axis=0)
-p     = log_p / b</code></pre>
+<pre><code>log_p = logsumexp(np.log(H_arr)[:, None] + beta_i * (score - u_bar[:, None]), axis=0)
+p     = log_p / beta_i                      # la moda, p_i
+p_esperado = p + np.euler_gamma / beta_i    # p*_i, lo que se devuelve</code></pre>
 
 <p>
-  O sea que la rama cerrada devuelve <span class="mono">p<sub>i</sub></span>, el
-  <strong>parámetro de localización</strong> — la ec. (4.27) <em>sin</em> el
-  <span class="mono">γ/β<sub>i</sub></span>. El HEV, en cambio, devuelve el
-  <strong>máximo esperado</strong>. Los dos <em>son</em> el precio de la parcela;
-  son dos resúmenes de la misma distribución, y el libro dice cuánto se llevan
-  entre sí: exactamente <span class="mono">γ/β</span>.
+  La rama cerrada calcula <span class="mono">p<sub>i</sub></span>, el
+  <strong>parámetro de localización</strong> del máximo de las pujas, y le suma
+  <span class="mono">γ/β<sub>i</sub></span>: devuelve el <strong>precio
+  esperado</strong> <span class="mono">p*<sub>i</sub></span>, la ec. (4.27)
+  completa. El HEV devuelve el mismo concepto, el máximo esperado, integrado
+  directamente. Hasta sep-2026 la rama cerrada devolvía sólo la moda, y el
+  nivel de precios saltaba exactamente <span class="mono">γ/β</span> al pasar de
+  una rama a la otra; ahora las dos devuelven lo mismo.
 </p>
 
 <div class="aviso alerta">
-  <h4>Pero el nivel de precios no es comparable, y no es por eso</h4>
+  <h4>Aun así, el nivel de precios no es comparable entre ramas</h4>
   <p>
-    La distinción de arriba es de <strong>segundo orden</strong>. Con
-    <span class="mono">b = β·λ<sub>m</sub></span> vale <span class="mono">γ/b = 5.976 $</span>,
-    un 4 % del rango de precios. La brecha que se mide entre las dos ramas es
-    mucho mayor, y la explica otra cosa:
+    Con el precio unificado, la brecha que queda entre las dos ramas no es un
+    artefacto de definición: la explica otra cosa.
   </p>
   <div class="envoltorio-tabla">
     <table>
-      <tr><th class="simb">λ ×10⁻³ (a/m/b)</th><th class="n">rango de p ($)</th><th class="n">brecha medida ($)</th><th class="simb n">γ/b ($)</th><th class="simb">ū<sub>HEV</sub> − ū<sub>cerrada</sub> ($)</th></tr>
-      <tr><td>0,641 / 0,641 / 0,641</td><td class="n">139.197</td><td class="n">0</td><td class="n">5.976</td><td>[0 · 0 · 0]</td></tr>
-      <tr><td>0,513 / 0,641 / 0,801</td><td class="n">138.177</td><td class="n">35.022</td><td class="n">5.976</td><td>[0 · −28.887 · −51.700]</td></tr>
-      <tr><td>0,320 / 0,641 / 1,281</td><td class="n">142.886</td><td class="n">122.421</td><td class="n">5.976</td><td>[0 · −114.521 · −172.643]</td></tr>
-      <tr class="destacada"><td>0,320 / 0,641 / 1,241 (vigente)</td><td class="n">144.021</td><td class="n">122.446</td><td class="n">5.976</td><td>[0 · −114.570 · −170.812]</td></tr>
-      <tr><td>0,160 / 0,641 / 2,563</td><td class="n">188.467</td><td class="n">347.043</td><td class="n">5.976</td><td>[0 · −336.991 · −423.402]</td></tr>
+      <tr><th class="simb">λ ×10⁻³ (a/m/b)</th><th class="n">rango de p ($)</th><th class="n">brecha medida ($)</th><th class="simb">ū<sub>HEV</sub> − ū<sub>cerrada</sub> ($)</th></tr>
+      <tr><td>0,641 / 0,641 / 0,641</td><td class="n">139.197</td><td class="n">0</td><td>[0 · 0 · 0]</td></tr>
+      <tr><td>0,513 / 0,641 / 0,801</td><td class="n">138.177</td><td class="n">29.046</td><td>[0 · −28.887 · −51.700]</td></tr>
+      <tr><td>0,320 / 0,641 / 1,281</td><td class="n">142.886</td><td class="n">116.444</td><td>[0 · −114.521 · −172.643]</td></tr>
+      <tr class="destacada"><td>0,320 / 0,641 / 1,241 (vigente)</td><td class="n">144.021</td><td class="n">116.470</td><td>[0 · −114.570 · −170.812]</td></tr>
+      <tr><td>0,160 / 0,641 / 2,563</td><td class="n">188.467</td><td class="n">341.066</td><td>[0 · −336.991 · −423.402]</td></tr>
     </table>
   </div>
   <p class="pie-tabla">
-    La brecha sigue a la última columna, no a <span class="mono">γ/b</span>.
+    La brecha sigue a la última columna. Con el precio de la rama cerrada sin
+    <span class="mono">γ/β</span>, como era antes, cada brecha era 5.976 $ mayor.
     La brecha es la media de <span class="mono">p<sub>HEV</sub> − p<sub>cerrada</sub></span>
     sobre las celdas con oferta; el rango es el de <span class="mono">p<sub>cerrada</sub></span>.
   </p>
@@ -375,8 +377,8 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 <div class="envoltorio-tabla">
 <table>
   <tr><th></th><th class="simb">escala del ruido de la puja</th><th>qué supone</th></tr>
-  <tr><td><strong>cerrada</strong></td><td class="simb"><span class="mono">1/b = 1/(β·λ<sub>m</sub>)</span>, común: 10.354 $</td><td>que la varianza de la disposición a pagar es igual entre estratos</td></tr>
-  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mono">θ<sub>h</sub> = 1/(β·λ<sub>h</sub>)</span>: 20.708 / 10.354 / 5.344 $</td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
+  <tr><td><strong>cerrada</strong></td><td class="simb"><span class="mono">1/β = 1/(μ·λ<sub>m</sub>)</span>, común: 10.354 $</td><td>que la varianza de la disposición a pagar es igual entre estratos</td></tr>
+  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mono">θ<sub>h</sub> = 1/β<sub>h</sub> = 1/(μ·λ<sub>h</sub>)</span>: 20.708 / 10.354 / 5.344 $</td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
 </table>
 </div>
 
@@ -384,8 +386,8 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   El <span class="mono">θ<sub>h</sub></span> del HEV sale de la ec. (4.3) del
   libro: la disposición a pagar es
   <span class="mono">q<sub>hi</sub> = y<sub>h</sub> + (f<sub>h</sub>−u<sub>h</sub>)/λ<sub>h</sub> + ε<sub>hi</sub>/λ<sub>h</sub></span>,
-  con <span class="mono">ε/λ ~ Gumbel(0, b<sub>h</sub>)</span> y
-  <span class="mono">b<sub>h</sub> = λ<sub>h</sub>·μ<sub>h</sub></span>. La
+  con <span class="mono">ε/λ ~ Gumbel(0, β<sub>h</sub>)</span> y
+  <span class="mono">β<sub>h</sub> = λ<sub>h</sub>·μ<sub>h</sub></span>. La
   precisión en dinero <strong>lleva λ</strong>; la forma cerrada la omite, y ése
   es exactamente el error que este documento mide.
 </p>
@@ -396,8 +398,8 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
     El gradiente es invariante a la constante que separa los niveles, así que en
     principio sí se puede comparar. Pero eso vale si la brecha es
     <em>exactamente</em> constante, y no tiene por qué serlo: las dos ramas
-    devuelven resúmenes distintos —parámetro de localización vs máximo
-    esperado— y con θ heterogéneos esa diferencia puede variar de parcela a
+    son modelos distintos —con θ heterogéneos el máximo esperado del HEV no
+    es un corrimiento fijo del de la forma cerrada— y esa diferencia puede variar de parcela a
     parcela y torcer el ajuste. Medido: hasta la calibración vigente la brecha
     tiene desviación estándar de 19 a 674 $ sobre un rango de precios de
     ~140.000 $ (0,5 %); en <em>r</em> = 4 sube a 4.257 $ sobre 190.000 (2,2 %).
@@ -525,10 +527,10 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   Medido: con la calibración vigente, <strong>las 20 celdas con más cambio
   concentran el 24 %</strong> de la reubicación total, y 30 celdas el 35 %. En
   la versión del 1-sep eran 61 % y 78 %: la corrección pasó de ser local a ser
-  global. La razón es la escala del ruido. Con β = 1 y λ ≈ 1 el ruido de la puja
+  global. La razón es la escala del ruido. Con μ = 1 y λ ≈ 1 el ruido de la puja
   era ~1 contra un rango de precios de ~100, la asignación era casi
   determinista y las transiciones abruptas, así que el error sólo podía vivir en
-  las fronteras. Con β = 1/√44 y λ en útiles por peso el ruido es de 5.000 a
+  las fronteras. Con μ = 1/√44 y λ en útiles por peso el ruido es de 5.000 a
   20.000 $ sobre un rango de 144.000 $, la composición es gradual, y la escala
   del ruido de cada estrato se nota en todas partes.
 </p>
@@ -589,13 +591,13 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   <p>
     Y el problema nunca fue sólo el tamaño del número: era que la forma cerrada
     aplicada a pujas heteroscedásticas supone
-    <span class="mono">μ_h = b/λ_h</span>, y como
+    <span class="mono">μ_h = β/λ_h</span>, y como
     <span class="mono">μ</span> es una <strong>precisión</strong>, eso implica
-    que la escala del ruido de utilidad —<span class="mono">1/μ_h = λ_h/b</span>—
+    que la escala del ruido de utilidad —<span class="mono">1/μ_h = λ_h/β</span>—
     sea proporcional a λ: quien más valora el dinero tendría proporcionalmente
     <em>más</em> dispersión idiosincrática. <strong>Un supuesto que nadie eligió
     y que nadie había declarado.</strong> El HEV supone
-    <span class="mono">μ_h = β</span> común —misma dispersión en utilidad para
+    <span class="mono">μ_h = μ</span> común —misma dispersión en utilidad para
     todos, y la de la puja hereda λ—, que es la lectura que el propio Martínez
     respalda al concluir que la varianza de la disposición a pagar crece con el
     ingreso. Con la calibración vigente, ese supuesto accidental es además
@@ -673,7 +675,7 @@ uv run python figuras.py     # las 4 figuras desde el JSON</code></pre>
 <p>
   Determinista: la ciudad se arma con <code>seed 42</code> y los dos solvers
   reciben exactamente el mismo diccionario de argumentos, construido una sola
-  vez por cada <em>r</em>. Los defaults (α, ρ, β, λ vigente) se leen de
+  vez por cada <em>r</em>. Los defaults (α, ρ, μ, λ vigente) se leen de
   <code>LandUseConfig()</code>, y <code>T</code> de <code>T_flujo_libre</code>,
   así que el informe sigue a la calibración del núcleo.
 </p>
@@ -688,7 +690,7 @@ uv run python figuras.py     # las 4 figuras desde el JSON</code></pre>
   <li><a href="../../docs/libro/informe-hev.html">La subasta heteroscedástica, paso a paso</a> — la formulación, la validación y el contraste con la teoría.</li>
   <li><a href="../hev-paso-a-paso/informe.html">La subasta resuelta a mano</a> — el caso mínimo, con tres verificaciones independientes.</li>
   <li><a href="../../docs/libro/hev-cuadratura.html">La cuadratura del HEV, en imágenes</a> — de dónde sale la integral.</li>
-  <li><code>docs/DISCREPANCIES.md</code> D-08 (λ no identificado) y D-31 (β en dos espacios).</li>
+  <li><code>docs/DISCREPANCIES.md</code> D-08 (λ no identificado) y D-31 (μ y β, las dos precisiones).</li>
 </ul>
 
 <footer>
