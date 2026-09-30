@@ -223,7 +223,7 @@
 <div class="indice">
   <strong style="font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Recorrido</strong>
   <ol>
-    <li><a href="#s1">Tres postores y un lote</a> — qué es θ, dónde está λ, qué es β</li>
+    <li><a href="#s1">Tres postores y un lote</a> — qué es θ, dónde está λ, qué es μ</li>
     <li><a href="#s2">La probabilidad es una frecuencia</a> — el sorteo, a mano</li>
     <li><a href="#s3">Por qué no hay fórmula</a> — dónde se rompe el logit</li>
     <li><a href="#s4">El truco: condicionar en el ruido del candidato</a> — de dónde sale la integral, y qué supone</li>
@@ -268,12 +268,18 @@
   <code>land_use/equilibrium.py</code>:
 </p>
 
-<div class="ecuacion" data-tex="\theta_h = \frac{1}{\beta\,\lambda_h}" data-id="(1a)">
-  <span class="id">(1a)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>θ</mi><mi>h</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi>β</mi><mtext> </mtext><msub><mi>λ</mi><mi>h</mi></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">\theta_h = \frac{1}{\beta\,\lambda_h}</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="\theta_h = \frac{1}{\mu\,\lambda_h} = \frac{1}{\beta_h}" data-id="(1a)">
+  <span class="id">(1a)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>θ</mi><mi>h</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi>μ</mi><mtext> </mtext><msub><mi>λ</mi><mi>h</mi></msub></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><msub><mi>β</mi><mi>h</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">\theta_h = \frac{1}{\mu\,\lambda_h} = \frac{1}{\beta_h}</annotation></semantics></math></span>
 </div>
 <div class="ecuacion" data-tex="\mathrm{loc}_h = y_h + \frac{f_h}{\lambda_h} + \theta_h \ln(H_h)" data-id="(1b)">
   <span class="id">(1b)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">c</mi></mrow><mi>h</mi></msub><mo>=</mo><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mfrac><msub><mi>f</mi><mi>h</mi></msub><msub><mi>λ</mi><mi>h</mi></msub></mfrac><mo>+</mo><msub><mi>θ</mi><mi>h</mi></msub><mi>ln</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>H</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{loc}_h = y_h + \frac{f_h}{\lambda_h} + \theta_h \ln(H_h)</annotation></semantics></math></span>
 </div>
+<p class="pie-tabla">
+  La puja aleatoria se escribe aquí <span class="mono">b<sub>h</sub></span>; en Martínez (ec. 4.3) es
+  <span class="mono">θ<sub>hi</sub></span>. En este informe <span class="mono">θ<sub>h</sub></span> es la escala de
+  Train, <span class="mono">1/β<sub>h</sub></span>, y <span class="mono">μ</span> la precisión en útiles de Martínez. La
+  equivalencia completa está en el <a href="cap02-uso-de-suelo.html">capítulo 2</a>.
+</p>
 
 <p>Lo que movés son las cuatro entradas, y son éstas:</p>
 
@@ -320,7 +326,7 @@
 
 <ul>
   <li>
-    <strong><span class="mono">β</span> — cuánto pesa el azar en toda la
+    <strong><span class="mono">μ</span> — cuánto pesa el azar en toda la
     subasta.</strong> Es la precisión del ruido en <em>útiles</em>, común a los
     tres estratos, y por eso su control está aparte de la tabla. Subirlo aprieta
     las tres campanas a la vez: la subasta se vuelve más determinística y gana
@@ -329,36 +335,36 @@
 </ul>
 
 <p>
-  Con el preset «λ uniforme», pasar β de 1 a 2 <strong>no mueve ninguna
+  Con el preset «λ uniforme», pasar μ de 1 a 2 <strong>no mueve ninguna
   puja</strong> —las tres <span class="mono">loc</span> quedan en 2,00 · 1,20 ·
   0,30— y sin embargo la probabilidad de ganar del Alto salta de
-  <strong>61,3 % a 81,0 %</strong>. Ése es β en estado puro: no cambia quién
+  <strong>61,3 % a 81,0 %</strong>. Ése es μ en estado puro: no cambia quién
   ofrece más, cambia cuánto importa ofrecer más.
 </p>
 
 <div class="aviso neutro">
-  <h4>β y λ comparten la escala del ruido, pero sólo λ toca la puja</h4>
+  <h4>μ y λ comparten la escala del ruido, pero sólo λ toca la puja</h4>
   <p>
     En la ec. (1a) los dos entran <strong>multiplicados</strong>: lo único que
-    determina el ruido es el producto <span class="mono">β·λ<sub>h</sub></span>.
-    Se comprueba en el panel: con β = 2 y λ = 0,5 en los tres estratos, los θ
+    determina el ruido es el producto <span class="mono">μ·λ<sub>h</sub></span>.
+    Se comprueba en el panel: con μ = 2 y λ = 0,5 en los tres estratos, los θ
     vuelven a valer 1,00 exactamente igual que en la base — pero
     <span class="mono">f/λ</span> se duplicó y las pujas bajaron a 1,00 · 0,40 ·
     −0,40. <strong>Mismo ruido, distintas pujas.</strong>
   </p>
   <p>
-    Ésa es toda la diferencia entre los dos: β actúa <em>sólo</em> por el canal
+    Ésa es toda la diferencia entre los dos: μ actúa <em>sólo</em> por el canal
     del ruido, λ actúa por los dos. Y hay una asimetría más, que se ve en la
-    tabla: <span class="mono">β</span> es un dial global y
-    <span class="mono">λ<sub>h</sub></span> es por estrato, así que β nunca puede
+    tabla: <span class="mono">μ</span> es un dial global y
+    <span class="mono">λ<sub>h</sub></span> es por estrato, así que μ nunca puede
     volver heteroscedástica una subasta que no lo era.
   </p>
   <p>
     <strong>Una simplificación declarada:</strong> Martínez tiene un
     <span class="mono">μ<sub>h</sub></span> <em>por estrato</em> y el núcleo lo
-    colapsa a un solo <span class="mono">β</span>. La precisión en dinero, que es
+    colapsa a un solo <span class="mono">μ</span>. La precisión en dinero, que es
     la que ve la subasta porque la puja está en dinero, es entonces
-    <span class="mono">b<sub>h</sub> = β·λ<sub>h</sub></span> — la ec. (4.3) del
+    <span class="mono">β<sub>h</sub> = μ·λ<sub>h</sub></span> — la ec. (4.3) del
     libro. Confundir esos dos espacios hacía saltar el despacho del núcleo; está
     contado en <a href="informe-hev.html#s4">informe-hev.html §4</a> y en D-31.
   </p>
@@ -369,7 +375,7 @@
   izquierda y, separadas por un filete, las tres <strong>salidas</strong>:
   <span class="mono">f/λ</span>, <span class="mono">θ</span> y
   <span class="mono">loc</span>. Movés algo a la izquierda y mirás qué se mueve a
-  la derecha. <span class="mono">β</span> va abajo, fuera de la tabla, porque es
+  la derecha. <span class="mono">μ</span> va abajo, fuera de la tabla, porque es
   uno solo para los tres.
 </p>
 
@@ -497,7 +503,7 @@
   </tr>
   <tr>
     <td><strong>el ruido</strong></td>
-    <td><span class="mono">1/(β·λ<sub>h</sub>)</span> → <span class="mono">θ</span></td>
+    <td><span class="mono">1/(μ·λ<sub>h</sub>)</span> → <span class="mono">θ</span></td>
     <td>La ensancha o angosta. Bajar λ <strong>sube θ</strong>: campana más ancha y más baja.</td>
   </tr>
 </table>
@@ -570,7 +576,7 @@
   </p>
 </div>
 
-<h3>1.2 β es el «parámetro de escala» de los textos de transporte</h3>
+<h3>1.2 μ es el «parámetro de escala» de los textos de transporte</h3>
 
 <p>
   Es el mismo objeto: el <span class="mono">μ<sub>h</sub></span> de Martínez y la
@@ -591,17 +597,17 @@
 
 <div class="envoltorio-tabla">
 <table>
-  <tr><th class="simb">β</th><th class="simb">y</th><th class="simb">f</th><th class="n">Q</th></tr>
+  <tr><th class="simb">μ</th><th class="simb">y</th><th class="simb">f</th><th class="n">Q</th></tr>
   <tr><td>1</td><td>3 · 2 · 1</td><td>−1 · −0,8 · −0,7</td><td class="n">17,0 · 45,8 · 37,2 %</td></tr>
   <tr class="destacada"><td>2</td><td>1,5 · 1 · 0,5</td><td>−0,5 · −0,4 · −0,35</td><td class="n">17,0 · 45,8 · 37,2 %</td></tr>
   <tr><td>2</td><td>3 · 2 · 1</td><td>−1 · −0,8 · −0,7</td><td class="n">38,3 · 46,4 · 15,3 %</td></tr>
 </table>
 </div>
 <p class="pie-tabla">
-  Duplicar β y partir al medio <em>todas</em> las utilidades da idéntico. Sólo el
-  producto β·(utilidades) entra en el modelo, que es la razón de que en la
-  literatura μ se normalice a 1 — y de que el default del núcleo sea
-  <code>beta = 1.0</code>.
+  Duplicar μ y partir al medio <em>todas</em> las utilidades da idéntico. Sólo el
+  producto μ·(utilidades) entra en el modelo, que es la razón de que en la
+  literatura μ se normalice a 1 — y de que el default del núcleo fuera
+  <code>mu = 1</code> hasta sep-2026 (hoy es 1/√44; cap. 2, §2).
 </p>
 
 <div class="aviso alerta">
@@ -612,24 +618,24 @@
     <strong>pesos</strong>, y la compensación de la tabla exige escalar también
     <span class="mono">y</span> — que es un ingreso <em>medido</em>, 3.500.000
     $/mes en la configuración del núcleo. No se le puede dividir el sueldo a la
-    gente para compensar un cambio de β.
+    gente para compensar un cambio de μ.
   </p>
-  <p>Se ve en el exponente del logit, con <span class="mono">b = β·λ</span>:</p>
-  <pre><code>b·(y + f/λ + θ·ln H − ū − p)  =  βλ·y  +  β·f  +  ln H  −  βλ(ū + p)
+  <p>Se ve en el exponente del logit, con <span class="mono">β<sub>h</sub> = μ·λ</span>:</p>
+  <pre><code>β·(y + f/λ + θ·ln H − u − p)  =  μλ·y  +  μ·f  +  ln H  −  μλ(u + p)
                                  └────┘    └───┘
                                   y y f entran por separado</code></pre>
   <p>
     Para dejarlo invariante hay que mover los dos. Como <span class="mono">y</span>
-    es dato, <strong>β queda anclado por las unidades monetarias</strong>:
-    <code>beta = 1</code> no es una normalización libre sino una afirmación de
+    es dato, <strong>μ queda anclado por las unidades monetarias</strong>:
+    <code>mu = 1</code> no es una normalización libre sino una afirmación de
     calibración —dice que la precisión del ruido vale 1 útil⁻¹, dados los útiles
-    en que está medido <span class="mono">f</span>—. Por eso mover β cambia
+    en que está medido <span class="mono">f</span>—. Por eso mover μ cambia
     resultados de verdad; la sensibilidad está medida en
     <a href="informe-hev.html#s8">informe-hev.html §8.3</a>.
   </p>
   <p>
     (El término <span class="mono">θ·ln H</span> no rompe la invariancia porque
-    <span class="mono">b·θ·ln H = ln H/λ</span>, que no depende de β. Por eso la
+    <span class="mono">β·θ·ln H = ln H</span>, porque <span class="mono">β·θ = 1</span>: no depende de μ. Por eso la
     tabla da idéntico aun con <span class="mono">H</span> heterogéneo.)
   </p>
 </div>
@@ -1424,7 +1430,7 @@ _PESO[-1] *= 0.5</code></pre>
 
   /** Las dos formulas del modelo, aplicadas literalmente.
    *
-   *  θ_h   = 1/(β·λ_h)                        ← el canal del RUIDO
+   *  θ_h   = 1/(μ·λ_h)                        ← el canal del RUIDO
    *  loc_h = y_h + f_h/λ_h + θ_h·ln(H_h)      ← el canal de la PUJA
    *
    *  Falta `−ū_h`, que es la incognita del equilibrio; este panel no resuelve
@@ -1606,7 +1612,7 @@ _PESO[-1] *= 0.5</code></pre>
     for (k = 0; k < CAMPOS.length; k++) {
       html += '<th title="' + CAMPOS[k].tit + '">' + CAMPOS[k].rot + '</th>';
     }
-    html += '<th class="simb sep-col">f / λ</th><th class="simb">θ = 1/βλ</th><th class="simb loc">loc</th></tr>';
+    html += '<th class="simb sep-col">f / λ</th><th class="simb">θ = 1/μλ</th><th class="simb loc">loc</th></tr>';
     for (i = 0; i < 3; i++) {
       html += '<tr><td class="est" style="color:' + EST[i].c + '">' + EST[i].n + "</td>";
       for (k = 0; k < CAMPOS.length; k++) {
@@ -1621,7 +1627,7 @@ _PESO[-1] *= 0.5</code></pre>
     }
     html += "</table></div>";
     html += '<div class="pie-ctrl">' +
-      '<span class="ctrl"><label title="escala global del ruido">β</label>' +
+      '<span class="ctrl"><label title="escala global del ruido">μ</label>' +
       '<input type="range" data-p="beta" data-i="-1" min="25" max="400" value="' +
       Math.round(S.beta * 100) + '"><span class="val" id="v-beta"></span></span>' +
       '<span class="ctrl"><label>presets</label><span class="grupo" id="presets"></span></span>' +

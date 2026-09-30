@@ -241,7 +241,7 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "50 % del rango de α·T; el propio código: «SIN FUENTE»",
         True,
     ),
-    "land_use.beta": (DECISION, "1/√44, aproximación de segundo momento (D-41)", False),
+    "land_use.mu": (DECISION, "1/√44, aproximación de segundo momento (D-41)", False),
     "land_use.tol": (DECISION, "numérico", False),
     "land_use.max_iter": (DECISION, "numérico", False),
     "land_use.forma": (DECISION, "D-13: oferta determinista por formas", False),

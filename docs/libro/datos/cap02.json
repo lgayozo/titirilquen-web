@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-15",
-  "commit": "5910114",
+  "fecha": "2026-09-30",
+  "commit": "e324842",
   "script": "docs/libro/datos/datos_cap02.py",
   "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α=1, ρ=0, β=1/√44≈0,151, λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
  },
@@ -73,8 +73,8 @@
     "forma": "normal",
     "convergio": true,
     "iteraciones": 38,
-    "error_max_hogares": 2.805e-09,
-    "error_relativo_max": 2.597e-13
+    "error_max_hogares": 2.807e-09,
+    "error_relativo_max": 2.599e-13
    },
    {
     "forma": "uniforme",
@@ -87,22 +87,22 @@
     "forma": "exponencial",
     "convergio": true,
     "iteraciones": 42,
-    "error_max_hogares": 2.616e-09,
-    "error_relativo_max": 2.422e-13
+    "error_max_hogares": 2.614e-09,
+    "error_relativo_max": 2.42e-13
    },
    {
     "forma": "meseta",
     "convergio": true,
     "iteraciones": 29,
-    "error_max_hogares": 1.659e-09,
-    "error_relativo_max": 1.536e-13
+    "error_max_hogares": 1.655e-09,
+    "error_relativo_max": 1.533e-13
    },
    {
     "forma": "bimodal",
     "convergio": true,
     "iteraciones": 30,
-    "error_max_hogares": 7.276e-10,
-    "error_relativo_max": 6.737e-14
+    "error_max_hogares": 7.258e-10,
+    "error_relativo_max": 6.72e-14
    },
    {
     "forma": "valle",
@@ -115,12 +115,12 @@
   "por_escala": [
    {
     "suma_H": 3600,
-    "error_max_hogares": 2.315e-10,
+    "error_max_hogares": 2.312e-10,
     "iteraciones": 38
    },
    {
     "suma_H": 36000,
-    "error_max_hogares": 2.805e-09,
+    "error_max_hogares": 2.807e-09,
     "iteraciones": 38
    },
    {
@@ -157,7 +157,7 @@
     "razon_escalas": 3.9,
     "convergio": true,
     "iteraciones": 38,
-    "error_balance_hogares": 2.805e-09,
+    "error_balance_hogares": 2.807e-09,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -212,9 +212,9 @@
   "desvio_relativo_max_pct": 0.0
  },
  "perillas": {
-  "beta": [
+  "mu": [
    {
-    "beta": 0.05,
+    "mu": 0.05,
     "dist_km": [
      2.869,
      3.285,
@@ -225,7 +225,7 @@
     "iteraciones": 19
    },
    {
-    "beta": 0.1508,
+    "mu": 0.1508,
     "dist_km": [
      1.918,
      2.951,
@@ -236,7 +236,7 @@
     "iteraciones": 38
    },
    {
-    "beta": 0.5,
+    "mu": 0.5,
     "dist_km": [
      0.996,
      2.897,
@@ -247,7 +247,7 @@
     "iteraciones": 108
    },
    {
-    "beta": 1.0,
+    "mu": 1.0,
     "dist_km": [
      0.792,
      2.902,
@@ -408,9 +408,9 @@
    0.0,
    0.0
   ],
-  "beta": 0.1508,
-  "beta_formula": "1/√VIAJES_MES",
-  "b_h_por_clp": [
+  "mu": 0.1508,
+  "mu_formula": "1/√VIAJES_MES",
+  "beta_h_por_clp": [
    4.8290509214591493e-05,
    9.658162145187213e-05,
    0.00018712547822857453
@@ -480,12 +480,12 @@
   "k": 0.1508,
   "hev_beta_1_con_lambda_alpha_rho_por_k": {
    "max_delta_Q": 1.27675647831893e-14,
-   "max_delta_p_clp": 9.313225746154785e-10,
+   "max_delta_p_clp": 4.656612873077393e-10,
    "max_delta_u_clp": 0.0
   },
   "hev_beta_1_con_solo_lambda_por_k": {
-   "max_delta_Q": 0.5098083887905736,
-   "max_delta_p_clp": 591648.2106016949,
+   "max_delta_Q": 0.5098083887905738,
+   "max_delta_p_clp": 591648.2106016884,
    "max_delta_u_clp": 222969.58201679448
   },
   "cerrada_beta_1_con_lambda_alpha_rho_por_k": {

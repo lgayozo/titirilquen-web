@@ -262,11 +262,11 @@ def _metricas(c) -> dict:
 
 
 def perillas() -> dict:
-    """β (nitidez) y ρ (densidad): los dos parámetros propios del módulo."""
-    out = {"beta": [], "rho": []}
-    for b in (0.05, LandUseConfig().beta, 0.5, 1.0):
-        cfg = LandUseConfig(H_por_estrato=H_APP, beta=b, max_iter=5000)
-        out["beta"].append({"beta": round(b, 4), **_metricas(_ciudad(cfg))})
+    """μ (nitidez) y ρ (densidad): los dos parámetros propios del módulo."""
+    out = {"mu": [], "rho": []}
+    for m in (0.05, LandUseConfig().mu, 0.5, 1.0):
+        cfg = LandUseConfig(H_por_estrato=H_APP, mu=m, max_iter=5000)
+        out["mu"].append({"mu": round(m, 4), **_metricas(_ciudad(cfg))})
     for r in (0.0, 0.005, 0.01, 0.02, 0.03):
         cfg = LandUseConfig(
             H_por_estrato=H_APP,
@@ -347,11 +347,11 @@ def configuracion_vigente() -> dict:
         "lambda_utiles_por_clp": [e.lambda_ for e in cfg.estratos],
         "alpha": [e.alpha for e in cfg.estratos],
         "rho": [e.rho for e in cfg.estratos],
-        "beta": round(cfg.beta, 4),
-        "beta_formula": "1/√VIAJES_MES",
-        "b_h_por_clp": [cfg.beta * e.lambda_ for e in cfg.estratos],
+        "mu": round(cfg.mu, 4),
+        "mu_formula": "1/√VIAJES_MES",
+        "beta_h_por_clp": [cfg.mu * e.lambda_ for e in cfg.estratos],
         "escala_ruido_puja_clp_mes": [
-            round(1.0 / (cfg.beta * e.lambda_)) for e in cfg.estratos
+            round(1.0 / (cfg.mu * e.lambda_)) for e in cfg.estratos
         ],
         "VIAJES_MES": VIAJES_MES,
         "vot_transporte_clp_h": [round(t * 60.0 / c) for t, c in zip(bt, bc)],
@@ -389,7 +389,7 @@ def escalas() -> dict:
     for h, e in enumerate(cfg.estratos):
         senal_T = float((T[h, ok].max() - T[h, ok].min()) * e.alpha / e.lambda_)
         senal_dens = float((dens[ok].max() - dens[ok].min()) * e.rho / e.lambda_)
-        ruido = 1.0 / (cfg.beta * e.lambda_)
+        ruido = 1.0 / (cfg.mu * e.lambda_)
         ruido_1 = 1.0 / e.lambda_
         filas.append(
             {
@@ -418,11 +418,11 @@ def escalas() -> dict:
 
 
 def reescala_beta() -> dict:
-    """β = 1 con (λ, α, ρ) × β_default reproduce el mismo equilibrio: sólo los
-    productos β·λ, β·α y β·ρ entran en la subasta. Se mide en la rama HEV (el
+    """μ = 1 con (λ, α, ρ) × μ_default reproduce el mismo equilibrio: sólo los
+    productos μ·λ, μ·α y μ·ρ entran en la subasta. Se mide en la rama HEV (el
     default) y en la cerrada (λ uniforme)."""
     base = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
-    k = base.beta
+    k = base.mu
 
     def reescalada(cfg: LandUseConfig, que: tuple[str, ...]) -> LandUseConfig:
         estr = tuple(
@@ -434,7 +434,7 @@ def reescala_beta() -> dict:
             )
             for e in cfg.estratos
         )
-        return cfg.model_copy(update={"estratos": estr, "beta": 1.0})
+        return cfg.model_copy(update={"estratos": estr, "mu": 1.0})
 
     def compara(a: LandUseConfig, b: LandUseConfig) -> dict:
         ra = _ciudad_app(a)[0].result

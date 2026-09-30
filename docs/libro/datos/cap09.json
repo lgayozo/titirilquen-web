@@ -780,7 +780,7 @@
     "fuente": "50 % del rango de α·T; el propio código: «SIN FUENTE»"
    },
    {
-    "parametro": "land_use.beta",
+    "parametro": "land_use.mu",
     "valor": 0.15,
     "etiqueta": "decisión",
     "sin_fuente": false,
@@ -1994,7 +1994,7 @@
     "max_delta_pp": 0.0
    },
    {
-    "parametro": "land_use.beta",
+    "parametro": "land_use.mu",
     "valor": 0.15,
     "perturbado": 0.165,
     "max_delta_pp": 0.2484

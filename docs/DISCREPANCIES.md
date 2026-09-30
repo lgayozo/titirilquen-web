@@ -902,6 +902,32 @@ separa. La corrección de acá elige la de utilidad (`b_h = β·λ_h`), que es l
 consistente con la ec. (4.3) y con el HEV. Ver también AU-13: mientras `β` no se
 ancle, su nivel queda libre.
 
+**Actualización 2026-09-30: las letras de Martínez, sin corrimiento.** El texto
+de arriba conserva la notación de cuando se escribió, que tenía las letras
+corridas un lugar respecto del capítulo 4 de Martínez: llamaba `β` a la
+precisión en **útiles** y `b` a la precisión en **dinero**. En Martínez (§4.2–4.6)
+la primera es `μ_h` (ec. 4.2, `ε_hi ~ Gumbel(0, μ_h)`) y la segunda `β_h = λ_h·μ_h`
+(ec. 4.3), que en la subasta cerrada (4.25)–(4.27) se indexa por localización,
+`β_i`. Desde esa fecha el código y el libro usan sus letras:
+
+- el campo de configuración `LandUseConfig.beta` pasó a llamarse `mu`
+  (schema de escenarios v5; un archivo v4 falla explícito, sin migración);
+- `solve_subasta(mu=…)` recibe la precisión en útiles; `solve_logit(beta_i=…)` y
+  `_solve_fixed_point(beta_i)` reciben la precisión en dinero;
+- en la rama HEV, `theta` sigue a Train (§4.5): es la **escala** `θ_h = 1/β_h`, y
+  choca con la `θ_hi` de Martínez, que es la puja aleatoria. La equivalencia
+  completa está en el cap. 2 del libro, §1.
+
+De paso se unificó el precio: la rama cerrada devolvía la moda `p_i` y la HEV el
+máximo esperado; ahora las dos devuelven el precio esperado `p*_i = p_i + γ/β_i`
+de (4.27). El nivel de precios de la rama cerrada sube `γ/β_i`; el gradiente, la
+localización y la línea base no cambian.
+
+**Ojo: Martínez tampoco es consistente entre capítulos.** En la cita de la
+p. 242 (cap. 9), `e_h = β·λ_h` usa `β` como escala en **útiles**, o sea el `μ` de
+su propio capítulo 4. El libro sigue la notación del capítulo 4, que es donde
+está el modelo; leída con ella, la cita dice `e_h = μ·λ_h = β_h` contra `e_h = μ`.
+
 ## D-32 — Uso de suelo: la densidad de `f` es exógena, no una externalidad de localización
 
 **Qué hace el código.** La atractividad de la parcela es
@@ -1993,7 +2019,7 @@ cumple, y eso está en D-39.
 | D-28 | Transporte: densidad física hab/km (n_celdas puramente numérico)                                           | Continuación de D-26                                 | Alta                       |
 | D-29 | Emisiones de metro por tren-km (economías de escala visibles)                                              | Corrección conceptual                                | Media                      |
 | D-30 | Tres baselines de "sin congestión" (convenciones)                                                          | Documentado, sin cambio de código                    | Baja                       |
-| D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp)                             | Bug corregido, línea base intacta                    | Alta                       |
+| D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp); desde sep-2026 `mu` y `β_h` como en Martínez                             | Bug corregido, línea base intacta                    | Alta                       |
 | D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez)                                      | Simplificación declarada, sin cambio de código       | Media                      |
 | D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo)                                | Calibración corregida, línea base movida y declarada | Alta                       |
 | D-34 | Suelo: accesibilidad = logsum mensual de transporte, α = 1, λ =                                            | b_costo                                              | , β = 1/√44; D-22 revisada | Ancla del original recuperada, línea base movida y declarada | Alta |
