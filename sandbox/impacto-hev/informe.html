@@ -4,84 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Titirilquen — Qué cambió al pasar al HEV</title>
+<link rel="stylesheet" href="../../docs/libro/libro.css">
 <style>
-  :root {
-    --ink: #1a1a1a; --ink-2: #444; --muted: #6b6b6b; --paper: #ffffff;
-    --paper-2: #f6f4ef; --rule: #d8d4cc; --accent: #b4532a; --ok: #2e6e4e;
-    --alerta: #8a5a12; --frio: #2f6690;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 0; background: var(--paper); color: var(--ink);
-    font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.55;
-  }
-  .pagina { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
-  header.portada { border-bottom: 3px double var(--ink); padding-bottom: 18px; margin-bottom: 8px; }
-  .kicker {
-    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .18em;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
-  }
-  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; font-weight: 600; }
-  .bajada { font-size: 16px; color: var(--ink-2); margin: 0 0 14px; max-width: 62ch; }
-  .meta { font-family: "Consolas", monospace; font-size: 12px; color: var(--muted); }
-  h2 {
-    font-size: 21px; margin: 44px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule);
-    font-weight: 600;
-  }
-  h2 .num { color: var(--accent); font-weight: 700; margin-right: 8px; }
-  h3 { font-size: 16px; margin: 26px 0 4px; font-weight: 600; }
-  p { margin: 8px 0; max-width: 74ch; }
-  ul, ol { max-width: 72ch; margin: 8px 0; padding-left: 26px; }
-  li { margin: 4px 0; }
-  code, .mono {
-    font-family: "Consolas", "Courier New", monospace; font-size: .88em;
-    background: var(--paper-2); padding: 1px 5px; border-radius: 3px;
-  }
-  pre {
-    font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; line-height: 1.5;
-    background: var(--paper-2); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
-    padding: 12px 14px; overflow-x: auto; margin: 12px 0;
-  }
-  pre code { background: none; padding: 0; }
-  .ecuacion {
-    font-family: "Cambria Math", Georgia, serif; font-size: 15.5px; text-align: center;
-    margin: 14px auto; padding: 10px; background: var(--paper-2); border: 1px solid var(--rule);
-    max-width: 680px; overflow-x: auto;
-  }
-  .ecuacion .id { float: right; color: var(--muted); font-size: 12px; font-family: "Consolas", monospace; }
-  /* MathML lo renderiza el navegador con la fuente matematica del sistema.
-     `Cambria Math` es la que .ecuacion ya pedia, asi que la tipografia no
-     cambia de familia: sube el cuerpo y aparecen fracciones e integrales de
-     verdad. Se genera con `node tools/renderiza_ecuaciones.js` desde el
-     `data-tex` de cada .ecuacion. */
-  .ecuacion math { font-size: 1.18em; }
-  .ecuacion .katex { font-family: inherit; }
-  table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; font-size: 13.5px; }
-  .envoltorio-tabla { overflow-x: auto; }
-  th {
-    font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; letter-spacing: .06em;
-    text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600;
-    border-bottom: 2px solid var(--ink); padding: 6px 10px 4px;
-  }
-  td { border-bottom: 1px solid var(--rule); padding: 5px 10px; vertical-align: top; }
-  th.simb {
-    /* Las griegas son sensibles a la caja: un encabezado con simbolos se
-       escribe como se escribe. */
-    text-transform: none; letter-spacing: .02em; font-size: 11.5px;
-  }
-  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
-  tr.destacada td { background: #f3e9e2; font-weight: 600; }
-  .pie-tabla { font-size: 12px; color: var(--muted); margin: 2px 0 0; max-width: 76ch; }
-  .aviso {
-    border: 1px solid var(--rule); border-left: 4px solid var(--accent);
-    background: var(--paper-2); padding: 10px 14px; margin: 14px 0; max-width: 76ch;
-  }
-  .aviso.ok { border-left-color: var(--ok); }
-  .aviso.neutro { border-left-color: var(--muted); }
-  .aviso.alerta { border-left-color: var(--alerta); }
-  .aviso p { margin: 4px 0; }
-  .aviso h4 { margin: 0 0 2px; font-size: 14px; }
-  .aviso.idea p { font-size: 15.5px; }
+  /* Lo único propio de este informe: las figuras. El resto es libro.css,
+     el mismo estilo que los capítulos del libro. */
   figure { margin: 22px 0 8px; }
   figure img { width: 100%; display: block; border: 1px solid var(--rule); }
   figcaption {
@@ -92,17 +18,7 @@
     font-weight: 700; color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
     margin-right: 8px; font-size: 11px;
   }
-  .indice { background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 18px; margin: 22px 0; }
-  .indice ol { margin: 4px 0; }
-  .indice a { color: var(--ink); text-decoration: none; }
-  .indice a:hover { text-decoration: underline; }
-  .refs { font-size: 13.5px; }
-  footer { margin-top: 56px; border-top: 3px double var(--ink); padding-top: 12px;
-           font-size: 12.5px; color: var(--muted); }
-  @media print {
-    .pagina { padding: 0; max-width: none; }
-    h2 { break-after: avoid; } table, pre, .aviso, figure { break-inside: avoid; }
-  }
+  @media print { figure { break-inside: avoid; } }
 </style>
 </head>
 <body>
@@ -112,7 +28,7 @@
   <div class="kicker">Titirilquen · Side project</div>
   <h1>Qué cambió al pasar al HEV</h1>
   <p class="bajada">
-    Los mismos datos, los mismos <span class="mono">λ</span> heterogéneos,
+    Los mismos datos, los mismos <span class="mat" data-tex="\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span> heterogéneos,
     resueltos con la forma cerrada —lo que hacía el simulador— y con la
     subasta heteroscedástica. La diferencia entre las dos <em>es</em> el impacto
     de aplicar la formulación correcta, sin recalibrar nada.
@@ -146,7 +62,7 @@
 
 <p>
   Hasta que se implementó el HEV, el módulo de uso de suelo tenía una limitación
-  conocida: <strong>los <span class="mono">λ_h</span> tenían que ser iguales</strong>.
+  conocida: <strong>los <span class="mat" data-tex="\lambda_{h}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_{h}</annotation></semantics></math></span> tenían que ser iguales</strong>.
   Si se los cambiaba, el resultado se movía — pero ese movimiento no era
   atribuible a la diferencia de utilidad marginal del ingreso, sino a que se
   estaba aplicando la forma cerrada a pujas que ya no eran homoscedásticas. Un
@@ -154,8 +70,8 @@
 </p>
 <p>
   Este documento mide cuánto cuesta esa diferencia. Dos corridas de la misma
-  ciudad, con los mismos <code>y</code>, <code>α</code>, <code>ρ</code>,
-  <code>λ</code>, <code>μ</code> y la misma accesibilidad <code>T</code>:
+  ciudad, con los mismos <span class="mat" data-tex="y"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span>, <span class="mat" data-tex="\alpha"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span>, <span class="mat" data-tex="\rho"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi></mrow><annotation encoding="application/x-tex">\rho</annotation></semantics></math></span>,
+  <span class="mat" data-tex="\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span>, <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> y la misma accesibilidad <span class="mat" data-tex="T"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span>:
 </p>
 
 <div class="envoltorio-tabla">
@@ -163,13 +79,13 @@
   <tr><th></th><th>solver</th><th>qué es</th></tr>
   <tr>
     <td><strong>antes</strong></td>
-    <td><code>solve_logit</code></td>
-    <td>La forma cerrada, con <strong>una</strong> precisión en dinero común a los tres estratos, <span class="mono">β = μ·λ<sub>medio</sub></span>. Es lo que hacía el simulador hasta el commit del HEV: <code>ciudad.py</code> llamaba <code>solve_logit(..., beta=cfg.beta, ...)</code>, y esa función aplica <code>beta</code> tal cual sobre la puja en dinero. Entonces λ valía 1 en los tres estratos, así que <span class="mono">β = μ</span>.</td>
+    <td style="white-space: nowrap"><code>solve_logit</code></td>
+    <td>La forma cerrada, con <strong>una</strong> precisión en dinero común a los tres estratos, <span class="mat" data-tex="\beta_{i} = \mu \cdot \lambda_{\mathrm{medio}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>i</mi></msub><mo>=</mo><mi>μ</mi><mo>⋅</mo><msub><mi>λ</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\beta_{i} = \mu \cdot \lambda_{\mathrm{medio}}</annotation></semantics></math></span>. Es lo que hacía el simulador hasta el commit del HEV: <code>ciudad.py</code> llamaba <code>solve_logit(..., beta=cfg.beta, ...)</code>, y esa función aplica <code>beta</code> tal cual sobre la puja en dinero. Entonces λ valía 1 en los tres estratos, así que <span class="mat" data-tex="\beta_{i} = \mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>i</mi></msub><mo>=</mo><mi>μ</mi></mrow><annotation encoding="application/x-tex">\beta_{i} = \mu</annotation></semantics></math></span>.</td>
   </tr>
   <tr>
     <td><strong>ahora</strong></td>
-    <td><code>solve_subasta</code></td>
-    <td>Con <span class="mono">λ</span> heterogéneos despacha al HEV.</td>
+    <td style="white-space: nowrap"><code>solve_subasta</code></td>
+    <td>Con <span class="mat" data-tex="\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span> heterogéneos despacha al HEV.</td>
   </tr>
 </table>
 </div>
@@ -180,17 +96,16 @@
     No hace falta desenterrar código viejo: <code>solve_logit</code>
     <strong>conservó su semántica</strong> a través de D-31 —se la dejó intacta a
     propósito, por ser la referencia homoscedástica con la que se demuestra
-    D-08—, así que sigue aplicando su <code>beta</code> como precisión en dinero,
+    D-08—, así que sigue aplicando su <code>beta_i</code> como precisión en dinero,
     igual que antes. Y los tests que fijan esa función siguen pasando.
   </p>
   <p>
     Lo que sí cambió desde entonces es la <strong>calibración</strong>: hoy λ está
     en útiles por peso (D-34) y μ = 1/√44 es una precisión en útiles, así que la
-    conversión honesta a dinero es <span class="mono">β<sub>h</sub> = λ<sub>h</sub>·μ</span>,
-    la ec. (4.3) de Martínez (D-31). La forma cerrada sólo admite un <span class="mono">β</span>, y hay que
-    elegirlo: se toma el del estrato medio, <span class="mono">β = μ·λ<sub>medio</sub> =
-    9,66·10⁻⁵ $⁻¹</span>, o sea un ruido de puja de 10.354 $ para los tres. Es una
-    elección; con otro <span class="mono">β</span> común los números cambian, y
+    conversión honesta a dinero es <span class="mat" data-tex="\beta_{h} = \lambda_{h}\cdot \mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>h</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo>⋅</mo><mi>μ</mi></mrow><annotation encoding="application/x-tex">\beta_{h} = \lambda_{h}\cdot \mu</annotation></semantics></math></span>,
+    la ec. (4.3) de Martínez (D-31). La forma cerrada sólo admite un <span class="mat" data-tex="\beta_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\beta_{i}</annotation></semantics></math></span>, y hay que
+    elegirlo: se toma el del estrato medio, <span class="mat" data-tex="\beta_{i} = \mu \cdot \lambda_{\mathrm{medio}} = 9{,}66\cdot 10^{-5} \$^{-1}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>i</mi></msub><mo>=</mo><mi>μ</mi><mo>⋅</mo><msub><mi>λ</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi></mrow></msub><mo>=</mo><mn>9,66</mn><mo>⋅</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>5</mn></mrow></msup><msup><mi mathvariant="normal">$</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\beta_{i} = \mu \cdot \lambda_{\mathrm{medio}} = 9{,}66\cdot 10^{-5} \$^{-1}</annotation></semantics></math></span>, o sea un ruido de puja de 10.354 $ para los tres. Es una
+    elección; con otro <span class="mat" data-tex="\beta_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\beta_{i}</annotation></semantics></math></span> común los números cambian, y
     por eso el barrido se ancla en <em>r</em> = 1, donde la elección no importa
     porque ahí los dos modelos son el mismo.
   </p>
@@ -198,18 +113,18 @@
 
 <p>
   <strong>Por qué un barrido y no un caso.</strong> No sabemos el
-  <span class="mono">λ</span> verdadero. Lo que sí se puede afirmar es cómo crece
+  <span class="mat" data-tex="\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span> verdadero. Lo que sí se puede afirmar es cómo crece
   el impacto con la heterogeneidad, así que se barre la razón <em>r</em> con
-  <span class="mono">λ = (λ<sub>m</sub>/r, λ<sub>m</sub>, λ<sub>m</sub>·r)</span>,
-  donde <span class="mono">λ<sub>m</sub> = 0,641·10⁻³</span> es el λ vigente del
+  <span class="mat" data-tex="\lambda = (\lambda_{m}/r, \lambda_{m}, \lambda_{m}\cdot r)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mo stretchy="false">(</mo><msub><mi>λ</mi><mi>m</mi></msub><mi mathvariant="normal">/</mi><mi>r</mi><mo separator="true">,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo separator="true">,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo>⋅</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\lambda = (\lambda_{m}/r, \lambda_{m}, \lambda_{m}\cdot r)</annotation></semantics></math></span>,
+  donde <span class="mat" data-tex="\lambda_{m} = 0{,}641\cdot 10^{-3}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>m</mi></msub><mo>=</mo><mn>0,641</mn><mo>⋅</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>3</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\lambda_{m} = 0{,}641\cdot 10^{-3}</annotation></semantics></math></span> es el λ vigente del
   estrato medio. En <em>r</em> = 1 los dos modelos son el mismo y sirve de ancla:
   <strong>esa fila tiene que dar cero exacto</strong>, y da, lo que confirma que la
   comparación mide el modelo y no una diferencia de implementación. Se agrega la
   fila <strong>vigente</strong>: los tres λ de la app
-  (0,320 / 0,641 / 1,241 ×10⁻³), que son |b<sub>costo</sub>| de transporte (D-34):
-  desde el schema v6 el núcleo los deriva de la demanda en vez de guardar una copia (D-41),
-  que no son exactamente geométricos; su razón equivalente
-  <span class="mono">√(λ<sub>bajo</sub>/λ<sub>alto</sub>)</span> es 1,97.
+  (0,320 / 0,641 / 1,241 ×10⁻³), que no son exactamente geométricos; su razón equivalente
+  <span class="mat" data-tex="\sqrt{\lambda_{\mathrm{bajo}}/\lambda_{\mathrm{alto}}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msqrt><mrow><msub><mi>λ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi></mrow></msub><mi mathvariant="normal">/</mi><msub><mi>λ</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow></msub></mrow></msqrt></mrow><annotation encoding="application/x-tex">\sqrt{\lambda_{\mathrm{bajo}}/\lambda_{\mathrm{alto}}}</annotation></semantics></math></span> es 1,97.
+  Son |b<sub>costo</sub>| de transporte (D-34), y desde el schema v6 el núcleo los deriva
+  de la demanda en vez de guardar una copia (D-41).
 </p>
 
 <div class="aviso ok">
@@ -217,10 +132,10 @@
   <p>
     La utilidad marginal del ingreso es <strong>decreciente en el ingreso</strong>
     —al rico un peso adicional le sirve menos—, así que
-    <span class="mono">λ_alto &lt; λ_medio &lt; λ_bajo</span>. Martínez lo dice
+    <span class="mat" data-tex="\lambda_{\mathrm{alto}} &lt; \lambda_{\mathrm{medio}} &lt; \lambda_{\mathrm{bajo}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow></msub><mo>&lt;</mo><msub><mi>λ</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi></mrow></msub><mo>&lt;</mo><msub><mi>λ</mi><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\lambda_{\mathrm{alto}} &lt; \lambda_{\mathrm{medio}} &lt; \lambda_{\mathrm{bajo}}</annotation></semantics></math></span>. Martínez lo dice
     explícitamente (p. 77) al derivar la disposición a pagar, y de ahí concluye
     que <em>la varianza de la disposición a pagar crece con el ingreso</em>. La
-    forma <span class="mono">λ = (λ<sub>m</sub>/r, λ<sub>m</sub>, λ<sub>m</sub>·r)</span>
+    forma <span class="mat" data-tex="\lambda = (\lambda_{m}/r, \lambda_{m}, \lambda_{m}\cdot r)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mo stretchy="false">(</mo><msub><mi>λ</mi><mi>m</mi></msub><mi mathvariant="normal">/</mi><mi>r</mi><mo separator="true">,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo separator="true">,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo>⋅</mo><mi>r</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\lambda = (\lambda_{m}/r, \lambda_{m}, \lambda_{m}\cdot r)</annotation></semantics></math></span>
     cumple esa monotonía en todas las filas.
   </p>
   <p>
@@ -238,7 +153,7 @@
     <em>r</em> = 1,25 el orden todavía es plano (3,9 / 3,4 / 3,6 km) y en
     <em>r</em> = 1,5 ya es el de Alonso (Fig. 04). O sea que la fila ancla es matemática, no una
     ciudad realista, y la heterogeneidad de λ no es un refinamiento: es lo que
-    ordena la ciudad. Barrer <span class="mono">λ_alto</span> por encima de los
+    ordena la ciudad. Barrer <span class="mat" data-tex="\lambda_{\mathrm{alto}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\lambda_{\mathrm{alto}}</annotation></semantics></math></span> por encima de los
     otros —económicamente al revés— no se hace, por la misma razón.
   </p>
 </div>
@@ -266,18 +181,18 @@ Q[:, i] = np.exp(log_q - logsumexp(log_q))</code></pre>
 <p>Coincide término a término, con dos cosas que conviene declarar:</p>
 <ul>
   <li>
-    En el libro <span class="mono">β<sub>i</sub></span> está subindicado por
+    En el libro <span class="mat" data-tex="\beta_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\beta_{i}</annotation></semantics></math></span> está subindicado por
     <strong>la localización</strong>: la precisión puede variar entre parcelas,
     aunque debe ser común entre postores de una misma parcela —que es lo que
     hace posible la forma cerrada—. El código usa <strong>un escalar</strong>
     para toda la ciudad. Es una simplificación adicional, no un error.
   </li>
   <li>
-    El <span class="mono">− p<sub>i</sub></span> no está en el
-    <span class="mono">w<sub>hi</sub></span> del libro. Está permitido porque el
+    El <span class="mat" data-tex="- p_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">- p_{i}</annotation></semantics></math></span> no está en el
+    <span class="mat" data-tex="w_{hi}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">w_{hi}</annotation></semantics></math></span> del libro. Está permitido porque el
     propio libro anota, debajo de la ecuación, que la probabilidad es
     <em>invariante a una constante aditiva sobre las pujas</em>, y
-    <span class="mono">p<sub>i</sub></span> es constante entre los <em>h</em> de
+    <span class="mat" data-tex="p_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">p_{i}</annotation></semantics></math></span> es constante entre los <em>h</em> de
     una columna. El código lo deja por estabilidad numérica.
   </li>
 </ul>
@@ -293,13 +208,13 @@ p     = log_p / beta_i                      # la moda, p_i
 p_esperado = p + np.euler_gamma / beta_i    # p*_i, lo que se devuelve</code></pre>
 
 <p>
-  La rama cerrada calcula <span class="mono">p<sub>i</sub></span>, el
+  La rama cerrada calcula <span class="mat" data-tex="p_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">p_{i}</annotation></semantics></math></span>, el
   <strong>parámetro de localización</strong> del máximo de las pujas, y le suma
-  <span class="mono">γ/β<sub>i</sub></span>: devuelve el <strong>precio
-  esperado</strong> <span class="mono">p*<sub>i</sub></span>, la ec. (4.27)
+  <span class="mat" data-tex="\gamma /\beta_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\gamma /\beta_{i}</annotation></semantics></math></span>: devuelve el <strong>precio
+  esperado</strong> <span class="mat" data-tex="p^*_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>p</mi><mi>i</mi><mo>∗</mo></msubsup></mrow><annotation encoding="application/x-tex">p^*_{i}</annotation></semantics></math></span>, la ec. (4.27)
   completa. El HEV devuelve el mismo concepto, el máximo esperado, integrado
   directamente. Hasta sep-2026 la rama cerrada devolvía sólo la moda, y el
-  nivel de precios saltaba exactamente <span class="mono">γ/β</span> al pasar de
+  nivel de precios saltaba exactamente <span class="mat" data-tex="\gamma /\beta_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\gamma /\beta_{i}</annotation></semantics></math></span> al pasar de
   una rama a la otra; ahora las dos devuelven lo mismo.
 </p>
 
@@ -321,20 +236,20 @@ p_esperado = p + np.euler_gamma / beta_i    # p*_i, lo que se devuelve</code></p
   </div>
   <p class="pie-tabla">
     La brecha sigue a la última columna. Con el precio de la rama cerrada sin
-    <span class="mono">γ/β</span>, como era antes, cada brecha era 5.976 $ mayor.
-    La brecha es la media de <span class="mono">p<sub>HEV</sub> − p<sub>cerrada</sub></span>
-    sobre las celdas con oferta; el rango es el de <span class="mono">p<sub>cerrada</sub></span>.
+    <span class="mat" data-tex="\gamma /\beta_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\gamma /\beta_{i}</annotation></semantics></math></span>, como era antes, cada brecha era 5.976 $ mayor.
+    La brecha es la media de <span class="mat" data-tex="p_{\mathrm{HEV}} - p_{\mathrm{cerrada}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi mathvariant="normal">H</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">V</mi></mrow></msub><mo>−</mo><msub><mi>p</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi></mrow></msub></mrow><annotation encoding="application/x-tex">p_{\mathrm{HEV}} - p_{\mathrm{cerrada}}</annotation></semantics></math></span>
+    sobre las celdas con oferta; el rango es el de <span class="mat" data-tex="p_{\mathrm{cerrada}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi></mrow></msub></mrow><annotation encoding="application/x-tex">p_{\mathrm{cerrada}}</annotation></semantics></math></span>.
   </p>
   <p>
     <strong>El nivel absoluto del precio no está determinado por el modelo</strong>
     —en ninguna de las dos ramas—. Depende de la normalización
-    <span class="mono">ū<sub>alto</sub> = 0</span>, que es una convención
+    <span class="mat" data-tex="\bar{u}_{\mathrm{alto}} = 0"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\bar{u}_{\mathrm{alto}} = 0</annotation></semantics></math></span>, que es una convención
     arbitraria: se ve en la fórmula que correr todos los
-    <span class="mono">ū</span> en <em>c</em> corre todos los
-    <span class="mono">p</span> en <span class="mono">−c</span>. Las dos ramas
+    <span class="mat" data-tex="\bar{u}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover></mrow><annotation encoding="application/x-tex">\bar{u}</annotation></semantics></math></span> en <em>c</em> corre todos los
+    <span class="mat" data-tex="p"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span> en <span class="mat" data-tex="-c"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mi>c</mi></mrow><annotation encoding="application/x-tex">-c</annotation></semantics></math></span>. Las dos ramas
     normalizan en el mismo lugar, pero llegan a
-    <span class="mono">ū<sub>medio</sub></span> y
-    <span class="mono">ū<sub>bajo</sub></span> distintos —porque son modelos
+    <span class="mat" data-tex="\bar{u}_{\mathrm{medio}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\bar{u}_{\mathrm{medio}}</annotation></semantics></math></span> y
+    <span class="mat" data-tex="\bar{u}_{\mathrm{bajo}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo>ˉ</mo></mover><mrow><mi mathvariant="normal">b</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\bar{u}_{\mathrm{bajo}}</annotation></semantics></math></span> distintos —porque son modelos
     distintos— y el nivel se corre con eso.
   </p>
   <p>
@@ -358,9 +273,9 @@ p_esperado = p + np.euler_gamma / beta_i    # p*_i, lo que se devuelve</code></p
 </div>
 <p>
   Es la (2.4b) del cap. 2 del libro, en letras de Martínez:
-  <span class="mono">ℓ<sub>hi</sub> = w<sub>hi</sub> + (ln H<sub>h</sub>)/β<sub>h</sub></span>
+  <span class="mat" data-tex="\ell_{hi} = w_{hi} + (\ln H_{h})/\beta_{h}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>+</mo><mo stretchy="false">(</mo><mi>ln</mi><mo>⁡</mo><msub><mi>H</mi><mi>h</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\ell_{hi} = w_{hi} + (\ln H_{h})/\beta_{h}</annotation></semantics></math></span>
   es la localización de la puja de <em>h</em> en <em>i</em>,
-  <span class="mono">β<sub>h</sub> = λ<sub>h</sub>·μ</span> su precisión y <em>s</em> la
+  <span class="mat" data-tex="\beta_{h} = \lambda_{h}\cdot \mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>h</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo>⋅</mo><mi>μ</mi></mrow><annotation encoding="application/x-tex">\beta_{h} = \lambda_{h}\cdot \mu</annotation></semantics></math></span> su precisión y <em>s</em> la
   variable de integración, con peso Gumbel estándar. Train la escribe para un decisor
   que elige entre alternativas:
 </p>
@@ -368,14 +283,14 @@ p_esperado = p + np.euler_gamma / beta_i    # p*_i, lo que se devuelve</code></p
   <span class="id">Train §4.5</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>=</mo><mo>∫</mo><mrow><mo fence="true">[</mo><munder><mo>∏</mo><mrow><mi>j</mi><mo mathvariant="normal">≠</mo><mi>i</mi></mrow></munder><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mo stretchy="false">(</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>V</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>θ</mi><mi>i</mi></msub><mi>w</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>θ</mi><mi>j</mi></msub></mrow></msup></mrow></msup><mo fence="true">]</mo></mrow><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup></mrow></msup><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>w</mi></mrow></msup><mtext> </mtext><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">P_{ni} = \int \left[\prod_{j \neq i} e^{-e^{-(V_{ni}-V_{nj}+\theta_i w)/\theta_j}}\right] e^{-e^{-w}}\, e^{-w}\, dw</annotation></semantics></math></span>
 </div>
 <p>
-  con la traducción <span class="mono">V<sub>ni</sub> → ℓ<sub>hi</sub></span>,
-  <span class="mono">θ<sub>j</sub> → 1/β<sub>g</sub></span> y
-  <span class="mono"><em>w</em> → <em>s</em></span>. Dos letras de Train chocan con las de
+  con la traducción <span class="mat" data-tex="V_{ni} \to \ell_{hi}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo>→</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{ni} \to \ell_{hi}</annotation></semantics></math></span>,
+  <span class="mat" data-tex="\theta_{j} \to 1/\beta_{g}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>j</mi></msub><mo>→</mo><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">\theta_{j} \to 1/\beta_{g}</annotation></semantics></math></span> y
+  <span class="mat" data-tex="w \to s"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>→</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">w \to s</annotation></semantics></math></span>. Dos letras de Train chocan con las de
   Martínez: su θ es una <strong>escala</strong>, mientras que la
-  <span class="mono">θ<sub>hi</sub></span> de Martínez es la puja aleatoria; y su <em>w</em>
+  <span class="mat" data-tex="\theta_{hi}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\theta_{hi}</annotation></semantics></math></span> de Martínez es la puja aleatoria; y su <em>w</em>
   es la variable de integración, mientras que
-  <span class="mono">w<sub>hi</sub></span> es la disposición a pagar. El código sigue a Train,
-  con <code>theta</code> = <span class="mono">1/β<sub>h</sub></span> y <code>_W</code> = <em>s</em>.
+  <span class="mat" data-tex="w_{hi}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">w_{hi}</annotation></semantics></math></span> es la disposición a pagar. El código sigue a Train,
+  con <code>theta</code> = <span class="mat" data-tex="1/\beta_{h}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">1/\beta_{h}</annotation></semantics></math></span> y <code>_W</code> = <em>s</em>.
 </p>
 
 <p>En <code>q_hev</code>:</p>
@@ -385,8 +300,8 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 
 <p>
   Coincide término a término: en el argumento, la escala del estrato
-  <em>h</em> (<code>theta[h]</code> = <span class="mono">1/β<sub>h</sub></span>) multiplica a
-  <em>s</em> y la del rival (<code>theta[g]</code> = <span class="mono">1/β<sub>g</sub></span>)
+  <em>h</em> (<code>theta[h]</code> = <span class="mat" data-tex="1/\beta_{h}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">1/\beta_{h}</annotation></semantics></math></span>) multiplica a
+  <em>s</em> y la del rival (<code>theta[g]</code> = <span class="mat" data-tex="1/\beta_{g}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">1/\beta_{g}</annotation></semantics></math></span>)
   divide, y el peso tabulado es exactamente la densidad de valor extremo por el
   ancho del trapecio.
 </p>
@@ -395,24 +310,24 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 
 <p>
   Las dos ramas reciben el <strong>mismo</strong>
-  <span class="mono">score = y + f/λ</span>. Lo único que las separa es la escala
+  <span class="mat" data-tex="\mathrm{score} = y + f/\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi></mrow><mo>=</mo><mi>y</mi><mo>+</mo><mi>f</mi><mi mathvariant="normal">/</mi><mi>λ</mi></mrow><annotation encoding="application/x-tex">\mathrm{score} = y + f/\lambda</annotation></semantics></math></span>. Lo único que las separa es la escala
   del ruido:
 </p>
 
 <div class="envoltorio-tabla">
 <table>
   <tr><th></th><th class="simb">escala del ruido de la puja</th><th>qué supone</th></tr>
-  <tr><td><strong>cerrada</strong></td><td class="simb"><span class="mono">1/β = 1/(μ·λ<sub>m</sub>)</span>, común: 10.354 $</td><td>que la varianza de la disposición a pagar es igual entre estratos</td></tr>
-  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mono">1/β<sub>h</sub> = 1/(μ·λ<sub>h</sub>)</span> (el θ<sub>h</sub> de Train): 20.708 / 10.354 / 5.344 $</td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
+  <tr><td><strong>cerrada</strong></td><td class="simb"><span class="mat" data-tex="1/\beta_{i} = 1/(\mu \cdot \lambda_{m})"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>μ</mi><mo>⋅</mo><msub><mi>λ</mi><mi>m</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/\beta_{i} = 1/(\mu \cdot \lambda_{m})</annotation></semantics></math></span>, común: 10.354 $</td><td>que la varianza de la disposición a pagar es igual entre estratos</td></tr>
+  <tr><td><strong>HEV</strong></td><td class="simb"><span class="mat" data-tex="1/\beta_{h} = 1/(\mu \cdot \lambda_{h})"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>μ</mi><mo>⋅</mo><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">1/\beta_{h} = 1/(\mu \cdot \lambda_{h})</annotation></semantics></math></span> (el θ<sub>h</sub> de Train): 20.708 / 10.354 / 5.344 $</td><td>que la precisión del ruido <em>en útiles</em> es común, y la de la puja hereda λ</td></tr>
 </table>
 </div>
 
 <p>
-  La escala <span class="mono">1/β<sub>h</sub></span> del HEV sale de la ec. (4.3) del
+  La escala <span class="mat" data-tex="1/\beta_{h}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">1/\beta_{h}</annotation></semantics></math></span> del HEV sale de la ec. (4.3) del
   libro: la disposición a pagar es
-  <span class="mono">θ<sub>hi</sub> = y<sub>h</sub> + (f<sub>h</sub>−u<sub>h</sub>)/λ<sub>h</sub> + ε<sub>hi</sub>/λ<sub>h</sub></span>,
-  con <span class="mono">ε/λ ~ Gumbel(0, β<sub>h</sub>)</span> y
-  <span class="mono">β<sub>h</sub> = λ<sub>h</sub>·μ<sub>h</sub></span>. La
+  <span class="mat" data-tex="\theta_{hi} = y_{h} + (f_{h}-u_{h})/\lambda_{h} + \varepsilon_{hi}/\lambda_{h}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>y</mi><mi>h</mi></msub><mo>+</mo><mo stretchy="false">(</mo><msub><mi>f</mi><mi>h</mi></msub><mo>−</mo><msub><mi>u</mi><mi>h</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>λ</mi><mi>h</mi></msub><mo>+</mo><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mi mathvariant="normal">/</mi><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\theta_{hi} = y_{h} + (f_{h}-u_{h})/\lambda_{h} + \varepsilon_{hi}/\lambda_{h}</annotation></semantics></math></span>,
+  con <span class="mat" data-tex="\varepsilon /\lambda \sim \mathrm{Gumbel}(0, \beta_{h})"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mi mathvariant="normal">/</mi><mi>λ</mi><mo>∼</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msub><mi>β</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon /\lambda \sim \mathrm{Gumbel}(0, \beta_{h})</annotation></semantics></math></span> y
+  <span class="mat" data-tex="\beta_{h} = \lambda_{h}\cdot \mu_{h}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>h</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo>⋅</mo><msub><mi>μ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\beta_{h} = \lambda_{h}\cdot \mu_{h}</annotation></semantics></math></span>. La
   precisión en dinero <strong>lleva λ</strong>; la forma cerrada la omite, y ése
   es exactamente el error que este documento mide.
 </p>
@@ -466,8 +381,8 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
 </table>
 </div>
 <p class="pie-tabla">
-  «Hogares reubicados» es <span class="mono">Σ<sub>h,i</sub> |ΔQ<sub>hi</sub>|·S<sub>i</sub> / 2</span>:
-  el transporte mínimo entre las dos asignaciones. El <span class="mono">/2</span>
+  «Hogares reubicados» es <span class="mat" data-tex="\sum_{h,i} |\Delta Q_{hi}|\cdot S_{i} / 2"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mrow><mi>h</mi><mo separator="true">,</mo><mi>i</mi></mrow></msub><mi mathvariant="normal">∣</mi><mi mathvariant="normal">Δ</mi><msub><mi>Q</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mi mathvariant="normal">∣</mi><mo>⋅</mo><msub><mi>S</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\sum_{h,i} |\Delta Q_{hi}|\cdot S_{i} / 2</annotation></semantics></math></span>:
+  el transporte mínimo entre las dos asignaciones. El <span class="mat" data-tex="/2"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">/2</annotation></semantics></math></span>
   está porque lo que sale de un lado entra en otro y sin él se contaría dos veces.
 </p>
 
@@ -486,7 +401,7 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   Con la calibración vigente, <strong>casi uno de cada once hogares queda en
   otra celda</strong>: 8.956 de 99.900. Y a diferencia de lo que pasaba con la
   calibración del 1-sep —donde los reubicados se estancaban en 1,7 % mientras
-  <span class="mono">max |ΔQ|</span> seguía subiendo, o sea que todo el error
+  <span class="mat" data-tex="\max |\Delta Q|"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>max</mi><mo>⁡</mo><mi mathvariant="normal">∣</mi><mi mathvariant="normal">Δ</mi><mi>Q</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\max |\Delta Q|</annotation></semantics></math></span> seguía subiendo, o sea que todo el error
   estaba en pocas celdas—, acá las dos columnas crecen juntas hasta
   <em>r</em> = 3. Eso ya adelanta que el error <em>no</em> está concentrado. La
   §4 muestra dónde está.
@@ -507,7 +422,7 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   <img src="salida/fig2-donde.png" alt="Perfil espacial de la diferencia entre los dos modelos">
   <figcaption>
     <span class="n">Fig. 02</span>
-    Arriba, dónde está la vivienda. Abajo, <span class="mono">ΔQ</span> celda a
+    Arriba, dónde está la vivienda. Abajo, <span class="mat" data-tex="\Delta Q"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>Q</mi></mrow><annotation encoding="application/x-tex">\Delta Q</annotation></semantics></math></span> celda a
     celda con la calibración vigente. Los cambios de signo caen sobre las
     fronteras entre estratos —2,2 y 4,3 km del CBD— pero entre ellas el error
     no es nulo: en 166 de las 200 celdas con oferta, algún estrato cambia más de
@@ -520,7 +435,7 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   forma cerrada le da a los tres estratos el mismo ruido de puja, 10.354 $; el
   HEV le da al alto el doble (20.708 $) y al bajo la mitad (5.344 $). Con la
   mitad del ruido que le corresponde, el alto quedaba demasiado concentrado en
-  el centro —<span class="mono">Q</span> de 0,90 en las celdas junto al CBD,
+  el centro —<span class="mat" data-tex="Q"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span> de 0,90 en las celdas junto al CBD,
   contra 0,79 con el HEV— y el medio, expulsado de ahí (0,09 contra 0,21),
   quedaba demasiado afuera. Las
   fronteras también se corren, y las dos hacia adentro:
@@ -616,13 +531,13 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
   <p>
     Y el problema nunca fue sólo el tamaño del número: era que la forma cerrada
     aplicada a pujas heteroscedásticas supone
-    <span class="mono">μ_h = β/λ_h</span>, y como
-    <span class="mono">μ</span> es una <strong>precisión</strong>, eso implica
-    que la escala del ruido de utilidad —<span class="mono">1/μ_h = λ_h/β</span>—
+    <span class="mat" data-tex="\mu_{h} = \beta_{i}/\lambda_{h}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>h</mi></msub><mo>=</mo><msub><mi>β</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\mu_{h} = \beta_{i}/\lambda_{h}</annotation></semantics></math></span>, y como
+    <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> es una <strong>precisión</strong>, eso implica
+    que la escala del ruido de utilidad —<span class="mat" data-tex="1/\mu_{h} = \lambda_{h}/\beta_{i}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>μ</mi><mi>h</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mi mathvariant="normal">/</mi><msub><mi>β</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">1/\mu_{h} = \lambda_{h}/\beta_{i}</annotation></semantics></math></span>—
     sea proporcional a λ: quien más valora el dinero tendría proporcionalmente
     <em>más</em> dispersión idiosincrática. <strong>Un supuesto que nadie eligió
     y que nadie había declarado.</strong> El HEV supone
-    <span class="mono">μ_h = μ</span> común —misma dispersión en utilidad para
+    <span class="mat" data-tex="\mu_{h} = \mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>h</mi></msub><mo>=</mo><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu_{h} = \mu</annotation></semantics></math></span> común —misma dispersión en utilidad para
     todos, y la de la puja hereda λ—, que es la lectura que el propio Martínez
     respalda al concluir que la varianza de la disposición a pagar crece con el
     ingreso. Con la calibración vigente, ese supuesto accidental es además
@@ -677,7 +592,7 @@ acum[h] = _PESO @ z          # _PESO = e^{-e^{-w}}·e^{-w}·dw</code></pre>
     Calibración recorre esa heterogeneidad: <em>s</em> = 0 iguala los λ, <em>s</em> = 1
     es la vigente (razón equivalente 1,97) y <em>s</em> = 2 la lleva a ≈ 3,9. No es el
     mismo experimento: ahí mover λ es mover b<sub>costo</sub>, que cambia también
-    <span class="mono">T</span>; este informe mueve λ con <span class="mono">T</span> fija
+    <span class="mat" data-tex="T"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span>; este informe mueve λ con <span class="mat" data-tex="T"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span> fija
     para aislar el modelo de la subasta.
   </li>
 </ul>
@@ -707,7 +622,7 @@ uv run python figuras.py     # las 4 figuras desde el JSON</code></pre>
   reciben exactamente el mismo diccionario de argumentos, construido una sola
   vez por cada <em>r</em>. α, ρ y μ se leen de <code>LandUseConfig()</code>; el λ
   vigente, de la demanda calibrada con <code>lambda_desde_demanda</code> (schema v6), y
-  <code>T</code> de <code>T_flujo_libre</code>, así que el informe sigue a la calibración
+  <span class="mat" data-tex="T"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span> de <code>T_flujo_libre</code>, así que el informe sigue a la calibración
   del núcleo.
 </p>
 <p>
