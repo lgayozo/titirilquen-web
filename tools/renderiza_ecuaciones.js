@@ -43,6 +43,7 @@ const ARCHIVOS = [
     .sort()
     .map((f) => `docs/libro/${f}`),
   "sandbox/hev-paso-a-paso/informe.html",
+  "sandbox/ibl-dia-a-dia/informe.html",
   "sandbox/impacto-hev/informe.html",
   "sandbox/impacto-rho/informe.html",
 ];

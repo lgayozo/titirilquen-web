@@ -24,8 +24,8 @@ réplica es una persona idéntica con su propia secuencia de `ε`.
 
 **Supuestos declarados.**
 * El prior del día 1 es una instancia con `a = 1` para los dos modos (ver `ibl.py`).
-* `ε` es normal, i.i.d. por día, sólo sobre el auto y con media cero; NO se
-  trunca en flujo libre (ver el comentario en `simular`: truncar sesga).
+* `ε` es normal, i.i.d. por día, sólo sobre el auto y con media cero, sin
+  truncar (ver el comentario en `simular`).
 * Bici y caminata quedan deshabilitadas: el documento habla de auto contra
   el otro modo, y cada modo extra diluye el efecto sin agregar nada en fase 0.
 """
@@ -133,7 +133,15 @@ def prob_auto(v: np.ndarray, mu: float) -> float:
     return float(e[0] / e.sum())
 
 
-def simular(esc: Escenario, sigma: float, mu: float, d: float, rng: np.random.Generator) -> dict:
+def simular(
+    esc: Escenario,
+    sigma: float,
+    mu: float,
+    d: float,
+    rng: np.random.Generator,
+    *,
+    truncar: bool = False,
+) -> dict:
     """`REPLICAS` personas idénticas e independientes, `DIAS` días cada una."""
     n = REPLICAS
     x = np.zeros((n, DIAS + 1, 2))
@@ -163,14 +171,18 @@ def simular(esc: Escenario, sigma: float, mu: float, d: float, rng: np.random.Ge
         auto = rng.random(n) < p
         elige_auto[:, t - 1] = auto
         # Experiencia del día: el auto con su ε, el metro sin ruido (fase 0).
-        # SIN truncar en flujo libre: el equilibrio del auto (12,0 min) está a
-        # 0,8 min del flujo libre (11,2), así que truncar por abajo sesga la
-        # media experimentada varios minutos hacia arriba y eso, con una ventaja
-        # real de 0,8 min, vuelca a todos por sesgo y no por hot stove (medido:
-        # «cree que el auto es peor» ≈ 100 % en las 27 combinaciones). ε es ruido
-        # de percepción con media cero; sólo se impide un tiempo negativo.
+        # ε es ruido de percepción con media cero, SIN truncar: ni en flujo libre ni en
+        # cero. Truncar hace que el ruido deje de preservar la media —sube el tiempo
+        # medio vivido, más en el modo con τ corto— y con σ comparable a τ eso se
+        # confunde con los efectos que se buscan (medido el 30-sep-2026: en la fase 0
+        # la cuota final con μ = 10 y σ = 20 era 0,255 truncando y 0,417 sin truncar).
+        # Una experiencia puede salir negativa con σ grande: es percepción, no tiempo
+        # físico. `truncar=True` queda para el análisis de sensibilidad.
+        # Primero se truncó en flujo libre, con el mismo problema en grande:
+        # «cree que el auto es peor» ≈ 100 % en las 27 combinaciones.
         eps = rng.normal(0.0, sigma, size=n)
-        x[auto, t, 0] = np.maximum(esc.equilibrio.auto_total + eps[auto], 0.0)
+        vivido = esc.equilibrio.auto_total + eps[auto]
+        x[auto, t, 0] = np.maximum(vivido, 0.0) if truncar else vivido
         a[auto, t, 0] = True
         x[~auto, t, 1] = x[0, 0, 1]
         a[~auto, t, 1] = True

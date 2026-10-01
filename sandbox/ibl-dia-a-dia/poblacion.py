@@ -8,10 +8,20 @@ flujos cargan la red (`resolver_oferta`: BPR del auto, frecuencia del metro),
 y cada persona experimenta el tiempo real de su modo en su celda más un `ε`
 propio. Al día siguiente decide con el IBL sobre lo que vivió.
 
-**Día 0 = el equilibrio MSA de la app.** `run_msa` con la configuración web
-entrega la población (agentes con celda, estrato y auto), los tiempos de
-equilibrio por celda y la partición modal. Esos tiempos son la «información
-exógena de buena calidad» del documento: el prior de todos.
+**Sólo auto y metro, y todos con auto (desde el 30-sep-2026).** La ciudad de
+la app con dos cambios: `prob_auto = 1` en los tres estratos y
+`modos_habilitados = (Auto, Metro)`. Así cada persona elige entre los mismos
+dos modos que en las fases 0 y 0-b, y los dos tienen ruido. Hasta esa fecha la
+fase 1 tenía los cuatro modos, con bici y caminata sin ruido: eran un refugio
+hacia el que migraba la elección por construcción, y parte de la pérdida de
+cuota de auto y metro era ese artefacto. Quien vive a menos de 1 km del CBD no
+tiene metro (D-69) y sólo puede ir en auto: carga la red, pero no elige.
+
+**Día 0 = el equilibrio MSA de esa ciudad.** `run_msa` entrega la población
+(agentes con celda y estrato; la localización de equilibrio ya lee la
+accesibilidad con auto para todos), los tiempos de equilibrio por celda y la
+partición modal. Esos tiempos son la «información exógena de buena calidad»
+del documento: el prior de todos.
 
 **Cómo entra la utilidad del núcleo sin reimplementarla.** La utilidad de un
 modo es lineal en su tiempo de viaje: `V = … + b_tiempo_viaje · t`. Se llama
@@ -21,13 +31,14 @@ tiempos del día 0 —`V_ref`— y la utilidad de cada persona cada día es
 Todo lo que cambia día a día vive en `b_ni`; la parte no lineal (ASC, costo,
 penalizaciones, factibilidad) queda tal como la calcula el núcleo.
 
+**Unidad de análisis: la población.** Los 29.008 agentes del equilibrio que
+eligen, a la vez y acoplados por la congestión; las cuotas son fracciones de
+agentes (o de sus viajes), no de réplicas de una persona.
+
 **Supuestos declarados.**
 * `ε ~ N(0, σ)`, i.i.d. por persona y día, sobre el AUTO (tiempo total) y sobre
   el METRO (tiempo en vehículo, que es el que pesa `b_tiempo_viaje`; espera y
-  acceso quedan en `V_ref`). Sin truncar en flujo libre (ver fase 0).
-* Bici y caminata no tienen `ε` y su utilidad queda congelada en `V_ref`: sus
-  penalizaciones por umbral no son lineales en el tiempo y no son el objeto del
-  documento. Sus flujos sí cargan la red cada día.
+  acceso quedan en `V_ref`). Sin truncar (ver `persona.py`).
 * Teletrabajadores fuera: no eligen.
 * La escala del logit `μ` multiplica las utilidades antes del softmax; `μ = 1`
   es el logit del núcleo.
@@ -44,10 +55,24 @@ from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.equilibrium.msa import run_msa
+from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.supply.oferta import resolver_oferta
 
 from ibl import tiempo_percibido
 from persona import _config_web
+
+#: Los dos modos que se eligen en la fase 1 (y en las fases 0 y 0-b).
+MODOS_FASE1 = ("Auto", "Metro")
+
+
+def _config_fase1() -> tuple[SimulationConfig, LandUseConfig]:
+    """La ciudad de la app con todos los estratos con auto y sólo auto y metro."""
+    sim, lu = _config_web()
+    for h in sim.demand.estratos:
+        sim.demand.estratos[h].prob_auto = 1.0
+    sim.modos_habilitados = MODOS_FASE1
+    return sim, lu
+
 
 SALIDA = Path(__file__).parent / "salida"
 MODOS = ("Auto", "Metro", "Bici", "Caminata")
@@ -64,7 +89,7 @@ class Escenario:
     """La ciudad, la población y la referencia del día 0, listas para vectorizar."""
 
     def __init__(self) -> None:
-        sim, lu = _config_web()
+        sim, lu = _config_fase1()
         trace = run_msa(sim, lu, localizacion="equilibrio")
         s = trace.iteraciones[-1]
         self.sim: SimulationConfig = sim
@@ -144,7 +169,50 @@ def _suerte(primera_eps: np.ndarray, ult_share: np.ndarray) -> tuple[float, floa
     return float(mala.mean()), float(buena.mean())
 
 
-def simular(esc: Escenario, sigma: float, mu: float, d: float, rng: np.random.Generator) -> dict:
+#: Bandas de la ventaja |V_auto − V_metro| (útiles) para leer el efecto de
+#: variabilidad por tamaño de la ventaja: con ventajas grandes no hay recorrido.
+BANDAS = ((0.0, 0.1), (0.1, 0.3), (0.3, 0.6), (0.6, np.inf))
+
+
+def _cuota_mejor(esc: Escenario, ult: np.ndarray, v_am: np.ndarray) -> dict:
+    """Efecto de variabilidad del pago, en la población.
+
+    Entre quienes tienen auto y metro disponibles, la fracción de sus viajes en
+    auto o metro (últimos días) hecha en el que de verdad es mejor para ellos
+    —por la utilidad verdadera media de esos días—. El efecto dice que con más
+    σ esa cuota se acerca a 1/2. Se promedia por persona, en total y por banda
+    de ventaja; las personas que no usaron ni auto ni metro no cuentan.
+    """
+    ambos = esc.feas[:, 0] & esc.feas[:, 1]
+    mejor = np.where(v_am[:, 0] >= v_am[:, 1], 0, 1)
+    n_am = ((ult == 0) | (ult == 1)).sum(axis=1)
+    n_mejor = (ult == mejor[:, None]).sum(axis=1)
+    ok = ambos & (n_am > 0)
+    cuota = np.where(ok, n_mejor / np.maximum(n_am, 1), np.nan)
+    ventaja = np.abs(v_am[:, 0] - v_am[:, 1])
+    out = {"todos": float(np.nanmean(cuota[ok])), "n": int(ok.sum()), "bandas": []}
+    for lo, hi in BANDAS:
+        sel = ok & (ventaja >= lo) & (ventaja < hi)
+        out["bandas"].append(
+            {
+                "desde": lo,
+                "hasta": None if np.isinf(hi) else hi,
+                "cuota": float(np.nanmean(cuota[sel])) if sel.any() else float("nan"),
+                "n": int(sel.sum()),
+            }
+        )
+    return out
+
+
+def simular(
+    esc: Escenario,
+    sigma: float,
+    mu: float,
+    d: float,
+    rng: np.random.Generator,
+    *,
+    truncar: bool = False,
+) -> dict:
     N, L = esc.N, esc.ciudad.n_celdas
     x = np.zeros((N, DIAS + 1, 2))
     a = np.zeros((N, DIAS + 1, 2), dtype=bool)
@@ -159,6 +227,9 @@ def simular(esc: Escenario, sigma: float, mu: float, d: float, rng: np.random.Ge
     t_auto_medio = np.zeros(DIAS)  # tiempo real del auto, promedio sobre quienes lo usaron
     t_metro_medio = np.zeros(DIAS)
     bienestar = np.zeros(DIAS)  # utilidad VERDADERA media del modo elegido
+    # Utilidad verdadera de auto y metro acumulada en los últimos días: define
+    # cuál de los dos es el mejor para cada persona (efecto de variabilidad).
+    v_am_ult = np.zeros((N, 2))
 
     for t in range(1, DIAS + 1):
         b = tiempo_percibido(x, a, t, d)
@@ -179,7 +250,8 @@ def simular(esc: Escenario, sigma: float, mu: float, d: float, rng: np.random.Ge
         real = np.stack([t_auto_dia[esc.celda], t_viaje_dia[esc.celda]], axis=1)
         for k in (0, 1):
             usa = modo == k
-            x[usa, t, k] = np.maximum(real[usa, k] + eps[usa], 0.0)
+            vivido = real[usa, k] + eps[usa]
+            x[usa, t, k] = np.maximum(vivido, 0.0) if truncar else vivido
             a[usa, t, k] = True
             nuevo = usa & np.isnan(primera_eps[:, k])
             primera_eps[nuevo, k] = eps[nuevo]
@@ -190,6 +262,8 @@ def simular(esc: Escenario, sigma: float, mu: float, d: float, rng: np.random.Ge
         V_true = esc.V_ref.copy()
         V_true[:, :2] += esc.btv[:, None] * (real - t_ref)
         bienestar[t - 1] = V_true[np.arange(N), modo].mean()
+        if t > DIAS - ULTIMOS:
+            v_am_ult += V_true[:, :2] / ULTIMOS
 
     ult = modo_hist[:, -ULTIMOS:]
     fila = {
@@ -203,6 +277,7 @@ def simular(esc: Escenario, sigma: float, mu: float, d: float, rng: np.random.Ge
         "t_metro_medio_por_dia": t_metro_medio.tolist(),
         "bienestar_por_dia": bienestar.tolist(),
     }
+    fila["cuota_mejor_auto_metro"] = _cuota_mejor(esc, ult, v_am_ult)
     for k, nombre in ((0, "auto"), (1, "metro")):
         puede = esc.feas[:, k]
         share_ult = (ult == k).mean(axis=1)
