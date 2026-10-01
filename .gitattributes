@@ -5,3 +5,12 @@
 # desactualizado un archivo cuyo contenido era idéntico.
 docs/libro/*.html text eol=lf
 sandbox/*/informe.html text eol=lf
+
+# Los fuentes del núcleo van con LF también en Windows: `sync:core` empaqueta
+# esos archivos tal cual en el wheel de Pyodide, y el job «Contrato generado al
+# día» compara ese wheel byte a byte con el que compila el CI en Linux. Con
+# `core.autocrlf=true` el wheel construido en Windows llevaba CRLF en 20 de sus
+# 32 archivos y el job fallaba aunque el código fuera idéntico (2026-09-30).
+packages/titirilquen_core/**/*.py text eol=lf
+packages/titirilquen_core/README.md text eol=lf
+packages/titirilquen_core/pyproject.toml text eol=lf
