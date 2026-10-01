@@ -19,20 +19,30 @@ vercel          # primer deploy, configura el proyecto
 vercel --prod   # deploy a producción
 ```
 
-Vercel detecta `vercel.json` y ejecuta `npm run build:core-wheel && npm run build`. El wheel de `titirilquen_core` se compila durante el build (requiere Python en el runner — Vercel lo tiene disponible por defecto en imágenes recientes).
+Vercel detecta `vercel.json` y ejecuta su `buildCommand`, que es **`npm run build`
+a secas**: el wheel de `titirilquen_core` **no** se compila en el deploy. Va
+versionado en el repo (`apps/web/public/pyodide/*.whl`) precisamente para que el
+build no necesite Python.
 
-> ⚠️ Si Vercel no tiene Python disponible, pre-compila el wheel localmente y comitéalo:
+> ⚠️ **La consecuencia**: si tocaste el núcleo y no corriste `sync:core` antes de
+> pushear, Vercel publica el wheel viejo sin ningún aviso. El sitio va a andar —
+> con la matemática anterior.
+>
 > ```bash
-> cd apps/web && npm run build:core-wheel
-> git add public/pyodide/*.whl && git commit -m "chore: pin core wheel"
+> npm run sync:core --workspace @titirilquen/web
+> git add apps/web/public/pyodide/*.whl apps/web/src/lib/gen
 > ```
-> y cambia `buildCommand` a sólo `npm run build`.
+>
+> El wheel se sirve con `Cache-Control: immutable` por un año, así que el nombre
+> del archivo (la versión del paquete) es lo único que invalida la caché: al
+> cambiar el núcleo de manera incompatible, sube la versión en el `pyproject.toml`
+> del core.
 
 ### Opción B — Import desde GitHub
 
 1. En Vercel Dashboard → New Project → Importar el repo.
 2. Root Directory: `apps/web`.
-3. Build command: `npm run build:core-wheel && npm run build` (o sólo `npm run build` si pre-compilaste).
+3. Build command: `npm run build` (el wheel viaja pre-compilado en el repo).
 4. Output Directory: `dist`.
 5. Environment Variables:
    - `VITE_API_BASE` = URL de tu API en Fly.io (ej: `https://titirilquen-api.fly.dev`). Déjalo vacío si sólo quieres el motor local (Pyodide).
@@ -66,9 +76,8 @@ O usar una variable de entorno para no hardcodear.
 Sin backend, sólo Pyodide:
 
 ```bash
-cd apps/web
-npm run build:core-wheel
-VITE_API_BASE="disabled" npm run build
+npm run sync:core --workspace @titirilquen/web   # sólo si tocaste el núcleo
+cd apps/web && VITE_API_BASE="disabled" npm run build
 # Publica `dist/` en gh-pages
 ```
 

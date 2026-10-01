@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { AgentRecord, Modo } from "@/lib/types";
+import { COLOR_MODO, ORDEN_MODOS } from "@/lib/modos";
 
 /** Un grupo de agentes a comparar (un estrato, o estrato×tenencia, etc.). */
 export interface AgentGroup {
@@ -17,21 +18,26 @@ interface ModeShareBarsProps {
   className?: string;
 }
 
-const MODE_ORDER: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
-const MODE_COLORS: Record<Modo, string> = {
-  Auto: "var(--auto)",
-  Metro: "var(--metro)",
-  Bici: "var(--bici)",
-  Caminata: "var(--walk)",
-  Teletrabajo: "var(--tele)",
-};
-
 const LABEL_W = 84;
 const COUNT_W = 46;
 const ROW_H = 22;
 const ROW_GAP = 8;
 const TOP_PAD = 6;
 const LEGEND_H = 22;
+
+/** Segmento bajo el cursor.
+ *
+ *  Antes esto era un `<title>` nativo: aparece recién tras ~1 s de reposo, sin
+ *  estilo y fuera del tema, y en la práctica el usuario no lo encontraba. El
+ *  tooltip propio es el mismo que ya usan la FIG. 00 y el perfil de flujo, así
+ *  que no agrega un dialecto más. */
+interface HoverSegmento {
+  grupo: string;
+  modo: Modo;
+  conteo: number;
+  share: number;
+  total: number;
+}
 
 /**
  * Barras horizontales 100 % apiladas (reparto modal por grupo). Todo se dibuja
@@ -43,6 +49,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [W, setW] = useState(420);
+  const [hover, setHover] = useState<HoverSegmento | null>(null);
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
@@ -66,10 +73,10 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
         for (const a of g.agents) {
           if (a.modo_elegido) counts[a.modo_elegido] += 1;
         }
-        const total = MODE_ORDER.reduce((s, m) => s + counts[m], 0);
+        const total = ORDEN_MODOS.reduce((s, m) => s + counts[m], 0);
         return { ...g, counts, total };
       }),
-    [groups]
+    [groups],
   );
 
   const barX = LABEL_W;
@@ -103,17 +110,30 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                 {r.label}
               </text>
               {r.tag && (
-                <text x={LABEL_W - 8} y={y + ROW_H / 2 + 10} textAnchor="end" className="label">
+                <text
+                  x={LABEL_W - 8}
+                  y={y + ROW_H / 2 + 10}
+                  textAnchor="end"
+                  className="label"
+                >
                   {r.tag}
                 </text>
               )}
 
               {/* Fondo de la barra */}
-              <rect x={barX} y={y} width={barW} height={ROW_H} fill="var(--paper-2)" stroke="var(--rule)" strokeWidth={1} />
+              <rect
+                x={barX}
+                y={y}
+                width={barW}
+                height={ROW_H}
+                fill="var(--paper-2)"
+                stroke="var(--rule)"
+                strokeWidth={1}
+              />
 
               {/* Segmentos apilados */}
               {r.total > 0 &&
-                MODE_ORDER.map((m) => {
+                ORDEN_MODOS.map((m) => {
                   const share = r.counts[m] / r.total;
                   if (share <= 0) return null;
                   const w = share * barW;
@@ -121,15 +141,38 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                   cursor += w;
                   return (
                     <g key={m}>
-                      <rect x={x} y={y} width={w} height={ROW_H} fill={MODE_COLORS[m]} opacity={0.92}>
-                        <title>{`${t(`modes.${m.toLowerCase()}`)}: ${r.counts[m].toLocaleString()} (${(share * 100).toFixed(1)}%)`}</title>
-                      </rect>
+                      <rect
+                        x={x}
+                        y={y}
+                        width={w}
+                        height={ROW_H}
+                        fill={COLOR_MODO[m]}
+                        opacity={
+                          hover && hover.grupo === r.label && hover.modo === m
+                            ? 1
+                            : 0.92
+                        }
+                        onMouseEnter={() =>
+                          setHover({
+                            grupo: r.label,
+                            modo: m,
+                            conteo: r.counts[m],
+                            share,
+                            total: r.total,
+                          })
+                        }
+                        onMouseLeave={() => setHover(null)}
+                      />
                       {w > 26 && (
                         <text
                           x={x + w / 2}
                           y={y + ROW_H / 2 + 3}
                           textAnchor="middle"
-                          style={{ fontFamily: "var(--font-fig)", fontSize: 9, fill: "var(--paper)" }}
+                          style={{
+                            fontFamily: "var(--font-fig)",
+                            fontSize: 9,
+                            fill: "var(--paper)",
+                          }}
                         >
                           {(share * 100).toFixed(0)}%
                         </text>
@@ -146,18 +189,18 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                 className="label"
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
-                {r.total.toLocaleString()}
+                {r.total.toLocaleString("es-CL")}
               </text>
             </g>
           );
         })}
 
         {/* Leyenda */}
-        {MODE_ORDER.map((m, i) => {
-          const x = 2 + i * Math.min(104, (W - 6) / MODE_ORDER.length);
+        {ORDEN_MODOS.map((m, i) => {
+          const x = 2 + i * Math.min(104, (W - 6) / ORDEN_MODOS.length);
           return (
             <g key={`lg-${m}`} transform={`translate(${x}, ${legendY})`}>
-              <rect x={0} y={-7} width={10} height={8} fill={MODE_COLORS[m]} />
+              <rect x={0} y={-7} width={10} height={8} fill={COLOR_MODO[m]} />
               <text x={14} y={0} className="label">
                 {t(`modes.${m.toLowerCase()}`)}
               </text>
@@ -165,6 +208,19 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
           );
         })}
       </svg>
+      {hover && (
+        <div className="network-tooltip" role="tooltip">
+          <div className="nt-head" style={{ color: COLOR_MODO[hover.modo] }}>
+            {t(`modes.${hover.modo.toLowerCase()}`)} · {hover.grupo}
+          </div>
+          <div className="nt-row">
+            <span>{`${hover.conteo.toLocaleString("es-CL")} de ${hover.total.toLocaleString("es-CL")} ${t("sandbox.agentes")}`}</span>
+          </div>
+          <div className="nt-row">
+            <span>{`${(hover.share * 100).toFixed(1)}%`}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Elegir el modo aprendiendo día a día</title>
+<link rel="stylesheet" href="../../docs/libro/libro.css">
+<style>
+  /* Lo propio de este informe: las figuras (libro.css no las trae). El resto
+     es el estilo de los capítulos del libro. */
+  figure { margin: 22px 0 8px; }
+  figure img { width: 100%; display: block; border: 1px solid var(--rule); }
+  figcaption {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; color: var(--muted);
+    margin-top: 6px; max-width: 78ch; line-height: 1.5;
+  }
+  figcaption .n {
+    font-weight: 700; color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
+    margin-right: 8px; font-size: 11px;
+  }
+  @media print { figure { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen · Side project</div>
+  <h1>Elegir el modo aprendiendo día a día</h1>
+  <p class="bajada">
+    Un simulador paralelo al MSA: en vez de resolver un punto fijo, la gente
+    elige cada día con el tiempo que <em>cree</em> que tarda cada modo, lo
+    experimenta con un error propio, y aprende por instancias (IBL). Se buscan
+    dos efectos del aprendizaje con ruido: el <em>hot stove effect</em> y el
+    efecto de variabilidad del pago.
+  </p>
+  <p class="meta">
+    Código: <code>sandbox/ibl-dia-a-dia/</code> ·
+    Correr: ver <a href="#reproducir">Reproducir</a><br>
+    Ciudad y demanda de la app (201 celdas · 20 km · ΣH = 36.000 · betas de <code>DEFAULT_STRATA</code>) ·
+    día 0 = equilibrio MSA con localización de equilibrio · seed 42<br>
+    Fases 0 y 1: 15-sep-2026. Revisión del 30-sep-2026, con el núcleo en schema v6:
+    fase 0-b (efecto de variabilidad), fase 1 con sólo auto y metro, ruido sin
+    truncar y conceptos precisados; todas las cifras se regeneraron ese día.
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Qué pide el documento, y qué se construyó</a></li>
+    <li><a href="#s2">Conceptos: tres ruidos y dos efectos</a></li>
+    <li><a href="#s3">El modelo</a> — ecuaciones (1)–(6)</li>
+    <li><a href="#s4">Fase 0: una persona</a> — el hot stove en su forma mínima</li>
+    <li><a href="#s5">Fase 0-b: una persona</a> — el efecto de variabilidad del pago</li>
+    <li><a href="#s6">Fase 1: toda la población</a> — con la congestión endógena</li>
+    <li><a href="#s7">Qué concluir</a></li>
+  </ol>
+</nav>
+
+<!-- ==================================================================== -->
+<h2 id="s1"><span class="num">1</span>Qué pide el documento, y qué se construyó</h2>
+
+<p>
+  El simulador resuelve la partición modal como un <strong>punto fijo</strong>:
+  el MSA itera hasta que los tiempos de la BPR y el logit son consistentes. No
+  hay días, ni memoria, ni experiencia. El documento
+  (<code>new_simulator/IBL Leandro.docx</code>) pide reemplazar eso por una
+  <strong>dinámica día a día</strong>:
+</p>
+<ol>
+  <li>Día 1: todos eligen con tiempos «de buena calidad sobre el promedio».</li>
+  <li>Cada día, cada persona viaja en el modo que eligió y experimenta el tiempo de ese día
+      más un error idiosincrático <span class="mat" data-tex="\varepsilon"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span>.</li>
+  <li>Al día siguiente decide con un tiempo <em>percibido</em>: una mezcla de sus
+      experiencias pasadas en ese modo, con pesos que decaen con la antigüedad
+      (<em>instance based learning</em>, IBL).</li>
+  <li>Se mira si existe el <em>hot stove effect</em> y cuánto pesa a nivel global.</li>
+</ol>
+<p>
+  Es un modelo de <strong>dinámica</strong> y no de equilibrio; ese cambio de
+  naturaleza ordena todo lo demás. Se construyó en fases, cada una verificable
+  sola, como sandbox que reutiliza el núcleo sin tocarlo. La columna
+  <strong>unidad de análisis</strong> importa para leer cada número: una
+  persona repetida muchas veces no es una población.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>fase</th><th>archivo</th><th>unidad de análisis</th><th>qué hace</th></tr>
+  <tr><td><strong>IBL</strong></td><td><code>ibl.py</code> · <code>test_ibl.py</code></td><td>—</td><td>Las ecuaciones (1) y (2), vectorizadas, con seis tests de respuesta conocida.</td></tr>
+  <tr><td><strong>0</strong></td><td><code>persona.py</code></td><td><span class="etiqueta frio">una persona · 500 réplicas</span></td><td>Una persona elige entre auto y metro 100 días, con tiempos verdaderos fijos (los del equilibrio MSA en su celda) y ruido sólo sobre el auto. Caso en la indiferencia.</td></tr>
+  <tr><td><strong>0-b</strong></td><td><code>pve.py</code></td><td><span class="etiqueta frio">una persona · 500 réplicas</span></td><td>Lo mismo con un caso donde el auto gana claramente en media, y ruido en los dos modos, en uno o en el otro. Mide el efecto de variabilidad del pago.</td></tr>
+  <tr><td><strong>1</strong></td><td><code>poblacion.py</code></td><td><span class="etiqueta neutra">población · 28.982 agentes</span></td><td>Todos los agentes del equilibrio MSA eligen cada día entre auto y metro —todos tienen auto—; los flujos cargan la red (<code>resolver_oferta</code>); ruido sobre los dos modos. 100 días.</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  <strong>Una persona · 500 réplicas</strong>: la misma persona, con los mismos
+  parámetros, 500 veces, cada una con su propia secuencia de ruido. No hay
+  interacción entre réplicas; los promedios describen la conducta esperada de
+  esa persona. <strong>Población</strong>: personas distintas (celda, estrato,
+  auto), todas a la vez, acopladas por la congestión; los promedios son sobre
+  agentes.
+</p>
+
+<!-- ==================================================================== -->
+<h2 id="s2"><span class="num">2</span>Conceptos: tres ruidos y dos efectos</h2>
+
+<p>
+  El modelo tiene tres fuentes de aleatoriedad distintas, y los efectos que se
+  buscan dependen de cuál domina. Conviene nombrarlas antes de mirar números.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>ruido</th><th>parámetro</th><th>qué es</th><th>se aprende</th></tr>
+  <tr><td><strong>De la elección</strong></td><td class="simb"><span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span></td><td>El término Gumbel del logit, (6): cada día la persona elige con un sorteo alrededor de lo que cree. Su desviación estándar sobre la diferencia de utilidades es <span class="mat" data-tex="\pi/(\sqrt{3}\,\mu)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><msqrt><mn>3</mn></msqrt><mtext> </mtext><mi>μ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\pi/(\sqrt{3}\,\mu)</annotation></semantics></math></span>: 1,81 útiles con <span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span>, 0,18 con <span class="mat" data-tex="\mu = 10"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">\mu = 10</annotation></semantics></math></span>.</td><td>no</td></tr>
+  <tr><td><strong>De la experiencia</strong></td><td class="simb"><span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span></td><td>El error <span class="mat" data-tex="\varepsilon"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span> con que se vive el tiempo de un viaje, (4). Es lo que el IBL promedia.</td><td>sí</td></tr>
+  <tr><td><strong>Del muestreo</strong></td><td class="simb"><span class="mat" data-tex="a_{ni}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">a_{ni}</annotation></semantics></math></span></td><td>Qué modos se observan: sólo se aprende del modo que se usó. No es un parámetro, es consecuencia de las elecciones.</td><td>—</td></tr>
+</table>
+</div>
+
+<p>
+  Con esas tres piezas, el aprendizaje con ruido produce dos efectos que la
+  literatura de decisiones desde la experiencia distingue:
+</p>
+
+<div class="aviso idea">
+  <h4>Hot stove effect (Denrell y March, 2001)</h4>
+  <p>
+    Una alternativa que da una mala experiencia se subestima y deja de
+    elegirse, así que su estimación <strong>no se corrige</strong>; una que se
+    sobrestima se sigue eligiendo y la experiencia la corrige. Es una
+    <strong>asimetría del muestreo</strong>: los errores a la baja persisten y
+    los al alza no. Su consecuencia es un sesgo contra la alternativa de
+    resultados variables —aprender produce aversión al riesgo—. El
+    <strong>abandono</strong> (no volver a probar) es su forma extrema; la
+    pérdida de cuota sin abandono es su forma débil. Es el mismo mecanismo.
+  </p>
+</div>
+
+<div class="aviso idea">
+  <h4>Efecto de variabilidad del pago (<em>payoff variability effect</em>)</h4>
+  <p>
+    Al aumentar la varianza de los pagos manteniendo sus medias, la elección se
+    vuelve más aleatoria: la cuota de la alternativa mejor en media se acerca a
+    ½. Está documentado en experimentos de elección repetida con retroalimentación
+    (Erev y Barron, 2005, lo revisan junto con el hot stove). En el IBL tiene
+    un mecanismo concreto: la creencia <span class="mat" data-tex="b_{ni}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">b_{ni}</annotation></semantics></math></span> es un promedio de pocas
+    experiencias ruidosas, y si su ruido supera la diferencia de medias, elegir
+    por ella se parece a tirar una moneda. Requiere ruido en las dos
+    alternativas; con ruido en una sola se mezcla con el hot stove.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s3"><span class="num">3</span>El modelo</h2>
+
+<h3>3.1 El IBL — las dos ecuaciones del documento</h3>
+
+<div class="ecuacion" data-tex="b_{ni}(t) = \sum_{t'=0}^{t-1} w_{ni}(t', t)\, x_{ni}(t')" data-id="(1)">
+  <span class="id">(1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>=</mo><mn>0</mn></mrow><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></munderover><msub><mi>w</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo separator="true">,</mo><mi>t</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>x</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">b_{ni}(t) = \sum_{t&#x27;=0}^{t-1} w_{ni}(t&#x27;, t)\, x_{ni}(t&#x27;)</annotation></semantics></math></span>
+</div>
+<div class="ecuacion" data-tex="w_{ni}(t', t) = \frac{a_{ni}(t')\,(t - t')^{-d}}{\sum_{\tau=0}^{t-1} a_{ni}(\tau)\,(t - \tau)^{-d}}" data-id="(2)">
+  <span class="id">(2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>w</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo separator="true">,</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><msub><mi>a</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo><mtext> </mtext><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mi>d</mi></mrow></msup></mrow><mrow><munderover><mo>∑</mo><mrow><mi>τ</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></munderover><msub><mi>a</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>τ</mi><mo stretchy="false">)</mo><mtext> </mtext><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mi>τ</mi><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mi>d</mi></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">w_{ni}(t&#x27;, t) = \frac{a_{ni}(t&#x27;)\,(t - t&#x27;)^{-d}}{\sum_{\tau=0}^{t-1} a_{ni}(\tau)\,(t - \tau)^{-d}}</annotation></semantics></math></span>
+</div>
+
+<ul class="donde">
+  <li><span class="mat" data-tex="b_{ni}(t)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">b_{ni}(t)</annotation></semantics></math></span>: el tiempo que la persona <em>n</em> percibe para el modo <em>i</em> al decidir el día <em>t</em>.</li>
+  <li><span class="mat" data-tex="x_{ni}(t')"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">x_{ni}(t&#x27;)</annotation></semantics></math></span>: el tiempo que <em>experimentó</em> en <span class="mat" data-tex="t'"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">t&#x27;</annotation></semantics></math></span>. El documento escribe <span class="mat" data-tex="x_i(t')"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">x_i(t&#x27;)</annotation></semantics></math></span>; lleva el índice <em>n</em> porque el error es de cada persona.</li>
+  <li><span class="mat" data-tex="a_{ni}(t') = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">a_{ni}(t&#x27;) = 1</annotation></semantics></math></span> si ese día eligió <em>i</em>, 0 si no.</li>
+  <li><span class="mat" data-tex="d \ge 0"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d \ge 0</annotation></semantics></math></span>: el decaimiento. Con <span class="mat" data-tex="d = 0"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d = 0</annotation></semantics></math></span> es el promedio simple de lo vivido; con <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> grande sólo cuenta lo reciente.</li>
+</ul>
+<p>En <code>ibl.py</code> se implementan tal cual, sobre matrices (personas, días, modos).</p>
+
+<h3>3.2 El prior: lo que se percibe de un modo que nunca se eligió</h3>
+
+<p>
+  El documento no lo dice. Si la persona nunca eligió <em>i</em>, la suma de
+  (2) es vacía y la fórmula da 0/0. Se resuelve tratando la información exógena
+  del día 1 como <strong>una instancia más</strong>:
+</p>
+<div class="ecuacion" data-tex="a_{ni}(0) = 1, \qquad x_{ni}(0) = \tau_i^{\mathrm{eq}}\quad \forall\, n, i" data-id="(3)">
+  <span class="id">(3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>a</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mspace width="2em"/><msub><mi>x</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>=</mo><msubsup><mi>τ</mi><mi>i</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msubsup><mspace width="1em"/><mi mathvariant="normal">∀</mi><mtext> </mtext><mi>n</mi><mo separator="true">,</mo><mi>i</mi></mrow><annotation encoding="application/x-tex">a_{ni}(0) = 1, \qquad x_{ni}(0) = \tau_i^{\mathrm{eq}}\quad \forall\, n, i</annotation></semantics></math></span>
+</div>
+<p>
+  con <span class="mat" data-tex="\tau_i^{\mathrm{eq}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>τ</mi><mi>i</mi><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">q</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">\tau_i^{\mathrm{eq}}</annotation></semantics></math></span> el tiempo del equilibrio MSA en la celda de la persona.
+  Así el prior decae con <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> como cualquier experiencia y <span class="mat" data-tex="b_{ni}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">b_{ni}</annotation></semantics></math></span> queda
+  definido siempre. Es un supuesto; lo fija
+  <code>test_un_modo_nunca_elegido_da_peso_cero_no_nan</code>. Tiene una
+  consecuencia que se ve en la fase 0-b: el prior pesa lo mismo que
+  <em>una</em> experiencia, así que el primer viaje con mucho ruido mueve la
+  creencia a la mitad del camino.
+</p>
+
+<h3>3.3 La experiencia</h3>
+
+<div class="ecuacion" data-tex="x_{ni}(t) = \tau_{ni}(t) + \varepsilon_{nt}, \qquad \varepsilon_{nt} \sim \mathcal{N}(0, \sigma^2)" data-id="(4)">
+  <span class="id">(4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>x</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>τ</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ε</mi><mrow><mi>n</mi><mi>t</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>ε</mi><mrow><mi>n</mi><mi>t</mi></mrow></msub><mo>∼</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">x_{ni}(t) = \tau_{ni}(t) + \varepsilon_{nt}, \qquad \varepsilon_{nt} \sim \mathcal{N}(0, \sigma^2)</annotation></semantics></math></span>
+</div>
+<p>
+  <span class="mat" data-tex="\tau_{ni}(t)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\tau_{ni}(t)</annotation></semantics></math></span> es el tiempo verdadero del modo ese día: fijo en las fases 0 y
+  0-b, el de la red congestionada en la fase 1. El error es i.i.d. por persona
+  y día, con media cero, como pide el documento. <strong>No se trunca</strong>:
+  ni en el flujo libre ni en cero. Es ruido de <em>percepción</em>; con σ
+  grande una experiencia puede salir negativa, y no es un tiempo físico, pero
+  la creencia (1), que promedia varias experiencias, se mantiene positiva.
+</p>
+<p>
+  La razón es que truncar hace que el ruido deje de preservar la media: sube
+  el tiempo medio vivido, y más en el modo con el tiempo verdadero más corto.
+  Con σ comparable a <span class="mat" data-tex="\tau"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span> eso se confunde exactamente con los efectos que se
+  buscan. Hasta el 15-sep el informe truncaba primero en el flujo libre
+  («cree que el auto es peor» ≈ 100 % en las 27 combinaciones, un artefacto) y
+  después en cero, que seguía sesgando:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>caso</th><th class="simb">μ, σ</th><th>medida</th><th class="n">truncando en 0</th><th class="n">sin truncar</th></tr>
+  <tr><td>fase 0 · una persona</td><td class="simb">10, 20</td><td>cuota final del auto</td><td class="n">0,255</td><td class="n">0,417</td></tr>
+  <tr><td>fase 0 · una persona</td><td class="simb">10, 20</td><td>abandono</td><td class="n">20,0 %</td><td class="n">17,2 %</td></tr>
+  <tr><td>fase 0 · una persona</td><td class="simb">10, 20</td><td>cuota final · mala / buena suerte</td><td class="n">0,07 / 0,29</td><td class="n">0,11 / 0,52</td></tr>
+  <tr><td>fase 0 · una persona</td><td class="simb">1, 20</td><td>cuota final del auto (verdadera 0,507)</td><td class="n">0,477</td><td class="n">0,503</td></tr>
+  <tr><td>fase 0-b · una persona</td><td class="simb">10, 40</td><td>cuota del mejor, ruido en los dos</td><td class="n">0,854</td><td class="n">0,767</td></tr>
+  <tr><td>fase 1 · población</td><td class="simb">1, 20</td><td>Δ cuota del auto · Δ bienestar</td><td class="n">+1,1 pp · −0,026</td><td class="n">0,0 pp · 0,001</td></tr>
+  <tr><td>fase 1 · población</td><td class="simb">10, 20</td><td>Δ abandono del metro</td><td class="n">+5,3 pp</td><td class="n">+7,2 pp</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  d = 0,5. De <code>salida/truncamiento.json</code> (<code>sensibilidad.py</code>).
+  Truncando, la fase 0 exageraba el hot stove, la fase 0-b escondía parte del
+  efecto de variabilidad y la fase 1 inventaba un traspaso del metro al auto
+  y una pérdida de bienestar que no existen.
+</p>
+
+<h3>3.4 La utilidad y la elección, con la utilidad del núcleo</h3>
+
+<p>
+  La utilidad de cada modo la calcula <code>calcular_utilidades</code>, la del
+  simulador, y es <strong>lineal</strong> en el tiempo de viaje. Se la llama
+  una vez con los tiempos de referencia, y la de cada persona cada día es
+</p>
+<div class="ecuacion" data-tex="V_{ni}(t) = V_{i}^{\mathrm{ref}} + \beta_{\mathrm{tv}}\,\bigl(b_{ni}(t) - \tau_i^{\mathrm{ref}}\bigr)" data-id="(5)">
+  <span class="id">(5)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mi>V</mi><mi>i</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msubsup><mo>+</mo><msub><mi>β</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">v</mi></mrow></msub><mtext> </mtext><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>−</mo><msubsup><mi>τ</mi><mi>i</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msubsup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo></mrow><annotation encoding="application/x-tex">V_{ni}(t) = V_{i}^{\mathrm{ref}} + \beta_{\mathrm{tv}}\,\bigl(b_{ni}(t) - \tau_i^{\mathrm{ref}}\bigr)</annotation></semantics></math></span>
+</div>
+<div class="ecuacion" data-tex="P_{ni}(t) = \frac{e^{\mu V_{ni}(t)}}{\sum_{j} e^{\mu V_{nj}(t)}}" data-id="(6)">
+  <span class="id">(6)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><msup><mi>e</mi><mrow><mi>μ</mi><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msup><mrow><munder><mo>∑</mo><mi>j</mi></munder><msup><mi>e</mi><mrow><mi>μ</mi><msub><mi>V</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">P_{ni}(t) = \frac{e^{\mu V_{ni}(t)}}{\sum_{j} e^{\mu V_{nj}(t)}}</annotation></semantics></math></span>
+</div>
+<ul class="donde">
+  <li><span class="mat" data-tex="V_i^{\mathrm{ref}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>V</mi><mi>i</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">V_i^{\mathrm{ref}}</annotation></semantics></math></span>: la utilidad del núcleo con los tiempos del equilibrio. Las constantes modales, el costo, las penalizaciones y la factibilidad quedan tal como las calcula el núcleo.</li>
+  <li><span class="mat" data-tex="\beta_{\mathrm{tv}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">v</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\beta_{\mathrm{tv}}</annotation></semantics></math></span>: <code>b_tiempo_viaje</code> del estrato, −0,0331 útiles/min.</li>
+  <li><span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span>: escala del logit. Con <span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span>, (6) es exactamente <code>probabilidades_logit</code>. Se barre porque decide si los efectos se ven: en la figura 6.b del paper de Henríquez-Jara y Guevara la elección es casi determinista (<span class="mat" data-tex="\beta_{RU} = 20"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mrow><mi>R</mi><mi>U</mi></mrow></msub><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">\beta_{RU} = 20</annotation></semantics></math></span>).</li>
+</ul>
+<p>
+  Todo lo que cambia día a día vive en <span class="mat" data-tex="b_{ni}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">b_{ni}</annotation></semantics></math></span>. En la fase 0 se llama al
+  núcleo por día; en las fases 0-b y 1 se usa (5), que da lo mismo y es
+  vectorizable (en la fase 1, una llamada por grupo estrato × celda × auto:
+  1.108 grupos).
+</p>
+
+<div class="aviso neutro">
+  <h4>Sobre qué tiempo cae el ruido, y qué no tiene ruido</h4>
+  <p>
+    <strong>Auto</strong>: sobre el tiempo total. <strong>Metro</strong> (fases 0-b
+    y 1): sobre el tiempo en vehículo, que es el que pesa
+    <span class="mat" data-tex="\beta_{\mathrm{tv}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">v</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\beta_{\mathrm{tv}}</annotation></semantics></math></span>; espera y acceso quedan en
+    <span class="mat" data-tex="V^{\mathrm{ref}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>V</mi><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">f</mi></mrow></msup></mrow><annotation encoding="application/x-tex">V^{\mathrm{ref}}</annotation></semantics></math></span>. En las tres fases
+    se elige <strong>sólo entre auto y metro</strong>, los dos con ruido; bici
+    y caminata no participan. <strong>Teletrabajadores</strong> fuera: no eligen.
+  </p>
+</div>
+
+<!-- ==================================================================== -->
+<h2 id="s4"><span class="num">4</span>Fase 0: una persona</h2>
+
+<p><span class="etiqueta frio">una persona · 500 réplicas</span> ·
+auto contra metro · ruido sólo sobre el auto · 100 días</p>
+
+<h3>4.1 Cómo funciona</h3>
+<p>
+  <strong>La persona es del estrato Medio y vive a 5,8 km del CBD</strong>
+  (celda 158), con auto disponible. <strong>La ciudad se usa una sola
+  vez</strong>: se corre el MSA de la app y se toman los tiempos de equilibrio
+  en esa celda —auto 12,0 min, metro 20,3 min—. Después se simula a
+  esa <strong>persona aislada</strong>: elige entre auto y metro durante 100
+  días, con tiempos verdaderos <strong>fijos</strong> —no hay congestión, lo
+  que ella elige no afecta a nadie—. El metro no tiene ruido: siempre tarda lo
+  mismo. El auto tarda su tiempo verdadero más <span class="mat" data-tex="\varepsilon"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span>. Es el montaje clásico del
+  hot stove: una alternativa segura contra una variable.
+</p>
+<p>
+  Cada día la persona recuerda (1)–(3), evalúa (5), sortea con el logit (6) y,
+  si fue en auto, agrega a su memoria el tiempo que vivió (4); si fue en metro,
+  agrega el del metro, que es el de siempre. <strong>Réplicas</strong>: una
+  persona sola es una trayectoria de azar, así que se simula 500 veces
+  <em>la misma</em> persona, con los mismos parámetros y distinto ruido. Las
+  réplicas no interactúan; los promedios describen su conducta esperada, no
+  una población. Barrido: σ ∈ {5, 10, 20} min, μ ∈ {1, 3, 10}, d ∈ {0; 0,5; 1}.
+</p>
+
+<h3>4.2 Por qué el estrato Medio a 5,8 km</h3>
+<p>
+  El caso se eligió buscando dónde auto y metro <em>compiten</em>. La primera
+  corrida, <strong>descartada</strong>, fue el estrato Alto a 5 km del CBD:
+  auto 10,4 min, metro 25,7. Ahí el auto gana por <strong>1,2 útiles</strong>, que a
+  <span class="mat" data-tex="\beta_{\mathrm{tv}} = -0{,}0331"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">v</mi></mrow></msub><mo>=</mo><mo>−</mo><mn>0,0331</mn></mrow><annotation encoding="application/x-tex">\beta_{\mathrm{tv}} = -0{,}0331</annotation></semantics></math></span> son 36 minutos
+  equivalentes, y ningún shock razonable lo da vuelta: hot stove cero. Se
+  barrieron celdas y estratos:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>estrato</th><th class="n">km</th><th class="n">auto (min)</th><th class="n">metro (min)</th><th class="n simb">V<sub>auto</sub></th><th class="n simb">V<sub>metro</sub></th><th class="n">ventaja del auto</th></tr>
+  <tr><td>Alto</td><td class="n">5,0</td><td class="n">10,4</td><td class="n">25,7</td><td class="n">−0,635</td><td class="n">−1,837</td><td class="n">+36 min eq.</td></tr>
+  <tr class="destacada"><td>Medio</td><td class="n">5,8</td><td class="n">12,0</td><td class="n">20,3</td><td class="n">−1,355</td><td class="n">−1,382</td><td class="n">+0,8 min eq.</td></tr>
+  <tr><td>Bajo</td><td class="n">1,2</td><td class="n">2,8</td><td class="n">19,7</td><td class="n">−1,540</td><td class="n">−1,632</td><td class="n">+2,8 min eq.</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Tiempos del equilibrio MSA de la app, sólo auto y metro habilitados. El caso
+  elegido (destacado) es el Medio a 5,8 km: <span class="mat" data-tex="P(\mathrm{auto} \mid \mu = 1) = 0{,}507"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow><mo>∣</mo><mi>μ</mi><mo>=</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>0,507</mn></mrow><annotation encoding="application/x-tex">P(\mathrm{auto} \mid \mu = 1) = 0{,}507</annotation></semantics></math></span>, indiferencia casi exacta.
+  Por la misma razón este caso <strong>no sirve</strong> para el efecto de
+  variabilidad: ya está en ½. Para eso está la fase 0-b.
+</p>
+
+<h3>4.3 Qué se mide</h3>
+<p>Todas son medidas sobre <strong>una persona</strong>, promediadas sobre sus 500 réplicas:</p>
+<ul>
+  <li><strong>Cuota final</strong>: fracción de los últimos 20 días en auto, contra <span class="mat" data-tex="P(\mathrm{auto})"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P(\mathrm{auto})</annotation></semantics></math></span> con los tiempos verdaderos.</li>
+  <li><strong>Abandono</strong>: réplicas que no tomaron el auto ni un día en los últimos 20.</li>
+  <li><strong>Mala suerte temprana</strong>: cuota final de las réplicas cuya <em>primera</em> experiencia en auto cayó en el decil peor de <span class="mat" data-tex="\varepsilon"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span>, contra el decil mejor. Es la prueba que pide el documento, literal.</li>
+</ul>
+
+<figure>
+  <img src="salida/fig1-trayectoria.png" alt="Trayectoria de una réplica con la peor primera experiencia">
+  <figcaption>
+    <span class="n">Fig. 01</span>
+    <em>Una persona, una réplica</em>: la de peor primera experiencia (σ = 10,
+    μ = 3, d = 0,5). Puntos: el tiempo que vivió los días que fue en auto;
+    línea gruesa: su tiempo percibido del auto; bandas celestes: los días que
+    fue en metro. El día 1 va en auto y vive 43,7 min; su percepción salta a
+    30,6, peor que el metro (20,3), y el día 2 va en metro —del metro no aprende
+    nada nuevo: no tiene ruido—. El día 3 el logit con μ = 3 todavía le da
+    probabilidad al auto, vuelve a probarlo y su percepción baja a
+    16,4. Termina en auto 60 de 100 días: la mala experiencia la aleja, pero no la bloquea.
+  </figcaption>
+</figure>
+
+<h3>4.4 Resultado</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">σ (min)</th><th class="simb n">μ</th><th class="n">P(auto) verdadera</th><th class="n">cuota final</th><th class="n">abandono</th><th class="n">final · mala suerte</th><th class="n">final · buena suerte</th></tr>
+  <tr><td class="n">5</td><td class="n">1</td><td class="n">0,507</td><td class="n">0,504</td><td class="n">0,0 %</td><td class="n">0,51</td><td class="n">0,51</td></tr>
+  <tr><td class="n">5</td><td class="n">10</td><td class="n">0,567</td><td class="n">0,562</td><td class="n">0,0 %</td><td class="n">0,56</td><td class="n">0,58</td></tr>
+  <tr><td class="n">10</td><td class="n">1</td><td class="n">0,507</td><td class="n">0,504</td><td class="n">0,0 %</td><td class="n">0,50</td><td class="n">0,51</td></tr>
+  <tr><td class="n">10</td><td class="n">10</td><td class="n">0,567</td><td class="n">0,544</td><td class="n">0,6 %</td><td class="n">0,46</td><td class="n">0,57</td></tr>
+  <tr><td class="n">20</td><td class="n">1</td><td class="n">0,507</td><td class="n">0,503</td><td class="n">0,0 %</td><td class="n">0,50</td><td class="n">0,51</td></tr>
+  <tr><td class="n">20</td><td class="n">3</td><td class="n">0,520</td><td class="n">0,520</td><td class="n">0,0 %</td><td class="n">0,51</td><td class="n">0,54</td></tr>
+  <tr class="destacada"><td class="n">20</td><td class="n">10</td><td class="n">0,567</td><td class="n">0,417</td><td class="n">17,2 %</td><td class="n">0,11</td><td class="n">0,52</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Una persona, 500 réplicas, d = 0,5. Las 27 combinaciones están en
+  <code>salida/persona.json</code>. Con σ = 20 y μ = 10 el abandono va de
+  14,0 % (d = 0) a 20,6 % (d = 1).
+</p>
+
+<figure>
+  <img src="salida/fig2-share.png" alt="Cuota del auto por día">
+  <figcaption>
+    <span class="n">Fig. 02</span>
+    <em>Una persona, promedio de 500 réplicas.</em> Con μ = 1 y 3 la cuota se
+    queda en la probabilidad verdadera: la persona sigue probando el auto y
+    corrige. Con μ = 10 y σ = 20 cae de 0,57 a ~0,34 hacia el día 20 y se
+    recupera sólo en parte, a 0,42.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="salida/fig3-hot-stove.png" alt="Abandono y mala suerte temprana">
+  <figcaption>
+    <span class="n">Fig. 03</span>
+    <em>Una persona, 500 réplicas.</em> Izquierda: el abandono sólo aparece con
+    μ = 10 (17 % con σ = 20). Derecha: con μ = 10 y σ = 20, las réplicas con la
+    primera experiencia en el decil peor usan el auto el 11 % de los días al final;
+    las del decil mejor, el 52 %. Con μ = 1 las dos barras son iguales.
+  </figcaption>
+</figure>
+
+<div class="aviso alerta">
+  <h4>El hot stove no es sólo función de σ: necesita una elección suficientemente determinista</h4>
+  <p>
+    Con la escala del logit del simulador (<span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span>) el
+    aprendizaje es <strong>autocorrectivo</strong>: una mala percepción baja la
+    probabilidad del auto, pero no la anula, la persona lo vuelve a probar y la
+    percepción se arregla. Para que una mala percepción <em>bloquee</em> la
+    exploración, el ruido de la elección tiene que ser chico frente al error de
+    la creencia, y eso pasa recién con <span class="mat" data-tex="\mu \approx 10"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>≈</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">\mu \approx 10</annotation></semantics></math></span>,
+    el orden de la figura del paper. Es una decisión de calibración, no un
+    hecho del modelo, y hay que declararla al presentar cualquier número.
+  </p>
+</div>
+
+<h2 id="s5"><span class="num">5</span>Fase 0-b: el efecto de variabilidad del pago</h2>
+
+<p><span class="etiqueta frio">una persona · 500 réplicas</span> ·
+auto contra metro · ruido en los dos, en uno o en el otro · 100 días</p>
+
+<h3>5.1 La pregunta, y cómo funciona</h3>
+<p>
+  ¿Si aumenta la varianza del tiempo, la elección se vuelve más aleatoria, con
+  la cuota hacia ½? Con la fase 0 no se puede responder, por dos razones de
+  diseño: el caso ya está en la indiferencia (no hay recorrido hacia ½), y el
+  ruido está en un solo modo (mezcla el efecto con el hot stove).
+</p>
+<p>
+  La fase 0-b tiene la <strong>misma mecánica que la fase 0</strong> —una
+  persona, tiempos verdaderos fijos, sin congestión, 500 réplicas— con dos
+  cambios. <strong>Otro caso</strong>: el estrato Medio a 4,5 km (celda 145),
+  auto 9,4 min, metro 19,5 min; el auto gana por
+  <strong>0,285 útiles</strong> (8,6 min equivalentes), así que la cuota
+  verdadera queda en 0,57 / 0,70 / 0,95 con μ = 1 / 3 / 10, lejos de ½.
+  <strong>Tres condiciones de ruido</strong>, con σ de 0 a 40 min: en los dos
+  modos con el mismo σ —la prueba limpia: las medias no cambian, sólo la
+  varianza—; sólo en el mejor —se suma el hot stove en contra—; sólo en el
+  peor —el hot stove juega a favor—. El ruido del metro va sobre su tiempo en
+  vehículo. La medida es la cuota del mejor:
+</p>
+<div class="ecuacion" data-tex="\bar s = \frac{1}{R\,T_f} \sum_{r=1}^{R} \sum_{t=81}^{100} \mathbf{1}\bigl[i_r(t) = i^{*}\bigr]" data-id="(7)">
+  <span class="id">(7)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>s</mi><mo>ˉ</mo></mover><mo>=</mo><mfrac><mn>1</mn><mrow><mi>R</mi><mtext> </mtext><msub><mi>T</mi><mi>f</mi></msub></mrow></mfrac><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><mi>R</mi></munderover><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>81</mn></mrow><mn>100</mn></munderover><mn mathvariant="bold">1</mn><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">[</mo><msub><mi>i</mi><mi>r</mi></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><msup><mi>i</mi><mo lspace="0em" rspace="0em">∗</mo></msup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">]</mo></mrow><annotation encoding="application/x-tex">\bar s = \frac{1}{R\,T_f} \sum_{r=1}^{R} \sum_{t=81}^{100} \mathbf{1}\bigl[i_r(t) = i^{*}\bigr]</annotation></semantics></math></span>
+</div>
+<ul class="donde">
+  <li><span class="mat" data-tex="i_r(t)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>i</mi><mi>r</mi></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">i_r(t)</annotation></semantics></math></span>: el modo que eligió la réplica <em>r</em> el día <em>t</em>; <span class="mat" data-tex="i^{*}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>i</mi><mo lspace="0em" rspace="0em">∗</mo></msup></mrow><annotation encoding="application/x-tex">i^{*}</annotation></semantics></math></span>: el mejor en media (el auto).</li>
+  <li><span class="mat" data-tex="R = 500"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mn>500</mn></mrow><annotation encoding="application/x-tex">R = 500</annotation></semantics></math></span> réplicas de la misma persona y <span class="mat" data-tex="T_f = 20"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>f</mi></msub><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">T_f = 20</annotation></semantics></math></span> días finales.</li>
+</ul>
+
+<h3>5.2 Resultado</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th>ruido en</th><th class="simb n">μ</th><th class="n">P verdadera</th><th class="simb n">σ = 0</th><th class="simb n">σ = 5</th><th class="simb n">σ = 10</th><th class="simb n">σ = 20</th><th class="simb n">σ = 40</th></tr>
+  <tr><td>los dos</td><td class="n">1</td><td class="n">0,571</td><td class="n">0,568</td><td class="n">0,570</td><td class="n">0,570</td><td class="n">0,574</td><td class="n">0,574</td></tr>
+  <tr><td>los dos</td><td class="n">3</td><td class="n">0,702</td><td class="n">0,699</td><td class="n">0,699</td><td class="n">0,699</td><td class="n">0,703</td><td class="n">0,708</td></tr>
+  <tr class="destacada"><td>los dos</td><td class="n">10</td><td class="n">0,945</td><td class="n">0,945</td><td class="n">0,948</td><td class="n">0,946</td><td class="n">0,903</td><td class="n">0,767</td></tr>
+  <tr><td>sólo el mejor</td><td class="n">1</td><td class="n">0,571</td><td class="n">0,568</td><td class="n">0,568</td><td class="n">0,569</td><td class="n">0,570</td><td class="n">0,567</td></tr>
+  <tr><td>sólo el mejor</td><td class="n">3</td><td class="n">0,702</td><td class="n">0,699</td><td class="n">0,698</td><td class="n">0,698</td><td class="n">0,695</td><td class="n">0,658</td></tr>
+  <tr><td>sólo el mejor</td><td class="n">10</td><td class="n">0,945</td><td class="n">0,945</td><td class="n">0,945</td><td class="n">0,942</td><td class="n">0,887</td><td class="n">0,574</td></tr>
+  <tr><td>sólo el peor</td><td class="n">1</td><td class="n">0,571</td><td class="n">0,568</td><td class="n">0,569</td><td class="n">0,571</td><td class="n">0,574</td><td class="n">0,575</td></tr>
+  <tr><td>sólo el peor</td><td class="n">3</td><td class="n">0,702</td><td class="n">0,699</td><td class="n">0,701</td><td class="n">0,703</td><td class="n">0,708</td><td class="n">0,747</td></tr>
+  <tr><td>sólo el peor</td><td class="n">10</td><td class="n">0,945</td><td class="n">0,945</td><td class="n">0,948</td><td class="n">0,945</td><td class="n">0,947</td><td class="n">0,949</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Cuota del mejor (7), una persona, 500 réplicas, d = 0,5, últimos 20 días.
+  Las 135 combinaciones (con d = 0 y d = 1) están en <code>salida/pve.json</code>.
+</p>
+
+<figure>
+  <img src="salida/fig7-pve.png" alt="Cuota del mejor contra sigma, por condición de ruido">
+  <figcaption>
+    <span class="n">Fig. 07</span>
+    <em>Una persona, 500 réplicas, d = 0,5.</em> Izquierda, ruido en los dos:
+    sólo con μ = 10 la cuota baja hacia ½ (0,90 con σ = 20, 0,77 con σ = 40); con
+    μ = 1 y 3 queda en la verdadera. Centro, ruido sólo en el mejor: los dos
+    efectos se suman y con μ = 10 y σ = 40 llega a 0,57. Derecha, ruido sólo en el
+    peor: el hot stove a favor compensa el efecto de variabilidad (μ = 10 se
+    queda en 0,95) y con μ = 3 lo supera (sube a 0,75).
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="salida/fig8-pve-dias.png" alt="Cuota del mejor por día con mu 10 y sigma 40">
+  <figcaption>
+    <span class="n">Fig. 08</span>
+    <em>Una persona, 500 réplicas</em>, ruido en los dos modos, μ = 10, σ = 40.
+    El día 1 decide con el prior (0,96); el día 2 cae a 0,62 porque, por (3), una
+    experiencia pesa lo mismo que el prior. Después la creencia acumula
+    experiencias y la cuota se recupera: 0,66 en los días 1–20 y 0,77 en los
+    81–100 con d = 0,5. El decaimiento no ordena el resultado de forma clara:
+    al final, 0,73 / 0,77 / 0,76 con d = 0 / 0,5 / 1.
+  </figcaption>
+</figure>
+
+<div class="aviso alerta">
+  <h4>Respuesta: el efecto existe en el modelo, pero sólo si el ruido de la creencia compite con el de la elección</h4>
+  <p>
+    <strong>Con la calibración vigente (μ = 1) no se observa.</strong> El logit
+    ya reparte la elección con un ruido de 1,81 útiles
+    (<span class="mat" data-tex="\pi/\sqrt{3}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mi mathvariant="normal">/</mi><msqrt><mn>3</mn></msqrt></mrow><annotation encoding="application/x-tex">\pi/\sqrt{3}</annotation></semantics></math></span>), y el ruido que el
+    aprendizaje agrega a la creencia es de décimas de útil: con ~50 experiencias
+    y σ = 40, <span class="mat" data-tex="0{,}0331 \cdot 40/\sqrt{50} \approx 0{,}19"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0,0331</mn><mo>⋅</mo><mn>40</mn><mi mathvariant="normal">/</mi><msqrt><mn>50</mn></msqrt><mo>≈</mo><mn>0,19</mn></mrow><annotation encoding="application/x-tex">0{,}0331 \cdot 40/\sqrt{50} \approx 0{,}19</annotation></semantics></math></span> útiles por modo. Sumado a
+    un ruido diez veces mayor, no se nota: la cuota queda en la verdadera en las
+    tres condiciones.
+  </p>
+  <p>
+    <strong>Con una elección casi determinista (μ = 10) sí se observa</strong>:
+    el ruido del logit baja a 0,18 útiles, del orden del de la creencia, y la
+    cuota del mejor cae de 0,95 a 0,77 con σ = 40. Es en buena parte
+    <strong>transitorio</strong> (fig. 08): la creencia promedia cada vez más
+    experiencias y su ruido baja como <span class="mat" data-tex="\sigma/\sqrt{n}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mi mathvariant="normal">/</mi><msqrt><mi>n</mi></msqrt></mrow><annotation encoding="application/x-tex">\sigma/\sqrt{n}</annotation></semantics></math></span>.
+  </p>
+  <p>
+    <strong>El hot stove se suma o se resta según dónde esté el ruido.</strong>
+    Con ruido sólo en el mejor, los dos efectos empujan hacia abajo; con ruido
+    sólo en el peor, el hot stove empuja hacia el mejor y compensa. Con ruido
+    en los dos, el hot stove actúa sobre ambos y queda el efecto de
+    variabilidad casi solo.
+  </p>
+</div>
+
+<h2 id="s6"><span class="num">6</span>Fase 1: toda la población</h2>
+
+<p><span class="etiqueta neutra">población · 28.982 agentes</span> ·
+todos con auto · auto contra metro · ruido en los dos · congestión endógena · 100 días</p>
+
+<h3>6.1 Cómo funciona</h3>
+<p>
+  <strong>Aquí sí está la ciudad entera.</strong> Son todas las personas del
+  equilibrio, cada una con su celda y su estrato, que aprenden a la vez. Cada
+  día todas eligen con sus propias percepciones; con los viajes de ese día se
+  recalcula la red con el mismo código que usa el MSA
+  (<code>resolver_oferta</code>: la BPR del auto y la frecuencia del metro), y
+  cada persona vive el tiempo real de su modo en su celda más su propio
+  <span class="mat" data-tex="\varepsilon"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span>. El tiempo verdadero <span class="mat" data-tex="\tau_{ni}(t)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\tau_{ni}(t)</annotation></semantics></math></span> de (4) <strong>cambia
+  día a día</strong> según lo que eligieron los demás. No hay réplicas: es una
+  sola corrida, y las cuotas son <strong>fracciones de agentes</strong> (o de
+  sus viajes). Barrido: σ ∈ {0, 5, 10, 20}, μ ∈ {1, 3, 10}, d ∈ {0; 0,5; 1}.
+</p>
+<p>
+  <strong>La ciudad de esta fase no es la de la app.</strong> Para que cada
+  persona elija entre los mismos dos modos que en las fases 0 y 0-b, se
+  cambiaron dos cosas: <strong>todos tienen auto</strong>
+  (<span class="mat" data-tex="\mathrm{prob\_auto} = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">_</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mathrm{prob\_auto} = 1</annotation></semantics></math></span> en los tres estratos) y
+  <strong>sólo auto y metro</strong> están habilitados. Los tiempos del día 0
+  y la población salen del equilibrio MSA de <em>esa</em> ciudad, con
+  localización de equilibrio: auto 45,3 % y metro 54,7 % de los que eligen.
+  Quienes viven a menos de 1 km del CBD no tienen metro (D-69) y sólo pueden
+  ir en auto: 4.534 de los 28.982. Cargan la red, pero no eligen, y quedan
+  fuera de las medidas que comparan los dos modos. Hasta el 30-sep-2026 esta
+  fase usaba la ciudad de la app, con cuatro modos y bici y caminata sin ruido:
+  eran un refugio hacia el que migraba la elección por construcción.
+</p>
+
+<div class="aviso ok">
+  <h4>Verificación: con μ = 1 y σ = 0 la dinámica se queda en el equilibrio MSA</h4>
+  <p>
+    Sin ruido y con el logit del núcleo, el loop día a día reproduce la
+    partición del MSA de esta ciudad: auto <strong>45,5 %</strong> contra
+    45,3 %, metro <strong>54,5 %</strong> contra 54,7 %. El acoplamiento IBL +
+    oferta tiene al punto fijo del simulador como caso particular.
+  </p>
+</div>
+
+<h3>6.2 Un confundidor, y cómo se corrige</h3>
+<p>
+  Cambiar <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> cambia el modelo de elección, y por lo
+  tanto su equilibrio: con <span class="mat" data-tex="\mu = 10"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">\mu = 10</annotation></semantics></math></span> y sin ruido el auto
+  baja a 42,3 % y su tiempo real de 17,8 a 12,4 min: el logit nítido manda al metro a
+  todos los que lo prefieren por poco, y el auto se descongestiona. Comparar
+  <span class="mat" data-tex="\mu = 10"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">\mu = 10</annotation></semantics></math></span> contra el MSA mezclaría ese efecto con el
+  del aprendizaje. Por eso <strong>la referencia de cada μ es la misma
+  dinámica con σ = 0</strong>, y los efectos se miden como <em>delta</em>
+  respecto de ella.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">μ</th><th class="simb n">auto (σ = 0)</th><th class="simb n">metro (σ = 0)</th><th class="n">abandono auto</th><th class="n">abandono metro</th><th class="n">t real del auto</th></tr>
+  <tr><td class="n">1</td><td class="n">45,5 %</td><td class="n">54,5 %</td><td class="n">1,3 %</td><td class="n">0,0 %</td><td class="n">17,8 min</td></tr>
+  <tr><td class="n">3</td><td class="n">42,5 %</td><td class="n">57,5 %</td><td class="n">24,0 %</td><td class="n">0,7 %</td><td class="n">13,0 min</td></tr>
+  <tr><td class="n">10</td><td class="n">42,3 %</td><td class="n">57,7 %</td><td class="n">44,9 %</td><td class="n">12,8 %</td><td class="n">12,4 min</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Población, σ = 0, d = 0,5, últimos 20 días. «Abandono»: fracción de los
+  agentes que pueden usar el modo y no lo usaron ni un día en los últimos 20.
+  Con σ = 0 no es hot stove: es gente que con un logit nítido nunca elige el
+  modo que le conviene menos. Lo que cuenta es cuánto sube con σ.
+</p>
+
+<figure>
+  <img src="salida/fig4-split.png" alt="Partición modal día a día">
+  <figcaption>
+    <span class="n">Fig. 04</span>
+    <em>Población.</em> Auto y metro día a día con σ = 10 contra σ = 0 y el
+    equilibrio MSA (punteado). Con μ = 1 todo coincide. Con μ = 3 y 10 la
+    dinámica se aleja del MSA en los primeros días —eso es el cambio de μ—; el
+    ruido no la mueve: σ = 10 y σ = 0 se superponen. En ningún caso oscila.
+  </figcaption>
+</figure>
+
+<h3>6.3 Resultado: hot stove</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">σ</th><th class="simb n">μ</th><th class="n">Δ cuota auto</th><th class="n">Δ abandono auto</th><th class="n">Δ abandono metro</th><th class="n">auto final · mala vs buena suerte</th><th class="n">metro final · mala vs buena suerte</th><th class="n">Δ bienestar</th></tr>
+  <tr><td class="n">10</td><td class="n">1</td><td class="n">0,0 pp</td><td class="n">+0,1 pp</td><td class="n">0,0 pp</td><td class="n">0,45 vs 0,46</td><td class="n">0,65 vs 0,66</td><td class="n">0,0005</td></tr>
+  <tr><td class="n">10</td><td class="n">3</td><td class="n">0,0 pp</td><td class="n">+0,3 pp</td><td class="n">+0,2 pp</td><td class="n">0,47 vs 0,50</td><td class="n">0,68 vs 0,69</td><td class="n">0,0002</td></tr>
+  <tr><td class="n">10</td><td class="n">10</td><td class="n">0,0 pp</td><td class="n">+1,8 pp</td><td class="n">+3,1 pp</td><td class="n">0,67 vs 0,74</td><td class="n">0,71 vs 0,76</td><td class="n">0,0000</td></tr>
+  <tr><td class="n">20</td><td class="n">1</td><td class="n">0,0 pp</td><td class="n">+0,1 pp</td><td class="n">0,0 pp</td><td class="n">0,45 vs 0,47</td><td class="n">0,65 vs 0,66</td><td class="n">0,0008</td></tr>
+  <tr><td class="n">20</td><td class="n">3</td><td class="n">0,0 pp</td><td class="n">+1,4 pp</td><td class="n">+1,0 pp</td><td class="n">0,46 vs 0,51</td><td class="n">0,68 vs 0,69</td><td class="n">0,0007</td></tr>
+  <tr class="destacada"><td class="n">20</td><td class="n">10</td><td class="n">0,0 pp</td><td class="n">+4,1 pp</td><td class="n">+7,2 pp</td><td class="n">0,57 vs 0,74</td><td class="n">0,63 vs 0,77</td><td class="n">−0,0030</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Población. Deltas respecto de σ = 0 con la misma μ, d = 0,5, últimos 20 días.
+  «Cuota» es la fracción de agentes en el modo (la del metro es la
+  complementaria). «Bienestar» es la utilidad <em>verdadera</em> media del
+  modo elegido, en útiles, con los tiempos reales de cada día. Las 36
+  combinaciones están en <code>salida/poblacion.json</code>.
+</p>
+
+<figure>
+  <img src="salida/fig5-abandono.png" alt="Abandono del auto y del metro contra sigma">
+  <figcaption>
+    <span class="n">Fig. 05</span>
+    <em>Población.</em> Abandono contra σ, por μ, con el punto σ = 0 como
+    referencia. Con μ = 1 las curvas son planas. Con μ = 10 el abandono sube
+    4,1 puntos en el auto y 7,2 en el metro entre σ = 0 y σ = 20.
+  </figcaption>
+</figure>
+
+<figure>
+  <img src="salida/fig6-suerte-congestion.png" alt="Mala suerte temprana y tiempo real del auto">
+  <figcaption>
+    <span class="n">Fig. 06</span>
+    <em>Población.</em> Izquierda: la prueba del documento sobre los agentes.
+    Con μ = 10 y σ = 20, quienes tuvieron su primer ε del auto en el decil peor
+    lo usan el 57 % de los días; los del decil mejor, el 74 %. Derecha: el
+    tiempo real del auto por día, con σ = 10. Con μ = 1 el auto está cargado
+    (~18 min); con μ = 3 y 10 se descongestiona a 13–12 min. El comienzo bajo es
+    la transición desde el día 0.
+  </figcaption>
+</figure>
+
+<div class="aviso alerta">
+  <h4>Tres lecturas que conviene separar</h4>
+  <p>
+    <strong>1. El agregado no se mueve, las personas sí.</strong> Con el mismo
+    ruido en los dos modos, la cuota agregada de auto y metro no cambia con σ
+    (Δ = 0,0 en todas las combinaciones), y el bienestar tampoco. Pero debajo
+    del agregado el hot stove reordena a las personas: con μ = 10 y σ = 20
+    abandonan el auto 4,1 puntos más de agentes y el metro 7,2 más, y
+    la mala suerte temprana deja huella en los dos modos. Los errores se
+    compensan: unos quedan atrapados en el auto y otros en el metro. Un
+    indicador agregado, como el reparto modal, no detecta el hot stove.
+  </p>
+  <p>
+    <strong>2. Hace falta una elección nítida.</strong> Con μ = 1 no hay efecto
+    (Δ abandono ≤ 0,1 puntos); con μ = 3 es chico; con μ = 10 es claro. El metro
+    sufre más que el auto.
+  </p>
+  <p>
+    <strong>3. El costo agregado es casi nulo</strong> (−0,0030 útiles con μ = 10 y
+    σ = 20). Es consistente con que quienes quedan atrapados en el modo que no
+    les conviene estaban cerca de la indiferencia, así que pierden poco. Un hot
+    stove que a nivel de persona es un error puede ser casi gratis a nivel de ciudad.
+  </p>
+</div>
+
+<h3>6.4 Resultado: efecto de variabilidad en la población</h3>
+<p>
+  La versión poblacional de (7) mira, entre los agentes que tienen auto y
+  metro disponibles, qué fracción de sus viajes hace en el que <em>de
+  verdad</em> es mejor para ellos —por la utilidad verdadera media de los
+  últimos 20 días—:
+</p>
+<div class="ecuacion" data-tex="\bar s_{\mathrm{pob}} = \frac{1}{|\mathcal{N}|} \sum_{n \in \mathcal{N}} \frac{\#\{t : i_n(t) = i_n^{*}\}}{\#\{t : i_n(t) \in \{\mathrm{auto}, \mathrm{metro}\}\}}" data-id="(8)">
+  <span class="id">(8)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>s</mi><mo>ˉ</mo></mover><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi mathvariant="normal">∣</mi><mi mathvariant="script">N</mi><mi mathvariant="normal">∣</mi></mrow></mfrac><munder><mo>∑</mo><mrow><mi>n</mi><mo>∈</mo><mi mathvariant="script">N</mi></mrow></munder><mfrac><mrow><mi mathvariant="normal">#</mi><mo stretchy="false">{</mo><mi>t</mi><mo>:</mo><msub><mi>i</mi><mi>n</mi></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mi>i</mi><mi>n</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup><mo stretchy="false">}</mo></mrow><mrow><mi mathvariant="normal">#</mi><mo stretchy="false">{</mo><mi>t</mi><mo>:</mo><msub><mi>i</mi><mi>n</mi></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>∈</mo><mo stretchy="false">{</mo><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow><mo separator="true">,</mo><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi></mrow><mo stretchy="false">}</mo><mo stretchy="false">}</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\bar s_{\mathrm{pob}} = \frac{1}{|\mathcal{N}|} \sum_{n \in \mathcal{N}} \frac{\#\{t : i_n(t) = i_n^{*}\}}{\#\{t : i_n(t) \in \{\mathrm{auto}, \mathrm{metro}\}\}}</annotation></semantics></math></span>
+</div>
+<ul class="donde">
+  <li><span class="mat" data-tex="\mathcal{N}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">N</mi></mrow><annotation encoding="application/x-tex">\mathcal{N}</annotation></semantics></math></span>: los 24.448 agentes con auto y metro disponibles.</li>
+  <li><span class="mat" data-tex="i_n^{*}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>i</mi><mi>n</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup></mrow><annotation encoding="application/x-tex">i_n^{*}</annotation></semantics></math></span>: el mejor de los dos para el agente <em>n</em>. Se lee además por banda de ventaja <span class="mat" data-tex="|V_{\mathrm{auto}} - V_{\mathrm{metro}}|"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∣</mi><msub><mi>V</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow></msub><mo>−</mo><msub><mi>V</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi></mrow></msub><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">|V_{\mathrm{auto}} - V_{\mathrm{metro}}|</annotation></semantics></math></span>: con ventajas grandes no hay recorrido hacia ½.</li>
+</ul>
+
+<div class="envoltorio-tabla">
+<table>
+  <tr><th class="simb n">μ</th><th class="simb n">σ</th><th class="n">todos</th><th class="n">ventaja 0–0,1</th><th class="n">0,1–0,3</th><th class="n">0,3–0,6</th><th class="n">&gt; 0,6</th></tr>
+  <tr><td class="n">1</td><td class="n">0</td><td class="n">0,674</td><td class="n">0,510</td><td class="n">0,543</td><td class="n">0,608</td><td class="n">0,796</td></tr>
+  <tr><td class="n">1</td><td class="n">10</td><td class="n">0,674</td><td class="n">0,511</td><td class="n">0,545</td><td class="n">0,608</td><td class="n">0,797</td></tr>
+  <tr><td class="n">1</td><td class="n">20</td><td class="n">0,675</td><td class="n">0,511</td><td class="n">0,546</td><td class="n">0,608</td><td class="n">0,797</td></tr>
+  <tr><td class="n">3</td><td class="n">0</td><td class="n">0,804</td><td class="n">0,539</td><td class="n">0,645</td><td class="n">0,785</td><td class="n">0,969</td></tr>
+  <tr><td class="n">3</td><td class="n">10</td><td class="n">0,805</td><td class="n">0,541</td><td class="n">0,644</td><td class="n">0,785</td><td class="n">0,969</td></tr>
+  <tr><td class="n">3</td><td class="n">20</td><td class="n">0,806</td><td class="n">0,542</td><td class="n">0,648</td><td class="n">0,789</td><td class="n">0,968</td></tr>
+  <tr><td class="n">10</td><td class="n">0</td><td class="n">0,927</td><td class="n">0,626</td><td class="n">0,880</td><td class="n">0,988</td><td class="n">1,000</td></tr>
+  <tr><td class="n">10</td><td class="n">10</td><td class="n">0,927</td><td class="n">0,634</td><td class="n">0,881</td><td class="n">0,984</td><td class="n">1,000</td></tr>
+  <tr class="destacada"><td class="n">10</td><td class="n">20</td><td class="n">0,908</td><td class="n">0,604</td><td class="n">0,825</td><td class="n">0,969</td><td class="n">1,000</td></tr>
+</table>
+</div>
+<p class="pie-tabla">
+  Población, cuota del mejor entre auto y metro (8), d = 0,5, últimos 20 días.
+  Ventaja en útiles. Con μ = 1 y σ = 0 las bandas tienen
+  2.683 / 4.499 / 5.800 / 11.466 agentes; el conteo varía un poco con μ y σ porque el
+  mejor se define con los tiempos reales, que la congestión mueve.
+</p>
+
+<figure>
+  <img src="salida/fig9-pve-poblacion.png" alt="Cuota del mejor entre auto y metro contra sigma, por banda de ventaja">
+  <figcaption>
+    <span class="n">Fig. 09</span>
+    <em>Población.</em> La cuota del mejor por banda de ventaja. Con μ = 1 y 3
+    las curvas son planas; con μ = 10 bajan con σ = 20, más donde la ventaja es
+    moderada (0,1–0,3 útiles: de 0,880 a 0,825). Con ventajas grandes no hay
+    recorrido; con ventajas mínimas ya están cerca de ½.
+  </figcaption>
+</figure>
+
+<div class="aviso neutro">
+  <h4>En la población se repite lo de una persona</h4>
+  <p>
+    El efecto de variabilidad aparece sólo con una elección casi determinista
+    (μ = 10) y ruido grande (σ = 20): −1,9 puntos en la cuota del mejor sobre
+    todos los agentes y −5,4 en la banda de ventaja moderada. Con la calibración
+    vigente (μ = 1) no se observa, por la misma razón que en la fase 0-b: el
+    ruido del logit tapa al de la creencia. La fase 1 llega sólo a σ = 20; la
+    fase 0-b sugiere que con σ = 40 el efecto sería mayor.
+  </p>
+</div>
+
+<h2 id="s7"><span class="num">7</span>Qué concluir</h2>
+
+<h3>Lo que el prototipo establece</h3>
+<ul>
+  <li><strong>Es factible y barato.</strong> Toda la ciudad, 100 días, 36 combinaciones, en pocos minutos; el núcleo no se tocó.</li>
+  <li><strong>Es consistente con el simulador.</strong> Sin ruido y con el logit del núcleo, la dinámica día a día reproduce el equilibrio MSA.</li>
+  <li><strong>El hot stove existe, y su tamaño lo decide la escala del logit</strong>, no σ. Una persona: con μ = 1 y 3 no hay abandono; con μ = 10 y σ = 20, 17 %, y la mala suerte temprana deja la cuota en 0,11 contra 0,52. Población: con μ = 10 y σ = 20, 4,1 y 7,2 puntos más de abandono en auto y metro, sin mover el agregado.</li>
+  <li><strong>El efecto de variabilidad del pago también depende de μ</strong>. Una persona, ruido en los dos modos: con μ = 1 no aparece; con μ = 10 y σ = 40 la cuota del mejor baja de 0,95 a 0,77, en buena parte de forma transitoria. Con ruido en un solo modo se suma o se resta el hot stove. Población: el mismo patrón, moderado (−1,9 puntos con μ = 10 y σ = 20).</li>
+  <li><strong>Los efectos individuales no se ven en el agregado</strong>: con ruido simétrico el reparto modal y el bienestar casi no cambian, aunque muchas personas queden atrapadas en el modo que no les conviene.</li>
+  <li><strong>El ruido tiene que preservar la media.</strong> Truncar el tiempo vivido en cero exageraba el hot stove, escondía el efecto de variabilidad e inventaba efectos agregados (§3.3).</li>
+</ul>
+
+<h3>Lo que no prueba, y los pendientes</h3>
+<ul>
+  <li>No replica la figura 6.b del paper: ésa usa la formulación EBCM completa, con otros parámetros. Acá se implementaron las dos ecuaciones del documento, que son una simplificación del IBL de ACT-R (sin activación logarítmica ni ruido de recuperación).</li>
+  <li>El ε normal centrado en cero es lo que pide el documento, y con σ grande produce experiencias negativas. Los incidentes reales son positivos y asimétricos hacia arriba; un ruido lognormal que preserve la media sería la variante natural, y probablemente cambiaría los números.</li>
+  <li>El ε del metro va sobre el tiempo en vehículo. Ponerlo sobre la espera, que pesa el doble, agrandaría los efectos en el metro.</li>
+  <li>La fase 1 supone que todos tienen auto y que sólo existen auto y metro. Con la tenencia real, quienes no tienen auto no eligen y el efecto se diluye; con bici y caminata hay que decidir cómo entra su ruido.</li>
+  <li>El decaimiento <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> movió poco y sin un orden claro. Con 100 días y el prior como una instancia, el promedio y la recencia dan casi lo mismo; con series más largas o shocks persistentes podría no ser así.</li>
+</ul>
+
+<!-- ==================================================================== -->
+<h2 id="reproducir">Reproducir</h2>
+
+<pre><code>cd sandbox/ibl-dia-a-dia
+uv sync --extra dev --reinstall-package titirilquen-core   # el núcleo actual, no el cacheado
+uv run pytest                    # las propiedades del IBL
+uv run python persona.py         # fase 0:   salida/persona.json   (~12 s)
+uv run python figuras.py
+uv run python pve.py             # fase 0-b: salida/pve.json       (~17 s)
+uv run python poblacion.py       # fase 1:   salida/poblacion.json (~minutos)
+uv run python figuras_poblacion.py
+uv run python figuras_pve.py     # figs. 7-9, desde pve.json y poblacion.json
+uv run python sensibilidad.py    # con y sin truncar: salida/truncamiento.json</code></pre>
+<p>
+  Determinista con <code>seed 42</code>. Los tiempos verdaderos y la población
+  salen de <code>run_msa</code> con la configuración web de
+  <code>tests/test_linea_base.py</code>; si la línea base cambia, cambian. Las
+  ecuaciones se renderizan con <code>node tools/renderiza_ecuaciones.js</code>.
+</p>
+
+<h2>Documentación relacionada</h2>
+<ul class="refs">
+  <li><code>new_simulator/IBL Leandro.docx</code> — el pedido, con las ecuaciones (1) y (2) y la figura 6.b de Henríquez-Jara &amp; Guevara (2025), <em>Journal of Choice Modelling</em> 55, 100552.</li>
+  <li>Denrell, J. y March, J. G. (2001). Adaptation as information restriction: The hot stove effect. <em>Organization Science</em>.</li>
+  <li>Erev, I. y Barron, G. (2005). On adaptation, maximization, and reinforcement learning among cognitive strategies. <em>Psychological Review</em>.</li>
+  <li><a href="../impacto-hev/informe.html">Qué cambió al pasar al HEV</a> — el patrón de sandbox que sigue este informe.</li>
+  <li><a href="../../docs/libro/index.html">El libro</a> — cap. 4 (demanda y elección modal) y cap. 5 (equilibrio de transporte), que este prototipo pone en dinámica.</li>
+</ul>
+
+<footer>
+  <strong>Titirilquen</strong> · Simulador educativo de transporte urbano ·
+  Facultad de Ciencias Físicas y Matemáticas, Universidad de Chile.<br>
+  Side project: <code>sandbox/ibl-dia-a-dia/</code>. Todos los números salen de
+  <code>salida/persona.json</code>, <code>salida/pve.json</code>,
+  <code>salida/poblacion.json</code> y <code>salida/truncamiento.json</code>; las figuras no calculan nada.
+</footer>
+
+</div>
+</body>
+</html>

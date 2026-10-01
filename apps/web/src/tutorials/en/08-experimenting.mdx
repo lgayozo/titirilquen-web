@@ -1,0 +1,73 @@
+---
+slug: experimenting
+order: 8
+title: Experimenting
+tagline: Presets, comparison, suggested activities
+---
+
+# 7. Experimenting
+
+## Available tools
+
+**Transport** ([go](/sandbox)): free experimentation with the supply–demand equilibrium. Adjust any parameter and see results live.
+
+**Land use** ([go](/land-use)): standalone Alonso equilibrium (logit auction). **City at equilibrium** ([go](/coupled)): the full land ↔ transport loop.
+
+**Compare** ([go](/compare)): load up to 4 configurations in parallel and see deltas side by side.
+
+## Suggested activities
+
+### A. Parking price effect
+1. In Transport, vary parking between free, 2,500 and 10,000 pesos.
+2. Watch car mode share change.
+3. Which stratum is more sensitive? (Hint: $\beta_c$ parameter)
+
+{/* No "$" in labels: remark-math would treat them as delimiters. */}
+<LoadScenario id="parking_bajo">Free parking</LoadScenario>
+<LoadScenario id="parking_base">Parking 2.5k (base)</LoadScenario>
+<LoadScenario id="parking_alto">Parking 10k</LoadScenario>
+
+### B. λ and the value of time
+1. Under Land use, start from the default configuration: the high stratum lives 1.9 km from the CBD and the low one 5.9 km.
+2. Load "equal λ": the three strata with the middle stratum's b_cost, and therefore with its λ, which is the same number. It is the same as setting the s slider of "Value of time across strata" to 0 on the Calibration page; sweep s between 0 and 2 to see the transition. Where does each stratum end up?
+3. Measured: segregation **nearly vanishes**, Theil from 0.23 to 0.02, with the high stratum at 4.3 km and the low one at 3.1 km. With a common α = 1, the value of time is α/λ, and if the λ are equal nobody values access more than anyone else. Why does the high stratum end up somewhat farther? (Hint: compare its car ownership with the low stratum's.)
+4. Load "high λ × 2". The high stratum moves to 3.0 km. Is that an income effect? No: doubling λ halves its value of time. Income y, by contrast, reallocates nobody. (Hint: Land-use tutorial, section on λ.)
+
+<LoadScenario id="lambda_iguales">Equal λ</LoadScenario>
+<LoadScenario id="lambda_alto_doble">High λ × 2</LoadScenario>
+
+### C. Bikeway capacity
+1. Start with `cap_bike` = 800 bikes/h.
+2. Raise to 5000 (*Pro-Bike* preset).
+3. Where does demand migrate from?
+
+<LoadScenario id="bici_base">Bikeway 800 bikes/h (base)</LoadScenario>
+<LoadScenario id="bici_probici">Bikeway 5,000 (Pro-Bike)</LoadScenario>
+
+### D. The Alonso effect and its inversion
+1. Under Land use, with the default configuration, who lives near the CBD? What is the Theil segregation?
+2. Load "density penalty": ρ = 0.03 for the three strata. Since it enters divided by λ, the high stratum pays more pesos to avoid the dense central cells.
+3. Measured: the high stratum moves from 1.9 to 5.8 km from the CBD and the low one from 5.9 to 2.8 km. It is the "rich in the periphery" pattern. Which force wins in each case, accessibility or density?
+
+<LoadScenario id="alonso_base">Alonso (default)</LoadScenario>
+<LoadScenario id="alonso_invertido">Density penalty ρ = 0.03</LoadScenario>
+
+
+### E. MSA sensitivity
+1. Under Transport, lower `max_iter` to 3.
+2. Does it converge? What happens to the residual?
+3. Raise it to 20 and watch the asymptotic behavior.
+
+<LoadScenario id="msa_corto">max_iter = 3</LoadScenario>
+<LoadScenario id="msa_largo">max_iter = 20</LoadScenario>
+
+## Persistence
+
+Every configuration can be exported as `.ttrq.json`:
+- **Export**: share with peers or save for grading.
+- **Import**: load teacher's scenario.
+- **Share via link**: state is URL-compressed.
+
+<Callout type="info">
+**For instructors**: every activity can be shared as a link. Students open the link, run, and export their observations for submission.
+</Callout>

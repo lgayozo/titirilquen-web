@@ -1,17 +1,26 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
-import { CoupledMetrics } from "@/components/viz/CoupledMetrics";
+import { CityShapePreview } from "@/components/viz/CityShapePreview";
+import { EquilibriumMetricsTable } from "@/components/viz/EquilibriumMetricsTable";
+import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
-import { solveCoupledStream } from "@/lib/api-v2";
-import { JOINT_PRESETS, applyJointPreset } from "@/lib/joint-presets";
+import { resolverAcopladoStream } from "@/lib/api";
+import { expectedComposition, supplyVector } from "@/lib/citySupply";
 import {
-  accessibilityHansen,
-  meanUtilityByStratum,
-  theilSegregation,
-} from "@/lib/metrics";
-import type { CoupledResult, LandUseConfig, OuterIteration } from "@/lib/types-v2";
+  JOINT_PRESETS,
+  applyJointPreset,
+  describePresetParams,
+} from "@/lib/joint-presets";
+import type {
+  CoupledResult,
+  LandUseConfig,
+  OuterIteration,
+} from "@/lib/types-v2";
+import { useLandUseStore } from "@/store/landUseStore";
+import { useSimulationStore } from "@/store/simulationStore";
 
 type Stage = "idle" | "running" | "done" | "error";
 
@@ -22,66 +31,214 @@ type Stage = "idle" | "running" | "done" | "error";
  * donde land use no sabe de transporte) con el equilibrio acoplado (iter N,
  * donde suelo y transporte se reconcilian).
  */
+/** Fuente del escenario: la config propia del usuario o un preset de prueba. */
+const CUSTOM = "custom";
+
+// AbortController de la corrida activa, a nivel de módulo: la página puede
+// desmontarse y volver a montar mientras el stream sigue (el estado vive en el
+// store); esto permite cancelar igual tras la navegación.
+let activeCoupledAbort: AbortController | null = null;
+
 export function CoupledPage() {
-  const { t: tC } = useTranslation("common");
   const { t: tS } = useTranslation("simulator");
 
-  const [presetKey, setPresetKey] = useState<string>(JOINT_PRESETS[0]!.key);
-  const [outerMaxIter, setOuterMaxIter] = useState(4);
-  const [stage, setStage] = useState<Stage>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [iters, setIters] = useState<OuterIteration[]>([]);
+  // Config "propia" del usuario, compartida con los módulos Transporte (Sandbox)
+  // y Uso de Suelo vía sus stores. Es el escenario **por defecto**.
+  const simStore = useSimulationStore((s) => s.config);
+  const luStore = useLandUseStore((s) => s.config);
 
-  const preset = JOINT_PRESETS.find((p) => p.key === presetKey) ?? JOINT_PRESETS[0]!;
-  const { sim, landUse } = useMemo(() => applyJointPreset(preset), [preset]);
+  const CUSTOM_POBLACION = 25000;
+  // El estado de la corrida vive en el store (no en useState): navegar a mitad
+  // de una corrida no la pierde — al volver, el stream sigue poblando la página.
+  const source = useLandUseStore((s) => s.coupledSource);
+  const setSource = useLandUseStore((s) => s.setCoupledSource);
+  const outerMaxIter = useLandUseStore((s) => s.coupledOuterMaxIter);
+  const setOuterMaxIter = useLandUseStore((s) => s.setCoupledOuterMaxIter);
+  const poblacion = useLandUseStore((s) => s.coupledPoblacion);
+  const setPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
+  const stage: Stage = useLandUseStore((s) => s.coupledStage);
+  const error = useLandUseStore((s) => s.coupledError);
+  const iters = useLandUseStore((s) => s.coupledIters);
+  const snapshot = useLandUseStore((s) => s.coupledSnapshot);
+  const startCoupled = useLandUseStore((s) => s.startCoupled);
+  const pushOuterIter = useLandUseStore((s) => s.pushOuterIter);
+  const finishCoupled = useLandUseStore((s) => s.finishCoupled);
+  const failCoupled = useLandUseStore((s) => s.failCoupled);
+  const cancelCoupled = useLandUseStore((s) => s.cancelCoupled);
+  const resetCoupled = useLandUseStore((s) => s.resetCoupled);
+
+  // Seleccionar escenario fija también la población recomendada (cada escenario
+  // tiene un techo de demanda distinto antes de gridlockear — ver D-24).
+  const selectSource = (key: string) => {
+    setSource(key);
+    const p = JOINT_PRESETS.find((x) => x.key === key);
+    setPoblacion(p ? p.poblacionDefault : CUSTOM_POBLACION);
+  };
+
+  const isCustom = source === CUSTOM;
+  const preset = JOINT_PRESETS.find((p) => p.key === source) ?? null;
+  const { sim, landUse } = useMemo(
+    () =>
+      isCustom || !preset
+        ? { sim: simStore, landUse: luStore }
+        : applyJointPreset(preset),
+    [isCustom, preset, simStore, luStore],
+  );
+
+  // Escala de demanda: re-escala H_por_estrato a la población elegida,
+  // conservando la composición por estrato. Es la palanca que activa los
+  // feedbacks del transporte (congestión, frecuencia de metro, capacidad).
+  const landUseEff = useMemo<LandUseConfig>(() => {
+    const H = landUse.H_por_estrato;
+    const sum = H.reduce((a, b) => a + b, 0) || 1;
+    const scaled = H.map((h) =>
+      Math.max(1, Math.round((poblacion * h) / sum)),
+    ) as [number, number, number];
+    return { ...landUse, H_por_estrato: scaled };
+  }, [landUse, poblacion]);
+
+  const abortRef = useRef<AbortController | null>(activeCoupledAbort);
 
   const handleRun = async () => {
-    setStage("running");
-    setError(null);
-    setIters([]);
-    const collected: OuterIteration[] = [];
+    const ctrl = new AbortController();
+    activeCoupledAbort = ctrl;
+    abortRef.current = ctrl;
+    startCoupled({ sim, landUse: landUseEff, outerMaxIter });
     try {
-      await solveCoupledStream(
-        { sim, land_use: landUse, outer_max_iter: outerMaxIter, outer_tol: 1.0 },
-        (it) => {
-          collected.push(it);
-          setIters([...collected]);
-        }
+      await resolverAcopladoStream(
+        {
+          sim,
+          land_use: landUseEff,
+          outer_max_iter: outerMaxIter,
+          outer_tol: 1.0,
+        },
+        (it) => pushOuterIter(it),
+        ctrl.signal,
       );
-      setStage("done");
+      finishCoupled();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setStage("error");
+      if (ctrl.signal.aborted) return; // cancelado por el usuario
+      failCoupled(e instanceof Error ? e.message : String(e));
     }
   };
 
+  const handleCancel = () => {
+    (abortRef.current ?? activeCoupledAbort)?.abort();
+    cancelCoupled();
+  };
+
+  const handleReset = () => resetCoupled();
+
+  // ¿El resultado quedó desactualizado respecto del escenario configurado?
+  const stale = useMemo(
+    () =>
+      stage === "done" &&
+      snapshot != null &&
+      JSON.stringify({ sim, landUse: landUseEff, outerMaxIter }) !==
+        JSON.stringify(snapshot),
+    [stage, snapshot, sim, landUseEff, outerMaxIter],
+  );
+
   const first = iters[0] ?? null;
   const last = iters[iters.length - 1] ?? null;
+
+  // Resultado en forma de CoupledResult para los componentes de trayectoria.
   const result: CoupledResult | null = iters.length
     ? {
-        converged: last != null && last.T_residual != null && last.T_residual < 1.0,
+        // Convergió de verdad, no «terminó» (D-39): lo dice el núcleo.
+        converged: last?.metrics.sistema.convergio_exterior ?? false,
         iterations: iters,
         final_parcelas: [],
         S: null,
       }
     : null;
 
-  return (
-    <div className="coupled-page">
-      <section className="coupled-hero">
-        <div className="about-eyebrow">{tS("coupled.eyebrow")}</div>
-        <h1 className="coupled-title">{tS("coupled.title")}</h1>
-        <p className="coupled-lede">{tS("coupled.lede")}</p>
-      </section>
+  // Palancas del escenario, para el KPIStrip de parámetros.
+  // Parámetros agrupados en dos filas con sentido (antes una sola grilla de 10
+  // ítems que dejaba un huérfano en la segunda fila): ciudad+suelo (3) arriba,
+  // transporte (7) abajo.
+  const { kpisCityLand, kpisTransport } = useMemo(() => {
+    const groupColor: Record<string, string> = {
+      city: "var(--s2)",
+      land_use: "var(--accent)",
+      transport: "var(--ink)",
+    };
+    const all = describePresetParams(sim, landUseEff).map((p) => ({
+      group: p.group,
+      kpi: {
+        label: tS(p.labelKey),
+        value: p.value,
+        // "hog" (hogares) es la única unidad con idioma; el resto son símbolos.
+        unit: p.unit === "hog" ? tS("coupled.unit_households") : p.unit,
+        color: groupColor[p.group],
+      } as KPI,
+    }));
+    return {
+      kpisCityLand: all
+        .filter((x) => x.group !== "transport")
+        .map((x) => x.kpi),
+      kpisTransport: all
+        .filter((x) => x.group === "transport")
+        .map((x) => x.kpi),
+    };
+  }, [sim, landUseEff, tS]);
 
-      <section className="coupled-controls">
-        <div className="coupled-preset-grid">
+  const L = sim.city.n_celdas;
+  const CBD = Math.floor(L / 2);
+  const running = stage === "running";
+
+  // Oferta S(i) real de la forma elegida, para que la distribución de resultados
+  // comparta la misma envolvente que la figura de la forma (figura 00).
+  const supply = useMemo(
+    () =>
+      supplyVector(
+        landUseEff.forma,
+        L,
+        CBD,
+        landUseEff.oferta_sigma_frac,
+        landUseEff.forma_param,
+        landUseEff.H_por_estrato.reduce((a, b) => a + b, 0),
+      ),
+    [landUseEff, L, CBD],
+  );
+
+  return (
+    <div className="page">
+      {/* ---------- Sidebar: selección de escenario + controles ---------- */}
+      <aside className="sidebar">
+        <p className="coupled-sidebar-info">{tS("coupled.lede")}</p>
+
+        <div className="coupled-source-label">
+          {tS("coupled.source_custom_label")}
+        </div>
+        <div className="coupled-scenario-list">
+          <button
+            type="button"
+            className={`coupled-preset compact ${isCustom ? "active" : ""}`}
+            onClick={() => selectSource(CUSTOM)}
+          >
+            <div className="coupled-preset-title">
+              {tS("coupled.custom_title")}
+            </div>
+            <div className="coupled-preset-desc">
+              {tS("coupled.custom_desc")}
+            </div>
+            <div className="coupled-preset-tags">
+              <span>{tS("coupled.custom_tag")}</span>
+            </div>
+          </button>
+        </div>
+
+        <div className="coupled-source-label">
+          {tS("coupled.source_preset_label")}
+        </div>
+        <div className="coupled-scenario-list">
           {JOINT_PRESETS.map((p) => (
             <button
               key={p.key}
               type="button"
-              className={`coupled-preset ${presetKey === p.key ? "active" : ""}`}
-              onClick={() => setPresetKey(p.key)}
+              className={`coupled-preset compact ${source === p.key ? "active" : ""}`}
+              onClick={() => selectSource(p.key)}
             >
               <div className="coupled-preset-title">{tS(p.titleKey)}</div>
               <div className="coupled-preset-desc">{tS(p.descriptionKey)}</div>
@@ -94,72 +251,204 @@ export function CoupledPage() {
           ))}
         </div>
 
-        <div className="coupled-actions">
-          <label className="coupled-iter-input">
-            <span>{tS("land_use.outer_iter_label")}</span>
-            <input
-              type="range"
-              min={2}
-              max={6}
-              step={1}
-              value={outerMaxIter}
-              onChange={(e) => setOuterMaxIter(Number(e.target.value))}
-            />
-            <span className="num">{outerMaxIter}</span>
-          </label>
+        <label className="coupled-iter-input">
+          <span>{tS("coupled.poblacion_label")}</span>
+          <input
+            type="range"
+            min={10000}
+            max={120000}
+            step={10000}
+            value={poblacion}
+            onChange={(e) => setPoblacion(Number(e.target.value))}
+          />
+          <span className="num">{(poblacion / 1000).toFixed(0)}k</span>
+        </label>
+        {(() => {
+          // Cada escenario tiene un techo de demanda antes de gridlockear el
+          // corredor monocéntrico (D-24); sobre eso el equilibrio se degrada.
+          const recomendada = preset?.poblacionDefault ?? CUSTOM_POBLACION;
+          return poblacion > recomendada ? (
+            <p
+              className="text-[11px] leading-snug"
+              style={{ color: "var(--accent)", marginTop: -6 }}
+            >
+              {tS("coupled.poblacion_warn", {
+                n: Math.round(recomendada / 1000),
+              })}
+            </p>
+          ) : null;
+        })()}
 
-          <button
-            type="button"
-            className="btn primary"
-            onClick={handleRun}
-            disabled={stage === "running"}
-          >
-            {stage === "running" ? tS("coupled.running") : tS("coupled.run")}
+        <label className="coupled-iter-input">
+          <span>{tS("land_use.outer_iter_label")}</span>
+          <input
+            type="range"
+            min={2}
+            max={50}
+            step={1}
+            value={outerMaxIter}
+            onChange={(e) => setOuterMaxIter(Number(e.target.value))}
+          />
+          <span className="num">{outerMaxIter}</span>
+        </label>
+
+        {(stage === "done" || stage === "error") && (
+          <button type="button" className="reset-btn" onClick={handleReset}>
+            ↺ {tS("coupled.reset")}
           </button>
-        </div>
+        )}
+
+        <button
+          type="button"
+          className="run-btn"
+          onClick={handleRun}
+          disabled={running}
+        >
+          {running ? "◜ …" : `▶ ${tS("coupled.run")}`}
+        </button>
+
+        {running && (
+          <button type="button" className="reset-btn" onClick={handleCancel}>
+            {`✕ ${tS("stale.cancel")}`}
+          </button>
+        )}
 
         {error && (
-          <div className="coupled-error">
+          <div
+            className="callout"
+            style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}
+          >
             <strong>{tS("coupled.error")}:</strong> {error}
           </div>
         )}
-      </section>
+      </aside>
 
-      {iters.length > 0 && (
-        <section className="coupled-results">
-          <Comparison
-            first={first!}
-            last={last!}
-            landUseConfig={landUse}
-            tS={tS}
-            stage={stage}
-            iters={iters.length}
-          />
+      {/* ---------- Main: imagen arriba + parámetros + resultados ---------- */}
+      <section className="main">
+        {stale && (
+          <div className="stale-banner" role="status">
+            <span>{tS("stale.banner")}</span>
+            <button type="button" onClick={() => void handleRun()}>
+              {`▶ ${tS("stale.rerun")}`}
+            </button>
+          </div>
+        )}
 
-          {result && (
-            <div className="panel-grid">
-              <Panel
-                n="99"
-                title={tS("coupled_metrics.header")}
-                meta={`${iters.length} iter · Theil · welfare · Hansen`}
-                cls="col-12"
-              >
-                <CoupledMetrics result={result} landUseConfig={landUse} />
-              </Panel>
+        <div className="hero">
+          <div className="hero-head">
+            <h1 className="hero-title">{tS("coupled.title")}</h1>
+            <div className="hero-sub">
+              <span className="dot">●</span> {tS("coupled.eyebrow")}
             </div>
-          )}
+          </div>
+        </div>
 
-          <Interpretation first={first!} last={last!} landUse={landUse} tS={tS} />
-        </section>
-      )}
+        {/* Imagen de la ciudad — solo como preview antes de correr (tras correr,
+            la silueta se ve coloreada por estrato en los paneles de resultado). */}
+        {iters.length === 0 && (
+          <div className="panel-grid">
+            <Panel
+              n="00"
+              title={tS("coupled.preset_detail_shape")}
+              meta={tS(`land_use.forma_${landUse.forma}`)}
+              cls="col-12"
+            >
+              <CityShapePreview
+                forma={landUse.forma}
+                L={L}
+                CBD={CBD}
+                sigmaFrac={landUse.oferta_sigma_frac}
+                formaParam={landUse.forma_param}
+              />
+            </Panel>
+          </div>
+        )}
 
-      {iters.length === 0 && stage !== "running" && (
-        <div className="coupled-placeholder">{tS("coupled.placeholder")}</div>
-      )}
+        {/* Palancas del escenario */}
+        <div className="panel-grid">
+          <Panel
+            n="01"
+            title={tS("coupled.preset_detail_title")}
+            meta={tS("coupled.preset_detail_meta")}
+            cls="col-12"
+          >
+            <p className="coupled-panel-hint">
+              {isCustom
+                ? tS("coupled.preset_detail_hint_custom")
+                : tS("coupled.preset_detail_hint")}
+            </p>
+            <div className="kpi-caption">{tS("coupled.params_city_land")}</div>
+            <KPIStrip items={kpisCityLand} />
+            <div className="kpi-caption">{tS("coupled.params_transport")}</div>
+            <KPIStrip items={kpisTransport} />
+          </Panel>
+        </div>
 
-      {stage === "running" && iters.length === 0 && (
-        <div className="coupled-placeholder">{tS("coupled.booting")}</div>
-      )}
+        {iters.length > 0 && (
+          <>
+            <Comparison
+              first={first!}
+              last={last!}
+              supply={supply}
+              tS={tS}
+              stage={stage}
+              iters={iters.length}
+            />
+
+            {result && (
+              <div className="panel-grid">
+                <Panel
+                  n="04"
+                  title={tS("coupled.convergence_title")}
+                  meta={tS("coupled.convergence_meta")}
+                  cls="col-12"
+                >
+                  <p className="coupled-panel-hint">
+                    {tS("coupled.convergence_hint")}
+                  </p>
+                  <OuterTrajectory result={result} />
+                </Panel>
+              </div>
+            )}
+
+            {last && (
+              <div className="panel-grid">
+                <Panel
+                  n="05"
+                  title={tS("eqt.title")}
+                  meta={tS("coupled_metrics.outer_count", { n: iters.length })}
+                  cls="col-12"
+                >
+                  <EquilibriumMetricsTable
+                    last={last.metrics}
+                    first={first?.metrics ?? null}
+                  />
+                </Panel>
+              </div>
+            )}
+
+            <Interpretation first={first!} last={last!} tS={tS} />
+          </>
+        )}
+
+        {iters.length === 0 && stage !== "running" && (
+          <div className="coupled-placeholder">
+            <div className="coupled-placeholder-title">
+              {tS("coupled.placeholder_title")}
+            </div>
+            <p className="coupled-placeholder-desc">
+              {tS("coupled.placeholder_desc")}
+            </p>
+            <div className="coupled-placeholder-cta">
+              {tS("coupled.placeholder")}
+            </div>
+          </div>
+        )}
+
+        {running && iters.length === 0 && (
+          <div className="coupled-placeholder">{tS("coupled.booting")}</div>
+        )}
+      </section>
     </div>
   );
 }
@@ -167,31 +456,43 @@ export function CoupledPage() {
 interface ComparisonProps {
   first: OuterIteration;
   last: OuterIteration;
-  landUseConfig: LandUseConfig;
+  supply: readonly number[];
   tS: (key: string, opts?: Record<string, unknown>) => string;
   stage: Stage;
   iters: number;
 }
 
-function Comparison({ first, last, landUseConfig, tS, stage, iters }: ComparisonProps) {
-  const firstParcelas = approximateParcelasFromQ(first.land_use.Q);
-  const lastParcelas = approximateParcelasFromQ(last.land_use.Q);
+function Comparison({
+  first,
+  last,
+  supply,
+  tS,
+  stage,
+  iters,
+}: ComparisonProps) {
+  // Distribución = oferta S × asignación Q (respeta la forma de la ciudad).
+  // Composición ESPERADA en floats (S·Q sin redondear): el redondeo entero por
+  // celda producía una "peineta" entre celdas contiguas con pocos hogares.
+  const firstComposition = expectedComposition(first.land_use.Q, supply);
+  const lastComposition = expectedComposition(last.land_use.Q, supply);
   const isSameIter = first.outer_iter === last.outer_iter;
 
   return (
     <div className="panel-grid">
       <Panel
-        n="01"
+        n="02"
         title={tS("coupled.without_feedback")}
         meta={tS("coupled.iter_n", { n: first.outer_iter + 1 })}
         cls="col-6"
       >
-        <p className="coupled-panel-hint">{tS("coupled.without_feedback_hint")}</p>
-        <StratumDistribution parcelas={firstParcelas} />
+        <p className="coupled-panel-hint">
+          {tS("coupled.without_feedback_hint")}
+        </p>
+        <StratumDistribution composition={firstComposition} />
       </Panel>
 
       <Panel
-        n="02"
+        n="03"
         title={tS("coupled.with_feedback")}
         meta={
           isSameIter
@@ -205,7 +506,7 @@ function Comparison({ first, last, landUseConfig, tS, stage, iters }: Comparison
             ? tS("coupled.running_hint", { n: iters })
             : tS("coupled.with_feedback_hint")}
         </p>
-        <StratumDistribution parcelas={lastParcelas} />
+        <StratumDistribution composition={lastComposition} />
       </Panel>
     </div>
   );
@@ -214,24 +515,41 @@ function Comparison({ first, last, landUseConfig, tS, stage, iters }: Comparison
 interface InterpretationProps {
   first: OuterIteration;
   last: OuterIteration;
-  landUse: LandUseConfig;
   tS: (key: string, opts?: Record<string, unknown>) => string;
 }
 
-function Interpretation({ first, last, landUse, tS }: InterpretationProps) {
-  const alpha = landUse.estratos.map((s) => s.alpha);
-  const segFirst = theilSegregation(first.land_use.Q);
-  const segLast = theilSegregation(last.land_use.Q);
-  const welfFirst = meanUtilityByStratum(first.transport.agentes);
-  const welfLast = meanUtilityByStratum(last.transport.agentes);
-  const accFirst = accessibilityHansen(first.T_matrix, alpha);
-  const accLast = accessibilityHansen(last.T_matrix, alpha);
+function Interpretation({ first, last, tS }: InterpretationProps) {
+  // Lectura pedagógica desde el REPORTE DEL CORE (metrics) — la misma fuente
+  // que la tabla del equilibrio, comparando iteración 0 (sin feedback) vs
+  // final. Antes se recomputaba en TS con métricas rotas: el índice de Hansen
+  // underfloweaba con α en utiles/min (exp(−130) ≈ 0) sobre una T que ya es
+  // común por ubicación (D-22), y el "bienestar" comparaba utiles ENTRE
+  // estratos, que no son conmensurables (cada estrato tiene sus ASC/β).
+  const eF = first.metrics.por_estrato;
+  const eL = last.metrics.por_estrato;
+  const alto = 0;
+  const bajo = eL.length - 1;
 
-  const dSeg = segLast - segFirst;
-  const dWelfAlto = diff(welfLast[0], welfFirst[0]);
-  const dWelfBajo = diff(welfLast[2], welfFirst[2]);
-  const dAccAlto = diff(accLast[0], accFirst[0]);
-  const dAccBajo = diff(accLast[2], accFirst[2]);
+  const dSeg =
+    last.metrics.sistema.segregacion_theil -
+    first.metrics.sistema.segregacion_theil;
+
+  // Equidad: carga mensual costo/ingreso (adimensional ⇒ comparable entre
+  // estratos), en puntos porcentuales.
+  const dCargaAlto =
+    ((eL[alto]?.carga_costo_ingreso ?? 0) -
+      (eF[alto]?.carga_costo_ingreso ?? 0)) *
+    100;
+  const dCargaBajo =
+    ((eL[bajo]?.carga_costo_ingreso ?? 0) -
+      (eF[bajo]?.carga_costo_ingreso ?? 0)) *
+    100;
+
+  // Accesibilidad: tiempo medio de viaje experimentado por estrato (min).
+  const dTAlto =
+    (eL[alto]?.tiempo_medio_min ?? 0) - (eF[alto]?.tiempo_medio_min ?? 0);
+  const dTBajo =
+    (eL[bajo]?.tiempo_medio_min ?? 0) - (eF[bajo]?.tiempo_medio_min ?? 0);
 
   const highlights: Array<{ title: string; body: string }> = [];
 
@@ -239,29 +557,36 @@ function Interpretation({ first, last, landUse, tS }: InterpretationProps) {
     highlights.push({
       title: tS("coupled.interp.segregation_title"),
       body: tS(
-        dSeg > 0 ? "coupled.interp.segregation_up" : "coupled.interp.segregation_down",
-        { delta: Math.abs(dSeg).toFixed(3) }
+        dSeg > 0
+          ? "coupled.interp.segregation_up"
+          : "coupled.interp.segregation_down",
+        { delta: Math.abs(dSeg).toFixed(3) },
       ),
     });
   }
-  if (dWelfAlto != null && dWelfBajo != null) {
-    const gap = dWelfAlto - dWelfBajo;
+  if (Math.abs(dCargaBajo - dCargaAlto) > 0.2) {
+    const regresivo = dCargaBajo > dCargaAlto;
     highlights.push({
       title: tS("coupled.interp.welfare_title"),
       body: tS(
-        gap > 0 ? "coupled.interp.welfare_regressive" : "coupled.interp.welfare_progressive",
-        { alto: fmt(dWelfAlto), bajo: fmt(dWelfBajo) }
+        regresivo
+          ? "coupled.interp.welfare_regressive"
+          : "coupled.interp.welfare_progressive",
+        {
+          alto: fmt(dCargaAlto, 1),
+          bajo: fmt(dCargaBajo, 1),
+          cargaBajo: ((eL[bajo]?.carga_costo_ingreso ?? 0) * 100).toFixed(1),
+        },
       ),
     });
   }
-  if (dAccAlto != null && dAccBajo != null) {
-    const ratio = dAccAlto !== 0 && dAccBajo !== 0 ? Math.abs(dAccAlto / dAccBajo) : 1;
+  if (Math.max(Math.abs(dTAlto), Math.abs(dTBajo)) > 0.5) {
     highlights.push({
       title: tS("coupled.interp.accessibility_title"),
       body: tS("coupled.interp.accessibility_body", {
-        alto: fmt(dAccAlto, 3),
-        bajo: fmt(dAccBajo, 3),
-        ratio: ratio.toFixed(1),
+        alto: fmt(dTAlto, 1),
+        bajo: fmt(dTBajo, 1),
+        tBajo: (eL[bajo]?.tiempo_medio_min ?? 0).toFixed(1),
       }),
     });
   }
@@ -288,33 +613,7 @@ function Interpretation({ first, last, landUse, tS }: InterpretationProps) {
   );
 }
 
-function diff(a: number | null, b: number | null): number | null {
-  if (a == null || b == null) return null;
-  return a - b;
-}
-
 function fmt(v: number, digits = 2): string {
   const sign = v > 0 ? "+" : "";
   return `${sign}${v.toFixed(digits)}`;
-}
-
-function approximateParcelasFromQ(Q: number[][]): number[][] {
-  const nStrata = Q.length;
-  const I = Q[0]?.length ?? 0;
-  const parcelas: number[][] = Array.from({ length: I }, () => []);
-  for (let i = 0; i < I; i++) {
-    let bestH = -1;
-    let bestV = -Infinity;
-    for (let h = 0; h < nStrata; h++) {
-      const v = Q[h]?.[i] ?? 0;
-      if (v > bestV) {
-        bestV = v;
-        bestH = h;
-      }
-    }
-    if (bestH >= 0 && bestV > 0) {
-      parcelas[i]!.push(bestH + 1);
-    }
-  }
-  return parcelas;
 }

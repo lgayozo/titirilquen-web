@@ -60,8 +60,24 @@ def asignar_hogares_simple(
             progress = True
 
         if not progress:
-            raise RuntimeError(
-                f"Asignación estancada con S_rest={S_rest.sum()} y H_rest={H_rest.tolist()}"
-            )
+            # Q degeneró a 0/1 (underflow numérico): con scores extremos —p.ej.
+            # gridlock del acoplado (D-24), donde T llega a miles de minutos y
+            # las diferencias α_h·T superan el rango de exp()— hay parcelas cuya
+            # única masa está en estratos con cuota agotada. Las cuotas mandan
+            # (Σ S = Σ H): el sobrante se reparte como "desborde" — los hogares
+            # restantes llenan los espacios restantes en orden aleatorio. Es la
+            # lectura física correcta: si el mercado dice "aquí solo viviría el
+            # estrato 1" pero el estrato 1 ya no existe, alguien ocupa igual el
+            # espacio disponible (la alternativa, fallar, mataba la corrida).
+            sobrantes = np.repeat(np.arange(1, n_strata + 1), H_rest)
+            rng.shuffle(sobrantes)
+            k = 0
+            for i in range(n_parcelas):
+                while S_rest[i] > 0:
+                    parcelas[i].append(int(sobrantes[k]))
+                    k += 1
+                    S_rest[i] -= 1
+            H_rest[:] = 0
+            break
 
     return parcelas

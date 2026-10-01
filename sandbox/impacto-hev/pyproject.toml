@@ -1,0 +1,18 @@
+[project]
+name = "impacto-hev"
+version = "0.1.0"
+description = "Cuanto cambia el resultado al pasar de la forma cerrada al HEV"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    # Se compara el nucleo contra si mismo: las dos ramas salen de aca.
+    "titirilquen-core",
+]
+
+[tool.uv.sources]
+titirilquen-core = { path = "../../packages/titirilquen_core" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

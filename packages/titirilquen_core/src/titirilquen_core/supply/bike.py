@@ -53,10 +53,18 @@ def demora_bici_tramo(
     idx_centro = max(0, min(idx_centro, N - 1))
     dx = L_ciudad_km / N
 
-    v_izq = _velocidad_con_pendiente(v_media, pendiente_porcentaje)
-    v_der = _velocidad_con_pendiente(v_media, -pendiente_porcentaje)
-    t0_izq = (dx / v_izq) * 60
-    t0_der = (dx / v_der) * 60
+    # La pendiente es la que enfrenta el viaje HACIA el CBD, igual para los dos
+    # lados de la ciudad: `p > 0` = el centro esta en alto y todos suben para
+    # llegar; `p < 0` = el centro esta en una hondonada y todos bajan.
+    #
+    # Antes se aplicaba `+p` a la izquierda y `-p` a la derecha, o sea la ciudad
+    # era un plano inclinado: un lado subia y el otro bajaba, y como el agregado
+    # promedia ambos, `+p` y `-p` daban resultados IDENTICOS (AT-05). El signo
+    # de un parametro fisico no puede ser irrelevante: con la topografia
+    # monocentrica todos los usuarios enfrentan la misma pendiente.
+    v_tramo = _velocidad_con_pendiente(v_media, pendiente_porcentaje)
+    t0_izq = (dx / v_tramo) * 60
+    t0_der = t0_izq
     # Piso: el tramo de bici no puede tardar más que caminar ese tramo.
     t_tramo_walk = (dx / max(v_caminata, 1e-6)) * 60
 
