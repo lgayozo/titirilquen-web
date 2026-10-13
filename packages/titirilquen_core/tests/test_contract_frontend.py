@@ -133,12 +133,24 @@ UTILIDAD_CASOS = [
     (0, False),
 ]
 
+#: Casos con peaje por km (D7): sin ellos, un espejo que ignorara `peaje_km`
+#: pasaría, porque el default es 0. Dos distancias con auto bastan: el término
+#: es lineal en la distancia.
+UTILIDAD_CASOS_PEAJE = [(88, True), (30, True)]
+PEAJE_GOLDEN_KM = 150.0
+
 
 def _utilidad_casos() -> list[dict]:
     ciudad = CiudadLineal(n_celdas=201, largo_total_km=20)
-    demanda = DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
+    sin_peaje = DemandConfig.model_validate({"estratos": DEFAULT_STRATA})
+    con_peaje = sin_peaje.model_copy(
+        update={"globales": sin_peaje.globales.model_copy(update={"peaje_km": PEAJE_GOLDEN_KM})}
+    )
     casos = []
-    for celda, tiene_auto in UTILIDAD_CASOS:
+    rejilla = [(c, a, sin_peaje) for c, a in UTILIDAD_CASOS] + [
+        (c, a, con_peaje) for c, a in UTILIDAD_CASOS_PEAJE
+    ]
+    for celda, tiene_auto, demanda in rejilla:
         dist_km = abs(ciudad.cbd_index - celda) * ciudad.ancho_celda_km
         # Tiempos plausibles para esa distancia, con algo de congestión en el
         # auto y una espera de metro típica del default (f_op ≈ 6 tph).
@@ -164,6 +176,7 @@ def _utilidad_casos() -> list[dict]:
                     "celda": celda,
                     "dist_km": dist_km,
                     "tiene_auto": tiene_auto,
+                    "peaje_km": demanda.globales.peaje_km,
                     "tiempos": {
                         "auto_total": tiempos.auto_total,
                         "bici_total": tiempos.bici_total,

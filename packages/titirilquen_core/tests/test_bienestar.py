@@ -114,6 +114,23 @@ def test_el_bienestar_social_usa_la_medida_emparejada(
     esperado = (
         agg[campo]
         + agg["recaudacion_parking_clp"]
+        + agg["recaudacion_peaje_clp"]
+        + agg["recaudacion_tarifa_clp"]
+        - agg["costo_operador_clp"]
+    )
+    assert agg["bienestar_social_clp"] == pytest.approx(esperado, rel=1e-9)
+
+
+def test_el_peaje_es_transferencia(sim_liviana: SimulationConfig, lu_chica: LandUseConfig) -> None:
+    """D7: lo que paga el automovilista en peaje lo recauda la ciudad, así que
+    entra al bienestar social como recaudación, igual que el parking."""
+    sim_liviana.demand.globales.peaje_km = 100.0
+    agg = _agregados(sim_liviana, lu_chica, "expected")
+    assert agg["recaudacion_peaje_clp"] > 0
+    esperado = (
+        agg["excedente_total_clp"]
+        + agg["recaudacion_parking_clp"]
+        + agg["recaudacion_peaje_clp"]
         + agg["recaudacion_tarifa_clp"]
         - agg["costo_operador_clp"]
     )

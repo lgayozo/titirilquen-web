@@ -71,9 +71,11 @@ export function calcularUtilidades({
   const tCam = (distKm / gl.v_caminata) * 60;
 
   // Auto
-  // El parking es por tour (día): a cada viaje de ida le toca la mitad.
+  // Espejo de `costo_monetario_auto`: bencina y peaje por km (D7), más medio
+  // parking, que es por tour (día).
   const cAuto =
-    distKm * gl.costo_combustible_km + gl.costo_parking / VIAJES_POR_TOUR;
+    distKm * (gl.costo_combustible_km + gl.peaje_km) +
+    gl.costo_parking / VIAJES_POR_TOUR;
   const vTAuto = betas.b_tiempo_viaje * tt.auto_total;
   const vCAuto = betas.b_costo * cAuto;
   const auto: UtilityBreakdown = tieneAuto

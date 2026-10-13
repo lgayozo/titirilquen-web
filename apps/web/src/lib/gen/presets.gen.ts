@@ -21,6 +21,7 @@ export interface PolicyPresetValues {
   num_pistas?: number;
   num_estaciones?: number;
   bencina?: number;
+  peaje?: number;
   cap_bici?: number;
   frec_max?: number;
   cap_tren?: number;
@@ -68,6 +69,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
+    peaje: 0,
     cap_bici: 4000,
     frec_max: 40,
     cap_tren: 1000,
@@ -79,6 +81,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
+    peaje: 0,
     cap_bici: 4000,
     frec_max: 50,
     cap_tren: 1000,
@@ -86,10 +89,11 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   },
   "Tarificación Vial": {
     tarifa: 800,
-    parking: 5000,
+    parking: 2000,
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
+    peaje: 150,
     cap_tren: 1000,
     cap_bici: 4000,
     frec_max: 40,
@@ -101,6 +105,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 3,
     num_estaciones: 8,
     bencina: 100,
+    peaje: 0,
     cap_tren: 800,
     cap_bici: 2000,
     frec_max: 6,
@@ -113,6 +118,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     cap_bici: 8000,
     frec_max: 40,
     bencina: 120,
+    peaje: 0,
     cap_tren: 1000,
     num_estaciones: 10,
     factor_flota: 1.0,
@@ -120,6 +126,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
   "Vehículos híbridos": {
     num_pistas: 2,
     bencina: 65,
+    peaje: 0,
     tarifa: 800,
     parking: 2000,
     frec_max: 40,
@@ -135,6 +142,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     cap_tren: 1000,
     parking: 2000,
     bencina: 120,
+    peaje: 0,
     num_pistas: 2,
     cap_bici: 4000,
     factor_flota: 1.0,
@@ -145,6 +153,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     tarifa: 800,
     parking: 2000,
     bencina: 120,
+    peaje: 0,
     frec_max: 40,
     cap_tren: 1000,
     num_estaciones: 10,

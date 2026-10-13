@@ -43,6 +43,8 @@
     "parking_desglose": "{{dia}}/día · {{viaje}}/viaje",
     "bencina": "Bencina",
     "bencina_hint": "Efecto chico: quien maneja (estratos altos) es poco sensible al costo por km. Para desincentivar el auto, usá el parking (costo fijo) o la tarificación.",
+    "peaje": "Peaje vial (por km)",
+    "peaje_hint": "Cobro por km recorrido en auto. Como la bencina, crece con la distancia; a diferencia de ella, es recaudación de la ciudad y suma al bienestar social. El parking es un cordón plano; el peaje se acerca más al cobro de Pigou, porque el costo de congestión que un viaje impone crece con los tramos que cruza.",
     "teletrabajo_factor": "Factor de teletrabajo",
     "teletrabajo_hint": "Escala la tasa de teletrabajo de cada estrato (la base se ajusta en Calibración). Esos agentes no viajan y salen de la demanda de punta: es la única palanca acá que reduce viajes en vez de reasignarlos entre modos."
   },
@@ -631,6 +633,7 @@
       "tarifa": "Tarifa metro",
       "parking": "Parking",
       "bencina": "Combustible",
+      "peaje": "Peaje por km",
       "factor_flota": "Emisión de la flota",
       "cap_tren": "Capacidad tren",
       "densidad_derivada": "Densidad (derivada)"

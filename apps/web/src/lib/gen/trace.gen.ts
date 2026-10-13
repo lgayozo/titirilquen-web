@@ -40,6 +40,7 @@ export interface AgregadosDict {
   excedente_max_total_clp: number;
   medida_bienestar: "logsum" | "utilidad_maxima";
   recaudacion_parking_clp: number;
+  recaudacion_peaje_clp: number;
   recaudacion_tarifa_clp: number;
   tren_km_hora: number;
   costo_operador_clp: number;

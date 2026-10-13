@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-15",
-  "commit": "d1f0110",
+  "fecha": "2026-10-13",
+  "commit": "a18f571",
   "script": "docs/libro/datos/datos_cap04.py",
   "configuracion": "Demanda de la aplicación (`presets.DEFAULT_STRATA`, homoscedástica desde D-33) sobre la ciudad por defecto: 201 celdas, 20 km, localización «original». Los costos por modo son a flujo libre."
  },
@@ -13,6 +13,7 @@
    "v_caminata": 4.8,
    "costo_parking": 2000,
    "costo_combustible_km": 120,
+   "peaje_km": 0,
    "costo_tarifa_metro": 800,
    "corte_caminata_min": 30.0,
    "corte_bici_min": 45.0,
@@ -167,49 +168,49 @@
   "filas": [
    {
     "km": 0.5,
-    "Auto": 17.69,
+    "Auto": -1.67,
     "Metro": 43.19,
     "Bici": 16.99,
     "Caminata": 8.94
    },
    {
     "km": 1,
-    "Auto": 19.8,
+    "Auto": 0.45,
     "Metro": 44.05,
     "Bici": 19.12,
     "Caminata": 19.51
    },
    {
     "km": 2,
-    "Auto": 24.04,
+    "Auto": 4.69,
     "Metro": 45.75,
     "Bici": 23.39,
     "Caminata": 43.38
    },
    {
     "km": 3,
-    "Auto": 28.28,
+    "Auto": 8.92,
     "Metro": 47.46,
     "Bici": 29.57,
     "Caminata": null
    },
    {
     "km": 5,
-    "Auto": 36.75,
+    "Auto": 17.4,
     "Metro": 50.87,
     "Bici": 41.12,
     "Caminata": null
    },
    {
     "km": 7,
-    "Auto": 45.23,
+    "Auto": 25.87,
     "Metro": 54.28,
     "Bici": 49.65,
     "Caminata": null
    },
    {
     "km": 10,
-    "Auto": 57.94,
+    "Auto": 38.58,
     "Metro": 59.4,
     "Bici": 74.52,
     "Caminata": null
@@ -286,100 +287,150 @@
   "costo_tarifa_metro": [
    {
     "costo_tarifa_metro": 0,
-    "Auto": 13.601,
-    "Metro": 33.031,
-    "Bici": 23.85,
-    "Caminata": 10.024,
+    "Auto": 18.25,
+    "Metro": 30.192,
+    "Bici": 22.765,
+    "Caminata": 9.299,
     "Teletrabajo": 19.494
    },
    {
     "costo_tarifa_metro": 400,
-    "Auto": 14.932,
-    "Metro": 28.226,
-    "Bici": 26.764,
-    "Caminata": 10.583,
+    "Auto": 19.494,
+    "Metro": 25.502,
+    "Bici": 25.67,
+    "Caminata": 9.84,
     "Teletrabajo": 19.494
    },
    {
     "costo_tarifa_metro": 800,
-    "Auto": 16.362,
-    "Metro": 23.625,
-    "Bici": 29.395,
-    "Caminata": 11.124,
+    "Auto": 20.709,
+    "Metro": 21.096,
+    "Bici": 28.344,
+    "Caminata": 10.356,
     "Teletrabajo": 19.494
    },
    {
     "costo_tarifa_metro": 1200,
-    "Auto": 17.793,
-    "Metro": 19.31,
-    "Bici": 31.803,
-    "Caminata": 11.599,
+    "Auto": 21.845,
+    "Metro": 17.013,
+    "Bici": 30.811,
+    "Caminata": 10.836,
     "Teletrabajo": 19.494
    },
    {
     "costo_tarifa_metro": 1600,
-    "Auto": 19.163,
-    "Metro": 15.522,
-    "Bici": 33.826,
-    "Caminata": 11.994,
+    "Auto": 22.763,
+    "Metro": 13.514,
+    "Bici": 33.005,
+    "Caminata": 11.224,
     "Teletrabajo": 19.494
    }
   ],
   "costo_combustible_km": [
    {
     "costo_combustible_km": 60,
-    "Auto": 17.578,
-    "Metro": 22.66,
-    "Bici": 29.18,
-    "Caminata": 11.088,
+    "Auto": 21.686,
+    "Metro": 20.299,
+    "Bici": 28.169,
+    "Caminata": 10.352,
     "Teletrabajo": 19.494
    },
    {
     "costo_combustible_km": 120,
-    "Auto": 16.362,
-    "Metro": 23.625,
-    "Bici": 29.395,
-    "Caminata": 11.124,
+    "Auto": 20.709,
+    "Metro": 21.096,
+    "Bici": 28.344,
+    "Caminata": 10.356,
     "Teletrabajo": 19.494
    },
    {
     "costo_combustible_km": 240,
-    "Auto": 14.096,
-    "Metro": 25.478,
-    "Bici": 29.754,
-    "Caminata": 11.178,
+    "Auto": 18.675,
+    "Metro": 22.797,
+    "Bici": 28.649,
+    "Caminata": 10.385,
     "Teletrabajo": 19.494
    },
    {
     "costo_combustible_km": 480,
-    "Auto": 10.543,
-    "Metro": 28.323,
-    "Bici": 30.324,
-    "Caminata": 11.315,
+    "Auto": 14.77,
+    "Metro": 25.981,
+    "Bici": 29.252,
+    "Caminata": 10.503,
+    "Teletrabajo": 19.494
+   }
+  ],
+  "peaje_km": [
+   {
+    "peaje_km": 0,
+    "Auto": 20.709,
+    "Metro": 21.096,
+    "Bici": 28.344,
+    "Caminata": 10.356,
+    "Teletrabajo": 19.494
+   },
+   {
+    "peaje_km": 50,
+    "Auto": 19.862,
+    "Metro": 21.78,
+    "Bici": 28.5,
+    "Caminata": 10.363,
+    "Teletrabajo": 19.494
+   },
+   {
+    "peaje_km": 100,
+    "Auto": 19.018,
+    "Metro": 22.524,
+    "Bici": 28.585,
+    "Caminata": 10.379,
+    "Teletrabajo": 19.494
+   },
+   {
+    "peaje_km": 150,
+    "Auto": 18.188,
+    "Metro": 23.267,
+    "Bici": 28.656,
+    "Caminata": 10.394,
+    "Teletrabajo": 19.494
+   },
+   {
+    "peaje_km": 200,
+    "Auto": 17.339,
+    "Metro": 23.93,
+    "Bici": 28.823,
+    "Caminata": 10.413,
+    "Teletrabajo": 19.494
+   },
+   {
+    "peaje_km": 300,
+    "Auto": 15.7,
+    "Metro": 25.185,
+    "Bici": 29.148,
+    "Caminata": 10.472,
     "Teletrabajo": 19.494
    }
   ]
  },
  "logit_vs_determinista": {
   "expected": {
-   "Auto": 16.362,
-   "Metro": 23.625,
-   "Bici": 29.395,
-   "Caminata": 11.124,
+   "Auto": 20.709,
+   "Metro": 21.096,
+   "Bici": 28.344,
+   "Caminata": 10.356,
    "Teletrabajo": 19.494
   },
   "todo_o_nada": {
-   "Auto": 29.383,
-   "Metro": 7.417,
-   "Bici": 29.756,
-   "Caminata": 13.95,
+   "Auto": 30.267,
+   "Metro": 8.761,
+   "Bici": 31.522,
+   "Caminata": 9.956,
    "Teletrabajo": 19.494
   },
   "celda_a_3km_estrato_medio": {
    "logit": {
-    "Auto": 0.4019,
-    "Metro": 0.213,
-    "Bici": 0.3851,
+    "Auto": 0.5605,
+    "Metro": 0.1565,
+    "Bici": 0.283,
     "Caminata": 0.0
    },
    "todo_o_nada": {
@@ -389,5 +440,133 @@
     "Caminata": 0.0
    }
   }
+ },
+ "peaje_y_bienestar": {
+  "nota": "Localización «original», tol 0,1: el ruido del MSA es del orden de ±50.000 $ en el bienestar, así que el óptimo es una meseta.",
+  "barrido": [
+   {
+    "peaje_km": 0,
+    "auto_pct": 20.71,
+    "vc_auto": 1.683,
+    "recaudacion_peaje_clp": 0,
+    "recaudacion_parking_clp": 7455398,
+    "iteraciones": 8,
+    "delta_bienestar_clp": 0
+   },
+   {
+    "peaje_km": 25,
+    "auto_pct": 20.29,
+    "vc_auto": 1.649,
+    "recaudacion_peaje_clp": 696728,
+    "recaudacion_parking_clp": 7304323,
+    "iteraciones": 8,
+    "delta_bienestar_clp": 262135
+   },
+   {
+    "peaje_km": 50,
+    "auto_pct": 19.86,
+    "vc_auto": 1.615,
+    "recaudacion_peaje_clp": 1349259,
+    "recaudacion_parking_clp": 7150447,
+    "iteraciones": 8,
+    "delta_bienestar_clp": 479306
+   },
+   {
+    "peaje_km": 75,
+    "auto_pct": 19.43,
+    "vc_auto": 1.58,
+    "recaudacion_peaje_clp": 1958220,
+    "recaudacion_parking_clp": 6996461,
+    "iteraciones": 7,
+    "delta_bienestar_clp": 586479
+   },
+   {
+    "peaje_km": 100,
+    "auto_pct": 19.02,
+    "vc_auto": 1.546,
+    "recaudacion_peaje_clp": 2522731,
+    "recaudacion_parking_clp": 6839701,
+    "iteraciones": 7,
+    "delta_bienestar_clp": 702855
+   },
+   {
+    "peaje_km": 125,
+    "auto_pct": 18.59,
+    "vc_auto": 1.511,
+    "recaudacion_peaje_clp": 3051916,
+    "recaudacion_parking_clp": 6691366,
+    "iteraciones": 7,
+    "delta_bienestar_clp": 758510
+   },
+   {
+    "peaje_km": 150,
+    "auto_pct": 18.19,
+    "vc_auto": 1.479,
+    "recaudacion_peaje_clp": 3533237,
+    "recaudacion_parking_clp": 6535316,
+    "iteraciones": 7,
+    "delta_bienestar_clp": 787930
+   },
+   {
+    "peaje_km": 175,
+    "auto_pct": 17.76,
+    "vc_auto": 1.444,
+    "recaudacion_peaje_clp": 3983866,
+    "recaudacion_parking_clp": 6392608,
+    "iteraciones": 7,
+    "delta_bienestar_clp": 724156
+   },
+   {
+    "peaje_km": 200,
+    "auto_pct": 17.34,
+    "vc_auto": 1.409,
+    "recaudacion_peaje_clp": 4387745,
+    "recaudacion_parking_clp": 6239417,
+    "iteraciones": 7,
+    "delta_bienestar_clp": 684687
+   },
+   {
+    "peaje_km": 300,
+    "auto_pct": 15.7,
+    "vc_auto": 1.276,
+    "recaudacion_peaje_clp": 5651756,
+    "recaudacion_parking_clp": 5647719,
+    "iteraciones": 7,
+    "delta_bienestar_clp": 180125
+   }
+  ],
+  "parking_5000_sin_peaje": {
+   "auto_pct": 13.63,
+   "vc_auto": 1.108,
+   "recaudacion_peaje_clp": 0,
+   "recaudacion_parking_clp": 12239913,
+   "iteraciones": 8,
+   "delta_bienestar_clp": -862884
+  }
+ },
+ "ancla_vot": {
+  "por_estrato": {
+   "alto": {
+    "vot_clp_hora": 6200.0,
+    "hogares": 7200,
+    "viajeros": 4320
+   },
+   "medio": {
+    "vot_clp_hora": 3100.0,
+    "hogares": 18010,
+    "viajeros": 14410
+   },
+   "bajo": {
+    "vot_clp_hora": 1600.0,
+    "hogares": 10790,
+    "viajeros": 10252
+   }
+  },
+  "vst_clp_hora": 3338.0,
+  "media_por_viajero_clp_hora": 3031.5,
+  "media_por_hogar_clp_hora": 3270.4,
+  "brecha_por_viajero_pct": -9.18,
+  "brecha_por_hogar_pct": -2.02,
+  "factor_para_igualar_por_viajero": 1.1011
  }
 }

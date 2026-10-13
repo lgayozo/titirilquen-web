@@ -101,6 +101,11 @@ const GRUPOS: { labelKey: string; campos: Campo[] }[] = [
         fmt: (v) => `${money(v)}/km`,
       },
       {
+        labelKey: "coupled.param.peaje",
+        get: (c) => c.demand.globales.peaje_km,
+        fmt: (v) => `${money(v)}/km`,
+      },
+      {
         labelKey: "coupled.param.factor_flota",
         get: (c) => c.demand.globales.factor_flota_auto,
         fmt: (v) => `× ${nf(v)}`,

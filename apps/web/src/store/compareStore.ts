@@ -271,8 +271,9 @@ export const useCompareStore = create<CompareState>()(
     {
       // v2 (oct-2026): el schema v7 del suelo retiró `alpha` y `mu`. Sin
       // migraciones, como los .ttrq.json: los escenarios guardados con v1 se
-      // descartan en vez de fallar al correrlos.
-      name: "titirilquen.compare.v2",
+      // descartan en vez de fallar al correrlos. v3 (oct-2026, D7): la demanda
+      // ganó `peaje_km`, que un escenario v2 no trae.
+      name: "titirilquen.compare.v3",
       partialize: (s): CompareInputs => ({
         kind: s.kind,
         baseId: s.baseId,

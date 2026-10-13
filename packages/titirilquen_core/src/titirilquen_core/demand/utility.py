@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from titirilquen_core.city import CiudadLineal
-from titirilquen_core.config import DemandConfig, StratumId
+from titirilquen_core.config import DemandConfig, GlobalConfig, StratumId
 from titirilquen_core.constantes import VIAJES_POR_TOUR
 
 Modo = Literal["Auto", "Metro", "Bici", "Caminata"]
@@ -46,6 +46,14 @@ class UtilityBreakdown:
     v_costo: float
     v_penalizaciones: float = 0.0
     feasible: bool = True
+
+
+def costo_monetario_auto(dist_km: float, globales: GlobalConfig) -> float:
+    """Dinero ($) de un viaje de ida en auto: bencina y peaje por km recorrido,
+    más medio parking, que es por tour (día). Única fuente: la usan la elección
+    modal y los agregados de bienestar, que antes tenían cada uno su copia."""
+    por_km = globales.costo_combustible_km + globales.peaje_km
+    return dist_km * por_km + globales.costo_parking / VIAJES_POR_TOUR
 
 
 def _tiempos_flujo_libre(dist_km: float, globales) -> TiemposObservados:
@@ -87,8 +95,7 @@ def calcular_utilidades(
     t_cam = (dist_km / gl.v_caminata) * 60
 
     # AUTO
-    # El parking es por tour (día): a cada viaje de ida le toca la mitad.
-    c_auto = dist_km * gl.costo_combustible_km + gl.costo_parking / VIAJES_POR_TOUR
+    c_auto = costo_monetario_auto(dist_km, gl)
     asc_auto = betas.asc_auto
     v_t_auto = betas.b_tiempo_viaje * tiempos.auto_total
     v_c_auto = betas.b_costo * c_auto

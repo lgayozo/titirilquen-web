@@ -161,11 +161,16 @@ export function ReferenceComparison({
     },
     {
       label: t("agg.recaudacion"),
-      actual: agg.recaudacion_parking_clp + agg.recaudacion_tarifa_clp,
+      actual:
+        agg.recaudacion_parking_clp +
+        agg.recaudacion_peaje_clp +
+        agg.recaudacion_tarifa_clp,
       ref:
         aggRef == null
           ? null
-          : aggRef.recaudacion_parking_clp + aggRef.recaudacion_tarifa_clp,
+          : aggRef.recaudacion_parking_clp +
+            aggRef.recaudacion_peaje_clp +
+            aggRef.recaudacion_tarifa_clp,
       fmt: fmtMoney,
       menorEsMejor: false,
       nota: t("agg.recaudacion_nota"),

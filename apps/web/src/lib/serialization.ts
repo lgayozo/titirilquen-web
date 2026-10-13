@@ -4,7 +4,7 @@
  * Formato de archivo `.ttrq.json`:
  * ```json
  * {
- *   "$schema": "titirilquen-scenario/v7",
+ *   "$schema": "titirilquen-scenario/v8",
  *   "name": "Mi escenario",
  *   "config": { ...SimulationConfig },
  *   "land_use": { ...LandUseConfig },          // opcional
@@ -23,7 +23,7 @@
  * educativo cuyos escenarios se rehacen en minutos, no un sistema con datos
  * que no se pueden perder.
  *
- * La consecuencia es explícita: un archivo o link anterior a v7 falla al
+ * La consecuencia es explícita: un archivo o link anterior a v8 falla al
  * importarse, con un mensaje que dice por qué. v5 (sep-2026): el campo de
  * suelo `beta` pasó a llamarse `mu`, la precisión μ de Martínez; `beta` era
  * la otra precisión de su libro (D-31). v6 (sep-2026): se eliminó
@@ -32,7 +32,9 @@
  * (oct-2026, D1–D2 de la auditoría): se eliminaron `estratos[h].alpha` y `mu`
  * del suelo —la accesibilidad entra con peso 1 y μ es la constante
  * `MU_SUELO`— y `rho` pasó a penalizar la densidad relativa a la media, en
- * utiles-mes (ρ_v7 = ρ_v6 × densidad media en hog/km). Si algún día hay escenarios que
+ * utiles-mes (ρ_v7 = ρ_v6 × densidad media en hog/km). v8 (oct-2026, D7): la
+ * demanda ganó `globales.peaje_km`; un v7 no lo trae y el inspector de
+ * utilidad, que no pasa por Pydantic, daría NaN. Si algún día hay escenarios que
  * de verdad importe conservar, la decisión se revisa — y entonces el lugar
  * correcto es un migrador versionado, no cinco parches sueltos.
  */
@@ -40,7 +42,7 @@
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 
-export const TTRQ_SCHEMA = "titirilquen-scenario/v7";
+export const TTRQ_SCHEMA = "titirilquen-scenario/v8";
 export const TTRQ_EXT = ".ttrq.json";
 
 export interface CoupledPrefs {
@@ -132,6 +134,16 @@ export function scenarioFromUrlParam(param: string): ScenarioPayload {
   const data = JSON.parse(raw) as Record<string, unknown>;
   if (typeof data.config !== "object" || data.config === null) {
     throw new Error("El link no contiene un escenario válido.");
+  }
+  // El link no lleva `$schema`. Un campo QUITADO lo rechaza el core
+  // (`extra="forbid"`), pero uno AGREGADO pasa con su default de Pydantic y
+  // deja al inspector de utilidad en NaN: se rechaza igual que un archivo v7.
+  const cfg = data.config as SimulationConfig;
+  if (typeof cfg.demand?.globales?.peaje_km !== "number") {
+    throw new Error(
+      "Este link es de una versión anterior del simulador (sin peaje por km, " +
+        "schema v7) y ya no se puede abrir. Vuelve a generarlo.",
+    );
   }
   return data as unknown as ScenarioPayload;
 }

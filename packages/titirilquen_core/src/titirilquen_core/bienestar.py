@@ -96,7 +96,11 @@ import numpy as np
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig, StratumId
 from titirilquen_core.constantes import MODOS, VIAJES_POR_TOUR, VOT_SOCIAL_CLP_HORA
-from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
+from titirilquen_core.demand.utility import (
+    TiemposObservados,
+    calcular_utilidades,
+    costo_monetario_auto,
+)
 from titirilquen_core.emissions import tren_km_hora
 from titirilquen_core.equilibrium.msa import ConvergenceTrace
 
@@ -169,6 +173,8 @@ class AgregadosDict(TypedDict):
     #: Recaudación de estacionamiento. Es TRANSFERENCIA, no consumo de recursos:
     #: alguien la recibe. La bencina NO entra — ésa sí se consume.
     recaudacion_parking_clp: float
+    #: Recaudación del peaje por km (D7). Transferencia, como el parking.
+    recaudacion_peaje_clp: float
     recaudacion_tarifa_clp: float
     #: Tren-km por hora del servicio (f_op · largo de línea · 2).
     tren_km_hora: float
@@ -229,7 +235,7 @@ def vot_clp_hora(cfg: SimulationConfig, estrato: StratumId) -> float:
 def _dinero_del_modo(modo: str, cfg: SimulationConfig, dist_km: float) -> float:
     g = cfg.demand.globales
     if modo == "Auto":
-        return dist_km * g.costo_combustible_km + g.costo_parking / VIAJES_POR_TOUR
+        return costo_monetario_auto(dist_km, g)
     if modo == "Metro":
         return g.costo_tarifa_metro
     return 0.0  # bici y caminata no cuestan dinero en el modelo
@@ -316,7 +322,7 @@ def calcular_agregados(
     viajes_modo_estrato: dict[str, dict[str, float]] = {
         str(h): dict.fromkeys(MODOS, 0.0) for h in (1, 2, 3)
     }
-    rec_parking = rec_tarifa = 0.0
+    rec_parking = rec_peaje = rec_tarifa = 0.0
     ls_suma = dict.fromkeys(estratos, 0.0)
     mx_suma = dict.fromkeys(estratos, 0.0)
     ls_n = dict.fromkeys(estratos, 0.0)
@@ -376,6 +382,7 @@ def calcular_agregados(
                 # excluye a propósito: es consumo real de recursos, no ingreso.
                 if modo == "Auto":
                     rec_parking += d * cfg.demand.globales.costo_parking / VIAJES_POR_TOUR
+                    rec_peaje += d * dist_km * cfg.demand.globales.peaje_km
                 elif modo == "Metro":
                     rec_tarifa += d * cfg.demand.globales.costo_tarifa_metro
 
@@ -472,9 +479,12 @@ def calcular_agregados(
         "excedente_max_total_clp": excedente_max_total,
         "medida_bienestar": medida,
         "recaudacion_parking_clp": rec_parking,
+        "recaudacion_peaje_clp": rec_peaje,
         "recaudacion_tarifa_clp": rec_tarifa,
         "tren_km_hora": tren_km,
         "costo_operador_clp": costo_operador,
         "subsidio_metro_clp": costo_operador - rec_tarifa,
-        "bienestar_social_clp": excedente_emparejado + rec_parking + rec_tarifa - costo_operador,
+        "bienestar_social_clp": (
+            excedente_emparejado + rec_parking + rec_peaje + rec_tarifa - costo_operador
+        ),
     }

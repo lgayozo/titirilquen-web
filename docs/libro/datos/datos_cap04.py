@@ -14,8 +14,13 @@ Cinco bloques:
    distancia, modo por modo, con sus saltos.
 3. `factibilidad` — qué modos existen a cada distancia, y cuánta población queda
    de cada lado de los cortes.
-4. `elasticidades` — respuesta del reparto a la tarifa del metro y al combustible.
+4. `elasticidades` — respuesta del reparto a la tarifa, al combustible y al
+   peaje por km.
 5. `logit_vs_determinista` — cuánto cambia el reparto según el método.
+6. `peaje_y_bienestar` — el bienestar social a lo largo del peaje por km (D7),
+   contra el parking de 5.000 que era la «Tarificación Vial» hasta oct-2026.
+7. `ancla_vot` — la media de los VoT ponderada por viajeros y por hogares,
+   contra el VST de Precios Sociales 2026 (D5).
 
 Correr desde `packages/titirilquen_core` (~2 min):
 
@@ -36,7 +41,10 @@ RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 import test_linea_base as base
+import titirilquen_core.equilibrium.msa as msa
+from titirilquen_core.bienestar import calcular_agregados
 from titirilquen_core.city import CiudadLineal
+from titirilquen_core.constantes import VOT_SOCIAL_CLP_HORA
 from titirilquen_core.demand.choice import (
     probabilidades_logit,
     probabilidades_todo_o_nada,
@@ -81,12 +89,8 @@ def anatomia() -> dict:
             "peso_min_espera": round(abs(b["b_tiempo_espera"]) / bt, 3),
             "peso_min_acceso": round(abs(b["b_tiempo_acceso"]) / bt, 3),
             # ASC en minutos-equivalentes, respecto del metro.
-            "asc_auto_min": round(
-                -(b["asc_auto"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
-            ),
-            "asc_bici_min": round(
-                -(b["asc_bici"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
-            ),
+            "asc_auto_min": round(-(b["asc_auto"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2),
+            "asc_bici_min": round(-(b["asc_bici"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2),
             "asc_caminata_min": round(
                 -(b["asc_caminata"] - b["asc_metro"]) / b["b_tiempo_viaje"], 2
             ),
@@ -94,16 +98,12 @@ def anatomia() -> dict:
             "pen_bici_min": {
                 ">10": round(abs(pen["bici_10"]) / bt, 2),
                 ">20": round(abs(pen["bici_10"] + pen["bici_20"]) / bt, 2),
-                ">30": round(
-                    abs(pen["bici_10"] + pen["bici_20"] + pen["bici_30"]) / bt, 2
-                ),
+                ">30": round(abs(pen["bici_10"] + pen["bici_20"] + pen["bici_30"]) / bt, 2),
             },
             "pen_caminata_min": {
                 ">5": round(abs(pen["walk_5"]) / bt, 2),
                 ">15": round(abs(pen["walk_5"] + pen["walk_15"]) / bt, 2),
-                ">25": round(
-                    abs(pen["walk_5"] + pen["walk_15"] + pen["walk_25"]) / bt, 2
-                ),
+                ">25": round(abs(pen["walk_5"] + pen["walk_15"] + pen["walk_25"]) / bt, 2),
             },
         }
     return filas
@@ -123,9 +123,7 @@ def _utils(h: int, celda: int, ciudad, cfg, tiene_auto: bool):
 def costo_por_modo() -> dict:
     """El costo generalizado a flujo libre, en minutos-equivalentes, por distancia."""
     cfg = base._config_web()
-    ciudad = CiudadLineal(
-        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
-    )
+    ciudad = CiudadLineal(n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km)
     bt = abs(DEFAULT_STRATA[2]["betas"]["b_tiempo_viaje"])
     filas = []
     for km in (0.5, 1, 2, 3, 5, 7, 10):
@@ -147,9 +145,7 @@ def costo_por_modo() -> dict:
 def factibilidad() -> dict:
     """Qué modos existen a cada distancia, y cuánta gente queda de cada lado."""
     cfg = base._config_web()
-    ciudad = CiudadLineal(
-        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
-    )
+    ciudad = CiudadLineal(n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km)
     gl = cfg.demand.globales
     umbral_cam = gl.corte_caminata_min * gl.v_caminata / 60
     umbral_bici = gl.corte_bici_min * gl.v_bici / 60
@@ -176,32 +172,117 @@ def factibilidad() -> dict:
     }
 
 
-def _corre(sim) -> dict:
+def _traza(sim) -> ConvergenceTrace:
     trace = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(
-        sim, base._land_use_web(), trace, localizacion="original"
-    ):
+    for _ in iter_msa_desde_suelo(sim, base._land_use_web(), trace, localizacion="original"):
         pass
+    return trace
+
+
+def _con_globales(**cambios):
+    sim = base._config_web()
+    gl = sim.demand.globales.model_copy(update=cambios)
+    return sim.model_copy(update={"demand": sim.demand.model_copy(update={"globales": gl})})
+
+
+def _corre(sim) -> dict:
+    trace = _traza(sim)
     s = trace.iteraciones[-1].modal_split
     t = sum(s.values())
     return {m: round(100.0 * v / t, 3) for m, v in s.items()}
 
 
 def elasticidades() -> dict:
-    """Respuesta del reparto a las dos palancas de precio."""
+    """Respuesta del reparto a las palancas de precio."""
     out = {}
     for campo, valores in (
         ("costo_tarifa_metro", (0, 400, 800, 1200, 1600)),
         ("costo_combustible_km", (60, 120, 240, 480)),
+        ("peaje_km", (0, 50, 100, 150, 200, 300)),
     ):
-        filas = []
-        for v in valores:
-            sim = base._config_web()
-            gl = sim.demand.globales.model_copy(update={campo: v})
-            dem = sim.demand.model_copy(update={"globales": gl})
-            filas.append({campo: v, **_corre(sim.model_copy(update={"demand": dem}))})
-        out[campo] = filas
+        out[campo] = [{campo: v, **_corre(_con_globales(**{campo: v}))} for v in valores]
     return out
+
+
+def peaje_y_bienestar() -> dict:
+    """D7: el bienestar social (excedente + recaudación − operador) a lo largo
+    del peaje por km, con el parking base; y el parking de 5.000 sin peaje,
+    que era la «Tarificación Vial» hasta oct-2026. Δ contra la base."""
+
+    def mide(sim) -> dict:
+        tr = _traza(sim)
+        a = calcular_agregados(sim, tr)
+        s = tr.iteraciones[-1].modal_split
+        return {
+            "bienestar": a["bienestar_social_clp"],
+            "auto_pct": round(100.0 * s["Auto"] / sum(s.values()), 2),
+            "vc_auto": round(float(np.max(tr.flujos_auto_veh_h)) / tr.capacidad_auto, 3),
+            "recaudacion_peaje_clp": round(a["recaudacion_peaje_clp"]),
+            "recaudacion_parking_clp": round(a["recaudacion_parking_clp"]),
+            "iteraciones": len(tr.iteraciones),
+        }
+
+    w0 = None
+    filas = []
+    for v in (0, 25, 50, 75, 100, 125, 150, 175, 200, 300):
+        m = mide(_con_globales(peaje_km=v))
+        w0 = m["bienestar"] if w0 is None else w0
+        filas.append({"peaje_km": v, **m})
+    parking = mide(_con_globales(costo_parking=5000))
+    for f in (*filas, parking):
+        f["delta_bienestar_clp"] = round(f.pop("bienestar") - w0)
+    return {
+        "nota": (
+            "Localización «original», tol 0,1: el ruido del MSA es del orden de "
+            "±50.000 $ en el bienestar, así que el óptimo es una meseta."
+        ),
+        "barrido": filas,
+        "parking_5000_sin_peaje": parking,
+    }
+
+
+def ancla_vot() -> dict:
+    """D5: la media de los VoT de la calibración contra el VST social. ΣH por
+    estrato está fijo, así que los viajeros por estrato casi no dependen de la
+    localización: sólo por el redondeo del teletrabajo celda a celda (el estrato
+    alto tiene 4.320 viajeros en «original» y 4.334 en «equilibrio»)."""
+    capturados = {}
+    original = msa.generar_poblacion_desde_land_use_det
+
+    def espia(**kw):
+        capturados["agentes"] = original(**kw)
+        return capturados["agentes"]
+
+    msa.generar_poblacion_desde_land_use_det = espia
+    try:
+        sim = base._config_web()
+        _traza(sim)
+    finally:
+        msa.generar_poblacion_desde_land_use_det = original
+    agentes = capturados["agentes"]
+    filas = {}
+    for h in ESTRATOS:
+        b = sim.demand.estratos[h].betas
+        filas[NOMBRES[h]] = {
+            "vot_clp_hora": round(b.b_tiempo_viaje / b.b_costo * 60, 1),
+            "hogares": sum(1 for a in agentes if a.estrato == h),
+            "viajeros": sum(1 for a in agentes if a.estrato == h and not a.teletrabaja),
+        }
+
+    def media(peso: str) -> float:
+        n = sum(f[peso] for f in filas.values())
+        return sum(f[peso] * f["vot_clp_hora"] for f in filas.values()) / n
+
+    por_viajero, por_hogar = media("viajeros"), media("hogares")
+    return {
+        "por_estrato": filas,
+        "vst_clp_hora": VOT_SOCIAL_CLP_HORA,
+        "media_por_viajero_clp_hora": round(por_viajero, 1),
+        "media_por_hogar_clp_hora": round(por_hogar, 1),
+        "brecha_por_viajero_pct": round(100 * (por_viajero / VOT_SOCIAL_CLP_HORA - 1), 2),
+        "brecha_por_hogar_pct": round(100 * (por_hogar / VOT_SOCIAL_CLP_HORA - 1), 2),
+        "factor_para_igualar_por_viajero": round(VOT_SOCIAL_CLP_HORA / por_viajero, 4),
+    }
 
 
 def logit_vs_determinista() -> dict:
@@ -212,16 +293,12 @@ def logit_vs_determinista() -> dict:
         out[metodo] = _corre(sim.model_copy(update={"assignment": metodo}))
     # Y en una celda concreta: probabilidades contra el argmax.
     cfg = base._config_web()
-    ciudad = CiudadLineal(
-        n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km
-    )
+    ciudad = CiudadLineal(n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km)
     celda = ciudad.cbd_index + int(round(3.0 / ciudad.ancho_celda_km))
     u = _utils(2, celda, ciudad, cfg, True)
     out["celda_a_3km_estrato_medio"] = {
         "logit": {m: round(p, 4) for m, p in probabilidades_logit(u).items()},
-        "todo_o_nada": {
-            m: round(p, 4) for m, p in probabilidades_todo_o_nada(u).items()
-        },
+        "todo_o_nada": {m: round(p, 4) for m, p in probabilidades_todo_o_nada(u).items()},
     }
     return out
 
@@ -257,6 +334,7 @@ def parametros_vigentes() -> dict:
             "v_caminata": g.v_caminata,
             "costo_parking": g.costo_parking,
             "costo_combustible_km": g.costo_combustible_km,
+            "peaje_km": g.peaje_km,
             "costo_tarifa_metro": g.costo_tarifa_metro,
             "corte_caminata_min": g.corte_caminata_min,
             "corte_bici_min": g.corte_bici_min,
@@ -286,10 +364,10 @@ def main() -> None:
         "factibilidad": factibilidad(),
         "elasticidades": elasticidades(),
         "logit_vs_determinista": logit_vs_determinista(),
+        "peaje_y_bienestar": peaje_y_bienestar(),
+        "ancla_vot": ancla_vot(),
     }
-    SALIDA.write_text(
-        json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    SALIDA.write_text(json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
     a = datos["anatomia"]["medio"]
     print("Pesos relativos (minutos-equivalentes en vehículo), estrato medio:")

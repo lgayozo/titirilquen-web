@@ -16,6 +16,7 @@ interface EconomyBuilderProps {
  *   - Tarifa Metro ($)
  *   - Estacionamiento ($)
  *   - Bencina ($/km)
+ *   - Peaje por km ($/km, D7): transferencia, a diferencia de la bencina
  *   - Factor de teletrabajo (×)
  *
  * El teletrabajo llegó acá el 2026-08-17. Vivía en `CityBuilder`, o sea en la
@@ -40,7 +41,7 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
       },
     }));
 
-  const { costo_tarifa_metro, costo_parking, costo_combustible_km } =
+  const { costo_tarifa_metro, costo_parking, costo_combustible_km, peaje_km } =
     config.demand.globales;
 
   const fmtCurrency = (v: number) => `$${v.toLocaleString("es-CL")}`;
@@ -78,6 +79,16 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         format={fmtCurrencyPerKm}
         hint={t("economy_params.bencina_hint")}
         onChange={(v) => setGlobal({ costo_combustible_km: v })}
+      />
+      <LabeledSlider
+        label={t("economy_params.peaje")}
+        value={peaje_km}
+        min={0}
+        max={500}
+        step={10}
+        format={fmtCurrencyPerKm}
+        hint={t("economy_params.peaje_hint")}
+        onChange={(v) => setGlobal({ peaje_km: v })}
       />
       {/* Única palanca de esta sección que no es un precio: multiplica la tasa
           de teletrabajo de cada estrato, y esos agentes salen de la demanda. */}

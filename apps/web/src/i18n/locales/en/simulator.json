@@ -43,6 +43,8 @@
     "parking_desglose": "{{dia}}/day · {{viaje}}/trip",
     "bencina": "Fuel",
     "bencina_hint": "Small effect: drivers (high-income) are insensitive to per-km cost. To discourage cars, use parking (fixed cost) or road pricing.",
+    "peaje": "Road toll (per km)",
+    "peaje_hint": "Charge per km driven. Like fuel, it grows with distance; unlike fuel, it is city revenue and adds to social welfare. Parking is a flat cordon charge; the toll comes closer to the Pigouvian charge, because the congestion cost a trip imposes grows with the links it crosses.",
     "teletrabajo_factor": "Telework factor",
     "teletrabajo_hint": "Scales each stratum’s telework rate (the base rate is set in Calibration). Those agents do not travel and leave peak demand: it is the only lever here that removes trips rather than reassigning them between modes."
   },
@@ -631,6 +633,7 @@
       "tarifa": "Metro fare",
       "parking": "Parking",
       "bencina": "Fuel",
+      "peaje": "Toll per km",
       "factor_flota": "Fleet emissions",
       "cap_tren": "Train capacity",
       "densidad_derivada": "Density (derived)"

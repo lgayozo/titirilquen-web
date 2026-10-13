@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, PhysicalPenalties, StratumBetas, StratumConfig
 from titirilquen_core.demand.choice import probabilidades_logit
@@ -108,3 +110,21 @@ def test_penalizacion_bici_escalonada() -> None:
     esperado = penal.bici_10 + penal.bici_20 + penal.bici_30
     assert abs(u35["Bici"].v_penalizaciones - esperado) < 1e-9
     assert abs(u0["Bici"].v_penalizaciones - 0.0) < 1e-9
+
+
+def test_el_peaje_por_km_entra_al_costo_del_auto_y_a_nada_mas() -> None:
+    """D7: el peaje suma `peaje_km · distancia` al dinero del auto, a mano.
+    Celda 5 de 21 en 10 km: el CBD es la 10, así que la distancia es 5 celdas
+    de 10/21 km."""
+    ciudad = CiudadLineal(n_celdas=21, largo_total_km=10)
+    sin = _make_demand_config()
+    con = sin.model_copy(update={"globales": sin.globales.model_copy(update={"peaje_km": 100.0})})
+    kw = {"estrato": 1, "celda_origen": 5, "tiene_auto": True, "ciudad": ciudad}
+    u0 = calcular_utilidades(config=sin, tiempos_observados=None, **kw)
+    u1 = calcular_utilidades(config=con, tiempos_observados=None, **kw)
+    dist_km = 5 * 10 / 21
+    b_costo = sin.estratos[1].betas.b_costo
+    assert u1["Auto"].v_costo - u0["Auto"].v_costo == pytest.approx(b_costo * 100.0 * dist_km)
+    assert u1["Auto"].v_tiempo == u0["Auto"].v_tiempo
+    for modo in ("Metro", "Bici", "Caminata"):
+        assert u1[modo].valor == u0[modo].valor

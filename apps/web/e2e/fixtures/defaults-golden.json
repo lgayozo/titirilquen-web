@@ -47,6 +47,7 @@
    "costo_combustible_km": 120,
    "costo_tarifa_metro": 800,
    "costo_parking": 2000,
+   "peaje_km": 0,
    "factor_flota_auto": 1.0,
    "factor_emision_metro_tren_km": 2.5,
    "teletrabajo_factor": 1.0

@@ -57,6 +57,7 @@ export interface GlobalConfig {
   costo_combustible_km: number;
   costo_tarifa_metro: number;
   costo_parking: number;
+  peaje_km: number;
   factor_flota_auto: number;
   factor_emision_metro_tren_km: number;
   teletrabajo_factor: number;

@@ -140,6 +140,12 @@ class GlobalConfig(BaseModel):
     # `costo_parking / VIAJES_POR_TOUR` = 1000. Antes se cargaba entero en cada
     # uno de los 44 viajes del mes, o sea dos veces por día.
     costo_parking: float = 2000
+    # Peaje vial por km recorrido en auto (D7, oct-2026), en $/km por viaje,
+    # como la bencina pero TRANSFERENCIA: entra a la recaudación del bienestar.
+    # Es la palanca que se acerca al cobro de Pigou, porque el costo externo de
+    # un viaje crece con los tramos que cruza; el parking, en una ciudad donde
+    # todos van al CBD, es un cobro de cordón plano. 0 = sin peaje.
+    peaje_km: float = Field(default=0, ge=0)
     # Multiplicador ADIMENSIONAL sobre la curva COPERT de emision del auto
     # (`emissions.factor_emision_auto(v)`), para representar la composicion de
     # la flota: 1.0 = flota de referencia, ~0.7 hibrida, ~0.15 electrica.

@@ -168,6 +168,13 @@ export function describePresetParams(
       unit: "/km",
       group: "transport",
     },
+    {
+      key: "peaje",
+      labelKey: "coupled.param.peaje",
+      value: `$${nf(sim.demand.globales.peaje_km)}`,
+      unit: "/km",
+      group: "transport",
+    },
   ];
 }
 
@@ -213,6 +220,7 @@ export function applyJointPreset(preset: JointPreset): {
         ...(pol.tarifa !== undefined && { costo_tarifa_metro: pol.tarifa }),
         ...(pol.parking !== undefined && { costo_parking: pol.parking }),
         ...(pol.bencina !== undefined && { costo_combustible_km: pol.bencina }),
+        ...(pol.peaje !== undefined && { peaje_km: pol.peaje }),
         ...(pol.factor_flota !== undefined && {
           factor_flota_auto: pol.factor_flota,
         }),

@@ -95,7 +95,7 @@ function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
 const GRUPOS: { labelKey: string; keys: (keyof PolicyPresetValues)[] }[] = [
   {
     labelKey: "modes.auto",
-    keys: ["num_pistas", "parking", "bencina", "factor_flota"],
+    keys: ["num_pistas", "parking", "bencina", "peaje", "factor_flota"],
   },
   {
     labelKey: "modes.metro",
@@ -122,6 +122,10 @@ const CAMPO: Record<
   },
   bencina: {
     labelKey: "coupled.param.bencina",
+    fmt: (v) => `${money(v)}/km`,
+  },
+  peaje: {
+    labelKey: "coupled.param.peaje",
     fmt: (v) => `${money(v)}/km`,
   },
   factor_flota: {
@@ -272,6 +276,7 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
           ...(p.tarifa !== undefined && { costo_tarifa_metro: p.tarifa }),
           ...(p.parking !== undefined && { costo_parking: p.parking }),
           ...(p.bencina !== undefined && { costo_combustible_km: p.bencina }),
+          ...(p.peaje !== undefined && { peaje_km: p.peaje }),
           // Faltaba: el preset lo declaraba y la tabla de la tarjeta lo
           // mostraba, pero nunca llegaba a la config. «Vehículos híbridos»
           // —cuyo único punto es una flota que emite menos— sólo abarataba la

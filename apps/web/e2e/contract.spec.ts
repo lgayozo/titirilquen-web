@@ -79,18 +79,22 @@ test.describe("contrato utility.ts ↔ utility.py", () => {
       celda: number;
       dist_km: number;
       tiene_auto: boolean;
+      peaje_km: number;
       tiempos: TiemposObservados;
       utilidades: Record<string, { valor: number; feasible: boolean }>;
     }>;
   };
 
   for (const c of cases) {
-    test(`estrato=${c.estrato} celda=${c.celda} auto=${c.tiene_auto}`, () => {
+    test(`estrato=${c.estrato} celda=${c.celda} auto=${c.tiene_auto} peaje=${c.peaje_km}`, () => {
       const utils = calcularUtilidades({
         estrato: c.estrato,
         distKm: c.dist_km,
         tieneAuto: c.tiene_auto,
-        config: defaultDemandConfig,
+        config: {
+          ...defaultDemandConfig,
+          globales: { ...defaultDemandConfig.globales, peaje_km: c.peaje_km },
+        },
         tiempos: c.tiempos,
       });
       for (const [modo, esperado] of Object.entries(c.utilidades)) {

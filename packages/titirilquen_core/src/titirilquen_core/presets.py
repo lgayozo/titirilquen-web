@@ -38,6 +38,8 @@ class PolicyPreset(TypedDict, total=False):
     num_pistas: int
     num_estaciones: int
     bencina: int
+    # Peaje por km en auto ($/km), separado del parking (D7, oct-2026).
+    peaje: int
     cap_bici: int
     frec_max: int
     cap_tren: int
@@ -122,7 +124,7 @@ CITY_PRESETS: dict[str, CityPreset] = {
 # intensidad. Ya pasó dos veces (`frec_max: 20` y `parking: 6000`).
 #
 # Recalibración vigente — defaults: parking 2000 · 2 pistas · cap_bici 2500 ·
-# frec_max 40. Deliberados reescalados: Tarificación Vial parking 2.5x (5000),
+# frec_max 40. Deliberados reescalados: Tarificación Vial (antes parking 2.5x, hoy peaje),
 # Pro-Auto parking 0.5x (1000) y una pista más que la base (3), Ciclorrecreovía
 # una menos (1). Sin reescalar, Pro-Auto habría quedado más caro que la base y
 # con menos pistas, invirtiendo su sentido.
@@ -149,6 +151,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
+        "peaje": 0,
         "cap_bici": 4000,
         "frec_max": 40,
         "cap_tren": 1000,
@@ -160,6 +163,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
+        "peaje": 0,
         "cap_bici": 4000,
         "frec_max": 50,
         "cap_tren": 1000,
@@ -167,12 +171,19 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         # hibridos» dejaba la flota en 0.7 en silencio.
         "factor_flota": 1.0,
     },
+    # D7 (oct-2026): un peaje por km, no un parking más caro. En esta ciudad
+    # todos van al CBD, así que el parking es un cordón plano; el costo externo
+    # de un viaje crece con los tramos que cruza, y un cobro por km se le acerca.
+    # 150 $/km es el máximo medido del bienestar social, en una meseta de
+    # 100–200 $/km del orden del ruido del MSA (datos_cap04 `peaje_y_bienestar`).
+    # El parking de 5.000 que tenía antes BAJABA el bienestar.
     "Tarificación Vial": {
         "tarifa": 800,
-        "parking": 5000,
+        "parking": 2000,
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
+        "peaje": 150,
         "cap_tren": 1000,
         "cap_bici": 4000,
         "frec_max": 40,
@@ -186,6 +197,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "num_pistas": 3,
         "num_estaciones": 8,
         "bencina": 100,
+        "peaje": 0,
         "cap_tren": 800,
         "cap_bici": 2000,
         "frec_max": 6,
@@ -200,6 +212,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "cap_bici": 8000,
         "frec_max": 40,
         "bencina": 120,
+        "peaje": 0,
         "cap_tren": 1000,
         "num_estaciones": 10,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
@@ -211,6 +224,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         # sea abarataba el auto y terminaba SUBIENDO el CO2 (+1.6% medido).
         "num_pistas": 2,
         "bencina": 65,
+        "peaje": 0,
         "tarifa": 800,
         "parking": 2000,
         "frec_max": 40,
@@ -226,6 +240,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "cap_tren": 1000,
         "parking": 2000,
         "bencina": 120,
+        "peaje": 0,
         "num_pistas": 2,
         "cap_bici": 4000,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
@@ -242,6 +257,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "tarifa": 800,
         "parking": 2000,
         "bencina": 120,
+        "peaje": 0,
         "frec_max": 40,
         "cap_tren": 1000,
         "num_estaciones": 10,
