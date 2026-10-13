@@ -183,7 +183,6 @@ export function ReferenceComparison({
       menorEsMejor: true,
       nota: t("agg.costo_operador_nota", {
         km: Math.round(agg.tren_km_hora),
-        f: config.supply.train.factor_dia_punta,
       }),
     },
     {
@@ -192,7 +191,9 @@ export function ReferenceComparison({
       ref: aggRef?.subsidio_metro_clp ?? null,
       fmt: fmtMoney,
       menorEsMejor: true,
-      nota: t("agg.subsidio_nota"),
+      nota: t("agg.subsidio_nota", {
+        f: config.supply.train.factor_dia_punta,
+      }),
     },
     {
       label: t("agg.bienestar"),
@@ -206,16 +207,12 @@ export function ReferenceComparison({
       nota: t("agg.bienestar_nota"),
     },
     {
-      // Tercera medida: el MISMO excedente emparejado, pero valorado con el VoT
-      // social único en vez del conductual de cada estrato. Va junto al
-      // excedente y no junto al costo generalizado porque mide bienestar, no
-      // costo — aunque la corrección que aplica es la misma que `cg_social`.
-      //
-      // No es redundante: el VoT conductual pondera a favor de quien más gana,
-      // y con eso el signo del Δ agregado puede darse vuelta. Medido en la base
-      // barriendo pistas: con λ por estrato el bienestar sube monótonamente y
-      // con λ social cae entre 3 y 4 pistas. Downs-Thomson aparece o no según
-      // la unidad, y ésta es la unidad de la evaluación social.
+      // Tercera medida: el MISMO excedente emparejado, dividido por un λ común
+      // a los estratos (|β_tiempo|·60/VST) en vez del λ_h de cada uno. NO
+      // revalúa el tiempo: repondera personas, dinero incluido, por VST/VoT_h
+      // (D13, libro cap. 7). La lectura SNI —el tiempo al VST— es `cg_social`.
+      // No es redundante: el λ conductual pondera a favor de quien más gana,
+      // así que el signo del Δ agregado podría darse vuelta entre las dos.
       label: t("agg.excedente_social"),
       actual: agg.excedente_social_total_clp,
       ref: aggRef?.excedente_social_total_clp ?? null,

@@ -298,8 +298,9 @@ class TrainSupplyParams(BaseModel):
     # resultado. Ver docs/CONTINUAR.md.
     costo_operacion_tren_km: float = Field(default=12000, ge=0)
     # Factor DÍA/PUNTA para que el subsidio y el autofinanciamiento signifiquen
-    # algo. El autofinanciamiento compara costo DIARIO contra ingreso DIARIO,
-    # pero este modelo entrega solo la hora punta. Escalando:
+    # algo. NO entra al bienestar social, que es de la hora punta (D12). El
+    # autofinanciamiento compara costo DIARIO contra ingreso DIARIO, pero este
+    # modelo entrega solo la hora punta. Escalando:
     #
     #   autofinancia  <=>  costo_punta · (R_costo / R_ingreso) <= ingreso_punta
     #

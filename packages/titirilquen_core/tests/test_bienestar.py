@@ -137,6 +137,23 @@ def test_el_peaje_es_transferencia(sim_liviana: SimulationConfig, lu_chica: Land
     assert agg["bienestar_social_clp"] == pytest.approx(esperado, rel=1e-9)
 
 
+def test_el_factor_dia_punta_mueve_el_subsidio_y_no_el_bienestar(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """D12: el bienestar es de la hora punta; el factor día/punta sólo lleva el
+    costo a base diaria para la pregunta de autofinanciamiento."""
+    a = _agregados(sim_liviana.model_copy(deep=True), lu_chica, "expected")
+    sim3 = sim_liviana.model_copy(deep=True)
+    sim3.supply.train.factor_dia_punta = 3.0
+    b = _agregados(sim3, lu_chica, "expected")
+    assert b["bienestar_social_clp"] == pytest.approx(a["bienestar_social_clp"], rel=1e-9)
+    assert b["costo_operador_clp"] == pytest.approx(a["costo_operador_clp"], rel=1e-9)
+    f = sim_liviana.supply.train.factor_dia_punta
+    assert b["subsidio_metro_clp"] - a["subsidio_metro_clp"] == pytest.approx(
+        (3.0 - f) * a["costo_operador_clp"], rel=1e-9
+    )
+
+
 def test_las_dos_medidas_no_coinciden(
     sim_liviana: SimulationConfig, lu_chica: LandUseConfig
 ) -> None:

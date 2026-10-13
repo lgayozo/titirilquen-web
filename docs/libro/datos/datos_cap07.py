@@ -216,7 +216,7 @@ def el_dinero_tambien_se_reprecia() -> dict:
             "La medida conductual cobra $1 por cada $1 de tarifa. La social cobra "
             "$0,54 al estrato alto y $2,09 al bajo: el reescalado no toca sólo el "
             "TIEMPO, toca la utilidad entera, dinero incluido. Es un ponderador "
-            "distributivo legítimo, pero el rótulo de la interfaz dice otra cosa."
+            "distributivo legítimo, y desde D13 la interfaz lo rotula así."
         ),
     }
 
@@ -234,7 +234,11 @@ def downs_thomson_por_unidad() -> dict:
     utilidad máxima, tolerancia 0,02 y 120 iteraciones).
     """
     out = {}
-    for metodo, tol, max_iter in (("expected", 0.1, 20), ("todo_o_nada", 0.02, 120)):
+    # `expected` con la parada de la aplicación (D8) y tope 80: con una pista
+    # necesita 41 iteraciones, una más que el tope de la app, y es la referencia
+    # de todos los Δ. Todo o nada con la parada del informe: no equilibra (D9b)
+    # y se reporta con su veredicto.
+    for metodo, tol, max_iter in (("expected", None, 80), ("todo_o_nada", 0.02, 120)):
         filas = []
         for pistas in (1, 2, 3, 4, 6):
             sim = base._config_web()
@@ -243,8 +247,8 @@ def downs_thomson_por_unidad() -> dict:
                 update={
                     "supply": sim.supply.model_copy(update={"car": car}),
                     "assignment": metodo,
-                    "tolerance": tol,
                     "max_iter": max_iter,
+                    **({"tolerance": tol} if tol is not None else {}),
                 }
             )
             a, trace = _corre(sim)
@@ -289,12 +293,12 @@ def downs_thomson_por_unidad() -> dict:
 
 
 def bienestar_social() -> dict:
-    """La composición del titular, y el peso del factor día/punta.
+    """La composición del titular y lo que hace el factor día/punta (D12).
 
-    `bienestar_social = excedente + recaudación − costo del operador`. Los tres
-    primeros términos son flujos de la HORA PUNTA; el cuarto lleva un factor
-    día/punta que lo lleva a base diaria por viaje. La composición dice cuánto
-    de la cifra depende de esa asimetría.
+    `bienestar_social = excedente + recaudación − costo del operador`, los cuatro
+    términos en la hora punta. Hasta D12 el costo del operador llevaba el factor
+    día/punta y el titular era de base mixta; ahora el factor entra sólo al
+    subsidio. Se mide el titular con las dos reglas y su Δ de 2 a 4 pistas.
     """
     sim = base._config_web()
     a, _ = _corre(sim)
@@ -306,10 +310,12 @@ def bienestar_social() -> dict:
             else a["excedente_total_clp"]
         ),
         "recaudacion_parking_clp": round(a["recaudacion_parking_clp"]),
+        "recaudacion_peaje_clp": round(a["recaudacion_peaje_clp"]),
         "recaudacion_tarifa_clp": round(a["recaudacion_tarifa_clp"]),
         "costo_operador_clp": round(a["costo_operador_clp"]),
         "bienestar_social_clp": round(a["bienestar_social_clp"]),
     }
+    f0 = float(sim.supply.train.factor_dia_punta)
     sensibilidad = []
     for f in (1.0, 2.0, 3.0, 3.7):
         train = sim.supply.train.model_copy(update={"factor_dia_punta": f})
@@ -319,61 +325,50 @@ def bienestar_social() -> dict:
         sensibilidad.append(
             {
                 "factor_dia_punta": f,
-                "costo_operador_clp": round(b["costo_operador_clp"]),
+                "costo_operador_punta_clp": round(b["costo_operador_clp"]),
+                "costo_operador_dia_clp": round(b["costo_operador_clp"] * f),
                 "subsidio_metro_clp": round(b["subsidio_metro_clp"]),
                 "autofinancia": bool(b["subsidio_metro_clp"] < 0),
                 "bienestar_social_clp": round(b["bienestar_social_clp"]),
             }
         )
-    ref = next(x for x in sensibilidad if x["factor_dia_punta"] == 2.0)
-    uno = next(x for x in sensibilidad if x["factor_dia_punta"] == 1.0)
 
-    # El NIVEL del titular tiene cero arbitrario, así que lo que hay que mirar es
-    # el Δ entre escenarios. El factor no se cancela en ese Δ porque la
-    # frecuencia del metro es endógena: menos pasajeros ⇒ menos trenes ⇒ menos
-    # costo. Se mide con el mismo barrido de pistas del bloque 3.
-    delta = []
-    for f in (1.0, 2.0, 3.0):
-        vals = {}
-        for pistas in (2, 4):
-            train = sim.supply.train.model_copy(update={"factor_dia_punta": f})
-            car = sim.supply.car.model_copy(update={"num_pistas": pistas})
-            s2 = sim.model_copy(
-                update={"supply": sim.supply.model_copy(update={"train": train, "car": car})}
-            )
-            c, _ = _corre(s2)
-            assert c is not None
-            vals[pistas] = c
-        delta.append(
-            {
-                "factor_dia_punta": f,
-                "d_costo_operador_clp": round(
-                    vals[4]["costo_operador_clp"] - vals[2]["costo_operador_clp"]
-                ),
-                "d_bienestar_social_clp": round(
-                    vals[4]["bienestar_social_clp"] - vals[2]["bienestar_social_clp"]
-                ),
-            }
-        )
+    # La regla anterior a D12 restaba costo × factor. Se reconstruye desde las
+    # mismas corridas: W_antes = W − (f − 1)·C.
+    def w_antes(x: dict) -> float:
+        return x["bienestar_social_clp"] - (f0 - 1.0) * x["costo_operador_clp"]
+
+    vals = {}
+    for pistas in (2, 4):
+        car = sim.supply.car.model_copy(update={"num_pistas": pistas})
+        c, _ = _corre(sim.model_copy(update={"supply": sim.supply.model_copy(update={"car": car})}))
+        assert c is not None
+        vals[pistas] = c
     return {
         "parametros_del_metro": {
             "costo_operacion_tren_km": float(sim.supply.train.costo_operacion_tren_km),
-            "factor_dia_punta_default": float(sim.supply.train.factor_dia_punta),
+            "factor_dia_punta_default": f0,
         },
         "composicion": comp,
+        "bienestar_regla_anterior_clp": round(w_antes(a)),
         "sensibilidad_factor_dia_punta": sensibilidad,
-        "efecto_en_el_delta_2_a_4_pistas": delta,
-        "salto_de_factor_1_a_2_sobre_el_titular": round(
-            (ref["bienestar_social_clp"] - uno["bienestar_social_clp"])
-            / abs(ref["bienestar_social_clp"]),
-            4,
-        ),
+        "bienestar_no_depende_del_factor": len({x["bienestar_social_clp"] for x in sensibilidad})
+        == 1,
+        "delta_2_a_4_pistas": {
+            "d_costo_operador_punta_clp": round(
+                vals[4]["costo_operador_clp"] - vals[2]["costo_operador_clp"]
+            ),
+            "d_bienestar_clp": round(
+                vals[4]["bienestar_social_clp"] - vals[2]["bienestar_social_clp"]
+            ),
+            "d_bienestar_regla_anterior_clp": round(w_antes(vals[4]) - w_antes(vals[2])),
+        },
         "nota": (
             "El excedente tiene cero arbitrario (arrastra las ASC), así que el "
             "NIVEL del titular no significa nada por sí solo: la interfaz lo "
-            "muestra contra un escenario de referencia. Lo que sí es propio de "
-            "este número es la base contable mixta — tres términos de hora punta "
-            "y uno llevado a día."
+            "muestra contra un escenario de referencia. Desde D12 los cuatro "
+            "términos son de la hora punta; el factor día/punta sólo responde la "
+            "pregunta de autofinanciamiento."
         ),
     }
 
@@ -424,29 +419,26 @@ def poblacion_que_desaparece() -> list[dict]:
                 "recaudacion_tarifa_clp": round(a["recaudacion_tarifa_clp"]),
             }
         )
-    todos, sin_metro = filas[0], filas[1]
+    # La cota se mide en el escenario que deja más varados. Hasta D9 era «sin
+    # metro»; desde que los escalones de la bici van sobre su tiempo de red
+    # vacía, la bici alcanza a toda la ciudad y sólo apagar bici y caminata deja varados.
+    todos = filas[0]
+    peor = max(filas[1:], key=lambda f: f["agentes_varados"])
     # Cota inferior del bienestar que no se contabiliza: si los varados valieran
     # lo mismo que el viajero promedio del escenario, ya faltaría esto.
-    faltante = sin_metro["excedente_por_viajero_clp"] * (
-        todos["viajeros_en_el_agregado"] - sin_metro["viajeros_en_el_agregado"]
+    faltante = peor["excedente_por_viajero_clp"] * (
+        todos["viajeros_en_el_agregado"] - peor["viajeros_en_el_agregado"]
     )
+    dano = peor["excedente_total_clp"] - todos["excedente_total_clp"]
     return [
         *filas,
         {
             "escenario": "_cota",
+            "escenario_medido": peor["escenario"],
             "cota_inferior_del_excedente_no_contado_clp": round(faltante),
-            "dano_medido_clp": round(
-                sin_metro["excedente_total_clp"] - todos["excedente_total_clp"]
-            ),
-            "dano_con_los_varados_al_promedio_clp": round(
-                sin_metro["excedente_total_clp"] + faltante - todos["excedente_total_clp"]
-            ),
-            "subestimacion_del_dano_pct": round(
-                100.0
-                * abs(faltante)
-                / abs(sin_metro["excedente_total_clp"] - todos["excedente_total_clp"]),
-                2,
-            ),
+            "dano_medido_clp": round(dano),
+            "dano_con_los_varados_al_promedio_clp": round(dano + faltante),
+            "subestimacion_del_dano_pct": round(100.0 * abs(faltante) / abs(dano), 2),
             "nota": (
                 "Cota INFERIOR: valora a los varados al excedente del viajero medio "
                 "del mismo escenario. Su pérdida real es mayor —por eso quedaron "
@@ -533,6 +525,7 @@ def costo_generalizado() -> dict:
             tren_acceso=float(snap.t_tren_acceso[i]),
             tren_espera=float(snap.t_tren_espera[i]),
             tren_viaje=float(snap.t_tren_viaje[i]),
+            bici_libre=float(snap.t_bici_libre[i]),
         )
         for h in ESTRATOS:
             b = sim.demand.estratos[h].betas  # type: ignore[index]
@@ -620,6 +613,9 @@ def parametros_vigentes() -> dict:
         "costo_parking_clp": float(gl.costo_parking),
         "costo_tarifa_metro_clp": float(gl.costo_tarifa_metro),
         "costo_combustible_km_clp": float(gl.costo_combustible_km),
+        "peaje_km_clp": float(gl.peaje_km),
+        "tolerancia_min": float(sim.tolerance),
+        "max_iter": int(sim.max_iter),
         "vot_conductual_clp_hora": [round(vot_clp_hora(sim, h), 1) for h in ESTRATOS],  # type: ignore[arg-type]
     }
 
@@ -633,9 +629,9 @@ def main() -> None:
             "configuracion": (
                 "La de la aplicación (`test_linea_base._config_web`), rama "
                 "«original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, "
-                "asignación esperada, tolerancia 0,1. El barrido de pistas repite "
-                "además el método del informe de bienestar (`todo_o_nada`, "
-                "tolerancia 0,02, 120 iteraciones)."
+                "asignación esperada, brecha < 0,2 min (D8). El barrido de pistas usa "
+                "tope 80 y repite además el método del informe de bienestar "
+                "(`todo_o_nada`, tolerancia 0,02, 120 iteraciones)."
             ),
         },
         "fuentes_externas": FUENTES_EXTERNAS,
@@ -717,8 +713,9 @@ def main() -> None:
     b = datos["bienestar_social"]
     print(
         f"\nBienestar social: {b['composicion']['bienestar_social_clp']:,} $ · "
-        f"pasar el factor día/punta de 2 a 1 lo mueve "
-        f"{b['salto_de_factor_1_a_2_sobre_el_titular']:.0%} del titular"
+        f"(regla anterior a D12: {b['bienestar_regla_anterior_clp']:,} $) · "
+        f"no depende del factor: {b['bienestar_no_depende_del_factor']} · "
+        f"Δ 2→4 pistas {b['delta_2_a_4_pistas']}"
     )
     print(f"\nEscrito: {SALIDA}")
 

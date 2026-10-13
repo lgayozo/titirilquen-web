@@ -178,9 +178,11 @@ class AgregadosDict(TypedDict):
     recaudacion_tarifa_clp: float
     #: Tren-km por hora del servicio (f_op · largo de línea · 2).
     tren_km_hora: float
-    #: Costo de operación del metro. A diferencia de la tarifa, sí es consumo.
+    #: Costo de operación del metro EN LA HORA PUNTA, la misma base que el
+    #: excedente y las recaudaciones (D12). A diferencia de la tarifa, es consumo.
     costo_operador_clp: float
-    #: Costo del operador − recaudación por tarifa. Negativo ⇒ superávit.
+    #: Costo del operador × `factor_dia_punta` − recaudación por tarifa: el costo
+    #: por viaje del día completo contra la tarifa. Negativo ⇒ superávit.
     subsidio_metro_clp: float
     #: Excedente + recaudación − costo del operador, con el excedente **de la
     #: medida emparejada** (`medida_bienestar`): sumarle recaudación a un logsum
@@ -412,12 +414,11 @@ def calcular_agregados(
     # Antes se despejaba `kg / factor_emisión`, y con factor 0 el costo del
     # operador desaparecía aunque el servicio siguiera circulando.
     tren_km = tren_km_hora(float(snap.frecuencia_metro), trace.estaciones_km)
-    # El factor día/punta lleva el costo de la hora punta a base comparable con
-    # el ingreso: sin él, el autofinanciamiento se lee sobre la hora más cargada
-    # del día y sale optimista por construcción.
-    costo_operador = (
-        tren_km * cfg.supply.train.costo_operacion_tren_km * cfg.supply.train.factor_dia_punta
-    )
+    # En la base del resto del bienestar, la hora punta (D12). El factor día/punta
+    # entra sólo al subsidio: sin él, el autofinanciamiento se leería sobre la
+    # hora más cargada del día y saldría optimista por construcción; dentro del
+    # bienestar le cargaría a la punta la operación del valle sin sus beneficios.
+    costo_operador = tren_km * cfg.supply.train.costo_operacion_tren_km
 
     medida = medida_emparejada(cfg.assignment)
     usa_max = medida == "utilidad_maxima"
@@ -484,7 +485,7 @@ def calcular_agregados(
         "recaudacion_tarifa_clp": rec_tarifa,
         "tren_km_hora": tren_km,
         "costo_operador_clp": costo_operador,
-        "subsidio_metro_clp": costo_operador - rec_tarifa,
+        "subsidio_metro_clp": costo_operador * cfg.supply.train.factor_dia_punta - rec_tarifa,
         "bienestar_social_clp": (
             excedente_emparejado + rec_parking + rec_peaje + rec_tarifa - costo_operador
         ),
