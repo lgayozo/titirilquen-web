@@ -92,18 +92,27 @@ ESPERADO = {
     #     +0,83, bici +0,25, caminata +0,10, y una iteración más (8);
     #     equilibrio auto −0,94, metro +0,54, bici +0,29, caminata +0,11,
     #     mismas iteraciones.
+    # 11. D8 + D9 de la auditoría (2026-10-13, decisiones de Leandro). D9: los
+    #     escalones 10/20/30 y el corte de 45 min de la bici se evalúan sobre
+    #     el tiempo de red VACÍA, no el congestionado; la congestión ya no
+    #     castiga dos veces y la bici gana al metro: original bici +2,12, metro
+    #     −2,09; equilibrio bici +2,71, metro −2,75 (medidos con la regla de
+    #     parada vieja). D8: la parada mira la brecha no amortiguada < 0,2 min;
+    #     itera más y mueve ≤ 0,07 pp. Juntos: original auto −0,10, metro
+    #     −1,99, bici +2,07, caminata +0,01; equilibrio auto −0,03, metro
+    #     −2,68, bici +2,68, caminata +0,03.
     "equilibrio": {
-        "Auto": 20.45,
-        "Metro": 24.73,
-        "Bici": 27.40,
-        "Caminata": 7.96,
+        "Auto": 20.42,
+        "Metro": 22.05,
+        "Bici": 30.08,
+        "Caminata": 7.99,
         "Teletrabajo": 19.45,
     },
     "original": {
-        "Auto": 20.71,
-        "Metro": 21.10,
-        "Bici": 28.34,
-        "Caminata": 10.36,
+        "Auto": 20.61,
+        "Metro": 19.11,
+        "Bici": 30.41,
+        "Caminata": 10.37,
         "Teletrabajo": 19.49,
     },
 }
@@ -116,7 +125,9 @@ ESPERADO = {
 #: por tour (oct-2026): con más autos el corredor se carga más y tarda una pasada
 #: más en estabilizarse. `original` pasó de 7 a 8 con la BPR sobre capacidad
 #: práctica (oct-2026): con la curva más empinada el MSA necesita una pasada más.
-ITERACIONES_ESPERADAS = {"equilibrio": 8, "original": 8}
+#: D8 (oct-2026) cambió QUÉ se mide: la brecha no amortiguada < 0,2 min en vez
+#: del cambio amortiguado < 0,1, que se aflojaba solo como 1/n. 8 → 20 y 13.
+ITERACIONES_ESPERADAS = {"equilibrio": 20, "original": 13}
 
 
 def _config_web() -> SimulationConfig:
@@ -133,8 +144,8 @@ def _config_web() -> SimulationConfig:
         ),
         supply=SupplyConfig(),
         demand=DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
-        max_iter=20,
-        tolerance=0.1,
+        max_iter=40,
+        tolerance=0.2,
         seed=42,  # web fija la semilla; el core la deja libre
         assignment="expected",  # web: expected · core: montecarlo
     )

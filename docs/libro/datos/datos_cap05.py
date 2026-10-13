@@ -5,21 +5,27 @@ si el MSA converge de verdad, si converge al mismo punto por caminos distintos,
 y qué tan lejos del punto fijo queda la corrida que la aplicación declara
 convergida.
 
-La tercera es D-39: el residuo mide el cambio del iterado **amortiguado**, y con
-paso 1/n subestima el desajuste real. Desde sep-2026 el núcleo publica además
-`gap_final_min`, la brecha no amortiguada, y este capítulo la usa como vara.
+La tercera fue D-39 y la cerró D8 (oct-2026): el residuo medía el cambio del
+iterado **amortiguado**, `f·brecha`, y con paso 1/n la tolerancia se aflojaba
+sola. Desde D8 el residuo ES la brecha no amortiguada `max |c(x(t)) − t|`, y la
+parada la mira a ella.
 
-Seis bloques:
+Diez bloques:
 
-1. `trayectoria` — residuo y brecha iteración a iteración.
+1. `trayectoria` — brecha iteración a iteración, y dónde paraba la regla vieja.
 2. `tolerancia` — qué cambia al exigir más: reparto, iteraciones y brecha.
 3. `variantes` — promediar tiempos (el default) contra promediar flujos (el
    algoritmo estándar de Boyles, §6.2, el único con argumento de convergencia).
 4. `unicidad` — ¿el punto fijo depende del punto de partida?
 5. `emisiones` — el reparto entre auto y metro (D-29, tren-km).
 6. `downs_thomson` — el barrido de pistas que absorbe el informe homónimo.
+7. `bici_umbrales` — D9: cuánto mueve la congestión el tiempo de la bici y
+   cuánta demanda cambiaría de escalón si se evaluaran sobre él.
+8. `todo_o_nada` — D9: la asignación determinística no tiene punto fijo.
+9. `montecarlo` — D8: el ruido de muestreo pone un piso a la brecha.
+10. `presets` — D8: si el tope de iteraciones alcanza para los presets de política.
 
-Correr desde `packages/titirilquen_core` (~4 min):
+Correr desde `packages/titirilquen_core` (~6 min):
 
     uv run python ../../docs/libro/datos/datos_cap05.py
 """
@@ -86,36 +92,53 @@ def _resumen(trace) -> dict:
     }
 
 
+def _regla_vieja(trace, tol: float = 0.1) -> int | None:
+    """Iteración (contada desde 1, como `len(iteraciones)`) en que la regla
+    anterior a D8 —`f·brecha < tol` dos veces seguidas— habría cortado."""
+    estables = 0
+    for k, s in enumerate(trace.iteraciones):
+        if np.isfinite(s.residuo) and s.f_msa * s.residuo < tol:
+            estables += 1
+            if estables >= 2:
+                return k + 1
+        else:
+            estables = 0
+    return None
+
+
 def trayectoria() -> dict:
-    """Residuo iteración a iteración, con la brecha final como vara."""
-    trace = _corre(base._config_web())
+    """Brecha iteración a iteración y el cambio amortiguado que medía la regla
+    vieja. La serie se corre sin corte hasta `max_iter` para ver dónde habría
+    parado cada regla; el resumen es el de la corrida con la regla vigente."""
+    sim = base._config_web()
+    serie = _corre(sim.model_copy(update={"tolerance": 0.0}))
+    vieja = _regla_vieja(serie)
     return {
-        "tolerancia": base._config_web().tolerance,
-        "residuo_por_iteracion": [
+        "tolerancia": sim.tolerance,
+        "brecha_por_iteracion": [
             None if not np.isfinite(s.residuo) else round(float(s.residuo), 5)
-            for s in trace.iteraciones
+            for s in serie.iteraciones
         ],
-        "paso_msa_por_iteracion": [round(float(s.f_msa), 5) for s in trace.iteraciones],
-        **_resumen(trace),
-        "razon_gap_sobre_residuo": round(
-            float(trace.gap_final_min / trace.iteraciones[-1].residuo), 2
-        ),
+        "cambio_amortiguado_por_iteracion": [
+            None if not np.isfinite(s.residuo) else round(float(s.f_msa * s.residuo), 5)
+            for s in serie.iteraciones
+        ],
+        "paso_msa_por_iteracion": [round(float(s.f_msa), 5) for s in serie.iteraciones],
+        "regla_vieja_paraba_en": vieja,
+        "brecha_donde_paraba_la_vieja": round(float(serie.iteraciones[vieja - 1].residuo), 5),
+        **_resumen(_corre(sim)),
     }
 
 
 def tolerancia() -> list[dict]:
     """Qué compra exigir más precisión."""
     filas = []
-    for tol, max_iter in ((0.5, 100), (0.1, 100), (0.01, 100), (0.001, 100)):
+    for tol, max_iter in ((0.5, 100), (0.2, 100), (0.1, 100), (0.05, 100)):
         sim = base._config_web()
         filas.append(
             {
                 "tolerancia": tol,
-                **_resumen(
-                    _corre(
-                        sim.model_copy(update={"tolerance": tol, "max_iter": max_iter})
-                    )
-                ),
+                **_resumen(_corre(sim.model_copy(update={"tolerance": tol, "max_iter": max_iter}))),
             }
         )
     return filas
@@ -128,8 +151,13 @@ def variantes() -> dict:
     PRIMAL —los flujos—: con la carga todo-o-nada, `x* − x` es dirección de
     descenso de la función de Beckmann. Promediando tiempos no hay tal
     argumento. La aplicación usa la segunda.
+
+    Mismo presupuesto para las dos —40 iteraciones, sin corte— y se comparan
+    por `gap_final_min`: con promedio de flujos el residuo vuelve a ser un
+    cambio amortiguado (los tiempos salen de un flujo que se movió sólo una
+    fracción f), así que la regla de parada no las trataría igual.
     """
-    sim = base._config_web()
+    sim = base._config_web().model_copy(update={"tolerance": 0.0, "max_iter": 40})
     out = {}
     for nombre, pf in (
         ("promedia_tiempos_default", False),
@@ -163,10 +191,7 @@ def unicidad() -> dict:
     return {
         "por_semilla": filas,
         "dispersion_maxima_pp": round(
-            max(
-                max(r[m] for r in repartos) - min(r[m] for r in repartos)
-                for m in repartos[0]
-            ),
+            max(max(r[m] for r in repartos) - min(r[m] for r in repartos) for m in repartos[0]),
             4,
         ),
         "nota": (
@@ -207,8 +232,7 @@ def downs_thomson() -> list[dict]:
         snap = trace.iteraciones[-1]
         n = sum(snap.modal_split.values()) - snap.modal_split.get("Teletrabajo", 0)
         t_medio = float(
-            np.sum(snap.demanda_auto * snap.t_auto)
-            + np.sum(snap.demanda_bici * snap.t_bici)
+            np.sum(snap.demanda_auto * snap.t_auto) + np.sum(snap.demanda_bici * snap.t_bici)
         ) / max(n, 1)
         filas.append(
             {
@@ -219,6 +243,110 @@ def downs_thomson() -> list[dict]:
                 "t_medio_auto_bici_min": round(t_medio, 3),
             }
         )
+    return filas
+
+
+_UMBRALES_BICI = (10.0, 20.0, 30.0, 45.0)
+
+
+def _tramo(t: np.ndarray) -> np.ndarray:
+    """Cuántos umbrales de la bici (10/20/30 y el corte de 45) supera cada tiempo."""
+    return sum((t > u).astype(int) for u in _UMBRALES_BICI)
+
+
+def bici_umbrales() -> dict:
+    """D9. En el equilibrio de la app: cuánto agrega la congestión al tiempo de
+    la bici; qué parte de la demanda de bici quedaría en OTRO escalón (o fuera
+    del corte) si se evaluaran sobre el tiempo congestionado, como antes de D9;
+    y cuánta está a < 0,5 min de un umbral de ese tiempo, la masa que el mapa
+    discontinuo hacía saltar entera."""
+    out = {}
+    for loc in ("original", "equilibrio"):
+        snap = _corre(base._config_web(), localizacion=loc).iteraciones[-1]
+        db, tc, tl = snap.demanda_bici, snap.t_bici, snap.t_bici_libre
+        tot = float(db.sum())
+        cerca = np.zeros(db.shape, dtype=bool)
+        for u in _UMBRALES_BICI:
+            cerca |= np.abs(tc - u) < 0.5
+        out[loc] = {
+            "demora_congestion_max_min": round(float(np.max((tc - tl)[db > 0])), 3),
+            "demora_congestion_media_min": round(float(np.sum(db * (tc - tl)) / tot), 3),
+            "pct_bici_otro_escalon": round(
+                100.0 * float(db[_tramo(tc) != _tramo(tl)].sum()) / tot, 2
+            ),
+            "pct_bici_a_medio_min_de_umbral": round(100.0 * float(db[cerca].sum()) / tot, 2),
+        }
+    return out
+
+
+def todo_o_nada() -> dict:
+    """D9: la asignación determinística no tiene punto fijo. Sin corte hasta
+    20/40/60/80 iteraciones, el reparto y la brecha fresca de cada una; y qué
+    hace la regla de parada por defecto."""
+    sim = base._config_web().model_copy(update={"assignment": "todo_o_nada"})
+    cortes = {}
+    for n in (20, 40, 60, 80):
+        tr = _corre(sim.model_copy(update={"tolerance": 0.0, "max_iter": n}))
+        cortes[str(n)] = {
+            "reparto_pct": _reparto(tr),
+            "gap_final_min": round(float(tr.gap_final_min), 3),
+        }
+    repartos = [c["reparto_pct"] for c in cortes.values()]
+    return {
+        "sin_corte": cortes,
+        "oscilacion_max_pp": round(
+            max(max(r[m] for r in repartos) - min(r[m] for r in repartos) for m in repartos[0]),
+            2,
+        ),
+        "con_regla_default": _resumen(_corre(sim)),
+    }
+
+
+def montecarlo() -> dict:
+    """D8: con 'montecarlo' cada iteración sortea de nuevo y la brecha tiene un
+    piso de ruido. Corrida con la regla por defecto, y la brecha de las últimas
+    diez iteraciones."""
+    tr = _corre(base._config_web().model_copy(update={"assignment": "montecarlo"}))
+    return {
+        **_resumen(tr),
+        "brecha_ultimas_10": [round(float(s.residuo), 3) for s in tr.iteraciones[-10:]],
+    }
+
+
+#: Preset de política → campo de la config. Espejo de `LEE_POLITICA` en
+#: `apps/web/src/lib/presets.ts`, que es quien aplica los presets en la app.
+_RUTA_PRESET = {
+    "num_pistas": ("supply", "car", "num_pistas"),
+    "parking": ("demand", "globales", "costo_parking"),
+    "bencina": ("demand", "globales", "costo_combustible_km"),
+    "peaje": ("demand", "globales", "peaje_km"),
+    "factor_flota": ("demand", "globales", "factor_flota_auto"),
+    "num_estaciones": ("supply", "train", "num_estaciones"),
+    "frec_max": ("supply", "train", "frec_max"),
+    "cap_tren": ("supply", "train", "capacidad_tren"),
+    "tarifa": ("demand", "globales", "costo_tarifa_metro"),
+    "cap_bici": ("supply", "bike", "capacidad_pista"),
+}
+
+
+def presets() -> dict:
+    """D8: ¿alcanza el tope de iteraciones para los presets de política?"""
+    from titirilquen_core.presets import POLICY_PRESETS
+
+    filas = {}
+    for nombre, p in POLICY_PRESETS.items():
+        if not p:
+            continue
+        d = base._config_web().model_dump()
+        for campo, valor in p.items():
+            a, b, c = _RUTA_PRESET[campo]
+            d[a][b][c] = valor
+        tr = _corre(type(base._config_web()).model_validate(d))
+        filas[nombre] = {
+            "iteraciones": len(tr.iteraciones),
+            "convergio": bool(tr.converged),
+            "gap_final_min": round(float(tr.gap_final_min), 4),
+        }
     return filas
 
 
@@ -261,7 +389,8 @@ def main() -> None:
             "configuracion": (
                 "La de la aplicación (`test_linea_base._config_web`), localización "
                 "«original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, "
-                "asignación esperada, tolerancia 0,1, máximo 20 iteraciones."
+                "asignación esperada, tolerancia 0,2 min sobre la brecha no "
+                "amortiguada, máximo 40 iteraciones."
             ),
         },
         "parametros_vigentes": parametros_vigentes(),
@@ -271,15 +400,18 @@ def main() -> None:
         "unicidad": unicidad(),
         "emisiones": emisiones(),
         "downs_thomson": downs_thomson(),
+        "bici_umbrales": bici_umbrales(),
+        "todo_o_nada": todo_o_nada(),
+        "montecarlo": montecarlo(),
+        "presets": presets(),
     }
-    SALIDA.write_text(
-        json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    SALIDA.write_text(json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
     t = datos["trayectoria"]
     print(
-        f"Trayectoria: {t['iteraciones']} iter · residuo final {t['residuo_final_min']} · "
-        f"brecha {t['gap_final_min']} min  (×{t['razon_gap_sobre_residuo']})"
+        f"Trayectoria: {t['iteraciones']} iter · brecha final {t['residuo_final_min']} · "
+        f"gap_final {t['gap_final_min']} min · la regla vieja paraba en "
+        f"{t['regla_vieja_paraba_en']} con brecha {t['brecha_donde_paraba_la_vieja']}"
     )
     print("\nTolerancia:")
     for f in datos["tolerancia"]:
@@ -305,6 +437,10 @@ def main() -> None:
             f"metro={f['reparto_pct']['Metro']:>6.2f}  f={f['frecuencia_metro_tph']:>5.2f}  "
             f"CO₂={f['emisiones_kg_h']:>8.1f}"
         )
+    print("\nBici (D9):", json.dumps(datos["bici_umbrales"], ensure_ascii=False))
+    a = datos["todo_o_nada"]
+    print(f"Todo-o-nada: oscila {a['oscilacion_max_pp']} pp;", a["con_regla_default"])
+    print("Montecarlo:", datos["montecarlo"])
     print(f"\nEscrito: {SALIDA}")
 
 

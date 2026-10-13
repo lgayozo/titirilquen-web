@@ -40,6 +40,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
     return {
       auto_total: lastIter.t_auto[celdaEff] ?? 0,
       bici_total: lastIter.t_bici[celdaEff] ?? 0,
+      bici_libre: lastIter.t_bici_libre[celdaEff] ?? 0,
       tren_acceso: lastIter.t_tren_acceso[celdaEff] ?? 0,
       tren_espera: lastIter.t_tren_espera[celdaEff] ?? 0,
       tren_viaje: lastIter.t_tren_viaje[celdaEff] ?? 0,

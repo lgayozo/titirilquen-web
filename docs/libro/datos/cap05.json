@@ -1,14 +1,14 @@
 {
  "_meta": {
-  "fecha": "2026-09-15",
-  "commit": "7c53afd",
+  "fecha": "2026-10-13",
+  "commit": "663f174",
   "script": "docs/libro/datos/datos_cap05.py",
-  "configuracion": "La de la aplicación (`test_linea_base._config_web`), localización «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, tolerancia 0,1, máximo 20 iteraciones."
+  "configuracion": "La de la aplicación (`test_linea_base._config_web`), localización «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, tolerancia 0,2 min sobre la brecha no amortiguada, máximo 40 iteraciones."
  },
  "parametros_vigentes": {
   "app": {
-   "tolerance_min": 0.1,
-   "max_iter": 20,
+   "tolerance_min": 0.2,
+   "max_iter": 40,
    "assignment": "expected",
    "seed": 42,
    "modos_habilitados": [
@@ -21,8 +21,8 @@
    "factor_flota_auto": 1.0
   },
   "nucleo": {
-   "tolerance_min": 0.1,
-   "max_iter": 20,
+   "tolerance_min": 0.2,
+   "max_iter": 40,
    "assignment": "montecarlo"
   },
   "promediar_flujos_default": false,
@@ -34,15 +34,90 @@
   }
  },
  "trayectoria": {
-  "tolerancia": 0.1,
-  "residuo_por_iteracion": [
+  "tolerancia": 0.2,
+  "brecha_por_iteracion": [
    null,
-   3.51816,
-   0.72617,
-   0.28332,
-   0.15457,
-   0.08999,
-   0.06444
+   1.3683,
+   0.78582,
+   0.56761,
+   0.45046,
+   0.37649,
+   0.32517,
+   0.28728,
+   0.25806,
+   0.23478,
+   0.21574,
+   0.19986,
+   0.18639,
+   0.1748,
+   0.16472,
+   0.15587,
+   0.14802,
+   0.14101,
+   0.1347,
+   0.129,
+   0.12382,
+   0.11908,
+   0.11473,
+   0.11073,
+   0.10703,
+   0.1036,
+   0.1004,
+   0.09742,
+   0.09464,
+   0.09202,
+   0.08957,
+   0.08725,
+   0.08507,
+   0.08301,
+   0.08106,
+   0.07921,
+   0.07745,
+   0.07578,
+   0.07419,
+   0.07267
+  ],
+  "cambio_amortiguado_por_iteracion": [
+   null,
+   0.68415,
+   0.26194,
+   0.1419,
+   0.09009,
+   0.06275,
+   0.04645,
+   0.03591,
+   0.02867,
+   0.02348,
+   0.01961,
+   0.01665,
+   0.01434,
+   0.01249,
+   0.01098,
+   0.00974,
+   0.00871,
+   0.00783,
+   0.00709,
+   0.00645,
+   0.0059,
+   0.00541,
+   0.00499,
+   0.00461,
+   0.00428,
+   0.00398,
+   0.00372,
+   0.00348,
+   0.00326,
+   0.00307,
+   0.00289,
+   0.00273,
+   0.00258,
+   0.00244,
+   0.00232,
+   0.0022,
+   0.00209,
+   0.00199,
+   0.0019,
+   0.00182
   ],
   "paso_msa_por_iteracion": [
    1.0,
@@ -51,245 +126,420 @@
    0.25,
    0.2,
    0.16667,
-   0.14286
+   0.14286,
+   0.125,
+   0.11111,
+   0.1,
+   0.09091,
+   0.08333,
+   0.07692,
+   0.07143,
+   0.06667,
+   0.0625,
+   0.05882,
+   0.05556,
+   0.05263,
+   0.05,
+   0.04762,
+   0.04545,
+   0.04348,
+   0.04167,
+   0.04,
+   0.03846,
+   0.03704,
+   0.03571,
+   0.03448,
+   0.03333,
+   0.03226,
+   0.03125,
+   0.0303,
+   0.02941,
+   0.02857,
+   0.02778,
+   0.02703,
+   0.02632,
+   0.02564,
+   0.025
   ],
-  "iteraciones": 7,
+  "regla_vieja_paraba_en": 6,
+  "brecha_donde_paraba_la_vieja": 0.37649,
+  "iteraciones": 13,
   "convergio": true,
-  "residuo_final_min": 0.06444,
-  "gap_final_min": 0.38795,
+  "residuo_final_min": 0.18639,
+  "gap_final_min": 0.1748,
   "reparto_pct": {
-   "Auto": 16.362,
-   "Metro": 23.625,
-   "Bici": 29.395,
-   "Caminata": 11.124,
+   "Auto": 20.614,
+   "Metro": 19.112,
+   "Bici": 30.408,
+   "Caminata": 10.372,
    "Teletrabajo": 19.494
   },
-  "emisiones_kg_h": 6171.5,
-  "razon_gap_sobre_residuo": 6.02
+  "emisiones_kg_h": 10058.2
  },
  "tolerancia": [
   {
    "tolerancia": 0.5,
-   "iteraciones": 5,
+   "iteraciones": 6,
    "convergio": true,
-   "residuo_final_min": 0.15457,
-   "gap_final_min": 0.53995,
+   "residuo_final_min": 0.37649,
+   "gap_final_min": 0.32517,
    "reparto_pct": {
-    "Auto": 16.426,
-    "Metro": 23.637,
-    "Bici": 29.3,
-    "Caminata": 11.143,
+    "Auto": 20.636,
+    "Metro": 19.009,
+    "Bici": 30.464,
+    "Caminata": 10.397,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 6212.5
+   "emisiones_kg_h": 10086.6
+  },
+  {
+   "tolerancia": 0.2,
+   "iteraciones": 13,
+   "convergio": true,
+   "residuo_final_min": 0.18639,
+   "gap_final_min": 0.1748,
+   "reparto_pct": {
+    "Auto": 20.614,
+    "Metro": 19.112,
+    "Bici": 30.408,
+    "Caminata": 10.372,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 10058.2
   },
   {
    "tolerancia": 0.1,
-   "iteraciones": 7,
+   "iteraciones": 29,
    "convergio": true,
-   "residuo_final_min": 0.06444,
-   "gap_final_min": 0.38795,
+   "residuo_final_min": 0.09464,
+   "gap_final_min": 0.09202,
    "reparto_pct": {
-    "Auto": 16.362,
-    "Metro": 23.625,
-    "Bici": 29.395,
-    "Caminata": 11.124,
+    "Auto": 20.603,
+    "Metro": 19.165,
+    "Bici": 30.378,
+    "Caminata": 10.36,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 6171.5
+   "emisiones_kg_h": 10043.7
   },
   {
-   "tolerancia": 0.01,
-   "iteraciones": 16,
+   "tolerancia": 0.05,
+   "iteraciones": 65,
    "convergio": true,
-   "residuo_final_min": 0.00868,
-   "gap_final_min": 0.13116,
+   "residuo_final_min": 0.04901,
+   "gap_final_min": 0.04841,
    "reparto_pct": {
-    "Auto": 16.286,
-    "Metro": 23.659,
-    "Bici": 29.469,
-    "Caminata": 11.091,
+    "Auto": 20.597,
+    "Metro": 19.192,
+    "Bici": 30.363,
+    "Caminata": 10.353,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 6129.3
-  },
-  {
-   "tolerancia": 0.001,
-   "iteraciones": 42,
-   "convergio": true,
-   "residuo_final_min": 0.00092,
-   "gap_final_min": 0.03789,
-   "reparto_pct": {
-    "Auto": 16.251,
-    "Metro": 23.61,
-    "Bici": 29.56,
-    "Caminata": 11.085,
-    "Teletrabajo": 19.494
-   },
-   "emisiones_kg_h": 6104.8
+   "emisiones_kg_h": 10036.3
   }
  ],
  "variantes": {
   "promedia_tiempos_default": {
-   "iteraciones": 7,
-   "convergio": true,
-   "residuo_final_min": 0.06444,
-   "gap_final_min": 0.38795,
+   "iteraciones": 40,
+   "convergio": false,
+   "residuo_final_min": 0.07267,
+   "gap_final_min": 0.07122,
    "reparto_pct": {
-    "Auto": 16.362,
-    "Metro": 23.625,
-    "Bici": 29.395,
-    "Caminata": 11.124,
+    "Auto": 20.6,
+    "Metro": 19.178,
+    "Bici": 30.371,
+    "Caminata": 10.357,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 6171.5
+   "emisiones_kg_h": 10040.2
   },
   "promedia_flujos_boyles": {
-   "iteraciones": 7,
-   "convergio": true,
-   "residuo_final_min": 0.05195,
-   "gap_final_min": 0.30274,
+   "iteraciones": 40,
+   "convergio": false,
+   "residuo_final_min": 0.00171,
+   "gap_final_min": 0.06691,
    "reparto_pct": {
-    "Auto": 16.344,
-    "Metro": 23.664,
-    "Bici": 29.382,
-    "Caminata": 11.116,
+    "Auto": 20.599,
+    "Metro": 19.184,
+    "Bici": 30.367,
+    "Caminata": 10.356,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 6224.3
+   "emisiones_kg_h": 10079.5
   },
-  "diferencia_maxima_pp": 0.039
+  "diferencia_maxima_pp": 0.006
  },
  "unicidad": {
   "por_semilla": [
    {
     "semilla": 1,
-    "iteraciones": 7,
+    "iteraciones": 13,
     "convergio": true,
-    "residuo_final_min": 0.06444,
-    "gap_final_min": 0.38795,
+    "residuo_final_min": 0.18639,
+    "gap_final_min": 0.1748,
     "reparto_pct": {
-     "Auto": 16.362,
-     "Metro": 23.625,
-     "Bici": 29.395,
-     "Caminata": 11.124,
+     "Auto": 20.614,
+     "Metro": 19.112,
+     "Bici": 30.408,
+     "Caminata": 10.372,
      "Teletrabajo": 19.494
     },
-    "emisiones_kg_h": 6171.5
+    "emisiones_kg_h": 10058.2
    },
    {
     "semilla": 42,
-    "iteraciones": 7,
+    "iteraciones": 13,
     "convergio": true,
-    "residuo_final_min": 0.06444,
-    "gap_final_min": 0.38795,
+    "residuo_final_min": 0.18639,
+    "gap_final_min": 0.1748,
     "reparto_pct": {
-     "Auto": 16.362,
-     "Metro": 23.625,
-     "Bici": 29.395,
-     "Caminata": 11.124,
+     "Auto": 20.614,
+     "Metro": 19.112,
+     "Bici": 30.408,
+     "Caminata": 10.372,
      "Teletrabajo": 19.494
     },
-    "emisiones_kg_h": 6171.5
+    "emisiones_kg_h": 10058.2
    },
    {
     "semilla": 777,
-    "iteraciones": 7,
+    "iteraciones": 13,
     "convergio": true,
-    "residuo_final_min": 0.06444,
-    "gap_final_min": 0.38795,
+    "residuo_final_min": 0.18639,
+    "gap_final_min": 0.1748,
     "reparto_pct": {
-     "Auto": 16.362,
-     "Metro": 23.625,
-     "Bici": 29.395,
-     "Caminata": 11.124,
+     "Auto": 20.614,
+     "Metro": 19.112,
+     "Bici": 30.408,
+     "Caminata": 10.372,
      "Teletrabajo": 19.494
     },
-    "emisiones_kg_h": 6171.5
+    "emisiones_kg_h": 10058.2
    }
   ],
   "dispersion_maxima_pp": 0.0,
   "nota": "Con `assignment='expected'` la asignación es determinista (flujos fraccionales), así que la semilla sólo afecta la generación de la población. Una dispersión nula indica que el punto fijo no depende del sorteo."
  },
  "emisiones": {
-  "total_kg_h": 6171.5,
-  "auto_kg_h": 5746.2,
-  "metro_kg_h": 425.2,
-  "metro_pct_del_total": 6.89,
+  "total_kg_h": 10058.2,
+  "auto_kg_h": 9714.2,
+  "metro_kg_h": 344.0,
+  "metro_pct_del_total": 3.42,
   "nota": "El metro emite por tren-km circulando (D-29), no por pasajero: su huella no baja si viaja menos gente, sólo si baja la frecuencia."
  },
  "downs_thomson": [
   {
    "num_pistas": 1,
-   "iteraciones": 10,
-   "convergio": true,
-   "residuo_final_min": 0.06376,
-   "gap_final_min": 0.55468,
+   "iteraciones": 40,
+   "convergio": false,
+   "residuo_final_min": 0.19921,
+   "gap_final_min": 0.1923,
    "reparto_pct": {
-    "Auto": 13.853,
-    "Metro": 25.429,
-    "Bici": 29.924,
-    "Caminata": 11.3,
+    "Auto": 14.69,
+    "Metro": 23.273,
+    "Bici": 31.702,
+    "Caminata": 10.841,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 7778.6,
-   "frecuencia_metro_tph": 4.577,
-   "t_auto_borde_min": 30.589,
-   "t_medio_auto_bici_min": 10.44
+   "emisiones_kg_h": 11723.2,
+   "frecuencia_metro_tph": 4.189,
+   "t_auto_borde_min": 48.208,
+   "t_medio_auto_bici_min": 14.586
   },
   {
    "num_pistas": 2,
-   "iteraciones": 7,
+   "iteraciones": 13,
    "convergio": true,
-   "residuo_final_min": 0.06444,
-   "gap_final_min": 0.38795,
+   "residuo_final_min": 0.18639,
+   "gap_final_min": 0.1748,
    "reparto_pct": {
-    "Auto": 16.362,
-    "Metro": 23.625,
-    "Bici": 29.395,
-    "Caminata": 11.124,
+    "Auto": 20.614,
+    "Metro": 19.112,
+    "Bici": 30.408,
+    "Caminata": 10.372,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 6171.5,
-   "frecuencia_metro_tph": 4.252,
-   "t_auto_borde_min": 20.632,
-   "t_medio_auto_bici_min": 9.137
+   "emisiones_kg_h": 10058.2,
+   "frecuencia_metro_tph": 3.44,
+   "t_auto_borde_min": 27.309,
+   "t_medio_auto_bici_min": 11.999
   },
   {
    "num_pistas": 3,
-   "iteraciones": 7,
+   "iteraciones": 11,
    "convergio": true,
-   "residuo_final_min": 0.06499,
-   "gap_final_min": 0.38371,
+   "residuo_final_min": 0.16316,
+   "gap_final_min": 0.1489,
    "reparto_pct": {
-    "Auto": 16.655,
-    "Metro": 23.439,
-    "Bici": 29.312,
-    "Caminata": 11.1,
+    "Auto": 22.289,
+    "Metro": 18.003,
+    "Bici": 29.98,
+    "Caminata": 10.233,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 5853.1,
-   "frecuencia_metro_tph": 4.219,
-   "t_auto_borde_min": 19.472,
-   "t_medio_auto_bici_min": 8.935
+   "emisiones_kg_h": 8352.3,
+   "frecuencia_metro_tph": 3.241,
+   "t_auto_borde_min": 21.38,
+   "t_medio_auto_bici_min": 10.745
   },
   {
    "num_pistas": 4,
-   "iteraciones": 7,
+   "iteraciones": 10,
    "convergio": true,
-   "residuo_final_min": 0.06513,
-   "gap_final_min": 0.38424,
+   "residuo_final_min": 0.17617,
+   "gap_final_min": 0.15799,
    "reparto_pct": {
-    "Auto": 16.708,
-    "Metro": 23.405,
-    "Bici": 29.296,
-    "Caminata": 11.096,
+    "Auto": 22.698,
+    "Metro": 17.743,
+    "Bici": 29.865,
+    "Caminata": 10.199,
     "Teletrabajo": 19.494
    },
-   "emisiones_kg_h": 5789.6,
-   "frecuencia_metro_tph": 4.213,
-   "t_auto_borde_min": 19.261,
-   "t_medio_auto_bici_min": 8.898
+   "emisiones_kg_h": 7764.1,
+   "frecuencia_metro_tph": 3.194,
+   "t_auto_borde_min": 19.914,
+   "t_medio_auto_bici_min": 10.401
   }
- ]
+ ],
+ "bici_umbrales": {
+  "original": {
+   "demora_congestion_max_min": 9.416,
+   "demora_congestion_media_min": 7.017,
+   "pct_bici_otro_escalon": 62.9,
+   "pct_bici_a_medio_min_de_umbral": 10.0
+  },
+  "equilibrio": {
+   "demora_congestion_max_min": 10.858,
+   "demora_congestion_media_min": 8.272,
+   "pct_bici_otro_escalon": 71.55,
+   "pct_bici_a_medio_min_de_umbral": 9.4
+  }
+ },
+ "todo_o_nada": {
+  "sin_corte": {
+   "20": {
+    "reparto_pct": {
+     "Auto": 30.361,
+     "Metro": 5.639,
+     "Bici": 34.156,
+     "Caminata": 10.35,
+     "Teletrabajo": 19.494
+    },
+    "gap_final_min": 1.837
+   },
+   "40": {
+    "reparto_pct": {
+     "Auto": 31.606,
+     "Metro": 5.533,
+     "Bici": 33.411,
+     "Caminata": 9.956,
+     "Teletrabajo": 19.494
+    },
+    "gap_final_min": 4.444
+   },
+   "60": {
+    "reparto_pct": {
+     "Auto": 31.233,
+     "Metro": 5.483,
+     "Bici": 33.833,
+     "Caminata": 9.956,
+     "Teletrabajo": 19.494
+    },
+    "gap_final_min": 4.124
+   },
+   "80": {
+    "reparto_pct": {
+     "Auto": 30.839,
+     "Metro": 5.483,
+     "Bici": 33.833,
+     "Caminata": 10.35,
+     "Teletrabajo": 19.494
+    },
+    "gap_final_min": 9.825
+   }
+  },
+  "oscilacion_max_pp": 1.25,
+  "con_regla_default": {
+   "iteraciones": 40,
+   "convergio": false,
+   "residuo_final_min": 6.39899,
+   "gap_final_min": 4.4441,
+   "reparto_pct": {
+    "Auto": 31.606,
+    "Metro": 5.533,
+    "Bici": 33.411,
+    "Caminata": 9.956,
+    "Teletrabajo": 19.494
+   },
+   "emisiones_kg_h": 29564.0
+  }
+ },
+ "montecarlo": {
+  "iteraciones": 40,
+  "convergio": false,
+  "residuo_final_min": 0.528,
+  "gap_final_min": 0.1276,
+  "reparto_pct": {
+   "Auto": 20.825,
+   "Metro": 19.183,
+   "Bici": 30.025,
+   "Caminata": 10.472,
+   "Teletrabajo": 19.494
+  },
+  "emisiones_kg_h": 10296.3,
+  "brecha_ultimas_10": [
+   0.685,
+   0.572,
+   0.266,
+   0.672,
+   0.742,
+   0.635,
+   0.145,
+   0.285,
+   0.561,
+   0.528
+  ]
+ },
+ "presets": {
+  "Base": {
+   "iteraciones": 13,
+   "convergio": true,
+   "gap_final_min": 0.1748
+  },
+  "TP Gratis": {
+   "iteraciones": 11,
+   "convergio": true,
+   "gap_final_min": 0.162
+  },
+  "Tarificación Vial": {
+   "iteraciones": 16,
+   "convergio": true,
+   "gap_final_min": 0.1725
+  },
+  "Pro-Auto": {
+   "iteraciones": 31,
+   "convergio": true,
+   "gap_final_min": 0.182
+  },
+  "Pro-Bici": {
+   "iteraciones": 8,
+   "convergio": true,
+   "gap_final_min": 0.1083
+  },
+  "Vehículos híbridos": {
+   "iteraciones": 14,
+   "convergio": true,
+   "gap_final_min": 0.1714
+  },
+  "Máx Metro": {
+   "iteraciones": 20,
+   "convergio": true,
+   "gap_final_min": 0.175
+  },
+  "Ciclorrecreovía": {
+   "iteraciones": 23,
+   "convergio": true,
+   "gap_final_min": 0.1635
+  }
+ }
 }

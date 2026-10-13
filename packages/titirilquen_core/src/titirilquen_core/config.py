@@ -369,17 +369,19 @@ class SimulationConfig(BaseModel):
     city: CityConfig = Field(default_factory=CityConfig)
     supply: SupplyConfig = Field(default_factory=SupplyConfig)
     demand: DemandConfig
-    # 20 (no 12): con tolerance>0 el corte es por residual; el margen extra deja
-    # converger la cola lenta ~1/it del MSA en escenarios rígidos (ver D-21/H4).
-    max_iter: int = Field(default=20, ge=1, le=100)
-    # 0.1 min (antes 0.0): con 0 el criterio por residual NUNCA se cumple, asi
-    # que la corrida agotaba max_iter y quedaba marcada «sin converger» aunque
-    # el residuo fuera despreciable. El 0 venia de replicar el original, que
-    # cortaba solo por max_iter; el costo era una etiqueta falsa. Ahora el core
-    # y el frontend usan el mismo valor (se elimino la divergencia declarada del
-    # contrato). `tolerance=0` sigue siendo valido y significa «no cortar por
-    # residual».
-    tolerance: float = Field(default=0.1, ge=0)
+    # 40 (antes 20): desde D8 el corte mira la brecha NO amortiguada, que con
+    # paso 1/n baja como ~1/n. La base converge en 13–20 iteraciones y el preset
+    # más lento (Pro-Auto) en 31; 1 sola pista ya no alcanza en 40 (D-21/H4).
+    max_iter: int = Field(default=40, ge=1, le=100)
+    # 0.2 min sobre la brecha no amortiguada `max |c(x(t)) − t|` (D8). Hasta D8
+    # era 0,1 sobre el cambio del iterado amortiguado, `f·brecha`: con f = 1/n
+    # la tolerancia real se aflojaba sola y la base «convergía» en la iteración
+    # 8 con una brecha de 0,42 min. Con 0,05 la partición se mueve ≤ 0,08 pp
+    # más y cuesta 65 iteraciones en vez de 13 (docs/libro/datos/cap05.json).
+    # `tolerance=0` sigue siendo válido y significa «no cortar por brecha».
+    # Historia: el 0 original replicaba al repo de origen, que cortaba sólo por
+    # max_iter y marcaba «sin converger» siempre.
+    tolerance: float = Field(default=0.2, ge=0)
     seed: int | None = None
     assignment: Literal["montecarlo", "expected", "todo_o_nada"] = Field(
         default="montecarlo",

@@ -48,8 +48,8 @@
   en los modos activos, penalizaciones escalonadas por esfuerzo:
 </p>
 
-<div class="ecuacion" data-tex="V_m^s = \mathrm{ASC}_m^s + \sum_k \beta_{t_k}^s\, t_{k,m} + \beta_c^s\, c_m + \sum_j \pi_j^s\, \mathbb{1}\{t_m &gt; u_j\}" data-id="(4.1)">
-  <span class="id">(4.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>V</mi><mi>m</mi><mi>s</mi></msubsup><mo>=</mo><msubsup><mrow><mi mathvariant="normal">A</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">C</mi></mrow><mi>m</mi><mi>s</mi></msubsup><mo>+</mo><munder><mo>∑</mo><mi>k</mi></munder><msubsup><mi>β</mi><msub><mi>t</mi><mi>k</mi></msub><mi>s</mi></msubsup><mtext> </mtext><msub><mi>t</mi><mrow><mi>k</mi><mo separator="true">,</mo><mi>m</mi></mrow></msub><mo>+</mo><msubsup><mi>β</mi><mi>c</mi><mi>s</mi></msubsup><mtext> </mtext><msub><mi>c</mi><mi>m</mi></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msubsup><mi>π</mi><mi>j</mi><mi>s</mi></msubsup><mtext> </mtext><mn mathvariant="double-struck">1</mn><mo stretchy="false">{</mo><msub><mi>t</mi><mi>m</mi></msub><mo>&gt;</mo><msub><mi>u</mi><mi>j</mi></msub><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">V_m^s = \mathrm{ASC}_m^s + \sum_k \beta_{t_k}^s\, t_{k,m} + \beta_c^s\, c_m + \sum_j \pi_j^s\, \mathbb{1}\{t_m &gt; u_j\}</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="V_m^s = \mathrm{ASC}_m^s + \sum_k \beta_{t_k}^s\, t_{k,m} + \beta_c^s\, c_m + \sum_j \pi_j^s\, \mathbb{1}\{t^{0}_m &gt; u_j\}" data-id="(4.1)">
+  <span class="id">(4.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>V</mi><mi>m</mi><mi>s</mi></msubsup><mo>=</mo><msubsup><mrow><mi mathvariant="normal">A</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">C</mi></mrow><mi>m</mi><mi>s</mi></msubsup><mo>+</mo><munder><mo>∑</mo><mi>k</mi></munder><msubsup><mi>β</mi><msub><mi>t</mi><mi>k</mi></msub><mi>s</mi></msubsup><mtext> </mtext><msub><mi>t</mi><mrow><mi>k</mi><mo separator="true">,</mo><mi>m</mi></mrow></msub><mo>+</mo><msubsup><mi>β</mi><mi>c</mi><mi>s</mi></msubsup><mtext> </mtext><msub><mi>c</mi><mi>m</mi></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msubsup><mi>π</mi><mi>j</mi><mi>s</mi></msubsup><mtext> </mtext><mn mathvariant="double-struck">1</mn><mo stretchy="false">{</mo><msubsup><mi>t</mi><mi>m</mi><mn>0</mn></msubsup><mo>&gt;</mo><msub><mi>u</mi><mi>j</mi></msub><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">V_m^s = \mathrm{ASC}_m^s + \sum_k \beta_{t_k}^s\, t_{k,m} + \beta_c^s\, c_m + \sum_j \pi_j^s\, \mathbb{1}\{t^{0}_m &gt; u_j\}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -60,8 +60,12 @@
   elección es el <strong>viaje representativo</strong>: un hogar hace 44
   viajes al mes, dos por cada tour casa-trabajo-casa, y el estacionamiento,
   que se paga una vez al día, se reparte entre los dos. Las penalizaciones <em>π_j</em> son saltos fijos que
-  se suman cuando el tiempo del modo supera un umbral <em>u_j</em>: 10, 20 y 30
-  minutos en bicicleta; 5, 15 y 25 minutos a pie. Con un término aleatorio
+  se suman cuando el tiempo del modo con la red vacía, <em>t⁰_m</em>, supera
+  un umbral <em>u_j</em>: 10, 20 y 30 minutos en bicicleta; 5, 15 y 25 minutos
+  a pie. La caminata no se congestiona, así que su <em>t⁰</em> es su tiempo; en
+  la bicicleta los escalones miden esfuerzo, distancia y pendiente, y la
+  congestión de la ciclovía entra sólo por el término de tiempo (D9, capítulo
+  5). Con un término aleatorio
   Gumbel independiente e idénticamente distribuido, la probabilidad de elegir
   el modo <em>m</em> entre los factibles es
 </p>
@@ -310,15 +314,15 @@
     <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">69</td><td><code>calcular_utilidades</code> — los cuatro modos; <code>UtilityBreakdown</code> (39) guarda la descomposición y la factibilidad; <code>_tiempos_flujo_libre</code> (59) es la iteración cero</td></tr>
-    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">51</td><td><code>costo_monetario_auto</code> — bencina y peaje por km más medio parking; la usan también los agregados de bienestar, que antes tenían su copia</td></tr>
-    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">152</td><td>bicicleta: usa <code>b_tiempo_viaje</code>; las penalizaciones se suman como saltos fijos por umbral (132)</td></tr>
-    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">170</td><td>caminata: usa <code>b_tiempo_caminata</code>, propio, con sus umbrales de 5, 15 y 25 minutos</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">demand/utility.py</td><td class="n">133</td><td>el metro es factible si <code>tren_viaje</code> es positivo: hay un tramo en tren desde la estación más cercana</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">78</td><td><code>calcular_utilidades</code> — los cuatro modos; <code>UtilityBreakdown</code> (47) guarda la descomposición y la factibilidad; <code>_tiempos_flujo_libre</code> (67) es la iteración cero</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">59</td><td><code>costo_monetario_auto</code> — bencina y peaje por km más medio parking; la usan también los agregados de bienestar, que antes tenían su copia</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">163</td><td>bicicleta: usa <code>b_tiempo_viaje</code>; las penalizaciones se suman como saltos fijos por umbral (132)</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">181</td><td>caminata: usa <code>b_tiempo_caminata</code>, propio, con sus umbrales de 5, 15 y 25 minutos</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">demand/utility.py</td><td class="n">142</td><td>el metro es factible si <code>tren_viaje</code> es positivo: hay un tramo en tren desde la estación más cercana</td></tr>
     <tr><td class="n">(4.2)</td><td class="ruta py">demand/choice.py</td><td class="n">19</td><td><code>probabilidades_logit</code> — sobre los modos factibles, con resta del máximo por estabilidad</td></tr>
     <tr><td class="n">—</td><td class="ruta py">demand/choice.py</td><td class="n">44</td><td><code>probabilidades_todo_o_nada</code> — el límite determinístico; su docstring explica por qué no es Wardrop</td></tr>
     <tr><td class="n">—</td><td class="ruta py">population.py</td><td class="n">50</td><td><code>generar_poblacion_desde_land_use_det</code> — agentes desde el suelo; teletrabajo y auto por conteos redondeados</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">112</td><td><code>_agrupar_agentes</code> — separa a los teletrabajadores y agrupa por estrato, celda y auto; <code>_probs_grupo</code> (133) llama a la utilidad y al logit</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">122</td><td><code>_agrupar_agentes</code> — separa a los teletrabajadores y agrupa por estrato, celda y auto; <code>_probs_grupo</code> (143) llama a la utilidad y al logit</td></tr>
     <tr><td class="n">(4.3)</td><td class="ruta py">presets.py</td><td class="n">345</td><td><code>DEFAULT_STRATA</code> — la calibración de los tres estratos, con los minutos-equivalentes en sus comentarios</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">47</td><td><code>StratumBetas</code> — <code>b_tiempo_viaje</code> (56), <code>b_costo</code> (59), <code>b_tiempo_espera</code> (62), <code>b_tiempo_acceso</code> (72), <code>b_tiempo_caminata</code> (77); <code>PhysicalPenalties</code> (30)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">81</td><td><code>StratumConfig</code> — <code>prob_teletrabajo</code> (94), <code>prob_auto</code> (95)</td></tr>

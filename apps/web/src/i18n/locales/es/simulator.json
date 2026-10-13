@@ -104,11 +104,12 @@
     "not_converged": "Equilibrio NO alcanzado",
     "verdict_ok": "Convergió en {{n}} de {{total}} iteraciones: el residuo bajó a {{res}} min, dentro de la tolerancia de {{tol}} min. Los resultados de abajo son un equilibrio.",
     "verdict_fail": "Agotó las {{total}} iteraciones sin converger: el residuo quedó en {{res}} min, sobre la tolerancia de {{tol}} min. Los tiempos todavía se están moviendo, así que lo de abajo NO es un equilibrio y no sirve para comparar escenarios. Subí las iteraciones máximas o afloja la tolerancia.",
+    "verdict_fail_aon": "Agotó las {{total}} iteraciones sin converger, y con la asignación determinística no va a converger: el grupo marginal salta ENTERO de modo al cruzar la indiferencia, así que no hay punto fijo y el reparto oscila. Lo de abajo es la última iteración de esa oscilación, no un equilibrio; subir las iteraciones no lo arregla.",
     "verdict_no_tol": "Sin criterio de convergencia (tolerancia 0): corrió las {{total}} iteraciones fijas y se detuvo por conteo, no porque los tiempos se estabilizaran. El residuo final es {{res}} min.",
     "booting_pyodide": "Inicializando Pyodide en el navegador (primera vez ~10–20s)…",
     "assignment_montecarlo": "Monte Carlo",
     "assignment_todo_o_nada": "Determinístico (todo-o-nada)",
-    "assignment_hint_todo_o_nada": "Elección DETERMINÍSTICA: cada grupo va entero al modo de mayor utilidad, sin heterogeneidad de gustos. Es el límite del logit cuando la escala de los coeficientes crece. NO iguala costos entre modos: con la base default los cuatro modos se usan a la vez con costos que difieren hasta 32 min, y el 91% de los grupos está lejos de la indiferencia (scripts/auditoria_wardrop.py). Lo que cambia es que el grupo marginal salta ENTERO. Ojo: puede tener equilibrios múltiples, porque el metro abarata su espera al ganar demanda y eso viola la condición de costos crecientes que garantiza la unicidad.",
+    "assignment_hint_todo_o_nada": "Elección DETERMINÍSTICA: cada grupo va entero al modo de mayor utilidad, sin heterogeneidad de gustos. Es el límite del logit cuando la escala de los coeficientes crece. NO iguala costos entre modos: con la base default los cuatro modos se usan a la vez con costos que difieren hasta 32 min, y el 91% de los grupos está lejos de la indiferencia (scripts/auditoria_wardrop.py). Lo que cambia es que el grupo marginal salta ENTERO, y por eso no hay punto fijo: el reparto oscila (~1 pp) y la corrida agota las iteraciones sin converger. Lo que se muestra es la última iteración de esa oscilación, no un equilibrio. Ojo: puede tener equilibrios múltiples, porque el metro abarata su espera al ganar demanda y eso viola la condición de costos crecientes que garantiza la unicidad.",
     "modo_auto": "Auto",
     "modo_metro": "Metro",
     "modo_bici": "Bici",
@@ -255,7 +256,7 @@
     "supply_title": "Oferta",
     "supply_body": "Auto: capacidad por Greenshields (el ancho de pista la reduce) y demora BPR acumulada hacia el CBD. Bici: misma forma volumen/capacidad, corregida por pendiente y acotada por abajo al tiempo de caminata. Metro: frecuencia endógena al tramo crítico (topada por frec_min/frec_max), espera de medio intervalo amplificada por saturación de andén, y detenciones intermedias dentro del tiempo a bordo — más estaciones acortan el acceso pero alargan el viaje.",
     "equilibrium_title": "Equilibrio",
-    "equilibrium_body": "El MSA alterna demanda ↔ oferta promediando los tiempos con paso 1/k, lo que amortigua la oscilación de iterar sin promediar. El residuo es el máximo cambio de tiempo en cualquier modo y celda; converge cuando queda bajo la tolerancia en 2 iteraciones seguidas (con tolerancia 0 corre hasta el tope de iteraciones)."
+    "equilibrium_body": "El MSA alterna demanda ↔ oferta promediando los tiempos con paso 1/k, lo que amortigua la oscilación de iterar sin promediar. El residuo es la brecha sin amortiguar: la mayor diferencia, en cualquier modo y celda, entre el tiempo que devuelve la red cargada con la demanda de la iteración y el tiempo con que esa demanda se calculó. Converge cuando queda bajo la tolerancia en 2 iteraciones seguidas (con tolerancia 0 corre hasta el tope de iteraciones)."
   },
   "sections_sidebar": {
     "infra": "Infraestructura",

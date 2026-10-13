@@ -78,6 +78,7 @@ def _tiempos_del_snapshot(snap: IterationSnapshot, n: int) -> list[TiemposObserv
         TiemposObservados(
             auto_total=float(snap.t_auto[i]),
             bici_total=float(snap.t_bici[i]),
+            bici_libre=float(snap.t_bici_libre[i]),
             tren_acceso=float(snap.t_tren_acceso[i]),
             tren_espera=float(snap.t_tren_espera[i]),
             tren_viaje=float(snap.t_tren_viaje[i]),

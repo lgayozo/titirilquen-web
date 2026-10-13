@@ -2,8 +2,9 @@
 
 Portado y extendido desde `titirilquen-repo/app.py:470-524`. Cambios:
 
-- Criterio de convergencia real: residuo `‖T_n − T_{n−1}‖_∞ < tol`. Si
-  `tol=0` (default), se respeta `max_iter` como antes (ver D-10).
+- Criterio de convergencia real: brecha no amortiguada
+  `‖c(x(t_{n−1})) − t_{n−1}‖_∞ < tol` (D8). Si `tol=0`, se respeta `max_iter`
+  como antes (ver D-10).
 - Retorna `ConvergenceTrace` con snapshot por iteración para visualización
   en vivo (antes este dato se perdía tras el loop).
 """
@@ -28,7 +29,7 @@ from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.supply import generar_oferta
 from titirilquen_core.population import Agente, generar_poblacion_desde_land_use_det
-from titirilquen_core.supply.oferta import resolver_oferta
+from titirilquen_core.supply.oferta import resolver_oferta, resolver_red_vacia
 
 ModalSplit = dict[str, float]
 
@@ -46,6 +47,9 @@ class IterationSnapshot:
     demanda_caminata: NDArray[np.float64]
     t_auto: NDArray[np.float64]
     t_bici: NDArray[np.float64]
+    #: Tiempo de bici con la red vacía; fijo en toda la corrida. Es sobre el que
+    #: se evalúan los escalones y el corte de la bici (D9, `TiemposObservados`).
+    t_bici_libre: NDArray[np.float64]
     t_tren_acceso: NDArray[np.float64]
     t_tren_espera: NDArray[np.float64]
     t_tren_viaje: NDArray[np.float64]
@@ -53,6 +57,11 @@ class IterationSnapshot:
     #: Frecuencia sin recortar (`carga/K`). Comparada con `frecuencia_metro`
     #: revela si `frec_min`/`frec_max` estan mordiendo — ver AT-08/AT-09.
     frecuencia_teorica_metro: float
+    #: Brecha NO amortiguada de la iteración (min): `max |c(x(t)) − t|` sobre
+    #: modos y celdas, con `t` los tiempos con que se calculó la demanda y
+    #: `c(x(t))` los que devuelve la red cargada con ella. Hasta D8 era el cambio
+    #: del iterado amortiguado, `f · (esto)`, y con f = 1/(n+1) la tolerancia se
+    #: aflojaba sola en cada iteración (Boyles et al., p. 314).
     residuo: float
 
 
@@ -64,9 +73,10 @@ class ConvergenceTrace:
     converged: bool = False
     #: Brecha NO amortiguada del estado final (min): se recalcula la demanda con
     #: los tiempos finales, se resuelve la oferta con ESA demanda y se mide el
-    #: máximo cambio de tiempo en cualquier modo y celda. `residuo` mide el cambio
-    #: del iterado amortiguado, que con paso 1/n subestima el desajuste real en
-    #: ~n veces (D-39): esta es la cifra que acota lo que «convergió» sugiere.
+    #: máximo cambio de tiempo en cualquier modo y celda (D-39). Es la misma
+    #: medida que `residuo` desde D8, pero un paso más allá —sobre los tiempos
+    #: que el loop entrega— y siempre con flujos esperados, así que no trae el
+    #: ruido de muestreo de 'montecarlo'.
     gap_final_min: float = float("nan")
     capacidad_auto: float = 0.0
     v_libre_auto: float = 0.0
@@ -370,6 +380,7 @@ def _iter_loop(
     t_tren_acc_ac = np.zeros(ciudad.n_celdas)
     t_tren_esp_ac = np.zeros(ciudad.n_celdas)
     t_tren_v_ac = np.zeros(ciudad.n_celdas)
+    t_bici_libre = resolver_red_vacia(sim, ciudad).bici.t_usuarios_min
     estables = 0  # iteraciones consecutivas bajo tolerancia
     last_state: dict | None = None
 
@@ -416,31 +427,42 @@ def _iter_loop(
             # Con `promediar_flujos` el suavizado ya ocurrió sobre `d_*`, así que
             # los tiempos se toman tal como salen de la oferta (f = 1). Promediar
             # las dos variables amortiguaría dos veces y frenaría la convergencia
-            # sin cambiar el punto fijo. El residuo se sigue midiendo igual.
+            # sin cambiar el punto fijo. El residuo se mide con la misma fórmula,
+            # pero ya no es la brecha: los dos tiempos que compara salen de
+            # flujos que difieren en una fracción f, así que vuelve a ser un
+            # cambio amortiguado. Para esta variante la vara es `gap_final_min`.
             f = 1.0 if promediar_flujos else 1.0 / (it + 1)
             old_auto = t_auto_ac.copy()
             old_bici = t_bici_ac.copy()
             old_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
+            # Brecha no amortiguada (D8): lo que devuelve la red cargada contra
+            # los tiempos con que se calculó la demanda. Es `Δt/f` del promedio
+            # de tiempos —`t_nuevo − t = f·(c − t)`—, medido sin dividir.
+            residuo = float(
+                max(
+                    np.max(np.abs(car_result.t_usuarios_min - old_auto)),
+                    np.max(np.abs(bike_result.t_usuarios_min - old_bici)),
+                    np.max(
+                        np.abs(
+                            train_result.t_acceso_min
+                            + train_result.t_espera_min
+                            + train_result.t_viaje_min
+                            - old_metro
+                        )
+                    ),
+                )
+            )
             t_auto_ac = f * car_result.t_usuarios_min + (1 - f) * t_auto_ac
             t_bici_ac = f * bike_result.t_usuarios_min + (1 - f) * t_bici_ac
             t_tren_acc_ac = f * train_result.t_acceso_min + (1 - f) * t_tren_acc_ac
             t_tren_esp_ac = f * train_result.t_espera_min + (1 - f) * t_tren_esp_ac
             t_tren_v_ac = f * train_result.t_viaje_min + (1 - f) * t_tren_v_ac
-            new_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
-            # Residual de TODA la red (no sólo auto): máximo cambio de tiempo en
-            # cualquier modo y celda entre iteraciones MSA.
-            residuo = float(
-                max(
-                    np.max(np.abs(t_auto_ac - old_auto)),
-                    np.max(np.abs(t_bici_ac - old_bici)),
-                    np.max(np.abs(new_metro - old_metro)),
-                )
-            )
 
         tiempos_actuales = [
             TiemposObservados(
                 auto_total=float(t_auto_ac[i]),
                 bici_total=float(t_bici_ac[i]),
+                bici_libre=float(t_bici_libre[i]),
                 tren_acceso=float(t_tren_acc_ac[i]),
                 tren_espera=float(t_tren_esp_ac[i]),
                 tren_viaje=float(t_tren_v_ac[i]),
@@ -458,6 +480,7 @@ def _iter_loop(
             demanda_caminata=d_caminata,
             t_auto=t_auto_ac.copy(),
             t_bici=t_bici_ac.copy(),
+            t_bici_libre=t_bici_libre,
             t_tren_acceso=t_tren_acc_ac.copy(),
             t_tren_espera=t_tren_esp_ac.copy(),
             t_tren_viaje=t_tren_v_ac.copy(),
@@ -481,9 +504,14 @@ def _iter_loop(
             }
         yield snap
 
-        # Criterio de convergencia: residual < tolerancia en 2 iteraciones
-        # consecutivas (robusto al ruido estocástico del residual). Fallback a
+        # Criterio de convergencia: brecha no amortiguada < tolerancia en 2
+        # iteraciones consecutivas (robusto al ruido estocástico). Fallback a
         # max_iter. Con tolerance=0 nunca corta (sólo número de iteraciones).
+        # Con 'montecarlo' el ruido de muestreo deja la brecha en ~0,15–0,75 min
+        # y la corrida agota max_iter aunque `gap_final_min`, que carga flujos
+        # esperados, quede bajo la tolerancia. Con 'todo_o_nada' no hay punto
+        # fijo (la demanda salta entera al cruzar la indiferencia) y tampoco
+        # corta (D9).
         if sim.tolerance > 0 and residuo < sim.tolerance:
             estables += 1
             if estables >= 2:

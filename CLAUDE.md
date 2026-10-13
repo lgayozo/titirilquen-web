@@ -116,16 +116,17 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   se deriva donde se muestra (D-46). `teletrabajo_factor` vive en
   `demand.globales`.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
-  defecto de la app da **auto 20,71 · metro 21,10 · bici 28,34 · caminata 10,36**
-  con la localización «original» (mezcla uniforme), y **20,45 · 24,73 · 27,40 ·
-  7,96** con la de equilibrio (seed 42, tol 0,1), pineadas en
+  defecto de la app da **auto 20,61 · metro 19,11 · bici 30,41 · caminata 10,37**
+  con la localización «original» (mezcla uniforme), y **20,42 · 22,05 · 30,08 ·
+  7,99** con la de equilibrio (seed 42, brecha < 0,2 min), pineadas en
   `tests/test_linea_base.py` — ese archivo manda si estos números y él difieren. Si un cambio las mueve más de 0,05 pp,
   no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
   sep-2026 (λ heterogéneo en suelo; transporte homoscedástico; accesibilidad =
   logsum de transporte, D-34; ρ = 0 y μ = 1/√44 en el suelo; BPR del auto de la
   FHWA; ciclovía de 4.000 bici/h) y en oct-2026 (parking por tour: `costo_parking`
   es por día y cada viaje de ida carga la mitad; la BPR del auto sobre la
-  capacidad práctica 0,8·C, D6): ver ese test.
+  capacidad práctica 0,8·C, D6; la parada del MSA sobre la brecha no amortiguada,
+  D8; los escalones de la bici sobre su tiempo de red vacía, D9): ver ese test.
 - **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
   0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`
   aborte con `already installed` y el motor por defecto deja de arrancar. Ningún

@@ -104,7 +104,10 @@ export function ConvergenceTrace({
       <div style={PANEL_STYLE}>
         <h4 style={PANEL_TITLE}>{t("equilibrium.residual")}</h4>
         <p style={PANEL_SUB}>
-          ‖T<sub>n</sub> − T<sub>n−1</sub>‖<sub>∞</sub> · min · debe tender a 0
+          {/* La brecha no amortiguada (D8), no el cambio del iterado: ver
+              cap. 5 del libro, ec. (5.4). */}
+          ‖c(d(T<sub>n</sub>)) − T<sub>n</sub>‖<sub>∞</sub> · min · debe tender
+          a 0
         </p>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>

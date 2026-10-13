@@ -277,7 +277,12 @@ def test_los_minutos_ponderados_pesan_espera_y_acceso() -> None:
     from titirilquen_core.demand.utility import TiemposObservados
 
     t = TiemposObservados(
-        auto_total=12.0, bici_total=20.0, tren_acceso=6.0, tren_espera=4.0, tren_viaje=15.0
+        auto_total=12.0,
+        bici_total=20.0,
+        bici_libre=20.0,
+        tren_acceso=6.0,
+        tren_espera=4.0,
+        tren_viaje=15.0,
     )
     assert minutos_ponderados("Auto", t, 30.0, w_espera=2, w_acceso=2, w_caminata=1.7) == 12.0
     assert minutos_ponderados("Bici", t, 30.0, w_espera=2, w_acceso=2, w_caminata=1.7) == 20.0

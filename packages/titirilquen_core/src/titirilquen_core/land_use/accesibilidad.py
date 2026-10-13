@@ -105,6 +105,7 @@ def tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[Tiemp
         TiemposObservados(
             auto_total=float(car0.t_usuarios_min[i]),
             bici_total=float(bike0.t_usuarios_min[i]),
+            bici_libre=float(bike0.t_usuarios_min[i]),
             tren_acceso=float(train0.t_acceso_min[i]),
             tren_espera=float(train0.t_espera_min[i]),
             tren_viaje=float(train0.t_viaje_min[i]),

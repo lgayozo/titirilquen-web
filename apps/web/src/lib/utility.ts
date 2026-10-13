@@ -15,6 +15,8 @@ import { VIAJES_POR_TOUR } from "@/lib/gen/constantes.gen";
 export interface TiemposObservados {
   auto_total: number;
   bici_total: number;
+  /** Red vacía: sobre este tiempo van los escalones y el corte de la bici (D9). */
+  bici_libre: number;
   tren_acceso: number;
   tren_espera: number;
   tren_viaje: number;
@@ -39,6 +41,7 @@ function flujoLibreTiempos(
   return {
     auto_total: (distKm / g.v_auto) * 60,
     bici_total: (distKm / g.v_bici) * 60,
+    bici_libre: (distKm / g.v_bici) * 60,
     tren_acceso: 10,
     tren_espera: 5,
     tren_viaje: (distKm / g.v_metro) * 60,
@@ -130,9 +133,10 @@ export function calcularUtilidades({
           feasible: true,
         };
 
-  // Bici
+  // Bici — escalones y corte sobre el tiempo de red vacía; la congestión
+  // entra sólo por b_tiempo (D9). El corte es el configurable, como en el core.
   let bici: UtilityBreakdown;
-  if (tt.bici_total > 45) {
+  if (tt.bici_libre > gl.corte_bici_min) {
     bici = {
       modo: "Bici",
       asc: 0,
@@ -144,9 +148,9 @@ export function calcularUtilidades({
     };
   } else {
     let p = 0;
-    if (tt.bici_total > 10) p += penal.bici_10;
-    if (tt.bici_total > 20) p += penal.bici_20;
-    if (tt.bici_total > 30) p += penal.bici_30;
+    if (tt.bici_libre > 10) p += penal.bici_10;
+    if (tt.bici_libre > 20) p += penal.bici_20;
+    if (tt.bici_libre > 30) p += penal.bici_30;
     const vT = betas.b_tiempo_viaje * tt.bici_total;
     bici = {
       modo: "Bici",
@@ -161,7 +165,7 @@ export function calcularUtilidades({
 
   // Caminata
   let cam: UtilityBreakdown;
-  if (tCam > 30) {
+  if (tCam > gl.corte_caminata_min) {
     cam = {
       modo: "Caminata",
       asc: 0,

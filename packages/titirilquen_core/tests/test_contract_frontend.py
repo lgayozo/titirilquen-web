@@ -153,10 +153,15 @@ def _utilidad_casos() -> list[dict]:
     for celda, tiene_auto, demanda in rejilla:
         dist_km = abs(ciudad.cbd_index - celda) * ciudad.ancho_celda_km
         # Tiempos plausibles para esa distancia, con algo de congestión en el
-        # auto y una espera de metro típica del default (f_op ≈ 6 tph).
+        # auto y una espera de metro típica del default (f_op ≈ 6 tph). La bici
+        # lleva 3 min de congestión sobre su tiempo de red vacía: así las celdas
+        # 60, 30 y 0 quedan a distinto lado de los umbrales 20, 30 y 45 según
+        # cuál se use, y un espejo que evaluara los escalones sobre el tiempo
+        # congestionado fallaría (D9).
         tiempos = TiemposObservados(
             auto_total=dist_km * 2.4 + 2,
-            bici_total=dist_km * 4.3,
+            bici_total=dist_km * 4.3 + 3,
+            bici_libre=dist_km * 4.3,
             tren_acceso=6.0,
             tren_espera=5.0,
             tren_viaje=dist_km * 1.7,
@@ -180,6 +185,7 @@ def _utilidad_casos() -> list[dict]:
                     "tiempos": {
                         "auto_total": tiempos.auto_total,
                         "bici_total": tiempos.bici_total,
+                        "bici_libre": tiempos.bici_libre,
                         "tren_acceso": tiempos.tren_acceso,
                         "tren_espera": tiempos.tren_espera,
                         "tren_viaje": tiempos.tren_viaje,

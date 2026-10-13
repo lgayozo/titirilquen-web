@@ -5,7 +5,7 @@ import pytest
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, PhysicalPenalties, StratumBetas, StratumConfig
 from titirilquen_core.demand.choice import probabilidades_logit
-from titirilquen_core.demand.utility import calcular_utilidades
+from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 
 
 def _make_demand_config() -> DemandConfig:
@@ -81,14 +81,14 @@ def test_probs_suman_uno() -> None:
 
 def test_penalizacion_bici_escalonada() -> None:
     """D-02: la penalización es aditiva escalonada, no multiplicativa."""
-    from titirilquen_core.demand.utility import TiemposObservados
-
     ciudad = CiudadLineal(n_celdas=21, largo_total_km=10)
     cfg = _make_demand_config()
     penal = cfg.estratos[1].betas.penalizaciones_fisicas
 
     # Sin penalización (t < 10)
-    t0 = TiemposObservados(auto_total=5, bici_total=5, tren_acceso=1, tren_espera=1, tren_viaje=5)
+    t0 = TiemposObservados(
+        auto_total=5, bici_total=5, bici_libre=5, tren_acceso=1, tren_espera=1, tren_viaje=5
+    )
     u0 = calcular_utilidades(
         estrato=1,
         celda_origen=5,
@@ -98,7 +98,9 @@ def test_penalizacion_bici_escalonada() -> None:
         tiempos_observados=t0,
     )
     # Con penalización > 30
-    t35 = TiemposObservados(auto_total=5, bici_total=35, tren_acceso=1, tren_espera=1, tren_viaje=5)
+    t35 = TiemposObservados(
+        auto_total=5, bici_total=35, bici_libre=35, tren_acceso=1, tren_espera=1, tren_viaje=5
+    )
     u35 = calcular_utilidades(
         estrato=1,
         celda_origen=5,
@@ -110,6 +112,33 @@ def test_penalizacion_bici_escalonada() -> None:
     esperado = penal.bici_10 + penal.bici_20 + penal.bici_30
     assert abs(u35["Bici"].v_penalizaciones - esperado) < 1e-9
     assert abs(u0["Bici"].v_penalizaciones - 0.0) < 1e-9
+
+
+def test_los_escalones_de_la_bici_no_ven_la_congestion() -> None:
+    """D9: escalones y corte se evalúan sobre el tiempo de red vacía. Con 25 min
+    de esfuerzo físico, 12 min de congestión (37 en total) no agregan el escalón
+    de 30 ni, con 44 → 56, sacan a la bici del conjunto: sólo pesan por b_tiempo."""
+    ciudad = CiudadLineal(n_celdas=21, largo_total_km=10)
+    cfg = _make_demand_config()
+    betas = cfg.estratos[1].betas
+    kw = {"estrato": 1, "celda_origen": 5, "tiene_auto": True, "ciudad": ciudad, "config": cfg}
+
+    def bici(libre: float, total: float):
+        t = TiemposObservados(
+            auto_total=5,
+            bici_total=total,
+            bici_libre=libre,
+            tren_acceso=1,
+            tren_espera=1,
+            tren_viaje=5,
+        )
+        return calcular_utilidades(**kw, tiempos_observados=t)["Bici"]
+
+    libre, congestionada = bici(25, 25), bici(25, 37)
+    assert congestionada.v_penalizaciones == pytest.approx(libre.v_penalizaciones)
+    assert congestionada.valor - libre.valor == pytest.approx(betas.b_tiempo_viaje * 12)
+    assert bici(44, 56).feasible
+    assert not bici(46, 46).feasible
 
 
 def test_el_peaje_por_km_entra_al_costo_del_auto_y_a_nada_mas() -> None:

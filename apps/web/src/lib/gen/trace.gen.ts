@@ -59,20 +59,25 @@ export interface SnapshotDict {
   demanda_caminata: number[];
   t_auto: number[];
   t_bici: number[];
+  /** Red vacía: sobre este tiempo se evalúan los escalones de la bici (D9). */
+  t_bici_libre: number[];
   t_tren_acceso: number[];
   t_tren_espera: number[];
   t_tren_viaje: number[];
   frecuencia_metro: number;
   frecuencia_teorica_metro: number;
-  /** `None` en la primera iteración, donde el residuo es infinito. */
+  /**
+   *  Brecha no amortiguada de la iteración, `max |c(x(t)) − t|` en min (D8).
+   *  `None` en la primera iteración, donde es infinita.
+   */
   residuo: number | null;
 }
 
 /** Resultado completo de una corrida de transporte. */
 export interface TraceDict {
   /**
-   *  `residuo < tolerance` dos veces seguidas. Mide el cambio del iterado
-   *  amortiguado, no la brecha real: ver `gap_final_min` (D-39).
+   *  `residuo < tolerance` dos veces seguidas, con `residuo` la brecha no
+   *  amortiguada (D8; hasta entonces era el cambio amortiguado, ver D-39).
    */
   converged: boolean;
   /**

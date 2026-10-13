@@ -33,6 +33,14 @@ class TiemposObservados:
     tren_acceso: float
     tren_espera: float
     tren_viaje: float
+    #: Tiempo de bici con la red VACÍA (BPR(0), con pendiente). Sobre él se
+    #: evalúan los escalones y el corte de la bici, no sobre `bici_total` (D9):
+    #: miden esfuerzo físico —distancia y pendiente—, como los de la caminata.
+    #: Evaluados sobre el tiempo congestionado hacían discontinua la demanda
+    #: como función de los tiempos, y sin continuidad no hay garantía de punto
+    #: fijo (Boyles et al., p. 311). La congestión sigue entrando, por
+    #: `b_tiempo_viaje · bici_total`.
+    bici_libre: float
 
 
 @dataclass(frozen=True)
@@ -60,6 +68,7 @@ def _tiempos_flujo_libre(dist_km: float, globales) -> TiemposObservados:
     return TiemposObservados(
         auto_total=(dist_km / globales.v_auto) * 60,
         bici_total=(dist_km / globales.v_bici) * 60,
+        bici_libre=(dist_km / globales.v_bici) * 60,
         tren_acceso=10.0,
         tren_espera=5.0,
         tren_viaje=(dist_km / globales.v_metro) * 60,
@@ -137,16 +146,18 @@ def calcular_utilidades(
             "Metro", v_metro, asc_metro, v_t_metro, v_c_metro, feasible=True
         )
 
-    # BICI — penalizaciones aditivas escalonadas (ver D-02)
-    if tiempos.bici_total > gl.corte_bici_min:
+    # BICI — penalizaciones aditivas escalonadas (ver D-02), sobre el tiempo de
+    # red vacía; el tiempo congestionado entra sólo por b_tiempo (D9).
+    t_esfuerzo = tiempos.bici_libre
+    if t_esfuerzo > gl.corte_bici_min:
         bici_breakdown = UtilityBreakdown("Bici", UTIL_IMPOSIBLE, 0, 0, 0, feasible=False)
     else:
         p = 0.0
-        if tiempos.bici_total > 10:
+        if t_esfuerzo > 10:
             p += penal.bici_10
-        if tiempos.bici_total > 20:
+        if t_esfuerzo > 20:
             p += penal.bici_20
-        if tiempos.bici_total > 30:
+        if t_esfuerzo > 30:
             p += penal.bici_30
         asc_bici = betas.asc_bici
         v_t_bici = betas.b_tiempo_viaje * tiempos.bici_total

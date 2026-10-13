@@ -9,7 +9,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 2.0,
-    "bici_total": 0.0,
+    "bici_total": 3.0,
+    "bici_libre": 0.0,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.0
@@ -24,7 +25,7 @@
      "feasible": false
     },
     "Bici": {
-     "valor": -0.71616,
+     "valor": -0.8154600000000001,
      "feasible": true
     },
     "Caminata": {
@@ -41,7 +42,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 2.0,
-    "bici_total": 0.0,
+    "bici_total": 3.0,
+    "bici_libre": 0.0,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.0
@@ -56,7 +58,7 @@
      "feasible": false
     },
     "Bici": {
-     "valor": -0.4918,
+     "valor": -0.5911,
      "feasible": true
     },
     "Caminata": {
@@ -73,7 +75,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 2.0,
-    "bici_total": 0.0,
+    "bici_total": 3.0,
+    "bici_libre": 0.0,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.0
@@ -88,7 +91,7 @@
      "feasible": false
     },
     "Bici": {
-     "valor": -0.044133,
+     "valor": -0.143433,
      "feasible": true
     },
     "Caminata": {
@@ -105,7 +108,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 2.2388059701492535,
-    "bici_total": 0.42786069651741293,
+    "bici_total": 3.427860696517413,
+    "bici_libre": 0.42786069651741293,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.1691542288557214
@@ -120,7 +124,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.7303221890547263,
+     "valor": -0.8296221890547264,
      "feasible": true
     },
     "Caminata": {
@@ -137,7 +141,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 2.2388059701492535,
-    "bici_total": 0.42786069651741293,
+    "bici_total": 3.427860696517413,
+    "bici_libre": 0.42786069651741293,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.1691542288557214
@@ -152,7 +157,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.5059621890547263,
+     "valor": -0.6052621890547264,
      "feasible": true
     },
     "Caminata": {
@@ -169,7 +174,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 2.2388059701492535,
-    "bici_total": 0.42786069651741293,
+    "bici_total": 3.427860696517413,
+    "bici_libre": 0.42786069651741293,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.1691542288557214
@@ -184,7 +190,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.058295189054726367,
+     "valor": -0.15759518905472636,
      "feasible": true
     },
     "Caminata": {
@@ -201,7 +207,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 3.1940298507462686,
-    "bici_total": 2.1393034825870645,
+    "bici_total": 5.1393034825870645,
+    "bici_libre": 2.1393034825870645,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.845771144278607
@@ -216,7 +223,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.7869709452736319,
+     "valor": -0.8862709452736318,
      "feasible": true
     },
     "Caminata": {
@@ -233,7 +240,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 3.1940298507462686,
-    "bici_total": 2.1393034825870645,
+    "bici_total": 5.1393034825870645,
+    "bici_libre": 2.1393034825870645,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.845771144278607
@@ -248,7 +256,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.5626109452736319,
+     "valor": -0.6619109452736318,
      "feasible": true
     },
     "Caminata": {
@@ -265,7 +273,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 3.1940298507462686,
-    "bici_total": 2.1393034825870645,
+    "bici_total": 5.1393034825870645,
+    "bici_libre": 2.1393034825870645,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 0.845771144278607
@@ -280,7 +289,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.11494394527363183,
+     "valor": -0.21424394527363183,
      "feasible": true
     },
     "Caminata": {
@@ -297,7 +306,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -312,7 +322,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.8861062686567165,
+     "valor": -0.9854062686567164,
      "feasible": true
     },
     "Caminata": {
@@ -329,7 +339,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -344,7 +355,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.6617462686567164,
+     "valor": -0.7610462686567164,
      "feasible": true
     },
     "Caminata": {
@@ -361,7 +372,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -376,7 +388,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.21407926865671642,
+     "valor": -0.3133792686567164,
      "feasible": true
     },
     "Caminata": {
@@ -393,7 +405,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -408,7 +421,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.8861062686567165,
+     "valor": -0.9854062686567164,
      "feasible": true
     },
     "Caminata": {
@@ -425,7 +438,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -440,7 +454,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.6617462686567164,
+     "valor": -0.7610462686567164,
      "feasible": true
     },
     "Caminata": {
@@ -457,7 +471,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -472,7 +487,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.21407926865671642,
+     "valor": -0.3133792686567164,
      "feasible": true
     },
     "Caminata": {
@@ -489,7 +504,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 7.970149253731344,
-    "bici_total": 10.696517412935323,
+    "bici_total": 13.696517412935323,
+    "bici_libre": 10.696517412935323,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 4.228855721393035
@@ -504,7 +520,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.1243787263681593,
+     "valor": -1.2236787263681592,
      "feasible": true
     },
     "Caminata": {
@@ -521,7 +537,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 7.970149253731344,
-    "bici_total": 10.696517412935323,
+    "bici_total": 13.696517412935323,
+    "bici_libre": 10.696517412935323,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 4.228855721393035
@@ -536,7 +553,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.9092547263681592,
+     "valor": -1.0085547263681591,
      "feasible": true
     },
     "Caminata": {
@@ -553,7 +570,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 7.970149253731344,
-    "bici_total": 10.696517412935323,
+    "bici_total": 13.696517412935323,
+    "bici_libre": 10.696517412935323,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 4.228855721393035
@@ -568,7 +586,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.4643877263681591,
+     "valor": -0.5636877263681591,
      "feasible": true
     },
     "Caminata": {
@@ -585,7 +603,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 11.552238805970148,
-    "bici_total": 17.114427860696516,
+    "bici_total": 20.114427860696516,
+    "bici_libre": 17.114427860696516,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 6.766169154228856
@@ -600,7 +619,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.3368115621890548,
+     "valor": -1.4361115621890548,
      "feasible": true
     },
     "Caminata": {
@@ -617,7 +636,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 11.552238805970148,
-    "bici_total": 17.114427860696516,
+    "bici_total": 20.114427860696516,
+    "bici_libre": 17.114427860696516,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 6.766169154228856
@@ -632,7 +652,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.1216875621890545,
+     "valor": -1.2209875621890547,
      "feasible": true
     },
     "Caminata": {
@@ -649,7 +669,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 11.552238805970148,
-    "bici_total": 17.114427860696516,
+    "bici_total": 20.114427860696516,
+    "bici_libre": 17.114427860696516,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 6.766169154228856
@@ -664,7 +685,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.6768205621890546,
+     "valor": -0.7761205621890547,
      "feasible": true
     },
     "Caminata": {
@@ -681,7 +702,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 18.71641791044776,
-    "bici_total": 29.950248756218905,
+    "bici_total": 32.950248756218905,
+    "bici_libre": 29.950248756218905,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 11.840796019900498
@@ -696,7 +718,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.8519502338308456,
+     "valor": -1.9512502338308457,
      "feasible": true
     },
     "Caminata": {
@@ -713,7 +735,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 18.71641791044776,
-    "bici_total": 29.950248756218905,
+    "bici_total": 32.950248756218905,
+    "bici_libre": 29.950248756218905,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 11.840796019900498
@@ -728,7 +751,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.6465532338308455,
+     "valor": -1.7458532338308457,
      "feasible": true
     },
     "Caminata": {
@@ -745,7 +768,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 18.71641791044776,
-    "bici_total": 29.950248756218905,
+    "bici_total": 32.950248756218905,
+    "bici_libre": 29.950248756218905,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 11.840796019900498
@@ -760,7 +784,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.2120162338308458,
+     "valor": -1.3113162338308457,
      "feasible": true
     },
     "Caminata": {
@@ -777,7 +801,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 25.880597014925375,
-    "bici_total": 42.78606965174129,
+    "bici_total": 45.78606965174129,
+    "bici_libre": 42.78606965174129,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 16.91542288557214
@@ -792,7 +817,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -2.5777259054726365,
+     "valor": -2.677025905472637,
      "feasible": true
     },
     "Caminata": {
@@ -809,7 +834,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 25.880597014925375,
-    "bici_total": 42.78606965174129,
+    "bici_total": 45.78606965174129,
+    "bici_libre": 42.78606965174129,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 16.91542288557214
@@ -824,7 +850,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -2.4714189054726368,
+     "valor": -2.570718905472637,
      "feasible": true
     },
     "Caminata": {
@@ -841,7 +867,8 @@
    "peaje_km": 0,
    "tiempos": {
     "auto_total": 25.880597014925375,
-    "bici_total": 42.78606965174129,
+    "bici_total": 45.78606965174129,
+    "bici_libre": 42.78606965174129,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 16.91542288557214
@@ -856,7 +883,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -2.0782119054726365,
+     "valor": -2.177511905472637,
      "feasible": true
     },
     "Caminata": {
@@ -873,7 +900,8 @@
    "peaje_km": 150.0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -888,7 +916,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.8861062686567165,
+     "valor": -0.9854062686567164,
      "feasible": true
     },
     "Caminata": {
@@ -905,7 +933,8 @@
    "peaje_km": 150.0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -920,7 +949,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.6617462686567164,
+     "valor": -0.7610462686567164,
      "feasible": true
     },
     "Caminata": {
@@ -937,7 +966,8 @@
    "peaje_km": 150.0,
    "tiempos": {
     "auto_total": 4.865671641791045,
-    "bici_total": 5.134328358208956,
+    "bici_total": 8.134328358208956,
+    "bici_libre": 5.134328358208956,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 2.029850746268657
@@ -952,7 +982,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -0.21407926865671642,
+     "valor": -0.3133792686567164,
      "feasible": true
     },
     "Caminata": {
@@ -969,7 +999,8 @@
    "peaje_km": 150.0,
    "tiempos": {
     "auto_total": 18.71641791044776,
-    "bici_total": 29.950248756218905,
+    "bici_total": 32.950248756218905,
+    "bici_libre": 29.950248756218905,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 11.840796019900498
@@ -984,7 +1015,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.8519502338308456,
+     "valor": -1.9512502338308457,
      "feasible": true
     },
     "Caminata": {
@@ -1001,7 +1032,8 @@
    "peaje_km": 150.0,
    "tiempos": {
     "auto_total": 18.71641791044776,
-    "bici_total": 29.950248756218905,
+    "bici_total": 32.950248756218905,
+    "bici_libre": 29.950248756218905,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 11.840796019900498
@@ -1016,7 +1048,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.6465532338308455,
+     "valor": -1.7458532338308457,
      "feasible": true
     },
     "Caminata": {
@@ -1033,7 +1065,8 @@
    "peaje_km": 150.0,
    "tiempos": {
     "auto_total": 18.71641791044776,
-    "bici_total": 29.950248756218905,
+    "bici_total": 32.950248756218905,
+    "bici_libre": 29.950248756218905,
     "tren_acceso": 6.0,
     "tren_espera": 5.0,
     "tren_viaje": 11.840796019900498
@@ -1048,7 +1081,7 @@
      "feasible": true
     },
     "Bici": {
-     "valor": -1.2120162338308458,
+     "valor": -1.3113162338308457,
      "feasible": true
     },
     "Caminata": {

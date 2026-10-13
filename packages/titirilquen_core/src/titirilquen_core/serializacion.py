@@ -78,6 +78,8 @@ class SnapshotDict(TypedDict):
     demanda_caminata: list[float]
     t_auto: list[float]
     t_bici: list[float]
+    t_bici_libre: list[float]
+    """Red vacía: sobre este tiempo se evalúan los escalones de la bici (D9)."""
     t_tren_acceso: list[float]
     t_tren_espera: list[float]
     t_tren_viaje: list[float]
@@ -85,15 +87,16 @@ class SnapshotDict(TypedDict):
     frecuencia_teorica_metro: float
 
     residuo: float | None
-    """`None` en la primera iteración, donde el residuo es infinito."""
+    """Brecha no amortiguada de la iteración, `max |c(x(t)) − t|` en min (D8).
+    `None` en la primera iteración, donde es infinita."""
 
 
 class TraceDict(TypedDict):
     """Resultado completo de una corrida de transporte."""
 
     converged: bool
-    """`residuo < tolerance` dos veces seguidas. Mide el cambio del iterado
-    amortiguado, no la brecha real: ver `gap_final_min` (D-39)."""
+    """`residuo < tolerance` dos veces seguidas, con `residuo` la brecha no
+    amortiguada (D8; hasta entonces era el cambio amortiguado, ver D-39)."""
     gap_final_min: float
     """Brecha no amortiguada del estado final (min). Es la cifra que acota
     cuán lejos del punto fijo quedó la corrida."""
@@ -223,6 +226,7 @@ def iteration_to_dict(snap: IterationSnapshot) -> SnapshotDict:
         "demanda_caminata": _lista(snap.demanda_caminata),
         "t_auto": _lista(snap.t_auto),
         "t_bici": _lista(snap.t_bici),
+        "t_bici_libre": _lista(snap.t_bici_libre),
         "t_tren_acceso": _lista(snap.t_tren_acceso),
         "t_tren_espera": _lista(snap.t_tren_espera),
         "t_tren_viaje": _lista(snap.t_tren_viaje),

@@ -501,6 +501,9 @@ export function SandboxPage() {
     return {
       ok: result.converged,
       sinCriterio: !(cfgRes.tolerance > 0),
+      // Todo-o-nada no tiene punto fijo (D9): agotar las iteraciones no se
+      // arregla subiéndolas, así que su veredicto dice otra cosa.
+      aon: cfgRes.assignment === "todo_o_nada",
       res: res == null || !isFinite(res) ? null : res,
       tol: cfgRes.tolerance,
       usadas: lastIter.iter + 1,
@@ -1165,14 +1168,18 @@ export function SandboxPage() {
                           // como si no hubiera criterio.
                           tol: convergencia.tol.toFixed(3),
                         })
-                      : t("equilibrium.verdict_fail", {
-                          total: convergencia.total,
-                          res: convergencia.res?.toFixed(3) ?? "—",
-                          // 3 decimales como el residuo: con toFixed(2) una
-                          // tolerancia de 0,001 se imprimía "0.00" y se leía
-                          // como si no hubiera criterio.
-                          tol: convergencia.tol.toFixed(3),
-                        })}
+                      : convergencia.aon
+                        ? t("equilibrium.verdict_fail_aon", {
+                            total: convergencia.total,
+                          })
+                        : t("equilibrium.verdict_fail", {
+                            total: convergencia.total,
+                            res: convergencia.res?.toFixed(3) ?? "—",
+                            // 3 decimales como el residuo: con toFixed(2) una
+                            // tolerancia de 0,001 se imprimía "0.00" y se leía
+                            // como si no hubiera criterio.
+                            tol: convergencia.tol.toFixed(3),
+                          })}
                 </p>
                 <ConvergenceTrace iterations={liveIterations} />
               </Panel>

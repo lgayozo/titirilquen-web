@@ -104,11 +104,12 @@
     "not_converged": "Equilibrium NOT reached",
     "verdict_ok": "Converged in {{n}} of {{total}} iterations: the residual fell to {{res}} min, within the {{tol}} min tolerance. The results below are an equilibrium.",
     "verdict_fail": "Ran out of {{total}} iterations without converging: the residual stayed at {{res}} min, above the {{tol}} min tolerance. Travel times are still moving, so what follows is NOT an equilibrium and cannot be used to compare scenarios. Raise the iteration cap or loosen the tolerance.",
+    "verdict_fail_aon": "Ran out of {{total}} iterations without converging, and with deterministic assignment it will not converge: the marginal group switches modes AS A WHOLE when it crosses indifference, so there is no fixed point and the split oscillates. What follows is the last iteration of that oscillation, not an equilibrium; raising the iteration cap does not fix it.",
     "verdict_no_tol": "No convergence criterion (tolerance 0): it ran the fixed {{total}} iterations and stopped by count, not because travel times settled. The final residual is {{res}} min.",
     "booting_pyodide": "Initializing Pyodide in the browser (first run takes ~10–20s)…",
     "assignment_montecarlo": "Monte Carlo",
     "assignment_todo_o_nada": "Deterministic (all-or-nothing)",
-    "assignment_hint_todo_o_nada": "DETERMINISTIC choice: each group goes entirely to the highest-utility mode, with no taste heterogeneity. It is the logit limit as the coefficient scale grows. It does NOT equalize costs across modes: on the default city all four modes are used at once with costs differing by up to 32 min, and 91% of groups sit far from indifference (scripts/auditoria_wardrop.py). What changes is that the marginal group switches AS A WHOLE. Careful: it can have multiple equilibria, because the metro's waiting time falls as it gains demand, violating the increasing-cost condition that guarantees uniqueness.",
+    "assignment_hint_todo_o_nada": "DETERMINISTIC choice: each group goes entirely to the highest-utility mode, with no taste heterogeneity. It is the logit limit as the coefficient scale grows. It does NOT equalize costs across modes: on the default city all four modes are used at once with costs differing by up to 32 min, and 91% of groups sit far from indifference (scripts/auditoria_wardrop.py). What changes is that the marginal group switches AS A WHOLE, and that is why there is no fixed point: the split oscillates (~1 pp) and the run exhausts its iterations without converging. What you see is the last iteration of that oscillation, not an equilibrium. Careful: it can have multiple equilibria, because the metro's waiting time falls as it gains demand, violating the increasing-cost condition that guarantees uniqueness.",
     "modo_auto": "Car",
     "modo_metro": "Metro",
     "modo_bici": "Bike",
@@ -255,7 +256,7 @@
     "supply_title": "Supply",
     "supply_body": "Car: capacity from Greenshields (lane width reduces it) and BPR delay accumulated toward the CBD. Bike: same volume/capacity form, corrected for slope and floored at walking time. Metro: frequency endogenous to the critical link (capped by frec_min/frec_max), half-headway wait amplified by platform saturation, and intermediate stops inside the in-vehicle time — more stations shorten access but lengthen the ride.",
     "equilibrium_title": "Equilibrium",
-    "equilibrium_body": "MSA alternates demand ↔ supply averaging travel times with step 1/k, which damps the oscillation of iterating without averaging. The residual is the largest time change in any mode and cell; it converges when that stays below tolerance for 2 consecutive iterations (with tolerance 0 it runs to the iteration cap)."
+    "equilibrium_body": "MSA alternates demand ↔ supply averaging travel times with step 1/k, which damps the oscillation of iterating without averaging. The residual is the undamped gap: the largest difference, in any mode and cell, between the time the network returns when loaded with the iteration's demand and the time that demand was computed from. It converges when that stays below tolerance for 2 consecutive iterations (with tolerance 0 it runs to the iteration cap)."
   },
   "sections_sidebar": {
     "infra": "Infrastructure",
