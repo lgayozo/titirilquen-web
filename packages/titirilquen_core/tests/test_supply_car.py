@@ -79,3 +79,31 @@ def test_capacidad_explicita_desacopla_velocidad() -> None:
     g1 = demora_auto_tramo(v_max_kmh=31, **{**kwargs, "capacidad_pista": None})
     g2 = demora_auto_tramo(v_max_kmh=62, **{**kwargs, "capacidad_pista": None})
     assert abs(g2.capacidad_direccion - 2 * g1.capacidad_direccion) < 1e-6
+
+
+def test_la_bpr_se_evalua_sobre_la_capacidad_practica() -> None:
+    """D6 (oct-2026): t = t0·[1 + α·(x / (0,8·C))^β], con C la capacidad real.
+
+    A mano: dos celdas de 1 km, CBD en la primera, 30 km/h ⇒ t0 = 2 min por
+    celda; el viajero de la celda 1 recorre media celda, así que su tiempo es
+    t0/2·factor. C = 1.000 veh/h ⇒ capacidad práctica 800. Con x = 800 el
+    factor es 1 + 0,15 = 1,15 (la BPR estándar en su capacidad); con x = C,
+    1 + 0,15·1,25⁴ ≈ 1,366, no el 1,15 que daba evaluarla sobre la real."""
+    kwargs = {
+        "ubicacion_centro_km": 0.0,
+        "v_max_kmh": 30,
+        "ancho_pista_m": 3.5,
+        "largo_vehiculo_m": 5,
+        "gap_m": 2,
+        "L_ciudad_km": 2.0,
+        "num_pistas": 1,
+        "alpha_bpr": 0.15,
+        "beta_bpr": 4.0,
+        "capacidad_pista": 1000.0,
+    }
+    en_practica = demora_auto_tramo(demanda=np.array([0.0, 800.0]), **kwargs)
+    en_real = demora_auto_tramo(demanda=np.array([0.0, 1000.0]), **kwargs)
+    assert en_practica.capacidad_direccion == 1000.0
+    assert en_practica.capacidad_practica == 800.0
+    assert abs(en_practica.t_usuarios_min[1] - 1.0 * 1.15) < 1e-12
+    assert abs(en_real.t_usuarios_min[1] - 1.0 * (1 + 0.15 * 1.25**4)) < 1e-12

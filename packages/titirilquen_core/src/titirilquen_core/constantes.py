@@ -80,3 +80,13 @@ MU_SUELO: Final[float] = 1 / math.sqrt(VIAJES_MES)
 #: mes suman VIAJES_MES/VIAJES_POR_TOUR = 22 pagos. Tarifa y bencina sí se
 #: pagan en cada viaje.
 VIAJES_POR_TOUR: Final[int] = 2
+
+#: Fracción de la capacidad real de la vía que usa la BPR del auto: la
+#: «capacidad práctica». Los valores α = 0,15 y β = 4 de la BPR se estimaron
+#: con esa capacidad, la de nivel de servicio C, ≈ 80 % de la real; usarlos con
+#: la capacidad real subestima sistemáticamente la congestión (Boyles, Lownes y
+#: Unnikrishnan, *Transportation Network Analysis*, vol. I, p. 102). La
+#: capacidad real es la de Greenshields o la `capacidad_pista` explícita, y es
+#: contra ella que se reporta el v/c. Constante y no campo (D6 de la auditoría,
+#: oct-2026): es parte de la definición de la BPR, no una política.
+FACTOR_CAPACIDAD_PRACTICA: Final[float] = 0.8

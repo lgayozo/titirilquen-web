@@ -33,6 +33,10 @@ export const VIAJES_MES = 44;
  *  escenario (schema v7): ver `constantes.MU_SUELO`. */
 export const MU_SUELO = 0.15075567228888181;
 
+/** Fracción de la capacidad real sobre la que se evalúa la BPR del auto
+ *  (capacidad práctica, D6): ver `constantes.FACTOR_CAPACIDAD_PRACTICA`. */
+export const FACTOR_CAPACIDAD_PRACTICA = 0.8;
+
 /** Nombre del wheel que el worker de Pyodide instala. Cambia con la
  *  versión del core; tenerlo acá evita que quede hardcodeado y viejo. */
 export const WHEEL_FILENAME = "titirilquen_core-0.2.0-py3-none-any.whl";

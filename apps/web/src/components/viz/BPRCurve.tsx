@@ -5,8 +5,12 @@ import { cn } from "@/lib/cn";
 interface BPRCurveProps {
   alpha: number;
   beta: number;
-  /** Posición del operating point sobre la curva (q/C). */
+  /** Posición del operating point sobre la curva (q/C, con C la capacidad
+   *  real). */
   operatingRatio?: number | null;
+  /** Fracción de C sobre la que se evalúa la BPR: el auto usa la capacidad
+   *  práctica (`FACTOR_CAPACIDAD_PRACTICA`, D6); la bici, la real (1). */
+  capacityFactor?: number;
   /** Nombre accesible de la figura. Lo entrega quien la usa porque el
    *  componente se reutiliza para auto y bici: con un rótulo fijo, las dos
    *  curvas de la misma página quedaban con el mismo nombre. */
@@ -15,7 +19,7 @@ interface BPRCurveProps {
 }
 
 /**
- * Curva BPR t/t0 = 1 + α·(q/C)^β. Pedagógica: muestra cómo el tiempo se
+ * Curva BPR t/t0 = 1 + α·(q/(f·C))^β, con f = `capacityFactor`. Pedagógica: muestra cómo el tiempo se
  * dispara al superar la capacidad. El "operating point" marca dónde opera
  * el sistema con la demanda actual.
  */
@@ -23,6 +27,7 @@ export function BPRCurve({
   alpha,
   beta,
   operatingRatio = null,
+  capacityFactor = 1,
   label,
   className,
 }: BPRCurveProps) {
@@ -31,10 +36,10 @@ export function BPRCurve({
     const maxRatio = 1.6;
     return Array.from({ length: N + 1 }, (_, i) => {
       const q = (i / N) * maxRatio;
-      const t = 1 + alpha * Math.pow(q, beta);
+      const t = 1 + alpha * Math.pow(q / capacityFactor, beta);
       return { q, t };
     });
-  }, [alpha, beta]);
+  }, [alpha, beta, capacityFactor]);
 
   const yMax = Math.max(...points.map((p) => p.t), 2);
   const xMax = 1.6;
@@ -54,7 +59,9 @@ export function BPRCurve({
     .join(" ");
 
   const opT =
-    operatingRatio != null ? 1 + alpha * Math.pow(operatingRatio, beta) : null;
+    operatingRatio != null
+      ? 1 + alpha * Math.pow(operatingRatio / capacityFactor, beta)
+      : null;
 
   return (
     <svg

@@ -40,6 +40,7 @@ sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 import test_linea_base as base
 from titirilquen_core.city import CiudadLineal
+from titirilquen_core.constantes import FACTOR_CAPACIDAD_PRACTICA
 from titirilquen_core.supply.bike import demora_bici_tramo
 from titirilquen_core.supply.car import demora_auto_tramo
 from titirilquen_core.supply.oferta import resolver_oferta, resolver_red_vacia
@@ -111,7 +112,8 @@ def auto() -> dict:
         1.0 if p.ancho_pista_m >= 3.5 else (0.9 if p.ancho_pista_m >= 3.0 else 0.75)
     )
     v_l = p.v_max_kmh * factor_ancho
-    cap_teorica = (k_j * v_l) / 4 * max(1, p.num_pistas)
+    cap_pista_teorica = (k_j * v_l) / 4
+    cap_teorica = cap_pista_teorica * max(1, p.num_pistas)
 
     r = demora_auto_tramo(
         ubicacion_centro_km=ciudad.cbd_km,
@@ -163,8 +165,15 @@ def auto() -> dict:
         "densidad_embotellamiento_veh_km": round(k_j, 3),
         "factor_ancho": factor_ancho,
         "v_libre_kmh": round(v_l, 2),
+        # Por PISTA y por DIRECCIÓN (num_pistas): el libro decía «2.214 por
+        # pista» y era por dirección (auditoría 2026-10).
+        "capacidad_teorica_por_pista_veh_h": round(cap_pista_teorica, 1),
+        "num_pistas": p.num_pistas,
         "capacidad_teorica_veh_h": round(cap_teorica, 1),
         "capacidad_del_codigo_veh_h": round(float(r.capacidad_direccion), 1),
+        # D6 (oct-2026): la BPR se evalúa sobre 0,8·C; el v/c se reporta contra C.
+        "factor_capacidad_practica": FACTOR_CAPACIDAD_PRACTICA,
+        "capacidad_practica_del_codigo_veh_h": round(float(r.capacidad_practica), 1),
         "capacidad_explicita_configurada": p.capacidad_pista,
         "alpha_bpr": p.alpha_bpr,
         "beta_bpr": p.beta_bpr,
@@ -418,7 +427,9 @@ def parametros_vigentes() -> dict:
 
 def curva_bpr_heredada() -> dict:
     """La BPR que el simulador heredaba del original (0,8 / 2,0), sobre la misma
-    grilla de v/c que `auto.curva_bpr`, para contrastarla con la de la FHWA."""
+    grilla de v/c que `auto.curva_bpr`, para contrastarla con la de la FHWA:
+    sobre la capacidad real (sep-2026) y sobre la práctica, 0,8·C (vigente desde
+    oct-2026, D6). El v/c es siempre contra la capacidad real."""
     alpha, beta = 0.8, 2.0
     return {
         "alpha_bpr": alpha,
@@ -429,6 +440,15 @@ def curva_bpr_heredada() -> dict:
         ],
         "curva_fhwa": [
             {"vc": vc, "razon_vs_flujo_libre": round(1 + 0.15 * vc**4, 3)}
+            for vc in (0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
+        ],
+        "curva_vigente_capacidad_practica": [
+            {
+                "vc": vc,
+                "razon_vs_flujo_libre": round(
+                    1 + 0.15 * (vc / FACTOR_CAPACIDAD_PRACTICA) ** 4, 3
+                ),
+            }
             for vc in (0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
         ],
     }
@@ -469,6 +489,14 @@ def metro_en_equilibrio() -> dict:
             "frecuencia_operativa_tph": round(float(tren.frecuencia_operativa), 2),
             "topada_en": tope,
             "espera_media_min": round(float(np.mean(espera)), 2),
+            # ρ del andén (D6b): carga del tramo crítico / (frec_max·K). Pasa de
+            # 1 sólo cuando la demanda supera la capacidad máxima del sistema, y
+            # ahí la espera crece: es un resguardo de saturación.
+            "rho_anden": round(
+                float(tren.carga_por_tramo.max())
+                / (fmax * sim.supply.train.capacidad_tren),
+                3,
+            ),
             "vc_auto_maximo": round(
                 float(of.auto.flujos_veh_por_hora.max() / of.auto.capacidad_direccion),
                 2,

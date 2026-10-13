@@ -469,6 +469,7 @@ def _iter_loop(
             trace.iteraciones.append(snap)
             last_state = {
                 "capacidad": car_result.capacidad_direccion,
+                "capacidad_practica": car_result.capacidad_practica,
                 "v_libre": car_result.v_libre_kmh,
                 "alpha": car_result.alpha_bpr,
                 "beta": car_result.beta_bpr,
@@ -634,7 +635,9 @@ def _finalizar_trace(
             flujos_auto=last_state["flujos_auto"],
             frecuencia_metro=last_state["frecuencia"],
             estaciones_km=last_state["estaciones"],
-            capacidad_auto=last_state["capacidad"],
+            # La misma capacidad que la BPR de los tiempos (D6): si no, las
+            # emisiones verían otra congestión que la del equilibrio.
+            capacidad_auto=last_state["capacidad_practica"],
             alpha_bpr=last_state["alpha"],
             beta_bpr=last_state["beta"],
             v_libre_kmh=last_state["v_libre"],

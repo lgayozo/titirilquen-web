@@ -64,7 +64,8 @@
       "cap_manual": "Capacidad manual (desacoplada de la velocidad)",
       "capacidad_pista": "Capacidad por pista",
       "cap_manual_hint": "Capacidad fija: subir la velocidad ya no la aumenta (S-04).",
-      "cap_greenshields": "Capacidad Greenshields: {{cap}} veh/h por pista (∝ velocidad libre — subir v_max también sube la capacidad)."
+      "cap_greenshields": "Capacidad Greenshields: {{cap}} veh/h por pista (∝ velocidad libre — subir v_max también sube la capacidad).",
+      "bpr_practica": "La BPR se evalúa sobre la capacidad práctica, el {{pct}} % de la real: α = 0,15 y β = 4 se estimaron así (Boyles). El v/c del punto rojo es contra la capacidad real."
     },
     "train": {
       "v_tren_kmh": "Velocidad tren (km/h)",

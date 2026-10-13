@@ -247,16 +247,16 @@ class CarSupplyParams(BaseModel):
     ancho_pista_m: float = 3.5
     largo_vehiculo_m: float = 5.0
     gap_m: float = 2.0
-    # 2 pistas => v/c ~1.05 en la ciudad de referencia. Se probo con 3 (v/c
-    # 0.71) y la oferta vial quedaba MUERTA como palanca: bajo capacidad la BPR
-    # es plana, asi que de 3 a 6 pistas el reparto se movia 0.11 pp. Todo el
-    # efecto vive cerca de v/c = 1. No se puede tener a la vez una ciudad base
+    # 2 pistas: daba v/c ~1.05 al elegirse (hoy la base carga ~1,7 la capacidad
+    # real, cap. 3 del libro). Con 3 (v/c 0.71) la oferta vial quedaba MUERTA
+    # como palanca: bajo capacidad la BPR es plana; de 3 a 6 pistas, 0.11 pp. Todo
+    # el efecto vive cerca de v/c = 1. No se puede tener a la vez una ciudad base
     # descongestionada y una oferta vial que mueva el reparto.
     num_pistas: int = Field(default=2, ge=1)
     # BPR estándar del Bureau of Public Roads (1964), la que usa la FHWA:
-    # t = t0·[1 + 0,15·(v/c)^4]. Castiga poco bajo capacidad (+15 % en v/c = 1)
-    # y mucho por encima. Hasta sep-2026 el simulador heredaba 0,8 / 2,0 del
-    # original, sin fuente: +27 % en v/c = 1 y una curva mucho más suave.
+    # t = t0·[1 + 0,15·(v/c)^4], con c la capacidad PRÁCTICA = 0,8·C real
+    # (`FACTOR_CAPACIDAD_PRACTICA`, D6): +15 % en v = 0,8·C, +37 % en v = C. Hasta
+    # sep-2026 se heredaba 0,8 / 2,0 sin fuente; hasta oct-2026, c = C real.
     alpha_bpr: float = 0.15
     beta_bpr: float = 4.0
     # Capacidad por pista (veh/h). None ⇒ Greenshields q_max = k_j·v_l/4, que

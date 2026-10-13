@@ -1,7 +1,8 @@
 """Oferta vial — Greenshields + BPR.
 
 Portado de `titirilquen-repo/app.py:110-144`. Capacidad total por dirección =
-`C_pista · N_pistas`, donde `C_pista` viene de Greenshields.
+`C_pista · N_pistas`, donde `C_pista` viene de Greenshields. La BPR se evalúa
+sobre la capacidad PRÁCTICA, `FACTOR_CAPACIDAD_PRACTICA · C` (D6, oct-2026).
 """
 
 from __future__ import annotations
@@ -11,12 +12,17 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
+from titirilquen_core.constantes import FACTOR_CAPACIDAD_PRACTICA
+
 
 @dataclass(frozen=True)
 class CarSupplyResult:
     t_usuarios_min: NDArray[np.float64]
     flujos_veh_por_hora: NDArray[np.float64]
     capacidad_direccion: float
+    #: La capacidad sobre la que se evalúa la BPR: `FACTOR_CAPACIDAD_PRACTICA ·
+    #: capacidad_direccion`. El v/c que se reporta es contra la real.
+    capacidad_practica: float
     alpha_bpr: float
     beta_bpr: float
     v_libre_kmh: float
@@ -55,6 +61,7 @@ def demora_auto_tramo(
     cap_pista = capacidad_pista if capacidad_pista is not None else (densidad_emb * v_l) / 4
     num_pistas = max(1, num_pistas)
     capacidad_direccion = cap_pista * num_pistas
+    capacidad_practica = FACTOR_CAPACIDAD_PRACTICA * capacidad_direccion
 
     N = len(demanda)
     idx_centro = int((ubicacion_centro_km / L_ciudad_km) * N)
@@ -71,7 +78,7 @@ def demora_auto_tramo(
         flujo_izq = np.cumsum(d_izq)
         flujos[:idx_centro] = flujo_izq
         with np.errstate(divide="ignore", invalid="ignore"):
-            t_local = t0 * (1 + alpha_bpr * ((flujo_izq / capacidad_direccion) ** beta_bpr))
+            t_local = t0 * (1 + alpha_bpr * ((flujo_izq / capacidad_practica) ** beta_bpr))
         t_usuarios[:idx_centro] = np.cumsum(t_local[::-1])[::-1] - (t_local / 2)
 
     if idx_centro < N - 1:
@@ -79,7 +86,7 @@ def demora_auto_tramo(
         flujo_der = np.cumsum(d_der[::-1])[::-1]
         flujos[idx_centro + 1 :] = flujo_der
         with np.errstate(divide="ignore", invalid="ignore"):
-            t_local = t0 * (1 + alpha_bpr * ((flujo_der / capacidad_direccion) ** beta_bpr))
+            t_local = t0 * (1 + alpha_bpr * ((flujo_der / capacidad_practica) ** beta_bpr))
         t_usuarios[idx_centro + 1 :] = np.cumsum(t_local) - (t_local / 2)
 
     t_usuarios[idx_centro] = 0
@@ -89,6 +96,7 @@ def demora_auto_tramo(
         t_usuarios_min=t_usuarios,
         flujos_veh_por_hora=flujos,
         capacidad_direccion=capacidad_direccion,
+        capacidad_practica=capacidad_practica,
         alpha_bpr=alpha_bpr,
         beta_bpr=beta_bpr,
         v_libre_kmh=v_l,

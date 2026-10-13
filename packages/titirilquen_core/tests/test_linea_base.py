@@ -85,18 +85,25 @@ ESPERADO = {
     #     original auto +5,52, metro −3,35, bici −1,30, caminata −0,86;
     #     equilibrio auto +5,79, metro −3,68, bici −1,37, caminata −0,78, y una
     #     iteración más del MSA (8).
+    # 10. BPR del auto sobre la capacidad PRÁCTICA, 0,8·C (2026-10-13, D6 de la
+    #     auditoría, decisión de Leandro): 0,15/4 se estimó con la capacidad de
+    #     nivel de servicio C, no con la real de Greenshields (Boyles, p. 102).
+    #     El auto se congestiona antes y pierde: original auto −1,17, metro
+    #     +0,83, bici +0,25, caminata +0,10, y una iteración más (8);
+    #     equilibrio auto −0,94, metro +0,54, bici +0,29, caminata +0,11,
+    #     mismas iteraciones.
     "equilibrio": {
-        "Auto": 21.39,
-        "Metro": 24.19,
-        "Bici": 27.11,
-        "Caminata": 7.85,
+        "Auto": 20.45,
+        "Metro": 24.73,
+        "Bici": 27.40,
+        "Caminata": 7.96,
         "Teletrabajo": 19.45,
     },
     "original": {
-        "Auto": 21.88,
-        "Metro": 20.27,
-        "Bici": 28.09,
-        "Caminata": 10.26,
+        "Auto": 20.71,
+        "Metro": 21.10,
+        "Bici": 28.34,
+        "Caminata": 10.36,
         "Teletrabajo": 19.49,
     },
 }
@@ -107,8 +114,9 @@ ESPERADO = {
 #: de partida es más segregada y el MSA necesita una pasada más. El reescalado
 #: homoscedástico de transporte no cambió el conteo. Volvió a 8 con el parking
 #: por tour (oct-2026): con más autos el corredor se carga más y tarda una pasada
-#: más en estabilizarse.
-ITERACIONES_ESPERADAS = {"equilibrio": 8, "original": 7}
+#: más en estabilizarse. `original` pasó de 7 a 8 con la BPR sobre capacidad
+#: práctica (oct-2026): con la curva más empinada el MSA necesita una pasada más.
+ITERACIONES_ESPERADAS = {"equilibrio": 8, "original": 8}
 
 
 def _config_web() -> SimulationConfig:

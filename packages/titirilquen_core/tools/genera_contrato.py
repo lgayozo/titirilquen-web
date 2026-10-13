@@ -392,6 +392,9 @@ def emite_constantes() -> str:
         + "\n/** μ del uso de suelo = 1/√VIAJES_MES. Constante, no parámetro del\n"
         + " *  escenario (schema v7): ver `constantes.MU_SUELO`. */\n"
         + f"export const MU_SUELO = {constantes.MU_SUELO!r};\n"
+        + "\n/** Fracción de la capacidad real sobre la que se evalúa la BPR del auto\n"
+        + " *  (capacidad práctica, D6): ver `constantes.FACTOR_CAPACIDAD_PRACTICA`. */\n"
+        + f"export const FACTOR_CAPACIDAD_PRACTICA = {constantes.FACTOR_CAPACIDAD_PRACTICA!r};\n"
         + "\n/** Nombre del wheel que el worker de Pyodide instala. Cambia con la\n"
         + " *  versión del core; tenerlo acá evita que quede hardcodeado y viejo. */\n"
         + f'export const WHEEL_FILENAME = "titirilquen_core-{version}-py3-none-any.whl";\n'

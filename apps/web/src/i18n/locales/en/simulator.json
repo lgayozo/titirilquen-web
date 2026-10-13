@@ -64,7 +64,8 @@
       "cap_manual": "Manual capacity (decoupled from speed)",
       "capacidad_pista": "Capacity per lane",
       "cap_manual_hint": "Fixed capacity: raising speed no longer increases it (S-04).",
-      "cap_greenshields": "Greenshields capacity: {{cap}} veh/h per lane (∝ free-flow speed — raising v_max also raises capacity)."
+      "cap_greenshields": "Greenshields capacity: {{cap}} veh/h per lane (∝ free-flow speed — raising v_max also raises capacity).",
+      "bpr_practica": "The BPR is evaluated on practical capacity, {{pct}}% of the real one: α = 0.15 and β = 4 were estimated that way (Boyles). The red dot's v/c is against real capacity."
     },
     "train": {
       "v_tren_kmh": "Train speed (km/h)",

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { BPRCurve } from "@/components/viz/BPRCurve";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import { FACTOR_CAPACIDAD_PRACTICA } from "@/lib/gen/constantes.gen";
 import type { SimulationConfig } from "@/lib/types";
 
 interface SupplyBuilderProps {
@@ -163,8 +164,14 @@ export function SupplyBuilder({
           alpha={car.alpha_bpr}
           beta={car.beta_bpr}
           operatingRatio={operatingRatios?.car ?? null}
+          capacityFactor={FACTOR_CAPACIDAD_PRACTICA}
           label={t("supply_builder.bpr_curve_auto")}
         />
+        <p className="mb-2 text-[10px] leading-snug text-muted">
+          {t("supply_params.car.bpr_practica", {
+            pct: Math.round(FACTOR_CAPACIDAD_PRACTICA * 100),
+          })}
+        </p>
       </CollapsibleSection>
 
       <CollapsibleSection
