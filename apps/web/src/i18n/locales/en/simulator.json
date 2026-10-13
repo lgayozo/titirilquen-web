@@ -46,7 +46,7 @@
     "peaje": "Road toll (per km)",
     "peaje_hint": "Charge per km driven. Like fuel, it grows with distance; unlike fuel, it is city revenue and adds to social welfare. Parking is a flat cordon charge; the toll comes closer to the Pigouvian charge, because the congestion cost a trip imposes grows with the links it crosses.",
     "teletrabajo_factor": "Telework factor",
-    "teletrabajo_hint": "Scales each stratum’s telework rate (the base rate is set in Calibration). Those agents do not travel and leave peak demand: it is the only lever here that removes trips rather than reassigning them between modes."
+    "teletrabajo_hint": "Scales each stratum’s telework rate, which is set in Calibration and defaults to 0: without a base rate, the factor has no effect. Those agents do not travel and leave peak demand: it is the only lever here that removes trips rather than reassigning them between modes."
   },
   "supply_params": {
     "bike": {
@@ -278,7 +278,7 @@
     "g_penal": "Physical penalties",
     "g_penal_hint": "Additive, cumulative and triggered by MINUTE thresholds: a 25-min bike trip adds both the 10-min and the 20-min penalty. Above 45 min cycling is infeasible; walking, above 30 min.",
     "g_poblacion": "Population",
-    "prob_teletrabajo_hint": "Base rate for the stratum. The telework policy is the multiplier, under “Economy”.",
+    "prob_teletrabajo_hint": "Share of workdays on which the stratum does not commute. Default 0: there is no sourced figure. The telework policy is the multiplier, under “Economy”.",
     "reset": "Restore the stratum's default values",
     "p": {
       "asc_auto": "ASC car",

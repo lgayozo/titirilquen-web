@@ -333,6 +333,23 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 # 47.7 / 22.6 / 3.7. (Aqui decia «46.3 / 19.2 / 6.4» sin denominador ni fecha y
 # no se pudo reproducir; con las escalas heredadas daba 57.4 / 22.0 / 5.8.)
 #
+# SIN TELETRABAJO POR DEFECTO (oct-2026, decisión de Leandro). Las tasas
+# heredadas 0,40 / 0,20 / 0,05 no tenían fuente, y desde D11 deciden la forma de
+# la ciudad: descontadas de la accesibilidad, el estrato alto dejaba de ocupar
+# el centro. Ahora `prob_teletrabajo` parte en 0 en los tres estratos y se fija
+# en Calibración con un dato; `teletrabajo_factor` (Economía) la multiplica.
+#
+# ANCLA EN EL VST (oct-2026, D5 de la auditoría). Los VoT 6.200 / 3.100 / 1.600
+# no tenían fuente: su media ponderada por VIAJEROS esperados (hogares de cada
+# estrato × (1 − prob_teletrabajo); sin teletrabajo, la media por hogar, con
+# los shares 20/50/30 de la aplicación) daba 3.270 $/h, un 2,0 % bajo el valor
+# social del tiempo de Precios Sociales 2026 (`VOT_SOCIAL_CLP_HORA`, 3.338). Se
+# multiplicaron los tres por 3.338 / 3.270 = 1,0208 y se redondearon al peso:
+# 6.329 / 3.164 / 1.633, cuya media es 3.337,7. Se conserva la razón alto/bajo
+# (3,875) y `b_tiempo_viaje`; sólo cambia `b_costo` = 0.0331·60/VoT. Si se
+# agrega teletrabajo, los viajeros cambian y el ancla se mueve:
+# `tests/test_presets.py` lo vigila sobre los defaults.
+#
 # Los valores comunes se eligieron para que el agregado no se moviera
 # (auto 11.99 vs 12.16, v/c 0.97 vs 0.99): son neutrales respecto de la
 # calibracion, NO estimados. Con una EOD que de reparto modal por estrato hay que
@@ -347,7 +364,7 @@ DEFAULT_STRATA = {
     # HOMOSCEDASTICO arriba). Los comentarios "x viaje" y los minutos de las ASC
     # se conservan exactos porque todo el bloque se multiplico por el mismo k.
     1: {
-        "prob_teletrabajo": 0.40,
+        "prob_teletrabajo": 0.0,  # sin teletrabajo por defecto (oct-2026)
         "prob_auto": 0.90,
         "betas": {
             "asc_auto": 0.54164,  # +20 min sobre el metro (era 0.9 con b_t 0.055)
@@ -355,7 +372,7 @@ DEFAULT_STRATA = {
             "asc_bici": -0.71616,  # -18 min
             "asc_caminata": -0.12036,  # 0 min
             "b_tiempo_viaje": -0.0331,
-            "b_costo": -0.000320323,  # VoT 6.200 $/h
+            "b_costo": -0.000313794,  # VoT 6.329 $/h (D5)
             "b_tiempo_espera": -0.0662,  # 2.0 x viaje
             "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.05627,  # 1.7 x viaje
@@ -370,7 +387,7 @@ DEFAULT_STRATA = {
         },
     },
     2: {
-        "prob_teletrabajo": 0.20,
+        "prob_teletrabajo": 0.0,
         "prob_auto": 0.60,
         "betas": {
             "asc_auto": 0.766,
@@ -378,7 +395,7 @@ DEFAULT_STRATA = {
             "asc_bici": -0.4918,
             "asc_caminata": 0.104,
             "b_tiempo_viaje": -0.0331,
-            "b_costo": -0.00064065,  # VoT 3.100 $/h
+            "b_costo": -0.000627686,  # VoT 3.164 $/h (D5)
             "b_tiempo_espera": -0.0662,  # 2.0 x viaje
             "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.05627,  # 1.7 x viaje
@@ -393,7 +410,7 @@ DEFAULT_STRATA = {
         },
     },
     3: {
-        "prob_teletrabajo": 0.05,
+        "prob_teletrabajo": 0.0,
         "prob_auto": 0.25,
         "betas": {
             "asc_auto": 1.2137,  # +20 min sobre el metro (era 0.55 con b_t 0.015)
@@ -401,7 +418,7 @@ DEFAULT_STRATA = {
             "asc_bici": -0.044133,  # -18 min
             "asc_caminata": 0.55167,  # 0 min
             "b_tiempo_viaje": -0.0331,
-            "b_costo": -0.00124125,  # VoT 1.600 $/h
+            "b_costo": -0.001216167,  # VoT 1.633 $/h (D5)
             "b_tiempo_espera": -0.0662,  # 2.0 x viaje
             "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.05627,  # 1.7 x viaje

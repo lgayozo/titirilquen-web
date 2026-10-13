@@ -91,8 +91,11 @@ def test_T_es_un_costo_mensual_que_crece_con_la_distancia() -> None:
 def test_el_teletrabajo_aplana_la_accesibilidad() -> None:
     """D11: `T_h` cobra los viajes ESPERADOS, `VIAJES_MES·(1 − p_tele,h)`. Con
     el doble de teletrabajo el gradiente de cada estrato se escala por
-    `(1 − 2p)/(1 − p)`, y si todos teletrabajan la ubicación no cuesta nada."""
+    `(1 − 2p)/(1 − p)`, y si todos teletrabajan la ubicación no cuesta nada.
+    Los defaults no traen teletrabajo (oct-2026): las tasas son ilustrativas."""
     base = _demanda()
+    for e, p in zip(base.estratos.values(), (0.40, 0.20, 0.05), strict=True):
+        e.prob_teletrabajo = p
     doble = base.model_copy(deep=True)
     doble.globales.teletrabajo_factor = 2.0
     todos = base.model_copy(deep=True)
@@ -124,9 +127,9 @@ def test_la_accesibilidad_por_estrato_no_invierte_alonso() -> None:
     y hay que volver a la accesibilidad común por ubicación.
     """
     cfg = LandUseConfig(H_por_estrato=(7200, 18000, 10800), max_iter=5000)
-    # Sin teletrabajo (D11): con él, el alto —que teletrabaja 40 %— paga menos
-    # viajes y su gradiente se aplana más que el del medio; ese es otro
-    # mecanismo, real, que no es el que este guard vigila.
+    # Sin teletrabajo (D11), explícito aunque desde oct-2026 sea el default: con
+    # él, un estrato que teletrabaja más paga menos viajes y su gradiente se
+    # aplana; ese es otro mecanismo, real, que no es el que este guard vigila.
     dem = _demanda().model_copy(deep=True)
     dem.globales.teletrabajo_factor = 0.0
     city = LandUseCity.build(

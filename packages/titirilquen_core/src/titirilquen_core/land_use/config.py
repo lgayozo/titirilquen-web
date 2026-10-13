@@ -115,11 +115,12 @@ class LandUseConfig(BaseModel):
     #     y nunca se ejecutó. Hasta v6 era el campo `alpha`; se retiró en v7
     #     porque un alpha ≠ 1 es un multiplicador sin fuente.
     #   * `lambda_h = |b_costo_h|`, en utiles de transporte por peso: con los
-    #     presets, 0,000320 / 0,000641 / 0,001241. Con eso el score `y + f/lambda`
-    #     queda en $/mes, como `p` e `y` (D-27), el VoT `1/lambda` =
-    #     6.200 / 3.100 / 1.600 $/h coincide con transporte, y el ruido de la
-    #     puja `1/(mu·lambda_h)` = $20.708 / $10.354 / $5.344 al mes (con
-    #     mu = 1/√44; `1/lambda_h` = $3.122 / $1.561 / $806). Desde el schema
+    #     presets, 0,000314 / 0,000628 / 0,001216 (D5). Con eso el score
+    #     `y + f/lambda` queda en $/mes, como `p` e `y` (D-27), el VoT
+    #     `b_tiempo_viaje·60/b_costo` = 6.329 / 3.164 / 1.633 $/h coincide con
+    #     transporte, y el ruido de la puja `1/(mu·lambda_h)` = $21.139 /
+    #     $10.568 / $5.454 al mes (con mu = 1/√44; `1/lambda_h` = $3.187 /
+    #     $1.593 / $822). Desde el schema
     #     v6 NO se guarda acá: lo deriva `accesibilidad.lambda_desde_demanda`, y
     #     calibrar `b_costo` mueve λ y T a la vez. Hasta v5 era una copia literal
     #     que nada sincronizaba.

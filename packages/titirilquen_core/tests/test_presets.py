@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import pytest
 
+from titirilquen_core.constantes import VOT_SOCIAL_CLP_HORA
 from titirilquen_core.presets import CITY_PRESETS, DEFAULT_STRATA, POLICY_PRESETS
 
 #: «Personalizado» es el dict vacío A PROPÓSITO: significa "no toques nada, deja
@@ -107,6 +108,22 @@ def test_la_utilidad_marginal_del_ingreso_decrece_con_el_ingreso() -> None:
     """
     bc = [abs(DEFAULT_STRATA[h]["betas"]["b_costo"]) for h in (1, 2, 3)]
     assert bc[0] < bc[1] < bc[2], f"|b_costo| no crece del alto al bajo: {bc}"
+
+
+def test_la_media_de_los_vot_por_viajero_es_el_vst() -> None:
+    """D5: los VoT conductuales están anclados al valor social del tiempo. Su
+    media ponderada por viajeros esperados —hogares de la aplicación (20/50/30,
+    `defaults.ts`) por (1 − prob_teletrabajo)— es el VST de Precios Sociales.
+    Si se calibra `prob_teletrabajo` o la composición, esto avisa que el ancla
+    se movió."""
+    hogares = {1: 7200, 2: 18000, 3: 10800}
+    viajeros = {h: hogares[h] * (1 - DEFAULT_STRATA[h]["prob_teletrabajo"]) for h in hogares}
+    vot = {
+        h: DEFAULT_STRATA[h]["betas"]["b_tiempo_viaje"] * 60 / DEFAULT_STRATA[h]["betas"]["b_costo"]
+        for h in hogares
+    }
+    media = sum(viajeros[h] * vot[h] for h in hogares) / sum(viajeros.values())
+    assert media == pytest.approx(VOT_SOCIAL_CLP_HORA, rel=1e-3)
 
 
 def test_las_asc_conservan_sus_minutos_equivalentes() -> None:

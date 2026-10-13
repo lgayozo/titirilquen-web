@@ -371,8 +371,8 @@ class SimulationConfig(BaseModel):
     supply: SupplyConfig = Field(default_factory=SupplyConfig)
     demand: DemandConfig
     # 40 (antes 20): desde D8 el corte mira la brecha NO amortiguada, que con
-    # paso 1/n baja como ~1/n. La base converge en 13–20 iteraciones y el preset
-    # más lento (Pro-Auto) en 31; 1 sola pista ya no alcanza en 40 (D-21/H4).
+    # paso 1/n baja como ~1/n. Sin teletrabajo, la base converge en 29 y Pro-Auto
+    # en 34; con 1 sola pista (Ciclorrecreovía) no alcanza ni en 100 (D-21/H4).
     max_iter: int = Field(default=40, ge=1, le=100)
     # 0.2 min sobre la brecha no amortiguada `max |c(x(t)) − t|` (D8). Hasta D8
     # era 0,1 sobre el cambio del iterado amortiguado, `f·brecha`: con f = 1/n

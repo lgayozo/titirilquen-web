@@ -107,19 +107,28 @@ ESPERADO = {
     #     bajo (5 %): distancia media al CBD alto 1,99 → 3,06 km, medio 2,96 →
     #     3,04, bajo 5,85 → 5,00 (alto y medio quedan empatados). Sólo se mueve «equilibrio»:
     #     auto +0,09, metro −1,50, bici +0,22, caminata +1,16; 20 → 17 it.
+    # 13. Sin teletrabajo por defecto (2026-10-13, decisión de Leandro) y D5
+    #     de la auditoría, juntos porque el ancla depende de los viajeros:
+    #     `prob_teletrabajo` 0,40 / 0,20 / 0,05 → 0 en los tres estratos, y los
+    #     VoT anclados al VST, ×1,0208 (6.329 / 3.164 / 1.633 $/h). Viajan todos
+    #     los hogares (antes ~80,5 %), el corredor se carga más y gana el metro.
+    #     Sobre VIAJEROS (lo antiguo dividido por 1 − teletrabajo), original:
+    #     auto −0,92, metro +4,78, bici −3,58, caminata −0,26; equilibrio:
+    #     auto −0,41, metro +4,37, bici −3,53, caminata −0,39. Teletrabajo
+    #     19,5 → 0.
     "equilibrio": {
-        "Auto": 20.51,
-        "Metro": 20.55,
-        "Bici": 30.30,
-        "Caminata": 9.15,
-        "Teletrabajo": 19.45,
+        "Auto": 25.05,
+        "Metro": 29.88,
+        "Bici": 34.09,
+        "Caminata": 10.97,
+        "Teletrabajo": 0.0,
     },
     "original": {
-        "Auto": 20.61,
-        "Metro": 19.11,
-        "Bici": 30.41,
-        "Caminata": 10.37,
-        "Teletrabajo": 19.49,
+        "Auto": 24.68,
+        "Metro": 28.52,
+        "Bici": 34.19,
+        "Caminata": 12.62,
+        "Teletrabajo": 0.0,
     },
 }
 
@@ -134,8 +143,10 @@ ESPERADO = {
 #: D8 (oct-2026) cambió QUÉ se mide: la brecha no amortiguada < 0,2 min en vez
 #: del cambio amortiguado < 0,1, que se aflojaba solo como 1/n. 8 → 20 y 13.
 #: D11 (oct-2026, teletrabajo en la accesibilidad) movió la ciudad de partida
-#: de `equilibrio`: 20 → 17.
-ITERACIONES_ESPERADAS = {"equilibrio": 17, "original": 13}
+#: de `equilibrio`: 20 → 17. Sin teletrabajo por defecto y D5 (oct-2026): la
+#: demanda sube ~24 % y la brecha baja como 1/n desde más arriba: 17 → 29 y
+#: 13 → 29, con `max_iter` 40.
+ITERACIONES_ESPERADAS = {"equilibrio": 29, "original": 29}
 
 
 def _config_web() -> SimulationConfig:

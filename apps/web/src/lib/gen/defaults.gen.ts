@@ -60,7 +60,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
     },
     estratos: {
       "1": {
-        prob_teletrabajo: 0.4,
+        prob_teletrabajo: 0.0,
         prob_auto: 0.9,
         betas: {
           asc_auto: 0.54164,
@@ -68,7 +68,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
           asc_bici: -0.71616,
           asc_caminata: -0.12036,
           b_tiempo_viaje: -0.0331,
-          b_costo: -0.000320323,
+          b_costo: -0.000313794,
           b_tiempo_espera: -0.0662,
           b_tiempo_acceso: -0.0662,
           b_tiempo_caminata: -0.05627,
@@ -83,7 +83,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
         },
       },
       "2": {
-        prob_teletrabajo: 0.2,
+        prob_teletrabajo: 0.0,
         prob_auto: 0.6,
         betas: {
           asc_auto: 0.766,
@@ -91,7 +91,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
           asc_bici: -0.4918,
           asc_caminata: 0.104,
           b_tiempo_viaje: -0.0331,
-          b_costo: -0.00064065,
+          b_costo: -0.000627686,
           b_tiempo_espera: -0.0662,
           b_tiempo_acceso: -0.0662,
           b_tiempo_caminata: -0.05627,
@@ -106,7 +106,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
         },
       },
       "3": {
-        prob_teletrabajo: 0.05,
+        prob_teletrabajo: 0.0,
         prob_auto: 0.25,
         betas: {
           asc_auto: 1.2137,
@@ -114,7 +114,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
           asc_bici: -0.044133,
           asc_caminata: 0.55167,
           b_tiempo_viaje: -0.0331,
-          b_costo: -0.00124125,
+          b_costo: -0.001216167,
           b_tiempo_espera: -0.0662,
           b_tiempo_acceso: -0.0662,
           b_tiempo_caminata: -0.05627,
@@ -165,7 +165,7 @@ export const DEFAULTS_LAND_USE_CORE: LandUseConfig = {
  *  de contrato. */
 export const ESTRATOS_CALIBRADOS = {
   "1": {
-    prob_teletrabajo: 0.4,
+    prob_teletrabajo: 0.0,
     prob_auto: 0.9,
     betas: {
       asc_auto: 0.54164,
@@ -173,7 +173,7 @@ export const ESTRATOS_CALIBRADOS = {
       asc_bici: -0.71616,
       asc_caminata: -0.12036,
       b_tiempo_viaje: -0.0331,
-      b_costo: -0.000320323,
+      b_costo: -0.000313794,
       b_tiempo_espera: -0.0662,
       b_tiempo_acceso: -0.0662,
       b_tiempo_caminata: -0.05627,
@@ -188,7 +188,7 @@ export const ESTRATOS_CALIBRADOS = {
     },
   },
   "2": {
-    prob_teletrabajo: 0.2,
+    prob_teletrabajo: 0.0,
     prob_auto: 0.6,
     betas: {
       asc_auto: 0.766,
@@ -196,7 +196,7 @@ export const ESTRATOS_CALIBRADOS = {
       asc_bici: -0.4918,
       asc_caminata: 0.104,
       b_tiempo_viaje: -0.0331,
-      b_costo: -0.00064065,
+      b_costo: -0.000627686,
       b_tiempo_espera: -0.0662,
       b_tiempo_acceso: -0.0662,
       b_tiempo_caminata: -0.05627,
@@ -211,7 +211,7 @@ export const ESTRATOS_CALIBRADOS = {
     },
   },
   "3": {
-    prob_teletrabajo: 0.05,
+    prob_teletrabajo: 0.0,
     prob_auto: 0.25,
     betas: {
       asc_auto: 1.2137,
@@ -219,7 +219,7 @@ export const ESTRATOS_CALIBRADOS = {
       asc_bici: -0.044133,
       asc_caminata: 0.55167,
       b_tiempo_viaje: -0.0331,
-      b_costo: -0.00124125,
+      b_costo: -0.001216167,
       b_tiempo_espera: -0.0662,
       b_tiempo_acceso: -0.0662,
       b_tiempo_caminata: -0.05627,

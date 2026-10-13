@@ -46,7 +46,7 @@
     "peaje": "Peaje vial (por km)",
     "peaje_hint": "Cobro por km recorrido en auto. Como la bencina, crece con la distancia; a diferencia de ella, es recaudación de la ciudad y suma al bienestar social. El parking es un cordón plano; el peaje se acerca más al cobro de Pigou, porque el costo de congestión que un viaje impone crece con los tramos que cruza.",
     "teletrabajo_factor": "Factor de teletrabajo",
-    "teletrabajo_hint": "Escala la tasa de teletrabajo de cada estrato (la base se ajusta en Calibración). Esos agentes no viajan y salen de la demanda de punta: es la única palanca acá que reduce viajes en vez de reasignarlos entre modos."
+    "teletrabajo_hint": "Escala la tasa de teletrabajo de cada estrato, que se fija en Calibración y por defecto es 0: sin una tasa base, el factor no tiene efecto. Esos agentes no viajan y salen de la demanda de punta: es la única palanca acá que reduce viajes en vez de reasignarlos entre modos."
   },
   "supply_params": {
     "bike": {
@@ -278,7 +278,7 @@
     "g_penal": "Penalizaciones físicas",
     "g_penal_hint": "Aditivas, acumulativas y por umbral de MINUTOS: un viaje en bici de 25 min suma la de 10 y la de 20. Sobre 45 min la bici es infactible; la caminata, sobre 30 min.",
     "g_poblacion": "Población",
-    "prob_teletrabajo_hint": "Tasa base del estrato. La política de teletrabajo es el factor multiplicador, en «Economía».",
+    "prob_teletrabajo_hint": "Fracción de los días laborales en que el estrato no se desplaza. Por defecto 0: no hay un dato con fuente. La política de teletrabajo es el factor multiplicador, en «Economía».",
     "reset": "Restaurar valores por defecto del estrato",
     "p": {
       "asc_auto": "ASC auto",

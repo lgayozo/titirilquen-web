@@ -204,8 +204,14 @@ def test_todos_los_modulos_ven_el_mismo_cbd(n: int, demanda_sintetica: DemandCon
 
 def test_la_grilla_converge() -> None:
     """La resolución NO es invariante —los cortes y escalones de la utilidad
-    caen en una celda u otra según Δx— pero converge: el error entre 201 y 401
-    celdas es menor que 0,15 pp y el siguiente refinamiento lo reduce."""
+    caen en una celda u otra según Δx— pero el error queda acotado: entre 201,
+    401 y 801 celdas ningún modo se mueve más de 0,25 pp.
+
+    No es monótono, y hasta oct-2026 el test afirmaba que sí («el siguiente
+    refinamiento lo reduce»). Sin teletrabajo por defecto, el auto da 24,68 ·
+    24,68 · 24,74 · 24,71 · 24,88 · 24,71 · 24,70 · 24,59 % con 201 · 401 · 501 ·
+    601 · 801 · 1001 · 1201 · 1601 celdas: oscila en una banda, no converge
+    hacia un valor. La asignación es `expected`, así que no es ruido de sorteo."""
 
     def reparto(n: int) -> dict[str, float]:
         sim = _config_web().model_copy(
@@ -219,7 +225,5 @@ def test_la_grilla_converge() -> None:
         return {m: 100.0 * v / t for m, v in s.items()}
 
     r = {n: reparto(n) for n in (201, 401, 801)}
-    d1 = max(abs(r[201][m] - r[401][m]) for m in r[201])
-    d2 = max(abs(r[401][m] - r[801][m]) for m in r[201])
-    assert d1 < 0.15, (d1, r)
-    assert d2 <= d1, (d1, d2, r)
+    d = max(abs(r[a][m] - r[b][m]) for a in r for b in r for m in r[201])
+    assert d < 0.25, (d, r)
