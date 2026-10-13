@@ -29,6 +29,10 @@ export const VIAJES_POR_TOUR = 2;
 /** Viajes de conmutación por mes: mensualiza el logsum de transporte. */
 export const VIAJES_MES = 44;
 
+/** Tolerancia del loop acoplado ($/hogar-mes sobre la brecha de T/λ_h,
+ *  D10): ver `constantes.TOL_ACOPLADO_CLP_MES`. */
+export const TOL_ACOPLADO_CLP_MES = 100.0;
+
 /** μ del uso de suelo = 1/√VIAJES_MES. Constante, no parámetro del
  *  escenario (schema v7): ver `constantes.MU_SUELO`. */
 export const MU_SUELO = 0.15075567228888181;

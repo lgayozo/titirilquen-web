@@ -178,8 +178,18 @@ export function describePresetParams(
   ];
 }
 
-/** Aplica un preset y retorna el par {sim, landUse} listo para correr. */
-export function applyJointPreset(preset: JointPreset): {
+/** Aplica un preset y retorna el par {sim, landUse} listo para correr.
+ *
+ *  El preset fija sus palancas (ciudad, oferta, precios, suelo) sobre los
+ *  defaults, pero la CALIBRACIÓN viene de `calibrado`: los estratos de la
+ *  demanda (betas, penalizaciones, tenencia de auto, teletrabajo) y los cortes
+ *  de caminata y bici. Hasta oct-2026 salía todo de `defaultSimulationConfig`
+ *  y el preset descartaba la calibración del usuario, y con ella su
+ *  λ_h = |b_costo_h| del suelo (D10 de la auditoría). */
+export function applyJointPreset(
+  preset: JointPreset,
+  calibrado: SimulationConfig,
+): {
   sim: SimulationConfig;
   landUse: LandUseConfig;
 } {
@@ -215,8 +225,11 @@ export function applyJointPreset(preset: JointPreset): {
     },
     demand: {
       ...defaultSimulationConfig.demand,
+      estratos: calibrado.demand.estratos,
       globales: {
         ...defaultSimulationConfig.demand.globales,
+        corte_caminata_min: calibrado.demand.globales.corte_caminata_min,
+        corte_bici_min: calibrado.demand.globales.corte_bici_min,
         ...(pol.tarifa !== undefined && { costo_tarifa_metro: pol.tarifa }),
         ...(pol.parking !== undefined && { costo_parking: pol.parking }),
         ...(pol.bencina !== undefined && { costo_combustible_km: pol.bencina }),

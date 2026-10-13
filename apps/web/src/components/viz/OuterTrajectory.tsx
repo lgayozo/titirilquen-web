@@ -80,7 +80,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
               style={{ fontFamily: "var(--font-fig)" }}
               width={52}
               label={{
-                value: t("convergence.y_min"),
+                value: t("convergence.y_clp_mes"),
                 angle: -90,
                 position: "insideLeft",
                 offset: 12,
@@ -104,7 +104,9 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
               labelStyle={{ color: "var(--muted)" }}
               labelFormatter={(v) => `${t("convergence.iter")} ${v}`}
               formatter={(v: number | string) =>
-                typeof v === "number" ? `${v.toFixed(3)} min` : String(v)
+                typeof v === "number"
+                  ? `${v.toFixed(1)} $/hogar-mes`
+                  : String(v)
               }
             />
             <Line

@@ -15,15 +15,21 @@ Reglas de procedencia de los datos (importante para interpretar):
 
 Caveats de unidades (ver discusión en DISCREPANCIES.md / OVERLEAF_CHANGES.md):
 
-- El **excedente del consumidor** (`delta_excedente_clp`) usa el `E[max]` del
-  agente convertido a $ con la utilidad marginal del dinero **propia de cada
-  estrato** (`-b_costo_h`). Cuál `E[max]` depende del método de asignación y lo
-  decide `bienestar.medida_emparejada`: el logsum bajo los métodos logit, la
-  utilidad máxima bajo `todo_o_nada`, donde no hay término aleatorio que
+- El **excedente del consumidor** (`delta_excedente_hogar_mes_clp`) usa el
+  `E[max]` del agente convertido a $ con la utilidad marginal del dinero
+  **propia de cada estrato** (`-b_costo_h`), por VIAJES_MES viajes: es mensual,
+  la misma unidad que el arriendo, el ingreso y la tolerancia del acoplado (D11).
+  Cuenta SÓLO transporte: la variación de rentas no entra, porque el nivel de
+  precios del suelo no está anclado (`u[0] = 0`). Martínez (2018, §10.10,
+  p. 264) muestra que el beneficio de los usuarios de transporte y la variación
+  de rentas son, cada uno, una cota inferior del beneficio total, y que sumarlos
+  sin cuidado cuenta dos veces lo mismo; esto es la primera cota.
+  Cuál `E[max]` usar lo decide `bienestar.medida_emparejada` según el método de asignación: el
+  logsum bajo los logit, la utilidad máxima bajo `todo_o_nada`, sin término aleatorio que
   promediar. El campo `sistema.medida_bienestar` dice cuál se usó. Es comparable
   como *escala monetaria* (eficiencia / disposición a pagar), **no** como
   bienestar interpersonal: cada $1 vale distinto para un rico que para un pobre,
-  y `b_costo` varía ~7.5 veces entre estratos. Para la lectura distributiva usar
+  y `b_costo` varía ~3,9 veces entre estratos. Para la lectura distributiva usar
   `carga_costo_ingreso` y el tiempo.
 - Se reporta como **Δ contra la red vacía** (misma infraestructura con demanda
   cero: BPR(0) en auto/bici, tren a frecuencia mínima, mismas estaciones), no
@@ -82,8 +88,8 @@ class StratumMetrics:
 
     n_viajeros: int
     """Agentes del estrato que viajan (sin teletrabajo ni varados). Es la
-    población sobre la que están promediados `tiempo_medio_min`, `costo_medio_clp`
-    y `delta_excedente_clp`, y la que pesa en el bienestar total (D-35)."""
+    población sobre la que están promediados `tiempo_medio_min` y
+    `costo_medio_clp`."""
 
     dist_media_cbd_km: float
     """Distancia media de residencia al CBD, ponderada por hogares (km)."""
@@ -97,11 +103,14 @@ class StratumMetrics:
     costo_medio_clp: float
     """Costo monetario medio del viaje, sobre los que viajan ($)."""
 
-    delta_excedente_clp: float
-    """Δ excedente del consumidor vs la **red vacía** ((logsum − logsum_0) /
-    −b_costo), en $. Δ<0 ⇒ costo neto de la congestión; Δ>0 ⇒ domina el efecto
-    Mohring (frecuencia endógena). Eficiencia/DAP, NO bienestar interpersonal —
-    ver módulo docstring."""
+    delta_excedente_hogar_mes_clp: float
+    """Δ excedente del consumidor vs la **red vacía**, en $/hogar-mes:
+    VIAJES_MES·(logsum − logsum_0)/−b_costo por cada hogar que viaja, 0 por cada
+    hogar que teletrabaja, promediado sobre ambos (los varados quedan fuera: no
+    tienen medida). Hasta oct-2026 era $/viaje promediado sólo sobre los que
+    viajan (D11). Δ<0 ⇒ costo neto de la congestión; Δ>0 ⇒ domina el efecto
+    Mohring (frecuencia endógena). Eficiencia/DAP, NO bienestar interpersonal, y
+    sin rentas — ver módulo docstring."""
 
     carga_costo_ingreso: float
     """Carga **mensual**: (costo medio por viaje · 44 viajes/mes) / ingreso
@@ -118,9 +127,9 @@ class SystemMetrics:
 
     iteraciones_exteriores: int
     residual_final: float | None
-    """‖T_n − T_{n−1}‖∞ del loop exterior, en utiles de transporte por mes
-    (T = −VIAJES_MES·logsum, D-34). Hasta D-39 se llamaba `residual_final_min`."""
-    """Residuo ||ΔT||_∞ de la última iteración (min); None si no medible."""
+    """Brecha del loop exterior en la última iteración, `max_h |T_new − T|/λ_h`
+    en $/hogar-mes (D10); None si no es medible (la primera iteración). Hasta
+    oct-2026 iba en utiles de transporte por mes."""
 
     convergio_msa: bool
     """¿Convergió el MSA interior de la última corrida de transporte?"""
@@ -144,9 +153,10 @@ class SystemMetrics:
     segregacion_theil: float
     """Índice H de Theil sobre Q ∈ [0,1]. 0 = integrada, 1 = segregación total."""
 
-    delta_bienestar_total_clp: float
-    """Σ sobre los agentes que viajan de ΔCS ($) — D-35. Efecto agregado de bienestar de la demanda
-    sobre la red (congestión vs Mohring), respecto a la red vacía."""
+    delta_bienestar_total_mes_clp: float
+    """Σ sobre los hogares de ΔCS mensual ($/mes) — D-35, D11. Efecto agregado de
+    bienestar de la demanda sobre la red (congestión vs Mohring), respecto a la
+    red vacía. Sólo transporte: cota inferior en el sentido de Martínez p. 264."""
 
     medida_bienestar: MedidaBienestar
     """Con qué medida se calculó el ΔCS: `logsum` bajo los métodos logit,
@@ -405,8 +415,11 @@ def compute_equilibrium_metrics(
         nv = int(viajan[h])
         t_medio = float(t_sum[h] / nv) if nv > 0 else 0.0
         c_medio = float(c_sum[h] / nv) if nv > 0 else 0.0
-        cs_medio = float(cs_sum[h] / nv) if nv > 0 else 0.0
         tot = int(total_ag[h])
+        # ΔCS mensual por hogar (D11): quien teletrabaja no viaja y aporta 0; el
+        # varado no tiene medida y queda fuera del denominador.
+        con_medida = tot - int(modal[h, cat_idx["Varado"]])
+        cs_hogar_mes = float(VIAJES_MES * cs_sum[h] / con_medida) if con_medida > 0 else 0.0
         reparto = {c: (float(modal[h, k] / tot) if tot > 0 else 0.0) for c, k in cat_idx.items()}
         # Carga mensual: costo por viaje × viajes/mes sobre ingreso mensual (D-27).
         carga = (c_medio * VIAJES_MES) / ingresos[h] if ingresos[h] > 0 else 0.0
@@ -419,7 +432,7 @@ def compute_equilibrium_metrics(
                 tiempo_medio_min=t_medio,
                 reparto_modal=reparto,
                 costo_medio_clp=c_medio,
-                delta_excedente_clp=cs_medio,
+                delta_excedente_hogar_mes_clp=cs_hogar_mes,
                 carga_costo_ingreso=carga,
             )
         )
@@ -435,12 +448,13 @@ def compute_equilibrium_metrics(
     n_viajan_total = int(viajan.sum())
     t_medio_sis = t_total / n_viajan_total if n_viajan_total > 0 else 0.0
 
-    # Suma del ΔCS sobre los agentes que VIAJAN (D-35). Antes se multiplicaba el
+    # Suma del ΔCS mensual sobre los agentes que VIAJAN (D-35, D11: ×VIAJES_MES,
+    # en $/mes). Antes se multiplicaba el
     # promedio por viajero por `n_hogares` —que incluye teletrabajo y varados—,
     # inflando la magnitud ≈ n_hogares/n_viajeros (~20 % en la base). El
     # teletrabajador tiene ΔCS = 0; el varado no tiene medida y queda FUERA: si
     # una política deja gente sin viaje, este total no lo castiga (pendiente).
-    bienestar_total = float(cs_sum.sum())
+    bienestar_total = float(VIAJES_MES * cs_sum.sum())
 
     t_alto = por_estrato[0].tiempo_medio_min
     t_bajo = por_estrato[-1].tiempo_medio_min
@@ -464,7 +478,7 @@ def compute_equilibrium_metrics(
         emisiones_auto_kg=float(trace.emisiones_auto_kg),
         emisiones_metro_kg=float(trace.emisiones_metro_kg),
         segregacion_theil=_theil(Q, S),
-        delta_bienestar_total_clp=bienestar_total,
+        delta_bienestar_total_mes_clp=bienestar_total,
         medida_bienestar=medida,
         ratio_tiempo_bajo_alto=ratio_t,
         ratio_carga_bajo_alto=ratio_carga,

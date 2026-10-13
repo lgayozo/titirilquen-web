@@ -74,14 +74,17 @@ export function ScenarioCard({
   // políticas exigía un viaje de ida y vuelta a otra página POR ESCENARIO — y
   // como las dos tarjetas leen el mismo store, sin ese viaje quedaban idénticas.
   const onPreset = (city: string, policy: string) => {
-    const { sim, landUse } = applyJointPreset({
-      key: `${city}/${policy}`,
-      titleKey: "",
-      descriptionKey: "",
-      city,
-      policy,
-      poblacionDefault: scenario.poblacion,
-    });
+    const { sim, landUse } = applyJointPreset(
+      {
+        key: `${city}/${policy}`,
+        titleKey: "",
+        descriptionKey: "",
+        city,
+        policy,
+        poblacionDefault: scenario.poblacion,
+      },
+      currentConfig,
+    );
     const nuevo = nombrePreset(city, policy);
     const renombradoAMano =
       scenario.name !== "" && scenario.name !== autoName.current;

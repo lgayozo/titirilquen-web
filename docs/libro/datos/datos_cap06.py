@@ -10,19 +10,22 @@ logsum en pesos lo arregló. Acá se separan las dos cosas que cambiaron a la ve
 —el objeto (minutos → logsum) y la moneda (`λ` uniforme → `λ_h = |b_costo_h|`)—
 en un 2×2, porque el guard actual sólo verifica la conjunción.
 
-Seis bloques:
+Bloques:
 
 1. `accesibilidad` — el perfil de `T` a red vacía, por estrato, en las dos
    unidades, con sus pendientes y sus quiebres.
 2. `quien_remueve_la_inversion` — el 2×2 {minutos, logsum} × {λ uniforme,
-   λ heterogéneo}.
-3. `red_configurada` — D-42: cuánto mueve la red del metro la accesibilidad
+   λ heterogéneo}, sin teletrabajo para aislar ese mecanismo.
+3. `teletrabajo` — D11: `T` cobra los viajes esperados, 44·(1 − p_tele,h);
+   cuánto mueve eso las pendientes y la ciudad.
+4. `red_configurada` — D-42: cuánto mueve la red del metro la accesibilidad
    del suelo standalone, y cuánto mueve la ciudad.
-4. `loop` — la trayectoria del acoplado de la aplicación, iteración a
-   iteración.
-5. `criterio` — qué mide el residual exterior contra qué se mueve de verdad,
-   qué compran las iteraciones extra y dónde el frontend afloja el criterio.
-6. `poblacion` — D-24: la población como palanca de demanda, y hasta dónde el
+5. `loop` — la trayectoria del acoplado de la aplicación, iteración a
+   iteración, con la brecha en $/hogar-mes y el ΔCS mensual.
+6. `paso`, `brecha_distribucion`, `parada`, `tolerancia` — D10: la regla del
+   paso exterior contra la vieja, en la base y en dos casos de estrés; de
+   dónde sale la brecha; el corte con un MSA que no converge.
+7. `poblacion` — D-24: la población como palanca de demanda, y hasta dónde el
    loop sigue convergiendo.
 
 Más `parametros_vigentes`: lo que el acoplado usa y de dónde lo toma, leído del
@@ -47,17 +50,25 @@ RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 import test_linea_base as base
+
 from titirilquen_core.city import CiudadLineal
-from titirilquen_core.coupled import iter_coupled
+from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES
+from titirilquen_core.coupled import (
+    _run_transport_with_population,
+    _T_logsum_snapshot,
+    iter_coupled,
+)
+from titirilquen_core.coupled_metrics import _theil
 from titirilquen_core.demand.choice import probabilidades_logit
 from titirilquen_core.demand.utility import calcular_utilidades
 from titirilquen_core.land_use.accesibilidad import (
     T_flujo_libre,
     lambda_desde_demanda,
     tiempos_red_vacia,
+    viajes_mes_por_estrato,
 )
 from titirilquen_core.land_use.ciudad import LandUseCity
-from titirilquen_core.presets import DEFAULT_STRATA
+from titirilquen_core.population import generar_poblacion_desde_land_use_det
 
 SALIDA = Path(__file__).parent / "cap06.json"
 #: Referencias externas que cita el capítulo, en la forma en que se citan.
@@ -162,6 +173,11 @@ def _T_minutos_por_estrato() -> np.ndarray:
 def _distancias_medias(T: np.ndarray, lambdas: list[float] | None = None) -> list[float]:
     """Resuelve la subasta con esa `T` y devuelve la distancia media al CBD por
     estrato, ponderada por hogares (`N_hi = S_i·Q_hi`)."""
+    return _resolver(T, lambdas)[0]
+
+
+def _resolver(T: np.ndarray, lambdas: list[float] | None = None) -> tuple[list[float], float]:
+    """La subasta con esa `T`: distancias medias por estrato y Theil."""
     ciudad = _ciudad()
     cfg = base._land_use_web()
     # `lambdas` explícito = contrafactual: λ movido sin tocar la demanda ni T.
@@ -178,7 +194,8 @@ def _distancias_medias(T: np.ndarray, lambdas: list[float] | None = None) -> lis
     assert city.result is not None
     N = city.result.Q * np.asarray(city.S, dtype=float)[None, :]
     dist = np.abs(np.arange(ciudad.n_celdas) - ciudad.cbd_index) * ciudad.ancho_celda_km
-    return [round(float((N[h] * dist).sum() / N[h].sum()), 4) for h in range(3)]
+    d = [round(float((N[h] * dist).sum() / N[h].sum()), 4) for h in range(3)]
+    return d, round(float(_theil(city.result.Q, np.asarray(city.S, dtype=float))), 4)
 
 
 # ---------------------------------------------------------------------------
@@ -187,7 +204,8 @@ def _distancias_medias(T: np.ndarray, lambdas: list[float] | None = None) -> lis
 
 
 def accesibilidad() -> dict:
-    """`T_h(i) = −44·logsum_h(i)` sobre la red vacía configurada, por estrato.
+    """`T_h(i) = −44·(1 − p_tele,h)·logsum_h(i)` sobre la red vacía configurada,
+    por estrato.
 
     Se reporta en útiles de transporte por mes (lo que entra a `f_h`) y en
     $/mes (`T/λ_h`, lo que la puja pone sobre la mesa). El NIVEL no significa
@@ -221,7 +239,11 @@ def accesibilidad() -> dict:
     d = np.arange(i0, i1 + 1) * ciudad.ancho_celda_km - ciudad.cbd_index * ciudad.ancho_celda_km
     pend_ut = [float(np.polyfit(d, T[h, i0 : i1 + 1], 1)[0]) for h in range(3)]
     return {
-        "unidad": "T = −VIAJES_MES·logsum; útiles de transporte por mes, y $/mes al dividir por λ_h",
+        "unidad": (
+            "T = −VIAJES_MES·(1 − p_tele,h)·logsum; útiles de transporte por mes, "
+            "y $/mes al dividir por λ_h"
+        ),
+        "viajes_mes_por_estrato": [round(float(v), 2) for v in viajes_mes_por_estrato(sim.demand)],
         "lambda_h": [round(x, 9) for x in lam],
         "uno_sobre_lambda_clp": [round(1.0 / x) for x in lam],
         "perfil": perfil,
@@ -258,8 +280,21 @@ def quien_remueve_la_inversion() -> dict:
     se reescala por el factor que iguala su rango al del logsum en el estrato
     medio: así el balance accesibilidad/densidad (`α·T` contra `ρ·dens`, que es
     para lo que se calibró `ρ`) es el mismo en las cuatro celdas del cuadro.
+
+    Sin teletrabajo (`teletrabajo_factor = 0`): el tiempo en minutos no lo
+    descuenta, y desde D11 el logsum sí, así que con teletrabajo la fila del
+    logsum mezclaría dos mecanismos. Con factor 0, `T` es la de antes de D11.
     """
     sim = base._config_web()
+    sim = sim.model_copy(
+        update={
+            "demand": sim.demand.model_copy(
+                update={
+                    "globales": sim.demand.globales.model_copy(update={"teletrabajo_factor": 0.0})
+                }
+            )
+        }
+    )
     ciudad = _ciudad()
     T_ls = T_flujo_libre(
         sim.demand,
@@ -319,7 +354,52 @@ def quien_remueve_la_inversion() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# 3. La red configurada (D-42)
+# 3. El teletrabajo en la accesibilidad (D11)
+# ---------------------------------------------------------------------------
+
+
+def teletrabajo() -> dict:
+    """`T_h` cobra `VIAJES_MES·(1 − p_tele,h)` viajes: quien teletrabaja no
+    valora estar cerca del CBD. Con `p_tele` 0,40 / 0,20 / 0,05 la pendiente en
+    pesos del alto cae más que la del medio. Factor 0 = la `T` de antes de D11
+    (44 viajes a todos); 1 = la base; 2 = una política de teletrabajo."""
+    sim = base._config_web()
+    ciudad = _ciudad()
+    lam = _lambdas()
+    i0, i1 = _celda(ciudad, 1.0), _celda(ciudad, 9.0)
+    d_km = (np.arange(i0, i1 + 1) - ciudad.cbd_index) * ciudad.ancho_celda_km
+    filas = []
+    for factor in (0.0, 0.5, 1.0, 2.0):
+        dem = sim.demand.model_copy(
+            update={
+                "globales": sim.demand.globales.model_copy(update={"teletrabajo_factor": factor})
+            }
+        )
+        T = T_flujo_libre(
+            dem, ciudad.n_celdas, ciudad.cbd_index, ciudad.ancho_celda_km, supply=sim.supply
+        )
+        pend = [float(np.polyfit(d_km, T[h, i0 : i1 + 1], 1)[0]) for h in range(3)]
+        dist, theil = _resolver(T)
+        filas.append(
+            {
+                "teletrabajo_factor": factor,
+                "viajes_mes": [round(float(v), 2) for v in viajes_mes_por_estrato(dem)],
+                "pendiente_clp_mes_por_km": [round(pend[h] / lam[h]) for h in range(3)],
+                "dist_media_km": dist,
+                "theil": theil,
+            }
+        )
+    return {
+        "prob_teletrabajo": [
+            float(sim.demand.estratos[e].prob_teletrabajo)  # type: ignore[index]
+            for e in (1, 2, 3)
+        ],
+        "filas": filas,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 4. La red configurada (D-42)
 # ---------------------------------------------------------------------------
 
 
@@ -367,63 +447,57 @@ def red_configurada() -> dict:
 # ---------------------------------------------------------------------------
 
 
-def _trayectoria(sim, land_use, outer_max_iter: int = 12, outer_tol: float = 1.0) -> list[dict]:
+def _trayectoria(
+    sim, land_use, outer_max_iter: int = 12, outer_tol: float = TOL_ACOPLADO_CLP_MES
+) -> list[dict]:
     filas = []
     Q_prev = None
-    T_state_prev = None
-    T_new_prev = None
     for it in iter_coupled(
         sim=sim,
         land_use_config=land_use,
         outer_max_iter=outer_max_iter,
         outer_tol=outer_tol,
     ):
-        k = it.outer_iter
         Q = np.asarray(it.land_use.Q, dtype=float)
-        T_state = np.asarray(it.T_matrix, dtype=float)
-        # `T_matrix` es el estado AMORTIGUADO. El iterado crudo se recupera
-        # invirtiendo el promedio: T_new = T_prev + (T_state − T_prev)/θ,
-        # θ = 1/(k+1). Es la cantidad que D-39 llama brecha: lo que el mapa
-        # devolvió, sin promediar.
-        if k == 0:
-            T_new = T_state
-        else:
-            theta = 1.0 / (k + 1)
-            T_new = T_state_prev + (T_state - T_state_prev) / theta
         m = it.metrics
         s = m.sistema
         filas.append(
             {
-                "k": k,
-                "residual": None if not np.isfinite(it.T_residual) else round(it.T_residual, 5),
-                "brecha_T_new": None
-                if T_new_prev is None
-                else round(float(np.max(np.abs(T_new - T_new_prev))), 6),
+                "k": it.outer_iter,
+                # La brecha del mapa en $/hogar-mes (D10): lo que compara el
+                # criterio. `inf` en la vuelta 0, que no tiene contra qué medirse.
+                "brecha_clp_mes": None
+                if not np.isfinite(it.T_residual)
+                else round(it.T_residual, 3),
                 "max_dQ": None if Q_prev is None else float(f"{np.max(np.abs(Q - Q_prev)):.3e}"),
                 "theil": round(float(s.segregacion_theil), 5),
                 "dist_media_km": [round(float(e.dist_media_cbd_km), 4) for e in m.por_estrato],
                 "reparto_pct": {c: round(100.0 * v, 3) for c, v in s.reparto_modal.items()},
                 "tiempo_medio_min": round(float(s.tiempo_medio_min), 4),
                 "frecuencia_metro_tph": round(float(s.frecuencia_metro), 4),
-                "delta_bienestar_total_clp": round(float(s.delta_bienestar_total_clp)),
+                "delta_excedente_hogar_mes_clp": [
+                    round(float(e.delta_excedente_hogar_mes_clp)) for e in m.por_estrato
+                ],
+                "delta_bienestar_total_mes_clp": round(float(s.delta_bienestar_total_mes_clp)),
                 "msa_convergio": bool(it.transport.converged),
+                "msa_iteraciones": len(it.transport.iteraciones),
                 "subasta_convergio": bool(it.land_use.converged),
                 "convergio_nucleo": bool(s.convergio_exterior),
             }
         )
-        Q_prev, T_state_prev, T_new_prev = Q.copy(), T_state.copy(), T_new.copy()
+        Q_prev = Q.copy()
     return filas
 
 
 def loop() -> dict:
     """La corrida acoplada de la aplicación: 20 km, 36.000 hogares, 12 vueltas
-    como máximo, tolerancia 1,0."""
+    como máximo, la tolerancia del núcleo."""
     filas = _trayectoria(base._config_web(), base._land_use_web())
     ultima = filas[-1]
     primera = filas[0]
     return {
         "outer_max_iter": 12,
-        "outer_tol": 1.0,
+        "outer_tol": TOL_ACOPLADO_CLP_MES,
         "iteraciones_corridas": len(filas),
         "convergio": ultima["convergio_nucleo"],
         "trayectoria": filas,
@@ -435,10 +509,7 @@ def loop() -> dict:
             "theil": [primera["theil"], ultima["theil"]],
             "dist_media_km": [primera["dist_media_km"], ultima["dist_media_km"]],
             "reparto_pct": [primera["reparto_pct"], ultima["reparto_pct"]],
-            "tiempo_medio_min": [
-                primera["tiempo_medio_min"],
-                ultima["tiempo_medio_min"],
-            ],
+            "tiempo_medio_min": [primera["tiempo_medio_min"], ultima["tiempo_medio_min"]],
             "frecuencia_metro_tph": [
                 primera["frecuencia_metro_tph"],
                 ultima["frecuencia_metro_tph"],
@@ -447,165 +518,161 @@ def loop() -> dict:
     }
 
 
-def trayectoria_exigente() -> dict:
-    """La misma corrida con `outer_tol` cien veces menor, para ver al loop
-    seguir después de que la aplicación lo declara convergido: el residual
-    decae como residual₁/k cuando el mapa ya no se mueve, y la brecha del
-    iterado sin promediar dice si se mueve."""
-    filas = _trayectoria(
-        base._config_web(), base._land_use_web(), outer_max_iter=12, outer_tol=0.01
+def _loop_msa(sim, land_use, n_outer: int) -> list[dict]:
+    """El loop exterior con la regla que tuvo hasta oct-2026: promedio MSA de
+    paso 1/(k+1), sin corte. Es una réplica de `iter_coupled` —el núcleo ya no
+    la tiene— y existe sólo para medir contra qué se cambió (D10). Mide lo
+    mismo que el núcleo: la brecha |F(T) − T|/λ_h en $/hogar-mes."""
+    sim_eq = sim.model_copy(update={"assignment": "expected"})
+    rng = np.random.default_rng(sim.seed)
+    L = sim.city.n_celdas
+    cbd = L // 2
+    ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
+    lam = lambda_desde_demanda(sim.demand)
+    T0 = T_flujo_libre(
+        sim.demand, L, cbd, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
     )
-    res1 = filas[1]["residual"]
+    city = LandUseCity.build(
+        L=L,
+        CBD=cbd,
+        cfg=land_use,
+        T=T0,
+        lambda_h=lam,
+        rng=rng,
+        ancho_celda_km=ciudad.ancho_celda_km,
+    )
+    T_state = None
+    filas = []
+    for k in range(n_outer):
+        assert city.result is not None
+        agentes = generar_poblacion_desde_land_use_det(
+            Q=city.result.Q,
+            S=city.S,
+            cbd_index=cbd,
+            demand_config=sim.demand,
+            teletrabajo_factor=sim.demand.globales.teletrabajo_factor,
+        )
+        _, snap = _run_transport_with_population(sim_eq, agentes, ciudad)
+        T_new = _T_logsum_snapshot(sim_eq, ciudad, snap)
+        brecha = None if T_state is None else float(np.max(np.abs(T_new - T_state) / lam[:, None]))
+        filas.append({"k": k, "brecha_clp_mes": None if brecha is None else round(brecha, 3)})
+        T_state = T_new if T_state is None else T_new / (k + 1) + T_state * k / (k + 1)
+        city.update(T=T_state, rng=rng)
+    return filas
+
+
+def paso() -> dict:
+    """D10: la regla vieja (MSA 1/(k+1)) contra la del núcleo (paso 1, a la
+    mitad si la brecha crece), sin corte (`outer_tol = 0`), en la base y en dos
+    casos de estrés: ρ = 54 —el del tutorial `alonso_invertido`, ciudad con
+    mucha retroalimentación por densidad— y la población ×2,5."""
+    sim = base._config_web()
+    lu0 = base._land_use_web()
+    casos = {
+        "base": lu0,
+        "rho_54": lu0.model_copy(
+            update={"estratos": [e.model_copy(update={"rho": 54.0}) for e in lu0.estratos]}
+        ),
+        "poblacion_x2_5": lu0.model_copy(
+            update={"H_por_estrato": [round(h * 2.5) for h in lu0.H_por_estrato]}
+        ),
+    }
+    n = 8
+    out = {}
+    for nombre, lu in casos.items():
+        nucleo = _trayectoria(sim, lu, outer_max_iter=n, outer_tol=0.0)
+        msa = _loop_msa(sim, lu, n)
+        out[nombre] = {
+            "msa_1_sobre_k": [f["brecha_clp_mes"] for f in msa],
+            "nucleo": [f["brecha_clp_mes"] for f in nucleo],
+            "msa_interior_convergio": [f["msa_convergio"] for f in nucleo],
+            "k_bajo_tol_nucleo": next(
+                (
+                    f["k"]
+                    for f in nucleo
+                    if f["brecha_clp_mes"] is not None
+                    and f["brecha_clp_mes"] < TOL_ACOPLADO_CLP_MES
+                ),
+                None,
+            ),
+            "k_bajo_tol_msa": next(
+                (
+                    f["k"]
+                    for f in msa
+                    if f["brecha_clp_mes"] is not None
+                    and f["brecha_clp_mes"] < TOL_ACOPLADO_CLP_MES
+                ),
+                None,
+            ),
+        }
+    return {"n_vueltas": n, "casos": out}
+
+
+def brecha_distribucion() -> dict:
+    """La brecha es una norma del SUPREMO sobre 3×201 celdas: ¿la pone la
+    ciudad o una celda? Primera medición de la corrida base. Con paso 1 en la
+    vuelta 1, `T_matrix` de la vuelta 1 es F(T⁰) sin promediar, así que la
+    brecha por celda es |T₁ − T₀|/λ_h."""
+    lam = np.asarray(_lambdas())
+    ciudad = _ciudad()
+    Ts = [
+        np.asarray(it.T_matrix, dtype=float)
+        for it in iter_coupled(
+            sim=base._config_web(),
+            land_use_config=base._land_use_web(),
+            outer_max_iter=2,
+            outer_tol=0.0,
+        )
+    ]
+    D = np.abs(Ts[1] - Ts[0]) / lam[:, None]
+    h, i = (int(x) for x in np.unravel_index(int(np.argmax(D)), D.shape))
     return {
-        "outer_max_iter": 12,
-        "outer_tol": 0.01,
-        "iteraciones_corridas": len(filas),
-        "convergio": filas[-1]["convergio_nucleo"],
-        "trayectoria": [
+        "max": round(float(D.max()), 1),
+        "percentil_50": round(float(np.percentile(D, 50)), 1),
+        "percentil_90": round(float(np.percentile(D, 90)), 1),
+        "percentil_99": round(float(np.percentile(D, 99)), 1),
+        "celdas_sobre_la_tolerancia": int((D > TOL_ACOPLADO_CLP_MES).sum()),
+        "celdas_totales": int(D.size),
+        "celda_del_maximo": {
+            "estrato": h + 1,
+            "indice": i,
+            "km_del_cbd": round(abs(i - ciudad.cbd_index) * ciudad.ancho_celda_km, 4),
+        },
+    }
+
+
+def parada() -> dict:
+    """El criterio compuesto con un MSA interior que no puede converger
+    (`max_iter = 2`): la brecha exterior cumple igual —el transporte casi no se
+    mueve—, el loop para y el veredicto es «no convergió» (D-39). Antes de D10
+    seguía girando hasta el tope con la misma ciudad."""
+    sim_corto = base._config_web().model_copy(update={"max_iter": 2})
+    filas = _trayectoria(sim_corto, base._land_use_web(), outer_max_iter=6)
+    return {
+        "max_iter_interior": 2,
+        "outer_max_iter": 6,
+        "filas": [
             {
-                **f,
-                "res1_sobre_k": None if f["k"] == 0 else round(res1 / f["k"], 5),
-                "residual_por_k": None if f["k"] == 0 else round(f["residual"] * f["k"], 4),
+                "k": f["k"],
+                "brecha_clp_mes": f["brecha_clp_mes"],
+                "msa_convergio": f["msa_convergio"],
+                "nucleo_dice": f["convergio_nucleo"],
             }
             for f in filas
         ],
     }
 
 
-def anatomia_del_residual() -> dict:
-    """¿De dónde sale el número que el loop compara contra `outer_tol`?
-
-    El residual es una norma del SUPREMO sobre 3×201 celdas, y la utilidad de la
-    bici tiene penalizaciones ESCALONADAS por tramos de duración (>10, >20, >30
-    min). Cruzar un escalón cambia la utilidad de golpe, el logsum lo hereda y
-    `VIAJES_MES` lo multiplica por 44. Así que conviene mirar la distribución
-    del cambio, no sólo su máximo.
-    """
-    sim = base._config_web()
-    ciudad = _ciudad()
-    Ts, snaps = [], []
-    for it in iter_coupled(
-        sim=sim, land_use_config=base._land_use_web(), outer_max_iter=2, outer_tol=1.0
-    ):
-        Ts.append(np.asarray(it.T_matrix, dtype=float))
-        snaps.append(it.transport.iteraciones[-1])
-    T_new1 = Ts[0] + (Ts[1] - Ts[0]) / 0.5  # θ = 1/2 en k = 1
-    D = np.abs(T_new1 - Ts[0])
-    h, i = (int(x) for x in np.unravel_index(int(np.argmax(D)), D.shape))
-    d_km = abs(i - ciudad.cbd_index) * ciudad.ancho_celda_km
-    t_bici = [round(float(s.t_bici[i]), 4) for s in snaps]
-    # ¿La celda del máximo cruzó un escalón de penalización de la bici (10, 20
-    # o 30 min) entre las dos vueltas? Si sí, el salto de utilidad es
-    # `pen_bici_XX / |b_tiempo_viaje|` minutos-equivalentes en ese estrato.
-    betas = DEFAULT_STRATA[h + 1]["betas"]
-    lo, hi = min(t_bici), max(t_bici)
-    escalon_cruzado = next((e for e in (10, 20, 30) if lo < e <= hi), None)
-    escalon = (
-        None
-        if escalon_cruzado is None
-        else abs(betas["penalizaciones_fisicas"][f"bici_{escalon_cruzado}"])
-        / abs(betas["b_tiempo_viaje"])
-    )
+def tolerancia() -> dict:
+    """La tolerancia en contexto: cuánto era 1 útil/mes —la de antes— en
+    pesos por estrato, y la brecha de la base sin corte."""
+    lam = _lambdas()
+    filas = _trayectoria(base._config_web(), base._land_use_web(), outer_max_iter=6, outer_tol=0.0)
+    brechas = [f["brecha_clp_mes"] for f in filas if f["brecha_clp_mes"] is not None]
     return {
-        "max": round(float(D.max()), 4),
-        "percentil_50": round(float(np.percentile(D, 50)), 4),
-        "percentil_90": round(float(np.percentile(D, 90)), 4),
-        "percentil_99": round(float(np.percentile(D, 99)), 4),
-        "celdas_sobre_la_tolerancia": int((D > 1.0).sum()),
-        "celdas_totales": int(D.size),
-        "celda_del_maximo": {
-            "estrato": h + 1,
-            "indice": i,
-            "km_del_cbd": round(d_km, 4),
-            "t_bici_min": t_bici,
-            "escalon_cruzado_min": escalon_cruzado,
-            "escalon_min_equivalentes": None if escalon is None else round(float(escalon), 2),
-            "escalon_utiles": None
-            if escalon is None
-            else round(float(escalon * abs(betas["b_tiempo_viaje"])), 4),
-        },
-        "nota": (
-            "Si la celda del máximo cruza un escalón de penalización de la bici "
-            "entre las dos vueltas, el salto de utilidad ×VIAJES_MES fija el "
-            "residual de toda la ciudad; si no, el máximo es un cambio continuo."
-        ),
-    }
-
-
-def criterio(datos_loop: dict) -> dict:
-    """Qué mide el residual exterior, y qué compran las iteraciones que exige.
-
-    El residual es ‖F(T_state) − T_state‖∞ y eso está bien planteado: la ciudad
-    que se reporta se construyó con `T_state`. Pero `T_state` es un promedio
-    MSA, y su error decae como 1/k aunque el mapa ya no se mueva — de ahí que el
-    residual siga bajando cuando `T_new` es idéntico entre vueltas.
-    """
-    filas = datos_loop["trayectoria"]
-    res1 = filas[1]["residual"]
-    armonica = [
-        {
-            "k": f["k"],
-            "residual": f["residual"],
-            "res1_sobre_k": round(res1 / f["k"], 5),
-            "brecha_T_new": f["brecha_T_new"],
-        }
-        for f in filas
-        if f["k"] >= 1
-    ]
-    k_conv = next((f["k"] for f in filas if f["convergio_nucleo"]), None)
-    # La primera vuelta en que la ciudad ya no se mueve más que 1e-2 en Q.
-    k_quieta = next((f["k"] for f in filas if f["max_dQ"] is not None and f["max_dQ"] < 1e-2), None)
-    f_conv = filas[k_conv] if k_conv is not None else filas[-1]
-    f_quieta = filas[k_quieta] if k_quieta is not None else filas[-1]
-
-    # El criterio del frontend: `api.ts::resolverAcoplado` reconstruye
-    # `converged` como `T_residual < outer_tol` a secas. Con un MSA que no puede
-    # converger (max_iter = 2) el núcleo dice que no y el frontend que sí.
-    sim_corto = base._config_web().model_copy(update={"max_iter": 2})
-    laxo = []
-    for it in iter_coupled(
-        sim=sim_corto,
-        land_use_config=base._land_use_web(),
-        outer_max_iter=6,
-        outer_tol=1.0,
-    ):
-        r = it.T_residual
-        laxo.append(
-            {
-                "k": it.outer_iter,
-                "residual": None if not np.isfinite(r) else round(r, 5),
-                "msa_convergio": bool(it.transport.converged),
-                "nucleo_dice": bool(it.metrics.sistema.convergio_exterior),
-                "api_ts_diria": bool(np.isfinite(r) and r < 1.0),
-            }
-        )
-    return {
-        "decaimiento_armonico": armonica,
-        "iteracion_en_que_converge_el_criterio": k_conv,
-        "iteracion_en_que_la_ciudad_deja_de_moverse": k_quieta,
-        "lo_que_compran_las_vueltas_extra": {
-            "desde_k": k_quieta,
-            "hasta_k": k_conv,
-            "delta_theil": round(f_conv["theil"] - f_quieta["theil"], 6),
-            "delta_dist_media_km": [
-                round(a - b, 5) for a, b in zip(f_conv["dist_media_km"], f_quieta["dist_media_km"])
-            ],
-            "delta_reparto_pp": {
-                c: round(f_conv["reparto_pct"][c] - f_quieta["reparto_pct"][c], 4)
-                for c in f_conv["reparto_pct"]
-            },
-        },
-        "tolerancia_en_contexto": {
-            "outer_tol": 1.0,
-            "unidad_real": "útiles de transporte por mes (D-34)",
-            "unidad_documentada_en": [
-                "coupled.py:235 y :244 («minutos»)",
-                "apps/web/src/lib/types-v2.ts:61 («en minutos»)",
-                "i18n simulator.json `eqt.conv_sub` («residual {{res}} min»)",
-            ],
-        },
-        "criterio_laxo_del_frontend": laxo,
-        "anatomia_del_residual": anatomia_del_residual(),
+        "outer_tol_clp_mes": TOL_ACOPLADO_CLP_MES,
+        "un_util_mes_en_clp": [round(1.0 / x) for x in lam],
+        "brechas_sin_corte": brechas,
     }
 
 
@@ -624,14 +691,16 @@ def poblacion() -> list[dict]:
     for total in (12_000, 24_000, 36_000, 60_000, 90_000):
         H = tuple(round(total * s) for s in shares)
         lu = base_lu.model_copy(update={"H_por_estrato": H})
-        tray = _trayectoria(base._config_web(), lu, outer_max_iter=10, outer_tol=1.0)
+        tray = _trayectoria(base._config_web(), lu, outer_max_iter=10)
         u = tray[-1]
         filas.append(
             {
                 "poblacion": total,
                 "iteraciones": len(tray),
                 "convergio": u["convergio_nucleo"],
-                "residual_final": u["residual"],
+                "msa_convergio": u["msa_convergio"],
+                "brecha_final_clp_mes": u["brecha_clp_mes"],
+                "delta_bienestar_total_mes_clp": u["delta_bienestar_total_mes_clp"],
                 "theil": u["theil"],
                 "tiempo_medio_min": u["tiempo_medio_min"],
                 "dist_media_km": u["dist_media_km"],
@@ -644,10 +713,12 @@ def poblacion() -> list[dict]:
 def parametros_vigentes() -> dict:
     """Los parámetros del acoplado y de dónde los toma cada consumidor.
 
-    El módulo no introduce parámetros de modelo: `VIAJES_MES`, `alpha`, `rho` y
-    `lambda_h` son de suelo y transporte. Los suyos son de método —el paso, la
-    tolerancia exterior y el tope de vueltas— y cada consumidor fija los dos
-    últimos por su cuenta. Se leen de su fuente, no se tipean.
+    El módulo no introduce parámetros de modelo: `VIAJES_MES`, `p_tele`,
+    `alpha`, `rho` y `lambda_h` son de suelo y transporte. Los suyos son de
+    método —el paso, la tolerancia exterior y el tope de vueltas—. La
+    tolerancia es una constante del núcleo que nadie pisa (D10); el tope lo
+    sigue fijando cada consumidor por su cuenta. Se leen de su fuente, no se
+    tipean.
     """
     import inspect
     import re
@@ -667,20 +738,34 @@ def parametros_vigentes() -> dict:
     worker = "apps/web/src/workers/pyodide.worker.ts"
     return {
         "viajes_mes": int(VIAJES_MES),
+        "prob_teletrabajo": [
+            float(base._config_web().demand.estratos[e].prob_teletrabajo)  # type: ignore[index]
+            for e in (1, 2, 3)
+        ],
+        "viajes_mes_por_estrato": [
+            round(float(v), 2) for v in viajes_mes_por_estrato(base._config_web().demand)
+        ],
         "rho": [float(e.rho) for e in lu.estratos],
         "lambda_h": _lambdas(),
-        "theta": "1/(k+1)",
+        "paso": "1; a la mitad cada vez que la brecha crece",
         "assignment_forzado": "expected",
         "tolerancia_interior_min": float(base._config_web().tolerance),
         "outer_tol": {
             "nucleo": float(firma["outer_tol"].default),
-            "app": float(_lee("apps/web/src/pages/CoupledPage.tsx", r"outer_tol:\s*([\d.]+)")),
-            "comparador": float(
-                _lee("apps/web/src/pages/ComparePage.tsx", r"outer_tol:\s*([\d.]+)")
+            "constante": float(TOL_ACOPLADO_CLP_MES),
+            # La API y el worker toman la constante por nombre; la app y el
+            # comparador no mandan el campo. Se verifica que así sea.
+            "api_usa_la_constante": bool(
+                _lee(api, r"outer_tol: float = Field\(\s*default=(TOL_ACOPLADO_CLP_MES)")
             ),
-            "api": float(_lee(api, r"outer_tol: float = Field\(\s*default=([\d.]+)")),
-            "worker": float(_lee(worker, r'"outer_tol",\s*([\d.]+)')),
+            "worker_usa_la_constante": bool(_lee(worker, r'"outer_tol",\s*(TOL_ACOPLADO_CLP_MES)')),
+            "app_lo_manda": "outer_tol"
+            in (RAIZ / "apps/web/src/pages/CoupledPage.tsx").read_text(encoding="utf-8"),
+            "comparador_lo_manda": "outer_tol"
+            in (RAIZ / "apps/web/src/pages/ComparePage.tsx").read_text(encoding="utf-8"),
         },
+        "veredicto_motor_local_es_el_del_nucleo": "metrics.sistema.convergio_exterior"
+        in (RAIZ / "apps/web/src/lib/api.ts").read_text(encoding="utf-8"),
         "outer_max_iter": {
             "nucleo": int(firma["outer_max_iter"].default),
             "app": int(
@@ -708,19 +793,22 @@ def main() -> None:
             "configuracion": (
                 "La de la aplicación (`test_linea_base._config_web` y "
                 "`_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, "
-                "semilla 42, asignación esperada, tolerancia interior 0,1. El "
-                "acoplado con `outer_max_iter = 12` y `outer_tol = 1,0`, que es "
-                "lo que manda `CoupledPage.tsx`."
+                "semilla 42, asignación esperada, brecha interior < 0,2 min. El "
+                "acoplado con `outer_max_iter = 12` y la tolerancia del núcleo, "
+                "100 $/hogar-mes."
             ),
         },
         "fuentes_externas": FUENTES_EXTERNAS,
         "parametros_vigentes": parametros_vigentes(),
         "accesibilidad": accesibilidad(),
         "quien_remueve_la_inversion": quien_remueve_la_inversion(),
+        "teletrabajo": teletrabajo(),
         "red_configurada": red_configurada(),
         "loop": datos_loop,
-        "trayectoria_exigente": trayectoria_exigente(),
-        "criterio": criterio(datos_loop),
+        "paso": paso(),
+        "brecha_distribucion": brecha_distribucion(),
+        "parada": parada(),
+        "tolerancia": tolerancia(),
         "poblacion": poblacion(),
     }
     SALIDA.write_text(json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -732,7 +820,7 @@ def main() -> None:
             f"  {n:<6} {a['pendiente_1_a_9km']['utiles_mes_por_km'][h]:8.3f} ut/mes/km  "
             f"= {a['pendiente_1_a_9km']['clp_mes_por_km'][h]:>8,} $/mes/km"
         )
-    print("\n2×2 — qué remueve la inversión de Alonso:")
+    print("\n2×2 — qué remueve la inversión de Alonso (sin teletrabajo):")
     for c in datos["quien_remueve_la_inversion"]["casos"]:
         d = c["dist_media_km"]
         print(
@@ -740,35 +828,34 @@ def main() -> None:
             f"alto {d[0]:6.3f}  medio {d[1]:6.3f}  bajo {d[2]:6.3f}   "
             f"{'INVERTIDA' if c['invierte_alonso'] else 'Alonso ok'}"
         )
-    cr = datos["criterio"]
-    print(
-        f"\nLoop: converge en k={cr['iteracion_en_que_converge_el_criterio']}, "
-        f"la ciudad deja de moverse en k={cr['iteracion_en_que_la_ciudad_deja_de_moverse']}"
-    )
-    print("  k  residual   res(1)/k   brecha T_new")
-    for f in cr["decaimiento_armonico"]:
+    print("\nTeletrabajo:")
+    for f in datos["teletrabajo"]["filas"]:
         print(
-            f"  {f['k']:<2} {f['residual']:9.4f}  {f['res1_sobre_k']:9.4f}  "
-            f"{f['brecha_T_new'] if f['brecha_T_new'] is not None else float('nan'):12.6f}"
+            f"  factor {f['teletrabajo_factor']:.1f}  viajes {f['viajes_mes']}  "
+            f"pend $/km {f['pendiente_clp_mes_por_km']}  d {f['dist_media_km']}  "
+            f"theil {f['theil']}"
         )
-    ar = cr["anatomia_del_residual"]
-    print(
-        f"\nAnatomía del residual: máx {ar['max']} en la celda {ar['celda_del_maximo']['indice']} "
-        f"({ar['celda_del_maximo']['km_del_cbd']} km), mediana {ar['percentil_50']}, "
-        f"{ar['celdas_sobre_la_tolerancia']}/{ar['celdas_totales']} celdas sobre la tolerancia"
-    )
-    print("\nCriterio laxo del frontend (MSA con max_iter=2):")
-    for f in cr["criterio_laxo_del_frontend"]:
+    print("\nLoop de la aplicación:")
+    for f in datos_loop["trayectoria"]:
         print(
-            f"  k={f['k']}  residual={f['residual']}  msa={f['msa_convergio']}  "
-            f"núcleo={f['nucleo_dice']}  api.ts={f['api_ts_diria']}"
+            f"  k={f['k']}  brecha={f['brecha_clp_mes']}  dQ={f['max_dQ']}  "
+            f"conv={f['convergio_nucleo']}  ΔCS/hogar-mes={f['delta_excedente_hogar_mes_clp']}"
         )
+    print("\nPaso (sin corte):")
+    for nombre, c in datos["paso"]["casos"].items():
+        print(f"  {nombre}: msa {c['msa_1_sobre_k']}")
+        print(f"  {' ' * len(nombre)}  núcleo {c['nucleo']}")
+    print("\nBrecha por celda:", datos["brecha_distribucion"])
+    print("\nParada con MSA interior corto:")
+    for f in datos["parada"]["filas"]:
+        print(f"  {f}")
+    print("\nTolerancia:", datos["tolerancia"])
     print("\nPoblación:")
     for f in datos["poblacion"]:
         print(
             f"  {f['poblacion']:>6}  iter={f['iteraciones']:>2}  conv={f['convergio']}  "
-            f"t={f['tiempo_medio_min']:6.2f} min  theil={f['theil']:.4f}  "
-            f"auto={f['reparto_pct']['Auto']:.2f}"
+            f"msa={f['msa_convergio']}  t={f['tiempo_medio_min']:6.2f} min  "
+            f"theil={f['theil']:.4f}  auto={f['reparto_pct']['Auto']:.2f}"
         )
     print(f"\nEscrito: {SALIDA}")
 

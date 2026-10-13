@@ -58,6 +58,7 @@ export interface CoupledRequest {
   sim: SimulationConfig;
   land_use: LandUseConfig;
   outer_max_iter: number;
-  /** Tolerancia del loop exterior sobre ||ΔT||∞, en útiles de transporte al mes (D-34). */
-  outer_tol: number;
+  /** Tolerancia del loop exterior en $/hogar-mes sobre max_h |ΔT_h|/λ_h (D10).
+   *  Si falta, rige la del núcleo (`TOL_ACOPLADO_CLP_MES`). */
+  outer_tol?: number;
 }

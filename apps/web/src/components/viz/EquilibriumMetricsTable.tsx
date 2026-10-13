@@ -96,7 +96,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       label: t(
         sys.medida_bienestar === "utilidad_maxima" ? "eqt.cs_max" : "eqt.cs",
       ),
-      get: (s) => s.delta_excedente_clp,
+      get: (s) => s.delta_excedente_hogar_mes_clp,
       fmt: fmtMoney,
     },
   ];
@@ -285,7 +285,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           sub={t("eqt.conv_sub", {
             n: sys.iteraciones_exteriores,
             res:
-              sys.residual_final == null ? "—" : sys.residual_final.toFixed(2),
+              sys.residual_final == null ? "—" : sys.residual_final.toFixed(1),
           })}
           good={sys.convergio_exterior}
         />
@@ -311,7 +311,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
         />
         <Stat
           label={t("eqt.welfare_total")}
-          value={fmtMoney(sys.delta_bienestar_total_clp)}
+          value={fmtMoney(sys.delta_bienestar_total_mes_clp)}
           sub={t("eqt.welfare_total_sub")}
         />
         <Stat

@@ -29,6 +29,13 @@ class Agente:
     utilidad_elegida: float = 0.0
 
 
+def prob_teletrabajo_efectiva(prob_teletrabajo: float, teletrabajo_factor: float) -> float:
+    """Fracción del estrato que teletrabaja: `prob_teletrabajo · teletrabajo_factor`,
+    topada en 1. Una sola fuente para la población (cuántos agentes no viajan) y
+    para la accesibilidad del suelo (cuántos viajes paga el hogar, D11)."""
+    return min(1.0, prob_teletrabajo * teletrabajo_factor)
+
+
 def _mayor_residuo(target: np.ndarray, total: int) -> np.ndarray:
     """Redondea `target` (que suma ~`total`) a enteros que suman EXACTO `total`,
     por el método del mayor residuo. Determinista."""
@@ -89,7 +96,7 @@ def generar_poblacion_desde_land_use_det(
                 continue
             estrato: StratumId = estratos_valid[h]
             s = demand_config.estratos[estrato]
-            prob_tele = min(1.0, s.prob_teletrabajo * teletrabajo_factor)
+            prob_tele = prob_teletrabajo_efectiva(s.prob_teletrabajo, teletrabajo_factor)
             n_tele = round(n * prob_tele)
             n_work = n - n_tele
             n_auto = round(n_work * s.prob_auto)

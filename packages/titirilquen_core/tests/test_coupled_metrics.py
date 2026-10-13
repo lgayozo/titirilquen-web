@@ -36,10 +36,16 @@ def _land_use_config() -> LandUseConfig:
 
 
 @pytest.fixture(scope="module")
-def corrida(demanda_sintetica_modulo: DemandConfig):
+def corrida_res(demanda_sintetica_modulo: DemandConfig):
     sim = _sim_small(demanda_sintetica_modulo)
     lu = _land_use_config()
     res = run_coupled(sim=sim, land_use_config=lu, outer_max_iter=2, outer_tol=0.1)
+    return res, sim, lu
+
+
+@pytest.fixture(scope="module")
+def corrida(corrida_res):
+    res, sim, lu = corrida_res
     return res.iterations[-1].metrics, sim, lu
 
 
@@ -75,7 +81,7 @@ def test_valores_finitos_y_signos(corrida) -> None:
         assert np.isfinite(sm.tiempo_medio_min) and sm.tiempo_medio_min >= 0
         assert np.isfinite(sm.costo_medio_clp) and sm.costo_medio_clp >= 0
         # ΔCS vs red vacía: signo libre (congestión <0, Mohring >0), pero finito.
-        assert np.isfinite(sm.delta_excedente_clp)
+        assert np.isfinite(sm.delta_excedente_hogar_mes_clp)
         assert np.isfinite(sm.carga_costo_ingreso) and sm.carga_costo_ingreso >= 0
     s = m.sistema
     assert 0.0 <= s.segregacion_theil <= 1.0
@@ -103,16 +109,22 @@ def test_regresividad_por_ingreso(corrida) -> None:
         assert m.sistema.ratio_carga_bajo_alto > 1.0
 
 
-def test_bienestar_total_es_suma_sobre_quienes_viajan(corrida) -> None:
-    """D-35: el promedio por viajero se multiplica por los VIAJEROS, no por
-    todos los hogares (teletrabajo tiene ΔCS = 0 y el varado no tiene medida)."""
-    m, _sim, _lu = corrida
-    esperado = sum(sm.delta_excedente_clp * sm.n_viajeros for sm in m.por_estrato)
-    assert abs(m.sistema.delta_bienestar_total_clp - esperado) < 1e-3
-    inflado = sum(sm.delta_excedente_clp * sm.n_hogares for sm in m.por_estrato)
-    assert abs(inflado) > abs(esperado), (
-        "n_hogares ≥ n_viajeros: el viejo total era mayor en magnitud"
+def test_bienestar_total_es_suma_por_hogar(corrida_res) -> None:
+    """D-35 y D11: el ΔCS por hogar-mes se promedia sobre los hogares que viajan
+    o teletrabajan (éstos aportan 0); el varado no tiene medida y queda fuera.
+    El total del sistema es ese promedio por esos mismos hogares."""
+    res, _sim, _lu = corrida_res
+    m = res.iterations[-1].metrics
+    agentes = res.iterations[-1].transport.agentes
+    con_medida = [
+        sum(1 for a in agentes if a.estrato == h + 1 and (a.teletrabaja or a.modo_elegido))
+        for h in range(3)
+    ]
+    esperado = sum(
+        sm.delta_excedente_hogar_mes_clp * n
+        for sm, n in zip(m.por_estrato, con_medida, strict=True)
     )
+    assert m.sistema.delta_bienestar_total_mes_clp == pytest.approx(esperado, rel=1e-9, abs=1e-6)
 
 
 # ---------------------------------------------------------------------------
@@ -177,6 +189,9 @@ def test_el_acoplado_no_converge_si_el_transporte_no_convergio(
     assert not any(it.transport.converged for it in res.iterations)
     assert res.converged is False
     assert all(not it.metrics.sistema.convergio_exterior for it in res.iterations)
+    # D10: la brecha exterior ya cumplió en la iteración 1, así que se para
+    # ahí en vez de repetir la misma ciudad hasta el tope.
+    assert len(res.iterations) == 2
 
 
 def test_el_theil_pesa_por_hogares_no_por_celdas() -> None:

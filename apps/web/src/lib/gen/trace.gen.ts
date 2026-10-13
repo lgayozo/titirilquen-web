@@ -154,9 +154,8 @@ export interface StratumMetrics {
   n_hogares: number;
   /**
    *  Agentes del estrato que viajan (sin teletrabajo ni varados). Es la
-   *  población sobre la que están promediados `tiempo_medio_min`,
-   *  `costo_medio_clp` y `delta_excedente_clp`, y la que pesa en el bienestar
-   *  total (D-35).
+   *  población sobre la que están promediados `tiempo_medio_min` y
+   *  `costo_medio_clp`.
    */
   n_viajeros: number;
   /** Distancia media de residencia al CBD, ponderada por hogares (km). */
@@ -171,12 +170,15 @@ export interface StratumMetrics {
   /** Costo monetario medio del viaje, sobre los que viajan ($). */
   costo_medio_clp: number;
   /**
-   *  Δ excedente del consumidor vs la **red vacía** ((logsum − logsum_0) /
-   *  −b_costo), en $. Δ<0 ⇒ costo neto de la congestión; Δ>0 ⇒ domina el efecto
-   *  Mohring (frecuencia endógena). Eficiencia/DAP, NO bienestar interpersonal
-   *  — ver módulo docstring.
+   *  Δ excedente del consumidor vs la **red vacía**, en $/hogar-mes:
+   *  VIAJES_MES·(logsum − logsum_0)/−b_costo por cada hogar que viaja, 0 por
+   *  cada hogar que teletrabaja, promediado sobre ambos (los varados quedan
+   *  fuera: no tienen medida). Hasta oct-2026 era $/viaje promediado sólo sobre
+   *  los que viajan (D11). Δ<0 ⇒ costo neto de la congestión; Δ>0 ⇒ domina el
+   *  efecto Mohring (frecuencia endógena). Eficiencia/DAP, NO bienestar
+   *  interpersonal, y sin rentas — ver módulo docstring.
    */
-  delta_excedente_clp: number;
+  delta_excedente_hogar_mes_clp: number;
   /**
    *  Carga **mensual**: (costo medio por viaje · 44 viajes/mes) / ingreso
    *  mensual del estrato ($/mes). Fracción interpretable (~0.02–0.30) — antes
@@ -191,8 +193,9 @@ export interface SystemMetrics {
   convergio_exterior: boolean;
   iteraciones_exteriores: number;
   /**
-   *  ‖T_n − T_{n−1}‖∞ del loop exterior, en utiles de transporte por mes (T =
-   *  −VIAJES_MES·logsum, D-34). Hasta D-39 se llamaba `residual_final_min`.
+   *  Brecha del loop exterior en la última iteración, `max_h |T_new − T|/λ_h`
+   *  en $/hogar-mes (D10); None si no es medible (la primera iteración). Hasta
+   *  oct-2026 iba en utiles de transporte por mes.
    */
   residual_final: number | null;
   /** ¿Convergió el MSA interior de la última corrida de transporte? */
@@ -214,11 +217,12 @@ export interface SystemMetrics {
   /** Índice H de Theil sobre Q ∈ [0,1]. 0 = integrada, 1 = segregación total. */
   segregacion_theil: number;
   /**
-   *  Σ sobre los agentes que viajan de ΔCS ($) — D-35. Efecto agregado de
+   *  Σ sobre los hogares de ΔCS mensual ($/mes) — D-35, D11. Efecto agregado de
    *  bienestar de la demanda sobre la red (congestión vs Mohring), respecto a
-   *  la red vacía.
+   *  la red vacía. Sólo transporte: cota inferior en el sentido de Martínez p.
+   *  264.
    */
-  delta_bienestar_total_clp: number;
+  delta_bienestar_total_mes_clp: number;
   /**
    *  Con qué medida se calculó el ΔCS: `logsum` bajo los métodos logit,
    *  `utilidad_maxima` bajo `todo_o_nada`. La decide el núcleo

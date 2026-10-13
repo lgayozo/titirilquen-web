@@ -101,11 +101,17 @@ ESPERADO = {
     #     itera más y mueve ≤ 0,07 pp. Juntos: original auto −0,10, metro
     #     −1,99, bici +2,07, caminata +0,01; equilibrio auto −0,03, metro
     #     −2,68, bici +2,68, caminata +0,03.
+    # 12. D11 de la auditoría (2026-10-13): la accesibilidad del suelo cobra los
+    #     viajes ESPERADOS, VIAJES_MES·(1 − p_tele,h), no 44 a todos. El alto
+    #     (teletrabaja 40 %) aplana su gradiente más que el medio (20 %) y el
+    #     bajo (5 %): distancia media al CBD alto 1,99 → 3,06 km, medio 2,96 →
+    #     3,04, bajo 5,85 → 5,00 (alto y medio quedan empatados). Sólo se mueve «equilibrio»:
+    #     auto +0,09, metro −1,50, bici +0,22, caminata +1,16; 20 → 17 it.
     "equilibrio": {
-        "Auto": 20.42,
-        "Metro": 22.05,
-        "Bici": 30.08,
-        "Caminata": 7.99,
+        "Auto": 20.51,
+        "Metro": 20.55,
+        "Bici": 30.30,
+        "Caminata": 9.15,
         "Teletrabajo": 19.45,
     },
     "original": {
@@ -127,7 +133,9 @@ ESPERADO = {
 #: práctica (oct-2026): con la curva más empinada el MSA necesita una pasada más.
 #: D8 (oct-2026) cambió QUÉ se mide: la brecha no amortiguada < 0,2 min en vez
 #: del cambio amortiguado < 0,1, que se aflojaba solo como 1/n. 8 → 20 y 13.
-ITERACIONES_ESPERADAS = {"equilibrio": 20, "original": 13}
+#: D11 (oct-2026, teletrabajo en la accesibilidad) movió la ciudad de partida
+#: de `equilibrio`: 20 → 17.
+ITERACIONES_ESPERADAS = {"equilibrio": 17, "original": 13}
 
 
 def _config_web() -> SimulationConfig:

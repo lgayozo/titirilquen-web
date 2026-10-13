@@ -6,9 +6,10 @@ Estructura (V2):
     Para n = 1..N_outer:
         1. poblacion = generar_poblacion_desde_land_use_det(city)
         2. transport_trace = run_msa(config, poblacion)
-        3. T_new[h, i] = −VIAJES_MES·logsum_h(i) sobre los tiempos finales
-        4. city.update(T_new)
-        5. si ||T_new - T_old|| < tol_outer → break
+        3. T_new[h, i] = −VIAJES_MES·(1 − p_tele,h)·logsum_h(i) sobre los tiempos finales
+        4. si max |T_new − T|/λ_h < outer_tol ($/hogar-mes) → break
+        5. T ← T + paso·(T_new − T)   (paso 1, a la mitad si la brecha crece)
+        6. city.update(T)
 
 Devuelve la trayectoria completa para visualizar cómo la ciudad y la red
 co-evolucionan.
@@ -24,6 +25,7 @@ from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
+from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES
 from titirilquen_core.coupled_metrics import (
     EquilibriumMetrics,
     compute_equilibrium_metrics,
@@ -58,7 +60,9 @@ class OuterIteration:
     transport: ConvergenceTrace
     T_matrix: NDArray[np.float64]
     T_residual: float
-    """Residuo ||T_new - T_old||_∞ (utiles de transporte por mes)."""
+    """Brecha del mapa `max_h max_i |T_new − T|/λ_h`, en $/hogar-mes (D10): `T` es
+    la accesibilidad con que se resolvió el suelo de esta iteración. Hasta oct-2026
+    iba en utiles de transporte por mes."""
     metrics: EquilibriumMetrics
     """Reporte de métricas (por estrato + sistema) de esta iteración."""
 
@@ -102,7 +106,9 @@ def _T_logsum_snapshot(
     corresponde (D-34). Es determinista y está definido en todas las celdas,
     así que el residual del loop exterior refleja sólo cambios reales."""
     tiempos = _tiempos_del_snapshot(snap, ciudad.n_celdas)
-    return T_desde_logsum(logsum_por_celda(sim.demand, ciudad, tiempos, sim.modos_habilitados))
+    return T_desde_logsum(
+        logsum_por_celda(sim.demand, ciudad, tiempos, sim.modos_habilitados), sim.demand
+    )
 
 
 def _run_transport_with_population(
@@ -127,7 +133,7 @@ def iter_coupled(
     sim: SimulationConfig,
     land_use_config: LandUseConfig,
     outer_max_iter: int = 5,
-    outer_tol: float = 1.0,
+    outer_tol: float = TOL_ACOPLADO_CLP_MES,
     result: CoupledResult | None = None,
 ) -> Iterator[OuterIteration]:
     """Generador que emite una OuterIteration por cada paso del loop exterior.
@@ -150,17 +156,24 @@ def iter_coupled(
     T_init = T_flujo_libre(
         sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
     )
+    lam = lambda_desde_demanda(sim.demand)
     city = LandUseCity.build(
         L=L,
         CBD=CBD,
         cfg=land_use_config,
         T=T_init,
-        lambda_h=lambda_desde_demanda(sim.demand),
+        lambda_h=lam,
         rng=rng,
         # Ancho físico real: la penalización ρ usa densidad hogares/km (D-26).
         ancho_celda_km=ciudad.ancho_celda_km,
     )
     T_state: NDArray[np.float64] | None = None
+    # Paso del promedio exterior (D10): parte sin amortiguar y se reduce a la
+    # mitad cada vez que la brecha crece (Boyles et al., §8.3.5, p. 314). Hasta
+    # oct-2026 era 1/(n+1): el mapa contrae fuerte (la brecha cae ~10× por
+    # vuelta con paso 1), así que el MSA sólo frenaba la convergencia.
+    paso = 1.0
+    residual_prev = float("inf")
 
     for outer in range(outer_max_iter):
         assert city.result is not None
@@ -174,13 +187,20 @@ def iter_coupled(
         transport_trace, final_snap = _run_transport_with_population(sim_eq, agentes, ciudad)
         T_new = _T_logsum_snapshot(sim_eq, ciudad, final_snap)
 
-        residual = float("inf") if T_state is None else float(np.max(np.abs(T_new - T_state)))
-        # Amortiguación MSA del loop externo: T_state ← θ·T_new + (1-θ)·T_state.
+        # Brecha del mapa |Φ(T) − T| en $/hogar-mes: ÷λ_h la pasa a pesos, así la
+        # tolerancia significa lo mismo en los tres estratos (λ varía ~3,9×, D10).
+        residual = (
+            float("inf")
+            if T_state is None
+            else float(np.max(np.abs(T_new - T_state) / lam[:, None]))
+        )
         if T_state is None:
             T_state = T_new
         else:
-            theta = 1.0 / (outer + 1)
-            T_state = theta * T_new + (1.0 - theta) * T_state
+            if residual > residual_prev:
+                paso /= 2.0
+            T_state = paso * T_new + (1.0 - paso) * T_state
+        residual_prev = residual
 
         assert city.result is not None
         # Convergió el ACOPLADO sólo si convergieron sus tres partes (D-39): el
@@ -214,9 +234,13 @@ def iter_coupled(
             result.iterations.append(iteration)
         yield iteration
 
-        if is_converged:
+        # Se para cuando la brecha exterior cumple, converjan o no las partes:
+        # con el transporte determinista, una vuelta más con brecha ~0 repite la
+        # misma ciudad (medido con población ×2,5: 9 vueltas idénticas). Si el
+        # MSA o el suelo no convergieron, el acoplado queda «no convergido».
+        if outer > 0 and residual < outer_tol:
             if result is not None:
-                result.converged = True
+                result.converged = is_converged
             break
         # Sólo se actualiza la ciudad si viene otra vuelta que la simule (D-40):
         # antes, al agotar el máximo, `final_city` quedaba con un suelo que
@@ -235,7 +259,7 @@ def run_coupled(
     sim: SimulationConfig,
     land_use_config: LandUseConfig,
     outer_max_iter: int = 5,
-    outer_tol: float = 1.0,  # minutos
+    outer_tol: float = TOL_ACOPLADO_CLP_MES,
 ) -> CoupledResult:
     """Ejecuta el loop suelo↔transporte hasta el final y devuelve el resultado agregado.
 
@@ -244,7 +268,7 @@ def run_coupled(
     :param sim: configuración de transporte (`SimulationConfig` de V1).
     :param land_use_config: configuración del módulo de uso de suelo.
     :param outer_max_iter: iteraciones máximas del loop exterior.
-    :param outer_tol: tolerancia en minutos sobre ||T_new - T_old||_∞.
+    :param outer_tol: tolerancia en $/hogar-mes sobre la brecha de T/λ_h (D10).
     """
     result = CoupledResult()
     for _ in iter_coupled(

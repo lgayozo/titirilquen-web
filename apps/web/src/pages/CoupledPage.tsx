@@ -81,7 +81,7 @@ export function CoupledPage() {
     () =>
       isCustom || !preset
         ? { sim: simStore, landUse: luStore }
-        : applyJointPreset(preset),
+        : applyJointPreset(preset, simStore),
     [isCustom, preset, simStore, luStore],
   );
 
@@ -110,7 +110,6 @@ export function CoupledPage() {
           sim,
           land_use: landUseEff,
           outer_max_iter: outerMaxIter,
-          outer_tol: 1.0,
         },
         (it) => pushOuterIter(it),
         ctrl.signal,

@@ -29,6 +29,7 @@ from titirilquen_core import (
     run_msa,
 )
 from titirilquen_core.config import DemandConfig, SupplyConfig
+from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.serializacion import (
@@ -137,7 +138,9 @@ class CoupledRequest(BaseModel):
     land_use: LandUseConfig
     outer_max_iter: int = Field(default=3, ge=1, le=10)
     outer_tol: float = Field(
-        default=1.0, ge=0, description="utiles de transporte por mes (‖ΔT‖∞, D-34)"
+        default=TOL_ACOPLADO_CLP_MES,
+        ge=0,
+        description="$/hogar-mes sobre la brecha max_h |ΔT_h|/λ_h (D10)",
     )
 
 

@@ -73,6 +73,16 @@ VIAJES_MES: Final[int] = 44
 #: lo vendía como «ruido». Se muestra en sólo lectura con esta justificación.
 MU_SUELO: Final[float] = 1 / math.sqrt(VIAJES_MES)
 
+#: Tolerancia del loop acoplado suelo↔transporte, en $/hogar-mes: el acoplado
+#: convergió cuando `max_h max_i |Φ(T) − T|_{h,i} / λ_h` baja de este valor
+#: (D10 de la auditoría). En pesos y no en utiles porque λ_h varía ~3,9× entre
+#: estratos: 1 util/mes —la tolerancia anterior— eran 806 a 3.122 $/mes según el
+#: estrato. Con el paso exterior 1 la brecha de la base cae de ~183 a ~3 $/mes
+#: en una vuelta y a 0 en la siguiente (con ρ = 54 o la población ×2,5, a 0 en
+#: la cuarta; medido, docs/libro cap. 6): 100 corta en la vuelta 2 sin dejar
+#: nada relevante sobre la mesa.
+TOL_ACOPLADO_CLP_MES: Final[float] = 100.0
+
 #: Viajes por tour casa-trabajo-casa. La elección de modo es POR VIAJE de ida
 #: (ida y vuelta simétricas, mismo modo), pero el parking se paga una vez por
 #: tour: al llegar al trabajo, no al volver a casa. Por eso `costo_parking` es

@@ -170,8 +170,9 @@ export async function resolverAcoplado(
     await pyodideEngine.solveCoupledStream(req, (it) => iteraciones.push(it));
     const última = iteraciones.at(-1);
     return {
-      converged:
-        última?.T_residual != null && última.T_residual < req.outer_tol,
+      // El veredicto lo da el núcleo (D-39): brecha exterior Y MSA Y suelo.
+      // Antes se re-derivaba acá sólo con la brecha.
+      converged: última?.metrics.sistema.convergio_exterior ?? false,
       iterations: iteraciones,
       // El worker no reconstruye la ciudad final; sólo la usa la vista de
       // parcelas del motor api.

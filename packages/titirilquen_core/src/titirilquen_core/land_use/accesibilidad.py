@@ -8,11 +8,13 @@ Es el ancla que traía el original —`construir_T_desde_csv` cargaba
 `LogSuma_Utilidad` por (estrato, celda) y llamaba `actualizar(T, alpha=[1,1,1])`—
 y que nunca llegó a ejecutarse (D-34).
 
-    T_h(i) = −VIAJES_MES · logsum_h(i)          [utiles de transporte / mes]
+    T_h(i) = −VIAJES_MES · (1 − p_tele,h) · logsum_h(i)     [utiles de transporte / mes]
 
 El signo lo vuelve costo (crece con la distancia) y `VIAJES_MES` lo pone en la
 misma escala mensual que el arriendo `p` y el ingreso `y` (D-27): un viaje contra
-un mes de arriendo no es comparable; 44 viajes sí. Con peso 1 la puja lee
+un mes de arriendo no es comparable; 44 viajes sí. `(1 − p_tele,h)` descuenta a
+quien teletrabaja, que no viaja (D11). `mu` NO se ajusta por eso: sigue siendo
+1/√VIAJES_MES para todos, un supuesto declarado. Con peso 1 la puja lee
 esa cantidad tal cual, con `lambda_h = |b_costo_h|` la pasa a pesos, y
 `mu = 1/√VIAJES_MES` fija el ruido de la puja como el de VIAJES_MES shocks
 independientes, uno por viaje (ver `constantes.MU_SUELO`).
@@ -39,6 +41,7 @@ from titirilquen_core.demand.utility import (
     TiemposObservados,
     calcular_utilidades,
 )
+from titirilquen_core.population import prob_teletrabajo_efectiva
 from titirilquen_core.supply.oferta import resolver_red_vacia
 
 
@@ -88,10 +91,30 @@ def logsum_por_celda(
     return out
 
 
-def T_desde_logsum(logsum: NDArray[np.float64]) -> NDArray[np.float64]:
-    """`T = −VIAJES_MES · logsum`: costo de accesibilidad mensual, en utiles de
-    transporte. Es lo que entra a `f_h(i) = −T_h(i) − rho_h·d_i`."""
-    return -float(VIAJES_MES) * np.asarray(logsum, dtype=float)
+def viajes_mes_por_estrato(demand: DemandConfig) -> NDArray[np.float64]:
+    """`VIAJES_MES · (1 − p_tele,h)`: viajes al mes que hace en promedio un hogar
+    del estrato `h`. Quien teletrabaja no viaja, así que no valora estar cerca
+    del CBD (D11); hasta oct-2026 se le cobraban los 44 a todos. `p_tele,h` es la
+    misma fracción con que `population` marca a los agentes que no viajan."""
+    return np.asarray(
+        [
+            VIAJES_MES
+            * (
+                1.0
+                - prob_teletrabajo_efectiva(
+                    demand.estratos[e].prob_teletrabajo, demand.globales.teletrabajo_factor
+                )
+            )
+            for e in sorted(demand.estratos)
+        ],
+        dtype=float,
+    )
+
+
+def T_desde_logsum(logsum: NDArray[np.float64], demand: DemandConfig) -> NDArray[np.float64]:
+    """`T_h = −VIAJES_MES·(1 − p_tele,h)·logsum_h`: costo de accesibilidad mensual,
+    en utiles de transporte. Es lo que entra a `f_h(i) = −T_h(i) − rho_h·d_i`."""
+    return -viajes_mes_por_estrato(demand)[:, None] * np.asarray(logsum, dtype=float)
 
 
 def tiempos_red_vacia(sim: SimulationConfig, ciudad: CiudadLineal) -> list[TiemposObservados]:
@@ -156,4 +179,4 @@ def T_flujo_libre(
         demand=demand,
     )
     tiempos = tiempos_red_vacia(sim, ciudad)
-    return T_desde_logsum(logsum_por_celda(demand, ciudad, tiempos, modos_habilitados))
+    return T_desde_logsum(logsum_por_celda(demand, ciudad, tiempos, modos_habilitados), demand)

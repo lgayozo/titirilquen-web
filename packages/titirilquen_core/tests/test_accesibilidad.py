@@ -83,8 +83,28 @@ def test_T_es_un_costo_mensual_que_crece_con_la_distancia() -> None:
         city=CityConfig(n_celdas=L, largo_ciudad_km=LARGO), supply=SupplyConfig(), demand=_demanda()
     )
     ls = logsum_por_celda(_demanda(), ciudad, tiempos_red_vacia(sim, ciudad))
-    np.testing.assert_allclose(T, -VIAJES_MES * ls)
-    assert T_desde_logsum(ls).shape == (3, L)
+    p_tele = np.array([_demanda().estratos[e].prob_teletrabajo for e in (1, 2, 3)])
+    np.testing.assert_allclose(T, -VIAJES_MES * (1 - p_tele)[:, None] * ls)
+    assert T_desde_logsum(ls, _demanda()).shape == (3, L)
+
+
+def test_el_teletrabajo_aplana_la_accesibilidad() -> None:
+    """D11: `T_h` cobra los viajes ESPERADOS, `VIAJES_MES·(1 − p_tele,h)`. Con
+    el doble de teletrabajo el gradiente de cada estrato se escala por
+    `(1 − 2p)/(1 − p)`, y si todos teletrabajan la ubicación no cuesta nada."""
+    base = _demanda()
+    doble = base.model_copy(deep=True)
+    doble.globales.teletrabajo_factor = 2.0
+    todos = base.model_copy(deep=True)
+    todos.globales.teletrabajo_factor = 5.0
+    for e in todos.estratos.values():
+        e.prob_teletrabajo = 1.0
+    T1, T2, T5 = (T_flujo_libre(d, L, CBD, DX, supply=SupplyConfig()) for d in (base, doble, todos))
+    for h, e in enumerate((1, 2, 3)):
+        p = base.estratos[e].prob_teletrabajo
+        assert 0 < p < 0.5, "la prueba necesita teletrabajo en todos los estratos"
+        np.testing.assert_allclose(T2[h], T1[h] * (1 - 2 * p) / (1 - p))
+    np.testing.assert_allclose(T5, 0.0, atol=1e-12)
 
 
 def _distancias(city: LandUseCity) -> np.ndarray:
@@ -104,13 +124,18 @@ def test_la_accesibilidad_por_estrato_no_invierte_alonso() -> None:
     y hay que volver a la accesibilidad común por ubicación.
     """
     cfg = LandUseConfig(H_por_estrato=(7200, 18000, 10800), max_iter=5000)
+    # Sin teletrabajo (D11): con él, el alto —que teletrabaja 40 %— paga menos
+    # viajes y su gradiente se aplana más que el del medio; ese es otro
+    # mecanismo, real, que no es el que este guard vigila.
+    dem = _demanda().model_copy(deep=True)
+    dem.globales.teletrabajo_factor = 0.0
     city = LandUseCity.build(
         L=L,
         CBD=CBD,
         cfg=cfg,
         ancho_celda_km=DX,
-        T=T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig()),
-        lambda_h=lambda_desde_demanda(_demanda()),
+        T=T_flujo_libre(dem, L, CBD, DX, supply=SupplyConfig()),
+        lambda_h=lambda_desde_demanda(dem),
         rng=np.random.default_rng(42),
     )
     assert city.result is not None and city.result.converged

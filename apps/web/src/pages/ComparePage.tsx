@@ -69,7 +69,7 @@ function coupledValues(sc: Scenario): Record<string, number | null> | null {
     auto: (sis.reparto_modal.Auto ?? 0) * 100,
     carga_bajo: (bajo?.carga_costo_ingreso ?? 0) * 100,
     ratio_carga: sis.ratio_carga_bajo_alto,
-    bienestar: sis.delta_bienestar_total_clp,
+    bienestar: sis.delta_bienestar_total_mes_clp,
     emisiones: sis.emisiones_total_kg,
     iteraciones: cr.iterations,
   };
@@ -142,7 +142,6 @@ export function ComparePage() {
           sim: sc.config,
           land_use: lu,
           outer_max_iter: COMPARE_OUTER_MAX,
-          outer_tol: 1.0,
         });
         const its = res.iterations;
         if (!its.length) throw new Error("coupled: sin iteraciones");
