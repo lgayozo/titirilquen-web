@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { fmtParking } from "@/lib/parking";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 import type { Scenario } from "@/store/compareStore";
@@ -23,7 +24,10 @@ interface Campo {
     c: SimulationConfig,
     lu: LandUseConfig | null,
   ) => number | string | null;
-  fmt?: (v: number | string) => string;
+  fmt?: (
+    v: number | string,
+    t: (k: string, o?: Record<string, unknown>) => string,
+  ) => string;
 }
 
 const nf = (v: number | string) =>
@@ -89,7 +93,7 @@ const GRUPOS: { labelKey: string; campos: Campo[] }[] = [
       {
         labelKey: "coupled.param.parking",
         get: (c) => c.demand.globales.costo_parking,
-        fmt: money,
+        fmt: (v, t) => (typeof v === "number" ? fmtParking(v, t) : String(v)),
       },
       {
         labelKey: "coupled.param.bencina",
@@ -221,7 +225,7 @@ export function ScenarioDiffTable({ scenarios, baseId }: Props) {
   }
 
   const fmt = (campo: Campo, v: number | string | null) =>
-    v == null ? "—" : campo.fmt ? campo.fmt(v) : nf(v);
+    v == null ? "—" : campo.fmt ? campo.fmt(v, t) : nf(v);
 
   return (
     <div className="overflow-x-auto">

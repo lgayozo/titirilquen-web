@@ -8,6 +8,7 @@
 
 import { defaultLandUseConfig } from "@/lib/defaults";
 import { defaultSimulationConfig } from "@/lib/defaults";
+import { fmtParking } from "@/lib/parking";
 import { CITY_PRESETS, POLICY_PRESETS } from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
@@ -93,6 +94,7 @@ export interface PresetParam {
 export function describePresetParams(
   sim: SimulationConfig,
   landUse: LandUseConfig,
+  t: (k: string, o?: Record<string, unknown>) => string,
 ): PresetParam[] {
   const nf = (v: number) => v.toLocaleString("es-CL");
   return [
@@ -156,7 +158,7 @@ export function describePresetParams(
     {
       key: "parking",
       labelKey: "coupled.param.parking",
-      value: `$${nf(sim.demand.globales.costo_parking)}`,
+      value: fmtParking(sim.demand.globales.costo_parking, t),
       group: "transport",
     },
     {

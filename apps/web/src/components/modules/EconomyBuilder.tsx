@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import { fmtParking } from "@/lib/parking";
 import type { SimulationConfig } from "@/lib/types";
 
 interface EconomyBuilderProps {
@@ -65,7 +66,7 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         min={0}
         max={15000}
         step={500}
-        format={fmtCurrency}
+        format={(v) => fmtParking(v, t)}
         onChange={(v) => setGlobal({ costo_parking: v })}
       />
       <LabeledSlider

@@ -134,6 +134,11 @@ class GlobalConfig(BaseModel):
     # Como hay un UNICO `b_costo` que aplica a la suma de todo el dinero, la
     # razon entre las elasticidades de parking, bencina y tarifa la fijan los
     # MONTOS, no los betas — ver scripts/diagnostico_elasticidades.py.
+    #
+    # Desde oct-2026 es un costo POR DÍA (por tour casa-trabajo-casa), no por
+    # viaje: se paga al llegar al trabajo y no al volver. Cada viaje de ida carga
+    # `costo_parking / VIAJES_POR_TOUR` = 1000. Antes se cargaba entero en cada
+    # uno de los 44 viajes del mes, o sea dos veces por día.
     costo_parking: float = 2000
     # Multiplicador ADIMENSIONAL sobre la curva COPERT de emision del auto
     # (`emissions.factor_emision_auto(v)`), para representar la composicion de

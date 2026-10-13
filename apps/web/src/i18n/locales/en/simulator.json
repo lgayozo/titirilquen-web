@@ -39,7 +39,8 @@
   },
   "economy_params": {
     "tarifa_metro": "Metro fare",
-    "parking": "Parking",
+    "parking": "Parking (per day)",
+    "parking_desglose": "{{dia}}/day · {{viaje}}/trip",
     "bencina": "Fuel",
     "bencina_hint": "Small effect: drivers (high-income) are insensitive to per-km cost. To discourage cars, use parking (fixed cost) or road pricing.",
     "teletrabajo_factor": "Telework factor",
@@ -513,7 +514,7 @@
       "length_km": "{{km}} km",
       "density": "ρ={{rho}} pop/km",
       "max_iter": "max_iter={{n}}",
-      "parking_fare": "Parking ${{parking}} · Fare ${{fare}}",
+      "parking_fare": "Parking {{parking}} · Fare ${{fare}}",
       "status": {
         "empty": "—",
         "configured": "ready",

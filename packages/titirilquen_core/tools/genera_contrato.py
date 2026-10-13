@@ -384,6 +384,9 @@ def emite_constantes() -> str:
         + "\n/** Valor social del tiempo ($/hora-pasajero), Precios Sociales del SNI.\n"
         + " *  Se actualiza cada año. */\n"
         + f"export const VOT_SOCIAL_CLP_HORA = {constantes.VOT_SOCIAL_CLP_HORA};\n"
+        + "\n/** Viajes por tour casa-trabajo-casa: el parking (costo por día) se\n"
+        + " *  reparte entre la ida y la vuelta. */\n"
+        + f"export const VIAJES_POR_TOUR = {constantes.VIAJES_POR_TOUR};\n"
         + "\n/** Nombre del wheel que el worker de Pyodide instala. Cambia con la\n"
         + " *  versión del core; tenerlo acá evita que quede hardcodeado y viejo. */\n"
         + f'export const WHEEL_FILENAME = "titirilquen_core-{version}-py3-none-any.whl";\n'

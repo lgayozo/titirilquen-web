@@ -11,6 +11,7 @@ from typing import Literal
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, StratumId
+from titirilquen_core.constantes import VIAJES_POR_TOUR
 
 Modo = Literal["Auto", "Metro", "Bici", "Caminata"]
 
@@ -86,7 +87,8 @@ def calcular_utilidades(
     t_cam = (dist_km / gl.v_caminata) * 60
 
     # AUTO
-    c_auto = dist_km * gl.costo_combustible_km + gl.costo_parking
+    # El parking es por tour (día): a cada viaje de ida le toca la mitad.
+    c_auto = dist_km * gl.costo_combustible_km + gl.costo_parking / VIAJES_POR_TOUR
     asc_auto = betas.asc_auto
     v_t_auto = betas.b_tiempo_viaje * tiempos.auto_total
     v_c_auto = betas.b_costo * c_auto

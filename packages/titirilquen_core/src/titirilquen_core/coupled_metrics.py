@@ -50,7 +50,12 @@ from titirilquen_core.bienestar import (
 )
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
-from titirilquen_core.constantes import CATEGORIAS_MODALES, VIAJES_MES, CategoriaModal
+from titirilquen_core.constantes import (
+    CATEGORIAS_MODALES,
+    VIAJES_MES,
+    VIAJES_POR_TOUR,
+    CategoriaModal,
+)
 from titirilquen_core.demand.utility import TiemposObservados
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot
 from titirilquen_core.land_use.accesibilidad import tiempos_red_vacia
@@ -214,7 +219,7 @@ def _tiempo_modo(
 def _costo_modo(modo: str, dist_km: float, gl) -> float:
     """Costo monetario ($) del `modo` para un viaje de `dist_km`."""
     if modo == "Auto":
-        return dist_km * gl.costo_combustible_km + gl.costo_parking
+        return dist_km * gl.costo_combustible_km + gl.costo_parking / VIAJES_POR_TOUR
     if modo == "Metro":
         return float(gl.costo_tarifa_metro)
     return 0.0  # Bici / Caminata

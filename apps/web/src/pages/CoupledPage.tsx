@@ -163,7 +163,7 @@ export function CoupledPage() {
       land_use: "var(--accent)",
       transport: "var(--ink)",
     };
-    const all = describePresetParams(sim, landUseEff).map((p) => ({
+    const all = describePresetParams(sim, landUseEff, tS).map((p) => ({
       group: p.group,
       kpi: {
         label: tS(p.labelKey),

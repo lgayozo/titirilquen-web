@@ -22,6 +22,10 @@ export const CORTE_BICI_MIN = 45.0;
  *  Se actualiza cada año. */
 export const VOT_SOCIAL_CLP_HORA = 3338.0;
 
+/** Viajes por tour casa-trabajo-casa: el parking (costo por día) se
+ *  reparte entre la ida y la vuelta. */
+export const VIAJES_POR_TOUR = 2;
+
 /** Nombre del wheel que el worker de Pyodide instala. Cambia con la
  *  versión del core; tenerlo acá evita que quede hardcodeado y viejo. */
 export const WHEEL_FILENAME = "titirilquen_core-0.2.0-py3-none-any.whl";

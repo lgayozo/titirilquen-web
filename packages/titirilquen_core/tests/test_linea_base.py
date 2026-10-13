@@ -78,18 +78,25 @@ ESPERADO = {
     #     la vía) y la bici empata con el metro. Original: bici +4,65, metro
     #     −3,89, auto −0,53, caminata −0,24; equilibrio: bici +4,88, metro −4,27,
     #     auto −0,48, caminata −0,13. El MSA cierra en 7 iteraciones en ambas.
+    #  9. Parking por TOUR, no por viaje (2026-10-13, decisión de Leandro):
+    #     `costo_parking` = 2.000 por día y a cada viaje de ida le toca la mitad
+    #     (`VIAJES_POR_TOUR`). Antes se cobraba entero en los 44 viajes del mes,
+    #     dos veces por día. El auto se abarata 1.000 $ por viaje y gana mucho:
+    #     original auto +5,52, metro −3,35, bici −1,30, caminata −0,86;
+    #     equilibrio auto +5,79, metro −3,68, bici −1,37, caminata −0,78, y una
+    #     iteración más del MSA (8).
     "equilibrio": {
-        "Auto": 15.60,
-        "Metro": 27.87,
-        "Bici": 28.48,
-        "Caminata": 8.63,
-        "Teletrabajo": 19.42,
+        "Auto": 21.39,
+        "Metro": 24.19,
+        "Bici": 27.11,
+        "Caminata": 7.85,
+        "Teletrabajo": 19.45,
     },
     "original": {
-        "Auto": 16.36,
-        "Metro": 23.62,
-        "Bici": 29.39,
-        "Caminata": 11.12,
+        "Auto": 21.88,
+        "Metro": 20.27,
+        "Bici": 28.09,
+        "Caminata": 10.26,
         "Teletrabajo": 19.49,
     },
 }
@@ -98,8 +105,10 @@ ESPERADO = {
 #: que el reparto final podría no mostrar.
 #: `equilibrio` pasó de 7 a 8 con los `lambda` heterogéneos (sep-2026): la ciudad
 #: de partida es más segregada y el MSA necesita una pasada más. El reescalado
-#: homoscedástico de transporte no cambió el conteo.
-ITERACIONES_ESPERADAS = {"equilibrio": 7, "original": 7}
+#: homoscedástico de transporte no cambió el conteo. Volvió a 8 con el parking
+#: por tour (oct-2026): con más autos el corredor se carga más y tarda una pasada
+#: más en estabilizarse.
+ITERACIONES_ESPERADAS = {"equilibrio": 8, "original": 7}
 
 
 def _config_web() -> SimulationConfig:

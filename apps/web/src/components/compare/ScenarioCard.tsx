@@ -4,6 +4,7 @@ import { Play, Upload, X } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { applyJointPreset } from "@/lib/joint-presets";
+import { fmtParking } from "@/lib/parking";
 import { CITY_PRESETS, POLICY_PRESETS } from "@/lib/presets";
 import {
   parseTtrqJson,
@@ -212,10 +213,10 @@ export function ScenarioCard({
           </span>
           <span className="col-span-2">
             {tS("compare.scenario_card.parking_fare", {
-              parking:
-                scenario.config.demand.globales.costo_parking.toLocaleString(
-                  "es-CL",
-                ),
+              parking: fmtParking(
+                scenario.config.demand.globales.costo_parking,
+                tS,
+              ),
               fare: scenario.config.demand.globales.costo_tarifa_metro,
             })}
           </span>

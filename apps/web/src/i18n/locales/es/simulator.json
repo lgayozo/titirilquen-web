@@ -39,7 +39,8 @@
   },
   "economy_params": {
     "tarifa_metro": "Tarifa Metro",
-    "parking": "Estacionamiento",
+    "parking": "Estacionamiento (por día)",
+    "parking_desglose": "{{dia}}/día · {{viaje}}/viaje",
     "bencina": "Bencina",
     "bencina_hint": "Efecto chico: quien maneja (estratos altos) es poco sensible al costo por km. Para desincentivar el auto, usá el parking (costo fijo) o la tarificación.",
     "teletrabajo_factor": "Factor de teletrabajo",
@@ -513,7 +514,7 @@
       "length_km": "{{km}} km",
       "density": "ρ={{rho}} hab/km",
       "max_iter": "max_iter={{n}}",
-      "parking_fare": "Parking ${{parking}} · Tarifa ${{fare}}",
+      "parking_fare": "Parking {{parking}} · Tarifa ${{fare}}",
       "status": {
         "empty": "—",
         "configured": "listo",

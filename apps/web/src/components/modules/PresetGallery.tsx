@@ -13,6 +13,7 @@ import {
   politicaActiva,
   type PolicyPresetValues,
 } from "@/lib/presets";
+import { fmtParking } from "@/lib/parking";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
@@ -105,9 +106,11 @@ const GRUPOS: { labelKey: string; keys: (keyof PolicyPresetValues)[] }[] = [
 
 /** Sólo presentación: cómo se rotula y se formatea cada parámetro. De dónde
  *  se LEE lo dice `LEE_POLITICA`, que la tabla de agregados también necesita. */
+type T = (k: string, o?: Record<string, unknown>) => string;
+
 const CAMPO: Record<
   keyof PolicyPresetValues,
-  { labelKey: string; fmt: (v: number) => string }
+  { labelKey: string; fmt: (v: number, t: T) => string }
 > = {
   num_pistas: {
     labelKey: "coupled.param.pistas",
@@ -115,7 +118,7 @@ const CAMPO: Record<
   },
   parking: {
     labelKey: "coupled.param.parking",
-    fmt: money,
+    fmt: fmtParking,
   },
   bencina: {
     labelKey: "coupled.param.bencina",
@@ -340,7 +343,7 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
               labelKey: CAMPO[k].labelKey,
               valor: LEE_POLITICA[k](config),
               base: LEE_POLITICA[k](defaultSimulationConfig),
-              fmt: CAMPO[k].fmt,
+              fmt: (v: number) => CAMPO[k].fmt(v, t),
             }))}
           />
         ))}

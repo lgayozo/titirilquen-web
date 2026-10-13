@@ -10,6 +10,7 @@ import type {
   ModoTransporte,
   StratumId,
 } from "@/lib/types";
+import { VIAJES_POR_TOUR } from "@/lib/gen/constantes.gen";
 
 export interface TiemposObservados {
   auto_total: number;
@@ -70,7 +71,9 @@ export function calcularUtilidades({
   const tCam = (distKm / gl.v_caminata) * 60;
 
   // Auto
-  const cAuto = distKm * gl.costo_combustible_km + gl.costo_parking;
+  // El parking es por tour (día): a cada viaje de ida le toca la mitad.
+  const cAuto =
+    distKm * gl.costo_combustible_km + gl.costo_parking / VIAJES_POR_TOUR;
   const vTAuto = betas.b_tiempo_viaje * tt.auto_total;
   const vCAuto = betas.b_costo * cAuto;
   const auto: UtilityBreakdown = tieneAuto

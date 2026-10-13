@@ -95,7 +95,7 @@ import numpy as np
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig, StratumId
-from titirilquen_core.constantes import MODOS, VOT_SOCIAL_CLP_HORA
+from titirilquen_core.constantes import MODOS, VIAJES_POR_TOUR, VOT_SOCIAL_CLP_HORA
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.emissions import tren_km_hora
 from titirilquen_core.equilibrium.msa import ConvergenceTrace
@@ -229,7 +229,7 @@ def vot_clp_hora(cfg: SimulationConfig, estrato: StratumId) -> float:
 def _dinero_del_modo(modo: str, cfg: SimulationConfig, dist_km: float) -> float:
     g = cfg.demand.globales
     if modo == "Auto":
-        return dist_km * g.costo_combustible_km + g.costo_parking
+        return dist_km * g.costo_combustible_km + g.costo_parking / VIAJES_POR_TOUR
     if modo == "Metro":
         return g.costo_tarifa_metro
     return 0.0  # bici y caminata no cuestan dinero en el modelo
@@ -375,7 +375,7 @@ def calcular_agregados(
                 # Sólo las TRANSFERENCIAS cuentan como recaudación. La bencina se
                 # excluye a propósito: es consumo real de recursos, no ingreso.
                 if modo == "Auto":
-                    rec_parking += d * cfg.demand.globales.costo_parking
+                    rec_parking += d * cfg.demand.globales.costo_parking / VIAJES_POR_TOUR
                 elif modo == "Metro":
                     rec_tarifa += d * cfg.demand.globales.costo_tarifa_metro
 

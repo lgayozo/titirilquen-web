@@ -52,3 +52,11 @@ VOT_SOCIAL_CLP_HORA: Final[float] = 3338.0
 #: la accesibilidad mensual que entra a la puja por suelo (D-34): el arriendo
 #: `p` y el ingreso `y` son mensuales, así que el término de transporte también.
 VIAJES_MES: Final[int] = 44
+
+#: Viajes por tour casa-trabajo-casa. La elección de modo es POR VIAJE de ida
+#: (ida y vuelta simétricas, mismo modo), pero el parking se paga una vez por
+#: tour: al llegar al trabajo, no al volver a casa. Por eso `costo_parking` es
+#: un costo por DÍA y a cada viaje le toca `costo_parking / VIAJES_POR_TOUR`; al
+#: mes suman VIAJES_MES/VIAJES_POR_TOUR = 22 pagos. Tarifa y bencina sí se
+#: pagan en cada viaje.
+VIAJES_POR_TOUR: Final[int] = 2
