@@ -28,11 +28,11 @@ del frontend.
 
 Es una CONSTANTE y no dos literales porque los dos puntos de entrada de la
 clase —el campo del dataclass y el parámetro de `build`— declaraban valores
-distintos (0.1 y 0.01). Como `dens = S/Δx`, ese factor 10 es un factor 10 en la
-desamenidad de densidad: entrar por `build()` sin pasar el ancho daba un
-equilibrio distinto que construir la instancia directo. Los callers deben pasar
-igual el ancho real (`largo_km / L`); el default existe para no romper los usos
-de juguete.
+distintos (0.1 y 0.01). Hasta v6 eso movía el equilibrio (la desamenidad usaba
+`S/Δx`); desde v7 la subasta usa `S/media(S)`, donde Δx se cancela, y el ancho
+sólo escala la densidad que se muestra (`densidad_por_celda`, hog/km). Los
+callers deben pasar igual el ancho real (`largo_km / L`); el default existe
+para no romper los usos de juguete.
 """
 
 
