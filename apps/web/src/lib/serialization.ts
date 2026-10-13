@@ -4,7 +4,7 @@
  * Formato de archivo `.ttrq.json`:
  * ```json
  * {
- *   "$schema": "titirilquen-scenario/v6",
+ *   "$schema": "titirilquen-scenario/v7",
  *   "name": "Mi escenario",
  *   "config": { ...SimulationConfig },
  *   "land_use": { ...LandUseConfig },          // opcional
@@ -23,12 +23,16 @@
  * educativo cuyos escenarios se rehacen en minutos, no un sistema con datos
  * que no se pueden perder.
  *
- * La consecuencia es explícita: un archivo o link anterior a v6 falla al
+ * La consecuencia es explícita: un archivo o link anterior a v7 falla al
  * importarse, con un mensaje que dice por qué. v5 (sep-2026): el campo de
  * suelo `beta` pasó a llamarse `mu`, la precisión μ de Martínez; `beta` era
  * la otra precisión de su libro (D-31). v6 (sep-2026): se eliminó
  * `estratos[h].lambda` del suelo; λ_h = |b_costo_h| lo deriva el núcleo de
- * la demanda, así que calibrar `b_costo` mueve los dos módulos (D-41). Si algún día hay escenarios que
+ * la demanda, así que calibrar `b_costo` mueve los dos módulos (D-41). v7
+ * (oct-2026, D1–D2 de la auditoría): se eliminaron `estratos[h].alpha` y `mu`
+ * del suelo —la accesibilidad entra con peso 1 y μ es la constante
+ * `MU_SUELO`— y `rho` pasó a penalizar la densidad relativa a la media, en
+ * utiles-mes (ρ_v7 = ρ_v6 × densidad media en hog/km). Si algún día hay escenarios que
  * de verdad importe conservar, la decisión se revisa — y entonces el lugar
  * correcto es un migrador versionado, no cinco parches sueltos.
  */
@@ -36,7 +40,7 @@
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 
-export const TTRQ_SCHEMA = "titirilquen-scenario/v6";
+export const TTRQ_SCHEMA = "titirilquen-scenario/v7";
 export const TTRQ_EXT = ".ttrq.json";
 
 export interface CoupledPrefs {

@@ -4,8 +4,8 @@ El mismo hogar aparece en dos módulos y en los dos cambia tiempo por dinero:
 
 - **Transporte** — el logit modal pondera `b_tiempo_viaje` y `b_costo`, y su
   cociente es el valor del tiempo conductual (`bienestar.vot_clp_hora`).
-- **Uso de suelo** — la puja es `U = λ_h(y − p) − α_h·T − ρ_h·dens`, así que la
-  TMS entre tiempo y dinero es `α_h/λ_h`, también un valor del tiempo.
+- **Uso de suelo** — la puja es `U = λ_h(y − p) − T_h − ρ_h·d`, así que la
+  TMS entre accesibilidad y dinero es `1/λ_h`, también un valor del tiempo.
 
 Nada obligaba a que coincidieran, y hasta el 2026-09-02 no coincidían: con los
 `λ` uniformes que imponía la forma cerrada (D-08), el uso de suelo implicaba un
@@ -14,10 +14,11 @@ VOT de 6,5 / 6,0 / 5,5 —razón alto/bajo 1,18— mientras transporte usaba
 igual entre estratos al pujar por suelo y 3,9 veces distinto al elegir modo.
 
 Desde D-34 (sep-2026) la conciliación es literal, no sólo en razones: la
-accesibilidad que entra a la puja es el logsum mensual de transporte, `α = 1`
-lo lee tal cual y `λ_h = |b_costo_h|` lo pasa a pesos. Estos tests son un test
-de CONSISTENCIA ENTRE MÓDULOS: no verifican una cuenta interna del uso de
-suelo, sino que las dos mitades del hogar sigan contando la misma historia.
+accesibilidad que entra a la puja es el logsum mensual de transporte, con peso
+1 (hasta el schema v6, un campo `α = 1`) y `λ_h = |b_costo_h|` lo pasa a pesos.
+Estos tests son un test de CONSISTENCIA ENTRE MÓDULOS: no verifican una cuenta
+interna del uso de suelo, sino que las dos mitades del hogar sigan contando la
+misma historia.
 
 Desde el schema v6 λ no vive en la config de suelo: lo deriva
 `lambda_desde_demanda`. Hasta v5 era una copia literal de |b_costo| que nada
@@ -28,11 +29,14 @@ la app movía la accesibilidad y dejaba λ quieto, sin que nada fallara.
 from __future__ import annotations
 
 import numpy as np
+import pytest
+from pydantic import ValidationError
 
 from titirilquen_core.bienestar import vot_clp_hora
 from titirilquen_core.config import DemandConfig, SimulationConfig, SupplyConfig
+from titirilquen_core.constantes import MU_SUELO, VIAJES_MES
 from titirilquen_core.land_use.accesibilidad import lambda_desde_demanda
-from titirilquen_core.land_use.config import LandUseConfig
+from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 from titirilquen_core.presets import DEFAULT_STRATA
 
 #: El estrato `h` del uso de suelo (0=alto, 1=medio, 2=bajo) es el `h+1` de
@@ -59,11 +63,9 @@ def _vot_transporte() -> np.ndarray:
 
 
 def _vot_suelo() -> np.ndarray:
-    """VOT implícito por estrato (`α/λ`, en utiles de transporte ÷ utiles/$),
-    del uso de suelo. Con α = 1 y λ = |b_costo| sale en $ por utile de
-    transporte, que ×b_tiempo·60 es exactamente el VOT en $/h."""
-    alphas = np.array([e.alpha for e in LandUseConfig().estratos])
-    return alphas / _lambdas()
+    """VOT implícito por estrato (`1/λ`, en $ por utile de transporte), del uso
+    de suelo. Con λ = |b_costo|, ×b_tiempo·60 es exactamente el VOT en $/h."""
+    return 1.0 / _lambdas()
 
 
 def test_lambda_es_literalmente_el_b_costo_de_transporte() -> None:
@@ -85,19 +87,25 @@ def test_calibrar_b_costo_mueve_lambda() -> None:
     np.testing.assert_allclose(lam, _b_costo() * np.array([2.0, 1.0, 1.0]), rtol=1e-12)
 
 
-def test_alpha_es_uno_y_comun() -> None:
-    """`α = 1` en los tres: la puja lee el logsum mensual tal cual.
+def test_alpha_y_mu_no_son_parametros_del_escenario() -> None:
+    """La puja lee el logsum mensual con peso 1 y `μ = 1/√VIAJES_MES` fijo.
 
-    Es el ancla del original (`actualizar(T, alpha=[1,1,1])` sobre el logsum).
-    Cualquier otro valor es un multiplicador sin fuente; si se quiere más o
-    menos nitidez, la perilla es `mu`, no `alpha`.
+    Hasta el schema v6 los dos eran campos (`alpha = 1` por estrato y `mu`), y
+    sólo `μ·α` y `μ·ρ` están identificados: mover cualquiera de los dos era
+    re-escalar a la vez accesibilidad y densidad (D1 de la auditoría). Peso 1 es
+    el ancla del original (`actualizar(T, alpha=[1,1,1])` sobre el logsum); μ
+    tiene su justificación en `constantes.MU_SUELO`. Esto impide que vuelvan a
+    entrar al schema por la puerta de atrás.
     """
-    alphas = [e.alpha for e in LandUseConfig().estratos]
-    assert alphas == [1.0, 1.0, 1.0], f"alpha = {alphas}"
+    with pytest.raises(ValidationError):
+        LandUseStratumConfig(y=1.0, alpha=1.0)  # type: ignore[call-arg]
+    with pytest.raises(ValidationError):
+        LandUseConfig(mu=0.151)  # type: ignore[call-arg]
+    assert pytest.approx(1 / np.sqrt(VIAJES_MES)) == MU_SUELO
 
 
 def test_el_vot_es_el_mismo_en_los_dos_modulos() -> None:
-    """`α_h/λ_h · b_tiempo_viaje · 60` reproduce el VOT de transporte en $/h,
+    """`b_tiempo_viaje · 60 / λ_h` reproduce el VOT de transporte en $/h,
     en NIVEL y no sólo en razones."""
     bt = np.array([abs(DEFAULT_STRATA[h]["betas"]["b_tiempo_viaje"]) for h in ESTRATOS_TRANSPORTE])
     vot_desde_suelo = _vot_suelo() * bt * 60.0
@@ -108,7 +116,7 @@ def test_el_vot_es_el_mismo_en_los_dos_modulos() -> None:
         err_msg=(
             "el valor del tiempo dejó de ser el mismo en los dos módulos.\n"
             f"  transporte: {_vot_transporte().round(1)} $/h\n"
-            f"  suelo (α/λ·b_t·60): {vot_desde_suelo.round(1)} $/h"
+            f"  suelo (b_t·60/λ): {vot_desde_suelo.round(1)} $/h"
         ),
     )
 

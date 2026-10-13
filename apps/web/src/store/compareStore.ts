@@ -269,7 +269,10 @@ export const useCompareStore = create<CompareState>()(
       reset: () => set({ kind: "transport", scenarios: INITIAL, baseId: null }),
     }),
     {
-      name: "titirilquen.compare.v1",
+      // v2 (oct-2026): el schema v7 del suelo retiró `alpha` y `mu`. Sin
+      // migraciones, como los .ttrq.json: los escenarios guardados con v1 se
+      // descartan en vez de fallar al correrlos.
+      name: "titirilquen.compare.v2",
       partialize: (s): CompareInputs => ({
         kind: s.kind,
         baseId: s.baseId,

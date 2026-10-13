@@ -8,9 +8,9 @@ Operador de punto fijo sobre el vector de utilidades de reserva `u ∈ R^H`:
     F(u)_h = (1/β) · log Σ_i  S_i · e^{β·s_hi} / ( Σ_g H_g · e^{β(s_gi − u_g)} )
 
 donde `s_hi = y_h + f_h(z_i)/λ_h` es la puja del estrato h por la parcela i y
-f_h(z_i) = −α_h·T_h(i) − ρ_h·dens(i) la atractividad. El peso H_g aparece SOLO
-en el denominador (la subasta la disputan H_g postores de cada tipo; ver la
-ponderación de `Q`).
+f_h(z_i) = −T_h(i) − ρ_h·d_i la atractividad (d_i: densidad relativa a la media).
+El peso H_g aparece SOLO en el denominador (la subasta la disputan H_g postores
+de cada tipo; ver la ponderación de `Q`).
 
 **Notación: la de Martínez (2018, §4.3–4.6), sin cambios de letra.**
 
@@ -28,8 +28,8 @@ Hasta sep-2026 la configuración llamaba `beta` a `μ` y el código usaba `b`
 para `β`: las letras corridas un lugar respecto de Martínez (D-31).
 
 **Limitación (D-08): `λ` no está identificado en la forma cerrada.** β es
-uniforme sobre las pujas y `f` es lineal en alpha y rho, así que dividir por
-`λ_h` es **idéntico** a re-escalar `(alpha_h, rho_h)` por `1/λ_h`, y de paso
+uniforme sobre las pujas y `f` es lineal en T y rho, así que dividir por
+`λ_h` es **idéntico** a re-escalar el peso de T y `rho_h` por `1/λ_h`, y de paso
 escala el ruido a `1/(μ·λ_h)`. Mover λ no es un efecto-ingreso: es
 re-parametrizar preferencias y ruido a la vez. La corrección es la rama HEV;
 ver los docstrings de `solve_logit` y `solve_subasta`.
@@ -79,54 +79,56 @@ class LandUseResult:
 def _f(
     T: NDArray[np.float64],
     S: NDArray[np.float64],
-    alpha: NDArray[np.float64],
     rho: NDArray[np.float64],
-    ancho_celda_km: float = 1.0,
 ) -> NDArray[np.float64]:
-    """Atractividad de la parcela f_h(i) = -α_h·T(i) - ρ_h·dens(i).
+    """Atractividad de la parcela f_h(i) = −T_h(i) − ρ_h·d_i.
 
-    **Unidades físicas (D-26)**: `T` en minutos y la densidad `dens = S/Δx` en
-    hogares/km — NO la capacidad por celda. Así el equilibrio es invariante a
-    la resolución de la grilla: refinarla no cambia ni T(x) ni dens(x), solo
-    los muestrea más fino. Con `ancho_celda_km=1` (default) dens = S, lo que
-    reproduce el comportamiento previo (útil para tests con unidades
-    arbitrarias).
+    `T` es la accesibilidad mensual en utiles de transporte (`accesibilidad.
+    T_desde_logsum`) y entra con peso 1: no hay `alpha` desde el schema v7 (D1
+    de la auditoría, ver `LandUseStratumConfig`).
 
-    **`dens` es EXÓGENA (D-32).** Es la oferta `S`, generada una vez, no la
+    **`d_i` es la densidad RELATIVA (v7, D2): `d_i = S_i / media(S)`.** Es la
+    densidad de la celda, `S_i/Δx` en hogares/km, sobre la media de la ciudad,
+    `ΣS/(I·Δx)`; el `Δx` se cancela, y por eso esta función ya no recibe
+    `ancho_celda_km`. Así `rho` (utiles-mes) significa lo mismo en una ciudad de
+    25.000 hogares que en una de 100.000: hasta v6 la densidad era absoluta y el
+    mismo `rho` pesaba proporcionalmente más cuanto más poblada la ciudad, de modo
+    que mover `H_por_estrato` cambiaba la localización sin tocar preferencias. Es
+    además invariante a la resolución de la grilla, como la absoluta (D-26).
+
+    **La densidad es EXÓGENA (D-32).** Es la oferta `S`, generada una vez, no la
     población resultante — y como el mercado se vacía (columnas de `Q` que suman
-    1, `Σ S = Σ H`), la densidad realizada es idénticamente `S/Δx`: el
+    1, `Σ S = Σ H`), la densidad realizada es idénticamente la de `S`: el
     equilibrio decide *quién* vive en cada celda, nunca *cuántos*. Además esta
-    función se evalúa una sola vez, antes del punto fijo. Así que `ρ·dens` NO
+    función se evalúa una sola vez, antes del punto fijo. Así que `ρ·d` NO
     modela congestión residencial: ningún hogar puede mover la magnitud por la
     que se lo penaliza. No hay externalidad de localización en el sentido de
     Martínez, donde la atractividad es endógena y genera cascadas.
 
-    Consecuencia práctica (AU-12): `dens` es una función fija de la parcela y,
-    en las formas monocéntricas, casi proporcional a `T` —`corr = −0,996` con la
-    forma `normal`—, de modo que `f ≈ −(α − ρ·b)·T + cte`: la localización
-    identifica sobre todo esa combinación, no `alpha` y `rho` por separado.
+    Consecuencia práctica (AU-12): `d` es una función fija de la parcela y, en
+    las formas monocéntricas, casi proporcional a `T` —`corr = −0,996` con la
+    forma `normal`—, de modo que `f ≈ −(1 − ρ·b)·T + cte`: la localización
+    identifica sobre todo esa combinación.
 
     Ojo con la fuerza de esa afirmación: `corr = −0,996` es varianza explicada,
-    no equivalencia de efecto. Medido (`sandbox/impacto-rho`, E3), construir el
-    equivalente `α' = α − b·ρ` reproduce el **70,5 %** del efecto de una `rho`
-    heterogénea en `normal`, no el 99,6 %: al residuo le queda ~30 % porque la
-    subasta amplifica diferencias chicas (AU-10). En `valle`, donde la
-    colinealidad es exacta, sí reproduce el 99,3 %; en `bimodal` y `meseta` el
-    equivalente no sirve."""
-    dens = S[None, :] / ancho_celda_km
-    return -alpha[:, None] * T - rho[:, None] * dens
+    no equivalencia de efecto. Medido (`sandbox/impacto-rho`, E3, con el `alpha`
+    de entonces), construir el equivalente `α' = α − b·ρ` reproduce el **70,5 %**
+    del efecto de una `rho` heterogénea en `normal`, no el 99,6 %: al residuo le
+    queda ~30 % porque la subasta amplifica diferencias chicas (AU-10). En
+    `valle`, donde la colinealidad es exacta, sí reproduce el 99,3 %; en
+    `bimodal` y `meseta` el equivalente no sirve."""
+    d_rel = S[None, :] / float(np.mean(S))
+    return -T - rho[:, None] * d_rel
 
 
 def _f_div_lambda(
     T: NDArray[np.float64],
     S: NDArray[np.float64],
-    alpha: NDArray[np.float64],
     rho: NDArray[np.float64],
     lambda_h: NDArray[np.float64],
-    ancho_celda_km: float = 1.0,
 ) -> NDArray[np.float64]:
     """f_h(i) / λ_h."""
-    return _f(T, S, alpha, rho, ancho_celda_km) / lambda_h[:, None]
+    return _f(T, S, rho) / lambda_h[:, None]
 
 
 def _solve_fixed_point(
@@ -216,17 +218,15 @@ def solve_logit(
     S: NDArray[np.int_],
     y: NDArray[np.float64],
     T: NDArray[np.float64],
-    alpha: NDArray[np.float64],
     rho: NDArray[np.float64],
     lambda_h: NDArray[np.float64],
     beta_i: float = 1.0,
     tol: float = 1e-8,
     max_iter: int = 10000,
-    ancho_celda_km: float = 1.0,
 ) -> LandUseResult:
     """Equilibrio vía punto fijo logit (ec. 5.4 Martínez). Puja `y_h + f_h(i)/λ_h`.
 
-    `T` en minutos; `ancho_celda_km` convierte S a densidad (ver D-26).
+    `T` es la accesibilidad mensual en utiles; la densidad la deriva `_f` de `S`.
 
     **Recibe `beta_i`, no `mu`.** Es la precisión en dinero de la puja, el `β_i`
     de Martínez (4.25), y se aplica tal cual. `solve_subasta` —la puerta que usa
@@ -238,9 +238,9 @@ def solve_logit(
     **Limitación conocida (D-08).** Aplica un β **uniforme** a las pujas, así
     que `λ_h` entra dividiendo `f_h` entero. Consecuencia exacta:
 
-        y_h + f_h(i)/λ_h  ==  y_h + f(i; alpha_h/λ_h, rho_h/λ_h)
+        y_h + f_h(i)/λ_h  ==  y_h + f(i; peso de T = 1/λ_h, rho_h/λ_h)
 
-    o sea **mover `λ_h` es idénticamente re-escalar `(alpha_h, rho_h)` por
+    o sea **mover `λ_h` es idénticamente re-escalar el peso de T (1) y `rho_h` por
     `1/λ_h`**
     —verificado: Q coincide dígito a dígito— y, a la vez, escalar el ruido de
     elección de ese estrato a `1/(μ·λ_h)`. Las tres cosas se mueven juntas y no
@@ -252,9 +252,9 @@ def solve_logit(
     nadie —verificado: triplicar `y` mueve `Q` en 8·10⁻¹⁰—. Lo que sí reasigna
     es `f_h/λ_h`, que **varía entre parcelas** y por eso ū no puede absorberlo.
 
-    El canal dominante es `alpha_ef = alpha/λ`: subir el `λ` de un estrato achica
+    El canal dominante es el peso efectivo de T, `1/λ`: subir el `λ` de un estrato achica
     cuánto valora el tiempo de viaje, deja de pujar por lo central y **se aleja**.
-    Bajarlo lo acerca. Que el motor sea α y no ρ se comprueba anulando ρ: el
+    Bajarlo lo acerca. Que el motor sea T y no ρ se comprueba anulando ρ: el
     patrón sobrevive y se refuerza.
 
     **Medir esto sólo tiene sentido con λ decreciente en el ingreso**, que es la
@@ -288,7 +288,7 @@ def solve_logit(
     """
     H_arr = np.asarray(H, dtype=float)
     S_arr = np.asarray(S, dtype=float).reshape(-1)
-    score = y[:, None] + _f_div_lambda(T, S_arr, alpha, rho, lambda_h, ancho_celda_km)
+    score = y[:, None] + _f_div_lambda(T, S_arr, rho, lambda_h)
     return _solve_fixed_point(score, H_arr, S_arr, beta_i, tol, max_iter)
 
 
@@ -368,13 +368,11 @@ def solve_subasta(
     S: NDArray[np.int_],
     y: NDArray[np.float64],
     T: NDArray[np.float64],
-    alpha: NDArray[np.float64],
     rho: NDArray[np.float64],
     lambda_h: NDArray[np.float64],
     mu: float = 1.0,
     tol: float = 1e-8,
     max_iter: int = 10000,
-    ancho_celda_km: float = 1.0,
 ) -> LandUseResult:
     """Resuelve el equilibrio con el modelo de subasta que corresponda a los `λ`.
 
@@ -410,7 +408,7 @@ def solve_subasta(
     """
     H_arr = np.asarray(H, dtype=float)
     S_arr = np.asarray(S, dtype=float).reshape(-1)
-    score = y[:, None] + _f_div_lambda(T, S_arr, alpha, rho, lambda_h, ancho_celda_km)
+    score = y[:, None] + _f_div_lambda(T, S_arr, rho, lambda_h)
     lam = np.asarray(lambda_h, dtype=float)
     # `mu` es la precisión del ruido en ÚTILES (el μ_h de Martínez, común a los
     # estratos). La precisión en DINERO —la que ve la subasta, porque la puja

@@ -10,6 +10,11 @@ Correr desde packages/titirilquen_core:
 
 Nota de estilo: la salida va en ASCII (ver `diagnostico_bienestar.py`), porque
 la consola de Windows usa cp1252 y un `print` con «λ» aborta la corrida.
+
+Schema v7 (oct-2026): `alpha` y `mu` dejaron de ser campos del suelo. Esta
+auditoría conserva su escenario —alpha = 6,5/6,0/5,5, mu = 1, rho = 0— metiendo
+alpha dentro de T_h (la misma f) y pasando mu directo a `solve_subasta`, porque
+`LandUseCity` ya fija mu = `constantes.MU_SUELO`.
 """
 
 from __future__ import annotations
@@ -38,35 +43,53 @@ DIST_KM = np.abs(np.arange(L) - CBD).astype(float) * DX
 GAMMA = 0.5772156649015329
 
 
-def _cfg(H=H_BASE, rho=None, mu=1.0):
+def _cfg(H=H_BASE, rho=None):
     r = LandUseStratumConfig(y=1.0).rho if rho is None else rho
     return LandUseConfig(
         H_por_estrato=H,
-        mu=mu,
-        estratos=tuple(
-            LandUseStratumConfig(y=y, alpha=a, rho=r) for y, a in zip(Y, ALPHA, strict=True)
-        ),
+        estratos=tuple(LandUseStratumConfig(y=y, rho=r) for y in Y),
     )
 
 
-def ciudad(lams, **kw):
+#: El `alpha` del escenario, como factor por estrato sobre T (schema v7).
+_ALPHA_COL = np.asarray(ALPHA)[:, None]
+
+
+def ciudad(lams, mu=1.0, **kw):
     # λ va explícito (schema v6: no es campo del suelo). Esta auditoría lo mueve
     # con T fija a propósito, para aislar su efecto sobre la subasta.
-    return LandUseCity.build(
+    # `LandUseCity` resuelve con mu = MU_SUELO; la auditoría usa mu = 1 y lo
+    # barre, así que la ciudad da la oferta S y el equilibrio se re-resuelve.
+    T = _ALPHA_COL * T_flujo_libre(
+        DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
+        L,
+        CBD,
+        DX,
+        supply=SupplyConfig(),
+    )
+    cfg = _cfg(**kw)
+    lam = np.asarray(lams, dtype=float)
+    c = LandUseCity.build(
         L=L,
         CBD=CBD,
-        cfg=_cfg(**kw),
-        lambda_h=np.asarray(lams, dtype=float),
+        cfg=cfg,
+        lambda_h=lam,
         ancho_celda_km=DX,
         rng=np.random.default_rng(42),
-        T=T_flujo_libre(
-            DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
-            L,
-            CBD,
-            DX,
-            supply=SupplyConfig(),
-        ),
+        T=T,
     )
+    c.result = solve_subasta(
+        H=np.asarray(cfg.H_por_estrato),
+        S=c.S,
+        y=np.asarray(Y),
+        T=T,
+        rho=np.asarray([e.rho for e in cfg.estratos]),
+        lambda_h=lam,
+        mu=mu,
+        tol=cfg.tol,
+        max_iter=cfg.max_iter,
+    )
+    return c
 
 
 def perfil(city):
@@ -84,19 +107,17 @@ def _kw_solver(lams, rho=None, mu=1.0):
     """Argumentos crudos para `solve_subasta`, sin pasar por LandUseCity.
 
     Para `solve_logit` pasar por `_a_logit`: recibe `beta_i`, no `mu`."""
-    cfg = _cfg(rho=rho, mu=mu)
+    cfg = _cfg(rho=rho)
     c = ciudad(lams, rho=rho, mu=mu)
     return {
         "H": np.asarray(cfg.H_por_estrato),
         "S": c.S,
         "y": np.asarray(Y),
-        "T": np.tile(DIST_KM / 30.0 * 60.0, (3, 1)),
-        "alpha": np.asarray(ALPHA),
+        "T": np.tile(DIST_KM / 30.0 * 60.0, (3, 1)) * _ALPHA_COL,
         "rho": np.asarray([e.rho for e in cfg.estratos]),
         "mu": mu,
         "tol": 1e-8,
         "max_iter": 4000,
-        "ancho_celda_km": DX,
     }
 
 
@@ -259,7 +280,7 @@ def s5_identificacion() -> None:
     for lam in (0.5, 0.8, 1.25, 2.0):
         kw_l = _kw_solver((lam, 1.0, 1.0))
         kw_r = dict(kw_l)
-        kw_r["alpha"] = np.array([ALPHA[0] / lam, ALPHA[1], ALPHA[2]])
+        kw_r["T"] = kw_l["T"] / np.array([[lam], [1.0], [1.0]])
         kw_r["rho"] = np.array([kw_l["rho"][0] / lam, kw_l["rho"][1], kw_l["rho"][2]])
 
         c_l = solve_logit(lambda_h=np.array([lam, 1.0, 1.0]), **_a_logit(kw_l))

@@ -320,7 +320,7 @@
       "auto": "Car ownership"
     },
     "row_hint": {
-      "vot": "β time ÷ β cost, in $/h. The same in Transport and in the land bid (α/λ).",
+      "vot": "β time ÷ β cost, in $/h. The same in Transport and in the land bid (1/λ).",
       "lambda": "= |β cost|: turns transport utils into pesos when bidding.",
       "ruido": "Scale of the bid shock, in $/month. Lower λ ⇒ wider noise in pesos.",
       "auto": "Enters the mode-choice logit and, through the logsum, the accessibility T."
@@ -331,19 +331,19 @@
       "b_costo": "β cost",
       "b_tiempo": "Time βs (in-vehicle, wait, access, walk)",
       "asc": "Constants (ASC) and penalties",
-      "prob_auto": "Car ownership",
-      "mu": "μ (land use only)"
+      "prob_auto": "Car ownership"
     },
     "knob_effect": {
       "b_costo": "Transport: the value of time and the sensitivity to fares and parking. Land: λₕ, which sorts the strata by value of time (the Alonso gradient), and the accessibility T.",
       "b_tiempo": "Transport: the value of time and the split between fast and slow modes. Land: the accessibility T, since it changes each cell's logsum.",
       "asc": "Transport: the modal split. Land: the accessibility T, through the same logsum.",
-      "prob_auto": "Transport: who can choose the car. Land: each stratum's accessibility T; it is what, with equal λ, leaves the high stratum somewhat farther from the center.",
-      "mu": "Does not touch Transport. It is the precision of the noise of choosing a home relative to a trip: higher μ, sharper auction and a more segregated city. It is land use's only knob of its own."
+      "prob_auto": "Transport: who can choose the car. Land: each stratum's accessibility T; it is what, with equal λ, leaves the high stratum somewhat farther from the center."
     },
     "stale_note": "Any change here makes the Transport, Land use and City in equilibrium results stale: each page flags it and offers to rerun.",
     "summary": "The logit coefficients are edited on the Calibration page: they also set land use's accessibility and λ.",
-    "edit_link": "Edit in Calibration →"
+    "edit_link": "Edit in Calibration →",
+    "mu_meta": "μ = {{mu}} · fixed",
+    "mu_fijo": "It is the precision of the home-choice noise (Martínez, eq. 4.2), measured on the scale of one trip. The bid reads one month's accessibility, {{n}} trips; if each trip carries its own independent shock, the month's grows like √{{n}} and the precision falls to 1/√{{n}}. It is a reasoned assumption, not data: without observed rents it cannot be estimated. It is not a knob because moving it rescales accessibility and density at once."
   },
   "demand_inspector": {
     "title": "Utility inspector — multinomial logit",
@@ -395,7 +395,7 @@
     "densidad_media_label": "Population scale (pop/km)",
     "densidad_media": "Mean density",
     "poblacion_total_hint": "Total population ≈ {{total}} = length × mean density ({{dens}} pop/km). It sets how many households there are; per-cell density is a consequence of supply (S/Δx), not an imposed gradient.",
-    "bidrent_hint": "The accessibility entering the bid is the mode-choice logsum —that household's expected trip utility—, monthly (44 trips). α = 1 reads it as is; λ_h = |b_cost_h| turns it into pesos, so the value of time α/λ is the same as in Transport; μ sets the noise (1/√44 ≈ 0.15 by default). One household, one utility function (D-34).",
+    "bidrent_hint": "The accessibility entering the bid is the mode-choice logsum —that household's expected trip utility—, monthly (44 trips), and it enters with weight 1. λ_h = |b_cost_h| turns it into pesos, so the value of time is the same as in Transport. One household, one utility function (D-34).",
     "subtitle": "Alonso-Muth-Mills model",
     "mode_standalone": "Land use only",
     "mode_coupled": "City at equilibrium",
@@ -426,11 +426,9 @@
     "trajectory_outer_counter": "Outer iteration:",
     "logit_converged": "Auction converged",
     "logit_iterations": "Auction iters",
-    "param_mu": "μ (auction sharpness)",
     "param_H": "H ({{stratum}})",
     "param_y": "Income y ($/month)",
-    "param_alpha": "α (accessibility multiplier)",
-    "param_rho": "ρ (density, util-months per hh/km)",
+    "param_rho": "ρ (density, util-months per mean density)",
     "param_densidad": "Stratum density (pop/km)",
     "densidad_hint": "Each cell's density is set by the housing supply, S/Δx: equilibrium decides who lives in each cell, not how many.",
     "param_oferta_sigma": "Supply dispersion (σ)",
@@ -460,16 +458,15 @@
     "forma_valle": "Valley",
     "forma_hint_valle": "Little space at the center, lots at the periphery: density grows with distance (inverted triangle).",
     "oferta_sigma_na": "Not applicable to the uniform shape (flat density).",
-    "y_na": "Does not affect the allocation: income enters only as a per-stratum constant and is absorbed into the reservation utility. Sorting is governed by λ (the value of time α/λ), each stratum's accessibility and ρ.",
+    "y_na": "Does not affect the allocation: income enters only as a per-stratum constant and is absorbed into the reservation utility. Sorting is governed by λ (the value of time), each stratum's accessibility and ρ.",
     "intro": "Bid-rent theory predicts that households with the highest valuation of accessibility to the center outbid the rest for parcels near the CBD, pushing lower-valuation groups toward the periphery.",
     "distribution_meta": "bid-rent · 3 strata",
     "relation": "This module solves land use ONLY, with transport fixed at free flow. For the full land ↔ transport loop, see “City at equilibrium”.",
     "placeholder_title": "Land use · the auction for space",
-    "placeholder_desc": "The Alonso equilibrium allocates households by auction: each stratum bids for parcels according to its valuation of accessibility (α·T/λ, in pesos) and its disutility of density (ρ·dens/λ). The stratum with the highest value of time wins the center; the rest sort toward the periphery. Adjust the city shape and per-stratum parameters on the left panel.",
-    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utils/$: it is each stratum's |b_cost|, the same number. It moves from the Calibration page: changing b_cost changes both λ (the value of time α/λ used to bid) and the accessibility T. A common scale of all three does not move the allocation, only the rent unit (D-41).",
-    "mu_hint": "The module's only knob of its own: Martínez's precision μ, how noisy choosing a home is relative to one trip. μ = 1 is one trip's noise against a monthly signal (near-deterministic city, Theil ≈ 0.76). The default 1/√44 ≈ 0.15 assumes the home-choice noise accumulates 44 independent trip shocks (Theil ≈ 0.23). Does not touch the value of time.",
-    "alpha_hint": "1 = accessibility as is. Any other value is an unsourced multiplier; for more or less sharpness use μ. Common to the three strata: their differences in valuing time already come through λ.",
-    "rho_hint": "No source in the original model; 0 by default (pure Alonso: only accessibility matters). It enters in pesos as ρ/λ_h, so the high stratum pays more for low density. Raising it mixes the city and flattens rents; near 0.019 the allocation inverts and the rich end up in the periphery."
+    "placeholder_desc": "The Alonso equilibrium allocates households by auction: each stratum bids for parcels according to its valuation of accessibility (T/λ, in pesos) and its disutility of density (ρ·d/λ, with d the density relative to the mean). The stratum with the highest value of time wins the center; the rest sort toward the periphery. Adjust the city shape and per-stratum parameters on the left panel.",
+    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utils/$: it is each stratum's |b_cost|, the same number. It moves from the Calibration page: changing b_cost changes both λ (the value of time used to bid) and the accessibility T. A common scale of all three does not move the allocation, only the rent unit (D-41).",
+    "rho_hint": "No source in the original model; 0 by default (pure Alonso: only accessibility matters). It penalizes RELATIVE density (the cell's over the city mean), so its effect does not change with population. It enters in pesos as ρ/λ_h: the high stratum pays more for low density. Raising it mixes the city and flattens rents; with the default supply, near 31 the allocation inverts and the rich end up in the periphery.",
+    "mu_fijo": "μ = 1/√{{n}} ≈ {{mu}}, fixed: home-choice noise accumulates the month's {{n}} trips. It is not a scenario parameter; the reason is on the Calibration page."
   },
   "bid_price": {
     "y_label": "PRICE (REL.)",

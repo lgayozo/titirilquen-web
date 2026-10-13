@@ -168,27 +168,32 @@ export interface SimulationConfig {
 }
 
 /**
- *  Parámetros de la función de puje (bid function) por estrato. **Unidades
- *  (D-26/D-27/D-34)**: `T` es el logsum mensual de transporte (utiles de
- *  transporte por mes) y la densidad va en hogares/km; `alpha` es
- *  adimensional (1 = la accesibilidad tal cual) y `rho` en utiles-mes por
- *  (hogar/km). λ_h, la utilidad marginal del ingreso que pasa el score a
- *  $/mes, NO es un campo: es |b_costo_h| de la demanda
- *  (`accesibilidad.lambda_desde_ demanda`, schema v6). `y` está en $/mes
- *  (CLP); no mueve la asignación (se absorbe en ū, ver D-08) pero sí la
- *  métrica de carga mensual costo/ingreso del acoplado.
+ *  Parámetros de la función de puje (bid function) por estrato. La
+ *  atractividad es `f_h(i) = −T_h(i) − ρ_h·d_i` (schema v7, oct-2026).
+ *  **Unidades (D-26/D-27/D-34)**: `T` es el logsum mensual de transporte
+ *  (utiles de transporte por mes) y `d_i` la densidad RELATIVA de la parcela
+ *  —su densidad sobre la media de la ciudad, adimensional—, así que `rho` va
+ *  en utiles-mes: lo que el hogar resta a su puja, en accesibilidad mensual,
+ *  por cada «densidad media» que tenga su celda. λ_h, la utilidad marginal
+ *  del ingreso que pasa el score a $/mes, NO es un campo: es |b_costo_h| de
+ *  la demanda (`accesibilidad.lambda_desde_demanda`, schema v6). `y` está en
+ *  $/mes (CLP); no mueve la asignación (se absorbe en ū, ver D-08) pero sí la
+ *  métrica de carga mensual costo/ingreso del acoplado. **No hay `alpha`
+ *  (desde v7, D1 de la auditoría).** El peso de la accesibilidad es 1: la
+ *  puja lee la utilidad de transporte del mismo hogar, que ya está en su
+ *  escala. Un multiplicador por estrato no tenía fuente, y uno común era
+ *  indistinguible de mover μ (sólo μ·α y μ·ρ están identificados: escalar
+ *  pujas y escala del ruido por el mismo k no cambia ninguna probabilidad).
+ *  La sensibilidad relativa a la densidad es ρ.
  */
 export interface LandUseStratumConfig {
   /** Ingreso mensual del estrato ($/mes) */
   y: number;
   /**
-   *  Multiplicador de la accesibilidad (logsum mensual de transporte); 1 = tal
-   *  cual
-   */
-  alpha: number;
-  /**
-   *  Penalización de densidad (utiles de transporte por mes, por hogar/km). 0 =
-   *  Alonso puro: sólo manda la accesibilidad. Entra en pesos como rho/lambda_h
+   *  Penalización de densidad, en utiles de transporte por mes por unidad de
+   *  densidad RELATIVA (densidad de la celda / densidad media de la ciudad). 0
+   *  = Alonso puro: sólo manda la accesibilidad. Entra en pesos como
+   *  rho/lambda_h
    */
   rho: number;
 }
@@ -198,20 +203,12 @@ export interface LandUseConfig {
   /** Número de hogares por estrato (alto, medio, bajo) */
   H_por_estrato: [number, number, number];
   /**
-   *  Parámetros de puja de los tres estratos (alto, medio, bajo). `alpha` es
-   *  común; la diferencia de λ_h = |b_costo_h| entre estratos (de la demanda)
-   *  fija el valor del tiempo `alpha/λ` de cada uno, que es lo que produce el
-   *  gradiente de Alonso.
+   *  Parámetros de puja de los tres estratos (alto, medio, bajo). La
+   *  accesibilidad entra con peso 1; la diferencia de λ_h = |b_costo_h| entre
+   *  estratos (de la demanda) fija el valor del tiempo `1/λ` de cada uno, que
+   *  es lo que produce el gradiente de Alonso.
    */
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
-  /**
-   *  μ de Martínez: precisión del ruido de la utilidad de localizarse, en 1 por
-   *  útil. Es la razón entre la escala del ruido de elegir casa y la de un
-   *  viaje; el ruido de la puja tiene escala 1/(mu·lambda) = 1/β_h. Default
-   *  1/√VIAJES_MES ≈ 0,151: el shock mensual acumula VIAJES_MES viajes
-   *  independientes. 1 = un solo shock por casa (ciudad casi determinista)
-   */
-  mu: number;
   tol: number;
   max_iter: number;
   /**

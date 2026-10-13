@@ -141,21 +141,17 @@ export const DEFAULTS_LAND_USE_CORE: LandUseConfig = {
   estratos: [
     {
       y: 3500000.0,
-      alpha: 1.0,
       rho: 0.0,
     },
     {
       y: 1500000.0,
-      alpha: 1.0,
       rho: 0.0,
     },
     {
       y: 500000.0,
-      alpha: 1.0,
       rho: 0.0,
     },
   ],
-  mu: 0.15075567228888181,
   tol: 1e-8,
   max_iter: 10000,
   forma: "normal",

@@ -30,7 +30,7 @@ tagline: Presets, comparison, suggested activities
 ### B. λ and the value of time
 1. Under Land use, start from the default configuration: the high stratum lives 1.9 km from the CBD and the low one 5.9 km.
 2. Load "equal λ": the three strata with the middle stratum's b_cost, and therefore with its λ, which is the same number. It is the same as setting the s slider of "Value of time across strata" to 0 on the Calibration page; sweep s between 0 and 2 to see the transition. Where does each stratum end up?
-3. Measured: segregation **nearly vanishes**, Theil from 0.23 to 0.02, with the high stratum at 4.3 km and the low one at 3.1 km. With a common α = 1, the value of time is α/λ, and if the λ are equal nobody values access more than anyone else. Why does the high stratum end up somewhat farther? (Hint: compare its car ownership with the low stratum's.)
+3. Measured: segregation **nearly vanishes**, Theil from 0.23 to 0.02, with the high stratum at 4.3 km and the low one at 3.1 km. Accessibility is worth T/λ in pesos, and if the λ are equal nobody values access more than anyone else. Why does the high stratum end up somewhat farther? (Hint: compare its car ownership with the low stratum's.)
 4. Load "high λ × 2". The high stratum moves to 3.0 km. Is that an income effect? No: doubling λ halves its value of time. Income y, by contrast, reallocates nobody. (Hint: Land-use tutorial, section on λ.)
 
 <LoadScenario id="lambda_iguales">Equal λ</LoadScenario>
@@ -46,11 +46,11 @@ tagline: Presets, comparison, suggested activities
 
 ### D. The Alonso effect and its inversion
 1. Under Land use, with the default configuration, who lives near the CBD? What is the Theil segregation?
-2. Load "density penalty": ρ = 0.03 for the three strata. Since it enters divided by λ, the high stratum pays more pesos to avoid the dense central cells.
-3. Measured: the high stratum moves from 1.9 to 5.8 km from the CBD and the low one from 5.9 to 2.8 km. It is the "rich in the periphery" pattern. Which force wins in each case, accessibility or density?
+2. Load "density penalty": ρ = 54 for the three strata (in util-months per "mean density"; the inversion threshold is near 31). Since it enters divided by λ, the high stratum pays more pesos to avoid the dense central cells.
+3. Measured: the high stratum moves from 2.0 to 5.9 km from the CBD and the low one from 5.9 to 2.6 km. It is the "rich in the periphery" pattern. Which force wins in each case, accessibility or density?
 
 <LoadScenario id="alonso_base">Alonso (default)</LoadScenario>
-<LoadScenario id="alonso_invertido">Density penalty ρ = 0.03</LoadScenario>
+<LoadScenario id="alonso_invertido">Density penalty ρ = 54</LoadScenario>
 
 
 ### E. MSA sensitivity

@@ -5,9 +5,9 @@ import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { Panel } from "@/components/ui/Panel";
 import { votClpHora } from "@/lib/agregados";
+import { MU_SUELO, VIAJES_MES } from "@/lib/gen/constantes.gen";
 import { conHeterogeneidad, sDeDemanda } from "@/lib/heterogeneidadLambda";
 import type { StratumId } from "@/lib/types";
-import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
 /**
@@ -18,10 +18,14 @@ import { useSimulationStore } from "@/store/simulationStore";
  * el λ_h = |b_costo_h| de la puja. Dentro de Transporte quedaba escondida
  * como un panel más, y no lo es.
  *
- * No agrega estado: edita `SimulationConfig.demand` (store de simulación) y
- * `LandUseConfig.mu` (store de suelo), los mismos que leen las otras páginas.
- * Las cifras derivadas se calculan acá por ser aritmética de presentación
- * (VoT = β_t/β_c·60, β_h = μ·λ_h); ningún número de modelo sale de TS.
+ * No agrega estado: edita `SimulationConfig.demand` (store de simulación), el
+ * mismo que leen las otras páginas. Las cifras derivadas se calculan acá por
+ * ser aritmética de presentación (VoT = β_t/β_c·60, β_h = μ·λ_h); ningún
+ * número de modelo sale de TS.
+ *
+ * μ se MUESTRA, no se edita: desde el schema v7 es la constante `MU_SUELO` del
+ * núcleo (D1 de la auditoría). Hasta v6 había acá un slider sobre
+ * `LandUseConfig.mu`.
  */
 
 const STRATA: StratumId[] = [1, 2, 3];
@@ -34,10 +38,8 @@ export function CalibrationPage() {
   const { t } = useTranslation("simulator");
   const config = useSimulationStore((s) => s.config);
   const setConfig = useSimulationStore((s) => s.setConfig);
-  const luConfig = useLandUseStore((s) => s.config);
-  const setLuConfig = useLandUseStore((s) => s.setConfig);
 
-  const mu = luConfig.mu;
+  const mu = MU_SUELO;
   // Heterogeneidad de λ: `null` si los b_costo no caen en la curva.
   const sLam = sDeDemanda(config.demand);
   const setS = (v: number) => setConfig((c) => conHeterogeneidad(c, v));
@@ -53,7 +55,7 @@ export function CalibrationPage() {
     };
   });
 
-  const perillas = ["b_costo", "b_tiempo", "asc", "prob_auto", "mu"] as const;
+  const perillas = ["b_costo", "b_tiempo", "asc", "prob_auto"] as const;
 
   return (
     <div className="page">
@@ -101,19 +103,15 @@ export function CalibrationPage() {
         <CalibrationPanel config={config} onChange={setConfig} defaultOpen />
         <CollapsibleSection
           title={t("calibration_page.mu_section")}
-          meta={`μ=${mu.toFixed(3)}`}
+          meta={t("calibration_page.mu_meta", { mu: mu.toFixed(3) })}
           defaultOpen
         >
-          <LabeledSlider
-            label={t("land_use.param_mu")}
-            value={mu}
-            min={0.01}
-            max={2}
-            step={0.01}
-            format={(v) => v.toFixed(3)}
-            hint={t("land_use.mu_hint")}
-            onChange={(v) => setLuConfig((c) => ({ ...c, mu: v }))}
-          />
+          <div className="font-fig text-[13px] tabular-nums text-[var(--ink)]">
+            μ = 1/√{VIAJES_MES} ≈ {mu.toFixed(3)}
+          </div>
+          <p className="mt-1 text-[11px] leading-snug text-muted">
+            {t("calibration_page.mu_fijo", { n: VIAJES_MES })}
+          </p>
         </CollapsibleSection>
       </aside>
 

@@ -441,14 +441,20 @@
     <tr>
       <td class="n">—</td>
       <td class="ruta py">land_use/config.py</td>
-      <td class="n">25</td>
-      <td><code>LandUseStratumConfig</code> — <code>y</code> (39), <code>alpha</code> (40), <code>rho</code> (51), con sus unidades en el docstring. λ<sub>h</sub> no es campo desde el schema v6</td>
+      <td class="n">22</td>
+      <td><code>LandUseStratumConfig</code> — <code>y</code> (46), <code>rho</code> (47), con sus unidades en el docstring. λ<sub>h</sub> no es campo desde el schema v6; α tampoco desde v7 (la accesibilidad entra con peso 1)</td>
     </tr>
     <tr>
       <td class="n">—</td>
       <td class="ruta py">land_use/config.py</td>
-      <td class="n">56</td>
-      <td><code>LandUseConfig</code> — <code>H_por_estrato</code> (61), <code>estratos</code> (123), <code>mu</code> (164) derivado de VIAJES_MES, <code>forma</code> (178), <code>oferta_sigma_frac</code> (185)</td>
+      <td class="n">58</td>
+      <td><code>LandUseConfig</code> — <code>H_por_estrato</code> (63), <code>estratos</code> (134), <code>forma</code> (164), <code>oferta_sigma_frac</code> (171). μ no es campo desde v7</td>
+    </tr>
+    <tr>
+      <td class="n">—</td>
+      <td class="ruta py">constantes.py</td>
+      <td class="n">74</td>
+      <td><code>MU_SUELO</code> — μ = 1/√VIAJES_MES ≈ 0,151, constante desde v7; el comentario dice por qué es una analogía (segundo momento) y no una derivación</td>
     </tr>
     <tr>
       <td class="n">—</td>
@@ -471,7 +477,7 @@
     <tr>
       <td class="n">(2.2)</td>
       <td class="ruta py">constantes.py</td>
-      <td class="n">54</td>
+      <td class="n">55</td>
       <td><code>VIAJES_MES</code> — 44 viajes al mes, la misma constante que mensualiza los costos del capítulo 7</td>
     </tr>
     <tr>
@@ -484,12 +490,12 @@
       <td class="n">(2.3)</td>
       <td class="ruta py">land_use/equilibrium.py</td>
       <td class="n">365</td>
-      <td><code>solve_subasta</code> — despacha según los datos: λ uniformes a la forma cerrada, distintos a HEV; <code>solve_logit</code> (213) es la entrada de la cerrada</td>
+      <td><code>solve_subasta</code> — despacha según los datos: λ uniformes a la forma cerrada, distintos a HEV; <code>solve_logit</code> (215) es la entrada de la cerrada</td>
     </tr>
     <tr>
       <td class="n">(2.4)</td>
       <td class="ruta py">land_use/equilibrium.py</td>
-      <td class="n">132</td>
+      <td class="n">134</td>
       <td><code>_solve_fixed_point</code> — el punto fijo sobre <em>u</em> con <em>β = μλ</em>; <code>_solve_hev</code> (295) itera el balance (2.5) sin forma cerrada</td>
     </tr>
     <tr>
@@ -501,8 +507,8 @@
     <tr>
       <td class="n">(2.5)</td>
       <td class="ruta py">land_use/ciudad.py</td>
-      <td class="n">39</td>
-      <td><code>LandUseCity</code> — arma la ciudad y resuelve; <code>densidad_por_celda</code> (151) es <em>S/Δx</em></td>
+      <td class="n">40</td>
+      <td><code>LandUseCity</code> — arma la ciudad y resuelve; <code>densidad_por_celda</code> (149) es <em>S/Δx</em></td>
     </tr>
     <tr>
       <td class="n">(2.5)</td>
@@ -519,8 +525,8 @@
     <tr>
       <td class="n">—</td>
       <td class="ruta ts">components/modules/LandUseBuilder.tsx</td>
-      <td class="n">209</td>
-      <td><code>param_mu</code> — el control de μ va de 0,01 a 2; α es común y λ se muestra sin editar</td>
+      <td class="n">203</td>
+      <td><code>mu_fijo</code> — μ y λ se muestran sin editar (v7); el control de ρ por estrato va de 0 a 60, <code>max</code> (231)</td>
     </tr>
   </tbody>
 </table>

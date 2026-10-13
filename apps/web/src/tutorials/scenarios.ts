@@ -85,10 +85,12 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     },
   },
 
-  // D. Efecto Alonso y su inversión. α es común y vale 1 (D-34): la inversión
-  // se produce con la penalización por densidad, que entra dividida por λ y
-  // castiga más en pesos al estrato alto. Con ρ = 0,03 en los tres (el tope de
-  // la interfaz) el alto pasa a 5,8 km y el bajo a 2,8 km.
+  // D. Efecto Alonso y su inversión. La accesibilidad entra con peso 1 (D-34):
+  // la inversión se produce con la penalización por densidad, que entra
+  // dividida por λ y castiga más en pesos al estrato alto. ρ = 54 en los tres
+  // (utiles-mes sobre la densidad relativa, schema v7; es el 0,03 por hog/km de
+  // v6 con 1.800 hog/km): medido en el núcleo con 201 celdas, el alto pasa a
+  // ≈5,9 km y el bajo a ≈2,6 km. El umbral de inversión es ≈31.
   alonso_base: {
     to: "/land-use",
     build: () => ({ sim: sim(), landUse: lu() }),
@@ -97,7 +99,7 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     to: "/land-use",
     build: () => {
       const l = lu();
-      for (const e of l.estratos) e.rho = 0.03;
+      for (const e of l.estratos) e.rho = 54;
       return { sim: sim(), landUse: l };
     },
   },

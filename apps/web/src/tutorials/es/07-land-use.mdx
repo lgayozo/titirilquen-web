@@ -22,14 +22,14 @@ $$
 donde $\lambda_h$ es la utilidad marginal del ingreso, en utiles por peso, $y_h$ el ingreso mensual del estrato y $f_h(z_i)$ lo que la parcela vale por sí misma:
 
 $$
-f_h(z_i) = -\alpha\, T_h(i) - \rho_h \cdot \frac{S_i}{\Delta x}
+f_h(z_i) = -T_h(i) - \rho_h\, d_i, \qquad d_i = \frac{S_i}{\bar S}
 $$
 
 <OverleafRef sec="Suelo · Función de puje" tag="S-2" />
 
-$T_h(i)$ es la **accesibilidad**: el costo mensual de vivir en $i$ y tener que viajar, igual a $-44$ veces el logsum del logit modal del capítulo de Demanda, a flujo libre. Está en utiles de transporte por mes y es distinta para cada estrato, porque cada uno tiene su propio logit. $\alpha$ vale 1 para todos, de modo que la puja lee esa accesibilidad tal cual; $\rho_h$ penaliza la **densidad** $S_i/\Delta x$ (hogares/km) y vale 0 por defecto.
+$T_h(i)$ es la **accesibilidad**: el costo mensual de vivir en $i$ y tener que viajar, igual a $-44$ veces el logsum del logit modal del capítulo de Demanda, a flujo libre. Está en utiles de transporte por mes y es distinta para cada estrato, porque cada uno tiene su propio logit. Entra con peso 1: la puja lee esa accesibilidad tal cual. $\rho_h$ penaliza la **densidad relativa** $d_i$, la densidad de la celda sobre la media de la ciudad, y vale 0 por defecto; está en utiles-mes, y por ser relativa el mismo $\rho$ significa lo mismo con 25.000 que con 100.000 hogares.
 
-Con $\lambda_h$ igual al coeficiente de costo del logit modal, el mismo hogar tiene **una sola función de utilidad** en los dos módulos: su valor del tiempo $\alpha/\lambda_h$ es 6.200, 3.100 y 1.600 pesos por hora para los estratos alto, medio y bajo, el mismo con que elige modo. Por eso el suelo no tiene un $\lambda$ propio: lo lee de la demanda, y se mueve desde la página **Calibración**. Cambiar $b_{\text{costo}}$ mueve a la vez $\lambda_h$ y la accesibilidad $T_h$.
+Con $\lambda_h$ igual al coeficiente de costo del logit modal, el mismo hogar tiene **una sola función de utilidad** en los dos módulos: su valor del tiempo es 6.200, 3.100 y 1.600 pesos por hora para los estratos alto, medio y bajo, el mismo con que elige modo. Por eso el suelo no tiene un $\lambda$ propio: lo lee de la demanda, y se mueve desde la página **Calibración**. Cambiar $b_{\text{costo}}$ mueve a la vez $\lambda_h$ y la accesibilidad $T_h$.
 
 Despejando el precio al nivel de utilidad de reserva $u_h$ se obtiene la **disposición a pagar** (*willingness to pay*), que también es aleatoria:
 
@@ -67,13 +67,13 @@ con $\gamma \approx 0{,}577$ la constante de Euler. Los precios están definidos
 
 ## $\lambda$, el valor del tiempo y por qué importa la subasta heteroscedástica
 
-Lo que ordena a los estratos en el espacio no es $\alpha$, que es común, sino **$\lambda$**: con $\alpha = 1$, el valor del tiempo $\alpha/\lambda_h$ es mayor para el estrato alto, que por eso puja más fuerte por la accesibilidad del centro.
+Lo que ordena a los estratos en el espacio es **$\lambda$**: la accesibilidad vale en pesos $T_h/\lambda_h$, y el estrato alto, con el $\lambda$ menor, la valora más y puja más fuerte por la del centro.
 
 <Callout type="warn">
-**Con la subasta logit de precisión común, $\lambda$ no se puede leer.** La puja divide $f$ por $\lambda_h$, y $f$ es lineal en $\alpha$ y $\rho$:
+**Con la subasta logit de precisión común, $\lambda$ no se puede leer.** La puja divide $f$ por $\lambda_h$, y $f$ es lineal en $T$ y $\rho$:
 
 $$
-y_h + \frac{f_h(z_i)}{\lambda_h} \;\equiv\; y_h + f\!\left(z_i;\; \frac{\alpha}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
+y_h + \frac{f_h(z_i)}{\lambda_h} \;\equiv\; y_h + f\!\left(z_i;\; \frac{T_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
 $$
 
 Mover $\lambda_h$ sería exactamente re-escalar las preferencias de ese estrato. La subasta heteroscedástica rompe esa equivalencia, porque $\lambda_h$ mueve además la dispersión de la puja, que la re-escala de preferencias no toca. Por eso el simulador la usa: con ella $\lambda$ queda identificado. En una subasta, en cambio, $\lambda$ nunca actúa por sensibilidad al precio: todos los postores de una parcela pagan lo mismo, así que el precio se cancela.
@@ -89,7 +89,7 @@ Probá, en la configuración por defecto de la página:
 
 ## La precisión $\mu$
 
-$\mu$ es la única perilla propia del módulo: cuánto ruido tiene elegir casa frente a elegir modo. Vale $1/\sqrt{44} \approx 0{,}15$ porque la accesibilidad es mensual, la suma de 44 viajes, y si cada viaje trae su propio shock la dispersión del mes crece como $\sqrt{44}$. Con $\mu = 1$ la subasta es casi determinista y la segregación de Theil sube de 0,23 a 0,76.
+$\mu$ mide cuánto ruido tiene elegir casa frente a elegir modo, y está **fijo** en $1/\sqrt{44} \approx 0{,}151$: la accesibilidad es mensual, la suma de 44 viajes, y si cada viaje trae su propio shock la dispersión del mes crece como $\sqrt{44}$. Es un supuesto razonado, no un dato: sin rentas observadas no se puede estimar. No se ofrece como control porque en la subasta sólo entran $\mu T$ y $\mu \rho$, así que moverlo equivale a re-escalar a la vez la accesibilidad y la densidad. Con $\mu = 1$ la subasta sería casi determinista y la segregación de Theil subiría de 0,23 a 0,76.
 
 ## La forma de la ciudad
 

@@ -294,7 +294,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 # 0.000641 / 0.001241 — o sea la utilidad marginal del ingreso decrece con el
 # ingreso, que es la unica pieza de esto con teoria detras; toda la
 # heterogeneidad del VoT vive ahi. (2) Un hogar, una funcion de utilidad: el
-# modulo de uso de suelo importa esta anatomia (alpha comun, lambda_h ∝
+# modulo de uso de suelo importa esta anatomia (T con peso 1, lambda_h ∝
 # b_costo_h), ver `land_use/config.py` y `tests/test_vot_consistente.py`.
 # (3) La linea base se movio y esta declarada en `tests/test_linea_base.py`.
 # Invariantes fijados en `tests/test_presets.py`.

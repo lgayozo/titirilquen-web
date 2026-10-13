@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import { MU_SUELO, VIAJES_MES } from "@/lib/gen/constantes.gen";
 import type { LandUseConfig } from "@/lib/types-v2";
 
 interface LandUseBuilderProps {
@@ -23,19 +24,12 @@ export function LandUseBuilder({
 }: LandUseBuilderProps) {
   const { t } = useTranslation("simulator");
 
-  // α es común a los tres estratos: el control mueve los tres valores a la
-  // vez. λ_h = |b_costo_h| no es parte de esta config (schema v6): el núcleo
-  // lo deriva de la demanda, y se mueve desde la calibración de Transporte,
-  // junto con la accesibilidad T que también depende de b_costo (D-41).
-  const alpha = config.estratos[0].alpha;
-  const setAlpha = (v: number) =>
-    onChange((c) => ({
-      ...c,
-      estratos: c.estratos.map((e) => ({
-        ...e,
-        alpha: v,
-      })) as LandUseConfig["estratos"],
-    }));
+  // λ_h = |b_costo_h| no es parte de esta config (schema v6): el núcleo lo
+  // deriva de la demanda, y se mueve desde la calibración de Transporte, junto
+  // con la accesibilidad T que también depende de b_costo (D-41). α y μ
+  // tampoco (schema v7, D1 de la auditoría): la accesibilidad entra con peso 1
+  // y μ es la constante `MU_SUELO`; se muestra, no se edita. La única palanca
+  // de preferencias que queda acá es ρ, por estrato.
   const fmtLambda = (v: number) => `${(v * 1e4).toFixed(2)}·10⁻⁴`;
 
   const setStratum = (
@@ -196,35 +190,22 @@ export function LandUseBuilder({
         )}
       </CollapsibleSection>
 
-      {/* ---- PARÁMETROS DE PUJA (bid-rent): μ y α; λ solo se muestra (D-41) ---- */}
+      {/* ---- PARÁMETROS DE PUJA (bid-rent): μ y λ sólo se muestran (D-41, v7) ---- */}
       <CollapsibleSection
         title={t("land_use.section_bidrent")}
-        meta={`μ=${config.mu.toFixed(2)} · α=${alpha.toFixed(1)}`}
+        meta={`μ=${MU_SUELO.toFixed(3)}`}
         defaultOpen={false}
       >
         <p className="mb-2 text-[10px] text-muted">
           {t("land_use.bidrent_hint")}
         </p>
-        <LabeledSlider
-          label={t("land_use.param_mu")}
-          value={config.mu}
-          min={0.01}
-          max={2}
-          step={0.01}
-          format={(v) => v.toFixed(3)}
-          hint={t("land_use.mu_hint")}
-          onChange={(v) => onChange((c) => ({ ...c, mu: v }))}
-        />
-        <LabeledSlider
-          label={t("land_use.param_alpha")}
-          value={alpha}
-          min={0.1}
-          max={10}
-          step={0.1}
-          hint={t("land_use.alpha_hint")}
-          onChange={setAlpha}
-        />
-        <p className="-mt-1 text-[10px] text-muted">
+        <p className="text-[10px] text-muted">
+          {t("land_use.mu_fijo", {
+            n: VIAJES_MES,
+            mu: MU_SUELO.toFixed(3),
+          })}
+        </p>
+        <p className="mt-1 text-[10px] text-muted">
           {t("land_use.lambda_values", {
             l1: fmtLambda(lambdas[0]),
             l2: fmtLambda(lambdas[1]),
@@ -240,16 +221,16 @@ export function LandUseBuilder({
           <CollapsibleSection
             key={i}
             title={`${labels[idx]} · ${t("land_use.section_bidrent_short")}`}
-            meta={`ρ=${(s.rho * 1e3).toFixed(1)}·10⁻³`}
+            meta={`ρ=${s.rho.toFixed(0)}`}
             defaultOpen={false}
           >
             <LabeledSlider
               label={t("land_use.param_rho")}
               value={s.rho}
               min={0}
-              max={0.03}
-              step={0.0005}
-              format={(v) => `${(v * 1e3).toFixed(2)}·10⁻³`}
+              max={60}
+              step={1}
+              format={(v) => v.toFixed(0)}
               hint={t("land_use.rho_hint")}
               onChange={(v) => setStratum(idx, { rho: v })}
             />

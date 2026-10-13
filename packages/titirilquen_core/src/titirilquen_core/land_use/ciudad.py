@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from numpy.typing import NDArray
 
+from titirilquen_core.constantes import MU_SUELO
 from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult, solve_subasta
@@ -122,7 +123,6 @@ class LandUseCity:
         H = np.asarray(self.cfg.H_por_estrato, dtype=int)
         n_strata = len(H)
         y = np.asarray([s.y for s in self.cfg.estratos], dtype=float)
-        alpha = np.asarray([s.alpha for s in self.cfg.estratos], dtype=float)
         rho = np.asarray([s.rho for s in self.cfg.estratos], dtype=float)
 
         if T is None:
@@ -138,13 +138,11 @@ class LandUseCity:
             S=self.S,
             y=y,
             T=T,
-            alpha=alpha,
             rho=rho,
             lambda_h=self.lambda_h,
-            mu=self.cfg.mu,
+            mu=MU_SUELO,
             tol=self.cfg.tol,
             max_iter=self.cfg.max_iter,
-            ancho_celda_km=self.ancho_celda_km,
         )
         self.parcelas = asignar_hogares_simple(Q=self.result.Q, S=self.S, H=H, rng=rng)
 

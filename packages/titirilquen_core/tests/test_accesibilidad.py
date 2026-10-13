@@ -1,6 +1,6 @@
 """La accesibilidad de la puja es el logsum mensual de transporte, por estrato (D-34).
 
-Tres cosas que tienen que ser ciertas para que `alpha = 1` signifique algo:
+Tres cosas que tienen que ser ciertas para que el peso 1 sobre T signifique algo:
 que el logsum sea el del logit modal (no otra cantidad), que `T` crezca con la
 distancia (es un costo), y que por estrato NO invierta Alonso — que es lo que
 D-22 temía y la razón por la que hasta sep-2026 la accesibilidad era común.

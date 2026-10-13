@@ -12,10 +12,10 @@ y que nunca llegó a ejecutarse (D-34).
 
 El signo lo vuelve costo (crece con la distancia) y `VIAJES_MES` lo pone en la
 misma escala mensual que el arriendo `p` y el ingreso `y` (D-27): un viaje contra
-un mes de arriendo no es comparable; 44 viajes sí. Con `alpha = 1` la puja lee
+un mes de arriendo no es comparable; 44 viajes sí. Con peso 1 la puja lee
 esa cantidad tal cual, con `lambda_h = |b_costo_h|` la pasa a pesos, y
 `mu = 1/√VIAJES_MES` fija el ruido de la puja como el de VIAJES_MES shocks
-independientes, uno por viaje (ver `LandUseConfig.mu`).
+independientes, uno por viaje (ver `constantes.MU_SUELO`).
 
 Es POR ESTRATO, y eso es deliberado: la heterogeneidad de acceso (tener auto,
 valorar más el tiempo) es justamente lo que el logsum captura. D-22 había fijado
@@ -90,7 +90,7 @@ def logsum_por_celda(
 
 def T_desde_logsum(logsum: NDArray[np.float64]) -> NDArray[np.float64]:
     """`T = −VIAJES_MES · logsum`: costo de accesibilidad mensual, en utiles de
-    transporte. Es lo que entra a `f_h(i) = −alpha_h·T_h(i) − rho_h·dens(i)`."""
+    transporte. Es lo que entra a `f_h(i) = −T_h(i) − rho_h·d_i`."""
     return -float(VIAJES_MES) * np.asarray(logsum, dtype=float)
 
 

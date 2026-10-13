@@ -320,7 +320,7 @@
       "auto": "Tenencia de auto"
     },
     "row_hint": {
-      "vot": "β tiempo ÷ β costo, en $/h. El mismo en Transporte y en la puja por suelo (α/λ).",
+      "vot": "β tiempo ÷ β costo, en $/h. El mismo en Transporte y en la puja por suelo (1/λ).",
       "lambda": "= |β costo|: convierte utiles de transporte en pesos al pujar.",
       "ruido": "Escala del shock de la puja, en $/mes. Menor λ ⇒ ruido más ancho en pesos.",
       "auto": "Entra al logit modal y, por el logsum, a la accesibilidad T."
@@ -331,19 +331,19 @@
       "b_costo": "β costo",
       "b_tiempo": "β de tiempo (viaje, espera, acceso, caminata)",
       "asc": "Constantes (ASC) y penalizaciones",
-      "prob_auto": "Tenencia de auto",
-      "mu": "μ (sólo uso de suelo)"
+      "prob_auto": "Tenencia de auto"
     },
     "knob_effect": {
       "b_costo": "Transporte: el valor del tiempo y la sensibilidad a tarifas y estacionamiento. Suelo: λₕ, que ordena a los estratos por valor del tiempo (el gradiente de Alonso), y la accesibilidad T.",
       "b_tiempo": "Transporte: el valor del tiempo y el reparto entre modos rápidos y lentos. Suelo: la accesibilidad T, porque cambia el logsum de cada celda.",
       "asc": "Transporte: el reparto modal. Suelo: la accesibilidad T, por el mismo logsum.",
-      "prob_auto": "Transporte: quién puede elegir auto. Suelo: la accesibilidad T de cada estrato; es la que, con los λ iguales, deja al estrato alto algo más lejos del centro.",
-      "mu": "No toca Transporte. Es la precisión del ruido de elegir casa frente a un viaje: más μ, subasta más nítida y ciudad más segregada. Es la única perilla propia del uso de suelo."
+      "prob_auto": "Transporte: quién puede elegir auto. Suelo: la accesibilidad T de cada estrato; es la que, con los λ iguales, deja al estrato alto algo más lejos del centro."
     },
     "stale_note": "Cualquier cambio acá deja desactualizados los resultados de Transporte, Uso de suelo y Ciudad en equilibrio: cada página lo avisa y ofrece volver a correr.",
     "summary": "Los coeficientes del logit se editan en la página Calibración: fijan también la accesibilidad y el λ del uso de suelo.",
-    "edit_link": "Editar en Calibración →"
+    "edit_link": "Editar en Calibración →",
+    "mu_meta": "μ = {{mu}} · fijo",
+    "mu_fijo": "Es la precisión del ruido de elegir casa (Martínez, ec. 4.2), medida en la escala de un viaje. La puja lee la accesibilidad de un mes, {{n}} viajes; si cada viaje trae su shock independiente, el del mes crece como √{{n}} y la precisión cae a 1/√{{n}}. Es un supuesto razonado, no un dato: sin rentas observadas no se puede estimar. No es una perilla porque moverlo re-escala a la vez accesibilidad y densidad."
   },
   "demand_inspector": {
     "title": "Inspector de utilidad — logit multinomial",
@@ -395,7 +395,7 @@
     "densidad_media_label": "Escala de población (hab/km)",
     "densidad_media": "Densidad media",
     "poblacion_total_hint": "Población total ≈ {{total}} = largo × densidad media ({{dens}} hab/km). Fija cuántos hogares hay; la densidad por celda es una consecuencia de la oferta (S/Δx), no un gradiente impuesto.",
-    "bidrent_hint": "La accesibilidad que entra en la puja es el logsum del logit modal —la utilidad esperada del viaje de ese hogar—, mensualizado (44 viajes). α = 1 lo lee tal cual; λ_h = |b_costo_h| lo pasa a pesos, así que el valor del tiempo α/λ es el mismo que en Transporte; μ fija el ruido (1/√44 ≈ 0,15 por defecto). Un hogar, una función de utilidad (D-34).",
+    "bidrent_hint": "La accesibilidad que entra en la puja es el logsum del logit modal —la utilidad esperada del viaje de ese hogar—, mensualizado (44 viajes), y entra con peso 1. λ_h = |b_costo_h| la pasa a pesos, así que el valor del tiempo es el mismo que en Transporte. Un hogar, una función de utilidad (D-34).",
     "subtitle": "Modelo Alonso-Muth-Mills",
     "mode_standalone": "Sólo suelo",
     "mode_coupled": "Ciudad en equilibrio",
@@ -426,11 +426,9 @@
     "trajectory_outer_counter": "Iteración exterior:",
     "logit_converged": "Subasta convergió",
     "logit_iterations": "Iter. subasta",
-    "param_mu": "μ (nitidez de la subasta)",
     "param_H": "H ({{stratum}})",
     "param_y": "Ingreso y ($/mes)",
-    "param_alpha": "α (multiplicador de la accesibilidad)",
-    "param_rho": "ρ (densidad, utiles-mes por hog/km)",
+    "param_rho": "ρ (densidad, utiles-mes por densidad media)",
     "param_densidad": "Densidad del estrato (hab/km)",
     "densidad_hint": "La densidad de cada celda la fija la oferta de vivienda, S/Δx: el equilibrio decide quién vive en cada celda, no cuántos.",
     "param_oferta_sigma": "Dispersión de la oferta (σ)",
@@ -460,16 +458,15 @@
     "forma_valle": "Valle",
     "forma_hint_valle": "Poco espacio en el centro, mucho en la periferia: la densidad crece con la distancia (triángulo invertido).",
     "oferta_sigma_na": "No aplica a la forma uniforme (densidad plana).",
-    "y_na": "No afecta la asignación: el ingreso entra solo como constante por estrato y se absorbe en la utilidad de reserva. El ordenamiento lo gobiernan λ (el valor del tiempo α/λ), la accesibilidad de cada estrato y ρ.",
+    "y_na": "No afecta la asignación: el ingreso entra solo como constante por estrato y se absorbe en la utilidad de reserva. El ordenamiento lo gobiernan λ (el valor del tiempo), la accesibilidad de cada estrato y ρ.",
     "intro": "La teoría del bid-rent predice que los hogares con mayor valoración de la accesibilidad al centro superan en subasta a los demás por parcelas cercanas al CBD, empujando a los grupos de menor valoración hacia la periferia.",
     "distribution_meta": "bid-rent · 3 estratos",
     "relation": "Este módulo resuelve SOLO el suelo, con transporte fijo a flujo libre. Para el loop completo suelo ↔ transporte, ver «Ciudad en equilibrio».",
     "placeholder_title": "Uso de suelo · la subasta del espacio",
-    "placeholder_desc": "El equilibrio Alonso asigna los hogares por subasta: cada estrato puja por las parcelas según su valoración de la accesibilidad (α·T/λ, en pesos) y su rechazo a la densidad (ρ·dens/λ). El estrato con mayor valor del tiempo gana el centro; el resto se ordena hacia la periferia. Ajustá la forma de la ciudad y los parámetros por estrato en el panel izquierdo.",
-    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utiles/$: es el |b_costo| de cada estrato, el mismo número. Se mueve desde la página Calibración: cambiar b_costo cambia a la vez λ (el valor del tiempo α/λ con que se puja) y la accesibilidad T. Una escala común de los tres no mueve la asignación, sólo la unidad de las rentas (D-41).",
-    "mu_hint": "Única perilla propia del módulo: la precisión μ de Martínez, cuánto ruido tiene elegir casa frente a un viaje. μ = 1 es el ruido de un solo viaje contra una señal mensual (ciudad casi determinista, Theil ≈ 0,76). El default 1/√44 ≈ 0,15 supone que el ruido de casa acumula 44 shocks de viaje independientes (Theil ≈ 0,23). No toca el valor del tiempo.",
-    "alpha_hint": "1 = la accesibilidad tal cual. Otro valor es un multiplicador sin fuente; para más o menos nitidez usá μ. Es común a los tres estratos: sus diferencias de valoración del tiempo ya vienen en λ.",
-    "rho_hint": "Sin fuente en el modelo original; 0 por defecto (Alonso puro: sólo manda la accesibilidad). Entra en pesos como ρ/λ_h, así que el estrato alto paga más por baja densidad. Al subirlo la ciudad se mezcla y la renta se aplana; cerca de 0,019 la asignación se invierte y los ricos quedan en la periferia."
+    "placeholder_desc": "El equilibrio Alonso asigna los hogares por subasta: cada estrato puja por las parcelas según su valoración de la accesibilidad (T/λ, en pesos) y su rechazo a la densidad (ρ·d/λ, con d la densidad relativa a la media). El estrato con mayor valor del tiempo gana el centro; el resto se ordena hacia la periferia. Ajustá la forma de la ciudad y los parámetros por estrato en el panel izquierdo.",
+    "lambda_values": "λ = {{l1}} · {{l2}} · {{l3}} utiles/$: es el |b_costo| de cada estrato, el mismo número. Se mueve desde la página Calibración: cambiar b_costo cambia a la vez λ (el valor del tiempo con que se puja) y la accesibilidad T. Una escala común de los tres no mueve la asignación, sólo la unidad de las rentas (D-41).",
+    "rho_hint": "Sin fuente en el modelo original; 0 por defecto (Alonso puro: sólo manda la accesibilidad). Penaliza la densidad RELATIVA (la de la celda sobre la media de la ciudad), así que no cambia de efecto con la población. Entra en pesos como ρ/λ_h: el estrato alto paga más por baja densidad. Al subirlo la ciudad se mezcla y la renta se aplana; con la oferta por defecto, cerca de 31 la asignación se invierte y los ricos quedan en la periferia.",
+    "mu_fijo": "μ = 1/√{{n}} ≈ {{mu}}, fijo: el ruido de elegir casa acumula los {{n}} viajes del mes. No es un parámetro del escenario; la razón está en Calibración."
   },
   "bid_price": {
     "y_label": "PRECIO (REL.)",

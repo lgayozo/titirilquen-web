@@ -10,7 +10,7 @@ tres propiedades que hacen que valga la pena tener el modelo:
 2. **Conserva** los hogares por estrato, que es la ec. (5.1) de Martínez y la
    condición que el punto fijo resuelve.
 3. **Identifica** λ: bajo la forma cerrada mover λ es EXACTAMENTE re-escalar
-   (α, ρ) —max|ΔQ| = 0, ver `test_lambda_equivale_exactamente_a_reescalar…`— y
+   (T, ρ) —max|ΔQ| = 0, ver `test_lambda_equivale_exactamente_a_reescalar…`— y
    bajo HEV deja de serlo. Es la razón de ser del cambio.
 """
 
@@ -38,17 +38,19 @@ def _escenario() -> dict:
     S = np.floor(w / w.sum() * H.sum()).astype(int)
     S[0] += int(H.sum() - S.sum())
     d_km = np.abs(idx - CBD).astype(float) * DX
+    # El mismo escenario que hasta el schema v6, en la forma v7: el `alpha` por
+    # estrato (6,5/6,0/5,5) va dentro de T_h, y `rho` pasa de 0,0025 por hog/km a
+    # 0,0025 × densidad media, que es el mismo término sobre la densidad relativa.
+    densidad_media = float(np.mean(S)) / DX
     return {
         "H": H,
         "S": S,
         "y": np.array([3.5e6, 1.5e6, 0.5e6]),
-        "T": np.tile(d_km / 30.0 * 60.0, (3, 1)),
-        "alpha": np.array([6.5, 6.0, 5.5]),
-        "rho": np.full(3, 0.0025),
+        "T": np.tile(d_km / 30.0 * 60.0, (3, 1)) * np.array([[6.5], [6.0], [5.5]]),
+        "rho": np.full(3, 0.0025 * densidad_media),
         "mu": 1.0,
         "tol": 1e-8,
         "max_iter": 3000,
-        "ancho_celda_km": DX,
     }
 
 
@@ -154,11 +156,11 @@ def test_el_hev_conserva_los_hogares_por_estrato(lams: tuple[float, ...]) -> Non
 
 
 @pytest.mark.parametrize("lam", [0.6, 1.6])
-def test_bajo_hev_lambda_deja_de_ser_reescalar_alpha_y_rho(lam: float) -> None:
+def test_bajo_hev_lambda_deja_de_ser_reescalar_T_y_rho(lam: float) -> None:
     """LA razón de ser del modelo: λ queda identificado.
 
     Bajo la forma cerrada las dos vías dan `max|ΔQ| = 0` exacto (D-08), porque la
-    puja es `y + f/λ` y `f` es lineal en α y ρ. Bajo HEV λ mueve ADEMÁS la escala
+    puja es `y + f/λ` y `f` es lineal en T y ρ. Bajo HEV λ mueve ADEMÁS la escala
     del ruido, que la re-escala de preferencias no toca, así que las dos vías
     dejan de coincidir. Sin esta propiedad, implementar HEV no compraría nada.
     """
@@ -166,7 +168,7 @@ def test_bajo_hev_lambda_deja_de_ser_reescalar_alpha_y_rho(lam: float) -> None:
     via_lambda = solve_subasta(lambda_h=np.array([lam, 1.0, 1.0]), **esc)
 
     reescalado = dict(esc)
-    reescalado["alpha"] = np.array([esc["alpha"][0] / lam, esc["alpha"][1], esc["alpha"][2]])
+    reescalado["T"] = esc["T"] / np.array([[lam], [1.0], [1.0]])
     reescalado["rho"] = np.array([esc["rho"][0] / lam, esc["rho"][1], esc["rho"][2]])
     via_preferencias = solve_subasta(lambda_h=np.ones(3), **reescalado)
 

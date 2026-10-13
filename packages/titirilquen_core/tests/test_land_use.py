@@ -20,14 +20,17 @@ def _toy_scenario(lam: np.ndarray):
     S[CBD] = 0
     H = np.array([2000, 2000, 2000])
     S[0] += int(H.sum() - S.sum())
-    T = np.tile(np.abs(idx - CBD).astype(float), (3, 1))
+    # La heterogeneidad entre estratos va en T_h (la accesibilidad ES por
+    # estrato); hasta el schema v6 iba en un `alpha` = 1,3/1,2/1,1 sobre una T
+    # común, que es la misma f. Y `rho` = media(S) reproduce el rho = 1 sobre la
+    # densidad absoluta de entonces (`ancho_celda_km` = 1): rho·S/media(S) = S.
+    T = np.tile(np.abs(idx - CBD).astype(float), (3, 1)) * np.array([[1.3], [1.2], [1.1]])
     return {
         "H": H,
         "S": S,
         "y": np.array([120.0, 50.0, 10.0]),
         "T": T,
-        "alpha": np.array([1.3, 1.2, 1.1]),
-        "rho": np.array([1.0, 1.0, 1.0]),
+        "rho": np.full(3, float(np.mean(S))),
         "lambda_h": lam,
         "beta_i": 1.0,
         "tol": 1e-9,
@@ -35,12 +38,12 @@ def _toy_scenario(lam: np.ndarray):
     }
 
 
-def test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho() -> None:
+def test_lambda_equivale_exactamente_a_reescalar_T_y_rho() -> None:
     """D-08 — LIMITACION documentada, no bug.
 
-    La puja es `y_h + f_h(i)/lambda_h` con `f = -alpha*T - rho*dens`, asi que
+    La puja es `y_h + f_h(i)/lambda_h` con `f = -T - rho*d`, asi que
 
-        f_h(i)/lambda_h  ==  f(i; alpha_h/lambda_h, rho_h/lambda_h)
+        f_h(i)/lambda_h  ==  f(i; T_h/lambda_h, rho_h/lambda_h)
 
     es una IDENTIDAD. Mover `lambda_h` no es un efecto-ingreso: es re-escalar
     las preferencias de ese estrato y —con β uniforme— tambien su ruido de
@@ -56,7 +59,7 @@ def test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho() -> None:
         via_lambda = solve_logit(**_toy_scenario(escala)).Q
 
         args = _toy_scenario(np.array([1.0, 1.0, 1.0]))
-        args["alpha"] = args["alpha"] / escala
+        args["T"] = args["T"] / escala[:, None]
         args["rho"] = args["rho"] / escala
         via_preferencias = solve_logit(**args).Q
 
@@ -64,7 +67,7 @@ def test_lambda_equivale_exactamente_a_reescalar_alpha_y_rho() -> None:
             via_lambda,
             via_preferencias,
             atol=1e-12,
-            err_msg=f"lambda={lam} deberia ser identico a reescalar alpha y rho por 1/lambda",
+            err_msg=f"lambda={lam} deberia ser identico a reescalar T y rho por 1/lambda",
         )
 
 
@@ -111,14 +114,13 @@ def test_solve_logit_converge_simple() -> None:
     S[CBD] = 0
     S[0] = S[0] + (H.sum() - S.sum())
     assert int(S.sum()) == int(H.sum())
-    T = np.tile(np.abs(np.arange(L) - CBD).astype(float), (3, 1))
+    T = np.tile(np.abs(np.arange(L) - CBD).astype(float), (3, 1)) * np.array([[1.3], [1.2], [1.1]])
     res = solve_logit(
         H=H,
         S=S,
         y=np.array([100.0, 50.0, 10.0]),
         T=T,
-        alpha=np.array([1.3, 1.2, 1.1]),
-        rho=np.array([1.0, 1.0, 1.0]),
+        rho=np.full(3, float(np.mean(S))),
         lambda_h=np.array([1.0, 1.0, 1.0]),
         beta_i=1.0,
         tol=1e-6,
@@ -133,7 +135,7 @@ def test_solve_logit_converge_simple() -> None:
 
 def _T_toy(L: int, CBD: int) -> np.ndarray:
     """Distancia en celdas, para los tests de MECÁNICA con parámetros de juguete
-    (y=100, alpha≈1, rho=1): no necesitan la calibración de transporte."""
+    (y=100, rho=1): no necesitan la calibración de transporte."""
     return np.tile(np.abs(np.arange(L) - CBD).astype(float), (3, 1))
 
 
@@ -171,11 +173,10 @@ def test_land_use_city_build_asigna_todos_los_hogares() -> None:
     cfg = LandUseConfig(
         H_por_estrato=(300, 300, 300),
         estratos=(
-            LandUseStratumConfig(y=100.0, alpha=1.3, rho=1.0),
-            LandUseStratumConfig(y=50.0, alpha=1.2, rho=1.0),
-            LandUseStratumConfig(y=10.0, alpha=1.1, rho=1.0),
+            LandUseStratumConfig(y=100.0, rho=1.0),
+            LandUseStratumConfig(y=50.0, rho=1.0),
+            LandUseStratumConfig(y=10.0, rho=1.0),
         ),
-        mu=1.0,
         max_iter=2000,
     )
     rng = np.random.default_rng(42)
@@ -196,27 +197,32 @@ def test_update_con_T_custom() -> None:
     assert asignados == 600
 
 
-def test_alpha_mas_alto_atrae_cerca_del_cbd() -> None:
-    """Un estrato con α más alto penaliza más el transporte y debería concentrarse
-    más cerca del CBD que uno con α bajo."""
+def test_quien_mas_pierde_con_la_distancia_vive_mas_cerca_del_cbd() -> None:
+    """Un estrato cuya accesibilidad cae más rápido con la distancia penaliza más
+    el transporte y debería concentrarse más cerca del CBD.
+
+    Hasta el schema v6 esto se probaba con un `alpha` por estrato sobre una T
+    común; el `alpha` se retiró (D1 de la auditoría) y la diferencia vive ahora
+    donde vive en el modelo, en `T_h`."""
     cfg = LandUseConfig(
         H_por_estrato=(300, 300, 300),
         estratos=(
-            LandUseStratumConfig(y=100.0, alpha=3.0, rho=1.0),  # alto α = no quiere viajar
-            LandUseStratumConfig(y=50.0, alpha=1.0, rho=1.0),
-            LandUseStratumConfig(y=10.0, alpha=0.5, rho=1.0),  # bajo α = indiferente
+            LandUseStratumConfig(y=100.0, rho=1.0),
+            LandUseStratumConfig(y=50.0, rho=1.0),
+            LandUseStratumConfig(y=10.0, rho=1.0),
         ),
-        mu=1.0,
         max_iter=2000,
     )
     rng = np.random.default_rng(42)
-    city = LandUseCity.build(L=101, CBD=50, cfg=cfg, rng=rng, T=_T_toy(101, 50), lambda_h=_LAM_TOY)
+    # h=0 pierde 3 utiles por celda (no quiere viajar); h=2, 0,5 (indiferente).
+    T = _T_toy(101, 50) * np.array([[3.0], [1.0], [0.5]])
+    city = LandUseCity.build(L=101, CBD=50, cfg=cfg, rng=rng, T=T, lambda_h=_LAM_TOY)
     conteos = city.hogares_por_parcela_estrato()  # (3, 101)
 
     # Distancia media al CBD por estrato
     dist = np.abs(np.arange(101) - 50)
     dist_media = np.array([np.sum(conteos[h] * dist) / max(conteos[h].sum(), 1) for h in range(3)])
-    # α=3.0 (h=0) debería estar estrictamente más cerca que α=0.5 (h=2)
+    # h=0 (3 utiles/celda) debería estar estrictamente más cerca que h=2 (0,5)
     assert dist_media[0] < dist_media[2], f"dist_media={dist_media}"
 
 
@@ -245,8 +251,8 @@ from titirilquen_core.coupled_metrics import _theil  # noqa: E402
 
 
 def _cfg_default_fisica() -> LandUseConfig:
-    """Defaults del paquete (α en utiles/min, ρ en utiles/(hog/km), y en $/mes)
-    con la población de referencia del frontend."""
+    """Defaults del paquete (ρ en utiles-mes sobre la densidad relativa, y en
+    $/mes) con la población de referencia del frontend."""
     return LandUseConfig(H_por_estrato=(1000, 4000, 5000))
 
 
@@ -286,7 +292,7 @@ def test_invariancia_a_la_resolucion_de_la_grilla() -> None:
 
 def test_sensibilidad_al_tamano_fisico() -> None:
     """Agrandar la ciudad FÍSICA (más km, misma grilla y población) SÍ debe
-    aumentar el sorting: el gradiente α·T pesa más contra el ruido del logit.
+    aumentar el sorting: el gradiente de T pesa más contra el ruido del logit.
     Es el efecto económico real, a diferencia del artefacto de grilla (D-26)."""
     L = 201
     theil_por_largo: dict[float, float] = {}
@@ -421,18 +427,19 @@ def test_el_suelo_central_vale_mas_que_el_periferico() -> None:
     grad = _gradiente_alonso(LandUseConfig())
     assert grad > 0, (
         f"gradiente de renta {grad:+.2f}: el suelo con oferta mas caro esta en la "
-        "periferia, no en el centro. Revisar el balance alpha/rho — rho*densidad "
-        "no puede dominar a alpha*T en el grueso de la ciudad."
+        "periferia, no en el centro. Revisar el balance T/rho — rho*densidad "
+        "no puede dominar a T en el grueso de la ciudad."
     )
 
 
 def test_el_gradiente_de_alonso_sobrevive_al_cambio_de_escala() -> None:
-    """El termino de densidad escala con la poblacion y el de acceso no.
+    """La calibracion aguanta las tres escalas de poblacion que la app ofrece.
 
-    `rho*dens` crece con la poblacion mientras `alpha*T` no, asi que un rho fijo
-    puede tener el signo correcto en una ciudad y el contrario en otra mas
-    grande. Este test fija que la calibracion aguante las tres escalas que la
-    app ofrece — es la propiedad que un solo escenario no detecta.
+    Hasta el schema v6 la densidad era absoluta: `rho*dens` crecia con la
+    poblacion mientras `T` no, asi que un rho fijo podia tener el signo correcto
+    en una ciudad y el contrario en otra mas grande. Desde v7 la densidad es
+    relativa (D2) y eso no puede pasar —lo fija `test_rho_es_invariante_a_la_
+    poblacion`—; este test queda como guardia del gradiente en cada escala.
     """
     for suma_h in (36_000, 99_900, 144_000):
         h = suma_h // 3
@@ -454,10 +461,56 @@ def test_subir_rho_aplana_el_gradiente_sin_invertirlo_en_la_base() -> None:
         return _gradiente_alonso(
             LandUseConfig(
                 H_por_estrato=base.H_por_estrato,
-                estratos=tuple(
-                    LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=rho) for e in base.estratos
-                ),
+                estratos=tuple(LandUseStratumConfig(y=e.y, rho=rho) for e in base.estratos),
             )
         )
 
-    assert con_rho(0.0) > con_rho(0.005) > con_rho(0.02)
+    assert con_rho(0.0) > con_rho(RHO_MEDIO) > con_rho(RHO_ALTO)
+
+
+# Valores de rho para los tests, en utiles-mes sobre la densidad relativa (v7).
+# Con la poblacion por defecto del paquete (99.900 hogares en 20 km, 4.995 hog/km)
+# son los 0,005 y 0,02 utiles/(hog/km) que usaba este archivo en v6.
+RHO_MEDIO, RHO_ALTO = 25.0, 100.0
+
+
+def _dist_media_por_estrato(suma_h: int, rho: float) -> np.ndarray:
+    """Distancia media al CBD (km) de cada estrato, con la calibracion por defecto."""
+    L, largo_km = 201, 20.0
+    CBD = L // 2
+    h = suma_h // 3
+    cfg = LandUseConfig(
+        H_por_estrato=(h, h, suma_h - 2 * h),
+        estratos=tuple(LandUseStratumConfig(y=e.y, rho=rho) for e in LandUseConfig().estratos),
+    )
+    city = LandUseCity.build(
+        L=L,
+        CBD=CBD,
+        cfg=cfg,
+        ancho_celda_km=largo_km / L,
+        rng=np.random.default_rng(42),
+        T=_T_web(L, CBD, largo_km / L),
+        lambda_h=_lam_web(),
+    )
+    assert city.result is not None and city.result.converged
+    NQ = city.result.Q * city.S.astype(float)[None, :]
+    dist_km = np.abs(np.arange(L) - CBD) * (largo_km / L)
+    return (NQ * dist_km).sum(1) / NQ.sum(1)
+
+
+def test_rho_es_invariante_a_la_poblacion() -> None:
+    """D2 de la auditoria (schema v7): el mismo `rho` da la misma ciudad con
+    25.000 que con 100.000 hogares.
+
+    `rho` es una preferencia —cuanto le molesta al hogar vivir en una celda
+    densa *para esta ciudad*— y no puede cambiar de efecto porque cambie el
+    tamaño de la poblacion. Con la densidad absoluta de v6 lo cambiaba: el mismo
+    rho pesaba cuatro veces mas en la ciudad de 100.000. La forma de la ciudad
+    sale igual porque la oferta y la composicion escalan juntas; lo que queda es
+    el redondeo entero de `S`."""
+    chica = _dist_media_por_estrato(25_000, RHO_ALTO)
+    grande = _dist_media_por_estrato(100_000, RHO_ALTO)
+    np.testing.assert_allclose(chica, grande, atol=0.02)
+    # Guardia: rho tiene que estar moviendo algo, si no el test es vacuo.
+    sin_rho = _dist_media_por_estrato(100_000, 0.0)
+    assert float(np.abs(grande - sin_rho).max()) > 0.3, (grande, sin_rho)

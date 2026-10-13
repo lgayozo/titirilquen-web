@@ -30,9 +30,9 @@ def _land_use_config() -> LandUseConfig:
     return LandUseConfig(
         H_por_estrato=(50, 100, 100),
         estratos=(
-            LandUseStratumConfig(y=100.0, alpha=1.3, rho=1.0),
-            LandUseStratumConfig(y=50.0, alpha=1.2, rho=1.0),
-            LandUseStratumConfig(y=10.0, alpha=1.1, rho=1.0),
+            LandUseStratumConfig(y=100.0, rho=1.0),
+            LandUseStratumConfig(y=50.0, rho=1.0),
+            LandUseStratumConfig(y=10.0, rho=1.0),
         ),
         max_iter=2000,
     )
