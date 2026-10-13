@@ -16,9 +16,11 @@ Seis bloques:
    dejó la auditoría externa del 2026-09-05.
 4. `asignacion_entera` — `allocation.py` conserva `S_i` por celda pero no `H_h`
    por estrato (D-44): cuánto se desvía.
-5. `perillas` — β y ρ, los dos parámetros propios del módulo, con sus rangos
-   medidos.
-6. `invariancias` — grilla (D-26) y tamaño físico, sobre la configuración vigente.
+5. `perillas` — μ (un supuesto fijo, `MU_SUELO`) y ρ (el control del módulo),
+   con sus rangos medidos; `rho_umbral` busca la inversión.
+6. `invariancias` — grilla (D-26) y tamaño físico, sobre la configuración vigente;
+   `invariancia_poblacion`, el mismo ρ con tres poblaciones (D2, schema v7).
+7. `reescala_mu` — sólo μ·λ, μ·α y μ·ρ entran en la subasta (D1).
 
 Correr desde `packages/titirilquen_core` (~3 min):
 
@@ -39,10 +41,11 @@ RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 from titirilquen_core.config import DemandConfig, SupplyConfig
-from titirilquen_core.constantes import VIAJES_MES
+from titirilquen_core.constantes import MU_SUELO, VIAJES_MES
 from titirilquen_core.land_use import LandUseCity, LandUseConfig
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.config import LandUseStratumConfig
+from titirilquen_core.land_use.equilibrium import solve_subasta
 from titirilquen_core.land_use.supply import generar_oferta
 from titirilquen_core.presets import DEFAULT_STRATA
 
@@ -254,21 +257,52 @@ def _metricas(c) -> dict:
     }
 
 
+def _resolver(cfg: LandUseConfig, *, mu: float, alpha: float = 1.0, lam=None):
+    """La ciudad con un μ y un α distintos de los de la aplicación.
+
+    Desde el schema v7 `LandUseCity` resuelve siempre con `MU_SUELO` y α = 1
+    sobre T (no son campos). Para medir la sensibilidad a esos supuestos se
+    arma la ciudad —que da la oferta S— y se re-resuelve el equilibrio con
+    `solve_subasta`, que sí recibe `mu` y la T que se le pase."""
+    T = _T()
+    c = _ciudad(cfg, T=T, lam=lam)
+    c.result = solve_subasta(
+        H=np.asarray(cfg.H_por_estrato),
+        S=c.S,
+        y=np.asarray([e.y for e in cfg.estratos], float),
+        T=alpha * T,
+        rho=np.asarray([e.rho for e in cfg.estratos], float),
+        lambda_h=np.asarray(_lam() if lam is None else lam, float),
+        mu=mu,
+        tol=cfg.tol,
+        max_iter=cfg.max_iter,
+    )
+    return c
+
+
+def _con_rho(rho: float, H=H_APP) -> LandUseConfig:
+    """Configuración de la aplicación con un ρ común a los tres estratos."""
+    return LandUseConfig(
+        H_por_estrato=H,
+        max_iter=5000,
+        estratos=tuple(LandUseStratumConfig(y=e.y, rho=rho) for e in LandUseConfig().estratos),
+    )
+
+
+#: Los ρ del barrido, en utiles-mes por unidad de densidad relativa (v7). 31
+#: es el umbral de inversión (`rho_umbral`) redondeado; 54 es el escenario
+#: «penalización por densidad» del tutorial; 60, el tope del control.
+RHOS = (0.0, 10.0, 20.0, 31.0, 40.0, 54.0, 60.0)
+
+
 def perillas() -> dict:
-    """μ (nitidez) y ρ (densidad): los dos parámetros propios del módulo."""
+    """μ (un supuesto, fijo desde v7) y ρ (el control del módulo)."""
     out = {"mu": [], "rho": []}
-    for m in (0.05, LandUseConfig().mu, 0.5, 1.0):
-        cfg = LandUseConfig(H_por_estrato=H_APP, mu=m, max_iter=5000)
-        out["mu"].append({"mu": round(m, 4), **_metricas(_ciudad(cfg))})
-    for r in (0.0, 0.005, 0.01, 0.02, 0.03):
-        cfg = LandUseConfig(
-            H_por_estrato=H_APP,
-            max_iter=5000,
-            estratos=tuple(
-                LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=r) for e in LandUseConfig().estratos
-            ),
-        )
-        out["rho"].append({"rho": r, **_metricas(_ciudad(cfg))})
+    for m in (0.05, MU_SUELO, 0.5, 1.0):
+        c = _resolver(LandUseConfig(H_por_estrato=H_APP, max_iter=5000), mu=m)
+        out["mu"].append({"mu": round(m, 4), **_metricas(c)})
+    for r in RHOS:
+        out["rho"].append({"rho": r, **_metricas(_ciudad(_con_rho(r)))})
     return out
 
 
@@ -328,6 +362,31 @@ def invariancias() -> dict:
     return {"grilla": grilla, "tamano_fisico": fisico}
 
 
+def invariancia_poblacion() -> dict:
+    """D2 de la auditoría (schema v7): el mismo ρ, la misma ciudad.
+
+    ρ = 54 (el escenario del tutorial) con 36.000, 72.000 y 144.000 hogares,
+    en la misma ciudad física. Al lado, el contrafactual v6: allí ρ penalizaba
+    la densidad ABSOLUTA, así que el mismo número —0,03 por hogar/km, que a
+    1.800 hog/km es el 54 de v7— equivale en v7 a ρ × (ΣH/36.000)."""
+    rho_v7 = 54.0
+    filas = []
+    for total in (36_000, 72_000, 144_000):
+        H = (int(total * 0.2), int(total * 0.5), total - int(total * 0.2) - int(total * 0.5))
+        v7 = _metricas(_ciudad(_con_rho(rho_v7, H)))
+        rho_v6 = rho_v7 * total / sum(H_APP)
+        v6 = _metricas(_ciudad(_con_rho(rho_v6, H)))
+        filas.append(
+            {
+                "suma_H": total,
+                "densidad_media_hog_km": round(total / LARGO),
+                "v7": {"rho": rho_v7, **v7},
+                "v6_equivalente": {"rho_en_v7": round(rho_v6, 1), **v6},
+            }
+        )
+    return {"rho_v7": rho_v7, "rho_v6_por_hog_km": rho_v7 / (sum(H_APP) / LARGO), "filas": filas}
+
+
 def configuracion_vigente() -> dict:
     """Los parámetros con los que corre la aplicación, tal como están en el schema."""
     cfg = LandUseConfig(H_por_estrato=H_APP)
@@ -338,17 +397,15 @@ def configuracion_vigente() -> dict:
         "H_por_estrato": list(H_APP),
         "y_clp_mes": [e.y for e in cfg.estratos],
         "lambda_utiles_por_clp": lam,
-        "alpha": [e.alpha for e in cfg.estratos],
+        "alpha": 1.0,
         "rho": [e.rho for e in cfg.estratos],
-        "mu": round(cfg.mu, 4),
-        "mu_formula": "1/√VIAJES_MES",
-        "beta_h_por_clp": [cfg.mu * x for x in lam],
-        "escala_ruido_puja_clp_mes": [round(1.0 / (cfg.mu * x)) for x in lam],
+        "mu": round(MU_SUELO, 4),
+        "mu_formula": "1/√VIAJES_MES (constante MU_SUELO, schema v7)",
+        "beta_h_por_clp": [MU_SUELO * x for x in lam],
+        "escala_ruido_puja_clp_mes": [round(1.0 / (MU_SUELO * x)) for x in lam],
         "VIAJES_MES": VIAJES_MES,
         "vot_transporte_clp_h": [round(t * 60.0 / c) for t, c in zip(bt, bc)],
-        "vot_suelo_alpha_sobre_lambda_clp_por_util": [
-            round(e.alpha / x) for e, x in zip(cfg.estratos, lam, strict=True)
-        ],
+        "clp_por_util_de_accesibilidad": [round(1.0 / x) for x in lam],
         "forma": cfg.forma,
         "oferta_sigma_frac": cfg.oferta_sigma_frac,
         "vot_sobre_salario_hora_implicito": [
@@ -358,110 +415,89 @@ def configuracion_vigente() -> dict:
     }
 
 
-def _ciudad_app(cfg: LandUseConfig, lam=None):
-    T = T_flujo_libre(_demanda(), L, CBD, DX, supply=SupplyConfig())
-    return LandUseCity.build(
-        L=L,
-        CBD=CBD,
-        cfg=cfg,
-        ancho_celda_km=DX,
-        T=T,
-        lambda_h=np.asarray(_lam() if lam is None else lam, float),
-        rng=np.random.default_rng(42),
-    ), T
-
-
 def escalas() -> dict:
     """Señal y ruido de la puja, en pesos por mes y por estrato.
 
     La señal es cuánto cambia la puja del estrato entre el centro y la periferia
-    (accesibilidad y densidad, cada una en pesos vía 1/λ); el ruido, la escala
-    Gumbel de la puja, 1/(β·λ_h). Con β = 1 el ruido sería el de un solo viaje."""
-    cfg = LandUseConfig(H_por_estrato=H_APP, max_iter=5000)
-    city, T = _ciudad_app(cfg)
+    por la accesibilidad, en pesos vía 1/λ; el ruido, la escala Gumbel de la
+    puja, 1/(μ·λ_h). Con μ = 1 el ruido sería el de un solo viaje. Con ρ = 0
+    (el default) la densidad no aporta señal; `rho_que_iguala_T` dice qué ρ
+    haría que el término de densidad recorriera el mismo rango que el de
+    accesibilidad, en el estrato medio."""
+    c = _ciudad(LandUseConfig(H_por_estrato=H_APP, max_iter=5000))
+    T = _T()
     lam = _lam()
-    S = np.asarray(city.S, float)
+    S = np.asarray(c.S, float)
     ok = S > 0
-    dens = S / DX
+    d = S / float(np.mean(S))
     filas = []
-    for h, e in enumerate(cfg.estratos):
-        senal_T = float((T[h, ok].max() - T[h, ok].min()) * e.alpha / lam[h])
-        senal_dens = float((dens[ok].max() - dens[ok].min()) * e.rho / lam[h])
-        ruido = 1.0 / (cfg.mu * lam[h])
+    for h in range(3):
+        senal = float((T[h, ok].max() - T[h, ok].min()) / lam[h])
+        ruido = 1.0 / (MU_SUELO * lam[h])
         ruido_1 = 1.0 / lam[h]
         filas.append(
             {
                 "estrato": ["alto", "medio", "bajo"][h],
-                "senal_accesibilidad_clp": round(senal_T),
-                "senal_densidad_clp": round(senal_dens),
-                "senal_total_clp": round(senal_T + senal_dens),
+                "senal_accesibilidad_clp": round(senal),
                 "ruido_clp": round(ruido),
-                "senal_sobre_ruido": round((senal_T + senal_dens) / ruido, 1),
-                "ruido_con_beta_1_clp": round(ruido_1),
-                "senal_sobre_ruido_con_beta_1": round(
-                    (senal_T + senal_dens) / ruido_1, 1
-                ),
+                "senal_sobre_ruido": round(senal / ruido, 1),
+                "ruido_con_mu_1_clp": round(ruido_1),
+                "senal_sobre_ruido_con_mu_1": round(senal / ruido_1, 1),
             }
         )
     rango_T = float(T[1, ok].max() - T[1, ok].min())
-    rango_dens = float(dens[ok].max() - dens[ok].min())
+    rango_d = float(d[ok].max() - d[ok].min())
     return {
         "por_estrato": filas,
         "rango_T_medio_utiles_mes": round(rango_T, 1),
-        "rango_densidad_hab_km": round(rango_dens),
-        "rho_dens_sobre_alpha_T_medio": round(
-            cfg.estratos[1].rho * rango_dens / rango_T, 2
-        ),
+        "rango_densidad_relativa": round(rango_d, 3),
+        "rho_que_iguala_T": round(rango_T / rango_d, 1),
     }
 
 
-def reescala_beta() -> dict:
-    """μ = 1 con (λ, α, ρ) × μ_default reproduce el mismo equilibrio: sólo los
-    productos μ·λ, μ·α y μ·ρ entran en la subasta. Se mide en la rama HEV (el
-    default) y en la cerrada (λ uniforme). λ ya no está en la config (schema
-    v6): cada caso es un par (config, λ_h)."""
-    base = (LandUseConfig(H_por_estrato=H_APP, max_iter=5000), _lam())
-    k = base[0].mu
+#: ρ para la demostración del reescalado: con el default (ρ = 0) la parte de ρ
+#: sería vacía.
+RHO_REESCALA = 20.0
 
-    def reescalada(caso: tuple, que: tuple[str, ...]) -> tuple:
-        cfg, lam = caso
-        estr = tuple(
-            LandUseStratumConfig(
-                y=e.y,
-                alpha=e.alpha * (k if "alpha" in que else 1),
-                rho=e.rho * (k if "rho" in que else 1),
-            )
-            for e in cfg.estratos
-        )
-        lam_k = [x * (k if "lambda" in que else 1) for x in lam]
-        return cfg.model_copy(update={"estratos": estr, "mu": 1.0}), lam_k
 
-    def compara(a: tuple, b: tuple) -> dict:
-        ra = _ciudad_app(*a)[0].result
-        rb = _ciudad_app(*b)[0].result
+def reescala_mu() -> dict:
+    """D1: en la subasta sólo entran μ·λ, μ·α y μ·ρ.
+
+    μ = 1 con (λ, α, ρ) × MU_SUELO reproduce el equilibrio de la
+    aplicación, en la rama HEV (el default) y en la cerrada (λ uniforme). Por
+    eso α dejó de ser un campo: libre, era indistinguible de mover μ. Sigue en la
+    ecuación, fijo en 1.
+    Reescalar sólo λ, en cambio, es otro modelo."""
+    k = MU_SUELO
+    cfg = _con_rho(RHO_REESCALA)
+    cfg_k = _con_rho(RHO_REESCALA * k)
+
+    def compara(a, b) -> dict:
         return {
-            "max_delta_Q": float(np.abs(ra.Q - rb.Q).max()),
-            "max_delta_p_clp": float(np.abs(ra.p - rb.p).max()),
-            "max_delta_u_clp": float(np.abs(ra.u - rb.u).max()),
+            "max_delta_Q": float(np.abs(a.result.Q - b.result.Q).max()),
+            "max_delta_p_clp": float(np.abs(a.result.p - b.result.p).max()),
+            "max_delta_u_clp": float(np.abs(a.result.u - b.result.u).max()),
         }
 
-    lam_med = base[1][1]
-    uniforme = (base[0], [lam_med] * 3)
+    lam = _lam()
+    lam_k = [x * k for x in lam]
+    uni = [lam[1]] * 3
+    uni_k = [x * k for x in uni]
+    base = _resolver(cfg, mu=k)
     return {
         "k": round(k, 4),
-        "hev_beta_1_con_lambda_alpha_rho_por_k": compara(
-            base, reescalada(base, ("lambda", "alpha", "rho"))
+        "rho_base": RHO_REESCALA,
+        "hev_mu_1_con_lambda_alpha_rho_por_k": compara(
+            base, _resolver(cfg_k, mu=1.0, alpha=k, lam=lam_k)
         ),
-        "hev_beta_1_con_solo_lambda_por_k": compara(
-            base, reescalada(base, ("lambda",))
+        "hev_mu_1_con_solo_lambda_por_k": compara(base, _resolver(cfg, mu=1.0, lam=lam_k)),
+        "cerrada_mu_1_con_lambda_alpha_rho_por_k": compara(
+            _resolver(cfg, mu=k, lam=uni), _resolver(cfg_k, mu=1.0, alpha=k, lam=uni_k)
         ),
-        "cerrada_beta_1_con_lambda_alpha_rho_por_k": compara(
-            uniforme, reescalada(uniforme, ("lambda", "alpha", "rho"))
-        ),
-        "parametros_equivalentes_con_beta_1": {
-            "lambda": [x * k for x in base[1]],
-            "alpha": base[0].estratos[0].alpha * k,
-            "rho": base[0].estratos[0].rho * k,
+        "parametros_equivalentes_con_mu_1": {
+            "lambda": lam_k,
+            "alpha": k,
+            "rho": RHO_REESCALA * k,
         },
     }
 
@@ -471,17 +507,9 @@ def rho_umbral() -> dict:
     lejos que el bajo. Bisección sobre ρ común, con la configuración vigente."""
 
     def distancias(rho: float) -> list[float]:
-        cfg = LandUseConfig(
-            H_por_estrato=H_APP,
-            max_iter=5000,
-            estratos=tuple(
-                LandUseStratumConfig(y=e.y, alpha=e.alpha, rho=rho)
-                for e in LandUseConfig().estratos
-            ),
-        )
-        return _metricas(_ciudad(cfg))["dist_km"]
+        return _metricas(_ciudad(_con_rho(rho)))["dist_km"]
 
-    lo, hi = 0.005, 0.03
+    lo, hi = 5.0, 60.0
     for _ in range(14):
         m = (lo + hi) / 2
         d = distancias(m)
@@ -490,9 +518,9 @@ def rho_umbral() -> dict:
         else:
             hi = m
     return {
-        "rho_inversion": round(hi, 4),
+        "rho_inversion": round(hi, 2),
         "criterio": "d_alto = d_bajo",
-        "dial_ui_max": 0.03,
+        "dial_ui_max": 60.0,
     }
 
 
@@ -547,7 +575,8 @@ def main() -> None:
             "script": "docs/libro/datos/datos_cap02.py",
             "configuracion": (
                 "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 "
-                "(20/50/30), oferta normal σ=0,5, α=1, ρ=0, β=1/√44≈0,151, "
+                "(20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la "
+                "densidad relativa, μ=MU_SUELO=1/√44≈0,151 (schema v7), "
                 "λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
             ),
         },
@@ -557,9 +586,10 @@ def main() -> None:
         "asignacion_entera": asignacion_entera(),
         "perillas": perillas(),
         "invariancias": invariancias(),
+        "invariancia_poblacion": invariancia_poblacion(),
         "configuracion_vigente": configuracion_vigente(),
         "escalas": escalas(),
-        "reescala_beta": reescala_beta(),
+        "reescala_mu": reescala_mu(),
         "rho_umbral": rho_umbral(),
         "fuentes_externas": FUENTES_EXTERNAS,
     }

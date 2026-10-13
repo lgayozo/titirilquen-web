@@ -182,9 +182,9 @@
   </thead>
   <tbody>
     <tr><td><code>VIAJES_MES</code></td><td class="n">44</td><td class="n">44</td><td>viajes/mes</td><td><span class="etiqueta neutra">decisión</span> 22 días hábiles, ida y vuelta; mensualiza el logsum igual que la carga de costo</td></tr>
-    <tr><td><code>alpha</code></td><td class="n">1,0</td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la puja lee el logsum mensual tal cual (cap. 2)</td></tr>
+    <tr><td><code>alpha</code></td><td class="n">1,0</td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la puja lee el logsum mensual tal cual (cap. 2). Fijo: desde el schema v7 no es campo, porque sólo μα se identifica</td></tr>
     <tr><td><code>lambda</code></td><td class="n">3,20·10⁻⁴ · 6,41·10⁻⁴ · 12,41·10⁻⁴</td><td class="n">ídem</td><td>útiles/$</td><td><span class="etiqueta frio">norma</span> el <code>|b_costo|</code> del logit modal, literal; 1/λ = 3.122 · 1.561 · 806 $ por útil</td></tr>
-    <tr><td><code>rho</code></td><td class="n">0</td><td class="n">0</td><td>útiles-mes/(hog/km)</td><td><span class="etiqueta neutra">decisión</span> Alonso puro: sólo la accesibilidad decide la localización (cap. 2)</td></tr>
+    <tr><td><code>rho</code></td><td class="n">0</td><td class="n">0</td><td>útiles-mes por unidad de densidad relativa (v7)</td><td><span class="etiqueta neutra">decisión</span> Alonso puro: sólo la accesibilidad decide la localización (cap. 2)</td></tr>
     <tr><td><code>theta</code></td><td class="n">1/(k+1)</td><td class="n">1/(k+1)</td><td>—</td><td><span class="etiqueta neutra">decisión</span> paso del promedio (6.6); no es ajustable</td></tr>
     <tr><td><code>outer_tol</code></td><td class="n">1,0</td><td class="n">1,0</td><td>útiles/mes</td><td><span class="etiqueta lim">heredado</span> se fijó cuando <em>T</em> eran minutos y no se recalibró; la API y el worker traen el mismo 1,0</td></tr>
     <tr><td><code>outer_max_iter</code></td><td class="n">12</td><td class="n">5</td><td>vueltas</td><td><span class="etiqueta neutra">decisión</span> tope de la página acoplada; el comparador usa 8, la API y el worker 3 (la API admite hasta 10)</td></tr>

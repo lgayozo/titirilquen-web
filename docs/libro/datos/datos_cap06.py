@@ -667,7 +667,6 @@ def parametros_vigentes() -> dict:
     worker = "apps/web/src/workers/pyodide.worker.ts"
     return {
         "viajes_mes": int(VIAJES_MES),
-        "alpha": [float(e.alpha) for e in lu.estratos],
         "rho": [float(e.rho) for e in lu.estratos],
         "lambda_h": _lambdas(),
         "theta": "1/(k+1)",

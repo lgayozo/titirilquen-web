@@ -20,7 +20,7 @@
   </p>
   <p class="meta">
     Módulo: <code>land_use/</code> ·
-    datos regenerados el 2026-09-15 ·
+    schema v7 · datos regenerados el 2026-10-13 ·
     <span class="estado vigente">vigente</span>
   </p>
 </header>
@@ -59,8 +59,8 @@
   lineal en el ingreso disponible:
 </p>
 
-<div class="ecuacion" data-tex="v_{hi} = \lambda_h (y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad f_h(z_i) = -\alpha_h\, T_h(i) - \rho_h\, \mathrm{dens}(i)" data-id="(2.1)">
-  <span class="id">(2.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>v</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi>α</mi><mi>h</mi></msub><mtext> </mtext><msub><mi>T</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>ρ</mi><mi>h</mi></msub><mtext> </mtext><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">v_{hi} = \lambda_h (y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad f_h(z_i) = -\alpha_h\, T_h(i) - \rho_h\, \mathrm{dens}(i)</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="v_{hi} = \lambda_h (y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad f_h(z_i) = -\alpha_h\, T_h(i) - \rho_h\, d_i" data-id="(2.1)">
+  <span class="id">(2.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>v</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><msub><mi>λ</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><msub><mi>p</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi>α</mi><mi>h</mi></msub><mtext> </mtext><msub><mi>T</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>ρ</mi><mi>h</mi></msub><mtext> </mtext><msub><mi>d</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">v_{hi} = \lambda_h (y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad f_h(z_i) = -\alpha_h\, T_h(i) - \rho_h\, d_i</annotation></semantics></math></span>
 </div>
 
 <ul class="donde">
@@ -68,15 +68,21 @@
   <li><span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span>: utilidad marginal del ingreso del estrato, en útiles por peso.</li>
   <li><span class="mat" data-tex="y_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">y_h</annotation></semantics></math></span> y <span class="mat" data-tex="p_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">p_i</annotation></semantics></math></span>: ingreso mensual del estrato y arriendo mensual de la celda, en pesos.</li>
   <li><span class="mat" data-tex="f_h(z_i)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>h</mi></msub><mo stretchy="false">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f_h(z_i)</annotation></semantics></math></span>: lo que la celda vale por sí misma para el estrato, en útiles; <span class="mat" data-tex="z_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">z_i</annotation></semantics></math></span> son los atributos de la celda, aquí la accesibilidad y la densidad.</li>
-  <li><span class="mat" data-tex="\alpha_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\alpha_h</annotation></semantics></math></span>: multiplicador de la accesibilidad, adimensional; vale 1 para los tres estratos, de modo que la puja lee la accesibilidad tal cual (§2).</li>
+  <li><span class="mat" data-tex="\alpha_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\alpha_h</annotation></semantics></math></span>: multiplicador de la accesibilidad, adimensional; vale 1 para los tres estratos, de modo que la puja lee la accesibilidad tal cual. Está fijo: desde el schema v7 no es un campo del escenario, porque no se distingue de <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> («La escala de la subasta», más abajo).</li>
   <li><span class="mat" data-tex="T_h(i)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">T_h(i)</annotation></semantics></math></span>: accesibilidad, el costo mensual de vivir en <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span> y tener que viajar, en útiles de transporte; crece con la distancia al CBD y la define (2.2).</li>
-  <li><span class="mat" data-tex="\rho_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\rho_h</annotation></semantics></math></span>: penalización por densidad, en útiles-mes por hogar por kilómetro; vale 0 por defecto (§2).</li>
-  <li><span class="mat" data-tex="\mathrm{dens}(i) = S_i/\Delta x"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">s</mi></mrow><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>S</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\mathrm{dens}(i) = S_i/\Delta x</annotation></semantics></math></span>: densidad de la celda, en hogares por kilómetro, con <span class="mat" data-tex="\Delta x"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\Delta x</annotation></semantics></math></span> el ancho de celda.</li>
-  <li><span class="mat" data-tex="\varepsilon_{hi} \sim \mathrm{Gumbel}(0, \mu_h)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>∼</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msub><mi>μ</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon_{hi} \sim \mathrm{Gumbel}(0, \mu_h)</annotation></semantics></math></span>: el término aleatorio; <span class="mat" data-tex="\mu_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\mu_h</annotation></semantics></math></span> es su parámetro de forma, una <strong>precisión</strong>: la varianza es <span class="mat" data-tex="\pi^2/(6\mu_h^2)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>π</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>6</mn><msubsup><mi>μ</mi><mi>h</mi><mn>2</mn></msubsup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\pi^2/(6\mu_h^2)</annotation></semantics></math></span>. Aquí es común a los estratos, <span class="mat" data-tex="\mu_h = \mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>h</mi></msub><mo>=</mo><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu_h = \mu</annotation></semantics></math></span>.</li>
+  <li><span class="mat" data-tex="\rho_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\rho_h</annotation></semantics></math></span>: penalización por densidad, en útiles-mes por unidad de densidad relativa, propia de cada estrato; vale 0 por defecto (§2).</li>
+  <li><span class="mat" data-tex="d_i = S_i/\bar S"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>i</mi></msub><mo>=</mo><msub><mi>S</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mover accent="true"><mi>S</mi><mo>ˉ</mo></mover></mrow><annotation encoding="application/x-tex">d_i = S_i/\bar S</annotation></semantics></math></span>: densidad relativa de la celda, adimensional, con <span class="mat" data-tex="\bar S = \tfrac{1}{L}\sum_j S_j"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>S</mi><mo>ˉ</mo></mover><mo>=</mo><mstyle scriptlevel="0" displaystyle="false"><mfrac><mn>1</mn><mi>L</mi></mfrac></mstyle><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>S</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\bar S = \tfrac{1}{L}\sum_j S_j</annotation></semantics></math></span> la oferta media por celda; vale 1 en una celda de densidad media. Como <span class="mat" data-tex="S_i/\Delta x"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">S_i/\Delta x</annotation></semantics></math></span> y <span class="mat" data-tex="\bar S/\Delta x"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>S</mi><mo>ˉ</mo></mover><mi mathvariant="normal">/</mi><mi mathvariant="normal">Δ</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">\bar S/\Delta x</annotation></semantics></math></span> comparten el ancho de celda, <span class="mat" data-tex="d_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">d_i</annotation></semantics></math></span> es también la densidad en hogares por kilómetro dividida por la media de la ciudad.</li>
+  <li><span class="mat" data-tex="\varepsilon_{hi} \sim \mathrm{Gumbel}(0, \mu_h)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>∼</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msub><mi>μ</mi><mi>h</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon_{hi} \sim \mathrm{Gumbel}(0, \mu_h)</annotation></semantics></math></span>: el término aleatorio; <span class="mat" data-tex="\mu_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\mu_h</annotation></semantics></math></span> es su parámetro de forma, una <strong>precisión</strong>: la varianza es <span class="mat" data-tex="\pi^2/(6\mu_h^2)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>π</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>6</mn><msubsup><mi>μ</mi><mi>h</mi><mn>2</mn></msubsup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\pi^2/(6\mu_h^2)</annotation></semantics></math></span>. Aquí es común a los estratos y fijo, <span class="mat" data-tex="\mu_h = \mu = 1/\sqrt{44}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>h</mi></msub><mo>=</mo><mi>μ</mi><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><msqrt><mn>44</mn></msqrt></mrow><annotation encoding="application/x-tex">\mu_h = \mu = 1/\sqrt{44}</annotation></semantics></math></span>, la constante <code>MU_SUELO</code> (§2).</li>
 </ul>
 
 <p>
-  Es la ecuación (4.2) de Martínez (p. 77). La accesibilidad es la utilidad
+  Es la ecuación (4.2) de Martínez (p. 77) con <span class="mat" data-tex="f_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">f_h</annotation></semantics></math></span>
+  especificada. Martínez deja <span class="mat" data-tex="f_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">f_h</annotation></semantics></math></span> como función general de
+  los atributos de la localización y trata sus parámetros, «such as
+  accessibility or densities», como coeficientes a estimar (p. 242); la forma
+  lineal en accesibilidad y densidad, con coeficientes
+  <span class="mat" data-tex="\alpha_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\alpha_h</annotation></semantics></math></span> y <span class="mat" data-tex="\rho_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\rho_h</annotation></semantics></math></span>, es la especificación de
+  este modelo. La accesibilidad es la utilidad
   esperada mensual del viaje desde <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span>, en
   útiles de transporte:
 </p>
@@ -94,12 +100,11 @@
 <p>
   El logsum entra aquí como dato. Se mensualiza por <span class="mat" data-tex="\mathrm{VIAJES\_MES}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">I</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">J</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">_</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi></mrow><annotation encoding="application/x-tex">\mathrm{VIAJES\_MES}</annotation></semantics></math></span>
   para que sea comparable con un arriendo y un ingreso mensuales. Con
-  <span class="mat" data-tex="\alpha_h = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_h = 1</annotation></semantics></math></span> la puja lee esa cantidad tal cual, y con
-  <span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span> igual
+  <span class="mat" data-tex="\alpha_h = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_h = 1</annotation></semantics></math></span> la puja lee esa cantidad tal cual, y con <span class="mat" data-tex="\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\lambda_h</annotation></semantics></math></span> igual
   al coeficiente de costo del logit modal el mismo hogar tiene <strong>una
-  sola función de utilidad</strong> en los dos módulos: la tasa a la que
-  cambia tiempo por dinero, <span class="mat" data-tex="\alpha_h/\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mi mathvariant="normal">/</mi><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\alpha_h/\lambda_h</annotation></semantics></math></span>, es el mismo valor del
-  tiempo con el que elige modo.
+  sola función de utilidad</strong> en los dos módulos: <span class="mat" data-tex="T_h/\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>h</mi></msub><mi mathvariant="normal">/</mi><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">T_h/\lambda_h</annotation></semantics></math></span>
+  es el costo mensual de viajar en pesos, y la tasa a la que cambia tiempo
+  por dinero es el mismo valor del tiempo con el que elige modo.
 </p>
 
 <p>
@@ -252,11 +257,64 @@
   observadas (pp. 89 y 242), y el equilibrio integrado es único sólo si las
   pujas tienen una varianza mínima, <span class="mat" data-tex="\beta \in (0, \beta_c)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>∈</mo><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msub><mi>β</mi><mi>c</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\beta \in (0, \beta_c)</annotation></semantics></math></span> (p. 148).
   Esa cota es sobre <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>, la precisión en dinero, no sobre
-  <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span>. Aquí no hay rentas observadas. La normalización de escala ya la
-  hizo el logit de transporte, que fija en 1 el shock de un viaje, y
-  <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> es entonces la <strong>razón entre la escala del ruido de elegir
-  casa y la de elegir modo</strong>. Es el único parámetro propio del módulo,
-  y la §2 explica su valor. Las escalas, con sus unidades, son:
+  <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span>. Aquí no hay rentas observadas, y lo que la subasta ve de los
+  parámetros se lee multiplicando la puja (2.3) por su precisión:
+</p>
+
+<div class="ecuacion" data-tex="\beta_h\, w_{hi} = \mu\lambda_h\, y_h - \mu\alpha_h\, T_h(i) - \mu\rho_h\, d_i - \mu\, u_h" data-id="(2.6)">
+  <span class="id">(2.6)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>β</mi><mi>h</mi></msub><mtext> </mtext><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub><mo>=</mo><mi>μ</mi><msub><mi>λ</mi><mi>h</mi></msub><mtext> </mtext><msub><mi>y</mi><mi>h</mi></msub><mo>−</mo><mi>μ</mi><msub><mi>α</mi><mi>h</mi></msub><mtext> </mtext><msub><mi>T</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>i</mi><mo stretchy="false">)</mo><mo>−</mo><mi>μ</mi><msub><mi>ρ</mi><mi>h</mi></msub><mtext> </mtext><msub><mi>d</mi><mi>i</mi></msub><mo>−</mo><mi>μ</mi><mtext> </mtext><msub><mi>u</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\beta_h\, w_{hi} = \mu\lambda_h\, y_h - \mu\alpha_h\, T_h(i) - \mu\rho_h\, d_i - \mu\, u_h</annotation></semantics></math></span>
+</div>
+
+<ul class="donde">
+  <li><span class="mat" data-tex="\beta_h w_{hi}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>h</mi></msub><msub><mi>w</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\beta_h w_{hi}</annotation></semantics></math></span>: el argumento de las exponenciales de (2.4) y, con <span class="mat" data-tex="\ell_{hi}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>h</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\ell_{hi}</annotation></semantics></math></span>, de (2.4b); es todo lo que la asignación lee de los parámetros.</li>
+  <li><span class="mat" data-tex="\mu u_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><msub><mi>u</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\mu u_h</annotation></semantics></math></span>: la incógnita del equilibrio (2.5), que absorbe cualquier escala.</li>
+</ul>
+
+<p>
+  En (2.6) los parámetros sólo aparecen como productos:
+  <span class="mat" data-tex="\mu\lambda_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><msub><mi>λ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\mu\lambda_h</annotation></semantics></math></span>, <span class="mat" data-tex="\mu\alpha_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><msub><mi>α</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\mu\alpha_h</annotation></semantics></math></span> y
+  <span class="mat" data-tex="\mu\rho_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><msub><mi>ρ</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\mu\rho_h</annotation></semantics></math></span>. Dos consecuencias, y la segunda corrige lo que este libro
+  decía antes del schema v7:
+</p>
+
+<ul>
+  <li>
+    <strong><span class="mat" data-tex="\alpha"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> no se identifica por separado de
+    <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span>.</strong> Hasta v6
+    <span class="mat" data-tex="\alpha_h"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub></mrow><annotation encoding="application/x-tex">\alpha_h</annotation></semantics></math></span> era un campo editable; mover
+    <span class="mat" data-tex="\alpha"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> era, para la asignación, exactamente mover <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> con
+    <span class="mat" data-tex="\rho"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi></mrow><annotation encoding="application/x-tex">\rho</annotation></semantics></math></span> reescalado, así que el schema tenía dos perillas para un solo
+    número. (El nivel común de <span class="mat" data-tex="\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span> no mueve la asignación, sólo los
+    precios en pesos; sus razones entre estratos sí, vía (2.4b).)
+    Desde v7 <span class="mat" data-tex="\alpha_h = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_h = 1</annotation></semantics></math></span> sigue en la ecuación pero no es
+    un campo: lo fija la consistencia con
+    transporte, que es la que da significado a <span class="mat" data-tex="T"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span> y a
+    <span class="mat" data-tex="\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span> (decisión D1 de la <a href="auditoria-2026-10.html">auditoría</a>).
+  </li>
+  <li>
+    <strong><span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> no es una normalización libre.</strong> La normalización
+    de escala ya la hizo el logit de transporte, que fija en 1 el shock de un
+    viaje; <span class="mat" data-tex="\lambda_h = |b_{\mathrm{costo},h}|"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub><mo>=</mo><mi mathvariant="normal">∣</mi><msub><mi>b</mi><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow><mo separator="true">,</mo><mi>h</mi></mrow></msub><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\lambda_h = |b_{\mathrm{costo},h}|</annotation></semantics></math></span> y
+    <span class="mat" data-tex="\alpha_h = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_h = 1</annotation></semantics></math></span> están anclados a esa escala. Con esos anclajes,
+    <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> es la <strong>razón entre la escala del ruido de elegir casa y
+    la de elegir modo</strong>, y moverlo cambia la ciudad: la §5.5 mide un
+    Theil que va de 0,04 a 0,77 entre <span class="mat" data-tex="\mu = 0{,}05"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>0,05</mn></mrow><annotation encoding="application/x-tex">\mu = 0{,}05</annotation></semantics></math></span> y
+    <span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span>. Es un supuesto de contenido, que con rentas observadas se
+    estimaría. Que <span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span> con <span class="mat" data-tex="\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span>,
+    <span class="mat" data-tex="\alpha"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> y <span class="mat" data-tex="\rho"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi></mrow><annotation encoding="application/x-tex">\rho</annotation></semantics></math></span> multiplicados por <span class="mat" data-tex="1/\sqrt{44}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msqrt><mn>44</mn></msqrt></mrow><annotation encoding="application/x-tex">1/\sqrt{44}</annotation></semantics></math></span> dé
+    el mismo equilibrio (§5.5) no lo vuelve una normalización: sólo dice que
+    el supuesto puede escribirse en los coeficientes en vez de en
+    <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span>, a costa de romper la identidad
+    <span class="mat" data-tex="\lambda_h = |b_{\mathrm{costo},h}|"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>h</mi></msub><mo>=</mo><mi mathvariant="normal">∣</mi><msub><mi>b</mi><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">o</mi></mrow><mo separator="true">,</mo><mi>h</mi></mrow></msub><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\lambda_h = |b_{\mathrm{costo},h}|</annotation></semantics></math></span> y el
+    <span class="mat" data-tex="\alpha_h = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_h = 1</annotation></semantics></math></span>.
+  </li>
+</ul>
+
+<p>
+  Por eso <span class="mat" data-tex="\alpha_h = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_h = 1</annotation></semantics></math></span> y
+  <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> son valores declarados y no editables: μ es una
+  constante con nombre, <code>MU_SUELO</code>, que la interfaz muestra en sólo lectura; la §2 explica su valor. Las
+  escalas, con sus unidades, son:
 </p>
 
 <div class="envoltorio-tabla">
@@ -293,8 +351,10 @@
     por defecto no actúa, penaliza una cantidad exógena, así que no hay
     externalidades de localización ni las cascadas que Martínez asocia a
     ellas. En la geometría por defecto, densidad y accesibilidad son casi la
-    misma variable, con una correlación de −0,996, y la puja identifica sobre
-    todo su combinación.
+    misma variable, con una correlación de −0,996 (medida en el
+    <a href="informe-uso-suelo.html">informe de uso de suelo</a>; pasar a
+    densidad relativa no la cambia, porque es la misma variable reescalada),
+    y la puja identifica sobre todo su combinación.
   </p>
 </div>
 
@@ -325,22 +385,22 @@
       <td><span class="etiqueta frio">norma</span> el <code>|b_costo|</code> del logit modal, literal: un hogar, una utilidad. No es un campo del suelo: lo deriva la demanda (schema v6)</td>
     </tr>
     <tr>
-      <td><code>alpha</code></td>
-      <td class="n">1,0</td>
+      <td><em>α<sub>h</sub></em> (fijo)</td>
+      <td class="n">1 / 1 / 1</td>
       <td>—</td>
-      <td><span class="etiqueta neutra">decisión</span> lee el logsum mensual tal cual; es el ancla del documento original</td>
+      <td><span class="etiqueta neutra">decisión</span> la puja lee el logsum mensual tal cual. Fue campo hasta v6; desde v7 no, porque sólo <em>μα</em> se identifica (D1). En el código es el peso implícito de <code>_f</code></td>
     </tr>
     <tr>
-      <td><code>mu</code></td>
+      <td><code>MU_SUELO</code> (constante)</td>
       <td class="n">0,1508</td>
       <td>—</td>
-      <td><span class="etiqueta neutra">decisión</span> 1/√VIAJES_MES: el shock mensual acumula 44 shocks de viaje</td>
+      <td><span class="etiqueta neutra">decisión</span> 1/√VIAJES_MES: analogía de segundo momento con 44 shocks de viaje. No es campo del schema desde v7; la interfaz lo muestra en sólo lectura</td>
     </tr>
     <tr>
       <td><code>rho</code></td>
-      <td class="n">0</td>
-      <td>utiles-mes/(hog/km)</td>
-      <td><span class="etiqueta neutra">decisión</span> sin fuente; 0 deja el modelo en Alonso puro; el control llega a 0,03</td>
+      <td class="n">0 / 0 / 0</td>
+      <td>utiles-mes por unidad de densidad relativa</td>
+      <td><span class="etiqueta neutra">decisión</span> sin fuente; 0 deja el modelo en Alonso puro; uno por estrato; el control va de 0 a 60 y la asignación se invierte cerca de 31</td>
     </tr>
     <tr>
       <td><code>forma</code> / <code>oferta_sigma_frac</code></td>
@@ -358,8 +418,8 @@
   <strong>λ y el valor del tiempo.</strong> Los <em>λ_h</em> no se eligen: son
   el coeficiente de costo del logit modal, leído de la demanda en cada
   corrida (<code>lambda_desde_demanda</code>, schema v6), de modo que
-  <em>α/λ</em> reproduce el valor del tiempo de transporte, 6.200 / 3.100 /
-  1.600 $/h. Esos tres valores son una decisión, no una estimación. Las
+  la accesibilidad en pesos, <em>α T/λ</em> con <em>α</em> = 1, valora el tiempo de viaje al mismo
+  valor del tiempo de transporte, 6.200 / 3.100 / 1.600 $/h. Esos tres valores son una decisión, no una estimación. Las
   referencias disponibles los acotan: los Precios Sociales 2026 del SNI dan un
   único valor de 3.338 $/h en vehículo y 6.676 $/h en espera y caminata, y
   declaran que no distinguen por ingreso; para el viaje al trabajo usan la
@@ -390,13 +450,14 @@
   ruido de la subasta sea el mismo que el del transporte la escala
   <em>1/(μ λ_h)</em> tiene que crecer igual: <em>μ = 1/√44 ≈ 0,151</em>. Es
   una aproximación de segundo momento, porque la suma de 44 Gumbel no es
-  Gumbel, y es un supuesto, porque nadie observó el shock de vivienda. La
-  alternativa <em>μ = 1</em> significa un solo shock por casa, igual al de un
-  viaje: la §5 muestra que da una ciudad casi determinista. Y como en la
-  subasta sólo entran los productos <em>μ·λ</em>, <em>μ·α</em> y
-  <em>μ·ρ</em>, <em>μ = 1</em> con los tres coeficientes multiplicados por
-  0,151 es exactamente el mismo modelo; el libro mantiene <em>μ</em>
-  explícito porque es el lugar donde el supuesto tiene nombre.
+  Gumbel, y es una <strong>analogía, no una derivación</strong>: nada obliga a
+  que el ruido de elegir casa sea la suma de los ruidos de los viajes que esa
+  casa implica, y nadie observó el shock de vivienda. La alternativa
+  <em>μ = 1</em> significa un solo shock por casa, igual al de un viaje: la §5
+  muestra que da una ciudad casi determinista. Desde el schema v7 el valor es
+  la constante <code>MU_SUELO</code> y no un campo: es un supuesto estructural
+  del modelo, no una política que el usuario pruebe, y su único compañero en
+  la puja, <em>α</em>, no se distingue de él (§1). La interfaz lo muestra en sólo lectura, con esta razón.
 </p>
 
 <p>
@@ -409,10 +470,25 @@
   la historia de Alonso. Como entra dividido por <em>λ_h</em>, un <em>ρ</em>
   común ya hace que el estrato alto pague más pesos por baja densidad; al
   subirlo la ciudad se mezcla, el gradiente de renta se aplana y, cerca de
-  <em>ρ</em> = 0,0187, la asignación se invierte: el estrato alto pasa a vivir
+  <em>ρ</em> = 31,2, la asignación se invierte: el estrato alto pasa a vivir
   más lejos que el bajo, el patrón «ricos en la periferia» que en Alonso
   produce una preferencia por espacio que crece con el ingreso. El control
-  llega a 0,03 para que ese cruce se vea; la §5 lo mide.
+  llega a 60 para que ese cruce se vea; la §5 lo mide. Cada estrato tiene su
+  <em>ρ_h</em>, de modo que esa preferencia también puede declararse
+  directamente.
+</p>
+
+<p>
+  <strong>Por qué densidad relativa.</strong> Hasta el schema v6, <em>ρ</em>
+  penalizaba la densidad absoluta, en hogares por kilómetro. Con la misma
+  ciudad física y el doble de hogares, cada celda tenía el doble de densidad
+  y el mismo <em>ρ</em> pesaba el doble contra la accesibilidad: el número del
+  control cambiaba de significado con la población (decisión D2 de la
+  auditoría). Sobre <em>d_i = S_i/S̄</em>, en cambio, la forma de la oferta
+  es la que es y la escala de la población se cancela, igual que el ancho de
+  celda; la §5.6 lo mide. La conversión es <em>ρ</em><sub>v7</sub> =
+  <em>ρ</em><sub>v6</sub> × densidad media: con 1.800 hog/km, el 0,03 del
+  control viejo es el 54 de hoy.
 </p>
 
 <p>
@@ -442,7 +518,7 @@
       <td class="n">—</td>
       <td class="ruta py">land_use/config.py</td>
       <td class="n">22</td>
-      <td><code>LandUseStratumConfig</code> — <code>y</code> (46), <code>rho</code> (47), con sus unidades en el docstring. λ<sub>h</sub> no es campo desde el schema v6; α tampoco desde v7 (la accesibilidad entra con peso 1)</td>
+      <td><code>LandUseStratumConfig</code> — <code>y</code> (46), <code>rho</code> (47), con sus unidades en el docstring. λ<sub>h</sub> no es campo desde el schema v6; α<sub>h</sub> tampoco desde v7: vale 1 y queda implícito en <code>_f</code></td>
     </tr>
     <tr>
       <td class="n">—</td>
@@ -484,7 +560,7 @@
       <td class="n">(2.1)</td>
       <td class="ruta py">land_use/equilibrium.py</td>
       <td class="n">79</td>
-      <td><code>_f</code> — la atractividad, con la densidad en hogares/km</td>
+      <td><code>_f</code> — la atractividad, con la densidad relativa <em>S<sub>i</sub>/media(S)</em> (v7), y <em>α<sub>h</sub></em> = 1 implícito: resta <em>T</em> tal cual; no recibe el ancho de celda</td>
     </tr>
     <tr>
       <td class="n">(2.3)</td>
@@ -508,7 +584,7 @@
       <td class="n">(2.5)</td>
       <td class="ruta py">land_use/ciudad.py</td>
       <td class="n">40</td>
-      <td><code>LandUseCity</code> — arma la ciudad y resuelve; <code>densidad_por_celda</code> (149) es <em>S/Δx</em></td>
+      <td><code>LandUseCity</code> — arma la ciudad y resuelve; <code>densidad_por_celda</code> (149) es <em>S/Δx</em>, en hog/km, sólo para mostrar (<code>serializacion.py</code>); la subasta no la usa desde v7</td>
     </tr>
     <tr>
       <td class="n">(2.5)</td>
@@ -538,7 +614,11 @@
   para que no se pueda correr el modelo homoscedástico con <em>λ</em>
   heterogéneos. Y las dos ramas convierten <em>μ</em> igual, <em>β_h =
   μλ_h</em>, de modo que hacer los <em>λ</em> infinitesimalmente distintos no
-  cambia la asignación de golpe.
+  cambia la asignación de golpe. <code>solve_subasta</code> sí recibe
+  <code>mu</code> como argumento, con 1 por omisión; quien lo fija es
+  <code>LandUseCity</code>, que le pasa <code>MU_SUELO</code>. Así los tests y
+  la §5 pueden medir la sensibilidad a <em>μ</em> sin que sea un campo del
+  escenario.
 </p>
 
 <h2 id="s4"><span class="num">§4</span> Pruebas</h2>
@@ -549,24 +629,26 @@
     <tr><th>Test</th><th>Qué fija</th></tr>
   </thead>
   <tbody>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:92</td><td>La oferta normal suma exactamente N y deja el CBD vacío (99).</td></tr>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:207</td><td>(2.5) con estratos de tamaño distinto.</td></tr>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:290</td><td>La densidad por celda es <em>S/Δx</em>.</td></tr>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:394</td><td>El suelo central vale más que el periférico: gradiente de Alonso positivo.</td></tr>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:408</td><td>El gradiente sobrevive al cambio de escala de la población.</td></tr>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:423</td><td>Subir ρ aplana el gradiente sin invertirlo en la configuración base.</td></tr>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:237</td><td>Theil y distancias estables entre 101, 201 y 401 celdas.</td></tr>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:270</td><td>El tamaño físico sí mueve el resultado.</td></tr>
-    <tr><td><code class="ruta py">tests/test_land_use.py</code>:37</td><td>En la forma cerrada, mover λ equivale exactamente a reescalar α y ρ.</td></tr>
-    <tr><td><code class="ruta py">tests/test_hev.py</code>:102</td><td>HEV reduce al logit cuando λ es uniforme.</td></tr>
-    <tr><td><code class="ruta py">tests/test_hev.py</code>:124</td><td>El despacho no salta al romper la uniformidad de λ.</td></tr>
-    <tr><td><code class="ruta py">tests/test_hev.py</code>:141</td><td>HEV conserva los hogares por estrato.</td></tr>
-    <tr><td><code class="ruta py">tests/test_hev.py</code>:155</td><td>Bajo HEV, λ deja de ser reescalar α y ρ: está identificado.</td></tr>
-    <tr><td><code class="ruta py">tests/test_hev.py</code>:175</td><td>La cuadratura aguanta escalas muy distintas.</td></tr>
-    <tr><td><code class="ruta py">tests/test_accesibilidad.py</code>:34</td><td>El logsum es el del logit modal, y <em>T</em> es un costo mensual que crece con la distancia (61).</td></tr>
-    <tr><td><code class="ruta py">tests/test_accesibilidad.py</code>:97</td><td>La accesibilidad por estrato no invierte a Alonso.</td></tr>
-    <tr><td><code class="ruta py">tests/test_vot_consistente.py</code>:57</td><td>λ es literalmente el <code>b_costo</code> de transporte, α = 1 (75) y el valor del tiempo es el mismo en los dos módulos (86).</td></tr>
-    <tr><td><code class="ruta py">tests/test_vot_consistente.py</code>:121</td><td>El default despacha a HEV, y una escala común de λ no mueve la asignación (134).</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:96</td><td>La oferta normal suma exactamente N y deja el CBD vacío (103).</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:229</td><td>(2.5) con estratos de tamaño distinto.</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:314</td><td>La densidad que se muestra es <em>S/Δx</em>.</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:200</td><td>Quien más pierde con la distancia vive más cerca del CBD.</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:421</td><td>El suelo central vale más que el periférico: gradiente de Alonso positivo.</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:435</td><td>El gradiente sobrevive al cambio de escala de la población.</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:451</td><td>Subir ρ aplana el gradiente sin invertirlo en la configuración base.</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:501</td><td>El mismo ρ da la misma ciudad con otra población (D2, v7).</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:259</td><td>Theil y distancias estables entre 101, 201 y 401 celdas.</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:293</td><td>El tamaño físico sí mueve el resultado.</td></tr>
+    <tr><td><code class="ruta py">tests/test_land_use.py</code>:41</td><td>En la forma cerrada, mover λ equivale exactamente a reescalar T y ρ.</td></tr>
+    <tr><td><code class="ruta py">tests/test_hev.py</code>:104</td><td>HEV reduce al logit cuando λ es uniforme.</td></tr>
+    <tr><td><code class="ruta py">tests/test_hev.py</code>:128</td><td>El despacho no salta al romper la uniformidad de λ.</td></tr>
+    <tr><td><code class="ruta py">tests/test_hev.py</code>:145</td><td>HEV conserva los hogares por estrato.</td></tr>
+    <tr><td><code class="ruta py">tests/test_hev.py</code>:159</td><td>Bajo HEV, λ deja de ser reescalar T y ρ: está identificado.</td></tr>
+    <tr><td><code class="ruta py">tests/test_hev.py</code>:179</td><td>La cuadratura aguanta escalas muy distintas.</td></tr>
+    <tr><td><code class="ruta py">tests/test_accesibilidad.py</code>:35</td><td>El logsum es el del logit modal, y <em>T</em> es un costo mensual que crece con la distancia (62).</td></tr>
+    <tr><td><code class="ruta py">tests/test_accesibilidad.py</code>:98</td><td>La accesibilidad por estrato no invierte a Alonso.</td></tr>
+    <tr><td><code class="ruta py">tests/test_vot_consistente.py</code>:71</td><td>λ es literalmente el <code>b_costo</code> de transporte; <code>alpha</code> y <code>mu</code> no son campos del escenario (90); el valor del tiempo es el mismo en los dos módulos (107).</td></tr>
+    <tr><td><code class="ruta py">tests/test_vot_consistente.py</code>:142</td><td>El default despacha a HEV, y una escala común de λ no mueve la asignación (155).</td></tr>
   </tbody>
 </table>
 </div>
@@ -617,12 +699,12 @@
     <tr><th>Forma</th><th class="n">Error máx. (hogares)</th><th class="n">Iteraciones</th></tr>
   </thead>
   <tbody>
-    <tr><td>normal</td><td class="n">2,8 ·10⁻⁹</td><td class="n">38</td></tr>
-    <tr><td>uniforme</td><td class="n">2,8 ·10⁻⁹</td><td class="n">37</td></tr>
-    <tr><td>exponencial</td><td class="n">2,6 ·10⁻⁹</td><td class="n">42</td></tr>
-    <tr><td>meseta</td><td class="n">1,7 ·10⁻⁹</td><td class="n">29</td></tr>
-    <tr><td>bimodal</td><td class="n">7,3 ·10⁻¹⁰</td><td class="n">30</td></tr>
-    <tr><td>valle</td><td class="n">1,7 ·10⁻⁹</td><td class="n">28</td></tr>
+    <tr><td>normal</td><td class="n">1,7 ·10⁻⁹</td><td class="n">36</td></tr>
+    <tr><td>uniforme</td><td class="n">1,3 ·10⁻⁹</td><td class="n">36</td></tr>
+    <tr><td>exponencial</td><td class="n">2,0 ·10⁻⁹</td><td class="n">39</td></tr>
+    <tr><td>meseta</td><td class="n">1,6 ·10⁻⁹</td><td class="n">26</td></tr>
+    <tr><td>bimodal</td><td class="n">1,3 ·10⁻⁹</td><td class="n">28</td></tr>
+    <tr><td>valle</td><td class="n">1,1 ·10⁻⁹</td><td class="n">27</td></tr>
   </tbody>
 </table>
 </div>
@@ -642,10 +724,10 @@
     <tr><th>Caso</th><th>Rama</th><th class="n">Razón de escalas</th><th class="n">Error de balance</th><th class="n">Iteraciones</th></tr>
   </thead>
   <tbody>
-    <tr><td>λ uniforme</td><td>forma cerrada</td><td class="n">1,0</td><td class="n">1,3 ·10⁻⁶</td><td class="n">15</td></tr>
-    <tr class="destacada"><td>λ del default</td><td>HEV</td><td class="n">3,9</td><td class="n">2,8 ·10⁻⁹</td><td class="n">38</td></tr>
-    <tr><td>λ razón 10</td><td>HEV</td><td class="n">10,0</td><td class="n">5,0 ·10⁻⁷</td><td class="n">30</td></tr>
-    <tr><td>λ razón 100</td><td>HEV</td><td class="n">100,0</td><td class="n">3,8 ·10⁻⁷</td><td class="n">39</td></tr>
+    <tr><td>λ uniforme</td><td>forma cerrada</td><td class="n">1,0</td><td class="n">8,6 ·10⁻⁷</td><td class="n">16</td></tr>
+    <tr class="destacada"><td>λ del default</td><td>HEV</td><td class="n">3,9</td><td class="n">1,7 ·10⁻⁹</td><td class="n">36</td></tr>
+    <tr><td>λ razón 10</td><td>HEV</td><td class="n">10,0</td><td class="n">1,4 ·10⁻⁷</td><td class="n">29</td></tr>
+    <tr><td>λ razón 100</td><td>HEV</td><td class="n">100,0</td><td class="n">2,0 ·10⁻⁷</td><td class="n">37</td></tr>
   </tbody>
 </table>
 </div>
@@ -669,7 +751,7 @@
   que aquí cierra pero no tiene por qué.
 </p>
 
-<h3>5.5 Las dos perillas: μ y ρ</h3>
+<h3>5.5 μ, un supuesto fijo, y ρ, el control</h3>
 
 <p>
   Para leer <em>μ</em> conviene tener la señal y el ruido de la puja en la
@@ -684,18 +766,28 @@
     <tr><th>Estrato</th><th class="n">Señal: puja centro − periferia ($)</th><th class="n">Ruido con μ = 0,151 ($)</th><th class="n">Señal/ruido</th><th class="n">Ruido con μ = 1 ($)</th><th class="n">Señal/ruido</th></tr>
   </thead>
   <tbody>
-    <tr><td>alto</td><td class="n">211.686</td><td class="n">20.708</td><td class="n">10,2</td><td class="n">3.122</td><td class="n">67,8</td></tr>
-    <tr><td>medio</td><td class="n">144.055</td><td class="n">10.354</td><td class="n">13,9</td><td class="n">1.561</td><td class="n">92,3</td></tr>
-    <tr><td>bajo</td><td class="n">89.474</td><td class="n">5.344</td><td class="n">16,7</td><td class="n">806</td><td class="n">111,1</td></tr>
+    <tr><td>alto</td><td class="n">200.102</td><td class="n">20.708</td><td class="n">9,7</td><td class="n">3.122</td><td class="n">64,1</td></tr>
+    <tr><td>medio</td><td class="n">137.151</td><td class="n">10.354</td><td class="n">13,2</td><td class="n">1.561</td><td class="n">87,9</td></tr>
+    <tr><td>bajo</td><td class="n">88.292</td><td class="n">5.344</td><td class="n">16,5</td><td class="n">806</td><td class="n">109,6</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Con <em>μ = 1</em> la señal supera al ruido entre 68 y 111 veces: la subasta
+  Con <em>μ = 1</em> la señal supera al ruido entre 64 y 110 veces: la subasta
   es casi determinista y cada estrato ocupa su franja. Con <em>μ = 1/√44</em>
-  la razón baja a entre 10 y 17, que es lo que produce la mezcla que se ve en
-  las figuras. Con <em>ρ</em> = 0 toda la señal es accesibilidad.
+  la razón baja a entre 9,7 y 16,5, que es lo que produce la mezcla que se ve
+  en las figuras. Con <em>ρ</em> = 0 toda la señal es accesibilidad. Como
+  referencia para el control de <em>ρ</em>: la accesibilidad del estrato medio
+  recorre 87,9 útiles-mes entre el centro y el borde, y la densidad relativa
+  recorre 1,46; un <em>ρ</em> de 60,1 haría que el término de densidad
+  recorriera lo mismo que el de accesibilidad.
+</p>
+
+<p>
+  La sensibilidad a <em>μ</em> se mide resolviendo con
+  <code>solve_subasta</code> directamente, porque desde v7 no es un campo del
+  escenario y la interfaz no la expone:
 </p>
 
 <div class="envoltorio-tabla">
@@ -704,26 +796,27 @@
     <tr><th class="n">μ</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th class="n">Iter.</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0,05</td><td class="n">0,0459</td><td class="n">2,869</td><td class="n">3,285</td><td class="n">4,724</td><td class="n">+0,914</td><td class="n">19</td></tr>
-    <tr class="destacada"><td class="n">0,1508</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td><td class="n">+0,920</td><td class="n">38</td></tr>
-    <tr><td class="n">0,50</td><td class="n">0,5967</td><td class="n">0,996</td><td class="n">2,897</td><td class="n">6,619</td><td class="n">+0,920</td><td class="n">108</td></tr>
-    <tr><td class="n">1,00</td><td class="n">0,7802</td><td class="n">0,792</td><td class="n">2,902</td><td class="n">6,746</td><td class="n">+0,920</td><td class="n">243</td></tr>
+    <tr><td class="n">0,05</td><td class="n">0,0386</td><td class="n">2,918</td><td class="n">3,315</td><td class="n">4,640</td><td class="n">+0,924</td><td class="n">18</td></tr>
+    <tr class="destacada"><td class="n">0,1508</td><td class="n">0,2158</td><td class="n">1,988</td><td class="n">2,964</td><td class="n">5,846</td><td class="n">+0,926</td><td class="n">36</td></tr>
+    <tr><td class="n">0,50</td><td class="n">0,5745</td><td class="n">1,037</td><td class="n">2,883</td><td class="n">6,615</td><td class="n">+0,925</td><td class="n">102</td></tr>
+    <tr><td class="n">1,00</td><td class="n">0,7677</td><td class="n">0,802</td><td class="n">2,895</td><td class="n">6,752</td><td class="n">+0,925</td><td class="n">229</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   <em>μ</em> gobierna la nitidez sin tocar el valor del tiempo: con
-  <em>ρ</em> = 0 el gradiente de renta ni siquiera se mueve, queda en +0,92 en
-  todo el rango, y lo que cambia es cuánto se separan los estratos. El Theil
-  va de 0,05 a 0,78, y el número de iteraciones del punto fijo crece con la
-  nitidez.
+  <em>ρ</em> = 0 el gradiente de renta casi no se mueve, entre +0,924 y
+  +0,926 en todo el rango, y lo que cambia es cuánto se separan los estratos.
+  El Theil va de 0,04 a 0,77, y el número de iteraciones del punto fijo crece
+  con la nitidez. Es el tamaño del supuesto que <code>MU_SUELO</code> fija.
 </p>
 
 <p>
-  Que <em>μ</em> sea una normalización y no un parámetro más lo confirma el
-  reescalado: con <em>μ = 1</em> y <em>λ</em>, <em>α</em> y <em>ρ</em>
-  multiplicados por 0,1508 el equilibrio es el mismo, en las dos ramas:
+  Que en la subasta sólo entren los productos de (2.6) lo confirma el
+  reescalado. Con <em>ρ</em> = 20 para que su parte no sea vacía, <em>μ = 1</em>
+  con <em>λ</em>, <em>α</em> y <em>ρ</em> multiplicados por 0,1508
+  da el mismo equilibrio, en las dos ramas:
 </p>
 
 <div class="envoltorio-tabla">
@@ -732,18 +825,20 @@
     <tr><th>Transformación</th><th class="n">max ΔQ</th><th class="n">max Δp ($)</th><th class="n">max Δu ($)</th></tr>
   </thead>
   <tbody>
-    <tr><td>HEV: μ = 1 con λ, α, ρ × 0,1508</td><td class="n">1,3 ·10⁻¹⁴</td><td class="n">4,7 ·10⁻¹⁰</td><td class="n">0</td></tr>
-    <tr><td>forma cerrada: ídem con λ uniforme</td><td class="n">6,0 ·10⁻¹⁵</td><td class="n">9,3 ·10⁻¹⁰</td><td class="n">0</td></tr>
-    <tr><td>HEV: μ = 1 con sólo λ × 0,1508</td><td class="n">0,510</td><td class="n">591.648</td><td class="n">222.970</td></tr>
+    <tr><td>HEV: μ = 1 con λ, α y ρ × 0,1508</td><td class="n">1,3 ·10⁻¹⁴</td><td class="n">4,7 ·10⁻¹⁰</td><td class="n">0</td></tr>
+    <tr><td>forma cerrada: ídem con λ uniforme</td><td class="n">1,1 ·10⁻¹⁴</td><td class="n">0</td><td class="n">0</td></tr>
+    <tr><td>HEV: μ = 1 con sólo λ × 0,1508</td><td class="n">0,606</td><td class="n">695.946</td><td class="n">150.629</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Los coeficientes equivalentes serían <em>λ</em> = 4,83 / 9,66 / 18,71 ·10⁻⁵
-  y <em>α</em> = 0,151, que son justamente los <em>β_h</em> de la §1 y
-  <em>μ</em>: el mismo modelo con el supuesto repartido en los coeficientes en
-  vez de en un número con nombre. Reescalar sólo <em>λ</em> no equivale a
+  Los coeficientes equivalentes serían <em>λ</em> = 4,83 / 9,66 / 18,71 ·10⁻⁵,
+  <em>α</em> = 0,151 y <em>ρ</em> = 3,02: el mismo modelo con el
+  supuesto repartido en los coeficientes. Pero esos <em>λ</em> ya no son el
+  <code>b_costo</code> del logit modal y con ese <em>α</em> la puja ya no lee el
+  logsum mensual tal cual: el puente con transporte se rompe. Por eso el supuesto
+  vive en <em>μ</em>, con nombre. Reescalar sólo <em>λ</em> no equivale a
   nada.
 </p>
 
@@ -753,11 +848,13 @@
     <tr><th class="n">ρ</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th>Asignación</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td class="n">0,0</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td><td class="n">+0,920</td><td>Alonso puro</td></tr>
-    <tr><td class="n">0,005</td><td class="n">0,1730</td><td class="n">2,228</td><td class="n">3,015</td><td class="n">5,599</td><td class="n">+0,677</td><td>—</td></tr>
-    <tr><td class="n">0,01</td><td class="n">0,1087</td><td class="n">2,702</td><td class="n">3,096</td><td class="n">5,149</td><td class="n">+0,481</td><td>—</td></tr>
-    <tr><td class="n">0,02</td><td class="n">0,0485</td><td class="n">4,247</td><td class="n">3,264</td><td class="n">3,839</td><td class="n">+0,186</td><td>invertida</td></tr>
-    <tr><td class="n">0,03</td><td class="n">0,1432</td><td class="n">5,816</td><td class="n">3,277</td><td class="n">2,771</td><td class="n">−0,045</td><td>invertida, renta invertida</td></tr>
+    <tr class="destacada"><td class="n">0</td><td class="n">0,2158</td><td class="n">1,988</td><td class="n">2,964</td><td class="n">5,846</td><td class="n">+0,926</td><td>Alonso puro</td></tr>
+    <tr><td class="n">10</td><td class="n">0,1403</td><td class="n">2,375</td><td class="n">3,053</td><td class="n">5,440</td><td class="n">+0,652</td><td>—</td></tr>
+    <tr><td class="n">20</td><td class="n">0,0701</td><td class="n">2,985</td><td class="n">3,168</td><td class="n">4,841</td><td class="n">+0,436</td><td>—</td></tr>
+    <tr><td class="n">31</td><td class="n">0,0334</td><td class="n">3,947</td><td class="n">3,298</td><td class="n">3,984</td><td class="n">+0,248</td><td>al borde del cruce</td></tr>
+    <tr><td class="n">40</td><td class="n">0,0563</td><td class="n">4,824</td><td class="n">3,360</td><td class="n">3,295</td><td class="n">+0,112</td><td>invertida</td></tr>
+    <tr><td class="n">54</td><td class="n">0,1503</td><td class="n">5,925</td><td class="n">3,340</td><td class="n">2,595</td><td class="n">−0,062</td><td>invertida, renta invertida</td></tr>
+    <tr><td class="n">60</td><td class="n">0,1937</td><td class="n">6,256</td><td class="n">3,314</td><td class="n">2,416</td><td class="n">−0,120</td><td>invertida, renta invertida</td></tr>
   </tbody>
 </table>
 </div>
@@ -765,13 +862,15 @@
 <p>
   <em>ρ</em> hace lo contrario de <em>μ</em>: aplana. Sube la penalización por
   densidad y la ciudad se mezcla, pero a costa de aplastar el gradiente de
-  renta, y en <em>ρ</em> = 0,0187 la asignación se invierte: el estrato alto
-  pasa a vivir más lejos que el bajo mientras el gradiente de precios sigue
-  siendo positivo. Sólo con <em>ρ</em> = 0,03 se invierte también la renta, y
-  ahí el Theil vuelve a subir porque la ciudad se segrega al revés. El signo de
-  <code>grad_p</code> no detecta la inversión más temprana, la del reparto de
-  la gente; la vara para vigilar <em>ρ</em> es el orden de las distancias. El
-  control de la interfaz llega a 0,03 para que las dos inversiones se vean.
+  renta, y en <em>ρ</em> = 31,2 (por bisección) la asignación se invierte: el
+  estrato alto pasa a vivir más lejos que el bajo mientras el gradiente de
+  precios sigue siendo positivo. Entre 40 y 54 se invierte también la renta,
+  y ahí el Theil vuelve a subir porque la ciudad se segrega al revés;
+  <em>ρ</em> = 54 es el escenario de la inversión de Alonso de los tutoriales.
+  El signo de <code>grad_p</code> no detecta la inversión más temprana, la del
+  reparto de la gente; la vara para vigilar <em>ρ</em> es el orden de las
+  distancias. El control de la interfaz llega a 60 para que las dos
+  inversiones se vean.
 </p>
 
 <h3>5.6 Invariancias</h3>
@@ -782,9 +881,9 @@
     <tr><th class="n">Celdas</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">101</td><td class="n">0,2345</td><td class="n">1,964</td><td class="n">2,972</td><td class="n">5,914</td></tr>
-    <tr class="destacada"><td class="n">201</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td></tr>
-    <tr><td class="n">401</td><td class="n">0,2381</td><td class="n">1,894</td><td class="n">2,940</td><td class="n">5,913</td></tr>
+    <tr><td class="n">101</td><td class="n">0,2136</td><td class="n">2,033</td><td class="n">2,985</td><td class="n">5,846</td></tr>
+    <tr class="destacada"><td class="n">201</td><td class="n">0,2158</td><td class="n">1,988</td><td class="n">2,964</td><td class="n">5,846</td></tr>
+    <tr><td class="n">401</td><td class="n">0,2171</td><td class="n">1,966</td><td class="n">2,952</td><td class="n">5,846</td></tr>
   </tbody>
 </table>
 </div>
@@ -795,9 +894,9 @@
     <tr><th class="n">L (km)</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th class="n">Iter.</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">10</td><td class="n">0,1556</td><td class="n">2,317</td><td class="n">2,984</td><td class="n">5,592</td><td class="n">+0,965</td><td class="n">29</td></tr>
-    <tr class="destacada"><td class="n">20</td><td class="n">0,2368</td><td class="n">1,918</td><td class="n">2,951</td><td class="n">5,913</td><td class="n">+0,920</td><td class="n">38</td></tr>
-    <tr><td class="n">40</td><td class="n">0,3847</td><td class="n">1,507</td><td class="n">2,845</td><td class="n">6,364</td><td class="n">+0,780</td><td class="n">63</td></tr>
+    <tr><td class="n">10</td><td class="n">0,1273</td><td class="n">2,404</td><td class="n">3,050</td><td class="n">5,425</td><td class="n">+0,968</td><td class="n">26</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">0,2158</td><td class="n">1,988</td><td class="n">2,964</td><td class="n">5,846</td><td class="n">+0,926</td><td class="n">36</td></tr>
+    <tr><td class="n">40</td><td class="n">0,3592</td><td class="n">1,559</td><td class="n">2,855</td><td class="n">6,313</td><td class="n">+0,788</td><td class="n">57</td></tr>
   </tbody>
 </table>
 </div>
@@ -810,6 +909,35 @@
   la subasta, y el estrato alto se acerca al centro.
 </p>
 
+<p>
+  La tercera invariancia es la que motivó el schema v7: la población. Con
+  <em>ρ</em> = 54 y la misma ciudad física, se resuelve con 36.000, 72.000 y
+  144.000 hogares. Al lado, el contrafactual v6: el mismo número del control
+  viejo, 0,03 por hog/km, que en v7 equivale a <em>ρ</em> × ΣH/36.000:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ΣH</th><th class="n">Densidad media (hog/km)</th><th class="n">v7: Theil</th><th class="n">d alto</th><th class="n">d bajo</th><th class="n">v6: ρ en v7</th><th class="n">Theil</th><th class="n">d alto</th><th class="n">d bajo</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">0,1503</td><td class="n">5,925</td><td class="n">2,595</td><td class="n">54</td><td class="n">0,1503</td><td class="n">5,925</td><td class="n">2,595</td></tr>
+    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">0,1504</td><td class="n">5,925</td><td class="n">2,593</td><td class="n">108</td><td class="n">0,4445</td><td class="n">7,262</td><td class="n">1,731</td></tr>
+    <tr><td class="n">144.000</td><td class="n">7.200</td><td class="n">0,1504</td><td class="n">5,925</td><td class="n">2,593</td><td class="n">216</td><td class="n">0,6691</td><td class="n">7,487</td><td class="n">1,260</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  En v7 cuadruplicar la población deja la ciudad igual, con diferencias de 0,0001 en el Theil y de 0,002 km en las distancias, que son de redondeo de la oferta entera: la
+  oferta escala con ΣH sin cambiar de forma, así que <em>d_i</em> no cambia, y
+  el factor común de <em>H_h</em> y <em>S_i</em> lo absorben las utilidades de
+  reserva. En v6 el mismo control habría producido otra ciudad, con un Theil
+  de 0,15 a 0,67, sólo por agregar hogares y sin que nadie cambiara de
+  preferencias. Lo fija <code>tests/test_land_use.py</code>.
+</p>
+
 <h2 id="s6"><span class="num">§6</span> Discusión</h2>
 
 <p>
@@ -817,8 +945,13 @@
   hogares se cumple a precisión de máquina en todas las formas y escalas, el
   despacho entre las dos ramas es continuo, y el mismo hogar que puja por
   suelo es el que elige modo, con un solo valor del tiempo. De los siete
-  parámetros, <em>λ</em> viene de transporte, la forma de la oferta es
-  heredada y los otros cinco son decisiones declaradas con su razón.
+  parámetros de la §2, <em>λ</em> viene de transporte, la forma de la oferta
+  es heredada y los otros cinco son decisiones declaradas con su razón. El
+  schema v7 sacó del escenario los dos que no se distinguían entre sí:
+  <em>α</em> sigue en la ecuación, fijo en 1, y <em>μ</em> pasó a ser una
+  constante con nombre.
+  Y <em>ρ</em>, el único control propio del módulo, significa lo mismo con
+  cualquier población.
 </p>
 
 <p>
@@ -836,10 +969,10 @@
 
 <ul>
   <li>
-    <strong>ρ por estrato.</strong> Hoy es común y la heterogeneidad en pesos
-    sale sólo de <em>λ_h</em>. Un <em>ρ_h</em> propio permitiría contar
-    explícitamente que la preferencia por espacio crece con el ingreso, que es
-    el mecanismo de Alonso para la inversión.
+    <strong>μ, viaje o tour.</strong> La analogía de <em>μ</em> cuenta 44
+    viajes al mes, mientras que el parking ya se cobra por tour; la decisión
+    D3 de la <a href="auditoria-2026-10.html">auditoría</a> queda abierta en
+    esa mitad: la otra, derivación o decisión, la contesta la §2.
   </li>
   <li>
     <strong>Balance como condición de convergencia.</strong> Exigir (2.5)
