@@ -265,7 +265,7 @@ def _costo_en_exceso_medio(
     if total <= 0.0:
         return 0.0
     v_max = np.max(V, axis=1, keepdims=True)
-    exceso = np.where(masa > 0, (v_max - V) / b_t[:, None], 0.0)
+    exceso = np.subtract(v_max, V, out=np.zeros_like(V), where=masa > 0) / b_t[:, None]
     return float((masa * exceso).sum() / total)
 
 

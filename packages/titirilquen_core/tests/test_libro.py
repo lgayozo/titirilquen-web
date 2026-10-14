@@ -24,7 +24,13 @@ import pytest
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS))
 
-from verifica_mapa import LIBRO, documentos, extrae, revisa_libro  # noqa: E402
+from verifica_mapa import (  # noqa: E402
+    LIBRO,
+    documentos,
+    extrae,
+    punteros_a_tests,
+    revisa_libro,
+)
 
 #: Enlaces del libro que apuntan fuera del repo o a un ancla; no se comprueban.
 _EXTERNO = ("http://", "https://", "mailto:", "data:", "#")
@@ -70,6 +76,8 @@ def test_el_libro_verifica_una_cantidad_razonable(docs: list[Path]) -> None:
         rutas |= set(rs)
     assert total > 50, f"sólo {total} punteros en todo el libro: ¿se rompió la extracción?"
     assert len(rutas) > 30, f"sólo {len(rutas)} rutas: ¿se rompió la extracción?"
+    a_tests = sum(len(punteros_a_tests(d.read_text(encoding="utf-8"))) for d in docs)
+    assert a_tests > 80, f"sólo {a_tests} punteros a tests: ¿se rompió la extracción?"
 
 
 def test_ningun_enlace_interno_del_libro_esta_roto(docs: list[Path]) -> None:

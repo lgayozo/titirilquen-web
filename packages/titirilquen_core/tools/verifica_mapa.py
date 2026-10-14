@@ -36,7 +36,8 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[3]
 LIBRO = RAIZ / "docs" / "libro"
 
-NUCLEO = RAIZ / "packages" / "titirilquen_core" / "src" / "titirilquen_core"
+PAQUETE = RAIZ / "packages" / "titirilquen_core"
+NUCLEO = PAQUETE / "src" / "titirilquen_core"
 WEB = RAIZ / "apps" / "web" / "src"
 
 
@@ -54,9 +55,10 @@ def resuelve(ruta: str) -> Path:
 
     El índice mezcla tres orígenes: `demand/choice.py` cuelga del núcleo,
     `lib/api.ts` de `apps/web/src`, y unas pocas (`docs/…`, `CLAUDE.md`) del
-    repo. Se prueba primero la raíz porque es la única sin ambigüedad.
+    repo. Se prueba primero la raíz porque es la única sin ambigüedad. Las
+    tablas de pruebas citan `tests/…`, que cuelga del paquete del núcleo.
     """
-    for base in (RAIZ, NUCLEO, WEB):
+    for base in (RAIZ, NUCLEO, WEB, PAQUETE):
         if (base / ruta).exists():
             return base / ruta
     return (NUCLEO if ruta.endswith(".py") else WEB) / ruta
@@ -83,6 +85,29 @@ _CODIGO = re.compile(r"<code>(?P<simbolo>[A-Za-z_][\w.]*)</code>(?:\s*\((?P<line
 # exigirle ruta completa haría ilegible la tabla de rutas.
 _CELDA_RUTA = re.compile(r'<(?:td|span) class="ruta[^"]*">(?P<contenido>[^<]+)</(?:td|span)>')
 _TOKEN_RUTA = re.compile(r"[\w.@/_-]*/[\w.@/_-]*\.(?:tsx|ts|py)(?![\w])|[\w.@/_-]+/(?![\w])")
+
+
+# Las tablas de pruebas de cada capítulo:
+#     <td><code class="ruta py">tests/test_x.py</code>:N</td><td>qué verifica (M)</td>
+# No nombran un símbolo, pero la línea N tiene que ABRIR un test —su `def` o su
+# decorador—, y lo mismo cada «(M)» entero de la descripción. Las ecuaciones
+# llevan punto, «(2.5)», y no entran. Hasta oct-2026 esta forma no se
+# verificaba y 20 de sus ~100 números habían quedado corridos.
+_FILA_TEST = re.compile(
+    r'<code class="ruta[^"]*">(?P<ruta>[^<]+)</code>:(?P<linea>\d+)</td>\s*<td>(?P<notas>.*?)</td>',
+    re.DOTALL,
+)
+_INICIO_TEST = re.compile(r"\s*(?:@|(?:async\s+)?def\s+test|class\s+Test|test(?:\.describe)?\()")
+
+
+def punteros_a_tests(html: str) -> list[tuple[str, int]]:
+    """`(ruta, línea)` de cada fila de una tabla de pruebas y de sus «(M)»."""
+    punteros: list[tuple[str, int]] = []
+    for fila in _FILA_TEST.finditer(html):
+        ruta = fila.group("ruta").strip()
+        punteros.append((ruta, int(fila.group("linea"))))
+        punteros += [(ruta, int(m)) for m in re.findall(r"\((\d+)\)", fila.group("notas"))]
+    return punteros
 
 
 def extrae(html: str) -> tuple[list[Afirmacion], list[str]]:
@@ -152,6 +177,15 @@ def revisa(html: str) -> list[str]:
             pista = f" — está en {', '.join(donde)}" if donde else " — no aparece en el archivo"
             problemas.append(f"{a.ruta}:{a.linea} — no dice «{a.simbolo}»{pista}")
 
+    for ruta, n in punteros_a_tests(html):
+        destino = resuelve(ruta)
+        if not destino.exists():
+            problemas.append(f"{ruta} — no existe")
+            continue
+        lineas = destino.read_text(encoding="utf-8").splitlines()
+        if n > len(lineas) or not _INICIO_TEST.match(lineas[n - 1]):
+            problemas.append(f"{ruta}:{n} — no abre un test")
+
     return problemas
 
 
@@ -175,8 +209,10 @@ def main() -> int:
     docs = documentos()
     fallos = revisa_libro()
     if not fallos:
-        total = sum(len(extrae(d.read_text(encoding="utf-8"))[0]) for d in docs)
-        print(f"docs/libro/ al día: {total} punteros en {len(docs)} documentos.")
+        textos = [d.read_text(encoding="utf-8") for d in docs]
+        total = sum(len(extrae(t)[0]) for t in textos)
+        tests = sum(len(punteros_a_tests(t)) for t in textos)
+        print(f"docs/libro/ al día: {total} punteros y {tests} a tests en {len(docs)} documentos.")
         return 0
     n = sum(len(v) for v in fallos.values())
     print(f"docs/libro/ tiene {n} punteros rotos en {len(fallos)} documentos:\n")
