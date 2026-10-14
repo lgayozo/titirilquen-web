@@ -64,6 +64,65 @@ function coupledValues(sc: Scenario): Record<string, number | null> | null {
   };
 }
 
+/** Localización de la tarjeta en la lente Transporte (C-02): el snapshot
+ *  capturado por «Usar Transporte actual» o, si vino de archivo,
+ *  «equilibrio» sólo si la tarjeta ya corrió la lente de suelo. */
+function localizacionDe(sc: Scenario): "equilibrio" | "original" {
+  return (
+    sc.localizacion ??
+    (sc.luResult != null &&
+    sc.luResult.L === sc.config?.city.n_celdas &&
+    (sc.luResult.result?.Q?.length ?? 0) > 0
+      ? "equilibrio"
+      : "original")
+  );
+}
+
+/** ¿Misma ciudad que la base? Misma geometría y misma oferta de suelo: sólo
+ *  entonces congelar la `Q` de la base es «la misma gente en el mismo lugar»
+ *  (D11c). Sobre otra oferta `S` la misma `Q` sería otra población. */
+function mismaCiudad(a: Scenario, b: Scenario): boolean {
+  const clave = (s: Scenario) => {
+    const lu = s.landUse ?? defaultLandUseConfig;
+    return JSON.stringify([
+      s.config?.city.n_celdas,
+      s.config?.city.largo_ciudad_km,
+      lu.H_por_estrato,
+      lu.forma,
+      lu.oferta_sigma_frac,
+      lu.forma_param,
+    ]);
+  };
+  return clave(a) === clave(b);
+}
+
+/** La base de INPUTS: la elegida si tiene config; si no, la primera con config. */
+function baseDeInputs(
+  scenarios: Scenario[],
+  baseIdSel: string | null,
+): string | undefined {
+  return (
+    (baseIdSel && scenarios.some((s) => s.id === baseIdSel && s.config)
+      ? baseIdSel
+      : undefined) ?? scenarios.find((s) => s.config)?.id
+  );
+}
+
+/** Resuelve cuando la tarjeta deja de correr. */
+function terminaDeCorrer(id: string): Promise<void> {
+  const listo = () =>
+    useCompareStore.getState().scenarios.find((s) => s.id === id)?.status !==
+    "running";
+  return new Promise((resolve) => {
+    if (listo()) return resolve();
+    const unsub = useCompareStore.subscribe(() => {
+      if (!listo()) return;
+      unsub();
+      resolve();
+    });
+  });
+}
+
 export function ComparePage() {
   const { t } = useTranslation("simulator");
   const { t: tC } = useTranslation("common");
@@ -85,22 +144,39 @@ export function ComparePage() {
   const runOne = async (id: string) => {
     const st = useCompareStore.getState();
     const sc = st.scenarios.find((s) => s.id === id);
-    if (!sc?.config) return;
+    if (!sc?.config || sc.status === "running") return;
     const k = st.kind;
     setStatus(id, "running");
     try {
       if (k === "transport") {
-        // C-02: misma población y localización que el Sandbox. El motor recibe
-        // el suelo de la tarjeta (puebla desde H_por_estrato) y la localización:
-        // el snapshot capturado por «Usar Transporte actual» o, si vino de
-        // archivo, «equilibrio» solo si la tarjeta ya corrió la lente de suelo.
-        const loc =
-          sc.localizacion ??
-          (sc.luResult != null &&
-          sc.luResult.L === sc.config.city.n_celdas &&
-          (sc.luResult.result?.Q?.length ?? 0) > 0
-            ? "equilibrio"
-            : "original");
+        // C-02: misma población y localización que el Sandbox. D11c: una
+        // tarjeta de la misma ciudad que la base corre con la `Q` de la
+        // corrida de la base —la misma gente en el mismo lugar, estática
+        // comparativa de corto plazo—; una de otra ciudad, con la suya.
+        const baseId = baseDeInputs(st.scenarios, st.baseId) ?? id;
+        const base = st.scenarios.find((s) => s.id === baseId);
+        let loc = localizacionDe(sc);
+        let Q_dada: number[][] | null = null;
+        let congelada = false;
+        if (base && baseId !== id && mismaCiudad(sc, base)) {
+          // La base corre primero: su corrida fija dónde vive la gente. Un
+          // resultado suyo de cuando no era la base no sirve.
+          await terminaDeCorrer(baseId);
+          const vigente = (s?: Scenario) =>
+            s?.result != null && s.transportBase?.id === s.id;
+          const buscar = () =>
+            useCompareStore.getState().scenarios.find((s) => s.id === baseId);
+          if (!vigente(buscar())) await runOne(baseId);
+          const b = buscar();
+          if (!vigente(b) || !b?.result || !b.transportBase) {
+            setError(id, t("compare.base_sin_resultado"));
+            return;
+          }
+          loc = b.transportBase.localizacion;
+          // Con «original» la `Q` es la mezcla uniforme: no se reenvía.
+          Q_dada = loc === "equilibrio" ? b.result.localizacion_Q : null;
+          congelada = true;
+        }
         // Sin callback de iteración: acá interesa el resultado final, no la
         // convergencia en vivo. Qué motor corre lo decide `lib/api`.
         const result = await simularTransporte(
@@ -108,8 +184,14 @@ export function ComparePage() {
           sc.landUse ?? defaultLandUseConfig,
           loc,
           () => {},
+          undefined,
+          Q_dada,
         );
-        setTransportResult(id, result);
+        setTransportResult(id, result, {
+          id: baseId,
+          congelada,
+          localizacion: loc,
+        });
       } else if (k === "land_use") {
         const L = sc.config.city.n_celdas;
         const r = await resolverUsoDeSuelo({
@@ -302,6 +384,18 @@ export function ComparePage() {
     [t],
   );
 
+  // D11c: de dónde salió la población de cada resultado de transporte.
+  const notaTransporte = (s: Scenario): string | undefined => {
+    const tb = s.transportBase;
+    if (!s.result || !tb) return undefined;
+    if (tb.id !== baseInputsId) return t("compare.q.desactualizada");
+    if (s.id === baseInputsId) return undefined;
+    if (tb.congelada) return t("compare.q.congelada");
+    return tb.localizacion === "equilibrio"
+      ? t("compare.q.otra_ciudad_reloc")
+      : t("compare.q.otra_ciudad");
+  };
+
   const doneCount = scenarios.filter((s) => s.status === "done").length;
   const runningCount = scenarios.filter((s) => s.status === "running").length;
   const configuredCount = scenarios.filter((s) => s.config != null).length;
@@ -309,10 +403,7 @@ export function ComparePage() {
   // hay una tarjeta configurada, para el diff y para marcar la tarjeta— y la de
   // RESULTADOS, que necesita una corrida. Sin separarlas, antes de correr no
   // había ninguna marcada y las dos tarjetas se veían igual.
-  const baseInputsId =
-    (baseIdSel && scenarios.some((s) => s.id === baseIdSel && s.config)
-      ? baseIdSel
-      : undefined) ?? scenarios.find((s) => s.config)?.id;
+  const baseInputsId = baseDeInputs(scenarios, baseIdSel);
   const baseId =
     (baseIdSel &&
     scenarios.some((s) => s.id === baseIdSel && s.status === "done")
@@ -482,7 +573,12 @@ export function ComparePage() {
           </div>
           {kind === "coupled" && (
             <span className="text-[11px] text-muted">
-              {t("compare.coupled_hint")}
+              {t("compare.coupled_hint", { max: VUELTAS_ACOPLADO_MAX })}
+            </span>
+          )}
+          {kind === "transport" && (
+            <span className="text-[11px] text-muted">
+              {t("compare.transport_hint")}
             </span>
           )}
         </div>
@@ -497,6 +593,7 @@ export function ComparePage() {
               removable={i >= 2}
               isBase={s.id === baseInputsId}
               onMakeBase={s.config ? () => setBaseId(s.id) : undefined}
+              nota={kind === "transport" ? notaTransporte(s) : undefined}
             />
           </div>
         ))}

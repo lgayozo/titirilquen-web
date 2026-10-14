@@ -83,11 +83,18 @@ class SimulateRequest(BaseModel):
         default="equilibrio",
         description="«equilibrio» resuelve la subasta; «original» usa la mezcla uniforme π_h",
     )
+    Q_dada: list[list[float]] | None = Field(
+        default=None,
+        description=(
+            "Q[estrato][celda] de otra corrida (su `localizacion_Q`): con «equilibrio» "
+            "reemplaza a la subasta, la misma gente en el mismo lugar (D11c)"
+        ),
+    )
 
 
 @app.post("/simulate")
 def simulate(req: SimulateRequest) -> dict[str, object]:
-    trace = run_msa(req.sim, req.land_use, req.localizacion)
+    trace = run_msa(req.sim, req.land_use, req.localizacion, Q_dada=req.Q_dada)
     return trace_to_dict(trace, req.sim)
 
 

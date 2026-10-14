@@ -103,6 +103,11 @@ export interface TraceDict {
    *  reparto modal espacial por estrato y los agregados de bienestar.
    */
   demanda_estrato: number[][][] | null;
+  /**
+   *  La `Q[estrato, celda]` con que se pobló la ciudad. Comparar la reenvía
+   *  como `Q_dada` para correr otra política con la misma gente (D11c).
+   */
+  localizacion_Q: number[][] | null;
   iteraciones: SnapshotDict[];
   agentes: AgenteDict[];
   /**

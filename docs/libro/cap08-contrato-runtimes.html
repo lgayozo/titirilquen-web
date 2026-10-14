@@ -99,62 +99,62 @@
     <tr>
       <td class="n">1, 2</td>
       <td class="ruta py">serializacion.py</td>
-      <td class="n">239</td>
-      <td><code>trace_to_dict</code> — la forma de una corrida; <code>iteration_to_dict</code> (218) por snapshot, <code>agente_to_dict</code> (206) por agente</td>
+      <td class="n">243</td>
+      <td><code>trace_to_dict</code> — la forma de una corrida; <code>iteration_to_dict</code> (222) por snapshot, <code>agente_to_dict</code> (210) por agente</td>
     </tr>
     <tr>
       <td class="n">1, 2</td>
       <td class="ruta py">serializacion.py</td>
-      <td class="n">305</td>
-      <td><code>outer_iteration_to_dict</code> — una vuelta del acoplado, con el trace de transporte ENTERO adentro; <code>coupled_result_to_dict</code> (316)</td>
+      <td class="n">310</td>
+      <td><code>outer_iteration_to_dict</code> — una vuelta del acoplado, con el trace de transporte ENTERO adentro; <code>coupled_result_to_dict</code> (321)</td>
     </tr>
     <tr>
       <td class="n">1, 2</td>
       <td class="ruta py">serializacion.py</td>
-      <td class="n">290</td>
+      <td class="n">295</td>
       <td><code>land_use_city_to_dict</code> — respuesta del suelo standalone; el Theil se calcula acá (295) y no en TS</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta py">apps/api/src/api/main.py</td>
-      <td class="n">88</td>
-      <td><code>simulate</code> — <code>run_msa(sim, land_use, localizacion)</code>; <code>SimulateRequest</code> (71) trae el uso de suelo desde el 2026-09-10 (C-02, cerrado); <code>land_use_solve</code> (120), <code>coupled_solve</code> (150), <code>coupled_stream</code> (166)</td>
+      <td class="n">96</td>
+      <td><code>simulate</code> — <code>run_msa(sim, land_use, localizacion, Q_dada=…)</code>; <code>SimulateRequest</code> (71) trae el uso de suelo desde el 2026-09-10 (C-02, cerrado) y, desde oct-2026, la <code>Q_dada</code> opcional de Comparar (D11c); <code>land_use_solve</code> (127), <code>coupled_solve</code> (157), <code>coupled_stream</code> (173)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta py">apps/api/src/api/main.py</td>
-      <td class="n">134</td>
+      <td class="n">141</td>
       <td><code>CoupledRequest</code> — <code>outer_max_iter</code> con default y cota <code>VUELTAS_ACOPLADO_MAX</code> (D-61)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
-      <td class="n">82</td>
+      <td class="n">85</td>
       <td><code>runPythonAsync</code> — el bloque Python embebido: 75 líneas que ninguna herramienta lee</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
-      <td class="n">160</td>
-      <td><code>iter_from_json_suelo</code> — la entrada del Sandbox; <code>land_use_solve_from_json</code> (178), <code>coupled_iter_from_json</code> (196). <code>simulate_from_json</code>, sin llamadores, se borró el 2026-09-10 (D-63)</td>
+      <td class="n">163</td>
+      <td><code>iter_from_json_suelo</code> — la entrada del Sandbox; <code>land_use_solve_from_json</code> (182), <code>coupled_iter_from_json</code> (200). <code>simulate_from_json</code>, sin llamadores, se borró el 2026-09-10 (D-63)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
-      <td class="n">77</td>
+      <td class="n">80</td>
       <td><code>PYODIDE_VERSION</code> — 0.26.4, el que trae pydantic 2.7.0 precompilado</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">lib/api.ts</td>
       <td class="n">41</td>
-      <td><code>motorLocal</code> — la única decisión de motor; <code>simularTransporte</code> (106), <code>resolverUsoDeSuelo</code> (138), <code>resolverAcoplado</code> (163), <code>resolverAcopladoStream</code> (186)</td>
+      <td><code>motorLocal</code> — la única decisión de motor; <code>simularTransporte</code> (106), <code>resolverUsoDeSuelo</code> (142), <code>resolverAcoplado</code> (167), <code>resolverAcopladoStream</code> (190)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">lib/pyodide-engine.ts</td>
-      <td class="n">72</td>
-      <td><code>PyodideEngine</code> — el cliente del worker; <code>simulateStream</code> (192), <code>solveLandUse</code> (220), <code>solveCoupledStream</code> (249). El <code>simulate</code> sin llamadores se borró el 2026-09-10 (D-63)</td>
+      <td class="n">73</td>
+      <td><code>PyodideEngine</code> — el cliente del worker; <code>simulateStream</code> (193), <code>solveLandUse</code> (228), <code>solveCoupledStream</code> (257). El <code>simulate</code> sin llamadores se borró el 2026-09-10 (D-63)</td>
     </tr>
     <tr>
       <td class="n">3</td>

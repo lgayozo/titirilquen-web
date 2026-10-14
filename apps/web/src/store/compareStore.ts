@@ -49,8 +49,17 @@ export interface Scenario {
   result: SimulationResult | null;
   luResult: LandUseSolveResponse | null;
   coupledResult: CoupledCompareResult | null;
+  /** De qué corrida salió la población del `result` de transporte (D11c):
+   *  `id` es la base vigente al correr; `congelada`, si usó su `Q`. */
+  transportBase: TransportBase | null;
   status: ScenarioStatus;
   error: string | null;
+}
+
+export interface TransportBase {
+  id: string;
+  congelada: boolean;
+  localizacion: "equilibrio" | "original";
 }
 
 function emptyScenario(id: string): Scenario {
@@ -65,6 +74,7 @@ function emptyScenario(id: string): Scenario {
     result: null,
     luResult: null,
     coupledResult: null,
+    transportBase: null,
     status: "empty",
     error: null,
   };
@@ -101,7 +111,11 @@ interface CompareState {
   ) => void;
   renameScenario: (id: string, name: string) => void;
   setStatus: (id: string, status: ScenarioStatus) => void;
-  setTransportResult: (id: string, result: SimulationResult) => void;
+  setTransportResult: (
+    id: string,
+    result: SimulationResult,
+    transportBase: TransportBase,
+  ) => void;
   setLuResult: (id: string, result: LandUseSolveResponse) => void;
   setCoupledResult: (id: string, result: CoupledCompareResult) => void;
   setError: (id: string, error: string) => void;
@@ -178,35 +192,51 @@ export const useCompareStore = create<CompareState>()(
         })),
 
       // Reemplaza el escenario completo: invalida los resultados de TODOS los
-      // tipos (corresponden a la config anterior).
+      // tipos (corresponden a la config anterior), y el de transporte de las
+      // tarjetas que corrieron con su población (D11c).
       setScenario: (id, payload) =>
         set((s) => ({
           scenarios: s.scenarios.map((sc) =>
-            sc.id === id
+            sc.id !== id &&
+            sc.transportBase?.congelada &&
+            sc.transportBase.id === id
               ? {
                   ...sc,
-                  config: payload.config,
-                  landUse: payload.landUse ?? sc.landUse,
-                  localizacion:
-                    payload.localizacion !== undefined
-                      ? payload.localizacion
-                      : sc.localizacion,
-                  presetCity:
-                    payload.presetCity !== undefined
-                      ? payload.presetCity
-                      : null,
-                  presetPolicy:
-                    payload.presetPolicy !== undefined
-                      ? payload.presetPolicy
-                      : null,
-                  ...(payload.name !== undefined ? { name: payload.name } : {}),
                   result: null,
-                  luResult: null,
-                  coupledResult: null,
-                  status: "configured",
-                  error: null,
+                  transportBase: null,
+                  status:
+                    s.kind === "transport" && sc.status !== "running"
+                      ? "configured"
+                      : sc.status,
                 }
-              : sc,
+              : sc.id === id
+                ? {
+                    ...sc,
+                    config: payload.config,
+                    landUse: payload.landUse ?? sc.landUse,
+                    localizacion:
+                      payload.localizacion !== undefined
+                        ? payload.localizacion
+                        : sc.localizacion,
+                    presetCity:
+                      payload.presetCity !== undefined
+                        ? payload.presetCity
+                        : null,
+                    presetPolicy:
+                      payload.presetPolicy !== undefined
+                        ? payload.presetPolicy
+                        : null,
+                    ...(payload.name !== undefined
+                      ? { name: payload.name }
+                      : {}),
+                    result: null,
+                    luResult: null,
+                    coupledResult: null,
+                    transportBase: null,
+                    status: "configured",
+                    error: null,
+                  }
+                : sc,
           ),
         })),
 
@@ -226,10 +256,12 @@ export const useCompareStore = create<CompareState>()(
           ),
         })),
 
-      setTransportResult: (id, result) =>
+      setTransportResult: (id, result, transportBase) =>
         set((s) => ({
           scenarios: s.scenarios.map((sc) =>
-            sc.id === id ? { ...sc, result, status: "done", error: null } : sc,
+            sc.id === id
+              ? { ...sc, result, transportBase, status: "done", error: null }
+              : sc,
           ),
         })),
 

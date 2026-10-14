@@ -27,6 +27,8 @@ interface ScenarioCardProps {
   /** ¿Es el escenario contra el que se calculan los deltas? */
   isBase?: boolean;
   onMakeBase?: () => void;
+  /** De dónde salió la población del resultado (D11c). */
+  nota?: string;
 }
 
 export function ScenarioCard({
@@ -35,6 +37,7 @@ export function ScenarioCard({
   removable,
   isBase,
   onMakeBase,
+  nota,
 }: ScenarioCardProps) {
   const { t } = useTranslation("common");
   const { t: tS } = useTranslation("simulator");
@@ -299,6 +302,10 @@ export function ScenarioCard({
           </button>
         </div>
       </div>
+
+      {nota && (
+        <div className="mt-2 text-[11px] text-[var(--muted)]">{nota}</div>
+      )}
 
       {scenario.error && (
         <div className="mt-2 rounded border-l-2 border-[var(--metro)] bg-[var(--paper-2)] p-2 text-[11px] text-[var(--metro)]">

@@ -117,6 +117,10 @@ class TraceDict(TypedDict):
     """Demanda esperada por [estrato, modo, celda] — el cubo que alimenta el
     reparto modal espacial por estrato y los agregados de bienestar."""
 
+    localizacion_Q: list[list[float]] | None
+    """La `Q[estrato, celda]` con que se pobló la ciudad. Comparar la reenvía
+    como `Q_dada` para correr otra política con la misma gente (D11c)."""
+
     iteraciones: list[SnapshotDict]
     agentes: list[AgenteDict]
 
@@ -259,6 +263,7 @@ def trace_to_dict(trace: ConvergenceTrace, cfg: SimulationConfig | None = None) 
         "emisiones_metro_kg": trace.emisiones_metro_kg,
         "emisiones_perfil_kg": _lista(trace.emisiones_perfil_kg),
         "demanda_estrato": _lista(trace.demanda_estrato),
+        "localizacion_Q": _lista(trace.localizacion_Q),
         "iteraciones": [iteration_to_dict(s) for s in trace.iteraciones],
         "agentes": [agente_to_dict(a) for a in trace.agentes],
         "agregados": None if cfg is None else calcular_agregados(cfg, trace),

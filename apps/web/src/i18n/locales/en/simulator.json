@@ -539,7 +539,15 @@
       "land_use": "Land use",
       "coupled": "City at equilibrium"
     },
-    "coupled_hint": "Runs the full land ↔ transport loop per scenario (expected assignment · max 8 outer iterations).",
+    "coupled_hint": "Runs the full land ↔ transport loop per scenario (expected assignment · max {{max}} outer iterations).",
+    "transport_hint": "Every card of the same city runs with the base's population, cell by cell: the Δ is transport only. Relocation is the «City at equilibrium» lens.",
+    "base_sin_resultado": "The base has no transport result: run it first.",
+    "q": {
+      "congelada": "base population",
+      "otra_ciudad": "another city",
+      "otra_ciudad_reloc": "another city · includes relocation",
+      "desactualizada": "the base changed: run again"
+    },
     "not_converged": "⚠ not converged",
     "lu": {
       "table_title": "Land-use equilibrium · metrics",

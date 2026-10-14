@@ -109,6 +109,9 @@ export async function simularTransporte(
   localizacion: "equilibrio" | "original",
   onIteracion: (snap: IterationSnapshot) => void,
   signal?: AbortSignal,
+  /** `localizacion_Q` de otra corrida: la población no se relocaliza, sólo
+   *  cambia el transporte (D11c, la lente Transporte de Comparar). */
+  Q_dada?: number[][] | null,
 ): Promise<SimulationResult> {
   if (motorLocal()) {
     return pyodideEngine.simulateStream(
@@ -117,6 +120,7 @@ export async function simularTransporte(
       localizacion,
       onIteracion,
       signal,
+      Q_dada,
     );
   }
   // Misma población en los dos motores: `/simulate` recibe el uso de suelo
@@ -124,7 +128,7 @@ export async function simularTransporte(
   // de metro distintos según el motor (C-02, cerrado).
   const resultado = await postJson<SimulationResult>(
     "/simulate",
-    { sim: config, land_use: landUse, localizacion },
+    { sim: config, land_use: landUse, localizacion, Q_dada: Q_dada ?? null },
     signal,
   );
   resultado.iteraciones.forEach(onIteracion);

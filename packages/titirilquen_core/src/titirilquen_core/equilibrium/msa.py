@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, SimulationConfig, StratumId
@@ -25,6 +25,7 @@ from titirilquen_core.demand.choice import probabilidades_logit, probabilidades_
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.emissions import calcular_emisiones
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
+from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.supply import generar_oferta
@@ -99,6 +100,10 @@ class ConvergenceTrace:
     # Es la demanda por celda (misma que las Fig. 2/3/4) desagregada por estrato,
     # para el reparto modal espacial por estrato.
     demanda_estrato: NDArray[np.float64] | None = None
+    #: La `Q[h, i]` con que se pobló la ciudad (qué fracción de la celda i es
+    #: del estrato h). Es la única fuente para correr otra política con la
+    #: misma gente en el mismo lugar (`Q_dada`, D11c).
+    localizacion_Q: NDArray[np.float64] | None = None  # noqa: N815 — la Q del libro
 
 
 #: Alias local del orden canónico (`titirilquen_core.constantes.MODOS`).
@@ -306,6 +311,7 @@ def iter_msa_desde_suelo(
     trace: ConvergenceTrace | None = None,
     localizacion: Literal["equilibrio", "original"] = "equilibrio",
     promediar_flujos: bool = False,
+    Q_dada: ArrayLike | None = None,
 ) -> Iterator[IterationSnapshot]:
     """El MSA de transporte con la población derivada del **uso de suelo**: los
     `S_i` hogares que la ciudad ofrece en cada celda se reparten entre estratos
@@ -327,8 +333,18 @@ def iter_msa_desde_suelo(
       celdas (`Q[h,i] = π_h`). No se resuelve el suelo. La envolvente `S` es la
       misma; sólo cambia la composición por estrato de cada celda.
 
+    Con ``Q_dada`` (sólo con ``"equilibrio"``) la localización no se resuelve:
+    se usa esa `Q`, típicamente la `localizacion_Q` de la corrida de otra
+    tarjeta. Es la estática comparativa de corto plazo de Comparar (D11c): la
+    misma gente en el mismo lugar, y sólo cambia el transporte.
+
     El loop iterativo completo (feedback suelo↔transporte) sigue viviendo en el
     módulo acoplado."""
+    if Q_dada is not None and localizacion != "equilibrio":
+        raise ValueError(
+            "Q_dada reemplaza a la Q de equilibrio; con «original» la Q es la "
+            "mezcla uniforme y no se entrega"
+        )
     rng = np.random.default_rng(sim.seed)
     L = sim.city.n_celdas
     CBD = L // 2
@@ -349,6 +365,16 @@ def iter_msa_desde_suelo(
         total = float(H.sum())
         pi = H / total if total > 0 else np.full(len(H), 1.0 / max(len(H), 1))
         Q = np.tile(pi.reshape(-1, 1), (1, L))
+    elif Q_dada is not None:
+        Q = _valida_Q(Q_dada, S, len(land_use_config.H_por_estrato))
+        # Mismos números aleatorios que la corrida que produjo esta Q: el
+        # equilibrio de suelo reparte las parcelas con el `rng` antes del
+        # MSA (`LandUseCity.update`). Sin este sorteo, la tarjeta congelada
+        # arrancaría el MSA con otro estado del generador y el Δ contra la
+        # base traería ruido de muestreo además de la política.
+        asignar_hogares_simple(
+            Q=Q, S=S, H=np.asarray(land_use_config.H_por_estrato, dtype=int), rng=rng
+        )
     else:
         # Localización de equilibrio de pujas: se resuelve con esta misma oferta S.
         city = LandUseCity.build(
@@ -372,7 +398,24 @@ def iter_msa_desde_suelo(
         demand_config=sim.demand,
         teletrabajo_factor=sim.demand.globales.teletrabajo_factor,
     )
+    if trace is not None:
+        trace.localizacion_Q = np.asarray(Q, dtype=float)
     yield from _iter_loop(sim, ciudad, agentes, rng, trace, promediar_flujos)
+
+
+def _valida_Q(Q: ArrayLike, S: NDArray[np.int_], n_estratos: int) -> NDArray[np.float64]:
+    """Una `Q` entregada desde afuera: forma (estratos × celdas), finita, no
+    negativa y, en cada celda con vivienda, una columna que suma 1 (reparte la
+    celda). Donde `S_i = 0` el equilibrio de suelo deja la columna en cero."""
+    Q = np.asarray(Q, dtype=float)
+    L = len(S)
+    if Q.shape != (n_estratos, L):
+        raise ValueError(f"Q_dada tiene forma {Q.shape}; se espera ({n_estratos}, {L})")
+    if not np.all(np.isfinite(Q)) or np.any(Q < 0):
+        raise ValueError("Q_dada debe ser finita y no negativa")
+    if not np.allclose(Q.sum(axis=0)[np.asarray(S) > 0], 1.0, atol=1e-6):
+        raise ValueError("cada celda con vivienda debe sumar 1 en Q_dada")
+    return Q
 
 
 def _iter_loop(
@@ -600,6 +643,7 @@ def run_msa(
     sim: SimulationConfig,
     land_use_config: LandUseConfig,
     localizacion: Literal["equilibrio", "original"] = "original",
+    Q_dada: ArrayLike | None = None,
 ) -> ConvergenceTrace:
     """Ejecuta el loop MSA completo hasta convergencia o `max_iter`.
 
@@ -615,7 +659,9 @@ def run_msa(
     reproduce con `forma="uniforme"` y `localizacion="original"`.
     """
     trace = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(sim, land_use_config, trace, localizacion=localizacion):
+    for _ in iter_msa_desde_suelo(
+        sim, land_use_config, trace, localizacion=localizacion, Q_dada=Q_dada
+    ):
         pass
     return trace
 

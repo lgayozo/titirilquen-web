@@ -34,3 +34,18 @@ def test_simulate_endpoint() -> None:
     assert len(body["iteraciones"]) == 3
     assert "agentes" in body
     assert body["iteraciones"][-1]["modal_split"] is not None
+
+
+def test_simulate_con_q_dada_reproduce_la_corrida() -> None:
+    # D11c: la `localizacion_Q` de una corrida, reenviada como `Q_dada`, puebla
+    # la ciudad igual (la lente Transporte de Comparar congela así la base).
+    client = TestClient(app)
+    req = {
+        "sim": _config_pequeno(),
+        "land_use": {"H_por_estrato": [25, 100, 125], "forma": "normal", "max_iter": 200},
+        "localizacion": "equilibrio",
+    }
+    base = client.post("/simulate", json=req).json()
+    assert len(base["localizacion_Q"]) == 3
+    otra = client.post("/simulate", json={**req, "Q_dada": base["localizacion_Q"]}).json()
+    assert otra["agentes"] == base["agentes"]

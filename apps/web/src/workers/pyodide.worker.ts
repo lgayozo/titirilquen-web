@@ -41,6 +41,9 @@ type InMsg =
        *  equilibrio de pujas no se ha movido); "equilibrio" = producto del
        *  bid-rent. Solo aplica con `land_use`. Default "equilibrio". */
       localizacion?: "equilibrio" | "original";
+      /** Q[estrato][celda] de otra corrida: la misma gente en el mismo lugar
+       *  (D11c). Sólo con "equilibrio". */
+      Q_dada?: number[][] | null;
     }
   | {
       id: string;
@@ -164,10 +167,11 @@ def iter_from_json_suelo(req_json: str):
     cfg = SimulationConfig.model_validate(req["config"])
     lu = LandUseConfig.model_validate(req["land_use"])
     localizacion = req.get("localizacion", "equilibrio")
+    Q_dada = req.get("Q_dada")
     trace = ConvergenceTrace()
     _LAST_TRACE["trace"] = None
     _LAST_TRACE["cfg"] = cfg
-    for snap in iter_msa_desde_suelo(cfg, lu, trace, localizacion=localizacion):
+    for snap in iter_msa_desde_suelo(cfg, lu, trace, localizacion=localizacion, Q_dada=Q_dada):
         yield iteration_to_dict(snap)
     _LAST_TRACE["trace"] = trace
 
@@ -257,6 +261,7 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
           config: msg.config,
           land_use: msg.land_use,
           localizacion: msg.localizacion ?? "equilibrio",
+          Q_dada: msg.Q_dada ?? null,
         }),
       ) as {
         [Symbol.iterator](): Iterator<unknown>;

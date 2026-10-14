@@ -539,7 +539,15 @@
       "land_use": "Uso de suelo",
       "coupled": "Ciudad en equilibrio"
     },
-    "coupled_hint": "Corre el loop suelo ↔ transporte completo por escenario (asignación esperada · máx. 8 iter. exteriores).",
+    "coupled_hint": "Corre el loop suelo ↔ transporte completo por escenario (asignación esperada · máx. {{max}} iter. exteriores).",
+    "transport_hint": "Cada tarjeta de la misma ciudad corre con la población de la base, celda por celda: el Δ es sólo de transporte. La relocalización es la lente «Ciudad en equilibrio».",
+    "base_sin_resultado": "La base no tiene resultado de transporte: córrela primero.",
+    "q": {
+      "congelada": "población de la base",
+      "otra_ciudad": "otra ciudad",
+      "otra_ciudad_reloc": "otra ciudad · incluye relocalización",
+      "desactualizada": "la base cambió: vuelve a correr"
+    },
     "not_converged": "⚠ sin converger",
     "lu": {
       "table_title": "Equilibrio de suelo · métricas",

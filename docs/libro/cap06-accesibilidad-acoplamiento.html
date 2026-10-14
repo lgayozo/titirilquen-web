@@ -320,14 +320,16 @@
     <tr><td class="n">(6.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">304</td><td><code>compute_equilibrium_metrics</code> — métricas por estrato y de sistema, por vuelta; el baseline del ΔCS es <code>tiempos_red_vacia</code> (363), el mismo objeto que la <em>T</em> del standalone</td></tr>
     <tr><td class="n">(6.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">422</td><td><code>cs_hogar_mes</code> — (6.8) por estrato; el total del sistema en <code>bienestar_total</code> (457), en $/mes</td></tr>
     <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">125</td><td><code>convergio_exterior</code> — el veredicto del núcleo, que viaja en las métricas; <code>residual_final</code> (129) en $/hogar-mes</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">305</td><td><code>outer_iteration_to_dict</code> — la forma JSON de cada vuelta, una sola vez para API y worker</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">lib/api.ts</td><td class="n">163</td><td><code>resolverAcoplado</code> — la puerta única al motor; en el motor local toma <code>converged</code> (175) del veredicto del núcleo; <code>resolverAcopladoStream</code> (186) es la que usa la página acoplada</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">310</td><td><code>outer_iteration_to_dict</code> — la forma JSON de cada vuelta, una sola vez para API y worker</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">lib/api.ts</td><td class="n">167</td><td><code>resolverAcoplado</code> — la puerta única al motor; en el motor local toma <code>converged</code> (179) del veredicto del núcleo; <code>resolverAcopladoStream</code> (190) es la que usa la página acoplada</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">190</td><td><code>applyJointPreset</code> — el preset fija sus palancas y conserva los estratos calibrados del usuario (228), y con ellos su <em>λ</em> (D10)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">32</td><td><code>poblacion</code> — la población del preset, que <code>applyJointPreset</code> escribe en <code>H_por_estrato</code> (258): la única fuente de población es el suelo (D10d)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">93</td><td><code>coupledOuterMaxIter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; el usuario lo baja, el setter (123) no deja pasar el tope</td></tr>
-    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">128</td><td><code>resolverAcoplado</code> — la lente acoplada corre con el suelo de la tarjeta, como las otras dos (D10d); el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code> (131)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">139</td><td><code>outer_max_iter</code> — default y tope <code>VUELTAS_ACOPLADO_MAX</code>; <code>outer_tol</code> (142) toma la constante del núcleo</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">200</td><td><code>outer_max_iter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; la cota la valida el núcleo; <code>outer_tol</code> (201) toma la constante del núcleo</td></tr>
+    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">210</td><td><code>resolverAcoplado</code> — la lente acoplada corre con el suelo de la tarjeta, como las otras dos (D10d); el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code> (213)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">146</td><td><code>outer_max_iter</code> — default y tope <code>VUELTAS_ACOPLADO_MAX</code>; <code>outer_tol</code> (149) toma la constante del núcleo</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">308</td><td><code>iter_msa_desde_suelo</code> — con <code>Q_dada</code> no resuelve la subasta: puebla con la <em>Q</em> de otra corrida y la publica en <code>localizacion_Q</code>; la valida <code>_valida_Q</code> (406) (D11c)</td></tr>
+    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">84</td><td><code>mismaCiudad</code> — misma geometría y misma oferta <em>S</em>: sólo entonces la tarjeta corre con la <em>Q</em> de la base (177) (D11c)</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">204</td><td><code>outer_max_iter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; la cota la valida el núcleo; <code>outer_tol</code> (205) toma la constante del núcleo</td></tr>
   </tbody>
 </table>
 </div>
@@ -340,6 +342,21 @@
   según la página. Los presets conjuntos conservan poblaciones distintas a
   propósito (D-24), pero ahora las escriben en <code>H_por_estrato</code>. El tope
   de vueltas, que también era distinto en cada consumidor, es uno solo (D-61).
+</p>
+
+<p>
+  Comparar políticas de transporte usa la misma gente (D11c). Hasta oct-2026
+  cada tarjeta de la lente Transporte, con localización de equilibrio,
+  resolvía su propia <em>Q</em> a flujo libre con su propio transporte, y el ΔCS
+  mezclaba la política con una relocalización que no es ni el corto plazo ni
+  el equilibrio acoplado. Ahora la tarjeta base corre primero y su resultado
+  publica la <em>Q</em> con que se pobló; las tarjetas de la misma ciudad corren
+  con esa <em>Q</em> y sólo cambia el transporte. Es la estática comparativa de
+  corto plazo; el largo plazo, con feedback, es la lente «Ciudad en
+  equilibrio». Una tarjeta de otra ciudad corre con su propia localización y
+  queda marcada. La <em>Q</em> dada repite el sorteo de parcelas de la subasta,
+  así que la tarjeta congelada usa los mismos números aleatorios que la base:
+  entregarle a una corrida su propia <em>Q</em> la reproduce exacta.
 </p>
 
 <h2 id="s4"><span class="num">§4</span> Pruebas</h2>
@@ -358,6 +375,9 @@
     <tr><td><code class="ruta py">tests/test_coupled.py</code>:43</td><td>El loop corre, conserva la población y emite una iteración por vuelta; la matriz tiene la forma 3 × celdas (76).</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled.py</code>:62</td><td>D-61: el núcleo rechaza 0 y <code>VUELTAS_ACOPLADO_MAX</code> + 1 vueltas, la misma cota que valida la API.</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled.py</code>:87</td><td>Existe al menos una brecha medible. El nombre promete que decrece; el cuerpo no lo verifica.</td></tr>
+    <tr><td><code class="ruta py">tests/test_q_congelada.py</code>:41</td><td>D11c: entregar la <code>localizacion_Q</code> de una corrida como <code>Q_dada</code> la reproduce agente por agente.</td></tr>
+    <tr><td><code class="ruta py">tests/test_q_congelada.py</code>:48</td><td>Con el peaje de Tarificación Vial la <em>Q</em> propia se mueve y la congelada deja a cada hogar en su celda y su estrato; el reparto modal sí cambia.</td></tr>
+    <tr><td><code class="ruta py">tests/test_q_congelada.py</code>:60</td><td>La <em>Q</em> dada se valida: forma, signo, suma 1 en cada celda con vivienda, y «original» no la admite.</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled.py</code>:121</td><td>La <em>T</em> del snapshot es el logsum de la demanda y nada más: con estratos idénticos las tres filas coinciden; con la demanda calibrada difieren (139).</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:112</td><td>(6.8): el total del sistema es el ΔCS por hogar-mes por los hogares que viajan o teletrabajan, sin los varados.</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:170</td><td>Al agotar el tope, la ciudad final es la que ese transporte vio.</td></tr>
@@ -825,14 +845,6 @@
     La segunda cota, y la medida por agente que evita contar dos veces,
     exigen anclar el nivel de precios del suelo, por ejemplo con la renta
     agrícola en el borde. Es un cambio de modelo.
-  </li>
-  <li>
-    <strong>Fase de interfaz.</strong> Una sola fuente de población: la página
-    acoplada y el comparador reescalan <code>H_por_estrato</code> a su propio
-    control (D10). Un solo tope de vueltas (12, 8, 5 y 3
-    según el consumidor). Y, al comparar políticas de transporte con
-    localización de equilibrio, congelar la <em>Q</em> de la tarjeta base para
-    que el ΔCS no mezcle relocalización (D11).
   </li>
   <li>
     <strong>Avisar cuando (6.4) no se cumple.</strong> La desigualdad es
