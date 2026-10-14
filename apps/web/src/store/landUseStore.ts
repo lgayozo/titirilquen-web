@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { defaultLandUseConfig } from "@/lib/defaults";
+import { VUELTAS_ACOPLADO_MAX } from "@/lib/gen/constantes.gen";
 import type { SimulationConfig } from "@/lib/types";
 import type {
   LandUseConfig,
@@ -92,7 +93,7 @@ export const useLandUseStore = create<LandUseState>((set) => ({
   coupledSnapshot: null,
   coupledSource: "custom",
   coupledPoblacion: 25000,
-  coupledOuterMaxIter: 12,
+  coupledOuterMaxIter: VUELTAS_ACOPLADO_MAX,
 
   setConfig: (updater) => set((s) => ({ config: updater(s.config) })),
 
@@ -116,7 +117,11 @@ export const useLandUseStore = create<LandUseState>((set) => ({
 
   setCoupledSource: (s) => set({ coupledSource: s }),
   setCoupledPoblacion: (n) => set({ coupledPoblacion: n }),
-  setCoupledOuterMaxIter: (n) => set({ coupledOuterMaxIter: n }),
+  // Acotado acá porque llega también de archivos y enlaces viejos (D-61).
+  setCoupledOuterMaxIter: (n) =>
+    set({
+      coupledOuterMaxIter: Math.min(Math.max(1, n), VUELTAS_ACOPLADO_MAX),
+    }),
 
   startCoupled: (snap) =>
     set({

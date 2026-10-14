@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-14",
-  "commit": "3d94b27",
+  "commit": "bb6446b",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -77,18 +77,18 @@
   "nota": "`estratos: ESTRATOS_CALIBRADOS` no es un override: `DemandConfig` no tiene default para `estratos`, así que el frontend RELLENA un campo obligatorio, no lo cambia."
  },
  "outer_max_iter": {
-  "defaults": {
-   "nucleo (coupled.py)": 5,
-   "api (main.py)": 3,
-   "worker (pyodide.worker.ts)": 3,
-   "interfaz (landUseStore.ts)": 12
+  "constante": 10,
+  "usa_la_constante": {
+   "nucleo (coupled.py)": true,
+   "api (main.py)": true,
+   "worker (pyodide.worker.ts)": true,
+   "interfaz (landUseStore.ts)": true
   },
-  "cota_superior_de_la_api": 10,
   "respuesta_de_la_api": {
    "10": 200,
-   "12": 422
+   "11": 422
   },
-  "la_interfaz_pasa_por_la_api": false
+  "la_interfaz_pasa_por_la_api": true
  },
  "payload": {
   "trace_to_dict_bytes": 6766330,
@@ -117,8 +117,8 @@
    "T_residual": 2,
    "metrics": 10
   },
-  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 81.5,
-  "mb_que_el_frontend_abre_de_eso": 0.22
+  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 67.9,
+  "mb_que_el_frontend_abre_de_eso": 0.18
  },
  "campos_sin_lector": {
   "campos_totales": 114,
@@ -196,7 +196,7 @@
     "tipos.gen.ts",
     "trace.gen.ts"
    ],
-   "lineas": 945,
+   "lineas": 949,
    "interfaces": 29
   },
   "version_del_nucleo": "0.2.0",

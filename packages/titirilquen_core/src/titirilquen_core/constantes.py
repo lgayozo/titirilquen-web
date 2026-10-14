@@ -83,6 +83,14 @@ MU_SUELO: Final[float] = 1 / math.sqrt(VIAJES_MES)
 #: nada relevante sobre la mesa.
 TOL_ACOPLADO_CLP_MES: Final[float] = 100.0
 
+#: Tope de vueltas del loop acoplado: default y cota de TODOS sus consumidores
+#: (núcleo, API, worker, página acoplada y comparador; D-61). Antes eran 5 / 3 /
+#: 3 / 12 / 8 y la API rechazaba el 12 de la interfaz. Con el paso exterior 1
+#: la base corta en la vuelta 2 y los casos exigentes medidos en la 4 (ver
+#: `TOL_ACOPLADO_CLP_MES`), así que 10 deja margen; la API lo usa además como
+#: cota porque cada vuelta corre un MSA entero.
+VUELTAS_ACOPLADO_MAX: Final[int] = 10
+
 #: Viajes por tour casa-trabajo-casa. La elección de modo es POR VIAJE de ida
 #: (ida y vuelta simétricas, mismo modo), pero el parking se paga una vez por
 #: tour: al llegar al trabajo, no al volver a casa. Por eso `costo_parking` es

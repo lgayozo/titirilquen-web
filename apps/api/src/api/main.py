@@ -29,7 +29,7 @@ from titirilquen_core import (
     run_msa,
 )
 from titirilquen_core.config import DemandConfig, SupplyConfig
-from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES
+from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES, VUELTAS_ACOPLADO_MAX
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.serializacion import (
@@ -136,7 +136,9 @@ class CoupledRequest(BaseModel):
 
     sim: SimulationConfig
     land_use: LandUseConfig
-    outer_max_iter: int = Field(default=3, ge=1, le=10)
+    outer_max_iter: int = Field(
+        default=VUELTAS_ACOPLADO_MAX, ge=1, le=VUELTAS_ACOPLADO_MAX
+    )  # una sola cota y un solo default (D-61)
     outer_tol: float = Field(
         default=TOL_ACOPLADO_CLP_MES,
         ge=0,
@@ -148,8 +150,8 @@ class CoupledRequest(BaseModel):
 def coupled_solve(req: CoupledRequest) -> dict[str, object]:
     """Resuelve el loop acoplado suelo↔transporte.
 
-    Warning: iteraciones exteriores son costosas. Usar `outer_max_iter ≤ 5`
-    para feedback razonable en una sesión educativa.
+    Cada vuelta exterior corre un MSA entero; la cota es
+    `constantes.VUELTAS_ACOPLADO_MAX` y el loop corta antes al converger.
     """
     result = run_coupled(
         sim=req.sim,

@@ -23,6 +23,7 @@ import {
 import { defaultLandUseConfig } from "@/lib/defaults";
 import { expectedComposition } from "@/lib/citySupply";
 import { downloadCsv } from "@/lib/csv";
+import { VUELTAS_ACOPLADO_MAX } from "@/lib/gen/constantes.gen";
 import { computeKPIs, type ScenarioKPIs } from "@/lib/kpis";
 import type { Modo } from "@/lib/types";
 import type { LandUseConfig, LandUseSolveResponse } from "@/lib/types-v2";
@@ -33,10 +34,6 @@ import {
 } from "@/store/compareStore";
 
 const KINDS: CompareKind[] = ["transport", "land_use", "coupled"];
-
-/** Iteraciones exteriores del acoplado en modo comparación: acotadas para que
- * 4 escenarios sigan siendo interactivos (tol 1 min suele cortar antes). */
-const COMPARE_OUTER_MAX = 8;
 
 function scaledLandUse(lu: LandUseConfig, poblacion: number): LandUseConfig {
   const sum = lu.H_por_estrato.reduce((a, b) => a + b, 0) || 1;
@@ -141,7 +138,7 @@ export function ComparePage() {
         const res = await resolverAcoplado({
           sim: sc.config,
           land_use: lu,
-          outer_max_iter: COMPARE_OUTER_MAX,
+          outer_max_iter: VUELTAS_ACOPLADO_MAX,
         });
         const its = res.iterations;
         if (!its.length) throw new Error("coupled: sin iteraciones");

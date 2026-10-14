@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Play, Upload, X } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { VUELTAS_ACOPLADO_MAX } from "@/lib/gen/constantes.gen";
 import { applyJointPreset } from "@/lib/joint-presets";
 import { fmtParking } from "@/lib/parking";
 import { CITY_PRESETS, POLICY_PRESETS } from "@/lib/presets";
@@ -131,7 +132,10 @@ export function ScenarioCard({
       `${name}${TTRQ_EXT}`,
       serializeToJson(scenario.config, name, {
         land_use: scenario.landUse ?? undefined,
-        coupled: { poblacion: scenario.poblacion, outer_max_iter: 12 },
+        coupled: {
+          poblacion: scenario.poblacion,
+          outer_max_iter: VUELTAS_ACOPLADO_MAX,
+        },
       }),
     );
   };

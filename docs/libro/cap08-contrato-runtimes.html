@@ -118,13 +118,13 @@
       <td class="n">2</td>
       <td class="ruta py">apps/api/src/api/main.py</td>
       <td class="n">88</td>
-      <td><code>simulate</code> — <code>run_msa(sim, land_use, localizacion)</code>; <code>SimulateRequest</code> (71) trae el uso de suelo desde el 2026-09-10 (C-02, cerrado); <code>land_use_solve</code> (120), <code>coupled_solve</code> (148), <code>coupled_stream</code> (164)</td>
+      <td><code>simulate</code> — <code>run_msa(sim, land_use, localizacion)</code>; <code>SimulateRequest</code> (71) trae el uso de suelo desde el 2026-09-10 (C-02, cerrado); <code>land_use_solve</code> (120), <code>coupled_solve</code> (150), <code>coupled_stream</code> (166)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta py">apps/api/src/api/main.py</td>
       <td class="n">134</td>
-      <td><code>CoupledRequest</code> — <code>outer_max_iter</code> con <code>le=10</code>: la cota que la interfaz no cumple (D-61)</td>
+      <td><code>CoupledRequest</code> — <code>outer_max_iter</code> con default y cota <code>VUELTAS_ACOPLADO_MAX</code> (D-61)</td>
     </tr>
     <tr>
       <td class="n">2</td>
@@ -177,7 +177,7 @@
     <tr>
       <td class="n">3</td>
       <td class="ruta ts">store/landUseStore.ts</td>
-      <td class="n">95</td>
+      <td class="n">96</td>
       <td><code>coupledOuterMaxIter</code> — 12, el cuarto default del mismo parámetro</td>
     </tr>
     <tr>
@@ -263,9 +263,9 @@
     </tr>
     <tr>
       <td><code>outer_max_iter</code></td>
-      <td class="n">5 · 3 · 3 · 12</td>
-      <td>núcleo · API · worker · interfaz</td>
-      <td><span class="etiqueta lim">heredado</span> cuatro defaults para un parámetro; la API además impone <code>le=10</code> (D-61)</td>
+      <td class="n">10</td>
+      <td>núcleo · API · worker · interfaz · comparador</td>
+      <td><span class="etiqueta neutra">decisión</span> <code>VUELTAS_ACOPLADO_MAX</code>: un default y una cota para todos (D-61)</td>
     </tr>
     <tr>
       <td><code>outer_tol</code></td>
@@ -369,29 +369,33 @@
   frontend rellena un campo obligatorio en vez de cambiarlo.
 </p>
 
-<h3>4.4 Un parámetro, cuatro defaults y una cota</h3>
+<h3>4.4 Un parámetro, una constante</h3>
 
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th>dónde</th><th class="n"><code>outer_max_iter</code></th><th>cota</th></tr>
+    <tr><th>dónde</th><th>antes</th><th>ahora</th></tr>
   </thead>
   <tbody>
-    <tr><td>núcleo, <code>coupled.py</code></td><td class="n">5</td><td>—</td></tr>
-    <tr><td>API, <code>main.py</code></td><td class="n">3</td><td><code>ge=1, le=10</code></td></tr>
-    <tr><td>worker, <code>pyodide.worker.ts</code></td><td class="n">3</td><td>—</td></tr>
-    <tr class="destacada"><td>interfaz, <code>landUseStore.ts</code></td><td class="n">12</td><td>—</td></tr>
+    <tr><td>núcleo, <code>coupled.py</code></td><td>5, sin cota</td><td>la constante; rechaza fuera de [1, 10]</td></tr>
+    <tr><td>API, <code>main.py</code></td><td>3, <code>le=10</code></td><td>la constante como default y como <code>le</code></td></tr>
+    <tr><td>worker, <code>pyodide.worker.ts</code></td><td>3</td><td>la constante; la cota la valida el núcleo</td></tr>
+    <tr><td>interfaz, <code>landUseStore.ts</code></td><td>12</td><td>la constante; el setter acota lo que llega de archivos y enlaces</td></tr>
+    <tr><td>comparador, <code>ComparePage.tsx</code></td><td>8</td><td>la constante</td></tr>
   </tbody>
 </table>
 </div>
 
-<div class="aviso alerta">
-  <h4>D-61 — con motor api, la página acoplada no puede correr con su default</h4>
+<div class="aviso idea">
+  <h4>D-61 — corregido: un solo tope, <code>VUELTAS_ACOPLADO_MAX</code> = 10</h4>
   <p>
+    La interfaz enviaba 12 y la API acepta hasta 10: con motor api la página
+    acoplada no corría con su default (422). Ahora la constante vive en
+    <code>constantes.py</code>, el generador la proyecta a
+    <code>constantes.gen.ts</code> y cada consumidor la toma por nombre.
     Medido con <code>TestClient</code>: <code>outer_max_iter = 10</code> → 200;
-    <code>outer_max_iter = 12</code> → <strong>422</strong>. La interfaz envía 12.
-    Nadie lo notó porque el motor por defecto es el local, que no valida la
-    cota, y porque ningún e2e ejercita el motor api.
+    11 → 422. Con el paso exterior 1 la base corta en la vuelta 2, así que el
+    tope sólo pesa en los casos que no convergen.
   </p>
 </div>
 
@@ -426,12 +430,12 @@
 </div>
 
 <div class="aviso alerta">
-  <h4>D-62 — 81,5 MB por corrida acoplada, 0,22 MB abiertos</h4>
+  <h4>D-62 — 67,9 MB por corrida acoplada, 0,18 MB abiertos</h4>
   <p>
     Cada vuelta del acoplado transporta el trace de transporte entero —36.000
     agentes con seis campos— y la interfaz no lee <code>transport</code> ni una
-    vez. Con las 12 vueltas del default cruzan la frontera 81,5 MB, de los que
-    el frontend abre 0,22 MB. En el motor local cada mensaje pasa además por
+    vez. Con las 10 vueltas del tope cruzan la frontera 67,9 MB, de los que
+    el frontend abre 0,18 MB. En el motor local cada mensaje pasa además por
     <code>jsFromPy</code> antes de descartarse. Es la misma familia que
     <code>T_matrix</code> (cap. 6), tres órdenes de magnitud más grande.
   </p>
@@ -533,7 +537,7 @@
     <tr>
       <td><code>apps/api/tests</code> (4 tests)</td>
       <td>Que los cuatro endpoints responden 200 con una petición chica.</td>
-      <td>La cota <code>le=10</code> contra el default de la interfaz (D-61); la paridad con el worker.</td>
+      <td>La paridad con el worker. La cota de vueltas (D-61) la cubre <code>test_coupled.py</code> en el núcleo.</td>
     </tr>
     <tr>
       <td><code>scenario.spec.ts</code></td>
@@ -605,11 +609,11 @@
       <td class="n">D-61</td>
       <td>El default de vueltas de la interfaz (12) supera la cota de la API (10): 422 con motor api.</td>
       <td>Contrato roto entre dos runtimes que dicen ser el mismo.</td>
-      <td>pendiente</td>
+      <td>corregido (<code>VUELTAS_ACOPLADO_MAX</code>)</td>
     </tr>
     <tr>
       <td class="n">D-62</td>
-      <td>Cada vuelta del acoplado lleva 6,8 MB que la interfaz no abre: 81,5 MB por corrida, 0,22 usados.</td>
+      <td>Cada vuelta del acoplado lleva 6,8 MB que la interfaz no abre: 67,9 MB por corrida al tope, 0,18 usados.</td>
       <td>Carga útil que nadie abre.</td>
       <td>pendiente</td>
     </tr>
@@ -632,10 +636,10 @@
     que las dos páginas no son igual de reproducibles para la misma entrada.
   </li>
   <li>
-    <strong>Cuatro defaults y dos cotas para <code>outer_max_iter</code></strong>
-    son síntoma de que el generador proyecta <em>salidas</em> del núcleo pero no
-    <em>peticiones</em>: <code>CoupledRequest</code> se escribe a mano en la API,
-    en <code>types-v2.ts</code> y en el worker.
+    <strong>Los cuatro defaults de <code>outer_max_iter</code></strong>, ya
+    unificados (D-61), eran síntoma de que el generador proyecta <em>salidas</em>
+    del núcleo pero no <em>peticiones</em>: <code>CoupledRequest</code> se sigue
+    escribiendo a mano en la API, en <code>types-v2.ts</code> y en el worker.
   </li>
   <li>
     <strong>CORS de la API</strong> admite sólo <code>localhost</code>; en
@@ -679,9 +683,9 @@
   del acoplado ya no se transcribe: es una constante de
   <code>constantes.py</code> que el generador proyecta en
   <code>constantes.gen.ts</code>, junto con <code>MU_SUELO</code>,
-  <code>FACTOR_CAPACIDAD_PRACTICA</code> y <code>VIAJES_POR_TOUR</code>. Sigue
-  abierto D-61: la petición del acoplado se escribe tres veces a mano, con
-  cuatro defaults de <code>outer_max_iter</code> y una cota suelta. Es el mismo
+  <code>FACTOR_CAPACIDAD_PRACTICA</code> y <code>VIAJES_POR_TOUR</code>. D-61
+  se cerró igual: el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code>. La
+  petición del acoplado se sigue escribiendo tres veces a mano. Es el mismo
   hueco: cuando un dato del núcleo no tiene una forma que el generador
   reconozca, alguien lo transcribe, y la transcripción envejece.
 </p>
@@ -693,10 +697,6 @@
       <strong>Que el CI vea octubre</strong> (D-60): empujar la rama y dejar
       <code>contrato</code> en verde. Mientras tanto, cerrar cada capítulo con
       <code>sync:core</code> en limpio y <code>npx playwright test --grep @slow</code>.
-    </li>
-    <li>
-      <strong>Un solo <code>CoupledRequest</code></strong> (D-61): default y cota
-      en el núcleo, proyectados como el resto del contrato.
     </li>
     <li>
       <strong>Adelgazar la vuelta</strong> (D-62): <code>transport</code> sin

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from tests._poblacion import suelo_uniforme
 from titirilquen_core.city import CiudadLineal
@@ -10,6 +11,7 @@ from titirilquen_core.config import (
     SimulationConfig,
     SupplyConfig,
 )
+from titirilquen_core.constantes import VUELTAS_ACOPLADO_MAX
 from titirilquen_core.coupled import _T_logsum_snapshot, run_coupled
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
@@ -55,6 +57,20 @@ def test_coupled_run_basic(demanda_sintetica: DemandConfig) -> None:
     # Agentes generados = hogares fuera del CBD
     hogares_no_cbd = total_H - int(capacidad_cbd)
     assert len(res.final_agents) == hogares_no_cbd
+
+
+@pytest.mark.parametrize("vueltas", [0, VUELTAS_ACOPLADO_MAX + 1])
+def test_el_tope_de_vueltas_es_el_mismo_en_los_dos_runtimes(
+    demanda_sintetica: DemandConfig, vueltas: int
+) -> None:
+    """D-61: la API rechaza fuera de [1, VUELTAS_ACOPLADO_MAX] en su request; el
+    worker no valida, así que el núcleo tiene que rechazar lo mismo."""
+    with pytest.raises(ValueError, match="outer_max_iter"):
+        run_coupled(
+            sim=_sim_small(demanda_sintetica),
+            land_use_config=_land_use_config(),
+            outer_max_iter=vueltas,
+        )
 
 
 def test_coupled_T_matrix_shape(demanda_sintetica: DemandConfig) -> None:

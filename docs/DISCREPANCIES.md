@@ -1824,8 +1824,14 @@ cumple, y eso está en D-39.
 - **Veredicto**: contrato roto entre dos runtimes que dicen ser el mismo. La
   cota de la API tiene sentido (protege al servidor) pero no está en el
   contrato que ve el frontend; el default de la interfaz, tampoco.
-- **Estado**: pendiente. Corrección: un solo default y una sola cota, en el
-  núcleo, proyectados por `genera_contrato.py` como el resto.
+- **Estado**: corregido 2026-10-14. `constantes.VUELTAS_ACOPLADO_MAX` = 10 es
+  el default y la cota de todos: `coupled.py` (rechaza fuera de [1, 10] con
+  `ValueError`, así que el worker queda acotado igual que la API), la API
+  (`Field(default=…, ge=1, le=…)`), el worker, `landUseStore.ts` (el setter
+  acota lo que llega de `.ttrq` y `?s=`), el slider de la página acoplada,
+  `ComparePage.tsx` y la exportación de tarjetas. `genera_contrato.py` la
+  proyecta a `constantes.gen.ts`. Test: `test_coupled.py`. La petición del
+  acoplado se sigue escribiendo a mano en tres lugares.
 
 ---
 
@@ -1850,7 +1856,8 @@ cumple, y eso está en D-39.
   el trace **sin agentes** (o sólo el snapshot final), y que el Sandbox —el
   único consumidor de agentes— los pida por su propia ruta.
   Re-medido 2026-10-14: 6,8 MB por vuelta y 81,5 MB por corrida con las 12
-  vueltas de la interfaz, 0,22 MB leídos (`cap08.json`).
+  vueltas de la interfaz, 0,22 MB leídos (`cap08.json`); con el tope único de
+  10 (D-61), 67,9 MB y 0,18 MB.
 
 ---
 
@@ -2176,8 +2183,8 @@ cumple, y eso está en D-39.
 | D-58 | Bienestar: `bienestar_social_clp` mezcla hora punta con costo llevado a día (efecto acotado: 7 % del Δ) | Pendiente (libro, cap. 7) | Baja |
 | D-59 | Bienestar: rótulos que describen el cálculo anterior a D-35 y a D-56 | Pendiente (libro, cap. 7) | Media |
 | D-60 | CI: los jobs `contrato` y `pyodide` existen en el YAML y no han corrido nunca; el wheel estaba desfasado un commit | Parcial: corre desde el PR (2026-09-08); en rojo desde el 2026-09-30 | Alta |
-| D-61 | Acoplado: el default de vueltas de la interfaz (12) supera la cota de la API (10): 422 con `engine=api` | Pendiente (libro, cap. 8) | Alta |
-| D-62 | Contrato: cada vuelta del acoplado lleva 5,9 MB de agentes que la interfaz no lee (81,5 MB por corrida al 2026-10-14, 0,22 usados) | Pendiente (libro, cap. 8) | Media |
+| D-61 | Acoplado: el default de vueltas de la interfaz (12) supera la cota de la API (10): 422 con `engine=api` | Corregido 2026-10-14 (`VUELTAS_ACOPLADO_MAX`) | Alta |
+| D-62 | Contrato: cada vuelta del acoplado lleva 5,9 MB de agentes que la interfaz no lee (67,9 MB por corrida al tope de 10 vueltas, 0,18 usados) | Pendiente (libro, cap. 8) | Media |
 | D-63 | Contrato: entrada `simulate` del worker sin llamadores y 15 campos sin lector | Parcial: `simulate` borrada; 15 campos sin lector | Baja |
 | D-64 | Calibración: 0 de 77 parámetros estimados; los tres VoT que ordenan a los estratos no tienen fuente escrita | Parcial 2026-10-13: nivel anclado al VST (D5); falta la dispersión | Alta |
 | D-65 | Calibración: cuatro velocidades duplicadas entre `globales` y `supply`; tres globales inertes, `v_caminata` con dos dueños | Pendiente (libro, cap. 9) | Media |

@@ -33,6 +33,10 @@ export const VIAJES_MES = 44;
  *  D10): ver `constantes.TOL_ACOPLADO_CLP_MES`. */
 export const TOL_ACOPLADO_CLP_MES = 100.0;
 
+/** Tope de vueltas del loop acoplado: default y cota en todos los
+ *  consumidores (D-61). Ver `constantes.VUELTAS_ACOPLADO_MAX`. */
+export const VUELTAS_ACOPLADO_MAX = 10;
+
 /** μ del uso de suelo = 1/√VIAJES_MES. Constante, no parámetro del
  *  escenario (schema v7): ver `constantes.MU_SUELO`. */
 export const MU_SUELO = 0.15075567228888181;

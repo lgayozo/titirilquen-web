@@ -242,7 +242,7 @@
     <tr><td><code>rho</code></td><td class="n">0</td><td class="n">0</td><td>útiles-mes por unidad de densidad relativa (v7)</td><td><span class="etiqueta neutra">decisión</span> Alonso puro: sólo la accesibilidad decide la localización (cap. 2)</td></tr>
     <tr><td>paso</td><td class="n">1, ÷2</td><td class="n">1, ÷2</td><td>—</td><td><span class="etiqueta neutra">decisión</span> (6.6): parte en 1 y se reduce a la mitad si la brecha crece (D10); no es ajustable</td></tr>
     <tr><td><code>outer_tol</code></td><td class="n">100</td><td class="n">100</td><td>$/hogar-mes</td><td><span class="etiqueta neutra">decisión</span> <code>TOL_ACOPLADO_CLP_MES</code>, una sola constante del núcleo (D10). La API y el worker la usan por nombre; la página acoplada y el comparador no mandan el campo</td></tr>
-    <tr><td><code>outer_max_iter</code></td><td class="n">12</td><td class="n">5</td><td>vueltas</td><td><span class="etiqueta lim">disperso</span> tope de la página acoplada; el comparador usa 8, la API y el worker 3 (la API admite hasta 10). Unificarlo es de la fase de interfaz</td></tr>
+    <tr><td><code>outer_max_iter</code></td><td class="n">10</td><td class="n">10</td><td>vueltas</td><td><span class="etiqueta neutra">decisión</span> <code>VUELTAS_ACOPLADO_MAX</code>, una sola constante del núcleo (D-61): default y cota de la API, el worker, la página acoplada y el comparador. El loop corta antes al converger</td></tr>
     <tr><td><code>assignment</code></td><td class="n">expected</td><td class="n">expected</td><td>—</td><td><span class="etiqueta neutra">decisión</span> forzado por el loop, cualquiera sea el de la configuración</td></tr>
     <tr><td><code>tolerance</code> (interior)</td><td class="n">0,2</td><td class="n">0,2</td><td>min</td><td><span class="etiqueta neutra">decisión</span> la brecha del MSA de transporte (cap. 5, D8); cada vuelta corre uno entero</td></tr>
   </tbody>
@@ -310,11 +310,11 @@
     <tr><td class="n">(6.2)</td><td class="ruta py">land_use/accesibilidad.py</td><td class="n">155</td><td><code>T_flujo_libre</code> — la <em>T</em> del suelo standalone y de la iteración cero, sobre <code>tiempos_red_vacia</code> (120)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">supply/oferta.py</td><td class="n">93</td><td><code>resolver_red_vacia</code> — la infraestructura configurada con demanda cero: BPR(0), tren a frecuencia mínima, estaciones reales</td></tr>
     <tr><td class="n">(6.3)</td><td class="ruta py">land_use/accesibilidad.py</td><td class="n">140</td><td><code>lambda_desde_demanda</code> — <em>λ_h = |b_costo_h|</em>, leído de la demanda; no es campo del suelo desde el schema v6</td></tr>
-    <tr><td class="n">(6.5)</td><td class="ruta py">coupled.py</td><td class="n">131</td><td><code>iter_coupled</code> — el loop exterior; <code>run_coupled</code> (257) lo consume</td></tr>
-    <tr><td class="n">(6.5)</td><td class="ruta py">coupled.py</td><td class="n">160</td><td><code>LandUseCity</code> — la subasta; <code>generar_poblacion_desde_land_use_det</code> (180) y <code>_T_logsum_snapshot</code> (188) cierran el ciclo</td></tr>
+    <tr><td class="n">(6.5)</td><td class="ruta py">coupled.py</td><td class="n">131</td><td><code>iter_coupled</code> — el loop exterior; <code>run_coupled</code> (263) lo consume</td></tr>
+    <tr><td class="n">(6.5)</td><td class="ruta py">coupled.py</td><td class="n">166</td><td><code>LandUseCity</code> — la subasta; <code>generar_poblacion_desde_land_use_det</code> (186) y <code>_T_logsum_snapshot</code> (194) cierran el ciclo</td></tr>
     <tr><td class="n">(6.1)</td><td class="ruta py">coupled.py</td><td class="n">94</td><td><code>_T_logsum_snapshot</code> — el mismo logsum sobre los tiempos congestionados; <code>_tiempos_del_snapshot</code> (80) los desempaqueta</td></tr>
-    <tr><td class="n">(6.6)</td><td class="ruta py">coupled.py</td><td class="n">175</td><td><code>paso</code> — parte en 1; se divide por 2 (201) si la brecha creció; la vuelta a la ciudad en <code>city.update</code> (249), sólo si viene otra iteración</td></tr>
-    <tr><td class="n">(6.7)</td><td class="ruta py">coupled.py</td><td class="n">192</td><td><code>residual</code> — la brecha <em>max |T_new − T|/λ_h</em>; el criterio compuesto en <code>is_converged</code> (208) y el corte (241), que no espera a las otras dos partes</td></tr>
+    <tr><td class="n">(6.6)</td><td class="ruta py">coupled.py</td><td class="n">181</td><td><code>paso</code> — parte en 1; se divide por 2 (201) si la brecha creció; la vuelta a la ciudad en <code>city.update</code> (255), sólo si viene otra iteración</td></tr>
+    <tr><td class="n">(6.7)</td><td class="ruta py">coupled.py</td><td class="n">198</td><td><code>residual</code> — la brecha <em>max |T_new − T|/λ_h</em>; el criterio compuesto en <code>is_converged</code> (214) y el corte (241), que no espera a las otras dos partes</td></tr>
     <tr><td class="n">(6.7)</td><td class="ruta py">constantes.py</td><td class="n">84</td><td><code>TOL_ACOPLADO_CLP_MES</code> — 100 $/hogar-mes; default de <code>iter_coupled</code>, de la API y del worker</td></tr>
     <tr><td class="n">—</td><td class="ruta py">coupled.py</td><td class="n">55</td><td><code>OuterIteration</code> — lo que se emite por vuelta; <code>CoupledResult</code> (71) lo agrega</td></tr>
     <tr><td class="n">(6.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">304</td><td><code>compute_equilibrium_metrics</code> — métricas por estrato y de sistema, por vuelta; el baseline del ΔCS es <code>tiempos_red_vacia</code> (363), el mismo objeto que la <em>T</em> del standalone</td></tr>
@@ -323,22 +323,22 @@
     <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">305</td><td><code>outer_iteration_to_dict</code> — la forma JSON de cada vuelta, una sola vez para API y worker</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/api.ts</td><td class="n">163</td><td><code>resolverAcoplado</code> — la puerta única al motor; en el motor local toma <code>converged</code> (175) del veredicto del núcleo; <code>resolverAcopladoStream</code> (186) es la que usa la página acoplada</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">189</td><td><code>applyJointPreset</code> — el preset fija sus palancas y conserva los estratos calibrados del usuario (228), y con ellos su <em>λ</em> (D10)</td></tr>
-    <tr><td class="n">—</td><td class="ruta tsx">pages/CoupledPage.tsx</td><td class="n">95</td><td><code>poblacion</code> — la página reescala <code>H_por_estrato</code> a su propio control; una sola fuente de población es de la fase de interfaz</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">95</td><td><code>coupledOuterMaxIter</code> — el tope de la interfaz, ajustable por el usuario</td></tr>
-    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">39</td><td><code>COMPARE_OUTER_MAX</code> — el tope del comparador; <code>scaledLandUse</code> (41) es su propia fuente de población</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">139</td><td><code>outer_max_iter</code> — default 3, tope 10; <code>outer_tol</code> (140) toma la constante del núcleo</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">200</td><td><code>outer_max_iter</code> — default 3 en el worker; <code>outer_tol</code> (201) toma la constante del núcleo</td></tr>
+    <tr><td class="n">—</td><td class="ruta tsx">pages/CoupledPage.tsx</td><td class="n">96</td><td><code>poblacion</code> — la página reescala <code>H_por_estrato</code> a su propio control; una sola fuente de población es de la fase de interfaz</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">96</td><td><code>coupledOuterMaxIter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; el usuario lo baja, el setter (123) no deja pasar el tope</td></tr>
+    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">38</td><td><code>scaledLandUse</code> — la fuente de población propia del comparador; el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code> (141)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">139</td><td><code>outer_max_iter</code> — default y tope <code>VUELTAS_ACOPLADO_MAX</code>; <code>outer_tol</code> (142) toma la constante del núcleo</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">200</td><td><code>outer_max_iter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; la cota la valida el núcleo; <code>outer_tol</code> (201) toma la constante del núcleo</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Dos hechos del código que quedan para la fase de interfaz. La página
+  Un hecho del código que queda para la fase de interfaz. La página
   acoplada y el comparador tienen <strong>su propia población</strong>: un
   control que reescala <code>H_por_estrato</code>, distinto de la que usan el
-  Sandbox y el suelo. Y el tope de vueltas es distinto en cada consumidor.
-  Ninguno de los dos cambia el modelo; los dos hacen que la misma ciudad dé
-  números distintos según la página.
+  Sandbox y el suelo. No cambia el modelo, pero hace que la misma ciudad dé
+  números distintos según la página. El tope de vueltas, que también era
+  distinto en cada consumidor, ya es uno solo (D-61).
 </p>
 
 <h2 id="s4"><span class="num">§4</span> Pruebas</h2>

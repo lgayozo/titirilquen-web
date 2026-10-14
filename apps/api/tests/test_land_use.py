@@ -15,7 +15,6 @@ def test_land_use_solve() -> None:
             "CBD": 25,
             "land_use": {
                 "H_por_estrato": [100, 100, 100],
-                "mu": 1.0,
                 "max_iter": 2000,
             },
             # La accesibilidad es el logsum de esta demanda (D-34).

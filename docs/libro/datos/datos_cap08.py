@@ -54,6 +54,7 @@ sys.path.insert(0, str(NUCLEO / "tests"))
 import test_linea_base as base
 from titirilquen_core.bienestar import AgregadosDict
 from titirilquen_core.city import CiudadLineal
+from titirilquen_core.constantes import VUELTAS_ACOPLADO_MAX
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.coupled_metrics import StratumMetrics, SystemMetrics
 from titirilquen_core.equilibrium.msa import (
@@ -136,12 +137,6 @@ def _fuente_web_sin_strings() -> str:
     ]
     texto = "\n".join(partes)
     return re.sub(r'\bt\(\s*(["\'`])(?:(?!\1).)*\1', 't("")', texto)
-
-
-def _ui_outer_max_iter() -> int:
-    m = re.search(r"coupledOuterMaxIter:\s*(\d+),", STORE.read_text(encoding="utf-8"))
-    assert m
-    return int(m.group(1))
 
 
 # ---------------------------------------------------------------------------
@@ -422,24 +417,31 @@ def defaults() -> dict:
 
 
 def outer_max_iter() -> dict:
-    """Un parámetro, cuatro defaults, y una cota en la API que el default de la
-    interfaz no cumple."""
-    core_src = (NUCLEO / "src" / "titirilquen_core" / "coupled.py").read_text(
-        encoding="utf-8"
-    )
-    core = re.search(r"outer_max_iter:\s*int\s*=\s*(\d+)", core_src)
-    api_src = (API / "src" / "api" / "main.py").read_text(encoding="utf-8")
-    api = re.search(
-        r"outer_max_iter:\s*int\s*=\s*Field\(default=(\d+),\s*ge=(\d+),\s*le=(\d+)\)",
-        api_src,
-    )
-    worker = re.search(
-        r'req\.get\("outer_max_iter",\s*(\d+)\)', WORKER.read_text(encoding="utf-8")
-    )
-    assert core and api and worker
-    ui = _ui_outer_max_iter()
-    # Lo que responde la API cuando llega el default de la interfaz. Corre en el
-    # venv de la API (FastAPI no está en el del núcleo).
+    """D-61: un parámetro, una constante. Cada consumidor toma
+    `VUELTAS_ACOPLADO_MAX` por nombre (default y cota), y la API responde 200 en
+    el tope y 422 un paso más allá."""
+    tope = VUELTAS_ACOPLADO_MAX
+    fuentes = {
+        "nucleo (coupled.py)": (
+            NUCLEO / "src" / "titirilquen_core" / "coupled.py",
+            r"outer_max_iter:\s*int\s*=\s*VUELTAS_ACOPLADO_MAX",
+        ),
+        "api (main.py)": (
+            API / "src" / "api" / "main.py",
+            r"default=VUELTAS_ACOPLADO_MAX,\s*ge=1,\s*le=VUELTAS_ACOPLADO_MAX",
+        ),
+        "worker (pyodide.worker.ts)": (
+            WORKER,
+            r'req\.get\("outer_max_iter",\s*VUELTAS_ACOPLADO_MAX\)',
+        ),
+        "interfaz (landUseStore.ts)": (STORE, r"coupledOuterMaxIter:\s*VUELTAS_ACOPLADO_MAX,"),
+    }
+    usa = {
+        k: bool(re.search(patron, ruta.read_text(encoding="utf-8")))
+        for k, (ruta, patron) in fuentes.items()
+    }
+    # Lo que responde la API en el tope y un paso más allá. Corre en el venv de
+    # la API (FastAPI no está en el del núcleo).
     sonda = (
         "from fastapi.testclient import TestClient\n"
         "from titirilquen_core.presets import DEFAULT_STRATA\n"
@@ -448,7 +450,7 @@ def outer_max_iter() -> dict:
         "base={'sim':{'city':{'n_celdas':51,'largo_ciudad_km':5},"
         "'demand':{'estratos':DEFAULT_STRATA},'max_iter':2,'seed':1},"
         "'land_use':{'H_por_estrato':[50,100,100],'max_iter':500}}\n"
-        f"for n in ({api.group(3)}, {ui}):\n"
+        f"for n in ({tope}, {tope + 1}):\n"
         "    r=c.post('/coupled/solve', json={**base,'outer_max_iter':n,'outer_tol':1.0})\n"
         "    print(n, r.status_code)\n"
     )
@@ -465,15 +467,10 @@ def outer_max_iter() -> dict:
             n, code = ln.split()
             codigos[n] = int(code)
     return {
-        "defaults": {
-            "nucleo (coupled.py)": int(core.group(1)),
-            "api (main.py)": int(api.group(1)),
-            "worker (pyodide.worker.ts)": int(worker.group(1)),
-            "interfaz (landUseStore.ts)": ui,
-        },
-        "cota_superior_de_la_api": int(api.group(3)),
+        "constante": tope,
+        "usa_la_constante": usa,
         "respuesta_de_la_api": codigos,
-        "la_interfaz_pasa_por_la_api": codigos.get(str(ui)) == 200,
+        "la_interfaz_pasa_por_la_api": codigos.get(str(tope)) == 200,
     }
 
 
@@ -497,7 +494,7 @@ def payload() -> dict:
     od = outer_iteration_to_dict(it0)
     o_total = len(json.dumps(od))
     o_por_clave = {k: len(json.dumps(v)) for k, v in od.items()}
-    ui = _ui_outer_max_iter()
+    ui = VUELTAS_ACOPLADO_MAX
     src_web = _fuente_web_sin_strings()
     lee = {k: len(re.findall(rf"\.{re.escape(k)}\b", src_web)) for k in od}
     top_trace = sorted(por_clave.items(), key=lambda x: -x[1])[:5]
@@ -700,7 +697,7 @@ def main() -> None:
     )
     o = datos["outer_max_iter"]
     print(
-        f"\nouter_max_iter: {o['defaults']} · API responde {o['respuesta_de_la_api']}"
+        f"\nouter_max_iter: {o['usa_la_constante']} · API responde {o['respuesta_de_la_api']}"
     )
     p = datos["payload"]
     print(

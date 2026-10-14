@@ -8,6 +8,7 @@ import { EquilibriumMetricsTable } from "@/components/viz/EquilibriumMetricsTabl
 import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { resolverAcopladoStream } from "@/lib/api";
+import { VUELTAS_ACOPLADO_MAX } from "@/lib/gen/constantes.gen";
 import { expectedComposition, supplyVector } from "@/lib/citySupply";
 import {
   JOINT_PRESETS,
@@ -283,7 +284,7 @@ export function CoupledPage() {
           <input
             type="range"
             min={2}
-            max={50}
+            max={VUELTAS_ACOPLADO_MAX}
             step={1}
             value={outerMaxIter}
             onChange={(e) => setOuterMaxIter(Number(e.target.value))}

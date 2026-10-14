@@ -1,9 +1,9 @@
 {
  "_meta": {
-  "fecha": "2026-10-13",
-  "commit": "f4da3ee",
+  "fecha": "2026-10-14",
+  "commit": "bb6446b",
   "script": "docs/libro/datos/datos_cap06.py",
-  "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, semilla 42, asignación esperada, brecha interior < 0,2 min. El acoplado con `outer_max_iter = 12` y la tolerancia del núcleo, 100 $/hogar-mes."
+  "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, semilla 42, asignación esperada, brecha interior < 0,2 min. El acoplado con `outer_max_iter = 10` y la tolerancia del núcleo, 100 $/hogar-mes."
  },
  "fuentes_externas": {
   "alonso_1964": "Alonso, W. (1964). Location and Land Use: Toward a General Theory of Land Rent. Harvard University Press.",
@@ -45,12 +45,12 @@
   },
   "veredicto_motor_local_es_el_del_nucleo": true,
   "outer_max_iter": {
-   "nucleo": 5,
-   "app": 12,
-   "comparador": 8,
-   "api": 3,
-   "api_tope": 10,
-   "worker": 3
+   "constante": 10,
+   "nucleo": 10,
+   "api_usa_la_constante": true,
+   "worker_usa_la_constante": true,
+   "app_usa_la_constante": true,
+   "comparador_usa_la_constante": true
   }
  },
  "accesibilidad": {
@@ -380,7 +380,7 @@
   "nota": "La accesibilidad se mueve fuerte y localmente (decenas de útiles/mes junto a las estaciones), pero la ASIGNACIÓN casi no: la localización la fija la pendiente del corredor, no dónde para el tren."
  },
  "loop": {
-  "outer_max_iter": 12,
+  "outer_max_iter": 10,
   "outer_tol": 100.0,
   "iteraciones_corridas": 3,
   "convergio": true,

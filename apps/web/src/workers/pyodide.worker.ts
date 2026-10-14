@@ -134,7 +134,7 @@ await micropip.install("pydantic")
 await micropip.install(${JSON.stringify(whlUrl)})
 
 from titirilquen_core import LandUseCity, LandUseConfig, SimulationConfig
-from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES
+from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES, VUELTAS_ACOPLADO_MAX
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
@@ -197,7 +197,7 @@ def coupled_iter_from_json(req_json: str):
     req = json.loads(req_json)
     sim = SimulationConfig.model_validate(req["sim"])
     cfg = LandUseConfig.model_validate(req["land_use"])
-    outer_max_iter = int(req.get("outer_max_iter", 3))
+    outer_max_iter = int(req.get("outer_max_iter", VUELTAS_ACOPLADO_MAX))
     outer_tol = float(req.get("outer_tol", TOL_ACOPLADO_CLP_MES))
     for outer in iter_coupled(
         sim=sim,

@@ -52,7 +52,7 @@ sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 import test_linea_base as base
 
 from titirilquen_core.city import CiudadLineal
-from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES
+from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES, VUELTAS_ACOPLADO_MAX
 from titirilquen_core.coupled import (
     _run_transport_with_population,
     _T_logsum_snapshot,
@@ -453,7 +453,10 @@ def red_configurada() -> dict:
 
 
 def _trayectoria(
-    sim, land_use, outer_max_iter: int = 12, outer_tol: float = TOL_ACOPLADO_CLP_MES
+    sim,
+    land_use,
+    outer_max_iter: int = VUELTAS_ACOPLADO_MAX,
+    outer_tol: float = TOL_ACOPLADO_CLP_MES,
 ) -> list[dict]:
     filas = []
     Q_prev = None
@@ -495,13 +498,13 @@ def _trayectoria(
 
 
 def loop() -> dict:
-    """La corrida acoplada de la aplicación: 20 km, 36.000 hogares, 12 vueltas
-    como máximo, la tolerancia del núcleo."""
+    """La corrida acoplada de la aplicación: 20 km, 36.000 hogares, el tope de
+    vueltas y la tolerancia del núcleo."""
     filas = _trayectoria(base._config_web(), base._land_use_web())
     ultima = filas[-1]
     primera = filas[0]
     return {
-        "outer_max_iter": 12,
+        "outer_max_iter": VUELTAS_ACOPLADO_MAX,
         "outer_tol": TOL_ACOPLADO_CLP_MES,
         "iteraciones_corridas": len(filas),
         "convergio": ultima["convergio_nucleo"],
@@ -771,19 +774,33 @@ def parametros_vigentes() -> dict:
         },
         "veredicto_motor_local_es_el_del_nucleo": "metrics.sistema.convergio_exterior"
         in (RAIZ / "apps/web/src/lib/api.ts").read_text(encoding="utf-8"),
+        # D-61: un solo tope, `VUELTAS_ACOPLADO_MAX`, como default y cota. Se
+        # verifica que cada consumidor lo tome por nombre en vez de transcribirlo.
         "outer_max_iter": {
+            "constante": int(VUELTAS_ACOPLADO_MAX),
             "nucleo": int(firma["outer_max_iter"].default),
-            "app": int(
-                _lee("apps/web/src/store/landUseStore.ts", r"coupledOuterMaxIter:\s*(\d+),")
+            "api_usa_la_constante": bool(
+                _lee(
+                    api,
+                    r"outer_max_iter: int = Field\(\s*"
+                    r"default=(VUELTAS_ACOPLADO_MAX), ge=1, le=VUELTAS_ACOPLADO_MAX",
+                )
             ),
-            "comparador": int(
-                _lee("apps/web/src/pages/ComparePage.tsx", r"COMPARE_OUTER_MAX = (\d+)")
+            "worker_usa_la_constante": bool(
+                _lee(worker, r'"outer_max_iter",\s*(VUELTAS_ACOPLADO_MAX)')
             ),
-            "api": int(_lee(api, r"outer_max_iter: int = Field\(default=(\d+)")),
-            "api_tope": int(
-                _lee(api, r"outer_max_iter: int = Field\(default=\d+, ge=\d+, le=(\d+)")
+            "app_usa_la_constante": bool(
+                _lee(
+                    "apps/web/src/store/landUseStore.ts",
+                    r"coupledOuterMaxIter:\s*(VUELTAS_ACOPLADO_MAX),",
+                )
             ),
-            "worker": int(_lee(worker, r'"outer_max_iter",\s*(\d+)')),
+            "comparador_usa_la_constante": bool(
+                _lee(
+                    "apps/web/src/pages/ComparePage.tsx",
+                    r"outer_max_iter:\s*(VUELTAS_ACOPLADO_MAX),",
+                )
+            ),
         },
     }
 
@@ -799,8 +816,8 @@ def main() -> None:
                 "La de la aplicación (`test_linea_base._config_web` y "
                 "`_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, "
                 "semilla 42, asignación esperada, brecha interior < 0,2 min. El "
-                "acoplado con `outer_max_iter = 12` y la tolerancia del núcleo, "
-                "100 $/hogar-mes."
+                f"acoplado con `outer_max_iter = {VUELTAS_ACOPLADO_MAX}` y la "
+                "tolerancia del núcleo, 100 $/hogar-mes."
             ),
         },
         "fuentes_externas": FUENTES_EXTERNAS,

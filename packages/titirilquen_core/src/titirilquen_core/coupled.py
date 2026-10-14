@@ -25,7 +25,7 @@ from numpy.typing import NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
-from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES
+from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES, VUELTAS_ACOPLADO_MAX
 from titirilquen_core.coupled_metrics import (
     EquilibriumMetrics,
     compute_equilibrium_metrics,
@@ -132,7 +132,7 @@ def iter_coupled(
     *,
     sim: SimulationConfig,
     land_use_config: LandUseConfig,
-    outer_max_iter: int = 5,
+    outer_max_iter: int = VUELTAS_ACOPLADO_MAX,
     outer_tol: float = TOL_ACOPLADO_CLP_MES,
     result: CoupledResult | None = None,
 ) -> Iterator[OuterIteration]:
@@ -143,6 +143,12 @@ def iter_coupled(
     final, agentes, convergencia) — mismo patrón que `iter_msa_desde_suelo(trace=...)`;
     `run_coupled` no es más que consumir este generador con un `result`.
     """
+    if not 1 <= outer_max_iter <= VUELTAS_ACOPLADO_MAX:
+        # La misma cota en los dos runtimes: la API la valida en su request,
+        # el worker llega acá (D-61).
+        raise ValueError(
+            f"outer_max_iter debe estar entre 1 y {VUELTAS_ACOPLADO_MAX}: {outer_max_iter}"
+        )
     rng = np.random.default_rng(sim.seed)
     # El loop acoplado usa asignación **esperada** (determinista) para que el
     # equilibrio suelo↔transporte converja sin el piso estocástico del Monte Carlo.
@@ -258,7 +264,7 @@ def run_coupled(
     *,
     sim: SimulationConfig,
     land_use_config: LandUseConfig,
-    outer_max_iter: int = 5,
+    outer_max_iter: int = VUELTAS_ACOPLADO_MAX,
     outer_tol: float = TOL_ACOPLADO_CLP_MES,
 ) -> CoupledResult:
     """Ejecuta el loop suelo↔transporte hasta el final y devuelve el resultado agregado.
