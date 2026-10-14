@@ -86,7 +86,9 @@
   agentes que no viajan. <em>VIAJES_MES·(1 − p_h)</em> son entonces los viajes
   que hace en promedio un hogar del estrato. Hasta oct-2026 (D11 de la
   auditoría) se le cobraban 44 a todos, así que el teletrabajo le quitaba
-  viajes al transporte pero no a la localización. La escala del ruido de la
+  viajes al transporte pero no a la localización. Desde oct-2026 la
+  aplicación parte con <em>π<sup>tele</sup></em> = 0 en los tres estratos, así
+  que por defecto todos pagan 44. La escala del ruido de la
   puja, <em>μ = 1/√44</em> (capítulo 2), <strong>no</strong> se ajusta por
   teletrabajo: es un supuesto declarado.
 </p>
@@ -234,9 +236,9 @@
   </thead>
   <tbody>
     <tr><td><code>VIAJES_MES</code></td><td class="n">44</td><td class="n">44</td><td>viajes/mes</td><td><span class="etiqueta neutra">decisión</span> 22 días hábiles, ida y vuelta; mensualiza el logsum igual que la carga de costo</td></tr>
-    <tr><td><code>prob_teletrabajo</code></td><td class="n">0,40 · 0,20 · 0,05</td><td class="n">ídem</td><td>fracción</td><td><span class="etiqueta lim">heredado</span> de la demanda; sin fuente documentada. Con (6.2) da 26,4 · 35,2 · 41,8 viajes/mes por estrato, y la §5.3 muestra que decide la forma de la ciudad</td></tr>
+    <tr><td><code>prob_teletrabajo</code></td><td class="n">0,00 · 0,00 · 0,00</td><td class="n">ídem</td><td>fracción</td><td><span class="etiqueta neutra">decisión</span> 0 por defecto (oct-2026): las tasas heredadas, 0,40 · 0,20 · 0,05, no tenían fuente, y la §5.3 muestra que deciden la forma de la ciudad. Con (6.2) da 44,0 · 44,0 · 44,0 viajes/mes por estrato; se fija por estrato en Calibración</td></tr>
     <tr><td><code>alpha</code></td><td class="n">1,0</td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la puja lee el logsum mensual tal cual (cap. 2). Fijo: desde el schema v7 no es campo, porque sólo μα se identifica</td></tr>
-    <tr><td><code>lambda</code></td><td class="n">3,20 · 6,41 · 12,41 ·10⁻⁴</td><td class="n">ídem</td><td>útiles/$</td><td><span class="etiqueta frio">norma</span> el <code>|b_costo|</code> del logit modal, literal; 1/λ = 3.122 · 1.561 · 806 $ por útil</td></tr>
+    <tr><td><code>lambda</code></td><td class="n">3,14 · 6,28 · 12,16 ·10⁻⁴</td><td class="n">ídem</td><td>útiles/$</td><td><span class="etiqueta frio">norma</span> el <code>|b_costo|</code> del logit modal, literal; 1/λ = 3.187 · 1.593 · 822 $ por útil</td></tr>
     <tr><td><code>rho</code></td><td class="n">0</td><td class="n">0</td><td>útiles-mes por unidad de densidad relativa (v7)</td><td><span class="etiqueta neutra">decisión</span> Alonso puro: sólo la accesibilidad decide la localización (cap. 2)</td></tr>
     <tr><td>paso</td><td class="n">1, ÷2</td><td class="n">1, ÷2</td><td>—</td><td><span class="etiqueta neutra">decisión</span> (6.6): parte en 1 y se reduce a la mitad si la brecha crece (D10); no es ajustable</td></tr>
     <tr><td><code>outer_tol</code></td><td class="n">100</td><td class="n">100</td><td>$/hogar-mes</td><td><span class="etiqueta neutra">decisión</span> <code>TOL_ACOPLADO_CLP_MES</code>, una sola constante del núcleo (D10). La API y el worker la usan por nombre; la página acoplada y el comparador no mandan el campo</td></tr>
@@ -258,19 +260,19 @@
   puede predecir desde (6.4) sin correr nada. <code>VIAJES_MES</code> es la
   escala que pone un viaje y un mes de arriendo en la misma unidad, y
   <code>prob_teletrabajo</code> decide cuántos de esos viajes paga cada
-  estrato. Es el único de los cinco sin fuente, y la §5.3 muestra que es el
-  que más pesa sobre la forma de la ciudad.
+  estrato. Es el que más pesa sobre la forma de la ciudad (§5.3) y no hay un
+  valor con fuente, así que parte en 0.
 </p>
 
 <p>
   <strong>La tolerancia exterior está en pesos por hogar y por mes.</strong>
-  La anterior, 1 útil/mes, equivalía a 3.122, 1.561 y
-  806 $/mes según el estrato: el mismo número exigía casi cuatro veces
+  La anterior, 1 útil/mes, equivalía a 3.187, 1.593 y
+  822 $/mes según el estrato: el mismo número exigía casi cuatro veces
   más al estrato bajo que al alto. 100 $/hogar-mes es una
   fracción menor de cualquier diferencia que se reporte. Con el paso de (6.6)
-  la brecha de la base cae de 183 a
-  3,3 $/hogar-mes en una vuelta y a
-  0 en la siguiente (§5.6), así que la tolerancia corta
+  la brecha de la base cae de 1.089 a
+  72,9 $/hogar-mes en una vuelta y a
+  6 en la siguiente (§5.6), así que la tolerancia corta
   sin dejar nada relevante sobre la mesa.
 </p>
 
@@ -385,8 +387,8 @@
 <h3>5.1 Qué forma tiene la accesibilidad</h3>
 
 <p>
-  <em>T</em> a red vacía, por estrato, en las dos unidades, con el
-  teletrabajo de la base. En útiles/mes es lo que entra a la función de puja;
+  <em>T</em> a red vacía, por estrato, en las dos unidades, con la
+  demanda de la base, sin teletrabajo. En útiles/mes es lo que entra a la función de puja;
   en $/mes es lo que la puja pone sobre la mesa. Se leen las diferencias, no
   los niveles.
 </p>
@@ -402,14 +404,14 @@
     <tr><th></th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0,5</td><td class="n">−19,29</td><td class="n">−22,18</td><td class="n">−33,84</td><td class="n">−60.223</td><td class="n">−34.620</td><td class="n">−27.262</td></tr>
-    <tr><td class="n">1,0</td><td class="n">−15,72</td><td class="n">−15,94</td><td class="n">−25,08</td><td class="n">−49.078</td><td class="n">−24.882</td><td class="n">−20.207</td></tr>
-    <tr><td class="n">2,0</td><td class="n">−13,35</td><td class="n">−11,00</td><td class="n">−15,40</td><td class="n">−41.686</td><td class="n">−17.172</td><td class="n">−12.403</td></tr>
-    <tr><td class="n">3,0</td><td class="n">−4,35</td><td class="n">6,22</td><td class="n">9,96</td><td class="n">−13.573</td><td class="n">9.706</td><td class="n">8.023</td></tr>
-    <tr><td class="n">5,0</td><td class="n">2,01</td><td class="n">17,04</td><td class="n">24,94</td><td class="n">6.264</td><td class="n">26.598</td><td class="n">20.094</td></tr>
-    <tr><td class="n">8,0</td><td class="n">8,83</td><td class="n">28,95</td><td class="n">44,53</td><td class="n">27.580</td><td class="n">45.188</td><td class="n">35.872</td></tr>
-    <tr class="destacada"><td>pendiente 1–9 km</td><td class="n">3,64</td><td class="n">6,58</td><td class="n">9,75</td><td class="n">11.378</td><td class="n">10.274</td><td class="n">7.851</td></tr>
-    <tr><td>rango total</td><td class="n">39,25</td><td class="n">71,64</td><td class="n">106,00</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+    <tr><td class="n">0,5</td><td class="n">−32,30</td><td class="n">−27,89</td><td class="n">−35,71</td><td class="n">−102.924</td><td class="n">−44.427</td><td class="n">−29.362</td></tr>
+    <tr><td class="n">1,0</td><td class="n">−26,37</td><td class="n">−20,11</td><td class="n">−26,50</td><td class="n">−84.028</td><td class="n">−32.040</td><td class="n">−21.792</td></tr>
+    <tr><td class="n">2,0</td><td class="n">−22,47</td><td class="n">−14,03</td><td class="n">−16,45</td><td class="n">−71.604</td><td class="n">−22.359</td><td class="n">−13.527</td></tr>
+    <tr><td class="n">3,0</td><td class="n">−7,51</td><td class="n">7,43</td><td class="n">10,21</td><td class="n">−23.938</td><td class="n">11.835</td><td class="n">8.396</td></tr>
+    <tr><td class="n">5,0</td><td class="n">3,02</td><td class="n">20,89</td><td class="n">25,93</td><td class="n">9.638</td><td class="n">33.277</td><td class="n">21.324</td></tr>
+    <tr><td class="n">8,0</td><td class="n">14,32</td><td class="n">35,63</td><td class="n">46,30</td><td class="n">45.648</td><td class="n">56.757</td><td class="n">38.073</td></tr>
+    <tr class="destacada"><td>pendiente 1–9 km</td><td class="n">6,04</td><td class="n">8,18</td><td class="n">10,21</td><td class="n">19.257</td><td class="n">13.037</td><td class="n">8.398</td></tr>
+    <tr><td>rango total</td><td class="n">65,09</td><td class="n">89,11</td><td class="n">111,19</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
   </tbody>
 </table>
 </div>
@@ -422,9 +424,9 @@
   son <strong>no monótonas celda a celda</strong>: junto a cada estación el
   acceso al metro baja y la accesibilidad mejora aunque uno se aleje del
   centro. Es la red configurada, no una función de la distancia. En útiles el
-  estrato bajo tiene la pendiente más empinada, 9,75 contra 3,64 del
-  alto; en pesos la tiene el alto, 11.378 $/mes por km contra 10.274
-  del medio y 7.851 del bajo. Esa inversión de orden entre las dos unidades
+  estrato bajo tiene la pendiente más empinada, 10,21 contra 6,04 del
+  alto; en pesos la tiene el alto, 19.257 $/mes por km contra 13.037
+  del medio y 8.398 del bajo. Esa inversión de orden entre las dos unidades
   es el contenido de la §5.2; que el alto y el medio queden tan cerca en pesos
   es el de la §5.3.
 </p>
@@ -439,7 +441,7 @@
   heterogénea de producción y con una <em>λ</em> uniforme igual a la del
   estrato medio. Todo <strong>sin teletrabajo</strong>, porque el tiempo en
   minutos no lo descuenta y el logsum sí: así la fila compara el objeto y
-  nada más. La <em>T</em> en minutos se reescala por 2,788, el
+  nada más. La <em>T</em> en minutos se reescala por 2,780, el
   factor que iguala su rango al del logsum en el estrato medio.
 </p>
 
@@ -454,8 +456,8 @@
     <tr><th></th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th></th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th></th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td>logsum</td><td class="n">1,988</td><td class="n">2,963</td><td class="n">5,846</td><td>Alonso</td><td class="n">5,558</td><td class="n">3,761</td><td class="n">2,138</td><td><strong>invertida</strong></td></tr>
-    <tr><td>minutos</td><td class="n">1,822</td><td class="n">3,002</td><td class="n">5,893</td><td>Alonso</td><td class="n">5,163</td><td class="n">3,657</td><td class="n">2,574</td><td><strong>invertida</strong></td></tr>
+    <tr class="destacada"><td>logsum</td><td class="n">1,992</td><td class="n">2,966</td><td class="n">5,839</td><td>Alonso</td><td class="n">5,551</td><td class="n">3,763</td><td class="n">2,138</td><td><strong>invertida</strong></td></tr>
+    <tr><td>minutos</td><td class="n">1,826</td><td class="n">3,004</td><td class="n">5,887</td><td>Alonso</td><td class="n">5,154</td><td class="n">3,660</td><td class="n">2,575</td><td><strong>invertida</strong></td></tr>
   </tbody>
 </table>
 </div>
@@ -470,9 +472,9 @@
   ciudad se invierte con cualquiera de los dos objetos, y con <em>λ</em>
   heterogénea ninguno la invierte. Lo que sostiene a Alonso es la
   <strong>moneda</strong>, no el objeto. (6.4) lo predice sin correr nada: la
-  ventaja de moneda es <em>λ_bajo/λ_alto</em> = <strong>3,875</strong> y no
-  depende del objeto; la ventaja de tiempo es 1,6888 con el logsum y
-  1,5010 en minutos. El margen, el cociente entre ambas, es mayor que 1
+  ventaja de moneda es <em>λ_bajo/λ_alto</em> = <strong>3,876</strong> y no
+  depende del objeto; la ventaja de tiempo es 1,6901 con el logsum y
+  1,5000 en minutos. El margen, el cociente entre ambas, es mayor que 1
   en las dos celdas de la izquierda y menor en las dos de la derecha:
 </p>
 
@@ -482,8 +484,8 @@
     <tr><th>Objeto</th><th class="n">ventaja de tiempo</th><th class="n">margen con λ heterogénea</th><th class="n">margen con λ uniforme</th></tr>
   </thead>
   <tbody>
-    <tr><td>logsum</td><td class="n">1,6888</td><td class="n">2,2945</td><td class="n">0,5921</td></tr>
-    <tr><td>minutos</td><td class="n">1,5010</td><td class="n">2,5816</td><td class="n">0,6662</td></tr>
+    <tr><td>logsum</td><td class="n">1,6901</td><td class="n">2,2931</td><td class="n">0,5917</td></tr>
+    <tr><td>minutos</td><td class="n">1,5000</td><td class="n">2,5838</td><td class="n">0,6667</td></tr>
   </tbody>
 </table>
 </div>
@@ -501,11 +503,12 @@
 <h3>5.3 El teletrabajo decide la forma de la ciudad</h3>
 
 <p>
-  (6.2) le cobra a cada estrato los viajes que hace. Con
-  <code>prob_teletrabajo</code> = 0,40 · 0,20 · 0,05, el alto paga
-  26,4 viajes al mes y el bajo 41,8. El suelo standalone con
-  el <code>teletrabajo_factor</code> de la política en 0, que es la
-  <em>T</em> de antes de D11, en la base (1) y duplicado:
+  (6.2) le cobra a cada estrato los viajes que hace. La aplicación parte sin
+  teletrabajo; para medir el mecanismo se fijan las tasas heredadas,
+  <code>prob_teletrabajo</code> = 0,40 · 0,20 · 0,05, sin fuente, como
+  ilustración. Con ellas el alto paga 26,4 viajes al mes y el bajo
+  41,8. El suelo standalone con el <code>teletrabajo_factor</code> en 0,
+  que es la base de la aplicación, en 1 y duplicado:
 </p>
 
 <div class="envoltorio-tabla">
@@ -521,28 +524,28 @@
     <tr><th></th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th></th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0,0</td><td class="n">44,0</td><td class="n">44,0</td><td class="n">44,0</td><td class="n">18.963</td><td class="n">12.843</td><td class="n">8.264</td><td class="n">1,99</td><td class="n">2,96</td><td class="n">5,85</td><td class="n">0,210</td></tr>
-    <tr><td class="n">0,5</td><td class="n">35,2</td><td class="n">39,6</td><td class="n">42,9</td><td class="n">15.170</td><td class="n">11.559</td><td class="n">8.058</td><td class="n">2,44</td><td class="n">2,98</td><td class="n">5,52</td><td class="n">0,138</td></tr>
-    <tr class="destacada"><td class="n">1,0</td><td class="n">26,4</td><td class="n">35,2</td><td class="n">41,8</td><td class="n">11.378</td><td class="n">10.274</td><td class="n">7.851</td><td class="n">3,06</td><td class="n">3,04</td><td class="n">5,00</td><td class="n">0,066</td></tr>
-    <tr><td class="n">2,0</td><td class="n">8,8</td><td class="n">26,4</td><td class="n">39,6</td><td class="n">3.793</td><td class="n">7.706</td><td class="n">7.438</td><td class="n">4,72</td><td class="n">3,33</td><td class="n">3,42</td><td class="n">0,024</td></tr>
+    <tr class="destacada"><td class="n">0,0</td><td class="n">44,0</td><td class="n">44,0</td><td class="n">44,0</td><td class="n">19.257</td><td class="n">13.037</td><td class="n">8.398</td><td class="n">1,99</td><td class="n">2,97</td><td class="n">5,84</td><td class="n">0,208</td></tr>
+    <tr><td class="n">0,5</td><td class="n">35,2</td><td class="n">39,6</td><td class="n">42,9</td><td class="n">15.406</td><td class="n">11.733</td><td class="n">8.188</td><td class="n">2,44</td><td class="n">2,98</td><td class="n">5,51</td><td class="n">0,136</td></tr>
+    <tr><td class="n">1,0</td><td class="n">26,4</td><td class="n">35,2</td><td class="n">41,8</td><td class="n">11.554</td><td class="n">10.430</td><td class="n">7.978</td><td class="n">3,06</td><td class="n">3,05</td><td class="n">4,99</td><td class="n">0,065</td></tr>
+    <tr><td class="n">2,0</td><td class="n">8,8</td><td class="n">26,4</td><td class="n">39,6</td><td class="n">3.851</td><td class="n">7.822</td><td class="n">7.558</td><td class="n">4,71</td><td class="n">3,33</td><td class="n">3,41</td><td class="n">0,024</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Es el efecto más grande del capítulo. Al descontar el teletrabajo, la
-  pendiente en pesos del alto cae de 18.963 a
-  11.378 $/mes por km, y la del medio sólo de
-  12.843 a 10.274. El alto sigue pujando
+  pendiente en pesos del alto cae de 19.257 a
+  11.554 $/mes por km, y la del medio sólo de
+  13.037 a 10.430. El alto sigue pujando
   más empinado, pero por poco, y con el ruido de la subasta la diferencia ya no
   ordena: el alto y el medio quedan a 3,06 y
-  3,04 km del centro, y el Theil cae de 0,210 a
-  <strong>0,066</strong>. Duplicar el teletrabajo invierte la ciudad: el alto
-  se va a 4,72 km y queda más lejos que el bajo,
-  3,42. Es el mecanismo esperado: quien no viaja todos los días
-  no paga por estar cerca. Pero la magnitud depende entera de
-  <code>prob_teletrabajo</code>, que no tiene fuente documentada. Si la ciudad
-  no convence, lo que hay que revisar es ese parámetro, no (6.2).
+  3,05 km del centro, y el Theil cae de 0,208 a
+  <strong>0,065</strong>. Duplicar el teletrabajo invierte la ciudad: el alto
+  se va a 4,71 km y queda más lejos que el bajo,
+  3,41. Es el mecanismo esperado: quien no viaja todos los días
+  no paga por estar cerca. Pero la magnitud depende entera de las tasas, y
+  ninguna tiene fuente: por eso la aplicación parte en 0, con la ciudad de la
+  primera fila, y quien tenga un dato lo fija por estrato en Calibración.
 </p>
 
 <h3>5.4 La red configurada mueve la accesibilidad, no la asignación</h3>
@@ -553,11 +556,11 @@
     <tr><th class="n">estaciones</th><th class="n">máx |ΔT| vs 4 est.</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">4</td><td class="n">—</td><td class="n">3,111</td><td class="n">3,039</td><td class="n">4,971</td></tr>
-    <tr><td class="n">6</td><td class="n">23,269</td><td class="n">3,089</td><td class="n">3,023</td><td class="n">5,013</td></tr>
-    <tr class="destacada"><td class="n">10</td><td class="n">17,472</td><td class="n">3,063</td><td class="n">3,042</td><td class="n">4,998</td></tr>
-    <tr><td class="n">20</td><td class="n">16,354</td><td class="n">3,027</td><td class="n">3,039</td><td class="n">5,028</td></tr>
-    <tr><td class="n">30</td><td class="n">15,280</td><td class="n">3,009</td><td class="n">3,031</td><td class="n">5,054</td></tr>
+    <tr><td class="n">4</td><td class="n">—</td><td class="n">1,991</td><td class="n">2,996</td><td class="n">5,790</td></tr>
+    <tr><td class="n">6</td><td class="n">24,754</td><td class="n">2,000</td><td class="n">2,944</td><td class="n">5,872</td></tr>
+    <tr class="destacada"><td class="n">10</td><td class="n">18,595</td><td class="n">1,992</td><td class="n">2,966</td><td class="n">5,839</td></tr>
+    <tr><td class="n">20</td><td class="n">17,408</td><td class="n">1,952</td><td class="n">2,976</td><td class="n">5,850</td></tr>
+    <tr><td class="n">30</td><td class="n">16,267</td><td class="n">1,923</td><td class="n">2,979</td><td class="n">5,864</td></tr>
   </tbody>
 </table>
 </div>
@@ -569,9 +572,9 @@
 
 <p>
   La oferta del metro mueve la accesibilidad, y fuerte: entre
-  15,3 y 23,3 útiles/mes junto a las estaciones. Lo que casi no mueve es la
+  16,3 y 24,8 útiles/mes junto a las estaciones. Lo que casi no mueve es la
   <strong>asignación</strong>: entre 4 y 30 estaciones el estrato alto se corre
-  0,10 km y el bajo 0,08. Dónde para el tren redistribuye
+  0,07 km y el bajo 0,07. Dónde para el tren redistribuye
   accesibilidad localmente, pero la localización de los estratos la fija la
   pendiente del corredor, que no cambia.
 </p>
@@ -584,9 +587,9 @@
     <tr><th class="n">k</th><th class="n">brecha ($/hogar-mes)</th><th class="n">máx |ΔQ|</th><th class="n">Theil</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th class="n">auto %</th><th class="n">metro %</th><th class="n">t medio</th><th class="n">f metro</th><th>convergió</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0</td><td class="n">—</td><td class="n">—</td><td class="n">0,0659</td><td class="n">3,063</td><td class="n">3,042</td><td class="n">4,998</td><td class="n">20,46</td><td class="n">20,75</td><td class="n">19,56</td><td class="n">3,70</td><td>no</td></tr>
-    <tr><td class="n">1</td><td class="n">183,3</td><td class="n">0,0465</td><td class="n">0,0696</td><td class="n">2,933</td><td class="n">3,091</td><td class="n">5,003</td><td class="n">20,44</td><td class="n">20,90</td><td class="n">19,59</td><td class="n">3,72</td><td>no</td></tr>
-    <tr class="destacada"><td class="n">2</td><td class="n">3,3</td><td class="n">0,0008</td><td class="n">0,0693</td><td class="n">2,936</td><td class="n">3,092</td><td class="n">5,001</td><td class="n">20,42</td><td class="n">20,95</td><td class="n">19,59</td><td class="n">3,72</td><td><strong>sí</strong></td></tr>
+    <tr><td class="n">0</td><td class="n">—</td><td class="n">—</td><td class="n">0,2081</td><td class="n">1,992</td><td class="n">2,966</td><td class="n">5,839</td><td class="n">24,86</td><td class="n">29,91</td><td class="n">20,18</td><td class="n">5,38</td><td>no</td></tr>
+    <tr><td class="n">1</td><td class="n">1.089,1</td><td class="n">0,1783</td><td class="n">0,2313</td><td class="n">1,749</td><td class="n">3,102</td><td class="n">5,775</td><td class="n">24,77</td><td class="n">30,19</td><td class="n">20,13</td><td class="n">5,40</td><td>no</td></tr>
+    <tr class="destacada"><td class="n">2</td><td class="n">72,9</td><td class="n">0,0054</td><td class="n">0,2293</td><td class="n">1,762</td><td class="n">3,099</td><td class="n">5,772</td><td class="n">24,77</td><td class="n">30,17</td><td class="n">20,13</td><td class="n">5,39</td><td><strong>sí</strong></td></tr>
   </tbody>
 </table>
 </div>
@@ -597,25 +600,25 @@
 
 <p>
   El loop converge en la vuelta 2, con una brecha de
-  3,3 $/hogar-mes. El feedback existe y es modesto. Entre la ciudad sin
-  congestión y la acoplada el Theil pasa de 0,0659 a 0,0693, el
-  estrato alto se acerca 0,13 km al
-  centro y el medio se aleja 0,05: la congestión
+  72,9 $/hogar-mes. El feedback existe y es modesto. Entre la ciudad sin
+  congestión y la acoplada el Theil pasa de 0,2081 a 0,2293, el
+  estrato alto se acerca 0,23 km al
+  centro y el medio se aleja 0,13: la congestión
   encarece el viaje largo y el alto, que lo valora más en pesos, se acerca. El reparto modal se mueve a lo más
-  0,20 puntos y la
-  frecuencia del metro pasa de 3,70 a
-  3,72 trenes por hora. Lo que responde fuerte al transporte
+  0,25 puntos y la
+  frecuencia del metro pasa de 5,38 a
+  5,39 trenes por hora. Lo que responde fuerte al transporte
   no es <em>dónde vive</em> la gente sino <em>cómo viaja</em>, y eso ya lo
   resuelve el capítulo 5.
 </p>
 
 <p>
   <strong>El bienestar.</strong> (6.8) en la vuelta final vale
-  −7.163, −3.224 y −2.416 $/hogar-mes para el alto, el medio y el bajo,
-  y −135,7 millones de pesos al mes en la ciudad:
+  −16.106, −5.608 y −1.964 $/hogar-mes para el alto, el medio y el bajo,
+  y −238,1 millones de pesos al mes en la ciudad:
   es lo que la congestión le cuesta a los usuarios frente a la misma red
   vacía, neto del efecto Mohring. El acoplamiento lo mueve poco: en la vuelta 0
-  era −7.446, −3.293 y −2.357. El alto pierde más por hogar porque
+  era −17.916, −5.827 y −1.732. El alto pierde más por hogar porque
   valora más su tiempo, no porque viaje peor: en pesos un minuto le vale
   3,9 veces lo que al bajo. Es eficiencia en disposición a pagar, no
   bienestar interpersonal, y es la cota directa: no incluye las rentas.
@@ -638,28 +641,27 @@
     <tr><th>caso</th><th>regla</th><th class="n">k = 1</th><th class="n">k = 2</th><th class="n">k = 3</th><th class="n">k = 4</th><th class="n">k = 5</th><th class="n">k = 6</th><th class="n">k = 7</th></tr>
   </thead>
   <tbody>
-    <tr><td>base</td><td>MSA 1/(k+1)</td><td class="n">183,3</td><td class="n">94,8</td><td class="n">63,2</td><td class="n">47,4</td><td class="n">37,9</td><td class="n">31,6</td><td class="n">27,1</td></tr>
-    <tr class="destacada"><td>base</td><td>núcleo</td><td class="n">183,3</td><td class="n">3,3</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
-    <tr><td>ρ = 54</td><td>MSA 1/(k+1)</td><td class="n">422,3</td><td class="n">205,2</td><td class="n">136,6</td><td class="n">102,4</td><td class="n">80,2</td><td class="n">66,8</td><td class="n">57,3</td></tr>
-    <tr class="destacada"><td>ρ = 54</td><td>núcleo</td><td class="n">422,3</td><td class="n">20,0</td><td class="n">9,4</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
-    <tr><td>población ×2,5</td><td>MSA 1/(k+1)</td><td class="n">853,5</td><td class="n">421,0</td><td class="n">284,6</td><td class="n">212,8</td><td class="n">168,8</td><td class="n">141,5</td><td class="n">116,7</td></tr>
-    <tr class="destacada"><td>población ×2,5</td><td>núcleo</td><td class="n">853,5</td><td class="n">23,9</td><td class="n">3,4</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
+    <tr><td>base</td><td>MSA 1/(k+1)</td><td class="n">1.089,1</td><td class="n">470,9</td><td class="n">310,0</td><td class="n">228,0</td><td class="n">187,3</td><td class="n">170,1</td><td class="n">145,8</td></tr>
+    <tr class="destacada"><td>base</td><td>núcleo</td><td class="n">1.089,1</td><td class="n">72,9</td><td class="n">6,1</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
+    <tr><td>ρ = 54</td><td>MSA 1/(k+1)</td><td class="n">2.992,0</td><td class="n">1.314,0</td><td class="n">812,6</td><td class="n">561,7</td><td class="n">438,1</td><td class="n">365,5</td><td class="n">310,7</td></tr>
+    <tr class="destacada"><td>ρ = 54</td><td>núcleo</td><td class="n">2.992,0</td><td class="n">371,7</td><td class="n">57,6</td><td class="n">4,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
+    <tr><td>población ×2,5</td><td>MSA 1/(k+1)</td><td class="n">2.461,3</td><td class="n">1.208,6</td><td class="n">782,7</td><td class="n">574,8</td><td class="n">456,2</td><td class="n">380,1</td><td class="n">325,7</td></tr>
+    <tr class="destacada"><td>población ×2,5</td><td>núcleo</td><td class="n">2.461,3</td><td class="n">98,5</td><td class="n">7,0</td><td class="n">0,6</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   El mapa contrae muchísimo: con el paso entero la primera vuelta reduce la
-  brecha en más de un orden de magnitud, y llega a <strong>cero exacto</strong> en la vuelta
-  3 de la base y en la 4 de los dos casos de estrés. El
+  brecha entre 8 y 25 veces, y llega a <strong>cero exacto</strong> en la vuelta
+  4 de la base y en la 5 de los dos casos de estrés. El
   transporte es determinista, así que una vez que la ciudad no cambia, el
   mapa devuelve la misma <em>T</em>. El promedio, en cambio, arrastra el error
   del arranque con peso <em>1/k</em>: después de 7 vueltas la brecha sigue en
-  27,1, 57,3 y 116,7 $/hogar-mes. Con la tolerancia de
+  145,8, 310,7 y 325,7 $/hogar-mes. Con la tolerancia de
   100, la regla del núcleo para en la vuelta 2 en la base,
-  la vuelta 2 con ρ = 54 y la vuelta 2 con la población ×2,5; el
-  promedio, en la vuelta 2, la vuelta 5 y
-  ninguna de las 7. En ninguno de los tres casos la brecha creció, así que la
+  la vuelta 3 con ρ = 54 y la vuelta 2 con la población ×2,5;
+  el promedio no la cumple en ninguna de las 7 vueltas, en los tres casos. En ninguno de los tres casos la brecha creció, así que la
   reducción del paso a la mitad no se activó: es un resguardo para escenarios
   que no se midieron.
 </p>
@@ -676,15 +678,15 @@
     <tr><th class="n">mediana</th><th class="n">p90</th><th class="n">p99</th><th class="n">máximo</th><th class="n">celdas &gt; tolerancia</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">51,8</td><td class="n">160,9</td><td class="n">179,4</td><td class="n">183,3</td><td class="n">166 de 603</td></tr>
+    <tr><td class="n">212,4</td><td class="n">957,6</td><td class="n">1.068,3</td><td class="n">1.089,1</td><td class="n">366 de 603</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  El máximo lo pone la celda del borde, a 9,95 km del CBD,
+  El máximo lo pone una celda, a 9,05 km del CBD,
   en el estrato alto, pero no es un caso aislado:
-  166 de las 603 celdas superan la tolerancia. La primera
+  366 de las 603 celdas superan la tolerancia. La primera
   vuelta pasa de la red vacía a la congestionada y mueve la accesibilidad de
   toda la ciudad. El salto de la celda más discontinua, que antes podía fijar
   cuántas vueltas daba el loop, desapareció con D9: los escalones de la bici
@@ -704,14 +706,15 @@
   </thead>
   <tbody>
     <tr><td class="n">0</td><td class="n">—</td><td>no</td><td>no</td></tr>
-    <tr><td class="n">1</td><td class="n">261,8</td><td>no</td><td>no</td></tr>
-    <tr><td class="n">2</td><td class="n">17,7</td><td>no</td><td>no</td></tr>
+    <tr><td class="n">1</td><td class="n">1.880,7</td><td>no</td><td>no</td></tr>
+    <tr><td class="n">2</td><td class="n">225,7</td><td>no</td><td>no</td></tr>
+    <tr><td class="n">3</td><td class="n">21,8</td><td>no</td><td>no</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  La brecha cumple en la vuelta 2 y el loop para ahí, con el veredicto
+  La brecha cumple en la vuelta 3 y el loop para ahí, con el veredicto
   correcto: no convergió, porque el transporte no convergió. Antes seguía
   hasta el tope de 6 vueltas repitiendo la misma ciudad. Y el motor
   local de la interfaz, que reconstruía el veredicto sólo con la brecha y lo
@@ -726,11 +729,11 @@
     <tr><th class="n">ΣH</th><th class="n">vueltas</th><th class="n">brecha final</th><th>convergió</th><th class="n">Theil</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th class="n">auto %</th><th class="n">metro %</th><th class="n">bici %</th><th class="n">t medio</th><th class="n">ΔCS (M$/mes)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">12.000</td><td class="n">2</td><td class="n">1,2</td><td>sí</td><td class="n">0,066</td><td class="n">3,07</td><td class="n">3,04</td><td class="n">4,99</td><td class="n">23,1</td><td class="n">12,4</td><td class="n">36,5</td><td class="n">16,3</td><td class="n">−10,6</td></tr>
-    <tr><td class="n">24.000</td><td class="n">2</td><td class="n">4,4</td><td>sí</td><td class="n">0,068</td><td class="n">3,04</td><td class="n">3,04</td><td class="n">5,01</td><td class="n">22,6</td><td class="n">13,8</td><td class="n">35,2</td><td class="n">18,4</td><td class="n">−96,4</td></tr>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">3</td><td class="n">3,3</td><td>sí</td><td class="n">0,069</td><td class="n">2,94</td><td class="n">3,09</td><td class="n">5,00</td><td class="n">20,4</td><td class="n">21,0</td><td class="n">30,0</td><td class="n">19,6</td><td class="n">−135,7</td></tr>
-    <tr><td class="n">60.000</td><td class="n">3</td><td class="n">38,0</td><td>sí</td><td class="n">0,085</td><td class="n">2,72</td><td class="n">3,14</td><td class="n">5,06</td><td class="n">16,4</td><td class="n">29,2</td><td class="n">25,6</td><td class="n">22,2</td><td class="n">−476,6</td></tr>
-    <tr><td class="n">90.000</td><td class="n">3</td><td class="n">23,9</td><td>no</td><td class="n">0,102</td><td class="n">2,56</td><td class="n">3,18</td><td class="n">5,11</td><td class="n">12,9</td><td class="n">35,0</td><td class="n">23,0</td><td class="n">23,9</td><td class="n">−1.168,8</td></tr>
+    <tr><td class="n">12.000</td><td class="n">2</td><td class="n">2,0</td><td>sí</td><td class="n">0,210</td><td class="n">1,98</td><td class="n">2,97</td><td class="n">5,84</td><td class="n">31,0</td><td class="n">16,0</td><td class="n">42,9</td><td class="n">16,2</td><td class="n">−20,7</td></tr>
+    <tr><td class="n">24.000</td><td class="n">3</td><td class="n">30,2</td><td>sí</td><td class="n">0,219</td><td class="n">1,87</td><td class="n">3,02</td><td class="n">5,83</td><td class="n">28,8</td><td class="n">21,0</td><td class="n">39,5</td><td class="n">18,8</td><td class="n">−135,8</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">3</td><td class="n">72,9</td><td>sí</td><td class="n">0,229</td><td class="n">1,76</td><td class="n">3,10</td><td class="n">5,77</td><td class="n">24,8</td><td class="n">30,2</td><td class="n">34,2</td><td class="n">20,1</td><td class="n">−238,1</td></tr>
+    <tr><td class="n">60.000</td><td class="n">3</td><td class="n">97,5</td><td>no</td><td class="n">0,264</td><td class="n">1,56</td><td class="n">3,21</td><td class="n">5,72</td><td class="n">19,3</td><td class="n">39,7</td><td class="n">29,2</td><td class="n">23,0</td><td class="n">−894,2</td></tr>
+    <tr><td class="n">90.000</td><td class="n">3</td><td class="n">98,5</td><td>no</td><td class="n">0,291</td><td class="n">1,45</td><td class="n">3,27</td><td class="n">5,69</td><td class="n">14,7</td><td class="n">46,0</td><td class="n">27,1</td><td class="n">23,9</td><td class="n">−1.864,1</td></tr>
   </tbody>
 </table>
 </div>
@@ -742,14 +745,14 @@
 
 <p>
   El reparto modal es monótono y sensato: más población es más metro, de
-  12,4 % a 35,0 %, y menos auto y menos bici. La congestión
-  sí mueve la localización: el alto se acerca al centro de 3,07 a
-  2,56 km y la segregación sube de 0,066 a 0,102, porque el
+  16,0 % a 46,0 %, y menos auto y menos bici. La congestión
+  sí mueve la localización: el alto se acerca al centro de 1,98 a
+  1,45 km y la segregación sube de 0,210 a 0,291, porque el
   viaje largo se encarece y el alto es quien más paga por evitarlo. El costo
   de la congestión para los usuarios crece mucho más rápido que la población:
-  de −10,6 a −1.168,8 millones de pesos al mes. El
+  de −20,7 a −1.864,1 millones de pesos al mes. El
   loop exterior para en dos o tres vueltas en todo el rango, pero con
-  90.000 hogares el <strong>MSA interior no converge</strong> en sus
+  60.000 hogares el <strong>MSA interior no converge</strong> en sus
   iteraciones y el acoplado queda, correctamente, sin converger: el límite es
   el transporte, no el loop (capítulo 5).
 </p>
@@ -765,7 +768,7 @@
   tres vueltas en todo lo medido, y el feedback transporte → suelo sobre la
   localización es modesto frente al efecto sobre el reparto modal. Lo que más
   mueve la ciudad no es el loop sino un parámetro de entrada: la probabilidad
-  de teletrabajo de cada estrato.
+  de teletrabajo de cada estrato, que por eso parte en 0 hasta tener un dato.
 </p>
 
 <h3>Alternativas medidas</h3>
@@ -784,9 +787,10 @@
     fuente.
   </li>
   <li>
-    <strong>Cobrar 44 viajes a todos</strong>: la <em>T</em> anterior a D11.
-    Ignora que el teletrabajo, que ya le quita viajes al transporte, también
-    cambia cuánto vale vivir cerca. Da la ciudad más segregada de la §5.3.
+    <strong>Cobrar 44 viajes a todos</strong>, teletrabajen o no: la
+    <em>T</em> anterior a D11. Ignora que el teletrabajo, que ya le quita
+    viajes al transporte, también cambia cuánto vale vivir cerca. Sin
+    teletrabajo, que es la base, coincide con (6.2).
   </li>
   <li>
     <strong>El promedio <em>1/(k+1)</em></strong>: el paso anterior a D10.
@@ -799,9 +803,10 @@
 
 <ul>
   <li>
-    <strong>Calibrar <code>prob_teletrabajo</code></strong>. Hoy
-    0,40 · 0,20 · 0,05, heredado y sin fuente. Con (6.2) decide si el alto ocupa
-    el centro. Es el pendiente con más consecuencia de este capítulo.
+    <strong>Un dato para <code>prob_teletrabajo</code></strong>. Parte en 0
+    en los tres estratos (oct-2026) porque las tasas heredadas, 0,40 · 0,20 · 0,05,
+    no tenían fuente. Con (6.2), un dato por estrato decide si el alto ocupa el
+    centro: es el pendiente con más consecuencia de este capítulo.
   </li>
   <li>
     <strong><em>μ</em> con teletrabajo.</strong> <em>μ = 1/√44</em> se

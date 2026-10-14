@@ -377,8 +377,8 @@ class SimulationConfig(BaseModel):
     # 0.2 min sobre la brecha no amortiguada `max |c(x(t)) − t|` (D8). Hasta D8
     # era 0,1 sobre el cambio del iterado amortiguado, `f·brecha`: con f = 1/n
     # la tolerancia real se aflojaba sola y la base «convergía» en la iteración
-    # 8 con una brecha de 0,42 min. Con 0,05 la partición se mueve ≤ 0,08 pp
-    # más y cuesta 65 iteraciones en vez de 13 (docs/libro/datos/cap05.json).
+    # 8 con una brecha de 0,42 min. Con 0,05 la partición se mueve ≤ 0,01 pp
+    # y no se cumple ni en 100 iteraciones (docs/libro/datos/cap05.json).
     # `tolerance=0` sigue siendo válido y significa «no cortar por brecha».
     # Historia: el 0 original replicaba al repo de origen, que cortaba sólo por
     # max_iter y marcaba «sin converger» siempre.

@@ -174,16 +174,17 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     # D7 (oct-2026): un peaje por km, no un parking más caro. En esta ciudad
     # todos van al CBD, así que el parking es un cordón plano; el costo externo
     # de un viaje crece con los tramos que cruza, y un cobro por km se le acerca.
-    # 150 $/km es el máximo medido del bienestar social, en una meseta de
-    # 100–200 $/km del orden del ruido del MSA (datos_cap04 `peaje_y_bienestar`).
-    # El parking de 5.000 que tenía antes BAJABA el bienestar.
+    # 275 $/km es el máximo medido del bienestar social sin teletrabajo
+    # (oct-2026; con teletrabajo era 150), en una meseta de 250–300 $/km
+    # (datos_cap04 `peaje_y_bienestar`). El parking de 5.000 que usaba antes
+    # da menos bienestar que el peaje.
     "Tarificación Vial": {
         "tarifa": 800,
         "parking": 2000,
         "num_pistas": 2,
         "num_estaciones": 10,
         "bencina": 120,
-        "peaje": 150,
+        "peaje": 275,
         "cap_tren": 1000,
         "cap_bici": 4000,
         "frec_max": 40,

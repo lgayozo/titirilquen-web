@@ -20,7 +20,7 @@
   </p>
   <p class="meta">
     Módulos: <code>equilibrium/msa.py</code> · <code>emissions.py</code> ·
-    datos regenerados el 2026-10-13 ·
+    datos regenerados el 2026-10-14 ·
     <span class="estado vigente">vigente</span>
   </p>
 </header>
@@ -117,8 +117,8 @@
   f·(c(d(t<sup>(n)</sup>)) − t<sup>(n)</sup>)</em>, o sea <em>f</em> veces la
   brecha, y con <em>f</em> = 1/(n+1) la tolerancia efectiva sobre la brecha
   se aflojaba sola en cada iteración. Con la configuración de la aplicación
-  esa regla paraba en la iteración 6 con la brecha todavía en
-  0,376 min; la vigente para en la 13, con 0,186
+  esa regla paraba en la iteración 10 con la brecha todavía en
+  0,632 min; la vigente para en la 29, con 0,190
   (D8 de la auditoría). El núcleo calcula además <code>gap_final_min</code>,
   la misma brecha un paso más allá, sobre los tiempos que la corrida entrega.
 </p>
@@ -214,7 +214,7 @@
   </thead>
   <tbody>
     <tr><td><code>tolerance</code></td><td class="n">0,2</td><td class="n">0,2</td><td>min</td><td><span class="etiqueta neutra">decisión</span> D8: sobre la brecha no amortiguada (5.4), dos iteraciones seguidas</td></tr>
-    <tr><td><code>max_iter</code></td><td class="n">40</td><td class="n">40</td><td>—</td><td><span class="etiqueta neutra">decisión</span> D8: cubre todos los presets de política; el más lento, «Pro-Auto», converge en 31</td></tr>
+    <tr><td><code>max_iter</code></td><td class="n">40</td><td class="n">40</td><td>—</td><td><span class="etiqueta neutra">decisión</span> D8: cubre los presets de política salvo «Ciclorrecreovía»; el más lento de los que convergen, «Pro-Auto», lo hace en 34</td></tr>
     <tr><td><code>assignment</code></td><td class="n">expected</td><td class="n">montecarlo</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la app carga flujos esperados, sin ruido de muestreo; es una de las divergencias declaradas</td></tr>
     <tr><td><code>seed</code></td><td class="n">42</td><td class="n">—</td><td>—</td><td><span class="etiqueta neutra">decisión</span> reproducibilidad</td></tr>
     <tr><td><code>modos_habilitados</code></td><td class="n">4</td><td class="n">4</td><td>modos</td><td><span class="etiqueta neutra">decisión</span> los cuatro; apagar uno lo saca del conjunto de elección</td></tr>
@@ -231,11 +231,15 @@
 <p>
   <strong>La tolerancia</strong> de 0,2 min sobre la brecha es el
   punto donde seguir iterando deja de cambiar la respuesta. Bajarla a
-  0,05 cuesta 65 iteraciones en vez de 13 y mueve el
-  reparto a lo sumo 0,08 puntos (§5.2). <strong>El tope</strong> de
-  40 iteraciones alcanza para la base y para los 8 presets
-  de política, que convergen entre 8 y 31
-  iteraciones; el extremo de una sola pista no converge dentro de él (§5.5).
+  0,05 agota el tope de 100 iteraciones sin cumplirse, contra 29, y mueve el
+  reparto a lo sumo 0,01 puntos (§5.2). <strong>El tope</strong> de
+  40 iteraciones alcanza para la base y para 7 de los
+  8 presets de política, que convergen entre 18 y
+  34 iteraciones. No alcanza con una sola pista: ni en el
+  extremo del barrido de la §5.5 ni en «Ciclorrecreovía», que deja la vía en
+  una pista y termina con brecha 0,60 min. La brecha baja, pero como
+  1/<em>n</em>, desde más arriba: sin teletrabajo por defecto (oct-2026) viajan
+  todos los hogares y el corredor angosto queda muy por sobre su capacidad.
 </p>
 
 <p>
@@ -251,7 +255,7 @@
   <strong>Qué variable se promedia</strong> es la decisión que queda abierta.
   El simulador promedia tiempos; el algoritmo con garantía de convergencia
   promedia flujos, está implementado y, con el mismo presupuesto de
-  iteraciones, da el mismo reparto dentro de 0,006 puntos. No es campo
+  iteraciones, da el mismo reparto dentro de 0,003 puntos. No es campo
   del schema porque moverlo obliga a tocar el contrato y los escenarios
   guardados, y ninguna ruta de producción lo activa.
 </p>
@@ -350,8 +354,8 @@
   </thead>
   <tbody>
     <tr><td><strong>paso <em>f</em></strong></td><td class="n">0,500</td><td class="n">0,333</td><td class="n">0,250</td><td class="n">0,200</td><td class="n">0,167</td><td class="n">0,125</td><td class="n">0,100</td><td class="n">0,077</td><td class="n">0,050</td><td class="n">0,025</td></tr>
-    <tr><td><strong>brecha (min)</strong></td><td class="n">1,368</td><td class="n">0,786</td><td class="n">0,568</td><td class="n">0,450</td><td class="n">0,376</td><td class="n">0,287</td><td class="n">0,235</td><td class="n">0,186</td><td class="n">0,129</td><td class="n">0,073</td></tr>
-    <tr><td><strong><em>f</em> · brecha (min)</strong></td><td class="n">0,6842</td><td class="n">0,2619</td><td class="n">0,1419</td><td class="n">0,0901</td><td class="n">0,0628</td><td class="n">0,0359</td><td class="n">0,0235</td><td class="n">0,0143</td><td class="n">0,0065</td><td class="n">0,0018</td></tr>
+    <tr><td><strong>brecha (min)</strong></td><td class="n">26,433</td><td class="n">5,520</td><td class="n">2,705</td><td class="n">1,759</td><td class="n">1,294</td><td class="n">0,839</td><td class="n">0,632</td><td class="n">0,466</td><td class="n">0,286</td><td class="n">0,134</td></tr>
+    <tr><td><strong><em>f</em> · brecha (min)</strong></td><td class="n">13,2166</td><td class="n">1,8401</td><td class="n">0,6764</td><td class="n">0,3518</td><td class="n">0,2156</td><td class="n">0,1049</td><td class="n">0,0632</td><td class="n">0,0358</td><td class="n">0,0143</td><td class="n">0,0034</td></tr>
   </tbody>
 </table>
 </div>
@@ -359,15 +363,15 @@
 <p>
   La serie corre sin corte hasta la iteración 40 para ver las dos reglas
   sobre la misma trayectoria. La brecha baja como 1/<em>n</em>: de
-  1,368 min en la segunda iteración a 0,073 en la 40. La
-  corrida de la aplicación para en la <strong>13</strong>, la
+  26,433 min en la segunda iteración a 0,134 en la 40. La
+  corrida de la aplicación para en la <strong>29</strong>, la
   segunda seguida bajo 0,2 min, con una brecha de
-  0,186 min; recalculada sobre los tiempos que se
-  entregan, la brecha final es 0,175. El cambio
+  0,190 min; recalculada sobre los tiempos que se
+  entregan, la brecha final es 0,183. El cambio
   amortiguado, la cifra que miraba la regla anterior, es la brecha por
   <em>f</em> y cae mucho más rápido: bajaba de 0,1 por segunda vez en la
-  iteración 6, con la brecha todavía en
-  0,376 min.
+  iteración 10, con la brecha todavía en
+  0,632 min.
 </p>
 
 <h3>5.2 Exigir más precisión casi no cambia la respuesta</h3>
@@ -378,21 +382,21 @@
     <tr><th class="n">Tolerancia</th><th class="n">Iteraciones</th><th class="n">Brecha al parar</th><th class="n">Brecha final</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0,50</td><td class="n">6</td><td class="n">0,376</td><td class="n">0,325</td><td class="n">20,64</td><td class="n">19,01</td><td class="n">30,46</td></tr>
-    <tr class="destacada"><td class="n">0,20</td><td class="n">13</td><td class="n">0,186</td><td class="n">0,175</td><td class="n">20,61</td><td class="n">19,11</td><td class="n">30,41</td></tr>
-    <tr><td class="n">0,10</td><td class="n">29</td><td class="n">0,095</td><td class="n">0,092</td><td class="n">20,60</td><td class="n">19,16</td><td class="n">30,38</td></tr>
-    <tr><td class="n">0,05</td><td class="n">65</td><td class="n">0,049</td><td class="n">0,048</td><td class="n">20,60</td><td class="n">19,19</td><td class="n">30,36</td></tr>
+    <tr><td class="n">0,50</td><td class="n">14</td><td class="n">0,428</td><td class="n">0,396</td><td class="n">24,67</td><td class="n">28,52</td><td class="n">34,17</td></tr>
+    <tr class="destacada"><td class="n">0,20</td><td class="n">29</td><td class="n">0,190</td><td class="n">0,183</td><td class="n">24,68</td><td class="n">28,52</td><td class="n">34,19</td></tr>
+    <tr><td class="n">0,10</td><td class="n">54</td><td class="n">0,097</td><td class="n">0,095</td><td class="n">24,68</td><td class="n">28,52</td><td class="n">34,20</td></tr>
+    <tr><td class="n">0,05</td><td class="n">100</td><td class="n">0,050</td><td class="n">0,050</td><td class="n">24,68</td><td class="n">28,52</td><td class="n">34,20</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Bajar la tolerancia de 0,5 a 0,05 min
-  cuesta 65 iteraciones en vez de 6 y
-  reduce la brecha final de 0,325 a
-  0,048 min, pero el reparto se mueve a lo sumo
-  0,18 puntos. Desde la
-  tolerancia de la aplicación, 0,08.
+  agota el tope de 100 iteraciones sin cumplirse, en vez de 14, y
+  reduce la brecha final de 0,396 a
+  0,050 min, pero el reparto se mueve a lo sumo
+  0,03 puntos. Desde la
+  tolerancia de la aplicación, 0,01.
   La brecha sigue siendo la cifra honesta del desajuste; lo que esta tabla
   permite es acotar su consecuencia en el resultado.
 </p>
@@ -405,21 +409,21 @@
     <tr><th>Variante</th><th class="n">Iter.</th><th class="n">Residuo final</th><th class="n">Brecha final</th><th class="n">Auto %</th><th class="n">Metro %</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td>Promedia tiempos, la de producción</td><td class="n">40</td><td class="n">0,0727</td><td class="n">0,071</td><td class="n">20,600</td><td class="n">19,178</td></tr>
-    <tr><td>Promedia flujos, Boyles §8.3.5</td><td class="n">40</td><td class="n">0,0017</td><td class="n">0,067</td><td class="n">20,599</td><td class="n">19,184</td></tr>
+    <tr class="destacada"><td>Promedia tiempos, la de producción</td><td class="n">40</td><td class="n">0,1339</td><td class="n">0,130</td><td class="n">24,680</td><td class="n">28,516</td></tr>
+    <tr><td>Promedia flujos, Boyles §8.3.5</td><td class="n">40</td><td class="n">0,0025</td><td class="n">0,099</td><td class="n">24,681</td><td class="n">28,518</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Con el mismo presupuesto, 40 iteraciones sin corte, la
-  diferencia máxima del reparto es 0,006 puntos y la
+  diferencia máxima del reparto es 0,003 puntos y la
   variante con argumento de convergencia deja una brecha final apenas menor,
-  0,067 contra 0,071 min. La columna del
+  0,099 contra 0,130 min. La columna del
   residuo explica por qué se las compara por la brecha final: al promediar
   flujos, los dos tiempos que el residuo compara salen de flujos que difieren
   en una fracción <em>f</em>, así que vuelve a ser un cambio amortiguado,
-  0,0017 min contra una brecha de 0,067.
+  0,0025 min contra una brecha de 0,099.
 </p>
 
 <h3>5.4 El punto fijo no depende del sorteo</h3>
@@ -441,32 +445,30 @@
     <tr><th class="n">Pistas</th><th class="n">Iter.</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Frecuencia (tph)</th><th class="n">Auto desde el borde (min)</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">1</td><td class="n">40 *</td><td class="n">14,69</td><td class="n">23,27</td><td class="n">4,19</td><td class="n">48,2</td><td class="n">11.723,2</td></tr>
-    <tr class="destacada"><td class="n">2</td><td class="n">13</td><td class="n">20,61</td><td class="n">19,11</td><td class="n">3,44</td><td class="n">27,3</td><td class="n">10.058,2</td></tr>
-    <tr><td class="n">3</td><td class="n">11</td><td class="n">22,29</td><td class="n">18,00</td><td class="n">3,24</td><td class="n">21,4</td><td class="n">8.352,3</td></tr>
-    <tr><td class="n">4</td><td class="n">10</td><td class="n">22,70</td><td class="n">17,74</td><td class="n">3,19</td><td class="n">19,9</td><td class="n">7.764,1</td></tr>
+    <tr><td class="n">1</td><td class="n">40 *</td><td class="n">16,27</td><td class="n">34,44</td><td class="n">6,20</td><td class="n">58,9</td><td class="n">14.897,0</td></tr>
+    <tr class="destacada"><td class="n">2</td><td class="n">29</td><td class="n">24,68</td><td class="n">28,52</td><td class="n">5,13</td><td class="n">34,9</td><td class="n">15.106,4</td></tr>
+    <tr><td class="n">3</td><td class="n">22</td><td class="n">28,41</td><td class="n">25,98</td><td class="n">4,68</td><td class="n">25,0</td><td class="n">12.618,3</td></tr>
+    <tr><td class="n">4</td><td class="n">19</td><td class="n">29,73</td><td class="n">25,09</td><td class="n">4,52</td><td class="n">21,4</td><td class="n">11.103,8</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Al pasar de una a dos pistas el auto gana
-  5,92 puntos, el metro pierde
-  4,16 y su frecuencia cae de
-  4,19 a 3,44 trenes por hora, un
-  18 %: el efecto
+  8,41 puntos, el metro pierde
+  5,92 y su frecuencia cae de
+  6,20 a 5,13 trenes por hora, un
+  17 %: el efecto
   Mohring operando en reversa, que es la cadena que produce la paradoja de
   Downs-Thomson. Lo que no ocurre es que llegue a dominar: el tiempo del auto
-  desde el borde baja de 48,2 a 27,3 min y
-  las emisiones bajan, porque la velocidad sube y la curva de emisión depende
-  de ella. No hay obligación teórica de que la paradoja aparezca: requiere
+  desde el borde baja de 58,9 a 34,9 min, y las emisiones suben, de 14.897 a 15.106 kg/h: la velocidad baja la emisión por kilómetro, pero el auto gana viajes, y eso pesa más. No hay obligación teórica de que la paradoja aparezca: requiere
   que el transporte público sea el modo dominante y que su frecuencia sea muy
   sensible a la demanda, y aquí el metro lleva el
-  19,1 % de los viajes. De tres a cuatro pistas el auto
-  gana 0,41 puntos: la palanca vial se
+  28,5 % de los viajes. De tres a cuatro pistas el auto
+  gana 1,32 puntos: la palanca vial se
   agota en cuanto la vía baja de su capacidad. La única pista
-  (*) no converge en el tope: termina con brecha 0,199 min,
-  a un paso de la tolerancia. La población está fija en todas las filas; con
+  (*) no converge en el tope: termina con brecha 0,569 min,
+  2,8 veces la tolerancia. La población está fija en todas las filas; con
   la localización de equilibrio la vía nueva movería además a los hogares,
   que es materia del capítulo 6.
 </p>
@@ -474,9 +476,9 @@
 <h3>5.6 Emisiones</h3>
 
 <p>
-  Del total de 10.058,2 kg/h, el metro aporta
-  <strong>344,0 kg/h</strong>, el 3,42 %, y el auto
-  los otros 9.714,2. La huella del metro no depende de cuánta gente
+  Del total de 15.106,4 kg/h, el metro aporta
+  <strong>513,3 kg/h</strong>, el 3,40 %, y el auto
+  los otros 14.593,1. La huella del metro no depende de cuánta gente
   lleve sino de cuántos trenes circulen, así que baja sólo si baja la
   frecuencia, que es lo que se ve en la tabla anterior al agregar pistas.
 </p>
@@ -489,19 +491,19 @@
     <tr><th>Localización</th><th class="n">Demora media (min)</th><th class="n">Demora máxima (min)</th><th class="n">En otro escalón %</th><th class="n">A &lt; 0,5 min de un umbral %</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td>original</td><td class="n">7,0</td><td class="n">9,4</td><td class="n">62,9</td><td class="n">10,0</td></tr>
-    <tr><td>equilibrio</td><td class="n">8,3</td><td class="n">10,9</td><td class="n">71,5</td><td class="n">9,4</td></tr>
+    <tr class="destacada"><td>original</td><td class="n">8,5</td><td class="n">11,5</td><td class="n">72,5</td><td class="n">8,6</td></tr>
+    <tr><td>equilibrio</td><td class="n">9,5</td><td class="n">12,7</td><td class="n">77,2</td><td class="n">6,4</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   En el equilibrio, la congestión de la ciclovía agrega en promedio
-  7,0 min al viaje en bicicleta, y hasta
-  9,4. Si los escalones se evaluaran sobre ese
-  tiempo, como antes de D9, el 62,9 % de la demanda de bici
+  8,5 min al viaje en bicicleta, y hasta
+  11,5. Si los escalones se evaluaran sobre ese
+  tiempo, como antes de D9, el 72,5 % de la demanda de bici
   quedaría en otro tramo: un escalón más arriba o fuera del corte. Y el
-  10,0 % está a menos de medio minuto de un
+  8,6 % está a menos de medio minuto de un
   umbral del tiempo congestionado, la masa que el mapa discontinuo hacía
   saltar entera de una iteración a otra. Las cifras son del equilibrio
   vigente; el reparto con la regla anterior está en la historia de
@@ -516,37 +518,33 @@
     <tr><th class="n">Iteraciones</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">Caminata %</th><th class="n">Brecha final (min)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">20</td><td class="n">30,36</td><td class="n">5,64</td><td class="n">34,16</td><td class="n">10,35</td><td class="n">1,84</td></tr>
-    <tr><td class="n">40</td><td class="n">31,61</td><td class="n">5,53</td><td class="n">33,41</td><td class="n">9,96</td><td class="n">4,44</td></tr>
-    <tr><td class="n">60</td><td class="n">31,23</td><td class="n">5,48</td><td class="n">33,83</td><td class="n">9,96</td><td class="n">4,12</td></tr>
-    <tr><td class="n">80</td><td class="n">30,84</td><td class="n">5,48</td><td class="n">33,83</td><td class="n">10,35</td><td class="n">9,82</td></tr>
+    <tr><td class="n">20</td><td class="n">30,68</td><td class="n">28,74</td><td class="n">28,19</td><td class="n">12,39</td><td class="n">1,17</td></tr>
+    <tr><td class="n">40</td><td class="n">30,69</td><td class="n">26,63</td><td class="n">30,28</td><td class="n">12,39</td><td class="n">0,35</td></tr>
+    <tr><td class="n">60</td><td class="n">30,89</td><td class="n">26,21</td><td class="n">30,50</td><td class="n">12,39</td><td class="n">2,32</td></tr>
+    <tr><td class="n">80</td><td class="n">30,99</td><td class="n">26,12</td><td class="n">30,50</td><td class="n">12,39</td><td class="n">0,35</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Sin corte, el reparto del todo o nada se mueve hasta
-  1,25 puntos entre la iteración 20 y la 80, y la brecha final
-  nunca baja de 1,8 min: no hay punto fijo al que acercarse. Con la
+  2,62 puntos entre la iteración 20 y la 80, y la brecha final
+  nunca baja de 0,3 min: no hay punto fijo al que acercarse. Con la
   regla de la aplicación la corrida agota las 40 iteraciones sin
   converger. El reparto que muestra es muy distinto del logit: el metro cae al
-  5,5 % contra el 19,1 % de la carga
+  26,6 % contra el 28,5 % de la carga
   esperada, porque sin heterogeneidad de gustos cada grupo va entero a su
-  mejor modo, y las emisiones pasan de 10.058 a
-  29.564 kg/h.
+  mejor modo, y las emisiones pasan de 15.106 a
+  22.311 kg/h.
 </p>
 
 <h3>5.9 Montecarlo: el ruido pone un piso a la brecha</h3>
 
 <p>
   Con sorteo, cada iteración carga una demanda distinta y la brecha de las
-  últimas diez iteraciones salta entre 0,14 y
-  0,74 min sin tendencia. La corrida agota las
-  40 iteraciones y queda marcada sin converger, aunque su brecha
-  final, medida con carga esperada, es 0,128 min, bajo la
-  tolerancia, y su reparto difiere del de la carga esperada en a lo sumo
-  0,38 puntos. La etiqueta describe el
-  sorteo, no el estado; es uno de los pendientes de la §6.
+  últimas diez iteraciones salta entre 0,15 y
+  1,45 min sin tendencia. La corrida agota las
+  40 iteraciones y queda marcada sin converger. Su brecha final, medida con carga esperada, es 0,246 min, sobre la tolerancia de 0,2: con todos los hogares viajando, el ruido del sorteo ya no queda bajo el corte. Su reparto difiere del de la carga esperada en a lo sumo 0,34 puntos.
 </p>
 
 <h2 id="s6"><span class="num">§6</span> Discusión</h2>
@@ -555,7 +553,7 @@
   La maquinaria del equilibrio es sólida: el punto fijo no depende del
   sorteo, se alcanza por dos caminos distintos que dan casi lo mismo, y
   exigir más precisión que la de la aplicación mueve el resultado a lo sumo
-  0,08 puntos. Las dos debilidades que la auditoría encontró están
+  0,01 puntos. Las dos debilidades que la auditoría encontró están
   corregidas: la parada ya no se afloja sola (D8) y la demanda de la bici ya
   no es discontinua en los tiempos (D9). Lo que el módulo sigue sin poder
   prometer es una convergencia demostrable, porque promedia la variable para
@@ -569,20 +567,23 @@
   <li>
     <strong>Qué variable promedia el MSA.</strong> Decidir si producción pasa
     a promediar flujos. Con el mismo presupuesto mueve el reparto
-    0,006 puntos; el costo real es el contrato y los escenarios
+    0,003 puntos; el costo real es el contrato y los escenarios
     guardados. Si se adopta, la parada debe mirar la brecha contra el
     objetivo <em>x*</em>, no el residuo de esa variante, que vuelve a estar
     amortiguado (§5.3).
   </li>
   <li>
-    <strong>El veredicto de Montecarlo.</strong> Queda «sin converger» aunque
-    su brecha final esté bajo la tolerancia (§5.9). La regla podría mirar la
+    <strong>El veredicto de Montecarlo.</strong> Hoy coincide con su brecha, que
+    queda sobre la tolerancia (§5.9), pero con una ciudad menos cargada
+    marca «sin converger» con la brecha bajo ella. La regla podría mirar la
     brecha con carga esperada, a costa de una pasada más de demanda por
     iteración.
   </li>
   <li>
     <strong>Una sola pista.</strong> No converge en el tope de
-    40 iteraciones (§5.5). No es un preset, pero el slider llega ahí.
+    40 iteraciones (§5.5), y «Ciclorrecreovía», que es un preset,
+    tampoco. Se resuelve con el tope único de vueltas de la fase de interfaz:
+    subir el tope, cambiar la regla de paso o declararlo en pantalla.
   </li>
   <li>
     <strong>Un test de que la brecha acota el error del reparto</strong>, para

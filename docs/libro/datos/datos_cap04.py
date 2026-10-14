@@ -224,28 +224,37 @@ def peaje_y_bienestar() -> dict:
 
     w0 = None
     filas = []
-    for v in (0, 25, 50, 75, 100, 125, 150, 175, 200, 300):
+    for v in (0, 50, 100, 150, 200, 250, 275, 300, 350, 400, 500, 600):
         m = mide(_con_globales(peaje_km=v))
         w0 = m["bienestar"] if w0 is None else w0
         filas.append({"peaje_km": v, **m})
     parking = mide(_con_globales(costo_parking=5000))
     for f in (*filas, parking):
         f["delta_bienestar_clp"] = round(f.pop("bienestar") - w0)
+    from titirilquen_core.presets import POLICY_PRESETS
+
     return {
+        "peaje_preset_tarificacion_vial": POLICY_PRESETS["Tarificación Vial"]["peaje"],
         "nota": (
-            "Localización «original», tol 0,1: el ruido del MSA es del orden de "
-            "±50.000 $ en el bienestar, así que el óptimo es una meseta."
+            "Localización «original», tolerancia de la app (0,2 min). Sin "
+            "teletrabajo por defecto (oct-2026) el máximo pasó de 150 a 250–300 $/km."
         ),
         "barrido": filas,
         "parking_5000_sin_peaje": parking,
     }
 
 
+#: VoT heredados antes de D5, sin fuente (`presets.py`, «ANCLA EN EL VST»). Son
+#: la historia del ancla, no un parámetro vigente.
+VOT_HEREDADOS = {1: 6200.0, 2: 3100.0, 3: 1600.0}
+
+
 def ancla_vot() -> dict:
-    """D5: la media de los VoT de la calibración contra el VST social. ΣH por
-    estrato está fijo, así que los viajeros por estrato casi no dependen de la
-    localización: sólo por el redondeo del teletrabajo celda a celda (el estrato
-    alto tiene 4.320 viajeros en «original» y 4.334 en «equilibrio»)."""
+    """D5: la media de los VoT de la calibración contra el VST social, y la
+    historia: cuánto daban los VoT heredados y el factor que se les aplicó. D5 se
+    definió sobre los hogares NOMINALES (`H_por_estrato`, como
+    `test_presets.py`); los de la ciudad difieren en decenas por el redondeo por
+    celda. Sin teletrabajo por defecto, viajeros = hogares."""
     capturados = {}
     original = msa.generar_poblacion_desde_land_use_det
 
@@ -274,6 +283,8 @@ def ancla_vot() -> dict:
         return sum(f[peso] * f["vot_clp_hora"] for f in filas.values()) / n
 
     por_viajero, por_hogar = media("viajeros"), media("hogares")
+    H = dict(zip(ESTRATOS, base._land_use_web().H_por_estrato, strict=True))
+    heredada = sum(H[h] * VOT_HEREDADOS[h] for h in ESTRATOS) / sum(H.values())
     return {
         "por_estrato": filas,
         "vst_clp_hora": VOT_SOCIAL_CLP_HORA,
@@ -282,6 +293,13 @@ def ancla_vot() -> dict:
         "brecha_por_viajero_pct": round(100 * (por_viajero / VOT_SOCIAL_CLP_HORA - 1), 2),
         "brecha_por_hogar_pct": round(100 * (por_hogar / VOT_SOCIAL_CLP_HORA - 1), 2),
         "factor_para_igualar_por_viajero": round(VOT_SOCIAL_CLP_HORA / por_viajero, 4),
+        "historia": {
+            "vot_heredados_clp_hora": [VOT_HEREDADOS[h] for h in ESTRATOS],
+            "hogares_nominales": [H[h] for h in ESTRATOS],
+            "media_heredada_clp_hora": round(heredada, 1),
+            "brecha_heredada_pct": round(100 * (heredada / VOT_SOCIAL_CLP_HORA - 1), 2),
+            "factor_aplicado": round(VOT_SOCIAL_CLP_HORA / heredada, 4),
+        },
     }
 
 
@@ -289,8 +307,15 @@ def logit_vs_determinista() -> dict:
     """El mismo escenario con las dos reglas de elección."""
     out = {}
     for metodo in ("expected", "todo_o_nada"):
-        sim = base._config_web()
-        out[metodo] = _corre(sim.model_copy(update={"assignment": metodo}))
+        tr = _traza(base._config_web().model_copy(update={"assignment": metodo}))
+        s = tr.iteraciones[-1].modal_split
+        out[metodo] = {m: round(100.0 * v / sum(s.values()), 3) for m, v in s.items()}
+        # Todo o nada no tiene punto fijo (D9b): su reparto es la última iteración.
+        out[f"{metodo}_convergencia"] = {
+            "convergio": bool(tr.converged),
+            "iteraciones": len(tr.iteraciones),
+            "brecha_final_min": round(float(tr.gap_final_min), 3),
+        }
     # Y en una celda concreta: probabilidades contra el argmax.
     cfg = base._config_web()
     ciudad = CiudadLineal(n_celdas=cfg.city.n_celdas, largo_total_km=cfg.city.largo_ciudad_km)

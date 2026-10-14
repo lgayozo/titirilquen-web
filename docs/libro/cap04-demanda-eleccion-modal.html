@@ -139,7 +139,8 @@
   Los agentes salen de la composición del suelo: en cada celda, los hogares de
   cada estrato se cuentan por mayor residuo sobre <em>S_i·Q_{h|i}</em>, y de
   ellos una fracción <em>prob_teletrabajo</em>, escalada por el factor de
-  teletrabajo, no viaja; de los que viajan, una fracción <em>prob_auto</em>
+  teletrabajo, no viaja (0 por defecto desde oct-2026: viajan todos); de los
+  que viajan, una fracción <em>prob_auto</em>
   dispone de auto. Los conteos son redondeados, no sorteados, para que la
   población sea reproducible y el equilibrio acoplado converja. La demanda por
   celda y modo que resulta es la <strong>esperada</strong>, hogares por
@@ -175,9 +176,9 @@
     <tr><th>Estrato</th><th class="n">β_c (·10⁻⁴)</th><th class="n">VoT $/h</th><th class="n">prob_auto</th><th class="n">prob_teletrabajo</th><th class="n">ASC auto</th><th class="n">ASC bici</th><th class="n">ASC caminata</th></tr>
   </thead>
   <tbody>
-    <tr><td>alto</td><td class="n">3,20</td><td class="n">6.200</td><td class="n">0,90</td><td class="n">0,40</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
-    <tr class="destacada"><td>medio</td><td class="n">6,41</td><td class="n">3.100</td><td class="n">0,60</td><td class="n">0,20</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
-    <tr><td>bajo</td><td class="n">12,41</td><td class="n">1.600</td><td class="n">0,25</td><td class="n">0,05</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
+    <tr><td>alto</td><td class="n">3,14</td><td class="n">6.329</td><td class="n">0,90</td><td class="n">0,00</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
+    <tr class="destacada"><td>medio</td><td class="n">6,28</td><td class="n">3.164</td><td class="n">0,60</td><td class="n">0,00</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
+    <tr><td>bajo</td><td class="n">12,16</td><td class="n">1.633</td><td class="n">0,25</td><td class="n">0,00</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
   </tbody>
 </table>
 </div>
@@ -209,12 +210,12 @@
   <tbody>
     <tr><td><code>costo_parking</code></td><td class="n">2.000</td><td>$/día</td><td><span class="etiqueta neutra">decisión</span> ago-2026 (el original traía 6.000); costo esperado, no precio de lista; cada viaje carga la mitad desde oct-2026</td></tr>
     <tr><td><code>costo_combustible_km</code></td><td class="n">120</td><td>$/km</td><td><span class="etiqueta lim">heredado</span></td></tr>
-    <tr><td><code>peaje_km</code></td><td class="n">0</td><td>$/km</td><td><span class="etiqueta neutra">decisión</span> palanca de política (D7, oct-2026): transferencia, no consumo; 150 en «Tarificación Vial»</td></tr>
+    <tr><td><code>peaje_km</code></td><td class="n">0</td><td>$/km</td><td><span class="etiqueta neutra">decisión</span> palanca de política (D7, oct-2026): transferencia, no consumo; 275 en «Tarificación Vial»</td></tr>
     <tr><td><code>costo_tarifa_metro</code></td><td class="n">800</td><td>$/viaje</td><td><span class="etiqueta lim">heredado</span></td></tr>
     <tr><td><code>corte_caminata_min</code></td><td class="n">30</td><td>min</td><td><span class="etiqueta neutra">decisión</span> 2,4 km a 4,8 km/h</td></tr>
     <tr><td><code>corte_bici_min</code></td><td class="n">45</td><td>min</td><td><span class="etiqueta neutra">decisión</span> 10,5 km a 14 km/h: no actúa en una ciudad de 20 km</td></tr>
     <tr><td><code>v_auto</code> / <code>v_metro</code> / <code>v_bici</code> / <code>v_caminata</code></td><td class="n">31 / 35 / 14 / 4,8</td><td>km/h</td><td><span class="etiqueta lim">heredado</span> las tres primeras sólo siembran la iteración cero; la caminata es el único modo que se calcula con ellas siempre</td></tr>
-    <tr><td><code>teletrabajo_factor</code></td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> el control de política de teletrabajo</td></tr>
+    <tr><td><code>teletrabajo_factor</code></td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> el control de política de teletrabajo: multiplica <code>prob_teletrabajo</code>, que es 0 por defecto, así que sin una tasa base no hace nada</td></tr>
     <tr><td><code>factor_flota_auto</code></td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> multiplica la emisión del auto; no entra a la elección (cap. 7)</td></tr>
   </tbody>
 </table>
@@ -223,20 +224,19 @@
 <h3>La elección de los valores</h3>
 
 <p>
-  <strong>El valor del tiempo.</strong> Los tres valores, 6.200, 3.100 y
-  1.600 pesos por hora, son una decisión declarada, no una estimación, y de
+  <strong>El valor del tiempo.</strong> Los tres valores, 6.329, 3.164 y
+  1.633 pesos por hora, tienen una dispersión declarada, no estimada, y de
   ellos se despeja <em>β_c</em> con <em>β_t</em> fijo. Las referencias que los
   acotan están en el capítulo 2: el valor social del SNI de 3.338 $/h, sin
   distinción por ingreso, y las elasticidades-ingreso transversales de la
   literatura, más bajas que la dispersión que estos tres implican. Lo que sí
   tiene teoría detrás es su orden: la utilidad marginal del ingreso decrece
   con el ingreso, y eso es lo que produce el gradiente de Alonso en el suelo.
-  Su nivel tiene un ancla que hasta ahora no estaba escrita: la media de los
-  tres, ponderada por los viajeros de la ciudad por defecto, es
-  <strong>3.031,5 $/h</strong>, un 9,2 % bajo el VST de 3.338; ponderada por
-  hogares, teletrabajadores incluidos, es 3.270,4, un 2,0 % bajo. El VST es
-  por hora-pasajero, así que el ponderador que corresponde es el de los
-  viajeros (§5.6).
+  Su <strong>nivel</strong> está anclado (D5, oct-2026): la media de los tres,
+  ponderada por los viajeros de la ciudad por defecto, es el VST de 3.338 $/h.
+  Los valores heredados, 6.200, 3.100 y 1.600, daban 3.270,0, un 2,0 % bajo, y
+  se escalaron los tres por 1,0208 (§5.6). El VST es por hora-pasajero, así
+  que el ponderador que corresponde es el de los viajeros.
 </p>
 
 <p>
@@ -323,7 +323,7 @@
     <tr><td class="n">—</td><td class="ruta py">demand/choice.py</td><td class="n">44</td><td><code>probabilidades_todo_o_nada</code> — el límite determinístico; su docstring explica por qué no es Wardrop</td></tr>
     <tr><td class="n">—</td><td class="ruta py">population.py</td><td class="n">57</td><td><code>generar_poblacion_desde_land_use_det</code> — agentes desde el suelo; teletrabajo y auto por conteos redondeados</td></tr>
     <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">122</td><td><code>_agrupar_agentes</code> — separa a los teletrabajadores y agrupa por estrato, celda y auto; <code>_probs_grupo</code> (143) llama a la utilidad y al logit</td></tr>
-    <tr><td class="n">(4.3)</td><td class="ruta py">presets.py</td><td class="n">362</td><td><code>DEFAULT_STRATA</code> — la calibración de los tres estratos, con los minutos-equivalentes en sus comentarios</td></tr>
+    <tr><td class="n">(4.3)</td><td class="ruta py">presets.py</td><td class="n">363</td><td><code>DEFAULT_STRATA</code> — la calibración de los tres estratos, con los minutos-equivalentes en sus comentarios</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">47</td><td><code>StratumBetas</code> — <code>b_tiempo_viaje</code> (56), <code>b_costo</code> (59), <code>b_tiempo_espera</code> (62), <code>b_tiempo_acceso</code> (72), <code>b_tiempo_caminata</code> (77); <code>PhysicalPenalties</code> (30)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">81</td><td><code>StratumConfig</code> — <code>prob_teletrabajo</code> (94), <code>prob_auto</code> (95)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">99</td><td><code>GlobalConfig</code> — <code>corte_caminata_min</code> (119), <code>corte_bici_min</code> (120), <code>costo_combustible_km</code> (121), <code>costo_tarifa_metro</code> (122), <code>costo_parking</code> (142), <code>peaje_km</code> (148), <code>teletrabajo_factor</code> (169)</td></tr>
@@ -393,13 +393,13 @@
     <tr><th class="n">km al CBD</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0,5</td><td class="n">−1,67</td><td class="n">43,19</td><td class="n">16,99</td><td class="n">8,94</td></tr>
-    <tr><td class="n">1</td><td class="n">0,45</td><td class="n">44,05</td><td class="n">19,12</td><td class="n">19,51</td></tr>
-    <tr><td class="n">2</td><td class="n">4,69</td><td class="n">45,75</td><td class="n">23,39</td><td class="n">43,38</td></tr>
-    <tr><td class="n">3</td><td class="n">8,92</td><td class="n">47,46</td><td class="n">29,57</td><td>—</td></tr>
-    <tr><td class="n">5</td><td class="n">17,40</td><td class="n">50,87</td><td class="n">41,12</td><td>—</td></tr>
-    <tr><td class="n">7</td><td class="n">25,87</td><td class="n">54,28</td><td class="n">49,65</td><td>—</td></tr>
-    <tr class="destacada"><td class="n">10</td><td class="n">38,58</td><td class="n">59,40</td><td class="n">74,52</td><td>—</td></tr>
+    <tr><td class="n">0,5</td><td class="n">−2,08</td><td class="n">42,88</td><td class="n">16,99</td><td class="n">8,94</td></tr>
+    <tr><td class="n">1</td><td class="n">0,01</td><td class="n">43,73</td><td class="n">19,12</td><td class="n">19,51</td></tr>
+    <tr><td class="n">2</td><td class="n">4,20</td><td class="n">45,44</td><td class="n">23,39</td><td class="n">43,38</td></tr>
+    <tr><td class="n">3</td><td class="n">8,39</td><td class="n">47,15</td><td class="n">29,57</td><td>—</td></tr>
+    <tr><td class="n">5</td><td class="n">16,77</td><td class="n">50,56</td><td class="n">41,12</td><td>—</td></tr>
+    <tr><td class="n">7</td><td class="n">25,15</td><td class="n">53,97</td><td class="n">49,65</td><td>—</td></tr>
+    <tr class="destacada"><td class="n">10</td><td class="n">37,72</td><td class="n">59,09</td><td class="n">74,52</td><td>—</td></tr>
   </tbody>
 </table>
 </div>
@@ -416,9 +416,9 @@
   Con el estacionamiento repartido entre los dos viajes del tour, su dinero
   fijo es la mitad del diario, y su constante de 20 minutos pesa más que el
   tiempo y el dinero de un viaje corto: a 500 metros el costo generalizado es
-  negativo, −1,67. El metro parte con 43,19
+  negativo, −2,08. El metro parte con 42,88
   minutos-equivalentes para ese mismo viaje, porque espera y acceso pesan
-  doble, y a 10 km sigue 20,82 detrás del auto: no compite por
+  doble, y a 10 km sigue 21,37 detrás del auto: no compite por
   velocidad sino por distancia, y frente a quien no tiene auto. Para ellos la
   caminata gana en el primer medio kilómetro, la bicicleta entre 1 y 7 km, y el
   metro a 10 km, donde la bicicleta ya lleva las tres penalizaciones encima.
@@ -442,9 +442,9 @@
     <tr><th>Tarifa metro ($)</th><th class="n">0</th><th class="n">400</th><th class="n">800</th><th class="n">1.200</th><th class="n">1.600</th></tr>
   </thead>
   <tbody>
-    <tr><td>Metro %</td><td class="n">30,19</td><td class="n">25,50</td><td class="n">21,10</td><td class="n">17,01</td><td class="n">13,51</td></tr>
-    <tr><td>Auto %</td><td class="n">18,25</td><td class="n">19,49</td><td class="n">20,71</td><td class="n">21,84</td><td class="n">22,76</td></tr>
-    <tr><td>Bici %</td><td class="n">22,77</td><td class="n">25,67</td><td class="n">28,34</td><td class="n">30,81</td><td class="n">33,01</td></tr>
+    <tr><td>Metro %</td><td class="n">38,71</td><td class="n">33,57</td><td class="n">28,52</td><td class="n">23,69</td><td class="n">19,11</td></tr>
+    <tr><td>Auto %</td><td class="n">22,62</td><td class="n">23,68</td><td class="n">24,68</td><td class="n">25,60</td><td class="n">26,46</td></tr>
+    <tr><td>Bici %</td><td class="n">27,36</td><td class="n">30,78</td><td class="n">34,19</td><td class="n">37,46</td><td class="n">40,56</td></tr>
   </tbody>
 </table>
 </div>
@@ -455,9 +455,9 @@
     <tr><th>Combustible ($/km)</th><th class="n">60</th><th class="n">120</th><th class="n">240</th><th class="n">480</th></tr>
   </thead>
   <tbody>
-    <tr><td>Auto %</td><td class="n">21,69</td><td class="n">20,71</td><td class="n">18,68</td><td class="n">14,77</td></tr>
-    <tr><td>Metro %</td><td class="n">20,30</td><td class="n">21,10</td><td class="n">22,80</td><td class="n">25,98</td></tr>
-    <tr><td>Bici %</td><td class="n">28,17</td><td class="n">28,34</td><td class="n">28,65</td><td class="n">29,25</td></tr>
+    <tr><td>Auto %</td><td class="n">25,50</td><td class="n">24,68</td><td class="n">22,95</td><td class="n">19,36</td></tr>
+    <tr><td>Metro %</td><td class="n">27,87</td><td class="n">28,52</td><td class="n">29,87</td><td class="n">32,61</td></tr>
+    <tr><td>Bici %</td><td class="n">34,01</td><td class="n">34,19</td><td class="n">34,56</td><td class="n">35,32</td></tr>
   </tbody>
 </table>
 </div>
@@ -468,26 +468,27 @@
     <tr><th>Peaje ($/km)</th><th class="n">0</th><th class="n">50</th><th class="n">100</th><th class="n">150</th><th class="n">200</th><th class="n">300</th></tr>
   </thead>
   <tbody>
-    <tr><td>Auto %</td><td class="n">20,71</td><td class="n">19,86</td><td class="n">19,02</td><td class="n">18,19</td><td class="n">17,34</td><td class="n">15,70</td></tr>
-    <tr><td>Metro %</td><td class="n">21,10</td><td class="n">21,78</td><td class="n">22,52</td><td class="n">23,27</td><td class="n">23,93</td><td class="n">25,18</td></tr>
-    <tr><td>Bici %</td><td class="n">28,34</td><td class="n">28,50</td><td class="n">28,59</td><td class="n">28,66</td><td class="n">28,82</td><td class="n">29,15</td></tr>
+    <tr><td>Auto %</td><td class="n">24,68</td><td class="n">23,97</td><td class="n">23,25</td><td class="n">22,51</td><td class="n">21,76</td><td class="n">20,26</td></tr>
+    <tr><td>Metro %</td><td class="n">28,52</td><td class="n">29,07</td><td class="n">29,64</td><td class="n">30,22</td><td class="n">30,80</td><td class="n">31,94</td></tr>
+    <tr><td>Bici %</td><td class="n">34,19</td><td class="n">34,34</td><td class="n">34,49</td><td class="n">34,65</td><td class="n">34,81</td><td class="n">35,13</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Las direcciones son las correctas y las magnitudes, razonables. Duplicar la
-  tarifa saca 7,6 puntos al metro, que se
-  reparten la bicicleta, 4,7, y el auto,
-  2,1; cuadruplicar el combustible saca
-  5,9 al auto, que van casi todos al metro. El
+  tarifa saca 9,4 puntos al metro, que se
+  reparten la bicicleta, 6,4, y el auto,
+  1,8; cuadruplicar el combustible saca
+  5,3 al auto, que van en su mayor parte al metro,
+  4,1. El
   peaje y la bencina son, para la elección, el mismo término, dinero por
   kilómetro, y por eso responden igual: un peaje de 150 $/km, que lleva el
-  dinero por km a 270, saca 2,5 puntos al auto,
+  dinero por km a 270, saca 2,2 puntos al auto,
   entre lo que sacan 240 y 480 $/km de bencina. Lo que los separa no es la
   demanda sino el bienestar: la bencina es consumo de recursos y el peaje es
-  una transferencia que la ciudad recauda (§5.5). La respuesta del auto tiene
-  además un techo que no tienen los otros modos: la tenencia de auto.
+  una transferencia que la ciudad recauda (§5.5). El auto es la palanca más
+  inelástica, como era de esperar: su techo lo pone la tenencia de auto.
 </p>
 
 <h3>5.4 Logit contra determinístico</h3>
@@ -498,22 +499,27 @@
     <tr><th>Método</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td>Logit (esperado)</td><td class="n">20,71</td><td class="n">21,10</td><td class="n">28,34</td><td class="n">10,36</td></tr>
-    <tr><td>Todo o nada</td><td class="n">30,27</td><td class="n">8,76</td><td class="n">31,52</td><td class="n">9,96</td></tr>
+    <tr class="destacada"><td>Logit (esperado)</td><td class="n">24,68</td><td class="n">28,52</td><td class="n">34,19</td><td class="n">12,62</td></tr>
+    <tr><td>Todo o nada</td><td class="n">30,69</td><td class="n">26,63</td><td class="n">30,28</td><td class="n">12,39</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Bajo el determinístico el metro cae de 21,1 a
-  8,8 %: es el segundo mejor modo para muchos
-  grupos, y el segundo no recibe nada. Se entiende mirando una celda: a 3 km
-  del centro, el estrato medio con auto reparte
-  56,0 % auto, 15,7 %
-  metro y 28,3 % bici bajo el logit, y 100 % auto
-  bajo el determinístico. El logit no es otro método de asignación: es otro
-  supuesto sobre cuánta heterogeneidad de gustos hay dentro de un grupo, y es
-  esa heterogeneidad la que mantiene vivo al metro en la ciudad por defecto.
+  Bajo el determinístico el auto sube de 24,7 a
+  30,7 %, la bicicleta baja de
+  34,2 a 30,3 % y el metro,
+  de 28,5 a 26,6 %: cada
+  grupo va entero a su mejor modo, y el segundo no recibe nada. Se ve mejor en
+  una celda que en el agregado: a 3 km del centro, el estrato medio con auto
+  reparte 56,4 % auto,
+  15,6 % metro y 28,0 %
+  bici bajo el logit, y 100 % auto bajo el determinístico. El logit no es otro
+  método de asignación: es otro supuesto sobre cuánta heterogeneidad de gustos
+  hay dentro de un grupo. Las cifras del determinístico son su última
+  iteración, no un equilibrio: tras 40 iteraciones la brecha
+  sigue en 0,35 min, porque la regla no tiene punto fijo
+  (D9b, capítulo 5).
 </p>
 
 <h3>5.5 El peaje y el bienestar</h3>
@@ -524,17 +530,19 @@
     <tr><th class="n">Peaje ($/km)</th><th class="n">Auto %</th><th class="n">v/c auto</th><th class="n">Recaudación peaje (M$)</th><th class="n">Δ bienestar social (M$)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0</td><td class="n">20,71</td><td class="n">1,68</td><td class="n">0,00</td><td class="n">0,00</td></tr>
-    <tr><td class="n">25</td><td class="n">20,29</td><td class="n">1,65</td><td class="n">0,70</td><td class="n">0,26</td></tr>
-    <tr><td class="n">50</td><td class="n">19,86</td><td class="n">1,61</td><td class="n">1,35</td><td class="n">0,48</td></tr>
-    <tr><td class="n">75</td><td class="n">19,43</td><td class="n">1,58</td><td class="n">1,96</td><td class="n">0,59</td></tr>
-    <tr><td class="n">100</td><td class="n">19,02</td><td class="n">1,55</td><td class="n">2,52</td><td class="n">0,70</td></tr>
-    <tr><td class="n">125</td><td class="n">18,59</td><td class="n">1,51</td><td class="n">3,05</td><td class="n">0,76</td></tr>
-    <tr class="destacada"><td class="n">150</td><td class="n">18,19</td><td class="n">1,48</td><td class="n">3,53</td><td class="n">0,79</td></tr>
-    <tr><td class="n">175</td><td class="n">17,76</td><td class="n">1,44</td><td class="n">3,98</td><td class="n">0,72</td></tr>
-    <tr><td class="n">200</td><td class="n">17,34</td><td class="n">1,41</td><td class="n">4,39</td><td class="n">0,68</td></tr>
-    <tr><td class="n">300</td><td class="n">15,70</td><td class="n">1,28</td><td class="n">5,65</td><td class="n">0,18</td></tr>
-    <tr><td>parking 5.000, sin peaje</td><td class="n">13,63</td><td class="n">1,11</td><td class="n">—</td><td class="n">−0,86</td></tr>
+    <tr><td class="n">0</td><td class="n">24,68</td><td class="n">2,01</td><td class="n">0,00</td><td class="n">0,00</td></tr>
+    <tr><td class="n">50</td><td class="n">23,97</td><td class="n">1,95</td><td class="n">1,58</td><td class="n">0,91</td></tr>
+    <tr><td class="n">100</td><td class="n">23,25</td><td class="n">1,89</td><td class="n">3,00</td><td class="n">1,62</td></tr>
+    <tr><td class="n">150</td><td class="n">22,51</td><td class="n">1,83</td><td class="n">4,26</td><td class="n">2,15</td></tr>
+    <tr><td class="n">200</td><td class="n">21,76</td><td class="n">1,77</td><td class="n">5,37</td><td class="n">2,50</td></tr>
+    <tr><td class="n">250</td><td class="n">21,01</td><td class="n">1,71</td><td class="n">6,34</td><td class="n">2,66</td></tr>
+    <tr class="destacada"><td class="n">275</td><td class="n">20,63</td><td class="n">1,68</td><td class="n">6,77</td><td class="n">2,69</td></tr>
+    <tr><td class="n">300</td><td class="n">20,26</td><td class="n">1,65</td><td class="n">7,17</td><td class="n">2,67</td></tr>
+    <tr><td class="n">350</td><td class="n">19,51</td><td class="n">1,59</td><td class="n">7,87</td><td class="n">2,54</td></tr>
+    <tr><td class="n">400</td><td class="n">18,78</td><td class="n">1,53</td><td class="n">8,45</td><td class="n">2,29</td></tr>
+    <tr><td class="n">500</td><td class="n">17,36</td><td class="n">1,41</td><td class="n">9,31</td><td class="n">1,48</td></tr>
+    <tr><td class="n">600</td><td class="n">16,02</td><td class="n">1,30</td><td class="n">9,83</td><td class="n">0,38</td></tr>
+    <tr><td>parking 5.000, sin peaje</td><td class="n">17,90</td><td class="n">1,46</td><td class="n">—</td><td class="n">1,93</td></tr>
   </tbody>
 </table>
 </div>
@@ -546,18 +554,18 @@
 </p>
 
 <p>
-  El bienestar sube con el peaje hasta <strong>150 $/km</strong>, donde gana
-  0,79 M$, y vuelve a bajar: el cobro
-  descongestiona la vía más de lo que encarece el viaje a quien sigue en auto,
-  y lo que se paga no se pierde, porque es recaudación. El máximo es una meseta
-  entre 100 y 200 $/km del orden del ruido del MSA, y 150 es el valor que usa
-  el preset «Tarificación Vial» desde oct-2026. Hasta entonces el preset era un
-  parking de 5.000: baja el auto más que cualquier peaje de la tabla, a
-  13,6 %, pero <strong>reduce</strong> el bienestar en
-  0,86 M$. Sobre la base agrega 1.500 $ a cada viaje,
-  lo que el peaje de 150 cobra sólo al más largo, el que sale del borde, y se
-  lo cobra igual a un viaje de un kilómetro: no crece con los tramos que el
-  viaje cruza, que es de lo que crece su costo externo.
+  El bienestar sube con el peaje hasta <strong>275 $/km</strong>,
+  donde gana 2,69 M$, y vuelve a bajar: el
+  cobro descongestiona la vía más de lo que encarece el viaje a quien sigue en
+  auto, y lo que se paga no se pierde, porque es recaudación. El máximo es una
+  meseta: entre 250 y 300 $/km el bienestar queda a
+  menos de 0,05 M$ de él. 275 $/km, dentro de la meseta, es el valor que usa el
+  preset «Tarificación Vial». Hasta oct-2026 el preset era un parking
+  de 5.000 $/día: baja el auto a 17,9 %, más que el peaje
+  óptimo, y gana 1,93 M$, menos que él. Cobra
+  2.500 $ por viaje y lo cobra igual a un viaje de un kilómetro que a uno desde
+  el borde: no crece con los tramos que el viaje cruza, que es de lo que crece
+  su costo externo.
 </p>
 
 <h3>5.6 El ancla del valor del tiempo</h3>
@@ -565,24 +573,30 @@
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th>Estrato</th><th class="n">VoT ($/h)</th><th class="n">Hogares</th><th class="n">Viajeros</th></tr>
+    <tr><th>Estrato</th><th class="n">VoT heredado ($/h)</th><th class="n">VoT vigente ($/h)</th><th class="n">Hogares</th></tr>
   </thead>
   <tbody>
-    <tr><td>alto</td><td class="n">6.200</td><td class="n">7.200</td><td class="n">4.320</td></tr>
-    <tr><td>medio</td><td class="n">3.100</td><td class="n">18.010</td><td class="n">14.410</td></tr>
-    <tr><td>bajo</td><td class="n">1.600</td><td class="n">10.790</td><td class="n">10.252</td></tr>
+    <tr><td>alto</td><td class="n">6.200</td><td class="n">6.329</td><td class="n">7.200</td></tr>
+    <tr><td>medio</td><td class="n">3.100</td><td class="n">3.164</td><td class="n">18.000</td></tr>
+    <tr><td>bajo</td><td class="n">1.600</td><td class="n">1.633</td><td class="n">10.800</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  La media ponderada por viajeros es 3.031,5 $/h,
-  9,2 % bajo el VST de 3.338; por
-  hogares, 3.270,4, 2,0 % bajo.
-  La diferencia entre los dos ponderadores es el teletrabajo, que es más alto
-  en el estrato alto y le quita peso entre los viajeros. Igualar la media por
-  viajero al VST pide escalar los tres valores por
-  1,1011, conservando sus razones (§6).
+  Los VoT heredados, ponderados por los hogares de la ciudad por defecto,
+  daban 3.270,0 $/h, un
+  2,0 % bajo el VST de 3.338 $/h
+  de los Precios Sociales 2026. D5 (oct-2026) escaló los tres por
+  1,0208, conservando sus razones, y los redondeó al peso.
+  Medida sobre la población de la corrida, que difiere de la nominal en decenas
+  de hogares por el redondeo por celda, la media vigente es
+  3.338,1 $/h. El VST es por hora-pasajero, así
+  que el ponderador que corresponde es el de los viajeros; sin teletrabajo por
+  defecto, viajeros y hogares coinciden. Si se agrega teletrabajo en
+  Calibración, el estrato que más teletrabaja pierde peso entre los viajeros y
+  la media se aparta del VST: el ancla vale para la calibración por defecto, y
+  <code>tests/test_presets.py</code> la vigila.
 </p>
 
 <h2 id="s6"><span class="num">§6</span> Discusión</h2>
@@ -611,13 +625,6 @@
 <h3>Pendientes</h3>
 
 <ul>
-  <li>
-    <strong>El nivel de los valores del tiempo (D5, decidido).</strong>
-    Escalar los tres por el factor de la §5.6 para que la media por viajero
-    sea el VST, conservando sus razones. Mueve la línea base y, por
-    <em>λ_h</em> = |<em>β_c</em>|, también el suelo: se aplica una sola vez,
-    con la regeneración conjunta de los capítulos 2 a 7.
-  </li>
   <li>
     <strong>Varianza o correlación entre modos.</strong> La HEV por modo o un
     logit anidado son extensiones declaradas (§1), no correcciones.

@@ -358,12 +358,20 @@ def quien_remueve_la_inversion() -> dict:
 # ---------------------------------------------------------------------------
 
 
+#: Tasas de teletrabajo sólo para ilustrar D11: las heredadas, sin fuente.
+TELETRABAJO_ILUSTRATIVO = (0.40, 0.20, 0.05)
+
+
 def teletrabajo() -> dict:
     """`T_h` cobra `VIAJES_MES·(1 − p_tele,h)` viajes: quien teletrabaja no
-    valora estar cerca del CBD. Con `p_tele` 0,40 / 0,20 / 0,05 la pendiente en
-    pesos del alto cae más que la del medio. Factor 0 = la `T` de antes de D11
-    (44 viajes a todos); 1 = la base; 2 = una política de teletrabajo."""
+    valora estar cerca del CBD. Desde oct-2026 la app parte SIN teletrabajo, así
+    que acá se fijan tasas ILUSTRATIVAS, sin fuente —las heredadas 0,40 / 0,20 /
+    0,05—: con ellas la pendiente en pesos del alto cae más que la del medio.
+    Factor 0 = la base de la app (44 viajes a todos); 2 = una política."""
     sim = base._config_web()
+    sim.demand = sim.demand.model_copy(deep=True)
+    for e, p in zip((1, 2, 3), TELETRABAJO_ILUSTRATIVO, strict=True):
+        sim.demand.estratos[e].prob_teletrabajo = p  # type: ignore[index]
     ciudad = _ciudad()
     lam = _lambdas()
     i0, i1 = _celda(ciudad, 1.0), _celda(ciudad, 9.0)
@@ -390,10 +398,7 @@ def teletrabajo() -> dict:
             }
         )
     return {
-        "prob_teletrabajo": [
-            float(sim.demand.estratos[e].prob_teletrabajo)  # type: ignore[index]
-            for e in (1, 2, 3)
-        ],
+        "prob_teletrabajo_ilustrativo": list(TELETRABAJO_ILUSTRATIVO),
         "filas": filas,
     }
 

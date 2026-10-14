@@ -195,7 +195,7 @@
     <tr><td><code>FACTOR_CAPACIDAD_PRACTICA</code></td><td class="n">0,8</td><td>—</td><td><span class="etiqueta frio">norma</span> constante, no campo: la capacidad práctica con que se estimaron 0,15 y 4 (Boyles et al., p. 102)</td></tr>
     <tr><td><code>capacidad_pista</code> (auto)</td><td class="n">—</td><td>veh/h</td><td><span class="etiqueta neutra">decisión</span> vacío: la capacidad sale de Greenshields; un valor explícito la desacopla de la velocidad</td></tr>
     <tr><td><code>v_media_kmh</code> (bici)</td><td class="n">14</td><td>km/h</td><td><span class="etiqueta lim">heredado</span></td></tr>
-    <tr><td><code>capacidad_pista</code> (bici)</td><td class="n">4.000</td><td>bici/h</td><td><span class="etiqueta neutra">decisión</span> fijada para dejar la ciclovía a la saturación de la vía, v/c ≈ 1,3, y a la bicicleta a la par del metro; hoy la ciclovía queda en 1,23 y la vía en 1,66 (§5.7)</td></tr>
+    <tr><td><code>capacidad_pista</code> (bici)</td><td class="n">4.000</td><td>bici/h</td><td><span class="etiqueta neutra">decisión</span> fijada para dejar la ciclovía a la saturación de la vía, v/c ≈ 1,3, y a la bicicleta a la par del metro; hoy la ciclovía queda en 1,53 y la vía en 2,04 (§5.7)</td></tr>
     <tr><td><code>alpha_bpr</code> / <code>beta_bpr</code> (bici)</td><td class="n">0,5 / 2,0</td><td>—</td><td><span class="etiqueta lim">heredado</span></td></tr>
     <tr><td><code>v_tren_kmh</code></td><td class="n">35</td><td>km/h</td><td><span class="etiqueta lim">heredado</span> velocidad comercial de marcha, sin detenciones</td></tr>
     <tr><td><code>capacidad_tren</code></td><td class="n">1.000</td><td>pax</td><td><span class="etiqueta lim">heredado</span> con <em>f_máx</em> da la capacidad del sistema</td></tr>
@@ -220,7 +220,7 @@
   curva mucho más suave. Entre sep-2026 y oct-2026 el simulador usó 0,15 y 4
   sobre la capacidad <em>real</em>, el error que Boyles et al. (p. 102) llaman
   sorprendentemente común; la §5 contrasta las tres curvas. Con la norma, la
-  corrida por defecto queda con la vía por sobre su capacidad, v/c 1,66 en el
+  corrida por defecto queda con la vía por sobre su capacidad, v/c 2,04 en el
   tramo junto al CBD, que es donde la curva estándar sí muerde. Un v/c mayor
   que uno no es un flujo que la vía pueda servir: en una asignación estática
   el flujo es la demanda que quiere pasar, y la BPR la cobra en tiempo en vez
@@ -234,15 +234,16 @@
 <p>
   <strong>La capacidad de la ciclovía</strong> es la palanca de oferta más
   fuerte del simulador y por eso su valor es una decisión y no una herencia:
-  con 4.000 bici/h la ciclovía queda a v/c 1,23 en la ciudad por defecto y la
-  bicicleta y el metro se reparten en partes parecidas, 27,4 % y 24,7 %. La
+  con 4.000 bici/h la ciclovía queda a v/c 1,53 en la ciudad por defecto y la
+  bicicleta y el metro se reparten en partes parecidas, 34,1 % y 29,9 %. La
   regla con que se fijó, y que siguen los presets de escala de la §5.7, es dar
   a cada modo congestionable una capacidad de cuatro quintos de su flujo
   punta, v/c ≈ 1,25: así las dos palancas de capacidad responden en ambas
   direcciones y ningún modo queda dominado. La regla se calibró en sep-2026,
   con la vía a v/c 1,27. El parking por tour de oct-2026 abarató el auto y lo
-  subió a v/c ≈ 1,7; la capacidad práctica lo bajó apenas, a 1,66. Los presets
-  no se recalibraron (§6).
+  subió a v/c ≈ 1,7; la capacidad práctica lo bajó apenas, a 1,66. Sin teletrabajo
+  por defecto (oct-2026) viajan todos los hogares y la vía sube a 2,04. Los
+  presets no se recalibraron (§6).
 </p>
 
 <p>
@@ -596,12 +597,12 @@
     <tr><th class="n">ΣH</th><th class="n">Metro %</th><th class="n">Auto %</th><th class="n">Carga crítica (pax/h)</th><th class="n">f teórica</th><th class="n">f operativa</th><th>Tope</th><th class="n">Espera (min)</th><th class="n">ρ andén</th><th class="n">v/c auto</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">9.000</td><td class="n">13,45</td><td class="n">22,28</td><td class="n">605</td><td class="n">0,61</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,015</td><td class="n">0,45</td></tr>
-    <tr><td class="n">18.000</td><td class="n">14,70</td><td class="n">22,68</td><td class="n">1.323</td><td class="n">1,32</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,033</td><td class="n">0,92</td></tr>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">24,73</td><td class="n">20,45</td><td class="n">4.452</td><td class="n">4,45</td><td class="n">4,45</td><td>—</td><td class="n">6,74</td><td class="n">0,111</td><td class="n">1,66</td></tr>
-    <tr><td class="n">72.000</td><td class="n">36,27</td><td class="n">15,06</td><td class="n">13.059</td><td class="n">13,06</td><td class="n">13,06</td><td>—</td><td class="n">2,30</td><td class="n">0,326</td><td class="n">2,45</td></tr>
-    <tr><td class="n">144.000</td><td class="n">48,91</td><td class="n">4,90</td><td class="n">35.214</td><td class="n">35,21</td><td class="n">35,21</td><td>—</td><td class="n">0,93</td><td class="n">0,880</td><td class="n">1,59</td></tr>
-    <tr><td class="n">288.000</td><td class="n">51,85</td><td class="n">0,09</td><td class="n">74.662</td><td class="n">74,66</td><td class="n">40,00</td><td>f_máx</td><td class="n">2,23</td><td class="n">1,867</td><td class="n">0,06</td></tr>
+    <tr><td class="n">9.000</td><td class="n">15,83</td><td class="n">30,14</td><td class="n">712</td><td class="n">0,71</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,018</td><td class="n">0,61</td></tr>
+    <tr><td class="n">18.000</td><td class="n">17,01</td><td class="n">30,12</td><td class="n">1.531</td><td class="n">1,53</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,038</td><td class="n">1,22</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">29,88</td><td class="n">25,05</td><td class="n">5.379</td><td class="n">5,38</td><td class="n">5,38</td><td>—</td><td class="n">5,58</td><td class="n">0,134</td><td class="n">2,04</td></tr>
+    <tr><td class="n">72.000</td><td class="n">42,72</td><td class="n">17,08</td><td class="n">15.380</td><td class="n">15,38</td><td class="n">15,38</td><td>—</td><td class="n">1,96</td><td class="n">0,385</td><td class="n">2,78</td></tr>
+    <tr><td class="n">144.000</td><td class="n">53,92</td><td class="n">3,12</td><td class="n">38.821</td><td class="n">38,82</td><td class="n">38,82</td><td>—</td><td class="n">0,87</td><td class="n">0,971</td><td class="n">1,01</td></tr>
+    <tr><td class="n">288.000</td><td class="n">52,99</td><td class="n">0,04</td><td class="n">76.309</td><td class="n">76,31</td><td class="n">40,00</td><td>f_máx</td><td class="n">2,28</td><td class="n">1,908</td><td class="n">0,03</td></tr>
   </tbody>
 </table>
 </div>
@@ -612,32 +613,32 @@
     <tr><th class="n">L (km)</th><th class="n">Metro %</th><th class="n">Auto %</th><th class="n">Carga crítica (pax/h)</th><th class="n">f teórica</th><th class="n">Espera (min)</th><th class="n">v/c auto</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">10</td><td class="n">12,69</td><td class="n">19,87</td><td class="n">2.283</td><td class="n">2,28</td><td class="n">13,14</td><td class="n">1,62</td></tr>
-    <tr class="destacada"><td class="n">20</td><td class="n">24,73</td><td class="n">20,45</td><td class="n">4.452</td><td class="n">4,45</td><td class="n">6,74</td><td class="n">1,66</td></tr>
-    <tr><td class="n">30</td><td class="n">32,69</td><td class="n">20,46</td><td class="n">5.886</td><td class="n">5,89</td><td class="n">5,10</td><td class="n">1,66</td></tr>
-    <tr><td class="n">40</td><td class="n">38,01</td><td class="n">20,48</td><td class="n">6.842</td><td class="n">6,84</td><td class="n">4,39</td><td class="n">1,66</td></tr>
-    <tr><td class="n">60</td><td class="n">43,03</td><td class="n">20,47</td><td class="n">7.745</td><td class="n">7,75</td><td class="n">3,87</td><td class="n">1,66</td></tr>
+    <tr><td class="n">10</td><td class="n">19,42</td><td class="n">24,67</td><td class="n">3.496</td><td class="n">3,50</td><td class="n">8,58</td><td class="n">2,01</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">29,88</td><td class="n">25,05</td><td class="n">5.379</td><td class="n">5,38</td><td class="n">5,58</td><td class="n">2,04</td></tr>
+    <tr><td class="n">30</td><td class="n">38,10</td><td class="n">24,80</td><td class="n">6.859</td><td class="n">6,86</td><td class="n">4,37</td><td class="n">2,02</td></tr>
+    <tr><td class="n">40</td><td class="n">43,77</td><td class="n">24,53</td><td class="n">7.878</td><td class="n">7,88</td><td class="n">3,81</td><td class="n">1,99</td></tr>
+    <tr><td class="n">60</td><td class="n">51,06</td><td class="n">24,32</td><td class="n">9.190</td><td class="n">9,19</td><td class="n">3,27</td><td class="n">1,98</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  La ciudad por defecto está dentro del rango, con 4,5 trenes por hora y casi
-  siete minutos de espera: Mohring opera, pero con una frecuencia de tren de
+  La ciudad por defecto está dentro del rango, con 5,4 trenes por hora y más de
+  cinco minutos y medio de espera: Mohring opera, pero con una frecuencia de tren de
   cercanías, no de metro. La zona muerta termina entre los 18.000 y los
   36.000 hogares en 20 km; una frecuencia de metro urbano, con esperas de dos
   minutos, aparece hacia los 72.000, y el tope superior recién por sobre los
-  144.000. El largo ayuda poco: pasar de 20 a 60 km sube la frecuencia de 4,5
-  a 7,7, porque lo que carga al tramo crítico es cuánta gente hay, no cuán
+  144.000. El largo ayuda poco: pasar de 20 a 60 km sube la frecuencia de 5,4
+  a 9,2, porque lo que carga al tramo crítico es cuánta gente hay, no cuán
   lejos vive.
 </p>
 
 <p>
   <strong>El resguardo de andén</strong> se ve en la última fila. Con 144.000
-  hogares la carga crítica es el 88 % de <em>f_máx·K</em> y la espera, 0,93
-  min, es casi la base de 35 trenes por hora. Con 288.000 la carga casi dobla
+  hogares la carga crítica es el 97 % de <em>f_máx·K</em> y la espera, 0,87
+  min, queda poco sobre la base de 39 trenes por hora. Con 288.000 la carga casi dobla
   la capacidad del sistema: la frecuencia se clava en 40, cuya espera base es
-  0,75 min, y la espera medida es 2,23, el triple. Sin el andén, la ciudad
+  0,75 min, y la espera medida es 2,28, el triple. Sin el andén, la ciudad
   saturada tendría la mejor espera de la tabla; con él, el metro lleno cobra
   la saturación en tiempo, que es lo que la BPR del auto hace en la vía.
 </p>
@@ -657,20 +658,20 @@
     <tr><th>Preset</th><th class="n">ΣH</th><th class="n">Pistas</th><th class="n">Ciclovía (bici/h)</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">v/c auto</th><th class="n">v/c bici</th><th class="n">f metro</th><th class="n">Espera (min)</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td>Base</td><td class="n">36.000</td><td class="n">2</td><td class="n">4.000</td><td class="n">20,45</td><td class="n">24,73</td><td class="n">27,40</td><td class="n">1,66</td><td class="n">1,23</td><td class="n">4,5</td><td class="n">6,74</td></tr>
-    <tr><td>Ciudad con metro</td><td class="n">72.000</td><td class="n">4</td><td class="n">7.500</td><td class="n">19,64</td><td class="n">27,90</td><td class="n">25,25</td><td class="n">1,60</td><td class="n">1,21</td><td class="n">10,0</td><td class="n">2,99</td></tr>
-    <tr><td>Metrópolis</td><td class="n">144.000</td><td class="n">8</td><td class="n">16.000</td><td class="n">19,19</td><td class="n">28,53</td><td class="n">25,17</td><td class="n">1,56</td><td class="n">1,13</td><td class="n">20,5</td><td class="n">1,48</td></tr>
+    <tr class="destacada"><td>Base</td><td class="n">36.000</td><td class="n">2</td><td class="n">4.000</td><td class="n">25,05</td><td class="n">29,88</td><td class="n">34,09</td><td class="n">2,04</td><td class="n">1,53</td><td class="n">5,4</td><td class="n">5,58</td></tr>
+    <tr><td>Ciudad con metro</td><td class="n">72.000</td><td class="n">4</td><td class="n">7.500</td><td class="n">24,43</td><td class="n">33,13</td><td class="n">31,76</td><td class="n">1,99</td><td class="n">1,52</td><td class="n">11,9</td><td class="n">2,52</td></tr>
+    <tr><td>Metrópolis</td><td class="n">144.000</td><td class="n">8</td><td class="n">16.000</td><td class="n">24,07</td><td class="n">33,95</td><td class="n">31,48</td><td class="n">1,96</td><td class="n">1,42</td><td class="n">24,4</td><td class="n">1,25</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Los tres presets conservan entre sí la saturación de cada modo, la vía
-  entre 1,56 y 1,66 y la ciclovía entre 1,13 y 1,23, y dejan al metro en tres
+  entre 1,96 y 2,04 y la ciclovía entre 1,42 y 1,53, y dejan al metro en tres
   regímenes: tren de cercanías, metro urbano y metro de gran ciudad. Lo que ya
   no reproducen es la igualdad entre vía y ciclovía con que se calibraron: el
-  parking por tour subió al auto y hoy la vía va unos cuatro décimos más
-  cargada. En la ciudad lineal toda la población atraviesa un único corredor,
+  parking por tour primero y la ciudad sin teletrabajo después cargaron
+  los dos modos, y hoy la vía va unos cinco décimos más cargada. En la ciudad lineal toda la población atraviesa un único corredor,
   así que las pistas agregan la capacidad vial completa de la ciudad, no la
   de una avenida.
 </p>
@@ -694,7 +695,8 @@
   congestión cotidiana; y no hay hacinamiento. Del lado de la calibración, el
   número de estaciones es un número de intervalos, por debajo de una carga
   modesta el metro deja de responder a la demanda, y los presets de escala
-  quedaron calibrados para un auto más barato que el de hoy. Ninguno es un
+  quedaron calibrados para otra demanda: un auto más caro que el de hoy y
+  una ciudad con teletrabajo. Ninguno es un
   error de cálculo; todos son distancias entre lo que el modelo declara y lo
   que calcula, y este capítulo las deja escritas.
 </p>
@@ -709,7 +711,7 @@
   </li>
   <li>
     <strong>Presets de escala.</strong> Recalibrar pistas y ciclovía para que
-    vía y ciclovía vuelvan a partir en la misma saturación con el auto de hoy,
+    vía y ciclovía vuelvan a partir en la misma saturación con la demanda de hoy,
     o declarar en la interfaz que no lo hacen.
   </li>
   <li>

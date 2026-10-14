@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-13",
-  "commit": "a091a4f",
+  "commit": "f4da3ee",
   "script": "docs/libro/datos/datos_cap02.py",
   "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la densidad relativa, μ=MU_SUELO=1/√44≈0,151 (schema v7), λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
  },
@@ -72,60 +72,60 @@
    {
     "forma": "normal",
     "convergio": true,
-    "iteraciones": 36,
-    "error_max_hogares": 1.677e-09,
-    "error_relativo_max": 1.553e-13
+    "iteraciones": 35,
+    "error_max_hogares": 2.967e-09,
+    "error_relativo_max": 2.747e-13
    },
    {
     "forma": "uniforme",
     "convergio": true,
-    "iteraciones": 36,
-    "error_max_hogares": 1.317e-09,
-    "error_relativo_max": 1.219e-13
+    "iteraciones": 35,
+    "error_max_hogares": 2.51e-09,
+    "error_relativo_max": 2.324e-13
    },
    {
     "forma": "exponencial",
     "convergio": true,
-    "iteraciones": 39,
-    "error_max_hogares": 1.965e-09,
-    "error_relativo_max": 1.819e-13
+    "iteraciones": 38,
+    "error_max_hogares": 3.773e-09,
+    "error_relativo_max": 3.493e-13
    },
    {
     "forma": "meseta",
     "convergio": true,
     "iteraciones": 26,
-    "error_max_hogares": 1.623e-09,
-    "error_relativo_max": 1.502e-13
+    "error_max_hogares": 1.295e-09,
+    "error_relativo_max": 1.199e-13
    },
    {
     "forma": "bimodal",
     "convergio": true,
     "iteraciones": 28,
-    "error_max_hogares": 1.268e-09,
-    "error_relativo_max": 1.174e-13
+    "error_max_hogares": 1.546e-09,
+    "error_relativo_max": 1.432e-13
    },
    {
     "forma": "valle",
     "convergio": true,
     "iteraciones": 27,
-    "error_max_hogares": 1.11e-09,
-    "error_relativo_max": 1.027e-13
+    "error_max_hogares": 7.476e-10,
+    "error_relativo_max": 6.922e-14
    }
   ],
   "por_escala": [
    {
     "suma_H": 3600,
-    "error_max_hogares": 1.432e-10,
-    "iteraciones": 36
+    "error_max_hogares": 2.569e-10,
+    "iteraciones": 35
    },
    {
     "suma_H": 36000,
-    "error_max_hogares": 1.677e-09,
-    "iteraciones": 36
+    "error_max_hogares": 2.967e-09,
+    "iteraciones": 35
    },
    {
     "suma_H": 144000,
-    "error_max_hogares": 5.872e-09,
+    "error_max_hogares": 4.78e-09,
     "iteraciones": 36
    }
   ]
@@ -143,21 +143,21 @@
     "razon_escalas": 1.0,
     "convergio": true,
     "iteraciones": 16,
-    "error_balance_hogares": 8.636e-07,
+    "error_balance_hogares": 9.203e-07,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
     "caso": "lambda del default (HEV)",
     "lambdas": [
-     0.00032,
-     0.000641,
-     0.001241
+     0.000314,
+     0.000628,
+     0.001216
     ],
     "rama": "HEV",
     "razon_escalas": 3.9,
     "convergio": true,
-    "iteraciones": 36,
-    "error_balance_hogares": 1.677e-09,
+    "iteraciones": 35,
+    "error_balance_hogares": 2.967e-09,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -170,8 +170,8 @@
     "rama": "HEV",
     "razon_escalas": 10.0,
     "convergio": true,
-    "iteraciones": 29,
-    "error_balance_hogares": 1.362e-07,
+    "iteraciones": 28,
+    "error_balance_hogares": 2.573e-07,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -185,7 +185,7 @@
     "razon_escalas": 100.0,
     "convergio": true,
     "iteraciones": 37,
-    "error_balance_hogares": 2.045e-07,
+    "error_balance_hogares": 1.179e-07,
     "columnas_suman_uno_error": 2.22e-16
    }
   ],
@@ -216,124 +216,124 @@
    {
     "mu": 0.05,
     "dist_km": [
-     2.918,
-     3.315,
-     4.64
+     2.922,
+     3.317,
+     4.634
     ],
-    "theil": 0.0386,
-    "grad_p": 0.924,
+    "theil": 0.0382,
+    "grad_p": 0.923,
     "iteraciones": 18
    },
    {
     "mu": 0.1508,
     "dist_km": [
-     1.988,
-     2.964,
-     5.846
+     1.992,
+     2.966,
+     5.839
     ],
-    "theil": 0.2158,
-    "grad_p": 0.926,
-    "iteraciones": 36
+    "theil": 0.2142,
+    "grad_p": 0.925,
+    "iteraciones": 35
    },
    {
     "mu": 0.5,
     "dist_km": [
-     1.037,
-     2.883,
-     6.615
+     1.038,
+     2.884,
+     6.612
     ],
-    "theil": 0.5745,
-    "grad_p": 0.925,
+    "theil": 0.5727,
+    "grad_p": 0.924,
     "iteraciones": 102
    },
    {
     "mu": 1.0,
     "dist_km": [
-     0.802,
+     0.803,
      2.895,
-     6.752
+     6.751
     ],
-    "theil": 0.7677,
-    "grad_p": 0.925,
-    "iteraciones": 229
+    "theil": 0.7667,
+    "grad_p": 0.924,
+    "iteraciones": 228
    }
   ],
   "rho": [
    {
     "rho": 0.0,
     "dist_km": [
-     1.988,
-     2.964,
-     5.846
+     1.992,
+     2.966,
+     5.839
     ],
-    "theil": 0.2158,
-    "grad_p": 0.926,
-    "iteraciones": 36
+    "theil": 0.2142,
+    "grad_p": 0.925,
+    "iteraciones": 35
    },
    {
     "rho": 10.0,
     "dist_km": [
-     2.375,
-     3.053,
-     5.44
+     2.381,
+     3.057,
+     5.429
     ],
-    "theil": 0.1403,
-    "grad_p": 0.652,
+    "theil": 0.1385,
+    "grad_p": 0.65,
     "iteraciones": 27
    },
    {
     "rho": 20.0,
     "dist_km": [
-     2.985,
-     3.168,
-     4.841
+     2.995,
+     3.173,
+     4.825
     ],
-    "theil": 0.0701,
-    "grad_p": 0.436,
+    "theil": 0.0686,
+    "grad_p": 0.433,
     "iteraciones": 20
    },
    {
     "rho": 31.0,
     "dist_km": [
-     3.947,
-     3.298,
-     3.984
+     3.96,
+     3.304,
+     3.965
     ],
-    "theil": 0.0334,
-    "grad_p": 0.248,
+    "theil": 0.0329,
+    "grad_p": 0.245,
     "iteraciones": 16
    },
    {
     "rho": 40.0,
     "dist_km": [
-     4.824,
-     3.36,
-     3.295
+     4.836,
+     3.366,
+     3.278
     ],
-    "theil": 0.0563,
-    "grad_p": 0.112,
+    "theil": 0.0568,
+    "grad_p": 0.109,
     "iteraciones": 18
    },
    {
     "rho": 54.0,
     "dist_km": [
-     5.925,
-     3.34,
-     2.595
+     5.932,
+     3.343,
+     2.584
     ],
-    "theil": 0.1503,
-    "grad_p": -0.062,
+    "theil": 0.1513,
+    "grad_p": -0.065,
     "iteraciones": 26
    },
    {
     "rho": 60.0,
     "dist_km": [
-     6.256,
-     3.314,
-     2.416
+     6.262,
+     3.317,
+     2.407
     ],
-    "theil": 0.1937,
-    "grad_p": -0.12,
+    "theil": 0.1947,
+    "grad_p": -0.123,
     "iteraciones": 31
    }
   ]
@@ -342,29 +342,29 @@
   "grilla": [
    {
     "n_celdas": 101,
-    "theil": 0.2136,
+    "theil": 0.212,
     "dist_km": [
-     2.033,
-     2.985,
-     5.846
+     2.037,
+     2.987,
+     5.838
     ]
    },
    {
     "n_celdas": 201,
-    "theil": 0.2158,
+    "theil": 0.2142,
     "dist_km": [
-     1.988,
-     2.964,
-     5.846
+     1.992,
+     2.966,
+     5.839
     ]
    },
    {
     "n_celdas": 401,
-    "theil": 0.2171,
+    "theil": 0.2155,
     "dist_km": [
-     1.966,
-     2.952,
-     5.846
+     1.97,
+     2.955,
+     5.839
     ]
    }
   ],
@@ -372,33 +372,33 @@
    {
     "largo_km": 10.0,
     "dist_km": [
-     2.404,
-     3.05,
-     5.425
+     2.408,
+     3.054,
+     5.416
     ],
-    "theil": 0.1273,
+    "theil": 0.1261,
     "grad_p": 0.968,
     "iteraciones": 26
    },
    {
     "largo_km": 20.0,
     "dist_km": [
-     1.988,
-     2.964,
-     5.846
+     1.992,
+     2.966,
+     5.839
     ],
-    "theil": 0.2158,
-    "grad_p": 0.926,
-    "iteraciones": 36
+    "theil": 0.2142,
+    "grad_p": 0.925,
+    "iteraciones": 35
    },
    {
     "largo_km": 40.0,
     "dist_km": [
-     1.559,
+     1.563,
      2.855,
-     6.313
+     6.31
     ],
-    "theil": 0.3592,
+    "theil": 0.3578,
     "grad_p": 0.788,
     "iteraciones": 57
    }
@@ -414,23 +414,23 @@
     "v7": {
      "rho": 54.0,
      "dist_km": [
-      5.925,
-      3.34,
-      2.595
+      5.932,
+      3.343,
+      2.584
      ],
-     "theil": 0.1503,
-     "grad_p": -0.062,
+     "theil": 0.1513,
+     "grad_p": -0.065,
      "iteraciones": 26
     },
     "v6_equivalente": {
      "rho_en_v7": 54.0,
      "dist_km": [
-      5.925,
-      3.34,
-      2.595
+      5.932,
+      3.343,
+      2.584
      ],
-     "theil": 0.1503,
-     "grad_p": -0.062,
+     "theil": 0.1513,
+     "grad_p": -0.065,
      "iteraciones": 26
     }
    },
@@ -440,23 +440,23 @@
     "v7": {
      "rho": 54.0,
      "dist_km": [
-      5.925,
-      3.341,
-      2.593
+      5.932,
+      3.345,
+      2.583
      ],
-     "theil": 0.1504,
-     "grad_p": -0.062,
+     "theil": 0.1513,
+     "grad_p": -0.065,
      "iteraciones": 26
     },
     "v6_equivalente": {
      "rho_en_v7": 108.0,
      "dist_km": [
-      7.262,
-      3.324,
-      1.731
+      7.263,
+      3.326,
+      1.726
      ],
-     "theil": 0.4445,
-     "grad_p": -0.393,
+     "theil": 0.4453,
+     "grad_p": -0.395,
      "iteraciones": 78
     }
    },
@@ -466,23 +466,23 @@
     "v7": {
      "rho": 54.0,
      "dist_km": [
-      5.925,
-      3.341,
-      2.593
+      5.932,
+      3.344,
+      2.583
      ],
-     "theil": 0.1504,
-     "grad_p": -0.062,
+     "theil": 0.1514,
+     "grad_p": -0.065,
      "iteraciones": 26
     },
     "v6_equivalente": {
      "rho_en_v7": 216.0,
      "dist_km": [
       7.487,
-      3.516,
-      1.26
+      3.517,
+      1.259
      ],
-     "theil": 0.6691,
-     "grad_p": -0.597,
+     "theil": 0.6697,
+     "grad_p": -0.598,
      "iteraciones": 183
     }
    }
@@ -500,9 +500,9 @@
    500000.0
   ],
   "lambda_utiles_por_clp": [
-   0.000320323,
-   0.00064065,
-   0.00124125
+   0.000313794,
+   0.000627686,
+   0.001216167
   ],
   "alpha": 1.0,
   "rho": [
@@ -513,95 +513,95 @@
   "mu": 0.1508,
   "mu_formula": "1/√VIAJES_MES (constante MU_SUELO, schema v7)",
   "beta_h_por_clp": [
-   4.8290509214591493e-05,
-   9.658162145187213e-05,
-   0.00018712547822857453
+   4.730622543021738e-05,
+   9.462722491631908e-05,
+   0.00018334407370055252
   ],
   "escala_ruido_puja_clp_mes": [
-   20708,
-   10354,
-   5344
+   21139,
+   10568,
+   5454
   ],
   "VIAJES_MES": 44,
   "vot_transporte_clp_h": [
-   6200,
-   3100,
-   1600
+   6329,
+   3164,
+   1633
   ],
   "clp_por_util_de_accesibilidad": [
-   3122,
-   1561,
-   806
+   3187,
+   1593,
+   822
   ],
   "forma": "normal",
   "oferta_sigma_frac": 0.5,
   "vot_sobre_salario_hora_implicito": [
-   0.32,
-   0.37,
-   0.58
+   0.33,
+   0.38,
+   0.59
   ]
  },
  "escalas": {
   "por_estrato": [
    {
     "estrato": "alto",
-    "senal_accesibilidad_clp": 200102,
-    "ruido_clp": 20708,
-    "senal_sobre_ruido": 9.7,
-    "ruido_con_mu_1_clp": 3122,
-    "senal_sobre_ruido_con_mu_1": 64.1
+    "senal_accesibilidad_clp": 203255,
+    "ruido_clp": 21139,
+    "senal_sobre_ruido": 9.6,
+    "ruido_con_mu_1_clp": 3187,
+    "senal_sobre_ruido_con_mu_1": 63.8
    },
    {
     "estrato": "medio",
-    "senal_accesibilidad_clp": 137151,
-    "ruido_clp": 10354,
+    "senal_accesibilidad_clp": 139278,
+    "ruido_clp": 10568,
     "senal_sobre_ruido": 13.2,
-    "ruido_con_mu_1_clp": 1561,
-    "senal_sobre_ruido_con_mu_1": 87.9
+    "ruido_con_mu_1_clp": 1593,
+    "senal_sobre_ruido_con_mu_1": 87.4
    },
    {
     "estrato": "bajo",
-    "senal_accesibilidad_clp": 88292,
-    "ruido_clp": 5344,
+    "senal_accesibilidad_clp": 89790,
+    "ruido_clp": 5454,
     "senal_sobre_ruido": 16.5,
-    "ruido_con_mu_1_clp": 806,
-    "senal_sobre_ruido_con_mu_1": 109.6
+    "ruido_con_mu_1_clp": 822,
+    "senal_sobre_ruido_con_mu_1": 109.2
    }
   ],
-  "rango_T_medio_utiles_mes": 87.9,
+  "rango_T_medio_utiles_mes": 87.4,
   "rango_densidad_relativa": 1.463,
-  "rho_que_iguala_T": 60.1
+  "rho_que_iguala_T": 59.8
  },
  "reescala_mu": {
   "k": 0.1508,
   "rho_base": 20.0,
   "hev_mu_1_con_lambda_alpha_rho_por_k": {
-   "max_delta_Q": 1.2601031329495527e-14,
-   "max_delta_p_clp": 4.656612873077393e-10,
+   "max_delta_Q": 1.2323475573339238e-14,
+   "max_delta_p_clp": 1.862645149230957e-09,
    "max_delta_u_clp": 0.0
   },
   "hev_mu_1_con_solo_lambda_por_k": {
-   "max_delta_Q": 0.6057020013599796,
-   "max_delta_p_clp": 695946.3619773658,
-   "max_delta_u_clp": 150629.3940107911
+   "max_delta_Q": 0.6059494397303063,
+   "max_delta_p_clp": 712636.2968700924,
+   "max_delta_u_clp": 150300.9430747358
   },
   "cerrada_mu_1_con_lambda_alpha_rho_por_k": {
-   "max_delta_Q": 1.1213252548714081e-14,
-   "max_delta_p_clp": 0.0,
+   "max_delta_Q": 1.0769163338864018e-14,
+   "max_delta_p_clp": 4.656612873077393e-10,
    "max_delta_u_clp": 0.0
   },
   "parametros_equivalentes_con_mu_1": {
    "lambda": [
-    4.8290509214591493e-05,
-    9.658162145187213e-05,
-    0.00018712547822857453
+    4.730622543021738e-05,
+    9.462722491631908e-05,
+    0.00018334407370055252
    ],
    "alpha": 0.15075567228888181,
    "rho": 3.0151134457776365
   }
  },
  "rho_umbral": {
-  "rho_inversion": 31.2,
+  "rho_inversion": 31.03,
   "criterio": "d_alto = d_bajo",
   "dial_ui_max": 60.0
  },

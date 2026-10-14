@@ -234,11 +234,12 @@ def downs_thomson_por_unidad() -> dict:
     utilidad máxima, tolerancia 0,02 y 120 iteraciones).
     """
     out = {}
-    # `expected` con la parada de la aplicación (D8) y tope 80: con una pista
-    # necesita 41 iteraciones, una más que el tope de la app, y es la referencia
-    # de todos los Δ. Todo o nada con la parada del informe: no equilibra (D9b)
-    # y se reporta con su veredicto.
-    for metodo, tol, max_iter in (("expected", None, 80), ("todo_o_nada", 0.02, 120)):
+    # `expected` con la parada de la aplicación (D8) y el tope máximo del
+    # núcleo, 100: sin teletrabajo por defecto (oct-2026) una pista no converge
+    # ni así —la brecha baja como 1/n— y es la referencia de todos los Δ, así que
+    # se reporta su brecha. Todo o nada con la parada del informe: no equilibra
+    # (D9b) y se reporta con su veredicto.
+    for metodo, tol, max_iter in (("expected", None, 100), ("todo_o_nada", 0.02, 120)):
         filas = []
         for pistas in (1, 2, 3, 4, 6):
             sim = base._config_web()
@@ -264,6 +265,7 @@ def downs_thomson_por_unidad() -> dict:
                     "num_pistas": pistas,
                     "iteraciones": len(trace.iteraciones),
                     "convergio": bool(trace.converged),
+                    "brecha_final_min": round(float(trace.gap_final_min), 3),
                     "metro_pct": round(100.0 * a["viajes_por_modo"]["Metro"] / n, 2),
                     "exc_conductual_por_viajero": round(emparejado / n, 1),
                     "exc_social_por_viajero": round(a["excedente_social_total_clp"] / n, 1),

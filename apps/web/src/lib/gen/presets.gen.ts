@@ -93,7 +93,7 @@ export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
     num_pistas: 2,
     num_estaciones: 10,
     bencina: 120,
-    peaje: 150,
+    peaje: 275,
     cap_tren: 1000,
     cap_bici: 4000,
     frec_max: 40,
