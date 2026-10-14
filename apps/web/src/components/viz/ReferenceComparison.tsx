@@ -341,12 +341,12 @@ export function ReferenceComparison({
         </p>
       )}
       {!lsOk && (
-        <p className="mt-1 text-[10px] leading-snug text-[var(--accent)]">
+        <p className="mt-1 text-[10px] leading-snug text-[var(--alerta)]">
           {t("agg.logsum_incomparable")}
         </p>
       )}
       {!mismaMedida && (
-        <p className="mt-1 text-[10px] leading-snug text-[var(--accent)]">
+        <p className="mt-1 text-[10px] leading-snug text-[var(--alerta)]">
           {t("agg.medida_incomparable")}
         </p>
       )}

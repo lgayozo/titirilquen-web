@@ -765,9 +765,10 @@
     },
     "legend": {
       "scale": "Saturation v/c",
-      "free": "free · 0",
-      "moderate": "loaded · 0.5",
-      "saturated": "saturated · ≥1"
+      "free": "free · < 0.5",
+      "moderate": "loaded · 0.5–0.85",
+      "near": "near capacity · 0.85–1",
+      "saturated": "over capacity · > 1"
     }
   },
   "flowchart": {

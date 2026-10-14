@@ -173,7 +173,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
       {config.assignment === "todo_o_nada" && (
         <p
           className="text-[11px] leading-snug"
-          style={{ marginTop: -6, color: "var(--s1)" }}
+          style={{ marginTop: -6, color: "var(--alerta)" }}
         >
           {t("demand_inspector.todo_o_nada_notice")}
         </p>

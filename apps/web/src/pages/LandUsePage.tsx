@@ -15,6 +15,7 @@ import { StrataHeatmap } from "@/components/viz/StrataHeatmap";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { resolverUsoDeSuelo } from "@/lib/api";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
+import { COLOR_ESTRATO } from "@/lib/modos";
 import { isLandUseStale, useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
@@ -162,7 +163,7 @@ export function LandUsePage() {
     // para comparar cifras. El Theil también viene del núcleo (D-38).
     const theil = result.theil;
     const STR = ["alto", "medio", "bajo"];
-    const VAR = ["var(--s1)", "var(--s2)", "var(--s3)"];
+    const VAR = ([1, 2, 3] as const).map((h) => COLOR_ESTRATO[h]);
     return [
       ...[0, 1, 2].map((k) => {
         const dist = result.dist_media_km[k] ?? 0;
@@ -226,7 +227,7 @@ export function LandUsePage() {
         {error && (
           <div
             className="callout"
-            style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}
+            style={{ borderLeftColor: "var(--error)", marginTop: 12 }}
           >
             {error}
           </div>

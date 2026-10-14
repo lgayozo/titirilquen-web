@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { COLOR_ESTRATO } from "@/lib/modos";
 
 interface StratumDistributionProps {
   /** Asignación discreta (muestreada) de hogares por celda. parcelas[i] = lista
@@ -28,11 +29,7 @@ interface StratumDistributionProps {
   xLayout?: { marginLeft: number; marginRight: number; minWidth: number };
 }
 
-const STRATUM_VAR: Record<number, string> = {
-  1: "var(--s1)",
-  2: "var(--s2)",
-  3: "var(--s3)",
-};
+const STRATUM_VAR: Record<number, string> = COLOR_ESTRATO;
 
 // Mismo encuadre que CityShapePreview: el resultado es la misma silueta de la
 // ciudad (la oferta), ahora rellena con los colores de estrato.

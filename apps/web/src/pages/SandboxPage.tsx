@@ -41,6 +41,7 @@ import { agregadosDe } from "@/lib/agregados";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { simularTransporte } from "@/lib/api";
 import { calcularFlujo } from "@/lib/derivados";
+import { COLOR_ESTRATO, COLOR_MODO, COLOR_MODO_MINUSCULA } from "@/lib/modos";
 import type { Modo } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
 import { isResultStale, useSimulationStore } from "@/store/simulationStore";
@@ -531,17 +532,8 @@ export function SandboxPage() {
   const avgStats = useMemo(() => {
     const agents = result?.agentes;
     if (!agents || !lastIter) return null;
-    const MODE_C: Record<string, string> = {
-      Auto: "var(--auto)",
-      Metro: "var(--metro)",
-      Bici: "var(--bici)",
-      Caminata: "var(--walk)",
-    };
-    const STR_C: Record<number, string> = {
-      1: "var(--s1)",
-      2: "var(--s2)",
-      3: "var(--s3)",
-    };
+    const MODE_C: Record<string, string> = COLOR_MODO;
+    const STR_C: Record<number, string> = COLOR_ESTRATO;
     const timeOf = (a: (typeof agents)[number]): number | null => {
       const c = a.celda_origen;
       switch (a.modo_elegido) {
@@ -673,13 +665,7 @@ export function SandboxPage() {
      *  `constantes.MODOS`. El teletrabajo no es una alternativa del mismo
      *  conjunto: se decide antes y no viaja. */
     const MODOS_FISICOS = ["Auto", "Metro", "Bici", "Caminata"] as const;
-    const MODE_COLOR: Record<string, string> = {
-      Auto: "var(--auto)",
-      Metro: "var(--metro)",
-      Bici: "var(--bici)",
-      Caminata: "var(--walk)",
-      Teletrabajo: "var(--tele)",
-    };
+    const MODE_COLOR: Record<string, string> = COLOR_MODO;
     const reparto = MODE_ORDER.map((m) => ({
       modo: m,
       label: t(`modes.${m.toLowerCase()}`),
@@ -950,7 +936,7 @@ export function SandboxPage() {
         {error && (
           <div
             className="callout"
-            style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}
+            style={{ borderLeftColor: "var(--error)", marginTop: 12 }}
           >
             {error}
           </div>
@@ -1037,32 +1023,27 @@ export function SandboxPage() {
             )}
 
             <div className="ribbon-legend">
-              {(
-                [
-                  { m: "auto", c: "var(--auto)" },
-                  { m: "metro", c: "var(--metro)" },
-                  { m: "bici", c: "var(--bici)" },
-                  { m: "caminata", c: "var(--walk)" },
-                ] as const
-              ).map(({ m, c }) => (
-                <span
-                  key={m}
-                  className="sw"
-                  style={
-                    {
-                      "--c": c,
-                      opacity:
-                        effHeatMode === "todos" ||
-                        effHeatMode === m ||
-                        (effHeatMode === "espera" && m === "metro")
-                          ? 1
-                          : 0.4,
-                    } as React.CSSProperties
-                  }
-                >
-                  {t(`modes.${m}`)}
-                </span>
-              ))}
+              {(["auto", "metro", "bici", "caminata"] as const)
+                .map((m) => ({ m, c: COLOR_MODO_MINUSCULA[m] }))
+                .map(({ m, c }) => (
+                  <span
+                    key={m}
+                    className="sw"
+                    style={
+                      {
+                        "--c": c,
+                        opacity:
+                          effHeatMode === "todos" ||
+                          effHeatMode === m ||
+                          (effHeatMode === "espera" && m === "metro")
+                            ? 1
+                            : 0.4,
+                      } as React.CSSProperties
+                    }
+                  >
+                    {t(`modes.${m}`)}
+                  </span>
+                ))}
               <span style={{ marginLeft: "auto", textTransform: "none" }}>
                 {t("hero.stats_line", {
                   total:
@@ -1086,8 +1067,8 @@ export function SandboxPage() {
           <p
             className="mb-2 font-fig text-[11px] uppercase leading-snug tracking-[0.08em]"
             style={{
-              color: "var(--s1)",
-              border: "1px solid var(--s1)",
+              color: "var(--alerta)",
+              border: "1px solid var(--alerta)",
               padding: "6px 10px",
             }}
             role="status"
@@ -1163,7 +1144,7 @@ export function SandboxPage() {
                 <p
                   className="mb-2 text-[11px] leading-snug"
                   style={{
-                    color: convergencia.ok ? "var(--ink-2)" : "var(--s1)",
+                    color: convergencia.ok ? "var(--ink-2)" : "var(--alerta)",
                   }}
                 >
                   {convergencia.sinCriterio

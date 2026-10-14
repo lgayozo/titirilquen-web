@@ -4,18 +4,22 @@ test.describe("tema e idioma", () => {
   test("cambia el tema vía el botón cíclico", async ({ page }) => {
     await page.goto("/");
     const html = page.locator("html");
-    // Un solo botón que cicla paper → journal → dark → paper.
+    // Un solo botón que cicla sistema → claro → oscuro → sistema. Sin
+    // preferencia guardada arranca en «sistema», que en Playwright es claro.
     const theme = page
       .getByRole("banner")
       .getByRole("button", { name: "Tema" });
+    await expect(html).toHaveAttribute("data-theme", "paper");
 
     await theme.click();
-    await expect(html).toHaveAttribute("data-theme", "journal");
+    await expect(theme).toHaveAttribute("title", "Claro → Oscuro");
+    await expect(html).toHaveAttribute("data-theme", "paper");
 
     await theme.click();
     await expect(html).toHaveAttribute("data-theme", "dark");
 
     await theme.click();
+    await expect(theme).toHaveAttribute("title", "Sistema → Claro");
     await expect(html).toHaveAttribute("data-theme", "paper");
   });
 

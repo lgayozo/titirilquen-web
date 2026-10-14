@@ -70,6 +70,8 @@ export function StrataHeatmap({
     const cs = getComputedStyle(el);
     setColors(
       [1, 2, 3].map((k) =>
+        // Respaldo si el token no resolvió (no debería): hexToRgb pide un hex.
+        // eslint-disable-next-line no-restricted-syntax
         hexToRgb(cs.getPropertyValue(`--s${k}`) || "#888888"),
       ) as [number, number, number][],
     );

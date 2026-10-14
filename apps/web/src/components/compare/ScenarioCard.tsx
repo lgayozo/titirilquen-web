@@ -194,7 +194,7 @@ export function ScenarioCard({
           <button
             type="button"
             onClick={() => remove(scenario.id)}
-            className="rounded p-1 text-[var(--muted)] hover:bg-[var(--paper-2)] hover:text-[var(--metro)]"
+            className="rounded p-1 text-[var(--muted)] hover:bg-[var(--paper-2)] hover:text-[var(--error)]"
             aria-label={t("actions.remove")}
           >
             <X className="h-3.5 w-3.5" aria-hidden />
@@ -308,7 +308,7 @@ export function ScenarioCard({
       )}
 
       {scenario.error && (
-        <div className="mt-2 rounded border-l-2 border-[var(--metro)] bg-[var(--paper-2)] p-2 text-[11px] text-[var(--metro)]">
+        <div className="mt-2 rounded border-l-2 border-[var(--error)] bg-[var(--paper-2)] p-2 text-[11px] text-[var(--error)]">
           {scenario.error}
         </div>
       )}
@@ -384,10 +384,10 @@ function StatusBadge({ status }: { status: Scenario["status"] }) {
   };
   const classes: Record<Scenario["status"], string> = {
     empty: "bg-[var(--paper-2)] text-[var(--muted)]",
-    configured: "bg-[var(--paper-2)] text-[var(--walk)]",
-    running: "bg-[var(--paper-2)] text-[var(--auto)]",
-    done: "bg-[var(--paper-2)] text-[var(--bici)]",
-    error: "bg-[var(--paper-2)] text-[var(--metro)]",
+    configured: "bg-[var(--paper-2)] text-[var(--ink-2)]",
+    running: "bg-[var(--paper-2)] text-[var(--ink)]",
+    done: "bg-[var(--paper-2)] text-[var(--mejora)]",
+    error: "bg-[var(--paper-2)] text-[var(--error)]",
   };
   return (
     <span

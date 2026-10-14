@@ -79,7 +79,10 @@ export function ScenarioFlowComparison({
   }
 
   const max = Math.max(1, ...curves.flatMap((c) => c.data));
-  const colors = ["#0ea5e9", "#ef4444", "#10b981", "#f59e0b"];
+  // El escenario no es un modo ni un estrato: se distingue por el trazo, en
+  // tinta (B1). Antes eran cuatro colores fijos que no seguían el tema y que
+  // chocaban con los de los modos de la misma página.
+  const dashes = [undefined, "6 3", "1.5 2.5", "7 2.5 1.5 2.5"];
 
   return (
     <div className={cn("rounded border border-[var(--rule)] p-3", className)}>
@@ -91,10 +94,17 @@ export function ScenarioFlowComparison({
         </span>
         {curves.map((c, i) => (
           <span key={c.id} className="flex items-center gap-1">
-            <span
-              className="inline-block h-2 w-2 rounded-sm"
-              style={{ backgroundColor: colors[i % colors.length] }}
-            />
+            <svg width={22} height={8} aria-hidden>
+              <line
+                x1={0}
+                y1={4}
+                x2={22}
+                y2={4}
+                stroke="var(--ink)"
+                strokeWidth={1.5}
+                strokeDasharray={dashes[i % dashes.length]}
+              />
+            </svg>
             {c.name}
           </span>
         ))}
@@ -110,10 +120,10 @@ export function ScenarioFlowComparison({
           y1={0}
           x2={50}
           y2={100}
-          stroke="#ef4444"
-          strokeWidth={0.4}
-          strokeDasharray="1 1"
-          opacity={0.5}
+          stroke="var(--muted)"
+          strokeWidth={1}
+          strokeDasharray="2 3"
+          vectorEffect="non-scaling-stroke"
         />
         {curves.map((c, i) => {
           const N = c.data.length;
@@ -128,9 +138,10 @@ export function ScenarioFlowComparison({
               key={c.id}
               d={pts.join(" ")}
               fill="none"
-              stroke={colors[i % colors.length]}
-              strokeWidth={0.8}
-              opacity={0.85}
+              stroke="var(--ink)"
+              strokeWidth={1.5}
+              strokeDasharray={dashes[i % dashes.length]}
+              vectorEffect="non-scaling-stroke"
             />
           );
         })}

@@ -376,7 +376,11 @@ function Stat({
   good?: boolean;
   warn?: boolean;
 }) {
-  const valColor = good ? "var(--bici)" : warn ? "var(--accent)" : "var(--ink)";
+  const valColor = good
+    ? "var(--mejora)"
+    : warn
+      ? "var(--alerta)"
+      : "var(--ink)";
   return (
     <div
       style={{

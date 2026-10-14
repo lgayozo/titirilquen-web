@@ -1,8 +1,9 @@
 /**
- * Sistema de temas editorial: `paper` (default), `dark`, `journal`, `system`.
+ * Temas: `paper` (claro), `dark` y `system`, que elige entre los dos según el
+ * SO. Hasta oct-2026 había un tercero, `journal`, retirado en B1: caminata
+ * compartía su color con el acento y bici con «mejora».
  *
- * Aplicamos el tema mediante `data-theme` en `<html>` — no usamos `.dark`
- * porque queremos 3 paletas distintas, no solo dos. Tailwind está configurado
+ * Aplicamos el tema mediante `data-theme` en `<html>`. Tailwind está configurado
  * con `darkMode: ['selector', '[data-theme="dark"]']` para que las clases
  * `dark:` se activen cuando el tema efectivo es `dark`.
  *
@@ -10,23 +11,17 @@
  * `dark` según la media query del SO.
  */
 
-export type Theme = "paper" | "dark" | "journal" | "system";
-export type ResolvedTheme = "paper" | "dark" | "journal";
+export type Theme = "paper" | "dark" | "system";
+export type ResolvedTheme = "paper" | "dark";
 
 const STORAGE_KEY = "titirilquen.theme";
 
 export function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "system";
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (
-    raw === "paper" ||
-    raw === "dark" ||
-    raw === "journal" ||
-    raw === "system"
-  )
-    return raw;
-  // Compat con valores antiguos
-  if (raw === "light") return "paper";
+  if (raw === "paper" || raw === "dark" || raw === "system") return raw;
+  // Compat con valores antiguos: `journal` (retirado en B1) era claro.
+  if (raw === "light" || raw === "journal") return "paper";
   return "system";
 }
 

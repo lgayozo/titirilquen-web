@@ -230,6 +230,12 @@ export function NetworkDiagram({
             onMouseLeave={onLeave}
           />
         ))}
+        <MarcaSobreCapacidad
+          vcs={vcAuto}
+          x0={MARGIN.left}
+          cellWidth={cellWidth}
+          yBase={yAuto + bandH - 1}
+        />
 
         {/* División de pistas (líneas horizontales suaves) */}
         {Array.from({
@@ -276,6 +282,12 @@ export function NetworkDiagram({
             onMouseLeave={onLeave}
           />
         ))}
+        <MarcaSobreCapacidad
+          vcs={vcMetro}
+          x0={MARGIN.left}
+          cellWidth={cellWidth}
+          yBase={yMetro + bandH - 1}
+        />
 
         {vcBici.map((vc, i) => (
           <rect
@@ -299,6 +311,12 @@ export function NetworkDiagram({
             onMouseLeave={onLeave}
           />
         ))}
+        <MarcaSobreCapacidad
+          vcs={vcBici}
+          x0={MARGIN.left}
+          cellWidth={cellWidth}
+          yBase={yBici + bandH - 1}
+        />
 
         {/* Caminata: intensidad de demanda (sin v/c) ----------------------- */}
         {snapshot.demanda_caminata.map((d, i) => (
@@ -466,19 +484,60 @@ function Row({
   );
 }
 
+/** Las cuatro clases de v/c, en el orden de `colorForVC`. */
+const CLASES_VC = [
+  { color: "var(--vc0)", clave: "free" },
+  { color: "var(--vc1)", clave: "moderate" },
+  { color: "var(--vc2)", clave: "near" },
+  { color: "var(--vc3)", clave: "saturated" },
+] as const;
+
 function Legend({ t }: { t: (k: string) => string }) {
   return (
     <div className="network-legend">
       <span className="nl-label">{t("network.legend.scale")}</span>
-      <div
-        className="nl-gradient"
-        role="img"
-        aria-label={t("network.legend.scale")}
-      />
-      <span className="nl-lo">{t("network.legend.free")}</span>
-      <span className="nl-mid">{t("network.legend.moderate")}</span>
-      <span className="nl-hi">{t("network.legend.saturated")}</span>
+      {CLASES_VC.map(({ color, clave }) => (
+        <span key={clave} className="nl-item">
+          <i
+            className={cn("nl-sw", clave === "saturated" && "nl-sw--sobre")}
+            style={{ background: color }}
+            aria-hidden
+          />
+          {t(`network.legend.${clave}`)}
+        </span>
+      ))}
     </div>
+  );
+}
+
+/** Raya en tinta al pie de cada tramo sobre capacidad: el color verde→rojo no
+ *  basta con daltonismo, así que lo que importa lleva un segundo canal. */
+function MarcaSobreCapacidad({
+  vcs,
+  x0,
+  cellWidth,
+  yBase,
+}: {
+  vcs: number[];
+  x0: number;
+  cellWidth: number;
+  yBase: number;
+}) {
+  return (
+    <g pointerEvents="none">
+      {vcs.map((vc, i) =>
+        vc > 1 ? (
+          <rect
+            key={i}
+            x={x0 + i * cellWidth}
+            y={yBase - 3}
+            width={Math.max(cellWidth, 0.5)}
+            height={3}
+            fill="var(--ink)"
+          />
+        ) : null,
+      )}
+    </g>
   );
 }
 
@@ -522,20 +581,17 @@ function BandFrame({
 }
 
 /**
- * Gradiente continuo verde→naranja→rojo en función de v/c ∈ [0, 1+].
- * Usa `color-mix` para interpolar entre las CSS vars de los modos, así el
- * sistema responde a los 3 temas sin hardcodear RGB.
+ * Clase de saturación, con la convención de tráfico verde→rojo: libre < 0,5 ≤
+ * cargado < 0,85 ≤ cerca de capacidad ≤ 1 < sobre capacidad. Clases discretas
+ * y no un degradado: se leen contra la leyenda. Hasta B1 el degradado mezclaba
+ * los colores de bici, auto y metro, así que en la figura de la red el «verde»
+ * de la bici también significaba «libre».
  */
 function colorForVC(vc: number): string {
-  const v = Math.max(0, Math.min(1.2, vc));
-  if (v <= 0.5) {
-    const t = v / 0.5;
-    const pct = Math.round(t * 100);
-    return `color-mix(in srgb, var(--bici) ${100 - pct}%, var(--auto))`;
-  }
-  const t = Math.min(1, (v - 0.5) / 0.5);
-  const pct = Math.round(t * 100);
-  return `color-mix(in srgb, var(--auto) ${100 - pct}%, var(--metro))`;
+  if (vc < 0.5) return "var(--vc0)";
+  if (vc < 0.85) return "var(--vc1)";
+  if (vc <= 1) return "var(--vc2)";
+  return "var(--vc3)";
 }
 
 /**

@@ -69,20 +69,20 @@ export function ExportableFigure({
           aria-label={`${t("actions.export_svg")}: ${title}`}
           aria-expanded={menuOpen}
           aria-haspopup="menu"
-          className="rounded bg-slate-900/80 p-1.5 text-white backdrop-blur hover:bg-slate-900 dark:bg-slate-100/80 dark:text-slate-900 dark:hover:bg-slate-100"
+          className="rounded border border-[var(--rule)] bg-[var(--paper)] p-1.5 text-[var(--ink)] hover:bg-[var(--paper-2)]"
         >
           <Download className="h-3.5 w-3.5" aria-hidden />
         </button>
         {menuOpen && (
           <div
             role="menu"
-            className="absolute right-0 top-full mt-1 min-w-[120px] overflow-hidden rounded border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900"
+            className="absolute right-0 top-full mt-1 min-w-[120px] overflow-hidden rounded border border-[var(--rule)] bg-[var(--paper)] text-[var(--ink)] shadow-lg"
           >
             <button
               type="button"
               role="menuitem"
               onClick={onSvg}
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs hover:bg-[var(--paper-2)]"
             >
               <FileCode2 className="h-3.5 w-3.5" aria-hidden />
               SVG
@@ -91,7 +91,7 @@ export function ExportableFigure({
               type="button"
               role="menuitem"
               onClick={() => void onPng()}
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs hover:bg-[var(--paper-2)]"
             >
               <FileImage className="h-3.5 w-3.5" aria-hidden />
               PNG

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { COLOR_MODO } from "@/lib/modos";
 import type { RepartoModal } from "@/lib/types-v2";
 
 /** Una fila a graficar: un estrato o el agregado del sistema. */
@@ -23,14 +24,7 @@ const MODE_ORDER: (keyof RepartoModal)[] = [
   "Teletrabajo",
   "Varado",
 ];
-const MODE_COLOR: Record<keyof RepartoModal, string> = {
-  Auto: "var(--auto)",
-  Metro: "var(--metro)",
-  Bici: "var(--bici)",
-  Caminata: "var(--walk)",
-  Teletrabajo: "var(--tele)",
-  Varado: "var(--muted)",
-};
+const MODE_COLOR: Record<keyof RepartoModal, string> = COLOR_MODO;
 
 const LABEL_W = 88;
 const ROW_H = 28;

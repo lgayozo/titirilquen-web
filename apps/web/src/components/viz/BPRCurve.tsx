@@ -86,7 +86,7 @@ export function BPRCurve({
         y={pad.top - 2}
         fontSize={7}
         textAnchor="middle"
-        className="fill-slate-500"
+        className="fill-[var(--muted)]"
       >
         q/C=1
       </text>
@@ -97,7 +97,7 @@ export function BPRCurve({
         y1={pad.top + plotH}
         x2={pad.left + plotW}
         y2={pad.top + plotH}
-        className="stroke-slate-400"
+        className="stroke-[var(--muted)]"
         strokeWidth={0.5}
       />
       <line
@@ -105,13 +105,13 @@ export function BPRCurve({
         y1={pad.top}
         x2={pad.left}
         y2={pad.top + plotH}
-        className="stroke-slate-400"
+        className="stroke-[var(--muted)]"
         strokeWidth={0.5}
       />
 
       <path
         d={path}
-        className="fill-none stroke-slate-900 dark:stroke-slate-100"
+        className="fill-none stroke-[var(--ink)]"
         strokeWidth={1.2}
       />
 
@@ -123,7 +123,7 @@ export function BPRCurve({
             cx={xScale(Math.min(operatingRatio!, xMax))}
             cy={yScale(opT)}
             r={2.5}
-            className="fill-red-500"
+            className="fill-[var(--auto)]"
           />
         </g>
       )}
@@ -134,7 +134,7 @@ export function BPRCurve({
         y={svgH - 4}
         fontSize={7}
         textAnchor="middle"
-        className="fill-slate-500"
+        className="fill-[var(--muted)]"
       >
         q / C
       </text>
@@ -143,7 +143,7 @@ export function BPRCurve({
         y={pad.top + plotH / 2}
         fontSize={7}
         textAnchor="middle"
-        className="fill-slate-500"
+        className="fill-[var(--muted)]"
         transform={`rotate(-90, 8, ${pad.top + plotH / 2})`}
       >
         t / t₀

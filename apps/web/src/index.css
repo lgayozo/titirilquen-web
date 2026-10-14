@@ -3,45 +3,62 @@
 @tailwind utilities;
 
 /* =============================================================================
- * Titirilquen — editorial design system (palette "paper")
- * Fuente: Claude Design handoff · Titirilquen Dashboard.html
+ * Titirilquen — sistema visual (oct-2026, tramo B1)
+ *
+ * Regla: el color pertenece a los datos. El chrome (fondos, bordes, botones,
+ * enlaces, foco) va en grises de plano y tinta, sin tono propio; el tono queda
+ * para cuatro familias de variables —modo, estrato, saturación v/c y Δ— y
+ * para dos estados (alerta, error). Ninguna familia presta su color a otra.
+ * Dos temas, claro (`paper`) y oscuro; «sistema» elige entre ellos.
  * ==========================================================================*/
 
 :root {
-  /* Paleta editorial */
-  --paper: #f4f1e8;
-  --paper-2: #ebe6d6;
-  --ink: #1a1814;
-  --ink-2: #3a3630;
-  --muted: #6b655a;
-  --rule: #c9c2af;
-  --accent: #b2431a;
+  /* Neutros: gris de plano levemente verdoso. */
+  --paper: #f6f7f5;
+  --paper-2: #eceeea;
+  --ink: #1b1f22;
+  --ink-2: #3d4449;
+  --muted: #646c72;
+  --rule: #d3d8d4;
+  /* El rol «énfasis» del chrome es la tinta: sin tono propio (B1). El nombre
+     queda por los ~150 usos; antes era terracota. */
+  --accent: var(--ink);
 
-  /* Modos */
-  --auto: #c05621;
-  --metro: #7a1f1f;
-  --bici: #2d5a3d;
-  --walk: #2a4d7a;
-  --tele: #8a8578;
+  /* Modos — categórica segura para daltonismo (base Okabe-Ito, ajustada al
+     fondo). `--walk` es caminata. */
+  --auto: #d55e00;
+  --metro: #0072b2;
+  --bici: #00876a;
+  --walk: #b5608f;
+  --tele: #9aa0a4;
 
-  /* Dirección de un Δ. Son SEMÁNTICOS, no de marca ni de modo: «mejora» tomaba
-     prestado --bici, que es el color del modo bicicleta —o sea que en una
-     figura ese verde significa otra cosa—, y «empeora» tomaba --accent, que en
-     el tema `journal` es AZUL. La leyenda dice «verde = mejora, rojo =
-     empeora» y en ese tema no era verdad. Con tokens propios, retematizar no
-     puede volver a cambiarles el significado. El signo (+/−) va igual en el
-     número: la dirección nunca depende sólo del color. */
-  --mejora: #2f6b43;
-  --empeora: #a02c22;
+  /* Dirección de un Δ. SEMÁNTICOS, no de modo: van en texto, siempre con el
+     signo o ▲▼, nunca como relleno de una figura —así no se confunden con la
+     bici ni con el auto aunque el tono se parezca—. */
+  --mejora: #276749;
+  --empeora: #b42318;
 
-  /* Estratos — rampa ciruela/malva apagada (alto→bajo), cálida y desaturada
-     para encajar con la paleta impresa, sin colisión con los colores de modo. */
-  --s1: #5a3a4a;
-  --s2: #8a6478;
-  --s3: #b697a6;
+  /* Estados de la interfaz: un aviso que pide atención y un error. Antes los
+     avisos tomaban prestado el color del estrato alto o del metro. */
+  --alerta: #8a5a00;
+  --error: #b42318;
 
-  /* Emisiones CO₂ — gris pizarra frío, distinto de los modos y del gris cálido
-     de teletrabajo; no representa un modo ni un estrato. */
+  /* Estratos — ordinal en un solo tono tierra (alto→bajo), que no compite con
+     ningún modo. En los dos temas el alto es el de mayor contraste. */
+  --s1: #4a3426;
+  --s2: #8c6a4f;
+  --s3: #c9ad8f;
+
+  /* Saturación v/c — convención de tráfico, verde a rojo, con cortes en 0,5,
+     0,85 y 1. No es segura para daltonismo por sí sola: la luminosidad no se
+     repite entre clases vecinas y lo sobre capacidad lleva además una marca en
+     tinta y el máximo escrito. */
+  --vc0: #7cbf5a;
+  --vc1: #e8c035;
+  --vc2: #e2742a;
+  --vc3: #b8322a;
+
+  /* Emisiones CO₂ — gris pizarra; no es un modo ni un estrato. */
   --co2: #4d5358;
 
   /* Tipografías */
@@ -61,47 +78,30 @@
 }
 
 [data-theme="dark"] {
-  --paper: #0e0d0b;
-  --paper-2: #17151f;
-  --ink: #f0ebe0;
-  --ink-2: #c8c2b5;
-  --muted: #7d7667;
-  --rule: #2b2822;
-  --accent: #e67545;
-  --auto: #e88b4a;
-  --metro: #e15555;
-  --bici: #4fb07a;
-  --walk: #5b8fd6;
-  --tele: #6f6a5e;
-  --mejora: #52b47d;
-  --empeora: #e8635b;
-  --s1: #c4a8b6;
-  --s2: #9c7286;
-  --s3: #6b475b;
+  --paper: #121416;
+  --paper-2: #1d2124;
+  --ink: #e8eae7;
+  --ink-2: #b9bfc2;
+  --muted: #8a9196;
+  --rule: #30353a;
+  --auto: #f07a3a;
+  --metro: #4aa3e0;
+  --bici: #3cc69a;
+  --walk: #e59ac4;
+  --tele: #7d8489;
+  --mejora: #5cc28c;
+  --empeora: #f07c70;
+  --alerta: #e0b04a;
+  --error: #f07c70;
+  --s1: #ead9c6;
+  --s2: #b49678;
+  --s3: #7a6250;
+  --vc0: #3f8f4a;
+  --vc1: #e9c23a;
+  --vc2: #f08a45;
+  --vc3: #f0564a;
   --co2: #99a0a6;
   color-scheme: dark;
-}
-
-[data-theme="journal"] {
-  --paper: #fafaf7;
-  --paper-2: #ededea;
-  --ink: #0a0a0a;
-  --ink-2: #2a2a2a;
-  --muted: #6a6a6a;
-  --rule: #d4d4d0;
-  --accent: #1a4d8f;
-  --auto: #8b6914;
-  --metro: #8b1a1a;
-  --bici: #1a5a2a;
-  --walk: #1a4d8f;
-  --tele: #8a8a8a;
-  --mejora: #1a5a2a;
-  --empeora: #a01818;
-  --s1: #4a2a3c;
-  --s2: #7d4f66;
-  --s3: #a97e92;
-  --co2: #4a5056;
-  color-scheme: light;
 }
 
 [data-density="compact"] {
@@ -1426,11 +1426,11 @@ table.cmp th {
 }
 
 .run-status-residual-value .trend-down {
-  color: var(--bici);
+  color: var(--mejora);
 }
 
 .run-status-residual-value .trend-up {
-  color: var(--accent);
+  color: var(--empeora);
 }
 
 .run-status-progress {
@@ -2183,15 +2183,15 @@ table.cmp th {
 }
 
 .nt-value--emph {
-  color: var(--metro);
+  color: var(--vc3);
   font-weight: 700;
 }
 
 .network-legend {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
+  gap: 6px 14px;
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--rule);
@@ -2206,41 +2206,23 @@ table.cmp th {
   letter-spacing: 0.1em;
 }
 
-.nl-gradient {
-  grid-column: 2 / -1;
-  grid-row: 1;
-  height: 10px;
-  border: 1px solid var(--rule);
-  background: linear-gradient(
-    to right,
-    var(--bici) 0%,
-    color-mix(in srgb, var(--bici) 50%, var(--auto)) 25%,
-    var(--auto) 50%,
-    color-mix(in srgb, var(--auto) 50%, var(--metro)) 75%,
-    var(--metro) 100%
-  );
-}
-
-.nl-lo,
-.nl-mid,
-.nl-hi {
-  grid-row: 2;
+.nl-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-variant-numeric: tabular-nums;
 }
 
-.nl-lo {
-  grid-column: 2;
-  text-align: left;
+.nl-sw {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border: 1px solid var(--rule);
 }
-.nl-mid {
-  grid-column: 3 / span 1;
-  text-align: center;
-  margin: 0 auto;
-}
-.nl-hi {
-  grid-column: 4 / -1;
-  text-align: right;
-  margin-left: auto;
+
+/* La misma marca en tinta que llevan los tramos sobre capacidad. */
+.nl-sw--sobre {
+  box-shadow: inset 0 -3px 0 var(--ink);
 }
 
 /* =============================================================================

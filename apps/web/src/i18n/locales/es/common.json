@@ -19,8 +19,6 @@
   },
   "theme": {
     "label": "Tema",
-    "paper": "Papel",
-    "journal": "Journal",
     "dark": "Oscuro",
     "system": "Sistema",
     "light": "Claro"

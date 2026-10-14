@@ -7,6 +7,7 @@ import { Panel } from "@/components/ui/Panel";
 import { votClpHora } from "@/lib/agregados";
 import { MU_SUELO, VIAJES_MES } from "@/lib/gen/constantes.gen";
 import { conHeterogeneidad, sDeDemanda } from "@/lib/heterogeneidadLambda";
+import { COLOR_ESTRATO } from "@/lib/modos";
 import type { StratumId } from "@/lib/types";
 import { useSimulationStore } from "@/store/simulationStore";
 
@@ -30,7 +31,7 @@ import { useSimulationStore } from "@/store/simulationStore";
 
 const STRATA: StratumId[] = [1, 2, 3];
 const STR = ["alto", "medio", "bajo"] as const;
-const VAR = ["var(--s1)", "var(--s2)", "var(--s3)"];
+const VAR = STRATA.map((h) => COLOR_ESTRATO[h]);
 
 const fmtMoney = (v: number) => `$${Math.round(v).toLocaleString("es-CL")}`;
 

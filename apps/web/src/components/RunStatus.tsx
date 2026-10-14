@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { COLOR_MODO } from "@/lib/modos";
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import { useSimulationStore } from "@/store/simulationStore";
 import type { IterationSnapshot, Modo } from "@/lib/types";
@@ -15,13 +16,7 @@ interface RunStatusProps {
   className?: string;
 }
 
-const MODE_CSS_VAR: Record<Modo, string> = {
-  Auto: "var(--auto)",
-  Metro: "var(--metro)",
-  Bici: "var(--bici)",
-  Caminata: "var(--walk)",
-  Teletrabajo: "var(--tele)",
-};
+const MODE_CSS_VAR: Record<Modo, string> = COLOR_MODO;
 
 const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
 
@@ -105,9 +100,9 @@ export function RunStatus({
 
   const dotColor =
     stage === "done"
-      ? "var(--bici)"
+      ? "var(--mejora)"
       : stage === "error"
-        ? "var(--metro)"
+        ? "var(--error)"
         : "var(--accent)";
 
   return (

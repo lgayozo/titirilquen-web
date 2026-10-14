@@ -20,7 +20,7 @@ import {
   MODOS,
   MODOS_CON_TELETRABAJO,
 } from "@/lib/gen/constantes.gen";
-import type { Modo } from "@/lib/types";
+import type { Modo, StratumId } from "@/lib/types";
 
 export { CORTE_BICI_MIN, CORTE_CAMINATA_MIN, MODOS, MODOS_CON_TELETRABAJO };
 
@@ -43,7 +43,7 @@ export const ORDEN_CON_VARADO: readonly CategoriaModal[] = [
 
 /**
  * Color de cada categoría. Los valores son variables CSS y no colores literales
- * porque el simulador tiene tres temas: la definición vive en `index.css`.
+ * porque el simulador tiene dos temas: la definición vive en `index.css`.
  */
 export const COLOR_MODO: Record<CategoriaModal, string> = {
   Auto: "var(--auto)",
@@ -62,6 +62,15 @@ export const COLOR_MODO_MINUSCULA: Record<string, string> = {
   bici: COLOR_MODO.Bici,
   caminata: COLOR_MODO.Caminata,
   teletrabajo: COLOR_MODO.Teletrabajo,
+};
+
+/** Color de cada estrato (1 = alto). Vive acá, junto al de los modos, para
+ *  que haya un solo mapa por familia de variables: antes cada figura de
+ *  estratos declaraba el suyo. */
+export const COLOR_ESTRATO: Record<StratumId, string> = {
+  1: "var(--s1)",
+  2: "var(--s2)",
+  3: "var(--s3)",
 };
 
 /**

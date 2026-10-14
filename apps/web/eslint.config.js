@@ -37,6 +37,35 @@ export default tseslint.config(
       ],
     },
   },
+  // B1: el color vive en los tokens de `index.css` (y sus mapas en
+  // `lib/modos.ts`). Un hex o una clase de paleta de Tailwind en un componente
+  // no sigue el tema y saltea la regla «el color pertenece a los datos».
+  // (Las regex de esquery no admiten el límite de palabra; de ahí el guion.)
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/lib/gen/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...["Literal[value=%s]", "TemplateElement[value.raw=%s]"].flatMap(
+          (sel) => [
+            {
+              selector: sel.replace("%s", "/#[0-9a-fA-F]{3,8}/"),
+              message: "Color fijo: usá un token de index.css (var(--…)).",
+            },
+            {
+              selector: sel.replace(
+                "%s",
+                "/-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-[0-9]{2,3}/",
+              ),
+              message:
+                "Clase de paleta de Tailwind: usá un token de index.css (p. ej. text-[var(--muted)]).",
+            },
+          ],
+        ),
+      ],
+    },
+  },
   // Los specs E2E corren en Node con APIs de Playwright.
   {
     files: ["e2e/**/*.ts"],

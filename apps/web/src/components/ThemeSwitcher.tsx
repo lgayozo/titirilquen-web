@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { BookOpen, Moon, Newspaper } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 
 import { watchSystemTheme, type Theme } from "@/lib/theme";
 import { useThemeStore } from "@/store/themeStore";
@@ -8,8 +8,8 @@ import { useThemeStore } from "@/store/themeStore";
 type Option = { value: Theme; icon: typeof Moon; labelKey: string };
 
 const OPTIONS: ReadonlyArray<Option> = [
-  { value: "paper", icon: Newspaper, labelKey: "theme.paper" },
-  { value: "journal", icon: BookOpen, labelKey: "theme.journal" },
+  { value: "system", icon: Monitor, labelKey: "theme.system" },
+  { value: "paper", icon: Sun, labelKey: "theme.light" },
   { value: "dark", icon: Moon, labelKey: "theme.dark" },
 ];
 
@@ -26,7 +26,7 @@ export function ThemeSwitcher() {
     return cancel;
   }, [syncSystem]);
 
-  // Un solo botón que cicla paper → journal → dark: tres targets menos en el
+  // Un solo botón que cicla sistema → claro → oscuro: tres targets menos en el
   // topbar. El título anuncia el tema actual y el siguiente.
   const idx = Math.max(
     0,

@@ -112,7 +112,7 @@ export function ScenarioToolbar() {
       {error && (
         <span
           className="ml-1 text-[10px]"
-          style={{ color: "var(--metro)" }}
+          style={{ color: "var(--error)" }}
           title={error}
         >
           ⚠

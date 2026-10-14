@@ -135,9 +135,11 @@ export function CoupledPage() {
   // ítems que dejaba un huérfano en la segunda fila): ciudad+suelo (3) arriba,
   // transporte (7) abajo.
   const { kpisCityLand, kpisTransport } = useMemo(() => {
+    // Grupos de palancas: chrome, sin tono (B1). Antes «ciudad» usaba el
+    // color del estrato medio.
     const groupColor: Record<string, string> = {
-      city: "var(--s2)",
-      land_use: "var(--accent)",
+      city: "var(--muted)",
+      land_use: "var(--ink-2)",
       transport: "var(--ink)",
     };
     const all = describePresetParams(sim, landUse, tS).map((p) => ({
@@ -265,7 +267,7 @@ export function CoupledPage() {
         {error && (
           <div
             className="callout"
-            style={{ borderLeftColor: "var(--metro)", marginTop: 12 }}
+            style={{ borderLeftColor: "var(--error)", marginTop: 12 }}
           >
             <strong>{tS("coupled.error")}:</strong> {error}
           </div>

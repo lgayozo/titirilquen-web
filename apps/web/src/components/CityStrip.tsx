@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { COLOR_MODO } from "@/lib/modos";
 
 export type SingleMode = "auto" | "metro" | "bici" | "caminata";
 /** Vistas de la figura: un modo individual, todos los modos a la vez, o el
@@ -46,10 +47,10 @@ const MARGIN = { top: 12, right: 10, bottom: 26, left: 48 };
 
 /** Color uniforme por modo — el color codifica QUÉ modo se está mostrando. */
 const MODE_COLOR: Record<SingleMode, string> = {
-  auto: "var(--auto)",
-  metro: "var(--metro)",
-  bici: "var(--bici)",
-  caminata: "var(--walk)",
+  auto: COLOR_MODO.Auto,
+  metro: COLOR_MODO.Metro,
+  bici: COLOR_MODO.Bici,
+  caminata: COLOR_MODO.Caminata,
 };
 
 /** Modos incluidos (en orden de apilado de leyenda) en la vista "todos". */

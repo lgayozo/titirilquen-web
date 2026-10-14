@@ -246,7 +246,7 @@ export function FlowProfile({
                   y1={yCap}
                   x2={MARGIN.left + plotW}
                   y2={yCap}
-                  stroke="var(--s1)"
+                  stroke="var(--ink)"
                   strokeWidth={1.2}
                   strokeDasharray="5 3"
                 />
@@ -255,7 +255,7 @@ export function FlowProfile({
                   y={cabeArriba ? yCap - 3 : yCap + 12}
                   textAnchor="end"
                   className="label"
-                  fill="var(--s1)"
+                  fill="var(--ink)"
                   style={{ fontVariantNumeric: "tabular-nums" }}
                 >
                   {`cap ${valueFmt(capacity)}${capacityLabel ? ` ${capacityLabel}` : ""}`}

@@ -19,11 +19,14 @@ interface UtilityBreakdownProps {
  *  dependencias del `useMemo` que la recorre). */
 const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
 
+// Los componentes de la utilidad no son modos ni estratos: van en tintas de
+// la tinta (B1). Antes tiempo y costo usaban los colores de caminata y metro,
+// en una barra que además está rotulada por modo.
 const COMPONENT_COLORS = {
-  asc: "var(--muted)",
-  v_tiempo: "var(--walk)",
-  v_costo: "var(--metro)",
-  v_penalizaciones: "var(--s1)",
+  asc: "color-mix(in srgb, var(--ink) 25%, var(--paper))",
+  v_tiempo: "var(--ink)",
+  v_costo: "color-mix(in srgb, var(--ink) 55%, var(--paper))",
+  v_penalizaciones: "var(--alerta)",
 };
 
 /**
