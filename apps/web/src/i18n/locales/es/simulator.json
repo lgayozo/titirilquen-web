@@ -857,6 +857,8 @@
     "referencia": "Referencia",
     "viajes_fisicos": "Viajes físicos",
     "viajes_fisicos_nota": "(denominador del reparto de abajo; excluye teletrabajo)",
+    "varados": "Varados",
+    "varados_nota": "(sin ningún modo factible; quedan fuera de los viajes y del excedente)",
     "reparto_modo": "Reparto modal · {{modo}}",
     "tiempo_total": "Tiempo total de viaje (persona-min)",
     "tiempo_medio": "Tiempo medio por viajero",

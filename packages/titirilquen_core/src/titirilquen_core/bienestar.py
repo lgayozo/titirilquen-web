@@ -81,7 +81,9 @@ desaparecer del cálculo. Medido el 2026-08-17 sobre la corrida por defecto (20 
 y sobre una ciudad dispersa de 40 km: cero exclusiones en ambas, los 29.002 y
 28.996 viajeros entran completos, porque el metro sigue siendo factible en
 prácticamente toda la ciudad. Es un caso hoy vacío, no un caso imposible —
-deshabilitar modos o estirar mucho las distancias podría activarlo.
+deshabilitar modos o estirar mucho las distancias podría activarlo. Por eso
+el conteo viaja junto al agregado, en `varados` (D14): quien lee el excedente
+ve cuántos quedaron fuera de él.
 
 El desarrollo completo, con la derivación y la correspondencia paso a paso con
 este archivo, está en `docs/libro/informe-bienestar.html`.
@@ -117,6 +119,11 @@ class AgregadosDict(TypedDict):
     tiempo_total_min: float
     #: Viajeros físicos (excluye teletrabajo).
     viajeros: float
+    #: Agentes sin ningún modo factible (D14). No están en `viajeros` ni en el
+    #: excedente: sin una utilidad de reserva no hay con qué valorarlos. Se
+    #: cuentan sobre los agentes porque no tienen fila en `demanda_estrato`;
+    #: el conteo es exacto, no un sorteo, porque varar es del grupo entero.
+    varados: int
     #: Viajes por modo, en los 4 modos FÍSICOS. Σ = `viajeros`, así que el share
     #: es `viajes_por_modo[m] / viajeros`.
     #:
@@ -464,6 +471,7 @@ def calcular_agregados(
     return {
         "tiempo_total_min": tiempo_total,
         "viajeros": viajeros,
+        "varados": sum(1 for a in trace.agentes if a.modo_elegido is None),
         "viajes_por_modo": viajes_modo,
         "viajes_por_modo_estrato": viajes_modo_estrato,
         "tiempo_medio_min": tiempo_total / viajeros if viajeros > 0 else 0.0,

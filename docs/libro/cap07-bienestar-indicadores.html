@@ -188,9 +188,10 @@
     no se comparan entre métodos. Quien no tiene ningún modo factible
     <strong>queda fuera</strong> del promedio y del denominador: una política
     que deja gente sin alternativas no se cuenta como bienestar muy bajo, sino
-    que la hace desaparecer del cálculo. La §5.5 mide cuánto pesa, y la
-    decisión de oct-2026 (D14) es declararlo y mostrar el conteo de varados
-    junto al agregado. Y las dos páginas de la aplicación miden sobre
+    que la hace desaparecer del cálculo. La §5.5 mide cuánto pesa. La
+    decisión de oct-2026 (D14) es declararlo y publicar el conteo,
+    <code>agregados.varados</code>, que la tabla del Sandbox muestra junto
+    a los viajes físicos. Y las dos páginas de la aplicación miden sobre
     poblaciones distintas: el Sandbox mide sobre la demanda esperada por
     estrato, en pesos de la hora punta, y la página acoplada mide sobre los
     agentes, como Δ contra la red vacía en pesos por hogar y por mes (capítulo
@@ -265,15 +266,15 @@
     <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">(7.1) (7.2)</td><td class="ruta py">bienestar.py</td><td class="n">261</td><td><code>medidas_de_utilidad</code> — devuelve las dos del mismo conjunto de utilidades; única implementación del núcleo</td></tr>
-    <tr><td class="n">(7.1)</td><td class="ruta py">bienestar.py</td><td class="n">250</td><td><code>medida_emparejada</code> — la regla vive acá y no en cada consumidor</td></tr>
-    <tr><td class="n">(7.3)</td><td class="ruta py">bienestar.py</td><td class="n">304</td><td><code>calcular_agregados</code> — el recorrido; la conversión conductual en <code>lam</code> (439)</td></tr>
-    <tr><td class="n">(7.4)</td><td class="ruta py">bienestar.py</td><td class="n">453</td><td><code>lam_social</code> — despejado del VoT; <code>excedente_social</code> (459)</td></tr>
+    <tr><td class="n">(7.1) (7.2)</td><td class="ruta py">bienestar.py</td><td class="n">268</td><td><code>medidas_de_utilidad</code> — devuelve las dos del mismo conjunto de utilidades; única implementación del núcleo</td></tr>
+    <tr><td class="n">(7.1)</td><td class="ruta py">bienestar.py</td><td class="n">257</td><td><code>medida_emparejada</code> — la regla vive acá y no en cada consumidor</td></tr>
+    <tr><td class="n">(7.3)</td><td class="ruta py">bienestar.py</td><td class="n">311</td><td><code>calcular_agregados</code> — el recorrido; la conversión conductual en <code>lam</code> (446)</td></tr>
+    <tr><td class="n">(7.4)</td><td class="ruta py">bienestar.py</td><td class="n">460</td><td><code>lam_social</code> — despejado del VoT; <code>excedente_social</code> (466)</td></tr>
     <tr><td class="n">(7.4)</td><td class="ruta py">constantes.py</td><td class="n">49</td><td><code>VOT_SOCIAL_CLP_HORA</code> — 3.338 $/h</td></tr>
-    <tr><td class="n">(7.4)</td><td class="ruta py">bienestar.py</td><td class="n">231</td><td><code>vot_clp_hora</code> — el valor del tiempo conductual del estrato</td></tr>
-    <tr><td class="n">(7.6)</td><td class="ruta py">bienestar.py</td><td class="n">205</td><td><code>minutos_ponderados</code> — el tiempo por componente; <code>PONDERADOR_SNI_ESPERA</code> (201); <code>cg_percibido</code> (382) y <code>cg_social</code> (383)</td></tr>
-    <tr><td class="n">(7.7)</td><td class="ruta py">bienestar.py</td><td class="n">489</td><td><code>bienestar_social_clp</code> — con el excedente de la medida emparejada; <code>costo_operador</code> (421) en la hora punta (D12); <code>rec_peaje</code> (388)</td></tr>
-    <tr><td class="n">(7.7)</td><td class="ruta py">bienestar.py</td><td class="n">488</td><td><code>subsidio_metro_clp</code> — el único término que lleva el factor día/punta</td></tr>
+    <tr><td class="n">(7.4)</td><td class="ruta py">bienestar.py</td><td class="n">238</td><td><code>vot_clp_hora</code> — el valor del tiempo conductual del estrato</td></tr>
+    <tr><td class="n">(7.6)</td><td class="ruta py">bienestar.py</td><td class="n">212</td><td><code>minutos_ponderados</code> — el tiempo por componente; <code>PONDERADOR_SNI_ESPERA</code> (208); <code>cg_percibido</code> (389) y <code>cg_social</code> (390)</td></tr>
+    <tr><td class="n">(7.7)</td><td class="ruta py">bienestar.py</td><td class="n">497</td><td><code>bienestar_social_clp</code> — con el excedente de la medida emparejada; <code>costo_operador</code> (428) en la hora punta (D12); <code>rec_peaje</code> (395)</td></tr>
+    <tr><td class="n">(7.7)</td><td class="ruta py">bienestar.py</td><td class="n">496</td><td><code>subsidio_metro_clp</code> — el único término que lleva el factor día/punta</td></tr>
     <tr><td class="n">(7.7)</td><td class="ruta py">emissions.py</td><td class="n">43</td><td><code>tren_km_hora</code> — única definición de los tren-km; el costo del operador y las emisiones la comparten</td></tr>
     <tr><td class="n">(7.7)</td><td class="ruta py">config.py</td><td class="n">301</td><td><code>costo_operacion_tren_km</code> — y <code>factor_dia_punta</code> (322), con el razonamiento del factor en el comentario</td></tr>
     <tr><td class="n">(7.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">270</td><td><code>_theil</code> — con <code>S</code> pesa por hogares; sin él, por celda</td></tr>
@@ -283,8 +284,8 @@
     <tr><td class="n">—</td><td class="ruta py">land_use/config.py</td><td class="n">22</td><td><code>LandUseStratumConfig</code> — el ingreso <code>y</code> por estrato que la carga divide</td></tr>
     <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">264</td><td><code>calcular_agregados</code> — los agregados viajan en el trace, una sola vez para API y worker</td></tr>
     <tr><td class="n">—</td><td class="ruta tsx">components/viz/ReferenceComparison.tsx</td><td class="n">75</td><td><code>ReferenceComparison</code> — la tabla del Sandbox; <code>excedenteComparable</code> (108) bloquea el Δ cuando las medidas o los modos no coinciden</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">891</td><td><code>excedente_social_nota</code> — dice qué hace la ponderación social y remite al costo generalizado social (D13); <code>excedente_social</code> (890)</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">886</td><td><code>costo_operador_nota</code> — rotula la base, la hora punta; <code>subsidio_nota</code> (888) lleva el factor</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">893</td><td><code>excedente_social_nota</code> — dice qué hace la ponderación social y remite al costo generalizado social (D13); <code>excedente_social</code> (892)</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">888</td><td><code>costo_operador_nota</code> — rotula la base, la hora punta; <code>subsidio_nota</code> (890) lleva el factor</td></tr>
     <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">728</td><td><code>welfare_total_sub</code> — el total del acoplado, suma sobre hogares en $/mes (D11); <code>cs</code> (703)</td></tr>
   </tbody>
 </table>
@@ -315,8 +316,9 @@
     <tr><td><code class="ruta py">tests/test_bienestar.py</code>:140</td><td>D12: el factor día/punta mueve el subsidio en <em>(f′ − f)·C_op</em> y no mueve <em>W</em> ni el costo del operador.</td></tr>
     <tr><td><code class="ruta py">tests/test_bienestar.py</code>:178</td><td>(7.4) despejada del VoT; el excedente de ponderación social sigue la medida emparejada (196); social y conductual difieren (212).</td></tr>
     <tr><td><code class="ruta py">tests/test_bienestar.py</code>:227</td><td>Las identidades del reparto: los viajes por modo suman los viajeros y el reparto por estrato agrega al de ciudad (243); el reparto reacciona a la política (258).</td></tr>
-    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:277</td><td>Un metro sin emisiones sigue costando operarlo: los tren-km salen del servicio.</td></tr>
-    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:291</td><td>(7.6): los minutos ponderados pesan espera y acceso, y el costo social supera al de minutos planos (314).</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:273</td><td>D14: con sólo el auto habilitado, los varados son exactamente quienes no tienen auto, en los tres métodos, y no entran a los viajeros.</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:303</td><td>Un metro sin emisiones sigue costando operarlo: los tren-km salen del servicio.</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:317</td><td>(7.6): los minutos ponderados pesan espera y acceso, y el costo social supera al de minutos planos (340).</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:104</td><td>Con ingresos 100/50/10 la carga del estrato bajo es la mayor.</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:112</td><td>El bienestar total del acoplado es el ΔCS por hogar-mes por los hogares con medida, sin los varados (cap. 6).</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:197</td><td>(7.8) pesa por hogares: dos celdas de tamaños distintos no pesan igual.</td></tr>
@@ -690,9 +692,9 @@
 
 <ul>
   <li>
-    <strong>Mostrar el conteo de varados</strong> junto al agregado, en la
-    fase de interfaz (D14). Una utilidad de reserva explícita, el valor del
-    viaje que no se hace, sería lo correcto, pero es un parámetro sin fuente.
+    <strong>Valorar a los varados.</strong> El conteo ya se publica (D14).
+    Una utilidad de reserva explícita, el valor del viaje que no se hace,
+    sería lo correcto, pero es un parámetro sin fuente.
   </li>
   <li>
     <strong>El ancla de los VoT</strong> (D5, capítulo 4): recalibrarlos para

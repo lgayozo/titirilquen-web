@@ -1706,10 +1706,13 @@ cumple, y eso está en D-39.
   cálculo.
 - **Veredicto**: sesgo conocido, documentado y ahora alcanzable en un clic. No es
   sólo un problema del promedio: el TOTAL también se contrae porque `n` cae.
-- **Estado**: pendiente. Corrección: contar al varado con una utilidad de
-  reserva explícita (el valor del viaje no realizado) o, como mínimo, publicar el
-  conteo de varados junto al agregado para que el usuario vea el denominador que
-  se movió.
+- **Estado**: parcial 2026-10-14 (D14). El conteo se publica:
+  `AgregadosDict.varados`, contado sobre los agentes (no tienen fila en
+  `demanda_estrato`), y la tabla de agregados del Sandbox lo muestra junto a los
+  viajes físicos. Test: `test_bienestar.py`. De paso, `lib/kpis.ts` (Comparar)
+  contaba al varado como teletrabajo; ahora queda fuera de todos los shares.
+  Sigue pendiente valorarlo con una utilidad de reserva explícita (el valor del
+  viaje no realizado), que es un parámetro sin fuente.
 
 ---
 
@@ -2179,7 +2182,7 @@ cumple, y eso está en D-39.
 | D-54 | Acoplado: `outer_tol` rotulado en minutos en cuatro lugares y sin recalibrar desde D-34 | Corregido 2026-10-13 (D10) | Media |
 | D-55 | Acoplado: `api.ts` reconstruye `converged` sólo con el residual, más laxo que el núcleo | Corregido 2026-10-13 | Media |
 | D-56 | Bienestar: el «excedente social» reprecia el dinero, no sólo el tiempo; y tras D-33 el mecanismo se invirtió | Pendiente (libro, cap. 7) | Alta |
-| D-57 | Bienestar: el que queda sin modo factible desaparece del agregado; un toggle de la UI estranda al 11 % | Pendiente (libro, cap. 7) | Alta |
+| D-57 | Bienestar: el que queda sin modo factible desaparece del agregado; un toggle de la UI estranda al 11 % | Parcial 2026-10-14: conteo publicado (D14) | Alta |
 | D-58 | Bienestar: `bienestar_social_clp` mezcla hora punta con costo llevado a día (efecto acotado: 7 % del Δ) | Pendiente (libro, cap. 7) | Baja |
 | D-59 | Bienestar: rótulos que describen el cálculo anterior a D-35 y a D-56 | Pendiente (libro, cap. 7) | Media |
 | D-60 | CI: los jobs `contrato` y `pyodide` existen en el YAML y no han corrido nunca; el wheel estaba desfasado un commit | Parcial: corre desde el PR (2026-09-08); en rojo desde el 2026-09-30 | Alta |

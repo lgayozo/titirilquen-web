@@ -399,7 +399,11 @@ def poblacion_que_desaparece() -> list[dict]:
         a, trace = _corre(s)
         assert a is not None
         agentes = trace.agentes
-        varados = sum(1 for x in agentes if not x.teletrabaja and x.modo_elegido is None)
+        # El conteo lo publica el núcleo (D14); se coteja contra los agentes.
+        varados = a["varados"]
+        assert varados == sum(
+            1 for x in agentes if not x.teletrabaja and x.modo_elegido is None
+        )
         no_teletrabajan = sum(1 for x in agentes if not x.teletrabaja)
         n = a["viajeros"]
         filas.append(

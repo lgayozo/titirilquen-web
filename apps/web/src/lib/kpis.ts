@@ -109,8 +109,15 @@ export function computeKPIs(
   };
 
   const agentes: readonly AgentRecord[] = result.agentes;
+  let varados = 0;
   for (const a of agentes) {
-    const m = (a.modo_elegido ?? "Teletrabajo") as Modo;
+    // `null` es el varado, no el teletrabajo —ése llega como "Teletrabajo"—.
+    // Contarlo como teletrabajo inflaba ese share; queda fuera de todos (D14).
+    if (a.modo_elegido == null) {
+      varados += 1;
+      continue;
+    }
+    const m = a.modo_elegido as Modo;
     const distKm = Math.abs(a.celda_origen - cbdIdx) * cellWidthKm;
     const t = lastIter
       ? modeTimeFor(m, a.celda_origen, lastIter, distKm, vCaminata)
@@ -134,7 +141,7 @@ export function computeKPIs(
     }
   }
 
-  const total = agentes.length;
+  const total = agentes.length - varados;
   const viajesFisicos = total - (modal_share.Teletrabajo ?? 0);
   for (const m of MODES) {
     const n = counts[m];

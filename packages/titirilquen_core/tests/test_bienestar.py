@@ -269,6 +269,32 @@ def test_el_reparto_modal_reacciona_a_la_politica(
     assert caro["viajes_por_modo"]["Metro"] < base["viajes_por_modo"]["Metro"]
 
 
+@pytest.mark.parametrize("metodo", ["montecarlo", "expected", "todo_o_nada"])
+def test_los_varados_se_cuentan_y_no_entran_al_agregado(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig, metodo: str
+) -> None:
+    """D14: con sólo el auto habilitado, quien no tiene auto queda varado.
+
+    El conteo tiene que ser exactamente esos agentes, en los tres métodos, y
+    ninguno de ellos puede aparecer en `viajeros`. Con todos los modos la base
+    no deja a nadie varado: el campo no es un ruido que siempre vale algo.
+    """
+    assert _agregados(sim_liviana, lu_chica, metodo)["varados"] == 0
+    sim_liviana.modos_habilitados = ("Auto",)
+    sim_liviana.assignment = metodo
+    sim_liviana.max_iter = 8
+    trace = ConvergenceTrace()
+    for _ in iter_msa_desde_suelo(sim_liviana, lu_chica, trace):
+        pass
+    agg = calcular_agregados(sim_liviana, trace)
+    assert agg is not None
+    sin_auto = sum(1 for a in trace.agentes if not a.teletrabaja and not a.tiene_auto)
+    con_auto = sum(1 for a in trace.agentes if not a.teletrabaja and a.tiene_auto)
+    assert sin_auto > 0
+    assert agg["varados"] == sin_auto
+    assert agg["viajeros"] == pytest.approx(con_auto, rel=1e-9)
+
+
 # ---------------------------------------------------------------------------
 # D-36 / D-37: costo del operador y costo generalizado
 # ---------------------------------------------------------------------------

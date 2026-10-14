@@ -23,6 +23,7 @@ export interface AgenteDict {
 export interface AgregadosDict {
   tiempo_total_min: number;
   viajeros: number;
+  varados: number;
   viajes_por_modo: Record<string, number>;
   viajes_por_modo_estrato: Record<"1" | "2" | "3", Record<string, number>>;
   tiempo_medio_min: number;

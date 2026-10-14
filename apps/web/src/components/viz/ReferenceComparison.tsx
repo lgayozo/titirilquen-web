@@ -121,6 +121,17 @@ export function ReferenceComparison({
       neutra: true,
       nota: t("agg.viajes_fisicos_nota"),
     },
+    {
+      // D14: quien no tiene ningún modo factible no está en los viajeros ni
+      // en el excedente. Sin esta fila, una política que deja gente sin
+      // alternativas se leería como un bienestar apenas más bajo.
+      label: t("agg.varados"),
+      actual: agg.varados,
+      ref: aggRef?.varados ?? null,
+      fmt: fmtMiles,
+      menorEsMejor: true,
+      nota: t("agg.varados_nota"),
+    },
     ...MODOS.map((m) => ({
       label: t("agg.reparto_modo", { modo: t(`modes.${m.toLowerCase()}`) }),
       actual: share(agg.viajes_por_modo[m], agg.viajeros),

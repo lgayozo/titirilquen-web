@@ -857,6 +857,8 @@
     "referencia": "Reference",
     "viajes_fisicos": "Physical trips",
     "viajes_fisicos_nota": "(denominator of the split below; excludes telework)",
+    "varados": "Stranded",
+    "varados_nota": "(no feasible mode; left out of trips and of the surplus)",
     "reparto_modo": "Mode share · {{modo}}",
     "tiempo_total": "Total travel time (person-min)",
     "tiempo_medio": "Mean time per traveller",
