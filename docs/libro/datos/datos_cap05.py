@@ -21,7 +21,8 @@ Diez bloques:
 6. `downs_thomson` — el barrido de pistas que absorbe el informe homónimo.
 7. `bici_umbrales` — D9: cuánto mueve la congestión el tiempo de la bici y
    cuánta demanda cambiaría de escalón si se evaluaran sobre él.
-8. `todo_o_nada` — D9: la asignación determinística no tiene punto fijo.
+8. `todo_o_nada` — D-70: promediando flujos, todo o nada converge lento al
+   equilibrio de usuario.
 9. `montecarlo` — D8: el ruido de muestreo pone un piso a la brecha.
 10. `presets` — D8: si el tope de iteraciones alcanza para los presets de política.
 
@@ -280,25 +281,31 @@ def bici_umbrales() -> dict:
 
 
 def todo_o_nada() -> dict:
-    """D9: la asignación determinística no tiene punto fijo. Sin corte hasta
-    20/40/60/80 iteraciones, el reparto y la brecha fresca de cada una; y qué
-    hace la regla de parada por defecto."""
+    """D-70: todo o nada promedia los flujos de cada grupo y para por el costo
+    en exceso medio (su `gap_final_min`). Sin corte hasta 20/40/60/80/100
+    iteraciones, el reparto y ese costo en cada una; y la regla de la app, que
+    al elegir todo o nada sube el tope a 100, con cuántos grupos quedan
+    repartidos entre modos."""
     sim = base._config_web().model_copy(update={"assignment": "todo_o_nada"})
     cortes = {}
-    for n in (20, 40, 60, 80):
+    for n in (20, 40, 60, 80, 100):
         tr = _corre(sim.model_copy(update={"tolerance": 0.0, "max_iter": n}))
         cortes[str(n)] = {
             "reparto_pct": _reparto(tr),
             "gap_final_min": round(float(tr.gap_final_min), 3),
         }
-    repartos = [c["reparto_pct"] for c in cortes.values()]
+    tr = _corre(sim.model_copy(update={"max_iter": 100}))
+    modos: dict[tuple, set] = {}
+    for a in tr.agentes:
+        if not a.teletrabaja:
+            modos.setdefault((a.estrato, a.celda_origen, a.tiene_auto), set()).add(a.modo_elegido)
     return {
         "sin_corte": cortes,
-        "oscilacion_max_pp": round(
-            max(max(r[m] for r in repartos) - min(r[m] for r in repartos) for m in repartos[0]),
-            2,
-        ),
-        "con_regla_default": _resumen(_corre(sim)),
+        "con_regla_app": {
+            **_resumen(tr),
+            "grupos": len(modos),
+            "grupos_repartidos": sum(len(m) > 1 for m in modos.values()),
+        },
     }
 
 
@@ -439,7 +446,7 @@ def main() -> None:
         )
     print("\nBici (D9):", json.dumps(datos["bici_umbrales"], ensure_ascii=False))
     a = datos["todo_o_nada"]
-    print(f"Todo-o-nada: oscila {a['oscilacion_max_pp']} pp;", a["con_regla_default"])
+    print("Todo-o-nada:", a["con_regla_app"])
     print("Montecarlo:", datos["montecarlo"])
     print(f"\nEscrito: {SALIDA}")
 

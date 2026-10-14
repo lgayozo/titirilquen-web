@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-14",
-  "commit": "f4da3ee",
+  "commit": "9b99d31",
   "script": "docs/libro/datos/datos_cap05.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web`), localización «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, tolerancia 0,2 min sobre la brecha no amortiguada, máximo 40 iteraciones."
  },
@@ -419,59 +419,70 @@
   "sin_corte": {
    "20": {
     "reparto_pct": {
-     "Auto": 30.678,
-     "Metro": 28.739,
-     "Bici": 28.189,
-     "Caminata": 12.394,
+     "Auto": 30.913,
+     "Metro": 19.029,
+     "Bici": 35.69,
+     "Caminata": 14.368,
      "Teletrabajo": 0.0
     },
-    "gap_final_min": 1.172
+    "gap_final_min": 0.465
    },
    "40": {
     "reparto_pct": {
-     "Auto": 30.694,
-     "Metro": 26.633,
-     "Bici": 30.278,
-     "Caminata": 12.394,
+     "Auto": 30.874,
+     "Metro": 21.818,
+     "Bici": 33.541,
+     "Caminata": 13.767,
      "Teletrabajo": 0.0
     },
-    "gap_final_min": 0.346
+    "gap_final_min": 0.248
    },
    "60": {
     "reparto_pct": {
-     "Auto": 30.894,
-     "Metro": 26.211,
-     "Bici": 30.5,
-     "Caminata": 12.394,
+     "Auto": 30.9,
+     "Metro": 22.973,
+     "Bici": 32.718,
+     "Caminata": 13.408,
      "Teletrabajo": 0.0
     },
-    "gap_final_min": 2.324
+    "gap_final_min": 0.169
    },
    "80": {
     "reparto_pct": {
-     "Auto": 30.989,
-     "Metro": 26.117,
-     "Bici": 30.5,
-     "Caminata": 12.394,
+     "Auto": 30.902,
+     "Metro": 23.687,
+     "Bici": 32.212,
+     "Caminata": 13.199,
      "Teletrabajo": 0.0
     },
-    "gap_final_min": 0.354
+    "gap_final_min": 0.129
+   },
+   "100": {
+    "reparto_pct": {
+     "Auto": 30.913,
+     "Metro": 24.115,
+     "Bici": 31.908,
+     "Caminata": 13.063,
+     "Teletrabajo": 0.0
+    },
+    "gap_final_min": 0.104
    }
   },
-  "oscilacion_max_pp": 2.62,
-  "con_regla_default": {
-   "iteraciones": 40,
-   "convergio": false,
-   "residuo_final_min": 1.00164,
-   "gap_final_min": 0.34597,
+  "con_regla_app": {
+   "iteraciones": 52,
+   "convergio": true,
+   "residuo_final_min": 0.19324,
+   "gap_final_min": 0.19324,
    "reparto_pct": {
-    "Auto": 30.694,
-    "Metro": 26.633,
-    "Bici": 30.278,
-    "Caminata": 12.394,
+    "Auto": 30.882,
+    "Metro": 22.539,
+    "Bici": 33.024,
+    "Caminata": 13.555,
     "Teletrabajo": 0.0
    },
-   "emisiones_kg_h": 22311.2
+   "emisiones_kg_h": 24481.1,
+   "grupos": 1200,
+   "grupos_repartidos": 490
   }
  },
  "montecarlo": {

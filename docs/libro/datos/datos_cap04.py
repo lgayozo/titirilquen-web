@@ -307,10 +307,11 @@ def logit_vs_determinista() -> dict:
     """El mismo escenario con las dos reglas de elección."""
     out = {}
     for metodo in ("expected", "todo_o_nada"):
-        tr = _traza(base._config_web().model_copy(update={"assignment": metodo}))
+        # Al elegir todo o nada la app sube el tope a 100: converge lento (D-70).
+        tope = {"max_iter": 100} if metodo == "todo_o_nada" else {}
+        tr = _traza(base._config_web().model_copy(update={"assignment": metodo, **tope}))
         s = tr.iteraciones[-1].modal_split
         out[metodo] = {m: round(100.0 * v / sum(s.values()), 3) for m, v in s.items()}
-        # Todo o nada no tiene punto fijo (D9b): su reparto es la última iteración.
         out[f"{metodo}_convergencia"] = {
             "convergio": bool(tr.converged),
             "iteraciones": len(tr.iteraciones),

@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-14",
-  "commit": "f4da3ee",
+  "commit": "9b99d31",
   "script": "docs/libro/datos/datos_cap04.py",
   "configuracion": "Demanda de la aplicación (`presets.DEFAULT_STRATA`, homoscedástica desde D-33) sobre la ciudad por defecto: 201 celdas, 20 km, localización «original». Los costos por modo son a flujo libre."
  },
@@ -425,16 +425,16 @@
    "brecha_final_min": 0.183
   },
   "todo_o_nada": {
-   "Auto": 30.694,
-   "Metro": 26.633,
-   "Bici": 30.278,
-   "Caminata": 12.394,
+   "Auto": 30.882,
+   "Metro": 22.539,
+   "Bici": 33.024,
+   "Caminata": 13.555,
    "Teletrabajo": 0.0
   },
   "todo_o_nada_convergencia": {
-   "convergio": false,
-   "iteraciones": 40,
-   "brecha_final_min": 0.346
+   "convergio": true,
+   "iteraciones": 52,
+   "brecha_final_min": 0.193
   },
   "celda_a_3km_estrato_medio": {
    "logit": {

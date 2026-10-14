@@ -207,11 +207,16 @@ def limite_del_logit() -> dict:
 
 def pistas() -> dict:
     """Downs-Thomson con los dos métodos, con la parada de la aplicación: lo
-    que el usuario ve al mover el control de pistas."""
+    que el usuario ve al mover el control de pistas. Al elegir todo o nada la
+    interfaz sube el tope a 100 iteraciones (D-70)."""
     out = {}
     for metodo in ("expected", "todo_o_nada"):
+        tope = {"max_iter": 100} if metodo == "todo_o_nada" else {}
         out[metodo] = [
-            {"num_pistas": n, **_fila(_sim({"supply.car.num_pistas": n, "assignment": metodo}))}
+            {
+                "num_pistas": n,
+                **_fila(_sim({"supply.car.num_pistas": n, "assignment": metodo, **tope})),
+            }
             for n in (1, 2, 3, 4, 6)
         ]
     return out

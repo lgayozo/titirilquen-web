@@ -2087,10 +2087,25 @@ cumple, y eso está en D-39.
   mismo reparto (cap05, `variantes`, 0,003 pp).
 - **Veredicto**: el equilibrio existe; lo que falla es la variante del MSA.
   La paradoja de Downs-Thomson entre 2 y 3 pistas se mantiene en el
-  equilibrio (metro 25 → 7 %; el bienestar no se midió).
-- **Estado**: decidido 2026-10-14 (Leandro): `todo_o_nada` pasa a promediar
-  flujos y a parar por el costo en exceso. Pendiente de implementar; mientras
-  tanto el tutorial y la interfaz lo declaran.
+  equilibrio (metro 25 → 7 %).
+- **Estado**: corregido 2026-10-14 (decidido por Leandro). En `_iter_loop`,
+  con `todo_o_nada` el MSA promedia el reparto de cada grupo con paso 1/n,
+  los tiempos son los de la red cargada con ese promedio y el residuo es el
+  costo en exceso medio; la parada sigue siendo `residuo < tolerance` dos
+  veces seguidas. El estado final es el reparto promediado
+  (`_finalizar_ton`): modos por agente por cuotas de mayor residuo y
+  `gap_final_min` = costo en exceso. La interfaz sube `max_iter` a 100 al
+  elegir el método (el tope del schema): con la app converge en 55 / 52 / 16
+  / 3 / 4 iteraciones con 1 / 2 / 3 / 4 / 6 pistas (`tutoriales.json`). El
+  logit no cambia (línea base intacta). Tests en
+  `tests/test_todo_o_nada_equilibrio.py`. El bienestar se midió en cap07
+  (tolerancia 0,02, 120 iteraciones): baja de 1 a 2 y de 2 a 3 pistas en las
+  dos monedas.
+- **Pendiente**: la tolerancia de 0,2 min sobre un promedio corta temprano.
+  Con 2 pistas el metro queda en 22,5 % al converger, 24,1 % a las 100
+  iteraciones y ~25,4 % a las 400 (exploración fuera del repo). Una
+  tolerancia más fina no cabe en 100 iteraciones con paso 1/n; la alternativa
+  es otra regla de paso. Ver cap05 §5.8.
 
 ---
 
@@ -2167,4 +2182,4 @@ cumple, y eso está en D-39.
 | D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Pendiente (libro, cap. 10) | Media |
 | D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Corregido 2026-10-14 | Media |
 | D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia) | Baja |
-| D-70 | Equilibrio: con todo o nada el MSA no converge porque promedia tiempos; promediando flujos llega al equilibrio de usuario y Downs-Thomson se mantiene | Decidido 2026-10-14, pendiente de implementar | Alta |
+| D-70 | Equilibrio: con todo o nada el MSA no converge porque promedia tiempos; promediando flujos llega al equilibrio de usuario y Downs-Thomson se mantiene | Corregido 2026-10-14 (tolerancia sobre el costo en exceso, pendiente) | Alta |

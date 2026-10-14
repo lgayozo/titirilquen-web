@@ -54,31 +54,27 @@ Going from 1 to 6 lanes, the metro's share:
 
 | Lanes per direction | Metro, logit | Metro, deterministic |
 | --- | --- | --- |
-| 1 | 34.43 %\* | 49.35 %\* |
-| 2 | 28.52 % | 26.43 %\* |
-| 3 | 25.98 % | 7.22 %\* |
-| 4 | 25.10 % | 5.33 % |
-| 6 | 24.68 % | 4.07 % |
+| 1 | 34.43 %\* | 36.65 % |
+| 2 | 28.52 % | 22.54 % |
+| 3 | 25.98 % | 7.07 % |
+| 4 | 25.10 % | 5.27 % |
+| 6 | 24.68 % | 4.70 % |
 
-\* Does not converge within the default 40 iterations.
+\* Does not converge within the default 40 iterations. The deterministic method runs with a cap of 100, which the interface sets when it is chosen, and converges in every case.
 
-The logit loses 9.8 points; the deterministic method loses 45.3. **Same city, same calibration, same data**: only the amount of unobserved heterogeneity attributed to the population changes.
+The logit loses 9.8 points; the deterministic method, almost 32. **Same city, same calibration, same data**: only the amount of unobserved heterogeneity attributed to the population changes.
 
 ## The phenomenon that shows up on one side only
 
 That sharper shift has a consequence worth the whole chapter. As it loses passengers, the metro reduces its frequency — less demand, fewer trains — and waiting time rises. Under the deterministic method, between 2 and 3 lanes:
 
-- frequency falls from 4.79 to 2.00 trains/hour,
-- waiting time rises from 5.96 to 14.95 minutes,
-- and the **mean perceived generalized cost rises** from 36.45 to 42.96 equivalent-minutes (minutes weighted as in the utility, plus money turned into minutes with each stratum's value of time).
+- frequency falls from 4.06 to 2.00 trains/hour,
+- waiting time rises from 7.39 to 15.00 minutes,
+- and the **mean perceived generalized cost rises** from 37.81 to 43.27 equivalent-minutes (minutes weighted as in the utility, plus money turned into minutes with each stratum's value of time).
 
 In other words: **adding road capacity made the population worse off**. That is the Downs-Thomson paradox, and it can be reproduced from the interface by picking the deterministic method and moving the lanes control.
 
-With a warning: with 2 and 3 lanes the deterministic method **does not converge** (final gap of 0.35 and 1.75 min after 40 iterations), so those figures are the last iteration, not an equilibrium. Chapter 7 of the book repeats the measurement with 120 iterations and welfare falls all the same between 2 and 3 lanes.
-
-<Callout type="warn">
-The lack of convergence is a defect of this version's MSA, not of the model. The application averages **times** between iterations, and under all-or-nothing the response jumps as a whole from one mode to another. Averaging **flows** instead — the classic MSA for user equilibrium — the same model does converge to an equilibrium with any number of lanes, and the metro's drop between 2 and 3 lanes remains. The application will switch to averaging flows for this method (D-70); until then, its figures with 1 to 3 lanes are the last iteration.
-</Callout>
+With a caveat: the deterministic method converges, but slowly. The MSA averages each group's **flows** between iterations — the classic MSA for user equilibrium — and stops when the **average excess cost**, the minutes each traveller pays over the best mode for their group, falls below the tolerance. That cost falls like 1/n: with 1 and 2 lanes it takes 55 and 52 iterations, which is why choosing the method makes the interface raise the cap to 100. The tolerance stops with the split still moving a little — chapter 5 of the book shows that with 2 lanes the metro gains a bit over one point between iterations 60 and 100 — but the drop between 2 and 3 lanes is far larger than that. Chapter 7 repeats the measurement with a tolerance ten times finer and welfare falls all the same between 2 and 3 lanes.
 
 Under logit the same generalized-cost curve falls monotonically from 38.20 to 32.93: the paradox does not appear. The logit's fractional shift is too smooth for the metro's degradation to outweigh the car's improvement.
 
@@ -90,16 +86,16 @@ The deterministic method is often called "Wardrop", after the **user equilibrium
 
 The key phrase is **"connecting an origin and destination"**: equality is required *within* an origin-destination pair. Used routes belonging to different pairs may well have different times.
 
-In this city each cell is a different origin and each stratum a different user class, so the condition **says nothing about the aggregate**. And indeed it does not hold: in the deterministic equilibrium with 4 lanes — the first number of lanes at which it converges —, all four modes are used at once with mean generalized costs differing by up to 58 minutes.
+In this city each cell is a different origin and each stratum a different user class, so the condition **says nothing about the aggregate**. And indeed it does not hold: in the deterministic equilibrium with 4 lanes all four modes are used at once with mean generalized costs differing by up to 60 minutes.
 
 | Mode used | Mean generalized cost (equiv-min) |
 | --- | --- |
-| Walking | 13.69 |
-| Bicycle | 29.19 |
-| Car | 41.39 |
-| Metro | 71.91 |
+| Walking | 12.83 |
+| Bicycle | 28.94 |
+| Car | 41.51 |
+| Metro | 72.90 |
 
-The reason is that each group puts all of its mass on **a single** mode. An origin-destination pair with only one alternative in use satisfies the condition trivially: there are no two used routes to compare. The modal split observed in the aggregate is **composition** across 1,200 groups that decide differently, not arbitrage among travellers.
+The reason is that equality holds **within** each group. Most groups put their mass on a single mode, and a group with only one alternative in use satisfies the condition trivially: there are no two used routes to compare. The groups left split between two modes are the indifferent ones, and for them the two costs do equalize, within the tolerance. The modal split observed in the aggregate is **composition** across 1,200 groups that decide differently, not arbitrage among travellers.
 
 That is why the interface calls it "All-or-nothing" and not "Wardrop".
 
@@ -115,4 +111,4 @@ Put differently: **the phenomenon this chapter teaches and the lack of uniquenes
 - **Logit — sampling** — when sampling variability is the point, or to illustrate that the expected split is an average of realizations.
 - **All-or-nothing** — to isolate equilibrium mechanisms. Removing taste dispersion exposes phenomena that the logit damps out. It is sharper, not more realistic.
 
-Two practical notes. First, with this version's MSA, all-or-nothing does not converge with 1, 2 and 3 lanes, and raising the cap does not fix it, because it averages times and the split oscillates (see the warning above); with 4 and 6 it converges in 7 and 15, against 19 to 29 for the logit. Check the convergence indicator before reading a deterministic result. Second, the welfare measure changes with the method: under the logit, surplus is measured with the **logsum** (`ln Σ e^{V_m}`, which is `E[max]` when there is a Gumbel random term), and under the deterministic method with **mean maximum utility** (`max_m V_m`, since without that term the agent simply takes the best mode). The results table switches measure on its own and labels it. Do not compare levels across methods: the logsum always sits above, and that gap is the value the logit assigns to variety.
+Two practical notes. First, the deterministic method converges more slowly than the logit — 55 and 52 iterations with 1 and 2 lanes, 16 with 3, and 3 and 4 with 4 and 6, against 19 to 29 for the logit — so choosing it makes the interface raise the cap to 100. Check the convergence indicator before reading a deterministic result. Second, the welfare measure changes with the method: under the logit, surplus is measured with the **logsum** (`ln Σ e^{V_m}`, which is `E[max]` when there is a Gumbel random term), and under the deterministic method with **mean maximum utility** (`max_m V_m`, since without that term the agent simply takes the best mode). The results table switches measure on its own and labels it. Do not compare levels across methods: the logsum always sits above, and that gap is the value the logit assigns to variety.

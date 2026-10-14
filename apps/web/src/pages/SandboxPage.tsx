@@ -501,8 +501,8 @@ export function SandboxPage() {
     return {
       ok: result.converged,
       sinCriterio: !(cfgRes.tolerance > 0),
-      // Todo-o-nada no tiene punto fijo (D9): agotar las iteraciones no se
-      // arregla subiéndolas, así que su veredicto dice otra cosa.
+      // Todo o nada para por el costo en exceso medio, no por el cambio de
+      // tiempos (D-70), así que su veredicto lo dice aparte.
       aon: cfgRes.assignment === "todo_o_nada",
       res: res == null || !isFinite(res) ? null : res,
       tol: cfgRes.tolerance,
@@ -814,7 +814,7 @@ export function SandboxPage() {
             <input
               type="range"
               min={3}
-              max={50}
+              max={100}
               step={1}
               value={config.max_iter}
               onChange={(e) =>
@@ -856,7 +856,20 @@ export function SandboxPage() {
                   key={m}
                   type="button"
                   className={config.assignment === m ? "active" : ""}
-                  onClick={() => setConfig((c) => ({ ...c, assignment: m }))}
+                  // Todo o nada promedia flujos con paso 1/n y su costo en
+                  // exceso cae lento: con 1–2 pistas necesita ~55 iteraciones
+                  // (D-70). Al elegirlo se sube el tope a 100; no se baja al
+                  // volver al logit, que converge antes y corta solo.
+                  onClick={() =>
+                    setConfig((c) => ({
+                      ...c,
+                      assignment: m,
+                      max_iter:
+                        m === "todo_o_nada"
+                          ? Math.max(c.max_iter, 100)
+                          : c.max_iter,
+                    }))
+                  }
                   style={{ flex: 1 }}
                 >
                   {t(`equilibrium.assignment_${m}`)}
@@ -1171,6 +1184,8 @@ export function SandboxPage() {
                       : convergencia.aon
                         ? t("equilibrium.verdict_fail_aon", {
                             total: convergencia.total,
+                            res: convergencia.res?.toFixed(3) ?? "—",
+                            tol: convergencia.tol.toFixed(3),
                           })
                         : t("equilibrium.verdict_fail", {
                             total: convergencia.total,

@@ -54,31 +54,27 @@ Agregando pistas de 1 a 6, la participación del metro:
 
 | Pistas por sentido | Metro, logit | Metro, determinístico |
 | --- | --- | --- |
-| 1 | 34,43 %\* | 49,35 %\* |
-| 2 | 28,52 % | 26,43 %\* |
-| 3 | 25,98 % | 7,22 %\* |
-| 4 | 25,10 % | 5,33 % |
-| 6 | 24,68 % | 4,07 % |
+| 1 | 34,43 %\* | 36,65 % |
+| 2 | 28,52 % | 22,54 % |
+| 3 | 25,98 % | 7,07 % |
+| 4 | 25,10 % | 5,27 % |
+| 6 | 24,68 % | 4,70 % |
 
-\* No converge en las 40 iteraciones por defecto.
+\* No converge en las 40 iteraciones por defecto. El determinístico corre con tope de 100, que la interfaz pone al elegirlo, y converge en todos los casos.
 
-El logit pierde 9,8 puntos; el determinístico pierde 45,3. **Misma ciudad, misma calibración, mismos datos**: sólo cambia cuánta heterogeneidad no observada se le atribuye a la población.
+El logit pierde 9,8 puntos; el determinístico, casi 32. **Misma ciudad, misma calibración, mismos datos**: sólo cambia cuánta heterogeneidad no observada se le atribuye a la población.
 
 ## El fenómeno que sólo aparece de un lado
 
 Ese trasvase más brusco tiene una consecuencia que vale el capítulo entero. Al perder pasajeros, el metro reduce su frecuencia —menos demanda, menos trenes— y la espera sube. Bajo el método determinístico, entre 2 y 3 pistas:
 
-- la frecuencia cae de 4,79 a 2,00 trenes/hora,
-- la espera sube de 5,96 a 14,95 minutos,
-- y el **costo generalizado percibido medio sube** de 36,45 a 42,96 minutos-equivalentes (los minutos ponderados como en la utilidad, más el dinero pasado a minutos con el valor del tiempo de cada estrato).
+- la frecuencia cae de 4,06 a 2,00 trenes/hora,
+- la espera sube de 7,39 a 15,00 minutos,
+- y el **costo generalizado percibido medio sube** de 37,81 a 43,27 minutos-equivalentes (los minutos ponderados como en la utilidad, más el dinero pasado a minutos con el valor del tiempo de cada estrato).
 
 Es decir: **agregar capacidad vial empeoró a la población**. Ésa es la paradoja de Downs-Thomson, y se puede reproducir desde la interfaz eligiendo el método determinístico y moviendo el control de pistas.
 
-Con una advertencia: con 2 y 3 pistas el determinístico **no converge** (brecha final de 0,35 y 1,75 min tras 40 iteraciones), así que esas cifras son la última iteración, no un equilibrio. El capítulo 7 del libro repite la medición con 120 iteraciones y el bienestar cae igual entre 2 y 3 pistas.
-
-<Callout type="warn">
-Que no converja es un defecto del MSA de esta versión, no del modelo. La aplicación promedia los **tiempos** entre iteraciones, y con todo o nada la respuesta salta entera de un modo a otro. Promediando los **flujos** —el MSA clásico del equilibrio de usuario— el mismo modelo sí converge a un equilibrio con cualquier número de pistas, y la caída del metro entre 2 y 3 pistas se mantiene. La aplicación pasará a promediar flujos con este método (D-70); mientras tanto, sus cifras con 1 a 3 pistas son la última iteración.
-</Callout>
+Con un matiz: el determinístico converge, pero lento. El MSA promedia los **flujos** de cada grupo entre iteraciones —el MSA clásico del equilibrio de usuario— y para cuando el **costo en exceso medio**, los minutos que cada viajero paga sobre el mejor modo de su grupo, baja de la tolerancia. Ese costo cae como 1/n: con 1 y 2 pistas tarda 55 y 52 iteraciones, y por eso al elegir el método la interfaz sube el tope a 100. La tolerancia corta con el reparto todavía moviéndose un poco —el capítulo 5 del libro muestra que con 2 pistas el metro sube algo más de un punto entre la iteración 60 y la 100—, pero la caída entre 2 y 3 pistas es mucho mayor que eso. El capítulo 7 repite la medición con una tolerancia diez veces más fina y el bienestar cae igual entre 2 y 3 pistas.
 
 Bajo logit, la misma curva de costo generalizado baja monótonamente de 38,20 a 32,93: la paradoja no aparece. El trasvase fraccional del logit es demasiado suave para que la degradación del metro alcance a superar la mejora del auto.
 
@@ -90,16 +86,16 @@ Al método determinístico se le suele llamar «Wardrop», por el **principio de
 
 La palabra clave es **«que conecta un origen con un destino»**: la igualdad se exige *dentro* de un par origen-destino. Rutas usadas de pares distintos pueden tener tiempos distintos.
 
-En esta ciudad cada celda es un origen distinto y cada estrato una clase de usuario distinta, así que la condición **no dice nada sobre el agregado**. Y efectivamente no se cumple: en el equilibrio determinístico con 4 pistas —el primer número de pistas en que converge—, los cuatro modos están usados a la vez con costos generalizados medios que difieren en hasta 58 minutos.
+En esta ciudad cada celda es un origen distinto y cada estrato una clase de usuario distinta, así que la condición **no dice nada sobre el agregado**. Y efectivamente no se cumple: en el equilibrio determinístico con 4 pistas los cuatro modos están usados a la vez con costos generalizados medios que difieren en hasta 60 minutos.
 
 | Modo usado | Costo generalizado medio (min-equiv) |
 | --- | --- |
-| Caminata | 13,69 |
-| Bicicleta | 29,19 |
-| Auto | 41,39 |
-| Metro | 71,91 |
+| Caminata | 12,83 |
+| Bicicleta | 28,94 |
+| Auto | 41,51 |
+| Metro | 72,90 |
 
-La razón es que cada grupo pone toda su masa en **un solo** modo. Un par origen-destino con una sola alternativa usada cumple la condición trivialmente: no hay dos rutas usadas que comparar. El reparto modal que se observa en el agregado es **composición** entre 1.200 grupos que deciden distinto, no arbitraje entre viajeros.
+La razón es que la igualdad se cumple **dentro** de cada grupo. La mayoría pone su masa en un solo modo, y un grupo con una sola alternativa usada cumple la condición trivialmente: no hay dos rutas usadas que comparar. Los que quedan repartidos entre dos modos son los indiferentes, y en ellos los dos costos sí se igualan, dentro de la tolerancia. El reparto modal que se observa en el agregado es **composición** entre 1.200 grupos que deciden distinto, no arbitraje entre viajeros.
 
 Por eso la interfaz lo llama «Todo o nada» y no «Wardrop».
 
@@ -115,4 +111,4 @@ Dicho de otro modo: **el fenómeno que el capítulo enseña y la falta de unicid
 - **Logit — sorteo** — cuando interesa ver la variabilidad del muestreo, o para ilustrar que el reparto esperado es un promedio de realizaciones.
 - **Todo o nada** — para aislar mecanismos de equilibrio. Al eliminar la dispersión de gustos deja ver fenómenos que el logit amortigua. Es más nítido, no más realista.
 
-Dos cosas prácticas. Primera: con el MSA de esta versión, todo o nada no converge con 1, 2 y 3 pistas, y subir el tope no lo arregla, porque promedia tiempos y el reparto oscila (ver la advertencia de arriba); con 4 y 6 converge en 7 y 15, contra 19 a 29 del logit. Mira el indicador de convergencia antes de leer un resultado determinístico. Segunda: la medida de bienestar cambia con el método: bajo logit el excedente se mide con el **logsum** (`ln Σ e^{V_m}`, que es `E[máx]` cuando hay un término aleatorio Gumbel), y bajo determinístico con la **utilidad máxima media** (`máx_m V_m`, porque sin ese término el agente simplemente toma el mejor modo). La tabla de resultados cambia sola de medida y la rotula. No compares el nivel entre métodos: el logsum siempre queda por encima, y esa brecha es el valor que el logit le atribuye a la variedad.
+Dos cosas prácticas. Primera: el determinístico converge más lento que el logit —55 y 52 iteraciones con 1 y 2 pistas, 16 con 3, y 3 y 4 con 4 y 6, contra 19 a 29 del logit—, así que al elegirlo la interfaz sube el tope a 100. Mira el indicador de convergencia antes de leer un resultado determinístico. Segunda: la medida de bienestar cambia con el método: bajo logit el excedente se mide con el **logsum** (`ln Σ e^{V_m}`, que es `E[máx]` cuando hay un término aleatorio Gumbel), y bajo determinístico con la **utilidad máxima media** (`máx_m V_m`, porque sin ese término el agente simplemente toma el mejor modo). La tabla de resultados cambia sola de medida y la rotula. No compares el nivel entre métodos: el logsum siempre queda por encima, y esa brecha es el valor que el logit le atribuye a la variedad.

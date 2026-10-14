@@ -28,7 +28,7 @@ from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.supply import generar_oferta
-from titirilquen_core.population import Agente, generar_poblacion_desde_land_use_det
+from titirilquen_core.population import Agente, _mayor_residuo, generar_poblacion_desde_land_use_det
 from titirilquen_core.supply.oferta import resolver_oferta, resolver_red_vacia
 
 ModalSplit = dict[str, float]
@@ -171,7 +171,6 @@ def _correr_iteracion(
     rng: np.random.Generator,
     expected: bool = False,
     modos_habilitados: tuple[str, ...] | None = None,
-    todo_o_nada: bool = False,
 ) -> tuple[
     ModalSplit,
     NDArray[np.float64],
@@ -198,9 +197,7 @@ def _correr_iteracion(
     dem = {"Auto": dem_auto, "Metro": dem_metro, "Bici": dem_bici, "Caminata": dem_caminata}
 
     for g in grupos:
-        _, probs = _probs_grupo(
-            g, ciudad, demand, tiempos_por_celda, modos_habilitados, todo_o_nada
-        )
+        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
         n = len(g.agentes)
         i = g.celda
         if expected:
@@ -227,6 +224,51 @@ def _correr_iteracion(
     return conteo, dem_auto, dem_metro, dem_bici, dem_caminata
 
 
+def _utilidad_y_reparto_ton(
+    grupos: list[_GrupoDemanda],
+    ciudad: CiudadLineal,
+    demand: DemandConfig,
+    tiempos_por_celda: list[TiemposObservados] | None,
+    modos_habilitados: tuple[str, ...] | None,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """Utilidad `V[g, m]` (−∞ si el modo es infactible) y carga todo-o-nada
+    `y[g, m]` de cada grupo, en el orden de `_MODOS` (D-70)."""
+    V = np.full((len(grupos), len(_MODOS)), -np.inf)
+    y = np.zeros((len(grupos), len(_MODOS)))
+    for k, g in enumerate(grupos):
+        utils, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados, True)
+        for j, m in enumerate(_MODOS):
+            if m in utils and utils[m].feasible:
+                V[k, j] = utils[m].valor
+            y[k, j] = probs.get(m, 0.0)
+    return V, y
+
+
+def _costo_en_exceso_medio(
+    x: NDArray[np.float64],
+    V: NDArray[np.float64],
+    n: NDArray[np.float64],
+    b_t: NDArray[np.float64],
+) -> float:
+    """Brecha del equilibrio de usuario (D-70): lo que cada viajero paga, en
+    promedio, por sobre el mejor modo de su grupo, en minutos de viaje
+    equivalentes: `Σ n·x·(V* − V)/|b_t| / Σ n·x`. Vale 0 exactamente en el
+    equilibrio: todo modo usado por un grupo es uno de sus mejores modos.
+
+    Es la medida estándar del equilibrio de usuario (*average excess cost*),
+    no la brecha en tiempos del logit, porque bajo todo o nada la respuesta a
+    los tiempos de un equilibrio no es única —un grupo indiferente puede ir a
+    cualquiera de sus mejores modos— y comparar tiempos frescos la haría saltar
+    aunque el estado ya sea un equilibrio."""
+    masa = n[:, None] * x
+    total = float(masa.sum())
+    if total <= 0.0:
+        return 0.0
+    v_max = np.max(V, axis=1, keepdims=True)
+    exceso = np.where(masa > 0, (v_max - V) / b_t[:, None], 0.0)
+    return float((masa * exceso).sum() / total)
+
+
 def _asignar_modos_agentes(
     grupos: list[_GrupoDemanda],
     ciudad: CiudadLineal,
@@ -234,22 +276,14 @@ def _asignar_modos_agentes(
     tiempos_por_celda: list[TiemposObservados] | None,
     rng: np.random.Generator,
     modos_habilitados: tuple[str, ...] | None = None,
-    todo_o_nada: bool = False,
 ) -> None:
     """Asigna `modo_elegido`/`utilidad_elegida` a cada agente **una sola vez**, a
     partir del estado final, muestreando de las probabilidades del grupo
     (vectorizado: `rng.choice(size=nₐ)`). Los registros por agente alimentan las
     figuras agente‑nivel; el muestreo (no argmax) preserva modos minoritarios
-    como la bici.
-
-    Con `todo_o_nada=True` el reparto del grupo ya es degenerado —toda la masa en el
-    mejor modo—, así que muestrear de él devuelve ese modo para todos los
-    agentes del grupo. Es lo correcto: bajo equilibrio determinístico no hay
-    heterogeneidad de gustos que separe a dos agentes idénticos."""
+    como la bici. Todo o nada asigna sus agentes en `_finalizar_ton` (D-70)."""
     for g in grupos:
-        utils, probs = _probs_grupo(
-            g, ciudad, demand, tiempos_por_celda, modos_habilitados, todo_o_nada
-        )
+        utils, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
         n = len(g.agentes)
         pvec = np.array([probs.get(m, 0.0) for m in _MODOS])
         total = float(pvec.sum())
@@ -368,10 +402,29 @@ def _iter_loop(
 
     El paso `f = 1/(it+1)` es el mismo en ambos, e incluye la inicialización
     `x <- x*` de la iteración 0 (con `it=0`, `f=1`).
+
+    **Todo o nada promedia siempre flujos, y por grupo** (D-70): promediando
+    tiempos la respuesta salta entera de modo y el reparto oscila sin converger,
+    aunque el equilibrio de usuario existe. Se promedia el reparto de cada grupo
+    (no sólo el total por celda) porque lo necesitan la brecha —el costo en
+    exceso medio, `_costo_en_exceso_medio`— y el estado final: en el equilibrio
+    un grupo indiferente queda repartido entre sus mejores modos.
     """
     grupos, n_tele = _agrupar_agentes(agentes)
     if trace is not None:
         trace.agentes = agentes
+
+    ton = sim.assignment == "todo_o_nada"
+    x_ton: NDArray[np.float64] | None = None  # reparto promediado por grupo
+    if ton:
+        n_g = np.array([len(g.agentes) for g in grupos], dtype=float)
+        b_t = np.array([abs(sim.demand.estratos[g.estrato].betas.b_tiempo_viaje) for g in grupos])
+        celda_g = np.array([g.celda for g in grupos], dtype=int)
+        # La utilidad de la iteración `it` se calcula al final de la `it−1`
+        # (sirve para la brecha de ese iterado y para la carga de éste).
+        V_ton, y_ton = _utilidad_y_reparto_ton(
+            grupos, ciudad, sim.demand, None, sim.modos_habilitados
+        )
 
     d_ac: tuple[NDArray[np.float64], ...] | None = None
     tiempos_actuales: list[TiemposObservados] | None = None
@@ -385,22 +438,34 @@ def _iter_loop(
     last_state: dict | None = None
 
     for it in range(sim.max_iter):
-        conteo, d_auto, d_metro, d_bici, d_caminata = _correr_iteracion(
-            grupos,
-            n_tele,
-            ciudad,
-            sim.demand,
-            tiempos_actuales,
-            rng,
-            # 'todo_o_nada' carga de forma fraccional igual que 'expected': su
-            # reparto ya es degenerado (todo al mejor modo), asi que sortearlo
-            # solo agregaria ruido sin cambiar el valor esperado.
-            sim.assignment in ("expected", "todo_o_nada"),
-            sim.modos_habilitados,
-            sim.assignment == "todo_o_nada",
-        )
+        if ton:
+            f_x = 1.0 / (it + 1)
+            x_ton = y_ton if x_ton is None else f_x * y_ton + (1 - f_x) * x_ton
+            masa = n_g[:, None] * x_ton
+            dem = [np.zeros(ciudad.n_celdas) for _ in _MODOS]
+            for j in range(len(_MODOS)):
+                np.add.at(dem[j], celda_g, masa[:, j])
+            d_auto, d_metro, d_bici, d_caminata = dem
+            conteo: ModalSplit = {
+                "Auto": float(masa[:, 0].sum()),
+                "Metro": float(masa[:, 1].sum()),
+                "Bici": float(masa[:, 2].sum()),
+                "Caminata": float(masa[:, 3].sum()),
+                "Teletrabajo": float(n_tele),
+            }
+        else:
+            conteo, d_auto, d_metro, d_bici, d_caminata = _correr_iteracion(
+                grupos,
+                n_tele,
+                ciudad,
+                sim.demand,
+                tiempos_actuales,
+                rng,
+                sim.assignment == "expected",
+                sim.modos_habilitados,
+            )
 
-        if promediar_flujos:
+        if promediar_flujos and not ton:
             # `d_*` recién salido de `_correr_iteracion` es el target x*: la
             # asignación a los tiempos actuales. Se promedia ACÁ, antes de las
             # funciones de oferta, para que los tiempos salgan del flujo
@@ -431,7 +496,7 @@ def _iter_loop(
             # pero ya no es la brecha: los dos tiempos que compara salen de
             # flujos que difieren en una fracción f, así que vuelve a ser un
             # cambio amortiguado. Para esta variante la vara es `gap_final_min`.
-            f = 1.0 if promediar_flujos else 1.0 / (it + 1)
+            f = 1.0 if promediar_flujos or ton else 1.0 / (it + 1)
             old_auto = t_auto_ac.copy()
             old_bici = t_bici_ac.copy()
             old_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
@@ -469,6 +534,12 @@ def _iter_loop(
             )
             for i in range(ciudad.n_celdas)
         ]
+        if ton:
+            assert x_ton is not None
+            V_ton, y_ton = _utilidad_y_reparto_ton(
+                grupos, ciudad, sim.demand, tiempos_actuales, sim.modos_habilitados
+            )
+            residuo = _costo_en_exceso_medio(x_ton, V_ton, n_g, b_t)
 
         snap = IterationSnapshot(
             iter=it,
@@ -509,9 +580,9 @@ def _iter_loop(
         # max_iter. Con tolerance=0 nunca corta (sólo número de iteraciones).
         # Con 'montecarlo' el ruido de muestreo deja la brecha en ~0,15–0,75 min
         # y la corrida agota max_iter aunque `gap_final_min`, que carga flujos
-        # esperados, quede bajo la tolerancia. Con 'todo_o_nada' no hay punto
-        # fijo (la demanda salta entera al cruzar la indiferencia) y tampoco
-        # corta (D9).
+        # esperados, quede bajo la tolerancia. Con 'todo_o_nada' el residuo es
+        # el costo en exceso medio (D-70), que baja como 1/n: converge, pero
+        # con pocas pistas pide más vueltas que el logit.
         if sim.tolerance > 0 and residuo < sim.tolerance:
             estables += 1
             if estables >= 2:
@@ -522,7 +593,7 @@ def _iter_loop(
             estables = 0
 
     if trace is not None:
-        _finalizar_trace(trace, sim, ciudad, grupos, tiempos_actuales, rng, last_state)
+        _finalizar_trace(trace, sim, ciudad, grupos, tiempos_actuales, rng, last_state, x_ton)
 
 
 def run_msa(
@@ -569,7 +640,6 @@ def _demanda_esperada_por_estrato(
     demand: DemandConfig,
     tiempos_por_celda: list[TiemposObservados] | None,
     modos_habilitados: tuple[str, ...] | None,
-    todo_o_nada: bool = False,
 ) -> NDArray[np.float64]:
     """Demanda esperada (nₐ·prob) por estrato·modo·celda del estado dado —
     forma [estrato 0..2, modo (orden _MODOS), celda]. Es la Fig. 9 desagregada
@@ -577,9 +647,7 @@ def _demanda_esperada_por_estrato(
     continua bajo cualquier asignación. Teletrabajo va aparte (no viaja)."""
     arr = np.zeros((3, len(_MODOS), ciudad.n_celdas))
     for g in grupos:
-        _, probs = _probs_grupo(
-            g, ciudad, demand, tiempos_por_celda, modos_habilitados, todo_o_nada
-        )
+        _, probs = _probs_grupo(g, ciudad, demand, tiempos_por_celda, modos_habilitados)
         e = int(g.estrato) - 1
         if not 0 <= e < 3:
             continue
@@ -587,6 +655,44 @@ def _demanda_esperada_por_estrato(
         for k, m in enumerate(_MODOS):
             arr[e, k, g.celda] += n * probs.get(m, 0.0)
     return arr
+
+
+def _finalizar_ton(
+    trace: ConvergenceTrace,
+    sim: SimulationConfig,
+    ciudad: CiudadLineal,
+    grupos: list[_GrupoDemanda],
+    tiempos_actuales: list[TiemposObservados] | None,
+    x: NDArray[np.float64],
+) -> None:
+    """Estado final de todo o nada desde el reparto promediado `x[g, m]` (D-70):
+    modos por agente (cuotas de mayor residuo, sin sorteo: no hay gustos que
+    separen a dos agentes del mismo grupo), demanda por estrato y la brecha
+    final, que es el costo en exceso medio de ese reparto."""
+    V, _ = _utilidad_y_reparto_ton(
+        grupos, ciudad, sim.demand, tiempos_actuales, sim.modos_habilitados
+    )
+    arr = np.zeros((3, len(_MODOS), ciudad.n_celdas))
+    for k, g in enumerate(grupos):
+        n = len(g.agentes)
+        if not np.isfinite(V[k]).any():
+            for a in g.agentes:
+                a.modo_elegido = None  # agente varado
+                a.utilidad_elegida = 0.0
+            continue
+        cuota = n * x[k]
+        enteros = _mayor_residuo(cuota, n)
+        modos = [j for j in range(len(_MODOS)) for _ in range(int(enteros[j]))]
+        for a, j in zip(g.agentes, modos, strict=True):
+            a.modo_elegido = _MODOS[j]
+            a.utilidad_elegida = float(V[k, j])
+        e = int(g.estrato) - 1
+        if 0 <= e < 3:
+            arr[e, :, g.celda] += cuota
+    trace.demanda_estrato = arr
+    n_g = np.array([len(g.agentes) for g in grupos], dtype=float)
+    b_t = np.array([abs(sim.demand.estratos[g.estrato].betas.b_tiempo_viaje) for g in grupos])
+    trace.gap_final_min = _costo_en_exceso_medio(x, V, n_g, b_t)
 
 
 def _finalizar_trace(
@@ -597,55 +703,54 @@ def _finalizar_trace(
     tiempos_actuales: list[TiemposObservados] | None,
     rng: np.random.Generator,
     last_state: dict | None,
+    reparto_ton: NDArray[np.float64] | None = None,
 ) -> None:
     """Completa el `trace` tras el loop: registros por agente (una sola pasada),
-    capacidades del estado final y emisiones de CO₂."""
-    # Registros por agente a partir del estado convergido, para figuras agente‑nivel.
-    _asignar_modos_agentes(
-        grupos,
-        ciudad,
-        sim.demand,
-        tiempos_actuales,
-        rng,
-        sim.modos_habilitados,
-        sim.assignment == "todo_o_nada",
-    )
-    # Demanda esperada por estrato·modo·celda (reparto modal espacial por estrato).
-    trace.demanda_estrato = _demanda_esperada_por_estrato(
-        grupos,
-        ciudad,
-        sim.demand,
-        tiempos_actuales,
-        sim.modos_habilitados,
-        sim.assignment == "todo_o_nada",
-    )
+    capacidades del estado final y emisiones de CO₂.
+
+    Con `reparto_ton` (todo o nada, D-70) el estado final es el reparto
+    promediado de cada grupo, no la respuesta todo-o-nada a los tiempos finales:
+    en el equilibrio un grupo indiferente queda repartido, y recalcular la
+    respuesta lo mandaría entero a uno de sus modos."""
+    if reparto_ton is not None:
+        _finalizar_ton(trace, sim, ciudad, grupos, tiempos_actuales, reparto_ton)
+    else:
+        # Registros por agente a partir del estado convergido, para figuras agente‑nivel.
+        _asignar_modos_agentes(
+            grupos, ciudad, sim.demand, tiempos_actuales, rng, sim.modos_habilitados
+        )
+        # Demanda esperada por estrato·modo·celda (reparto modal espacial por estrato).
+        trace.demanda_estrato = _demanda_esperada_por_estrato(
+            grupos, ciudad, sim.demand, tiempos_actuales, sim.modos_habilitados
+        )
     if last_state is None:
         return
 
     # Brecha no amortiguada (D-39): demanda fresca con los tiempos finales →
     # oferta → tiempos; cuánto difieren de los que el loop declaró finales.
+    # Con todo o nada la fija `_finalizar_ton` (costo en exceso, D-70).
     snap = trace.iteraciones[-1]
-    _, da, dm, db, _ = _correr_iteracion(
-        grupos,
-        0,
-        ciudad,
-        sim.demand,
-        tiempos_actuales,
-        rng,
-        expected=True,
-        modos_habilitados=sim.modos_habilitados,
-        todo_o_nada=sim.assignment == "todo_o_nada",
-    )
-    fresca = resolver_oferta(sim, ciudad, da, db, dm)
-    metro_final = snap.t_tren_acceso + snap.t_tren_espera + snap.t_tren_viaje
-    metro_fresco = fresca.tren.t_acceso_min + fresca.tren.t_espera_min + fresca.tren.t_viaje_min
-    trace.gap_final_min = float(
-        max(
-            np.max(np.abs(fresca.auto.t_usuarios_min - snap.t_auto)),
-            np.max(np.abs(fresca.bici.t_usuarios_min - snap.t_bici)),
-            np.max(np.abs(metro_fresco - metro_final)),
+    if reparto_ton is None:
+        _, da, dm, db, _ = _correr_iteracion(
+            grupos,
+            0,
+            ciudad,
+            sim.demand,
+            tiempos_actuales,
+            rng,
+            expected=True,
+            modos_habilitados=sim.modos_habilitados,
         )
-    )
+        fresca = resolver_oferta(sim, ciudad, da, db, dm)
+        metro_final = snap.t_tren_acceso + snap.t_tren_espera + snap.t_tren_viaje
+        metro_fresco = fresca.tren.t_acceso_min + fresca.tren.t_espera_min + fresca.tren.t_viaje_min
+        trace.gap_final_min = float(
+            max(
+                np.max(np.abs(fresca.auto.t_usuarios_min - snap.t_auto)),
+                np.max(np.abs(fresca.bici.t_usuarios_min - snap.t_bici)),
+                np.max(np.abs(metro_fresco - metro_final)),
+            )
+        )
 
     trace.capacidad_auto = last_state["capacidad"]
     trace.v_libre_auto = last_state["v_libre"]

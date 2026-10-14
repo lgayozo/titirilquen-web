@@ -162,9 +162,10 @@
   La de <strong>todo o nada</strong> lleva a cada grupo entero a su mejor
   modo, el límite determinístico del capítulo 4. Ahí el objetivo
   <em>x*</em> salta de golpe cuando un grupo cruza la indiferencia, que es lo
-  que Boyles (p. 314) señala para la asignación determinística, y no hay
-  punto fijo: el reparto oscila (§5.8). La aplicación lo ofrece como
-  contraste y lo rotula así. Los teletrabajadores no entran al loop, y un
+  que Boyles (p. 314) señala para la asignación determinística: promediar
+  tiempos no converge, porque el reparto oscila. Por eso con este método el
+  MSA promedia los flujos de cada grupo, (5.2) con la carga todo o nada, y para
+  por el costo en exceso medio en vez de la brecha (D-70, §5.8). Los teletrabajadores no entran al loop, y un
   hogar sin ningún modo factible queda varado y se cuenta aparte.
 </p>
 
@@ -277,29 +278,32 @@
     <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">269</td><td><code>iter_msa_desde_suelo</code> — la entrada: población desde el suelo, una iteración por vez; <code>run_msa</code> (528) la consume entera y <code>run_msa_con_poblacion</code> (552) sirve al acoplado</td></tr>
-    <tr><td class="n">(5.2), (5.3)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">344</td><td><code>_iter_loop</code> — el loop; su docstring compara las dos variantes</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">303</td><td><code>iter_msa_desde_suelo</code> — la entrada: población desde el suelo, una iteración por vez; <code>run_msa</code> (599) la consume entera y <code>run_msa_con_poblacion</code> (623) sirve al acoplado</td></tr>
+    <tr><td class="n">(5.2), (5.3)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">378</td><td><code>_iter_loop</code> — el loop; su docstring compara las dos variantes</td></tr>
     <tr><td class="n">(5.1)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">165</td><td><code>_correr_iteracion</code> — el lado <em>d(t)</em>: carga por grupo, esperada o sorteada; <code>_agrupar_agentes</code> (122) separa a los teletrabajadores</td></tr>
-    <tr><td class="n">(5.5)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">383</td><td><code>resolver_red_vacia</code> — el tiempo de bici de la red vacía, una vez por corrida, para los escalones (D9)</td></tr>
-    <tr><td class="n">(5.3)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">403</td><td><code>promediar_flujos</code> — qué variable se promedia; el paso <em>f</em> es 1/(it+1) al promediar tiempos y 1 al promediar flujos</td></tr>
-    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">441</td><td><code>residuo</code> — la brecha de la iteración, medida antes de promediar (D8)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">516</td><td><code>estables</code> — criterio de parada: brecha bajo la tolerancia dos veces seguidas</td></tr>
-    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">592</td><td><code>_finalizar_trace</code> — modos por agente, demanda por estrato, brecha final (<code>gap_final_min</code>, 642) y emisiones</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">230</td><td><code>_asignar_modos_agentes</code> — el modo muestreado por agente al final, para las figuras y el bienestar</td></tr>
+    <tr><td class="n">(5.5)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">436</td><td><code>resolver_red_vacia</code> — el tiempo de bici de la red vacía, una vez por corrida, para los escalones (D9)</td></tr>
+    <tr><td class="n">(5.3)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">468</td><td><code>promediar_flujos</code> — qué variable se promedia; el paso <em>f</em> es 1/(it+1) al promediar tiempos y 1 al promediar flujos</td></tr>
+    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">506</td><td><code>residuo</code> — la brecha de la iteración, medida antes de promediar (D8)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">587</td><td><code>estables</code> — criterio de parada: brecha bajo la tolerancia dos veces seguidas</td></tr>
+    <tr><td class="n">(5.2)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">417</td><td><code>ton</code> — con todo o nada el loop promedia el reparto de cada grupo y su residuo es el costo en exceso medio (D-70)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">247</td><td><code>_costo_en_exceso_medio</code> — Σ<em>n·x</em>·(<em>V*</em> − <em>V</em>)/|<em>β<sub>t</sub></em>| sobre Σ<em>n·x</em>, en minutos</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">660</td><td><code>_finalizar_ton</code> — el estado final es el reparto promediado: modos por agente con cuotas de mayor residuo, sin sorteo</td></tr>
+    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">698</td><td><code>_finalizar_trace</code> — modos por agente, demanda por estrato, brecha final (<code>gap_final_min</code>, 642) y emisiones</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">272</td><td><code>_asignar_modos_agentes</code> — el modo muestreado por agente al final, para las figuras y el bienestar</td></tr>
     <tr><td class="n">(5.5)</td><td class="ruta py">demand/utility.py</td><td class="n">43</td><td><code>bici_libre</code> — el campo de <code>TiemposObservados</code> sobre el que van escalones y corte; <code>t_esfuerzo</code> (151) los evalúa</td></tr>
     <tr><td class="n">(5.6)</td><td class="ruta py">emissions.py</td><td class="n">56</td><td><code>calcular_emisiones</code> — auto por velocidad local; <code>factor_emision_auto</code> (29) es la curva; <code>tren_km_hora</code> (43) los tren-km del metro</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">364</td><td><code>SimulationConfig</code> — <code>max_iter</code> (376), <code>tolerance</code> (385), <code>seed</code> (386), <code>assignment</code> (387), <code>modos_habilitados</code> (406)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/overrides.ts</td><td class="n">49</td><td><code>assignment</code> — la app corre <code>expected</code>; el núcleo trae Montecarlo</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">components/RunStatus.tsx</td><td class="n">46</td><td><code>converged</code> — lo que la interfaz declara al terminar: convergió o no, en cuántas iteraciones y con qué residuo, que desde D8 es la brecha</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">506</td><td><code>aon</code> — con todo o nada el veredicto dice que no hay punto fijo, en vez de sugerir más iteraciones</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">506</td><td><code>aon</code> — con todo o nada el veredicto habla del costo en exceso medio, que es lo que mide su residuo</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Dos detalles del código. La carga todo o nada se acumula de forma
-  fraccional igual que la esperada, porque su reparto ya es degenerado y
-  sortearlo sólo agregaría ruido. Y la brecha final se calcula con carga
+  Dos detalles del código. El reparto todo o nada promediado se reparte
+  entre los agentes del grupo por cuotas, no por sorteo, porque no hay gustos
+  que separen a dos agentes del mismo grupo y sortear sólo agregaría ruido. Y la brecha final se calcula con carga
   esperada aunque la corrida haya sido Montecarlo, para que mida el desajuste
   del modelo y no el del sorteo; la brecha de cada iteración, en cambio, sí
   lleva el sorteo, y es la que decide la parada.
@@ -315,6 +319,7 @@
   <tbody>
     <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:59</td><td>Los tres métodos de carga corren y conservan la población.</td></tr>
     <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:74</td><td>El todo o nada concentra más que el logit.</td></tr>
+    <tr><td><code class="ruta py">tests/test_todo_o_nada_equilibrio.py</code>:43</td><td>D-70: con 1, 2 y 3 pistas todo o nada converge bajo la tolerancia; el costo en exceso cae (53), el estado final es el reparto promediado (61) y quedan grupos repartidos (84).</td></tr>
     <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:101</td><td>Promediar flujos llega a un punto fijo parecido.</td></tr>
     <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:138</td><td>Un modo deshabilitado no recibe demanda; sin modos factibles los agentes quedan varados (150).</td></tr>
     <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:178</td><td>Las dos localizaciones dan ciudades distintas, y la demanda por estrato cuadra con el reparto (206).</td></tr>
@@ -510,32 +515,48 @@
   <code>tests/test_linea_base.py</code>, que declara el cambio de la línea base.
 </p>
 
-<h3>5.8 Todo o nada: una oscilación, no un equilibrio</h3>
+<h3>5.8 Todo o nada: el equilibrio de usuario, alcanzado despacio</h3>
 
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th class="n">Iteraciones</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">Caminata %</th><th class="n">Brecha final (min)</th></tr>
+    <tr><th class="n">Iteraciones</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">Caminata %</th><th class="n">Costo en exceso medio (min)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">20</td><td class="n">30,68</td><td class="n">28,74</td><td class="n">28,19</td><td class="n">12,39</td><td class="n">1,17</td></tr>
-    <tr><td class="n">40</td><td class="n">30,69</td><td class="n">26,63</td><td class="n">30,28</td><td class="n">12,39</td><td class="n">0,35</td></tr>
-    <tr><td class="n">60</td><td class="n">30,89</td><td class="n">26,21</td><td class="n">30,50</td><td class="n">12,39</td><td class="n">2,32</td></tr>
-    <tr><td class="n">80</td><td class="n">30,99</td><td class="n">26,12</td><td class="n">30,50</td><td class="n">12,39</td><td class="n">0,35</td></tr>
+    <tr><td class="n">20</td><td class="n">30,91</td><td class="n">19,03</td><td class="n">35,69</td><td class="n">14,37</td><td class="n">0,465</td></tr>
+    <tr><td class="n">40</td><td class="n">30,87</td><td class="n">21,82</td><td class="n">33,54</td><td class="n">13,77</td><td class="n">0,248</td></tr>
+    <tr><td class="n">60</td><td class="n">30,90</td><td class="n">22,97</td><td class="n">32,72</td><td class="n">13,41</td><td class="n">0,169</td></tr>
+    <tr><td class="n">80</td><td class="n">30,90</td><td class="n">23,69</td><td class="n">32,21</td><td class="n">13,20</td><td class="n">0,129</td></tr>
+    <tr><td class="n">100</td><td class="n">30,91</td><td class="n">24,11</td><td class="n">31,91</td><td class="n">13,06</td><td class="n">0,104</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Sin corte, el reparto del todo o nada se mueve hasta
-  2,62 puntos entre la iteración 20 y la 80, y la brecha final
-  nunca baja de 0,3 min: no hay punto fijo al que acercarse. Con la
-  regla de la aplicación la corrida agota las 40 iteraciones sin
-  converger. El reparto que muestra es muy distinto del logit: el metro cae al
-  26,6 % contra el 28,5 % de la carga
-  esperada, porque sin heterogeneidad de gustos cada grupo va entero a su
-  mejor modo, y las emisiones pasan de 15.106 a
-  22.311 kg/h.
+  Con todo o nada el MSA promedia los flujos de cada grupo, el MSA clásico del
+  equilibrio de usuario, y mide el costo en exceso medio: los minutos que cada
+  viajero paga sobre el mejor modo de su grupo, cero en el equilibrio (D-70).
+  Sin corte, ese costo cae como 1/<em>n</em>, de 0,465
+  min a las 20 iteraciones a 0,104 a las 100, y el
+  metro sube de 19,03 % a
+  24,11 %, subiendo en cada corte: no oscila. Con la regla de la
+  aplicación, que al elegir el método sube el tope a 100, la corrida converge en
+  52 iteraciones con el metro en
+  22,54 %. Ahí 490 de los
+  1.200 grupos quedan repartidos entre dos modos: son los indiferentes,
+  y es lo que distingue al equilibrio de la respuesta todo o nada a los tiempos
+  finales, que los mandaría enteros a uno.
+</p>
+
+<p>
+  La tolerancia de 0,2 min sobre un promedio corta temprano: el metro todavía
+  sube 1,1 puntos entre la iteración 60 y la 100. Que un costo en exceso tan
+  chico conviva con un reparto que se mueve sugiere que la dirección es casi
+  plana —muchos repartos cerca del equilibrio, compatible con la falta de
+  unicidad de §6—, así que el reparto exacto depende de cuánto se exija. Aun así el reparto es muy distinto del logit: el metro cae al
+  22,5 % contra el 28,5 % de la carga esperada,
+  porque sin heterogeneidad de gustos cada grupo va entero a su mejor modo, y
+  las emisiones pasan de 15.106 a 24.481 kg/h.
 </p>
 
 <h3>5.9 Montecarlo: el ruido pone un piso a la brecha</h3>
@@ -553,12 +574,12 @@
   La maquinaria del equilibrio es sólida: el punto fijo no depende del
   sorteo, se alcanza por dos caminos distintos que dan casi lo mismo, y
   exigir más precisión que la de la aplicación mueve el resultado a lo sumo
-  0,01 puntos. Las dos debilidades que la auditoría encontró están
-  corregidas: la parada ya no se afloja sola (D8) y la demanda de la bici ya
-  no es discontinua en los tiempos (D9). Lo que el módulo sigue sin poder
-  prometer es una convergencia demostrable, porque promedia la variable para
-  la que no hay argumento, ni un punto fijo único, porque el metro tiene
-  costos decrecientes.
+  0,01 puntos. Las debilidades encontradas están corregidas: la parada ya no
+  se afloja sola (D8), la demanda de la bici ya no es discontinua en los
+  tiempos (D9) y todo o nada ya no oscila, porque promedia flujos (D-70). Lo
+  que el módulo sigue sin poder prometer bajo el logit es una convergencia
+  demostrable, porque promedia la variable para la que no hay argumento, ni
+  un punto fijo único, porque el metro tiene costos decrecientes.
 </p>
 
 <h3>Pendientes</h3>
@@ -584,6 +605,13 @@
     40 iteraciones (§5.5), y «Ciclorrecreovía», que es un preset,
     tampoco. Se resuelve con el tope único de vueltas de la fase de interfaz:
     subir el tope, cambiar la regla de paso o declararlo en pantalla.
+  </li>
+  <li>
+    <strong>La tolerancia de todo o nada.</strong> Los 0,2 min de costo en
+    exceso medio cortan con el reparto todavía en movimiento (§5.8). Una
+    tolerancia más fina sobre un costo que cae como 1/<em>n</em> pide más
+    iteraciones que el tope de 100 del núcleo; la alternativa es otra regla
+    de paso.
   </li>
   <li>
     <strong>Un test de que la brecha acota el error del reparto</strong>, para

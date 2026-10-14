@@ -59,8 +59,8 @@ def probabilidades_todo_o_nada(utilidades: dict[Modo, UtilityBreakdown]) -> dict
     y aclara explícitamente que rutas usadas de pares origen-destino DISTINTOS
     pueden tener tiempos distintos. Acá cada celda es un origen distinto y cada
     estrato una clase de usuario distinta, así que la condición no dice nada
-    sobre el agregado. Medido con `scripts/auditoria_wardrop.py` sobre la base
-    default (942 grupos, 29.002 agentes):
+    sobre el agregado. Medido con `scripts/auditoria_wardrop.py` (ya no está en
+    el repo) sobre una base anterior (942 grupos, 29.002 agentes):
 
       * el costo generalizado del modo elegido tiene desviación estándar de
         15,3 min entre grupos, sobre una media de 34,6 — y pasar de logit a
@@ -79,7 +79,9 @@ def probabilidades_todo_o_nada(utilidades: dict[Modo, UtilityBreakdown]) -> dict
     grupo marginal salta ENTERO al cruzar su umbral de indiferencia, en vez de
     trasvasar una fracción. Por eso una mejora vial puede disiparse — no porque
     alguien arbitre hasta igualar costos, sino porque los grupos que estaban
-    cerca del margen se mudan de golpe (docs/CONTINUAR.md §5).
+    cerca del margen se mudan de golpe (docs/CONTINUAR.md §5). Dentro del MSA
+    esos saltos se promedian entre iteraciones (D-70): en el equilibrio el grupo
+    indiferente queda repartido entre sus modos.
 
     Empates: se reparte en partes iguales entre los modos empatados. Sin eso, un
     desempate arbitrario por orden de diccionario introduciría un sesgo estable

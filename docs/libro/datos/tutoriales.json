@@ -1,7 +1,7 @@
 {
  "_meta": {
   "generado": "2026-10-14",
-  "commit": "eeb112d",
+  "commit": "9b99d31",
   "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)"
  },
  "parametros": {
@@ -196,141 +196,141 @@
   "todo_o_nada": [
    {
     "num_pistas": 1,
-    "iteraciones": 40,
-    "convergio": false,
-    "brecha_final_min": 91.169,
+    "iteraciones": 55,
+    "convergio": true,
+    "brecha_final_min": 0.195,
     "reparto_pct": {
-     "Auto": 0.61,
-     "Metro": 49.35,
-     "Bici": 30.66,
-     "Caminata": 19.38
+     "Auto": 16.11,
+     "Metro": 36.65,
+     "Bici": 31.46,
+     "Caminata": 15.78
     },
     "auto_por_estrato_pct": {
-     "alto": 3.06,
-     "medio": 0.0,
-     "bajo": 0.0
+     "alto": 59.83,
+     "medio": 8.26,
+     "bajo": 0.04
     },
-    "frecuencia_metro_tph": 8.88,
-    "espera_metro_min": 3.87,
+    "frecuencia_metro_tph": 6.6,
+    "espera_metro_min": 4.55,
     "cg_min_equiv": {
-     "medio": 30.39,
+     "medio": 33.08,
      "por_modo": {
-      "Auto": 16.69,
-      "Metro": 42.46,
-      "Bici": 21.59,
+      "Auto": 47.88,
+      "Metro": 44.18,
+      "Bici": 22.11,
       "Caminata": 14.01
      }
     }
    },
    {
     "num_pistas": 2,
-    "iteraciones": 40,
-    "convergio": false,
-    "brecha_final_min": 0.346,
+    "iteraciones": 52,
+    "convergio": true,
+    "brecha_final_min": 0.193,
     "reparto_pct": {
-     "Auto": 30.89,
-     "Metro": 26.43,
-     "Bici": 30.28,
-     "Caminata": 12.39
+     "Auto": 30.88,
+     "Metro": 22.54,
+     "Bici": 33.02,
+     "Caminata": 13.55
     },
     "auto_por_estrato_pct": {
-     "alto": 77.56,
-     "medio": 30.75,
-     "bajo": 0.0
+     "alto": 77.53,
+     "medio": 30.5,
+     "bajo": 0.39
     },
-    "frecuencia_metro_tph": 4.79,
-    "espera_metro_min": 5.96,
+    "frecuencia_metro_tph": 4.06,
+    "espera_metro_min": 7.39,
     "cg_min_equiv": {
-     "medio": 36.45,
+     "medio": 37.81,
      "por_modo": {
-      "Auto": 49.94,
-      "Metro": 47.89,
-      "Bici": 22.15,
-      "Caminata": 13.35
+      "Auto": 52.83,
+      "Metro": 51.41,
+      "Bici": 24.3,
+      "Caminata": 13.89
      }
     }
    },
    {
     "num_pistas": 3,
-    "iteraciones": 40,
-    "convergio": false,
-    "brecha_final_min": 1.748,
+    "iteraciones": 16,
+    "convergio": true,
+    "brecha_final_min": 0.183,
     "reparto_pct": {
-     "Auto": 44.61,
-     "Metro": 7.22,
-     "Bici": 36.28,
-     "Caminata": 11.89
+     "Auto": 45.62,
+     "Metro": 7.07,
+     "Bici": 36.34,
+     "Caminata": 10.97
     },
     "auto_por_estrato_pct": {
-     "alto": 90.0,
-     "medio": 53.18,
-     "bajo": 0.0
+     "alto": 89.58,
+     "medio": 54.53,
+     "bajo": 1.42
     },
     "frecuencia_metro_tph": 2.0,
-    "espera_metro_min": 14.95,
+    "espera_metro_min": 15.0,
     "cg_min_equiv": {
-     "medio": 42.96,
+     "medio": 43.27,
      "por_modo": {
-      "Auto": 57.48,
-      "Metro": 70.29,
-      "Bici": 29.41,
-      "Caminata": 13.29
+      "Auto": 57.13,
+      "Metro": 70.83,
+      "Bici": 29.47,
+      "Caminata": 13.59
      }
     }
    },
    {
     "num_pistas": 4,
-    "iteraciones": 7,
+    "iteraciones": 3,
     "convergio": true,
-    "brecha_final_min": 0.12,
+    "brecha_final_min": 0.087,
     "reparto_pct": {
-     "Auto": 48.63,
-     "Metro": 5.33,
-     "Bici": 35.65,
-     "Caminata": 10.39
+     "Auto": 48.7,
+     "Metro": 5.27,
+     "Bici": 36.49,
+     "Caminata": 9.53
     },
     "auto_por_estrato_pct": {
      "alto": 90.0,
      "medio": 60.01,
-     "bajo": 2.02
+     "bajo": 2.26
     },
     "frecuencia_metro_tph": 2.0,
     "espera_metro_min": 15.0,
     "cg_min_equiv": {
-     "medio": 35.79,
+     "medio": 35.84,
      "por_modo": {
-      "Auto": 41.39,
-      "Metro": 71.91,
-      "Bici": 29.19,
-      "Caminata": 13.69
+      "Auto": 41.51,
+      "Metro": 72.9,
+      "Bici": 28.94,
+      "Caminata": 12.83
      }
     }
    },
    {
     "num_pistas": 6,
-    "iteraciones": 15,
+    "iteraciones": 4,
     "convergio": true,
-    "brecha_final_min": 0.172,
+    "brecha_final_min": 0.102,
     "reparto_pct": {
-     "Auto": 54.11,
-     "Metro": 4.07,
-     "Bici": 31.56,
-     "Caminata": 10.27
+     "Auto": 52.77,
+     "Metro": 4.7,
+     "Bici": 32.87,
+     "Caminata": 9.66
     },
     "auto_por_estrato_pct": {
      "alto": 90.0,
      "medio": 60.01,
-     "bajo": 20.3
+     "bajo": 15.85
     },
     "frecuencia_metro_tph": 2.0,
     "espera_metro_min": 15.0,
     "cg_min_equiv": {
-     "medio": 32.64,
+     "medio": 32.26,
      "por_modo": {
-      "Auto": 36.59,
-      "Metro": 70.83,
-      "Bici": 27.15,
-      "Caminata": 13.55
+      "Auto": 35.59,
+      "Metro": 72.16,
+      "Bici": 26.88,
+      "Caminata": 12.94
      }
     }
    }

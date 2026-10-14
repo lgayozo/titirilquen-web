@@ -104,12 +104,12 @@
     "not_converged": "Equilibrio NO alcanzado",
     "verdict_ok": "Convergió en {{n}} de {{total}} iteraciones: el residuo bajó a {{res}} min, dentro de la tolerancia de {{tol}} min. Los resultados de abajo son un equilibrio.",
     "verdict_fail": "Agotó las {{total}} iteraciones sin converger: el residuo quedó en {{res}} min, sobre la tolerancia de {{tol}} min. Los tiempos todavía se están moviendo, así que lo de abajo NO es un equilibrio y no sirve para comparar escenarios. Subí las iteraciones máximas o afloja la tolerancia.",
-    "verdict_fail_aon": "Agotó las {{total}} iteraciones sin converger. Con todo o nada, el MSA de esta versión promedia tiempos y el grupo marginal salta ENTERO de modo al cruzar la indiferencia, así que el reparto oscila: lo de abajo es la última iteración, no un equilibrio, y subir las iteraciones no lo arregla. El equilibrio existe; alcanzarlo exige promediar flujos (pendiente, D-70).",
+    "verdict_fail_aon": "Agotó las {{total}} iteraciones sin converger: el costo en exceso medio —los minutos que cada viajero paga sobre el mejor modo de su grupo— quedó en {{res}} min, sobre la tolerancia de {{tol}} min. Lo de abajo NO es un equilibrio. Con todo o nada el MSA promedia los flujos de cada grupo con paso 1/n y ese costo cae lento: subí las iteraciones máximas.",
     "verdict_no_tol": "Sin criterio de convergencia (tolerancia 0): corrió las {{total}} iteraciones fijas y se detuvo por conteo, no porque los tiempos se estabilizaran. El residuo final es {{res}} min.",
     "booting_pyodide": "Inicializando Pyodide en el navegador (primera vez ~10–20s)…",
     "assignment_montecarlo": "Logit — sorteo",
     "assignment_todo_o_nada": "Todo o nada",
-    "assignment_hint_todo_o_nada": "Elección SIN dispersión de gustos: cada grupo va entero al modo de mayor utilidad. Es el límite del logit cuando la escala de los coeficientes crece, y su equilibrio es el de usuario (Wardrop) dentro de cada grupo; entre grupos los costos no se igualan. Ojo: el MSA de esta versión promedia tiempos, y con todo o nada el reparto puede oscilar sin converger (con pocas pistas): el equilibrio existe, pero esta versión no siempre lo alcanza (D-70). Puede haber equilibrios múltiples, porque el metro abarata su espera al ganar demanda y eso viola la condición de costos crecientes que garantiza la unicidad.",
+    "assignment_hint_todo_o_nada": "Elección SIN dispersión de gustos: cada grupo va entero al modo de mayor utilidad. Es el límite del logit cuando la escala de los coeficientes crece, y su equilibrio es el de usuario (Wardrop) dentro de cada grupo: en él, un grupo indiferente entre dos modos queda repartido entre ambos. El MSA promedia los flujos de cada grupo y para cuando el costo en exceso medio baja de la tolerancia; converge más lento que el logit, así que al elegirlo las iteraciones máximas suben a 100. Puede haber equilibrios múltiples, porque el metro abarata su espera al ganar demanda y eso viola la condición de costos crecientes que garantiza la unicidad.",
     "modo_auto": "Auto",
     "modo_metro": "Metro",
     "modo_bici": "Bici",
@@ -362,7 +362,7 @@
     "interpretation": "V = utilidad sistemática del modo, la parte observable de U = V + ε. Está en útiles: solo las diferencias entre modos importan — ~1 útil de ventaja ≈ 2.7× más probable. P = probabilidad de elección de ESTE agente (no el reparto modal del sistema).",
     "position_value": "{{pos}} km · a {{dist}} km del CBD",
     "cbd_center": "▲ CBD ({{km}} km)",
-    "todo_o_nada_notice": "Asignación determinística activa: la simulación manda TODO el grupo al modo de mayor V, sin repartir. Estas P son las del logit — sirven para leer la función de utilidad, no para anticipar el reparto de esta corrida."
+    "todo_o_nada_notice": "Todo o nada activo: en cada iteración la simulación manda TODO el grupo al modo de mayor V, y el equilibrio promedia esas cargas, así que sólo queda repartido un grupo indiferente entre dos modos. Estas P son las del logit — sirven para leer la función de utilidad, no para anticipar el reparto de esta corrida."
   },
   "utility_breakdown": {
     "mode": "Modo",

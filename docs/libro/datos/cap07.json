@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-14",
-  "commit": "f4da3ee",
+  "commit": "9b99d31",
   "script": "docs/libro/datos/datos_cap07.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web`), rama «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, brecha < 0,2 min (D8). El barrido de pistas usa tope 80 y repite además el método del informe de bienestar (`todo_o_nada`, tolerancia 0,02, 120 iteraciones)."
  },
@@ -162,10 +162,10 @@
      "num_pistas": 1,
      "iteraciones": 120,
      "convergio": false,
-     "brecha_final_min": 6.684,
-     "metro_pct": 42.94,
-     "exc_conductual_por_viajero": -1679.3,
-     "exc_social_por_viajero": -1632.1,
+     "brecha_final_min": 0.089,
+     "metro_pct": 36.78,
+     "exc_conductual_por_viajero": -1728.2,
+     "exc_social_por_viajero": -1683.4,
      "delta_conductual": 0.0,
      "delta_social": 0.0
     },
@@ -173,45 +173,45 @@
      "num_pistas": 2,
      "iteraciones": 120,
      "convergio": false,
-     "brecha_final_min": 0.251,
-     "metro_pct": 25.89,
-     "exc_conductual_por_viajero": -1758.3,
-     "exc_social_por_viajero": -1718.8,
-     "delta_conductual": -79.0,
-     "delta_social": -86.7
+     "brecha_final_min": 0.087,
+     "metro_pct": 24.41,
+     "exc_conductual_por_viajero": -1801.9,
+     "exc_social_por_viajero": -1761.7,
+     "delta_conductual": -73.7,
+     "delta_social": -78.3
     },
     {
      "num_pistas": 3,
      "iteraciones": 120,
      "convergio": false,
-     "brecha_final_min": 0.771,
-     "metro_pct": 7.22,
-     "exc_conductual_por_viajero": -2027.3,
-     "exc_social_por_viajero": -2001.3,
-     "delta_conductual": -348.0,
-     "delta_social": -369.2
+     "brecha_final_min": 0.024,
+     "metro_pct": 7.2,
+     "exc_conductual_por_viajero": -2027.8,
+     "exc_social_por_viajero": -2001.8,
+     "delta_conductual": -299.6,
+     "delta_social": -318.4
     },
     {
      "num_pistas": 4,
-     "iteraciones": 44,
+     "iteraciones": 14,
      "convergio": true,
-     "brecha_final_min": 0.019,
+     "brecha_final_min": 0.018,
      "metro_pct": 5.33,
-     "exc_conductual_por_viajero": -1436.5,
-     "exc_social_por_viajero": -1545.5,
-     "delta_conductual": 242.8,
-     "delta_social": 86.6
+     "exc_conductual_por_viajero": -1437.4,
+     "exc_social_por_viajero": -1546.5,
+     "delta_conductual": 290.8,
+     "delta_social": 136.9
     },
     {
      "num_pistas": 6,
-     "iteraciones": 120,
-     "convergio": false,
-     "brecha_final_min": 0.022,
-     "metro_pct": 4.07,
-     "exc_conductual_por_viajero": -1119.0,
-     "exc_social_por_viajero": -1270.2,
-     "delta_conductual": 560.3,
-     "delta_social": 361.9
+     "iteraciones": 20,
+     "convergio": true,
+     "brecha_final_min": 0.018,
+     "metro_pct": 4.21,
+     "exc_conductual_por_viajero": -1117.6,
+     "exc_social_por_viajero": -1269.6,
+     "delta_conductual": 610.6,
+     "delta_social": 413.8
     }
    ],
    "conductual_monotono_creciente": false,

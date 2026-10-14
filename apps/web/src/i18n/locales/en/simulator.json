@@ -104,12 +104,12 @@
     "not_converged": "Equilibrium NOT reached",
     "verdict_ok": "Converged in {{n}} of {{total}} iterations: the residual fell to {{res}} min, within the {{tol}} min tolerance. The results below are an equilibrium.",
     "verdict_fail": "Ran out of {{total}} iterations without converging: the residual stayed at {{res}} min, above the {{tol}} min tolerance. Travel times are still moving, so what follows is NOT an equilibrium and cannot be used to compare scenarios. Raise the iteration cap or loosen the tolerance.",
-    "verdict_fail_aon": "Ran out of {{total}} iterations without converging. Under all-or-nothing, this version's MSA averages times and the marginal group switches modes AS A WHOLE when it crosses indifference, so the split oscillates: what follows is the last iteration, not an equilibrium, and raising the iteration cap does not fix it. The equilibrium exists; reaching it requires averaging flows (pending, D-70).",
+    "verdict_fail_aon": "Ran out of {{total}} iterations without converging: the average excess cost — the minutes each traveller pays over the best mode for their group — stayed at {{res}} min, above the tolerance of {{tol}} min. What follows is NOT an equilibrium. Under all-or-nothing the MSA averages each group's flows with step 1/n and that cost falls slowly: raise the maximum iterations.",
     "verdict_no_tol": "No convergence criterion (tolerance 0): it ran the fixed {{total}} iterations and stopped by count, not because travel times settled. The final residual is {{res}} min.",
     "booting_pyodide": "Initializing Pyodide in the browser (first run takes ~10–20s)…",
     "assignment_montecarlo": "Logit — sampling",
     "assignment_todo_o_nada": "All-or-nothing",
-    "assignment_hint_todo_o_nada": "Choice WITHOUT taste dispersion: each group goes entirely to the highest-utility mode. It is the logit limit as the coefficient scale grows, and its equilibrium is the user equilibrium (Wardrop) within each group; across groups costs are not equalized. Careful: this version's MSA averages times, and under all-or-nothing the split can oscillate without converging (with few lanes): the equilibrium exists, but this version does not always reach it (D-70). There can be multiple equilibria, because the metro's waiting time falls as it gains demand, violating the increasing-cost condition that guarantees uniqueness.",
+    "assignment_hint_todo_o_nada": "Choice WITHOUT taste dispersion: each group goes entirely to the highest-utility mode. It is the logit limit as the coefficient scale grows, and its equilibrium is the user equilibrium (Wardrop) within each group: in it, a group indifferent between two modes is split between them. The MSA averages each group's flows and stops when the average excess cost falls below the tolerance; it converges more slowly than the logit, so choosing it raises the maximum iterations to 100. There can be multiple equilibria, because the metro's waiting time falls as it gains demand, violating the increasing-cost condition that guarantees uniqueness.",
     "modo_auto": "Car",
     "modo_metro": "Metro",
     "modo_bici": "Bike",
@@ -362,7 +362,7 @@
     "interpretation": "V = the mode's systematic utility, the observed part of U = V + ε. It is in utils: only differences across modes matter — ~1 util of advantage ≈ 2.7× more likely. P = choice probability of THIS agent (not the system's mode share).",
     "position_value": "{{pos}} km · {{dist}} km from CBD",
     "cbd_center": "▲ CBD ({{km}} km)",
-    "todo_o_nada_notice": "Deterministic assignment is active: the simulation sends the WHOLE group to the mode with the highest V, with no splitting. These P values are the logit ones — use them to read the utility function, not to anticipate this run's mode split."
+    "todo_o_nada_notice": "All-or-nothing is active: in each iteration the simulation sends the WHOLE group to the mode with the highest V, and the equilibrium averages those loads, so only a group indifferent between two modes ends up split. These P values are the logit ones — use them to read the utility function, not to anticipate this run's mode split."
   },
   "utility_breakdown": {
     "mode": "Mode",

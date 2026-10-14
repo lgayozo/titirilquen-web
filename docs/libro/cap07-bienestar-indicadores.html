@@ -433,11 +433,11 @@
     <tr><td class="n">4</td><td class="n">25,10</td><td class="n">16,3</td><td class="n">+466,9</td><td class="n">−88,3</td><td class="n">+361,7</td><td>sí (19)</td></tr>
     <tr><td class="n">6</td><td class="n">24,68</td><td class="n">45,6</td><td class="n">+496,2</td><td class="n">−65,2</td><td class="n">+384,8</td><td>sí (19)</td></tr>
     <tr><td colspan="7"><strong><code>todo_o_nada</code> · medida utilidad máxima · carga determinística</strong></td></tr>
-    <tr><td class="n">1</td><td class="n">42,94</td><td class="n">−1.679,3</td><td class="n">+0,0</td><td class="n">−1.632,1</td><td class="n">+0,0</td><td><strong>no</strong> (120)</td></tr>
-    <tr class="destacada"><td class="n">2</td><td class="n">25,89</td><td class="n">−1.758,3</td><td class="n">−79,0</td><td class="n">−1.718,8</td><td class="n">−86,7</td><td><strong>no</strong> (120)</td></tr>
-    <tr class="destacada"><td class="n">3</td><td class="n">7,22</td><td class="n">−2.027,3</td><td class="n">−348,0</td><td class="n">−2.001,3</td><td class="n">−369,2</td><td><strong>no</strong> (120)</td></tr>
-    <tr><td class="n">4</td><td class="n">5,33</td><td class="n">−1.436,5</td><td class="n">+242,8</td><td class="n">−1.545,5</td><td class="n">+86,6</td><td>sí (44)</td></tr>
-    <tr><td class="n">6</td><td class="n">4,07</td><td class="n">−1.119,0</td><td class="n">+560,3</td><td class="n">−1.270,2</td><td class="n">+361,9</td><td><strong>no</strong> (120)</td></tr>
+    <tr><td class="n">1</td><td class="n">36,78</td><td class="n">−1.728,2</td><td class="n">+0,0</td><td class="n">−1.683,4</td><td class="n">+0,0</td><td><strong>no</strong> (120)</td></tr>
+    <tr class="destacada"><td class="n">2</td><td class="n">24,41</td><td class="n">−1.801,9</td><td class="n">−73,7</td><td class="n">−1.761,7</td><td class="n">−78,3</td><td><strong>no</strong> (120)</td></tr>
+    <tr class="destacada"><td class="n">3</td><td class="n">7,20</td><td class="n">−2.027,8</td><td class="n">−299,6</td><td class="n">−2.001,8</td><td class="n">−318,4</td><td><strong>no</strong> (120)</td></tr>
+    <tr><td class="n">4</td><td class="n">5,33</td><td class="n">−1.437,4</td><td class="n">+290,8</td><td class="n">−1.546,5</td><td class="n">+136,9</td><td>sí (14)</td></tr>
+    <tr><td class="n">6</td><td class="n">4,21</td><td class="n">−1.117,6</td><td class="n">+610,6</td><td class="n">−1.269,6</td><td class="n">+413,8</td><td>sí (20)</td></tr>
   </tbody>
 </table>
 </div>
@@ -461,14 +461,15 @@
 </p>
 
 <p>
-  <strong>Con la carga determinística la caída aparece, pero no es un
-  equilibrio.</strong> Al pasar de una a dos pistas el metro se desploma de
-  42,94 % a 25,89 % y el excedente baja en las dos medidas,
-  79,0 $ por viajero en la conductual y 86,7 en la de ponderación
-  social. Pero de las cinco corridas sólo converge la de
-  4 pistas: todo o nada no tiene punto fijo (la demanda salta entera al
-  cruzar la indiferencia, D9), y las demás son el estado en que se agotaron
-  las iteraciones. La versión anterior de este capítulo sostenía que con este método el signo
+  <strong>Con la carga determinística la caída aparece, y en el equilibrio de
+  usuario.</strong> Al pasar de una a dos pistas el metro se desploma de
+  36,78 % a 24,41 % y el excedente baja en las dos medidas,
+  73,7 $ por viajero en la conductual y 78,3 en la de ponderación
+  social; con tres pistas el Δ llega a −299,6 y −318,4 $. Todo o nada
+  promedia los flujos de cada grupo (D-70): las corridas de 4 y 6 pistas
+  convergen, y las de 1 a 3 agotan las 120 iteraciones con un costo en exceso
+  medio de 0,089, 0,087 y 0,024 min, sobre la tolerancia de
+  0,02 pero cerca del equilibrio: ese costo cae como 1/<em>n</em> (capítulo 5). La versión anterior de este capítulo sostenía que con este método el signo
   de la política lo decidía la convención de agregación. Con la oferta
   corregida eso <strong>no se sostiene</strong>: en los ocho Δ medidos las dos
   monedas coinciden en el signo. (7.5) dice cuándo podrían discrepar: sólo si
