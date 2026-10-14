@@ -20,9 +20,7 @@ export function ScenarioToolbar() {
   const replaceConfig = useSimulationStore((s) => s.replaceConfig);
   const landUse = useLandUseStore((s) => s.config);
   const setLandUseConfig = useLandUseStore((s) => s.setConfig);
-  const coupledPoblacion = useLandUseStore((s) => s.coupledPoblacion);
   const coupledOuterMaxIter = useLandUseStore((s) => s.coupledOuterMaxIter);
-  const setCoupledPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
   const setCoupledOuterMaxIter = useLandUseStore(
     (s) => s.setCoupledOuterMaxIter,
   );
@@ -30,10 +28,7 @@ export function ScenarioToolbar() {
   // El escenario completo: transporte + suelo + preferencias del acoplado.
   const scenarioExtras = () => ({
     land_use: landUse,
-    coupled: {
-      poblacion: coupledPoblacion,
-      outer_max_iter: coupledOuterMaxIter,
-    },
+    coupled: { outer_max_iter: coupledOuterMaxIter },
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
@@ -55,10 +50,7 @@ export function ScenarioToolbar() {
       const ttrq = parseTtrqJson(raw);
       replaceConfig(ttrq.config);
       if (ttrq.land_use) setLandUseConfig(() => ttrq.land_use!);
-      if (ttrq.coupled) {
-        setCoupledPoblacion(ttrq.coupled.poblacion);
-        setCoupledOuterMaxIter(ttrq.coupled.outer_max_iter);
-      }
+      if (ttrq.coupled) setCoupledOuterMaxIter(ttrq.coupled.outer_max_iter);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

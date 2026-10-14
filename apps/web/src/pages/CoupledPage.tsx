@@ -15,11 +15,7 @@ import {
   applyJointPreset,
   describePresetParams,
 } from "@/lib/joint-presets";
-import type {
-  CoupledResult,
-  LandUseConfig,
-  OuterIteration,
-} from "@/lib/types-v2";
+import type { CoupledResult, OuterIteration } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
@@ -48,15 +44,12 @@ export function CoupledPage() {
   const simStore = useSimulationStore((s) => s.config);
   const luStore = useLandUseStore((s) => s.config);
 
-  const CUSTOM_POBLACION = 25000;
   // El estado de la corrida vive en el store (no en useState): navegar a mitad
   // de una corrida no la pierde — al volver, el stream sigue poblando la página.
   const source = useLandUseStore((s) => s.coupledSource);
   const setSource = useLandUseStore((s) => s.setCoupledSource);
   const outerMaxIter = useLandUseStore((s) => s.coupledOuterMaxIter);
   const setOuterMaxIter = useLandUseStore((s) => s.setCoupledOuterMaxIter);
-  const poblacion = useLandUseStore((s) => s.coupledPoblacion);
-  const setPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
   const stage: Stage = useLandUseStore((s) => s.coupledStage);
   const error = useLandUseStore((s) => s.coupledError);
   const iters = useLandUseStore((s) => s.coupledIters);
@@ -68,13 +61,9 @@ export function CoupledPage() {
   const cancelCoupled = useLandUseStore((s) => s.cancelCoupled);
   const resetCoupled = useLandUseStore((s) => s.resetCoupled);
 
-  // Seleccionar escenario fija también la población recomendada (cada escenario
-  // tiene un techo de demanda distinto antes de gridlockear — ver D-24).
-  const selectSource = (key: string) => {
-    setSource(key);
-    const p = JOINT_PRESETS.find((x) => x.key === key);
-    setPoblacion(p ? p.poblacionDefault : CUSTOM_POBLACION);
-  };
+  // La población es la del suelo (D10d): la de Uso de suelo en «Personalizada»
+  // y la que cada preset fija en H_por_estrato (D-24).
+  const selectSource = (key: string) => setSource(key);
 
   const isCustom = source === CUSTOM;
   const preset = JOINT_PRESETS.find((p) => p.key === source) ?? null;
@@ -86,30 +75,18 @@ export function CoupledPage() {
     [isCustom, preset, simStore, luStore],
   );
 
-  // Escala de demanda: re-escala H_por_estrato a la población elegida,
-  // conservando la composición por estrato. Es la palanca que activa los
-  // feedbacks del transporte (congestión, frecuencia de metro, capacidad).
-  const landUseEff = useMemo<LandUseConfig>(() => {
-    const H = landUse.H_por_estrato;
-    const sum = H.reduce((a, b) => a + b, 0) || 1;
-    const scaled = H.map((h) =>
-      Math.max(1, Math.round((poblacion * h) / sum)),
-    ) as [number, number, number];
-    return { ...landUse, H_por_estrato: scaled };
-  }, [landUse, poblacion]);
-
   const abortRef = useRef<AbortController | null>(activeCoupledAbort);
 
   const handleRun = async () => {
     const ctrl = new AbortController();
     activeCoupledAbort = ctrl;
     abortRef.current = ctrl;
-    startCoupled({ sim, landUse: landUseEff, outerMaxIter });
+    startCoupled({ sim, landUse: landUse, outerMaxIter });
     try {
       await resolverAcopladoStream(
         {
           sim,
-          land_use: landUseEff,
+          land_use: landUse,
           outer_max_iter: outerMaxIter,
         },
         (it) => pushOuterIter(it),
@@ -134,9 +111,9 @@ export function CoupledPage() {
     () =>
       stage === "done" &&
       snapshot != null &&
-      JSON.stringify({ sim, landUse: landUseEff, outerMaxIter }) !==
+      JSON.stringify({ sim, landUse: landUse, outerMaxIter }) !==
         JSON.stringify(snapshot),
-    [stage, snapshot, sim, landUseEff, outerMaxIter],
+    [stage, snapshot, sim, landUse, outerMaxIter],
   );
 
   const first = iters[0] ?? null;
@@ -163,7 +140,7 @@ export function CoupledPage() {
       land_use: "var(--accent)",
       transport: "var(--ink)",
     };
-    const all = describePresetParams(sim, landUseEff, tS).map((p) => ({
+    const all = describePresetParams(sim, landUse, tS).map((p) => ({
       group: p.group,
       kpi: {
         label: tS(p.labelKey),
@@ -181,7 +158,7 @@ export function CoupledPage() {
         .filter((x) => x.group === "transport")
         .map((x) => x.kpi),
     };
-  }, [sim, landUseEff, tS]);
+  }, [sim, landUse, tS]);
 
   const L = sim.city.n_celdas;
   const CBD = Math.floor(L / 2);
@@ -192,14 +169,14 @@ export function CoupledPage() {
   const supply = useMemo(
     () =>
       supplyVector(
-        landUseEff.forma,
+        landUse.forma,
         L,
         CBD,
-        landUseEff.oferta_sigma_frac,
-        landUseEff.forma_param,
-        landUseEff.H_por_estrato.reduce((a, b) => a + b, 0),
+        landUse.oferta_sigma_frac,
+        landUse.forma_param,
+        landUse.H_por_estrato.reduce((a, b) => a + b, 0),
       ),
-    [landUseEff, L, CBD],
+    [landUse, L, CBD],
   );
 
   return (
@@ -250,34 +227,6 @@ export function CoupledPage() {
             </button>
           ))}
         </div>
-
-        <label className="coupled-iter-input">
-          <span>{tS("coupled.poblacion_label")}</span>
-          <input
-            type="range"
-            min={10000}
-            max={120000}
-            step={10000}
-            value={poblacion}
-            onChange={(e) => setPoblacion(Number(e.target.value))}
-          />
-          <span className="num">{(poblacion / 1000).toFixed(0)}k</span>
-        </label>
-        {(() => {
-          // Cada escenario tiene un techo de demanda antes de gridlockear el
-          // corredor monocéntrico (D-24); sobre eso el equilibrio se degrada.
-          const recomendada = preset?.poblacionDefault ?? CUSTOM_POBLACION;
-          return poblacion > recomendada ? (
-            <p
-              className="text-[11px] leading-snug"
-              style={{ color: "var(--accent)", marginTop: -6 }}
-            >
-              {tS("coupled.poblacion_warn", {
-                n: Math.round(recomendada / 1000),
-              })}
-            </p>
-          ) : null;
-        })()}
 
         <label className="coupled-iter-input">
           <span>{tS("land_use.outer_iter_label")}</span>

@@ -56,7 +56,6 @@ interface LandUseState {
   coupledSnapshot: CoupledRunSnapshot | null;
   // Preferencias del escenario acoplado (persisten entre visitas a la página).
   coupledSource: string;
-  coupledPoblacion: number;
   coupledOuterMaxIter: number;
 
   setConfig: (updater: (prev: LandUseConfig) => LandUseConfig) => void;
@@ -67,7 +66,6 @@ interface LandUseState {
   reset: () => void;
 
   setCoupledSource: (s: string) => void;
-  setCoupledPoblacion: (n: number) => void;
   setCoupledOuterMaxIter: (n: number) => void;
   startCoupled: (snap: CoupledRunSnapshot) => void;
   pushOuterIter: (it: OuterIteration) => void;
@@ -92,7 +90,6 @@ export const useLandUseStore = create<LandUseState>((set) => ({
   coupledError: null,
   coupledSnapshot: null,
   coupledSource: "custom",
-  coupledPoblacion: 25000,
   coupledOuterMaxIter: VUELTAS_ACOPLADO_MAX,
 
   setConfig: (updater) => set((s) => ({ config: updater(s.config) })),
@@ -116,7 +113,6 @@ export const useLandUseStore = create<LandUseState>((set) => ({
     }),
 
   setCoupledSource: (s) => set({ coupledSource: s }),
-  setCoupledPoblacion: (n) => set({ coupledPoblacion: n }),
   // Acotado acá porque llega también de archivos y enlaces viejos (D-61).
   setCoupledOuterMaxIter: (n) =>
     set({

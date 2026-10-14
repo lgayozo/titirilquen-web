@@ -38,7 +38,6 @@ export function RootLayout() {
   const replaceConfig = useSimulationStore((s) => s.replaceConfig);
   const [menuOpen, setMenuOpen] = useState(false);
   const setLandUseConfig = useLandUseStore((s) => s.setConfig);
-  const setCoupledPoblacion = useLandUseStore((s) => s.setCoupledPoblacion);
   const setCoupledOuterMaxIter = useLandUseStore(
     (s) => s.setCoupledOuterMaxIter,
   );
@@ -50,10 +49,8 @@ export function RootLayout() {
       const scenario = scenarioFromUrlParam(stateParam);
       replaceConfig(scenario.config);
       if (scenario.land_use) setLandUseConfig(() => scenario.land_use!);
-      if (scenario.coupled) {
-        setCoupledPoblacion(scenario.coupled.poblacion);
+      if (scenario.coupled)
         setCoupledOuterMaxIter(scenario.coupled.outer_max_iter);
-      }
       searchParams.delete("s");
       setSearchParams(searchParams, { replace: true });
     } catch {

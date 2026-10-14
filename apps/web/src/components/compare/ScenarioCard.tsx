@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Play, Upload, X } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { defaultLandUseConfig } from "@/lib/defaults";
 import { VUELTAS_ACOPLADO_MAX } from "@/lib/gen/constantes.gen";
 import { applyJointPreset } from "@/lib/joint-presets";
 import { fmtParking } from "@/lib/parking";
@@ -66,7 +67,6 @@ export function ScenarioCard({
       config: currentConfig,
       landUse: lu.config,
       localizacion: isPost ? "equilibrio" : "original",
-      poblacion: lu.coupledPoblacion,
     });
   };
 
@@ -82,7 +82,11 @@ export function ScenarioCard({
         descriptionKey: "",
         city,
         policy,
-        poblacionDefault: scenario.poblacion,
+        // Iso-población: el preset cambia la forma y la política, no la
+        // gente, que es la de Uso de suelo (D10d).
+        poblacion: useLandUseStore
+          .getState()
+          .config.H_por_estrato.reduce((a, b) => a + b, 0),
       },
       currentConfig,
     );
@@ -115,7 +119,6 @@ export function ScenarioCard({
         // El .ttrq no registra la localización: se decide al correr (según si
         // la tarjeta tiene resultado de suelo) — ver runOne en ComparePage.
         localizacion: null,
-        poblacion: ttrq.coupled?.poblacion,
         name: ttrq.name ?? file.name.replace(/\.ttrq\.json$/, ""),
       });
     } catch (e) {
@@ -125,6 +128,11 @@ export function ScenarioCard({
     }
   };
 
+  // ΣH del suelo de la tarjeta: la única población del escenario (D10d).
+  const hogares = (
+    scenario.landUse ?? defaultLandUseConfig
+  ).H_por_estrato.reduce((a, b) => a + b, 0);
+
   const onExport = () => {
     if (!scenario.config) return;
     const name = scenario.name || `escenario-${scenario.id}`;
@@ -132,10 +140,7 @@ export function ScenarioCard({
       `${name}${TTRQ_EXT}`,
       serializeToJson(scenario.config, name, {
         land_use: scenario.landUse ?? undefined,
-        coupled: {
-          poblacion: scenario.poblacion,
-          outer_max_iter: VUELTAS_ACOPLADO_MAX,
-        },
+        coupled: { outer_max_iter: VUELTAS_ACOPLADO_MAX },
       }),
     );
   };
@@ -208,9 +213,7 @@ export function ScenarioCard({
           </span>
           <span>
             {tS("compare.scenario_card.density", {
-              rho: Math.round(
-                scenario.poblacion / scenario.config.city.largo_ciudad_km,
-              ),
+              rho: Math.round(hogares / scenario.config.city.largo_ciudad_km),
             })}
           </span>
           <span>
@@ -231,7 +234,7 @@ export function ScenarioCard({
             <span className="col-span-2">
               {tS("compare.scenario_card.land_line", {
                 forma: tS(`land_use.forma_${scenario.landUse.forma}`),
-                pob: `${Math.round(scenario.poblacion / 1000)}k`,
+                pob: `${Math.round(hogares / 1000)}k`,
               })}
             </span>
           )}

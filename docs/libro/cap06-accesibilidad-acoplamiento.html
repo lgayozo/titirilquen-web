@@ -322,10 +322,10 @@
     <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">125</td><td><code>convergio_exterior</code> — el veredicto del núcleo, que viaja en las métricas; <code>residual_final</code> (129) en $/hogar-mes</td></tr>
     <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">305</td><td><code>outer_iteration_to_dict</code> — la forma JSON de cada vuelta, una sola vez para API y worker</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/api.ts</td><td class="n">163</td><td><code>resolverAcoplado</code> — la puerta única al motor; en el motor local toma <code>converged</code> (175) del veredicto del núcleo; <code>resolverAcopladoStream</code> (186) es la que usa la página acoplada</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">189</td><td><code>applyJointPreset</code> — el preset fija sus palancas y conserva los estratos calibrados del usuario (228), y con ellos su <em>λ</em> (D10)</td></tr>
-    <tr><td class="n">—</td><td class="ruta tsx">pages/CoupledPage.tsx</td><td class="n">96</td><td><code>poblacion</code> — la página reescala <code>H_por_estrato</code> a su propio control; una sola fuente de población es de la fase de interfaz</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">96</td><td><code>coupledOuterMaxIter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; el usuario lo baja, el setter (123) no deja pasar el tope</td></tr>
-    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">38</td><td><code>scaledLandUse</code> — la fuente de población propia del comparador; el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code> (141)</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">190</td><td><code>applyJointPreset</code> — el preset fija sus palancas y conserva los estratos calibrados del usuario (228), y con ellos su <em>λ</em> (D10)</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">32</td><td><code>poblacion</code> — la población del preset, que <code>applyJointPreset</code> escribe en <code>H_por_estrato</code> (258): la única fuente de población es el suelo (D10d)</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">93</td><td><code>coupledOuterMaxIter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; el usuario lo baja, el setter (123) no deja pasar el tope</td></tr>
+    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">128</td><td><code>resolverAcoplado</code> — la lente acoplada corre con el suelo de la tarjeta, como las otras dos (D10d); el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code> (131)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">139</td><td><code>outer_max_iter</code> — default y tope <code>VUELTAS_ACOPLADO_MAX</code>; <code>outer_tol</code> (142) toma la constante del núcleo</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">200</td><td><code>outer_max_iter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; la cota la valida el núcleo; <code>outer_tol</code> (201) toma la constante del núcleo</td></tr>
   </tbody>
@@ -333,12 +333,13 @@
 </div>
 
 <p>
-  Un hecho del código que queda para la fase de interfaz. La página
-  acoplada y el comparador tienen <strong>su propia población</strong>: un
-  control que reescala <code>H_por_estrato</code>, distinto de la que usan el
-  Sandbox y el suelo. No cambia el modelo, pero hace que la misma ciudad dé
-  números distintos según la página. El tope de vueltas, que también era
-  distinto en cada consumidor, ya es uno solo (D-61).
+  La población es una sola en toda la aplicación (D10d): <code>H_por_estrato</code>
+  del suelo. Hasta oct-2026 la página acoplada y el comparador tenían su propio
+  control, que reescalaba <code>H_por_estrato</code> a 25.000 hogares mientras el
+  Sandbox y el suelo corrían con 36.000: la misma ciudad daba números distintos
+  según la página. Los presets conjuntos conservan poblaciones distintas a
+  propósito (D-24), pero ahora las escriben en <code>H_por_estrato</code>. El tope
+  de vueltas, que también era distinto en cada consumidor, es uno solo (D-61).
 </p>
 
 <h2 id="s4"><span class="num">§4</span> Pruebas</h2>

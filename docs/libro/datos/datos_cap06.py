@@ -724,8 +724,8 @@ def parametros_vigentes() -> dict:
     El módulo no introduce parámetros de modelo: `VIAJES_MES`, `p_tele`,
     `alpha`, `rho` y `lambda_h` son de suelo y transporte. Los suyos son de
     método —el paso, la tolerancia exterior y el tope de vueltas—. La
-    tolerancia es una constante del núcleo que nadie pisa (D10); el tope lo
-    sigue fijando cada consumidor por su cuenta. Se leen de su fuente, no se
+    tolerancia es una constante del núcleo que nadie pisa (D10), y el tope
+    también (`VUELTAS_ACOPLADO_MAX`, D-61). Se leen de su fuente, no se
     tipean.
     """
     import inspect

@@ -39,8 +39,6 @@ export interface Scenario {
    * regla del Sandbox al capturar con «Usar Transporte actual». null ⇒ se
    * decide al correr según si la tarjeta tiene resultado de suelo. */
   localizacion: "equilibrio" | "original" | null;
-  /** Población del escenario acoplado (escala H_por_estrato). */
-  poblacion: number;
   /** Preset con el que se construyó la tarjeta, o `null` si es a medida
    *  («usar config actual» / importar). Vive en el escenario y no en el
    *  componente para que sobreviva a la recarga: si no, tras un F5 los combos
@@ -55,8 +53,6 @@ export interface Scenario {
   error: string | null;
 }
 
-const DEFAULT_POBLACION = 25000;
-
 function emptyScenario(id: string): Scenario {
   return {
     id,
@@ -64,7 +60,6 @@ function emptyScenario(id: string): Scenario {
     config: null,
     landUse: null,
     localizacion: null,
-    poblacion: DEFAULT_POBLACION,
     presetCity: null,
     presetPolicy: null,
     result: null,
@@ -99,7 +94,6 @@ interface CompareState {
       config: SimulationConfig;
       landUse?: LandUseConfig | null;
       localizacion?: "equilibrio" | "original" | null;
-      poblacion?: number;
       name?: string;
       presetCity?: string | null;
       presetPolicy?: string | null;
@@ -133,7 +127,6 @@ type CompareInputs = Pick<CompareState, "kind" | "baseId"> & {
     | "config"
     | "landUse"
     | "localizacion"
-    | "poblacion"
     | "presetCity"
     | "presetPolicy"
   >[];
@@ -198,7 +191,6 @@ export const useCompareStore = create<CompareState>()(
                     payload.localizacion !== undefined
                       ? payload.localizacion
                       : sc.localizacion,
-                  poblacion: payload.poblacion ?? sc.poblacion,
                   presetCity:
                     payload.presetCity !== undefined
                       ? payload.presetCity
@@ -272,8 +264,10 @@ export const useCompareStore = create<CompareState>()(
       // v2 (oct-2026): el schema v7 del suelo retiró `alpha` y `mu`. Sin
       // migraciones, como los .ttrq.json: los escenarios guardados con v1 se
       // descartan en vez de fallar al correrlos. v3 (oct-2026, D7): la demanda
-      // ganó `peaje_km`, que un escenario v2 no trae.
-      name: "titirilquen.compare.v3",
+      // ganó `peaje_km`, que un escenario v2 no trae. v4 (oct-2026, D10d): la
+      // tarjeta perdió `poblacion`; la población es ΣH de su `landUse`, y un
+      // v3 correría el acoplado con otra gente sin decirlo.
+      name: "titirilquen.compare.v4",
       partialize: (s): CompareInputs => ({
         kind: s.kind,
         baseId: s.baseId,
@@ -284,7 +278,6 @@ export const useCompareStore = create<CompareState>()(
             config,
             landUse,
             localizacion,
-            poblacion,
             presetCity,
             presetPolicy,
           }) => ({
@@ -293,7 +286,6 @@ export const useCompareStore = create<CompareState>()(
             config,
             landUse,
             localizacion,
-            poblacion,
             presetCity,
             presetPolicy,
           }),

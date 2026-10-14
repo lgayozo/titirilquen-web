@@ -607,7 +607,6 @@
     "with_feedback_hint": "Reconciled equilibrium: land and transport iterate mutually until stable. Differences reveal the feedback effect.",
     "running_hint": "Running iteration {{n}}…",
     "reset": "New analysis",
-    "poblacion_label": "Population (demand scale)",
     "source_custom_label": "Your scenario",
     "source_preset_label": "Or try a predefined scenario (quick test)",
     "custom_title": "My configuration",
@@ -674,8 +673,7 @@
     "placeholder_desc": "The outer loop alternates three steps: (1) bid-rent allocates households given accessibility T(i), (2) that population runs the transport equilibrium (MSA), (3) the new travel times update T. It iterates until T stabilizes.",
     "params_city_land": "City & land",
     "params_transport": "Transport",
-    "unit_households": "hh",
-    "poblacion_warn": "⚠ Above ~{{n}}k this scenario saturates the corridor (gridlock): travel times become unrealistic and the equilibrium degrades. Useful to observe collapse, not as a realistic scenario."
+    "unit_households": "hh"
   },
   "coupled_metrics": {
     "header": "Interdependence metrics",

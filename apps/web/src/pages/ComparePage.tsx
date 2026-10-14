@@ -26,7 +26,7 @@ import { downloadCsv } from "@/lib/csv";
 import { VUELTAS_ACOPLADO_MAX } from "@/lib/gen/constantes.gen";
 import { computeKPIs, type ScenarioKPIs } from "@/lib/kpis";
 import type { Modo } from "@/lib/types";
-import type { LandUseConfig, LandUseSolveResponse } from "@/lib/types-v2";
+import type { LandUseSolveResponse } from "@/lib/types-v2";
 import {
   useCompareStore,
   type CompareKind,
@@ -34,14 +34,6 @@ import {
 } from "@/store/compareStore";
 
 const KINDS: CompareKind[] = ["transport", "land_use", "coupled"];
-
-function scaledLandUse(lu: LandUseConfig, poblacion: number): LandUseConfig {
-  const sum = lu.H_por_estrato.reduce((a, b) => a + b, 0) || 1;
-  const H = lu.H_por_estrato.map((h) =>
-    Math.max(1, Math.round((poblacion * h) / sum)),
-  ) as [number, number, number];
-  return { ...lu, H_por_estrato: H };
-}
 
 /** Métricas comparables del equilibrio de suelo (mismas que LandUsePage). */
 function landUseValues(r: LandUseSolveResponse): Record<string, number> {
@@ -131,13 +123,11 @@ export function ComparePage() {
         });
         setLuResult(id, r);
       } else {
-        const lu = scaledLandUse(
-          sc.landUse ?? defaultLandUseConfig,
-          sc.poblacion,
-        );
+        // La población es ΣH del suelo de la tarjeta, como en las otras dos
+        // lentes (D10d).
         const res = await resolverAcoplado({
           sim: sc.config,
-          land_use: lu,
+          land_use: sc.landUse ?? defaultLandUseConfig,
           outer_max_iter: VUELTAS_ACOPLADO_MAX,
         });
         const its = res.iterations;

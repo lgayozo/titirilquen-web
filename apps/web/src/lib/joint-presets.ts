@@ -25,10 +25,11 @@ export interface JointPreset {
   policy: keyof typeof POLICY_PRESETS;
   /** Override parcial del uso de suelo (opcional). */
   landUseOverride?: Partial<LandUseConfig>;
-  /** Población total recomendada (escala de demanda) para que el loop converja
-   *  sin gridlock. Una ciudad más larga/auto-dependiente colapsa con menos
-   *  población; una compacta con buen transporte aguanta mucha más. */
-  poblacionDefault: number;
+  /** Hogares del escenario: `applyJointPreset` la escribe en `H_por_estrato`,
+   *  que es la única fuente de población (D10d). Difiere entre presets a
+   *  propósito: una ciudad larga y auto-dependiente colapsa con menos gente;
+   *  una compacta con buen transporte aguanta mucha más (D-24). */
+  poblacion: number;
 }
 
 export const JOINT_PRESETS: readonly JointPreset[] = [
@@ -40,7 +41,7 @@ export const JOINT_PRESETS: readonly JointPreset[] = [
     policy: "Tarificación Vial",
     // Ciudad compacta ⇒ oferta de vivienda concentrada cerca del CBD (σ bajo).
     landUseOverride: { forma: "normal", oferta_sigma_frac: 0.32 },
-    poblacionDefault: 40000,
+    poblacion: 40000,
   },
   {
     key: "sparse-proauto",
@@ -52,7 +53,7 @@ export const JOINT_PRESETS: readonly JointPreset[] = [
     landUseOverride: { forma: "normal", oferta_sigma_frac: 0.85 },
     // Corredor de 30 km auto-dependiente: gridlocka por sobre ~15k (todo el
     // flujo converge al CBD). Población baja para que el equilibrio sea estable.
-    poblacionDefault: 12000,
+    poblacion: 12000,
   },
   {
     key: "base-probici",
@@ -61,7 +62,7 @@ export const JOINT_PRESETS: readonly JointPreset[] = [
     city: "Base",
     policy: "Pro-Bici",
     landUseOverride: { forma: "normal", oferta_sigma_frac: 0.5 },
-    poblacionDefault: 30000,
+    poblacion: 30000,
   },
   {
     key: "compact-metro",
@@ -70,7 +71,7 @@ export const JOINT_PRESETS: readonly JointPreset[] = [
     city: "Compacta",
     policy: "Máx Metro",
     landUseOverride: { forma: "normal", oferta_sigma_frac: 0.32 },
-    poblacionDefault: 40000,
+    poblacion: 40000,
   },
 ] as const;
 
@@ -241,9 +242,20 @@ export function applyJointPreset(
     },
   };
 
-  const landUse: LandUseConfig = {
+  const base: LandUseConfig = {
     ...defaultLandUseConfig,
     ...preset.landUseOverride,
+  };
+  // La población del preset va a H_por_estrato conservando la composición
+  // por estrato. Enteros (`tuple[int, int, int]` en Pydantic) y el tercero
+  // absorbe el redondeo para que ΣH dé exacto, como en PresetGallery.
+  const [h1, h2, h3] = base.H_por_estrato;
+  const k = preset.poblacion / (h1 + h2 + h3 || 1);
+  const a = Math.round(h1 * k);
+  const b = Math.round(h2 * k);
+  const landUse: LandUseConfig = {
+    ...base,
+    H_por_estrato: [a, b, preset.poblacion - a - b],
   };
 
   return { sim, landUse };

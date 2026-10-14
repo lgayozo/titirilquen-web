@@ -641,6 +641,13 @@ prob)` por grupo. Costo del loop: O(max_iter · grupos).
   transporte (frecuencia de metro responde, congestión real) sin diverger.
 - **Pendiente**: estabilizar el loop externo (damping adaptativo / relajación)
   para admitir demanda alta en ciudades grandes sin acotar por población.
+- **Actualizado 2026-10-14 (D10d).** La población ya no es una palanca propia
+  de la página acoplada ni de Comparar: es ΣH del suelo, la misma del Sandbox.
+  Cada preset conjunto escribe su `poblacion` en `H_por_estrato`
+  (`applyJointPreset`); «Personalizada» corre con la de Uso de suelo (36.000
+  por defecto, antes 25.000), y el slider con su advertencia se retiró. Con el
+  loop de D10 la base converge a 36.000 en 3 vueltas, y a 60.000 la brecha
+  cumple pero el MSA interior no converge (`cap06.json`, bloque `poblacion`).
 - **Robustez (jun-2026)**: en gridlock extremo (p.ej. Dispersa·Pro-Auto a 120k),
   T llega a miles de minutos y las diferencias de score α_h·T superan el rango
   de `exp()` → `Q` underfloweaba a 0/1 exactos y `asignar_hogares_simple`
