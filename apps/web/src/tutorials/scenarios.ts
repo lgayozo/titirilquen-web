@@ -48,10 +48,10 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
 
   // B. λ y el valor del tiempo. λ_h = |b_costo_h| (schema v6): se mueve
   // desde la demanda, y con él la accesibilidad T, que también depende de
-  // b_costo. Medido con la config de la app: con los tres b_costo iguales al
-  // del medio el Theil cae de 0,23 a 0,02 (alto 4,3 km, bajo 3,1); con el del
-  // alto ×2, el alto pasa de 1,9 a 3,0 km. Devuelven también el suelo por
-  // defecto, para partir de un estado reproducible en los dos módulos.
+  // b_costo. Las cifras que citan los MDX salen de replicar estos escenarios
+  // en el núcleo: docs/libro/datos/tutoriales.json (datos_tutoriales.py).
+  // Devuelven también el suelo por defecto, para partir de un estado
+  // reproducible en los dos módulos.
   lambda_iguales: {
     to: "/land-use",
     build: () => {
@@ -74,13 +74,15 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
   // C. Capacidad de ciclovía
   bici_base: {
     to: "/sandbox",
-    build: () => ({ sim: sim() }), // default = 800 bici/h
+    build: () => ({ sim: sim() }), // default del núcleo (4.000 bici/h)
   },
   bici_probici: {
     to: "/sandbox",
     build: () => {
       const s = sim();
-      s.supply.bike.capacidad_pista = 5000;
+      // El valor del preset Pro-Bici (presets.py). Con 5.000 el escenario
+      // quedaba a un 25 % del default de 4.000 y casi no movía nada.
+      s.supply.bike.capacidad_pista = 8000;
       return { sim: s };
     },
   },
@@ -89,8 +91,8 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
   // la inversión se produce con la penalización por densidad, que entra
   // dividida por λ y castiga más en pesos al estrato alto. ρ = 54 en los tres
   // (utiles-mes sobre la densidad relativa, schema v7; es el 0,03 por hog/km de
-  // v6 con 1.800 hog/km): medido en el núcleo con 201 celdas, el alto pasa a
-  // ≈5,9 km y el bajo a ≈2,6 km. El umbral de inversión es ≈31.
+  // v6 con 1.800 hog/km). La inversión y su umbral, medidos en
+  // docs/libro/datos/tutoriales.json.
   alonso_base: {
     to: "/land-use",
     build: () => ({ sim: sim(), landUse: lu() }),
@@ -104,7 +106,8 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     },
   },
 
-  // E. Sensibilidad al MSA
+  // E. Sensibilidad al MSA: el tope corto contra el default (40). Antes el
+  // largo era 20, que con el default en 40 significaba BAJAR el tope.
   msa_corto: {
     to: "/sandbox",
     build: () => {
@@ -117,7 +120,7 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     to: "/sandbox",
     build: () => {
       const s = sim();
-      s.max_iter = 20;
+      s.max_iter = 40;
       return { sim: s };
     },
   },

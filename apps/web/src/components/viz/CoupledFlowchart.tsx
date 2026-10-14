@@ -96,7 +96,7 @@ export function CoupledFlowchart() {
         tooltip: {
           title: t("flowchart.coupled.check_title"),
           description: t("flowchart.coupled.check_desc"),
-          formula: String.raw`\|T^{(k)} - T^{(k-1)}\|_\infty < \tau`,
+          formula: String.raw`\max_{h,i} |T^{(k)}_{hi} - T^{(k-1)}_{hi}| / \lambda_h < \tau`,
         },
       },
       {

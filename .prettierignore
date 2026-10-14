@@ -15,6 +15,7 @@ apps/web/public
 # revierte.
 docs/libro/_datos_informe
 docs/libro/datos/cap*.json
+docs/libro/datos/tutoriales.json
 
 # Fixtures golden del contrato core ↔ frontend: los escribe
 # tests/test_contract_frontend.py con `json.dumps(..., indent=1)` y llevan

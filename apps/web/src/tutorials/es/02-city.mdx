@@ -27,15 +27,15 @@ $$
 
 <OverleafRef sec="Creación de la ciudad" tag="R-8" />
 
-La referencia es $\rho_{\text{hab}} = 1800$ hab/km ($\equiv$ 180 hogares por cuadra de 100 m, el preset *Base*). Refinar la grilla **no** cambia la población ni la congestión: los tres diales quedan ortogonales — `n_celdas` es resolución, la *densidad* controla cuán densa es la ciudad y el *largo* cuán grande.
+La referencia es $\rho_{\text{hog}} = 1800$ hogares/km ($\equiv$ 180 hogares por cuadra de 100 m, el preset *Base*). Refinar la grilla **no** cambia la población ni la congestión: los tres diales quedan ortogonales — `n_celdas` es resolución, la *densidad* controla cuán densa es la ciudad y el *largo* cuán grande.
 
 Los hogares se reparten en 3 **estratos socioeconómicos** según shares configurables:
 
 | Estrato | Share (default) | Ingreso $y_h$ (módulo de suelo) |
 |---------|--------------:|--------------:|
-| Alto (1) |  10 % | \$3.5M /mes |
-| Medio (2) |  40 % | \$1.5M /mes |
-| Bajo (3) |  50 % | \$0.5M /mes |
+| Alto (1) |  20 % | \$3.5M /mes |
+| Medio (2) |  50 % | \$1.5M /mes |
+| Bajo (3) |  30 % | \$0.5M /mes |
 
 <Callout type="info">
 El ingreso $y_h$ pertenece al **módulo de uso de suelo** (en \$/mes; alimenta la métrica de carga mensual costo/ingreso). En el módulo de transporte la heterogeneidad de ingreso entra vía los $\beta^s_c$ de cada estrato, no como variable explícita.

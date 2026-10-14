@@ -27,15 +27,15 @@ $$
 
 <OverleafRef sec="Creación de la ciudad" tag="R-8" />
 
-The reference is $\rho_{\text{pop}} = 1800$ pop/km ($\equiv$ 180 households per 100 m block, the *Base* preset). Refining the grid does **not** change population or congestion: the three dials are orthogonal — `n_cells` is resolution, *density* controls how dense the city is, and *length* how large.
+The reference is $\rho_{\text{hh}} = 1800$ households/km ($\equiv$ 180 households per 100 m block, the *Base* preset). Refining the grid does **not** change population or congestion: the three dials are orthogonal — `n_cells` is resolution, *density* controls how dense the city is, and *length* how large.
 
 Households split into 3 **socioeconomic strata** with configurable shares:
 
 | Stratum | Share (default) | Income $y_h$ (land-use module) |
 |---------|--------------:|--------------:|
-| High (1) |  10 % | \$3.5M /month |
-| Middle (2) |  40 % | \$1.5M /month |
-| Low (3) |  50 % | \$0.5M /month |
+| High (1) |  20 % | \$3.5M /month |
+| Middle (2) |  50 % | \$1.5M /month |
+| Low (3) |  30 % | \$0.5M /month |
 
 <Callout type="info">
 The income $y_h$ belongs to the **land-use module** (in \$/month; it feeds the monthly cost/income burden metric). In the transport module, income heterogeneity enters via each stratum's $\beta^s_c$, not as an explicit variable.

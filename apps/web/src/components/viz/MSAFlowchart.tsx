@@ -96,7 +96,7 @@ export function MSAFlowchart() {
         tooltip: {
           title: t("flowchart.msa.check_title"),
           description: t("flowchart.msa.check_desc"),
-          formula: String.raw`\|T^{(n+1)} - T^{(n)}\|_\infty < \epsilon`,
+          formula: String.raw`\|T_{\text{obs}}^{(n)} - T^{(n)}\|_\infty < \epsilon`,
         },
       },
       {

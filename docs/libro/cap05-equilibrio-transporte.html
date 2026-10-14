@@ -215,7 +215,7 @@
   <tbody>
     <tr><td><code>tolerance</code></td><td class="n">0,2</td><td class="n">0,2</td><td>min</td><td><span class="etiqueta neutra">decisión</span> D8: sobre la brecha no amortiguada (5.4), dos iteraciones seguidas</td></tr>
     <tr><td><code>max_iter</code></td><td class="n">40</td><td class="n">40</td><td>—</td><td><span class="etiqueta neutra">decisión</span> D8: cubre los presets de política salvo «Ciclorrecreovía»; el más lento de los que convergen, «Pro-Auto», lo hace en 34</td></tr>
-    <tr><td><code>assignment</code></td><td class="n">expected</td><td class="n">montecarlo</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la app carga flujos esperados, sin ruido de muestreo; es una de las divergencias declaradas</td></tr>
+    <tr><td><code>assignment</code></td><td class="n">expected</td><td class="n">montecarlo</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la app usa «Logit — probabilidades» (carga los flujos esperados n·P, sin ruido de muestreo); es una de las divergencias declaradas</td></tr>
     <tr><td><code>seed</code></td><td class="n">42</td><td class="n">—</td><td>—</td><td><span class="etiqueta neutra">decisión</span> reproducibilidad</td></tr>
     <tr><td><code>modos_habilitados</code></td><td class="n">4</td><td class="n">4</td><td>modos</td><td><span class="etiqueta neutra">decisión</span> los cuatro; apagar uno lo saca del conjunto de elección</td></tr>
     <tr><td><code>promediar_flujos</code></td><td class="n">falso</td><td class="n">falso</td><td>—</td><td><span class="etiqueta lim">heredado</span> no es campo del schema; el MSA promedia tiempos</td></tr>

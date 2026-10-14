@@ -29,7 +29,7 @@ $$
 
 $T_h(i)$ is **accessibility**: the monthly cost of living in $i$ and having to travel, equal to $-44$ times the logsum of the mode-choice logit of the Demand chapter, at free flow. It is in transport utils per month and differs by stratum, since each one has its own logit. It enters with weight 1: the bid reads that accessibility as is. $\rho_h$ penalizes **relative density** $d_i$, the cell's density over the city mean, and is 0 by default; it is in util-months, and being relative, the same $\rho$ means the same with 25,000 as with 100,000 households.
 
-With $\lambda_h$ equal to the cost coefficient of the mode-choice logit, the same household has **a single utility function** in both modules: its value of time is 6,200, 3,100 and 1,600 pesos per hour for the high, middle and low strata, the same one it uses to choose a mode. That is why land use has no $\lambda$ of its own: it reads it from demand, and it moves from the **Calibration** page. Changing $b_{\text{cost}}$ moves both $\lambda_h$ and the accessibility $T_h$.
+With $\lambda_h$ equal to the cost coefficient of the mode-choice logit, the same household has **a single utility function** in both modules: its value of time is 6,329, 3,164 and 1,633 pesos per hour for the high, middle and low strata, the same one it uses to choose a mode. That is why land use has no $\lambda$ of its own: it reads it from demand, and it moves from the **Calibration** page. Changing $b_{\text{cost}}$ moves both $\lambda_h$ and the accessibility $T_h$.
 
 Solving for the price at the reservation utility level $u_h$ gives the **willingness to pay**, which is also random:
 
@@ -82,14 +82,14 @@ Moving $\lambda_h$ would be exactly rescaling that stratum's preferences. The he
 <Callout type="info">
 Try, on the page's default configuration:
 
-- **Set the three $\lambda$ equal** to the middle stratum's, that is, their $b_{\text{cost}}$: in **Calibration**, set the "$s$" slider of "Value of time across strata" to 0 and rerun. The value of time becomes the same for everyone and **segregation nearly vanishes**: Theil from 0.23 to 0.02, with the high stratum 4.3 km from the CBD and the low one 3.1 km. Without differences in value of time there is no Alonso. What little remains, slightly inverted, is car ownership: the high stratum has more cars, and the car flattens its accessibility.
-- **Double the high stratum's $\lambda$.** Its value of time halves and it moves away from the center: from 1.9 to 3.0 km. With $\lambda$ halved it moves closer, to 1.5 km.
+- **Set the three $\lambda$ equal** to the middle stratum's, that is, their $b_{\text{cost}}$: in **Calibration**, set the "$s$" slider of "Value of time across strata" to 0 and rerun. The value of time becomes the same for everyone and **segregation nearly vanishes**: Theil from 0.21 to 0.03, with the high stratum 4.5 km from the CBD and the low one 2.9 km. Without differences in value of time there is no Alonso. What little remains, slightly inverted, is car ownership: the high stratum has more cars, and the car flattens its accessibility.
+- **Double the high stratum's $\lambda$.** Its value of time halves and it moves away from the center: from 2.0 to 3.2 km. With $\lambda$ halved it moves closer, to 1.5 km.
 - **Double the high stratum's income $y$.** It reallocates nobody: income enters as a constant and is absorbed into the reservation utility $u_h$.
 </Callout>
 
 ## The precision $\mu$
 
-$\mu$ measures how noisy choosing a home is relative to choosing a mode, and it is **fixed** at $1/\sqrt{44} \approx 0.151$: accessibility is monthly, the sum of 44 trips, and if each trip carries its own shock the month's dispersion grows like $\sqrt{44}$. It is a reasoned assumption, not data: without observed rents it cannot be estimated. It is not offered as a control because only $\mu T$ and $\mu \rho$ enter the auction, so moving it amounts to rescaling accessibility and density at once. With $\mu = 1$ the auction would be nearly deterministic and Theil segregation would rise from 0.23 to 0.76.
+$\mu$ measures how noisy choosing a home is relative to choosing a mode, and it is **fixed** at $1/\sqrt{44} \approx 0.151$: accessibility is monthly, the sum of 44 trips, and if each trip carries its own shock the month's dispersion grows like $\sqrt{44}$. It is a reasoned assumption, not data: without observed rents it cannot be estimated. It is not offered as a control because only $\mu T$ and $\mu \rho$ enter the auction, so moving it amounts to rescaling accessibility and density at once. With $\mu = 1$ the auction would be nearly deterministic and Theil segregation would rise from 0.21 to 0.74.
 
 ## The shape of the city
 

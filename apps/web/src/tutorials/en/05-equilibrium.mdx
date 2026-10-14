@@ -27,33 +27,33 @@ The weight of new information decreases as $1/it$: the first iteration replaces 
 The loop stops when the residual
 
 $$
-r^{(it)} = \left\lVert T^{(it)} - T^{(it-1)} \right\rVert_{\infty}
+r^{(it)} = \left\lVert T_{\text{new}}^{(it)} - T_{\text{current}}^{(it)} \right\rVert_{\infty}
 $$
 
 <OverleafRef sec="Criterio de Parada" tag="R-11" />
 
-— the maximum travel-time change over any mode and parcel — falls below the tolerance (reference: **0.1 min**) for **two consecutive iterations** (robust to Monte Carlo noise). `MAX_ITER` (reference: 20) remains as a safety cap: the MSA's $\sim 1/it$ tail can need 20–25 iterations in stiff scenarios.
+— the **undamped gap**: what the loaded network returns against the times the demand was computed with, the maximum over any mode and parcel — falls below the tolerance (**0.2 min**) for **two consecutive iterations** (robust to Monte Carlo noise). `max_iter` (40 by default, up to 100) remains as a safety cap: the default city converges in 29 iterations, but with 1 lane it reaches the cap without converging (final gap 0.55 min), because the MSA's tail decays like $1/it$.
 
 <MSAFlowchart />
 
 ## Coupled land ↔ transport loop
 
-The outer loop (**City at equilibrium** page) alternates both modules to the joint fixed point: land use allocates households given accessibility $T$, that population runs the MSA, and the new times update $T$. Each parcel's accessibility is the expected travel time to the CBD, **common to all strata** (population-weighted mean):
+The outer loop (**City at equilibrium** page) alternates both modules to the joint fixed point: land use allocates households given accessibility $T_h$, that population runs the MSA, and the new times update $T_h$. Accessibility is the one of the Land use chapter — each stratum's mode-choice logsum, times the 44 trips of the month — now evaluated on the MSA's congested times instead of free flow:
 
 $$
-T^{\text{new}}(i) = \sum_h \frac{H_h}{\sum_g H_g} \cdot \mathbb{E}\left[\, t \mid h, i \,\right]
+T_h^{\text{new}}(i) = -44 \cdot LS_h(i)
 $$
 
 <OverleafRef sec="Acoplamiento suelo–transporte" tag="R-12" />
 
-with outer damping $T \leftarrow \theta\, T^{\text{new}} + (1-\theta)\, T$, $\theta = 1/(n+1)$, and residual $\lVert T^{\text{new}} - T \rVert_\infty$ in **minutes** (reference tolerance: 1 min).
+with $LS_h(i)$ the logsum of stratum $h$ in cell $i$, averaged over those who own a car and those who do not. Between laps, $T_h \leftarrow \theta\, T_h^{\text{new}} + (1-\theta)\, T_h$, with a step $\theta$ that starts at 1 and halves every time the gap grows. The gap is measured in pesos, $\max_{h,i} \lvert T_h^{\text{new}}(i) - T_h(i) \rvert / \lambda_h$, in **\$/household-month**, with tolerance 100 \$/household-month: dividing by $\lambda_h$ makes it mean the same in the three strata. The coupled loop is declared converged only if its three parts converge — the outer gap, the MSA and the auction —; if the gap is met and another part is not, the loop stops anyway and reports it as not converged.
 
 <Callout type="info">
-Why a common $T$ and not per stratum? Accessibility is an attribute of the **location**; if it were per stratum, the lower times of motorized strata would read as "distance doesn't bother them" and would **invert** the bid-rent ordering (rich at the periphery). Valuation heterogeneity is captured by $\alpha_h$.
+Why one $T$ per stratum and not a common one? Each stratum chooses its mode with its own logit, so the same network yields it something different: the car, for instance, is owned by only part of each stratum. Until Sep-2026 accessibility was a time in minutes common to all, because per stratum it inverted the bid-rent. With the logsum turned into pesos by $\lambda_h$ — the same cost coefficient of the logit — that no longer happens, and the access difference between strata is part of the bid again (Land use chapter).
 </Callout>
 
 <CoupledFlowchart />
 
-External convergence usually needs more iterations than the inner one because two processes feed back on each other: more congestion downtown → households redistribute → congestion changes…
+Each outer lap runs a full MSA, so it is expensive. In exchange, the map contracts strongly — the gap falls by about tenfold per lap — and a few laps suffice: more congestion downtown → households redistribute → congestion changes, less each time.
 
 <NextStep to="land-use">Land-use module →</NextStep>

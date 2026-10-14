@@ -25,6 +25,11 @@ El contrato, que fija `tests/test_libro.py`:
 4. **Los JSON no pasan por prettier** (`.prettierignore`): son generados, y
    reformatearlos los deja sucios hasta la próxima corrida.
 
+Los tutoriales de la aplicación (`apps/web/src/tutorials/*.mdx`) siguen la
+misma regla con `datos_tutoriales.py` → `tutoriales.json`: replica los escenarios
+de `scenarios.ts` en el núcleo. No es un capítulo, así que el test no lo exige;
+regenerarlo tras un cambio de modelo es tarea de quien lo hace.
+
 Correr uno a mano, desde `packages/titirilquen_core`:
 
 ```bash

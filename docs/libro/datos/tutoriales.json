@@ -1,0 +1,581 @@
+{
+ "_meta": {
+  "generado": "2026-10-14",
+  "commit": "eeb112d",
+  "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)"
+ },
+ "parametros": {
+  "share_estratos_pct": {
+   "alto": 20,
+   "medio": 50,
+   "bajo": 30
+  },
+  "ingreso_clp_mes": {
+   "alto": 3500000.0,
+   "medio": 1500000.0,
+   "bajo": 500000.0
+  },
+  "hogares_por_km": 1800.0,
+  "tolerancia_msa_min": 0.2,
+  "max_iter": 40,
+  "max_iter_tope": 100,
+  "tol_acoplado_clp_hogar_mes": 100.0,
+  "vot_clp_hora": {
+   "alto": 6329,
+   "medio": 3164,
+   "bajo": 1633
+  },
+  "costo_parking": 2000,
+  "cap_bici": 4000,
+  "cap_bici_pro_bici": 8000
+ },
+ "limite_del_logit": {
+  "grupos": 1200,
+  "filas": [
+   {
+    "escala": 1,
+    "distancia_max_pp": 21.93
+   },
+   {
+    "escala": 5,
+    "distancia_max_pp": 4.78
+   },
+   {
+    "escala": 20,
+    "distancia_max_pp": 0.27
+   },
+   {
+    "escala": 50,
+    "distancia_max_pp": 0.18
+   }
+  ]
+ },
+ "pistas": {
+  "expected": [
+   {
+    "num_pistas": 1,
+    "iteraciones": 40,
+    "convergio": false,
+    "brecha_final_min": 0.547,
+    "reparto_pct": {
+     "Auto": 16.27,
+     "Metro": 34.43,
+     "Bici": 35.92,
+     "Caminata": 13.38
+    },
+    "auto_por_estrato_pct": {
+     "alto": 32.12,
+     "medio": 17.11,
+     "bajo": 4.3
+    },
+    "frecuencia_metro_tph": 6.2,
+    "espera_metro_min": 4.71,
+    "cg_min_equiv": {
+     "medio": 38.2,
+     "por_modo": {
+      "Auto": 61.99,
+      "Metro": 47.89,
+      "Bici": 24.5,
+      "Caminata": 21.09
+     }
+    }
+   },
+   {
+    "num_pistas": 2,
+    "iteraciones": 29,
+    "convergio": true,
+    "brecha_final_min": 0.183,
+    "reparto_pct": {
+     "Auto": 24.68,
+     "Metro": 28.52,
+     "Bici": 34.19,
+     "Caminata": 12.62
+    },
+    "auto_por_estrato_pct": {
+     "alto": 46.94,
+     "medio": 26.28,
+     "bajo": 7.14
+    },
+    "frecuencia_metro_tph": 5.13,
+    "espera_metro_min": 5.92,
+    "cg_min_equiv": {
+     "medio": 36.08,
+     "por_modo": {
+      "Auto": 44.55,
+      "Metro": 50.77,
+      "Bici": 23.34,
+      "Caminata": 20.85
+     }
+    }
+   },
+   {
+    "num_pistas": 3,
+    "iteraciones": 22,
+    "convergio": true,
+    "brecha_final_min": 0.174,
+    "reparto_pct": {
+     "Auto": 28.41,
+     "Metro": 25.98,
+     "Bici": 33.31,
+     "Caminata": 12.3
+    },
+    "auto_por_estrato_pct": {
+     "alto": 53.07,
+     "medio": 30.41,
+     "bajo": 8.62
+    },
+    "frecuencia_metro_tph": 4.68,
+    "espera_metro_min": 6.52,
+    "cg_min_equiv": {
+     "medio": 34.21,
+     "por_modo": {
+      "Auto": 36.87,
+      "Metro": 52.24,
+      "Bici": 22.85,
+      "Caminata": 20.71
+     }
+    }
+   },
+   {
+    "num_pistas": 4,
+    "iteraciones": 19,
+    "convergio": true,
+    "brecha_final_min": 0.177,
+    "reparto_pct": {
+     "Auto": 29.73,
+     "Metro": 25.1,
+     "Bici": 32.99,
+     "Caminata": 12.19
+    },
+    "auto_por_estrato_pct": {
+     "alto": 55.17,
+     "medio": 31.87,
+     "bajo": 9.18
+    },
+    "frecuencia_metro_tph": 4.52,
+    "espera_metro_min": 6.75,
+    "cg_min_equiv": {
+     "medio": 33.38,
+     "por_modo": {
+      "Auto": 34.07,
+      "Metro": 52.79,
+      "Bici": 22.68,
+      "Caminata": 20.66
+     }
+    }
+   },
+   {
+    "num_pistas": 6,
+    "iteraciones": 19,
+    "convergio": true,
+    "brecha_final_min": 0.17,
+    "reparto_pct": {
+     "Auto": 30.37,
+     "Metro": 24.68,
+     "Bici": 32.83,
+     "Caminata": 12.13
+    },
+    "auto_por_estrato_pct": {
+     "alto": 56.17,
+     "medio": 32.58,
+     "bajo": 9.45
+    },
+    "frecuencia_metro_tph": 4.44,
+    "espera_metro_min": 6.85,
+    "cg_min_equiv": {
+     "medio": 32.93,
+     "por_modo": {
+      "Auto": 32.69,
+      "Metro": 53.04,
+      "Bici": 22.59,
+      "Caminata": 20.63
+     }
+    }
+   }
+  ],
+  "todo_o_nada": [
+   {
+    "num_pistas": 1,
+    "iteraciones": 40,
+    "convergio": false,
+    "brecha_final_min": 91.169,
+    "reparto_pct": {
+     "Auto": 0.61,
+     "Metro": 49.35,
+     "Bici": 30.66,
+     "Caminata": 19.38
+    },
+    "auto_por_estrato_pct": {
+     "alto": 3.06,
+     "medio": 0.0,
+     "bajo": 0.0
+    },
+    "frecuencia_metro_tph": 8.88,
+    "espera_metro_min": 3.87,
+    "cg_min_equiv": {
+     "medio": 30.39,
+     "por_modo": {
+      "Auto": 16.69,
+      "Metro": 42.46,
+      "Bici": 21.59,
+      "Caminata": 14.01
+     }
+    }
+   },
+   {
+    "num_pistas": 2,
+    "iteraciones": 40,
+    "convergio": false,
+    "brecha_final_min": 0.346,
+    "reparto_pct": {
+     "Auto": 30.89,
+     "Metro": 26.43,
+     "Bici": 30.28,
+     "Caminata": 12.39
+    },
+    "auto_por_estrato_pct": {
+     "alto": 77.56,
+     "medio": 30.75,
+     "bajo": 0.0
+    },
+    "frecuencia_metro_tph": 4.79,
+    "espera_metro_min": 5.96,
+    "cg_min_equiv": {
+     "medio": 36.45,
+     "por_modo": {
+      "Auto": 49.94,
+      "Metro": 47.89,
+      "Bici": 22.15,
+      "Caminata": 13.35
+     }
+    }
+   },
+   {
+    "num_pistas": 3,
+    "iteraciones": 40,
+    "convergio": false,
+    "brecha_final_min": 1.748,
+    "reparto_pct": {
+     "Auto": 44.61,
+     "Metro": 7.22,
+     "Bici": 36.28,
+     "Caminata": 11.89
+    },
+    "auto_por_estrato_pct": {
+     "alto": 90.0,
+     "medio": 53.18,
+     "bajo": 0.0
+    },
+    "frecuencia_metro_tph": 2.0,
+    "espera_metro_min": 14.95,
+    "cg_min_equiv": {
+     "medio": 42.96,
+     "por_modo": {
+      "Auto": 57.48,
+      "Metro": 70.29,
+      "Bici": 29.41,
+      "Caminata": 13.29
+     }
+    }
+   },
+   {
+    "num_pistas": 4,
+    "iteraciones": 7,
+    "convergio": true,
+    "brecha_final_min": 0.12,
+    "reparto_pct": {
+     "Auto": 48.63,
+     "Metro": 5.33,
+     "Bici": 35.65,
+     "Caminata": 10.39
+    },
+    "auto_por_estrato_pct": {
+     "alto": 90.0,
+     "medio": 60.01,
+     "bajo": 2.02
+    },
+    "frecuencia_metro_tph": 2.0,
+    "espera_metro_min": 15.0,
+    "cg_min_equiv": {
+     "medio": 35.79,
+     "por_modo": {
+      "Auto": 41.39,
+      "Metro": 71.91,
+      "Bici": 29.19,
+      "Caminata": 13.69
+     }
+    }
+   },
+   {
+    "num_pistas": 6,
+    "iteraciones": 15,
+    "convergio": true,
+    "brecha_final_min": 0.172,
+    "reparto_pct": {
+     "Auto": 54.11,
+     "Metro": 4.07,
+     "Bici": 31.56,
+     "Caminata": 10.27
+    },
+    "auto_por_estrato_pct": {
+     "alto": 90.0,
+     "medio": 60.01,
+     "bajo": 20.3
+    },
+    "frecuencia_metro_tph": 2.0,
+    "espera_metro_min": 15.0,
+    "cg_min_equiv": {
+     "medio": 32.64,
+     "por_modo": {
+      "Auto": 36.59,
+      "Metro": 70.83,
+      "Bici": 27.15,
+      "Caminata": 13.55
+     }
+    }
+   }
+  ]
+ },
+ "experimentos_transporte": {
+  "parking": {
+   "0": {
+    "iteraciones": 40,
+    "convergio": true,
+    "brecha_final_min": 0.183,
+    "reparto_pct": {
+     "Auto": 28.72,
+     "Metro": 26.73,
+     "Bici": 32.88,
+     "Caminata": 11.67
+    },
+    "auto_por_estrato_pct": {
+     "alto": 47.21,
+     "medio": 31.09,
+     "bajo": 12.42
+    },
+    "frecuencia_metro_tph": 4.81,
+    "espera_metro_min": 6.24,
+    "cg_min_equiv": {
+     "medio": 34.33,
+     "por_modo": {
+      "Auto": 36.82,
+      "Metro": 51.29,
+      "Bici": 23.06,
+      "Caminata": 21.1
+     }
+    }
+   },
+   "2000": {
+    "iteraciones": 29,
+    "convergio": true,
+    "brecha_final_min": 0.183,
+    "reparto_pct": {
+     "Auto": 24.68,
+     "Metro": 28.52,
+     "Bici": 34.19,
+     "Caminata": 12.62
+    },
+    "auto_por_estrato_pct": {
+     "alto": 46.94,
+     "medio": 26.28,
+     "bajo": 7.14
+    },
+    "frecuencia_metro_tph": 5.13,
+    "espera_metro_min": 5.92,
+    "cg_min_equiv": {
+     "medio": 36.08,
+     "por_modo": {
+      "Auto": 44.55,
+      "Metro": 50.77,
+      "Bici": 23.34,
+      "Caminata": 20.85
+     }
+    }
+   },
+   "5000": {
+    "iteraciones": 26,
+    "convergio": true,
+    "brecha_final_min": 0.178,
+    "reparto_pct": {
+     "Auto": 17.9,
+     "Metro": 32.09,
+     "Bici": 36.11,
+     "Caminata": 13.9
+    },
+    "auto_por_estrato_pct": {
+     "alto": 42.85,
+     "medio": 17.44,
+     "bajo": 2.02
+    },
+    "frecuencia_metro_tph": 5.78,
+    "espera_metro_min": 5.26,
+    "cg_min_equiv": {
+     "medio": 37.36,
+     "por_modo": {
+      "Auto": 55.89,
+      "Metro": 49.42,
+      "Bici": 23.89,
+      "Caminata": 20.64
+     }
+    }
+   }
+  },
+  "bici": {
+   "4000": {
+    "iteraciones": 29,
+    "convergio": true,
+    "brecha_final_min": 0.183,
+    "reparto_pct": {
+     "Auto": 24.68,
+     "Metro": 28.52,
+     "Bici": 34.19,
+     "Caminata": 12.62
+    },
+    "auto_por_estrato_pct": {
+     "alto": 46.94,
+     "medio": 26.28,
+     "bajo": 7.14
+    },
+    "frecuencia_metro_tph": 5.13,
+    "espera_metro_min": 5.92,
+    "cg_min_equiv": {
+     "medio": 36.08,
+     "por_modo": {
+      "Auto": 44.55,
+      "Metro": 50.77,
+      "Bici": 23.34,
+      "Caminata": 20.85
+     }
+    }
+   },
+   "8000": {
+    "iteraciones": 18,
+    "convergio": true,
+    "brecha_final_min": 0.169,
+    "reparto_pct": {
+     "Auto": 24.24,
+     "Metro": 25.09,
+     "Bici": 38.44,
+     "Caminata": 12.23
+    },
+    "auto_por_estrato_pct": {
+     "alto": 46.43,
+     "medio": 25.78,
+     "bajo": 6.85
+    },
+    "frecuencia_metro_tph": 4.52,
+    "espera_metro_min": 6.73,
+    "cg_min_equiv": {
+     "medio": 33.1,
+     "por_modo": {
+      "Auto": 43.43,
+      "Metro": 52.18,
+      "Bici": 18.1,
+      "Caminata": 20.63
+     }
+    }
+   }
+  },
+  "msa": {
+   "3": {
+    "iteraciones": 3,
+    "convergio": false,
+    "brecha_final_min": 2.705,
+    "reparto_pct": {
+     "Auto": 24.46,
+     "Metro": 28.64,
+     "Bici": 34.1,
+     "Caminata": 12.8
+    },
+    "auto_por_estrato_pct": {
+     "alto": 46.57,
+     "medio": 26.04,
+     "bajo": 7.06
+    },
+    "frecuencia_metro_tph": 5.18,
+    "espera_metro_min": 6.55,
+    "cg_min_equiv": {
+     "medio": 37.25,
+     "por_modo": {
+      "Auto": 46.1,
+      "Metro": 52.07,
+      "Bici": 24.56,
+      "Caminata": 20.99
+     }
+    }
+   },
+   "40": {
+    "iteraciones": 29,
+    "convergio": true,
+    "brecha_final_min": 0.183,
+    "reparto_pct": {
+     "Auto": 24.68,
+     "Metro": 28.52,
+     "Bici": 34.19,
+     "Caminata": 12.62
+    },
+    "auto_por_estrato_pct": {
+     "alto": 46.94,
+     "medio": 26.28,
+     "bajo": 7.14
+    },
+    "frecuencia_metro_tph": 5.13,
+    "espera_metro_min": 5.92,
+    "cg_min_equiv": {
+     "medio": 36.08,
+     "por_modo": {
+      "Auto": 44.55,
+      "Metro": 50.77,
+      "Bici": 23.34,
+      "Caminata": 20.85
+     }
+    }
+   }
+  }
+ },
+ "suelo": {
+  "mu": 0.1508,
+  "base": {
+   "dist_km": {
+    "alto": 1.99,
+    "medio": 2.97,
+    "bajo": 5.84
+   },
+   "theil": 0.208
+  },
+  "lambda_iguales": {
+   "dist_km": {
+    "alto": 4.45,
+    "medio": 3.73,
+    "bajo": 2.94
+   },
+   "theil": 0.03
+  },
+  "lambda_alto_doble": {
+   "dist_km": {
+    "alto": 3.16,
+    "medio": 2.59,
+    "bajo": 5.69
+   },
+   "theil": 0.165
+  },
+  "lambda_alto_mitad": {
+   "dist_km": {
+    "alto": 1.54,
+    "medio": 3.14,
+    "bajo": 5.85
+   },
+   "theil": 0.253
+  },
+  "theil_mu_1": 0.745,
+  "rho_54": {
+   "dist_km": {
+    "alto": 5.93,
+    "medio": 3.34,
+    "bajo": 2.58
+   },
+   "theil": 0.147
+  },
+  "rho_umbral_inversion": 31
+ }
+}

@@ -117,7 +117,7 @@ export const TUTORIAL_TOC_ES: readonly TutorialMeta[] = [
     slug: "assignment",
     order: 6,
     title: "Métodos de asignación",
-    tagline: "Logit, esperados y todo-o-nada",
+    tagline: "Logit (probabilidades o sorteo) y todo o nada",
   },
   {
     slug: "land-use",
@@ -158,7 +158,7 @@ export const TUTORIAL_TOC_EN: readonly TutorialMeta[] = [
     slug: "assignment",
     order: 6,
     title: "Assignment methods",
-    tagline: "Logit, expected and all-or-nothing",
+    tagline: "Logit (probabilities or sampling) and all-or-nothing",
   },
   {
     slug: "land-use",

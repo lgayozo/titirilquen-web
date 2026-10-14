@@ -231,7 +231,7 @@ const NODOS = [
     seccion: "§9", estado: "fiel", refs: ["R-10", "R-11", "D-20", "D-21"],
     ecuacion: "T ← f·T_nuevo + (1−f)·T, f = 1/(it+1) · corte: ‖ΔT‖<sub>∞</sub> &lt; 0.1 min ×2 consec · MAX 20",
     detalle: "Demanda (logit) → oferta (3 modos) → promediado → residuo, streaming por iteración. " +
-             "Asignación por flujos esperados n·P(m) [R-10] o Monte Carlo. Agrupación por " +
+             "Asignación logit por probabilidades, n·P(m) [R-10], o por sorteo (Monte Carlo). Agrupación por " +
              "(estrato, celda, tiene_auto) [D-20]. El trace expone los flujos de corredor " +
              "(numerador del v/c) desde el fix S-01.",
     conecta: ["utility", "car", "bike", "train", "emissions", "population"] },

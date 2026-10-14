@@ -29,7 +29,7 @@ $$
 
 $T_h(i)$ es la **accesibilidad**: el costo mensual de vivir en $i$ y tener que viajar, igual a $-44$ veces el logsum del logit modal del capítulo de Demanda, a flujo libre. Está en utiles de transporte por mes y es distinta para cada estrato, porque cada uno tiene su propio logit. Entra con peso 1: la puja lee esa accesibilidad tal cual. $\rho_h$ penaliza la **densidad relativa** $d_i$, la densidad de la celda sobre la media de la ciudad, y vale 0 por defecto; está en utiles-mes, y por ser relativa el mismo $\rho$ significa lo mismo con 25.000 que con 100.000 hogares.
 
-Con $\lambda_h$ igual al coeficiente de costo del logit modal, el mismo hogar tiene **una sola función de utilidad** en los dos módulos: su valor del tiempo es 6.200, 3.100 y 1.600 pesos por hora para los estratos alto, medio y bajo, el mismo con que elige modo. Por eso el suelo no tiene un $\lambda$ propio: lo lee de la demanda, y se mueve desde la página **Calibración**. Cambiar $b_{\text{costo}}$ mueve a la vez $\lambda_h$ y la accesibilidad $T_h$.
+Con $\lambda_h$ igual al coeficiente de costo del logit modal, el mismo hogar tiene **una sola función de utilidad** en los dos módulos: su valor del tiempo es 6.329, 3.164 y 1.633 pesos por hora para los estratos alto, medio y bajo, el mismo con que elige modo. Por eso el suelo no tiene un $\lambda$ propio: lo lee de la demanda, y se mueve desde la página **Calibración**. Cambiar $b_{\text{costo}}$ mueve a la vez $\lambda_h$ y la accesibilidad $T_h$.
 
 Despejando el precio al nivel de utilidad de reserva $u_h$ se obtiene la **disposición a pagar** (*willingness to pay*), que también es aleatoria:
 
@@ -82,14 +82,14 @@ Mover $\lambda_h$ sería exactamente re-escalar las preferencias de ese estrato.
 <Callout type="info">
 Probá, en la configuración por defecto de la página:
 
-- **Igualar los tres $\lambda$** al del estrato medio, es decir, sus $b_{\text{costo}}$: en **Calibración**, lleva el slider «$s$» de «Valor del tiempo entre estratos» a 0 y vuelve a simular. El valor del tiempo pasa a ser el mismo para todos y **la segregación casi desaparece**: Theil de 0,23 a 0,02, con el estrato alto a 4,3 km del CBD y el bajo a 3,1. Sin diferencias de valor del tiempo no hay Alonso. Lo poco que queda, levemente invertido, es la tenencia de auto: el alto tiene más, y el auto le aplana la accesibilidad.
-- **Duplicar $\lambda$ del estrato alto.** Su valor del tiempo baja a la mitad y se aleja del centro: pasa de 1,9 a 3,0 km. Con $\lambda$ a la mitad se acerca, a 1,5 km.
+- **Igualar los tres $\lambda$** al del estrato medio, es decir, sus $b_{\text{costo}}$: en **Calibración**, lleva el slider «$s$» de «Valor del tiempo entre estratos» a 0 y vuelve a simular. El valor del tiempo pasa a ser el mismo para todos y **la segregación casi desaparece**: Theil de 0,21 a 0,03, con el estrato alto a 4,5 km del CBD y el bajo a 2,9. Sin diferencias de valor del tiempo no hay Alonso. Lo poco que queda, levemente invertido, es la tenencia de auto: el alto tiene más, y el auto le aplana la accesibilidad.
+- **Duplicar $\lambda$ del estrato alto.** Su valor del tiempo baja a la mitad y se aleja del centro: pasa de 2,0 a 3,2 km. Con $\lambda$ a la mitad se acerca, a 1,5 km.
 - **Duplicar el ingreso $y$ del estrato alto.** No reasigna a nadie: el ingreso entra como constante y se absorbe en la utilidad de reserva $u_h$.
 </Callout>
 
 ## La precisión $\mu$
 
-$\mu$ mide cuánto ruido tiene elegir casa frente a elegir modo, y está **fijo** en $1/\sqrt{44} \approx 0{,}151$: la accesibilidad es mensual, la suma de 44 viajes, y si cada viaje trae su propio shock la dispersión del mes crece como $\sqrt{44}$. Es un supuesto razonado, no un dato: sin rentas observadas no se puede estimar. No se ofrece como control porque en la subasta sólo entran $\mu T$ y $\mu \rho$, así que moverlo equivale a re-escalar a la vez la accesibilidad y la densidad. Con $\mu = 1$ la subasta sería casi determinista y la segregación de Theil subiría de 0,23 a 0,76.
+$\mu$ mide cuánto ruido tiene elegir casa frente a elegir modo, y está **fijo** en $1/\sqrt{44} \approx 0{,}151$: la accesibilidad es mensual, la suma de 44 viajes, y si cada viaje trae su propio shock la dispersión del mes crece como $\sqrt{44}$. Es un supuesto razonado, no un dato: sin rentas observadas no se puede estimar. No se ofrece como control porque en la subasta sólo entran $\mu T$ y $\mu \rho$, así que moverlo equivale a re-escalar a la vez la accesibilidad y la densidad. Con $\mu = 1$ la subasta sería casi determinista y la segregación de Theil subiría de 0,21 a 0,74.
 
 ## La forma de la ciudad
 

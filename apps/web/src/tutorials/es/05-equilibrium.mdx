@@ -27,33 +27,33 @@ El peso de la nueva información disminuye con $1/it$: la primera iteración ree
 El bucle corta cuando el residual
 
 $$
-r^{(it)} = \left\lVert T^{(it)} - T^{(it-1)} \right\rVert_{\infty}
+r^{(it)} = \left\lVert T_{\text{nuevos}}^{(it)} - T_{\text{actuales}}^{(it)} \right\rVert_{\infty}
 $$
 
 <OverleafRef sec="Criterio de Parada" tag="R-11" />
 
-— el máximo cambio del tiempo de viaje en cualquier modo y parcela — es menor que la tolerancia (referencia: **0.1 min**) durante **dos iteraciones consecutivas** (robusto al ruido del Monte Carlo). `MAX_ITER` (referencia: 20) queda como tope de seguridad: la cola $\sim 1/it$ del MSA puede requerir 20–25 iteraciones en escenarios rígidos.
+— la **brecha sin amortiguar**: lo que devuelve la red cargada contra los tiempos con que se calculó la demanda, el máximo en cualquier modo y parcela — es menor que la tolerancia (**0,2 min**) durante **dos iteraciones consecutivas** (robusto al ruido del Monte Carlo). `max_iter` (40 por defecto, hasta 100) queda como tope de seguridad: la ciudad por defecto converge en 29 iteraciones, pero con 1 pista llega al tope sin converger (brecha final 0,55 min), porque la cola del MSA baja como $1/it$.
 
 <MSAFlowchart />
 
 ## Loop acoplado suelo ↔ transporte
 
-El bucle exterior (página **Ciudad en equilibrio**) alterna ambos módulos hasta el punto fijo conjunto: el suelo asigna hogares dada la accesibilidad $T$, esa población corre el MSA, y los nuevos tiempos actualizan $T$. La accesibilidad de cada parcela es el tiempo esperado de viaje al CBD, **común a todos los estratos** (media ponderada por población):
+El bucle exterior (página **Ciudad en equilibrio**) alterna ambos módulos hasta el punto fijo conjunto: el suelo asigna hogares dada la accesibilidad $T_h$, esa población corre el MSA, y los nuevos tiempos actualizan $T_h$. La accesibilidad es la del capítulo de Uso de suelo —el logsum del logit modal de cada estrato, por los 44 viajes del mes—, evaluada ahora sobre los tiempos congestionados del MSA y no a flujo libre:
 
 $$
-T^{\text{nuevo}}(i) = \sum_h \frac{H_h}{\sum_g H_g} \cdot \mathbb{E}\left[\, t \mid h, i \,\right]
+T_h^{\text{nuevo}}(i) = -44 \cdot LS_h(i)
 $$
 
 <OverleafRef sec="Acoplamiento suelo–transporte" tag="R-12" />
 
-con amortiguación exterior $T \leftarrow \theta\, T^{\text{nuevo}} + (1-\theta)\, T$, $\theta = 1/(n+1)$, y residual $\lVert T^{\text{nuevo}} - T \rVert_\infty$ en **minutos** (tolerancia de referencia: 1 min).
+con $LS_h(i)$ el logsum del estrato $h$ en la celda $i$, promediado entre quienes tienen y no tienen auto. Entre vueltas, $T_h \leftarrow \theta\, T_h^{\text{nuevo}} + (1-\theta)\, T_h$, con un paso $\theta$ que parte en 1 y se reduce a la mitad cada vez que la brecha crece. La brecha se mide en pesos, $\max_{h,i} \lvert T_h^{\text{nuevo}}(i) - T_h(i) \rvert / \lambda_h$, en **\$/hogar-mes**, con tolerancia 100 \$/hogar-mes: dividir por $\lambda_h$ hace que signifique lo mismo en los tres estratos. El acoplado se declara convergido sólo si convergen sus tres partes —la brecha exterior, el MSA y la subasta—; si la brecha cumple y alguna otra no, el bucle se detiene igual y lo informa como no convergido.
 
 <Callout type="info">
-¿Por qué $T$ común y no por estrato? La accesibilidad es un atributo de la **ubicación**; si fuera por estrato, el menor tiempo de los estratos motorizados se leería como "la distancia no les molesta" e **invertiría** el ordenamiento del bid-rent (ricos a la periferia). La heterogeneidad de valoración la captura $\alpha_h$.
+¿Por qué una $T$ por estrato y no común? Cada estrato elige modo con su propio logit, así que la misma red le rinde distinto: el auto, por ejemplo, lo tiene sólo una parte de cada estrato. Hasta sep-2026 la accesibilidad era un tiempo en minutos común a todos, porque por estrato invertía el bid-rent. Con el logsum pasado a pesos por $\lambda_h$ —el mismo coeficiente de costo del logit— eso ya no pasa, y la diferencia de acceso entre estratos vuelve a ser parte de la puja (capítulo de Uso de suelo).
 </Callout>
 
 <CoupledFlowchart />
 
-La convergencia externa suele requerir más iteraciones que la interna porque dos procesos se retroalimentan: más congestión en el centro → los hogares se redistribuyen → cambia la congestión…
+Cada vuelta exterior corre un MSA completo, así que es cara. A cambio, el mapa contrae fuerte —la brecha cae del orden de diez veces por vuelta— y bastan pocas vueltas: más congestión en el centro → los hogares se redistribuyen → cambia la congestión, cada vez menos.
 
 <NextStep to="land-use">Módulo Uso de suelo →</NextStep>

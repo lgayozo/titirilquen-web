@@ -2067,6 +2067,33 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-70 — Equilibrio: con todo o nada el MSA no converge porque promedia tiempos, no porque falte el equilibrio
+
+- **Hallado**: revisión del tutorial de métodos de asignación, 2026-10-14.
+  D9b y la ayuda de la interfaz atribuían la falta de convergencia de
+  `todo_o_nada` a que «no hay punto fijo»: el grupo marginal salta entero de
+  modo.
+- **Evidencia**: un MSA de exploración (fuera del repo) que promedia los
+  FLUJOS de las cargas todo-o-nada por grupo —el MSA clásico del equilibrio de
+  usuario— con la config de la app. El costo en exceso medio (minutos que
+  cada viajero paga sobre el mínimo de su grupo) cae como 1/n con 1, 2, 3, 4 y
+  6 pistas: 0,27 / 0,25 / 0,07 / 0,006 / 0,009 min a las 40 iteraciones y un
+  décimo de eso a las 400. Al final sólo quedan repartidos los grupos
+  marginales. El metro en ese equilibrio: 36,9 / 25,4 / 7,2 / 5,3 / 4,1 %; la
+  app, promediando tiempos, da 49,4 / 26,4 / 7,2 / 5,3 / 4,1 % y no converge
+  con 1–3 pistas. Con 2 pistas el reparto aún se mueve a 400 iteraciones
+  (25,0 → 25,4 % entre 200 y 400): dirección casi plana, compatible con la no
+  unicidad por efecto Mohring. Con el logit, promediar tiempos o flujos da el
+  mismo reparto (cap05, `variantes`, 0,003 pp).
+- **Veredicto**: el equilibrio existe; lo que falla es la variante del MSA.
+  La paradoja de Downs-Thomson entre 2 y 3 pistas se mantiene en el
+  equilibrio (metro 25 → 7 %; el bienestar no se midió).
+- **Estado**: decidido 2026-10-14 (Leandro): `todo_o_nada` pasa a promediar
+  flujos y a parar por el costo en exceso. Pendiente de implementar; mientras
+  tanto el tutorial y la interfaz lo declaran.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -2140,3 +2167,4 @@ cumple, y eso está en D-39.
 | D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Pendiente (libro, cap. 10) | Media |
 | D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Corregido 2026-10-14 | Media |
 | D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia) | Baja |
+| D-70 | Equilibrio: con todo o nada el MSA no converge porque promedia tiempos; promediando flujos llega al equilibrio de usuario y Downs-Thomson se mantiene | Decidido 2026-10-14, pendiente de implementar | Alta |
