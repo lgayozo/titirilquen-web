@@ -64,9 +64,10 @@ interface Props {
   className?: string;
 }
 
-const fig = (size: number, color = "var(--muted)"): React.CSSProperties => ({
+// Toda etiqueta en Plex Mono va al paso `etiqueta` de la escala (B2).
+const fig = (color = "var(--muted)"): React.CSSProperties => ({
   fontFamily: "var(--font-fig)",
-  fontSize: size,
+  fontSize: "var(--fs-etiqueta)",
   letterSpacing: "0.04em",
   color,
 });
@@ -124,7 +125,7 @@ export function CargaDeRed({
           warn={(vcBici ?? 0) > 1}
         />
       </div>
-      <p style={{ ...fig(10), padding: "6px 0 0", lineHeight: 1.5 }}>
+      <p style={{ ...fig(), padding: "6px 0 0", lineHeight: 1.5 }}>
         {t("metrics_table.network_load_note")}
       </p>
     </>
@@ -297,7 +298,7 @@ export function TransportMetricsTable({ data, className }: Props) {
           onClick={handleExport}
           className="export-btn"
           style={{
-            ...fig(10, "var(--ink-2)"),
+            ...fig("var(--ink-2)"),
             border: "1px solid var(--rule)",
             padding: "4px 10px",
             background: "var(--paper-2)",
@@ -431,7 +432,7 @@ export function TransportMetricsTable({ data, className }: Props) {
         style={{
           padding: "10px 14px",
           borderTop: "1px solid var(--rule)",
-          ...fig(10.5, "var(--muted)"),
+          ...fig("var(--muted)"),
           lineHeight: 1.5,
         }}
       >
@@ -489,7 +490,7 @@ function Stat({
     >
       <div
         style={{
-          ...fig(9.5),
+          ...fig(),
           textTransform: "uppercase",
           letterSpacing: "0.1em",
         }}
@@ -499,7 +500,7 @@ function Stat({
       <div
         style={{
           fontFamily: "var(--font-display)",
-          fontSize: 19,
+          fontSize: "var(--fs-dato)",
           fontWeight: 600,
           color: valColor,
           fontVariantNumeric: "tabular-nums",
@@ -509,7 +510,7 @@ function Stat({
       >
         {value}
       </div>
-      {sub && <div style={{ ...fig(9.5), marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ ...fig(), marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }

@@ -26,7 +26,8 @@ const MODE_ORDER: (keyof RepartoModal)[] = [
 ];
 const MODE_COLOR: Record<keyof RepartoModal, string> = COLOR_MODO;
 
-const LABEL_W = 88;
+// 108: «Estrato medio» en Plex Mono de 12 px (B2) mide ~94.
+const LABEL_W = 108;
 const ROW_H = 28;
 const ROW_GAP = 10;
 const TOP_PAD = 6;
@@ -92,7 +93,7 @@ export function ModalShareBars({ rows, className }: ModalShareBarsProps) {
                 y={y + ROW_H / 2 + 3}
                 textAnchor="end"
                 className="series-label"
-                style={{ fontSize: 11 }}
+                style={{ fontSize: 12 }}
               >
                 {r.label}
               </text>
@@ -130,7 +131,7 @@ export function ModalShareBars({ rows, className }: ModalShareBarsProps) {
                         textAnchor="middle"
                         style={{
                           fontFamily: "var(--font-fig)",
-                          fontSize: 10,
+                          fontSize: 12,
                           fill: "var(--paper)",
                         }}
                       >

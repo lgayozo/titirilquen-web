@@ -39,7 +39,7 @@ export function ComparisonHighlights({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="font-fig text-[11px] uppercase tracking-[0.08em] text-muted">
+      <div className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
         {t("compare.highlights_vs", { base: base.name })}
       </div>
       {others.map((s) => {
@@ -58,10 +58,10 @@ export function ComparisonHighlights({
               padding: "8px 12px",
             }}
           >
-            <div className="mb-1 font-fig text-[12px] font-semibold text-ink">
+            <div className="mb-1 font-fig text-etiqueta font-semibold text-ink">
               {s.name}
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 font-fig text-[11px] tabular-nums">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 font-fig text-etiqueta tabular-nums">
               <Chip
                 label={t("compare.kpi.total") + " CO₂"}
                 delta={co2Pct}

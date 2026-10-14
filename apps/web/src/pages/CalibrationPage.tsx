@@ -107,10 +107,10 @@ export function CalibrationPage() {
           meta={t("calibration_page.mu_meta", { mu: mu.toFixed(3) })}
           defaultOpen
         >
-          <div className="font-fig text-[13px] tabular-nums text-[var(--ink)]">
+          <div className="font-fig text-ayuda tabular-nums text-[var(--ink)]">
             μ = 1/√{VIAJES_MES} ≈ {mu.toFixed(3)}
           </div>
-          <p className="mt-1 text-[11px] leading-snug text-muted">
+          <p className="mt-1 text-etiqueta leading-snug text-muted">
             {t("calibration_page.mu_fijo", { n: VIAJES_MES })}
           </p>
         </CollapsibleSection>
@@ -127,7 +127,7 @@ export function CalibrationPage() {
           <p
             className="font-display text-justify"
             style={{
-              fontSize: 14,
+              fontSize: "var(--fs-cuerpo)",
               lineHeight: 1.6,
               color: "var(--ink-2)",
               marginBottom: 0,
@@ -145,9 +145,9 @@ export function CalibrationPage() {
             cls="col-12"
           >
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-cuerpo">
                 <thead>
-                  <tr className="border-b border-[var(--rule)] text-[11px] uppercase tracking-wide text-[var(--muted)]">
+                  <tr className="border-b border-[var(--rule)] text-etiqueta uppercase tracking-wide text-[var(--muted)]">
                     <th className="py-1 text-left font-normal" />
                     {STR.map((s, k) => (
                       <th
@@ -165,7 +165,7 @@ export function CalibrationPage() {
                     <tr key={k} className="border-t border-[var(--rule)]">
                       <td className="py-1.5 pr-2">
                         {t(`calibration_page.row.${k}`)}
-                        <div className="text-[10px] leading-snug text-muted">
+                        <div className="text-etiqueta leading-snug text-muted">
                           {t(`calibration_page.row_hint.${k}`)}
                         </div>
                       </td>
@@ -193,10 +193,10 @@ export function CalibrationPage() {
             <dl className="flex flex-col gap-2">
               {perillas.map((p) => (
                 <div key={p}>
-                  <dt className="font-fig text-[11px] uppercase tracking-[0.06em] text-[var(--ink)]">
+                  <dt className="font-fig text-etiqueta uppercase tracking-[0.06em] text-[var(--ink)]">
                     {t(`calibration_page.knob.${p}`)}
                   </dt>
-                  <dd className="text-[12px] leading-snug text-[var(--ink-2)]">
+                  <dd className="text-etiqueta leading-snug text-[var(--ink-2)]">
                     {t(`calibration_page.knob_effect.${p}`)}
                   </dd>
                 </div>

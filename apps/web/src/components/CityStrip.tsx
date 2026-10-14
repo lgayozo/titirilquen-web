@@ -43,7 +43,8 @@ interface CityStripProps {
   height?: number;
 }
 
-const MARGIN = { top: 12, right: 10, bottom: 26, left: 48 };
+// top 15: el rótulo «CBD» va sobre la franja y con 12 px (B2) se cortaba.
+const MARGIN = { top: 15, right: 10, bottom: 26, left: 48 };
 
 /** Color uniforme por modo — el color codifica QUÉ modo se está mostrando. */
 const MODE_COLOR: Record<SingleMode, string> = {
@@ -450,7 +451,7 @@ export function CityStrip({
             border: "1px solid var(--rule)",
             padding: "6px 8px",
             fontFamily: "var(--font-fig)",
-            fontSize: 10,
+            fontSize: "var(--fs-etiqueta)",
             lineHeight: 1.5,
             whiteSpace: "nowrap",
             color: "var(--ink)",

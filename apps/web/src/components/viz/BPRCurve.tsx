@@ -46,7 +46,9 @@ export function BPRCurve({
 
   const svgW = 200;
   const svgH = 120;
-  const pad = { top: 10, right: 12, bottom: 22, left: 28 };
+  // top 13 y el rótulo vertical en x 11: con letra de 12 px (B2) «q/C=1» y
+  // «t / t₀» se salían del viewBox.
+  const pad = { top: 13, right: 12, bottom: 22, left: 28 };
   const plotW = svgW - pad.left - pad.right;
   const plotH = svgH - pad.top - pad.bottom;
 
@@ -84,7 +86,7 @@ export function BPRCurve({
       <text
         x={xScale(1)}
         y={pad.top - 2}
-        fontSize={7}
+        fontSize={9.5}
         textAnchor="middle"
         className="fill-[var(--muted)]"
       >
@@ -132,19 +134,19 @@ export function BPRCurve({
       <text
         x={pad.left + plotW / 2}
         y={svgH - 4}
-        fontSize={7}
+        fontSize={9.5}
         textAnchor="middle"
         className="fill-[var(--muted)]"
       >
         q / C
       </text>
       <text
-        x={8}
+        x={11}
         y={pad.top + plotH / 2}
-        fontSize={7}
+        fontSize={9.5}
         textAnchor="middle"
         className="fill-[var(--muted)]"
-        transform={`rotate(-90, 8, ${pad.top + plotH / 2})`}
+        transform={`rotate(-90, 11, ${pad.top + plotH / 2})`}
       >
         t / t₀
       </text>

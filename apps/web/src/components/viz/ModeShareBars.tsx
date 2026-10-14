@@ -19,7 +19,8 @@ interface ModeShareBarsProps {
 }
 
 const LABEL_W = 84;
-const COUNT_W = 46;
+// 56: «18.010» en Plex Mono de 12 px (B2) no cabía en 46.
+const COUNT_W = 56;
 const ROW_H = 22;
 const ROW_GAP = 8;
 const TOP_PAD = 6;
@@ -105,7 +106,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                 y={r.tag ? y + ROW_H / 2 - 1 : y + ROW_H / 2 + 3}
                 textAnchor="end"
                 className="series-label"
-                style={{ fontSize: 11 }}
+                style={{ fontSize: 12 }}
               >
                 {r.label}
               </text>
@@ -170,7 +171,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                           textAnchor="middle"
                           style={{
                             fontFamily: "var(--font-fig)",
-                            fontSize: 9,
+                            fontSize: 12,
                             fill: "var(--paper)",
                           }}
                         >

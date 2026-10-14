@@ -43,7 +43,7 @@ export function MetricCompareTable({
   return (
     <div className="overflow-x-auto rounded-lg border border-[var(--rule)]">
       <table
-        className="w-full text-xs"
+        className="w-full text-etiqueta"
         style={{ fontVariantNumeric: "tabular-nums" }}
       >
         <thead className="bg-[var(--paper-2)]">

@@ -130,7 +130,7 @@ function NumberField({
 
   return (
     <label className="flex items-baseline justify-between gap-2" title={title}>
-      <span className="text-[11px] leading-tight text-[var(--ink-2)]">
+      <span className="text-etiqueta leading-tight text-[var(--ink-2)]">
         {label}
       </span>
       <input
@@ -148,7 +148,7 @@ function NumberField({
           border: "1px solid var(--rule)",
           color: "var(--ink)",
           fontFamily: "var(--font-fig)",
-          fontSize: 11,
+          fontSize: "var(--fs-etiqueta)",
           padding: "3px 5px",
         }}
       />
@@ -167,12 +167,12 @@ function Grupo({
 }) {
   return (
     <div className="mt-3">
-      <div className="mb-1.5 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+      <div className="mb-1.5 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
         {title}
       </div>
       <div className="flex flex-col gap-1.5">{children}</div>
       {hint && (
-        <p className="mt-1.5 text-[10px] leading-snug text-muted">{hint}</p>
+        <p className="mt-1.5 text-etiqueta leading-snug text-muted">{hint}</p>
       )}
     </div>
   );
@@ -198,12 +198,12 @@ export function CalibrationSummary({ config }: { config: SimulationConfig }) {
       title={t("calibration.title")}
       meta={votResumen(config).join(" · ")}
     >
-      <p className="text-[11px] leading-snug text-muted">
+      <p className="text-etiqueta leading-snug text-muted">
         {t("calibration_page.summary")}
       </p>
       <Link
         to="/calibration"
-        className="mt-2 inline-block text-[11px]"
+        className="mt-2 inline-block text-etiqueta"
         style={{ color: "var(--accent)" }}
       >
         {t("calibration_page.edit_link")}
@@ -279,7 +279,7 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
       meta={votTodos.join(" · ")}
       defaultOpen={defaultOpen}
     >
-      <p className="mb-3 text-[11px] leading-snug text-muted">
+      <p className="mb-3 text-etiqueta leading-snug text-muted">
         {t("calibration.not_a_policy")}
       </p>
 
@@ -303,44 +303,44 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
         style={{ borderColor: "var(--rule)" }}
       >
         <div className="flex items-baseline justify-between gap-2">
-          <dt className="text-[11px] text-[var(--ink-2)]">
+          <dt className="text-etiqueta text-[var(--ink-2)]">
             {t("calibration.vot")}
           </dt>
-          <dd className="font-fig text-[12px] tabular-nums text-[var(--ink)]">
+          <dd className="font-fig text-etiqueta tabular-nums text-[var(--ink)]">
             {betas.b_costo < 0 ? `${fmtMoney(vot)}/h` : "—"}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-2">
-          <dt className="text-[11px] text-[var(--ink-2)]">
+          <dt className="text-etiqueta text-[var(--ink-2)]">
             {t("calibration.ratio_espera")}
           </dt>
-          <dd className="font-fig text-[12px] tabular-nums text-[var(--ink)]">
+          <dd className="font-fig text-etiqueta tabular-nums text-[var(--ink)]">
             {fmtRazon(rEspera)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-2">
-          <dt className="text-[11px] text-[var(--ink-2)]">
+          <dt className="text-etiqueta text-[var(--ink-2)]">
             {t("calibration.ratio_acceso")}
           </dt>
-          <dd className="font-fig text-[12px] tabular-nums text-[var(--ink)]">
+          <dd className="font-fig text-etiqueta tabular-nums text-[var(--ink)]">
             {fmtRazon(rAcceso)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-2">
-          <dt className="text-[11px] text-[var(--ink-2)]">
+          <dt className="text-etiqueta text-[var(--ink-2)]">
             {t("calibration.ratio_caminata")}
           </dt>
-          <dd className="font-fig text-[12px] tabular-nums text-[var(--ink)]">
+          <dd className="font-fig text-etiqueta tabular-nums text-[var(--ink)]">
             {fmtRazon(rCaminata)}
           </dd>
         </div>
       </dl>
-      <p className="mt-1.5 text-[10px] leading-snug text-muted">
+      <p className="mt-1.5 text-etiqueta leading-snug text-muted">
         {t("calibration.ratio_hint")}
       </p>
       {betas.b_costo >= 0 && (
         <p
-          className="mt-1.5 text-[10px] leading-snug"
+          className="mt-1.5 text-etiqueta leading-snug"
           style={{ color: "var(--accent)" }}
         >
           {t("calibration.b_costo_warn")}
@@ -407,7 +407,7 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
           }
         />
       </Grupo>
-      <p className="mt-1.5 text-[10px] leading-snug text-muted">
+      <p className="mt-1.5 text-etiqueta leading-snug text-muted">
         {t("calibration.prob_teletrabajo_hint")}
       </p>
 
@@ -433,7 +433,7 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
           }
         />
       </Grupo>
-      <p className="mt-1.5 text-[10px] leading-snug text-muted">
+      <p className="mt-1.5 text-etiqueta leading-snug text-muted">
         {t("calibration.cortes_hint")}
       </p>
 

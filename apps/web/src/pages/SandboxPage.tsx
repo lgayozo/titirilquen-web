@@ -761,7 +761,7 @@ export function SandboxPage() {
             n: config.city.n_celdas,
           })}
         >
-          <p className="text-[11px] leading-snug text-muted">
+          <p className="text-etiqueta leading-snug text-muted">
             {t("city_params.defined_in_land_use")}
           </p>
         </CollapsibleSection>
@@ -833,7 +833,7 @@ export function SandboxPage() {
           </label>
 
           <div className="mt-2">
-            <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+            <div className="mb-1 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
               {t("equilibrium.assignment")}
             </div>
             <div className="seg" style={{ width: "100%" }}>
@@ -862,13 +862,13 @@ export function SandboxPage() {
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-[11px] text-muted">
+            <p className="mt-1 text-etiqueta text-muted">
               {t(`equilibrium.assignment_hint_${config.assignment}`)}
             </p>
           </div>
 
           <div className="mt-3">
-            <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+            <div className="mb-1 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
               {t("equilibrium.modos")}
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -896,7 +896,7 @@ export function SandboxPage() {
                 );
               })}
             </div>
-            <p className="mt-1 text-[11px] text-muted">
+            <p className="mt-1 text-etiqueta text-muted">
               {t("equilibrium.modos_hint")}
             </p>
           </div>
@@ -969,7 +969,7 @@ export function SandboxPage() {
 
           <div className="ribbon-wrap">
             <div className="mb-2 flex items-center justify-between">
-              <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+              <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
                 {showCiudad
                   ? t("sandbox.city_view_heading")
                   : t("sandbox.city_heading")}
@@ -1065,7 +1065,7 @@ export function SandboxPage() {
             no lo son. */}
         {hasData && convergencia && !convergencia.ok && (
           <p
-            className="mb-2 font-fig text-[11px] uppercase leading-snug tracking-[0.08em]"
+            className="mb-2 font-fig text-etiqueta uppercase leading-snug tracking-[0.08em]"
             style={{
               color: "var(--alerta)",
               border: "1px solid var(--alerta)",
@@ -1142,7 +1142,7 @@ export function SandboxPage() {
                 cls="col-12"
               >
                 <p
-                  className="mb-2 text-[11px] leading-snug"
+                  className="mb-2 text-etiqueta leading-snug"
                   style={{
                     color: convergencia.ok ? "var(--ink-2)" : "var(--alerta)",
                   }}
@@ -1394,7 +1394,7 @@ export function SandboxPage() {
                       {modeShareByStratum.map((s) => (
                         <div key={s.key}>
                           <div
-                            className="mb-1 flex items-center gap-1.5 font-fig text-[10px] uppercase tracking-[0.08em]"
+                            className="mb-1 flex items-center gap-1.5 font-fig text-etiqueta uppercase tracking-[0.08em]"
                             style={{ color: "var(--muted)" }}
                           >
                             <span

@@ -33,7 +33,7 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
 
   return (
     <div className="overflow-x-auto rounded-lg border border-[var(--rule)]">
-      <table className="w-full text-xs">
+      <table className="w-full text-etiqueta">
         <thead className="bg-[var(--paper-2)]">
           <tr className="border-b border-[var(--rule)]">
             <th className="px-3 py-2 text-left font-semibold">
@@ -241,7 +241,7 @@ function Section({
       <tr>
         <td
           colSpan={99}
-          className="bg-[var(--paper-2)] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]"
+          className="bg-[var(--paper-2)] px-3 py-1 text-etiqueta font-semibold uppercase tracking-wide text-[var(--muted)]"
         >
           {label}
         </td>
@@ -297,7 +297,7 @@ function KPIRow({
             <div>{formatter(v)}</div>
             {delta != null && !isBase && (
               <div
-                className={cn("text-[10px]", deltaColor(delta, invertedSign))}
+                className={cn("text-etiqueta", deltaColor(delta, invertedSign))}
               >
                 {deltaFormatter(delta)}
               </div>

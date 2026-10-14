@@ -250,7 +250,7 @@ export function ReferenceComparison({
 
   return (
     <div className="overflow-x-auto">
-      <p className="mb-2 text-[11px] leading-snug text-[var(--muted)]">
+      <p className="mb-2 text-etiqueta leading-snug text-[var(--muted)]">
         {reference ? t("agg.intro_con_ref") : t("agg.intro_sin_ref")}
       </p>
       {/* `tabla-datos` es el ÚNICO estilo de tabla del módulo (index.css). Antes
@@ -322,13 +322,13 @@ export function ReferenceComparison({
         </tbody>
       </table>
 
-      <p className="mt-2 text-[10px] leading-snug text-[var(--muted)]">
+      <p className="mt-2 text-etiqueta leading-snug text-[var(--muted)]">
         {t("agg.reparto_hint")}
       </p>
-      <p className="mt-1 text-[10px] leading-snug text-[var(--muted)]">
+      <p className="mt-1 text-etiqueta leading-snug text-[var(--muted)]">
         {t("agg.unidades_hint")}
       </p>
-      <p className="mt-1 text-[10px] leading-snug text-[var(--muted)]">
+      <p className="mt-1 text-etiqueta leading-snug text-[var(--muted)]">
         {t("agg.vot_hint", {
           alto: fmtMoney(agg.vot_por_estrato_clp_hora["1"]),
           medio: fmtMoney(agg.vot_por_estrato_clp_hora["2"]),
@@ -336,17 +336,17 @@ export function ReferenceComparison({
         })}
       </p>
       {usaMax && (
-        <p className="mt-1 text-[10px] leading-snug text-[var(--muted)]">
+        <p className="mt-1 text-etiqueta leading-snug text-[var(--muted)]">
           {t("agg.medida_utilidad_maxima")}
         </p>
       )}
       {!lsOk && (
-        <p className="mt-1 text-[10px] leading-snug text-[var(--alerta)]">
+        <p className="mt-1 text-etiqueta leading-snug text-[var(--alerta)]">
           {t("agg.logsum_incomparable")}
         </p>
       )}
       {!mismaMedida && (
-        <p className="mt-1 text-[10px] leading-snug text-[var(--alerta)]">
+        <p className="mt-1 text-etiqueta leading-snug text-[var(--alerta)]">
           {t("agg.medida_incomparable")}
         </p>
       )}

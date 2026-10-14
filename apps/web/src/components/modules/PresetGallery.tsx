@@ -318,7 +318,7 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
             ))}
           </div>
           <Tabla filas={filasCiudad(config, landUse)} t={t} />
-          <p className="mt-1 text-[10px] leading-snug text-muted">
+          <p className="mt-1 text-etiqueta leading-snug text-muted">
             {t("presets.presets_hint")}
           </p>
         </>
@@ -353,7 +353,7 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
           />
         ))}
 
-      <p className="mt-2 text-[10px] leading-snug text-muted">
+      <p className="mt-2 text-etiqueta leading-snug text-muted">
         {nCambios > 0
           ? t("presets.diff_hint", { n: nCambios })
           : t("presets.no_diff_hint")}
@@ -377,11 +377,11 @@ function Tabla({
   return (
     <div className="mb-1">
       {titulo && (
-        <div className="mt-1 font-fig text-[9px] uppercase tracking-[0.1em] text-muted opacity-70">
+        <div className="mt-1 font-fig text-etiqueta uppercase tracking-[0.1em] text-muted opacity-70">
           {titulo}
         </div>
       )}
-      <dl className="grid grid-cols-[1fr_auto] gap-x-2 text-[10.5px]">
+      <dl className="grid grid-cols-[1fr_auto] gap-x-2 text-etiqueta">
         {filas.map((f) => {
           const cambiado = f.valor !== f.base;
           return (
@@ -436,7 +436,7 @@ function Chip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "rounded-full border px-2 py-0.5 text-[10.5px]",
+        "rounded-full border px-2 py-0.5 text-etiqueta",
         active
           ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
           : "border-[var(--rule)] text-[var(--ink-2)] hover:bg-[var(--paper-2)]",

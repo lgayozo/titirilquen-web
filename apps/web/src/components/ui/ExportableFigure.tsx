@@ -82,7 +82,7 @@ export function ExportableFigure({
               type="button"
               role="menuitem"
               onClick={onSvg}
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs hover:bg-[var(--paper-2)]"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-etiqueta hover:bg-[var(--paper-2)]"
             >
               <FileCode2 className="h-3.5 w-3.5" aria-hidden />
               SVG
@@ -91,7 +91,7 @@ export function ExportableFigure({
               type="button"
               role="menuitem"
               onClick={() => void onPng()}
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs hover:bg-[var(--paper-2)]"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-etiqueta hover:bg-[var(--paper-2)]"
             >
               <FileImage className="h-3.5 w-3.5" aria-hidden />
               PNG

@@ -167,7 +167,7 @@ export function ScenarioCard({
             id: scenario.id,
           })}
           onChange={(e) => rename(scenario.id, e.target.value)}
-          className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 text-sm font-semibold focus:border-[var(--rule)] focus:outline-none"
+          className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 text-cuerpo font-semibold focus:border-[var(--rule)] focus:outline-none"
         />
         {/* Base explícita (antes era «la primera con resultado», implícita y no
             elegible): los deltas de toda la página se calculan contra ella. */}
@@ -178,7 +178,7 @@ export function ScenarioCard({
             aria-pressed={isBase}
             title={tS("compare.scenario_card.make_base")}
             className={cn(
-              "rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wide",
+              "rounded border px-1.5 py-0.5 text-etiqueta uppercase tracking-wide",
               isBase
                 ? "border-[var(--accent)] text-[var(--accent)]"
                 : "border-[var(--rule)] text-[var(--muted)] hover:bg-[var(--paper-2)]",
@@ -203,7 +203,7 @@ export function ScenarioCard({
       </div>
 
       {scenario.config ? (
-        <div className="mb-2 grid grid-cols-2 gap-1 text-[11px] text-[var(--muted)]">
+        <div className="mb-2 grid grid-cols-2 gap-1 text-etiqueta text-[var(--muted)]">
           <span>
             {tS("compare.scenario_card.cells", {
               n: scenario.config.city.n_celdas,
@@ -243,7 +243,7 @@ export function ScenarioCard({
           )}
         </div>
       ) : (
-        <div className="mb-2 rounded bg-[var(--paper-2)] p-2 text-[11px] text-[var(--muted)]">
+        <div className="mb-2 rounded bg-[var(--paper-2)] p-2 text-etiqueta text-[var(--muted)]">
           {tS("compare.scenario_card.no_config")}
         </div>
       )}
@@ -291,7 +291,7 @@ export function ScenarioCard({
             onClick={onRun}
             disabled={!scenario.config || scenario.status === "running"}
             className={cn(
-              "flex items-center gap-1 rounded px-2 py-1 text-xs font-medium",
+              "flex items-center gap-1 rounded px-2 py-1 text-etiqueta font-medium",
               scenario.config && scenario.status !== "running"
                 ? "bg-[var(--ink)] text-[var(--paper)] hover:opacity-85"
                 : "bg-[var(--paper-2)] text-[var(--muted)]",
@@ -304,11 +304,11 @@ export function ScenarioCard({
       </div>
 
       {nota && (
-        <div className="mt-2 text-[11px] text-[var(--muted)]">{nota}</div>
+        <div className="mt-2 text-etiqueta text-[var(--muted)]">{nota}</div>
       )}
 
       {scenario.error && (
-        <div className="mt-2 rounded border-l-2 border-[var(--error)] bg-[var(--paper-2)] p-2 text-[11px] text-[var(--error)]">
+        <div className="mt-2 rounded border-l-2 border-[var(--error)] bg-[var(--paper-2)] p-2 text-etiqueta text-[var(--error)]">
           {scenario.error}
         </div>
       )}
@@ -335,12 +335,12 @@ function Combo({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="flex items-center gap-1 text-[11px] text-[var(--muted)]">
+    <label className="flex items-center gap-1 text-etiqueta text-[var(--muted)]">
       <span>{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-[var(--rule)] bg-[var(--paper)] px-1 py-0.5 text-[11px] text-[var(--ink-2)]"
+        className="rounded border border-[var(--rule)] bg-[var(--paper)] px-1 py-0.5 text-etiqueta text-[var(--ink-2)]"
       >
         {options.map((o) => (
           <option key={o} value={o}>
@@ -365,7 +365,7 @@ function SmallButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-1 rounded border border-[var(--rule)] px-2 py-1 text-[11px] text-[var(--ink-2)] hover:bg-[var(--paper-2)]"
+      className="flex items-center gap-1 rounded border border-[var(--rule)] px-2 py-1 text-etiqueta text-[var(--ink-2)] hover:bg-[var(--paper-2)]"
     >
       {icon}
       <span>{children}</span>
@@ -392,7 +392,7 @@ function StatusBadge({ status }: { status: Scenario["status"] }) {
   return (
     <span
       className={cn(
-        "rounded px-2 py-0.5 text-[10px] font-medium",
+        "rounded px-2 py-0.5 text-etiqueta font-medium",
         classes[status],
       )}
     >

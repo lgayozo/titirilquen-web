@@ -78,7 +78,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
         }}
       >
         <label className="flex flex-col gap-1">
-          <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+          <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
             {t("demand_inspector.stratum")}
           </span>
           <select
@@ -90,7 +90,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
               padding: "6px 8px",
               color: "var(--ink)",
               fontFamily: "var(--font-body)",
-              fontSize: 12,
+              fontSize: "var(--fs-etiqueta)",
             }}
           >
             <option value={1}>{t("demand_inspector.stratum_label_1")}</option>
@@ -101,7 +101,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
 
         <label className="slider-row m-0 flex flex-col gap-1">
           <div className="srow-top">
-            <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+            <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
               {t("demand_inspector.origin_km")}
             </span>
             <span className="srow-val tabular-nums" aria-hidden>
@@ -123,7 +123,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
           {/* Escala: el slider recorre la ciudad de oeste a este; el CBD (el
               destino) está al CENTRO, no al inicio — por eso la distancia baja
               y vuelve a subir. */}
-          <div className="flex justify-between font-fig text-[9px] uppercase tracking-[0.06em] text-muted">
+          <div className="flex justify-between font-fig text-etiqueta uppercase tracking-[0.06em] text-muted">
             <span>0 km</span>
             <span style={{ color: "var(--accent)" }}>
               {t("demand_inspector.cbd_center", {
@@ -145,7 +145,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
             className="h-3.5 w-3.5"
             style={{ accentColor: "var(--ink)" }}
           />
-          <span className="font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+          <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
             {t("demand_inspector.has_car")}
           </span>
         </label>
@@ -153,13 +153,13 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
 
       <UtilityBreakdown utilities={utilities} />
 
-      <p className="font-fig text-[10px] uppercase tracking-[0.06em] text-muted">
+      <p className="font-fig text-etiqueta uppercase tracking-[0.06em] text-muted">
         {lastIter
           ? t("demand_inspector.hint_with_sim")
           : t("demand_inspector.hint_no_sim")}
       </p>
       <p
-        className="text-[11px] leading-snug text-muted"
+        className="text-etiqueta leading-snug text-muted"
         style={{ marginTop: -6 }}
       >
         {t("demand_inspector.interpretation")}
@@ -172,7 +172,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
           "montecarlo" y "expected" sí coinciden y no se advierte nada. */}
       {config.assignment === "todo_o_nada" && (
         <p
-          className="text-[11px] leading-snug"
+          className="text-etiqueta leading-snug"
           style={{ marginTop: -6, color: "var(--alerta)" }}
         >
           {t("demand_inspector.todo_o_nada_notice")}

@@ -57,7 +57,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
             <XAxis
               dataKey="iter"
               stroke="var(--muted)"
-              fontSize={10}
+              fontSize={12}
               tickLine={{ stroke: "var(--rule)" }}
               axisLine={{ stroke: "var(--rule)" }}
               style={{ fontFamily: "var(--font-fig)" }}
@@ -67,14 +67,14 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
                 offset: -2,
                 style: {
                   fontFamily: "var(--font-fig)",
-                  fontSize: 10,
+                  fontSize: 12,
                   fill: "var(--muted)",
                 },
               }}
             />
             <YAxis
               stroke="var(--muted)"
-              fontSize={10}
+              fontSize={12}
               tickLine={{ stroke: "var(--rule)" }}
               axisLine={{ stroke: "var(--rule)" }}
               style={{ fontFamily: "var(--font-fig)" }}
@@ -86,7 +86,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
                 offset: 12,
                 style: {
                   fontFamily: "var(--font-fig)",
-                  fontSize: 10,
+                  fontSize: 12,
                   fill: "var(--muted)",
                   textAnchor: "middle",
                 },
@@ -95,7 +95,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
             <Tooltip
               contentStyle={{
                 fontFamily: "var(--font-fig)",
-                fontSize: 11,
+                fontSize: 12,
                 background: "var(--paper)",
                 border: "1px solid var(--rule)",
                 borderRadius: 0,

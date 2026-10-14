@@ -111,7 +111,7 @@ export function ScenarioToolbar() {
       />
       {error && (
         <span
-          className="ml-1 text-[10px]"
+          className="ml-1 text-etiqueta"
           style={{ color: "var(--error)" }}
           title={error}
         >

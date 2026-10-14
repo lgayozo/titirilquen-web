@@ -12,9 +12,10 @@ interface Props {
   className?: string;
 }
 
-const fig = (size: number, color = "var(--muted)"): React.CSSProperties => ({
+// Toda etiqueta en Plex Mono va al paso `etiqueta` de la escala (B2).
+const fig = (color = "var(--muted)"): React.CSSProperties => ({
   fontFamily: "var(--font-fig)",
-  fontSize: size,
+  fontSize: "var(--fs-etiqueta)",
   letterSpacing: "0.04em",
   color,
 });
@@ -115,7 +116,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       >
         <div
           style={{
-            ...fig(10, "var(--accent)"),
+            ...fig("var(--accent)"),
             fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.12em",
@@ -124,7 +125,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           {t("eqt.per_stratum_header")}
         </div>
         {E0 && (
-          <div style={{ ...fig(9.5, "var(--muted)"), marginTop: 3 }}>
+          <div style={{ ...fig("var(--muted)"), marginTop: 3 }}>
             {t("eqt.delta_note")}
           </div>
         )}
@@ -142,7 +143,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
             <tr>
               <th
                 style={{
-                  ...fig(10),
+                  ...fig(),
                   textAlign: "left",
                   padding: "8px 14px",
                   textTransform: "uppercase",
@@ -154,7 +155,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
                 <th
                   key={i}
                   style={{
-                    ...fig(11, "var(--ink)"),
+                    ...fig("var(--ink)"),
                     textAlign: "right",
                     padding: "8px 14px",
                     fontWeight: 600,
@@ -186,7 +187,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
               <tr key={row.key} style={{ borderTop: "1px solid var(--rule)" }}>
                 <td
                   style={{
-                    ...fig(11, "var(--muted)"),
+                    ...fig("var(--muted)"),
                     padding: "7px 14px",
                     textAlign: "left",
                   }}
@@ -195,7 +196,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
                   {row.noDelta && (
                     <span
                       style={{
-                        ...fig(8.5, "var(--accent)"),
+                        ...fig("var(--accent)"),
                         marginLeft: 6,
                         textTransform: "uppercase",
                         letterSpacing: "0.08em",
@@ -213,9 +214,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
                       key={i}
                       style={{ padding: "7px 14px", textAlign: "right" }}
                     >
-                      <div
-                        style={{ ...fig(12, "var(--ink)"), fontWeight: 500 }}
-                      >
+                      <div style={{ ...fig("var(--ink)"), fontWeight: 500 }}>
                         {row.fmt(v)}
                       </div>
                       {base != null && (
@@ -236,7 +235,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       >
         <div
           style={{
-            ...fig(10, "var(--accent)"),
+            ...fig("var(--accent)"),
             fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.12em",
@@ -267,7 +266,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       >
         <div
           style={{
-            ...fig(10, "var(--accent)"),
+            ...fig("var(--accent)"),
             fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.12em",
@@ -333,7 +332,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
         style={{
           padding: "10px 14px",
           borderTop: "1px solid var(--rule)",
-          ...fig(10.5, "var(--muted)"),
+          ...fig("var(--muted)"),
           lineHeight: 1.5,
         }}
       >
@@ -353,11 +352,11 @@ function DeltaTag({
   fmt: (v: number) => string;
 }) {
   const d = curr - base;
-  if (Math.abs(d) < 1e-9) return <div style={fig(10, "var(--muted)")}>→</div>;
+  if (Math.abs(d) < 1e-9) return <div style={fig("var(--muted)")}>→</div>;
   const arrow = d > 0 ? "↑" : "↓";
   const signed = (d > 0 ? "+" : "") + fmt(d).replace("$", "$");
   return (
-    <div style={fig(10, "var(--ink-2)")}>
+    <div style={fig("var(--ink-2)")}>
       {arrow} {signed}
     </div>
   );
@@ -391,7 +390,7 @@ function Stat({
     >
       <div
         style={{
-          ...fig(9.5),
+          ...fig(),
           textTransform: "uppercase",
           letterSpacing: "0.1em",
         }}
@@ -401,7 +400,7 @@ function Stat({
       <div
         style={{
           fontFamily: "var(--font-display)",
-          fontSize: 19,
+          fontSize: "var(--fs-dato)",
           fontWeight: 600,
           color: valColor,
           fontVariantNumeric: "tabular-nums",
@@ -411,7 +410,7 @@ function Stat({
       >
         {value}
       </div>
-      {sub && <div style={{ ...fig(9.5), marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ ...fig(), marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }

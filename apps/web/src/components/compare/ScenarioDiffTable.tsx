@@ -198,7 +198,7 @@ export function ScenarioDiffTable({ scenarios, baseId }: Props) {
   const base = conConfig.find((s) => s.id === baseId) ?? conConfig[0];
   if (!base?.config || conConfig.length < 2) {
     return (
-      <p className="text-[11px] text-[var(--muted)]">
+      <p className="text-etiqueta text-[var(--muted)]">
         {t("compare.diff.need_two")}
       </p>
     );
@@ -223,7 +223,7 @@ export function ScenarioDiffTable({ scenarios, baseId }: Props) {
 
   if (grupos.length === 0) {
     return (
-      <p className="text-[11px] text-[var(--muted)]">
+      <p className="text-etiqueta text-[var(--muted)]">
         {t("compare.diff.identical")}
       </p>
     );
@@ -234,9 +234,9 @@ export function ScenarioDiffTable({ scenarios, baseId }: Props) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-cuerpo">
         <thead>
-          <tr className="border-b border-[var(--rule)] text-[11px] uppercase tracking-wide text-[var(--muted)]">
+          <tr className="border-b border-[var(--rule)] text-etiqueta uppercase tracking-wide text-[var(--muted)]">
             <th className="py-1 text-left font-normal">
               {t("compare.diff.parametro")}
             </th>
@@ -263,7 +263,7 @@ export function ScenarioDiffTable({ scenarios, baseId }: Props) {
                     <tr>
                       <td
                         colSpan={2 + otros.length}
-                        className="pb-1 text-[10px] uppercase tracking-wide text-[var(--muted)]"
+                        className="pb-1 text-etiqueta uppercase tracking-wide text-[var(--muted)]"
                       >
                         {t(g.labelKey)}
                       </td>

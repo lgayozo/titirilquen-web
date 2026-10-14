@@ -9,7 +9,9 @@ interface BidPriceCurveProps {
   height?: number;
 }
 
-const MARGIN = { top: 8, right: 8, bottom: 22, left: 52 };
+// left 70 y top 12: con 12 px (B2) un tick de seis cifras («133165») pisaba el
+// título del eje y el de arriba se salía del SVG.
+const MARGIN = { top: 12, right: 8, bottom: 22, left: 70 };
 
 /**
  * Precio esperado del suelo por parcela en el equilibrio, el p*_i de Martínez
@@ -193,7 +195,7 @@ export function BidPriceCurve({
         style={{
           marginTop: 4,
           fontFamily: "var(--font-fig)",
-          fontSize: 10,
+          fontSize: "var(--fs-etiqueta)",
           color: "var(--muted)",
           letterSpacing: "0.04em",
           fontVariantNumeric: "tabular-nums",

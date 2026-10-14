@@ -401,7 +401,7 @@ export function StratumDistribution({
             border: "1px solid var(--rule)",
             padding: "6px 8px",
             fontFamily: "var(--font-fig)",
-            fontSize: 10,
+            fontSize: "var(--fs-etiqueta)",
             lineHeight: 1.5,
             whiteSpace: "nowrap",
             color: "var(--ink)",
@@ -450,7 +450,10 @@ export function StratumDistribution({
 
       <div
         className="mt-2 flex flex-wrap gap-4"
-        style={{ fontFamily: "var(--font-fig)", fontSize: 10 }}
+        style={{
+          fontFamily: "var(--font-fig)",
+          fontSize: "var(--fs-etiqueta)",
+        }}
       >
         {[1, 2, 3].map((h) => (
           <span

@@ -165,7 +165,7 @@ export function CorridorFlowFigure({
           >
             {t("sandbox.flow_replay")}
           </button>
-          <span className="text-[11px] leading-snug text-muted">
+          <span className="text-etiqueta leading-snug text-muted">
             {t("sandbox.flow_replay_hint")}
           </span>
         </div>

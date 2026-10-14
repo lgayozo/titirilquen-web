@@ -24,7 +24,7 @@ interface ConvergenceTraceProps {
 
 const AXIS_STYLE = {
   fontFamily: "var(--font-fig)",
-  fontSize: 10,
+  fontSize: 12,
   letterSpacing: "0.04em",
 };
 
@@ -37,7 +37,7 @@ const PANEL_STYLE: React.CSSProperties = {
 const PANEL_TITLE: React.CSSProperties = {
   margin: 0,
   fontFamily: "var(--font-fig)",
-  fontSize: 10,
+  fontSize: 12,
   fontWeight: 500,
   letterSpacing: "0.12em",
   textTransform: "uppercase",
@@ -47,14 +47,14 @@ const PANEL_TITLE: React.CSSProperties = {
 const PANEL_SUB: React.CSSProperties = {
   margin: "4px 0 10px",
   fontFamily: "var(--font-fig)",
-  fontSize: 10,
+  fontSize: 12,
   letterSpacing: "0.04em",
   color: "var(--muted)",
 };
 
 const TOOLTIP_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-fig)",
-  fontSize: 11,
+  fontSize: 12,
   background: "var(--paper)",
   border: "1px solid var(--rule)",
   borderRadius: 0,
@@ -192,13 +192,14 @@ export function ConvergenceTrace({
                 tickLine={{ stroke: "var(--rule)" }}
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
-                width={52}
+                // 64 y offset 4: con ticks de 12 px (B2) «28.5k» pisaba el rótulo.
+                width={64}
                 tickFormatter={fmtTickCompact}
                 label={{
                   value: t("convergence.y_trips"),
                   angle: -90,
                   position: "insideLeft",
-                  offset: 12,
+                  offset: 4,
                   style: {
                     ...AXIS_STYLE,
                     fill: "var(--muted)",
@@ -215,7 +216,7 @@ export function ConvergenceTrace({
               <Legend
                 wrapperStyle={{
                   fontFamily: "var(--font-fig)",
-                  fontSize: 10,
+                  fontSize: 12,
                   letterSpacing: "0.04em",
                 }}
               />

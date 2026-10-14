@@ -30,8 +30,9 @@
  * declarar uno local.
  */
 export const EJE_ESPACIAL = {
-  /** Espacio para las etiquetas del eje Y y los rótulos de banda. */
-  left: 82,
+  /** Espacio para las etiquetas del eje Y y los rótulos de banda. 96 y no 82
+   *  desde B2: «BICICLETA» en Plex Mono de 12 px no cabía. */
+  left: 96,
   /** Aire a la derecha para que la última barra no toque el borde. */
   right: 16,
 } as const;

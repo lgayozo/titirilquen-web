@@ -40,6 +40,7 @@ export default tseslint.config(
   // B1: el color vive en los tokens de `index.css` (y sus mapas en
   // `lib/modos.ts`). Un hex o una clase de paleta de Tailwind en un componente
   // no sigue el tema y saltea la regla «el color pertenece a los datos».
+  // B2: lo mismo con los tamaños; una clase `text-[Npx]` saltea la escala.
   // (Las regex de esquery no admiten el límite de palabra; de ahí el guion.)
   {
     files: ["src/**/*.{ts,tsx}"],
@@ -60,6 +61,11 @@ export default tseslint.config(
               ),
               message:
                 "Clase de paleta de Tailwind: usá un token de index.css (p. ej. text-[var(--muted)]).",
+            },
+            {
+              selector: sel.replace("%s", "/text-\\[[0-9.]+px\\]/"),
+              message:
+                "Tamaño fijo: usá un paso de la escala (text-etiqueta … text-titulo).",
             },
           ],
         ),

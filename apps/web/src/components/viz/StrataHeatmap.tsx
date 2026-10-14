@@ -241,7 +241,10 @@ export function StrataHeatmap({
 
       <div
         className="mt-2 flex flex-wrap gap-4"
-        style={{ fontFamily: "var(--font-fig)", fontSize: 10 }}
+        style={{
+          fontFamily: "var(--font-fig)",
+          fontSize: "var(--fs-etiqueta)",
+        }}
       >
         {[1, 2, 3].map((h) => (
           <span

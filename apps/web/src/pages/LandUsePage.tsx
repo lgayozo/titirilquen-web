@@ -181,7 +181,7 @@ export function LandUsePage() {
   return (
     <div className="page">
       <aside className="sidebar">
-        <p className="text-[11px] text-muted" style={{ marginBottom: 6 }}>
+        <p className="text-etiqueta text-muted" style={{ marginBottom: 6 }}>
           {tS("land_use.info_standalone")}
         </p>
 
@@ -254,7 +254,7 @@ export function LandUsePage() {
           <p
             className="font-display text-justify"
             style={{
-              fontSize: 14,
+              fontSize: "var(--fs-cuerpo)",
               lineHeight: 1.6,
               color: "var(--ink-2)",
               marginBottom: 0,

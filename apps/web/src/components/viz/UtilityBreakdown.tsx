@@ -68,12 +68,13 @@ export function UtilityBreakdown({
     return { maxAbsSide: max };
   }, [utilities]);
 
-  const GRID = "64px 1fr 52px 56px";
+  // 76: «BICICLETA» en Plex Mono de 12 px (B2) mide 69.
+  const GRID = "76px 1fr 52px 56px";
 
   return (
     <div className={cn("w-full", className)}>
       <div
-        className="grid items-center gap-3 border-b pb-1.5 font-fig text-[10px] uppercase tracking-[0.1em] text-muted"
+        className="grid items-center gap-3 border-b pb-1.5 font-fig text-etiqueta uppercase tracking-[0.1em] text-muted"
         style={{ gridTemplateColumns: GRID, borderColor: "var(--rule)" }}
       >
         <span>{t("utility_breakdown.mode")}</span>
@@ -109,18 +110,18 @@ export function UtilityBreakdown({
                 style={rowStyle}
               >
                 <span
-                  className="font-fig text-[11px] font-semibold uppercase tracking-[0.04em]"
+                  className="font-fig text-etiqueta font-semibold uppercase tracking-[0.04em]"
                   style={{ color: COLOR_MODO[modo] }}
                 >
                   {t(`modes.${modo.toLowerCase()}`)}
                 </span>
-                <span className="font-fig text-[10px] italic text-muted">
+                <span className="font-fig text-etiqueta italic text-muted">
                   {t("utility_breakdown.infeasible")}
                 </span>
-                <span className="text-right font-fig text-[12px] tabular-nums">
+                <span className="text-right font-fig text-etiqueta tabular-nums">
                   —
                 </span>
-                <span className="text-right font-fig text-[13px] font-semibold tabular-nums text-muted">
+                <span className="text-right font-fig text-ayuda font-semibold tabular-nums text-muted">
                   0%
                 </span>
               </div>
@@ -137,17 +138,17 @@ export function UtilityBreakdown({
               style={rowStyle}
             >
               <span
-                className="font-fig text-[11px] font-semibold uppercase tracking-[0.04em]"
+                className="font-fig text-etiqueta font-semibold uppercase tracking-[0.04em]"
                 style={{ color: COLOR_MODO[modo] }}
               >
                 {t(`modes.${modo.toLowerCase()}`)}
               </span>
               <UtilityBar u={u} maxAbsSide={maxAbsSide} />
-              <span className="text-right font-fig text-[12px] tabular-nums">
+              <span className="text-right font-fig text-etiqueta tabular-nums">
                 {u.valor.toFixed(2)}
               </span>
               <span
-                className="text-right font-fig text-[13px] font-semibold tabular-nums"
+                className="text-right font-fig text-ayuda font-semibold tabular-nums"
                 style={{ color: "var(--ink)" }}
               >
                 {(p * 100).toFixed(0)}%
@@ -158,7 +159,7 @@ export function UtilityBreakdown({
       </div>
 
       <div
-        className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t pt-2 font-fig text-[10px] uppercase tracking-[0.06em] text-muted"
+        className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t pt-2 font-fig text-etiqueta uppercase tracking-[0.06em] text-muted"
         style={{ borderColor: "var(--rule)" }}
       >
         <Swatch

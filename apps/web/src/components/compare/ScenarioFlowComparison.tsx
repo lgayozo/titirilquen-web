@@ -38,7 +38,7 @@ export function ScenarioFlowComparison({
 
   if (!modeKey) {
     return (
-      <div className="rounded border border-[var(--rule)] p-8 text-center text-xs text-[var(--muted)]">
+      <div className="rounded border border-[var(--rule)] p-8 text-center text-etiqueta text-[var(--muted)]">
         {t("compare.flow_no_profile", {
           mode: t(`modes.${mode.toLowerCase()}`),
         })}
@@ -72,7 +72,7 @@ export function ScenarioFlowComparison({
 
   if (curves.length === 0) {
     return (
-      <div className="rounded border border-dashed border-[var(--rule)] p-8 text-center text-xs text-[var(--muted)]">
+      <div className="rounded border border-dashed border-[var(--rule)] p-8 text-center text-etiqueta text-[var(--muted)]">
         {t("compare.flow_empty")}
       </div>
     );
@@ -86,7 +86,7 @@ export function ScenarioFlowComparison({
 
   return (
     <div className={cn("rounded border border-[var(--rule)] p-3", className)}>
-      <div className="mb-2 flex items-center gap-3 text-[11px]">
+      <div className="mb-2 flex items-center gap-3 text-etiqueta">
         <span className="font-medium text-[var(--ink-2)]">
           {t("compare.flow_demand_label", {
             mode: t(`modes.${mode.toLowerCase()}`),

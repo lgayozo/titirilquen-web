@@ -10,7 +10,9 @@ interface CityPreviewProps {
   className?: string;
 }
 
-const MARGIN = { top: 30, right: 16, bottom: 34, left: 130 };
+// left 204: el rótulo más largo («definida en Uso de Suelo») mide 190 px en
+// Plex Mono de 12 px (B2). bottom 38 (y H 324) separa los ticks del título.
+const MARGIN = { top: 30, right: 16, bottom: 38, left: 204 };
 
 /** Ancho mínimo del SVG: bajo esto la figura deja de encoger y desborda. */
 const MIN_W = 420;
@@ -110,7 +112,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
     ? Math.round(densidadCelda.reduce((a, b) => a + b, 0) * (largoKm / nCeldas))
     : null;
 
-  const H = 320;
+  const H = 324;
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
   const cbdX = MARGIN.left + plotW / 2;
   const xOfKm = (km: number) => MARGIN.left + (km / largoKm) * plotW;
@@ -327,7 +329,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
           />
           <text
             x={MARGIN.left - 8}
-            y={yDemand + DEMAND_H / 2 - 1}
+            y={yDemand + DEMAND_H / 2 - 3}
             textAnchor="end"
             className="network-band-label"
             fill="var(--ink-2)"
@@ -473,7 +475,7 @@ function InfraBand({
       />
       <text
         x={x - 8}
-        y={y + BAND_H / 2 - 1}
+        y={y + BAND_H / 2 - 3}
         textAnchor="end"
         className="network-band-label"
         fill={labelColor}

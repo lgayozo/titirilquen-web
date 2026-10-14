@@ -54,7 +54,7 @@ export function LabeledSlider({
         aria-label={`${label}: ${display}`}
       />
       {hint && (
-        <p className="mt-1 text-[11px] leading-snug text-muted">{hint}</p>
+        <p className="mt-1 text-etiqueta leading-snug text-muted">{hint}</p>
       )}
     </label>
   );

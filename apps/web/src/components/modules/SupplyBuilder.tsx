@@ -111,7 +111,7 @@ export function SupplyBuilder({
         />
         {/* S-04: capacidad por pista desacoplada de la velocidad. Apagado ⇒
             Greenshields (C ∝ v_libre, la velocidad nunca empeora congestión). */}
-        <label className="mt-1 flex items-center gap-2 text-[11px] text-[var(--ink-2)]">
+        <label className="mt-1 flex items-center gap-2 text-etiqueta text-[var(--ink-2)]">
           <input
             type="checkbox"
             checked={car.capacidad_pista != null}
@@ -136,7 +136,7 @@ export function SupplyBuilder({
             onChange={(v) => setSupply("car", { capacidad_pista: v })}
           />
         ) : (
-          <p className="mb-2 text-[10px] leading-snug text-muted">
+          <p className="mb-2 text-etiqueta leading-snug text-muted">
             {t("supply_params.car.cap_greenshields", {
               cap: capGreenshields(car).toLocaleString("es-CL"),
             })}
@@ -167,7 +167,7 @@ export function SupplyBuilder({
           capacityFactor={FACTOR_CAPACIDAD_PRACTICA}
           label={t("supply_builder.bpr_curve_auto")}
         />
-        <p className="mb-2 text-[10px] leading-snug text-muted">
+        <p className="mb-2 text-etiqueta leading-snug text-muted">
           {t("supply_params.car.bpr_practica", {
             pct: Math.round(FACTOR_CAPACIDAD_PRACTICA * 100),
           })}
@@ -295,7 +295,7 @@ export function SupplyBuilder({
           if (!f) return null;
           return (
             <p
-              className="text-[10px]"
+              className="text-etiqueta"
               style={{
                 color: f.caso === "libre" ? "var(--muted)" : "var(--accent)",
               }}
@@ -325,7 +325,7 @@ export function SupplyBuilder({
             onChange={(v) => setSupply("train", { anden_beta: v })}
           />
         </div>
-        <p className="text-[10px] text-muted">
+        <p className="text-etiqueta text-muted">
           {t("supply_params.train.anden_hint")}
         </p>
       </CollapsibleSection>

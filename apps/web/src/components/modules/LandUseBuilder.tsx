@@ -85,7 +85,7 @@ export function LandUseBuilder({
         title={t("land_use.section_poblacion")}
         meta={`≈ ${Math.round(totalH).toLocaleString("es-CL")}`}
       >
-        <div className="mb-1 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+        <div className="mb-1 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
           {t("land_use.proporciones")}
         </div>
         <LabeledSlider
@@ -106,11 +106,11 @@ export function LandUseBuilder({
           format={pct}
           onChange={(v) => setProporciones(pi[0], v)}
         />
-        <div className="text-[11px] text-muted">
+        <div className="text-etiqueta text-muted">
           {labels[2]}: {pct(pi[2])} ({t("strata.auto_calculated")})
         </div>
 
-        <div className="mb-1 mt-3 font-fig text-[10px] uppercase tracking-[0.08em] text-muted">
+        <div className="mb-1 mt-3 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
           {t("land_use.densidad_media_label")}
         </div>
         <LabeledSlider
@@ -125,7 +125,7 @@ export function LandUseBuilder({
           onChange={setDensidadMedia}
         />
 
-        <p className="mt-2 text-[10px] text-muted">
+        <p className="mt-2 text-etiqueta text-muted">
           {t("land_use.poblacion_total_hint", {
             total: Math.round(totalH).toLocaleString("es-CL"),
             dens: Math.round(densMedia),
@@ -159,7 +159,7 @@ export function LandUseBuilder({
             </button>
           ))}
         </div>
-        <p className="mt-1 text-[10px] text-muted">
+        <p className="mt-1 text-etiqueta text-muted">
           {t(`land_use.forma_hint_${config.forma}`)}
         </p>
 
@@ -172,7 +172,7 @@ export function LandUseBuilder({
           disabled={config.forma === "uniforme"}
           onChange={(v) => onChange((c) => ({ ...c, oferta_sigma_frac: v }))}
         />
-        <p className="-mt-1 text-[10px] text-muted">
+        <p className="-mt-1 text-etiqueta text-muted">
           {config.forma === "uniforme"
             ? t("land_use.oferta_sigma_na")
             : t("land_use.oferta_sigma_hint")}
@@ -196,16 +196,16 @@ export function LandUseBuilder({
         meta={`μ=${MU_SUELO.toFixed(3)}`}
         defaultOpen={false}
       >
-        <p className="mb-2 text-[10px] text-muted">
+        <p className="mb-2 text-etiqueta text-muted">
           {t("land_use.bidrent_hint")}
         </p>
-        <p className="text-[10px] text-muted">
+        <p className="text-etiqueta text-muted">
           {t("land_use.mu_fijo", {
             n: VIAJES_MES,
             mu: MU_SUELO.toFixed(3),
           })}
         </p>
-        <p className="mt-1 text-[10px] text-muted">
+        <p className="mt-1 text-etiqueta text-muted">
           {t("land_use.lambda_values", {
             l1: fmtLambda(lambdas[0]),
             l2: fmtLambda(lambdas[1]),
