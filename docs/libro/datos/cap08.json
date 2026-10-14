@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-09-10",
-  "commit": "87469b7",
+  "fecha": "2026-10-14",
+  "commit": "3d94b27",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -12,7 +12,7 @@
   "al_dia": true
  },
  "paridad_worker_api": {
-  "lineas_de_python_en_el_worker": 71,
+  "lineas_de_python_en_el_worker": 75,
   "entradas": {
    "simulateStream": {
     "api": "/simulate",
@@ -36,21 +36,21 @@
  "c02": {
   "motor_api_run_msa": {
    "reparto_pct": {
-    "Auto": 15.812,
-    "Metro": 28.317,
-    "Bici": 24.955,
-    "Caminata": 11.422,
-    "Teletrabajo": 19.494
+    "Auto": 24.678,
+    "Metro": 28.517,
+    "Bici": 34.189,
+    "Caminata": 12.616,
+    "Teletrabajo": 0.0
    },
    "agentes": 36000
   },
   "motor_local_iter_msa_desde_suelo": {
    "reparto_pct": {
-    "Auto": 15.812,
-    "Metro": 28.317,
-    "Bici": 24.955,
-    "Caminata": 11.422,
-    "Teletrabajo": 19.494
+    "Auto": 24.678,
+    "Metro": 28.517,
+    "Bici": 34.189,
+    "Caminata": 12.616,
+    "Teletrabajo": 0.0
    },
    "agentes": 36000
   },
@@ -91,21 +91,21 @@
   "la_interfaz_pasa_por_la_api": false
  },
  "payload": {
-  "trace_to_dict_bytes": 5897623,
+  "trace_to_dict_bytes": 6766330,
   "trace_agentes": 36000,
   "trace_por_clave_pct": {
-   "agentes": 94.87,
-   "iteraciones": 4.28,
-   "demanda_estrato": 0.63,
-   "emisiones_perfil_kg": 0.07,
-   "flujos_auto_veh_h": 0.07
+   "agentes": 83.7,
+   "iteraciones": 15.51,
+   "demanda_estrato": 0.58,
+   "emisiones_perfil_kg": 0.06,
+   "flujos_auto_veh_h": 0.06
   },
-  "outer_iteration_bytes": 5923962,
+  "outer_iteration_bytes": 6792035,
   "outer_por_clave_pct": {
-   "transport": 99.49,
-   "land_use": 0.28,
-   "T_matrix": 0.2,
-   "metrics": 0.04,
+   "transport": 99.55,
+   "land_use": 0.24,
+   "T_matrix": 0.18,
+   "metrics": 0.03,
    "T_residual": 0.0,
    "outer_iter": 0.0
   },
@@ -114,14 +114,14 @@
    "land_use": 12,
    "transport": 0,
    "T_matrix": 0,
-   "T_residual": 4,
-   "metrics": 9
+   "T_residual": 2,
+   "metrics": 10
   },
-  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 71.1,
+  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 81.5,
   "mb_que_el_frontend_abre_de_eso": 0.22
  },
  "campos_sin_lector": {
-  "campos_totales": 112,
+  "campos_totales": 114,
   "sin_lector": {
    "TraceDict": [
     "gap_final_min",
@@ -186,7 +186,7 @@
  "pines": {
   "goldens_casos": {
    "supply-golden.json": 18,
-   "utility-golden.json": 27
+   "utility-golden.json": 33
   },
   "contrato_generado": {
    "archivos": [
@@ -196,7 +196,7 @@
     "tipos.gen.ts",
     "trace.gen.ts"
    ],
-   "lineas": 900,
+   "lineas": 945,
    "interfaces": 29
   },
   "version_del_nucleo": "0.2.0",
@@ -207,6 +207,7 @@
   "ci_dispara_en_push_a": [
    "main"
   ],
+  "ci_dispara_en_pull_request": true,
   "ci_jobs": [
    "Python (core + api)",
    "Contrato generado al día",

@@ -23,8 +23,8 @@
     Transversal: <code>demand</code> · <code>land_use</code> ·
     <code>bienestar</code> · <code>coupled</code> · <code>tests/test_linea_base.py</code> ·
     <code>CLAUDE.md</code> ·
-    auditado el 2026-09-08 ·
-    datos regenerados el 2026-09-08 ·
+    auditado el 2026-09-08, revisado el 2026-10-14 ·
+    datos regenerados el 2026-10-14 ·
     <span class="estado auditado">auditado</span>
   </p>
 </header>
@@ -191,7 +191,7 @@
       <td class="n">—</td>
       <td class="ruta py">CLAUDE.md</td>
       <td class="n">121</td>
-      <td><code>seed</code> — la línea base citada en el documento canónico, desfasada 0,11 pp (D-68); los conteos de tests en 24–25</td>
+      <td><code>seed</code> — la línea base citada en el documento canónico, la misma del test (D-68, corregido); los conteos de tests en 24–25</td>
     </tr>
   </tbody>
 </table>
@@ -230,9 +230,9 @@
     <tr><th>estrato</th><th class="n">VoT transporte ($/h)</th><th class="n">α/λ · |β_t| · 60 ($/h)</th><th>iguales</th></tr>
   </thead>
   <tbody>
-    <tr><td>alto</td><td class="n">6.199,992</td><td class="n">6.199,992</td><td>sí</td></tr>
-    <tr><td>medio</td><td class="n">3.099,977</td><td class="n">3.099,977</td><td>sí</td></tr>
-    <tr><td>bajo</td><td class="n">1.600,000</td><td class="n">1.600,000</td><td>sí</td></tr>
+    <tr><td>alto</td><td class="n">6.328,993</td><td class="n">6.328,993</td><td>sí</td></tr>
+    <tr><td>medio</td><td class="n">3.164,002</td><td class="n">3.164,002</td><td>sí</td></tr>
+    <tr><td>bajo</td><td class="n">1.632,999</td><td class="n">1.632,999</td><td>sí</td></tr>
   </tbody>
 </table>
 </div>
@@ -240,7 +240,9 @@
 <p>
   Es el resultado de D-33 y D-34, y es la identidad mejor cuidada del
   repositorio: hay una sola implementación del logsum y tres consumidores que
-  la importan.
+  la importan. Desde el schema v7 <em>α</em> no es campo del escenario y vale 1
+  (D1), y desde D5 el nivel de los tres VoT está anclado: su media por viajero
+  es el VST (capítulo 4, §5.6).
 </p>
 
 <h3>4.2 Una población: se cumple, con una advertencia</h3>
@@ -253,12 +255,12 @@
   <tbody>
     <tr><td>hogares Σ H</td><td class="n">36.000</td><td><code>LandUseConfig</code></td></tr>
     <tr><td>agentes de transporte</td><td class="n">36.000</td><td><code>trace.agentes</code>, Sandbox y acoplado</td></tr>
-    <tr><td>teletrabajan</td><td class="n">7.030</td><td>los dos, idénticos</td></tr>
-    <tr><td>tienen auto</td><td class="n">15.112</td><td>los dos, idénticos</td></tr>
-    <tr><td>viajan (sin teletrabajo, con modo)</td><td class="n">28.970</td><td>agentes</td></tr>
-    <tr><td>viajeros según <code>calcular_agregados</code></td><td class="n">28.970,0</td><td>demanda esperada</td></tr>
-    <tr><td>viajeros según <code>demanda_estrato</code></td><td class="n">28.970,0</td><td>el cubo del trace</td></tr>
-    <tr><td>viajeros según <code>coupled_metrics</code></td><td class="n">28.970</td><td>Σ <code>n_viajeros</code></td></tr>
+    <tr><td>teletrabajan</td><td class="n">0</td><td>los dos, idénticos</td></tr>
+    <tr><td>tienen auto</td><td class="n">20.000</td><td>los dos, idénticos</td></tr>
+    <tr><td>viajan (sin teletrabajo, con modo)</td><td class="n">36.000</td><td>agentes</td></tr>
+    <tr><td>viajeros según <code>calcular_agregados</code></td><td class="n">36.000,0</td><td>demanda esperada</td></tr>
+    <tr><td>viajeros según <code>demanda_estrato</code></td><td class="n">36.000,0</td><td>el cubo del trace</td></tr>
+    <tr><td>viajeros según <code>coupled_metrics</code></td><td class="n">36.000</td><td>Σ <code>n_viajeros</code></td></tr>
     <tr><td>varados</td><td class="n">0</td><td>—</td></tr>
     <tr class="destacada"><td>misma realización de agentes en las dos páginas</td><td class="n">sí</td><td>estrato, celda, teletrabajo y auto, agente a agente</td></tr>
   </tbody>
@@ -267,12 +269,15 @@
 
 <p>
   La población es una: la fábrica es una sola función y las dos páginas la
-  siembran igual. La advertencia es que <strong>los 36.000 agentes tienen
-  <code>modo_elegido</code>, incluidos los 7.030 que teletrabajan</strong>: el
-  sorteo se hace antes de excluirlos. Quien filtre viajeros por «tiene modo»
-  cuenta 36.000; hay que filtrar por <code>teletrabaja</code> primero, como hace
-  <code>coupled_metrics</code>. Ningún consumidor cae hoy en eso; el campo lo
-  permite.
+  siembran igual. Sin teletrabajo por defecto (oct-2026) los conteos de
+  viajeros coinciden de manera trivial: los 36.000 agentes viajan. La
+  advertencia queda latente: <strong>todos los agentes reciben
+  <code>modo_elegido</code>, también los que teletrabajan</strong>, porque el
+  sorteo se hace antes de excluirlos. Con <code>prob_teletrabajo</code> &gt; 0,
+  quien filtre viajeros por «tiene modo» los contaría a todos; hay que filtrar
+  por <code>teletrabaja</code> primero, como hace <code>coupled_metrics</code>.
+  Ningún consumidor cae hoy en eso; el campo lo permite, y la identidad (10.2)
+  no se midió con teletrabajo positivo.
 </p>
 
 <h3>4.3 Un reparto modal: hay dos, y la interfaz muestra ambos</h3>
@@ -283,16 +288,16 @@
     <tr><th>quién lo calcula</th><th>numerador</th><th>denominador</th><th class="n">auto</th><th class="n">metro</th><th class="n">bici</th><th class="n">caminata</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>modal_split</code> del MSA (Sandbox, <code>RunStatus</code>)</td><td>esperado <em>n·p_m</em></td><td>con teletrabajo</td><td class="n">15,390</td><td class="n">32,057</td><td class="n">23,887</td><td class="n">9,138</td></tr>
-    <tr class="destacada"><td><code>reparto_modal</code> del acoplado (agentes)</td><td>muestreado</td><td>con teletrabajo y varado</td><td class="n">15,583</td><td class="n">31,947</td><td class="n">23,683</td><td class="n">9,258</td></tr>
-    <tr><td><code>viajes_por_modo</code> de los agregados</td><td>esperado</td><td>sin teletrabajo</td><td class="n">19,126</td><td class="n">39,862</td><td class="n">29,656</td><td class="n">11,356</td></tr>
-    <tr><td><code>modal_split</code> sin teletrabajo</td><td>esperado</td><td>sin teletrabajo</td><td class="n">19,124</td><td class="n">39,836</td><td class="n">29,684</td><td class="n">11,356</td></tr>
+    <tr><td><code>modal_split</code> del MSA (Sandbox, <code>RunStatus</code>)</td><td>esperado <em>n·p_m</em></td><td>con teletrabajo</td><td class="n">25,051</td><td class="n">29,882</td><td class="n">34,092</td><td class="n">10,975</td></tr>
+    <tr class="destacada"><td><code>reparto_modal</code> del acoplado (agentes)</td><td>muestreado</td><td>con teletrabajo y varado</td><td class="n">24,861</td><td class="n">29,914</td><td class="n">34,250</td><td class="n">10,975</td></tr>
+    <tr><td><code>viajes_por_modo</code> de los agregados</td><td>esperado</td><td>sin teletrabajo</td><td class="n">25,052</td><td class="n">29,882</td><td class="n">34,092</td><td class="n">10,974</td></tr>
+    <tr><td><code>modal_split</code> sin teletrabajo</td><td>esperado</td><td>sin teletrabajo</td><td class="n">25,051</td><td class="n">29,882</td><td class="n">34,092</td><td class="n">10,975</td></tr>
   </tbody>
 </table>
 </div>
 
 <div class="aviso alerta">
-  <h4>D-67 — el mismo trace, dos conteos, 0,204 pp</h4>
+  <h4>D-67 — el mismo trace, dos conteos, 0,19 pp</h4>
   <p>
     Las dos páginas corren la <strong>misma</strong> simulación: el
     <code>modal_split</code> del acoplado es idéntico al del Sandbox (brecha
@@ -311,9 +316,11 @@
   al argmax— y la brecha es chica. Pero <code>expected</code> se eligió
   justamente para que las curvas de sensibilidad se lean sin ruido de muestreo,
   y por esta puerta el ruido vuelve a entrar a la mitad de los indicadores. La
-  brecha esperado ↔ realizado en el mismo denominador es de 0,028 pp; la que
-  importa es la de denominador, 3,7 pp entre «con» y «sin» teletrabajo, que es
-  la que un lector no avisado toma por un cambio de modelo.
+  brecha esperado ↔ realizado en el mismo denominador es de 0,001 pp. La de
+  denominador, «con» o «sin» teletrabajo, hoy es cero porque nadie teletrabaja:
+  la primera fila y la cuarta coinciden. Con <code>prob_teletrabajo</code> &gt; 0
+  vuelve a ser la que importa, la que un lector no avisado toma por un cambio de
+  modelo; con las tasas heredadas de septiembre era de 3,7 pp.
 </p>
 
 <h3>4.4 Dos «sin congestión», no tres</h3>
@@ -324,10 +331,10 @@
     <tr><th>componente</th><th class="n">media ingenuo (min)</th><th class="n">media red vacía</th><th class="n">media convergido</th><th class="n">máx |ingenuo − vacía|</th><th class="n">máx |vacía − convergido|</th></tr>
   </thead>
   <tbody>
-    <tr><td>auto</td><td class="n">9,677</td><td class="n">9,581</td><td class="n">13,807</td><td class="n">0,096</td><td class="n">5,046</td></tr>
-    <tr><td>bici</td><td class="n">21,428</td><td class="n">21,216</td><td class="n">32,820</td><td class="n">0,213</td><td class="n">14,108</td></tr>
+    <tr><td>auto</td><td class="n">9,677</td><td class="n">9,581</td><td class="n">20,761</td><td class="n">0,096</td><td class="n">12,301</td></tr>
+    <tr><td>bici</td><td class="n">21,428</td><td class="n">21,216</td><td class="n">31,481</td><td class="n">0,213</td><td class="n">12,657</td></tr>
     <tr><td>acceso al tren</td><td class="n">10,000</td><td class="n">6,250</td><td class="n">6,250</td><td class="n">10,000</td><td class="n">0,000</td></tr>
-    <tr class="destacada"><td>espera del tren</td><td class="n">5,000</td><td class="n">13,433</td><td class="n">4,889</td><td class="n">10,000</td><td class="n">9,541</td></tr>
+    <tr class="destacada"><td>espera del tren</td><td class="n">5,000</td><td class="n">13,433</td><td class="n">5,060</td><td class="n">10,000</td><td class="n">9,350</td></tr>
     <tr><td>viaje en tren</td><td class="n">8,571</td><td class="n">9,325</td><td class="n">9,325</td><td class="n">3,620</td><td class="n">0,000</td></tr>
   </tbody>
 </table>
@@ -344,13 +351,13 @@
 <p>
   Y los dos que quedan difieren en lo que importa: la espera. El ingenuo supone
   5 minutos; la red vacía, con el tren a frecuencia mínima, 13,4. El convergido
-  queda en 4,9 porque la demanda trae frecuencia (Mohring). Así que el MSA
+  queda en 5,1 porque la demanda trae frecuencia (Mohring). Así que el MSA
   arranca <em>más cerca</em> del punto fijo que la red vacía en la espera y más
-  lejos en el acceso. El reparto de la iteración 0 —auto 14,666, metro 21,031,
-  bici 36,723— está a 15,7 pp del final en la bici, y el MSA lo corrige en 8
-  iteraciones: el arranque no importa para el resultado, sí para el camino. El
-  capítulo 9 midió el residuo de ese camino: 0,13 pp por cambiar
-  <code>v_auto</code> global.
+  lejos en el acceso. El reparto de la iteración 0 —auto 28,047, metro 23,137,
+  bici 39,389— está a 6,7 pp del final en el metro y a 5,3 en la bici, y el
+  MSA lo corrige en 29 iteraciones: el arranque no importa para el resultado,
+  sí para el camino. El capítulo 9 midió el residuo de ese camino:
+  0,0023 pp por cambiar <code>v_auto</code> global.
 </p>
 
 <h3>4.5 Una ciudad: se cumple</h3>
@@ -371,22 +378,26 @@
     <tr><th>loop</th><th>residuo</th><th>unidad</th><th class="n">tolerancia</th><th>brecha honesta publicada</th></tr>
   </thead>
   <tbody>
-    <tr><td>MSA de transporte</td><td>máx |t_n − t_{n−1}| del iterado amortiguado</td><td>minutos</td><td class="n">0,1</td><td><code>gap_final_min</code> (D-39), sin lector en la interfaz (D-63)</td></tr>
-    <tr><td>subasta de suelo</td><td>máx |ū_n − ū_{n−1}|</td><td>útiles del suelo</td><td class="n">10⁻⁸</td><td>balance Σ S_i Q_hi = H_h no exigido (cap. 2)</td></tr>
-    <tr><td>acoplado</td><td>‖F(T_state) − T_state‖∞, rezago del promedio (D-53)</td><td>útiles de transporte / mes</td><td class="n">1,0</td><td>ninguna</td></tr>
+    <tr><td>MSA de transporte</td><td>máx |c(x(t)) − t|, brecha no amortiguada en 2 iteraciones seguidas (D8)</td><td>minutos</td><td class="n">0,2</td><td><code>gap_final_min</code> (D-39), sin lector en la interfaz (D-63)</td></tr>
+    <tr><td>subasta de suelo</td><td>‖ū_n − ū_{n−1}‖₂</td><td>útiles del suelo</td><td class="n">10⁻⁸</td><td>balance Σ S_i Q_hi = H_h no exigido (cap. 2)</td></tr>
+    <tr><td>acoplado</td><td>máx_h |Φ(T) − T|/λ_h, brecha del mapa con paso adaptativo (D10)</td><td>$/hogar-mes</td><td class="n">100</td><td>el propio residuo (D10)</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Tres criterios, tres unidades, tres formas de subestimar o sobreestimar la
-  brecha, y un solo <em>flag</em> compuesto en el núcleo (D-39: los tres tienen
-  que converger) que el frontend reduce a uno en el motor local (D-55). La
-  consistencia que falta no es de valores sino de <strong>semántica</strong>:
-  «convergió» significa tres cosas distintas y se muestra con una palabra.
+  Tres criterios y tres unidades. Desde D8 y D10, dos de ellos miden la brecha
+  honesta —el MSA la no amortiguada, el acoplado la del mapa, en pesos— y el
+  <em>flag</em> compuesto del núcleo (D-39: los tres tienen que converger) es el
+  que leen los dos motores del frontend (D-55, corregido). Queda un «convergió»
+  con dos sentidos: el acoplado <strong>se detiene</strong> cuando su brecha
+  cumple aunque el MSA o la subasta de esa vuelta no hayan convergido, y entonces
+  queda marcado «no convergido». La consistencia que falta no es de valores sino
+  de <strong>semántica</strong>: parar y converger son dos cosas y se muestran
+  con una palabra.
 </p>
 
-<h3>4.7 La línea base: el test dice la verdad, el documento no</h3>
+<h3>4.7 La línea base: el test y el documento coinciden</h3>
 
 <div class="envoltorio-tabla">
 <table>
@@ -394,20 +405,22 @@
     <tr><th>rama</th><th class="n">fijado en el test</th><th class="n">medido hoy</th><th class="n">citado en CLAUDE.md</th><th class="n">CLAUDE.md − test (pp)</th></tr>
   </thead>
   <tbody>
-    <tr><td>original (sin suelo)</td><td class="n">15,81 · 28,32 · 24,96 · 11,42</td><td class="n">15,81 · 28,32 · 24,96 · 11,42</td><td class="n">15,81 · 28,32 · 24,96 · 11,42</td><td class="n">0,00</td></tr>
-    <tr class="destacada"><td>equilibrio (con suelo)</td><td class="n">15,39 · 32,06 · 23,89 · 9,14</td><td class="n">15,39 · 32,06 · 23,89 · 9,14</td><td class="n">15,42 · 32,17 · 23,85 · 9,07</td><td class="n">0,11</td></tr>
+    <tr><td>original (sin suelo)</td><td class="n">24,68 · 28,52 · 34,19 · 12,62</td><td class="n">24,68 · 28,52 · 34,19 · 12,62</td><td class="n">24,68 · 28,52 · 34,19 · 12,62</td><td class="n">0,00</td></tr>
+    <tr class="destacada"><td>equilibrio (con suelo)</td><td class="n">25,05 · 29,88 · 34,09 · 10,97</td><td class="n">25,05 · 29,88 · 34,09 · 10,97</td><td class="n">25,05 · 29,88 · 34,09 · 10,97</td><td class="n">0,00</td></tr>
   </tbody>
 </table>
 </div>
 
-<div class="aviso alerta">
-  <h4>D-68 — el documento canónico cita la línea base anterior a D-42</h4>
+<div class="aviso">
+  <h4>D-68 — corregido: el documento canónico cita el test</h4>
   <p>
-    El test se actualizó con D-42; <code>CLAUDE.md</code> no. La brecha, 0,11 pp,
-    es más del doble de la tolerancia del test. Y los conteos que el mismo
-    documento da como orientación —«105 tests del núcleo», «58 e2e»— son hoy
-    <strong>201</strong> y <strong>59</strong> (el 58 vale para <code>test:e2e:fast</code>; el 59 cuenta el @slow). Es la misma familia de D-54 y D-59,
-    con más alcance: es el archivo que todo agente lee primero.
+    En septiembre <code>CLAUDE.md</code> citaba la línea base anterior a D-42,
+    0,11 pp fuera, más del doble de la tolerancia del test. Hoy cita los números
+    de <code>test_linea_base.py</code> y declara que ese archivo manda; en las
+    dos ramas coinciden a 0,00 pp, y las 29 iteraciones de cada una
+    también son las del test. Los conteos que el documento da como orientación
+    siguen siendo aproximados: «~200 tests del núcleo» contra 215 recolectados hoy, y
+    «58 e2e», que se refiere a <code>test:e2e:fast</code> y no se recontó.
   </p>
 </div>
 
@@ -416,19 +429,20 @@
 <ul>
   <li>
     <strong>i18n</strong>: los dos idiomas tienen exactamente el mismo conjunto de
-    claves — 744 en <code>simulator.json</code>, 55 en <code>common.json</code>,
+    claves — 783 en <code>simulator.json</code>, 56 en <code>common.json</code>,
     ninguna huérfana en ningún sentido. Es la comprobación que
     <code>CLAUDE.md</code> advierte que un grep no puede hacer.
   </li>
   <li>
-    <strong>Discrepancias registradas</strong>: 68, de las que 24 (D-45 a D-68)
-    son de este libro; D-45 y D-46 se corrigieron el 2026-09-10 (cap. 1), el
-    resto sigue pendiente.
+    <strong>Discrepancias registradas</strong>: 69. Las de la auditoría
+    de este libro van de D-45 a D-68; su estado vive en
+    <code>docs/DISCREPANCIES.md</code>, puesto al día el 2026-10-14 (D-53, D-54 y
+    D-55 corregidos con D10; D-30 superado por la §4.4).
   </li>
 </ul>
 
 <p class="pie-tabla">
-  Fuente: <code>datos/cap10.json</code>, regenerado el 2026-09-08 con
+  Fuente: <code>datos/cap10.json</code>, regenerado el 2026-10-14 con
   <code>uv run python ../../docs/libro/datos/datos_cap10.py</code>.
 </p>
 
@@ -441,8 +455,8 @@
   </thead>
   <tbody>
     <tr>
-      <td><code>test_vot_consistente.py</code> (6 tests)</td>
-      <td>La identidad (10.1) en nivel: mismo VoT, <code>λ = |b_costo|</code>, <code>α = 1</code>, HEV por defecto.</td>
+      <td><code>test_vot_consistente.py</code> (7 tests)</td>
+      <td>La identidad (10.1) en nivel: mismo VoT, <code>λ = |b_costo|</code>, <em>α</em> y <em>μ</em> fuera del escenario (D1), HEV por defecto.</td>
       <td>Que el logsum sea uno: los tres consumidores importan la misma función, pero ningún test los compara entre sí como hace la §4.1.</td>
     </tr>
     <tr>
@@ -495,8 +509,8 @@
     <tr><th class="n">ID</th><th>Qué era</th><th>Estado</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">D-26 / D-27 / D-28</td><td>Unidades físicas: minutos, hab/km, $/mes.</td><td>consistentes; la única cantidad mensual nueva (D-34) usa el mismo <code>VIAJES_MES</code></td></tr>
-    <tr><td class="n">D-30</td><td>Tres baselines de «sin congestión».</td><td>hoy son dos; una fila desfasada (D-68)</td></tr>
+    <tr><td class="n">D-26 / D-27 / D-28</td><td>Unidades físicas: minutos, hab/km, $/mes.</td><td>consistentes; las cantidades mensuales nuevas —<em>T</em> (D-34) y el ΔCS por hogar-mes (D11a)— usan el mismo <code>VIAJES_MES</code>, y el parking por día se reparte con <code>VIAJES_POR_TOUR</code></td></tr>
+    <tr><td class="n">D-30</td><td>Tres baselines de «sin congestión».</td><td>hoy son dos; marcado superado el 2026-10-14</td></tr>
     <tr><td class="n">D-33 / D-34</td><td>Un hogar, una utilidad.</td><td><strong>confirmado</strong>: logsum único a 10⁻⁹ y VoT idéntico en nivel</td></tr>
     <tr><td class="n">D-45</td><td>El CBD según dos convenciones.</td><td>cerrado (cap. 1); confirmado en cinco grillas</td></tr>
     <tr><td class="n">D-51</td><td>La discretización de hogares no conserva la marginal por estrato.</td><td>vigente; no afecta a la identidad 2 porque ambas páginas usan la misma</td></tr>
@@ -514,15 +528,15 @@
   <tbody>
     <tr>
       <td class="n">D-67</td>
-      <td>Una misma corrida tiene dos repartos modales —esperado y muestreado, 0,204 pp— y el Sandbox muestra ambos sin rótulo.</td>
+      <td>Una misma corrida tiene dos repartos modales —esperado y muestreado, 0,19 pp— y el Sandbox muestra ambos sin rótulo.</td>
       <td>Dos definiciones legítimas publicadas como una.</td>
       <td>pendiente</td>
     </tr>
     <tr>
       <td class="n">D-68</td>
-      <td><code>CLAUDE.md</code> cita la línea base anterior a D-42 (0,11 pp) y conteos de tests viejos; D-30 describe un baseline que ya no existe.</td>
-      <td>El documento canónico describe un estado anterior del modelo.</td>
-      <td>pendiente</td>
+      <td><code>CLAUDE.md</code> citaba la línea base anterior a D-42 (0,11 pp) y conteos de tests viejos; D-30 describía un baseline que ya no existe.</td>
+      <td>El documento canónico describía un estado anterior del modelo.</td>
+      <td>corregido 2026-10-14</td>
     </tr>
   </tbody>
 </table>
@@ -556,14 +570,13 @@
 <h3>Sobre el documento canónico</h3>
 
 <p>
-  D-68 merece una línea aparte porque no es un rótulo de interfaz. Es
+  D-68 merecía una línea aparte porque no era un rótulo de interfaz. Era
   <code>CLAUDE.md</code>, el archivo que instruye a cualquier agente que toque
   este repositorio, y su cifra más importante —la línea base que «es la red de
-  seguridad de la matemática»— está desfasada 0,11 pp desde D-42. El test tiene
-  razón y el documento no, que es el orden correcto de las cosas; pero un agente
-  que lea el documento y no corra el test va a creer que la línea base se movió
-  cuando no se movió. La corrección es barata: citar el test en vez de los
-  números.
+  seguridad de la matemática»— estaba desfasada 0,11 pp desde D-42. Se corrigió
+  como se proponía: el documento cita el test y declara que el test manda. En
+  octubre la línea base se movió con cada decisión que tocó el modelo, y
+  documento y test siguen coincidiendo (§4.7).
 </p>
 
 <div class="aviso idea">
@@ -574,17 +587,17 @@
       agente-nivel del reparto esperado bajo <code>expected</code>.
     </li>
     <li>
-      <strong><code>CLAUDE.md</code> cita el test</strong> (D-68), y D-30 se marca
-      superado por la §4.4.
+      <strong>Medir las identidades 2 y 3 con teletrabajo</strong>: con
+      <code>prob_teletrabajo</code> = 0 se cumplen de manera trivial.
     </li>
     <li>
       <strong>Heredar a pytest</strong> las identidades 2, 4 y 5 y la paridad
       i18n: son cuatro asserts que este capítulo ya escribió.
     </li>
     <li>
-      <strong>Una sola palabra para tres convergencias</strong>: que la
-      interfaz diga cuál de los tres loops es el que no convergió, en vez de
-      «terminó».
+      <strong>Parar no es converger</strong>: que la interfaz diga cuál de los
+      tres loops no convergió cuando el acoplado se detiene por su brecha (D10),
+      en vez de una sola palabra.
     </li>
   </ul>
 </div>

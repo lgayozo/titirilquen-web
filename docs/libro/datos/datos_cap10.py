@@ -33,6 +33,7 @@ from __future__ import annotations
 import inspect
 import json
 import re
+import shutil
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -52,6 +53,7 @@ from titirilquen_core.bienestar import (
     vot_clp_hora,
 )
 from titirilquen_core.city import CiudadLineal
+from titirilquen_core.constantes import TOL_ACOPLADO_CLP_MES
 from titirilquen_core.coupled import iter_coupled
 from titirilquen_core.demand.choice import probabilidades_logit
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
@@ -97,6 +99,7 @@ def _tiempos_snapshot(snap, i: int) -> TiemposObservados:
         tren_acceso=float(snap.t_tren_acceso[i]),
         tren_espera=float(snap.t_tren_espera[i]),
         tren_viaje=float(snap.t_tren_viaje[i]),
+        bici_libre=float(snap.t_bici_libre[i]),
     )
 
 
@@ -117,7 +120,6 @@ def un_hogar_una_utilidad() -> dict:
     snap = tr.iteraciones[-1]
     tiempos = [_tiempos_snapshot(snap, i) for i in range(ciudad.n_celdas)]
     ls_acc = logsum_por_celda(sim.demand, ciudad, tiempos)
-    lu = LandUseConfig()
     filas = []
     for h in (1, 2, 3):
         for i in (60, 100 + 25, 180):
@@ -162,9 +164,9 @@ def un_hogar_una_utilidad() -> dict:
     vot = {}
     lam = lambda_desde_demanda(sim.demand)  # λ_h = |b_costo_h| (schema v6)
     for h in (1, 2, 3):
-        e = lu.estratos[h - 1]
         vt = vot_clp_hora(sim, h)  # type: ignore[arg-type]
-        vs = e.alpha / float(lam[h - 1]) * abs(sim.demand.estratos[h].betas.b_tiempo_viaje) * 60  # type: ignore[index]
+        # α ≡ 1 desde el schema v7 (D1): el peso de T no es campo, va implícito.
+        vs = 1.0 / float(lam[h - 1]) * abs(sim.demand.estratos[h].betas.b_tiempo_viaje) * 60  # type: ignore[index]
         vot[NOMBRES[h]] = {
             "transporte_clp_hora": round(vt, 3),
             "suelo_alpha_sobre_lambda_clp_hora": round(vs, 3),
@@ -338,6 +340,7 @@ def baselines() -> dict:
         ingenuo = TiemposObservados(
             auto_total=d / gl.v_auto * 60,
             bici_total=d / gl.v_bici * 60,
+            bici_libre=d / gl.v_bici * 60,
             tren_acceso=10.0,
             tren_espera=5.0,
             tren_viaje=d / gl.v_metro * 60,
@@ -425,13 +428,15 @@ def convergencias() -> dict:
     sim_core_tol = SimulationConfig.model_fields["tolerance"].default
     lu_tol = LandUseConfig().tol
     outer_tol = inspect.signature(iter_coupled).parameters["outer_tol"].default
-    pagina = (WEB / "src" / "pages" / "CoupledPage.tsx").read_text(encoding="utf-8")
-    m = re.search(r"outer_tol:\s*([\d.]+)", pagina)
+    # Desde D10 las páginas no mandan `outer_tol`: el worker usa la constante.
+    worker = (WEB / "src" / "workers" / "pyodide.worker.ts").read_text(encoding="utf-8")
+    worker_usa_constante = 'req.get("outer_tol", TOL_ACOPLADO_CLP_MES)' in worker
     return {
         "loops": [
             {
                 "loop": "MSA de transporte",
-                "residuo": "max|t_n − t_{n−1}| del iterado AMORTIGUADO",
+                "residuo": "max|c(x(t)) − t|, brecha NO amortiguada (D8), "
+                "2 iteraciones seguidas bajo tol",
                 "unidad": "minutos",
                 "tolerancia_default": sim_core_tol,
                 "tolerancia_app": base._config_web().tolerance,
@@ -439,7 +444,7 @@ def convergencias() -> dict:
             },
             {
                 "loop": "subasta de suelo",
-                "residuo": "max|ū_n − ū_{n−1}| del punto fijo de utilidades de reserva",
+                "residuo": "‖ū_n − ū_{n−1}‖₂ del punto fijo de utilidades de reserva",
                 "unidad": "útiles del suelo",
                 "tolerancia_default": lu_tol,
                 "tolerancia_app": base._land_use_web().tol,
@@ -447,15 +452,20 @@ def convergencias() -> dict:
             },
             {
                 "loop": "acoplado suelo ↔ transporte",
-                "residuo": "‖F(T_state) − T_state‖∞ (rezago del promedio, D-53)",
-                "unidad": "útiles de transporte por mes",
+                "residuo": "max_h |Φ(T) − T|/λ_h, brecha del mapa con paso adaptativo (D10)",
+                "unidad": "$/hogar-mes",
                 "tolerancia_default": outer_tol,
-                "tolerancia_app": float(m.group(1)) if m else None,
-                "brecha_honesta_publicada": "ninguna",
+                "tolerancia_app": TOL_ACOPLADO_CLP_MES if worker_usa_constante else None,
+                "brecha_honesta_publicada": "el propio residuo: es la brecha del mapa (D10)",
             },
         ],
         "convergio_compuesto_en_el_nucleo": "residual exterior ∧ MSA ∧ subasta (D-39)",
-        "convergio_en_el_frontend_motor_local": "sólo residual < outer_tol (D-55)",
+        "convergio_en_el_frontend_motor_local": (
+            "metrics.sistema.convergio_exterior, el compuesto (D-55 corregido)"
+        ),
+        "para_aunque_no_converja": (
+            "el acoplado se detiene cuando la brecha cumple aunque el MSA o la subasta no (D10)"
+        ),
     }
 
 
@@ -470,7 +480,9 @@ def linea_base() -> dict:
         r"auto (\d+,\d+) · metro (\d+,\d+) · bici (\d+,\d+) · caminata (\d+,\d+)",
         claude,
     )
-    cuad2 = re.findall(r"\*\*(\d+,\d+) · (\d+,\d+) · (\d+,\d+) · (\d+,\d+)\*\*", claude)
+    cuad2 = re.findall(
+        r"\*\*(\d+,\d+)\s*·\s*(\d+,\d+)\s*·\s*(\d+,\d+)\s*·\s*(\d+,\d+)\*\*", claude
+    )
     citado = {}
     if cuad:
         citado["original"] = [float(x.replace(",", ".")) for x in cuad[0]]
@@ -516,7 +528,7 @@ def _claves(d, prefijo: str = "") -> set[str]:
 
 def documentacion() -> dict:
     claude = (RAIZ / "CLAUDE.md").read_text(encoding="utf-8")
-    m_core = re.search(r"#\s*(\d+) tests del núcleo", claude)
+    m_core = re.search(r"#\s*~?(\d+) tests del núcleo", claude)
     m_e2e = re.search(r"#\s*(\d+) e2e", claude)
     col = subprocess.run(
         ["uv", "run", "--extra", "dev", "pytest", "--collect-only", "-q"],
@@ -528,7 +540,12 @@ def documentacion() -> dict:
     m_n = re.search(r"(\d+) tests? collected", col.stdout + col.stderr)
     try:
         pw = subprocess.run(
-            ["npx", "playwright", "test", "--list"],
+            [
+                shutil.which("npx.cmd") or shutil.which("npx") or "npx",
+                "playwright",
+                "test",
+                "--list",
+            ],
             cwd=WEB,
             capture_output=True,
             text=True,

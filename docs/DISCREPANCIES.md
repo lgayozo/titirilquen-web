@@ -838,6 +838,10 @@ Se documentan aquí para que no se confundan:
   del set de elección (y el techo físico de la bici, D-15), no un modo con
   capacidad.
 - **Veredicto**: Convenciones documentadas; no requiere cambio de código.
+- **Estado**: superado 2026-10-14. Desde D-34/D-42 son dos baselines, no tres:
+  el arranque ingenuo del MSA (`_tiempos_flujo_libre`) y la red vacía, que
+  sirve al ΔCS y al suelo; la fila del arranque del acoplado en minutos ya no
+  describe el código (libro, cap. 10 §4.4).
 
 ---
 
@@ -1573,7 +1577,10 @@ cumple, y eso está en D-39.
   una norma que no sea el supremo (una `‖·‖₂` ponderada por hogares, o el
   cambio en `Q`, que es lo que el usuario lee). Cambia la línea base del
   acoplado: hay que declararlo.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-10-13 (D10, `e660ccd`). El residual exterior es
+  la brecha del mapa `max_h |Φ(T) − T|/λ_h` en $/hogar-mes, con paso 1 que se
+  reduce a la mitad si la brecha sube (`coupled.py`); converge en 2–4 vueltas.
+  Se mantuvo el supremo, ahora en pesos.
 
 ---
 
@@ -1598,7 +1605,11 @@ cumple, y eso está en D-39.
 - **Veredicto**: rótulos desfasados (el usuario lee una unidad que no es) más un
   parámetro heredado sin recalibrar. Corrección: cambiar los cuatro textos y
   fijar la tolerancia junto con el criterio de D-53, no antes.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-10-13 (D10, `e660ccd`). La tolerancia es
+  `constantes.TOL_ACOPLADO_CLP_MES` = 100 $/hogar-mes, proyectada al contrato
+  (`constantes.gen.ts`); el núcleo, la API y el worker la importan y las
+  páginas no la mandan (`types-v2.ts`: `outer_tol?`). El rótulo de la UI dice
+  «brecha {{res}} $/hogar-mes».
 
 ---
 
@@ -1622,7 +1633,11 @@ cumple, y eso está en D-39.
   reimplementada en TypeScript, que es justo lo que la política del repo
   prohíbe. Corrección: leer
   `iterations.at(-1).metrics.sistema.convergio_exterior`.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-10-13 (`e660ccd`). `api.ts` lee
+  `metrics.sistema.convergio_exterior`, el compuesto del núcleo; ya no hay
+  criterio reconstruido en TypeScript. Nota de D10: el acoplado se detiene
+  cuando la brecha cumple aunque el MSA o la subasta no hayan convergido, y en
+  ese caso queda «no convergido».
 
 ---
 
@@ -1783,6 +1798,13 @@ cumple, y eso está en D-39.
   `contrato` ❌ — formatear el README cambió **un byte** del wheel, porque
   `uv build` embebe el README en `METADATA`; sincronizado en `6255297`. Tercera:
   `contrato` ✅, `core` ✅. El guarda funciona; lo que faltaba era que corriera.
+- **Actualización 2026-10-14**: del 2026-09-08 al 09-16 el CI corrió en cada
+  push al PR, en verde salvo las dos primeras. Desde el **2026-09-30** las 12
+  corridas fallan, todas en «Contrato generado al día» (artefactos derivados
+  sin regenerar en esos commits). La rama local va 13 commits por delante de
+  `origin`: el CI no ha visto el trabajo de octubre. Localmente
+  `wheel_al_dia` da al día; que el próximo push quede en verde no está
+  verificado.
 
 ---
 
@@ -1827,6 +1849,8 @@ cumple, y eso está en D-39.
 - **Estado**: pendiente. Corrección: que `OuterIterationDict.transport` lleve
   el trace **sin agentes** (o sólo el snapshot final), y que el Sandbox —el
   único consumidor de agentes— los pida por su propia ruta.
+  Re-medido 2026-10-14: 6,8 MB por vuelta y 81,5 MB por corrida con las 12
+  vueltas de la interfaz, 0,22 MB leídos (`cap08.json`).
 
 ---
 
@@ -1854,6 +1878,9 @@ cumple, y eso está en D-39.
 - **Estado**: parcialmente corregido 2026-09-10: la entrada `simulate` del
   worker y `pyodideEngine.simulate()` se eliminaron con la ruta de densidad
   plana (D-46). Los 15 campos sin lector siguen pendientes (baja).
+  Re-medido 2026-10-14: 114 campos, los mismos 15 sin lector (`cap08.json`;
+  el filtro de `lib/gen/` de `datos_cap08.py` no excluía nada en Windows y
+  daba 0).
 
 ---
 
@@ -1888,6 +1915,11 @@ cumple, y eso está en D-39.
 - **Estado**: pendiente. Corrección mínima: escribir la fuente (o la decisión)
   de los tres VoT donde se despeja `b_costo`; corrección de fondo: una EOD que
   permita el ajuste estándar de las ASC, que `presets.py` ya anticipa.
+- **Actualización 2026-10-13 (D5)**: el NIVEL de los VoT está anclado: su media
+  por viajero es el VST de 3.338 $/h (×1,0208 sobre los heredados
+  6.200/3.100/1.600), escrito en `presets.py` y fijado por
+  `test_la_media_de_los_vot_por_viajero_es_el_vst`. Sigue sin fuente la
+  DISPERSIÓN entre estratos (alto/bajo ≈ 3,9). Estado: parcialmente corregido.
 
 ---
 
@@ -1991,6 +2023,9 @@ cumple, y eso está en D-39.
   números del test (y el conteo de tests del núcleo). Precisión sobre el «58
   e2e»: es correcto para `test:e2e:fast`; los 59 que lista Playwright incluyen
   el `@slow`. D-30 sigue pendiente de marcarse como superado.
+- **Estado**: corregido 2026-10-14. `CLAUDE.md` y `test_linea_base.py`
+  coinciden a 0,00 pp en las dos ramas (`cap10.json`); D-30 marcado superado.
+  Los conteos de tests de `CLAUDE.md` son orientativos («~200»; hoy 215).
 
 ## D-69 — Suelo/Transporte: la accesibilidad salta a 1 km del CBD porque ahí el metro sale del conjunto de elección
 
@@ -2065,7 +2100,7 @@ cumple, y eso está en D-39.
 | D-27 | Carga mensual costo/ingreso con y en $/mes                                                                 | Unidades corregidas                                  | Media                      |
 | D-28 | Transporte: densidad física hab/km (n_celdas puramente numérico)                                           | Continuación de D-26                                 | Alta                       |
 | D-29 | Emisiones de metro por tren-km (economías de escala visibles)                                              | Corrección conceptual                                | Media                      |
-| D-30 | Tres baselines de "sin congestión" (convenciones)                                                          | Documentado, sin cambio de código                    | Baja                       |
+| D-30 | Tres baselines de "sin congestión" (convenciones)                                                          | Superado 2026-10-14 (libro, cap. 10 §4.4)          | Baja                       |
 | D-31 | Suelo: `beta` en espacios distintos a cada lado del despacho (salto de 4,7 pp); desde sep-2026 `mu` y `β_h` como en Martínez                             | Bug corregido, línea base intacta                    | Alta                       |
 | D-32 | Suelo: `ρ·dens` exógeno — sin externalidad de localización (Martínez)                                      | Simplificación declarada, sin cambio de código       | Media                      |
 | D-33 | Transporte homoscedástico; suelo importa la anatomía (α común, λ ∝ b_costo)                                | Calibración corregida, línea base movida y declarada | Alta                       |
@@ -2088,20 +2123,20 @@ cumple, y eso está en D-39.
 | D-50 | MSA: producción usa la variante sin argumento de convergencia; la de Boyles está implementada y da 0,13 pp | Pendiente (libro, cap. 5) | Media |
 | D-51 | Suelo: `allocation` conserva las dos marginales y `population` sólo una; es la segunda la que alimenta el transporte | Pendiente (libro, cap. 2) | Media |
 | D-52 | Acoplado: la inversión de Alonso la remueve `λ` heterogéneo, no el logsum; `λ` uniforme sigue admitida e invierte en silencio | Pendiente (libro, cap. 6) | Alta |
-| D-53 | Acoplado: el residual exterior mide el rezago del promedio (`residual₁/k`) y su máximo lo pone un escalón de la bici en 2 celdas de 603 | Pendiente (libro, cap. 6) | Alta |
-| D-54 | Acoplado: `outer_tol` rotulado en minutos en cuatro lugares y sin recalibrar desde D-34 | Pendiente (libro, cap. 6) | Media |
-| D-55 | Acoplado: `api.ts` reconstruye `converged` sólo con el residual, más laxo que el núcleo | Pendiente (libro, cap. 6) | Media |
+| D-53 | Acoplado: el residual exterior mide el rezago del promedio (`residual₁/k`) y su máximo lo pone un escalón de la bici en 2 celdas de 603 | Corregido 2026-10-13 (D10) | Alta |
+| D-54 | Acoplado: `outer_tol` rotulado en minutos en cuatro lugares y sin recalibrar desde D-34 | Corregido 2026-10-13 (D10) | Media |
+| D-55 | Acoplado: `api.ts` reconstruye `converged` sólo con el residual, más laxo que el núcleo | Corregido 2026-10-13 | Media |
 | D-56 | Bienestar: el «excedente social» reprecia el dinero, no sólo el tiempo; y tras D-33 el mecanismo se invirtió | Pendiente (libro, cap. 7) | Alta |
 | D-57 | Bienestar: el que queda sin modo factible desaparece del agregado; un toggle de la UI estranda al 11 % | Pendiente (libro, cap. 7) | Alta |
 | D-58 | Bienestar: `bienestar_social_clp` mezcla hora punta con costo llevado a día (efecto acotado: 7 % del Δ) | Pendiente (libro, cap. 7) | Baja |
 | D-59 | Bienestar: rótulos que describen el cálculo anterior a D-35 y a D-56 | Pendiente (libro, cap. 7) | Media |
-| D-60 | CI: los jobs `contrato` y `pyodide` existen en el YAML y no han corrido nunca; el wheel estaba desfasado un commit | Pendiente (libro, cap. 8) | Alta |
+| D-60 | CI: los jobs `contrato` y `pyodide` existen en el YAML y no han corrido nunca; el wheel estaba desfasado un commit | Parcial: corre desde el PR (2026-09-08); en rojo desde el 2026-09-30 | Alta |
 | D-61 | Acoplado: el default de vueltas de la interfaz (12) supera la cota de la API (10): 422 con `engine=api` | Pendiente (libro, cap. 8) | Alta |
-| D-62 | Contrato: cada vuelta del acoplado lleva 5,9 MB de agentes que la interfaz no lee (71 MB por corrida, 0,22 usados) | Pendiente (libro, cap. 8) | Media |
-| D-63 | Contrato: entrada `simulate` del worker sin llamadores y 15 campos sin lector | Pendiente (libro, cap. 8) | Baja |
-| D-64 | Calibración: 0 de 77 parámetros estimados; los tres VoT que ordenan a los estratos no tienen fuente escrita | Pendiente (libro, cap. 9) | Alta |
+| D-62 | Contrato: cada vuelta del acoplado lleva 5,9 MB de agentes que la interfaz no lee (81,5 MB por corrida al 2026-10-14, 0,22 usados) | Pendiente (libro, cap. 8) | Media |
+| D-63 | Contrato: entrada `simulate` del worker sin llamadores y 15 campos sin lector | Parcial: `simulate` borrada; 15 campos sin lector | Baja |
+| D-64 | Calibración: 0 de 77 parámetros estimados; los tres VoT que ordenan a los estratos no tienen fuente escrita | Parcial 2026-10-13: nivel anclado al VST (D5); falta la dispersión | Alta |
 | D-65 | Calibración: cuatro velocidades duplicadas entre `globales` y `supply`; tres globales inertes, `v_caminata` con dos dueños | Pendiente (libro, cap. 9) | Media |
 | D-66 | Calibración: `ANALISIS_SENSIBILIDAD.md` y comentarios con defaults que ya no existen | Pendiente (libro, cap. 9) | Baja |
 | D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Pendiente (libro, cap. 10) | Media |
-| D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Pendiente (libro, cap. 10) | Media |
+| D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Corregido 2026-10-14 | Media |
 | D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia) | Baja |

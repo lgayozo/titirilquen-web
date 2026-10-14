@@ -22,8 +22,8 @@
     Módulos: <code>serializacion.py</code> · <code>apps/api</code> ·
     <code>pyodide.worker.ts</code> · <code>lib/api.ts</code> ·
     <code>lib/gen/</code> · goldens ·
-    auditado el 2026-09-08 ·
-    datos regenerados el 2026-09-08 ·
+    auditado el 2026-09-08, revisado el 2026-10-14 ·
+    datos regenerados el 2026-10-14 ·
     <span class="estado auditado">auditado</span>
   </p>
 </header>
@@ -84,8 +84,8 @@
 </p>
 
 <p>
-  Los tres se evalúan en la §4. El tercero, además, tiene una condición previa
-  que resultó ser falsa: que el CI corra.
+  Los tres se evalúan en la §4. El tercero, además, tiene una condición previa:
+  que el CI corra sobre el trabajo que se hace (D-60).
 </p>
 
 <h2 id="s2"><span class="num">§2</span> Cotejo con el código</h2>
@@ -130,7 +130,7 @@
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
       <td class="n">82</td>
-      <td><code>runPythonAsync</code> — el bloque Python embebido: 71 líneas que ninguna herramienta lee</td>
+      <td><code>runPythonAsync</code> — el bloque Python embebido: 75 líneas que ninguna herramienta lee</td>
     </tr>
     <tr>
       <td class="n">2</td>
@@ -184,7 +184,7 @@
       <td class="n">3</td>
       <td class="ruta ts">lib/serialization.ts</td>
       <td class="n">45</td>
-      <td><code>TTRQ_SCHEMA</code> — <code>titirilquen-scenario/v7</code>, sin migraciones; <code>parseTtrqJson</code> (80) falla explícito con un schema anterior</td>
+      <td><code>TTRQ_SCHEMA</code> — <code>titirilquen-scenario/v8</code>, sin migraciones; <code>parseTtrqJson</code> (80) falla explícito con un schema anterior</td>
     </tr>
   </tbody>
 </table>
@@ -212,18 +212,21 @@
 <div class="aviso neutro">
   <h4>«Quedan exactamente dos espejos»</h4>
   <p>
-    Sigue siendo verdad para la <em>matemática</em>: <code>utility.ts</code> y
-    <code>citySupply.ts</code>, los dos con golden. Pero hay un tercer espejo que
-    no es matemático y no está pineado: el <strong>criterio de convergencia</strong>
-    del acoplado, reimplementado en <code>api.ts</code> con una sola de las tres
-    condiciones del núcleo (D-55, cap. 6).
+    Es verdad: <code>utility.ts</code> y <code>citySupply.ts</code>, los dos con
+    golden. Hubo un tercero, no matemático y sin pinear: el criterio de
+    convergencia del acoplado, reimplementado en <code>api.ts</code> con una sola
+    de las tres condiciones del núcleo. Desde oct-2026 <code>api.ts</code> lee el
+    veredicto del núcleo (<code>metrics.sistema.convergio_exterior</code>) y ese
+    espejo ya no existe (D-55, corregido).
   </p>
 </div>
 
 <div class="aviso alerta">
   <h4>«El CI corre <code>sync:core</code> y falla si el diff no está vacío»</h4>
   <p>
-    El job existe. No ha corrido nunca. Ver D-60 en la §4.6.
+    Es verdad desde el 2026-09-08, cuando se abrió el PR de la rama: el job corre
+    y atrapó la deriva que tenía que atrapar. Pero desde el 2026-09-30 falla, y
+    los commits de octubre no han llegado al remoto. Ver D-60 en la §4.6.
   </p>
 </div>
 
@@ -256,7 +259,7 @@
       <td>piso de pydantic</td>
       <td class="n">&gt;=2.7</td>
       <td><code>pyproject.toml</code></td>
-      <td><span class="etiqueta lim">heredado</span> del pin de Pyodide: subirlo rompe <code>micropip</code>; sólo lo detecta un test que no corre en CI</td>
+      <td><span class="etiqueta lim">heredado</span> del pin de Pyodide: subirlo rompe <code>micropip</code>; sólo lo detecta el <code>@slow</code>, que corre en el job <code>pyodide</code></td>
     </tr>
     <tr>
       <td><code>outer_max_iter</code></td>
@@ -266,19 +269,19 @@
     </tr>
     <tr>
       <td><code>outer_tol</code></td>
-      <td class="n">1,0</td>
-      <td>núcleo · API · worker · páginas</td>
-      <td><span class="etiqueta lim">heredado</span> ver D-54: rotulado en minutos, en útiles/mes</td>
+      <td class="n">100</td>
+      <td><code>constantes.TOL_ACOPLADO_CLP_MES</code></td>
+      <td><span class="etiqueta neutra">decisión</span> $/hogar-mes sobre max_h |ΔT_h|/λ_h (D10); núcleo, API y worker la importan, proyectada en <code>constantes.gen.ts</code>, las páginas no la mandan (D-54, corregido)</td>
     </tr>
     <tr>
       <td>overrides de la app</td>
-      <td class="n">6</td>
+      <td class="n">5</td>
       <td><code>lib/overrides.ts</code></td>
-      <td><span class="etiqueta neutra">decisión</span> 201 celdas, 1.800 hab/km, semilla 42, <code>expected</code>, 36.000 hogares, 2.000 iteraciones del suelo</td>
+      <td><span class="etiqueta neutra">decisión</span> 201 celdas, semilla 42, <code>expected</code>, 36.000 hogares, 2.000 iteraciones del suelo</td>
     </tr>
     <tr>
       <td><code>$schema</code> de escenarios</td>
-      <td class="n">v6</td>
+      <td class="n">v8</td>
       <td><code>lib/serialization.ts</code></td>
       <td><span class="etiqueta neutra">decisión</span> sin migraciones: un archivo anterior falla explícito</td>
     </tr>
@@ -311,7 +314,7 @@
 </div>
 
 <p class="pie-tabla">
-  Comparación JSON con tolerancia relativa 10⁻¹². Son 71 líneas de Python
+  Comparación JSON con tolerancia relativa 10⁻¹². Son 75 líneas de Python
   dentro de un string de TypeScript.
 </p>
 
@@ -331,8 +334,8 @@
     <tr><th>motor</th><th class="n">auto</th><th class="n">metro</th><th class="n">bici</th><th class="n">caminata</th><th class="n">teletrabajo</th><th class="n">agentes</th></tr>
   </thead>
   <tbody>
-    <tr><td>api — <code>run_msa(sim, suelo, «original»)</code>, lo que corre <code>/simulate</code></td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">19,494</td><td class="n">36.000</td></tr>
-    <tr class="destacada"><td>local — <code>iter_msa_desde_suelo</code>, lo que corre el worker</td><td class="n">15,812</td><td class="n">28,317</td><td class="n">24,955</td><td class="n">11,422</td><td class="n">19,494</td><td class="n">36.000</td></tr>
+    <tr><td>api — <code>run_msa(sim, suelo, «original»)</code>, lo que corre <code>/simulate</code></td><td class="n">24,678</td><td class="n">28,517</td><td class="n">34,189</td><td class="n">12,616</td><td class="n">0,000</td><td class="n">36.000</td></tr>
+    <tr class="destacada"><td>local — <code>iter_msa_desde_suelo</code>, lo que corre el worker</td><td class="n">24,678</td><td class="n">28,517</td><td class="n">34,189</td><td class="n">12,616</td><td class="n">0,000</td><td class="n">36.000</td></tr>
     <tr><td>diferencia (pp)</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0</td></tr>
   </tbody>
 </table>
@@ -346,7 +349,9 @@
   densidad plana. El 2026-09-10 esa ruta se borró del núcleo (D-46, cap. 1):
   <code>/simulate</code> recibe el uso de suelo y la localización, y los dos
   motores corren exactamente la misma población. La diferencia medida es cero
-  en las cinco categorías y en el conteo de agentes.
+  en las cinco categorías y en el conteo de agentes. El reparto es la línea base
+  «original» de <code>test_linea_base.py</code>; la columna de teletrabajo queda
+  en cero porque la base no teletrabaja desde oct-2026.
 </p>
 
 <h3>4.3 Los defaults cierran</h3>
@@ -398,8 +403,8 @@
     <tr><th>objeto</th><th class="n">bytes</th><th>de qué está hecho</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>trace_to_dict</code> (una corrida)</td><td class="n">5.897.623</td><td><code>agentes</code> 94,87 % · <code>iteraciones</code> 4,28 % · <code>demanda_estrato</code> 0,63 %</td></tr>
-    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">5.923.962</td><td><code>transport</code> 99,49 % · <code>land_use</code> 0,28 % · <code>T_matrix</code> 0,20 % · <code>metrics</code> 0,04 %</td></tr>
+    <tr><td><code>trace_to_dict</code> (una corrida)</td><td class="n">6.766.330</td><td><code>agentes</code> 83,70 % · <code>iteraciones</code> 15,51 % · <code>demanda_estrato</code> 0,58 %</td></tr>
+    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">6.792.035</td><td><code>transport</code> 99,55 % · <code>land_use</code> 0,24 % · <code>T_matrix</code> 0,18 % · <code>metrics</code> 0,03 %</td></tr>
   </tbody>
 </table>
 </div>
@@ -410,10 +415,10 @@
     <tr><th>campo de <code>OuterIteration</code></th><th class="n">referencias en el frontend</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>land_use</code></td><td class="n">13</td></tr>
-    <tr><td><code>metrics</code></td><td class="n">9</td></tr>
+    <tr><td><code>land_use</code></td><td class="n">12</td></tr>
+    <tr><td><code>metrics</code></td><td class="n">10</td></tr>
     <tr><td><code>outer_iter</code></td><td class="n">5</td></tr>
-    <tr><td><code>T_residual</code></td><td class="n">4</td></tr>
+    <tr><td><code>T_residual</code></td><td class="n">2</td></tr>
     <tr><td><code>T_matrix</code></td><td class="n">0</td></tr>
     <tr class="destacada"><td><code>transport</code></td><td class="n"><strong>0</strong></td></tr>
   </tbody>
@@ -421,21 +426,21 @@
 </div>
 
 <div class="aviso alerta">
-  <h4>D-62 — 71,1 MB por corrida acoplada, 0,22 MB abiertos</h4>
+  <h4>D-62 — 81,5 MB por corrida acoplada, 0,22 MB abiertos</h4>
   <p>
     Cada vuelta del acoplado transporta el trace de transporte entero —36.000
     agentes con seis campos— y la interfaz no lee <code>transport</code> ni una
-    vez. Con las 12 vueltas del default cruzan la frontera 71,1 MB, de los que
+    vez. Con las 12 vueltas del default cruzan la frontera 81,5 MB, de los que
     el frontend abre 0,22 MB. En el motor local cada mensaje pasa además por
     <code>jsFromPy</code> antes de descartarse. Es la misma familia que
     <code>T_matrix</code> (cap. 6), tres órdenes de magnitud más grande.
   </p>
 </div>
 
-<h3>4.6 Campos sin lector, y el CI que no corre</h3>
+<h3>4.6 Campos sin lector, y el CI que no ve octubre</h3>
 
 <p>
-  De los 112 campos del contrato, <strong>15</strong> no aparecen en ningún
+  De los 114 campos del contrato, <strong>15</strong> no aparecen en ningún
   archivo del frontend fuera de <code>lib/gen/</code>: <code>gap_final_min</code>,
   <code>v_libre_auto</code>, <code>alpha_auto_bpr</code>, <code>beta_auto_bpr</code>,
   <code>f_msa</code>, <code>teletrabaja</code>, <code>tiene_auto</code>,
@@ -444,23 +449,26 @@
   <code>excedente_max_total_clp</code>, <code>n_viajeros</code>,
   <code>convergio_msa</code> y <code>tiempo_total_pax_min</code>. Dos son
   pendientes declarados que siguen abiertos: <code>gap_final_min</code> (D-39) y
-  <code>n_viajeros</code> (D-35).
+  <code>n_viajeros</code> (D-35). Son los mismos quince de septiembre; los dos
+  campos nuevos del contrato, como <code>t_bici_libre</code> (D9), sí tienen
+  lector.
 </p>
 
 <div class="aviso alerta">
-  <h4>D-60 — los guardas existen en el YAML y no han corrido nunca</h4>
+  <h4>D-60 — los guardas corren, pero no sobre octubre</h4>
   <p>
-    <code>ci.yml</code> declara cuatro jobs y dispara sólo en <code>push</code> a
-    <code>main</code>. El último run es del 2026-06-09; los jobs
-    <code>contrato</code> y <code>pyodide</code> se agregaron en agosto, y todo
-    el trabajo posterior está en una rama sin PR, 168 commits por delante. Al
-    correr <code>sync:core</code> para este capítulo, el wheel servido estaba
-    <strong>desfasado un commit</strong> —tres rutas de comentarios en
-    <code>bienestar.py</code> y <code>config.py</code>—, que es exactamente lo
-    que el job atraparía. El bloque <code>wheel_al_dia</code> de este capítulo
-    recompila el wheel y compara los 31 hashes de <code>RECORD</code> en cada
-    regeneración; hoy dice al día porque el wheel se regeneró y va en el mismo
-    commit.
+    <code>ci.yml</code> declara cuatro jobs y dispara en <code>push</code> a
+    <code>main</code> y en cada <code>pull_request</code>. En septiembre el
+    trabajo vivía en una rama sin PR, así que ningún job había corrido sobre él;
+    al correr <code>sync:core</code> para este capítulo el wheel servido estaba
+    <strong>desfasado un commit</strong>, que es exactamente lo que el job
+    <code>contrato</code> atraparía. El 2026-09-08 se abrió el PR y los cuatro
+    jobs corrieron: <code>pyodide</code> pasó en un navegador real y
+    <code>contrato</code> atrapó un byte de deriva del wheel. Desde el 2026-09-30
+    las corridas fallan en «Contrato generado al día», y los commits de octubre
+    están sólo en la rama local. El bloque <code>wheel_al_dia</code> de este
+    capítulo recompila el wheel y compara los 31 hashes de <code>RECORD</code>;
+    hoy dice al día, pero que el próximo push quede en verde no está verificado.
   </p>
 </div>
 
@@ -483,9 +491,9 @@
 </ul>
 
 <p class="pie-tabla">
-  Fuente: <code>datos/cap08.json</code>, regenerado el 2026-09-08 con
+  Fuente: <code>datos/cap08.json</code>, regenerado el 2026-10-14 con
   <code>uv run python ../../docs/libro/datos/datos_cap08.py</code>. Goldens:
-  18 casos de oferta, 27 de utilidad. Contrato generado: 5 archivos, 896 líneas,
+  18 casos de oferta, 33 de utilidad. Contrato generado: 5 archivos, 945 líneas,
   29 interfaces.
 </p>
 
@@ -504,7 +512,7 @@
     </tr>
     <tr>
       <td><code>test_contract_frontend.py::test_utilidad_golden_vigente</code> y <code>contract.spec.ts</code> «utility.ts ↔ utility.py»</td>
-      <td>El espejo de la utilidad, 27 casos en los bordes de factibilidad.</td>
+      <td>El espejo de la utilidad, 33 casos en los bordes de factibilidad, con y sin peaje (D7).</td>
       <td>Que el inspector use esa función con la misma configuración que el motor.</td>
     </tr>
     <tr>
@@ -515,12 +523,12 @@
     <tr>
       <td>job <code>contrato</code> del CI</td>
       <td><code>sync:core</code> sin diff: wheel, <code>lib/gen/</code> y goldens al día.</td>
-      <td><strong>Nunca ha corrido</strong> (D-60).</td>
+      <td>Corre en cada push al PR; desde el 2026-09-30 en rojo y sin ver octubre (D-60).</td>
     </tr>
     <tr>
       <td><code>simulation.spec.ts</code> (@slow) y job <code>pyodide</code></td>
       <td>Que el motor local arranca en un navegador real y llena un KPI.</td>
-      <td>Qué número calcula. Y el job tampoco ha corrido.</td>
+      <td>Qué número calcula.</td>
     </tr>
     <tr>
       <td><code>apps/api/tests</code> (4 tests)</td>
@@ -574,7 +582,7 @@
     <tr><td class="n">C-02</td><td><code>/simulate</code> no recibía uso de suelo: con motor api la población era la de densidad plana.</td><td>cuantificado el 2026-09-08 (9,15 pp de metro); cerrado el 2026-09-10: 0,0 pp</td></tr>
     <tr><td class="n">—</td><td>La serialización estaba escrita dos veces (API y worker) y divergió: los KPI salían en cero con motor api.</td><td>corregido (ago-2026): <code>serializacion.py</code></td></tr>
     <tr><td class="n">—</td><td>Tipos, defaults y presets transcritos a mano, ~130 valores y 14 interfaces.</td><td>corregido (ago-2026): generados</td></tr>
-    <tr><td class="n">—</td><td>El piso de pydantic subió a ≥2.8 y el motor local dejó de arrancar con la suite en verde.</td><td>corregido; guarda: el job <code>pyodide</code>, que no ha corrido</td></tr>
+    <tr><td class="n">—</td><td>El piso de pydantic subió a ≥2.8 y el motor local dejó de arrancar con la suite en verde.</td><td>corregido; guarda: el job <code>pyodide</code>, que corre desde el 2026-09-08</td></tr>
   </tbody>
 </table>
 </div>
@@ -589,9 +597,9 @@
   <tbody>
     <tr>
       <td class="n">D-60</td>
-      <td>Los jobs <code>contrato</code> y <code>pyodide</code> no han corrido nunca; el wheel estaba desfasado un commit.</td>
-      <td>La documentación describe una red que no está tendida.</td>
-      <td>pendiente — wheel regenerado en este commit</td>
+      <td>Los jobs <code>contrato</code> y <code>pyodide</code> no habían corrido nunca; el wheel estaba desfasado un commit.</td>
+      <td>La documentación describía una red que no estaba tendida.</td>
+      <td>parcial: corren desde el PR (2026-09-08); en rojo desde el 2026-09-30</td>
     </tr>
     <tr>
       <td class="n">D-61</td>
@@ -601,7 +609,7 @@
     </tr>
     <tr>
       <td class="n">D-62</td>
-      <td>Cada vuelta del acoplado lleva 5,9 MB de agentes que la interfaz no abre: 71,1 MB por corrida, 0,22 usados.</td>
+      <td>Cada vuelta del acoplado lleva 6,8 MB que la interfaz no abre: 81,5 MB por corrida, 0,22 usados.</td>
       <td>Carga útil que nadie abre.</td>
       <td>pendiente</td>
     </tr>
@@ -652,34 +660,38 @@
 <h3>La lección de D-60</h3>
 
 <p>
-  Es la más incómoda del libro hasta acá, porque no es del código. El repo
-  construyó dos guardas buenos —el diff de <code>sync:core</code> y el arranque
-  real de Pyodide— y los describió en tres documentos como si estuvieran
-  vigilando. Vigilarían si el trabajo llegara a <code>main</code>. Cinco
-  capítulos de este libro dicen «180 tests verdes» como cierre, y todos son
-  tests de CPython corridos a mano: el runtime por defecto de la aplicación no
-  ha sido ejecutado por ninguna máquina que no fuera la del autor desde junio.
+  Es la más incómoda del libro, porque no es del código. El repo construyó dos
+  guardas buenos —el diff de <code>sync:core</code> y el arranque real de
+  Pyodide— y los describió en tres documentos como si estuvieran vigilando.
+  Vigilaban sólo lo que llegaba al remoto. Abrir el PR bastó para que
+  corrieran, y en las primeras corridas atraparon una deriva real. La lección se
+  repite en octubre: el guarda vuelve a estar en rojo y el trabajo del mes no
+  ha salido de la máquina del autor. Un guarda vigila lo que se le muestra.
 </p>
 
 <h3>Lo que el generador no proyecta</h3>
 
 <p>
-  D-61 y D-55 comparten causa. <code>genera_contrato.py</code> proyecta lo que
+  D-61 y D-55 compartían causa. <code>genera_contrato.py</code> proyecta lo que
   el núcleo <em>devuelve</em> —tipos de resultado, defaults de configuración—
-  pero no lo que el núcleo <em>acepta</em> ni lo que <em>decide</em>. La petición
-  del acoplado se escribe tres veces a mano con tres defaults y una cota
-  suelta; el criterio de convergencia se reescribió en TypeScript con una
-  condición de tres. Ambos son el mismo hueco: cuando un dato del núcleo no
-  tiene una forma que el generador reconozca, alguien lo transcribe, y la
-  transcripción envejece.
+  pero no lo que el núcleo <em>acepta</em> ni lo que <em>decide</em>. D-55 se
+  cerró leyendo el veredicto del núcleo en vez de reescribirlo, y la tolerancia
+  del acoplado ya no se transcribe: es una constante de
+  <code>constantes.py</code> que el generador proyecta en
+  <code>constantes.gen.ts</code>, junto con <code>MU_SUELO</code>,
+  <code>FACTOR_CAPACIDAD_PRACTICA</code> y <code>VIAJES_POR_TOUR</code>. Sigue
+  abierto D-61: la petición del acoplado se escribe tres veces a mano, con
+  cuatro defaults de <code>outer_max_iter</code> y una cota suelta. Es el mismo
+  hueco: cuando un dato del núcleo no tiene una forma que el generador
+  reconozca, alguien lo transcribe, y la transcripción envejece.
 </p>
 
 <div class="aviso idea">
   <h4>Pendientes</h4>
   <ul>
     <li>
-      <strong>Que el CI corra</strong> (D-60): abrir el PR de la rama, o
-      disparar en ella. Hasta entonces, cerrar cada capítulo con
+      <strong>Que el CI vea octubre</strong> (D-60): empujar la rama y dejar
+      <code>contrato</code> en verde. Mientras tanto, cerrar cada capítulo con
       <code>sync:core</code> en limpio y <code>npx playwright test --grep @slow</code>.
     </li>
     <li>

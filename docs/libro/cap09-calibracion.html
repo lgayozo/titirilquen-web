@@ -21,8 +21,8 @@
   <p class="meta">
     Módulos: <code>presets.py</code> · <code>config.py</code> ·
     <code>land_use/config.py</code> · <code>constantes.py</code> ·
-    auditado el 2026-09-08 ·
-    datos regenerados el 2026-09-08 ·
+    auditado el 2026-09-08, revisado el 2026-10-14 ·
+    datos regenerados el 2026-10-14 ·
     <span class="estado auditado">auditado</span>
   </p>
 </header>
@@ -162,7 +162,7 @@
       <td class="n">—</td>
       <td class="ruta py">config.py</td>
       <td class="n">231</td>
-      <td><code>BikeSupplyParams</code> — <code>capacidad_pista</code> (244): 2.500, no los 800 que S-10 cita</td>
+      <td><code>BikeSupplyParams</code> — <code>capacidad_pista</code> (244): 4.000, no los 800 que S-10 cita</td>
     </tr>
     <tr>
       <td class="n">—</td>
@@ -174,13 +174,13 @@
       <td class="n">—</td>
       <td class="ruta py">constantes.py</td>
       <td class="n">49</td>
-      <td><code>VOT_SOCIAL_CLP_HORA</code> — la única norma monetaria; <code>CORTE_CAMINATA_MIN</code> (38), <code>CORTE_BICI_MIN</code> (41), <code>VIAJES_MES</code> (55)</td>
+      <td><code>VOT_SOCIAL_CLP_HORA</code> — la única norma monetaria; <code>CORTE_CAMINATA_MIN</code> (38), <code>CORTE_BICI_MIN</code> (41), <code>VIAJES_MES</code> (55); desde oct-2026 también <code>MU_SUELO</code> (74), <code>TOL_ACOPLADO_CLP_MES</code> (84), <code>VIAJES_POR_TOUR</code> (92) y <code>FACTOR_CAPACIDAD_PRACTICA</code> (102)</td>
     </tr>
     <tr>
       <td class="n">(9.4)</td>
       <td class="ruta py">land_use/config.py</td>
       <td class="n">135</td>
-      <td><code>estratos</code> — <code>y</code> (46), λ = |b_costo| (derivado de la demanda, schema v6), <code>rho</code> (47) «SIN FUENTE»; desde v7 α = 1 y μ = 1/√44 son constantes (<code>MU_SUELO</code>, en constantes.py), no campos</td>
+      <td><code>estratos</code> — <code>y</code> (46), λ = |b_costo| (derivado de la demanda, schema v6), <code>rho</code> (47) «SIN FUENTE»; desde v7 ni α ni μ son campos: α ≡ 1, implícito, y μ = 1/√44 es la constante <code>MU_SUELO</code> (D1)</td>
     </tr>
     <tr>
       <td class="n">(9.2)</td>
@@ -204,7 +204,7 @@
       <td class="n">(9.4)</td>
       <td class="ruta py">packages/titirilquen_core/tests/test_vot_consistente.py</td>
       <td class="n">71</td>
-      <td><code>test_lambda_es_literalmente_el_b_costo_de_transporte</code> — un hogar, una utilidad; <code>test_el_vot_es_el_mismo_en_los_dos_modulos</code> (107)</td>
+      <td><code>test_lambda_es_literalmente_el_b_costo_de_transporte</code> — un hogar, una utilidad; <code>test_el_vot_es_el_mismo_en_los_dos_modulos</code> (107); <code>test_alpha_y_mu_no_son_parametros_del_escenario</code> (90)</td>
     </tr>
   </tbody>
 </table>
@@ -215,7 +215,7 @@
 <p>
   Hay dos fuentes: el simulador original (los defaults y los 42 betas) y el
   Overleaf (los coeficientes de oferta). Las divergencias con el Overleaf están
-  en D-01 a D-05 y D-16, y se cotejaron en los capítulos 3 y 3. Las
+  en D-01 a D-05 y D-16, y se cotejaron en los capítulos 3 y 4. Las
   divergencias con el original son el objeto de la §4.2, y la §4.6 muestra que
   los presets de política se reescribieron enteros.
 </p>
@@ -223,8 +223,8 @@
 <h2 id="s3"><span class="num">§3</span> Parámetros</h2>
 
 <p>
-  La tabla de este capítulo no es una lista sino un conteo: 117 hojas de
-  configuración, 75 sin repetir los tres estratos, cada una etiquetada en
+  La tabla de este capítulo no es una lista sino un conteo: 115 hojas de
+  configuración, 77 sin repetir los tres estratos, cada una etiquetada en
   <code>datos_cap09.py::ORIGEN</code>. La etiqueta es una clasificación de
   esta auditoría —está en el script, con su fuente, y se puede discutir fila a
   fila—, no un dato del código.
@@ -237,20 +237,21 @@
   </thead>
   <tbody>
     <tr><td><span class="etiqueta ok">estimado</span></td><td class="n">0</td><td class="n">0</td><td>—</td></tr>
-    <tr><td><span class="etiqueta frio">norma</span></td><td class="n">7</td><td class="n">3</td><td><code>b_tiempo_acceso</code> (ponderador 2 del SNI), <code>lambda</code> (= |b_costo|), <code>VOT_SOCIAL_CLP_HORA</code></td></tr>
-    <tr><td><span class="etiqueta lim">heredado</span></td><td class="n">49</td><td class="n">33</td><td>velocidades, costos unitarios, BPR, penalizaciones, <code>prob_auto</code>, geometría del vehículo</td></tr>
-    <tr><td><span class="etiqueta neutra">decisión</span></td><td class="n">61</td><td class="n">39</td><td>ASC neutrales, <code>b_tiempo_viaje</code> común, capacidades, cortes, <code>ρ</code>, <code>β</code>, presets</td></tr>
-    <tr class="destacada"><td>total</td><td class="n">117</td><td class="n">75</td><td></td></tr>
+    <tr><td><span class="etiqueta frio">norma</span></td><td class="n">4</td><td class="n">2</td><td><code>b_tiempo_acceso</code> (ponderador 2 del SNI), <code>VOT_SOCIAL_CLP_HORA</code></td></tr>
+    <tr><td><span class="etiqueta lim">heredado</span></td><td class="n">44</td><td class="n">30</td><td>velocidades, costos unitarios, BPR de la bici, penalizaciones, <code>prob_auto</code>, geometría del vehículo</td></tr>
+    <tr><td><span class="etiqueta neutra">decisión</span></td><td class="n">67</td><td class="n">45</td><td>ASC neutrales, <code>b_tiempo_viaje</code> común, BPR del auto (D6), capacidades, cortes, <code>prob_teletrabajo</code>, <code>peaje_km</code>, <code>ρ</code>, las constantes del modelo</td></tr>
+    <tr class="destacada"><td>total</td><td class="n">115</td><td class="n">77</td><td></td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Seis llevan además «sin fuente» escrito por el propio código:
-  <code>b_costo</code> (el VoT del que se despeja), <code>rho</code>,
-  <code>anden_alpha</code>, <code>anden_beta</code>,
-  <code>costo_operacion_tren_km</code> y <code>factor_dia_punta</code>. Los tres
-  últimos son inertes o no entran al reparto (§4.4); los dos primeros no.
+  <code>b_costo</code> (la dispersión de los VoT de la que se despeja; su nivel
+  está anclado desde D5), <code>rho</code>, <code>anden_alpha</code>,
+  <code>anden_beta</code>, <code>costo_operacion_tren_km</code> y
+  <code>factor_dia_punta</code>. Los cuatro últimos son inertes, casi inertes o
+  no entran al reparto (§4.4); los dos primeros no.
 </p>
 
 <h2 id="s4"><span class="num">§4</span> Resultados</h2>
@@ -258,15 +259,17 @@
 <h3>4.1 Cero estimados</h3>
 
 <div class="aviso alerta">
-  <h4>D-64 — el modelo es una construcción declarada, y su ancla externa son tres números sin fuente</h4>
+  <h4>D-64 — el modelo es una construcción declarada; su ancla externa tiene nivel, no forma</h4>
   <p>
-    Ninguno de los 75 parámetros se estimó con datos. Los tres con norma son
-    un ponderador, su derivado y un valor social que no entra a la elección. Y
-    el único coeficiente que distingue a los estratos —<code>b_costo</code>, del
-    que sale <code>λ</code> para el suelo— se despeja de tres VoT que
-    <code>presets.py</code> llama «pedidos», D-33 «los valores pedidos» y
-    <code>COMPARACION_ORIGINAL.md</code> «Actual». Ningún documento dice de
-    dónde salen.
+    Ninguno de los 77 parámetros se estimó con datos. Los 2 con norma son
+    un ponderador y un valor social que no entra a la elección. El único
+    coeficiente que distingue a los estratos —<code>b_costo</code>, del que sale
+    <code>λ</code> para el suelo— se despeja de tres VoT. Desde D5 (oct-2026) su
+    <em>nivel</em> tiene fuente: los heredados se escalaron por 1,0208 para que su
+    media por viajero sea el VST del SNI, 3.338 $/h, y un test lo fija
+    (capítulo 4, §5.6). Lo que sigue sin fuente es su <em>dispersión</em>: el alto
+    vale 3,88 veces el bajo, una razón heredada de unos VoT que
+    <code>presets.py</code> todavía llama «pedidos».
   </p>
 </div>
 
@@ -293,8 +296,8 @@
 
 <p>
   El VoT del original era <strong>41.250 / 9.930 / 1.500 $/h</strong>, una
-  dispersión de 27,5× entre extremos; hoy es 6.200 / 3.100 / 1.600, dispersión
-  3,875. Lo que se conservó del original es exactamente lo que D-33 dice que se
+  dispersión de 27,5× entre extremos; hoy es 6.329 / 3.164 / 1.633, dispersión
+  3,876. Lo que se conservó del original es exactamente lo que D-33 dice que se
   conserva bajo (9.3): la escala del medio y las razones internas. Lo que se
   reemplazó es lo que <em>define</em> el comportamiento: las constantes
   específicas, el precio del dinero y los pesos de espera y caminata. Dicho sin
@@ -309,9 +312,9 @@
     <tr><th>estrato</th><th class="n">β_t</th><th class="n">β_c</th><th class="n">VoT $/h</th><th class="n">λ suelo</th><th class="n">espera/viaje</th><th class="n">acceso/viaje</th><th class="n">caminata/viaje</th><th class="n">ASC auto (min)</th><th class="n">ASC bici (min)</th></tr>
   </thead>
   <tbody>
-    <tr><td>alto</td><td class="n">−0,0331</td><td class="n">−0,000320323</td><td class="n">6.199,99</td><td class="n">0,000320323</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">20,0</td><td class="n">−18,0</td></tr>
-    <tr><td>medio</td><td class="n">−0,0331</td><td class="n">−0,00064065</td><td class="n">3.099,98</td><td class="n">0,00064065</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">20,0</td><td class="n">−18,0</td></tr>
-    <tr><td>bajo</td><td class="n">−0,0331</td><td class="n">−0,00124125</td><td class="n">1.600,00</td><td class="n">0,00124125</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">20,0</td><td class="n">−18,0</td></tr>
+    <tr><td>alto</td><td class="n">−0,0331</td><td class="n">−0,000313794</td><td class="n">6.328,99</td><td class="n">0,000313794</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">20,0</td><td class="n">−18,0</td></tr>
+    <tr><td>medio</td><td class="n">−0,0331</td><td class="n">−0,000627686</td><td class="n">3.164,00</td><td class="n">0,000627686</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">20,0</td><td class="n">−18,0</td></tr>
+    <tr><td>bajo</td><td class="n">−0,0331</td><td class="n">−0,001216167</td><td class="n">1.633,00</td><td class="n">0,001216167</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">20,0</td><td class="n">−18,0</td></tr>
   </tbody>
 </table>
 </div>
@@ -319,19 +322,21 @@
 <p>
   Todo lo que los comentarios de <code>presets.py</code> prometen se cumple en
   las tres filas: escala del tiempo común, VoT decreciente con dispersión
-  3,875, <code>λ</code> igual al <code>b_costo</code> literal, ponderadores 2,0 /
+  3,876, <code>λ</code> igual al <code>b_costo</code> literal, ponderadores 2,0 /
   2,0 / 1,7 y las ASC en +20 / −18 / 0 minutos sobre el metro. El VoT social del
-  SNI ($3.338/h) queda un 7,68 % sobre el del estrato medio. Es plausible que
-  sea el ancla de los tres VoT; no está escrito en ninguna parte.
+  SNI ($3.338/h) queda un 5,5 % sobre el del estrato medio, y desde D5 es el
+  ancla escrita de los tres: su media ponderada por viajero es exactamente el VST
+  (<code>test_la_media_de_los_vot_por_viajero_es_el_vst</code>).
 </p>
 
 <h3>4.4 Qué mueve el modelo</h3>
 
 <p>
   Cada parámetro numérico de la configuración de transporte, uno a la vez,
-  +10 % (los conteos chicos, +1), sobre la corrida por defecto de la aplicación
-  en la rama «original»: 53 parámetros. Se reporta el mayor cambio del reparto
-  modal, en puntos porcentuales.
+  +10 % (los conteos chicos, +1; un parámetro en cero sube a 1, y una
+  probabilidad en cero, a 0,1), sobre la corrida por defecto de la aplicación en
+  la rama «original»: 54 parámetros. Se reporta el mayor cambio del reparto
+  modal, en puntos porcentuales, con el teletrabajo como una categoría más.
 </p>
 
 <div class="envoltorio-tabla">
@@ -340,41 +345,48 @@
     <tr><th class="n">#</th><th>parámetro</th><th class="n">valor → perturbado</th><th class="n">Δ máx (pp)</th><th class="n">Δ t medio (min)</th><th class="n">Δ CO₂ (kg/h)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">1</td><td><code>globales.teletrabajo_factor</code></td><td class="n">1,0 → 1,1</td><td class="n">1,972</td><td class="n">−0,024</td><td class="n">−315,25</td></tr>
-    <tr><td class="n">2</td><td><code>city.largo_ciudad_km</code></td><td class="n">20 → 22</td><td class="n">1,745</td><td class="n">0,090</td><td class="n">823,54</td></tr>
-    <tr><td class="n">3</td><td><code>globales.v_caminata</code></td><td class="n">4,8 → 5,28</td><td class="n">1,060</td><td class="n">−0,142</td><td class="n">−37,90</td></tr>
-    <tr><td class="n">4</td><td><code>estratos.2.prob_teletrabajo</code></td><td class="n">0,2 → 0,22</td><td class="n">1,006</td><td class="n">0,001</td><td class="n">−113,08</td></tr>
-    <tr><td class="n">5</td><td><code>city.pendiente_porcentaje</code></td><td class="n">0 → 1</td><td class="n">1,001</td><td class="n">−0,308</td><td class="n">126,34</td></tr>
-    <tr><td class="n">6</td><td><code>bike.v_media_kmh</code></td><td class="n">14 → 15</td><td class="n">0,967</td><td class="n">0,229</td><td class="n">−105,25</td></tr>
-    <tr><td class="n">7</td><td><code>globales.costo_parking</code></td><td class="n">2.000 → 2.200</td><td class="n">0,920</td><td class="n">−0,229</td><td class="n">−552,51</td></tr>
-    <tr><td class="n">8</td><td><code>bike.capacidad_pista</code></td><td class="n">2.500 → 2.750</td><td class="n">0,902</td><td class="n">0,068</td><td class="n">−84,14</td></tr>
-    <tr><td class="n">9</td><td><code>car.num_pistas</code></td><td class="n">2 → 3</td><td class="n">0,787</td><td class="n">−0,482</td><td class="n">−618,95</td></tr>
-    <tr><td class="n">10</td><td><code>estratos.2.prob_auto</code></td><td class="n">0,6 → 0,66</td><td class="n">0,782</td><td class="n">0,161</td><td class="n">525,40</td></tr>
-    <tr><td class="n">11</td><td><code>train.num_estaciones</code></td><td class="n">10 → 11</td><td class="n">0,693</td><td class="n">−0,242</td><td class="n">−168,79</td></tr>
-    <tr><td class="n">12</td><td><code>globales.costo_tarifa_metro</code></td><td class="n">800 → 880</td><td class="n">0,675</td><td class="n">0,261</td><td class="n">221,24</td></tr>
-    <tr><td class="n">13</td><td><code>bike.alpha_bpr</code></td><td class="n">0,5 → 0,55</td><td class="n">0,598</td><td class="n">−0,122</td><td class="n">73,06</td></tr>
-    <tr class="destacada"><td class="n">14</td><td><code>estratos.2.betas.b_costo</code></td><td class="n">×1,1</td><td class="n">0,590</td><td class="n">−0,065</td><td class="n">−363,06</td></tr>
-    <tr><td class="n">15</td><td><code>car.v_max_kmh</code></td><td class="n">31 → 34</td><td class="n">0,490</td><td class="n">−0,306</td><td class="n">−389,01</td></tr>
-    <tr><td class="n">16</td><td><code>train.v_caminata_kmh</code></td><td class="n">4,8 → 5,28</td><td class="n">0,488</td><td class="n">−0,209</td><td class="n">−128,35</td></tr>
-    <tr><td class="n">17</td><td><code>globales.corte_bici_min</code></td><td class="n">45 → 49,5</td><td class="n">0,481</td><td class="n">0,477</td><td class="n">−30,91</td></tr>
-    <tr><td class="n">18</td><td><code>train.capacidad_tren</code></td><td class="n">1.000 → 1.100</td><td class="n">0,443</td><td class="n">0,161</td><td class="n">124,43</td></tr>
-    <tr><td class="n">19</td><td><code>globales.corte_caminata_min</code></td><td class="n">30 → 33</td><td class="n">0,424</td><td class="n">−0,069</td><td class="n">−23,53</td></tr>
-    <tr><td class="n">20</td><td><code>bike.beta_bpr</code></td><td class="n">2,0 → 2,2</td><td class="n">0,398</td><td class="n">−0,052</td><td class="n">46,23</td></tr>
-    <tr><td colspan="6">… 26 parámetros entre 0,372 y 0,007 pp …</td></tr>
-    <tr><td class="n">47</td><td><code>train.anden_beta</code></td><td class="n">4,0 → 4,4</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,03</td></tr>
-    <tr><td class="n">48</td><td><code>train.frec_max</code></td><td class="n">40 → 44</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,02</td></tr>
-        <tr><td class="n">49</td><td><code>car.ancho_pista_m</code></td><td class="n">3,5 → 3,85</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">50</td><td><code>train.costo_operacion_tren_km</code></td><td class="n">12.000 → 13.200</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">51</td><td><code>train.factor_dia_punta</code></td><td class="n">2,0 → 2,2</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">52</td><td><code>train.frec_min</code></td><td class="n">2 → 3</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">53</td><td><code>train.anden_alpha</code></td><td class="n">0,5 → 0,55</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,01</td></tr>
+    <tr><td class="n">1</td><td><code>estratos.2.prob_teletrabajo</code></td><td class="n">0 → 0,1</td><td class="n">4,989</td><td class="n">−0,165</td><td class="n">−969,98</td></tr>
+    <tr><td class="n">2</td><td><code>car.num_pistas</code></td><td class="n">2 → 3</td><td class="n">3,730</td><td class="n">−1,897</td><td class="n">−2.488,09</td></tr>
+    <tr><td class="n">3</td><td><code>city.largo_ciudad_km</code></td><td class="n">20,0 → 22,0</td><td class="n">1,584</td><td class="n">0,765</td><td class="n">1.314,47</td></tr>
+    <tr><td class="n">4</td><td><code>car.v_max_kmh</code></td><td class="n">31 → 34</td><td class="n">1,417</td><td class="n">−0,640</td><td class="n">−739,26</td></tr>
+    <tr><td class="n">5</td><td><code>globales.v_caminata</code></td><td class="n">4,8 → 5,28</td><td class="n">1,167</td><td class="n">−0,166</td><td class="n">−135,73</td></tr>
+    <tr><td class="n">6</td><td><code>bike.v_media_kmh</code></td><td class="n">14 → 15</td><td class="n">1,071</td><td class="n">−0,065</td><td class="n">−227,45</td></tr>
+    <tr><td class="n">7</td><td><code>globales.costo_tarifa_metro</code></td><td class="n">800 → 880</td><td class="n">0,987</td><td class="n">0,507</td><td class="n">357,99</td></tr>
+    <tr><td class="n">8</td><td><code>city.pendiente_porcentaje</code></td><td class="n">0 → 1,0</td><td class="n">0,976</td><td class="n">0,014</td><td class="n">198,37</td></tr>
+    <tr><td class="n">9</td><td><code>car.beta_bpr</code></td><td class="n">4,0 → 4,4</td><td class="n">0,859</td><td class="n">0,341</td><td class="n">257,15</td></tr>
+    <tr><td class="n">10</td><td><code>train.num_estaciones</code></td><td class="n">10 → 11</td><td class="n">0,836</td><td class="n">−0,328</td><td class="n">−334,97</td></tr>
+    <tr><td class="n">11</td><td><code>car.largo_vehiculo_m</code></td><td class="n">5,0 → 5,5</td><td class="n">0,808</td><td class="n">0,325</td><td class="n">282,38</td></tr>
+    <tr><td class="n">12</td><td><code>bike.capacidad_pista</code></td><td class="n">4.000 → 4.400</td><td class="n">0,789</td><td class="n">−0,218</td><td class="n">−147,75</td></tr>
+    <tr><td class="n">13</td><td><code>estratos.2.prob_auto</code></td><td class="n">0,6 → 0,66</td><td class="n">0,687</td><td class="n">0,410</td><td class="n">1.021,58</td></tr>
+    <tr><td class="n">14</td><td><code>train.capacidad_tren</code></td><td class="n">1.000 → 1.100</td><td class="n">0,651</td><td class="n">0,340</td><td class="n">238,30</td></tr>
+    <tr><td class="n">15</td><td><code>train.v_caminata_kmh</code></td><td class="n">4,8 → 5,28</td><td class="n">0,588</td><td class="n">−0,305</td><td class="n">−255,23</td></tr>
+    <tr><td class="n">16</td><td><code>globales.corte_caminata_min</code></td><td class="n">30,0 → 33,0</td><td class="n">0,444</td><td class="n">−0,073</td><td class="n">−56,06</td></tr>
+    <tr><td class="n">17</td><td><code>estratos.2.betas.b_tiempo_viaje</code></td><td class="n">−0,0331 → −0,0364</td><td class="n">0,442</td><td class="n">−0,281</td><td class="n">−175,76</td></tr>
+    <tr><td class="n">18</td><td><code>globales.costo_parking</code></td><td class="n">2.000 → 2.200</td><td class="n">0,433</td><td class="n">−0,234</td><td class="n">−599,60</td></tr>
+    <tr><td class="n">19</td><td><code>bike.alpha_bpr</code></td><td class="n">0,5 → 0,55</td><td class="n">0,418</td><td class="n">0,112</td><td class="n">77,86</td></tr>
+    <tr><td class="n">20</td><td><code>estratos.2.betas.asc_bici</code></td><td class="n">−0,4918 → −0,541</td><td class="n">0,395</td><td class="n">−0,117</td><td class="n">74,30</td></tr>
+    <tr class="destacada"><td class="n">21</td><td><code>estratos.2.betas.b_costo</code></td><td class="n">×1,1</td><td class="n">0,352</td><td class="n">−0,000</td><td class="n">−368,58</td></tr>
+    <tr><td colspan="6">… 20 parámetros entre 0,326 y 0,007 pp …</td></tr>
+    <tr><td class="n">42</td><td><code>globales.v_auto</code></td><td class="n">31 → 34</td><td class="n">0,002</td><td class="n">−0,002</td><td class="n">−0,98</td></tr>
+    <tr><td class="n">43</td><td><code>globales.v_metro</code></td><td class="n">35 → 38</td><td class="n">0,001</td><td class="n">−0,001</td><td class="n">−0,30</td></tr>
+    <tr><td class="n">44</td><td><code>train.anden_beta</code></td><td class="n">4,0 → 4,4</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,07</td></tr>
+    <tr><td class="n">45</td><td><code>train.frec_max</code></td><td class="n">40 → 44</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,04</td></tr>
+    <tr><td class="n">46</td><td><code>car.ancho_pista_m</code></td><td class="n">3,5 → 3,85</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">47</td><td><code>train.costo_operacion_tren_km</code></td><td class="n">12.000 → 13.200</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">48</td><td><code>train.factor_dia_punta</code></td><td class="n">2,0 → 2,2</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">49</td><td><code>train.frec_min</code></td><td class="n">2 → 3</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">50</td><td><code>train.anden_alpha</code></td><td class="n">0,5 → 0,55</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,01</td></tr>
+    <tr><td class="n">51</td><td><code>globales.corte_bici_min</code></td><td class="n">45,0 → 49,5</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
+    <tr><td class="n">52</td><td><code>globales.factor_flota_auto</code></td><td class="n">1,0 → 1,1</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">1.459,31</td></tr>
+    <tr><td class="n">53</td><td><code>globales.factor_emision_metro_tren_km</code></td><td class="n">2,5 → 2,75</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">51,33</td></tr>
+    <tr><td class="n">54</td><td><code>globales.teletrabajo_factor</code></td><td class="n">1,0 → 1,1</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
   </tbody>
 </table>
 </div>
 
 <p class="pie-tabla">
-  Reparto de referencia: auto 15,812 · metro 28,317 · bici 24,955 · caminata
-  11,422 · teletrabajo 19,494. Los betas se perturban sólo en el estrato medio:
+  Reparto de referencia: auto 24,678 · metro 28,517 · bici 34,189 · caminata
+  12,616 · teletrabajo 0, la línea base «original». Los betas se perturban sólo en el estrato medio:
   por (9.3), la sensibilidad a un beta es la sensibilidad a su razón, común a
   los tres. La lista completa está en <code>datos/cap09.json</code>.
 </p>
@@ -385,32 +397,41 @@
 
 <ul>
   <li>
-    <strong>Lo que más mueve es la demografía, no la calibración.</strong> Los
-    dos primeros son cuánta gente viaja y cuán larga es la ciudad; ningún beta
-    entra al top 10. El coeficiente más sensible, <code>b_costo</code>, es el
-    14º con 0,59 pp — y es el que no tiene fuente.
+    <strong>Lo que más mueve es cuánta gente viaja y la red, no la
+    calibración.</strong> Encabeza <code>prob_teletrabajo</code> del estrato
+    medio, de 0 a 0,1, con 4,99 pp; pero ese máximo es la propia cuota de
+    teletrabajo, y entre los modos de viaje el que más se mueve es el metro,
+    −2,54 pp. Lo siguen el número de pistas (3,73 pp), ahora que la BPR
+    de la FHWA sobre la capacidad práctica muerde (D6), y el largo de la ciudad
+    (1,58). Ningún beta entra al top 10: el más sensible,
+    <code>b_tiempo_viaje</code>, es el 17º con 0,44 pp, y
+    <code>b_costo</code>, el de la dispersión sin fuente, el 21º con 0,35.
   </li>
   <li>
-    <strong>Siete inertes, por tres razones distintas.</strong> Por diseño:
-    los dos del costo del operador (no entran al reparto); la densidad, que
-    era inerte por la misma razón, ya no es un parámetro (D-46, corregido). Por régimen:
-    <code>frec_min</code>, <code>frec_max</code>, <code>anden_alpha</code>,
-    <code>anden_beta</code> (la frecuencia demandada es interior y el andén no
-    satura a esta demanda; S-09 mostró que con la frecuencia topada el andén
-    mueve 23×). Por escalón: <code>ancho_pista_m</code>, cuyo factor es una
-    función por tramos que no cambia entre 3,5 y 3,85.
+    <strong>Ocho inertes, por cinco razones.</strong> Por diseño:
+    los dos del costo del operador (no entran al reparto). Por régimen:
+    <code>frec_min</code>, <code>frec_max</code> y <code>anden_alpha</code>; la
+    frecuencia demandada es interior y el andén no satura a esta demanda
+    (<code>anden_beta</code> mueve 0,0002 pp; S-09 mostró que con la frecuencia
+    topada el andén mueve 23×). Por escalón: <code>ancho_pista_m</code>, cuyo
+    factor es una función por tramos que no cambia entre 3,5 y 3,85. Por
+    geometría: <code>corte_bici_min</code>, que desde D9 corta sobre la bici en
+    red vacía, y en esta ciudad ningún viaje en bici a red vacía llega a 45 min.
+    Por estar apagado: <code>teletrabajo_factor</code>, que multiplica una
+    <code>prob_teletrabajo</code> que vale 0; con las tasas heredadas era el
+    primero del ranking.
   </li>
   <li>
-    <strong>Dos que no son inertes pero deberían serlo.</strong>
-    <code>globales.v_auto</code> (0,131 pp) y <code>globales.v_bici</code>
-    (0,100) sólo siembran la iteración 0 del MSA; lo que queda es dependencia
+    <strong>Dos que casi no mueven, como corresponde.</strong>
+    <code>globales.v_auto</code> (0,0023 pp) y <code>globales.v_bici</code>
+    (0,0074) sólo siembran la iteración 0 del MSA; lo que queda es dependencia
     de camino dentro de la tolerancia. Sus gemelas de <code>supply</code> mueven
-    0,490 y 0,967 (D-65).
+    1,417 y 1,071 (D-65).
   </li>
   <li>
     <strong>Y dos que están dos veces.</strong> Hay dos velocidades de caminata
     con el mismo default: la global es el modo caminata y el techo de la bici
-    (1,060 pp), la del tren es el acceso a la estación (0,488). Editar una no
+    (1,167 pp), la del tren es el acceso a la estación (0,588). Editar una no
     edita la otra.
   </li>
 </ul>
@@ -420,28 +441,25 @@
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th>parámetro</th><th class="n">valor → ×1,1</th><th class="n">Δ máx reparto (pp)</th></tr>
+    <tr><th>parámetro</th><th class="n">valor → perturbado</th><th class="n">Δ máx reparto (pp)</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td><code>oferta_sigma_frac</code></td><td class="n">0,5 → 0,55</td><td class="n">1,551</td></tr>
-    <tr><td><code>mu</code></td><td class="n">0,15 → 0,165</td><td class="n">0,248</td></tr>
-    <tr><td><code>estratos.1.alpha</code></td><td class="n">1,0 → 1,1</td><td class="n">0,137</td></tr>
-    <tr><td><code>estratos.1.lambda</code></td><td class="n">×1,1</td><td class="n">0,117</td></tr>
-    <tr><td><code>estratos.1.rho</code></td><td class="n">0,0052 → 0,00572</td><td class="n">0,0255</td></tr>
-    <tr><td><code>estratos.1.y</code></td><td class="n">1,5M → 1,65M</td><td class="n">0,000</td></tr>
-    <tr><td><code>forma_param</code></td><td class="n">0,5 → 0,55</td><td class="n">0,000</td></tr>
+    <tr class="destacada"><td><code>oferta_sigma_frac</code></td><td class="n">0,5 → 0,55</td><td class="n">1,4613</td></tr>
+    <tr><td><code>estratos.1.rho</code></td><td class="n">0 → 1,0</td><td class="n">0,0126</td></tr>
+    <tr><td><code>estratos.1.y</code></td><td class="n">1,5M → 1,65M</td><td class="n">0,0000</td></tr>
+    <tr><td><code>forma_param</code></td><td class="n">0,5 → 0,55</td><td class="n">0,0000</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Rama «equilibrio», medido en el reparto modal de transporte. Lo que manda es
-  la <strong>forma de la oferta</strong> (dónde hay casas), no la puja: los
-  cuatro parámetros de la función de puje juntos mueven menos que la mitad de
-  lo que mueve <code>sigma</code>. <code>y</code> da cero por construcción
+  la <strong>forma de la oferta</strong> (dónde hay casas), no la puja. De la
+  función de puje sólo <code>ρ</code> sigue siendo campo (α, μ y λ dejaron de
+  serlo, D1); parte en 0, Alonso puro (D2), y llevarlo a 1 mueve 0,0126 pp
+  contra 1,461 de <code>sigma</code>. <code>y</code> da cero por construcción
   (D-08: se absorbe en la utilidad de reserva) y <code>forma_param</code> no
-  actúa sobre la forma «normal». <code>ρ</code>, el parámetro sin fuente del
-  suelo, es el que menos importa de los que actúan.
+  actúa sobre la forma «normal».
 </p>
 
 <h3>4.6 Los presets, en razones</h3>
@@ -453,19 +471,19 @@
   </thead>
   <tbody>
     <tr><td>TP Gratis</td><td class="n">2</td><td>tarifa 800 → 0 (×0) · frec_max 40 → 50 (×1,25)</td></tr>
-    <tr><td>Tarificación Vial</td><td class="n">1</td><td>parking 2.000 → 5.000 (×2,5)</td></tr>
+    <tr><td>Tarificación Vial</td><td class="n">1</td><td>peaje 0 → 275 $/km (sin razón: la base es 0; D7)</td></tr>
     <tr class="destacada"><td>Pro-Auto</td><td class="n">8</td><td>tarifa ×1,25 · parking ×0,5 · pistas 2 → 3 · estaciones 10 → 8 · bencina ×0,833 · cap_tren ×0,8 · cap_bici ×0,5 · frec_max 40 → 6 (×0,15)</td></tr>
-    <tr><td>Pro-Bici</td><td class="n">1</td><td>cap_bici 2.500 → 5.000 (×2)</td></tr>
+    <tr><td>Pro-Bici</td><td class="n">1</td><td>cap_bici 4.000 → 8.000 (×2,0)</td></tr>
     <tr><td>Vehículos híbridos</td><td class="n">2</td><td>bencina 120 → 65 (×0,542) · factor_flota 1 → 0,7</td></tr>
     <tr><td>Máx Metro</td><td class="n">3</td><td>tarifa ×0,5 · estaciones 10 → 20 · frec_max 40 → 50</td></tr>
-    <tr><td>Ciclorrecreovía</td><td class="n">2</td><td>pistas 2 → 1 · cap_bici 2.500 → 6.000 (×2,4)</td></tr>
+    <tr><td>Ciclorrecreovía</td><td class="n">2</td><td>pistas 2 → 1 · cap_bici 4.000 → 9.600 (×2,4)</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Los defaults del original eran frec_max 20, cap_tren 1.200, cap_bici 800,
-  parking 6.000; hoy 40, 1.000, 2.500, 2.000. Las siete políticas del original
+  parking 6.000; hoy 40, 1.000, 4.000, 2.000 (el parking, por día). Las siete políticas del original
   se reescribieron enteras con la regla de <code>presets.py</code>: los valores
   neutros van al default y los deliberados conservan su <em>razón</em> contra
   la base. Seis de las siete tocan una, dos o tres claves; <strong>Pro-Auto
@@ -473,7 +491,7 @@
 </p>
 
 <p class="pie-tabla">
-  Fuente: <code>datos/cap09.json</code>, regenerado el 2026-09-08 con
+  Fuente: <code>datos/cap09.json</code>, regenerado el 2026-10-14 con
   <code>uv run python ../../docs/libro/datos/datos_cap09.py</code>.
 </p>
 
@@ -493,7 +511,7 @@
     <tr>
       <td><code>test_presets.py::test_el_valor_del_tiempo_ordena_los_estratos</code> y <code>test_la_utilidad_marginal_del_ingreso_decrece_con_el_ingreso</code></td>
       <td>El orden del VoT y de <code>|b_costo|</code>.</td>
-      <td>El <em>nivel</em> del VoT: 6.200 / 3.100 / 1.600 no está fijado en ningún test, y es el ancla (D-64).</td>
+      <td>La <em>dispersión</em> del VoT: el nivel lo fija <code>test_la_media_de_los_vot_por_viajero_es_el_vst</code> (D5); la razón alto/bajo, ningún test (D-64).</td>
     </tr>
     <tr>
       <td><code>test_presets.py::test_las_asc_conservan_sus_minutos_equivalentes</code></td>
@@ -512,7 +530,7 @@
     </tr>
     <tr>
       <td><code>test_linea_base.py::test_linea_base_reparto_modal</code></td>
-      <td>El reparto de la app en las dos ramas, ±0,05 pp.</td>
+      <td>El reparto de la app en las dos ramas, ±0,05 pp, y sus 29 iteraciones (<code>test_linea_base_iteraciones</code>).</td>
       <td>Qué parámetro lo movió: cuando falla dice <em>que</em> cambió el modelo, no <em>por dónde</em>.</td>
     </tr>
     <tr>
@@ -531,9 +549,9 @@
 
 <p>
   Los tests fijan las <em>razones</em> con solidez —es lo que D-33 enseñó a
-  fijar— y no fijan ningún <em>nivel</em> salvo la línea base agregada. Es
-  coherente con (9.3): las razones son lo identificable. Pero deja a los tres
-  VoT sin guard, y son el único nivel que importa.
+  fijar— y fijan dos <em>niveles</em>: la línea base agregada y, desde D5, la
+  media de los VoT. Es coherente con (9.3): las razones son lo identificable.
+  Queda sin guard la dispersión de los VoT, que es la otra mitad del ancla.
 </p>
 
 <h2 id="s6"><span class="num">§6</span> Auditorías</h2>
@@ -546,7 +564,7 @@
     comentario, para etiquetar; (b) reproducción: los 45 betas contra el
     original, la cadena (9.4) recomputada; (c) invariancias: barrido de 53 + 7
     parámetros a +10 % sobre la línea base actual (54 + 7 el 2026-09-08; 53 + 7
-    tras D-46); (d) consistencia: mismo VoT
+    tras D-46; 54 + 4 el 2026-10-14, sin α, μ, λ ni β en el suelo); (d) consistencia: mismo VoT
     en transporte y suelo, mismos ponderadores en utilidad y norma (cap. 7);
     (e) lo que la documentación de sensibilidad dice contra lo que se mide.
   </p>
@@ -560,10 +578,10 @@
     <tr><th class="n">ID</th><th>Qué era</th><th>Estado</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">D-01…D-05</td><td>Divergencias entre los coeficientes del código y los del Overleaf (pendiente bici, penalizaciones, β caminata).</td><td>documentadas (cap. 3 y 3)</td></tr>
+    <tr><td class="n">D-01…D-05</td><td>Divergencias entre los coeficientes del código y los del Overleaf (pendiente bici, penalizaciones, β caminata).</td><td>documentadas (cap. 3 y 4)</td></tr>
     <tr><td class="n">D-16</td><td><code>anden_alpha/beta</code> 0,5 / 4 contra 10 / 10 del Overleaf.</td><td>abierta; hoy inerte en la base (§4.4)</td></tr>
-    <tr><td class="n">D-33</td><td>Transporte heteroscedástico sin decisión; VoT 27,5× de dispersión.</td><td>corregido: homoscedástico, VoT 3,875×</td></tr>
-    <tr><td class="n">D-34</td><td>α y ρ del suelo sin origen.</td><td>α = 1 recuperado del original; ρ sigue sin fuente</td></tr>
+    <tr><td class="n">D-33</td><td>Transporte heteroscedástico sin decisión; VoT 27,5× de dispersión.</td><td>corregido: homoscedástico, VoT 3,876×</td></tr>
+    <tr><td class="n">D-34</td><td>α y ρ del suelo sin origen.</td><td>α ≡ 1, fuera del schema desde v7 (D1); ρ = 0 por defecto, Alonso puro (D2), y sin fuente</td></tr>
     <tr><td class="n">S-03 / S-05 / S-09 / S-10</td><td>Escala de población, parámetros inertes, andén, ciclovía saturada.</td><td>S-03 corregido; S-05 y S-10 desfasados (D-66); S-09 vigente</td></tr>
   </tbody>
 </table>
@@ -579,9 +597,9 @@
   <tbody>
     <tr>
       <td class="n">D-64</td>
-      <td>0 de 77 parámetros estimados; los tres VoT que ordenan a los estratos no tienen fuente escrita; 22 de 45 betas reemplazados desde el original.</td>
-      <td>Construcción declarada, con el ancla sin anotar.</td>
-      <td>pendiente</td>
+      <td>0 de 77 parámetros estimados; el nivel de los VoT anclado al VST desde D5, su dispersión sin fuente; 22 de 45 betas reemplazados desde el original.</td>
+      <td>Construcción declarada, con el ancla anotada a medias.</td>
+      <td>parcial (D5, 2026-10-13)</td>
     </tr>
     <tr>
       <td class="n">D-65</td>
@@ -618,7 +636,8 @@
   <li>
     <strong>El original se lee, no se cita.</strong> Este capítulo ejecuta
     <code>reference/Titirilquen/app.py</code> como dato; el clon no está
-    versionado y el script lo exige con un mensaje explícito.
+    versionado, puede estar dentro del repo o junto a él, y el script lo exige
+    con un mensaje explícito.
   </li>
 </ul>
 
@@ -627,11 +646,12 @@
 <h3>Lo que está bien</h3>
 
 <p>
-  La calibración de septiembre de 2026 es honesta en un sentido preciso: cada
+  La calibración de septiembre de 2026, con los ajustes de octubre (el ancla
+  del VoT y el teletrabajo en cero), es honesta en un sentido preciso: cada
   número que no tiene fuente lo dice, y las razones internas —lo único que
   (9.3) permite identificar sin datos— están fijadas por tests y coinciden con
   lo que los comentarios afirman, en los tres estratos, sin excepción. El paso
-  de 27,5× a 3,875× de dispersión del VoT, y de un <code>b_costo</code> no
+  de 27,5× a 3,876× de dispersión del VoT, y de un <code>b_costo</code> no
   monótono a uno que decrece con el ingreso, es lo único de todo el modelo que
   tiene teoría detrás, y se hizo bien.
 </p>
@@ -640,31 +660,34 @@
 
 <p>
   No una estimación —no hay datos y el libro no los va a producir— sino una
-  oración. Los tres VoT son el punto donde el modelo toca el mundo, y ese punto
-  está escrito como «pedidos». Si vienen del SNI escalados por ingreso, hay que
-  decirlo; si vienen de una conversación, también. Un modelo declarado se
-  defiende por sus declaraciones, y ésta falta.
+  oración, y la mitad ya está escrita: desde D5 <code>presets.py</code> dice que
+  el nivel de los tres VoT es el VST del SNI repartido por viajero. Falta la
+  otra mitad: por qué el alto vale 3,9 veces el bajo. Si es la razón de
+  ingresos con alguna elasticidad, hay que decirlo; si es heredada, también. Un
+  modelo declarado se defiende por sus declaraciones.
 </p>
 
 <h3>Lo que la sensibilidad enseña sobre el libro mismo</h3>
 
 <p>
   Cuatro capítulos de este libro se ocuparon de <code>ρ</code>, <code>β</code>,
-  <code>α</code> y <code>λ</code>. El barrido dice que los cuatro juntos mueven
-  el reparto modal menos que <code>sigma</code> sola, y que ningún beta llega al
-  top 10 del transporte. Eso no los vuelve irrelevantes —la segregación y el
-  bienestar no son el reparto modal— pero sí ordena la agenda: quien quiera
-  cambiar lo que el simulador <em>muestra</em> debería empezar por
-  <code>teletrabajo_factor</code>, el largo de la ciudad y la forma de la
-  oferta, no por la subasta.
+  <code>α</code> y <code>λ</code>. Tres ya no son campos del escenario (λ desde
+  v6; α y la escala, hoy la constante μ = 1/√44, desde v7), y el que queda,
+  <code>ρ</code>, mueve el reparto modal 0,013 pp contra 1,46 de <code>sigma</code>;
+  ningún beta llega al top 10 del transporte. Eso no los vuelve irrelevantes
+  —la segregación y el bienestar no son el reparto modal— pero sí ordena la
+  agenda: quien quiera cambiar lo que el simulador <em>muestra</em> debería
+  empezar por la tasa de teletrabajo, que hoy está en cero y es la palanca más
+  fuerte, el número de pistas, el largo de la ciudad y la forma de la oferta,
+  no por la subasta.
 </p>
 
 <div class="aviso idea">
   <h4>Pendientes</h4>
   <ul>
     <li>
-      <strong>Escribir la fuente de los tres VoT</strong> (D-64) donde se
-      despeja <code>b_costo</code>, y fijar su nivel en un test.
+      <strong>Escribir la fuente de la dispersión de los VoT</strong> (D-64);
+      el nivel ya está anclado al VST y fijado en un test (D5).
     </li>
     <li>
       <strong>Un solo dueño por velocidad</strong> (D-65): la iteración 0 lee

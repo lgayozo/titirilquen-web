@@ -51,7 +51,15 @@ from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.presets import CITY_PRESETS, DEFAULT_STRATA, POLICY_PRESETS
 
 SALIDA = Path(__file__).parent / "cap09.json"
-ORIGINAL = RAIZ / "reference" / "Titirilquen" / "app.py"
+# El clon puede estar dentro del repo o junto a él (`../reference/`).
+ORIGINAL = next(
+    (
+        r / "reference" / "Titirilquen" / "app.py"
+        for r in (RAIZ, RAIZ.parent)
+        if (r / "reference" / "Titirilquen" / "app.py").exists()
+    ),
+    RAIZ / "reference" / "Titirilquen" / "app.py",
+)
 NOMBRES = {1: "alto", 2: "medio", 3: "bajo"}
 
 #: Las cuatro etiquetas de la plantilla, y una quinta que no es etiqueta sino
@@ -59,7 +67,8 @@ NOMBRES = {1: "alto", 2: "medio", 3: "bajo"}
 #: provisorio o sin origen conocido.
 NORMA, ESTIMADO, HEREDADO, DECISION = "norma", "estimado", "heredado", "decisión"
 
-#: Clasificación de esta auditoría (2026-09-08). Clave = ruta del parámetro.
+#: Clasificación de la auditoría del 2026-09-08, puesta al día en oct-2026
+#: (D1–D14). Clave = ruta del parámetro.
 ORIGEN: dict[str, tuple[str, str, bool]] = {
     # ruta: (etiqueta, fuente, sin_fuente)
     "city.n_celdas": (
@@ -72,7 +81,7 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
     "supply.bike.v_media_kmh": (HEREDADO, "original: 14 km/h", False),
     "supply.bike.capacidad_pista": (
         DECISION,
-        "2.500 bici/h; S-10 lo marca como calibración de primer orden",
+        "4.000 bici/h (ciclovía, sep-2026); S-10 la marca como calibración de primer orden",
         False,
     ),
     "supply.bike.alpha_bpr": (HEREDADO, "original", False),
@@ -86,8 +95,12 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "2: la rodilla de la BPR en la ciudad base",
         False,
     ),
-    "supply.car.alpha_bpr": (HEREDADO, "original: 0,8 (BPR)", False),
-    "supply.car.beta_bpr": (HEREDADO, "original: 2 (BPR)", False),
+    "supply.car.alpha_bpr": (
+        DECISION,
+        "0,15: BPR de la FHWA (original 0,8), sobre la capacidad práctica 0,8·C (D6)",
+        False,
+    ),
+    "supply.car.beta_bpr": (DECISION, "4: BPR de la FHWA (original 2)", False),
     "supply.car.capacidad_pista": (DECISION, "None ⇒ Greenshields (S-04)", False),
     "supply.train.v_tren_kmh": (HEREDADO, "original: 35 km/h", False),
     "supply.train.capacidad_tren": (
@@ -142,7 +155,7 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
     "demand.globales.costo_tarifa_metro": (HEREDADO, "original: $800", False),
     "demand.globales.costo_parking": (
         DECISION,
-        "$2.000 (original 6.000): costo ESPERADO, ajustado al VoT",
+        "$2.000 POR DÍA (original 6.000); cada viaje de ida carga la mitad",
         False,
     ),
     "demand.globales.factor_flota_auto": (
@@ -161,8 +174,13 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         False,
     ),
     "demand.estratos.*.prob_teletrabajo": (
-        HEREDADO,
-        "original: 0,40 / 0,20 / 0,05",
+        DECISION,
+        "0 por defecto (oct-2026); el original traía 0,40 / 0,20 / 0,05 sin fuente",
+        False,
+    ),
+    "demand.globales.peaje_km": (
+        DECISION,
+        "0; palanca de política, transferencia (D7); 275 en «Tarificación Vial»",
         False,
     ),
     "demand.estratos.*.prob_auto": (HEREDADO, "original: 0,90 / 0,60 / 0,25", False),
@@ -193,7 +211,8 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
     ),
     "demand.estratos.*.betas.b_costo": (
         DECISION,
-        "= b_t·60/VoT con VoT 6.200/3.100/1.600 pedidos; el VoT no tiene fuente escrita",
+        "= b_t·60/VoT; media por viajero anclada al VST (D5); "
+        "la dispersión entre estratos no tiene fuente escrita",
         True,
     ),
     "demand.estratos.*.betas.b_tiempo_espera": (
@@ -216,8 +235,8 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "original, reescaladas por k; bici_30 del bajo reemplazada",
         False,
     ),
-    "max_iter": (DECISION, "20, numérico", False),
-    "tolerance": (DECISION, "0,1 min, numérico", False),
+    "max_iter": (DECISION, "40 (tope 100), numérico", False),
+    "tolerance": (DECISION, "0,2 min sobre la brecha no amortiguada (D8)", False),
     "seed": (DECISION, "42 en la app; None en el núcleo", False),
     "assignment": (DECISION, "expected en la app; montecarlo en el núcleo", False),
     "modos_habilitados": (DECISION, "los cuatro", False),
@@ -227,24 +246,13 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "deciles chilenos estilizados (D-27); no mueve la asignación",
         False,
     ),
-    # Desde el schema v6 λ no es campo del suelo (se deriva de b_costo); la
-    # sensibilidad registrada en cap09.json es histórica: λ movido con T fija.
-    "land_use.estratos.*.lambda": (
-        NORMA,
-        "= |b_costo| de transporte, literal (D-34)",
-        False,
-    ),
-    "land_use.estratos.*.alpha": (
-        DECISION,
-        "1: el ancla del original recuperada (D-34)",
-        False,
-    ),
+    # λ (= |b_costo|, v6), α (≡ 1) y μ (= 1/√44) no son campos desde el schema v7
+    # (D1): se catalogan como constantes o no se catalogan.
     "land_use.estratos.*.rho": (
         DECISION,
-        "50 % del rango de α·T; el propio código: «SIN FUENTE»",
+        "0 = Alonso puro, sobre densidad relativa (D2); la penalización no tiene fuente",
         True,
     ),
-    "land_use.mu": (DECISION, "1/√44, aproximación de segundo momento (D-41)", False),
     "land_use.tol": (DECISION, "numérico", False),
     "land_use.max_iter": (DECISION, "numérico", False),
     "land_use.forma": (DECISION, "D-13: oferta determinista por formas", False),
@@ -258,6 +266,14 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         False,
     ),
     "constantes.VIAJES_MES": (DECISION, "2 × 22 días (D-27)", False),
+    "constantes.VIAJES_POR_TOUR": (DECISION, "2: el parking es por día (oct-2026)", False),
+    "constantes.MU_SUELO": (DECISION, "1/√44, fijo; no es campo desde v7 (D1, D-41)", False),
+    "constantes.FACTOR_CAPACIDAD_PRACTICA": (
+        DECISION,
+        "0,8·C, capacidad práctica de la BPR (D6, Boyles et al. 2025 p. 102)",
+        False,
+    ),
+    "constantes.TOL_ACOPLADO_CLP_MES": (DECISION, "100 $/hogar-mes, numérico (D10)", False),
 }
 
 
@@ -319,6 +335,10 @@ def inventario() -> dict:
             "CORTE_BICI_MIN",
             "VOT_SOCIAL_CLP_HORA",
             "VIAJES_MES",
+            "VIAJES_POR_TOUR",
+            "MU_SUELO",
+            "FACTOR_CAPACIDAD_PRACTICA",
+            "TOL_ACOPLADO_CLP_MES",
         )
     ]
     filas, sin_etiqueta = [], []
@@ -594,6 +614,8 @@ def sensibilidad() -> dict:
             nuevo = valor + 1
         elif isinstance(valor, int):
             nuevo = round(valor * 1.1)
+        elif valor == 0 and ruta.rsplit(".", 1)[-1].startswith("prob_"):
+            nuevo = 0.1  # una probabilidad en 0 sube 0,1, no a 1 (todos)
         elif valor == 0:
             nuevo = 1.0
         else:
@@ -619,6 +641,11 @@ def sensibilidad() -> dict:
                 "valor": valor,
                 "perturbado": nuevo,
                 "max_delta_pp": round(dpp, 4),
+                # El reparto incluye Teletrabajo: con prob_teletrabajo el Δ máx es
+                # la propia cuota de teletrabajo, no un modo de viaje.
+                "delta_por_modo_pp": {
+                    m: round(r["reparto"][m] - ref["reparto"][m], 4) for m in ref["reparto"]
+                },
                 "delta_t_medio_min": round(
                     r["t_medio_auto_bici"] - ref["t_medio_auto_bici"], 4
                 ),
@@ -634,20 +661,18 @@ def sensibilidad() -> dict:
     ref_eq = _corre(sim, lu, "equilibrio")
     lu0 = lu.model_dump(by_alias=True)
     filas_lu = []
+    # Desde v7 (D1) el suelo no tiene `alpha`, `mu` ni `beta`; λ no es campo
+    # desde v6. `rho` parte en 0, así que se mueve a 1 en vez de ×1,1.
     for ruta in (
-        "estratos.1.alpha",
         "estratos.1.rho",
-        # Histórico (schema ≤ v5): desde v6 λ no es campo del suelo, así que esta
-        # ruta ya no existe; lo registrado en cap09.json movía λ con T fija.
-        "estratos.1.lambda",
         "estratos.1.y",
-        "beta",
         "oferta_sigma_frac",
         "forma_param",
     ):
         v = _get(lu0, ruta)
+        nuevo = 1.0 if v == 0 else v * 1.1
         d = json.loads(json.dumps(lu0))
-        _set(d, ruta, v * 1.1)
+        _set(d, ruta, nuevo)
         r = _corre(sim, LandUseConfig.model_validate(d), "equilibrio")
         dpp = max(
             abs(r["reparto"][m] - ref_eq["reparto"][m]) for m in ref_eq["reparto"]
@@ -656,7 +681,7 @@ def sensibilidad() -> dict:
             {
                 "parametro": "land_use." + ruta,
                 "valor": v,
-                "perturbado": v * 1.1,
+                "perturbado": nuevo,
                 "max_delta_pp": round(dpp, 4),
             }
         )

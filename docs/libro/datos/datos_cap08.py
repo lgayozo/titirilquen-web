@@ -132,7 +132,7 @@ def _fuente_web_sin_strings() -> str:
     partes = [
         p.read_text(encoding="utf-8")
         for p in (WEB / "src").rglob("*.ts*")
-        if "/gen/" not in str(p)
+        if "gen" not in p.relative_to(WEB / "src").parts[:-1]
     ]
     texto = "\n".join(partes)
     return re.sub(r'\bt\(\s*(["\'`])(?:(?!\1).)*\1', 't("")', texto)
@@ -644,6 +644,9 @@ def pines() -> dict:
         "pyodide": pyodide,
         "piso_pydantic": pydantic.strip(),
         "ci_dispara_en_push_a": [r.strip() for r in ramas.split(",")],
+        "ci_dispara_en_pull_request": (
+            re.search(r"^\s{2}pull_request:", ci, re.MULTILINE) is not None
+        ),
         "ci_jobs": jobs,
     }
 
