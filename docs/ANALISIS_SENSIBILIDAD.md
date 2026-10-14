@@ -1,5 +1,11 @@
 # Análisis de sensibilidad de la configuración — Iteración 2 (agosto 2026)
 
+> **Superado** por el capítulo 9 del libro (`docs/libro/cap09-calibracion.html`,
+> §4.4 «Qué mueve el modelo»), que barre los 54 parámetros sobre la línea base
+> vigente. Este documento se conserva como registro: sus mediciones son a
+> 500 hab/km y varios de los parámetros y defaults que cita ya no existen
+> (D-66 en `DISCREPANCIES.md`). No lo uses como referencia del modelo actual.
+
 Registro de hallazgos `S-xx`. Complementa a `DISCREPANCIES.md` (D-xx, fidelidad
 código↔paper): aquí la pregunta no es si el código implementa el modelo, sino si
 **los parámetros que la UI expone mueven el resultado**. Todos los números de este

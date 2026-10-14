@@ -289,7 +289,8 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 #    Antes ambos eran el mismo numero y daban 2.73 / 1.33 / 1.67, sin patron y
 #    en los tres estratos POR ENCIMA de la espera.
 #  * `b_costo` se despeja del valor del tiempo pedido (6.200 / 3.100 / 1.600
-#    $/hora): b_costo = b_tiempo_viaje * 60 / VoT. En ago-2026 se ajusto SOLO el
+#    $/hora, los de entonces; ver ANCLA EN EL VST abajo): b_costo =
+#    b_tiempo_viaje * 60 / VoT. En ago-2026 se ajusto SOLO el
 #    coeficiente de costo, dejando `b_tiempo_viaje` en los valores heredados
 #    (0.055 / 0.0331 / 0.015) para no mover los minutos-equivalentes. Eso dejo
 #    un `b_costo` NO monotono (0.000532 / 0.000641 / 0.000563: el medio valoraba
@@ -308,9 +309,10 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 # k = 0.0331/0.055 y el bajo por k = 0.0331/0.015; el medio queda intacto.
 #
 # Consecuencias: (1) `b_costo` = 0.0331*60/VoT sale MONOTONO solo — 0.000320 /
-# 0.000641 / 0.001241 — o sea la utilidad marginal del ingreso decrece con el
-# ingreso, que es la unica pieza de esto con teoria detras; toda la
-# heterogeneidad del VoT vive ahi. (2) Un hogar, una funcion de utilidad: el
+# 0.000641 / 0.001241 con los VoT de entonces; 0.000314 / 0.000628 / 0.001216
+# desde D5 — o sea la utilidad marginal del ingreso decrece con el ingreso,
+# que es la unica pieza de esto con teoria detras; toda la heterogeneidad del
+# VoT vive ahi. (2) Un hogar, una funcion de utilidad: el
 # modulo de uso de suelo importa esta anatomia (T con peso 1, lambda_h ∝
 # b_costo_h), ver `land_use/config.py` y `tests/test_vot_consistente.py`.
 # (3) La linea base se movio y esta declarada en `tests/test_linea_base.py`.
@@ -333,6 +335,8 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 # estrato (sin teletrabajo), corrida por defecto de la app sin uso de suelo:
 # 47.7 / 22.6 / 3.7. (Aqui decia «46.3 / 19.2 / 6.4» sin denominador ni fecha y
 # no se pudo reproducir; con las escalas heredadas daba 57.4 / 22.0 / 5.8.)
+# Con la calibracion de oct-2026 (sin teletrabajo, D5, D6) es 46.9 / 26.3 / 7.1:
+# `docs/libro/datos/tutoriales.json`, pistas.expected, 2 pistas.
 #
 # SIN TELETRABAJO POR DEFECTO (oct-2026, decisión de Leandro). Las tasas
 # heredadas 0,40 / 0,20 / 0,05 no tenían fuente, y desde D11 deciden la forma de
@@ -351,7 +355,8 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 # agrega teletrabajo, los viajeros cambian y el ancla se mueve:
 # `tests/test_presets.py` lo vigila sobre los defaults.
 #
-# Los valores comunes se eligieron para que el agregado no se moviera
+# (Sigue ASC SIN GRADIENTE, ago-2026.) Las ASC comunes se eligieron para que
+# el agregado no se moviera
 # (auto 11.99 vs 12.16, v/c 0.97 vs 0.99): son neutrales respecto de la
 # calibracion, NO estimados. Con una EOD que de reparto modal por estrato hay que
 # reemplazarlos por el ajuste estandar ASC += ln(objetivo/modelo).

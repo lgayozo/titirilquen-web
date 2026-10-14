@@ -129,7 +129,9 @@ class GlobalConfig(BaseModel):
     # elegido cuando `b_costo` era 6.7x menor y valia 5.8 minutos del tiempo del
     # estrato alto; con el VoT corregido (6.200 $/h) pasaba a valer 39 y hundia
     # el auto a 5.7% con el corredor descongestionado (v/c 0.47). Con 2000 el
-    # reparto vuelve a 12.7% y el v/c a 1.03, la rodilla de la BPR.
+    # reparto vuelve a 12.7% y el v/c a 1.03, la rodilla de la BPR. Esas cifras
+    # son de ago-2026: D5, D6 y el parking por tour las movieron, y la linea
+    # base vigente esta en `tests/test_linea_base.py`.
     #
     # Como hay un UNICO `b_costo` que aplica a la suma de todo el dinero, la
     # razon entre las elasticidades de parking, bencina y tarifa la fijan los

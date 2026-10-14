@@ -1967,8 +1967,11 @@ cumple, y eso está en D-39.
   verdad son `anden_alpha`, `anden_beta`, `frec_min`, `frec_max`,
   `ancho_pista_m`, `densidad_hab_km` (por diseño en la rama con suelo) y los
   dos del costo del operador (por diseño: no entran al reparto).
-- **Estado**: pendiente, prioridad baja. Corrección: cabecera de «superado por
-  el capítulo 9» en el documento, o borrarlo.
+- **Estado**: corregido 2026-10-14. `ANALISIS_SENSIBILIDAD.md` lleva una
+  cabecera de «superado por el capítulo 9» y se conserva como registro. Los
+  comentarios de `costo_parking` (`config.py`) y de `DEFAULT_STRATA`
+  (`presets.py`) declaran que sus cifras son de ago/sep-2026 y dan las
+  vigentes o dónde están. Mover S-09 al capítulo 9 sigue con D-16.
 
 ---
 
@@ -2178,7 +2181,7 @@ cumple, y eso está en D-39.
 | D-63 | Contrato: entrada `simulate` del worker sin llamadores y 15 campos sin lector | Parcial: `simulate` borrada; 15 campos sin lector | Baja |
 | D-64 | Calibración: 0 de 77 parámetros estimados; los tres VoT que ordenan a los estratos no tienen fuente escrita | Parcial 2026-10-13: nivel anclado al VST (D5); falta la dispersión | Alta |
 | D-65 | Calibración: cuatro velocidades duplicadas entre `globales` y `supply`; tres globales inertes, `v_caminata` con dos dueños | Pendiente (libro, cap. 9) | Media |
-| D-66 | Calibración: `ANALISIS_SENSIBILIDAD.md` y comentarios con defaults que ya no existen | Pendiente (libro, cap. 9) | Baja |
+| D-66 | Calibración: `ANALISIS_SENSIBILIDAD.md` y comentarios con defaults que ya no existen | Corregido 2026-10-14 (cabecera + comentarios fechados) | Baja |
 | D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Pendiente (libro, cap. 10) | Media |
 | D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Corregido 2026-10-14 | Media |
 | D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia) | Baja |
