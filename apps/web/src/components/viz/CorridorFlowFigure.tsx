@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PorQue } from "@/components/ui/PorQue";
 import { FlowProfile } from "@/components/viz/FlowProfile";
 
 interface CorridorFlowFigureProps {
@@ -166,8 +167,9 @@ export function CorridorFlowFigure({
             {t("sandbox.flow_replay")}
           </button>
           <span className="text-etiqueta leading-snug text-muted">
-            {t("sandbox.flow_replay_hint")}
+            {t("sandbox.flow_replay_corto")}
           </span>
+          <PorQue>{t("sandbox.flow_replay_porque")}</PorQue>
         </div>
       )}
     </div>

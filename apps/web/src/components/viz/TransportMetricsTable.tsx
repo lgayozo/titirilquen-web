@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { PorQue } from "@/components/ui/PorQue";
 import { CaptionTabla } from "@/components/viz/CaptionTabla";
 import { cn } from "@/lib/cn";
 import { downloadCsv } from "@/lib/csv";
@@ -126,8 +127,9 @@ export function CargaDeRed({
         />
       </div>
       <p style={{ ...fig(), padding: "6px 0 0", lineHeight: 1.5 }}>
-        {t("metrics_table.network_load_note")}
+        {t("metrics_table.network_load_corto")}
       </p>
+      <PorQue>{t("metrics_table.network_load_porque")}</PorQue>
     </>
   );
 }
@@ -437,7 +439,8 @@ export function TransportMetricsTable({ data, className }: Props) {
         }}
       >
         {t("metrics_table.st_share")} …: {t("metrics_table.st_share_nota")}.
-        <br />⚠ {t("sandbox.utility_caveat")}
+        <br />⚠ {t("sandbox.utility_caveat_corto")}
+        <PorQue>{t("sandbox.utility_caveat_porque")}</PorQue>
       </div>
     </div>
   );

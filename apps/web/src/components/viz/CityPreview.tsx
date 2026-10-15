@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PorQue } from "@/components/ui/PorQue";
 import { cn } from "@/lib/cn";
 import type { SimulationConfig } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
@@ -430,18 +431,23 @@ export function CityPreview({ config, className }: CityPreviewProps) {
         </div>
         <p className="cpf-caption">
           {poblacion != null
-            ? t("preview.caption", {
+            ? t("preview.caption_corto", {
                 length: largoKm,
                 cells: nCeldas,
                 dx: dxMetros,
                 pop: poblacion.toLocaleString("es-CL"),
               })
-            : t("preview.caption_no_pop", {
+            : t("preview.caption_no_pop_corto", {
                 length: largoKm,
                 cells: nCeldas,
                 dx: dxMetros,
               })}
         </p>
+        <PorQue>
+          {poblacion != null
+            ? t("preview.caption_porque")
+            : t("preview.caption_no_pop_porque")}
+        </PorQue>
       </div>
     </div>
   );

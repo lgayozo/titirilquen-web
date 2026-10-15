@@ -1099,6 +1099,56 @@ svg .fig-title {
   font-style: italic;
 }
 
+/* «¿por qué?» plegable (B3): la versión corta de un texto queda a la vista y
+   la explicación, cerrada debajo. */
+.porque {
+  margin-top: 4px;
+}
+
+.porque > summary {
+  display: inline-block;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-fig);
+  font-size: var(--fs-etiqueta);
+  color: var(--muted);
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+.porque > summary::-webkit-details-marker {
+  display: none;
+}
+
+.porque > summary:hover,
+.porque[open] > summary {
+  color: var(--ink);
+}
+
+.porque-body {
+  margin-top: 4px;
+  max-width: 72ch;
+  font-size: var(--fs-ayuda);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* Barra de estado de la corrida (B3): una línea en vez del panel del
+   veredicto. Sin equilibrio va en color de alerta, antes de los números. */
+.estado-corrida {
+  margin-bottom: var(--gap);
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  font-family: var(--font-fig);
+  font-size: var(--fs-etiqueta);
+  color: var(--ink-2);
+}
+
+.estado-corrida--alerta {
+  border-color: var(--alerta);
+  color: var(--alerta);
+}
+
 /* Hint row */
 .hint-row {
   display: grid;

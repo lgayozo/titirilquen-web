@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { PorQue } from "@/components/ui/PorQue";
 import { CaptionTabla } from "@/components/viz/CaptionTabla";
 import { agregadosDe, logsumComparable, type Agregados } from "@/lib/agregados";
 import { VOT_SOCIAL_CLP_HORA } from "@/lib/gen/constantes.gen";
@@ -70,6 +71,8 @@ interface FilaAgg {
    *  comparables. */
   unidad?: string;
   nota?: string;
+  /** Explicación de la nota, plegada en un «¿por qué?» (B3). */
+  porque?: string;
 }
 
 export function ReferenceComparison({
@@ -231,9 +234,10 @@ export function ReferenceComparison({
       menorEsMejor: false,
       comparable: excedenteComparable,
       unidad: t("agg.u_ciudad"),
-      nota: t("agg.excedente_social_nota", {
+      nota: t("agg.excedente_social_corto", {
         vot: fmtMoney(VOT_SOCIAL_CLP_HORA),
       }),
+      porque: t("agg.excedente_social_porque"),
     },
     ...STRATA.map((h) => ({
       label: t(usaMax ? "agg.excedente_estrato_max" : "agg.excedente_estrato", {
@@ -293,6 +297,7 @@ export function ReferenceComparison({
                     <span className="celda-unidad ml-1">{f.unidad}</span>
                   )}
                   {f.nota && <span className="celda-nota ml-1">{f.nota}</span>}
+                  {f.porque && <PorQue>{f.porque}</PorQue>}
                 </td>
                 {reference && (
                   <td className="celda-vacia">
@@ -323,11 +328,13 @@ export function ReferenceComparison({
       </table>
 
       <p className="mt-2 text-etiqueta leading-snug text-[var(--muted)]">
-        {t("agg.reparto_hint")}
+        {t("agg.reparto_corto")}
       </p>
+      <PorQue>{t("agg.reparto_porque")}</PorQue>
       <p className="mt-1 text-etiqueta leading-snug text-[var(--muted)]">
-        {t("agg.unidades_hint")}
+        {t("agg.unidades_corto")}
       </p>
+      <PorQue>{t("agg.unidades_porque")}</PorQue>
       <p className="mt-1 text-etiqueta leading-snug text-[var(--muted)]">
         {t("agg.vot_hint", {
           alto: fmtMoney(agg.vot_por_estrato_clp_hora["1"]),

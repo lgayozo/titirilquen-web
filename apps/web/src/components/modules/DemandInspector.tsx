@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PorQue } from "@/components/ui/PorQue";
 import { UtilityBreakdown } from "@/components/viz/UtilityBreakdown";
 import type {
   IterationSnapshot,
@@ -162,8 +163,11 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
         className="text-etiqueta leading-snug text-muted"
         style={{ marginTop: -6 }}
       >
-        {t("demand_inspector.interpretation")}
+        {t("demand_inspector.interpretation_corto")}
       </p>
+      <PorQue className="mb-2">
+        {t("demand_inspector.interpretation_porque")}
+      </PorQue>
 
       {/* P siempre es logit, incluso con `assignment: "todo_o_nada"`: el inspector
           existe para leer la función de utilidad, y Wardrop es el límite del

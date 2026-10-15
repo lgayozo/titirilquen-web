@@ -18,6 +18,7 @@ import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import { PorQue } from "@/components/ui/PorQue";
 import {
   CITY_PREVIEW_X_LAYOUT,
   CityPreview,
@@ -38,6 +39,7 @@ import {
   type TransportMetricsData,
 } from "@/components/viz/TransportMetricsTable";
 import { agregadosDe } from "@/lib/agregados";
+import { cn } from "@/lib/cn";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { simularTransporte } from "@/lib/api";
 import { calcularFlujo } from "@/lib/derivados";
@@ -268,13 +270,18 @@ export function SandboxPage() {
       </ExportableFigure>
       <p className="kpi-caption" style={{ marginTop: 6 }}>
         {landUseCity.comp
-          ? `${t("sandbox.city_view_caption")} ${
-              landUseCity.isPost
-                ? t("sandbox.land_use_city_caption_post")
-                : t("sandbox.land_use_city_caption_pre")
-            }`
+          ? t("sandbox.city_view_caption_corto")
           : t("sandbox.land_use_city_caption_none")}
       </p>
+      {landUseCity.comp && (
+        <PorQue>
+          {`${t("sandbox.city_view_caption_porque")} ${
+            landUseCity.isPost
+              ? t("sandbox.land_use_city_caption_post")
+              : t("sandbox.land_use_city_caption_pre")
+          }`}
+        </PorQue>
+      )}
     </>
   );
 
@@ -746,6 +753,134 @@ export function SandboxPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, lastIter, avgStats, t]);
 
+  // Barra de estado (B3): una línea con el veredicto; el texto largo, que
+  // dice qué hacer si no convergió, va en su «¿por qué?».
+  const textosEstado = (() => {
+    if (!convergencia) return null;
+    const res = convergencia.res?.toFixed(3) ?? "—";
+    // 3 decimales como el residuo: con toFixed(2) una tolerancia de 0,001 se
+    // imprimía "0.00" y se leía como si no hubiera criterio.
+    const tol = convergencia.tol.toFixed(3);
+    const total = convergencia.total;
+    if (convergencia.sinCriterio)
+      return {
+        estado: t("equilibrium.estado_no_tol", { total, res }),
+        veredicto: t("equilibrium.verdict_no_tol", { total, res }),
+      };
+    if (convergencia.ok)
+      return {
+        estado: t("equilibrium.estado_ok", {
+          n: convergencia.usadas,
+          total,
+          res,
+          tol,
+        }),
+        veredicto: t("equilibrium.verdict_ok", {
+          n: convergencia.usadas,
+          total,
+          res,
+          tol,
+        }),
+      };
+    const clave = convergencia.aon ? "fail_aon" : "fail";
+    return {
+      estado: t(`equilibrium.estado_${clave}`, { total, res, tol }),
+      veredicto: t(`equilibrium.verdict_${clave}`, { total, res, tol }),
+    };
+  })();
+
+  // La cinta de tiempos: antes de simular es la vista principal del hero (el
+  // plano); después va a «Más resultados» (B3), con la ciudad plegada dentro.
+  const ribbon = (
+    <div className="ribbon-wrap">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+          {showCiudad
+            ? t("sandbox.city_view_heading")
+            : t("sandbox.city_heading")}
+        </span>
+        {/* Con una sola vista disponible el selector no ofrece nada que
+            elegir: antes de simular sobra. */}
+        {viewOptions.length > 1 && (
+          <div className="seg">
+            {viewOptions.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setHeatMode(m)}
+                className={effHeatMode === m ? "active" : ""}
+              >
+                {viewLabel(m)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showCiudad ? (
+        bloqueCiudad
+      ) : (
+        <ExportableFigure
+          name={`ciudad-${effHeatMode}`}
+          title={`${t("sandbox.city_heading")} — ${viewLabel(effHeatMode)}`}
+          description={t("sandbox.city_figure_desc", {
+            length: cfgRes.city.largo_ciudad_km,
+            cells: cfgRes.city.n_celdas,
+            mode: viewLabel(effHeatMode),
+          })}
+          exportSize={{ width: 1200, height: 200 }}
+        >
+          {cintaTiempos()}
+        </ExportableFigure>
+      )}
+
+      {/* La ciudad y el plano siguen alcanzables después de simular, pero
+          PLEGADOS: son el insumo, no el resultado, y desplegados empujan
+          los KPI y el veredicto fuera de la primera pantalla. `details`
+          nativo, así que abre con teclado y se anuncia a lectores. */}
+      {hasData && (
+        <CollapsibleSection
+          title={t("sandbox.city_view_heading")}
+          className="mt-3"
+        >
+          {bloqueCiudad}
+        </CollapsibleSection>
+      )}
+
+      <div className="ribbon-legend">
+        {(["auto", "metro", "bici", "caminata"] as const)
+          .map((m) => ({ m, c: COLOR_MODO_MINUSCULA[m] }))
+          .map(({ m, c }) => (
+            <span
+              key={m}
+              className="sw"
+              style={
+                {
+                  "--c": c,
+                  opacity:
+                    effHeatMode === "todos" ||
+                    effHeatMode === m ||
+                    (effHeatMode === "espera" && m === "metro")
+                      ? 1
+                      : 0.4,
+                } as React.CSSProperties
+              }
+            >
+              {t(`modes.${m}`)}
+            </span>
+          ))}
+        <span style={{ marginLeft: "auto", textTransform: "none" }}>
+          {t("hero.stats_line", {
+            total: totalAgents > 0 ? totalAgents.toLocaleString("es-CL") : "—",
+            length: cfgRes.city.largo_ciudad_km,
+            stations: cfgRes.supply.train.num_estaciones,
+            lanes: cfgRes.supply.car.num_pistas,
+          })}
+        </span>
+      </div>
+    </div>
+  );
+
   return (
     <div className="page">
       <aside className="sidebar">
@@ -967,114 +1102,24 @@ export function SandboxPage() {
             </div>
           </div>
 
-          <div className="ribbon-wrap">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
-                {showCiudad
-                  ? t("sandbox.city_view_heading")
-                  : t("sandbox.city_heading")}
-              </span>
-              {/* Con una sola vista disponible el selector no ofrece nada que
-                  elegir: antes de simular sobra. */}
-              {viewOptions.length > 1 && (
-                <div className="seg">
-                  {viewOptions.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setHeatMode(m)}
-                      className={effHeatMode === m ? "active" : ""}
-                    >
-                      {viewLabel(m)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {showCiudad ? (
-              bloqueCiudad
-            ) : (
-              <ExportableFigure
-                name={`ciudad-${effHeatMode}`}
-                title={`${t("sandbox.city_heading")} — ${viewLabel(effHeatMode)}`}
-                description={t("sandbox.city_figure_desc", {
-                  length: cfgRes.city.largo_ciudad_km,
-                  cells: cfgRes.city.n_celdas,
-                  mode: viewLabel(effHeatMode),
-                })}
-                exportSize={{ width: 1200, height: 200 }}
-              >
-                {cintaTiempos()}
-              </ExportableFigure>
-            )}
-
-            {/* La ciudad y el plano siguen alcanzables después de simular, pero
-                PLEGADOS: son el insumo, no el resultado, y desplegados empujan
-                los KPI y el veredicto fuera de la primera pantalla. `details`
-                nativo, así que abre con teclado y se anuncia a lectores. */}
-            {hasData && (
-              <CollapsibleSection
-                title={t("sandbox.city_view_heading")}
-                className="mt-3"
-              >
-                {bloqueCiudad}
-              </CollapsibleSection>
-            )}
-
-            <div className="ribbon-legend">
-              {(["auto", "metro", "bici", "caminata"] as const)
-                .map((m) => ({ m, c: COLOR_MODO_MINUSCULA[m] }))
-                .map(({ m, c }) => (
-                  <span
-                    key={m}
-                    className="sw"
-                    style={
-                      {
-                        "--c": c,
-                        opacity:
-                          effHeatMode === "todos" ||
-                          effHeatMode === m ||
-                          (effHeatMode === "espera" && m === "metro")
-                            ? 1
-                            : 0.4,
-                      } as React.CSSProperties
-                    }
-                  >
-                    {t(`modes.${m}`)}
-                  </span>
-                ))}
-              <span style={{ marginLeft: "auto", textTransform: "none" }}>
-                {t("hero.stats_line", {
-                  total:
-                    totalAgents > 0 ? totalAgents.toLocaleString("es-CL") : "—",
-                  length: cfgRes.city.largo_ciudad_km,
-                  stations: cfgRes.supply.train.num_estaciones,
-                  lanes: cfgRes.supply.car.num_pistas,
-                })}
-              </span>
-            </div>
-          </div>
+          {!hasData && ribbon}
         </div>
 
-        {/* Si la corrida NO convergió, el aviso va ANTES de los números y no
-            solo en el veredicto de más abajo. El orden de la página dice que
-            primero se valida y después se lee, pero los KPI son lo primero que
-            entra por los ojos: sin esta marca, el alumno lee seis cifras como
-            si fueran un equilibrio y recién 500 px más abajo se entera de que
-            no lo son. */}
-        {hasData && convergencia && !convergencia.ok && (
-          <p
-            className="mb-2 font-fig text-etiqueta uppercase leading-snug tracking-[0.08em]"
-            style={{
-              color: "var(--alerta)",
-              border: "1px solid var(--alerta)",
-              padding: "6px 10px",
-            }}
+        {/* Barra de estado: ANTES de los números. Sin equilibrio va en color de
+            alerta, porque los KPI son lo primero que entra por los ojos y sin
+            esta marca se leen como un equilibrio (B3: reemplaza al aviso y al
+            panel del veredicto). */}
+        {hasData && textosEstado && (
+          <div
+            className={cn(
+              "estado-corrida",
+              !convergencia?.ok && "estado-corrida--alerta",
+            )}
             role="status"
           >
-            {t("equilibrium.kpis_sin_equilibrio")}
-          </p>
+            {textosEstado.estado}
+            <PorQue>{textosEstado.veredicto}</PorQue>
+          </div>
         )}
 
         {/* KPIs — el resultado en una línea: viajes, reparto modal, frecuencia
@@ -1087,15 +1132,18 @@ export function SandboxPage() {
           <div className="hint-row">
             <div className="hint">
               <strong>{t("hints.demand_title")}</strong>
-              {t("hints.demand_body")}
+              {t("hints.demand_corto")}
+              <PorQue>{t("hints.demand_porque")}</PorQue>
             </div>
             <div className="hint">
               <strong>{t("hints.supply_title")}</strong>
-              {t("hints.supply_body")}
+              {t("hints.supply_corto")}
+              <PorQue>{t("hints.supply_porque")}</PorQue>
             </div>
             <div className="hint">
               <strong>{t("hints.equilibrium_title")}</strong>
-              {t("hints.equilibrium_body")}
+              {t("hints.equilibrium_corto")}
+              <PorQue>{t("hints.equilibrium_porque")}</PorQue>
             </div>
           </div>
         )}
@@ -1120,71 +1168,17 @@ export function SandboxPage() {
           </div>
         )}
 
-        {/* Grid de resultados. El orden ES la jerarquía: primero VALIDAR que la
-            corrida convergió —sin eso ningún número de abajo es un equilibrio—,
-            después los agregados, que son con lo que se comparan escenarios, y
-            recién ahí el diagnóstico de red. Lo desagregado por estrato cierra.
-
-            Los tres primeros paneles van SIN número de figura: son el resultado,
-            no ilustraciones. Así la secuencia FIG. 00-05 queda contigua en vez
-            de partida por dos tablas intercaladas. */}
+        {/* Grid de resultados (B3). La validación es la barra de estado de
+            arriba; aquí van los agregados —con lo que se comparan escenarios,
+            sin número de figura porque son el resultado— y las tres figuras
+            que quedan a la vista: FIG. 01 red, 02 flujo, 03 reparto por
+            estrato. El resto, en «Más resultados». */}
         {liveIterations.length > 0 && (
           <div className="panel-grid">
-            {/* 1. VALIDACIÓN */}
-            {convergencia && (
-              <Panel
-                title={
-                  convergencia.ok
-                    ? t("equilibrium.converged")
-                    : t("equilibrium.not_converged")
-                }
-                meta="MSA"
-                cls="col-12"
-              >
-                <p
-                  className="mb-2 text-etiqueta leading-snug"
-                  style={{
-                    color: convergencia.ok ? "var(--ink-2)" : "var(--alerta)",
-                  }}
-                >
-                  {convergencia.sinCriterio
-                    ? t("equilibrium.verdict_no_tol", {
-                        total: convergencia.total,
-                        res: convergencia.res?.toFixed(3) ?? "—",
-                      })
-                    : convergencia.ok
-                      ? t("equilibrium.verdict_ok", {
-                          n: convergencia.usadas,
-                          total: convergencia.total,
-                          res: convergencia.res?.toFixed(3) ?? "—",
-                          // 3 decimales como el residuo: con toFixed(2) una
-                          // tolerancia de 0,001 se imprimía "0.00" y se leía
-                          // como si no hubiera criterio.
-                          tol: convergencia.tol.toFixed(3),
-                        })
-                      : convergencia.aon
-                        ? t("equilibrium.verdict_fail_aon", {
-                            total: convergencia.total,
-                            res: convergencia.res?.toFixed(3) ?? "—",
-                            tol: convergencia.tol.toFixed(3),
-                          })
-                        : t("equilibrium.verdict_fail", {
-                            total: convergencia.total,
-                            res: convergencia.res?.toFixed(3) ?? "—",
-                            // 3 decimales como el residuo: con toFixed(2) una
-                            // tolerancia de 0,001 se imprimía "0.00" y se leía
-                            // como si no hubiera criterio.
-                            tol: convergencia.tol.toFixed(3),
-                          })}
-                </p>
-                <ConvergenceTrace iterations={liveIterations} />
-              </Panel>
-            )}
-
-            {/* 2. AGREGADOS — el panel más importante una vez validada la
+            {/* AGREGADOS — el panel más importante una vez validada la
                 corrida: es la tabla con la que se comparan escenarios (fijar
                 una corrida de referencia y leer el delta). Por eso va apenas
-                debajo del veredicto y no en el puesto 4 de 10. */}
+                debajo de la barra de estado y los KPI. */}
             {result && configUsed && (
               <Panel
                 title={t("agg.title")}
@@ -1219,22 +1213,10 @@ export function SandboxPage() {
               </Panel>
             )}
 
-            {/* 3. Métricas del sistema: acompaña a los agregados, mismo nivel
-                de lectura (ciudad completa). */}
-            {transportMetrics && (
-              <Panel
-                title={t("metrics_table.panel_title")}
-                meta={t("metrics_table.meta")}
-                cls="col-12"
-              >
-                <TransportMetricsTable data={transportMetrics} />
-              </Panel>
-            )}
-
-            {/* 4. DIAGNÓSTICO DE RED — de acá para abajo empiezan las figuras. */}
+            {/* DIAGNÓSTICO DE RED — de acá para abajo, las figuras. */}
             {lastIter && result && (
               <Panel
-                n="00"
+                n="01"
                 title={t("network.title")}
                 meta={t("panel_meta.modes_all")}
                 cls="col-12"
@@ -1266,7 +1248,7 @@ export function SandboxPage() {
                 cambiar de modo no engañe con auto-scale. */}
             {lastIter && result && flowData && (
               <Panel
-                n="01"
+                n="02"
                 title={flowTitle}
                 meta={
                   <div className="flex flex-wrap gap-1">
@@ -1309,39 +1291,13 @@ export function SandboxPage() {
               </Panel>
             )}
 
-            {result && result.emisiones_perfil_kg && (
-              <Panel
-                n="02"
-                title={t("sandbox.co2_profile")}
-                meta={t("panel_meta.co2")}
-                cls="col-12"
-              >
-                <ExportableFigure
-                  name="co2-por-ubicacion"
-                  title={t("sandbox.co2_profile")}
-                  exportSize={{ width: 1000, height: 200 }}
-                >
-                  <FlowProfile
-                    flows={result.emisiones_perfil_kg}
-                    largoKm={cfgRes.city.largo_ciudad_km}
-                    color="var(--co2)"
-                    label="kg/h"
-                    valueFmt={(v) => v.toFixed(1)}
-                    height={130}
-                  />
-                </ExportableFigure>
-              </Panel>
-            )}
-
             {result && result.agentes.length > 0 && (
               <>
-                {/* Las tres van a ancho completo. FIG. 04 y 05 porque son
-                    espaciales y tienen que alinear columna a columna con las
-                    demás del mismo eje (en col-5 la 04 quedaba con 387 px de
-                    área de datos contra ~930, 2,6× más comprimida). Y la 03
-                    porque sus barras son 100 % apiladas: cuanto más ancha, más
-                    finas son las diferencias de reparto que se pueden leer, y
-                    los segmentos chicos dejan de ser inclicables. */}
+                {/* A ancho completo, como las de reparto por ubicación (en
+                    «Más resultados»), que alinean con el eje de la red: sus
+                    barras son 100 % apiladas, y cuanto más ancha, más finas
+                    son las diferencias de reparto que se leen y los segmentos
+                    chicos dejan de ser inclicables. */}
                 <Panel
                   n="03"
                   title={t("sandbox.trips_by_stratum")}
@@ -1356,97 +1312,179 @@ export function SandboxPage() {
                     <ModeShareBars groups={stratumGroups} />
                   </ExportableFigure>
                 </Panel>
-
-                <Panel
-                  n="04"
-                  title={t("sandbox.mode_share_by_location")}
-                  meta={t("panel_meta.stacked_por_celda")}
-                  cls="col-12"
-                >
-                  <ExportableFigure
-                    name="reparto-modal-por-ubicacion"
-                    title={t("sandbox.mode_share_by_location")}
-                    exportSize={{ width: 800, height: 280 }}
-                  >
-                    {lastIter && (
-                      <ModeShareByLocation
-                        demandByCell={{
-                          Auto: lastIter.demanda_auto,
-                          Metro: lastIter.demanda_metro,
-                          Bici: lastIter.demanda_bici,
-                          Caminata: lastIter.demanda_caminata,
-                        }}
-                        teleByCell={teleByCell}
-                        largoKm={cfgRes.city.largo_ciudad_km}
-                      />
-                    )}
-                  </ExportableFigure>
-                </Panel>
-
-                {modeShareByStratum && (
-                  <Panel
-                    n="05"
-                    title={t("sandbox.mode_share_by_location_stratum")}
-                    meta={t("sandbox.mode_share_stratum_meta")}
-                    cls="col-12"
-                  >
-                    <div style={{ display: "grid", gap: "var(--gap)" }}>
-                      {modeShareByStratum.map((s) => (
-                        <div key={s.key}>
-                          <div
-                            className="mb-1 flex items-center gap-1.5 font-fig text-etiqueta uppercase tracking-[0.08em]"
-                            style={{ color: "var(--muted)" }}
-                          >
-                            <span
-                              style={{
-                                width: 9,
-                                height: 9,
-                                background: s.color,
-                                display: "inline-block",
-                              }}
-                            />
-                            {s.label}
-                          </div>
-                          <ExportableFigure
-                            name={`reparto-ubicacion-${s.key}`}
-                            title={`${t("sandbox.mode_share_by_location_stratum")} — ${s.label}`}
-                            exportSize={{ width: 800, height: 180 }}
-                          >
-                            <ModeShareByLocation
-                              demandByCell={s.demandByCell}
-                              teleByCell={s.teleByCell}
-                              largoKm={cfgRes.city.largo_ciudad_km}
-                              height={130}
-                              normalize={false}
-                            />
-                          </ExportableFigure>
-                        </div>
-                      ))}
-                    </div>
-                  </Panel>
-                )}
               </>
             )}
           </div>
         )}
 
-        {/* Inspector de utilidad — descomposición del logit para una celda/
-            estrato; lo referencia el tutorial de demanda. Antes de correr usa
-            tiempos de flujo libre; después, los de la última iteración. */}
-        <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
-          <Panel
-            n="06"
-            title={t("demand_inspector.title")}
-            meta={
-              lastIter
-                ? t("demand_inspector.hint_with_sim")
-                : t("demand_inspector.hint_no_sim")
-            }
-            cls="col-12"
+        {/* «Más resultados» (B3): todo lo que no es el resultado principal,
+            en un plegable cerrado. A la vista quedan la barra de estado, los
+            KPI, los agregados y tres figuras: la red con v/c, el flujo en el
+            corredor y el reparto por estrato. */}
+        {liveIterations.length > 0 && (
+          <CollapsibleSection
+            title={t("sandbox.mas_resultados")}
+            meta={t("sandbox.mas_resultados_meta")}
+            className="mt-3"
           >
-            <DemandInspector config={cfgRes} lastIter={lastIter} />
-          </Panel>
-        </div>
+            {ribbon}
+            <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
+              {/* La curva de convergencia; el veredicto es la barra de estado. */}
+              {convergencia && (
+                <Panel
+                  title={
+                    convergencia.ok
+                      ? t("equilibrium.converged")
+                      : t("equilibrium.not_converged")
+                  }
+                  meta="MSA"
+                  cls="col-12"
+                >
+                  <ConvergenceTrace iterations={liveIterations} />
+                </Panel>
+              )}
+
+              {/* Métricas del sistema: mismo nivel de lectura que los
+                  agregados (ciudad completa). */}
+              {transportMetrics && (
+                <Panel
+                  title={t("metrics_table.panel_title")}
+                  meta={t("metrics_table.meta")}
+                  cls="col-12"
+                >
+                  <TransportMetricsTable data={transportMetrics} />
+                </Panel>
+              )}
+
+              {result && result.emisiones_perfil_kg && (
+                <Panel
+                  n="04"
+                  title={t("sandbox.co2_profile")}
+                  meta={t("panel_meta.co2")}
+                  cls="col-12"
+                >
+                  <ExportableFigure
+                    name="co2-por-ubicacion"
+                    title={t("sandbox.co2_profile")}
+                    exportSize={{ width: 1000, height: 200 }}
+                  >
+                    <FlowProfile
+                      flows={result.emisiones_perfil_kg}
+                      largoKm={cfgRes.city.largo_ciudad_km}
+                      color="var(--co2)"
+                      label="kg/h"
+                      valueFmt={(v) => v.toFixed(1)}
+                      height={130}
+                    />
+                  </ExportableFigure>
+                </Panel>
+              )}
+
+              {result && result.agentes.length > 0 && (
+                <>
+                  <Panel
+                    n="05"
+                    title={t("sandbox.mode_share_by_location")}
+                    meta={t("panel_meta.stacked_por_celda")}
+                    cls="col-12"
+                  >
+                    <ExportableFigure
+                      name="reparto-modal-por-ubicacion"
+                      title={t("sandbox.mode_share_by_location")}
+                      exportSize={{ width: 800, height: 280 }}
+                    >
+                      {lastIter && (
+                        <ModeShareByLocation
+                          demandByCell={{
+                            Auto: lastIter.demanda_auto,
+                            Metro: lastIter.demanda_metro,
+                            Bici: lastIter.demanda_bici,
+                            Caminata: lastIter.demanda_caminata,
+                          }}
+                          teleByCell={teleByCell}
+                          largoKm={cfgRes.city.largo_ciudad_km}
+                        />
+                      )}
+                    </ExportableFigure>
+                  </Panel>
+
+                  {modeShareByStratum && (
+                    <Panel
+                      n="06"
+                      title={t("sandbox.mode_share_by_location_stratum")}
+                      meta={t("sandbox.mode_share_stratum_meta")}
+                      cls="col-12"
+                    >
+                      <div style={{ display: "grid", gap: "var(--gap)" }}>
+                        {modeShareByStratum.map((s) => (
+                          <div key={s.key}>
+                            <div
+                              className="mb-1 flex items-center gap-1.5 font-fig text-etiqueta uppercase tracking-[0.08em]"
+                              style={{ color: "var(--muted)" }}
+                            >
+                              <span
+                                style={{
+                                  width: 9,
+                                  height: 9,
+                                  background: s.color,
+                                  display: "inline-block",
+                                }}
+                              />
+                              {s.label}
+                            </div>
+                            <ExportableFigure
+                              name={`reparto-ubicacion-${s.key}`}
+                              title={`${t("sandbox.mode_share_by_location_stratum")} — ${s.label}`}
+                              exportSize={{ width: 800, height: 180 }}
+                            >
+                              <ModeShareByLocation
+                                demandByCell={s.demandByCell}
+                                teleByCell={s.teleByCell}
+                                largoKm={cfgRes.city.largo_ciudad_km}
+                                height={130}
+                                normalize={false}
+                              />
+                            </ExportableFigure>
+                          </div>
+                        ))}
+                      </div>
+                    </Panel>
+                  )}
+                </>
+              )}
+              <Panel
+                n="07"
+                title={t("demand_inspector.title")}
+                meta={
+                  lastIter
+                    ? t("demand_inspector.hint_with_sim")
+                    : t("demand_inspector.hint_no_sim")
+                }
+                cls="col-12"
+              >
+                <DemandInspector config={cfgRes} lastIter={lastIter} />
+              </Panel>
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* Inspector de utilidad antes de simular: lo referencia el tutorial
+            de demanda y usa tiempos de flujo libre. */}
+        {liveIterations.length === 0 && (
+          <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
+            <Panel
+              title={t("demand_inspector.title")}
+              meta={
+                lastIter
+                  ? t("demand_inspector.hint_with_sim")
+                  : t("demand_inspector.hint_no_sim")
+              }
+              cls="col-12"
+            >
+              <DemandInspector config={cfgRes} lastIter={lastIter} />
+            </Panel>
+          </div>
+        )}
       </section>
     </div>
   );

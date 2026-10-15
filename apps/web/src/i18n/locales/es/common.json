@@ -74,5 +74,6 @@
       "license": "Licencia GPLv3"
     }
   },
-  "scenario_label": "Escenario"
+  "scenario_label": "Escenario",
+  "porque": "¿por qué?"
 }
