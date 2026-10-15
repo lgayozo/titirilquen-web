@@ -19,8 +19,8 @@ interface OuterTrajectoryProps {
 }
 
 /**
- * Curva de convergencia del loop acoplado: residuo ‖T_new − T_old‖∞ (min) por
- * iteración exterior. Debe tender a 0 cuando suelo y transporte se reconcilian.
+ * Curva de convergencia del loop acoplado: residuo max|T_new − T_old|/λ_h
+ * ($/hogar-mes, `coupled.py`) por iteración exterior. Debe tender a 0 cuando suelo y transporte se reconcilian.
  *
  * La distribución espacial por estrato vive en los paneles "Sin/Con feedback"
  * (Comparison) — acá no se repite para evitar redundancia.

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
+import { PorQue } from "@/components/ui/PorQue";
 import { CityShapePreview } from "@/components/viz/CityShapePreview";
 import { EquilibriumMetricsTable } from "@/components/viz/EquilibriumMetricsTable";
 import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
@@ -147,8 +148,10 @@ export function CoupledPage() {
       kpi: {
         label: tS(p.labelKey),
         value: p.value,
-        // "hog" (hogares) es la única unidad con idioma; el resto son símbolos.
+        // "hog" (hogares) se traduce aquí; "/día" del parking ya viene
+        // traducida. El resto son símbolos.
         unit: p.unit === "hog" ? tS("coupled.unit_households") : p.unit,
+        sub: p.sub,
         color: groupColor[p.group],
       } as KPI,
     }));
@@ -185,7 +188,8 @@ export function CoupledPage() {
     <div className="page">
       {/* ---------- Sidebar: selección de escenario + controles ---------- */}
       <aside className="sidebar">
-        <p className="coupled-sidebar-info">{tS("coupled.lede")}</p>
+        <p className="coupled-sidebar-info">{tS("coupled.lede_corto")}</p>
+        <PorQue>{tS("coupled.lede_porque")}</PorQue>
 
         <div className="coupled-source-label">
           {tS("coupled.source_custom_label")}
@@ -355,8 +359,9 @@ export function CoupledPage() {
                   cls="col-12"
                 >
                   <p className="coupled-panel-hint">
-                    {tS("coupled.convergence_hint")}
+                    {tS("coupled.convergence_corto")}
                   </p>
+                  <PorQue>{tS("coupled.convergence_porque")}</PorQue>
                   <OuterTrajectory result={result} />
                 </Panel>
               </div>
@@ -388,8 +393,9 @@ export function CoupledPage() {
               {tS("coupled.placeholder_title")}
             </div>
             <p className="coupled-placeholder-desc">
-              {tS("coupled.placeholder_desc")}
+              {tS("coupled.placeholder_desc_corto")}
             </p>
+            <PorQue>{tS("coupled.placeholder_desc_porque")}</PorQue>
             <div className="coupled-placeholder-cta">
               {tS("coupled.placeholder")}
             </div>
@@ -502,7 +508,9 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
   const dTBajo =
     (eL[bajo]?.tiempo_medio_min ?? 0) - (eF[bajo]?.tiempo_medio_min ?? 0);
 
-  const highlights: Array<{ title: string; body: string }> = [];
+  // `porque`: el mecanismo, plegado (B4); a la vista quedan las cifras.
+  const highlights: Array<{ title: string; body: string; porque?: string }> =
+    [];
 
   if (Math.abs(dSeg) > 0.01) {
     highlights.push({
@@ -513,6 +521,7 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
           : "coupled.interp.segregation_down",
         { delta: Math.abs(dSeg).toFixed(3) },
       ),
+      porque: dSeg > 0 ? tS("coupled.interp.segregation_up_porque") : undefined,
     });
   }
   if (Math.abs(dCargaBajo - dCargaAlto) > 0.2) {
@@ -557,6 +566,7 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
           <div key={i} className="coupled-interp-card">
             <div className="coupled-interp-title">{h.title}</div>
             <p className="coupled-interp-body">{h.body}</p>
+            {h.porque && <PorQue>{h.porque}</PorQue>}
           </div>
         ))}
       </div>

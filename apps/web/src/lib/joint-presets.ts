@@ -8,7 +8,7 @@
 
 import { defaultLandUseConfig } from "@/lib/defaults";
 import { defaultSimulationConfig } from "@/lib/defaults";
-import { fmtParking } from "@/lib/parking";
+import { fmtParkingPorViaje } from "@/lib/parking";
 import { CITY_PRESETS, POLICY_PRESETS } from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
@@ -83,6 +83,8 @@ export interface PresetParam {
   /** Valor ya formateado. */
   value: string;
   unit?: string;
+  /** Línea secundaria, ya formateada. */
+  sub?: string;
   /** Grupo: de qué módulo proviene el parámetro. */
   group: "city" | "transport" | "land_use";
 }
@@ -159,7 +161,9 @@ export function describePresetParams(
     {
       key: "parking",
       labelKey: "coupled.param.parking",
-      value: fmtParking(sim.demand.globales.costo_parking, t),
+      value: `$${nf(sim.demand.globales.costo_parking)}`,
+      unit: t("economy_params.por_dia", { ns: "simulator" }),
+      sub: fmtParkingPorViaje(sim.demand.globales.costo_parking, t),
       group: "transport",
     },
     {

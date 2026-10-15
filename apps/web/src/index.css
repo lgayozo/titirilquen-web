@@ -909,7 +909,8 @@ a:hover {
   letter-spacing: 0.04em;
 }
 
-.kpi .delta {
+.kpi .delta,
+.kpi .sub {
   display: inline-block;
   margin-top: 4px;
   font-family: var(--font-fig);

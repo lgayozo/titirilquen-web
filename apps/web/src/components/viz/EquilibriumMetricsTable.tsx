@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PorQue } from "@/components/ui/PorQue";
 import { ModalShareBars } from "@/components/viz/ModalShareBars";
 import { cn } from "@/lib/cn";
 import type { EquilibriumMetrics, StratumMetrics } from "@/lib/types-v2";
@@ -30,8 +32,10 @@ const fmtRatio = (v: number | null) => (v == null ? "—" : `${v.toFixed(2)}×`)
 /**
  * Reporte de métricas del equilibrio "Ciudad en equilibrio" — calculado en el
  * core (`coupled_metrics.py`) y adjuntado a cada OuterIteration. Muestra:
- *   - Una tabla **por estrato** (los distintos usuarios).
- *   - Un panel **del sistema** (el equilibrio agregado).
+ *   - Un panel **del sistema** (el equilibrio agregado), con su reparto.
+ *   - Una tabla **por estrato** (los distintos usuarios), plegada (B4): a la
+ *     vista sólo la distancia al CBD, que es el resultado de esta lente —quién
+ *     vive dónde—; el resto y el reparto por estrato, tras «Ver por estrato».
  *
  * Caveat de interpretación (replicado de la discusión λ/y): el Δ excedente del
  * consumidor (vs flujo libre — costo de bienestar de la congestión, ≤ 0) en $
@@ -45,6 +49,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
   const E0 = first?.por_estrato ?? null;
 
   const stratumLabels = [t("strata.alto"), t("strata.medio"), t("strata.bajo")];
+  const [verEstratos, setVerEstratos] = useState(false);
 
   // Filas de la tabla por estrato: (label, accessor, formato).
   // `noDelta`: la métrica es un **input** del escenario (no cambia con el
@@ -107,160 +112,10 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       className={cn(className)}
       style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
     >
-      {/* ---- Por estrato ---- */}
-      <div
-        style={{
-          padding: "10px 14px 6px",
-          borderBottom: "1px solid var(--rule)",
-        }}
-      >
-        <div
-          style={{
-            ...fig("var(--accent)"),
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-          }}
-        >
-          {t("eqt.per_stratum_header")}
-        </div>
-        {E0 && (
-          <div style={{ ...fig("var(--muted)"), marginTop: 3 }}>
-            {t("eqt.delta_note")}
-          </div>
-        )}
-      </div>
-
-      <div style={{ overflowX: "auto" }}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  ...fig(),
-                  textAlign: "left",
-                  padding: "8px 14px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {t("eqt.metric_col")}
-              </th>
-              {stratumLabels.map((lbl, i) => (
-                <th
-                  key={i}
-                  style={{
-                    ...fig("var(--ink)"),
-                    textAlign: "right",
-                    padding: "8px 14px",
-                    fontWeight: 600,
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 5,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        background: `var(--s${i + 1})`,
-                        display: "inline-block",
-                      }}
-                    />
-                    {lbl}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.key} style={{ borderTop: "1px solid var(--rule)" }}>
-                <td
-                  style={{
-                    ...fig("var(--muted)"),
-                    padding: "7px 14px",
-                    textAlign: "left",
-                  }}
-                >
-                  {row.label}
-                  {row.noDelta && (
-                    <span
-                      style={{
-                        ...fig("var(--accent)"),
-                        marginLeft: 6,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                      }}
-                    >
-                      {t("eqt.input_badge")}
-                    </span>
-                  )}
-                </td>
-                {E.map((s, i) => {
-                  const v = row.get(s);
-                  const base = !row.noDelta && E0?.[i] ? row.get(E0[i]!) : null;
-                  return (
-                    <td
-                      key={i}
-                      style={{ padding: "7px 14px", textAlign: "right" }}
-                    >
-                      <div style={{ ...fig("var(--ink)"), fontWeight: 500 }}>
-                        {row.fmt(v)}
-                      </div>
-                      {base != null && (
-                        <DeltaTag curr={v} base={base} fmt={row.fmt} />
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ---- Reparto modal (barras anchas, legibles) ---- */}
-      <div
-        style={{ padding: "10px 14px 6px", borderTop: "1px solid var(--rule)" }}
-      >
-        <div
-          style={{
-            ...fig("var(--accent)"),
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-          }}
-        >
-          {t("eqt.modal")}
-        </div>
-      </div>
-      <div style={{ padding: "4px 14px 12px" }}>
-        <ModalShareBars
-          rows={[
-            ...E.map((s, i) => ({
-              label: stratumLabels[i] ?? `E${i + 1}`,
-              reparto: s.reparto_modal,
-            })),
-            { label: t("eqt.modal_system"), reparto: sys.reparto_modal },
-          ]}
-        />
-      </div>
-
       {/* ---- Sistema ---- */}
       <div
         style={{
           padding: "10px 14px 6px",
-          borderTop: "1px solid var(--rule)",
           borderBottom: "1px solid var(--rule)",
         }}
       >
@@ -327,6 +182,178 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
         />
       </div>
 
+      {/* ---- Reparto modal (barras anchas, legibles) ---- */}
+      <div
+        style={{ padding: "10px 14px 6px", borderTop: "1px solid var(--rule)" }}
+      >
+        <div
+          style={{
+            ...fig("var(--accent)"),
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+          }}
+        >
+          {t("eqt.modal")}
+        </div>
+      </div>
+      <div style={{ padding: "4px 14px 12px" }}>
+        <ModalShareBars
+          rows={[{ label: t("eqt.modal_system"), reparto: sys.reparto_modal }]}
+        />
+      </div>
+
+      {/* ---- Por estrato ---- */}
+      <div
+        style={{
+          padding: "10px 14px 6px",
+          borderTop: "1px solid var(--rule)",
+          borderBottom: "1px solid var(--rule)",
+        }}
+      >
+        <div
+          style={{
+            ...fig("var(--accent)"),
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+          }}
+        >
+          {t("eqt.per_stratum_header")}
+        </div>
+        {E0 && (
+          <div style={{ ...fig("var(--muted)"), marginTop: 3 }}>
+            {t("eqt.delta_note")}
+            {verEstratos && ` ${t("eqt.input_note")}`}
+          </div>
+        )}
+      </div>
+
+      <div style={{ overflowX: "auto" }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          <thead>
+            <tr>
+              <th
+                style={{
+                  ...fig(),
+                  textAlign: "left",
+                  padding: "8px 14px",
+                  textTransform: "uppercase",
+                }}
+              >
+                {t("eqt.metric_col")}
+              </th>
+              {stratumLabels.map((lbl, i) => (
+                <th
+                  key={i}
+                  style={{
+                    ...fig("var(--ink)"),
+                    textAlign: "right",
+                    padding: "8px 14px",
+                    fontWeight: 600,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        background: `var(--s${i + 1})`,
+                        display: "inline-block",
+                      }}
+                    />
+                    {lbl}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows
+              .filter((row) => verEstratos || row.key === "dist")
+              .map((row) => (
+                <tr
+                  key={row.key}
+                  style={{ borderTop: "1px solid var(--rule)" }}
+                >
+                  <td
+                    style={{
+                      ...fig("var(--muted)"),
+                      padding: "7px 14px",
+                      textAlign: "left",
+                    }}
+                  >
+                    {row.label}
+                    {row.noDelta && (
+                      <span
+                        style={{
+                          ...fig("var(--accent)"),
+                          marginLeft: 6,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.08em",
+                        }}
+                      >
+                        {t("eqt.input_badge")}
+                      </span>
+                    )}
+                  </td>
+                  {E.map((s, i) => {
+                    const v = row.get(s);
+                    const base =
+                      !row.noDelta && E0?.[i] ? row.get(E0[i]!) : null;
+                    return (
+                      <td
+                        key={i}
+                        style={{ padding: "7px 14px", textAlign: "right" }}
+                      >
+                        <div style={{ ...fig("var(--ink)"), fontWeight: 500 }}>
+                          {row.fmt(v)}
+                        </div>
+                        {base != null && (
+                          <DeltaTag curr={v} base={base} fmt={row.fmt} />
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+
+      {verEstratos && (
+        <div style={{ padding: "4px 14px 12px" }}>
+          <ModalShareBars
+            rows={E.map((s, i) => ({
+              label: stratumLabels[i] ?? `E${i + 1}`,
+              reparto: s.reparto_modal,
+            }))}
+          />
+        </div>
+      )}
+      <div style={{ padding: "4px 14px 10px" }}>
+        <button
+          type="button"
+          className="btn"
+          aria-expanded={verEstratos}
+          onClick={() => setVerEstratos((v) => !v)}
+        >
+          {verEstratos ? t("eqt.ocultar_estratos") : t("eqt.ver_estratos")}
+        </button>
+      </div>
+
       {/* ---- Caveat ---- */}
       <div
         style={{
@@ -336,7 +363,8 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           lineHeight: 1.5,
         }}
       >
-        ⚠ {t("eqt.caveat")}
+        ⚠ {t("eqt.caveat_corto")}
+        <PorQue>{t("eqt.caveat_porque")}</PorQue>
       </div>
     </div>
   );

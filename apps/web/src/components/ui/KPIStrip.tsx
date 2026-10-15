@@ -6,6 +6,9 @@ export interface KPI {
   unit?: string;
   color?: string;
   delta?: string;
+  /** Línea secundaria bajo el valor (p. ej. el parking por viaje), para que
+   *  el valor no desborde la celda. */
+  sub?: string;
 }
 
 interface KPIStripProps {
@@ -28,6 +31,7 @@ export function KPIStrip({ items, className }: KPIStripProps) {
             {it.unit && <span className="unit">{it.unit}</span>}
           </div>
           {it.delta && <div className="delta">{it.delta}</div>}
+          {it.sub && <div className="sub">{it.sub}</div>}
         </div>
       ))}
     </div>
