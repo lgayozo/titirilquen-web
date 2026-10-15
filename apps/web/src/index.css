@@ -1102,8 +1102,12 @@ svg .fig-title {
 
 /* «¿por qué?» plegable (B3): la versión corta de un texto queda a la vista y
    la explicación, cerrada debajo. */
+/* Autocontenido: dentro de contenedores en versalitas mono (placeholders,
+   rótulos de figura) heredaba «¿POR QUÉ?» y un cuerpo en mayúsculas. */
 .porque {
   margin-top: 4px;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .porque > summary {
@@ -1129,6 +1133,7 @@ svg .fig-title {
 .porque-body {
   margin-top: 4px;
   max-width: 72ch;
+  font-family: var(--font-body);
   font-size: var(--fs-ayuda);
   line-height: 1.5;
   color: var(--ink-2);

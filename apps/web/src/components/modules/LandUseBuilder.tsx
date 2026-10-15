@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import { PorQue } from "@/components/ui/PorQue";
 import { MU_SUELO, VIAJES_MES } from "@/lib/gen/constantes.gen";
 import type { LandUseConfig } from "@/lib/types-v2";
 
@@ -126,11 +127,12 @@ export function LandUseBuilder({
         />
 
         <p className="mt-2 text-etiqueta text-muted">
-          {t("land_use.poblacion_total_hint", {
+          {t("land_use.poblacion_total_corto", {
             total: Math.round(totalH).toLocaleString("es-CL"),
             dens: Math.round(densMedia),
           })}
         </p>
+        <PorQue>{t("land_use.poblacion_total_porque")}</PorQue>
       </CollapsibleSection>
 
       {/* ---- FORMA DE LA CIUDAD: perfil de oferta de vivienda ---- */}
@@ -196,9 +198,10 @@ export function LandUseBuilder({
         meta={`μ=${MU_SUELO.toFixed(3)}`}
         defaultOpen={false}
       >
-        <p className="mb-2 text-etiqueta text-muted">
-          {t("land_use.bidrent_hint")}
+        <p className="text-etiqueta text-muted">
+          {t("land_use.bidrent_corto")}
         </p>
+        <PorQue className="mb-2">{t("land_use.bidrent_porque")}</PorQue>
         <p className="text-etiqueta text-muted">
           {t("land_use.mu_fijo", {
             n: VIAJES_MES,
@@ -206,12 +209,13 @@ export function LandUseBuilder({
           })}
         </p>
         <p className="mt-1 text-etiqueta text-muted">
-          {t("land_use.lambda_values", {
+          {t("land_use.lambda_values_corto", {
             l1: fmtLambda(lambdas[0]),
             l2: fmtLambda(lambdas[1]),
             l3: fmtLambda(lambdas[2]),
           })}
         </p>
+        <PorQue>{t("land_use.lambda_values_porque")}</PorQue>
       </CollapsibleSection>
 
       {[0, 1, 2].map((i) => {
@@ -231,9 +235,10 @@ export function LandUseBuilder({
               max={60}
               step={1}
               format={(v) => v.toFixed(0)}
-              hint={t("land_use.rho_hint")}
+              hint={t("land_use.rho_corto")}
               onChange={(v) => setStratum(idx, { rho: v })}
             />
+            <PorQue>{t("land_use.rho_porque")}</PorQue>
             <LabeledSlider
               label={t("land_use.param_y")}
               value={s.y}
@@ -242,9 +247,10 @@ export function LandUseBuilder({
               step={100_000}
               format={(v) => `$${(v / 1_000_000).toFixed(1)}M`}
               disabled
-              hint={t("land_use.y_na")}
+              hint={t("land_use.y_na_corto")}
               onChange={(v) => setStratum(idx, { y: v })}
             />
+            <PorQue>{t("land_use.y_na_porque")}</PorQue>
           </CollapsibleSection>
         );
       })}

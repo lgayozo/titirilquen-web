@@ -8,6 +8,7 @@ import { PresetGallery } from "@/components/modules/PresetGallery";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
+import { PorQue } from "@/components/ui/PorQue";
 import { BidPriceCurve } from "@/components/viz/BidPriceCurve";
 import { CityShapePreview } from "@/components/viz/CityShapePreview";
 import { DensityProfile } from "@/components/viz/DensityProfile";
@@ -322,8 +323,9 @@ export function LandUsePage() {
                     />
                   </ExportableFigure>
                   <p className="kpi-caption" style={{ marginTop: 8 }}>
-                    {tS("land_use.heatmap_caption")}
+                    {tS("land_use.heatmap_caption_corto")}
                   </p>
+                  <PorQue>{tS("land_use.heatmap_caption_porque")}</PorQue>
                 </Panel>
               )}
 
@@ -397,8 +399,9 @@ export function LandUsePage() {
                   <StratumDistribution composition={initComposition} />
                 </ExportableFigure>
                 <p className="kpi-caption" style={{ marginTop: 8 }}>
-                  {tS("land_use.initial_pop_caption")}
+                  {tS("land_use.initial_pop_caption_corto")}
                 </p>
+                <PorQue>{tS("land_use.initial_pop_caption_porque")}</PorQue>
               </Panel>
             )}
 
@@ -408,8 +411,9 @@ export function LandUsePage() {
                   {tS("land_use.placeholder_title")}
                 </div>
                 <p className="coupled-placeholder-desc">
-                  {tS("land_use.placeholder_desc")}
+                  {tS("land_use.placeholder_desc_corto")}
                 </p>
+                <PorQue>{tS("land_use.placeholder_desc_porque")}</PorQue>
                 <div className="coupled-placeholder-cta">
                   {tS("land_use.run_placeholder")}
                 </div>
