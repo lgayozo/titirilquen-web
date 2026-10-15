@@ -4,6 +4,7 @@ import { CalibrationPanel } from "@/components/modules/CalibrationPanel";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { Panel } from "@/components/ui/Panel";
+import { PorQue } from "@/components/ui/PorQue";
 import { votClpHora } from "@/lib/agregados";
 import { MU_SUELO, VIAJES_MES } from "@/lib/gen/constantes.gen";
 import { conHeterogeneidad, sDeDemanda } from "@/lib/heterogeneidadLambda";
@@ -79,9 +80,10 @@ export function CalibrationPage() {
             format={(v) =>
               sLam == null ? t("calibration_page.het_custom") : v.toFixed(2)
             }
-            hint={t("calibration_page.het_hint")}
+            hint={t("calibration_page.het_corto")}
             onChange={setS}
           />
+          <PorQue>{t("calibration_page.het_porque")}</PorQue>
           <div className="mt-2 flex gap-2">
             <button
               type="button"
@@ -111,8 +113,11 @@ export function CalibrationPage() {
             μ = 1/√{VIAJES_MES} ≈ {mu.toFixed(3)}
           </div>
           <p className="mt-1 text-etiqueta leading-snug text-muted">
-            {t("calibration_page.mu_fijo", { n: VIAJES_MES })}
+            {t("calibration_page.mu_fijo_corto", { n: VIAJES_MES })}
           </p>
+          <PorQue>
+            {t("calibration_page.mu_fijo_porque", { n: VIAJES_MES })}
+          </PorQue>
         </CollapsibleSection>
       </aside>
 
@@ -133,8 +138,9 @@ export function CalibrationPage() {
               marginBottom: 0,
             }}
           >
-            {t("calibration_page.intro")}
+            {t("calibration_page.intro_corto")}
           </p>
+          <PorQue>{t("calibration_page.intro_porque")}</PorQue>
         </div>
 
         <div className="panel-grid">

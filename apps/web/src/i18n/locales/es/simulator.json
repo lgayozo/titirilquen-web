@@ -279,20 +279,24 @@
   },
   "calibration": {
     "title": "Calibración del modelo",
-    "not_a_policy": "No es una política. Son los coeficientes estimados del logit: moverlos cambia el modelo de comportamiento, no la ciudad ni la oferta. Un escenario donde bajó el auto porque se editó su constante no dice nada sobre política de transporte.",
+    "not_a_policy_corto": "No es una política: son los coeficientes estimados del logit. Moverlos cambia el modelo de comportamiento, no la ciudad ni la oferta.",
+    "not_a_policy_porque": "Un escenario donde bajó el auto porque se editó su constante no dice nada sobre política de transporte.",
     "vot": "Valor del tiempo",
     "ratio_espera": "Espera / viaje",
     "ratio_caminata": "Caminata / viaje",
-    "ratio_hint": "El valor del tiempo es β tiempo ÷ β costo. Las razones dicen cuántas veces más molesta un minuto de espera —o de acceso al metro— que uno arriba del vehículo. Los Precios Sociales 2026 del SNI asignan ponderador 2 a ambos; bajo 1 el modelo afirma que esperar molesta menos que viajar.",
+    "ratio_corto": "Valor del tiempo = β tiempo ÷ β costo. Las razones: cuánto más molesta un minuto de espera o de acceso que uno a bordo.",
+    "ratio_porque": "Los Precios Sociales 2026 del SNI asignan ponderador 2 a la espera y al acceso; bajo 1, el modelo afirma que esperar molesta menos que viajar.",
     "b_costo_warn": "β costo debe ser negativo: en 0 o positivo el valor del tiempo y el excedente quedan indefinidos.",
     "g_asc": "Constantes específicas (ASC)",
-    "g_asc_hint": "Capturan todo lo que el modelo no mide (comodidad, hábito, estatus). Solo importan las diferencias entre modos: sumarle lo mismo a las cuatro no cambia nada.",
+    "g_asc_hint": "Capturan lo que el modelo no mide (comodidad, hábito, estatus). Sólo importan las diferencias: sumarle lo mismo a las cuatro no cambia nada.",
     "g_tiempo": "Tiempo y costo",
-    "g_tiempo_hint": "En utiles por minuto y por peso. Todos negativos: más tiempo o más plata, menos utilidad. El acceso al metro y el modo caminata llevan coeficientes SEPARADOS: no es lo mismo el tramo a pie de un viaje en metro que el viaje entero caminando. Hay un único β de costo para bencina, tarifa y estacionamiento juntos.",
+    "g_tiempo_corto": "En utiles por minuto y por peso; todos negativos. Un único β costo para bencina, tarifa y estacionamiento.",
+    "g_tiempo_porque": "El acceso al metro y el modo caminata llevan coeficientes SEPARADOS: no es lo mismo el tramo a pie de un viaje en metro que el viaje entero caminando.",
     "g_penal": "Penalizaciones físicas",
-    "g_penal_hint": "Aditivas, acumulativas y por umbral de MINUTOS: un viaje en bici de 25 min suma la de 10 y la de 20. Sobre 45 min la bici es infactible; la caminata, sobre 30 min.",
+    "g_penal_corto": "Aditivas y acumulativas, por umbral de minutos: un viaje en bici de 25 min suma la de 10 y la de 20.",
+    "g_penal_porque": "La infactibilidad no es una penalización: la fijan los cortes de tiempo, al final del panel.",
     "g_poblacion": "Población",
-    "prob_teletrabajo_hint": "Fracción de los días laborales en que el estrato no se desplaza. Por defecto 0: no hay un dato con fuente. La política de teletrabajo es el factor multiplicador, en «Economía».",
+    "prob_teletrabajo_hint": "Fracción de días laborales sin desplazamiento. Por defecto 0 (sin dato con fuente). La política es el factor multiplicador, en «Economía».",
     "reset": "Restaurar valores por defecto del estrato",
     "p": {
       "asc_auto": "ASC auto",
@@ -317,18 +321,21 @@
     },
     "ratio_acceso": "Acceso metro / viaje",
     "g_cortes": "Cortes de factibilidad (globales)",
-    "cortes_hint": "Sobre este tiempo la alternativa sale del conjunto de elección: no recibe una penalización grande, deja de existir para ese viaje. Es un supuesto de comportamiento, no una política de transporte. Son globales —no dependen del estrato— y mover el corte cambia cuántas alternativas hay, así que también mueve la brecha entre el excedente logsum y el de utilidad máxima."
+    "cortes_corto": "Sobre este tiempo la alternativa sale del conjunto de elección: no se penaliza, deja de existir. Son globales, no por estrato.",
+    "cortes_porque": "Es un supuesto de comportamiento, no una política de transporte. Mover el corte cambia cuántas alternativas hay, así que también mueve la brecha entre el excedente logsum y el de utilidad máxima."
   },
   "calibration_page": {
     "het_section": "Valor del tiempo entre estratos",
     "het_label": "s: 0 = λ iguales · 1 = calibrada",
-    "het_hint": "Mueve los β costo del estrato alto y del bajo con el medio fijo: λₕ = λ_medio·(λₕ/λ_medio calibrado)^s. En s = 0 los tres valoran igual su tiempo, en Transporte y en la puja por suelo; en 1 es la calibración exacta; en 2, el doble de dispersión. Es una herramienta pedagógica, no una calibración.",
+    "het_corto": "Escala la dispersión de λₕ con el estrato medio fijo: 0 = todos valoran igual su tiempo; 1 = calibración exacta; 2 = doble dispersión.",
+    "het_porque": "λₕ = λ_medio·(λₕ/λ_medio calibrado)^s mueve los β costo del alto y del bajo, en Transporte y en la puja por suelo. Es una herramienta pedagógica, no una calibración.",
     "het_custom": "personalizado",
     "het_iguales": "Iguales (s = 0)",
     "het_calibrada": "Calibrada (s = 1)",
     "title": "Calibración",
     "subtitle": "El modelo de comportamiento del hogar, común a los dos módulos",
-    "intro": "Antes de simular una ciudad hay que decidir cómo se comporta quien vive en ella. Estos coeficientes son los del logit de elección modal, pero no son sólo de Transporte: un hogar tiene una sola función de utilidad, y el que elige modo es el mismo que puja por una parcela. Por eso fijan a la vez el reparto modal, la accesibilidad T con que se puja por suelo y la utilidad marginal del ingreso λₕ = |β costo| de la puja. No son políticas: moverlos cambia el modelo, no la ciudad.",
+    "intro_corto": "Estos coeficientes del logit fijan a la vez el reparto modal, la accesibilidad T de la puja por suelo y su λₕ = |β costo|.",
+    "intro_porque": "Antes de simular una ciudad hay que decidir cómo se comporta quien vive en ella. No son sólo de Transporte: un hogar tiene una sola función de utilidad, y el que elige modo es el mismo que puja por una parcela. No son políticas: moverlos cambia el modelo, no la ciudad.",
     "mu_section": "Uso de suelo · ruido de la subasta",
     "table_title": "Lo que la calibración implica, por estrato",
     "row": {
@@ -352,16 +359,17 @@
       "prob_auto": "Tenencia de auto"
     },
     "knob_effect": {
-      "b_costo": "Transporte: el valor del tiempo y la sensibilidad a tarifas y estacionamiento. Suelo: λₕ, que ordena a los estratos por valor del tiempo (el gradiente de Alonso), y la accesibilidad T.",
+      "b_costo": "Transporte: valor del tiempo y sensibilidad a tarifas y estacionamiento. Suelo: λₕ, que ordena a los estratos (gradiente de Alonso), y la accesibilidad T.",
       "b_tiempo": "Transporte: el valor del tiempo y el reparto entre modos rápidos y lentos. Suelo: la accesibilidad T, porque cambia el logsum de cada celda.",
       "asc": "Transporte: el reparto modal. Suelo: la accesibilidad T, por el mismo logsum.",
-      "prob_auto": "Transporte: quién puede elegir auto. Suelo: la accesibilidad T de cada estrato; es la que, con los λ iguales, deja al estrato alto algo más lejos del centro."
+      "prob_auto": "Transporte: quién puede elegir auto. Suelo: la accesibilidad T de cada estrato; con λ iguales, deja al alto algo más lejos del centro."
     },
     "stale_note": "Cualquier cambio acá deja desactualizados los resultados de Transporte, Uso de suelo y Ciudad en equilibrio: cada página lo avisa y ofrece volver a correr.",
     "summary": "Los coeficientes del logit se editan en la página Calibración: fijan también la accesibilidad y el λ del uso de suelo.",
     "edit_link": "Editar en Calibración →",
     "mu_meta": "μ = {{mu}} · fijo",
-    "mu_fijo": "Es la precisión del ruido de elegir casa (Martínez, ec. 4.2), medida en la escala de un viaje. La puja lee la accesibilidad de un mes, {{n}} viajes; si cada viaje trae su shock independiente, el del mes crece como √{{n}} y la precisión cae a 1/√{{n}}. Es un supuesto razonado, no un dato: sin rentas observadas no se puede estimar. No es una perilla porque moverlo re-escala a la vez accesibilidad y densidad."
+    "mu_fijo_corto": "Precisión del ruido de elegir casa (Martínez, ec. 4.2), en la escala de un viaje: la puja lee {{n}} viajes al mes.",
+    "mu_fijo_porque": "Si cada viaje trae su shock independiente, el del mes crece como √{{n}} y la precisión cae a 1/√{{n}}. Es un supuesto razonado, no un dato: sin rentas observadas no se puede estimar. No es una perilla porque moverlo re-escala a la vez accesibilidad y densidad."
   },
   "demand_inspector": {
     "title": "Inspector de utilidad — logit multinomial",

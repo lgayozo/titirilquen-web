@@ -279,20 +279,24 @@
   },
   "calibration": {
     "title": "Model calibration",
-    "not_a_policy": "Not a policy. These are the estimated logit coefficients: moving them changes the behavioural model, not the city or the supply. A scenario where car use fell because its constant was edited says nothing about transport policy.",
+    "not_a_policy_corto": "Not a policy: these are the estimated logit coefficients. Moving them changes the behavioural model, not the city or the supply.",
+    "not_a_policy_porque": "A scenario where car use fell because its constant was edited says nothing about transport policy.",
     "vot": "Value of time",
     "ratio_espera": "Wait / in-vehicle",
     "ratio_caminata": "Walk / in-vehicle",
-    "ratio_hint": "Value of time is β time ÷ β cost. The ratios say how many times more onerous a minute of waiting —or of walking to the station— is than a minute in the vehicle. Chile's 2026 social prices (SNI) assign weight 2 to both; below 1 the model claims waiting bothers people less than travelling.",
+    "ratio_corto": "Value of time = β time ÷ β cost. The ratios: how much more onerous a minute of waiting or access is than one on board.",
+    "ratio_porque": "Chile's 2026 social prices (SNI) assign weight 2 to waiting and access; below 1 the model claims waiting bothers people less than travelling.",
     "b_costo_warn": "β cost must be negative: at 0 or positive, the value of time and the surplus are undefined.",
     "g_asc": "Alternative-specific constants (ASC)",
-    "g_asc_hint": "They capture everything the model does not measure (comfort, habit, status). Only differences between modes matter: adding the same amount to all four changes nothing.",
+    "g_asc_hint": "They capture what the model does not measure (comfort, habit, status). Only differences matter: adding the same to all four changes nothing.",
     "g_tiempo": "Time and cost",
-    "g_tiempo_hint": "In utils per minute and per peso. All negative: more time or more money, less utility. Metro access and the walking mode use SEPARATE coefficients: the walk to a station is not the same as walking the whole trip. There is a single cost β covering fuel, fare and parking together.",
+    "g_tiempo_corto": "In utils per minute and per peso; all negative. A single cost β covers fuel, fare and parking.",
+    "g_tiempo_porque": "Metro access and the walking mode use SEPARATE coefficients: the walk to a station is not the same as walking the whole trip.",
     "g_penal": "Physical penalties",
-    "g_penal_hint": "Additive, cumulative and triggered by MINUTE thresholds: a 25-min bike trip adds both the 10-min and the 20-min penalty. Above 45 min cycling is infeasible; walking, above 30 min.",
+    "g_penal_corto": "Additive and cumulative, by minute thresholds: a 25-min bike trip adds both the 10-min and the 20-min penalty.",
+    "g_penal_porque": "Infeasibility is not a penalty: it is set by the time cutoffs, at the end of the panel.",
     "g_poblacion": "Population",
-    "prob_teletrabajo_hint": "Share of workdays on which the stratum does not commute. Default 0: there is no sourced figure. The telework policy is the multiplier, under “Economy”.",
+    "prob_teletrabajo_hint": "Share of workdays without commuting. Default 0 (no sourced figure). The policy is the multiplier, under “Economy”.",
     "reset": "Restore the stratum's default values",
     "p": {
       "asc_auto": "ASC car",
@@ -317,18 +321,21 @@
     },
     "ratio_acceso": "Metro access / in-vehicle",
     "g_cortes": "Feasibility cutoffs (global)",
-    "cortes_hint": "Above this time the alternative leaves the choice set: it does not get a large penalty, it stops existing for that trip. It is a behavioural assumption, not a transport policy. These are global —they do not vary by stratum— and moving a cutoff changes how many alternatives there are, so it also moves the gap between logsum and max-utility surplus."
+    "cortes_corto": "Above this time the alternative leaves the choice set: it is not penalised, it stops existing. They are global, not per stratum.",
+    "cortes_porque": "It is a behavioural assumption, not a transport policy. Moving a cutoff changes how many alternatives there are, so it also moves the gap between logsum and max-utility surplus."
   },
   "calibration_page": {
     "het_section": "Value of time across strata",
     "het_label": "s: 0 = equal λ · 1 = calibrated",
-    "het_hint": "Moves the β cost of the high and low strata with the middle one fixed: λₕ = λ_middle·(calibrated λₕ/λ_middle)^s. At s = 0 all three value their time equally, in Transport and in the land bid; at 1 it is the exact calibration; at 2, twice the dispersion. It is a teaching tool, not a calibration.",
+    "het_corto": "Scales the dispersion of λₕ with the middle stratum fixed: 0 = all value time equally; 1 = exact calibration; 2 = twice the dispersion.",
+    "het_porque": "λₕ = λ_middle·(calibrated λₕ/λ_middle)^s moves the β cost of the high and low strata, in Transport and in the land bid. It is a teaching tool, not a calibration.",
     "het_custom": "custom",
     "het_iguales": "Equal (s = 0)",
     "het_calibrada": "Calibrated (s = 1)",
     "title": "Calibration",
     "subtitle": "The household's behavioral model, shared by both modules",
-    "intro": "Before simulating a city you have to decide how its residents behave. These coefficients are those of the mode-choice logit, but they do not belong to Transport alone: a household has a single utility function, and the one choosing a mode is the one bidding for a plot. So they set at once the modal split, the accessibility T used to bid for land and the marginal utility of income λₕ = |β cost| of the bid. They are not policies: moving them changes the model, not the city.",
+    "intro_corto": "These logit coefficients set at once the modal split, the accessibility T of the land bid and its λₕ = |β cost|.",
+    "intro_porque": "Before simulating a city you have to decide how its residents behave. They do not belong to Transport alone: a household has a single utility function, and the one choosing a mode is the one bidding for a plot. They are not policies: moving them changes the model, not the city.",
     "mu_section": "Land use · auction noise",
     "table_title": "What the calibration implies, by stratum",
     "row": {
@@ -352,16 +359,17 @@
       "prob_auto": "Car ownership"
     },
     "knob_effect": {
-      "b_costo": "Transport: the value of time and the sensitivity to fares and parking. Land: λₕ, which sorts the strata by value of time (the Alonso gradient), and the accessibility T.",
+      "b_costo": "Transport: value of time and sensitivity to fares and parking. Land: λₕ, which sorts the strata (Alonso gradient), and the accessibility T.",
       "b_tiempo": "Transport: the value of time and the split between fast and slow modes. Land: the accessibility T, since it changes each cell's logsum.",
       "asc": "Transport: the modal split. Land: the accessibility T, through the same logsum.",
-      "prob_auto": "Transport: who can choose the car. Land: each stratum's accessibility T; it is what, with equal λ, leaves the high stratum somewhat farther from the center."
+      "prob_auto": "Transport: who can choose the car. Land: each stratum's accessibility T; with equal λ, it leaves the high stratum somewhat farther from the center."
     },
     "stale_note": "Any change here makes the Transport, Land use and City in equilibrium results stale: each page flags it and offers to rerun.",
     "summary": "The logit coefficients are edited on the Calibration page: they also set land use's accessibility and λ.",
     "edit_link": "Edit in Calibration →",
     "mu_meta": "μ = {{mu}} · fixed",
-    "mu_fijo": "It is the precision of the home-choice noise (Martínez, eq. 4.2), measured on the scale of one trip. The bid reads one month's accessibility, {{n}} trips; if each trip carries its own independent shock, the month's grows like √{{n}} and the precision falls to 1/√{{n}}. It is a reasoned assumption, not data: without observed rents it cannot be estimated. It is not a knob because moving it rescales accessibility and density at once."
+    "mu_fijo_corto": "Precision of the home-choice noise (Martínez, eq. 4.2), on the scale of one trip: the bid reads {{n}} trips a month.",
+    "mu_fijo_porque": "If each trip carries its own independent shock, the month's grows like √{{n}} and the precision falls to 1/√{{n}}. It is a reasoned assumption, not data: without observed rents it cannot be estimated. It is not a knob because moving it rescales accessibility and density at once."
   },
   "demand_inspector": {
     "title": "Utility inspector — multinomial logit",

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import { PorQue } from "@/components/ui/PorQue";
 import { votClpHora } from "@/lib/agregados";
 import { defaultSimulationConfig } from "@/lib/defaults";
 import type {
@@ -159,10 +160,13 @@ function NumberField({
 function Grupo({
   title,
   hint,
+  porque,
   children,
 }: {
   title: string;
   hint?: string;
+  /** Explicación del hint, plegada en un «¿por qué?» (B4). */
+  porque?: string;
   children: ReactNode;
 }) {
   return (
@@ -174,6 +178,7 @@ function Grupo({
       {hint && (
         <p className="mt-1.5 text-etiqueta leading-snug text-muted">{hint}</p>
       )}
+      {porque && <PorQue>{porque}</PorQue>}
     </div>
   );
 }
@@ -279,9 +284,10 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
       meta={votTodos.join(" · ")}
       defaultOpen={defaultOpen}
     >
-      <p className="mb-3 text-etiqueta leading-snug text-muted">
-        {t("calibration.not_a_policy")}
+      <p className="text-etiqueta leading-snug text-muted">
+        {t("calibration.not_a_policy_corto")}
       </p>
+      <PorQue className="mb-3">{t("calibration.not_a_policy_porque")}</PorQue>
 
       <div className="seg" style={{ width: "100%" }}>
         {STRATA.map((h) => (
@@ -336,8 +342,9 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
         </div>
       </dl>
       <p className="mt-1.5 text-etiqueta leading-snug text-muted">
-        {t("calibration.ratio_hint")}
+        {t("calibration.ratio_corto")}
       </p>
+      <PorQue>{t("calibration.ratio_porque")}</PorQue>
       {betas.b_costo >= 0 && (
         <p
           className="mt-1.5 text-etiqueta leading-snug"
@@ -361,7 +368,8 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
 
       <Grupo
         title={t("calibration.g_tiempo")}
-        hint={t("calibration.g_tiempo_hint")}
+        hint={t("calibration.g_tiempo_corto")}
+        porque={t("calibration.g_tiempo_porque")}
       >
         {TIEMPO_KEYS.map((k) => (
           <NumberField
@@ -376,7 +384,8 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
 
       <Grupo
         title={t("calibration.g_penal")}
-        hint={t("calibration.g_penal_hint")}
+        hint={t("calibration.g_penal_corto")}
+        porque={t("calibration.g_penal_porque")}
       >
         {PENAL_KEYS.map((k) => (
           <NumberField
@@ -434,8 +443,9 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
         />
       </Grupo>
       <p className="mt-1.5 text-etiqueta leading-snug text-muted">
-        {t("calibration.cortes_hint")}
+        {t("calibration.cortes_corto")}
       </p>
+      <PorQue>{t("calibration.cortes_porque")}</PorQue>
 
       <button
         type="button"
