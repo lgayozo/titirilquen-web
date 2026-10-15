@@ -1,5 +1,8 @@
 import { useTranslation } from "react-i18next";
 
+import { useState } from "react";
+
+import { deltaColor } from "@/components/compare/MetricCompareTable";
 import { cn } from "@/lib/cn";
 import type { ScenarioKPIs } from "@/lib/kpis";
 import type { Modo, StratumId } from "@/lib/types";
@@ -20,10 +23,14 @@ const TRAVEL_MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
 
 /**
  * Tabla KPI comparativa. La primera columna con datos es la base; las demás
- * muestran delta absoluto en porcentaje o minutos.
+ * muestran delta absoluto en porcentaje o minutos, en la misma línea que el
+ * valor (B4: debajo, cada fila medía el doble). El color del Δ sigue a
+ * `MetricCompareTable`: sólo las filas con sentido claro lo llevan. Los
+ * bloques por estrato van plegados.
  */
 export function KPITable({ scenarios, baseId }: KPITableProps) {
   const { t } = useTranslation("simulator");
+  const [verEstratos, setVerEstratos] = useState(false);
 
   const base =
     scenarios.find((s) => s.id === baseId && s.kpis) ??
@@ -76,7 +83,7 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                 baseKpis={base?.kpis ?? null}
                 formatter={(v) => (v > 0 ? `${v.toFixed(1)}` : "—")}
                 deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}`}
-                invertedSign
+                betterWhen="down"
               />
             ))}
           </Section>
@@ -97,7 +104,6 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               baseKpis={base?.kpis ?? null}
               formatter={(v) => v.toFixed(3)}
               deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(3)}`}
-              invertedSign
             />
             <KPIRow
               label={t("compare.kpi.physical_trips")}
@@ -124,7 +130,7 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               deltaFormatter={(d) =>
                 Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
               }
-              invertedSign
+              betterWhen="down"
             />
             <KPIRow
               label={t("metrics_table.vc_metro")}
@@ -135,7 +141,7 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               deltaFormatter={(d) =>
                 Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
               }
-              invertedSign
+              betterWhen="down"
             />
             <KPIRow
               label={t("metrics_table.vc_bici")}
@@ -146,7 +152,7 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               deltaFormatter={(d) =>
                 Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
               }
-              invertedSign
+              betterWhen="down"
             />
           </Section>
 
@@ -160,7 +166,7 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               deltaFormatter={(d) =>
                 `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
               }
-              invertedSign
+              betterWhen="down"
             />
             <KPIRow
               label={t("modes.auto")}
@@ -171,7 +177,7 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               deltaFormatter={(d) =>
                 `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
               }
-              invertedSign
+              betterWhen="down"
             />
             <KPIRow
               label={t("modes.metro")}
@@ -182,47 +188,63 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               deltaFormatter={(d) =>
                 `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
               }
-              invertedSign
+              betterWhen="down"
             />
           </Section>
 
-          {STRATA.map((s) => (
-            <Section
-              key={s}
-              label={`${t("compare.kpi.stratum")} · ${t(`strata.${STRATUM_KEY[s]}`)}`}
-            >
-              <KPIRow
-                label={t("compare.kpi.travel_time")}
-                scenarios={scenarios}
-                valueOf={(kpi) => kpi.by_stratum[s].mean_time_min}
-                baseKpis={base?.kpis ?? null}
-                formatter={(v) => (v > 0 ? v.toFixed(1) : "—")}
-                deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}`}
-                invertedSign
-              />
-              <KPIRow
-                label={t("compare.kpi.utility")}
-                scenarios={scenarios}
-                valueOf={(kpi) => kpi.by_stratum[s].mean_utility}
-                baseKpis={base?.kpis ?? null}
-                formatter={(v) => v.toFixed(2)}
-                deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(2)}`}
-              />
-              {TRAVEL_MODES.map((m) => (
+          <tr>
+            <td colSpan={99} className="px-3 py-1.5">
+              <button
+                type="button"
+                className="btn"
+                aria-expanded={verEstratos}
+                onClick={() => setVerEstratos((v) => !v)}
+              >
+                {verEstratos
+                  ? t("compare.kpi.ocultar_estratos")
+                  : t("compare.kpi.ver_estratos")}
+              </button>
+            </td>
+          </tr>
+          {verEstratos &&
+            STRATA.map((s) => (
+              <Section
+                key={s}
+                label={`${t("compare.kpi.stratum")} · ${t(`strata.${STRATUM_KEY[s]}`)}`}
+              >
                 <KPIRow
-                  key={m}
-                  label={`% ${t(`modes.${m.toLowerCase()}`)}`}
+                  label={t("compare.kpi.travel_time")}
                   scenarios={scenarios}
-                  valueOf={(kpi) => kpi.by_stratum[s].modal_share[m] * 100}
+                  valueOf={(kpi) => kpi.by_stratum[s].mean_time_min}
                   baseKpis={base?.kpis ?? null}
-                  formatter={(v) => `${v.toFixed(1)}%`}
-                  deltaFormatter={(d) =>
-                    `${d >= 0 ? "+" : ""}${d.toFixed(1)} pp`
-                  }
+                  formatter={(v) => (v > 0 ? v.toFixed(1) : "—")}
+                  deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}`}
+                  betterWhen="down"
                 />
-              ))}
-            </Section>
-          ))}
+                <KPIRow
+                  label={t("compare.kpi.utility")}
+                  scenarios={scenarios}
+                  valueOf={(kpi) => kpi.by_stratum[s].mean_utility}
+                  baseKpis={base?.kpis ?? null}
+                  formatter={(v) => v.toFixed(2)}
+                  deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(2)}`}
+                  betterWhen="up"
+                />
+                {TRAVEL_MODES.map((m) => (
+                  <KPIRow
+                    key={m}
+                    label={`% ${t(`modes.${m.toLowerCase()}`)}`}
+                    scenarios={scenarios}
+                    valueOf={(kpi) => kpi.by_stratum[s].modal_share[m] * 100}
+                    baseKpis={base?.kpis ?? null}
+                    formatter={(v) => `${v.toFixed(1)}%`}
+                    deltaFormatter={(d) =>
+                      `${d >= 0 ? "+" : ""}${d.toFixed(1)} pp`
+                    }
+                  />
+                ))}
+              </Section>
+            ))}
         </tbody>
       </table>
     </div>
@@ -258,8 +280,8 @@ interface KPIRowProps {
   baseKpis: ScenarioKPIs | null;
   formatter: (v: number) => string;
   deltaFormatter: (d: number) => string;
-  /** si true, delta negativo es "bueno" (verde) — ej. tiempos. */
-  invertedSign?: boolean;
+  /** Dirección "buena" del Δ; sin definir, el Δ va neutro. */
+  betterWhen?: "down" | "up";
 }
 
 function KPIRow({
@@ -269,7 +291,7 @@ function KPIRow({
   baseKpis,
   formatter,
   deltaFormatter,
-  invertedSign,
+  betterWhen,
 }: KPIRowProps) {
   return (
     <tr className="border-b border-[var(--rule)] hover:bg-[var(--paper-2)]">
@@ -294,24 +316,24 @@ function KPIRow({
             key={s.id}
             className="px-3 py-1.5 text-right font-mono tabular-nums"
           >
-            <div>{formatter(v)}</div>
+            {formatter(v)}
             {delta != null && !isBase && (
-              <div
-                className={cn("text-etiqueta", deltaColor(delta, invertedSign))}
+              <span
+                className={cn(
+                  "ml-2",
+                  // Neutro si el Δ impreso es cero ("+0.0"): un umbral fijo
+                  // pintaba de rojo diferencias que la fila no muestra.
+                  !/[1-9]/.test(deltaFormatter(delta))
+                    ? "text-[var(--muted)]"
+                    : deltaColor(delta, betterWhen),
+                )}
               >
                 {deltaFormatter(delta)}
-              </div>
+              </span>
             )}
           </td>
         );
       })}
     </tr>
   );
-}
-
-function deltaColor(delta: number, inverted?: boolean): string {
-  const positiveIsGood = !inverted;
-  if (Math.abs(delta) < 1e-3) return "text-[var(--muted)]";
-  const good = positiveIsGood ? delta > 0 : delta < 0;
-  return good ? "text-[var(--mejora)]" : "text-[var(--empeora)]";
 }

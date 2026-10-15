@@ -72,7 +72,7 @@ export function ComparisonHighlights({
                 label={`% ${t("modes.auto")}`}
                 delta={autoPp}
                 unit=" pp"
-                lowerIsBetter
+                neutro
               />
               {STRATA.map((st) => (
                 <Chip
@@ -100,21 +100,27 @@ function Chip({
   delta,
   unit,
   lowerIsBetter,
+  neutro,
   decimals = 0,
 }: {
   label: string;
   delta: number;
   unit: string;
   lowerIsBetter?: boolean;
+  /** Sin dirección «buena» (B4): que el auto pierda reparto no es una mejora
+   *  en sí —depende a costa de cuál—, como en los agregados del Sandbox. */
+  neutro?: boolean;
   decimals?: number;
 }) {
   const negligible = Math.abs(delta) < (decimals > 0 ? 0.05 : 0.5);
   const good = lowerIsBetter ? delta < 0 : delta > 0;
   const color = negligible
     ? "var(--muted)"
-    : good
-      ? "var(--mejora)"
-      : "var(--empeora)";
+    : neutro
+      ? "var(--ink)"
+      : good
+        ? "var(--mejora)"
+        : "var(--empeora)";
   const arrow = negligible ? "→" : delta > 0 ? "↑" : "↓";
   return (
     <span className="inline-flex items-center gap-1">

@@ -13,6 +13,7 @@ import { ScenarioCard } from "@/components/compare/ScenarioCard";
 import { ScenarioDiffTable } from "@/components/compare/ScenarioDiffTable";
 import { ScenarioFlowComparison } from "@/components/compare/ScenarioFlowComparison";
 import { Panel } from "@/components/ui/Panel";
+import { PorQue } from "@/components/ui/PorQue";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 
 import {
@@ -577,9 +578,10 @@ export function ComparePage() {
             </span>
           )}
           {kind === "transport" && (
-            <span className="text-etiqueta text-muted">
-              {t("compare.transport_hint")}
-            </span>
+            <div className="text-etiqueta text-muted">
+              {t("compare.transport_hint_corto")}
+              <PorQue>{t("compare.transport_hint_porque")}</PorQue>
+            </div>
           )}
         </div>
       </div>

@@ -110,7 +110,9 @@ export function MetricCompareTable({
   );
 }
 
-function deltaColor(delta: number, betterWhen?: "down" | "up"): string {
+/** Color de un Δ. Sin `betterWhen` es neutro: que un modo gane reparto no
+ *  es una mejora en sí (B4: lo comparten todas las tablas de Comparar). */
+export function deltaColor(delta: number, betterWhen?: "down" | "up"): string {
   if (!betterWhen) return "text-[var(--muted)]";
   const good = betterWhen === "down" ? delta < 0 : delta > 0;
   return good ? "text-[var(--mejora)]" : "text-[var(--empeora)]";

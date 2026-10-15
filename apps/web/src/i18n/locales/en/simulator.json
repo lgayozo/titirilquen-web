@@ -514,14 +514,16 @@
       "mean_time": "Mean time (min) by effective mode",
       "operation": "Operation",
       "metro_freq": "Metro frequency (trains/h)",
-      "final_residual": "Final residual (utils/month)",
+      "final_residual": "Final residual (min)",
       "physical_trips": "Physical trips",
       "emissions": "CO₂ emissions (kg/h)",
       "total": "Total",
       "stratum": "Stratum",
       "travel_time": "Travel time (min)",
       "utility": "Mean utility",
-      "congestion": "Congestion (corridor v/c)"
+      "congestion": "Congestion (corridor v/c)",
+      "ver_estratos": "Show by stratum ›",
+      "ocultar_estratos": "Hide by stratum"
     },
     "scenario_card": {
       "no_config": "No configuration. Load a file or use the current transport.",
@@ -554,7 +556,8 @@
       "coupled": "City at equilibrium"
     },
     "coupled_hint": "Runs the full land ↔ transport loop per scenario (expected assignment · max {{max}} outer iterations).",
-    "transport_hint": "Every card of the same city runs with the base's population, cell by cell: the Δ is transport only. Relocation is the «City at equilibrium» lens.",
+    "transport_hint_corto": "Cards of the same city run with the base population, cell by cell: the Δ is transport only.",
+    "transport_hint_porque": "No relocation: relocation is the «City at equilibrium» lens.",
     "base_sin_resultado": "The base has no transport result: run it first.",
     "q": {
       "congelada": "base population",

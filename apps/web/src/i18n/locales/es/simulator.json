@@ -514,14 +514,16 @@
       "mean_time": "Tiempo medio (min) por modo efectivo",
       "operation": "Operación",
       "metro_freq": "Frecuencia metro (trenes/h)",
-      "final_residual": "Residuo final (utiles/mes)",
+      "final_residual": "Residuo final (min)",
       "physical_trips": "Viajes físicos",
       "emissions": "Emisiones CO₂ (kg/h)",
       "total": "Total",
       "stratum": "Estrato",
       "travel_time": "Tiempo de viaje (min)",
       "utility": "Utilidad media",
-      "congestion": "Congestión (v/c corredor)"
+      "congestion": "Congestión (v/c corredor)",
+      "ver_estratos": "Ver por estrato ›",
+      "ocultar_estratos": "Ocultar por estrato"
     },
     "scenario_card": {
       "no_config": "Sin configuración. Carga un archivo o usa Transporte actual.",
@@ -554,7 +556,8 @@
       "coupled": "Ciudad en equilibrio"
     },
     "coupled_hint": "Corre el loop suelo ↔ transporte completo por escenario (asignación esperada · máx. {{max}} iter. exteriores).",
-    "transport_hint": "Cada tarjeta de la misma ciudad corre con la población de la base, celda por celda: el Δ es sólo de transporte. La relocalización es la lente «Ciudad en equilibrio».",
+    "transport_hint_corto": "Las tarjetas de la misma ciudad corren con la población de la base, celda por celda: el Δ es sólo de transporte.",
+    "transport_hint_porque": "Sin relocalización: la relocalización es la lente «Ciudad en equilibrio».",
     "base_sin_resultado": "La base no tiene resultado de transporte: córrela primero.",
     "q": {
       "congelada": "población de la base",
