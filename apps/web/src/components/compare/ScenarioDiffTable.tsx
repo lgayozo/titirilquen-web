@@ -254,45 +254,38 @@ export function ScenarioDiffTable({ scenarios, baseId }: Props) {
             ))}
           </tr>
         </thead>
-        <tbody>
-          {grupos.map((g) => (
-            <tr key={g.labelKey} className="align-top">
-              <td colSpan={2 + otros.length} className="pt-2">
-                <table className="w-full">
-                  <tbody>
-                    <tr>
-                      <td
-                        colSpan={2 + otros.length}
-                        className="pb-1 text-etiqueta text-[var(--muted)]"
-                      >
-                        {t(g.labelKey)}
-                      </td>
-                    </tr>
-                    {g.filas.map(({ campo, vBase, vOtros }) => (
-                      <tr
-                        key={campo.labelKey}
-                        className="border-t border-[var(--rule)]"
-                      >
-                        <td className="py-1 pr-2">{t(campo.labelKey)}</td>
-                        <td className="py-1 text-right tabular-nums text-[var(--muted)]">
-                          {fmt(campo, vBase)}
-                        </td>
-                        {vOtros.map((v, i) => (
-                          <td
-                            key={otros[i]!.id}
-                            className={cnDiff(v !== vBase)}
-                          >
-                            {fmt(campo, v)}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </td>
+        {/* Un <tbody> por grupo, en la misma tabla: con una tabla anidada por
+            grupo, cada una calculaba sus propios anchos y las columnas no
+            quedaban alineadas entre Auto, Metro y Bicicleta. */}
+        {grupos.map((g) => (
+          <tbody key={g.labelKey}>
+            <tr>
+              <th
+                colSpan={2 + otros.length}
+                scope="colgroup"
+                className="pb-1 pt-3 text-left text-etiqueta font-normal text-[var(--muted)]"
+              >
+                {t(g.labelKey)}
+              </th>
             </tr>
-          ))}
-        </tbody>
+            {g.filas.map(({ campo, vBase, vOtros }) => (
+              <tr
+                key={campo.labelKey}
+                className="border-t border-[var(--rule)]"
+              >
+                <td className="py-1 pr-2">{t(campo.labelKey)}</td>
+                <td className="py-1 text-right tabular-nums text-[var(--muted)]">
+                  {fmt(campo, vBase)}
+                </td>
+                {vOtros.map((v, i) => (
+                  <td key={otros[i]!.id} className={cnDiff(v !== vBase)}>
+                    {fmt(campo, v)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        ))}
       </table>
     </div>
   );

@@ -150,7 +150,7 @@ export function ScenarioCard({
 
   return (
     <div
-      className="relative overflow-hidden rounded-lg border border-[var(--rule)] bg-[var(--panel)] p-3"
+      className="relative overflow-hidden rounded-[var(--radius)] border border-[var(--rule)] bg-[var(--panel)] p-3 shadow-[var(--shadow)]"
       aria-busy={scenario.status === "running"}
     >
       {/* Indicador sutil de procesamiento: barra indeterminada en el borde
@@ -178,7 +178,7 @@ export function ScenarioCard({
             aria-pressed={isBase}
             title={tS("compare.scenario_card.make_base")}
             className={cn(
-              "rounded border px-1.5 py-0.5 text-etiqueta",
+              "rounded-full border px-2 py-0.5 text-etiqueta",
               isBase
                 ? "border-[var(--accent)] text-[var(--accent)]"
                 : "border-[var(--rule)] text-[var(--muted)] hover:bg-[var(--paper-2)]",
@@ -291,9 +291,9 @@ export function ScenarioCard({
             onClick={onRun}
             disabled={!scenario.config || scenario.status === "running"}
             className={cn(
-              "flex items-center gap-1 rounded px-2 py-1 text-etiqueta font-medium",
+              "flex items-center gap-1 rounded-[var(--radius-sm)] px-2.5 py-1 text-etiqueta font-medium",
               scenario.config && scenario.status !== "running"
-                ? "bg-[var(--ink)] text-[var(--paper)] hover:opacity-85"
+                ? "bg-[var(--accent)] text-[var(--on-accent)] hover:opacity-90"
                 : "bg-[var(--paper-2)] text-[var(--muted)]",
             )}
           >
@@ -340,7 +340,7 @@ function Combo({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-[var(--rule)] bg-[var(--panel)] px-1 py-0.5 text-etiqueta text-[var(--ink-2)]"
+        className="rounded-[var(--radius-sm)] border border-[var(--rule)] bg-[var(--panel)] px-1 py-0.5 text-etiqueta text-[var(--ink-2)]"
       >
         {options.map((o) => (
           <option key={o} value={o}>
@@ -365,7 +365,7 @@ function SmallButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-1 rounded border border-[var(--rule)] px-2 py-1 text-etiqueta text-[var(--ink-2)] hover:bg-[var(--paper-2)]"
+      className="flex items-center gap-1 rounded-[var(--radius-sm)] border border-[var(--rule)] px-2 py-1 text-etiqueta text-[var(--ink-2)] hover:bg-[var(--paper-2)]"
     >
       {icon}
       <span>{children}</span>
@@ -385,14 +385,15 @@ function StatusBadge({ status }: { status: Scenario["status"] }) {
   const classes: Record<Scenario["status"], string> = {
     empty: "bg-[var(--paper-2)] text-[var(--muted)]",
     configured: "bg-[var(--paper-2)] text-[var(--ink-2)]",
-    running: "bg-[var(--paper-2)] text-[var(--ink)]",
-    done: "bg-[var(--paper-2)] text-[var(--mejora)]",
-    error: "bg-[var(--paper-2)] text-[var(--error)]",
+    // Mismos tonos que la pastilla de estado de las otras páginas.
+    running: "bg-[var(--alerta-bg)] text-[var(--alerta)]",
+    done: "bg-[var(--ok-bg)] text-[var(--ok)]",
+    error: "bg-[var(--error-bg)] text-[var(--error)]",
   };
   return (
     <span
       className={cn(
-        "rounded px-2 py-0.5 text-etiqueta font-medium",
+        "rounded-full px-2 py-0.5 text-etiqueta font-medium",
         classes[status],
       )}
     >

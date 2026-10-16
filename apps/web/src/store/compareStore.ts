@@ -298,8 +298,10 @@ export const useCompareStore = create<CompareState>()(
       // descartan en vez de fallar al correrlos. v3 (oct-2026, D7): la demanda
       // ganó `peaje_km`, que un escenario v2 no trae. v4 (oct-2026, D10d): la
       // tarjeta perdió `poblacion`; la población es ΣH de su `landUse`, y un
-      // v3 correría el acoplado con otra gente sin decirlo.
-      name: "titirilquen.compare.v5",
+      // v3 correría el acoplado con otra gente sin decirlo. v6 (oct-2026): el
+      // tope del MSA subió de 40 a 150 y la tarjeta no tiene control de
+      // `max_iter`, así que un v5 seguiría corriendo con el tope viejo.
+      name: "titirilquen.compare.v6",
       partialize: (s): CompareInputs => ({
         kind: s.kind,
         baseId: s.baseId,

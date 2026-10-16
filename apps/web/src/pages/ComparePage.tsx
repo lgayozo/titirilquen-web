@@ -555,9 +555,11 @@ export function ComparePage() {
     >
       <div className="hero">
         <div className="hero-head">
-          <h1 className="hero-title">{t("compare.title")}</h1>
-          <div className="hero-sub">
-            <span className="dot">●</span> {t("compare.subtitle")}
+          <div>
+            <h1 className="hero-title">{t("compare.title")}</h1>
+            <p className="hero-sub" style={{ margin: "6px 0 0" }}>
+              {t("compare.subtitle")}
+            </p>
           </div>
         </div>
 
@@ -613,6 +615,7 @@ export function ComparePage() {
               className="flex min-h-[120px] w-full items-center justify-center gap-2"
               style={{
                 border: "1px dashed var(--rule)",
+                borderRadius: "var(--radius)",
                 background: "var(--panel)",
                 fontFamily: "var(--font-body)",
                 fontSize: "var(--fs-etiqueta)",

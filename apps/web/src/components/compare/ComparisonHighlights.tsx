@@ -54,14 +54,15 @@ export function ComparisonHighlights({
             key={s.id}
             style={{
               border: "1px solid var(--rule)",
+              borderRadius: "var(--radius-sm)",
               background: "var(--paper-2)",
               padding: "8px 12px",
             }}
           >
-            <div className="mb-1 font-fig text-etiqueta font-semibold text-ink">
+            <div className="mb-1 text-etiqueta font-semibold text-ink">
               {s.name}
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 font-fig text-etiqueta tabular-nums">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-etiqueta tabular-nums">
               <Chip
                 label={t("compare.kpi.total") + " CO₂"}
                 delta={co2Pct}
@@ -125,7 +126,7 @@ function Chip({
   return (
     <span className="inline-flex items-center gap-1">
       <span className="text-muted">{label}</span>
-      <span style={{ color, fontWeight: 600 }}>
+      <span className="font-fig" style={{ color, fontWeight: 600 }}>
         {arrow} {delta >= 0 ? "+" : ""}
         {delta.toFixed(decimals)}
         {unit}
