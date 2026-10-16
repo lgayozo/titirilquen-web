@@ -235,7 +235,7 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "original, reescaladas por k; bici_30 del bajo reemplazada",
         False,
     ),
-    "max_iter": (DECISION, "40 (tope 100), numérico", False),
+    "max_iter": (DECISION, "150 (tope 300), numérico", False),
     "tolerance": (DECISION, "0,2 min sobre la brecha no amortiguada (D8)", False),
     "seed": (DECISION, "42 en la app; None en el núcleo", False),
     "assignment": (DECISION, "expected en la app; montecarlo en el núcleo", False),

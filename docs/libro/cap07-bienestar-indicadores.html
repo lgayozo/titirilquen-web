@@ -284,9 +284,9 @@
     <tr><td class="n">—</td><td class="ruta py">land_use/config.py</td><td class="n">22</td><td><code>LandUseStratumConfig</code> — el ingreso <code>y</code> por estrato que la carga divide</td></tr>
     <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">269</td><td><code>calcular_agregados</code> — los agregados viajan en el trace, una sola vez para API y worker</td></tr>
     <tr><td class="n">—</td><td class="ruta tsx">components/viz/ReferenceComparison.tsx</td><td class="n">78</td><td><code>ReferenceComparison</code> — la tabla del Sandbox; <code>excedenteComparable</code> (111) bloquea el Δ cuando las medidas o los modos no coinciden</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">951</td><td><code>excedente_social_porque</code> — dice qué hace la ponderación social y remite al costo generalizado social (D13), plegado bajo la nota corta <code>excedente_social_corto</code> (950) desde B3; <code>excedente_social</code> (949)</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">945</td><td><code>costo_operador_nota</code> — rotula la base, la hora punta; <code>subsidio_nota</code> (947) lleva el factor</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">781</td><td><code>welfare_total_sub</code> — el total del acoplado, suma sobre hogares en $/mes (D11); <code>cs</code> (753)</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">952</td><td><code>excedente_social_porque</code> — dice qué hace la ponderación social y remite al costo generalizado social (D13), plegado bajo la nota corta <code>excedente_social_corto</code> (951) desde B3; <code>excedente_social</code> (950)</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">946</td><td><code>costo_operador_nota</code> — rotula la base, la hora punta; <code>subsidio_nota</code> (948) lleva el factor</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">782</td><td><code>welfare_total_sub</code> — el total del acoplado, suma sobre hogares en $/mes (D11); <code>cs</code> (753)</td></tr>
   </tbody>
 </table>
 </div>
@@ -341,7 +341,7 @@
   Todo sale de <code>datos/cap07.json</code>: la configuración de la
   aplicación con localización «original», 201 celdas, 20 km, 36.000 hogares,
   semilla 42, carga esperada, brecha bajo 0,2 min y tope de
-  40 iteraciones. El barrido de pistas sube el tope a 80 y repite la carga
+  150 iteraciones. El barrido de pistas repite la carga
   todo o nada con tolerancia 0,02 y 120 iteraciones.
 </p>
 
@@ -429,11 +429,11 @@
   </thead>
   <tbody>
     <tr><td colspan="7"><strong><code>expected</code> · medida logsum · el método de la aplicación</strong></td></tr>
-    <tr><td class="n">1</td><td class="n">34,21</td><td class="n">−450,6</td><td class="n">+0,0</td><td class="n">−450,0</td><td class="n">+0,0</td><td><strong>no</strong> (100)</td></tr>
-    <tr><td class="n">2</td><td class="n">28,52</td><td class="n">−184,8</td><td class="n">+265,8</td><td class="n">−245,2</td><td class="n">+204,8</td><td>sí (29)</td></tr>
-    <tr><td class="n">3</td><td class="n">25,98</td><td class="n">−40,5</td><td class="n">+410,1</td><td class="n">−132,8</td><td class="n">+317,2</td><td>sí (22)</td></tr>
-    <tr><td class="n">4</td><td class="n">25,10</td><td class="n">16,3</td><td class="n">+466,9</td><td class="n">−88,3</td><td class="n">+361,7</td><td>sí (19)</td></tr>
-    <tr><td class="n">6</td><td class="n">24,68</td><td class="n">45,6</td><td class="n">+496,2</td><td class="n">−65,2</td><td class="n">+384,8</td><td>sí (19)</td></tr>
+    <tr><td class="n">1</td><td class="n">34,19</td><td class="n">−450,8</td><td class="n">+0,0</td><td class="n">−450,2</td><td class="n">+0,0</td><td>sí (115)</td></tr>
+    <tr><td class="n">2</td><td class="n">28,52</td><td class="n">−184,8</td><td class="n">+266,0</td><td class="n">−245,2</td><td class="n">+205,0</td><td>sí (29)</td></tr>
+    <tr><td class="n">3</td><td class="n">25,98</td><td class="n">−40,5</td><td class="n">+410,3</td><td class="n">−132,8</td><td class="n">+317,4</td><td>sí (22)</td></tr>
+    <tr><td class="n">4</td><td class="n">25,10</td><td class="n">16,3</td><td class="n">+467,1</td><td class="n">−88,3</td><td class="n">+361,9</td><td>sí (19)</td></tr>
+    <tr><td class="n">6</td><td class="n">24,68</td><td class="n">45,6</td><td class="n">+496,4</td><td class="n">−65,2</td><td class="n">+385,0</td><td>sí (19)</td></tr>
     <tr><td colspan="7"><strong><code>todo_o_nada</code> · medida utilidad máxima · carga determinística</strong></td></tr>
     <tr><td class="n">1</td><td class="n">36,78</td><td class="n">−1.728,2</td><td class="n">+0,0</td><td class="n">−1.683,4</td><td class="n">+0,0</td><td><strong>no</strong> (120)</td></tr>
     <tr class="destacada"><td class="n">2</td><td class="n">24,41</td><td class="n">−1.801,9</td><td class="n">−73,7</td><td class="n">−1.761,7</td><td class="n">−78,3</td><td><strong>no</strong> (120)</td></tr>
@@ -454,12 +454,12 @@
   unidad.</strong> Ampliar la vía mejora el excedente monótonamente en las
   dos monedas, el metro cede de 34,2 % a 24,7 % y se estabiliza, y con la BPR
   sobre la capacidad práctica (D6) la palanca vial se agota desde la cuarta
-  pista. La referencia de una pista, que es contra la que se miden los Δ, no
-  converge ni en 100 iteraciones, el máximo que admite el núcleo:
-  termina con brecha 0,226 min, sobre la tolerancia de
-  0,2. Sin teletrabajo por defecto viajan todos los hogares, el
+  pista. La referencia de una pista, que es contra la que se miden los Δ,
+  converge, pero pide 115 iteraciones y termina con brecha
+  0,195 min: sin teletrabajo por defecto viajan todos los hogares, el
   corredor de una pista queda muy por sobre su capacidad y la brecha baja
-  como 1/<em>n</em>, demasiado lento para el tope (capítulo 5).
+  como 1/<em>n</em> (capítulo 5). Hasta oct-2026, con el tope en 100, no
+  convergía y los Δ se medían contra una corrida cortada.
 </p>
 
 <p>
@@ -549,7 +549,7 @@
     <tr><td>todos</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">−6.651.873</td><td class="n">−184,8</td><td class="n">205,3</td><td class="n">2.463.865</td><td class="n">8.212.857</td></tr>
     <tr><td>sin metro</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">−56.064.946</td><td class="n">−1.557,4</td><td class="n">80,0</td><td class="n">960.000</td><td class="n">0</td></tr>
     <tr><td>sin auto</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">−31.500.740</td><td class="n">−875,0</td><td class="n">312,2</td><td class="n">3.746.436</td><td class="n">12.487.862</td></tr>
-    <tr class="destacada"><td>sin bici ni caminata</td><td class="n">33.324</td><td class="n">2.676</td><td class="n">7,43</td><td class="n">−40.313.772</td><td class="n">−1.209,8</td><td class="n">436,5</td><td class="n">5.237.760</td><td class="n">17.459.076</td></tr>
+    <tr class="destacada"><td>sin bici ni caminata</td><td class="n">33.324</td><td class="n">2.676</td><td class="n">7,43</td><td class="n">−40.346.720</td><td class="n">−1.210,7</td><td class="n">436,5</td><td class="n">5.237.406</td><td class="n">17.457.989</td></tr>
   </tbody>
 </table>
 </div>
@@ -557,10 +557,10 @@
 <p>
   Apagar la bici y la caminata deja <strong>2.676 personas varadas,
   el 7,43 % de quienes viajarían</strong>, y las saca del
-  cálculo. El daño medido es −33.661.899 $. Si a esos varados se los
+  cálculo. El daño medido es −33.694.847 $. Si a esos varados se los
   valorara al excedente del viajero medio del mismo escenario (una cota
   inferior, porque quedaron varados justamente por estar peor que el
-  promedio), el daño sería −36.899.324 $: el agregado
+  promedio), el daño sería −36.934.680 $: el agregado
   <strong>lo subestima en al menos un 9,62 %</strong>. Y no es sólo
   el promedio: el total también se contrae porque el número de viajeros cae.
   La política sale mejor evaluada por haber sacado gente del denominador.

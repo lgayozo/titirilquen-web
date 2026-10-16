@@ -768,6 +768,7 @@
     "convergence": "Convergence",
     "converged": "Converged",
     "maxiter": "Max iter.",
+    "msa_not_converged": "MSA not converged",
     "conv_sub": "{{n}} iter · gap {{res}} $/household-month",
     "sys_time": "Mean time",
     "sys_time_sub": "system-wide",

@@ -588,21 +588,24 @@
   del equilibrio completo, suelo y transporte, para responder cuándo el metro
   opera entre sus topes: la frecuencia teórica cae bajo <em>f_mín</em> cuando
   la carga del tramo crítico baja de 2.000 pasajeros por hora, y supera
-  <em>f_máx</em> por sobre 40.000.
+  <em>f_máx</em> por sobre 40.000. La vía y la ciclovía escalan con la
+  población, como en los presets de escala: con <em>k</em> = ΣH/36.000, la
+  ciudad tiene 2<em>k</em> pistas por sentido, mínimo una, y 4.000<em>k</em>
+  bici/h. Las seis corridas convergen, entre 8 y 29 iteraciones.
 </p>
 
 <div class="envoltorio-tabla">
 <table>
   <thead>
-    <tr><th class="n">ΣH</th><th class="n">Metro %</th><th class="n">Auto %</th><th class="n">Carga crítica (pax/h)</th><th class="n">f teórica</th><th class="n">f operativa</th><th>Tope</th><th class="n">Espera (min)</th><th class="n">ρ andén</th><th class="n">v/c auto</th></tr>
+    <tr><th class="n">ΣH</th><th class="n">Pistas</th><th class="n">Ciclovía (bici/h)</th><th class="n">Metro %</th><th class="n">Auto %</th><th class="n">Carga crítica (pax/h)</th><th class="n">f teórica</th><th class="n">f operativa</th><th>Tope</th><th class="n">Espera (min)</th><th class="n">ρ andén</th><th class="n">v/c auto</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">9.000</td><td class="n">16,22</td><td class="n">29,67</td><td class="n">730</td><td class="n">0,73</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,018</td><td class="n">0,60</td></tr>
-    <tr><td class="n">18.000</td><td class="n">17,37</td><td class="n">29,99</td><td class="n">1.563</td><td class="n">1,56</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,039</td><td class="n">1,22</td></tr>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">30,44</td><td class="n">25,12</td><td class="n">5.479</td><td class="n">5,48</td><td class="n">5,48</td><td>—</td><td class="n">5,48</td><td class="n">0,137</td><td class="n">2,04</td></tr>
-    <tr><td class="n">72.000</td><td class="n">43,10</td><td class="n">17,31</td><td class="n">15.514</td><td class="n">15,51</td><td class="n">15,51</td><td>—</td><td class="n">1,94</td><td class="n">0,388</td><td class="n">2,81</td></tr>
-    <tr><td class="n">144.000</td><td class="n">53,82</td><td class="n">3,94</td><td class="n">38.747</td><td class="n">38,75</td><td class="n">38,75</td><td>—</td><td class="n">0,87</td><td class="n">0,969</td><td class="n">1,28</td></tr>
-    <tr><td class="n">288.000</td><td class="n">53,10</td><td class="n">0,05</td><td class="n">76.461</td><td class="n">76,46</td><td class="n">40,00</td><td>f_máx</td><td class="n">2,28</td><td class="n">1,912</td><td class="n">0,03</td></tr>
+    <tr><td class="n">9.000</td><td class="n">1</td><td class="n">1.000</td><td class="n">20,61</td><td class="n">31,44</td><td class="n">928</td><td class="n">0,93</td><td class="n">2,00</td><td>f_mín</td><td class="n">15,00</td><td class="n">0,023</td><td class="n">1,28</td></tr>
+    <tr><td class="n">18.000</td><td class="n">1</td><td class="n">2.000</td><td class="n">22,85</td><td class="n">26,77</td><td class="n">2.056</td><td class="n">2,06</td><td class="n">2,06</td><td>—</td><td class="n">14,59</td><td class="n">0,051</td><td class="n">2,18</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">2</td><td class="n">4.000</td><td class="n">30,44</td><td class="n">25,12</td><td class="n">5.479</td><td class="n">5,48</td><td class="n">5,48</td><td>—</td><td class="n">5,48</td><td class="n">0,137</td><td class="n">2,04</td></tr>
+    <tr><td class="n">72.000</td><td class="n">4</td><td class="n">8.000</td><td class="n">33,21</td><td class="n">24,46</td><td class="n">11.956</td><td class="n">11,96</td><td class="n">11,96</td><td>—</td><td class="n">2,51</td><td class="n">0,299</td><td class="n">1,99</td></tr>
+    <tr><td class="n">144.000</td><td class="n">8</td><td class="n">16.000</td><td class="n">34,42</td><td class="n">24,17</td><td class="n">24.785</td><td class="n">24,78</td><td class="n">24,78</td><td>—</td><td class="n">1,24</td><td class="n">0,620</td><td class="n">1,96</td></tr>
+    <tr><td class="n">288.000</td><td class="n">16</td><td class="n">32.000</td><td class="n">34,52</td><td class="n">24,16</td><td class="n">49.703</td><td class="n">49,70</td><td class="n">40,00</td><td>f_máx</td><td class="n">1,02</td><td class="n">1,243</td><td class="n">1,96</td></tr>
   </tbody>
 </table>
 </div>
@@ -625,9 +628,10 @@
 <p>
   La ciudad por defecto está dentro del rango, con 5,5 trenes por hora y casi
   cinco minutos y medio de espera: Mohring opera, pero con una frecuencia de tren de
-  cercanías, no de metro. La zona muerta termina entre los 18.000 y los
-  36.000 hogares en 20 km; una frecuencia de metro urbano, con esperas de dos
-  minutos, aparece hacia los 72.000, y el tope superior recién por sobre los
+  cercanías, no de metro. La zona muerta termina hacia los 18.000 hogares en
+  20 km, que apenas sacan la frecuencia de su mínimo (2,06 trenes por
+  hora); una frecuencia de metro urbano, con esperas de dos minutos y medio,
+  aparece hacia los 72.000, y el tope superior recién por sobre los
   144.000. El largo ayuda poco: pasar de 20 a 60 km sube la frecuencia de 5,5
   a 9,3, porque lo que carga al tramo crítico es cuánta gente hay, no cuán
   lejos vive.
@@ -635,19 +639,23 @@
 
 <p>
   <strong>El resguardo de andén</strong> se ve en la última fila. Con 144.000
-  hogares la carga crítica es el 97 % de <em>f_máx·K</em> y la espera, 0,87
-  min, queda poco sobre la base de 39 trenes por hora. Con 288.000 la carga casi dobla
-  la capacidad del sistema: la frecuencia se clava en 40, cuya espera base es
-  0,75 min, y la espera medida es 2,28, el triple. Sin el andén, la ciudad
-  saturada tendría la mejor espera de la tabla; con él, el metro lleno cobra
-  la saturación en tiempo, que es lo que la BPR del auto hace en la vía.
+  hogares la carga crítica es el 62 % de <em>f_máx·K</em> y la espera, 1,24
+  min, queda poco sobre la base de sus 24,8 trenes por hora. Con 288.000 la carga
+  supera en un 24 % la capacidad del sistema: la frecuencia se clava en 40,
+  cuya espera base es 0,75 min, y la espera medida es 1,02, un 36 % más.
+  Sin el andén, el metro saturado esperaría lo mismo que uno holgado a 40
+  trenes por hora; con él, el metro lleno cobra la saturación en tiempo, que
+  es lo que la BPR del auto hace en la vía.
 </p>
 
 <p>
-  La misma población que hace funcionar al metro lleva la vía a más del doble
-  de su capacidad con dos pistas, y con 144.000 hogares el auto casi
-  desaparece: un escenario con metro pide más hogares y más capacidad de los
-  otros modos a la vez. Es lo que declaran los presets de escala, calibrados
+  Sin escalar la vía, la misma población que hace funcionar al metro no tiene
+  equilibrio que mostrar: con 144.000 hogares sobre las 2 pistas y los
+  4.000 bici/h de la base, la vía queda a 3,45 veces su capacidad y el MSA
+  agota sus 150 iteraciones con una brecha de 3,26 min. Hasta oct-2026,
+  con el tope en 40, esta tabla publicaba esa corrida como si fuera un
+  equilibrio. Un escenario con metro pide más hogares y más capacidad de los
+  otros modos a la vez, que es lo que declaran los presets de escala, calibrados
   en sep-2026 para que los tres modos congestionables partieran en la misma
   condición:
 </p>

@@ -1,9 +1,9 @@
 {
  "_meta": {
-  "fecha": "2026-10-15",
-  "commit": "87b114f",
+  "fecha": "2026-10-16",
+  "commit": "34b1726",
   "script": "docs/libro/datos/datos_cap07.py",
-  "configuracion": "La de la aplicación (`test_linea_base._config_web`), rama «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, brecha < 0,2 min (D8). El barrido de pistas usa tope 80 y repite además el método del informe de bienestar (`todo_o_nada`, tolerancia 0,02, 120 iteraciones)."
+  "configuracion": "La de la aplicación (`test_linea_base._config_web`), rama «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, brecha < 0,2 min (D8), tope 150 iteraciones. El barrido de pistas repite además el método del informe de bienestar (`todo_o_nada`, tolerancia 0,02, 120 iteraciones)."
  },
  "fuentes_externas": {
   "precios_sociales_2026": "Ministerio de Desarrollo Social y Familia (2026). Precios Sociales vigentes 2026. Sistema Nacional de Inversiones, tabla 2.1 (valor social del tiempo de viaje y ponderadores de espera y acceso).",
@@ -29,7 +29,7 @@
   "costo_combustible_km_clp": 120.0,
   "peaje_km_clp": 0.0,
   "tolerancia_min": 0.2,
-  "max_iter": 40,
+  "max_iter": 150,
   "vot_conductual_clp_hora": [
    6329.0,
    3164.0,
@@ -97,12 +97,12 @@
    "filas": [
     {
      "num_pistas": 1,
-     "iteraciones": 100,
-     "convergio": false,
-     "brecha_final_min": 0.226,
-     "metro_pct": 34.21,
-     "exc_conductual_por_viajero": -450.6,
-     "exc_social_por_viajero": -450.0,
+     "iteraciones": 115,
+     "convergio": true,
+     "brecha_final_min": 0.195,
+     "metro_pct": 34.19,
+     "exc_conductual_por_viajero": -450.8,
+     "exc_social_por_viajero": -450.2,
      "delta_conductual": 0.0,
      "delta_social": 0.0
     },
@@ -114,8 +114,8 @@
      "metro_pct": 28.52,
      "exc_conductual_por_viajero": -184.8,
      "exc_social_por_viajero": -245.2,
-     "delta_conductual": 265.8,
-     "delta_social": 204.8
+     "delta_conductual": 266.0,
+     "delta_social": 205.0
     },
     {
      "num_pistas": 3,
@@ -125,8 +125,8 @@
      "metro_pct": 25.98,
      "exc_conductual_por_viajero": -40.5,
      "exc_social_por_viajero": -132.8,
-     "delta_conductual": 410.1,
-     "delta_social": 317.2
+     "delta_conductual": 410.3,
+     "delta_social": 317.4
     },
     {
      "num_pistas": 4,
@@ -136,8 +136,8 @@
      "metro_pct": 25.1,
      "exc_conductual_por_viajero": 16.3,
      "exc_social_por_viajero": -88.3,
-     "delta_conductual": 466.9,
-     "delta_social": 361.7
+     "delta_conductual": 467.1,
+     "delta_social": 361.9
     },
     {
      "num_pistas": 6,
@@ -147,8 +147,8 @@
      "metro_pct": 24.68,
      "exc_conductual_por_viajero": 45.6,
      "exc_social_por_viajero": -65.2,
-     "delta_conductual": 496.2,
-     "delta_social": 384.8
+     "delta_conductual": 496.4,
+     "delta_social": 385.0
     }
    ],
    "conductual_monotono_creciente": true,
@@ -341,19 +341,19 @@
    "agentes_varados": 2676,
    "varados_pct_de_la_poblacion": 7.43,
    "varados_pct_de_quienes_viajarian": 7.43,
-   "excedente_total_clp": -40313772,
-   "excedente_por_viajero_clp": -1209.8,
-   "bienestar_social_clp": -16592302,
+   "excedente_total_clp": -40346720,
+   "excedente_por_viajero_clp": -1210.7,
+   "bienestar_social_clp": -16624623,
    "tren_km_hora": 436.5,
-   "costo_operador_clp": 5237760,
-   "recaudacion_tarifa_clp": 17459076
+   "costo_operador_clp": 5237406,
+   "recaudacion_tarifa_clp": 17457989
   },
   {
    "escenario": "_cota",
    "escenario_medido": "sin bici ni caminata",
-   "cota_inferior_del_excedente_no_contado_clp": -3237425,
-   "dano_medido_clp": -33661899,
-   "dano_con_los_varados_al_promedio_clp": -36899324,
+   "cota_inferior_del_excedente_no_contado_clp": -3239833,
+   "dano_medido_clp": -33694847,
+   "dano_con_los_varados_al_promedio_clp": -36934680,
    "subestimacion_del_dano_pct": 9.62,
    "nota": "Cota INFERIOR: valora a los varados al excedente del viajero medio del mismo escenario. Su pérdida real es mayor —por eso quedaron varados— así que el agregado subestima el daño por al menos esto."
   }

@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-15",
-  "commit": "87b114f",
+  "fecha": "2026-10-16",
+  "commit": "34b1726",
   "script": "docs/libro/datos/datos_cap06.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, semilla 42, asignación esperada, brecha interior < 0,2 min. El acoplado con `outer_max_iter = 10` y la tolerancia del núcleo, 100 $/hogar-mes."
  },
@@ -599,19 +599,19 @@
    "poblacion_x2_5": {
     "msa_1_sobre_k": [
      null,
-     2107.281,
-     1027.126,
-     666.995,
-     492.496,
-     394.209,
-     330.126,
-     276.561
+     2084.558,
+     1024.196,
+     681.803,
+     502.595,
+     393.385,
+     329.126,
+     277.868
     ],
     "nucleo": [
      null,
-     2107.281,
-     59.434,
-     1.076,
+     2084.558,
+     67.6,
+     8.847,
      0.0,
      0.0,
      0.0,
@@ -757,21 +757,21 @@
   {
    "poblacion": 60000,
    "iteraciones": 3,
-   "convergio": false,
-   "msa_convergio": false,
-   "brecha_final_clp_mes": 33.243,
-   "delta_bienestar_total_mes_clp": -844076189,
-   "theil": 0.46473,
-   "tiempo_medio_min": 22.9346,
+   "convergio": true,
+   "msa_convergio": true,
+   "brecha_final_clp_mes": 36.944,
+   "delta_bienestar_total_mes_clp": -843841392,
+   "theil": 0.46465,
+   "tiempo_medio_min": 22.9328,
    "dist_media_km": [
-    1.0599,
-    3.1496,
+    1.0603,
+    3.1495,
     6.1533
    ],
    "reparto_pct": {
-    "Auto": 19.477,
-    "Metro": 40.135,
-    "Bici": 28.963,
+    "Auto": 19.48,
+    "Metro": 40.13,
+    "Bici": 28.965,
     "Caminata": 11.425,
     "Teletrabajo": 0.0,
     "Varado": 0.0
@@ -782,20 +782,20 @@
    "iteraciones": 3,
    "convergio": false,
    "msa_convergio": false,
-   "brecha_final_clp_mes": 59.434,
-   "delta_bienestar_total_mes_clp": -1794378948,
-   "theil": 0.48689,
-   "tiempo_medio_min": 23.9022,
+   "brecha_final_clp_mes": 67.6,
+   "delta_bienestar_total_mes_clp": -1799038635,
+   "theil": 0.48362,
+   "tiempo_medio_min": 23.908,
    "dist_media_km": [
-    1.0136,
-    3.2184,
-    6.0722
+    1.0264,
+    3.2131,
+    6.0724
    ],
    "reparto_pct": {
-    "Auto": 14.89,
-    "Metro": 46.242,
-    "Bici": 26.954,
-    "Caminata": 11.913,
+    "Auto": 14.861,
+    "Metro": 46.144,
+    "Bici": 27.039,
+    "Caminata": 11.956,
     "Teletrabajo": 0.0,
     "Varado": 0.0
    }

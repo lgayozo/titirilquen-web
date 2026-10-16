@@ -109,10 +109,11 @@ def _regla_vieja(trace, tol: float = 0.1) -> int | None:
 
 def trayectoria() -> dict:
     """Brecha iteración a iteración y el cambio amortiguado que medía la regla
-    vieja. La serie se corre sin corte hasta `max_iter` para ver dónde habría
-    parado cada regla; el resumen es el de la corrida con la regla vigente."""
+    vieja. La serie se corre sin corte hasta la iteración 40, el mismo
+    presupuesto que `variantes`, para ver dónde habría parado cada regla; el
+    resumen es el de la corrida con la regla vigente."""
     sim = base._config_web()
-    serie = _corre(sim.model_copy(update={"tolerance": 0.0}))
+    serie = _corre(sim.model_copy(update={"tolerance": 0.0, "max_iter": 40}))
     vieja = _regla_vieja(serie)
     return {
         "tolerancia": sim.tolerance,
@@ -284,8 +285,8 @@ def todo_o_nada() -> dict:
     """D-70: todo o nada promedia los flujos de cada grupo y para por el costo
     en exceso medio (su `gap_final_min`). Sin corte hasta 20/40/60/80/100
     iteraciones, el reparto y ese costo en cada una; y la regla de la app, que
-    al elegir todo o nada sube el tope a 100, con cuántos grupos quedan
-    repartidos entre modos."""
+    al elegir todo o nada lleva el tope a 100 como mínimo, con cuántos grupos
+    quedan repartidos entre modos."""
     sim = base._config_web().model_copy(update={"assignment": "todo_o_nada"})
     cortes = {}
     for n in (20, 40, 60, 80, 100):
@@ -294,7 +295,7 @@ def todo_o_nada() -> dict:
             "reparto_pct": _reparto(tr),
             "gap_final_min": round(float(tr.gap_final_min), 3),
         }
-    tr = _corre(sim.model_copy(update={"max_iter": 100}))
+    tr = _corre(sim.model_copy(update={"max_iter": max(sim.max_iter, 100)}))
     modos: dict[tuple, set] = {}
     for a in tr.agentes:
         if not a.teletrabaja:
@@ -397,7 +398,8 @@ def main() -> None:
                 "La de la aplicación (`test_linea_base._config_web`), localización "
                 "«original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, "
                 "asignación esperada, tolerancia 0,2 min sobre la brecha no "
-                "amortiguada, máximo 40 iteraciones."
+                f"amortiguada, máximo {base._config_web().max_iter} iteraciones (la "
+                "trayectoria y las variantes, 40 sin corte)."
             ),
         },
         "parametros_vigentes": parametros_vigentes(),

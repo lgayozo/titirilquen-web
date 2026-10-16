@@ -151,7 +151,8 @@ ESPERADO = {
 #: D11 (oct-2026, teletrabajo en la accesibilidad) movió la ciudad de partida
 #: de `equilibrio`: 20 → 17. Sin teletrabajo por defecto y D5 (oct-2026): la
 #: demanda sube ~24 % y la brecha baja como 1/n desde más arriba: 17 → 29 y
-#: 13 → 29, con `max_iter` 40.
+#: 13 → 29, con `max_iter` 40 (150 desde oct-2026: no cambia, porque cortan
+#: por brecha).
 ITERACIONES_ESPERADAS = {"equilibrio": 29, "original": 29}
 
 
@@ -169,7 +170,7 @@ def _config_web() -> SimulationConfig:
         ),
         supply=SupplyConfig(),
         demand=DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
-        max_iter=40,
+        max_iter=150,
         tolerance=0.2,
         seed=42,  # web fija la semilla; el core la deja libre
         assignment="expected",  # web: expected · core: montecarlo

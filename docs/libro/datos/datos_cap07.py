@@ -234,12 +234,13 @@ def downs_thomson_por_unidad() -> dict:
     utilidad máxima, tolerancia 0,02 y 120 iteraciones).
     """
     out = {}
-    # `expected` con la parada de la aplicación (D8) y el tope máximo del
-    # núcleo, 100: sin teletrabajo por defecto (oct-2026) una pista no converge
-    # ni así —la brecha baja como 1/n— y es la referencia de todos los Δ, así que
-    # se reporta su brecha. Todo o nada con la parada del informe: no equilibra
-    # (D9b) y se reporta con su veredicto.
-    for metodo, tol, max_iter in (("expected", None, 100), ("todo_o_nada", 0.02, 120)):
+    # `expected` con la parada y el tope de la aplicación (D8, 150 desde
+    # oct-2026): una pista, la referencia de todos los Δ, pide 115 iteraciones
+    # porque la brecha baja como 1/n; con el tope en 100 no convergía. Se
+    # reporta igual su brecha. Todo o nada con la parada del informe: no
+    # equilibra (D9b) y se reporta con su veredicto.
+    tope_app = base._config_web().max_iter
+    for metodo, tol, max_iter in (("expected", None, tope_app), ("todo_o_nada", 0.02, 120)):
         filas = []
         for pistas in (1, 2, 3, 4, 6):
             sim = base._config_web()
@@ -634,8 +635,9 @@ def main() -> None:
             "configuracion": (
                 "La de la aplicación (`test_linea_base._config_web`), rama "
                 "«original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, "
-                "asignación esperada, brecha < 0,2 min (D8). El barrido de pistas usa "
-                "tope 80 y repite además el método del informe de bienestar "
+                "asignación esperada, brecha < 0,2 min (D8), tope "
+                f"{base._config_web().max_iter} iteraciones. El barrido de pistas "
+                "repite además el método del informe de bienestar "
                 "(`todo_o_nada`, tolerancia 0,02, 120 iteraciones)."
             ),
         },

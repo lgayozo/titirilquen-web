@@ -130,7 +130,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
       },
     },
   },
-  max_iter: 40,
+  max_iter: 150,
   tolerance: 0.2,
   seed: null,
   assignment: "montecarlo",

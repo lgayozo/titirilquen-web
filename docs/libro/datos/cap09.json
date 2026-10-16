@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-16",
-  "commit": "87b114f",
+  "commit": "34b1726",
   "script": "docs/libro/datos/datos_cap09.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`), rama «original» para la sensibilidad de transporte y «equilibrio» para la del suelo. El original se lee de `reference/Titirilquen/app.py`."
  },
@@ -663,10 +663,10 @@
    },
    {
     "parametro": "max_iter",
-    "valor": 40,
+    "valor": 150,
     "etiqueta": "decisión",
     "sin_fuente": false,
-    "fuente": "40 (tope 100), numérico"
+    "fuente": "150 (tope 300), numérico"
    },
    {
     "parametro": "tolerance",

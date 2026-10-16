@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-15",
-  "commit": "87b114f",
+  "fecha": "2026-10-16",
+  "commit": "34b1726",
   "script": "docs/libro/datos/datos_cap10.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`), rama «equilibrio» salvo donde se indica; el acoplado con una vuelta."
  },
@@ -378,8 +378,8 @@
   "discrepancias_registradas": 70,
   "i18n": {
    "simulator.json": {
-    "claves_es": 843,
-    "claves_en": 843,
+    "claves_es": 844,
+    "claves_en": 844,
     "solo_en_es": [],
     "solo_en_en": []
    },

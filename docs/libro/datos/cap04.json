@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-14",
-  "commit": "9b99d31",
+  "fecha": "2026-10-16",
+  "commit": "34b1726",
   "script": "docs/libro/datos/datos_cap04.py",
   "configuracion": "Demanda de la aplicación (`presets.DEFAULT_STRATA`, homoscedástica desde D-33) sobre la ciudad por defecto: 201 celdas, 20 km, localización «original». Los costos por modo son a flujo libre."
  },
@@ -320,9 +320,9 @@
    {
     "costo_tarifa_metro": 1600,
     "Auto": 26.459,
-    "Metro": 19.111,
-    "Bici": 40.557,
-    "Caminata": 13.872,
+    "Metro": 19.118,
+    "Bici": 40.555,
+    "Caminata": 13.869,
     "Teletrabajo": 0.0
    }
   ],

@@ -32,7 +32,7 @@ $$
 
 <OverleafRef sec="Criterio de Parada" tag="R-11" />
 
-— the **undamped gap**: what the loaded network returns against the times the demand was computed with, the maximum over any mode and parcel — falls below the tolerance (**0.2 min**) for **two consecutive iterations** (robust to Monte Carlo noise). `max_iter` (40 by default, up to 100) remains as a safety cap: the default city converges in 29 iterations, but with 1 lane it reaches the cap without converging (final gap 0.55 min), because the MSA's tail decays like $1/it$.
+— the **undamped gap**: what the loaded network returns against the times the demand was computed with, the maximum over any mode and parcel — falls below the tolerance (**0.2 min**) for **two consecutive iterations** (robust to Monte Carlo noise). `max_iter` (150 by default, up to 300) remains as a safety cap: the default city converges in 29 iterations, and with 1 lane in 115, because the MSA's tail decays like $1/it$. If a run exhausts the cap, the status bar says so: what it shows is not an equilibrium.
 
 <MSAFlowchart />
 

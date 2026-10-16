@@ -482,6 +482,9 @@ def metro_en_equilibrio() -> dict:
         tope = "frec_min" if f < fmin else ("frec_max" if f > fmax else "no")
         espera = tren.t_espera_min[tren.t_espera_min > 0]
         return {
+            "iteraciones": len(tr.iteraciones),
+            "convergio": bool(tr.converged),
+            "brecha_final_min": round(float(tr.gap_final_min), 3),
             "metro_pct": round(100.0 * split["Metro"] / total, 2),
             "auto_pct": round(100.0 * split["Auto"] / total, 2),
             "carga_maxima_pax_h": round(float(tren.carga_por_tramo.max())),
@@ -505,12 +508,37 @@ def metro_en_equilibrio() -> dict:
 
     H = np.asarray(lu0.H_por_estrato, dtype=float)
     shares = H / H.sum()
+    # Pistas y ciclovía escalan con la población, k = ΣH/36.000, como en los
+    # presets de escala: con las 2 pistas de la base, 144.000 y 288.000 hogares
+    # saturan la vía por construcción y el MSA no converge (brecha de 117 y
+    # 1.878 min a las 40 iteraciones, 3,3 y 501 a las 150; oct-2026).
+    pistas0 = sim0.supply.car.num_pistas
+    bici0 = sim0.supply.bike.capacidad_pista
     por_poblacion = []
     for total in (9_000, 18_000, 36_000, 72_000, 144_000, 288_000):
         h = [round(total * s) for s in shares]
         h[1] += total - sum(h)
         lu = lu0.model_copy(update={"H_por_estrato": (h[0], h[1], h[2])})
-        por_poblacion.append({"suma_H": total, **medir(sim0, lu)})
+        k = total / H.sum()
+        pistas = max(1, round(pistas0 * k))
+        bici = round(bici0 * k)
+        supply = sim0.supply.model_copy(
+            update={
+                "car": sim0.supply.car.model_copy(update={"num_pistas": pistas}),
+                "bike": sim0.supply.bike.model_copy(update={"capacidad_pista": bici}),
+            }
+        )
+        sim = sim0.model_copy(update={"supply": supply})
+        por_poblacion.append(
+            {"suma_H": total, "num_pistas": pistas, "cap_bici": bici, **medir(sim, lu)}
+        )
+    # El contraste: la misma ciudad de 144.000 hogares con la vía y la ciclovía
+    # de la base.
+    h = [round(144_000 * s) for s in shares]
+    h[1] += 144_000 - sum(h)
+    sin_escalar = medir(
+        sim0, lu0.model_copy(update={"H_por_estrato": (h[0], h[1], h[2])})
+    )
     por_largo = []
     for largo in (10.0, 20.0, 30.0, 40.0, 60.0):
         sim = sim0.model_copy(
@@ -519,6 +547,12 @@ def metro_en_equilibrio() -> dict:
         por_largo.append({"largo_km": largo, **medir(sim, lu0)})
     return {
         "por_poblacion": por_poblacion,
+        "por_poblacion_144000_sin_escalar": {
+            "num_pistas": pistas0,
+            "cap_bici": bici0,
+            "max_iter": sim0.max_iter,
+            **sin_escalar,
+        },
         "por_largo": por_largo,
         "umbral_frec_min_pax_h": sim0.supply.train.frec_min
         * sim0.supply.train.capacidad_tren,

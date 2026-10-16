@@ -241,7 +241,13 @@ export function ComparePage() {
     () =>
       scenarios.map((s) => ({
         id: s.id,
-        name: s.name || untitled(s.id),
+        // El MSA que agota `max_iter` no es un equilibrio: se marca como en la
+        // lente Ciudad en equilibrio, para no comparar contra él a ciegas.
+        name:
+          (s.name || untitled(s.id)) +
+          (s.result && !s.result.converged
+            ? ` ${t("compare.not_converged")}`
+            : ""),
         kpis:
           s.result && s.config
             ? computeKPIs(

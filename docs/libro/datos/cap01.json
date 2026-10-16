@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-16",
-  "commit": "87b114f",
+  "commit": "34b1726",
   "script": "docs/libro/datos/datos_cap01.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30 sobre oferta normal, semilla 42, asignación esperada, tolerancia 0,2 min. Localización «original» (mezcla uniforme): el capítulo 1 mira la geometría, no la subasta de suelo."
  },
@@ -235,32 +235,32 @@
    "densidad_media_hab_km": 2700,
    "agentes": 54000,
    "reparto_pct": {
-    "Auto": 19.71,
-    "Metro": 36.783,
-    "Bici": 30.295,
+    "Auto": 19.711,
+    "Metro": 36.771,
+    "Bici": 30.306,
     "Caminata": 13.213,
     "Teletrabajo": 0.0
    },
-   "iteraciones": 40,
-   "convergio": false,
-   "gap_final_min": 0.2305,
-   "emisiones_kg_h": 23646.7
+   "iteraciones": 46,
+   "convergio": true,
+   "gap_final_min": 0.1866,
+   "emisiones_kg_h": 23653.4
   },
   {
    "poblacion": 72000,
    "densidad_media_hab_km": 3600,
    "agentes": 72000,
    "reparto_pct": {
-    "Auto": 16.303,
-    "Metro": 41.82,
-    "Bici": 28.308,
-    "Caminata": 13.569,
+    "Auto": 16.301,
+    "Metro": 41.691,
+    "Bici": 28.422,
+    "Caminata": 13.586,
     "Teletrabajo": 0.0
    },
-   "iteraciones": 40,
-   "convergio": false,
-   "gap_final_min": 0.571,
-   "emisiones_kg_h": 30087.4
+   "iteraciones": 114,
+   "convergio": true,
+   "gap_final_min": 0.1959,
+   "emisiones_kg_h": 30198.1
   }
  ],
  "largo": [

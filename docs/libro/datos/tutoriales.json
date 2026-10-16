@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "generado": "2026-10-15",
-  "commit": "87b114f",
+  "generado": "2026-10-16",
+  "commit": "34b1726",
   "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)"
  },
  "parametros": {
@@ -17,8 +17,8 @@
   },
   "hogares_por_km": 1800.0,
   "tolerancia_msa_min": 0.2,
-  "max_iter": 40,
-  "max_iter_tope": 100,
+  "max_iter": 150,
+  "max_iter_tope": 300,
   "tol_acoplado_clp_hogar_mes": 100.0,
   "vot_clp_hora": {
    "alto": 6329,
@@ -54,28 +54,28 @@
   "expected": [
    {
     "num_pistas": 1,
-    "iteraciones": 40,
-    "convergio": false,
-    "brecha_final_min": 0.547,
+    "iteraciones": 115,
+    "convergio": true,
+    "brecha_final_min": 0.195,
     "reparto_pct": {
      "Auto": 16.27,
-     "Metro": 34.43,
-     "Bici": 35.92,
-     "Caminata": 13.38
+     "Metro": 34.19,
+     "Bici": 36.14,
+     "Caminata": 13.39
     },
     "auto_por_estrato_pct": {
-     "alto": 32.12,
+     "alto": 32.13,
      "medio": 17.11,
      "bajo": 4.3
     },
-    "frecuencia_metro_tph": 6.2,
-    "espera_metro_min": 4.71,
+    "frecuencia_metro_tph": 6.15,
+    "espera_metro_min": 4.81,
     "cg_min_equiv": {
-     "medio": 38.2,
+     "medio": 38.15,
      "por_modo": {
-      "Auto": 61.99,
-      "Metro": 47.89,
-      "Bici": 24.5,
+      "Auto": 62.06,
+      "Metro": 48.08,
+      "Bici": 24.32,
       "Caminata": 21.09
      }
     }

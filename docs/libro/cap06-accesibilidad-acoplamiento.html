@@ -384,7 +384,7 @@
     <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:170</td><td>Al agotar el tope, la ciudad final es la que ese transporte vio.</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:181</td><td>El acoplado no converge si el transporte no convergió, y el loop para en cuanto la brecha cumple en vez de repetir la misma ciudad hasta el tope.</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:141</td><td>Las métricas reciben la configuración efectiva, con la carga esperada que el loop fuerza, y el núcleo decide la medida una sola vez (152); el Theil pesa por hogares y no por celdas (197).</td></tr>
-    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:206</td><td>La línea base «equilibrio» del Sandbox, que se mueve con (6.2) porque su localización usa la <em>T</em> de la red vacía.</td></tr>
+    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:207</td><td>La línea base «equilibrio» del Sandbox, que se mueve con (6.2) porque su localización usa la <em>T</em> de la red vacía.</td></tr>
   </tbody>
 </table>
 </div>
@@ -669,8 +669,8 @@
     <tr class="destacada"><td>base</td><td>núcleo</td><td class="n">955,0</td><td class="n">11,4</td><td class="n">4,8</td><td class="n">5,4</td><td class="n">2,7</td><td class="n">1,4</td><td class="n">0,7</td></tr>
     <tr><td>ρ = 54</td><td>MSA 1/(k+1)</td><td class="n">4.178,8</td><td class="n">1.708,3</td><td class="n">1.041,9</td><td class="n">751,4</td><td class="n">567,7</td><td class="n">465,1</td><td class="n">385,9</td></tr>
     <tr class="destacada"><td>ρ = 54</td><td>núcleo</td><td class="n">4.178,8</td><td class="n">743,6</td><td class="n">131,8</td><td class="n">15,2</td><td class="n">6,1</td><td class="n">6,1</td><td class="n">6,1</td></tr>
-    <tr><td>población ×2,5</td><td>MSA 1/(k+1)</td><td class="n">2.107,3</td><td class="n">1.027,1</td><td class="n">667,0</td><td class="n">492,5</td><td class="n">394,2</td><td class="n">330,1</td><td class="n">276,6</td></tr>
-    <tr class="destacada"><td>población ×2,5</td><td>núcleo</td><td class="n">2.107,3</td><td class="n">59,4</td><td class="n">1,1</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
+    <tr><td>población ×2,5</td><td>MSA 1/(k+1)</td><td class="n">2.084,6</td><td class="n">1.024,2</td><td class="n">681,8</td><td class="n">502,6</td><td class="n">393,4</td><td class="n">329,1</td><td class="n">277,9</td></tr>
+    <tr class="destacada"><td>población ×2,5</td><td>núcleo</td><td class="n">2.084,6</td><td class="n">67,6</td><td class="n">8,8</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
   </tbody>
 </table>
 </div>
@@ -684,7 +684,7 @@
   ρ = 54 la brecha se estanca en 6,1 desde la vuelta 5, y en la base baja a
   4,8 en la vuelta 3 y sube a 5,4 en la 4. El promedio, en cambio, arrastra el error
   del arranque con peso <em>1/k</em>: después de 7 vueltas la brecha sigue en
-  133,5, 385,9 y 276,6 $/hogar-mes. Con la tolerancia de
+  133,5, 385,9 y 277,9 $/hogar-mes. Con la tolerancia de
   100, la regla del núcleo para en la vuelta 2 en la base,
   la vuelta 4 con ρ = 54 y la vuelta 2 con la población ×2,5;
   el promedio no la cumple en ninguna de las 7 vueltas, en los tres casos. Sólo
@@ -759,8 +759,8 @@
     <tr><td class="n">12.000</td><td class="n">2</td><td class="n">4,2</td><td>sí</td><td class="n">0,394</td><td class="n">1,37</td><td class="n">2,90</td><td class="n">6,37</td><td class="n">30,6</td><td class="n">16,3</td><td class="n">43,3</td><td class="n">16,5</td><td class="n">−21,1</td></tr>
     <tr><td class="n">24.000</td><td class="n">3</td><td class="n">15,7</td><td>sí</td><td class="n">0,408</td><td class="n">1,27</td><td class="n">2,96</td><td class="n">6,34</td><td class="n">28,6</td><td class="n">21,6</td><td class="n">39,6</td><td class="n">18,9</td><td class="n">−122,0</td></tr>
     <tr class="destacada"><td class="n">36.000</td><td class="n">3</td><td class="n">11,4</td><td>sí</td><td class="n">0,425</td><td class="n">1,19</td><td class="n">3,04</td><td class="n">6,26</td><td class="n">24,9</td><td class="n">30,6</td><td class="n">34,2</td><td class="n">20,1</td><td class="n">−211,8</td></tr>
-    <tr><td class="n">60.000</td><td class="n">3</td><td class="n">33,2</td><td>no</td><td class="n">0,465</td><td class="n">1,06</td><td class="n">3,15</td><td class="n">6,15</td><td class="n">19,5</td><td class="n">40,1</td><td class="n">29,0</td><td class="n">22,9</td><td class="n">−844,1</td></tr>
-    <tr><td class="n">90.000</td><td class="n">3</td><td class="n">59,4</td><td>no</td><td class="n">0,487</td><td class="n">1,01</td><td class="n">3,22</td><td class="n">6,07</td><td class="n">14,9</td><td class="n">46,2</td><td class="n">27,0</td><td class="n">23,9</td><td class="n">−1.794,4</td></tr>
+    <tr><td class="n">60.000</td><td class="n">3</td><td class="n">36,9</td><td>sí</td><td class="n">0,465</td><td class="n">1,06</td><td class="n">3,15</td><td class="n">6,15</td><td class="n">19,5</td><td class="n">40,1</td><td class="n">29,0</td><td class="n">22,9</td><td class="n">−843,8</td></tr>
+    <tr><td class="n">90.000</td><td class="n">3</td><td class="n">67,6</td><td>no</td><td class="n">0,484</td><td class="n">1,03</td><td class="n">3,21</td><td class="n">6,07</td><td class="n">14,9</td><td class="n">46,1</td><td class="n">27,0</td><td class="n">23,9</td><td class="n">−1.799,0</td></tr>
   </tbody>
 </table>
 </div>
@@ -772,16 +772,19 @@
 
 <p>
   El reparto modal es monótono y sensato: más población es más metro, de
-  16,3 % a 46,2 %, y menos auto y menos bici. La congestión
+  16,3 % a 46,1 %, y menos auto y menos bici. La congestión
   sí mueve la localización: el alto se acerca al centro de 1,37 a
-  1,01 km y la segregación sube de 0,394 a 0,487, porque el
+  1,03 km y la segregación sube de 0,394 a 0,484, porque el
   viaje largo se encarece y el alto es quien más paga por evitarlo. El costo
   de la congestión para los usuarios crece mucho más rápido que la población:
-  de −21,1 a −1.794,4 millones de pesos al mes. El
+  de −21,1 a −1.799,0 millones de pesos al mes. El
   loop exterior para en dos o tres vueltas en todo el rango, pero con
-  60.000 hogares el <strong>MSA interior no converge</strong> en sus
+  90.000 hogares el <strong>MSA interior no converge</strong> en sus 150
   iteraciones y el acoplado queda, correctamente, sin converger: el límite es
-  el transporte, no el loop (capítulo 5).
+  el transporte, no el loop (capítulo 5). Con el tope en 40, hasta oct-2026,
+  tampoco convergía el de 60.000; la interfaz lo dice ahora como «MSA sin
+  converger» y no como «Máx. iter.», porque el loop exterior no agotó sus
+  vueltas.
 </p>
 
 <h2 id="s6"><span class="num">§6</span> Discusión</h2>

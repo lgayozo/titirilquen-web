@@ -372,10 +372,13 @@ class SimulationConfig(BaseModel):
     city: CityConfig = Field(default_factory=CityConfig)
     supply: SupplyConfig = Field(default_factory=SupplyConfig)
     demand: DemandConfig
-    # 40 (antes 20): desde D8 el corte mira la brecha NO amortiguada, que con
-    # paso 1/n baja como ~1/n. Sin teletrabajo, la base converge en 29 y Pro-Auto
-    # en 34; con 1 sola pista (Ciclorrecreovía) no alcanza ni en 100 (D-21/H4).
-    max_iter: int = Field(default=40, ge=1, le=100)
+    # 150 (antes 40, y 20 antes de D8): desde D8 el corte mira la brecha NO
+    # amortiguada, que con paso 1/n baja como ~1/n. Sin teletrabajo, la base
+    # converge en 29 y Pro-Auto en 34, pero con 1 sola pista (Ciclorrecreovía)
+    # pide 125 y con 72.000 hogares sobre las 2 pistas de la base, 114
+    # (oct-2026). Una corrida que converge corta antes y no paga el tope; el
+    # techo de 300 deja aire para el slider de la web.
+    max_iter: int = Field(default=150, ge=1, le=300)
     # 0.2 min sobre la brecha no amortiguada `max |c(x(t)) − t|` (D8). Hasta D8
     # era 0,1 sobre el cambio del iterado amortiguado, `f·brecha`: con f = 1/n
     # la tolerancia real se aflojaba sola y la base «convergía» en la iteración

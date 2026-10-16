@@ -444,18 +444,19 @@
 <h3>4.6 Campos sin lector, y el CI que no ve octubre</h3>
 
 <p>
-  De los 116 campos del contrato, <strong>15</strong> no aparecen en ningún
+  De los 116 campos del contrato, <strong>14</strong> no aparecen en ningún
   archivo del frontend fuera de <code>lib/gen/</code>: <code>gap_final_min</code>,
   <code>v_libre_auto</code>, <code>alpha_auto_bpr</code>, <code>beta_auto_bpr</code>,
   <code>f_msa</code>, <code>teletrabaja</code>, <code>tiene_auto</code>,
   <code>T_matrix</code>, <code>excedente_social_por_estrato_clp</code>,
   <code>viajeros_por_estrato</code>, <code>excedente_total_clp</code>,
-  <code>excedente_max_total_clp</code>, <code>n_viajeros</code>,
-  <code>convergio_msa</code> y <code>tiempo_total_pax_min</code>. Dos son
+  <code>excedente_max_total_clp</code>, <code>n_viajeros</code> y
+  <code>tiempo_total_pax_min</code>. Dos son
   pendientes declarados que siguen abiertos: <code>gap_final_min</code> (D-39) y
-  <code>n_viajeros</code> (D-35). Son los mismos quince de septiembre; los dos
-  campos nuevos del contrato, como <code>t_bici_libre</code> (D9), sí tienen
-  lector.
+  <code>n_viajeros</code> (D-35). Son los quince de septiembre menos
+  <code>convergio_msa</code>, que desde oct-2026 lee la tabla de Ciudad en
+  equilibrio para decir «MSA sin converger»; los dos campos nuevos del
+  contrato, como <code>t_bici_libre</code> (D9), sí tienen lector.
 </p>
 
 <div class="aviso alerta">
@@ -619,7 +620,7 @@
     </tr>
     <tr>
       <td class="n">D-63</td>
-      <td>La entrada <code>simulate</code> del worker no tenía llamadores (borrada el 2026-09-10), y 15 campos del contrato no tienen lector.</td>
+      <td>La entrada <code>simulate</code> del worker no tenía llamadores (borrada el 2026-09-10), y 14 campos del contrato no tienen lector.</td>
       <td>Código y contrato muertos, sin efecto sobre los números.</td>
       <td>pendiente (baja)</td>
     </tr>

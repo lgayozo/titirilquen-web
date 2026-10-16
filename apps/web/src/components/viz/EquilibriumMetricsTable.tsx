@@ -135,13 +135,23 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       <div className="eqt-sys-grid">
         <Stat
           label={t("eqt.convergence")}
-          value={sys.convergio_exterior ? t("eqt.converged") : t("eqt.maxiter")}
+          // El acoplado para cuando la brecha exterior cumple aunque el MSA de
+          // esa vuelta no haya convergido (coupled.py): ahí «Máx. iter.» era
+          // falso, porque el loop exterior no agotó sus vueltas.
+          value={
+            sys.convergio_exterior
+              ? t("eqt.converged")
+              : sys.convergio_msa
+                ? t("eqt.maxiter")
+                : t("eqt.msa_not_converged")
+          }
           sub={t("eqt.conv_sub", {
             n: sys.iteraciones_exteriores,
             res:
               sys.residual_final == null ? "—" : sys.residual_final.toFixed(1),
           })}
           good={sys.convergio_exterior}
+          warn={!sys.convergio_exterior}
         />
         <Stat
           label={t("eqt.sys_time")}

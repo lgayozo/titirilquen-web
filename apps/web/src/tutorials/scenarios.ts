@@ -106,8 +106,8 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     },
   },
 
-  // E. Sensibilidad al MSA: el tope corto contra el default (40). Antes el
-  // largo era 20, que con el default en 40 significaba BAJAR el tope.
+  // E. Sensibilidad al MSA: el tope corto contra el default (150 desde
+  // oct-2026; antes 40, y el largo era 20, que significaba BAJAR el tope).
   msa_corto: {
     to: "/sandbox",
     build: () => {
@@ -120,7 +120,7 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
     to: "/sandbox",
     build: () => {
       const s = sim();
-      s.max_iter = 40;
+      s.max_iter = 150;
       return { sim: s };
     },
   },

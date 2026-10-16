@@ -215,7 +215,7 @@
   </thead>
   <tbody>
     <tr><td><code>tolerance</code></td><td class="n">0,2</td><td class="n">0,2</td><td>min</td><td><span class="etiqueta neutra">decisión</span> D8: sobre la brecha no amortiguada (5.4), dos iteraciones seguidas</td></tr>
-    <tr><td><code>max_iter</code></td><td class="n">40</td><td class="n">40</td><td>—</td><td><span class="etiqueta neutra">decisión</span> D8: cubre los presets de política salvo «Ciclorrecreovía»; el más lento de los que convergen, «Pro-Auto», lo hace en 34</td></tr>
+    <tr><td><code>max_iter</code></td><td class="n">150</td><td class="n">150</td><td>—</td><td><span class="etiqueta neutra">decisión</span> D8 y oct-2026: cubre los 8 presets de política; el más lento, «Ciclorrecreovía», converge en 125</td></tr>
     <tr><td><code>assignment</code></td><td class="n">expected</td><td class="n">montecarlo</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la app usa «Logit — probabilidades» (carga los flujos esperados n·P, sin ruido de muestreo); es una de las divergencias declaradas</td></tr>
     <tr><td><code>seed</code></td><td class="n">42</td><td class="n">—</td><td>—</td><td><span class="etiqueta neutra">decisión</span> reproducibilidad</td></tr>
     <tr><td><code>modos_habilitados</code></td><td class="n">4</td><td class="n">4</td><td>modos</td><td><span class="etiqueta neutra">decisión</span> los cuatro; apagar uno lo saca del conjunto de elección</td></tr>
@@ -234,13 +234,14 @@
   punto donde seguir iterando deja de cambiar la respuesta. Bajarla a
   0,05 agota el tope de 100 iteraciones sin cumplirse, contra 29, y mueve el
   reparto a lo sumo 0,01 puntos (§5.2). <strong>El tope</strong> de
-  40 iteraciones alcanza para la base y para 7 de los
-  8 presets de política, que convergen entre 18 y
-  34 iteraciones. No alcanza con una sola pista: ni en el
-  extremo del barrido de la §5.5 ni en «Ciclorrecreovía», que deja la vía en
-  una pista y termina con brecha 0,60 min. La brecha baja, pero como
-  1/<em>n</em>, desde más arriba: sin teletrabajo por defecto (oct-2026) viajan
-  todos los hogares y el corredor angosto queda muy por sobre su capacidad.
+  150 iteraciones alcanza para la base y para los
+  8 presets de política: siete convergen entre 18 y
+  34 iteraciones, y «Ciclorrecreovía», que deja la vía en una pista, pide
+  125. Con una sola pista la brecha baja, pero como 1/<em>n</em>, desde más
+  arriba: sin teletrabajo por defecto (oct-2026) viajan todos los hogares y el
+  corredor angosto queda muy por sobre su capacidad. Hasta oct-2026 el tope
+  era 40 y esas corridas se cortaban sin converger. Una corrida que converge
+  para antes, así que el tope sólo cuesta tiempo en las que no lo hacen.
 </p>
 
 <p>
@@ -292,7 +293,7 @@
     <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">277</td><td><code>_asignar_modos_agentes</code> — el modo muestreado por agente al final, para las figuras y el bienestar</td></tr>
     <tr><td class="n">(5.5)</td><td class="ruta py">demand/utility.py</td><td class="n">43</td><td><code>bici_libre</code> — el campo de <code>TiemposObservados</code> sobre el que van escalones y corte; <code>t_esfuerzo</code> (151) los evalúa</td></tr>
     <tr><td class="n">(5.6)</td><td class="ruta py">emissions.py</td><td class="n">56</td><td><code>calcular_emisiones</code> — auto por velocidad local; <code>factor_emision_auto</code> (29) es la curva; <code>tren_km_hora</code> (43) los tren-km del metro</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">366</td><td><code>SimulationConfig</code> — <code>max_iter</code> (378), <code>tolerance</code> (387), <code>seed</code> (388), <code>assignment</code> (389), <code>modos_habilitados</code> (408)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">366</td><td><code>SimulationConfig</code> — <code>max_iter</code> (381), <code>tolerance</code> (390), <code>seed</code> (391), <code>assignment</code> (392), <code>modos_habilitados</code> (411)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/overrides.ts</td><td class="n">49</td><td><code>assignment</code> — la app corre <code>expected</code>; el núcleo trae Montecarlo</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">components/RunStatus.tsx</td><td class="n">41</td><td><code>converged</code> — lo que la interfaz declara al terminar: convergió o no, en cuántas iteraciones y con qué residuo, que desde D8 es la brecha</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">514</td><td><code>aon</code> — con todo o nada el veredicto habla del costo en exceso medio, que es lo que mide su residuo</td></tr>
@@ -328,7 +329,7 @@
     <tr><td><code class="ruta py">tests/test_convergencia.py</code>:37</td><td>La brecha final existe y es finita; la brecha de cada iteración es exactamente el cambio del iterado dividido por <em>f</em> (42, D8); y se cierra al exigir más tolerancia (61).</td></tr>
     <tr><td><code class="ruta py">tests/test_demand.py</code>:117</td><td>D9: la congestión no suma escalones ni saca a la bici del conjunto; sólo pesa por <em>β<sub>t</sub></em>.</td></tr>
     <tr><td><code class="ruta py">tests/test_estatica_comparativa.py</code>:50</td><td>Los efectos propios tienen el signo de la teoría: el peaje baja el auto, la tarifa cero sube el metro, una pista más sube el auto y más ciclovía sube la bici.</td></tr>
-    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:206</td><td>El reparto de las dos ramas y el número de iteraciones (226), con cinco centésimas de punto de tolerancia; las dos ramas difieren (232).</td></tr>
+    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:207</td><td>El reparto de las dos ramas y el número de iteraciones (227), con cinco centésimas de punto de tolerancia; las dos ramas difieren (233).</td></tr>
     <tr><td><code class="ruta py">tests/test_emissions.py</code>:25</td><td>El metro emite por tren-km e independiente de la carga (32); el perfil espacial suma el total (44); sin servicio no hay emisiones de metro (50).</td></tr>
     <tr><td><code class="ruta py">tests/test_equilibrium_smoke.py</code>:13</td><td>Una corrida chica conserva invariantes básicas y converge con tolerancia alta (43).</td></tr>
   </tbody>
@@ -347,7 +348,8 @@
 <p>
   Todo sale de <code>datos/cap05.json</code>: la configuración de la
   aplicación con localización «original», semilla 42, carga esperada,
-  tolerancia 0,2 min sobre la brecha y máximo 40 iteraciones.
+  tolerancia 0,2 min sobre la brecha y máximo 150 iteraciones. La trayectoria
+  de la §5.1 y las variantes de la §5.3 corren sin corte hasta la 40.
 </p>
 
 <h3>5.1 La trayectoria: la brecha, y lo que medía la regla vieja</h3>
@@ -450,7 +452,7 @@
     <tr><th class="n">Pistas</th><th class="n">Iter.</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Frecuencia (tph)</th><th class="n">Auto desde el borde (min)</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">1</td><td class="n">40 *</td><td class="n">16,27</td><td class="n">34,44</td><td class="n">6,20</td><td class="n">58,9</td><td class="n">14.897,0</td></tr>
+    <tr><td class="n">1</td><td class="n">115</td><td class="n">16,27</td><td class="n">34,19</td><td class="n">6,16</td><td class="n">58,8</td><td class="n">14.970,9</td></tr>
     <tr class="destacada"><td class="n">2</td><td class="n">29</td><td class="n">24,68</td><td class="n">28,52</td><td class="n">5,13</td><td class="n">34,9</td><td class="n">15.106,4</td></tr>
     <tr><td class="n">3</td><td class="n">22</td><td class="n">28,41</td><td class="n">25,98</td><td class="n">4,68</td><td class="n">25,0</td><td class="n">12.618,3</td></tr>
     <tr><td class="n">4</td><td class="n">19</td><td class="n">29,73</td><td class="n">25,09</td><td class="n">4,52</td><td class="n">21,4</td><td class="n">11.103,8</td></tr>
@@ -461,19 +463,18 @@
 <p>
   Al pasar de una a dos pistas el auto gana
   8,41 puntos, el metro pierde
-  5,92 y su frecuencia cae de
-  6,20 a 5,13 trenes por hora, un
+  5,68 y su frecuencia cae de
+  6,16 a 5,13 trenes por hora, un
   17 %: el efecto
   Mohring operando en reversa, que es la cadena que produce la paradoja de
   Downs-Thomson. Lo que no ocurre es que llegue a dominar: el tiempo del auto
-  desde el borde baja de 58,9 a 34,9 min, y las emisiones suben, de 14.897 a 15.106 kg/h: la velocidad baja la emisión por kilómetro, pero el auto gana viajes, y eso pesa más. No hay obligación teórica de que la paradoja aparezca: requiere
+  desde el borde baja de 58,8 a 34,9 min, y las emisiones suben, de 14.971 a 15.106 kg/h: la velocidad baja la emisión por kilómetro, pero el auto gana viajes, y eso pesa más. No hay obligación teórica de que la paradoja aparezca: requiere
   que el transporte público sea el modo dominante y que su frecuencia sea muy
   sensible a la demanda, y aquí el metro lleva el
   28,5 % de los viajes. De tres a cuatro pistas el auto
   gana 1,32 puntos: la palanca vial se
   agota en cuanto la vía baja de su capacidad. La única pista
-  (*) no converge en el tope: termina con brecha 0,569 min,
-  2,8 veces la tolerancia. La población está fija en todas las filas; con
+  converge, pero pide 115 iteraciones. La población está fija en todas las filas; con
   la localización de equilibrio la vía nueva movería además a los hogares,
   que es materia del capítulo 6.
 </p>
@@ -563,9 +564,9 @@
 
 <p>
   Con sorteo, cada iteración carga una demanda distinta y la brecha de las
-  últimas diez iteraciones salta entre 0,15 y
-  1,45 min sin tendencia. La corrida agota las
-  40 iteraciones y queda marcada sin converger. Su brecha final, medida con carga esperada, es 0,246 min, sobre la tolerancia de 0,2: con todos los hogares viajando, el ruido del sorteo ya no queda bajo el corte. Su reparto difiere del de la carga esperada en a lo sumo 0,34 puntos.
+  últimas diez iteraciones salta entre 0,30 y
+  1,79 min sin tendencia. La corrida agota las
+  150 iteraciones y queda marcada sin converger. Su brecha final, medida con carga esperada, es 0,078 min, bajo la tolerancia de 0,2: el estado promediado sí llegó, pero el residuo de cada sorteo no baja del piso de ruido. Su reparto difiere del de la carga esperada en a lo sumo 0,20 puntos.
 </p>
 
 <h2 id="s6"><span class="num">§6</span> Discusión</h2>
@@ -594,17 +595,18 @@
     amortiguado (§5.3).
   </li>
   <li>
-    <strong>El veredicto de Montecarlo.</strong> Hoy coincide con su brecha, que
-    queda sobre la tolerancia (§5.9), pero con una ciudad menos cargada
-    marca «sin converger» con la brecha bajo ella. La regla podría mirar la
+    <strong>El veredicto de Montecarlo.</strong> Hoy no coincide con su brecha:
+    con 150 iteraciones la brecha con carga esperada queda bajo la tolerancia
+    y la corrida igual se marca «sin converger» (§5.9). La regla podría mirar la
     brecha con carga esperada, a costa de una pasada más de demanda por
     iteración.
   </li>
   <li>
-    <strong>Una sola pista.</strong> No converge en el tope de
-    40 iteraciones (§5.5), y «Ciclorrecreovía», que es un preset,
-    tampoco. Se resuelve con el tope único de vueltas de la fase de interfaz:
-    subir el tope, cambiar la regla de paso o declararlo en pantalla.
+    <strong>Una sola pista.</strong> Resuelto en oct-2026: con el tope en 150
+    la pista única de la §5.5 converge en 115 iteraciones y
+    «Ciclorrecreovía», en 125. La cola 1/<em>n</em> sigue ahí; una regla de
+    paso más rápida lo abarataría. Lo que no converge se declara en pantalla:
+    la barra de estado del Sandbox, Comparar y Ciudad en equilibrio lo marcan.
   </li>
   <li>
     <strong>La tolerancia de todo o nada.</strong> Los 0,2 min de costo en

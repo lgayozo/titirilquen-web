@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-15",
-  "commit": "87b114f",
+  "fecha": "2026-10-16",
+  "commit": "34b1726",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -149,7 +149,6 @@
     "n_viajeros"
    ],
    "SystemMetrics": [
-    "convergio_msa",
     "tiempo_total_pax_min"
    ]
   },
@@ -170,7 +169,7 @@
     "S"
    ]
   },
-  "cantidad_sin_lector": 15
+  "cantidad_sin_lector": 14
  },
  "determinismo": {
   "standalone_dos_corridas": {

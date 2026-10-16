@@ -935,7 +935,7 @@ export function SandboxPage() {
             <input
               type="range"
               min={3}
-              max={100}
+              max={300}
               step={1}
               value={config.max_iter}
               onChange={(e) =>

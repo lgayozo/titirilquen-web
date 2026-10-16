@@ -768,6 +768,7 @@
     "convergence": "Convergencia",
     "converged": "Convergió",
     "maxiter": "Máx. iter.",
+    "msa_not_converged": "MSA sin converger",
     "conv_sub": "{{n}} iter · brecha {{res}} $/hogar-mes",
     "sys_time": "Tiempo medio",
     "sys_time_sub": "del sistema",
