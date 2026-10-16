@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-14",
-  "commit": "bb6446b",
+  "fecha": "2026-10-15",
+  "commit": "87b114f",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -12,7 +12,7 @@
   "al_dia": true
  },
  "paridad_worker_api": {
-  "lineas_de_python_en_el_worker": 75,
+  "lineas_de_python_en_el_worker": 76,
   "entradas": {
    "simulateStream": {
     "api": "/simulate",
@@ -91,16 +91,16 @@
   "la_interfaz_pasa_por_la_api": true
  },
  "payload": {
-  "trace_to_dict_bytes": 6766330,
+  "trace_to_dict_bytes": 6769385,
   "trace_agentes": 36000,
   "trace_por_clave_pct": {
-   "agentes": 83.7,
-   "iteraciones": 15.51,
+   "agentes": 83.66,
+   "iteraciones": 15.5,
    "demanda_estrato": 0.58,
    "emisiones_perfil_kg": 0.06,
    "flujos_auto_veh_h": 0.06
   },
-  "outer_iteration_bytes": 6792035,
+  "outer_iteration_bytes": 6788747,
   "outer_por_clave_pct": {
    "transport": 99.55,
    "land_use": 0.24,
@@ -118,10 +118,10 @@
    "metrics": 10
   },
   "mb_por_corrida_acoplada_al_maximo_de_la_ui": 67.9,
-  "mb_que_el_frontend_abre_de_eso": 0.18
+  "mb_que_el_frontend_abre_de_eso": 0.19
  },
  "campos_sin_lector": {
-  "campos_totales": 114,
+  "campos_totales": 116,
   "sin_lector": {
    "TraceDict": [
     "gap_final_min",
@@ -196,7 +196,7 @@
     "tipos.gen.ts",
     "trace.gen.ts"
    ],
-   "lineas": 949,
+   "lineas": 959,
    "interfaces": 29
   },
   "version_del_nucleo": "0.2.0",

@@ -19,7 +19,7 @@
   </p>
   <p class="meta">
     Módulo: <code>city.py</code> · <code>CityConfig</code> ·
-    datos regenerados el 2026-09-10 ·
+    datos regenerados el 2026-10-16 ·
     <span class="estado vigente">vigente</span>
   </p>
 </header>
@@ -127,9 +127,10 @@
 <div class="aviso idea">
   <h4>Los tres diales, y qué mueve cada uno</h4>
   <p>
-    <strong>n</strong> es resolución numérica: la población no depende de él y
-    el resultado converge al refinarlo, aunque no es invariante en las grillas
-    gruesas (§5 mide cuánto y por qué). <strong>L</strong> dice cuán grande es
+    <strong>n</strong> es resolución numérica: la población no depende de él,
+    pero el resultado no es invariante: desde 201 celdas queda en una banda de
+    unas dos décimas de punto, sin converger hacia un valor (§5 mide cuánto y
+    por qué). <strong>L</strong> dice cuán grande es
     la ciudad y sí manda. <strong>ΣH</strong>, que no es de la ciudad sino del
     suelo, dice cuánta gente viaja y también manda.
   </p>
@@ -173,7 +174,8 @@
 <p>
   <strong>201 celdas</strong> es un compromiso entre resolución y tiempo de
   cálculo, y la §5 lo respalda: refinar de 201 a 401 celdas mueve el reparto
-  modal menos de 0,15 puntos porcentuales, y de 401 a 801 menos todavía. Sobre
+  modal 0,091 puntos porcentuales como máximo, y de 401 a 801, 0,198: refinar
+  más no achica el residuo, que se queda bajo las dos décimas. Sobre
   20 km dan Δx = 99,5 m, la «cuadra» de cien metros con la que se lee la
   densidad. El núcleo conserva las 1001 celdas del documento original para
   quien quiera reproducirlo.
@@ -351,7 +353,7 @@
     </tr>
     <tr>
       <td><code class="ruta py">tests/test_city.py</code>:205</td>
-      <td>La grilla converge: menos de 0,15 pp entre 201 y 401, y no más entre 401 y 801.</td>
+      <td>La grilla queda acotada: entre 201, 401 y 801 celdas ningún modo se mueve más de 0,25 pp. No exige que el salto decrezca.</td>
     </tr>
     <tr>
       <td><code class="ruta py">tests/test_land_use.py</code>:259</td>
@@ -387,7 +389,7 @@
   media de 1.800 hab/km.
 </p>
 
-<h3>La resolución converge</h3>
+<h3>La resolución queda acotada</h3>
 
 <div class="envoltorio-tabla">
 <table>
@@ -395,18 +397,19 @@
     <tr><th class="n">n</th><th class="n">Población</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">51</td><td class="n">36.000</td><td class="n">16,338</td><td class="n">23,719</td><td class="n">29,895</td><td class="n">10,542</td><td class="n">6.268,8</td></tr>
-    <tr><td class="n">101</td><td class="n">36.000</td><td class="n">16,386</td><td class="n">23,673</td><td class="n">29,486</td><td class="n">10,956</td><td class="n">6.225,3</td></tr>
-    <tr class="destacada"><td class="n">201</td><td class="n">36.000</td><td class="n">16,362</td><td class="n">23,625</td><td class="n">29,395</td><td class="n">11,124</td><td class="n">6.171,5</td></tr>
-    <tr><td class="n">401</td><td class="n">36.000</td><td class="n">16,336</td><td class="n">23,606</td><td class="n">29,332</td><td class="n">11,214</td><td class="n">6.170,2</td></tr>
-    <tr><td class="n">801</td><td class="n">36.000</td><td class="n">16,279</td><td class="n">23,673</td><td class="n">29,286</td><td class="n">11,217</td><td class="n">6.192,8</td></tr>
+    <tr><td class="n">51</td><td class="n">36.000</td><td class="n">24,501</td><td class="n">28,963</td><td class="n">34,596</td><td class="n">11,940</td><td class="n">15.518,0</td></tr>
+    <tr><td class="n">101</td><td class="n">36.000</td><td class="n">24,627</td><td class="n">28,577</td><td class="n">34,355</td><td class="n">12,440</td><td class="n">15.224,2</td></tr>
+    <tr class="destacada"><td class="n">201</td><td class="n">36.000</td><td class="n">24,678</td><td class="n">28,517</td><td class="n">34,189</td><td class="n">12,616</td><td class="n">15.106,4</td></tr>
+    <tr><td class="n">401</td><td class="n">36.000</td><td class="n">24,680</td><td class="n">28,478</td><td class="n">34,135</td><td class="n">12,707</td><td class="n">15.004,8</td></tr>
+    <tr><td class="n">801</td><td class="n">36.000</td><td class="n">24,878</td><td class="n">28,441</td><td class="n">34,029</td><td class="n">12,652</td><td class="n">15.145,3</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   <strong>La población es exactamente invariante</strong>: 36.000 agentes en las
-  cinco grillas. El reparto converge sin ser invariante. El mayor cambio de una
+  cinco grillas. El reparto no es invariante y, desde 201 celdas, tampoco
+  converge hacia un valor: oscila en una banda. El mayor cambio de una
   categoría entre grillas consecutivas:
 </p>
 
@@ -416,22 +419,23 @@
     <tr><th>Refinamiento</th><th class="n">Δ máx (pp)</th></tr>
   </thead>
   <tbody>
-    <tr><td>51 → 101</td><td class="n">0,414</td></tr>
-    <tr><td>101 → 201</td><td class="n">0,168</td></tr>
-    <tr class="destacada"><td>201 → 401</td><td class="n">0,090</td></tr>
-    <tr><td>401 → 801</td><td class="n">0,067</td></tr>
+    <tr><td>51 → 101</td><td class="n">0,500</td></tr>
+    <tr><td>101 → 201</td><td class="n">0,176</td></tr>
+    <tr class="destacada"><td>201 → 401</td><td class="n">0,091</td></tr>
+    <tr><td>401 → 801</td><td class="n">0,198</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Cada duplicación reduce el salto, y desde 201 celdas queda bajo la décima
-  de punto. La
-  causa está en la demanda, no en la geometría: los cortes de caminata y
+  Las dos primeras duplicaciones reducen el salto, pero la de 401 a 801 lo
+  vuelve a subir a 0,198 pp, que es el auto: de 24,680 % a 24,878 %. Desde 201
+  celdas ningún salto llega a las dos décimas de punto. La causa está en la demanda, no en la geometría: los cortes de caminata y
   bicicleta y las penalizaciones físicas por tramo son <strong>funciones
   escalón de la distancia</strong>, y con cada Δx el escalón cae en una
   fracción distinta de una celda. Mientras existan escalones la grilla tendrá
-  un residuo; lo que se exige es que decrezca, y eso es lo que fija
+  un residuo, y nada obliga a que decrezca con cada refinamiento; lo que se
+  exige es que quede acotado entre 201, 401 y 801 celdas, y eso es lo que fija
   <code>test_la_grilla_converge</code>.
 </p>
 
@@ -448,21 +452,24 @@
     <tr><th class="n">ΣH</th><th class="n">hab/km</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th><th class="n">Iter.</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">18.000</td><td class="n">900</td><td class="n">17,237</td><td class="n">14,721</td><td class="n">37,329</td><td class="n">11,190</td><td class="n">2.998,6</td><td class="n">4</td></tr>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">16,362</td><td class="n">23,625</td><td class="n">29,395</td><td class="n">11,124</td><td class="n">6.171,5</td><td class="n">7</td></tr>
-    <tr><td class="n">54.000</td><td class="n">2.700</td><td class="n">15,079</td><td class="n">29,332</td><td class="n">24,892</td><td class="n">11,172</td><td class="n">10.318,3</td><td class="n">10</td></tr>
-    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">13,776</td><td class="n">33,261</td><td class="n">22,051</td><td class="n">11,401</td><td class="n">15.523,3</td><td class="n">10</td></tr>
+    <tr><td class="n">18.000</td><td class="n">900</td><td class="n">30,862</td><td class="n">15,941</td><td class="n">40,898</td><td class="n">12,298</td><td class="n">5.947,0</td><td class="n">5</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">24,678</td><td class="n">28,517</td><td class="n">34,189</td><td class="n">12,616</td><td class="n">15.106,4</td><td class="n">29</td></tr>
+    <tr><td class="n">54.000</td><td class="n">2.700</td><td class="n">19,710</td><td class="n">36,783</td><td class="n">30,295</td><td class="n">13,213</td><td class="n">23.646,7</td><td class="n">40 (tope)</td></tr>
+    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">16,303</td><td class="n">41,820</td><td class="n">28,308</td><td class="n">13,569</td><td class="n">30.087,4</td><td class="n">40 (tope)</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Con el largo fijo, más gente es más congestión: el auto cae de 17,24 % a
-  13,78 %, la bicicleta pierde dos quintos de su cuota cuando la ciclovía
-  satura, y el metro, con economías de escala, sube de 14,72 % a 33,26 %. La caminata
-  casi no se mueve porque su tiempo no depende del flujo. Las emisiones crecen
-  cinco veces con cuatro veces la población, y el MSA necesita más
-  iteraciones para cerrar.
+  Con el largo fijo, más gente es más congestión: el auto cae de 30,86 % a
+  16,30 %, la bicicleta pierde casi un tercio de su cuota cuando la ciclovía
+  satura, y el metro, con economías de escala, sube de 15,94 % a 41,82 %. La
+  caminata sube poco, de 12,30 % a 13,57 %, porque su tiempo no depende del
+  flujo. Las emisiones crecen cinco veces con cuatro veces la población, y el
+  MSA necesita cada vez más iteraciones: con 54.000 y 72.000 hogares llega al
+  tope de 40 <strong>sin converger</strong>, con brechas finales de 0,2305 y
+  0,571 min, por encima de la tolerancia. Esas dos filas son la última
+  iteración, no un equilibrio, y la de 72.000 es la que queda más lejos.
 </p>
 
 <h3>El largo manda</h3>
@@ -473,18 +480,19 @@
     <tr><th class="n">L (km)</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">10</td><td class="n">14,821</td><td class="n">13,600</td><td class="n">20,296</td><td class="n">2.694,6</td></tr>
-    <tr class="destacada"><td class="n">20</td><td class="n">16,362</td><td class="n">23,625</td><td class="n">11,124</td><td class="n">6.171,5</td></tr>
-    <tr><td class="n">30</td><td class="n">17,098</td><td class="n">29,848</td><td class="n">7,812</td><td class="n">9.813,0</td></tr>
-    <tr><td class="n">40</td><td class="n">17,811</td><td class="n">34,121</td><td class="n">6,013</td><td class="n">13.692,9</td></tr>
+    <tr><td class="n">10</td><td class="n">24,724</td><td class="n">18,657</td><td class="n">22,308</td><td class="n">7.765,0</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">24,678</td><td class="n">28,517</td><td class="n">12,616</td><td class="n">15.106,4</td></tr>
+    <tr><td class="n">30</td><td class="n">24,298</td><td class="n">35,682</td><td class="n">8,958</td><td class="n">21.375,1</td></tr>
+    <tr><td class="n">40</td><td class="n">23,931</td><td class="n">40,641</td><td class="n">6,921</td><td class="n">26.829,8</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Con la población fija en 36.000, estirar la ciudad alarga los viajes: la
-  caminata se derrumba de 20,3 % a 6,0 %, el metro se multiplica por dos y
-  medio y las emisiones se quintuplican. La dirección y la magnitud son las que la teoría predice.
+  caminata se derrumba de 22,3 % a 6,9 %, el metro se multiplica por 2,2 y
+  las emisiones por 3,5. La dirección de esos tres efectos es la que la teoría
+  predice; el auto, en cambio, queda casi plano, de 24,72 % a 23,93 %.
 </p>
 
 <h3>Por qué n impar</h3>
@@ -521,8 +529,8 @@
   La ciudad lineal hace una sola cosa: decir cuántas celdas hay y a qué
   distancia del centro. No decide cuánta gente vive en ella, eso es del suelo,
   ni cuánta teletrabaja, eso es de la demanda. Sus tres números están
-  etiquetados, sus propiedades tienen test y su único dial numérico converge
-  con una causa conocida.
+  etiquetados, sus propiedades tienen test y su único dial numérico deja un
+  residuo acotado y de causa conocida.
 </p>
 
 <p>

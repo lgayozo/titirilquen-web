@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-14",
-  "commit": "3d94b27",
+  "fecha": "2026-10-16",
+  "commit": "87b114f",
   "script": "docs/libro/datos/datos_cap09.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`), rama «original» para la sensibilidad de transporte y «equilibrio» para la del suelo. El original se lee de `reference/Titirilquen/app.py`."
  },
@@ -24,6 +24,7 @@
   "sin_fuente_declarada": [
    "demand.estratos.*.betas.b_costo",
    "land_use.estratos.*.rho",
+   "land_use.mu",
    "supply.train.anden_alpha",
    "supply.train.anden_beta",
    "supply.train.costo_operacion_tren_km",
@@ -745,6 +746,13 @@
     "fuente": "0 = Alonso puro, sobre densidad relativa (D2); la penalización no tiene fuente"
    },
    {
+    "parametro": "land_use.mu",
+    "valor": 0.3,
+    "etiqueta": "decisión",
+    "sin_fuente": true,
+    "fuente": "0,30, valor de escenario (v10); se calibra con la localización observada"
+   },
+   {
     "parametro": "land_use.tol",
     "valor": 1e-08,
     "etiqueta": "decisión",
@@ -813,13 +821,6 @@
     "etiqueta": "decisión",
     "sin_fuente": false,
     "fuente": "2: el parking es por día (oct-2026)"
-   },
-   {
-    "parametro": "constantes.MU_SUELO",
-    "valor": 0.15075567228888181,
-    "etiqueta": "decisión",
-    "sin_fuente": false,
-    "fuente": "1/√44, fijo; no es campo desde v7 (D1, D-41)"
    },
    {
     "parametro": "constantes.FACTOR_CAPACIDAD_PRACTICA",
@@ -2344,10 +2345,16 @@
   "errores": [],
   "suelo_sobre_rama_equilibrio": [
    {
+    "parametro": "land_use.mu",
+    "valor": 0.3,
+    "perturbado": 0.33,
+    "max_delta_pp": 0.0621
+   },
+   {
     "parametro": "land_use.estratos.1.rho",
     "valor": 0.0,
     "perturbado": 1.0,
-    "max_delta_pp": 0.0126
+    "max_delta_pp": 0.0197
    },
    {
     "parametro": "land_use.estratos.1.y",
@@ -2359,7 +2366,7 @@
     "parametro": "land_use.oferta_sigma_frac",
     "valor": 0.5,
     "perturbado": 0.55,
-    "max_delta_pp": 1.4613
+    "max_delta_pp": 1.4672
    },
    {
     "parametro": "land_use.forma_param",

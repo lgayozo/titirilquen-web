@@ -367,9 +367,9 @@
     "stale_note": "Any change here makes the Transport, Land use and City in equilibrium results stale: each page flags it and offers to rerun.",
     "summary": "The logit coefficients are edited on the Calibration page: they also set land use's accessibility and λ.",
     "edit_link": "Edit in Calibration →",
-    "mu_meta": "μ = {{mu}} · fixed",
-    "mu_fijo_corto": "Precision of the home-choice noise (Martínez, eq. 4.2), on the scale of one trip: the bid reads {{n}} trips a month.",
-    "mu_fijo_porque": "If each trip carries its own independent shock, the month's grows like √{{n}} and the precision falls to 1/√{{n}}. It is a reasoned assumption, not data: without observed rents it cannot be estimated. It is not a knob because moving it rescales accessibility and density at once."
+    "mu_meta": "μ = {{mu}} · scenario value",
+    "mu_corto": "Precision of the home-choice noise (Martínez, eq. 4.2), common to all strata: the bid noise is 1/(μ·λ_h). It is set on the Land use page.",
+    "mu_porque": "There is no transferable μ: it is estimated from observed location by stratum (bid-auction logit, Martínez 2018 §9.3) and, if rents are observed, the rent equation identifies the scale (Lerman and Kern 1983). Here it is a scenario value; higher μ ⇒ a more segregated city. Only μ·α and μ·ρ are identified: with α fixed at 1, moving μ scales the sensitivity to accessibility and to density at once. Until Oct-2026 it was 1/√44, by an analogy with 44 independent trip shocks that does not hold: those shocks are already integrated in the logsum."
   },
   "demand_inspector": {
     "title": "Utility inspector — multinomial logit",
@@ -502,7 +502,12 @@
     "lambda_values_porque": "Changing b_cost changes both λ (the value of time used to bid) and the accessibility T. A common scale of all three does not move the allocation, only the rent unit (D-41).",
     "rho_corto": "Disutility of the cell's relative density; it enters in pesos as ρ/λ_h. 0 by default (pure Alonso); near 31 the allocation inverts.",
     "rho_porque": "No source in the original model. Density is relative (the cell's over the city mean), so its effect does not change with population. Since it is divided by λ_h, the high stratum pays more for low density. Raising it mixes the city and flattens rents; the ≈31 threshold holds for the default supply, and above it the rich end up in the periphery.",
-    "mu_fijo": "μ = 1/√{{n}} ≈ {{mu}}, fixed: home-choice noise accumulates the month's {{n}} trips. The reason is on the Calibration page."
+    "param_mu": "μ · precision of the location noise",
+    "mu_corto": "Higher μ ⇒ less noise in choosing a home: each stratum keeps its band and the city segregates.",
+    "mu_preset_mezclada": "Mixed · {{mu}}",
+    "mu_preset_base": "Base · {{mu}}",
+    "mu_preset_segregada": "Segregated · {{mu}}",
+    "mu_porque": "The bid noise is 1/(μ·λ_h) $/month. With low μ idiosyncratic taste dominates and strata mix; with high μ accessibility dominates and the stratum that values time most wins the center. There is no transferable μ: it is calibrated against observed location by stratum (bid-auction logit, Martínez 2018 §9.3); in Santiago, against distance to the employment center by income, because segregation there is sectoral. Only μ·ρ is identified: moving μ also scales the density penalty."
   },
   "bid_price": {
     "y_label": "PRICE (REL.)",

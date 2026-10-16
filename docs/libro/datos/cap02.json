@@ -1,9 +1,9 @@
 {
  "_meta": {
-  "fecha": "2026-10-13",
-  "commit": "f4da3ee",
+  "fecha": "2026-10-15",
+  "commit": "87b114f",
   "script": "docs/libro/datos/datos_cap02.py",
-  "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la densidad relativa, μ=MU_SUELO=1/√44≈0,151 (schema v7), λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
+  "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la densidad relativa, μ=LandUseConfig.mu=0,30 (schema v10), λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
  },
  "formas": [
   {
@@ -72,61 +72,61 @@
    {
     "forma": "normal",
     "convergio": true,
-    "iteraciones": 35,
-    "error_max_hogares": 2.967e-09,
-    "error_relativo_max": 2.747e-13
+    "iteraciones": 62,
+    "error_max_hogares": 5.701e-09,
+    "error_relativo_max": 5.278e-13
    },
    {
     "forma": "uniforme",
     "convergio": true,
-    "iteraciones": 35,
-    "error_max_hogares": 2.51e-09,
-    "error_relativo_max": 2.324e-13
+    "iteraciones": 63,
+    "error_max_hogares": 6.81e-09,
+    "error_relativo_max": 6.306e-13
    },
    {
     "forma": "exponencial",
     "convergio": true,
-    "iteraciones": 38,
-    "error_max_hogares": 3.773e-09,
-    "error_relativo_max": 3.493e-13
+    "iteraciones": 69,
+    "error_max_hogares": 6.567e-09,
+    "error_relativo_max": 6.08e-13
    },
    {
     "forma": "meseta",
     "convergio": true,
-    "iteraciones": 26,
-    "error_max_hogares": 1.295e-09,
-    "error_relativo_max": 1.199e-13
+    "iteraciones": 45,
+    "error_max_hogares": 6.256e-09,
+    "error_relativo_max": 5.792e-13
    },
    {
     "forma": "bimodal",
     "convergio": true,
-    "iteraciones": 28,
-    "error_max_hogares": 1.546e-09,
-    "error_relativo_max": 1.432e-13
+    "iteraciones": 48,
+    "error_max_hogares": 5.482e-09,
+    "error_relativo_max": 5.076e-13
    },
    {
     "forma": "valle",
     "convergio": true,
-    "iteraciones": 27,
-    "error_max_hogares": 7.476e-10,
-    "error_relativo_max": 6.922e-14
+    "iteraciones": 45,
+    "error_max_hogares": 3.431e-09,
+    "error_relativo_max": 3.176e-13
    }
   ],
   "por_escala": [
    {
     "suma_H": 3600,
-    "error_max_hogares": 2.569e-10,
-    "iteraciones": 35
+    "error_max_hogares": 6.776e-10,
+    "iteraciones": 61
    },
    {
     "suma_H": 36000,
-    "error_max_hogares": 2.967e-09,
-    "iteraciones": 35
+    "error_max_hogares": 5.701e-09,
+    "iteraciones": 62
    },
    {
     "suma_H": 144000,
-    "error_max_hogares": 4.78e-09,
-    "iteraciones": 36
+    "error_max_hogares": 2.541e-08,
+    "iteraciones": 62
    }
   ]
  },
@@ -142,8 +142,8 @@
     "rama": "forma cerrada",
     "razon_escalas": 1.0,
     "convergio": true,
-    "iteraciones": 16,
-    "error_balance_hogares": 9.203e-07,
+    "iteraciones": 30,
+    "error_balance_hogares": 7.037e-06,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -156,8 +156,8 @@
     "rama": "HEV",
     "razon_escalas": 3.9,
     "convergio": true,
-    "iteraciones": 35,
-    "error_balance_hogares": 2.967e-09,
+    "iteraciones": 62,
+    "error_balance_hogares": 5.701e-09,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -170,8 +170,8 @@
     "rama": "HEV",
     "razon_escalas": 10.0,
     "convergio": true,
-    "iteraciones": 28,
-    "error_balance_hogares": 2.573e-07,
+    "iteraciones": 50,
+    "error_balance_hogares": 6.539e-07,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -184,8 +184,8 @@
     "rama": "HEV",
     "razon_escalas": 100.0,
     "convergio": true,
-    "iteraciones": 37,
-    "error_balance_hogares": 1.179e-07,
+    "iteraciones": 63,
+    "error_balance_hogares": 6.034e-07,
     "columnas_suman_uno_error": 2.22e-16
    }
   ],
@@ -225,15 +225,15 @@
     "iteraciones": 18
    },
    {
-    "mu": 0.1508,
+    "mu": 0.3,
     "dist_km": [
-     1.992,
-     2.966,
-     5.839
+     1.383,
+     2.888,
+     6.376
     ],
-    "theil": 0.2142,
+    "theil": 0.4035,
     "grad_p": 0.925,
-    "iteraciones": 35
+    "iteraciones": 62
    },
    {
     "mu": 0.5,
@@ -262,79 +262,79 @@
    {
     "rho": 0.0,
     "dist_km": [
-     1.992,
-     2.966,
-     5.839
+     1.383,
+     2.888,
+     6.376
     ],
-    "theil": 0.2142,
+    "theil": 0.4035,
     "grad_p": 0.925,
-    "iteraciones": 35
+    "iteraciones": 62
    },
    {
     "rho": 10.0,
     "dist_km": [
-     2.381,
-     3.057,
-     5.429
+     1.702,
+     2.948,
+     6.063
     ],
-    "theil": 0.1385,
-    "grad_p": 0.65,
-    "iteraciones": 27
+    "theil": 0.2982,
+    "grad_p": 0.628,
+    "iteraciones": 44
    },
    {
     "rho": 20.0,
     "dist_km": [
-     2.995,
-     3.173,
-     4.825
+     2.477,
+     3.013,
+     5.438
     ],
-    "theil": 0.0686,
-    "grad_p": 0.433,
-    "iteraciones": 20
+    "theil": 0.1764,
+    "grad_p": 0.42,
+    "iteraciones": 30
    },
    {
     "rho": 31.0,
     "dist_km": [
-     3.96,
-     3.304,
-     3.965
+     4.372,
+     3.045,
+     4.121
     ],
-    "theil": 0.0329,
-    "grad_p": 0.245,
-    "iteraciones": 16
+    "theil": 0.1089,
+    "grad_p": 0.233,
+    "iteraciones": 21
    },
    {
     "rho": 40.0,
     "dist_km": [
-     4.836,
-     3.366,
-     3.278
+     5.962,
+     3.005,
+     3.128
     ],
-    "theil": 0.0568,
-    "grad_p": 0.109,
-    "iteraciones": 18
+    "theil": 0.1947,
+    "grad_p": 0.091,
+    "iteraciones": 28
    },
    {
     "rho": 54.0,
     "dist_km": [
-     5.932,
-     3.343,
-     2.584
+     7.012,
+     2.993,
+     2.447
     ],
-    "theil": 0.1513,
-    "grad_p": -0.065,
-    "iteraciones": 26
+    "theil": 0.3444,
+    "grad_p": -0.082,
+    "iteraciones": 55
    },
    {
     "rho": 60.0,
     "dist_km": [
-     6.262,
-     3.317,
-     2.407
+     7.18,
+     3.037,
+     2.262
     ],
-    "theil": 0.1947,
-    "grad_p": -0.123,
-    "iteraciones": 31
+    "theil": 0.3912,
+    "grad_p": -0.138,
+    "iteraciones": 67
    }
   ]
  },
@@ -342,29 +342,29 @@
   "grilla": [
    {
     "n_celdas": 101,
-    "theil": 0.212,
+    "theil": 0.3999,
     "dist_km": [
-     2.037,
-     2.987,
-     5.838
+     1.435,
+     2.906,
+     6.376
     ]
    },
    {
     "n_celdas": 201,
-    "theil": 0.2142,
+    "theil": 0.4035,
     "dist_km": [
-     1.992,
-     2.966,
-     5.839
+     1.383,
+     2.888,
+     6.376
     ]
    },
    {
     "n_celdas": 401,
-    "theil": 0.2155,
+    "theil": 0.4053,
     "dist_km": [
-     1.97,
-     2.955,
-     5.839
+     1.356,
+     2.878,
+     6.375
     ]
    }
   ],
@@ -372,35 +372,35 @@
    {
     "largo_km": 10.0,
     "dist_km": [
-     2.408,
-     3.054,
-     5.416
+     1.809,
+     2.817,
+     6.209
     ],
-    "theil": 0.1261,
-    "grad_p": 0.968,
-    "iteraciones": 26
+    "theil": 0.3061,
+    "grad_p": 0.967,
+    "iteraciones": 50
    },
    {
     "largo_km": 20.0,
     "dist_km": [
-     1.992,
-     2.966,
-     5.839
+     1.383,
+     2.888,
+     6.376
     ],
-    "theil": 0.2142,
+    "theil": 0.4035,
     "grad_p": 0.925,
-    "iteraciones": 35
+    "iteraciones": 62
    },
    {
     "largo_km": 40.0,
     "dist_km": [
-     1.563,
-     2.855,
-     6.31
+     1.058,
+     2.861,
+     6.637
     ],
-    "theil": 0.3578,
-    "grad_p": 0.788,
-    "iteraciones": 57
+    "theil": 0.5863,
+    "grad_p": 0.787,
+    "iteraciones": 116
    }
   ]
  },
@@ -414,24 +414,24 @@
     "v7": {
      "rho": 54.0,
      "dist_km": [
-      5.932,
-      3.343,
-      2.584
+      7.012,
+      2.993,
+      2.447
      ],
-     "theil": 0.1513,
-     "grad_p": -0.065,
-     "iteraciones": 26
+     "theil": 0.3444,
+     "grad_p": -0.082,
+     "iteraciones": 55
     },
     "v6_equivalente": {
      "rho_en_v7": 54.0,
      "dist_km": [
-      5.932,
-      3.343,
-      2.584
+      7.012,
+      2.993,
+      2.447
      ],
-     "theil": 0.1513,
-     "grad_p": -0.065,
-     "iteraciones": 26
+     "theil": 0.3444,
+     "grad_p": -0.082,
+     "iteraciones": 55
     }
    },
    {
@@ -440,24 +440,24 @@
     "v7": {
      "rho": 54.0,
      "dist_km": [
-      5.932,
-      3.345,
-      2.583
+      7.012,
+      2.995,
+      2.445
      ],
-     "theil": 0.1513,
-     "grad_p": -0.065,
-     "iteraciones": 26
+     "theil": 0.3445,
+     "grad_p": -0.082,
+     "iteraciones": 55
     },
     "v6_equivalente": {
      "rho_en_v7": 108.0,
      "dist_km": [
-      7.263,
-      3.326,
-      1.726
+      7.476,
+      3.352,
+      1.542
      ],
-     "theil": 0.4453,
-     "grad_p": -0.395,
-     "iteraciones": 78
+     "theil": 0.593,
+     "grad_p": -0.4,
+     "iteraciones": 158
     }
    },
    {
@@ -466,24 +466,24 @@
     "v7": {
      "rho": 54.0,
      "dist_km": [
-      5.932,
-      3.344,
-      2.583
+      7.012,
+      2.995,
+      2.445
      ],
-     "theil": 0.1514,
-     "grad_p": -0.065,
-     "iteraciones": 26
+     "theil": 0.3446,
+     "grad_p": -0.082,
+     "iteraciones": 55
     },
     "v6_equivalente": {
      "rho_en_v7": 216.0,
      "dist_km": [
-      7.487,
-      3.517,
-      1.259
+      7.525,
+      3.608,
+      1.081
      ],
-     "theil": 0.6697,
-     "grad_p": -0.598,
-     "iteraciones": 183
+     "theil": 0.8041,
+     "grad_p": -0.6,
+     "iteraciones": 363
     }
    }
   ]
@@ -510,17 +510,17 @@
    0.0,
    0.0
   ],
-  "mu": 0.1508,
-  "mu_formula": "1/√VIAJES_MES (constante MU_SUELO, schema v7)",
+  "mu": 0.3,
+  "mu_formula": "valor de escenario, LandUseConfig.mu (schema v10)",
   "beta_h_por_clp": [
-   4.730622543021738e-05,
-   9.462722491631908e-05,
-   0.00018334407370055252
+   9.41382e-05,
+   0.0001883058,
+   0.0003648501
   ],
   "escala_ruido_puja_clp_mes": [
-   21139,
-   10568,
-   5454
+   10623,
+   5311,
+   2741
   ],
   "VIAJES_MES": 44,
   "vot_transporte_clp_h": [
@@ -546,24 +546,24 @@
    {
     "estrato": "alto",
     "senal_accesibilidad_clp": 203255,
-    "ruido_clp": 21139,
-    "senal_sobre_ruido": 9.6,
+    "ruido_clp": 10623,
+    "senal_sobre_ruido": 19.1,
     "ruido_con_mu_1_clp": 3187,
     "senal_sobre_ruido_con_mu_1": 63.8
    },
    {
     "estrato": "medio",
     "senal_accesibilidad_clp": 139278,
-    "ruido_clp": 10568,
-    "senal_sobre_ruido": 13.2,
+    "ruido_clp": 5311,
+    "senal_sobre_ruido": 26.2,
     "ruido_con_mu_1_clp": 1593,
     "senal_sobre_ruido_con_mu_1": 87.4
    },
    {
     "estrato": "bajo",
     "senal_accesibilidad_clp": 89790,
-    "ruido_clp": 5454,
-    "senal_sobre_ruido": 16.5,
+    "ruido_clp": 2741,
+    "senal_sobre_ruido": 32.8,
     "ruido_con_mu_1_clp": 822,
     "senal_sobre_ruido_con_mu_1": 109.2
    }
@@ -573,35 +573,35 @@
   "rho_que_iguala_T": 59.8
  },
  "reescala_mu": {
-  "k": 0.1508,
+  "k": 0.3,
   "rho_base": 20.0,
   "hev_mu_1_con_lambda_alpha_rho_por_k": {
-   "max_delta_Q": 1.2323475573339238e-14,
+   "max_delta_Q": 2.5757174171303632e-14,
    "max_delta_p_clp": 1.862645149230957e-09,
    "max_delta_u_clp": 0.0
   },
   "hev_mu_1_con_solo_lambda_por_k": {
-   "max_delta_Q": 0.6059494397303063,
-   "max_delta_p_clp": 712636.2968700924,
-   "max_delta_u_clp": 150300.9430747358
+   "max_delta_Q": 0.45567034258643346,
+   "max_delta_p_clp": 295288.1854122691,
+   "max_delta_u_clp": 62373.325235630386
   },
   "cerrada_mu_1_con_lambda_alpha_rho_por_k": {
-   "max_delta_Q": 1.0769163338864018e-14,
+   "max_delta_Q": 1.8263168755083825e-14,
    "max_delta_p_clp": 4.656612873077393e-10,
    "max_delta_u_clp": 0.0
   },
   "parametros_equivalentes_con_mu_1": {
    "lambda": [
-    4.730622543021738e-05,
-    9.462722491631908e-05,
-    0.00018334407370055252
+    9.41382e-05,
+    0.0001883058,
+    0.0003648501
    ],
-   "alpha": 0.15075567228888181,
-   "rho": 3.0151134457776365
+   "alpha": 0.3,
+   "rho": 6.0
   }
  },
  "rho_umbral": {
-  "rho_inversion": 31.03,
+  "rho_inversion": 30.27,
   "criterio": "d_alto = d_bajo",
   "dial_ui_max": 60.0
  },

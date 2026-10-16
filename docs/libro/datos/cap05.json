@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-14",
-  "commit": "9b99d31",
+  "fecha": "2026-10-15",
+  "commit": "87b114f",
   "script": "docs/libro/datos/datos_cap05.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web`), localización «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, tolerancia 0,2 min sobre la brecha no amortiguada, máximo 40 iteraciones."
  },
@@ -409,10 +409,10 @@
    "pct_bici_a_medio_min_de_umbral": 8.56
   },
   "equilibrio": {
-   "demora_congestion_max_min": 12.657,
-   "demora_congestion_media_min": 9.46,
-   "pct_bici_otro_escalon": 77.17,
-   "pct_bici_a_medio_min_de_umbral": 6.39
+   "demora_congestion_max_min": 12.959,
+   "demora_congestion_media_min": 9.713,
+   "pct_bici_otro_escalon": 78.2,
+   "pct_bici_a_medio_min_de_umbral": 6.38
   }
  },
  "todo_o_nada": {

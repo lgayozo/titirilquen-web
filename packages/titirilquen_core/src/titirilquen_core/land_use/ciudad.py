@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 import numpy as np
 from numpy.typing import NDArray
 
-from titirilquen_core.constantes import MU_SUELO
 from titirilquen_core.land_use.allocation import asignar_hogares_simple
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import LandUseResult, solve_subasta
@@ -140,7 +139,7 @@ class LandUseCity:
             T=T,
             rho=rho,
             lambda_h=self.lambda_h,
-            mu=MU_SUELO,
+            mu=self.cfg.mu,
             tol=self.cfg.tol,
             max_iter=self.cfg.max_iter,
         )

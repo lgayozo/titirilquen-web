@@ -173,14 +173,14 @@
     <tr>
       <td class="n">—</td>
       <td class="ruta py">constantes.py</td>
-      <td class="n">49</td>
-      <td><code>VOT_SOCIAL_CLP_HORA</code> — la única norma monetaria; <code>CORTE_CAMINATA_MIN</code> (38), <code>CORTE_BICI_MIN</code> (41), <code>VIAJES_MES</code> (55); desde oct-2026 también <code>MU_SUELO</code> (74), <code>TOL_ACOPLADO_CLP_MES</code> (84), <code>VIAJES_POR_TOUR</code> (100) y <code>FACTOR_CAPACIDAD_PRACTICA</code> (110)</td>
+      <td class="n">48</td>
+      <td><code>VOT_SOCIAL_CLP_HORA</code> — la única norma monetaria; <code>CORTE_CAMINATA_MIN</code> (37), <code>CORTE_BICI_MIN</code> (40), <code>VIAJES_MES</code> (54); desde oct-2026 también <code>TOL_ACOPLADO_CLP_MES</code> (64), <code>VIAJES_POR_TOUR</code> (80) y <code>FACTOR_CAPACIDAD_PRACTICA</code> (90)</td>
     </tr>
     <tr>
       <td class="n">(9.4)</td>
       <td class="ruta py">land_use/config.py</td>
-      <td class="n">135</td>
-      <td><code>estratos</code> — <code>y</code> (46), λ = |b_costo| (derivado de la demanda, schema v6), <code>rho</code> (47) «SIN FUENTE»; desde v7 ni α ni μ son campos: α ≡ 1, implícito, y μ = 1/√44 es la constante <code>MU_SUELO</code> (D1)</td>
+      <td class="n">134</td>
+      <td><code>estratos</code> — <code>y</code> (46), λ = |b_costo| (derivado de la demanda, schema v6), <code>rho</code> (47) «SIN FUENTE»; α no es campo desde v7 (α ≡ 1, implícito, D1); <code>mu</code> (176) volvió en v10 como valor de escenario, 0,30</td>
     </tr>
     <tr>
       <td class="n">(9.2)</td>
@@ -203,8 +203,8 @@
     <tr>
       <td class="n">(9.4)</td>
       <td class="ruta py">packages/titirilquen_core/tests/test_vot_consistente.py</td>
-      <td class="n">71</td>
-      <td><code>test_lambda_es_literalmente_el_b_costo_de_transporte</code> — un hogar, una utilidad; <code>test_el_vot_es_el_mismo_en_los_dos_modulos</code> (107); <code>test_alpha_y_mu_no_son_parametros_del_escenario</code> (90)</td>
+      <td class="n">70</td>
+      <td><code>test_lambda_es_literalmente_el_b_costo_de_transporte</code> — un hogar, una utilidad; <code>test_el_vot_es_el_mismo_en_los_dos_modulos</code> (107); <code>test_alpha_no_es_parametro_y_mu_si</code> (89)</td>
     </tr>
   </tbody>
 </table>
@@ -246,12 +246,14 @@
 </div>
 
 <p>
-  Seis llevan además «sin fuente» escrito por el propio código:
+  Siete llevan además «sin fuente» escrito por el propio código:
   <code>b_costo</code> (la dispersión de los VoT de la que se despeja; su nivel
-  está anclado desde D5), <code>rho</code>, <code>anden_alpha</code>,
+  está anclado desde D5), <code>rho</code>, <code>mu</code> (0,30, valor de
+  escenario desde v10), <code>anden_alpha</code>,
   <code>anden_beta</code>, <code>costo_operacion_tren_km</code> y
   <code>factor_dia_punta</code>. Los cuatro últimos son inertes, casi inertes o
-  no entran al reparto (§4.4); los dos primeros no.
+  no entran al reparto (§4.4); los dos primeros no, y <code>mu</code> tampoco
+  (§4.5).
 </p>
 
 <h2 id="s4"><span class="num">§4</span> Resultados</h2>
@@ -444,8 +446,9 @@
     <tr><th>parámetro</th><th class="n">valor → perturbado</th><th class="n">Δ máx reparto (pp)</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td><code>oferta_sigma_frac</code></td><td class="n">0,5 → 0,55</td><td class="n">1,4613</td></tr>
-    <tr><td><code>estratos.1.rho</code></td><td class="n">0 → 1,0</td><td class="n">0,0126</td></tr>
+    <tr class="destacada"><td><code>oferta_sigma_frac</code></td><td class="n">0,5 → 0,55</td><td class="n">1,4672</td></tr>
+    <tr><td><code>mu</code></td><td class="n">0,30 → 0,33</td><td class="n">0,0621</td></tr>
+    <tr><td><code>estratos.1.rho</code></td><td class="n">0 → 1,0</td><td class="n">0,0197</td></tr>
     <tr><td><code>estratos.1.y</code></td><td class="n">1,5M → 1,65M</td><td class="n">0,0000</td></tr>
     <tr><td><code>forma_param</code></td><td class="n">0,5 → 0,55</td><td class="n">0,0000</td></tr>
   </tbody>
@@ -455,9 +458,10 @@
 <p>
   Rama «equilibrio», medido en el reparto modal de transporte. Lo que manda es
   la <strong>forma de la oferta</strong> (dónde hay casas), no la puja. De la
-  función de puje sólo <code>ρ</code> sigue siendo campo (α, μ y λ dejaron de
-  serlo, D1); parte en 0, Alonso puro (D2), y llevarlo a 1 mueve 0,0126 pp
-  contra 1,461 de <code>sigma</code>. <code>y</code> da cero por construcción
+  función de puje quedan dos campos (α y λ dejaron de serlo, D1): la escala
+  <code>μ</code>, de vuelta en v10 como valor de escenario, y <code>ρ</code>.
+  Subir μ un 10 % mueve 0,0621 pp; <code>ρ</code> parte en 0, Alonso puro (D2),
+  y llevarlo a 1 mueve 0,0197 pp; los dos contra 1,467 de <code>sigma</code>. <code>y</code> da cero por construcción
   (D-08: se absorbe en la utilidad de reserva) y <code>forma_param</code> no
   actúa sobre la forma «normal».
 </p>
@@ -671,9 +675,11 @@
 
 <p>
   Cuatro capítulos de este libro se ocuparon de <code>ρ</code>, <code>β</code>,
-  <code>α</code> y <code>λ</code>. Tres ya no son campos del escenario (λ desde
-  v6; α y la escala, hoy la constante μ = 1/√44, desde v7), y el que queda,
-  <code>ρ</code>, mueve el reparto modal 0,013 pp contra 1,46 de <code>sigma</code>;
+  <code>α</code> y <code>λ</code>. Dos ya no son campos del escenario (λ desde
+  v6, α desde v7); la escala, constante μ = 1/√44 entre v7 y v9, volvió en v10
+  como valor de escenario, μ = 0,30, sin fuente, y un +10 % mueve el reparto
+  0,062 pp; y
+  <code>ρ</code> mueve el reparto modal 0,020 pp contra 1,47 de <code>sigma</code>;
   ningún beta llega al top 10 del transporte. Eso no los vuelve irrelevantes
   —la segregación y el bienestar no son el reparto modal— pero sí ordena la
   agenda: quien quiera cambiar lo que el simulador <em>muestra</em> debería

@@ -12,7 +12,6 @@ Este módulo es la fuente; `tools/genera_contrato.py` lo emite como
 
 from __future__ import annotations
 
-import math
 from typing import Final, Literal
 
 #: Orden canónico de los modos de transporte. Define el orden de las series en
@@ -53,25 +52,6 @@ VOT_SOCIAL_CLP_HORA: Final[float] = 3338.0
 #: la accesibilidad mensual que entra a la puja por suelo (D-34): el arriendo
 #: `p` y el ingreso `y` son mensuales, así que el término de transporte también.
 VIAJES_MES: Final[int] = 44
-
-#: `μ` del uso de suelo: la precisión del ruido de la utilidad de localizarse
-#: (el `μ_h` de Martínez 2018, ec. 4.2), común a los estratos; la puja en dinero
-#: tiene precisión `β_h = μ·λ_h` (ec. 4.3). NO es una normalización libre, como
-#: la escala 1 del logit de transporte: fija cuánto pesa el ruido de elegir casa
-#: frente a la utilidad de transporte, que ya tiene su escala. Vale 1/√VIAJES_MES
-#: ≈ 0,151 por una ANALOGÍA, no por derivación: si la accesibilidad mensual suma
-#: VIAJES_MES viajes y cada uno trae su shock Gumbel independiente, la
-#: desviación del shock mensual crece como √VIAJES_MES (aproximación de segundo
-#: momento: la suma de Gumbel no es Gumbel). En Martínez la escala se identifica
-#: con rentas observadas, que el simulador no tiene. μ = 1 («un shock por casa,
-#: como el de un viaje») da una ciudad casi determinista.
-#:
-#: Es constante y no campo del schema desde la v7 (oct-2026, D1 de la
-#: auditoría): con `α` ya fijo en 1, mover μ es el único modo de mover la
-#: sensibilidad de la puja a la accesibilidad, pero lo hace re-escalando a la vez
-#: accesibilidad y densidad (sólo μ·α y μ·ρ están identificados), y la interfaz
-#: lo vendía como «ruido». Se muestra en sólo lectura con esta justificación.
-MU_SUELO: Final[float] = 1 / math.sqrt(VIAJES_MES)
 
 #: Tolerancia del loop acoplado suelo↔transporte, en $/hogar-mes: el acoplado
 #: convergió cuando `max_h max_i |Φ(T) − T|_{h,i} / λ_h` baja de este valor

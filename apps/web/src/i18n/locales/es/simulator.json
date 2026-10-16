@@ -367,9 +367,9 @@
     "stale_note": "Cualquier cambio acá deja desactualizados los resultados de Transporte, Uso de suelo y Ciudad en equilibrio: cada página lo avisa y ofrece volver a correr.",
     "summary": "Los coeficientes del logit se editan en la página Calibración: fijan también la accesibilidad y el λ del uso de suelo.",
     "edit_link": "Editar en Calibración →",
-    "mu_meta": "μ = {{mu}} · fijo",
-    "mu_fijo_corto": "Precisión del ruido de elegir casa (Martínez, ec. 4.2), en la escala de un viaje: la puja lee {{n}} viajes al mes.",
-    "mu_fijo_porque": "Si cada viaje trae su shock independiente, el del mes crece como √{{n}} y la precisión cae a 1/√{{n}}. Es un supuesto razonado, no un dato: sin rentas observadas no se puede estimar. No es una perilla porque moverlo re-escala a la vez accesibilidad y densidad."
+    "mu_meta": "μ = {{mu}} · escenario",
+    "mu_corto": "Precisión del ruido de elegir casa (Martínez, ec. 4.2), común a los estratos: el ruido de la puja es 1/(μ·λ_h). Se mueve en Uso de suelo.",
+    "mu_porque": "No hay un μ transferible: se estima con la localización observada por estrato (logit de subasta, Martínez 2018 §9.3) y, si hay rentas observadas, la ecuación de rentas identifica la escala (Lerman y Kern 1983). Aquí es un valor de escenario; mayor μ ⇒ ciudad más segregada. Sólo μ·α y μ·ρ están identificados: con α fijo en 1, mover μ escala a la vez la sensibilidad a la accesibilidad y a la densidad. Hasta oct-2026 valía 1/√44 por una analogía con 44 shocks de viaje independientes, que no se sostiene: esos shocks ya están integrados en el logsum."
   },
   "demand_inspector": {
     "title": "Inspector de utilidad — logit multinomial",
@@ -502,7 +502,12 @@
     "lambda_values_porque": "Cambiar b_costo cambia a la vez λ (el valor del tiempo con que se puja) y la accesibilidad T. Una escala común de los tres no mueve la asignación, sólo la unidad de las rentas (D-41).",
     "rho_corto": "Rechazo a la densidad relativa de la celda; entra en pesos como ρ/λ_h. 0 por defecto (Alonso puro); cerca de 31 la asignación se invierte.",
     "rho_porque": "Sin fuente en el modelo original. La densidad es relativa (la de la celda sobre la media de la ciudad), así que no cambia de efecto con la población. Como entra dividido por λ_h, el estrato alto paga más por baja densidad. Al subirlo la ciudad se mezcla y la renta se aplana; el umbral de ≈31 es con la oferta por defecto, y sobre él los ricos quedan en la periferia.",
-    "mu_fijo": "μ = 1/√{{n}} ≈ {{mu}}, fijo: el ruido de elegir casa acumula los {{n}} viajes del mes. La razón, en Calibración."
+    "param_mu": "μ · precisión del ruido de localizarse",
+    "mu_corto": "Mayor μ ⇒ menos ruido al elegir casa: cada estrato se queda con su franja y la ciudad se segrega.",
+    "mu_preset_mezclada": "Mezclada · {{mu}}",
+    "mu_preset_base": "Base · {{mu}}",
+    "mu_preset_segregada": "Segregada · {{mu}}",
+    "mu_porque": "El ruido de la puja es 1/(μ·λ_h) $/mes. Con μ bajo pesa el gusto idiosincrático y los estratos se mezclan; con μ alto pesa la accesibilidad y el estrato que más valora el tiempo gana el centro. No hay un μ transferible: se calibra con la localización observada por estrato (logit de subasta, Martínez 2018 §9.3); en Santiago, contra la distancia por ingreso al centro de empleo, porque allí la segregación es sectorial. Sólo μ·ρ está identificado: mover μ también escala la penalización por densidad."
   },
   "bid_price": {
     "y_label": "PRECIO (REL.)",

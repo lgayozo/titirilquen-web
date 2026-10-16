@@ -14,7 +14,7 @@ la consola de Windows usa cp1252 y un `print` con «λ» aborta la corrida.
 Schema v7 (oct-2026): `alpha` y `mu` dejaron de ser campos del suelo. Esta
 auditoría conserva su escenario —alpha = 6,5/6,0/5,5, mu = 1, rho = 0— metiendo
 alpha dentro de T_h (la misma f) y pasando mu directo a `solve_subasta`, porque
-`LandUseCity` ya fija mu = `constantes.MU_SUELO`.
+`LandUseCity` resuelve con `LandUseConfig.mu`.
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ _ALPHA_COL = np.asarray(ALPHA)[:, None]
 def ciudad(lams, mu=1.0, **kw):
     # λ va explícito (schema v6: no es campo del suelo). Esta auditoría lo mueve
     # con T fija a propósito, para aislar su efecto sobre la subasta.
-    # `LandUseCity` resuelve con mu = MU_SUELO; la auditoría usa mu = 1 y lo
+    # `LandUseCity` resuelve con `cfg.mu`; la auditoría usa mu = 1 y lo
     # barre, así que la ciudad da la oferta S y el equilibrio se re-resuelve.
     T = _ALPHA_COL * T_flujo_libre(
         DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),

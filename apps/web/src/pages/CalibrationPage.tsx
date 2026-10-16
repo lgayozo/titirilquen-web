@@ -6,10 +6,10 @@ import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { Panel } from "@/components/ui/Panel";
 import { PorQue } from "@/components/ui/PorQue";
 import { votClpHora } from "@/lib/agregados";
-import { MU_SUELO, VIAJES_MES } from "@/lib/gen/constantes.gen";
 import { conHeterogeneidad, sDeDemanda } from "@/lib/heterogeneidadLambda";
 import { COLOR_ESTRATO } from "@/lib/modos";
 import type { StratumId } from "@/lib/types";
+import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
 /**
@@ -25,9 +25,8 @@ import { useSimulationStore } from "@/store/simulationStore";
  * ser aritmética de presentación (VoT = β_t/β_c·60, β_h = μ·λ_h); ningún
  * número de modelo sale de TS.
  *
- * μ se MUESTRA, no se edita: desde el schema v7 es la constante `MU_SUELO` del
- * núcleo (D1 de la auditoría). Hasta v6 había acá un slider sobre
- * `LandUseConfig.mu`.
+ * μ es `LandUseConfig.mu`, valor de escenario desde el schema v10 (en v7–v9
+ * fue la constante 1/√44); se lee del store de suelo.
  */
 
 const STRATA: StratumId[] = [1, 2, 3];
@@ -41,7 +40,7 @@ export function CalibrationPage() {
   const config = useSimulationStore((s) => s.config);
   const setConfig = useSimulationStore((s) => s.setConfig);
 
-  const mu = MU_SUELO;
+  const mu = useLandUseStore((s) => s.config.mu);
   // Heterogeneidad de λ: `null` si los b_costo no caen en la curva.
   const sLam = sDeDemanda(config.demand);
   const setS = (v: number) => setConfig((c) => conHeterogeneidad(c, v));
@@ -106,18 +105,16 @@ export function CalibrationPage() {
         <CalibrationPanel config={config} onChange={setConfig} defaultOpen />
         <CollapsibleSection
           title={t("calibration_page.mu_section")}
-          meta={t("calibration_page.mu_meta", { mu: mu.toFixed(3) })}
+          meta={t("calibration_page.mu_meta", { mu: mu.toFixed(2) })}
           defaultOpen
         >
           <div className="font-fig text-ayuda tabular-nums text-[var(--ink)]">
-            μ = 1/√{VIAJES_MES} ≈ {mu.toFixed(3)}
+            μ = {mu.toFixed(2)}
           </div>
           <p className="mt-1 text-etiqueta leading-snug text-muted">
-            {t("calibration_page.mu_fijo_corto", { n: VIAJES_MES })}
+            {t("calibration_page.mu_corto")}
           </p>
-          <PorQue>
-            {t("calibration_page.mu_fijo_porque", { n: VIAJES_MES })}
-          </PorQue>
+          <PorQue>{t("calibration_page.mu_porque")}</PorQue>
         </CollapsibleSection>
       </aside>
 
@@ -147,7 +144,7 @@ export function CalibrationPage() {
           <Panel
             n="01"
             title={t("calibration_page.table_title")}
-            meta={`μ = ${mu.toFixed(3)}`}
+            meta={`μ = ${mu.toFixed(2)}`}
             cls="col-12"
           >
             <div className="overflow-x-auto">

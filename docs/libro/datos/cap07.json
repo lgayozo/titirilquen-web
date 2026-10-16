@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-14",
-  "commit": "7440ec6",
+  "fecha": "2026-10-15",
+  "commit": "87b114f",
   "script": "docs/libro/datos/datos_cap07.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web`), rama «original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, asignación esperada, brecha < 0,2 min (D8). El barrido de pistas usa tope 80 y repite además el método del informe de bienestar (`todo_o_nada`, tolerancia 0,02, 120 iteraciones)."
  },
@@ -362,38 +362,38 @@
   "filas": [
    {
     "n_celdas": 51,
-    "theil_poblacional": 0.20414,
-    "theil_territorial": 0.23507
+    "theil_poblacional": 0.38391,
+    "theil_territorial": 0.44636
    },
    {
     "n_celdas": 101,
-    "theil_poblacional": 0.2059,
-    "theil_territorial": 0.23622
+    "theil_poblacional": 0.38842,
+    "theil_territorial": 0.44898
    },
    {
     "n_celdas": 201,
-    "theil_poblacional": 0.20807,
-    "theil_territorial": 0.23797
+    "theil_poblacional": 0.39184,
+    "theil_territorial": 0.45134
    },
    {
     "n_celdas": 401,
-    "theil_poblacional": 0.20928,
-    "theil_territorial": 0.23898
+    "theil_poblacional": 0.39364,
+    "theil_territorial": 0.45261
    },
    {
     "n_celdas": 801,
-    "theil_poblacional": 0.20979,
-    "theil_territorial": 0.23941
+    "theil_poblacional": 0.39445,
+    "theil_territorial": 0.45319
    }
   ],
   "diferencias_sucesivas": [
-   0.00176,
-   0.00217,
-   0.00121,
-   0.00051
+   0.00451,
+   0.00342,
+   0.0018,
+   0.00081
   ],
-  "brecha_territorial_vs_poblacional_pct_en_la_base": 14.37,
-  "nota": "Converge al refinar la grilla —las diferencias sucesivas se reducen a la mitad al duplicar `n_celdas`—, así que el índice es una propiedad de la ciudad y no del enrejado. El valor de la aplicación (201) queda un ~2 % por debajo del límite."
+  "brecha_territorial_vs_poblacional_pct_en_la_base": 15.18,
+  "nota": "Converge al refinar la grilla —las diferencias sucesivas se achican al duplicar `n_celdas`—, así que el índice es una propiedad de la ciudad y no del enrejado."
  },
  "costo_generalizado": {
   "ponderadores_percibidos": {

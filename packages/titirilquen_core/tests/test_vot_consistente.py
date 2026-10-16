@@ -34,7 +34,6 @@ from pydantic import ValidationError
 
 from titirilquen_core.bienestar import vot_clp_hora
 from titirilquen_core.config import DemandConfig, SimulationConfig, SupplyConfig
-from titirilquen_core.constantes import MU_SUELO, VIAJES_MES
 from titirilquen_core.land_use.accesibilidad import lambda_desde_demanda
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 from titirilquen_core.presets import DEFAULT_STRATA
@@ -87,21 +86,22 @@ def test_calibrar_b_costo_mueve_lambda() -> None:
     np.testing.assert_allclose(lam, _b_costo() * np.array([2.0, 1.0, 1.0]), rtol=1e-12)
 
 
-def test_alpha_y_mu_no_son_parametros_del_escenario() -> None:
-    """La puja lee el logsum mensual con peso 1 y `μ = 1/√VIAJES_MES` fijo.
+def test_alpha_no_es_parametro_y_mu_si() -> None:
+    """La puja lee el logsum mensual con peso 1; μ es el único de los dos que se mueve.
 
-    Hasta el schema v6 los dos eran campos (`alpha = 1` por estrato y `mu`), y
-    sólo `μ·α` y `μ·ρ` están identificados: mover cualquiera de los dos era
-    re-escalar a la vez accesibilidad y densidad (D1 de la auditoría). Peso 1 es
-    el ancla del original (`actualizar(T, alpha=[1,1,1])` sobre el logsum); μ
-    tiene su justificación en `constantes.MU_SUELO`. Esto impide que vuelvan a
-    entrar al schema por la puerta de atrás.
+    Sólo `μ·α` y `μ·ρ` están identificados (D1 de la auditoría): tener los dos
+    como campos era re-escalar dos veces lo mismo. Peso 1 es el ancla del
+    original (`actualizar(T, alpha=[1,1,1])` sobre el logsum) y `alpha` no vuelve
+    a entrar al schema por la puerta de atrás. `mu` es un valor de escenario
+    (0,30 por defecto desde el schema v10; antes la constante 1/√VIAJES_MES).
     """
     with pytest.raises(ValidationError):
         LandUseStratumConfig(y=1.0, alpha=1.0)  # type: ignore[call-arg]
-    with pytest.raises(ValidationError):
-        LandUseConfig(mu=0.151)  # type: ignore[call-arg]
-    assert pytest.approx(1 / np.sqrt(VIAJES_MES)) == MU_SUELO
+    assert LandUseConfig().mu == pytest.approx(0.30)
+    assert LandUseConfig(mu=0.8).mu == pytest.approx(0.8)
+    for invalido in (0.0, -0.1, 1.5):
+        with pytest.raises(ValidationError):
+            LandUseConfig(mu=invalido)
 
 
 def test_el_vot_es_el_mismo_en_los_dos_modulos() -> None:

@@ -216,7 +216,8 @@ def main() -> None:
             "configuracion": (
                 "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): "
                 "201 celdas, 20 km, 36.000 hogares 20/50/30 sobre oferta normal, semilla "
-                "42, asignación esperada, tolerancia 0,1. Localización «original» (mezcla "
+                f"42, asignación esperada, tolerancia {str(base._config_web().tolerance).replace('.', ',')} min. "
+                "Localización «original» (mezcla "
                 "uniforme): el capítulo 1 mira la geometría, no la subasta de suelo."
             ),
         },

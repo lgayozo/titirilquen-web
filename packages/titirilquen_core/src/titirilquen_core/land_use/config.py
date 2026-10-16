@@ -118,14 +118,13 @@ class LandUseConfig(BaseModel):
     #     presets, 0,000314 / 0,000628 / 0,001216 (D5). Con eso el score
     #     `y + f/lambda` queda en $/mes, como `p` e `y` (D-27), el VoT
     #     `b_tiempo_viaje·60/b_costo` = 6.329 / 3.164 / 1.633 $/h coincide con
-    #     transporte, y el ruido de la puja `1/(mu·lambda_h)` = $21.139 /
-    #     $10.568 / $5.454 al mes (con mu = 1/√44; `1/lambda_h` = $3.187 /
+    #     transporte, y el ruido de la puja `1/(mu·lambda_h)` = $10.623 /
+    #     $5.311 / $2.741 al mes (con mu = 0,30; `1/lambda_h` = $3.187 /
     #     $1.593 / $822). Desde el schema
     #     v6 NO se guarda acá: lo deriva `accesibilidad.lambda_desde_demanda`, y
     #     calibrar `b_costo` mueve λ y T a la vez. Hasta v5 era una copia literal
     #     que nada sincronizaba.
-    #   * `mu` = 1/√VIAJES_MES: la constante `constantes.MU_SUELO` desde v7,
-    #     con su justificación ahí. Hasta v6 era un campo de esta configuración.
+    #   * `mu`: campo de escenario (ver su comentario), 0,30 por defecto.
     #   * `rho`: sin fuente; 0 por defecto (ver el comentario del campo).
     #
     # Todo lo anterior está vigilado por `tests/test_vot_consistente.py` y
@@ -157,9 +156,34 @@ class LandUseConfig(BaseModel):
             raise ValueError("H_por_estrato: la ciudad necesita al menos un hogar")
         return v
 
-    # Hasta v6 había aquí un campo `mu`, la precisión del ruido de localizarse.
-    # Ahora es `constantes.MU_SUELO` (1/√VIAJES_MES) y no se configura; ver la
-    # justificación ahí. Un escenario v6 que lo traiga falla al importar.
+    # `mu`: la precisión del ruido de la utilidad de localizarse (el `μ_h` de
+    # Martínez 2018, ec. 4.2), común a los estratos; la puja en dinero tiene
+    # precisión `β_h = μ·λ_h` (ec. 4.3) y ruido `1/(μ·λ_h)` $/mes. No es una
+    # normalización libre como la escala 1 del logit de transporte: fija cuánto
+    # pesa el ruido de elegir casa frente a una accesibilidad que ya tiene su
+    # escala. Tampoco tiene un valor transferible: en la práctica se estima con
+    # datos de localización (el logit de subasta, Martínez 2018 §9.3) y, si hay
+    # rentas observadas, la ecuación de rentas identifica la escala del Gumbel
+    # (Lerman y Kern 1983). Aquí es un valor de ESCENARIO.
+    #
+    # 0,30 (oct-2026, decisión de Leandro): a flujo libre, ρ = 0, el estrato alto
+    # vive a 1,4 km del CBD en media (78 % a ≤ 2 km) y el Theil poblacional es
+    # 0,39. Antes (v7–v9) era la constante 1/√VIAJES_MES ≈ 0,151 por una analogía
+    # con 44 shocks de viaje independientes que no se sostiene (los shocks del
+    # viaje ya están integrados en el logsum) y daba una ciudad mezclada (Theil
+    # 0,21, alto a 2,0 km). Sólo μ·α y μ·ρ están identificados (D1): con α fijo
+    # en 1, μ es la sensibilidad de la puja a la accesibilidad y a la vez escala ρ.
+    mu: float = Field(
+        default=0.30,
+        gt=0,
+        le=1.0,
+        description=(
+            "Precisión μ del ruido de localizarse, común a los estratos: ruido de "
+            "la puja 1/(μ·λ_h) $/mes. Mayor ⇒ ciudad más segregada. Valor de "
+            "escenario, no estimado: se calibra con la localización observada por "
+            "estrato (Martínez 2018 §9.3)."
+        ),
+    )
     tol: float = Field(default=1e-8, gt=0)
     max_iter: int = Field(default=10000, ge=1)
     forma: FormaOferta = Field(

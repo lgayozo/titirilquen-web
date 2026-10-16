@@ -16,7 +16,7 @@ Seis bloques:
    dejó la auditoría externa del 2026-09-05.
 4. `asignacion_entera` — `allocation.py` conserva `S_i` por celda pero no `H_h`
    por estrato (D-44): cuánto se desvía.
-5. `perillas` — μ (un supuesto fijo, `MU_SUELO`) y ρ (el control del módulo),
+5. `perillas` — μ (valor de escenario, `LandUseConfig.mu`) y ρ, por estrato,
    con sus rangos medidos; `rho_umbral` busca la inversión.
 6. `invariancias` — grilla (D-26) y tamaño físico, sobre la configuración vigente;
    `invariancia_poblacion`, el mismo ρ con tres poblaciones (D2, schema v7).
@@ -41,7 +41,7 @@ RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 from titirilquen_core.config import DemandConfig, SupplyConfig
-from titirilquen_core.constantes import MU_SUELO, VIAJES_MES
+from titirilquen_core.constantes import VIAJES_MES
 from titirilquen_core.land_use import LandUseCity, LandUseConfig
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.config import LandUseStratumConfig
@@ -80,6 +80,10 @@ def _T():
 def _lam() -> list[float]:
     """λ_h de la aplicación: |b_costo_h| de la demanda (schema v6)."""
     return [float(x) for x in lambda_desde_demanda(_demanda())]
+
+
+#: El μ de la aplicación (valor de escenario desde v10).
+MU = LandUseConfig().mu
 
 
 def _ciudad(cfg: LandUseConfig, T=None, lam=None):
@@ -260,10 +264,10 @@ def _metricas(c) -> dict:
 def _resolver(cfg: LandUseConfig, *, mu: float, alpha: float = 1.0, lam=None):
     """La ciudad con un μ y un α distintos de los de la aplicación.
 
-    Desde el schema v7 `LandUseCity` resuelve siempre con `MU_SUELO` y α = 1
-    sobre T (no son campos). Para medir la sensibilidad a esos supuestos se
-    arma la ciudad —que da la oferta S— y se re-resuelve el equilibrio con
-    `solve_subasta`, que sí recibe `mu` y la T que se le pase."""
+    `LandUseCity` resuelve con `cfg.mu` y α = 1 sobre T (α no es campo desde
+    v7). Para medir la sensibilidad a esos supuestos se arma la ciudad —que da
+    la oferta S— y se re-resuelve el equilibrio con `solve_subasta`, que recibe
+    `mu` y la T que se le pase."""
     T = _T()
     c = _ciudad(cfg, T=T, lam=lam)
     c.result = solve_subasta(
@@ -296,9 +300,9 @@ RHOS = (0.0, 10.0, 20.0, 31.0, 40.0, 54.0, 60.0)
 
 
 def perillas() -> dict:
-    """μ (un supuesto, fijo desde v7) y ρ (el control del módulo)."""
+    """μ y ρ, los dos valores de escenario de la puja."""
     out = {"mu": [], "rho": []}
-    for m in (0.05, MU_SUELO, 0.5, 1.0):
+    for m in (0.05, MU, 0.5, 1.0):
         c = _resolver(LandUseConfig(H_por_estrato=H_APP, max_iter=5000), mu=m)
         out["mu"].append({"mu": round(m, 4), **_metricas(c)})
     for r in RHOS:
@@ -399,10 +403,10 @@ def configuracion_vigente() -> dict:
         "lambda_utiles_por_clp": lam,
         "alpha": 1.0,
         "rho": [e.rho for e in cfg.estratos],
-        "mu": round(MU_SUELO, 4),
-        "mu_formula": "1/√VIAJES_MES (constante MU_SUELO, schema v7)",
-        "beta_h_por_clp": [MU_SUELO * x for x in lam],
-        "escala_ruido_puja_clp_mes": [round(1.0 / (MU_SUELO * x)) for x in lam],
+        "mu": round(MU, 4),
+        "mu_formula": "valor de escenario, LandUseConfig.mu (schema v10)",
+        "beta_h_por_clp": [MU * x for x in lam],
+        "escala_ruido_puja_clp_mes": [round(1.0 / (MU * x)) for x in lam],
         "VIAJES_MES": VIAJES_MES,
         "vot_transporte_clp_h": [round(t * 60.0 / c) for t, c in zip(bt, bc)],
         "clp_por_util_de_accesibilidad": [round(1.0 / x) for x in lam],
@@ -433,7 +437,7 @@ def escalas() -> dict:
     filas = []
     for h in range(3):
         senal = float((T[h, ok].max() - T[h, ok].min()) / lam[h])
-        ruido = 1.0 / (MU_SUELO * lam[h])
+        ruido = 1.0 / (MU * lam[h])
         ruido_1 = 1.0 / lam[h]
         filas.append(
             {
@@ -463,12 +467,12 @@ RHO_REESCALA = 20.0
 def reescala_mu() -> dict:
     """D1: en la subasta sólo entran μ·λ, μ·α y μ·ρ.
 
-    μ = 1 con (λ, α, ρ) × MU_SUELO reproduce el equilibrio de la
+    μ = 1 con (λ, α, ρ) × μ reproduce el equilibrio de la
     aplicación, en la rama HEV (el default) y en la cerrada (λ uniforme). Por
     eso α dejó de ser un campo: libre, era indistinguible de mover μ. Sigue en la
     ecuación, fijo en 1.
     Reescalar sólo λ, en cambio, es otro modelo."""
-    k = MU_SUELO
+    k = MU
     cfg = _con_rho(RHO_REESCALA)
     cfg_k = _con_rho(RHO_REESCALA * k)
 
@@ -576,7 +580,7 @@ def main() -> None:
             "configuracion": (
                 "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 "
                 "(20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la "
-                "densidad relativa, μ=MU_SUELO=1/√44≈0,151 (schema v7), "
+                "densidad relativa, μ=LandUseConfig.mu=0,30 (schema v10), "
                 "λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
             ),
         },

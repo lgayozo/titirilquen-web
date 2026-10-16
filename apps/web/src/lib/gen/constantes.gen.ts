@@ -37,10 +37,6 @@ export const TOL_ACOPLADO_CLP_MES = 100.0;
  *  consumidores (D-61). Ver `constantes.VUELTAS_ACOPLADO_MAX`. */
 export const VUELTAS_ACOPLADO_MAX = 10;
 
-/** μ del uso de suelo = 1/√VIAJES_MES. Constante, no parámetro del
- *  escenario (schema v7): ver `constantes.MU_SUELO`. */
-export const MU_SUELO = 0.15075567228888181;
-
 /** Fracción de la capacidad real sobre la que se evalúa la BPR del auto
  *  (capacidad práctica, D6): ver `constantes.FACTOR_CAPACIDAD_PRACTICA`. */
 export const FACTOR_CAPACIDAD_PRACTICA = 0.8;

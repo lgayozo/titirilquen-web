@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "generado": "2026-10-14",
-  "commit": "9b99d31",
+  "generado": "2026-10-15",
+  "commit": "87b114f",
   "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)"
  },
  "parametros": {
@@ -534,48 +534,48 @@
   }
  },
  "suelo": {
-  "mu": 0.1508,
+  "mu": 0.3,
   "base": {
    "dist_km": {
-    "alto": 1.99,
-    "medio": 2.97,
-    "bajo": 5.84
+    "alto": 1.38,
+    "medio": 2.89,
+    "bajo": 6.38
    },
-   "theil": 0.208
+   "theil": 0.392
   },
   "lambda_iguales": {
    "dist_km": {
-    "alto": 4.45,
-    "medio": 3.73,
-    "bajo": 2.94
+    "alto": 5.05,
+    "medio": 3.81,
+    "bajo": 2.4
    },
-   "theil": 0.03
+   "theil": 0.1
   },
   "lambda_alto_doble": {
    "dist_km": {
-    "alto": 3.16,
-    "medio": 2.59,
-    "bajo": 5.69
+    "alto": 3.1,
+    "medio": 2.23,
+    "bajo": 6.32
    },
-   "theil": 0.165
+   "theil": 0.323
   },
   "lambda_alto_mitad": {
    "dist_km": {
-    "alto": 1.54,
-    "medio": 3.14,
-    "bajo": 5.85
+    "alto": 1.0,
+    "medio": 3.05,
+    "bajo": 6.37
    },
-   "theil": 0.253
+   "theil": 0.478
   },
   "theil_mu_1": 0.745,
   "rho_54": {
    "dist_km": {
-    "alto": 5.93,
-    "medio": 3.34,
-    "bajo": 2.58
+    "alto": 7.01,
+    "medio": 2.99,
+    "bajo": 2.45
    },
-   "theil": 0.147
+   "theil": 0.335
   },
-  "rho_umbral_inversion": 31
+  "rho_umbral_inversion": 30
  }
 }

@@ -18,27 +18,31 @@ tagline: Presets, comparación, y actividades sugeridas
 ## Actividades sugeridas para estudiantes
 
 ### A. Efecto del precio del parking
+
 1. En Transporte, cambia el parking entre gratis, 2.000 y 5.000 pesos.
 2. Observa cómo cambia la participación modal del auto.
 3. ¿Por qué estrato es más sensible? (Pista: mira el parámetro $\beta_c$)
 
 {/* Sin "$" en las etiquetas: remark-math los tomaría como delimitadores. */}
+
 <LoadScenario id="parking_bajo">Parking gratis</LoadScenario>
 <LoadScenario id="parking_base">Parking 2k (base)</LoadScenario>
 <LoadScenario id="parking_alto">Parking 5k</LoadScenario>
 
 ### B. λ y el valor del tiempo
-1. En Uso de suelo, parte de la configuración por defecto: el estrato alto vive a 2,0 km del CBD y el bajo a 5,8 km.
+
+1. En Uso de suelo, parte de la configuración por defecto: el estrato alto vive a 1,4 km del CBD y el bajo a 6,4 km.
 2. Carga «λ iguales»: los tres estratos con el b_costo del medio, y por lo tanto con su λ, que es el mismo número. Es lo mismo que llevar el slider s de «Valor del tiempo entre estratos» a 0 en la página Calibración; recorre s entre 0 y 2 para ver la transición. ¿Dónde queda cada estrato?
-3. Medido: la segregación **casi desaparece**, Theil de 0,21 a 0,03, con el alto a 4,5 km y el bajo a 2,9 km. La accesibilidad vale en pesos T/λ, y si los λ son iguales nadie valora más el acceso que otro. ¿Por qué el alto queda algo más lejos? (Pista: compara su tenencia de auto con la del bajo.)
-4. Carga «λ alto × 2». El estrato alto pasa a 3,2 km. ¿Es un efecto-ingreso? No: duplicar λ baja a la mitad su valor del tiempo. El ingreso y, en cambio, no reasigna a nadie. (Pista: tutorial de Uso de suelo, sección sobre λ.)
+3. Medido: **el orden de Alonso se pierde**, Theil de 0,39 a 0,10, con el alto a 5,0 km y el bajo a 2,4 km. La accesibilidad vale en pesos T/λ, y si los λ son iguales nadie valora más el acceso que otro. ¿Por qué el alto queda más lejos? (Pista: compara su tenencia de auto con la del bajo.)
+4. Carga «λ alto × 2». El estrato alto pasa a 3,1 km. ¿Es un efecto-ingreso? No: duplicar λ baja a la mitad su valor del tiempo. El ingreso y, en cambio, no reasigna a nadie. (Pista: tutorial de Uso de suelo, sección sobre λ.)
 
 <LoadScenario id="lambda_iguales">λ iguales</LoadScenario>
 <LoadScenario id="lambda_alto_doble">λ alto × 2</LoadScenario>
 
 ### C. Capacidad de ciclovía
+
 1. Empieza con cap_bici = 4.000 bici/h.
-2. Sube a 8.000 (preset *Pro-Bici*).
+2. Sube a 8.000 (preset _Pro-Bici_).
 3. ¿De qué modos migra la demanda hacia la bicicleta?
 4. ¿Cambia la frecuencia operativa del metro?
 
@@ -46,14 +50,18 @@ tagline: Presets, comparación, y actividades sugeridas
 <LoadScenario id="bici_probici">Ciclovía 8.000 (Pro-Bici)</LoadScenario>
 
 ### D. Efecto Alonso y su inversión
+
 1. En Uso de suelo, con la configuración por defecto, ¿quién vive cerca del CBD? ¿Cuánto vale la segregación de Theil?
-2. Carga «penalización por densidad»: ρ = 54 en los tres estratos (en utiles-mes por cada «densidad media»; el umbral de inversión está cerca de 31). Como entra dividida por λ, el estrato alto paga más pesos por evitar las celdas densas del centro.
-3. Medido: el estrato alto pasa de 2,0 a 5,9 km del CBD y el bajo de 5,8 a 2,6 km. Es el patrón «ricos en la periferia». ¿Qué fuerza gana en cada caso, la accesibilidad o la densidad?
+2. Carga «penalización por densidad»: ρ = 54 en los tres estratos (en utiles-mes por cada «densidad media»; el umbral de inversión está cerca de 30). Como entra dividida por λ, el estrato alto paga más pesos por evitar las celdas densas del centro.
+3. Medido: el estrato alto pasa de 1,4 a 7,0 km del CBD y el bajo de 6,4 a 2,5 km. Es el patrón «ricos en la periferia». ¿Qué fuerza gana en cada caso, la accesibilidad o la densidad?
 
 <LoadScenario id="alonso_base">Alonso (por defecto)</LoadScenario>
-<LoadScenario id="alonso_invertido">Penalización por densidad ρ = 54</LoadScenario>
+<LoadScenario id="alonso_invertido">
+  Penalización por densidad ρ = 54
+</LoadScenario>
 
 ### E. Sensibilidad al MSA
+
 1. En Transporte, baja `max_iter` a 3.
 2. ¿Converge? ¿Qué pasa con el residuo?
 3. Vuelve a 40, el default, y observa cómo la brecha baja hasta la tolerancia.
@@ -64,10 +72,12 @@ tagline: Presets, comparación, y actividades sugeridas
 ## Persistencia
 
 Cada configuración puede exportarse como `.ttrq.json`:
+
 - **Exportar**: descarga tu configuración actual para compartir con compañeros o guardar para una evaluación.
 - **Importar**: carga el archivo de otro estudiante o de la guía docente.
 - **Compartir por link**: el estado se comprime en la URL — copia-pega y quien abra el link verá exactamente tu escenario.
 
 <Callout type="info">
-**Para docentes**: cada actividad puede compartirse como link. Los estudiantes abren el link, corren, y exportan sus observaciones para entrega.
+  **Para docentes**: cada actividad puede compartirse como link. Los estudiantes
+  abren el link, corren, y exportan sus observaciones para entrega.
 </Callout>

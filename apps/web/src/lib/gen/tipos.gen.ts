@@ -210,6 +210,13 @@ export interface LandUseConfig {
    *  es lo que produce el gradiente de Alonso.
    */
   estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
+  /**
+   *  Precisión μ del ruido de localizarse, común a los estratos: ruido de la
+   *  puja 1/(μ·λ_h) $/mes. Mayor ⇒ ciudad más segregada. Valor de escenario, no
+   *  estimado: se calibra con la localización observada por estrato (Martínez
+   *  2018 §9.3).
+   */
+  mu: number;
   tol: number;
   max_iter: number;
   /**

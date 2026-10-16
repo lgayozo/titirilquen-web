@@ -13,11 +13,10 @@ y que nunca llegó a ejecutarse (D-34).
 El signo lo vuelve costo (crece con la distancia) y `VIAJES_MES` lo pone en la
 misma escala mensual que el arriendo `p` y el ingreso `y` (D-27): un viaje contra
 un mes de arriendo no es comparable; 44 viajes sí. `(1 − p_tele,h)` descuenta a
-quien teletrabaja, que no viaja (D11). `mu` NO se ajusta por eso: sigue siendo
-1/√VIAJES_MES para todos, un supuesto declarado. Con peso 1 la puja lee
-esa cantidad tal cual, con `lambda_h = |b_costo_h|` la pasa a pesos, y
-`mu = 1/√VIAJES_MES` fija el ruido de la puja como el de VIAJES_MES shocks
-independientes, uno por viaje (ver `constantes.MU_SUELO`).
+quien teletrabaja, que no viaja (D11). Con peso 1 la puja lee esa cantidad
+tal cual, `lambda_h = |b_costo_h|` la pasa a pesos y `LandUseConfig.mu` fija la
+precisión del ruido de localizarse, común a los estratos (un valor de
+escenario; ver el comentario del campo).
 
 Es POR ESTRATO, y eso es deliberado: la heterogeneidad de acceso (tener auto,
 valorar más el tiempo) es justamente lo que el logsum captura. D-22 había fijado

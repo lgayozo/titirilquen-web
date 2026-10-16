@@ -4,7 +4,7 @@
  * Formato de archivo `.ttrq.json`:
  * ```json
  * {
- *   "$schema": "titirilquen-scenario/v9",
+ *   "$schema": "titirilquen-scenario/v10",
  *   "name": "Mi escenario",
  *   "config": { ...SimulationConfig },
  *   "land_use": { ...LandUseConfig },          // opcional
@@ -23,7 +23,7 @@
  * educativo cuyos escenarios se rehacen en minutos, no un sistema con datos
  * que no se pueden perder.
  *
- * La consecuencia es explícita: un archivo o link anterior a v9 falla al
+ * La consecuencia es explícita: un archivo o link anterior a v10 falla al
  * importarse, con un mensaje que dice por qué. v5 (sep-2026): el campo de
  * suelo `beta` pasó a llamarse `mu`, la precisión μ de Martínez; `beta` era
  * la otra precisión de su libro (D-31). v6 (sep-2026): se eliminó
@@ -36,7 +36,9 @@
  * demanda ganó `globales.peaje_km`; un v7 no lo trae y el inspector de
  * utilidad, que no pasa por Pydantic, daría NaN. v9 (oct-2026, D10d): se eliminó
  * `coupled.poblacion`; la población es ΣH de `land_use`, y un v8 correría el
- * acoplado con otra gente sin avisar. Si algún día hay escenarios que
+ * acoplado con otra gente sin avisar. v10 (oct-2026): `mu` vuelve al suelo
+ * como valor de escenario (0,30 por defecto, antes la constante 1/√44); un v9
+ * no lo trae y correría otra ciudad sin avisar. Si algún día hay escenarios que
  * de verdad importe conservar, la decisión se revisa — y entonces el lugar
  * correcto es un migrador versionado, no cinco parches sueltos.
  */
@@ -44,7 +46,7 @@
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 
-export const TTRQ_SCHEMA = "titirilquen-scenario/v9";
+export const TTRQ_SCHEMA = "titirilquen-scenario/v10";
 export const TTRQ_EXT = ".ttrq.json";
 
 export interface CoupledPrefs {

@@ -34,7 +34,7 @@ from titirilquen_core.bienestar import (
 )
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
-from titirilquen_core.constantes import MODOS, MU_SUELO, TOL_ACOPLADO_CLP_MES
+from titirilquen_core.constantes import MODOS, TOL_ACOPLADO_CLP_MES
 from titirilquen_core.coupled_metrics import _theil
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.equilibrium.msa import (
@@ -316,7 +316,7 @@ def suelo() -> dict:
         lo, hi = (lo, mid) if invertido(mid) else (mid, hi)
 
     return {
-        "mu": round(MU_SUELO, 4),
+        "mu": round(lu.mu, 4),
         "base": _resumen_suelo(city),
         "lambda_iguales": _resumen_suelo(
             _suelo(_sim({f"demand.estratos.{h}.betas.b_costo": b[2] for h in (1, 3)}))

@@ -116,11 +116,17 @@ ESPERADO = {
     #     auto −0,92, metro +4,78, bici −3,58, caminata −0,26; equilibrio:
     #     auto −0,41, metro +4,37, bici −3,53, caminata −0,39. Teletrabajo
     #     19,5 → 0.
+    # 14. μ del suelo como valor de escenario (2026-10-15, decisión de Leandro):
+    #     `LandUseConfig.mu` = 0,30 en vez de la constante 1/√44 ≈ 0,151. La
+    #     ciudad de partida se segrega (alto a 1,4 km del CBD en media, antes
+    #     2,0; bajo a 6,4, antes 5,8) y el bajo, más lejos, camina menos. Sólo se
+    #     mueve «equilibrio»: auto +0,07, metro +0,56, bici −0,15, caminata
+    #     −0,47; mismas iteraciones.
     "equilibrio": {
-        "Auto": 25.05,
-        "Metro": 29.88,
-        "Bici": 34.09,
-        "Caminata": 10.97,
+        "Auto": 25.12,
+        "Metro": 30.44,
+        "Bici": 33.94,
+        "Caminata": 10.50,
         "Teletrabajo": 0.0,
     },
     "original": {

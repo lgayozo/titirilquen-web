@@ -130,7 +130,7 @@
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
       <td class="n">85</td>
-      <td><code>runPythonAsync</code> — el bloque Python embebido: 75 líneas que ninguna herramienta lee</td>
+      <td><code>runPythonAsync</code> — el bloque Python embebido: 76 líneas que ninguna herramienta lee</td>
     </tr>
     <tr>
       <td class="n">2</td>
@@ -183,8 +183,8 @@
     <tr>
       <td class="n">3</td>
       <td class="ruta ts">lib/serialization.ts</td>
-      <td class="n">47</td>
-      <td><code>TTRQ_SCHEMA</code> — <code>titirilquen-scenario/v9</code>, sin migraciones; <code>parseTtrqJson</code> (81) falla explícito con un schema anterior</td>
+      <td class="n">49</td>
+      <td><code>TTRQ_SCHEMA</code> — <code>titirilquen-scenario/v10</code>, sin migraciones; <code>parseTtrqJson</code> (83) falla explícito con un schema anterior</td>
     </tr>
   </tbody>
 </table>
@@ -314,7 +314,7 @@
 </div>
 
 <p class="pie-tabla">
-  Comparación JSON con tolerancia relativa 10⁻¹². Son 75 líneas de Python
+  Comparación JSON con tolerancia relativa 10⁻¹². Son 76 líneas de Python
   dentro de un string de TypeScript.
 </p>
 
@@ -407,8 +407,8 @@
     <tr><th>objeto</th><th class="n">bytes</th><th>de qué está hecho</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>trace_to_dict</code> (una corrida)</td><td class="n">6.766.330</td><td><code>agentes</code> 83,70 % · <code>iteraciones</code> 15,51 % · <code>demanda_estrato</code> 0,58 %</td></tr>
-    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">6.792.035</td><td><code>transport</code> 99,55 % · <code>land_use</code> 0,24 % · <code>T_matrix</code> 0,18 % · <code>metrics</code> 0,03 %</td></tr>
+    <tr><td><code>trace_to_dict</code> (una corrida)</td><td class="n">6.769.385</td><td><code>agentes</code> 83,66 % · <code>iteraciones</code> 15,50 % · <code>demanda_estrato</code> 0,58 %</td></tr>
+    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">6.788.747</td><td><code>transport</code> 99,55 % · <code>land_use</code> 0,24 % · <code>T_matrix</code> 0,18 % · <code>metrics</code> 0,03 %</td></tr>
   </tbody>
 </table>
 </div>
@@ -430,12 +430,12 @@
 </div>
 
 <div class="aviso alerta">
-  <h4>D-62 — 67,9 MB por corrida acoplada, 0,18 MB abiertos</h4>
+  <h4>D-62 — 67,9 MB por corrida acoplada, 0,19 MB abiertos</h4>
   <p>
     Cada vuelta del acoplado transporta el trace de transporte entero —36.000
     agentes con seis campos— y la interfaz no lee <code>transport</code> ni una
     vez. Con las 10 vueltas del tope cruzan la frontera 67,9 MB, de los que
-    el frontend abre 0,18 MB. En el motor local cada mensaje pasa además por
+    el frontend abre 0,19 MB. En el motor local cada mensaje pasa además por
     <code>jsFromPy</code> antes de descartarse. Es la misma familia que
     <code>T_matrix</code> (cap. 6), tres órdenes de magnitud más grande.
   </p>
@@ -444,7 +444,7 @@
 <h3>4.6 Campos sin lector, y el CI que no ve octubre</h3>
 
 <p>
-  De los 114 campos del contrato, <strong>15</strong> no aparecen en ningún
+  De los 116 campos del contrato, <strong>15</strong> no aparecen en ningún
   archivo del frontend fuera de <code>lib/gen/</code>: <code>gap_final_min</code>,
   <code>v_libre_auto</code>, <code>alpha_auto_bpr</code>, <code>beta_auto_bpr</code>,
   <code>f_msa</code>, <code>teletrabaja</code>, <code>tiene_auto</code>,
@@ -497,7 +497,7 @@
 <p class="pie-tabla">
   Fuente: <code>datos/cap08.json</code>, regenerado el 2026-10-14 con
   <code>uv run python ../../docs/libro/datos/datos_cap08.py</code>. Goldens:
-  18 casos de oferta, 33 de utilidad. Contrato generado: 5 archivos, 945 líneas,
+  18 casos de oferta, 33 de utilidad. Contrato generado: 5 archivos, 959 líneas,
   29 interfaces.
 </p>
 
@@ -613,7 +613,7 @@
     </tr>
     <tr>
       <td class="n">D-62</td>
-      <td>Cada vuelta del acoplado lleva 6,8 MB que la interfaz no abre: 67,9 MB por corrida al tope, 0,18 usados.</td>
+      <td>Cada vuelta del acoplado lleva 6,8 MB que la interfaz no abre: 67,9 MB por corrida al tope, 0,19 usados.</td>
       <td>Carga útil que nadie abre.</td>
       <td>pendiente</td>
     </tr>
@@ -682,7 +682,7 @@
   cerró leyendo el veredicto del núcleo en vez de reescribirlo, y la tolerancia
   del acoplado ya no se transcribe: es una constante de
   <code>constantes.py</code> que el generador proyecta en
-  <code>constantes.gen.ts</code>, junto con <code>MU_SUELO</code>,
+  <code>constantes.gen.ts</code>, junto con
   <code>FACTOR_CAPACIDAD_PRACTICA</code> y <code>VIAJES_POR_TOUR</code>. D-61
   se cerró igual: el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code>. La
   petición del acoplado se sigue escribiendo tres veces a mano. Es el mismo

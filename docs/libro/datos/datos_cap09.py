@@ -246,8 +246,12 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "deciles chilenos estilizados (D-27); no mueve la asignación",
         False,
     ),
-    # λ (= |b_costo|, v6), α (≡ 1) y μ (= 1/√44) no son campos desde el schema v7
-    # (D1): se catalogan como constantes o no se catalogan.
+    # λ (= |b_costo|, v6) y α (≡ 1, v7, D1) no son campos: no se catalogan.
+    "land_use.mu": (
+        DECISION,
+        "0,30, valor de escenario (v10); se calibra con la localización observada",
+        True,
+    ),
     "land_use.estratos.*.rho": (
         DECISION,
         "0 = Alonso puro, sobre densidad relativa (D2); la penalización no tiene fuente",
@@ -267,7 +271,6 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
     ),
     "constantes.VIAJES_MES": (DECISION, "2 × 22 días (D-27)", False),
     "constantes.VIAJES_POR_TOUR": (DECISION, "2: el parking es por día (oct-2026)", False),
-    "constantes.MU_SUELO": (DECISION, "1/√44, fijo; no es campo desde v7 (D1, D-41)", False),
     "constantes.FACTOR_CAPACIDAD_PRACTICA": (
         DECISION,
         "0,8·C, capacidad práctica de la BPR (D6, Boyles et al. 2025 p. 102)",
@@ -336,7 +339,6 @@ def inventario() -> dict:
             "VOT_SOCIAL_CLP_HORA",
             "VIAJES_MES",
             "VIAJES_POR_TOUR",
-            "MU_SUELO",
             "FACTOR_CAPACIDAD_PRACTICA",
             "TOL_ACOPLADO_CLP_MES",
         )
@@ -661,9 +663,10 @@ def sensibilidad() -> dict:
     ref_eq = _corre(sim, lu, "equilibrio")
     lu0 = lu.model_dump(by_alias=True)
     filas_lu = []
-    # Desde v7 (D1) el suelo no tiene `alpha`, `mu` ni `beta`; λ no es campo
-    # desde v6. `rho` parte en 0, así que se mueve a 1 en vez de ×1,1.
+    # El suelo no tiene `alpha` ni `beta` (v7, D1) ni λ (v6); `mu` volvió en
+    # v10. `rho` parte en 0, así que se mueve a 1 en vez de ×1,1.
     for ruta in (
+        "mu",
         "estratos.1.rho",
         "estratos.1.y",
         "oferta_sigma_frac",

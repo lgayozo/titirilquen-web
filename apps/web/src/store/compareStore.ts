@@ -299,7 +299,7 @@ export const useCompareStore = create<CompareState>()(
       // ganó `peaje_km`, que un escenario v2 no trae. v4 (oct-2026, D10d): la
       // tarjeta perdió `poblacion`; la población es ΣH de su `landUse`, y un
       // v3 correría el acoplado con otra gente sin decirlo.
-      name: "titirilquen.compare.v4",
+      name: "titirilquen.compare.v5",
       partialize: (s): CompareInputs => ({
         kind: s.kind,
         baseId: s.baseId,

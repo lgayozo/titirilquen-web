@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-14",
-  "commit": "bb6446b",
+  "fecha": "2026-10-15",
+  "commit": "87b114f",
   "script": "docs/libro/datos/datos_cap06.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, semilla 42, asignación esperada, brecha interior < 0,2 min. El acoplado con `outer_max_iter = 10` y la tolerancia del núcleo, 100 $/hogar-mes."
  },
@@ -204,9 +204,9 @@
     "objeto": "logsum (D-34)",
     "moneda": "λ heterogéneo",
     "dist_media_km": [
-     1.9924,
-     2.9663,
-     5.8388
+     1.3825,
+     2.8882,
+     6.3756
     ],
     "invierte_alonso": false
    },
@@ -214,9 +214,9 @@
     "objeto": "logsum (D-34)",
     "moneda": "λ uniforme",
     "dist_media_km": [
-     5.551,
-     3.7631,
-     2.1384
+     6.3351,
+     3.8183,
+     1.5236
     ],
     "invierte_alonso": true
    },
@@ -224,9 +224,9 @@
     "objeto": "minutos (D-22)",
     "moneda": "λ heterogéneo",
     "dist_media_km": [
-     1.8261,
-     3.0038,
-     5.8871
+     1.2227,
+     2.8961,
+     6.469
     ],
     "invierte_alonso": false
    },
@@ -234,9 +234,9 @@
     "objeto": "minutos (D-22)",
     "moneda": "λ uniforme",
     "dist_media_km": [
-     5.1543,
-     3.66,
-     2.5746
+     6.0796,
+     3.5867,
+     2.0799
     ],
     "invierte_alonso": true
    }
@@ -263,11 +263,11 @@
      8398
     ],
     "dist_media_km": [
-     1.9924,
-     2.9663,
-     5.8388
+     1.3825,
+     2.8882,
+     6.3756
     ],
-    "theil": 0.2081
+    "theil": 0.3918
    },
    {
     "teletrabajo_factor": 0.5,
@@ -282,11 +282,11 @@
      8188
     ],
     "dist_media_km": [
-     2.4407,
-     2.9818,
-     5.5141
+     1.8379,
+     2.8101,
+     6.202
     ],
-    "theil": 0.1361
+    "theil": 0.2945
    },
    {
     "teletrabajo_factor": 1.0,
@@ -301,11 +301,11 @@
      7978
     ],
     "dist_media_km": [
-     3.065,
-     3.0472,
-     4.9888
+     2.6571,
+     2.7199,
+     5.8063
     ],
-    "theil": 0.065
+    "theil": 0.1812
    },
    {
     "teletrabajo_factor": 2.0,
@@ -320,11 +320,11 @@
      7558
     ],
     "dist_media_km": [
-     4.7108,
-     3.3343,
-     3.413
+     5.607,
+     3.087,
+     3.2278
     ],
-    "theil": 0.024
+    "theil": 0.0819
    }
   ]
  },
@@ -335,45 +335,45 @@
     "num_estaciones": 4,
     "max_dT_vs_4_estaciones": 0.0,
     "dist_media_km": [
-     1.9909,
-     2.9962,
-     5.7899
+     1.3258,
+     2.9531,
+     6.3051
     ]
    },
    {
     "num_estaciones": 6,
     "max_dT_vs_4_estaciones": 24.754,
     "dist_media_km": [
-     1.9997,
-     2.9438,
-     5.8715
+     1.3778,
+     2.8597,
+     6.4262
     ]
    },
    {
     "num_estaciones": 10,
     "max_dT_vs_4_estaciones": 18.595,
     "dist_media_km": [
-     1.9924,
-     2.9663,
-     5.8388
+     1.3825,
+     2.8882,
+     6.3756
     ]
    },
    {
     "num_estaciones": 20,
     "max_dT_vs_4_estaciones": 17.408,
     "dist_media_km": [
-     1.9522,
-     2.9758,
-     5.8497
+     1.3317,
+     2.8992,
+     6.391
     ]
    },
    {
     "num_estaciones": 30,
     "max_dT_vs_4_estaciones": 16.267,
     "dist_media_km": [
-     1.9231,
-     2.9787,
-     5.8643
+     1.2963,
+     2.9066,
+     6.4022
     ]
    }
   ],
@@ -389,28 +389,28 @@
     "k": 0,
     "brecha_clp_mes": null,
     "max_dQ": null,
-    "theil": 0.20807,
+    "theil": 0.39184,
     "dist_media_km": [
-     1.9924,
-     2.9663,
-     5.8388
+     1.3825,
+     2.8882,
+     6.3756
     ],
     "reparto_pct": {
-     "Auto": 24.861,
-     "Metro": 29.914,
-     "Bici": 34.25,
-     "Caminata": 10.975,
+     "Auto": 24.686,
+     "Metro": 30.758,
+     "Bici": 34.022,
+     "Caminata": 10.533,
      "Teletrabajo": 0.0,
      "Varado": 0.0
     },
-    "tiempo_medio_min": 20.1811,
-    "frecuencia_metro_tph": 5.3787,
+    "tiempo_medio_min": 20.1208,
+    "frecuencia_metro_tph": 5.4785,
     "delta_excedente_hogar_mes_clp": [
-     -17916,
-     -5827,
-     -1732
+     -14808,
+     -5747,
+     -1389
     ],
-    "delta_bienestar_total_mes_clp": -252644362,
+    "delta_bienestar_total_mes_clp": -225031522,
     "msa_convergio": true,
     "msa_iteraciones": 29,
     "subasta_convergio": true,
@@ -418,30 +418,30 @@
    },
    {
     "k": 1,
-    "brecha_clp_mes": 1089.115,
-    "max_dQ": 0.1783,
-    "theil": 0.23127,
+    "brecha_clp_mes": 955.036,
+    "max_dQ": 0.1774,
+    "theil": 0.42734,
     "dist_media_km": [
-     1.7494,
-     3.102,
-     5.7746
+     1.1783,
+     3.0389,
+     6.2604
     ],
     "reparto_pct": {
-     "Auto": 24.772,
-     "Metro": 30.192,
-     "Bici": 34.239,
-     "Caminata": 10.797,
+     "Auto": 24.867,
+     "Metro": 30.55,
+     "Bici": 34.225,
+     "Caminata": 10.358,
      "Teletrabajo": 0.0,
      "Varado": 0.0
     },
-    "tiempo_medio_min": 20.1275,
-    "frecuencia_metro_tph": 5.3961,
+    "tiempo_medio_min": 20.09,
+    "frecuencia_metro_tph": 5.4868,
     "delta_excedente_hogar_mes_clp": [
-     -16033,
-     -5593,
-     -1963
+     -13224,
+     -5473,
+     -1678
     ],
-    "delta_bienestar_total_mes_clp": -237299142,
+    "delta_bienestar_total_mes_clp": -211779922,
     "msa_convergio": true,
     "msa_iteraciones": 29,
     "subasta_convergio": true,
@@ -449,30 +449,30 @@
    },
    {
     "k": 2,
-    "brecha_clp_mes": 72.87,
-    "max_dQ": 0.005442,
-    "theil": 0.22928,
+    "brecha_clp_mes": 11.421,
+    "max_dQ": 0.007101,
+    "theil": 0.42492,
     "dist_media_km": [
-     1.762,
-     3.0986,
-     5.7718
+     1.1881,
+     3.035,
+     6.2604
     ],
     "reparto_pct": {
-     "Auto": 24.769,
-     "Metro": 30.167,
-     "Bici": 34.233,
-     "Caminata": 10.831,
+     "Auto": 24.864,
+     "Metro": 30.55,
+     "Bici": 34.228,
+     "Caminata": 10.358,
      "Teletrabajo": 0.0,
      "Varado": 0.0
     },
-    "tiempo_medio_min": 20.1306,
-    "frecuencia_metro_tph": 5.3942,
+    "tiempo_medio_min": 20.0895,
+    "frecuencia_metro_tph": 5.4868,
     "delta_excedente_hogar_mes_clp": [
-     -16106,
-     -5608,
-     -1964
+     -13237,
+     -5474,
+     -1676
     ],
-    "delta_bienestar_total_mes_clp": -238126465,
+    "delta_bienestar_total_mes_clp": -211831221,
     "msa_convergio": true,
     "msa_iteraciones": 29,
     "subasta_convergio": true,
@@ -482,46 +482,46 @@
   "sin_feedback_vs_con_feedback": {
    "nota": "La iteración 0 es la ciudad resuelta con la accesibilidad de la red VACÍA: el baseline honesto de D-23, en la misma escala que el resto.",
    "theil": [
-    0.20807,
-    0.22928
+    0.39184,
+    0.42492
    ],
    "dist_media_km": [
     [
-     1.9924,
-     2.9663,
-     5.8388
+     1.3825,
+     2.8882,
+     6.3756
     ],
     [
-     1.762,
-     3.0986,
-     5.7718
+     1.1881,
+     3.035,
+     6.2604
     ]
    ],
    "reparto_pct": [
     {
-     "Auto": 24.861,
-     "Metro": 29.914,
-     "Bici": 34.25,
-     "Caminata": 10.975,
+     "Auto": 24.686,
+     "Metro": 30.758,
+     "Bici": 34.022,
+     "Caminata": 10.533,
      "Teletrabajo": 0.0,
      "Varado": 0.0
     },
     {
-     "Auto": 24.769,
-     "Metro": 30.167,
-     "Bici": 34.233,
-     "Caminata": 10.831,
+     "Auto": 24.864,
+     "Metro": 30.55,
+     "Bici": 34.228,
+     "Caminata": 10.358,
      "Teletrabajo": 0.0,
      "Varado": 0.0
     }
    ],
    "tiempo_medio_min": [
-    20.1811,
-    20.1306
+    20.1208,
+    20.0895
    ],
    "frecuencia_metro_tph": [
-    5.3787,
-    5.3942
+    5.4785,
+    5.4868
    ]
   }
  },
@@ -531,23 +531,23 @@
    "base": {
     "msa_1_sobre_k": [
      null,
-     1089.115,
-     470.87,
-     309.973,
-     227.986,
-     187.26,
-     170.117,
-     145.815
+     955.036,
+     459.695,
+     306.799,
+     235.24,
+     186.937,
+     155.781,
+     133.526
     ],
     "nucleo": [
      null,
-     1089.115,
-     72.87,
-     6.126,
-     0.0,
-     0.0,
-     0.0,
-     0.0
+     955.036,
+     11.421,
+     4.834,
+     5.449,
+     2.725,
+     1.362,
+     0.681
     ],
     "msa_interior_convergio": [
      true,
@@ -565,23 +565,23 @@
    "rho_54": {
     "msa_1_sobre_k": [
      null,
-     2992.02,
-     1313.978,
-     812.64,
-     561.735,
-     438.093,
-     365.464,
-     310.732
+     4178.829,
+     1708.288,
+     1041.91,
+     751.439,
+     567.698,
+     465.063,
+     385.878
     ],
     "nucleo": [
      null,
-     2992.02,
-     371.673,
-     57.552,
-     3.971,
-     0.0,
-     0.0,
-     0.0
+     4178.829,
+     743.567,
+     131.772,
+     15.2,
+     6.142,
+     6.142,
+     6.142
     ],
     "msa_interior_convergio": [
      true,
@@ -593,26 +593,26 @@
      true,
      true
     ],
-    "k_bajo_tol_nucleo": 3,
+    "k_bajo_tol_nucleo": 4,
     "k_bajo_tol_msa": null
    },
    "poblacion_x2_5": {
     "msa_1_sobre_k": [
      null,
-     2461.302,
-     1208.632,
-     782.749,
-     574.83,
-     456.172,
-     380.128,
-     325.748
+     2107.281,
+     1027.126,
+     666.995,
+     492.496,
+     394.209,
+     330.126,
+     276.561
     ],
     "nucleo": [
      null,
-     2461.302,
-     98.46,
-     7.045,
-     0.583,
+     2107.281,
+     59.434,
+     1.076,
+     0.0,
      0.0,
      0.0,
      0.0
@@ -633,15 +633,15 @@
   }
  },
  "brecha_distribucion": {
-  "max": 1089.1,
-  "percentil_50": 212.4,
-  "percentil_90": 957.6,
-  "percentil_99": 1068.3,
-  "celdas_sobre_la_tolerancia": 366,
+  "max": 955.0,
+  "percentil_50": 175.5,
+  "percentil_90": 834.1,
+  "percentil_99": 937.0,
+  "celdas_sobre_la_tolerancia": 362,
   "celdas_totales": 603,
   "celda_del_maximo": {
    "estrato": 1,
-   "indice": 191,
+   "indice": 9,
    "km_del_cbd": 9.0547
   }
  },
@@ -657,19 +657,13 @@
    },
    {
     "k": 1,
-    "brecha_clp_mes": 1880.685,
+    "brecha_clp_mes": 1527.078,
     "msa_convergio": false,
     "nucleo_dice": false
    },
    {
     "k": 2,
-    "brecha_clp_mes": 225.654,
-    "msa_convergio": false,
-    "nucleo_dice": false
-   },
-   {
-    "k": 3,
-    "brecha_clp_mes": 21.838,
+    "brecha_clp_mes": 23.579,
     "msa_convergio": false,
     "nucleo_dice": false
    }
@@ -683,11 +677,11 @@
    822
   ],
   "brechas_sin_corte": [
-   1089.115,
-   72.87,
-   6.126,
-   0.0,
-   0.0
+   955.036,
+   11.421,
+   4.834,
+   5.449,
+   2.725
   ]
  },
  "poblacion": [
@@ -696,20 +690,20 @@
    "iteraciones": 2,
    "convergio": true,
    "msa_convergio": true,
-   "brecha_final_clp_mes": 1.977,
-   "delta_bienestar_total_mes_clp": -20740119,
-   "theil": 0.20955,
-   "tiempo_medio_min": 16.2499,
+   "brecha_final_clp_mes": 4.233,
+   "delta_bienestar_total_mes_clp": -21074741,
+   "theil": 0.39381,
+   "tiempo_medio_min": 16.4624,
    "dist_media_km": [
-    1.9799,
-    2.9714,
-    5.8392
+    1.3672,
+    2.8966,
+    6.3722
    ],
    "reparto_pct": {
-    "Auto": 30.992,
-    "Metro": 16.0,
-    "Bici": 42.892,
-    "Caminata": 10.117,
+    "Auto": 30.583,
+    "Metro": 16.308,
+    "Bici": 43.308,
+    "Caminata": 9.8,
     "Teletrabajo": 0.0,
     "Varado": 0.0
    }
@@ -719,20 +713,20 @@
    "iteraciones": 3,
    "convergio": true,
    "msa_convergio": true,
-   "brecha_final_clp_mes": 30.157,
-   "delta_bienestar_total_mes_clp": -135752037,
-   "theil": 0.21943,
-   "tiempo_medio_min": 18.8469,
+   "brecha_final_clp_mes": 15.702,
+   "delta_bienestar_total_mes_clp": -122019744,
+   "theil": 0.40841,
+   "tiempo_medio_min": 18.9048,
    "dist_media_km": [
-    1.8739,
-    3.0225,
-    5.8251
+    1.2717,
+    2.957,
+    6.3358
    ],
    "reparto_pct": {
-    "Auto": 28.758,
-    "Metro": 20.988,
-    "Bici": 39.537,
-    "Caminata": 10.717,
+    "Auto": 28.583,
+    "Metro": 21.571,
+    "Bici": 39.562,
+    "Caminata": 10.283,
     "Teletrabajo": 0.0,
     "Varado": 0.0
    }
@@ -742,20 +736,20 @@
    "iteraciones": 3,
    "convergio": true,
    "msa_convergio": true,
-   "brecha_final_clp_mes": 72.87,
-   "delta_bienestar_total_mes_clp": -238126465,
-   "theil": 0.22928,
-   "tiempo_medio_min": 20.1306,
+   "brecha_final_clp_mes": 11.421,
+   "delta_bienestar_total_mes_clp": -211831221,
+   "theil": 0.42492,
+   "tiempo_medio_min": 20.0895,
    "dist_media_km": [
-    1.762,
-    3.0986,
-    5.7718
+    1.1881,
+    3.035,
+    6.2604
    ],
    "reparto_pct": {
-    "Auto": 24.769,
-    "Metro": 30.167,
-    "Bici": 34.233,
-    "Caminata": 10.831,
+    "Auto": 24.864,
+    "Metro": 30.55,
+    "Bici": 34.228,
+    "Caminata": 10.358,
     "Teletrabajo": 0.0,
     "Varado": 0.0
    }
@@ -765,20 +759,20 @@
    "iteraciones": 3,
    "convergio": false,
    "msa_convergio": false,
-   "brecha_final_clp_mes": 97.498,
-   "delta_bienestar_total_mes_clp": -894209969,
-   "theil": 0.26396,
-   "tiempo_medio_min": 23.0073,
+   "brecha_final_clp_mes": 33.243,
+   "delta_bienestar_total_mes_clp": -844076189,
+   "theil": 0.46473,
+   "tiempo_medio_min": 22.9346,
    "dist_media_km": [
-    1.5595,
-    3.2076,
-    5.7237
+    1.0599,
+    3.1496,
+    6.1533
    ],
    "reparto_pct": {
-    "Auto": 19.283,
-    "Metro": 39.738,
-    "Bici": 29.213,
-    "Caminata": 11.765,
+    "Auto": 19.477,
+    "Metro": 40.135,
+    "Bici": 28.963,
+    "Caminata": 11.425,
     "Teletrabajo": 0.0,
     "Varado": 0.0
    }
@@ -788,20 +782,20 @@
    "iteraciones": 3,
    "convergio": false,
    "msa_convergio": false,
-   "brecha_final_clp_mes": 98.46,
-   "delta_bienestar_total_mes_clp": -1864126513,
-   "theil": 0.29109,
-   "tiempo_medio_min": 23.9154,
+   "brecha_final_clp_mes": 59.434,
+   "delta_bienestar_total_mes_clp": -1794378948,
+   "theil": 0.48689,
+   "tiempo_medio_min": 23.9022,
    "dist_media_km": [
-    1.4501,
-    3.2705,
-    5.6943
+    1.0136,
+    3.2184,
+    6.0722
    ],
    "reparto_pct": {
-    "Auto": 14.732,
-    "Metro": 46.012,
-    "Bici": 27.05,
-    "Caminata": 12.206,
+    "Auto": 14.89,
+    "Metro": 46.242,
+    "Bici": 26.954,
+    "Caminata": 11.913,
     "Teletrabajo": 0.0,
     "Varado": 0.0
    }

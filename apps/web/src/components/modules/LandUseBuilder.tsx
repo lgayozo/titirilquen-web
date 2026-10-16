@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { PorQue } from "@/components/ui/PorQue";
-import { MU_SUELO, VIAJES_MES } from "@/lib/gen/constantes.gen";
+import { defaultLandUseConfig } from "@/lib/defaults";
 import type { LandUseConfig } from "@/lib/types-v2";
 
 interface LandUseBuilderProps {
@@ -17,6 +17,15 @@ interface LandUseBuilderProps {
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
 
+// Tres ciudades de contraste para μ. Medidas a flujo libre con ρ = 0 (oct-2026):
+// mezclada Theil 0,12 y el alto a 2,4 km del CBD; base 0,39 y 1,4 km;
+// segregada 0,70 y 0,85 km. La base es el default del núcleo.
+const MU_PRESETS = [
+  { key: "mezclada", mu: 0.1 },
+  { key: "base", mu: defaultLandUseConfig.mu },
+  { key: "segregada", mu: 0.8 },
+] as const;
+
 export function LandUseBuilder({
   config,
   onChange,
@@ -27,10 +36,10 @@ export function LandUseBuilder({
 
   // λ_h = |b_costo_h| no es parte de esta config (schema v6): el núcleo lo
   // deriva de la demanda, y se mueve desde la calibración de Transporte, junto
-  // con la accesibilidad T que también depende de b_costo (D-41). α y μ
-  // tampoco (schema v7, D1 de la auditoría): la accesibilidad entra con peso 1
-  // y μ es la constante `MU_SUELO`; se muestra, no se edita. La única palanca
-  // de preferencias que queda acá es ρ, por estrato.
+  // con la accesibilidad T que también depende de b_costo (D-41). α tampoco
+  // (schema v7, D1 de la auditoría): la accesibilidad entra con peso 1. Las
+  // palancas de preferencias de acá son μ (`config.mu`, valor de escenario
+  // desde v10, común a los estratos) y ρ, por estrato.
   const fmtLambda = (v: number) => `${(v * 1e4).toFixed(2)}·10⁻⁴`;
 
   const setStratum = (
@@ -192,22 +201,40 @@ export function LandUseBuilder({
         )}
       </CollapsibleSection>
 
-      {/* ---- PARÁMETROS DE PUJA (bid-rent): μ y λ sólo se muestran (D-41, v7) ---- */}
+      {/* ---- PARÁMETROS DE PUJA (bid-rent): μ se mueve; λ sólo se muestra (D-41) ---- */}
       <CollapsibleSection
         title={t("land_use.section_bidrent")}
-        meta={`μ=${MU_SUELO.toFixed(3)}`}
-        defaultOpen={false}
+        meta={`μ=${config.mu.toFixed(2)}`}
+        defaultOpen
       >
         <p className="text-etiqueta text-muted">
           {t("land_use.bidrent_corto")}
         </p>
         <PorQue className="mb-2">{t("land_use.bidrent_porque")}</PorQue>
-        <p className="text-etiqueta text-muted">
-          {t("land_use.mu_fijo", {
-            n: VIAJES_MES,
-            mu: MU_SUELO.toFixed(3),
-          })}
-        </p>
+        <LabeledSlider
+          label={t("land_use.param_mu")}
+          value={config.mu}
+          min={0.05}
+          max={1}
+          step={0.05}
+          format={(v) => v.toFixed(2)}
+          hint={t("land_use.mu_corto")}
+          onChange={(v) => onChange((c) => ({ ...c, mu: v }))}
+        />
+        <div className="mt-1 flex gap-1.5">
+          {MU_PRESETS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              className={`chip-toggle${Math.abs(config.mu - p.mu) < 1e-9 ? " active" : ""}`}
+              style={{ flex: 1 }}
+              onClick={() => onChange((c) => ({ ...c, mu: p.mu }))}
+            >
+              {t(`land_use.mu_preset_${p.key}`, { mu: p.mu.toFixed(2) })}
+            </button>
+          ))}
+        </div>
+        <PorQue>{t("land_use.mu_porque")}</PorQue>
         <p className="mt-1 text-etiqueta text-muted">
           {t("land_use.lambda_values_corto", {
             l1: fmtLambda(lambdas[0]),

@@ -16,7 +16,7 @@ proporcional a `λ_h`: quien más valora el dinero tendría proporcionalmente
 **más** dispersión idiosincrática de utilidad. Es un supuesto sin fundamento
 conductual, y que nadie eligió: sale de conservar la forma cerrada.
 
-**Cuál es el `mu` que recibe.** Es `μ` (`constantes.MU_SUELO`), la precisión del ruido en
+**Cuál es el `mu` que recibe.** Es `μ` (`LandUseConfig.mu`), la precisión del ruido en
 **útiles**, común a los estratos; la precisión en **dinero** es `β_h = λ_h·μ` y
 es la que ve la subasta, porque la puja está en dinero. `solve_subasta` hace esa
 conversión en las dos ramas. Antes no: la rama cerrada recibía el parámetro

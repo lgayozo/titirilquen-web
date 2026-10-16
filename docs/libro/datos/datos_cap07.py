@@ -496,10 +496,9 @@ def segregacion() -> dict:
             100.0 * (ref["theil_territorial"] / ref["theil_poblacional"] - 1.0), 2
         ),
         "nota": (
-            "Converge al refinar la grilla —las diferencias sucesivas se reducen a "
-            "la mitad al duplicar `n_celdas`—, así que el índice es una propiedad "
-            "de la ciudad y no del enrejado. El valor de la aplicación (201) queda "
-            "un ~2 % por debajo del límite."
+            "Converge al refinar la grilla —las diferencias sucesivas se achican "
+            "al duplicar `n_celdas`—, así que el índice es una propiedad de la "
+            "ciudad y no del enrejado."
         ),
     }
 

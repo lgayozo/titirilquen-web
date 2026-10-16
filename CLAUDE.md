@@ -81,7 +81,7 @@ que queda, y está pineado con `e2e/fixtures/utility-golden.json`: si divergen, 
 test falla. Lo mismo `citySupply.ts` con su golden de oferta.
 
 **Estado serializable.** Export a archivo `.ttrq.json` (`$schema:
-"titirilquen-scenario/v9"`) y share por `?s=` (base64url), sin DB. No hay
+"titirilquen-scenario/v10"`) y share por `?s=` (base64url), sin DB. No hay
 migraciones: un archivo de un schema anterior falla con un error explícito.
 
 **i18n.** Las ecuaciones LaTeX no se traducen. Ojo al borrar claves: varias se
@@ -117,8 +117,8 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   `demand.globales`.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
   defecto de la app da **auto 24,68 · metro 28,52 · bici 34,19 · caminata 12,62**
-  con la localización «original» (mezcla uniforme), y **25,05 · 29,88 · 34,09 ·
-  10,97** con la de equilibrio (seed 42, brecha < 0,2 min), pineadas en
+  con la localización «original» (mezcla uniforme), y **25,12 · 30,44 · 33,94 ·
+  10,50** con la de equilibrio (seed 42, brecha < 0,2 min), pineadas en
   `tests/test_linea_base.py` — ese archivo manda si estos números y él difieren. Si un cambio las mueve más de 0,05 pp,
   no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
   sep-2026 (λ heterogéneo en suelo; transporte homoscedástico; accesibilidad =
@@ -128,7 +128,7 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   capacidad práctica 0,8·C, D6; la parada del MSA sobre la brecha no amortiguada,
   D8; los escalones de la bici sobre su tiempo de red vacía, D9; la accesibilidad
   del suelo descuenta el teletrabajo, D11; sin teletrabajo por defecto y los VoT
-  anclados al VST, D5): ver
+  anclados al VST, D5; μ del suelo 0,30 como valor de escenario): ver
   ese test.
 - **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
   0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`
