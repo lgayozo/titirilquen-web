@@ -96,7 +96,10 @@ export function BidPriceCurve({
     .filter(Boolean)
     .join(" ");
 
-  const fmt = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1));
+  // Separador de miles en los enteros, como `fmtInt` de las tablas de
+  // transporte: «Δ 133165» se leía mal.
+  const fmt = (v: number) =>
+    Math.abs(v) >= 100 ? Math.round(v).toLocaleString("es-CL") : v.toFixed(1);
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
@@ -194,10 +197,8 @@ export function BidPriceCurve({
       <div
         style={{
           marginTop: 4,
-          fontFamily: "var(--font-fig)",
           fontSize: "var(--fs-etiqueta)",
           color: "var(--muted)",
-          letterSpacing: "0.04em",
           fontVariantNumeric: "tabular-nums",
           textAlign: "right",
         }}

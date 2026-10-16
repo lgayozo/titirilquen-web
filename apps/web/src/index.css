@@ -2776,6 +2776,7 @@ table.cmp th {
 
 .coupled-placeholder {
   border: 1px dashed var(--rule);
+  border-radius: var(--radius);
   padding: 48px 24px;
   text-align: center;
   font-family: var(--font-body);

@@ -169,8 +169,8 @@
     "trips_by_stratum": "Reparto de viajes por estrato",
     "trips_by_car_ownership": "Tenencia de auto por estrato",
     "utility_scatter": "Dispersión de utilidades",
-    "utility_axis": "UTILIDAD",
-    "position_axis": "POSICIÓN EN LA CIUDAD · KM",
+    "utility_axis": "Utilidad",
+    "position_axis": "Posición en la ciudad · km",
     "with_car": "con auto",
     "without_car": "sin auto",
     "sample_note": "muestra {{shown}} de {{total}}",
@@ -430,6 +430,8 @@
     "bidrent_corto": "La accesibilidad de la puja es el logsum del logit modal, mensualizado y con peso 1; λ_h = |b_costo_h| la pasa a pesos.",
     "bidrent_porque": "El logsum es la utilidad esperada del viaje de ese hogar; se mensualiza con los viajes esperados del estrato (44 × la fracción que no teletrabaja: quien teletrabaja no valora estar cerca del CBD, D11). Con λ_h el valor del tiempo es el mismo que en Transporte: un hogar, una función de utilidad (D-34).",
     "subtitle": "Modelo Alonso-Muth-Mills",
+    "iteraciones": "{{n}} iteraciones",
+    "shape_y_axis": "Oferta",
     "mode_standalone": "Sólo suelo",
     "mode_coupled": "Ciudad en equilibrio",
     "info_standalone": "Resuelve el equilibrio de Alonso con la accesibilidad de Transporte: el logsum del logit modal a flujo libre, por estrato, mensualizado (D-34). Sin congestión.",
@@ -513,8 +515,8 @@
     "mu_porque": "El ruido de la puja es 1/(μ·λ_h) $/mes. Con μ bajo pesa el gusto idiosincrático y los estratos se mezclan; con μ alto pesa la accesibilidad y el estrato que más valora el tiempo gana el centro. No hay un μ transferible: se calibra con la localización observada por estrato (logit de subasta, Martínez 2018 §9.3); en Santiago, contra la distancia por ingreso al centro de empleo, porque allí la segregación es sectorial. Sólo μ·ρ está identificado: mover μ también escala la penalización por densidad."
   },
   "bid_price": {
-    "y_label": "PRECIO (REL.)",
-    "footer": "RELATIVO · 0 = MÍNIMO · Δ {{delta}} (precio salvo constante)",
+    "y_label": "Precio (rel.)",
+    "footer": "Relativo · 0 = mínimo · Δ {{delta}} (precio salvo constante)",
     "units_logit": "Pesos por mes: el máximo esperado de las pujas y + f/λ (Martínez, ec. 4.27)."
   },
   "supply_builder": {

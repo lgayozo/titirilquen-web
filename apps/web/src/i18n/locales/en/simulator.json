@@ -169,8 +169,8 @@
     "trips_by_stratum": "Mode split by stratum",
     "trips_by_car_ownership": "Car ownership by stratum",
     "utility_scatter": "Utility dispersion",
-    "utility_axis": "UTILITY",
-    "position_axis": "CITY POSITION · KM",
+    "utility_axis": "Utility",
+    "position_axis": "City position · km",
     "with_car": "with car",
     "without_car": "without car",
     "sample_note": "showing {{shown}} of {{total}}",
@@ -430,6 +430,8 @@
     "bidrent_corto": "The bid's accessibility is the mode-choice logsum, monthly and with weight 1; λ_h = |b_cost_h| turns it into pesos.",
     "bidrent_porque": "The logsum is that household's expected trip utility; it is made monthly with the stratum's expected trips (44 × the share that does not telework: teleworkers do not value being close to the CBD, D11). With λ_h the value of time is the same as in Transport: one household, one utility function (D-34).",
     "subtitle": "Alonso-Muth-Mills model",
+    "iteraciones": "{{n}} iterations",
+    "shape_y_axis": "Supply",
     "mode_standalone": "Land use only",
     "mode_coupled": "City at equilibrium",
     "info_standalone": "Solves the Alonso equilibrium with Transport's accessibility: the mode-choice logsum at free flow, per stratum, monthly (D-34). No congestion.",
@@ -513,8 +515,8 @@
     "mu_porque": "The bid noise is 1/(μ·λ_h) $/month. With low μ idiosyncratic taste dominates and strata mix; with high μ accessibility dominates and the stratum that values time most wins the center. There is no transferable μ: it is calibrated against observed location by stratum (bid-auction logit, Martínez 2018 §9.3); in Santiago, against distance to the employment center by income, because segregation there is sectoral. Only μ·ρ is identified: moving μ also scales the density penalty."
   },
   "bid_price": {
-    "y_label": "PRICE (REL.)",
-    "footer": "RELATIVE · 0 = MINIMUM · Δ {{delta}} (price up to a constant)",
+    "y_label": "Price (rel.)",
+    "footer": "Relative · 0 = minimum · Δ {{delta}} (price up to a constant)",
     "units_logit": "Pesos per month: the expected maximum of the bids y + f/λ (Martínez, eq. 4.27)."
   },
   "supply_builder": {

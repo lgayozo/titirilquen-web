@@ -81,7 +81,7 @@ export function CityShapePreview({
           transform="rotate(-90)"
           className="label"
         >
-          OFERTA
+          {t("land_use.shape_y_axis")}
         </text>
 
         {/* Barras de densidad de oferta por celda */}

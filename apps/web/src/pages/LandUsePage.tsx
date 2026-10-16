@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { CityBuilder } from "@/components/modules/CityBuilder";
 import { LandUseBuilder } from "@/components/modules/LandUseBuilder";
 import { PresetGallery } from "@/components/modules/PresetGallery";
+import { EstadoPill } from "@/components/ui/EstadoPill";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
@@ -247,10 +248,35 @@ export function LandUsePage() {
 
         <div className="hero">
           <div className="hero-head">
-            <h1 className="hero-title">{tS("land_use.title")}</h1>
-            <div className="hero-sub">
-              <span className="dot">●</span> {tS("land_use.subtitle")}
+            <div>
+              <h1 className="hero-title">{tS("land_use.title")}</h1>
+              <p className="hero-sub" style={{ margin: "6px 0 0" }}>
+                {tS("land_use.subtitle")}
+              </p>
             </div>
+            {/* Estado del solver de bid-rent: el resultado trae si convergió
+                y en cuántas iteraciones, y la página no lo decía. */}
+            {stage === "running" ? (
+              <EstadoPill estado="calculando">
+                {tS("hero.status_running")}
+              </EstadoPill>
+            ) : stage === "error" ? (
+              <EstadoPill estado="error">{tS("hero.status_error")}</EstadoPill>
+            ) : result ? (
+              <EstadoPill
+                estado={result.result.converged ? "ok" : "sin_converger"}
+              >
+                {tS(
+                  result.result.converged
+                    ? "hero.status_done"
+                    : "hero.status_not_converged",
+                )}
+                {" · "}
+                {tS("land_use.iteraciones", { n: result.result.iterations })}
+              </EstadoPill>
+            ) : (
+              <EstadoPill estado="listo">{tS("hero.status_ready")}</EstadoPill>
+            )}
           </div>
           <p
             className="font-display text-justify"
