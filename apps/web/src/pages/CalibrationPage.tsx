@@ -121,9 +121,11 @@ export function CalibrationPage() {
       <section className="main">
         <div className="hero">
           <div className="hero-head">
-            <h1 className="hero-title">{t("calibration_page.title")}</h1>
-            <div className="hero-sub">
-              <span className="dot">●</span> {t("calibration_page.subtitle")}
+            <div>
+              <h1 className="hero-title">{t("calibration_page.title")}</h1>
+              <p className="hero-sub" style={{ margin: "6px 0 0" }}>
+                {t("calibration_page.subtitle")}
+              </p>
             </div>
           </div>
           <p
@@ -153,12 +155,17 @@ export function CalibrationPage() {
                   <tr className="border-b border-[var(--rule)] text-etiqueta text-[var(--muted)]">
                     <th className="py-1 text-left font-normal" />
                     {STR.map((s, k) => (
-                      <th
-                        key={s}
-                        className="py-1 text-right font-normal"
-                        style={{ color: VAR[k] }}
-                      >
-                        {t(`strata.${s}`)}
+                      // El color del estrato va en el punto, no en el texto: el
+                      // beige del estrato bajo no alcanza contraste como letra.
+                      <th key={s} className="py-1 text-right font-normal">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span
+                            className="kpi-dot"
+                            style={{ background: VAR[k] }}
+                            aria-hidden
+                          />
+                          {t(`strata.${s}`)}
+                        </span>
                       </th>
                     ))}
                   </tr>

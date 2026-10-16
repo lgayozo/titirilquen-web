@@ -147,6 +147,7 @@ function NumberField({
         style={{
           background: "var(--panel)",
           border: "1px solid var(--rule)",
+          borderRadius: "var(--radius-sm)",
           color: "var(--ink)",
           fontFamily: "var(--font-fig)",
           fontSize: "var(--fs-etiqueta)",
