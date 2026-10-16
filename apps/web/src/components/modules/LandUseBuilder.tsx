@@ -95,7 +95,7 @@ export function LandUseBuilder({
         title={t("land_use.section_poblacion")}
         meta={`≈ ${Math.round(totalH).toLocaleString("es-CL")}`}
       >
-        <div className="mb-1 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+        <div className="mb-1 text-etiqueta text-muted">
           {t("land_use.proporciones")}
         </div>
         <LabeledSlider
@@ -120,7 +120,7 @@ export function LandUseBuilder({
           {labels[2]}: {pct(pi[2])} ({t("strata.auto_calculated")})
         </div>
 
-        <div className="mb-1 mt-3 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+        <div className="mb-1 mt-3 text-etiqueta text-muted">
           {t("land_use.densidad_media_label")}
         </div>
         <LabeledSlider

@@ -171,9 +171,7 @@ function Grupo({
 }) {
   return (
     <div className="mt-3">
-      <div className="mb-1.5 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
-        {title}
-      </div>
+      <div className="mb-1.5 text-etiqueta text-muted">{title}</div>
       <div className="flex flex-col gap-1.5">{children}</div>
       {hint && (
         <p className="mt-1.5 text-etiqueta leading-snug text-muted">{hint}</p>

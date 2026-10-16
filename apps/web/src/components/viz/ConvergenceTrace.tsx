@@ -36,11 +36,9 @@ const PANEL_STYLE: React.CSSProperties = {
 
 const PANEL_TITLE: React.CSSProperties = {
   margin: 0,
-  fontFamily: "var(--font-fig)",
+  fontFamily: "var(--font-body)",
   fontSize: 12,
   fontWeight: 500,
-  letterSpacing: "0.12em",
-  textTransform: "uppercase",
   color: "var(--muted)",
 };
 

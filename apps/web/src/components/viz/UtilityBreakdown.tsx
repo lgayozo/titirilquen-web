@@ -74,7 +74,7 @@ export function UtilityBreakdown({
   return (
     <div className={cn("w-full", className)}>
       <div
-        className="grid items-center gap-3 border-b pb-1.5 font-fig text-etiqueta uppercase tracking-[0.1em] text-muted"
+        className="grid items-center gap-3 border-b pb-1.5 text-etiqueta text-muted"
         style={{ gridTemplateColumns: GRID, borderColor: "var(--rule)" }}
       >
         <span>{t("utility_breakdown.mode")}</span>
@@ -110,7 +110,7 @@ export function UtilityBreakdown({
                 style={rowStyle}
               >
                 <span
-                  className="font-fig text-etiqueta font-semibold uppercase tracking-[0.04em]"
+                  className="text-etiqueta font-semibold"
                   style={{ color: COLOR_MODO[modo] }}
                 >
                   {t(`modes.${modo.toLowerCase()}`)}
@@ -138,7 +138,7 @@ export function UtilityBreakdown({
               style={rowStyle}
             >
               <span
-                className="font-fig text-etiqueta font-semibold uppercase tracking-[0.04em]"
+                className="text-etiqueta font-semibold"
                 style={{ color: COLOR_MODO[modo] }}
               >
                 {t(`modes.${modo.toLowerCase()}`)}
@@ -159,7 +159,7 @@ export function UtilityBreakdown({
       </div>
 
       <div
-        className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t pt-2 font-fig text-etiqueta uppercase tracking-[0.06em] text-muted"
+        className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t pt-2 text-etiqueta text-muted"
         style={{ borderColor: "var(--rule)" }}
       >
         <Swatch

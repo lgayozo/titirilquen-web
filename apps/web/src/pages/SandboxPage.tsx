@@ -794,7 +794,7 @@ export function SandboxPage() {
   const ribbon = (
     <div className="ribbon-wrap">
       <div className="mb-2 flex items-center justify-between">
-        <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+        <span className="text-etiqueta text-muted">
           {showCiudad
             ? t("sandbox.city_view_heading")
             : t("sandbox.city_heading")}
@@ -968,7 +968,7 @@ export function SandboxPage() {
           </label>
 
           <div className="mt-2">
-            <div className="mb-1 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+            <div className="mb-1 text-etiqueta text-muted">
               {t("equilibrium.assignment")}
             </div>
             <div className="seg" style={{ width: "100%" }}>
@@ -1003,7 +1003,7 @@ export function SandboxPage() {
           </div>
 
           <div className="mt-3">
-            <div className="mb-1 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+            <div className="mb-1 text-etiqueta text-muted">
               {t("equilibrium.modos")}
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -1419,7 +1419,7 @@ export function SandboxPage() {
                         {modeShareByStratum.map((s) => (
                           <div key={s.key}>
                             <div
-                              className="mb-1 flex items-center gap-1.5 font-fig text-etiqueta uppercase tracking-[0.08em]"
+                              className="mb-1 flex items-center gap-1.5 text-etiqueta"
                               style={{ color: "var(--muted)" }}
                             >
                               <span

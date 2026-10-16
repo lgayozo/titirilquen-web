@@ -3,66 +3,75 @@
 @tailwind utilities;
 
 /* =============================================================================
- * Titirilquen — sistema visual (oct-2026, tramo B1)
+ * Titirilquen — sistema visual (oct-2026, dirección artística «laboratorio»)
  *
- * Regla: el color pertenece a los datos. El chrome (fondos, bordes, botones,
- * enlaces, foco) va en grises de plano y tinta, sin tono propio; el tono queda
+ * Regla: el color pertenece a los datos. El chrome va en neutros fríos
+ * (fondo gris azulado, paneles blancos, bordes finos) y un solo azul marino
+ * para la acción y la navegación, distinto del azul del auto. El tono queda
  * para cuatro familias de variables —modo, estrato, saturación v/c y Δ— y
- * para dos estados (alerta, error). Ninguna familia presta su color a otra.
+ * para los estados (equilibrio, alerta, error), que van siempre con texto o
+ * ícono además del color. Ninguna familia presta su color a otra.
  * Dos temas, claro (`paper`) y oscuro; «sistema» elige entre ellos.
  * ==========================================================================*/
 
 :root {
-  /* Neutros: gris de plano levemente verdoso. */
-  --paper: #f6f7f5;
-  --paper-2: #eceeea;
-  --ink: #1b1f22;
-  --ink-2: #3d4449;
-  --muted: #646c72;
-  --rule: #d3d8d4;
-  /* El rol «énfasis» del chrome es la tinta: sin tono propio (B1). El nombre
-     queda por los ~150 usos; antes era terracota. */
-  --accent: var(--ink);
+  /* Superficies: fondo gris muy claro, paneles blancos, bordes finos. */
+  --paper: #f4f7fa;
+  --paper-2: #eaeff4;
+  --panel: #ffffff;
+  --ink: #1f3348;
+  --ink-2: #3b4f63;
+  --muted: #657589;
+  --rule: #dce4eb;
+  /* Acción y navegación: azul marino, lejos en luminosidad del azul del auto
+     para que un botón no se lea como dato. `--accent-soft` es el fondo del
+     ítem activo; `--on-accent`, el texto sobre el acento. */
+  --accent: #173c5e;
+  --accent-soft: #e6edf5;
+  --on-accent: #ffffff;
 
-  /* Modos — categórica segura para daltonismo (base Okabe-Ito, ajustada al
-     fondo). `--walk` es caminata. */
-  --auto: #d55e00;
-  --metro: #0072b2;
-  --bici: #00876a;
-  --walk: #b5608f;
-  --tele: #9aa0a4;
+  /* Modos (guía de dirección artística). La caminata es gris: el teletrabajo,
+     que también lo era, pasa a un gris violáceo para no confundirse. */
+  --auto: #2878d0;
+  --metro: #e69f00;
+  --bici: #279e68;
+  --walk: #a7b1bb;
+  --tele: #8f86ad;
 
   /* Dirección de un Δ. SEMÁNTICOS, no de modo: van en texto, siempre con el
-     signo o ▲▼, nunca como relleno de una figura —así no se confunden con la
-     bici ni con el auto aunque el tono se parezca—. */
-  --mejora: #276749;
-  --empeora: #b42318;
+     signo o ▲▼, nunca como relleno de una figura. */
+  --mejora: #177346;
+  --empeora: #a52222;
 
-  /* Estados de la interfaz: un aviso que pide atención y un error. Antes los
-     avisos tomaban prestado el color del estrato alto o del metro. */
-  --alerta: #8a5a00;
-  --error: #b42318;
+  /* Estados del cálculo: equilibrio, aviso y error, cada uno con su fondo
+     suave para las pastillas de estado. */
+  --ok: #177346;
+  --ok-bg: #e6f6ed;
+  --alerta: #815800;
+  --alerta-bg: #fff3d6;
+  --error: #a52222;
+  --error-bg: #fde9e9;
 
-  /* Estratos — ordinal en un solo tono tierra (alto→bajo), que no compite con
-     ningún modo. En los dos temas el alto es el de mayor contraste. */
-  --s1: #4a3426;
-  --s2: #8c6a4f;
-  --s3: #c9ad8f;
+  /* Estratos — ordinal en tonos tierra (alto→bajo). Se conserva el orden
+     oscuro→claro y la distancia de luminosidad entre vecinos: con los tres
+     tonos de la guía, alto y medio no se distinguían en áreas apiladas. */
+  --s1: #86664e;
+  --s2: #b8946c;
+  --s3: #e0c3a3;
 
-  /* Saturación v/c — convención de tráfico, verde a rojo, con cortes en 0,5,
-     0,85 y 1. No es segura para daltonismo por sí sola: la luminosidad no se
-     repite entre clases vecinas y lo sobre capacidad lleva además una marca en
-     tinta y el máximo escrito. */
-  --vc0: #7cbf5a;
-  --vc1: #e8c035;
-  --vc2: #e2742a;
-  --vc3: #b8322a;
+  /* Saturación v/c — verde a rojo, con cortes en 0,5, 0,85 y 1. El verde
+     bajo es más claro que el de la bici, que comparte la figura de la red.
+     Lo sobre capacidad lleva además una marca en tinta y el máximo escrito. */
+  --vc0: #a8c86a;
+  --vc1: #f2c14e;
+  --vc2: #e8753d;
+  --vc3: #c93636;
 
   /* Emisiones CO₂ — gris pizarra; no es un modo ni un estrato. */
-  --co2: #4d5358;
+  --co2: #4d5a68;
 
-  /* Tipografías (B2): Plex Sans en la interfaz, Plex Mono en etiquetas y
-     cifras, y Source Serif sólo en la prosa larga del tutorial. Los roles
+  /* Tipografías: Plex Sans en la interfaz, Plex Mono en cifras, parámetros e
+     iteraciones, y Source Serif sólo en la prosa larga del tutorial. Los roles
      `display`, `body` y `fig` quedan por sus usos. */
   --font-sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
   --font-serif: "Source Serif 4", "Source Serif Pro", Georgia, serif;
@@ -82,38 +91,49 @@
   --fs-ayuda: 13px;
   --fs-etiqueta: 12px;
 
-  /* Geometría */
-  --gap: 18px;
-  --pad: 22px;
-  --radius: 0px;
+  /* Geometría: radios discretos y sombra mínima. */
+  --gap: 16px;
+  --pad: 20px;
+  --radius: 12px;
+  --radius-sm: 7px;
+  --shadow: 0 1px 2px rgb(28 52 72 / 4%), 0 3px 12px rgb(28 52 72 / 3%);
 
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --paper: #121416;
-  --paper-2: #1d2124;
-  --ink: #e8eae7;
-  --ink-2: #b9bfc2;
-  --muted: #8a9196;
-  --rule: #30353a;
-  --auto: #f07a3a;
-  --metro: #4aa3e0;
-  --bici: #3cc69a;
-  --walk: #e59ac4;
-  --tele: #7d8489;
+  --paper: #0f1823;
+  --paper-2: #1a2635;
+  --panel: #152130;
+  --ink: #e3eaf2;
+  --ink-2: #b6c3d1;
+  --muted: #8b9bad;
+  --rule: #263546;
+  --accent: #b9cee6;
+  --accent-soft: #1f3249;
+  --on-accent: #0f1823;
+  --auto: #4d9be8;
+  --metro: #f0b13a;
+  --bici: #3dbb83;
+  --walk: #8d99a6;
+  --tele: #a49bc4;
   --mejora: #5cc28c;
   --empeora: #f07c70;
+  --ok: #5cc28c;
+  --ok-bg: #143425;
   --alerta: #e0b04a;
+  --alerta-bg: #3a2d0e;
   --error: #f07c70;
-  --s1: #ead9c6;
-  --s2: #b49678;
-  --s3: #7a6250;
-  --vc0: #3f8f4a;
+  --error-bg: #3d1a1a;
+  --s1: #ecd6bf;
+  --s2: #c19c76;
+  --s3: #8a6a52;
+  --vc0: #8db35a;
   --vc1: #e9c23a;
   --vc2: #f08a45;
   --vc3: #f0564a;
-  --co2: #99a0a6;
+  --co2: #99a6b4;
+  --shadow: 0 1px 2px rgb(0 0 0 / 25%);
   color-scheme: dark;
 }
 
@@ -176,10 +196,8 @@ a:hover {
   background: var(--ink);
   color: var(--paper);
   padding: 8px 16px;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   z-index: 100;
 }
 
@@ -203,175 +221,204 @@ a:hover {
  * Layout primitives
  * ==========================================================================*/
 
-/* Topbar */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
+/* Shell: menú lateral persistente (marca, páginas, tema e idioma) y, a su
+   derecha, la barra de la página y el contenido. Bajo 1400 px el menú se
+   pliega a una franja de íconos; las etiquetas quedan para lectores de
+   pantalla y en el `title`. */
+.shell {
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  height: 100%;
+}
+
+.appnav {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px 10px 14px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.appnav-brand {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 9px 20px;
-  background: var(--paper);
-  border-bottom: 1px solid var(--rule);
+  gap: 9px;
+  padding: 0 8px;
+  color: var(--ink);
 }
 
-.topbar .logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* Logo institucional a tamaño legible. */
-.topbar .logo img {
-  height: 34px;
-  width: auto;
-}
-
-.brand-divider {
-  width: 1px;
-  height: 30px;
-  background: var(--rule);
+.appnav-brand .appnav-icon {
+  width: 22px;
+  height: 22px;
 }
 
 .brand-block {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  min-width: 0;
 }
 
-.topbar .logo .brand {
+.brand {
   font-family: var(--font-display);
-  font-size: var(--fs-seccion);
+  font-size: var(--fs-figura);
   font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.05;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
   color: var(--ink);
 }
 
-.topbar .logo .brand-sub {
-  font-family: var(--font-fig);
+.brand-sub {
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  line-height: 1.3;
   color: var(--muted);
 }
 
-/* Agrupación de herramientas a la derecha, con etiqueta de contexto. */
-.topbar-tools {
+.appnav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.appnav-link {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-ayuda);
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 120ms,
+    color 120ms;
+}
+
+.appnav-link:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.appnav-link.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.appnav-icon {
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
-.tools-label {
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.nav-burger {
-  display: none;
+.appnav-foot {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid var(--rule);
-  background: var(--paper);
-  color: var(--ink);
-  padding: 6px 10px;
-  cursor: pointer;
+  gap: 8px;
+  padding: 0 8px;
 }
 
-/* Menú colapsado (≤1000px): empuja el contenido, sin overlay. */
-.nav-menu {
-  position: sticky;
-  top: 54px; /* = altura del topbar */
-  z-index: 49;
+.appnav-logo {
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  margin-top: 6px;
+}
+
+[data-theme="dark"] .appnav-logo {
+  /* El logo institucional es tinta sobre blanco: en oscuro va sobre una
+     placa clara para no perder el negro. */
+  background: #ffffff;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.shell-main {
   display: flex;
   flex-direction: column;
-  background: var(--paper);
-  border-bottom: 1px solid var(--rule);
-  padding: 4px 20px 12px;
+  min-width: 0;
+  min-height: 0;
 }
 
-.nav-menu a {
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  text-decoration: none;
-  padding: 10px 2px;
-  border-bottom: 1px solid var(--rule);
-}
-
-.nav-menu a.active {
-  color: var(--accent);
-}
-
-.nav-menu-tools {
+/* Barra de la página: nombre de la sección a la izquierda y las
+   herramientas del escenario a la derecha. */
+.appbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-top: 12px;
+  gap: 12px;
+  padding: 10px 20px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--rule);
 }
 
-.topbar .spacer {
+.appbar-title {
+  font-size: var(--fs-figura);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.appbar .spacer {
   flex: 1;
 }
 
-/* La navegación es interfaz, no una etiqueta de datos: Plex Sans y sin
-   versalitas (B2). En mono de 12 px, mayúsculas y espaciada no cabía en 1280. */
-.topbar .nav {
-  display: flex;
-  gap: 0;
-  font-family: var(--font-body);
-  font-size: var(--fs-ayuda);
-  flex-shrink: 0;
-}
-
-.topbar .nav a,
-.topbar .nav button {
-  background: transparent;
-  border: 0;
-  padding: 6px 10px;
+.tools-label {
+  font-size: var(--fs-etiqueta);
   color: var(--muted);
-  cursor: pointer;
-  font: inherit;
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -13px;
-  padding-bottom: 14px;
-  transition: color 150ms;
-  white-space: nowrap;
 }
 
-.topbar .nav a.active,
-.topbar .nav button.active {
-  color: var(--ink);
-  border-bottom-color: var(--accent);
-}
-
-.topbar .nav a:hover,
-.topbar .nav button:hover {
-  color: var(--ink);
+@media (max-width: 1399px) {
+  .shell {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+  .appnav {
+    padding: 14px 8px;
+    align-items: center;
+  }
+  .appnav-brand,
+  .appnav-foot {
+    padding: 0;
+  }
+  .appnav-brand .brand-block,
+  .appnav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .appnav-link {
+    justify-content: center;
+    padding: 9px;
+  }
+  .appnav-foot {
+    flex-direction: column;
+  }
+  .appnav-foot .seg {
+    flex-direction: column;
+  }
+  .appnav-logo {
+    display: none;
+  }
 }
 
 /* Segmented controls */
 .seg {
   display: inline-flex;
   border: 1px solid var(--rule);
-  font-family: var(--font-fig);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--panel);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.04em;
+  font-weight: 500;
 }
 
 .seg button {
@@ -385,7 +432,6 @@ a:hover {
   transition:
     background 120ms,
     color 120ms;
-  text-transform: uppercase;
 }
 
 .seg button:last-child {
@@ -393,8 +439,8 @@ a:hover {
 }
 
 .seg button.active {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .seg button:hover:not(.active) {
@@ -407,12 +453,12 @@ a:hover {
   background: transparent;
   border: 1px solid var(--rule);
   color: var(--muted);
-  padding: 4px 10px;
+  padding: 4px 11px;
+  border-radius: 999px;
   cursor: pointer;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 500;
   transition:
     background 120ms,
     color 120ms,
@@ -420,9 +466,9 @@ a:hover {
 }
 
 .chip-toggle.active {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
 }
 
 .chip-toggle:hover:not(.active):not(:disabled) {
@@ -449,7 +495,7 @@ a:hover {
   border-right: 1px solid var(--rule);
   padding: var(--pad);
   font-size: var(--fs-ayuda);
-  background: var(--paper);
+  background: var(--panel);
   height: 100%;
   overflow-y: auto;
   min-height: 0;
@@ -468,12 +514,10 @@ a:hover {
 }
 
 .sidebar h3 {
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: var(--fs-ayuda);
+  font-weight: 600;
+  color: var(--ink-2);
   margin: 22px 0 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--rule);
@@ -505,12 +549,10 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: var(--fs-ayuda);
+  font-weight: 600;
+  color: var(--ink-2);
   transition: color 120ms;
 }
 
@@ -543,9 +585,9 @@ a:hover {
 }
 
 .sidebar-section-meta {
+  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.06em;
-  text-transform: none;
+  font-weight: 400;
   color: var(--muted);
   opacity: 0.75;
 }
@@ -585,16 +627,15 @@ a:hover {
 }
 
 .preset-row label {
-  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 500;
   color: var(--muted);
 }
 
 .preset-row select {
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
   padding: 8px 10px;
   color: var(--ink);
   font: inherit;
@@ -633,7 +674,8 @@ a:hover {
 .slider-row input[type="range"] {
   width: 100%;
   appearance: none;
-  height: 2px;
+  height: 4px;
+  border-radius: 2px;
   background: var(--rule);
   outline: none;
   cursor: pointer;
@@ -641,35 +683,38 @@ a:hover {
 
 .slider-row input[type="range"]::-webkit-slider-thumb {
   appearance: none;
-  width: 12px;
-  height: 12px;
-  background: var(--ink);
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px var(--accent);
   cursor: pointer;
-  border-radius: 0;
+  border-radius: 50%;
 }
 
 .slider-row input[type="range"]::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  background: var(--ink);
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px var(--accent);
   cursor: pointer;
-  border: 0;
-  border-radius: 0;
+  border-radius: 50%;
 }
 
 /* Run button — sticky al fondo del sidebar scrollable para que siempre sea
    accesible sin tener que scrollear hasta el final. */
 .run-btn {
   width: 100%;
-  padding: 12px;
-  background: var(--ink);
-  color: var(--paper);
+  padding: 11px 12px;
+  background: var(--accent);
+  color: var(--on-accent);
   border: 0;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: var(--fs-ayuda);
+  font-weight: 600;
   margin-top: 12px;
   transition:
     background 150ms,
@@ -681,7 +726,7 @@ a:hover {
 }
 
 .run-btn:hover:not(:disabled) {
-  background: var(--accent);
+  background: color-mix(in srgb, var(--accent) 88%, var(--ink));
 }
 
 .run-btn:disabled {
@@ -696,11 +741,11 @@ a:hover {
   background: transparent;
   color: var(--ink);
   border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: var(--fs-ayuda);
+  font-weight: 500;
   margin-top: 12px;
   transition:
     background 150ms,
@@ -715,14 +760,14 @@ a:hover {
 
 /* Generic button */
 .btn {
-  background: var(--paper);
-  border: 1px solid var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
   color: var(--ink);
-  padding: 8px 14px;
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  padding: 7px 13px;
+  font-family: var(--font-body);
+  font-size: var(--fs-ayuda);
+  font-weight: 500;
   cursor: pointer;
   transition:
     background 150ms,
@@ -730,19 +775,19 @@ a:hover {
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--paper-2);
+  border-color: var(--muted);
 }
 
 .btn.primary {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: var(--accent);
-  color: var(--paper);
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 88%, var(--ink));
+  color: var(--on-accent);
 }
 
 .btn.ghost {
@@ -770,8 +815,10 @@ a:hover {
 /* Hero */
 .hero {
   border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   padding: var(--pad);
-  background: var(--paper);
+  background: var(--panel);
   margin-bottom: var(--gap);
 }
 
@@ -794,11 +841,8 @@ a:hover {
 }
 
 .hero-sub {
-  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
   color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -826,10 +870,7 @@ a:hover {
   display: flex;
   gap: 18px;
   margin-top: 10px;
-  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--muted);
   flex-wrap: wrap;
 }
@@ -845,18 +886,16 @@ a:hover {
   width: 12px;
   height: 12px;
   background: var(--c, var(--ink));
+  border-radius: 3px;
   display: inline-block;
 }
 
 /* Caption encima del KPI strip — indica que los datos son de la iteración
    final del equilibrio (no de una iteración intermedia). */
 .kpi-caption {
-  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
+  font-weight: 600;
+  color: var(--muted);
   margin-bottom: 6px;
 }
 
@@ -866,33 +905,27 @@ a:hover {
    (sin bloque gris) al envolver. */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
-  gap: 0;
-  border: 1px solid var(--rule);
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 10px;
   margin-bottom: var(--gap);
-  background: var(--paper);
 }
 
 .kpi {
-  padding: 14px 14px;
-  background: var(--paper);
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
   min-width: 0;
-  box-shadow:
-    1px 0 0 var(--rule),
-    0 1px 0 var(--rule);
 }
 
 .kpi .label {
-  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 6px;
 }
 
 .kpi .value {
-  font-family: var(--font-display);
+  font-family: var(--font-fig);
   font-size: var(--fs-dato);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -902,11 +935,10 @@ a:hover {
 }
 
 .kpi .unit {
-  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
+  font-weight: 400;
   color: var(--muted);
   margin-left: 4px;
-  letter-spacing: 0.04em;
 }
 
 .kpi .delta,
@@ -928,7 +960,9 @@ a:hover {
 
 .panel {
   border: 1px solid var(--rule);
-  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--panel);
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -969,11 +1003,8 @@ a:hover {
 }
 
 .panel-meta {
-  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
   color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -1069,11 +1100,9 @@ svg .grid-line {
 }
 
 svg .label {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   fill: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 svg .series-label {
@@ -1143,16 +1172,53 @@ svg .fig-title {
    veredicto. Sin equilibrio va en color de alerta, antes de los números. */
 .estado-corrida {
   margin-bottom: var(--gap);
-  padding: 6px 10px;
+  padding: 7px 12px;
   border: 1px solid var(--rule);
-  font-family: var(--font-fig);
-  font-size: var(--fs-etiqueta);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  font-size: var(--fs-ayuda);
   color: var(--ink-2);
 }
 
 .estado-corrida--alerta {
-  border-color: var(--alerta);
+  border-color: color-mix(in srgb, var(--alerta) 40%, var(--rule));
+  background: var(--alerta-bg);
   color: var(--alerta);
+}
+
+/* Pastilla de estado del cálculo: «En equilibrio», «Calculando», «Sin
+   converger», «Error». Siempre con ícono y texto, nunca sólo el color. */
+.estado-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-etiqueta);
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--paper-2);
+  color: var(--ink-2);
+}
+
+.estado-pill svg {
+  width: 13px;
+  height: 13px;
+}
+
+.estado-pill--ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.estado-pill--alerta {
+  background: var(--alerta-bg);
+  color: var(--alerta);
+}
+
+.estado-pill--error {
+  background: var(--error-bg);
+  color: var(--error);
 }
 
 /* Hint row */
@@ -1240,11 +1306,9 @@ table.tabla-datos caption .nombre {
 }
 
 table.tabla-datos th {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
   text-align: right;
   padding: 6px 10px;
@@ -1329,21 +1393,17 @@ table.cmp td:first-child {
 }
 
 table.cmp th {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
 /* Footer */
 .foot {
-  padding: 16px 28px;
-  font-family: var(--font-fig);
+  padding: 10px 20px;
   font-size: var(--fs-etiqueta);
   color: var(--muted);
-  letter-spacing: 0.08em;
   border-top: 1px solid var(--rule);
   text-align: center;
   background: var(--paper);
@@ -1351,12 +1411,11 @@ table.cmp th {
 
 /* Badges */
 .badge {
-  font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 2px 6px;
+  font-weight: 600;
+  padding: 2px 8px;
   border: 1px solid currentColor;
+  border-radius: 999px;
   color: var(--muted);
 }
 
@@ -1376,11 +1435,9 @@ table.cmp th {
 /* Corner mark */
 .corner-mark {
   position: absolute;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   color: var(--muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 /* =============================================================================
@@ -1424,10 +1481,8 @@ table.cmp th {
   align-items: baseline;
   gap: 10px;
   min-width: 0;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .run-status-dot {
@@ -1458,8 +1513,6 @@ table.cmp th {
 
 .run-status-residual-label {
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 2px;
 }
@@ -1515,10 +1568,8 @@ table.cmp th {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 6px;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
@@ -1662,8 +1713,6 @@ table.cmp th {
 
 .sim-skeleton-cbd-tag {
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
   color: var(--accent);
   padding: 2px 6px;
   background: var(--paper);
@@ -1673,10 +1722,8 @@ table.cmp th {
 .sim-skeleton-hint {
   margin: 10px 0 0;
   text-align: center;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
   line-height: 1.5;
 }
@@ -1717,11 +1764,9 @@ table.cmp th {
 }
 
 .tutorial-toc h2 {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--muted);
   margin: 0 0 14px;
 }
@@ -1787,10 +1832,10 @@ table.cmp th {
 }
 
 .tutorial-eyebrow {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 14px;
@@ -1817,11 +1862,9 @@ table.cmp th {
 }
 
 .tutorial-article h3 {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--muted);
   margin: 26px 0 10px;
 }
@@ -1900,11 +1943,9 @@ table.cmp th {
 }
 
 .tutorial-article th {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--muted);
   text-align: left;
   padding: 8px 10px;
@@ -1955,11 +1996,9 @@ table.cmp th {
 }
 
 .tut-callout-label {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
   color: var(--muted);
   margin-top: 4px;
   white-space: nowrap;
@@ -1990,10 +2029,8 @@ table.cmp th {
   background: var(--ink);
   color: var(--paper);
   padding: 11px 18px;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   transition: background 150ms;
 }
 
@@ -2012,10 +2049,8 @@ table.cmp th {
   border: 1px solid var(--rule);
   background: var(--paper-2);
   color: var(--ink-2);
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   cursor: pointer;
   transition:
     background 150ms,
@@ -2044,10 +2079,8 @@ table.cmp th {
   margin-top: 48px;
   padding-top: 20px;
   border-top: 1px solid var(--rule);
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .tut-pager a {
@@ -2108,10 +2141,8 @@ table.cmp th {
   border: 1px dashed var(--rule);
   padding: 60px 20px;
   text-align: center;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
@@ -2211,11 +2242,9 @@ table.cmp th {
 }
 
 .nt-head {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   padding-bottom: 6px;
   margin-bottom: 6px;
   border-bottom: 1px solid var(--rule);
@@ -2261,8 +2290,6 @@ table.cmp th {
 }
 
 .nl-label {
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .nl-item {
@@ -2365,11 +2392,9 @@ table.cmp th {
 }
 
 .fc-edge-label {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   fill: var(--muted);
 }
 
@@ -2427,8 +2452,6 @@ table.cmp th {
 }
 
 .fc-tooltip-ref-label {
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .fc-tooltip-ref code {
@@ -2463,10 +2486,8 @@ table.cmp th {
   border: 1px solid var(--ink);
   color: var(--ink);
   padding: 6px 10px;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   cursor: pointer;
   transition:
     background 140ms,
@@ -2572,10 +2593,8 @@ table.cmp th {
 }
 
 .coupled-source-label {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 8px;
 }
@@ -2660,11 +2679,9 @@ table.cmp th {
 .coupled-preset-tags {
   display: flex;
   gap: 6px;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.06em;
   color: var(--muted);
-  text-transform: uppercase;
   margin-top: auto;
   padding-top: 4px;
 }
@@ -2749,10 +2766,8 @@ table.cmp th {
   border: 1px dashed var(--rule);
   padding: 48px 24px;
   text-align: center;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
   background: var(--paper-2);
 }
@@ -2791,11 +2806,9 @@ table.cmp th {
 .coupled-interp-header {
   padding: 10px 14px 8px;
   border-bottom: 1px solid var(--rule);
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--accent);
 }
 
@@ -2861,10 +2874,10 @@ table.cmp th {
 }
 
 .about-eyebrow {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 10px;
@@ -2896,11 +2909,9 @@ table.cmp th {
 }
 
 .about-section-head {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--accent);
   margin: 0 0 16px;
   padding-bottom: 8px;
@@ -2954,11 +2965,9 @@ table.cmp th {
 }
 
 .author-role {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
   margin: 0;
 }
@@ -2989,11 +2998,9 @@ table.cmp th {
 }
 
 .about-link-label {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 6px;
 }
@@ -3019,10 +3026,8 @@ table.cmp th {
 
 .about-tag {
   display: inline-block;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   padding: 3px 8px;
   border: 1px solid var(--rule);
   color: var(--muted);
@@ -3049,10 +3054,8 @@ table.cmp th {
   border: 1px solid var(--accent);
   background: transparent;
   color: var(--accent);
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   padding: 4px 10px;
   cursor: pointer;
 }
@@ -3060,40 +3063,6 @@ table.cmp th {
 .stale-banner button:hover {
   background: var(--accent);
   color: var(--paper);
-}
-
-/* Bajo 1600 px el lema y el rótulo «Escenario» no caben junto a la
-   navegación (B2): se van, y los botones conservan su title y su aria-label. */
-@media (max-width: 1599px) {
-  .topbar .logo .brand-sub,
-  .tools-label {
-    display: none;
-  }
-}
-
-/* Topbar colapsado: al final del archivo para ganar la cascada sobre las
-   reglas base de .nav/.topbar-tools (misma especificidad). 1260 y no 1000
-   desde B2: la barra completa mide ~1240 px con la escala nueva. */
-@media (max-width: 1260px) {
-  .topbar .nav,
-  .topbar .topbar-tools {
-    display: none;
-  }
-  .nav-burger {
-    display: inline-flex;
-  }
-}
-
-@media (max-width: 520px) {
-  .topbar .logo img {
-    height: 26px;
-  }
-  .topbar .logo .brand {
-    font-size: var(--fs-figura);
-  }
-  .topbar .logo .brand-sub {
-    display: none;
-  }
 }
 
 /* Métricas del sistema (Ciudad en equilibrio): 8 stats en 4×2, balanceado. */
@@ -3124,18 +3093,14 @@ table.cmp th {
 }
 
 .espera-unidad {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
 .espera-titulo {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
   margin-left: 10px;
 }
@@ -3168,10 +3133,8 @@ table.cmp th {
 }
 
 .espera-parte-label {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 

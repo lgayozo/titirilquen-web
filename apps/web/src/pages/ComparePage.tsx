@@ -563,7 +563,7 @@ export function ComparePage() {
 
         {/* Lente de comparación: qué solver corre sobre los mismos escenarios. */}
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <span className="font-fig text-etiqueta uppercase tracking-[0.1em] text-muted">
+          <span className="text-etiqueta text-muted">
             {t("compare.kind_label")}
           </span>
           <div className="seg">
@@ -614,10 +614,8 @@ export function ComparePage() {
               style={{
                 border: "1px dashed var(--rule)",
                 background: "var(--paper)",
-                fontFamily: "var(--font-fig)",
+                fontFamily: "var(--font-body)",
                 fontSize: "var(--fs-etiqueta)",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
                 color: "var(--muted)",
                 cursor: "pointer",
               }}
@@ -640,7 +638,7 @@ export function ComparePage() {
         </button>
         {runningCount > 0 && (
           <span
-            className="flex items-center gap-2 font-fig text-etiqueta uppercase tracking-[0.08em] text-muted"
+            className="flex items-center gap-2 text-etiqueta text-muted"
             role="status"
           >
             <span className="pulse-dot" aria-hidden />
@@ -648,7 +646,7 @@ export function ComparePage() {
           </span>
         )}
         {doneCount > 0 && (
-          <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+          <span className="text-etiqueta text-muted">
             {t("compare.ready_count", {
               done: doneCount,
               total: scenarios.length,

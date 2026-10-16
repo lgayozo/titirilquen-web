@@ -263,7 +263,7 @@ function Section({
       <tr>
         <td
           colSpan={99}
-          className="bg-[var(--paper-2)] px-3 py-1 text-etiqueta font-semibold uppercase tracking-wide text-[var(--muted)]"
+          className="bg-[var(--paper-2)] px-3 py-1 text-etiqueta font-semibold text-[var(--muted)]"
         >
           {label}
         </td>

@@ -150,7 +150,7 @@ export function CalibrationPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-cuerpo">
                 <thead>
-                  <tr className="border-b border-[var(--rule)] text-etiqueta uppercase tracking-wide text-[var(--muted)]">
+                  <tr className="border-b border-[var(--rule)] text-etiqueta text-[var(--muted)]">
                     <th className="py-1 text-left font-normal" />
                     {STR.map((s, k) => (
                       <th
@@ -196,7 +196,7 @@ export function CalibrationPage() {
             <dl className="flex flex-col gap-2">
               {perillas.map((p) => (
                 <div key={p}>
-                  <dt className="font-fig text-etiqueta uppercase tracking-[0.06em] text-[var(--ink)]">
+                  <dt className="text-etiqueta text-[var(--ink)]">
                     {t(`calibration_page.knob.${p}`)}
                   </dt>
                   <dd className="text-etiqueta leading-snug text-[var(--ink-2)]">

@@ -494,8 +494,6 @@ function Stat({
       <div
         style={{
           ...fig(),
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
         }}
       >
         {label}

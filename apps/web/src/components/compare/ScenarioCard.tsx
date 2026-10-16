@@ -178,7 +178,7 @@ export function ScenarioCard({
             aria-pressed={isBase}
             title={tS("compare.scenario_card.make_base")}
             className={cn(
-              "rounded border px-1.5 py-0.5 text-etiqueta uppercase tracking-wide",
+              "rounded border px-1.5 py-0.5 text-etiqueta",
               isBase
                 ? "border-[var(--accent)] text-[var(--accent)]"
                 : "border-[var(--rule)] text-[var(--muted)] hover:bg-[var(--paper-2)]",

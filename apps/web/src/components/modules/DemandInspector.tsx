@@ -79,7 +79,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
         }}
       >
         <label className="flex flex-col gap-1">
-          <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+          <span className="text-etiqueta text-muted">
             {t("demand_inspector.stratum")}
           </span>
           <select
@@ -102,7 +102,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
 
         <label className="slider-row m-0 flex flex-col gap-1">
           <div className="srow-top">
-            <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+            <span className="text-etiqueta text-muted">
               {t("demand_inspector.origin_km")}
             </span>
             <span className="srow-val tabular-nums" aria-hidden>
@@ -124,7 +124,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
           {/* Escala: el slider recorre la ciudad de oeste a este; el CBD (el
               destino) está al CENTRO, no al inicio — por eso la distancia baja
               y vuelve a subir. */}
-          <div className="flex justify-between font-fig text-etiqueta uppercase tracking-[0.06em] text-muted">
+          <div className="flex justify-between text-etiqueta text-muted">
             <span>0 km</span>
             <span style={{ color: "var(--accent)" }}>
               {t("demand_inspector.cbd_center", {
@@ -146,7 +146,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
             className="h-3.5 w-3.5"
             style={{ accentColor: "var(--ink)" }}
           />
-          <span className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+          <span className="text-etiqueta text-muted">
             {t("demand_inspector.has_car")}
           </span>
         </label>
@@ -154,7 +154,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
 
       <UtilityBreakdown utilities={utilities} />
 
-      <p className="font-fig text-etiqueta uppercase tracking-[0.06em] text-muted">
+      <p className="text-etiqueta text-muted">
         {lastIter
           ? t("demand_inspector.hint_with_sim")
           : t("demand_inspector.hint_no_sim")}

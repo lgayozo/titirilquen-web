@@ -123,8 +123,6 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           style={{
             ...fig("var(--accent)"),
             fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
           }}
         >
           {t("eqt.system_header")}
@@ -200,8 +198,6 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           style={{
             ...fig("var(--accent)"),
             fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
           }}
         >
           {t("eqt.modal")}
@@ -225,8 +221,6 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           style={{
             ...fig("var(--accent)"),
             fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
           }}
         >
           {t("eqt.per_stratum_header")}
@@ -254,7 +248,6 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
                   ...fig(),
                   textAlign: "left",
                   padding: "8px 14px",
-                  textTransform: "uppercase",
                 }}
               >
                 {t("eqt.metric_col")}
@@ -311,8 +304,6 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
                         style={{
                           ...fig("var(--accent)"),
                           marginLeft: 6,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.08em",
                         }}
                       >
                         {t("eqt.input_badge")}
@@ -429,8 +420,6 @@ function Stat({
       <div
         style={{
           ...fig(),
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
         }}
       >
         {label}

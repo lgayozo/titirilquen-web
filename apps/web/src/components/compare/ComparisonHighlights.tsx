@@ -39,7 +39,7 @@ export function ComparisonHighlights({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="font-fig text-etiqueta uppercase tracking-[0.08em] text-muted">
+      <div className="text-etiqueta text-muted">
         {t("compare.highlights_vs", { base: base.name })}
       </div>
       {others.map((s) => {

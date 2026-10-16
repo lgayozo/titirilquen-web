@@ -377,9 +377,7 @@ function Tabla({
   return (
     <div className="mb-1">
       {titulo && (
-        <div className="mt-1 font-fig text-etiqueta uppercase tracking-[0.1em] text-muted opacity-70">
-          {titulo}
-        </div>
+        <div className="mt-1 text-etiqueta text-muted opacity-70">{titulo}</div>
       )}
       <dl className="grid grid-cols-[1fr_auto] gap-x-2 text-etiqueta">
         {filas.map((f) => {
