@@ -5,7 +5,7 @@ title: Assignment methods
 tagline: Logit (probabilities or sampling) and all-or-nothing
 ---
 
-# 5. Assignment methods
+# Assignment methods
 
 The equilibrium loop of the previous chapter needs, at every iteration, to split each group of travellers across the available modes. The simulator offers **three ways of doing it**, and the choice is not a numerical detail: it changes the assumption about how people decide, and with it the results.
 
@@ -112,3 +112,5 @@ Put differently: **the phenomenon this chapter teaches and the lack of uniquenes
 - **All-or-nothing** — to isolate equilibrium mechanisms. Removing taste dispersion exposes phenomena that the logit damps out. It is sharper, not more realistic.
 
 Two practical notes. First, neither method always converges faster. The deterministic one needs 55 and 52 iterations with 1 and 2 lanes, 16 with 3, and 3 and 4 with 4 and 6; the logit, 115 with 1 lane and 19 to 29 with more. Choosing the deterministic method makes the interface raise the cap to at least 100, in case you had lowered it. Check the convergence indicator before reading a deterministic result. Second, the welfare measure changes with the method: under the logit, surplus is measured with the **logsum** (`ln Σ e^{V_m}`, which is `E[max]` when there is a Gumbel random term), and under the deterministic method with **mean maximum utility** (`max_m V_m`, since without that term the agent simply takes the best mode). The results table switches measure on its own and labels it. Do not compare levels across methods: the logsum always sits above, and that gap is the value the logit assigns to variety.
+
+<NextStep to="land-use">Land-use module</NextStep>

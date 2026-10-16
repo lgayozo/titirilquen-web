@@ -5,7 +5,7 @@ title: Métodos de asignación
 tagline: Logit (probabilidades o sorteo) y todo o nada
 ---
 
-# 5. Métodos de asignación
+# Métodos de asignación
 
 El equilibrio del capítulo anterior necesita, en cada iteración, repartir a cada grupo de viajeros entre los modos disponibles. El simulador ofrece **tres formas de hacerlo**, y la elección no es un detalle numérico: cambia el supuesto sobre cómo deciden las personas, y con él los resultados.
 
@@ -112,3 +112,5 @@ Dicho de otro modo: **el fenómeno que el capítulo enseña y la falta de unicid
 - **Todo o nada** — para aislar mecanismos de equilibrio. Al eliminar la dispersión de gustos deja ver fenómenos que el logit amortigua. Es más nítido, no más realista.
 
 Dos cosas prácticas. Primera: ninguno de los dos métodos converge siempre más rápido. El determinístico pide 55 y 52 iteraciones con 1 y 2 pistas, 16 con 3, y 3 y 4 con 4 y 6; el logit, 115 con 1 pista y 19 a 29 con más. Al elegir el determinístico la interfaz lleva el tope a 100 como mínimo, por si lo habías bajado. Mira el indicador de convergencia antes de leer un resultado determinístico. Segunda: la medida de bienestar cambia con el método: bajo logit el excedente se mide con el **logsum** (`ln Σ e^{V_m}`, que es `E[máx]` cuando hay un término aleatorio Gumbel), y bajo determinístico con la **utilidad máxima media** (`máx_m V_m`, porque sin ese término el agente simplemente toma el mejor modo). La tabla de resultados cambia sola de medida y la rotula. No compares el nivel entre métodos: el logsum siempre queda por encima, y esa brecha es el valor que el logit le atribuye a la variedad.
+
+<NextStep to="land-use">Módulo Uso de suelo</NextStep>

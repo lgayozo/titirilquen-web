@@ -1836,9 +1836,8 @@ table.cmp th {
 
 .tutorial-toc .toc-tag {
   display: block;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.04em;
   color: var(--muted);
   margin-top: 3px;
   padding-left: 23px;
@@ -1931,6 +1930,7 @@ table.cmp th {
 .tutorial-article code {
   font-family: var(--font-fig);
   background: var(--paper-2);
+  border-radius: 4px;
   padding: 1px 5px;
   font-size: 0.88em;
   color: var(--ink);
@@ -1939,6 +1939,7 @@ table.cmp th {
 .tutorial-article pre {
   background: var(--ink);
   color: var(--paper);
+  border-radius: var(--radius-sm);
   padding: 16px 18px;
   font-family: var(--font-fig);
   font-size: var(--fs-etiqueta);
@@ -1997,6 +1998,7 @@ table.cmp th {
   gap: 14px;
   align-items: start;
   border-left: 3px solid var(--rule);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: var(--paper-2);
   padding: 14px 16px;
   margin: 20px 0;
@@ -2042,20 +2044,25 @@ table.cmp th {
   margin-top: 44px;
 }
 
+/* Mismo botón primario de la interfaz (.btn.primary). Sin el subrayado
+   punteado que hereda de `.tutorial-article a`. */
 .tut-next a {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--radius-sm);
   padding: 11px 18px;
   font-family: var(--font-body);
-  font-size: var(--fs-etiqueta);
+  font-size: var(--fs-ayuda);
+  font-weight: 500;
+  text-decoration: none;
   transition: background 150ms;
 }
 
 .tut-next a:hover {
-  background: var(--accent);
+  background: color-mix(in srgb, var(--accent) 88%, var(--ink));
   text-decoration: none;
 }
 
