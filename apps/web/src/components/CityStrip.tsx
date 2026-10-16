@@ -447,7 +447,7 @@ export function CityStrip({
             left: Math.min(Math.max(xOfCell(hover), 96), Math.max(W - 96, 96)),
             top: yTop + 2,
             transform: "translateX(-50%)",
-            background: "var(--paper)",
+            background: "var(--panel)",
             border: "1px solid var(--rule)",
             padding: "6px 8px",
             fontFamily: "var(--font-fig)",

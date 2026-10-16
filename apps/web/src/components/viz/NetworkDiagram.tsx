@@ -249,7 +249,7 @@ export function NetworkDiagram({
               y1={y}
               x2={MARGIN.left + plotW}
               y2={y}
-              stroke="var(--paper)"
+              stroke="var(--panel)"
               strokeWidth={0.8}
               opacity={0.5}
               pointerEvents="none"
@@ -362,7 +362,7 @@ export function NetworkDiagram({
               cx={x}
               cy={yMetro + bandH / 2}
               r={3}
-              fill="var(--paper)"
+              fill="var(--panel)"
               stroke="var(--ink)"
               strokeWidth={1.2}
               pointerEvents="none"
@@ -567,14 +567,18 @@ function BandFrame({
         stroke="var(--rule)"
         strokeWidth={0.8}
       />
+      {/* El color del modo marca la banda; el rótulo va en tinta porque el
+          naranja del metro y el gris de la caminata no alcanzan contraste
+          como texto. */}
+      <rect x={x - 4} y={y} width={3} height={h} fill={labelColor} />
       <text
         x={x - 8}
         y={y + h / 2 + 3}
         textAnchor="end"
         className="network-band-label"
-        fill={labelColor}
+        fill="var(--ink-2)"
       >
-        {label.toUpperCase()}
+        {label}
       </text>
     </g>
   );

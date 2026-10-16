@@ -150,7 +150,7 @@ export function ScenarioCard({
 
   return (
     <div
-      className="relative overflow-hidden rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-3"
+      className="relative overflow-hidden rounded-lg border border-[var(--rule)] bg-[var(--panel)] p-3"
       aria-busy={scenario.status === "running"}
     >
       {/* Indicador sutil de procesamiento: barra indeterminada en el borde
@@ -340,7 +340,7 @@ function Combo({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-[var(--rule)] bg-[var(--paper)] px-1 py-0.5 text-etiqueta text-[var(--ink-2)]"
+        className="rounded border border-[var(--rule)] bg-[var(--panel)] px-1 py-0.5 text-etiqueta text-[var(--ink-2)]"
       >
         {options.map((o) => (
           <option key={o} value={o}>

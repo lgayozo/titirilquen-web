@@ -86,7 +86,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
             value={estrato}
             onChange={(e) => setEstrato(Number(e.target.value) as StratumId)}
             style={{
-              background: "var(--paper)",
+              background: "var(--panel)",
               border: "1px solid var(--rule)",
               padding: "6px 8px",
               color: "var(--ink)",

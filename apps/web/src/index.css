@@ -29,6 +29,10 @@
   --accent: #173c5e;
   --accent-soft: #e6edf5;
   --on-accent: #ffffff;
+  /* Texto sobre un relleno de dato (porcentaje dentro de una barra de modo):
+     oscuro en los dos temas, porque los rellenos de modo son de tono medio o
+     claro. */
+  --on-dato: #1f3348;
 
   /* Modos (guía de dirección artística). La caminata es gris: el teletrabajo,
      que también lo era, pasa a un gris violáceo para no confundirse. */
@@ -112,6 +116,7 @@
   --accent: #b9cee6;
   --accent-soft: #1f3249;
   --on-accent: #0f1823;
+  --on-dato: #0f1823;
   --auto: #4d9be8;
   --metro: #f0b13a;
   --bici: #3dbb83;
@@ -919,9 +924,19 @@ a:hover {
 }
 
 .kpi .label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-etiqueta);
   color: var(--muted);
   margin-bottom: 6px;
+}
+
+.kpi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .kpi .value {
@@ -1106,7 +1121,7 @@ svg .label {
 }
 
 svg .series-label {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   fill: var(--ink);
 }
@@ -1143,7 +1158,7 @@ svg .fig-title {
   display: inline-block;
   cursor: pointer;
   list-style: none;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   color: var(--muted);
   text-decoration: underline dotted;
@@ -1178,6 +1193,11 @@ svg .fig-title {
   background: var(--panel);
   font-size: var(--fs-ayuda);
   color: var(--ink-2);
+}
+
+/* Dentro del encabezado de la página, la barra cierra la tarjeta. */
+.hero > .estado-corrida:last-child {
+  margin-bottom: 0;
 }
 
 .estado-corrida--alerta {
@@ -1232,7 +1252,7 @@ svg .fig-title {
 .hint {
   border: 1px solid var(--rule);
   padding: 12px 14px;
-  background: var(--paper);
+  background: var(--panel);
   font-size: var(--fs-etiqueta);
   color: var(--ink-2);
   line-height: 1.5;
@@ -1446,7 +1466,7 @@ table.cmp th {
 
 .run-status {
   border: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--panel);
   padding: 14px 16px;
   transition:
     box-shadow 300ms ease-out,
@@ -1619,7 +1639,7 @@ table.cmp th {
   flex-wrap: wrap;
   gap: 10px 14px;
   margin-top: 8px;
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
   color: var(--muted);
 }
@@ -1660,7 +1680,7 @@ table.cmp th {
 .sim-skeleton-frame {
   position: relative;
   height: 90px;
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
   overflow: hidden;
 }
@@ -1715,7 +1735,7 @@ table.cmp th {
   font-size: var(--fs-etiqueta);
   color: var(--accent);
   padding: 2px 6px;
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
 }
 
@@ -2181,10 +2201,9 @@ table.cmp th {
 }
 
 .network-band-label {
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  font-weight: 500;
-  letter-spacing: 0.12em;
+  font-weight: 600;
 }
 
 /* City preview (plano pre-equilibrio) */
@@ -2234,7 +2253,7 @@ table.cmp th {
   right: 10px;
   min-width: 180px;
   padding: 10px 12px;
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
   box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--ink) 40%, transparent);
   pointer-events: none;
@@ -2283,13 +2302,9 @@ table.cmp th {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--rule);
-  font-family: var(--font-fig);
+  font-family: var(--font-body);
   font-size: var(--fs-etiqueta);
-  letter-spacing: 0.04em;
   color: var(--muted);
-}
-
-.nl-label {
 }
 
 .nl-item {
@@ -2318,7 +2333,7 @@ table.cmp th {
 .flowchart {
   position: relative;
   border: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--panel);
   padding: 14px 16px 10px;
   max-width: 560px;
   margin: 0 auto;
@@ -2339,7 +2354,7 @@ table.cmp th {
 }
 
 .fc-node-shape {
-  fill: var(--paper);
+  fill: var(--panel);
   stroke: var(--ink);
   stroke-width: 1.3;
   transition:
@@ -2363,7 +2378,7 @@ table.cmp th {
 }
 
 .fc-node--active .fc-node-shape {
-  fill: color-mix(in srgb, var(--accent) 14%, var(--paper));
+  fill: color-mix(in srgb, var(--accent) 14%, var(--panel));
   stroke: var(--accent);
   stroke-width: 2;
 }
@@ -2406,7 +2421,7 @@ table.cmp th {
   width: 280px;
   max-width: 90%;
   padding: 10px 12px;
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
   box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--ink) 40%, transparent);
   pointer-events: none;
@@ -2451,9 +2466,6 @@ table.cmp th {
   letter-spacing: 0.04em;
 }
 
-.fc-tooltip-ref-label {
-}
-
 .fc-tooltip-ref code {
   background: var(--paper-2);
   padding: 1px 4px;
@@ -2482,7 +2494,7 @@ table.cmp th {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--ink);
   color: var(--ink);
   padding: 6px 10px;
@@ -2600,7 +2612,7 @@ table.cmp th {
 }
 
 .coupled-preset {
-  background: var(--paper);
+  background: var(--panel);
   border: 1px solid var(--rule);
   padding: 14px 16px;
   text-align: left;
@@ -2622,7 +2634,7 @@ table.cmp th {
 
 .coupled-preset.active {
   border-color: var(--accent);
-  background: var(--paper);
+  background: var(--panel);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
@@ -2692,7 +2704,7 @@ table.cmp th {
   gap: 20px;
   padding: 14px 16px;
   border: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--panel);
   flex-wrap: wrap;
 }
 
@@ -2800,7 +2812,7 @@ table.cmp th {
 .coupled-interpretation {
   margin-top: var(--gap);
   border: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--panel);
 }
 
 .coupled-interp-header {
@@ -2950,7 +2962,7 @@ table.cmp th {
 
 .author-card {
   border: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--panel);
   padding: 16px 18px;
 }
 
@@ -2981,7 +2993,7 @@ table.cmp th {
 
 .about-link {
   border: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--panel);
   padding: 14px 16px;
   display: block;
   text-decoration: none;
@@ -3172,6 +3184,8 @@ table.cmp th {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
   background: var(--paper-2);
 }
 

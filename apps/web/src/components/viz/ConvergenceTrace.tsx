@@ -30,7 +30,8 @@ const AXIS_STYLE = {
 
 const PANEL_STYLE: React.CSSProperties = {
   border: "1px solid var(--rule)",
-  background: "var(--paper)",
+  borderRadius: 10,
+  background: "var(--panel)",
   padding: 12,
 };
 
@@ -38,24 +39,23 @@ const PANEL_TITLE: React.CSSProperties = {
   margin: 0,
   fontFamily: "var(--font-body)",
   fontSize: 12,
-  fontWeight: 500,
-  color: "var(--muted)",
+  fontWeight: 600,
+  color: "var(--ink-2)",
 };
 
 const PANEL_SUB: React.CSSProperties = {
   margin: "4px 0 10px",
-  fontFamily: "var(--font-fig)",
+  fontFamily: "var(--font-body)",
   fontSize: 12,
-  letterSpacing: "0.04em",
   color: "var(--muted)",
 };
 
 const TOOLTIP_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-fig)",
   fontSize: 12,
-  background: "var(--paper)",
+  background: "var(--panel)",
   border: "1px solid var(--rule)",
-  borderRadius: 0,
+  borderRadius: 7,
   color: "var(--ink)",
 };
 

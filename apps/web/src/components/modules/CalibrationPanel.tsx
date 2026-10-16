@@ -145,7 +145,7 @@ function NumberField({
         }}
         className="w-[88px] shrink-0 text-right tabular-nums"
         style={{
-          background: "var(--paper)",
+          background: "var(--panel)",
           border: "1px solid var(--rule)",
           color: "var(--ink)",
           fontFamily: "var(--font-fig)",

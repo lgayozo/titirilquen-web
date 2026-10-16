@@ -110,7 +110,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
   return (
     <div
       className={cn(className)}
-      style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
+      style={{ border: "1px solid var(--rule)", background: "var(--panel)" }}
     >
       {/* ---- Sistema ---- */}
       <div

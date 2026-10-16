@@ -15,6 +15,7 @@ import { RunStatus } from "@/components/RunStatus";
 import { SimulationSkeleton } from "@/components/SimulationSkeleton";
 import { DemandInspector } from "@/components/modules/DemandInspector";
 import { ExportableFigure } from "@/components/ui/ExportableFigure";
+import { EstadoPill } from "@/components/ui/EstadoPill";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
@@ -1092,35 +1093,50 @@ export function SandboxPage() {
         <div className="hero">
           <div className="hero-head">
             <h1 className="hero-title">{t("hero.title")}</h1>
-            <div className="hero-sub">
-              <span className="dot">●</span>{" "}
-              {stage === "running" || stage === "booting"
-                ? t("hero.status_running")
-                : stage === "done"
-                  ? t("hero.status_done")
-                  : t("hero.status_ready")}
-            </div>
+            {/* Estado del cálculo: decía «Equilibrio» al terminar aunque la
+                corrida no hubiera convergido. */}
+            {stage === "running" || stage === "booting" ? (
+              <EstadoPill estado="calculando">
+                {t("hero.status_running")}
+              </EstadoPill>
+            ) : stage === "error" ? (
+              <EstadoPill estado="error">{t("hero.status_error")}</EstadoPill>
+            ) : convergencia ? (
+              convergencia.ok && !convergencia.sinCriterio ? (
+                <EstadoPill estado="ok">{t("hero.status_done")}</EstadoPill>
+              ) : (
+                <EstadoPill estado="sin_converger">
+                  {t(
+                    convergencia.sinCriterio
+                      ? "hero.status_no_tol"
+                      : "hero.status_not_converged",
+                  )}
+                </EstadoPill>
+              )
+            ) : (
+              <EstadoPill estado="listo">{t("hero.status_ready")}</EstadoPill>
+            )}
           </div>
 
           {!hasData && ribbon}
-        </div>
 
-        {/* Barra de estado: ANTES de los números. Sin equilibrio va en color de
-            alerta, porque los KPI son lo primero que entra por los ojos y sin
-            esta marca se leen como un equilibrio (B3: reemplaza al aviso y al
-            panel del veredicto). */}
-        {hasData && textosEstado && (
-          <div
-            className={cn(
-              "estado-corrida",
-              !convergencia?.ok && "estado-corrida--alerta",
-            )}
-            role="status"
-          >
-            {textosEstado.estado}
-            <PorQue>{textosEstado.veredicto}</PorQue>
-          </div>
-        )}
+          {/* Barra de estado: ANTES de los números, junto a la pastilla.
+              Sin equilibrio va en color de alerta, porque los KPI son lo
+              primero que entra por los ojos y sin esta marca se leen como un
+              equilibrio (B3: reemplaza al aviso y al panel del veredicto). */}
+          {hasData && textosEstado && (
+            <div
+              className={cn(
+                "estado-corrida",
+                !convergencia?.ok && "estado-corrida--alerta",
+              )}
+              role="status"
+            >
+              {textosEstado.estado}
+              <PorQue>{textosEstado.veredicto}</PorQue>
+            </div>
+          )}
+        </div>
 
         {/* KPIs — el resultado en una línea: viajes, reparto modal, frecuencia
             y CO₂. Convergencia y residuo los dice el veredicto. */}
@@ -1168,52 +1184,15 @@ export function SandboxPage() {
           </div>
         )}
 
-        {/* Grid de resultados (B3). La validación es la barra de estado de
-            arriba; aquí van los agregados —con lo que se comparan escenarios,
-            sin número de figura porque son el resultado— y las tres figuras
-            que quedan a la vista: FIG. 01 red, 02 flujo, 03 reparto por
-            estrato. El resto, en «Más resultados». */}
+        {/* Grid de resultados. La validación es la barra de estado de
+            arriba; aquí van las tres figuras que quedan a la vista —FIG. 01
+            red, 02 flujo, 03 reparto por estrato— y después los agregados,
+            con los que se comparan escenarios (sin número de figura porque
+            son el resultado). El resto, en «Más resultados». */}
         {liveIterations.length > 0 && (
           <div className="panel-grid">
-            {/* AGREGADOS — el panel más importante una vez validada la
-                corrida: es la tabla con la que se comparan escenarios (fijar
-                una corrida de referencia y leer el delta). Por eso va apenas
-                debajo de la barra de estado y los KPI. */}
-            {result && configUsed && (
-              <Panel
-                title={t("agg.title")}
-                meta={reference ? t("agg.pinned") : t("agg.meta")}
-                cls="col-12"
-              >
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={pinReference}
-                    className="btn"
-                    disabled={stale}
-                  >
-                    {t("agg.pin")}
-                  </button>
-                  {reference && (
-                    <button
-                      type="button"
-                      onClick={clearReference}
-                      className="btn"
-                    >
-                      {t("agg.unpin")}
-                    </button>
-                  )}
-                </div>
-                <ReferenceComparison
-                  config={configUsed}
-                  landUse={landUseUsed}
-                  result={result}
-                  reference={reference}
-                />
-              </Panel>
-            )}
-
-            {/* DIAGNÓSTICO DE RED — de acá para abajo, las figuras. */}
+            {/* DIAGNÓSTICO DE RED — la ciudad primero: red con v/c, flujo en
+                el corredor y reparto por estrato. */}
             {lastIter && result && (
               <Panel
                 n="01"
@@ -1251,18 +1230,14 @@ export function SandboxPage() {
                 n="02"
                 title={flowTitle}
                 meta={
-                  <div className="flex flex-wrap gap-1">
+                  <div className="seg">
                     {FLOW_MODES.map((m) => (
                       <button
                         key={m}
                         type="button"
                         onClick={() => setFlowMode(m)}
-                        className="tab"
+                        className={cn(flowMode === m && "active")}
                         aria-pressed={flowMode === m}
-                        style={{
-                          color: flowMode === m ? "var(--paper)" : undefined,
-                          background: flowMode === m ? "var(--ink)" : undefined,
-                        }}
                       >
                         {t(`modes.${m}`)}
                       </button>
@@ -1314,13 +1289,52 @@ export function SandboxPage() {
                 </Panel>
               </>
             )}
+
+            {/* AGREGADOS — la tabla con la que se comparan escenarios
+                (fijar una corrida de referencia y leer el delta). Va después
+                de las figuras desde oct-2026: con ~20 filas empujaba la red
+                fuera de la primera pantalla, y la ciudad es lo que se lee
+                primero. */}
+            {result && configUsed && (
+              <Panel
+                title={t("agg.title")}
+                meta={reference ? t("agg.pinned") : t("agg.meta")}
+                cls="col-12"
+              >
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={pinReference}
+                    className="btn"
+                    disabled={stale}
+                  >
+                    {t("agg.pin")}
+                  </button>
+                  {reference && (
+                    <button
+                      type="button"
+                      onClick={clearReference}
+                      className="btn"
+                    >
+                      {t("agg.unpin")}
+                    </button>
+                  )}
+                </div>
+                <ReferenceComparison
+                  config={configUsed}
+                  landUse={landUseUsed}
+                  result={result}
+                  reference={reference}
+                />
+              </Panel>
+            )}
           </div>
         )}
 
         {/* «Más resultados» (B3): todo lo que no es el resultado principal,
             en un plegable cerrado. A la vista quedan la barra de estado, los
-            KPI, los agregados y tres figuras: la red con v/c, el flujo en el
-            corredor y el reparto por estrato. */}
+            KPI, tres figuras (la red con v/c, el flujo en el corredor y el
+            reparto por estrato) y los agregados. */}
         {liveIterations.length > 0 && (
           <CollapsibleSection
             title={t("sandbox.mas_resultados")}

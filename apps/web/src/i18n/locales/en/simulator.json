@@ -243,7 +243,10 @@
     "subtitle": "Mode share by location · 0 km = west edge · center = CBD",
     "status_ready": "Ready",
     "status_running": "Simulating",
-    "status_done": "Equilibrium",
+    "status_done": "In equilibrium",
+    "status_not_converged": "Not converged",
+    "status_no_tol": "Fixed iterations",
+    "status_error": "Error",
     "stats_line": "N={{total}} · {{length}} km · {{stations}} st · {{lanes}} lanes"
   },
   "kpi": {

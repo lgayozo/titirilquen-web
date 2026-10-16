@@ -613,7 +613,7 @@ export function ComparePage() {
               className="flex min-h-[120px] w-full items-center justify-center gap-2"
               style={{
                 border: "1px dashed var(--rule)",
-                background: "var(--paper)",
+                background: "var(--panel)",
                 fontFamily: "var(--font-body)",
                 fontSize: "var(--fs-etiqueta)",
                 color: "var(--muted)",

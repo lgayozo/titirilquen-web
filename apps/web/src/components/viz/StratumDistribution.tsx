@@ -397,7 +397,7 @@ export function StratumDistribution({
             left: Math.min(Math.max(hoverX, 92), Math.max(W - 92, 92)),
             top: MARGIN.top + 4,
             transform: "translateX(-50%)",
-            background: "var(--paper)",
+            background: "var(--panel)",
             border: "1px solid var(--rule)",
             padding: "6px 8px",
             fontFamily: "var(--font-fig)",
@@ -450,10 +450,7 @@ export function StratumDistribution({
 
       <div
         className="mt-2 flex flex-wrap gap-4"
-        style={{
-          fontFamily: "var(--font-fig)",
-          fontSize: "var(--fs-etiqueta)",
-        }}
+        style={{ fontSize: "var(--fs-etiqueta)" }}
       >
         {[1, 2, 3].map((h) => (
           <span

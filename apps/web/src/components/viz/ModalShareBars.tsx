@@ -132,7 +132,7 @@ export function ModalShareBars({ rows, className }: ModalShareBarsProps) {
                         style={{
                           fontFamily: "var(--font-fig)",
                           fontSize: 12,
-                          fill: "var(--paper)",
+                          fill: "var(--on-dato)",
                         }}
                       >
                         {(share * 100).toFixed(0)}%

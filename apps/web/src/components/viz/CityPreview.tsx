@@ -255,7 +255,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             cx={xOfKm(km)}
             cy={yMetro + BAND_H / 2}
             r={4}
-            fill="var(--paper)"
+            fill="var(--panel)"
             stroke="var(--metro)"
             strokeWidth={1.6}
             pointerEvents="none"
@@ -324,7 +324,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             cx={cbdX}
             cy={yDemand + DEMAND_H / 2}
             r={3.5}
-            fill="var(--paper)"
+            fill="var(--panel)"
             stroke="var(--accent)"
             strokeWidth={1.4}
           />
@@ -335,7 +335,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             className="network-band-label"
             fill="var(--ink-2)"
           >
-            {t("preview.demand_label").toUpperCase()}
+            {t("preview.demand_label")}
           </text>
           <text
             x={MARGIN.left - 8}
@@ -479,14 +479,18 @@ function InfraBand({
         stroke="var(--rule)"
         strokeWidth={0.8}
       />
+      {/* El color del modo marca la banda; el rótulo va en tinta porque el
+          naranja del metro y el gris de la caminata no alcanzan contraste
+          como texto. */}
+      <rect x={x - 4} y={y} width={3} height={BAND_H} fill={labelColor} />
       <text
         x={x - 8}
         y={y + BAND_H / 2 - 3}
         textAnchor="end"
         className="network-band-label"
-        fill={labelColor}
+        fill="var(--ink-2)"
       >
-        {label.toUpperCase()}
+        {label}
       </text>
       <text
         x={x - 8}

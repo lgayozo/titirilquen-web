@@ -172,7 +172,8 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                           style={{
                             fontFamily: "var(--font-fig)",
                             fontSize: 12,
-                            fill: "var(--paper)",
+                            fontWeight: 600,
+                            fill: "var(--on-dato)",
                           }}
                         >
                           {(share * 100).toFixed(0)}%

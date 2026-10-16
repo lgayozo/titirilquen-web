@@ -65,11 +65,11 @@ interface Props {
   className?: string;
 }
 
-// Toda etiqueta en Plex Mono va al paso `etiqueta` de la escala (B2).
+// Las etiquetas van en Plex Sans al paso `etiqueta` de la escala; Mono
+// queda para las cifras.
 const fig = (color = "var(--muted)"): React.CSSProperties => ({
-  fontFamily: "var(--font-fig)",
+  fontFamily: "var(--font-body)",
   fontSize: "var(--fs-etiqueta)",
-  letterSpacing: "0.04em",
   color,
 });
 
@@ -282,7 +282,7 @@ export function TransportMetricsTable({ data, className }: Props) {
   return (
     <div
       className={cn(className)}
-      style={{ border: "1px solid var(--rule)", background: "var(--paper)" }}
+      style={{ border: "1px solid var(--rule)", background: "var(--panel)" }}
     >
       {/* ---- Encabezado + export ---- */}
       <div

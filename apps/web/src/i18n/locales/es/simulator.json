@@ -243,7 +243,10 @@
     "subtitle": "Partición modal por ubicación · 0 km = periferia oeste · centro = CBD",
     "status_ready": "Listo",
     "status_running": "Simulando",
-    "status_done": "Equilibrio",
+    "status_done": "En equilibrio",
+    "status_not_converged": "Sin converger",
+    "status_no_tol": "Iteraciones fijas",
+    "status_error": "Error",
     "stats_line": "N={{total}} · {{length}} km · {{stations}} est · {{lanes}} pistas"
   },
   "kpi": {

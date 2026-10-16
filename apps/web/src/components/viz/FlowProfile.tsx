@@ -276,7 +276,7 @@ export function FlowProfile({
 
         {/* Etiquetas X */}
         <text x={MARGIN.left} y={H - 5} textAnchor="start" className="label">
-          0 KM
+          0 km
         </text>
         <text
           x={cbdX}
@@ -294,7 +294,7 @@ export function FlowProfile({
           className="label"
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
-          {largoKm.toFixed(0)} KM
+          {largoKm.toFixed(0)} km
         </text>
       </svg>
       {hover && (

@@ -96,7 +96,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
               contentStyle={{
                 fontFamily: "var(--font-fig)",
                 fontSize: 12,
-                background: "var(--paper)",
+                background: "var(--panel)",
                 border: "1px solid var(--rule)",
                 borderRadius: 0,
                 color: "var(--ink)",
