@@ -399,6 +399,7 @@ export function StratumDistribution({
             transform: "translateX(-50%)",
             background: "var(--panel)",
             border: "1px solid var(--rule)",
+            borderRadius: 7,
             padding: "6px 8px",
             fontFamily: "var(--font-fig)",
             fontSize: "var(--fs-etiqueta)",

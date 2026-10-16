@@ -14,11 +14,11 @@ interface Props {
   className?: string;
 }
 
-// Toda etiqueta en Plex Mono va al paso `etiqueta` de la escala (B2).
+// Toda etiqueta va al paso `etiqueta` de la escala (B2), en la sans del
+// cuerpo: la mono queda para códigos de figura, como en TransportMetricsTable.
 const fig = (color = "var(--muted)"): React.CSSProperties => ({
-  fontFamily: "var(--font-fig)",
+  fontFamily: "var(--font-body)",
   fontSize: "var(--fs-etiqueta)",
-  letterSpacing: "0.04em",
   color,
 });
 

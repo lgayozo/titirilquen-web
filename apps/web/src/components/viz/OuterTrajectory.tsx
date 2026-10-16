@@ -66,7 +66,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
                 position: "insideBottom",
                 offset: -2,
                 style: {
-                  fontFamily: "var(--font-fig)",
+                  fontFamily: "var(--font-body)",
                   fontSize: 12,
                   fill: "var(--muted)",
                 },
@@ -85,7 +85,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
                 position: "insideLeft",
                 offset: 12,
                 style: {
-                  fontFamily: "var(--font-fig)",
+                  fontFamily: "var(--font-body)",
                   fontSize: 12,
                   fill: "var(--muted)",
                   textAnchor: "middle",
@@ -98,7 +98,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
                 fontSize: 12,
                 background: "var(--panel)",
                 border: "1px solid var(--rule)",
-                borderRadius: 0,
+                borderRadius: 7,
                 color: "var(--ink)",
               }}
               labelStyle={{ color: "var(--muted)" }}

@@ -1,6 +1,7 @@
 import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import { EstadoPill } from "@/components/ui/EstadoPill";
 import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { PorQue } from "@/components/ui/PorQue";
@@ -136,13 +137,9 @@ export function CoupledPage() {
   // ítems que dejaba un huérfano en la segunda fila): ciudad+suelo (3) arriba,
   // transporte (7) abajo.
   const { kpisCityLand, kpisTransport } = useMemo(() => {
-    // Grupos de palancas: chrome, sin tono (B1). Antes «ciudad» usaba el
-    // color del estrato medio.
-    const groupColor: Record<string, string> = {
-      city: "var(--muted)",
-      land_use: "var(--ink-2)",
-      transport: "var(--ink)",
-    };
+    // Sin color por grupo: el grupo ya lo dice el rótulo de cada fila, y el
+    // punto de color del KPIStrip queda para variables con color propio
+    // (los modos).
     const all = describePresetParams(sim, landUse, tS).map((p) => ({
       group: p.group,
       kpi: {
@@ -152,7 +149,6 @@ export function CoupledPage() {
         // traducida. El resto son símbolos.
         unit: p.unit === "hog" ? tS("coupled.unit_households") : p.unit,
         sub: p.sub,
-        color: groupColor[p.group],
       } as KPI,
     }));
     return {
@@ -168,6 +164,8 @@ export function CoupledPage() {
   const L = sim.city.n_celdas;
   const CBD = Math.floor(L / 2);
   const running = stage === "running";
+  const sys = stage === "done" ? (last?.metrics.sistema ?? null) : null;
+  const vueltas = tS("coupled_metrics.outer_count", { n: iters.length });
 
   // Oferta S(i) real de la forma elegida, para que la distribución de resultados
   // comparta la misma envolvente que la figura de la forma (figura 00).
@@ -291,10 +289,40 @@ export function CoupledPage() {
 
         <div className="hero">
           <div className="hero-head">
-            <h1 className="hero-title">{tS("coupled.title")}</h1>
-            <div className="hero-sub">
-              <span className="dot">●</span> {tS("coupled.eyebrow")}
+            <div>
+              <h1 className="hero-title">{tS("coupled.title")}</h1>
+              <p className="hero-sub" style={{ margin: "6px 0 0" }}>
+                {tS("coupled.eyebrow")}
+              </p>
             </div>
+            {running ? (
+              <EstadoPill estado="calculando">
+                {tS("hero.status_running")}
+                {iters.length > 0 && ` · ${vueltas}`}
+              </EstadoPill>
+            ) : stage === "error" ? (
+              <EstadoPill estado="error">{tS("hero.status_error")}</EstadoPill>
+            ) : sys ? (
+              // Dos convergencias distintas (D-39): la del loop suelo↔
+              // transporte y la del MSA de la última vuelta. El loop puede
+              // parar por brecha aunque ese MSA no haya convergido; entonces
+              // no hay equilibrio verificado y la pastilla lo dice.
+              sys.convergio_exterior && sys.convergio_msa ? (
+                <EstadoPill estado="ok">
+                  {tS("hero.status_done")} · {vueltas}
+                </EstadoPill>
+              ) : sys.convergio_exterior ? (
+                <EstadoPill estado="sin_converger">
+                  {tS("eqt.msa_not_converged")}
+                </EstadoPill>
+              ) : (
+                <EstadoPill estado="sin_converger">
+                  {tS("hero.status_not_converged")} · {vueltas}
+                </EstadoPill>
+              )
+            ) : (
+              <EstadoPill estado="listo">{tS("hero.status_ready")}</EstadoPill>
+            )}
           </div>
         </div>
 
