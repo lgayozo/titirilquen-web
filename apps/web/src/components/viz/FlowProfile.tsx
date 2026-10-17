@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
+import { fmtDecimal } from "@/lib/modos";
 
 interface FlowProfileProps {
   flows: readonly number[];
@@ -141,7 +142,7 @@ export function FlowProfile({
           className="label"
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
-          {`max ${valueFmt(localMax)}${capacity ? ` · v/c ${(localMax / capacity).toFixed(2)}` : ""}`}
+          {`max ${valueFmt(localMax)}${capacity ? ` · v/c ${fmtDecimal(localMax / capacity, 2)}` : ""}`}
         </text>
 
         {/* Grid + etiquetas Y */}
@@ -294,7 +295,7 @@ export function FlowProfile({
           className="label"
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
-          {largoKm.toFixed(0)} km
+          {fmtDecimal(largoKm, 0)} km
         </text>
       </svg>
       {hover && (
@@ -304,7 +305,7 @@ export function FlowProfile({
                 —el caso del CO₂, donde vale «kg/h»—: quedaba «KG/H · 5.0 KM»
                 arriba y «27,6 kg/h» abajo, diciendo lo mismo dos veces. */}
             {label && label !== unidad ? `${label} · ` : ""}
-            {hover.km.toFixed(1)} km
+            {fmtDecimal(hover.km)} km
           </div>
           <div className="nt-row">
             <span>
@@ -313,7 +314,7 @@ export function FlowProfile({
           </div>
           {capacity != null && capacity > 0 && (
             <div className="nt-row">
-              <span>{`v/c ${(hover.valor / capacity).toFixed(2)}`}</span>
+              <span>{`v/c ${fmtDecimal(hover.valor / capacity, 2)}`}</span>
             </div>
           )}
         </div>

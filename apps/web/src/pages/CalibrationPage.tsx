@@ -7,7 +7,7 @@ import { Panel } from "@/components/ui/Panel";
 import { PorQue } from "@/components/ui/PorQue";
 import { votClpHora } from "@/lib/agregados";
 import { conHeterogeneidad, sDeDemanda } from "@/lib/heterogeneidadLambda";
-import { COLOR_ESTRATO } from "@/lib/modos";
+import { COLOR_ESTRATO, fmtDecimal, fmtPct, fmtPesos } from "@/lib/modos";
 import type { StratumId } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
@@ -33,7 +33,7 @@ const STRATA: StratumId[] = [1, 2, 3];
 const STR = ["alto", "medio", "bajo"] as const;
 const VAR = STRATA.map((h) => COLOR_ESTRATO[h]);
 
-const fmtMoney = (v: number) => `$${Math.round(v).toLocaleString("es-CL")}`;
+const fmtMoney = fmtPesos;
 
 export function CalibrationPage() {
   const { t } = useTranslation("simulator");
@@ -50,9 +50,9 @@ export function CalibrationPage() {
     const definido = lam > 0;
     return {
       vot: definido ? fmtMoney(votClpHora(config.demand, h)) : "—",
-      lambda: definido ? `${(lam * 1e4).toFixed(2)}·10⁻⁴` : "—",
+      lambda: definido ? `${fmtDecimal(lam * 1e4, 2)}·10⁻⁴` : "—",
       ruido: definido ? fmtMoney(1 / (mu * lam)) : "—",
-      auto: `${Math.round(e.prob_auto * 100)}%`,
+      auto: fmtPct(e.prob_auto * 100, 0),
     };
   });
 
@@ -66,7 +66,7 @@ export function CalibrationPage() {
           meta={
             sLam == null
               ? t("calibration_page.het_custom")
-              : `s=${sLam.toFixed(2)}`
+              : `s=${fmtDecimal(sLam, 2)}`
           }
           defaultOpen
         >
@@ -77,7 +77,7 @@ export function CalibrationPage() {
             max={2}
             step={0.05}
             format={(v) =>
-              sLam == null ? t("calibration_page.het_custom") : v.toFixed(2)
+              sLam == null ? t("calibration_page.het_custom") : fmtDecimal(v, 2)
             }
             hint={t("calibration_page.het_corto")}
             onChange={setS}
@@ -105,11 +105,11 @@ export function CalibrationPage() {
         <CalibrationPanel config={config} onChange={setConfig} defaultOpen />
         <CollapsibleSection
           title={t("calibration_page.mu_section")}
-          meta={t("calibration_page.mu_meta", { mu: mu.toFixed(2) })}
+          meta={t("calibration_page.mu_meta", { mu: fmtDecimal(mu, 2) })}
           defaultOpen
         >
           <div className="font-fig text-ayuda tabular-nums text-[var(--ink)]">
-            μ = {mu.toFixed(2)}
+            μ = {fmtDecimal(mu, 2)}
           </div>
           <p className="mt-1 text-etiqueta leading-snug text-muted">
             {t("calibration_page.mu_corto")}
@@ -146,7 +146,7 @@ export function CalibrationPage() {
           <Panel
             n="01"
             title={t("calibration_page.table_title")}
-            meta={`μ = ${mu.toFixed(2)}`}
+            meta={`μ = ${fmtDecimal(mu, 2)}`}
             cls="col-12"
           >
             <div className="overflow-x-auto">

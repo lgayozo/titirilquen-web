@@ -12,6 +12,7 @@ import {
 
 import { cn } from "@/lib/cn";
 import type { CoupledResult } from "@/lib/types-v2";
+import { fmtDecimal, localeCifras } from "@/lib/modos";
 
 interface OuterTrajectoryProps {
   result: CoupledResult;
@@ -79,6 +80,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
               axisLine={{ stroke: "var(--rule)" }}
               style={{ fontFamily: "var(--font-fig)" }}
               width={52}
+              tickFormatter={(v: number) => v.toLocaleString(localeCifras())}
               label={{
                 value: t("convergence.y_clp_mes"),
                 angle: -90,
@@ -105,7 +107,7 @@ export function OuterTrajectory({ result, className }: OuterTrajectoryProps) {
               labelFormatter={(v) => `${t("convergence.iter")} ${v}`}
               formatter={(v: number | string) =>
                 typeof v === "number"
-                  ? `${v.toFixed(1)} $/hogar-mes`
+                  ? `${fmtDecimal(v)} $/hogar-mes`
                   : String(v)
               }
             />

@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { IterationSnapshot } from "@/lib/types";
-import { COLOR_MODO, ORDEN_MODOS } from "@/lib/modos";
+import { COLOR_MODO, ORDEN_MODOS, fmtDecimal, localeCifras } from "@/lib/modos";
 
 interface ConvergenceTraceProps {
   iterations: readonly IterationSnapshot[];
@@ -83,19 +83,20 @@ export function ConvergenceTrace({
   if (data.length === 0) return null;
 
   const fmtMin = (v: number | string) =>
-    typeof v === "number" ? `${v.toFixed(3)} min` : String(v);
+    typeof v === "number" ? `${fmtDecimal(v, 3)} min` : String(v);
   // Ticks del residuo: hasta 3 decimales pero sin ceros sobrantes (12.000 → 12,
   // 0.030 → 0.03) para que no invadan la etiqueta rotada del eje Y.
-  const fmtResidualTick = (v: number) => String(Number(v.toFixed(3)));
+  const fmtResidualTick = (v: number) =>
+    v.toLocaleString(localeCifras(), { maximumFractionDigits: 3 });
   const fmtTrips = (v: number | string) =>
     typeof v === "number"
-      ? `${v.toLocaleString("es-CL")} ${t("convergence.trips_unit")}`
+      ? `${v.toLocaleString(localeCifras())} ${t("convergence.trips_unit")}`
       : String(v);
   // Ticks compactos (10000 → "10k") para que no invadan la etiqueta del eje Y.
   const fmtTickCompact = (v: number) =>
     Math.abs(v) >= 1000
-      ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k`
-      : `${v}`;
+      ? `${fmtDecimal(v / 1000, v % 1000 === 0 ? 0 : 1)}k`
+      : v.toLocaleString(localeCifras());
 
   return (
     <div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2", className)}>

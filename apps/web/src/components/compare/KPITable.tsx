@@ -6,6 +6,7 @@ import { deltaColor } from "@/components/compare/MetricCompareTable";
 import { cn } from "@/lib/cn";
 import type { ScenarioKPIs } from "@/lib/kpis";
 import type { Modo, StratumId } from "@/lib/types";
+import { fmtDecimal, fmtDelta, fmtEntero, fmtPct } from "@/lib/modos";
 
 interface KPITableProps {
   scenarios: Array<{ id: string; name: string; kpis: ScenarioKPIs | null }>;
@@ -67,8 +68,8 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                 scenarios={scenarios}
                 valueOf={(kpi) => kpi.modal_share[m] * 100}
                 baseKpis={base?.kpis ?? null}
-                formatter={(v) => `${v.toFixed(1)}%`}
-                deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)} pp`}
+                formatter={(v) => fmtPct(v)}
+                deltaFormatter={(d) => `${fmtDelta(d)} pp`}
               />
             ))}
           </Section>
@@ -81,8 +82,8 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                 scenarios={scenarios}
                 valueOf={(kpi) => kpi.tiempo_medio_min[m]}
                 baseKpis={base?.kpis ?? null}
-                formatter={(v) => (v > 0 ? `${v.toFixed(1)}` : "—")}
-                deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}`}
+                formatter={(v) => (v > 0 ? fmtDecimal(v) : "—")}
+                deltaFormatter={(d) => fmtDelta(d)}
                 betterWhen="down"
               />
             ))}
@@ -94,26 +95,24 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.frecuencia_metro}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => v.toFixed(1)}
-              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}`}
+              formatter={(v) => fmtDecimal(v)}
+              deltaFormatter={(d) => fmtDelta(d)}
             />
             <KPIRow
               label={t("compare.kpi.final_residual")}
               scenarios={scenarios}
               valueOf={(kpi) => kpi.residuo_final ?? 0}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => v.toFixed(3)}
-              deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(3)}`}
+              formatter={(v) => fmtDecimal(v, 3)}
+              deltaFormatter={(d) => fmtDelta(d, 3)}
             />
             <KPIRow
               label={t("compare.kpi.physical_trips")}
               scenarios={scenarios}
               valueOf={(kpi) => kpi.viajes_fisicos}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => v.toLocaleString("es-CL")}
-              deltaFormatter={(d) =>
-                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
-              }
+              formatter={(v) => fmtEntero(v)}
+              deltaFormatter={(d) => fmtDelta(d, 0)}
             />
           </Section>
 
@@ -126,10 +125,10 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.vc_auto ?? NaN}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => (Number.isFinite(v) ? `${v.toFixed(2)}×` : "—")}
-              deltaFormatter={(d) =>
-                Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
+              formatter={(v) =>
+                Number.isFinite(v) ? `${fmtDecimal(v, 2)}×` : "—"
               }
+              deltaFormatter={(d) => (Number.isFinite(d) ? fmtDelta(d, 2) : "")}
               betterWhen="down"
             />
             <KPIRow
@@ -137,10 +136,10 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.vc_metro ?? NaN}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => (Number.isFinite(v) ? `${v.toFixed(2)}×` : "—")}
-              deltaFormatter={(d) =>
-                Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
+              formatter={(v) =>
+                Number.isFinite(v) ? `${fmtDecimal(v, 2)}×` : "—"
               }
+              deltaFormatter={(d) => (Number.isFinite(d) ? fmtDelta(d, 2) : "")}
               betterWhen="down"
             />
             <KPIRow
@@ -148,10 +147,10 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.vc_bici ?? NaN}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => (Number.isFinite(v) ? `${v.toFixed(2)}×` : "—")}
-              deltaFormatter={(d) =>
-                Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(2)}` : ""
+              formatter={(v) =>
+                Number.isFinite(v) ? `${fmtDecimal(v, 2)}×` : "—"
               }
+              deltaFormatter={(d) => (Number.isFinite(d) ? fmtDelta(d, 2) : "")}
               betterWhen="down"
             />
           </Section>
@@ -162,10 +161,8 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.co2_total}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => Math.round(v).toLocaleString("es-CL")}
-              deltaFormatter={(d) =>
-                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
-              }
+              formatter={(v) => fmtEntero(v)}
+              deltaFormatter={(d) => fmtDelta(d, 0)}
               betterWhen="down"
             />
             <KPIRow
@@ -173,10 +170,8 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.co2_auto}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => Math.round(v).toLocaleString("es-CL")}
-              deltaFormatter={(d) =>
-                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
-              }
+              formatter={(v) => fmtEntero(v)}
+              deltaFormatter={(d) => fmtDelta(d, 0)}
               betterWhen="down"
             />
             <KPIRow
@@ -184,10 +179,8 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
               scenarios={scenarios}
               valueOf={(kpi) => kpi.co2_metro}
               baseKpis={base?.kpis ?? null}
-              formatter={(v) => Math.round(v).toLocaleString("es-CL")}
-              deltaFormatter={(d) =>
-                `${d >= 0 ? "+" : ""}${Math.round(d).toLocaleString("es-CL")}`
-              }
+              formatter={(v) => fmtEntero(v)}
+              deltaFormatter={(d) => fmtDelta(d, 0)}
               betterWhen="down"
             />
           </Section>
@@ -217,8 +210,8 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                   scenarios={scenarios}
                   valueOf={(kpi) => kpi.by_stratum[s].mean_time_min}
                   baseKpis={base?.kpis ?? null}
-                  formatter={(v) => (v > 0 ? v.toFixed(1) : "—")}
-                  deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}`}
+                  formatter={(v) => (v > 0 ? fmtDecimal(v) : "—")}
+                  deltaFormatter={(d) => fmtDelta(d)}
                   betterWhen="down"
                 />
                 <KPIRow
@@ -226,8 +219,8 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                   scenarios={scenarios}
                   valueOf={(kpi) => kpi.by_stratum[s].mean_utility}
                   baseKpis={base?.kpis ?? null}
-                  formatter={(v) => v.toFixed(2)}
-                  deltaFormatter={(d) => `${d >= 0 ? "+" : ""}${d.toFixed(2)}`}
+                  formatter={(v) => fmtDecimal(v, 2)}
+                  deltaFormatter={(d) => fmtDelta(d, 2)}
                   betterWhen="up"
                 />
                 {TRAVEL_MODES.map((m) => (
@@ -237,10 +230,8 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                     scenarios={scenarios}
                     valueOf={(kpi) => kpi.by_stratum[s].modal_share[m] * 100}
                     baseKpis={base?.kpis ?? null}
-                    formatter={(v) => `${v.toFixed(1)}%`}
-                    deltaFormatter={(d) =>
-                      `${d >= 0 ? "+" : ""}${d.toFixed(1)} pp`
-                    }
+                    formatter={(v) => fmtPct(v)}
+                    deltaFormatter={(d) => `${fmtDelta(d)} pp`}
                   />
                 ))}
               </Section>

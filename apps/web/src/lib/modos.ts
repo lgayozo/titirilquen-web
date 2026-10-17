@@ -11,8 +11,14 @@
  * Los formateadores tenían un problema peor y más silencioso: 26 llamadas a
  * `toLocaleString()` **sin locale**, que usa el del navegador. En un navegador
  * en inglés la misma cifra salía «36,000» en una figura y «36.000» en la
- * vecina, en la misma pantalla.
+ * vecina, en la misma pantalla. Después se fijó «es-CL» para los miles, pero
+ * los decimales seguían saliendo de `toFixed` (siempre con punto): «36.000» al
+ * lado de «24.7%». Ahora el locale de TODAS las cifras sale del idioma de la
+ * interfaz (`localeCifras`), no del navegador: en español «36.000 · 24,7 %»,
+ * en inglés «36,000 · 24.7%», y nunca las dos convenciones en una pantalla.
  */
+
+import i18n from "i18next";
 
 import {
   CORTE_BICI_MIN,
@@ -86,27 +92,61 @@ export const CORTE_POR_MODO: Partial<Record<string, number>> = {
 // Formato de cifras
 // ---------------------------------------------------------------------------
 
-/** El locale es FIJO. Ver la nota del encabezado: con el del navegador, dos
- *  figuras vecinas mostraban la misma cifra con separadores distintos. */
-const LOCALE = "es-CL";
+/** Locale de las cifras: el del idioma de la interfaz, no el del navegador
+ *  (ver la nota del encabezado). Es una función y no una constante porque el
+ *  idioma cambia en caliente con el selector. */
+export const localeCifras = (): string =>
+  i18n.resolvedLanguage === "en" ? "en-US" : "es-CL";
 
-/** Entero con separador de miles: 36000 → «36.000». */
-export const fmtEntero = (v: number): string =>
-  Math.round(v).toLocaleString(LOCALE);
+/** `Intl.NumberFormat` es caro de construir: uno por locale y precisión. */
+const formatos = new Map<string, Intl.NumberFormat>();
+
+/** Número con `decimales` fijos y los separadores del idioma activo:
+ *  24.71 → «24,7» (es) · «24.7» (en). El signo negativo es «−» (U+2212),
+ *  el mismo de `fmtPesos`, y un −0,04 redondeado no sale «−0,0». */
+export const fmtDecimal = (v: number, decimales = 1): string => {
+  const locale = localeCifras();
+  const clave = `${locale}|${decimales}`;
+  let f = formatos.get(clave);
+  if (!f) {
+    f = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales,
+    });
+    formatos.set(clave, f);
+  }
+  const r = Number(v.toFixed(decimales));
+  return f.format(r === 0 ? 0 : r).replace("-", "−");
+};
+
+/** Diferencia con signo explícito: «+1,2» · «−0,4» · «0,0». El signo se
+ *  decide sobre el valor YA redondeado, para que un −0,04 no salga «−0,0». */
+export const fmtDelta = (v: number, decimales = 1): string => {
+  const s = fmtDecimal(v, decimales);
+  return Number(v.toFixed(decimales)) > 0 ? `+${s}` : s;
+};
+
+/** Entero con separador de miles: 36000 → «36.000» (es) · «36,000» (en). */
+export const fmtEntero = (v: number): string => fmtDecimal(v, 0);
 
 /** Pesos, con el signo ANTES del símbolo: −$3.331, no $-3.331. */
 export const fmtPesos = (v: number): string =>
-  `${v < 0 ? "−" : ""}$${Math.round(Math.abs(v)).toLocaleString(LOCALE)}`;
+  `${Math.round(v) < 0 ? "−" : ""}$${fmtEntero(Math.abs(v))}`;
 
-/** Porcentaje con un decimal. */
+/** Porcentaje: «24,7 %» en español (con espacio duro, como pide la RAE) y
+ *  «24.7%» en inglés. `v` ya viene en puntos porcentuales (24.7, no 0.247). */
 export const fmtPct = (v: number, decimales = 1): string =>
-  `${v.toFixed(decimales)}%`;
+  `${fmtDecimal(v, decimales)}${sufijoPct()}`;
+
+/** El \u00ab%\u00bb con o sin espacio seg\u00fan el idioma, para quien arma la cifra aparte. */
+export const sufijoPct = (): string =>
+  localeCifras() === "en-US" ? "%" : "\u00a0%";
 
 /** Minutos: un decimal bajo 10, entero por encima — para que las columnas de
  *  una tabla no bailen de ancho. */
 export const fmtMinutos = (v: number): string =>
-  `${v >= 10 ? v.toFixed(0) : v.toFixed(1)} min`;
+  `${fmtDecimal(v, v >= 10 ? 0 : 1)} min`;
 
 /** Número con la precisión que su magnitud justifica. */
 export const fmtNumero = (v: number, umbral = 10): string =>
-  v >= umbral ? v.toFixed(0) : v.toFixed(1);
+  fmtDecimal(v, Math.abs(v) >= umbral ? 0 : 1);

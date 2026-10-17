@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
-import { COLOR_ESTRATO } from "@/lib/modos";
+import { COLOR_ESTRATO, fmtDecimal, fmtEntero, fmtPct } from "@/lib/modos";
 
 interface StratumDistributionProps {
   /** Asignación discreta (muestreada) de hogares por celda. parcelas[i] = lista
@@ -167,8 +167,7 @@ export function StratumDistribution({
   const cellKm = largoKm != null && L > 0 ? largoKm / L : 0;
   const hoverX = hoverIdx != null ? MARGIN.left + (hoverIdx + 0.5) * barW : 0;
 
-  const fmt = (v: number) =>
-    Math.round(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  const fmt = (v: number) => fmtEntero(v);
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
@@ -338,7 +337,7 @@ export function StratumDistribution({
                   className="label"
                   style={{ fontVariantNumeric: "tabular-nums" }}
                 >
-                  {tick.km.toFixed(0)}
+                  {fmtDecimal(tick.km, 0)}
                 </text>
               </g>
             ))}
@@ -410,8 +409,8 @@ export function StratumDistribution({
         >
           <div style={{ color: "var(--muted)" }}>
             {t("stratum_distribution.tooltip_pos", {
-              km: ((hoverIdx + 0.5) * cellKm).toFixed(1),
-              dist: (Math.abs(cbd - hoverIdx) * cellKm).toFixed(1),
+              km: fmtDecimal((hoverIdx + 0.5) * cellKm),
+              dist: fmtDecimal(Math.abs(cbd - hoverIdx) * cellKm),
             })}
           </div>
           <div style={{ fontWeight: 600 }}>
@@ -441,7 +440,7 @@ export function StratumDistribution({
                     fontVariantNumeric: "tabular-nums",
                   }}
                 >
-                  {fmt(v)} · {pct.toFixed(0)}%
+                  {fmt(v)} · {fmtPct(pct, 0)}
                 </span>
               </div>
             );

@@ -44,7 +44,14 @@ import { cn } from "@/lib/cn";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { simularTransporte } from "@/lib/api";
 import { calcularFlujo } from "@/lib/derivados";
-import { COLOR_ESTRATO, COLOR_MODO, COLOR_MODO_MINUSCULA } from "@/lib/modos";
+import {
+  COLOR_ESTRATO,
+  COLOR_MODO,
+  COLOR_MODO_MINUSCULA,
+  fmtDecimal,
+  fmtEntero,
+  fmtPct,
+} from "@/lib/modos";
 import type { Modo } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
 import { isResultStale, useSimulationStore } from "@/store/simulationStore";
@@ -416,17 +423,15 @@ export function SandboxPage() {
     const modal = lastIter.modal_split;
     const total = (Object.values(modal) as number[]).reduce((s, n) => s + n, 0);
     const tot = total > 0 ? total : 1;
-    const pct = (m: Modo) => `${(((modal[m] ?? 0) / tot) * 100).toFixed(1)}%`;
+    const pct = (m: Modo) => fmtPct(((modal[m] ?? 0) / tot) * 100);
     const count = (m: Modo) =>
       t("kpi.trips_subline", {
-        n: Math.round(modal[m] ?? 0).toLocaleString("es-CL"),
+        n: fmtEntero(modal[m] ?? 0),
       });
     return [
       {
         label: t("kpi.trips"),
-        value: Math.round(total - (modal.Teletrabajo ?? 0)).toLocaleString(
-          "es-CL",
-        ),
+        value: fmtEntero(total - (modal.Teletrabajo ?? 0)),
       },
       {
         label: t("kpi.auto_pct"),
@@ -457,12 +462,12 @@ export function SandboxPage() {
         value: pct("Teletrabajo"),
         color: "var(--tele)",
         delta: t("kpi.tele_subline", {
-          n: Math.round(modal.Teletrabajo ?? 0).toLocaleString("es-CL"),
+          n: fmtEntero(modal.Teletrabajo ?? 0),
         }),
       },
       {
         label: t("kpi.frequency"),
-        value: lastIter.frecuencia_metro.toFixed(1),
+        value: fmtDecimal(lastIter.frecuencia_metro),
         unit: "tph",
         // Si la teórica (carga/K) difiere de la operativa, un tope está
         // mordiendo: sin ese dato el usuario no distingue «subí el tope y no
@@ -472,7 +477,7 @@ export function SandboxPage() {
             lastIter.frecuencia_teorica_metro - lastIter.frecuencia_metro,
           ) > 0.05
             ? t("kpi.frequency_capped", {
-                teo: lastIter.frecuencia_teorica_metro.toFixed(1),
+                teo: fmtDecimal(lastIter.frecuencia_teorica_metro),
               })
             : undefined,
       },
@@ -483,13 +488,13 @@ export function SandboxPage() {
         label: t("kpi.co2"),
         value:
           result.emisiones_total_kg >= 100
-            ? Math.round(result.emisiones_total_kg).toLocaleString("es-CL")
-            : result.emisiones_total_kg.toFixed(1),
+            ? fmtEntero(result.emisiones_total_kg)
+            : fmtDecimal(result.emisiones_total_kg),
         unit: "kg/h",
         color: "var(--ink)",
         delta: t("kpi.co2_split", {
-          auto: Math.round(result.emisiones_auto_kg).toLocaleString("es-CL"),
-          metro: Math.round(result.emisiones_metro_kg).toLocaleString("es-CL"),
+          auto: fmtEntero(result.emisiones_auto_kg),
+          metro: fmtEntero(result.emisiones_metro_kg),
         }),
       },
     ];
@@ -758,10 +763,11 @@ export function SandboxPage() {
   // dice qué hacer si no convergió, va en su «¿por qué?».
   const textosEstado = (() => {
     if (!convergencia) return null;
-    const res = convergencia.res?.toFixed(3) ?? "—";
+    const res =
+      convergencia.res == null ? "—" : fmtDecimal(convergencia.res, 3);
     // 3 decimales como el residuo: con toFixed(2) una tolerancia de 0,001 se
     // imprimía "0.00" y se leía como si no hubiera criterio.
-    const tol = convergencia.tol.toFixed(3);
+    const tol = fmtDecimal(convergencia.tol, 3);
     const total = convergencia.total;
     if (convergencia.sinCriterio)
       return {
@@ -872,7 +878,7 @@ export function SandboxPage() {
           ))}
         <span style={{ marginLeft: "auto", textTransform: "none" }}>
           {t("hero.stats_line", {
-            total: totalAgents > 0 ? totalAgents.toLocaleString("es-CL") : "—",
+            total: totalAgents > 0 ? fmtEntero(totalAgents) : "—",
             length: cfgRes.city.largo_ciudad_km,
             stations: cfgRes.supply.train.num_estaciones,
             lanes: cfgRes.supply.car.num_pistas,
@@ -951,7 +957,7 @@ export function SandboxPage() {
               <span className="srow-label">{t("equilibrium.tolerance")}</span>
               <span className="srow-val" aria-hidden>
                 {config.tolerance > 0
-                  ? `${config.tolerance.toFixed(2)} min`
+                  ? `${fmtDecimal(config.tolerance, 2)} min`
                   : t("equilibrium.tol_off")}
               </span>
             </div>
@@ -1387,7 +1393,7 @@ export function SandboxPage() {
                       largoKm={cfgRes.city.largo_ciudad_km}
                       color="var(--co2)"
                       label="kg/h"
-                      valueFmt={(v) => v.toFixed(1)}
+                      valueFmt={(v) => fmtDecimal(v)}
                       height={130}
                     />
                   </ExportableFigure>

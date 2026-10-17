@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { fmtDecimal, fmtEntero } from "@/lib/modos";
 
 interface BidPriceCurveProps {
   p: readonly number[];
@@ -99,7 +100,7 @@ export function BidPriceCurve({
   // Separador de miles en los enteros, como `fmtInt` de las tablas de
   // transporte: «Δ 133165» se leía mal.
   const fmt = (v: number) =>
-    Math.abs(v) >= 100 ? Math.round(v).toLocaleString("es-CL") : v.toFixed(1);
+    Math.abs(v) >= 100 ? fmtEntero(v) : fmtDecimal(v);
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>

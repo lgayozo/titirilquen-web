@@ -33,6 +33,7 @@ import {
   type CompareKind,
   type Scenario,
 } from "@/store/compareStore";
+import { fmtDecimal, fmtEntero, fmtPct, fmtPesos } from "@/lib/modos";
 
 const KINDS: CompareKind[] = ["transport", "land_use", "coupled"];
 
@@ -300,23 +301,23 @@ export function ComparePage() {
       {
         key: "theil",
         label: t("compare.lu.theil"),
-        fmt: (v) => v.toFixed(3),
+        fmt: (v) => fmtDecimal(v, 3),
         betterWhen: "down",
       },
       {
         key: "dist_alto",
         label: t("compare.lu.dist_alto"),
-        fmt: (v) => `${v.toFixed(2)} km`,
+        fmt: (v) => `${fmtDecimal(v, 2)} km`,
       },
       {
         key: "dist_medio",
         label: t("compare.lu.dist_medio"),
-        fmt: (v) => `${v.toFixed(2)} km`,
+        fmt: (v) => `${fmtDecimal(v, 2)} km`,
       },
       {
         key: "dist_bajo",
         label: t("compare.lu.dist_bajo"),
-        fmt: (v) => `${v.toFixed(2)} km`,
+        fmt: (v) => `${fmtDecimal(v, 2)} km`,
       },
     ],
     [t],
@@ -338,48 +339,47 @@ export function ComparePage() {
     [scenarios, t],
   );
 
-  const fmtInt = (v: number) => Math.round(v).toLocaleString("es-CL");
   const cpRows = useMemo<MetricRow[]>(
     () => [
       {
         key: "theil",
         label: t("compare.cp.theil"),
-        fmt: (v) => v.toFixed(3),
+        fmt: (v) => fmtDecimal(v, 3),
         betterWhen: "down",
       },
       {
         key: "t_medio",
         label: t("compare.cp.t_medio"),
-        fmt: (v) => `${v.toFixed(1)} min`,
+        fmt: (v) => `${fmtDecimal(v)} min`,
         betterWhen: "down",
       },
       {
         key: "auto",
         label: t("compare.cp.auto"),
-        fmt: (v) => `${v.toFixed(1)}%`,
+        fmt: (v) => fmtPct(v),
       },
       {
         key: "carga_bajo",
         label: t("compare.cp.carga_bajo"),
-        fmt: (v) => `${v.toFixed(1)}%`,
+        fmt: (v) => fmtPct(v),
         betterWhen: "down",
       },
       {
         key: "ratio_carga",
         label: t("compare.cp.ratio_carga"),
-        fmt: (v) => `${v.toFixed(2)}×`,
+        fmt: (v) => `${fmtDecimal(v, 2)}×`,
         betterWhen: "down",
       },
       {
         key: "bienestar",
         label: t("compare.cp.bienestar"),
-        fmt: (v) => `$${fmtInt(v)}`,
+        fmt: (v) => fmtPesos(v),
         betterWhen: "up",
       },
       {
         key: "emisiones",
         label: t("compare.cp.emisiones"),
-        fmt: (v) => `${fmtInt(v)} kg/h`,
+        fmt: (v) => `${fmtEntero(v)} kg/h`,
         betterWhen: "down",
       },
       {

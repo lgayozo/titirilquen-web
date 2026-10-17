@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { fmtDecimal } from "@/lib/modos";
 
 interface EsperaMetroProps {
   /** Espera por celda, del snapshot. El CBD vale 0 (es el destino). */
@@ -74,7 +75,7 @@ export function EsperaMetro({
   return (
     <div className={cn("espera-metro", className)}>
       <div className="espera-cifra">
-        <span className="espera-valor">{max.toFixed(1)}</span>
+        <span className="espera-valor">{fmtDecimal(max)}</span>
         <span className="espera-unidad">{t("espera.min")}</span>
         <span className="espera-titulo">{t("espera.titulo")}</span>
       </div>
@@ -82,19 +83,19 @@ export function EsperaMetro({
       <div className="espera-desglose">
         <Parte
           etiqueta={t("espera.base")}
-          valor={`${mediaIntervalo.toFixed(1)} ${t("espera.min")}`}
-          nota={t("espera.base_nota", { f: fOp.toFixed(1) })}
+          valor={`${fmtDecimal(mediaIntervalo)} ${t("espera.min")}`}
+          nota={t("espera.base_nota", { f: fmtDecimal(fOp) })}
         />
         <Parte
           etiqueta={t("espera.anden")}
-          valor={`× ${factorAnden.toFixed(4)}`}
+          valor={`× ${fmtDecimal(factorAnden, 4)}`}
           nota={
             andenActivo
               ? t("espera.anden_activo", {
-                  pct: (recargoAnden * 100).toFixed(0),
-                  rho: rhoAnden.toFixed(2),
+                  pct: fmtDecimal(recargoAnden * 100, 0),
+                  rho: fmtDecimal(rhoAnden, 2),
                 })
-              : t("espera.anden_inactivo", { rho: rhoAnden.toFixed(2) })
+              : t("espera.anden_inactivo", { rho: fmtDecimal(rhoAnden, 2) })
           }
           apagado={!andenActivo}
         />
@@ -103,9 +104,9 @@ export function EsperaMetro({
       <p className="espera-pie">
         {hayPerfil
           ? t("espera.varia", {
-              min: min.toFixed(1),
-              max: max.toFixed(1),
-              pct: (variacion * 100).toFixed(0),
+              min: fmtDecimal(min),
+              max: fmtDecimal(max),
+              pct: fmtDecimal(variacion * 100, 0),
             })
           : t("espera.constante")}{" "}
         {t("espera.msa_nota")}

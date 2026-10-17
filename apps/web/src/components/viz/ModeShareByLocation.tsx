@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { Modo } from "@/lib/types";
-import { COLOR_MODO } from "@/lib/modos";
+import { COLOR_MODO, fmtDecimal, fmtEntero, fmtPct } from "@/lib/modos";
 import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
 
 interface ModeShareByLocationProps {
@@ -286,7 +286,7 @@ export function ModeShareByLocation({
           className="label"
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
-          {largoKm.toFixed(0)} KM
+          {fmtDecimal(largoKm, 0)} KM
         </text>
 
         {/* Leyenda */}
@@ -307,18 +307,18 @@ export function ModeShareByLocation({
       </svg>
       {hover && (
         <div className="network-tooltip" role="tooltip">
-          <div className="nt-head">{`${hover.km.toFixed(1)} km`}</div>
+          <div className="nt-head">{`${fmtDecimal(hover.km)} km`}</div>
           {hover.porModo.map((o) => (
             <div key={o.modo} className="nt-row">
               <span style={{ color: COLOR_MODO[o.modo] }}>
                 {t(`modes.${o.modo.toLowerCase()}`)}
               </span>
-              <span>{`${(o.share * 100).toFixed(1)}%`}</span>
+              <span>{fmtPct(o.share * 100)}</span>
             </div>
           ))}
           <div className="nt-row">
             <span>{t("sandbox.total")}</span>
-            <span>{`${Math.round(hover.total).toLocaleString("es-CL")} ${t("sandbox.agentes")}`}</span>
+            <span>{`${fmtEntero(hover.total)} ${t("sandbox.agentes")}`}</span>
           </div>
         </div>
       )}

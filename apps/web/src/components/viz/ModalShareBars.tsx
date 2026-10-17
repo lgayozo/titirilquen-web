@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
-import { COLOR_MODO } from "@/lib/modos";
+import { COLOR_MODO, fmtPct } from "@/lib/modos";
 import type { RepartoModal } from "@/lib/types-v2";
 
 /** Una fila a graficar: un estrato o el agregado del sistema. */
@@ -122,7 +122,7 @@ export function ModalShareBars({ rows, className }: ModalShareBarsProps) {
                       fill={MODE_COLOR[m]}
                       opacity={0.92}
                     >
-                      <title>{`${t(`eqt.mode_${m.toLowerCase()}`)}: ${(share * 100).toFixed(1)}%`}</title>
+                      <title>{`${t(`eqt.mode_${m.toLowerCase()}`)}: ${fmtPct(share * 100)}`}</title>
                     </rect>
                     {w > 30 && (
                       <text
@@ -135,7 +135,7 @@ export function ModalShareBars({ rows, className }: ModalShareBarsProps) {
                           fill: "var(--on-dato)",
                         }}
                       >
-                        {(share * 100).toFixed(0)}%
+                        {fmtPct(share * 100, 0)}
                       </text>
                     )}
                   </g>

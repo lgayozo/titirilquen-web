@@ -12,6 +12,7 @@ import { fmtParkingPorViaje } from "@/lib/parking";
 import { CITY_PRESETS, POLICY_PRESETS } from "@/lib/presets";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
+import { fmtDecimal, localeCifras } from "@/lib/modos";
 
 export interface JointPreset {
   key: string;
@@ -99,7 +100,7 @@ export function describePresetParams(
   landUse: LandUseConfig,
   t: (k: string, o?: Record<string, unknown>) => string,
 ): PresetParam[] {
-  const nf = (v: number) => v.toLocaleString("es-CL");
+  const nf = (v: number) => v.toLocaleString(localeCifras());
   return [
     // --- Ciudad / suelo (¿compacta o dispersa?) ---
     {
@@ -122,7 +123,7 @@ export function describePresetParams(
     {
       key: "compacidad",
       labelKey: "coupled.param.compacidad",
-      value: landUse.oferta_sigma_frac.toFixed(2),
+      value: fmtDecimal(landUse.oferta_sigma_frac, 2),
       unit: "σ",
       group: "land_use",
     },

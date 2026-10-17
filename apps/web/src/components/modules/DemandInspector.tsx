@@ -9,6 +9,7 @@ import type {
   StratumId,
 } from "@/lib/types";
 import { calcularUtilidades } from "@/lib/utility";
+import { fmtDecimal } from "@/lib/modos";
 
 interface DemandInspectorProps {
   config: SimulationConfig;
@@ -107,8 +108,8 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
             </span>
             <span className="srow-val tabular-nums" aria-hidden>
               {t("demand_inspector.position_value", {
-                pos: posKm.toFixed(1),
-                dist: distKm.toFixed(1),
+                pos: fmtDecimal(posKm),
+                dist: fmtDecimal(distKm),
               })}
             </span>
           </div>
@@ -128,7 +129,7 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
             <span>0 km</span>
             <span style={{ color: "var(--accent)" }}>
               {t("demand_inspector.cbd_center", {
-                km: (config.city.largo_ciudad_km / 2).toFixed(0),
+                km: fmtDecimal(config.city.largo_ciudad_km / 2, 0),
               })}
             </span>
             <span>{config.city.largo_ciudad_km} km</span>

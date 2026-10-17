@@ -11,6 +11,7 @@ import type {
   StratumId,
 } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
+import { fmtDecimal, fmtEntero, fmtPesos } from "@/lib/modos";
 
 /**
  * Comparación contra la corrida FIJADA como referencia, dentro del propio
@@ -42,14 +43,13 @@ interface Props {
   } | null;
 }
 
-const fmtMin = (v: number) => `${v.toFixed(1)} min`;
+const fmtMin = (v: number) => `${fmtDecimal(v)} min`;
 // El signo va ANTES del símbolo: «−$3.331», no «$-3.331».
-const fmtMoney = (v: number) =>
-  `${v < 0 ? "−" : ""}$${Math.round(Math.abs(v)).toLocaleString("es-CL")}`;
-const fmtMiles = (v: number) => `${Math.round(v).toLocaleString("es-CL")}`;
+const fmtMoney = (v: number) => fmtPesos(v);
+const fmtMiles = (v: number) => fmtEntero(v);
 // Un share y su delta van en la MISMA unidad: puntos porcentuales. Escribir el
 // delta como «%» invitaría a leerlo como variación relativa.
-const fmtPuntos = (v: number) => `${v.toFixed(1)} pp`;
+const fmtPuntos = (v: number) => `${fmtDecimal(v)} pp`;
 
 interface FilaAgg {
   label: string;

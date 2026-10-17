@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { PorQue } from "@/components/ui/PorQue";
 import { ModalShareBars } from "@/components/viz/ModalShareBars";
 import { cn } from "@/lib/cn";
+import { fmtDecimal, fmtEntero, fmtPct, fmtPesos } from "@/lib/modos";
 import type { EquilibriumMetrics, StratumMetrics } from "@/lib/types-v2";
 
 interface Props {
@@ -22,12 +23,12 @@ const fig = (color = "var(--muted)"): React.CSSProperties => ({
   color,
 });
 
-const fmtMoney = (v: number) => `$${Math.round(v).toLocaleString("es-CL")}`;
-const fmtInt = (v: number) => Math.round(v).toLocaleString("es-CL");
-const fmtKm = (v: number) => `${v.toFixed(2)} km`;
-const fmtMin = (v: number) => `${v.toFixed(1)} min`;
-const fmtPct = (v: number) => `${(v * 100).toFixed(1)}%`;
-const fmtRatio = (v: number | null) => (v == null ? "—" : `${v.toFixed(2)}×`);
+const fmtKm = (v: number) => `${fmtDecimal(v, 2)} km`;
+const fmtMin = (v: number) => `${fmtDecimal(v)} min`;
+/** Fracción 0–1 → porcentaje. */
+const fmtFrac = (v: number) => fmtPct(v * 100);
+const fmtRatio = (v: number | null) =>
+  v == null ? "—" : `${fmtDecimal(v, 2)}×`;
 
 /**
  * Reporte de métricas del equilibrio "Ciudad en equilibrio" — calculado en el
@@ -67,7 +68,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       key: "hogares",
       label: t("eqt.hogares"),
       get: (s) => s.n_hogares,
-      fmt: fmtInt,
+      fmt: fmtEntero,
       noDelta: true,
     },
     {
@@ -86,13 +87,13 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
       key: "costo",
       label: t("eqt.costo"),
       get: (s) => s.costo_medio_clp,
-      fmt: fmtMoney,
+      fmt: fmtPesos,
     },
     {
       key: "carga",
       label: t("eqt.carga"),
       get: (s) => s.carga_costo_ingreso,
-      fmt: fmtPct,
+      fmt: fmtFrac,
     },
     {
       key: "cs",
@@ -103,7 +104,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
         sys.medida_bienestar === "utilidad_maxima" ? "eqt.cs_max" : "eqt.cs",
       ),
       get: (s) => s.delta_excedente_hogar_mes_clp,
-      fmt: fmtMoney,
+      fmt: fmtPesos,
     },
   ];
 
@@ -146,7 +147,7 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
           sub={t("eqt.conv_sub", {
             n: sys.iteraciones_exteriores,
             res:
-              sys.residual_final == null ? "—" : sys.residual_final.toFixed(1),
+              sys.residual_final == null ? "—" : fmtDecimal(sys.residual_final),
           })}
           good={sys.convergio_exterior}
           warn={!sys.convergio_exterior}
@@ -158,22 +159,22 @@ export function EquilibriumMetricsTable({ last, first, className }: Props) {
         />
         <Stat
           label={t("eqt.freq")}
-          value={`${sys.frecuencia_metro.toFixed(1)}`}
+          value={fmtDecimal(sys.frecuencia_metro)}
           sub={t("eqt.freq_sub")}
         />
         <Stat
           label={t("eqt.emissions")}
-          value={`${fmtInt(sys.emisiones_total_kg)}`}
+          value={fmtEntero(sys.emisiones_total_kg)}
           sub={t("eqt.emissions_sub")}
         />
         <Stat
           label={t("eqt.theil")}
-          value={sys.segregacion_theil.toFixed(3)}
+          value={fmtDecimal(sys.segregacion_theil, 3)}
           sub={t("eqt.theil_sub")}
         />
         <Stat
           label={t("eqt.welfare_total")}
-          value={fmtMoney(sys.delta_bienestar_total_mes_clp)}
+          value={fmtPesos(sys.delta_bienestar_total_mes_clp)}
           sub={t("eqt.welfare_total_sub")}
         />
         <Stat

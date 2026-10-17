@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { fmtDecimal, fmtPct } from "@/lib/modos";
 
 interface StrataHeatmapProps {
   /** Composición por celda ANTES del equilibrio (mezcla uniforme). [L][3] shares. */
@@ -212,7 +213,7 @@ export function StrataHeatmap({
             {/* La franja "antes" es uniforme (misma mezcla en toda celda): la
                 posición no aporta. Solo se muestra km en "después". */}
             {hover.row === "after" && hover.km != null
-              ? ` · ${hover.km.toFixed(1)} km`
+              ? ` · ${fmtDecimal(hover.km)} km`
               : ""}
           </div>
           {STRATUM_KEYS.map((key, h) => (
@@ -232,7 +233,7 @@ export function StrataHeatmap({
                 {t(`strata.${key}`)}
               </span>
               <span className="nt-value">
-                {((hover.shares[h] ?? 0) * 100).toFixed(0)}%
+                {fmtPct((hover.shares[h] ?? 0) * 100, 0)}
               </span>
             </div>
           ))}

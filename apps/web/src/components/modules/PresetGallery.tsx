@@ -18,6 +18,7 @@ import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
+import { fmtDecimal, localeCifras } from "@/lib/modos";
 
 /**
  * Galería de presets del Sandbox (F-01): expone CITY_PRESETS y POLICY_PRESETS
@@ -43,7 +44,7 @@ interface Fila {
   fmt: (v: number) => string;
 }
 
-const nf = (v: number) => v.toLocaleString("es-CL");
+const nf = (v: number) => v.toLocaleString(localeCifras());
 const money = (v: number) => `$${nf(v)}`;
 
 function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
@@ -74,7 +75,7 @@ function filasCiudad(cfg: SimulationConfig, lu: LandUseConfig): Fila[] {
       labelKey: "coupled.param.compacidad",
       valor: lu.oferta_sigma_frac,
       base: defaultLandUseConfig.oferta_sigma_frac,
-      fmt: (v) => v.toFixed(2),
+      fmt: (v) => fmtDecimal(v, 2),
     },
     {
       // …y la densidad es la CONSECUENCIA: ρ = ΣH/largo. Se calcula en vivo
@@ -130,7 +131,7 @@ const CAMPO: Record<
   },
   factor_flota: {
     labelKey: "coupled.param.factor_flota",
-    fmt: (v) => `× ${v.toFixed(2)}`,
+    fmt: (v) => `× ${fmtDecimal(v, 2)}`,
   },
   num_estaciones: {
     labelKey: "coupled.param.estaciones",

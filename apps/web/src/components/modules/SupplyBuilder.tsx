@@ -5,6 +5,7 @@ import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { FACTOR_CAPACIDAD_PRACTICA } from "@/lib/gen/constantes.gen";
 import type { SimulationConfig } from "@/lib/types";
+import { fmtDecimal, localeCifras } from "@/lib/modos";
 
 interface SupplyBuilderProps {
   config: SimulationConfig;
@@ -33,8 +34,8 @@ function estadoFrecuencia(
   if (!freq || freq.operativa <= 0) return null;
   const EPS = 1e-6;
   const cifras = {
-    op: freq.operativa.toFixed(1),
-    teo: freq.teorica.toFixed(1),
+    op: fmtDecimal(freq.operativa),
+    teo: fmtDecimal(freq.teorica),
   };
   if (freq.teorica > frecMax + EPS) return { caso: "max", ...cifras };
   if (freq.teorica < frecMin - EPS) return { caso: "min", ...cifras };
@@ -138,7 +139,7 @@ export function SupplyBuilder({
         ) : (
           <p className="mb-2 text-etiqueta leading-snug text-muted">
             {t("supply_params.car.cap_greenshields", {
-              cap: capGreenshields(car).toLocaleString("es-CL"),
+              cap: capGreenshields(car).toLocaleString(localeCifras()),
             })}
           </p>
         )}
@@ -243,7 +244,7 @@ export function SupplyBuilder({
           min={0}
           max={40000}
           step={1000}
-          format={(v) => `$${v.toLocaleString("es-CL")}`}
+          format={(v) => `$${v.toLocaleString(localeCifras())}`}
           hint={t("supply_params.train.costo_operacion_hint")}
           onChange={(v) => setSupply("train", { costo_operacion_tren_km: v })}
         />
@@ -253,7 +254,7 @@ export function SupplyBuilder({
           min={1}
           max={6}
           step={0.1}
-          format={(v) => `× ${v.toFixed(1)}`}
+          format={(v) => `× ${fmtDecimal(v)}`}
           hint={t("supply_params.train.factor_dia_punta_hint")}
           onChange={(v) => setSupply("train", { factor_dia_punta: v })}
         />
@@ -263,7 +264,7 @@ export function SupplyBuilder({
           min={0}
           max={2}
           step={0.1}
-          format={(v) => `${(v * 60).toFixed(0)} s`}
+          format={(v) => `${fmtDecimal(v * 60, 0)} s`}
           onChange={(v) => setSupply("train", { tiempo_detencion_min: v })}
         />
         <div className="grid grid-cols-2 gap-3">

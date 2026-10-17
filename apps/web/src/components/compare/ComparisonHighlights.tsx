@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import type { ScenarioKPIs } from "@/lib/kpis";
 import type { StratumId } from "@/lib/types";
+import { fmtDelta, sufijoPct } from "@/lib/modos";
 
 interface Row {
   id: string;
@@ -66,7 +67,7 @@ export function ComparisonHighlights({
               <Chip
                 label={t("compare.kpi.total") + " CO₂"}
                 delta={co2Pct}
-                unit="%"
+                unit={sufijoPct()}
                 lowerIsBetter
               />
               <Chip
@@ -127,8 +128,7 @@ function Chip({
     <span className="inline-flex items-center gap-1">
       <span className="text-muted">{label}</span>
       <span className="font-fig" style={{ color, fontWeight: 600 }}>
-        {arrow} {delta >= 0 ? "+" : ""}
-        {delta.toFixed(decimals)}
+        {arrow} {fmtDelta(delta, decimals)}
         {unit}
       </span>
     </span>

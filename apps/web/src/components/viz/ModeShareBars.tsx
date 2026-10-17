@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { AgentRecord, Modo } from "@/lib/types";
-import { COLOR_MODO, ORDEN_MODOS } from "@/lib/modos";
+import { COLOR_MODO, ORDEN_MODOS, fmtEntero, fmtPct } from "@/lib/modos";
 
 /** Un grupo de agentes a comparar (un estrato, o estrato×tenencia, etc.). */
 export interface AgentGroup {
@@ -176,7 +176,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                             fill: "var(--on-dato)",
                           }}
                         >
-                          {(share * 100).toFixed(0)}%
+                          {fmtPct(share * 100, 0)}
                         </text>
                       )}
                     </g>
@@ -191,7 +191,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
                 className="label"
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
-                {r.total.toLocaleString("es-CL")}
+                {fmtEntero(r.total)}
               </text>
             </g>
           );
@@ -216,10 +216,10 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
             {t(`modes.${hover.modo.toLowerCase()}`)} · {hover.grupo}
           </div>
           <div className="nt-row">
-            <span>{`${hover.conteo.toLocaleString("es-CL")} de ${hover.total.toLocaleString("es-CL")} ${t("sandbox.agentes")}`}</span>
+            <span>{`${fmtEntero(hover.conteo)} de ${fmtEntero(hover.total)} ${t("sandbox.agentes")}`}</span>
           </div>
           <div className="nt-row">
-            <span>{`${(hover.share * 100).toFixed(1)}%`}</span>
+            <span>{fmtPct(hover.share * 100)}</span>
           </div>
         </div>
       )}

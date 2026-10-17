@@ -4,6 +4,7 @@ import { PorQue } from "@/components/ui/PorQue";
 import { CaptionTabla } from "@/components/viz/CaptionTabla";
 import { cn } from "@/lib/cn";
 import { downloadCsv } from "@/lib/csv";
+import { fmtDecimal, fmtEntero, fmtPct } from "@/lib/modos";
 
 /** Reparto modal de un modo: porcentaje y conteo de viajes. */
 export interface ModalEntry {
@@ -73,10 +74,9 @@ const fig = (color = "var(--muted)"): React.CSSProperties => ({
   color,
 });
 
-const fmtInt = (v: number) => Math.round(v).toLocaleString("es-CL");
-const fmtMin = (v: number) => `${v.toFixed(1)}`;
-const fmtPct = (v: number) => `${v.toFixed(1)}%`;
-const fmtRatio = (v: number | null) => (v == null ? "—" : `${v.toFixed(2)}×`);
+const fmtMin = (v: number) => fmtDecimal(v);
+const fmtRatio = (v: number | null) =>
+  v == null ? "—" : `${fmtDecimal(v, 2)}×`;
 
 /** Cómo se llama la medida de bienestar que se está mostrando. */
 const claveMedida = (m: TransportMetricsData["medidaBienestar"]) =>
@@ -357,7 +357,7 @@ export function TransportMetricsTable({ data, className }: Props) {
               <td>{t("metrics_table.avg_time_mode")}</td>
               {data.reparto.map((m) => {
                 const tm = data.tiempoPorModo.find((x) => x.modo === m.modo);
-                return <td key={m.modo}>{tm ? `${fmtMin(tm.min)}` : "—"}</td>;
+                return <td key={m.modo}>{tm ? fmtMin(tm.min) : "—"}</td>;
               })}
             </tr>
           </tbody>
@@ -398,12 +398,12 @@ export function TransportMetricsTable({ data, className }: Props) {
             <StratRow
               label={t("metrics_table.st_hogares")}
               data={data.porEstrato}
-              get={(s) => fmtInt(s.nHogares)}
+              get={(s) => fmtEntero(s.nHogares)}
             />
             <StratRow
               label={t("metrics_table.st_viajes")}
               data={data.porEstrato}
-              get={(s) => (s.viajes == null ? "—" : fmtInt(s.viajes))}
+              get={(s) => (s.viajes == null ? "—" : fmtEntero(s.viajes))}
             />
             <StratRow
               label={t("metrics_table.st_time")}
@@ -413,7 +413,9 @@ export function TransportMetricsTable({ data, className }: Props) {
             <StratRow
               label={t(`metrics_table.${claveMedida(data.medidaBienestar)}`)}
               data={data.porEstrato}
-              get={(s) => (s.utilidad == null ? "—" : s.utilidad.toFixed(2))}
+              get={(s) =>
+                s.utilidad == null ? "—" : fmtDecimal(s.utilidad, 2)
+              }
             />
             {modos.map((modoLabel, mi) => (
               <StratRow

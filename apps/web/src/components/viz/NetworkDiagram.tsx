@@ -8,6 +8,7 @@ import type {
   SimulationResult,
 } from "@/lib/types";
 import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
+import { fmtDecimal, fmtEntero } from "@/lib/modos";
 
 interface NetworkDiagramProps {
   snapshot: IterationSnapshot;
@@ -417,7 +418,7 @@ export function NetworkDiagram({
               className="label"
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
-              {tick.km.toFixed(0)}
+              {fmtDecimal(tick.km, 0)}
             </text>
           </g>
         ))}
@@ -434,21 +435,21 @@ export function NetworkDiagram({
       {hover && (
         <div className="network-tooltip" role="tooltip">
           <div className="nt-head" style={{ color: modeColor(hover.mode) }}>
-            {t(`modes.${hover.mode}`)} · {hover.km.toFixed(1)} km
+            {t(`modes.${hover.mode}`)} · {fmtDecimal(hover.km)} km
           </div>
           <Row
             label={t("network.flow")}
-            value={`${Math.round(hover.flow).toLocaleString("es-CL")} ${t(`network.unit.${hover.mode}`)}`}
+            value={`${fmtEntero(hover.flow)} ${t(`network.unit.${hover.mode}`)}`}
           />
           {hover.mode !== "caminata" && (
             <>
               <Row
                 label={t("network.capacity")}
-                value={`${Math.round(hover.cap).toLocaleString("es-CL")} ${t(`network.unit.${hover.mode}`)}`}
+                value={`${fmtEntero(hover.cap)} ${t(`network.unit.${hover.mode}`)}`}
               />
               <Row
                 label={t("network.vc")}
-                value={hover.vc.toFixed(2)}
+                value={fmtDecimal(hover.vc, 2)}
                 emph={hover.vc > 1}
               />
             </>
@@ -456,7 +457,7 @@ export function NetworkDiagram({
           {hover.time != null && (
             <Row
               label={t("network.time")}
-              value={`${hover.time.toFixed(1)} min`}
+              value={`${fmtDecimal(hover.time)} min`}
             />
           )}
         </div>

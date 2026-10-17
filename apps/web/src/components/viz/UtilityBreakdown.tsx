@@ -7,7 +7,7 @@ import {
   probabilidadesLogit,
   type UtilityBreakdown as UB,
 } from "@/lib/utility";
-import { COLOR_MODO } from "@/lib/modos";
+import { COLOR_MODO, fmtDecimal, fmtPct } from "@/lib/modos";
 
 interface UtilityBreakdownProps {
   utilities: Record<Modo, UB>;
@@ -145,13 +145,13 @@ export function UtilityBreakdown({
               </span>
               <UtilityBar u={u} maxAbsSide={maxAbsSide} />
               <span className="text-right font-fig text-etiqueta tabular-nums">
-                {u.valor.toFixed(2)}
+                {fmtDecimal(u.valor, 2)}
               </span>
               <span
                 className="text-right font-fig text-ayuda font-semibold tabular-nums"
                 style={{ color: "var(--ink)" }}
               >
-                {(p * 100).toFixed(0)}%
+                {fmtPct(p * 100, 0)}
               </span>
             </div>
           );
@@ -226,7 +226,7 @@ function UtilityBar({ u, maxAbsSide }: { u: UB; maxAbsSide: number }) {
               backgroundColor: p.color,
               opacity: 0.9,
             }}
-            title={`${p.key} = ${p.v.toFixed(3)}`}
+            title={`${p.key} = ${fmtDecimal(p.v, 3)}`}
           />
         );
       })}
@@ -244,7 +244,7 @@ function UtilityBar({ u, maxAbsSide }: { u: UB; maxAbsSide: number }) {
               backgroundColor: p.color,
               opacity: 0.9,
             }}
-            title={`${p.key} = ${p.v.toFixed(3)}`}
+            title={`${p.key} = ${fmtDecimal(p.v, 3)}`}
           />
         );
       })}

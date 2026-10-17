@@ -4,6 +4,7 @@ import { fmtParking } from "@/lib/parking";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 import type { Scenario } from "@/store/compareStore";
+import { localeCifras } from "@/lib/modos";
 
 /**
  * Diff de **inputs** entre escenarios: qué parámetros difieren de la base.
@@ -31,7 +32,7 @@ interface Campo {
 }
 
 const nf = (v: number | string) =>
-  typeof v === "number" ? v.toLocaleString("es-CL") : String(v);
+  typeof v === "number" ? v.toLocaleString(localeCifras()) : String(v);
 const money = (v: number | string) =>
   typeof v === "number" ? `$${nf(v)}` : String(v);
 

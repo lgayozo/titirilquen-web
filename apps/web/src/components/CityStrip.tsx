@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
-import { COLOR_MODO } from "@/lib/modos";
+import { COLOR_MODO, fmtDecimal } from "@/lib/modos";
 
 export type SingleMode = "auto" | "metro" | "bici" | "caminata";
 /** Vistas de la figura: un modo individual, todos los modos a la vez, o el
@@ -174,7 +174,7 @@ export function CityStrip({
     return [0, maxValue / 2, maxValue];
   }, [maxValue]);
 
-  const fmt = (v: number) => (v >= 10 ? v.toFixed(0) : v.toFixed(1));
+  const fmt = (v: number) => (v >= 10 ? fmtDecimal(v, 0) : fmtDecimal(v));
 
   const showStations =
     !!estacionesKm &&
@@ -398,7 +398,7 @@ export function CityStrip({
           className="label"
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
-          {largoKm.toFixed(0)} KM
+          {fmtDecimal(largoKm, 0)} KM
         </text>
 
         {/* Guía del cursor */}
@@ -459,8 +459,8 @@ export function CityStrip({
         >
           <div style={{ color: "var(--muted)" }}>
             {t("sandbox.strip_tooltip_pos", {
-              km: (((hover + 0.5) / nCeldas) * largoKm).toFixed(1),
-              dist: ((Math.abs(cbdIdx - hover) / nCeldas) * largoKm).toFixed(1),
+              km: fmtDecimal(((hover + 0.5) / nCeldas) * largoKm),
+              dist: fmtDecimal((Math.abs(cbdIdx - hover) / nCeldas) * largoKm),
             })}
           </div>
           {ALL_MODES.map(({ mode, key }) => {
@@ -494,7 +494,7 @@ export function CityStrip({
                     fontWeight: highlight === mode ? 600 : 400,
                   }}
                 >
-                  {v.toFixed(1)} min
+                  {fmtDecimal(v)} min
                 </span>
               </div>
             );

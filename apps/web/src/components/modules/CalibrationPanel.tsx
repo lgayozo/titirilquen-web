@@ -13,6 +13,7 @@ import type {
   StratumConfig,
   StratumId,
 } from "@/lib/types";
+import { fmtDecimal, fmtPesos } from "@/lib/modos";
 
 /**
  * Panel de CALIBRACIÓN del logit: los 14 coeficientes por estrato que hasta
@@ -89,8 +90,7 @@ const STEP: Record<BetaKey, number> = {
   b_costo: 0.00002,
 };
 
-const fmtMoney = (v: number) =>
-  `${v < 0 ? "−" : ""}$${Math.round(Math.abs(v)).toLocaleString("es-CL")}`;
+const fmtMoney = (v: number) => fmtPesos(v);
 
 /**
  * Campo numérico que confirma al SALIR del campo (o con Enter), no en cada
@@ -273,7 +273,8 @@ export function CalibrationPanel({ config, onChange, defaultOpen }: Props) {
   const rEspera = razon(betas.b_tiempo_espera);
   const rAcceso = razon(betas.b_tiempo_acceso);
   const rCaminata = razon(betas.b_tiempo_caminata);
-  const fmtRazon = (r: number | null) => (r == null ? "—" : `${r.toFixed(2)}×`);
+  const fmtRazon = (r: number | null) =>
+    r == null ? "—" : `${fmtDecimal(r, 2)}×`;
 
   const votTodos = votResumen(config);
 

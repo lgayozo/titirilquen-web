@@ -384,9 +384,9 @@
     "stratum_label_1": "1 — Alto",
     "stratum_label_2": "2 — Medio",
     "stratum_label_3": "3 — Bajo",
-    "interpretation": "V = utilidad sistemática del modo, la parte observable de U = V + ε. Está en útiles: solo las diferencias entre modos importan — ~1 útil de ventaja ≈ 2.7× más probable. P = probabilidad de elección de ESTE agente (no el reparto modal del sistema).",
+    "interpretation": "V = utilidad sistemática del modo, la parte observable de U = V + ε. Está en útiles: solo las diferencias entre modos importan — ~1 útil de ventaja ≈ 2,7× más probable. P = probabilidad de elección de ESTE agente (no el reparto modal del sistema).",
     "interpretation_corto": "V es la utilidad observable, en útiles: sólo cuentan las diferencias entre modos. P es la probabilidad de este agente, no el reparto del sistema.",
-    "interpretation_porque": "U = V + ε. ~1 útil de ventaja ≈ 2.7× más probable.",
+    "interpretation_porque": "U = V + ε. ~1 útil de ventaja ≈ 2,7× más probable.",
     "position_value": "{{pos}} km · a {{dist}} km del CBD",
     "cbd_center": "▲ CBD ({{km}} km)",
     "todo_o_nada_notice": "Todo o nada activo: en cada iteración la simulación manda TODO el grupo al modo de mayor V, y el equilibrio promedia esas cargas, así que sólo queda repartido un grupo indiferente entre dos modos. Estas P son las del logit — sirven para leer la función de utilidad, no para anticipar el reparto de esta corrida."

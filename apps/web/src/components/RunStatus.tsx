@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
-import { COLOR_MODO } from "@/lib/modos";
+import { COLOR_MODO, fmtDecimal, fmtEntero, fmtPct } from "@/lib/modos";
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import { useSimulationStore } from "@/store/simulationStore";
 import type { IterationSnapshot, Modo } from "@/lib/types";
@@ -135,7 +135,7 @@ export function RunStatus({
               {t("equilibrium.residual")}
             </div>
             <div className="run-status-residual-value">
-              <span className="num">{residual.toFixed(3)}</span>
+              <span className="num">{fmtDecimal(residual, 3)}</span>
               {trend === "down" && (
                 <span
                   className="trend trend-down"
@@ -176,7 +176,7 @@ export function RunStatus({
         <div className="run-status-split">
           <div className="run-status-split-head">
             <span>{t("sandbox.modal_split_last")}</span>
-            <span className="num">{totalAgents.toLocaleString("es-CL")}</span>
+            <span className="num">{fmtEntero(totalAgents)}</span>
           </div>
           <div
             className="run-status-split-bar"
@@ -192,11 +192,11 @@ export function RunStatus({
                   key={m}
                   className="run-status-split-seg"
                   style={{ width: `${w}%`, backgroundColor: MODE_CSS_VAR[m] }}
-                  title={`${t(`modes.${m.toLowerCase()}`)}: ${n} (${w.toFixed(1)}%)`}
+                  title={`${t(`modes.${m.toLowerCase()}`)}: ${n} (${fmtPct(w)})`}
                 >
                   {w > 7 && (
                     <span className="run-status-split-label">
-                      {w.toFixed(0)}%
+                      {fmtPct(w, 0)}
                     </span>
                   )}
                 </div>
@@ -215,7 +215,7 @@ export function RunStatus({
                     aria-hidden
                   />
                   <span className="name">{t(`modes.${m.toLowerCase()}`)}</span>
-                  <span className="num">{n.toLocaleString("es-CL")}</span>
+                  <span className="num">{fmtEntero(n)}</span>
                 </span>
               );
             })}

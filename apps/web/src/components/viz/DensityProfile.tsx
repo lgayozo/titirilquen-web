@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { fmtDecimal } from "@/lib/modos";
 
 interface DensityProfileProps {
   /** Densidad por celda (hab/km) = S_i/Δx, consecuencia de la oferta. */
@@ -67,7 +68,7 @@ export function DensityProfile({
     `${pathD} L${xOf(densidad.length - 1).toFixed(2)},${(MARGIN.top + plotH).toFixed(2)}` +
     ` L${xOf(0).toFixed(2)},${(MARGIN.top + plotH).toFixed(2)} Z`;
 
-  const fmt = (v: number) => (v >= 100 ? v.toFixed(0) : v.toFixed(1));
+  const fmt = (v: number) => fmtDecimal(v, v >= 100 ? 0 : 1);
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>

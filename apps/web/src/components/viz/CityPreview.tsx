@@ -5,6 +5,7 @@ import { PorQue } from "@/components/ui/PorQue";
 import { cn } from "@/lib/cn";
 import type { SimulationConfig } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
+import { fmtDecimal, fmtPct, localeCifras } from "@/lib/modos";
 
 interface CityPreviewProps {
   config: SimulationConfig;
@@ -206,7 +207,8 @@ export function CityPreview({ config, className }: CityPreviewProps) {
           labelColor="var(--auto)"
           spec={t("preview.spec_auto", {
             lanes: numPistas,
-            width: config.supply.car.ancho_pista_m,
+            width:
+              config.supply.car.ancho_pista_m.toLocaleString(localeCifras()),
           })}
         />
         {Array.from({ length: Math.max(0, numPistas - 1) }).map((_, i) => {
@@ -399,7 +401,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
               className="label"
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
-              {tick.km.toFixed(0)}
+              {fmtDecimal(tick.km, 0)}
             </text>
           </g>
         ))}
@@ -425,7 +427,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
                 flex: Math.max(share[s], 0.001),
                 background: `var(--s${s + 1})`,
               }}
-              title={`${(share[s] * 100).toFixed(0)}%`}
+              title={fmtPct(share[s] * 100, 0)}
             />
           ))}
         </div>
@@ -435,7 +437,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
                 length: largoKm,
                 cells: nCeldas,
                 dx: dxMetros,
-                pop: poblacion.toLocaleString("es-CL"),
+                pop: poblacion.toLocaleString(localeCifras()),
               })
             : t("preview.caption_no_pop_corto", {
                 length: largoKm,

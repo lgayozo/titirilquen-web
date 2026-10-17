@@ -4,6 +4,7 @@ import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { fmtParking } from "@/lib/parking";
 import type { SimulationConfig } from "@/lib/types";
+import { fmtDecimal, localeCifras } from "@/lib/modos";
 
 interface EconomyBuilderProps {
   config: SimulationConfig;
@@ -44,8 +45,9 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
   const { costo_tarifa_metro, costo_parking, costo_combustible_km, peaje_km } =
     config.demand.globales;
 
-  const fmtCurrency = (v: number) => `$${v.toLocaleString("es-CL")}`;
-  const fmtCurrencyPerKm = (v: number) => `$${v.toLocaleString("es-CL")}/km`;
+  const fmtCurrency = (v: number) => `$${v.toLocaleString(localeCifras())}`;
+  const fmtCurrencyPerKm = (v: number) =>
+    `$${v.toLocaleString(localeCifras())}/km`;
 
   return (
     <CollapsibleSection
@@ -98,7 +100,7 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         min={0}
         max={2}
         step={0.1}
-        format={(v) => `× ${v.toFixed(1)}`}
+        format={(v) => `× ${fmtDecimal(v)}`}
         hint={t("economy_params.teletrabajo_hint")}
         onChange={(v) => setGlobal({ teletrabajo_factor: v })}
       />

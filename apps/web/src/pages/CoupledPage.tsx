@@ -20,6 +20,7 @@ import {
 import type { CoupledResult, OuterIteration } from "@/lib/types-v2";
 import { useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
+import { fmtDecimal, fmtDelta } from "@/lib/modos";
 
 type Stage = "idle" | "running" | "done" | "error";
 
@@ -547,7 +548,7 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
         dSeg > 0
           ? "coupled.interp.segregation_up"
           : "coupled.interp.segregation_down",
-        { delta: Math.abs(dSeg).toFixed(3) },
+        { delta: fmtDecimal(Math.abs(dSeg), 3) },
       ),
       porque: dSeg > 0 ? tS("coupled.interp.segregation_up_porque") : undefined,
     });
@@ -563,7 +564,7 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
         {
           alto: fmt(dCargaAlto, 1),
           bajo: fmt(dCargaBajo, 1),
-          cargaBajo: ((eL[bajo]?.carga_costo_ingreso ?? 0) * 100).toFixed(1),
+          cargaBajo: fmtDecimal((eL[bajo]?.carga_costo_ingreso ?? 0) * 100),
         },
       ),
     });
@@ -574,7 +575,7 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
       body: tS("coupled.interp.accessibility_body", {
         alto: fmt(dTAlto, 1),
         bajo: fmt(dTBajo, 1),
-        tBajo: (eL[bajo]?.tiempo_medio_min ?? 0).toFixed(1),
+        tBajo: fmtDecimal(eL[bajo]?.tiempo_medio_min ?? 0),
       }),
     });
   }
@@ -603,6 +604,5 @@ function Interpretation({ first, last, tS }: InterpretationProps) {
 }
 
 function fmt(v: number, digits = 2): string {
-  const sign = v > 0 ? "+" : "";
-  return `${sign}${v.toFixed(digits)}`;
+  return fmtDelta(v, digits);
 }

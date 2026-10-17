@@ -17,7 +17,7 @@ import { StrataHeatmap } from "@/components/viz/StrataHeatmap";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { resolverUsoDeSuelo } from "@/lib/api";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
-import { COLOR_ESTRATO } from "@/lib/modos";
+import { COLOR_ESTRATO, fmtDecimal } from "@/lib/modos";
 import { isLandUseStale, useLandUseStore } from "@/store/landUseStore";
 import { useSimulationStore } from "@/store/simulationStore";
 
@@ -171,12 +171,12 @@ export function LandUsePage() {
         const dist = result.dist_media_km[k] ?? 0;
         return {
           label: tS("land_use.metric_dist", { s: tS(`strata.${STR[k]}`) }),
-          value: dist.toFixed(1),
+          value: fmtDecimal(dist),
           unit: "km",
           color: VAR[k],
         };
       }),
-      { label: tS("land_use.metric_segregation"), value: theil.toFixed(3) },
+      { label: tS("land_use.metric_segregation"), value: fmtDecimal(theil, 3) },
     ];
   }, [result, tS]);
 

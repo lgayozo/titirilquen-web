@@ -5,6 +5,7 @@ import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { densidadDerivadaHabKm } from "@/lib/citySupply";
 import type { SimulationConfig } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
+import { localeCifras } from "@/lib/modos";
 
 interface CityBuilderProps {
   config: SimulationConfig;
@@ -38,11 +39,11 @@ export function CityBuilder({ config, onChange }: CityBuilderProps) {
           step={1}
           unit="km"
           hint={t("city_params.largo_hint", {
-            pob: sumaH.toLocaleString("es-CL"),
+            pob: sumaH.toLocaleString(localeCifras()),
             rho: densidadDerivadaHabKm(
               sumaH,
               config.city.largo_ciudad_km,
-            ).toLocaleString("es-CL"),
+            ).toLocaleString(localeCifras()),
           })}
           // Población fija (ΣH del suelo): la densidad media que muestra el hint
           // es una consecuencia, no un campo (D-46).

@@ -5,6 +5,7 @@ import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { PorQue } from "@/components/ui/PorQue";
 import { defaultLandUseConfig } from "@/lib/defaults";
 import type { LandUseConfig } from "@/lib/types-v2";
+import { fmtDecimal, fmtEntero, fmtPct } from "@/lib/modos";
 
 interface LandUseBuilderProps {
   config: LandUseConfig;
@@ -15,7 +16,7 @@ interface LandUseBuilderProps {
   lambdas: readonly [number, number, number];
 }
 
-const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
+const pct = (v: number) => fmtPct(v * 100, 0);
 
 // Tres ciudades de contraste para μ. Medidas a flujo libre con ρ = 0 (oct-2026):
 // mezclada Theil 0,12 y el alto a 2,4 km del CBD; base 0,39 y 1,4 km;
@@ -40,7 +41,7 @@ export function LandUseBuilder({
   // (schema v7, D1 de la auditoría): la accesibilidad entra con peso 1. Las
   // palancas de preferencias de acá son μ (`config.mu`, valor de escenario
   // desde v10, común a los estratos) y ρ, por estrato.
-  const fmtLambda = (v: number) => `${(v * 1e4).toFixed(2)}·10⁻⁴`;
+  const fmtLambda = (v: number) => `${fmtDecimal(v * 1e4, 2)}·10⁻⁴`;
 
   const setStratum = (
     idx: 0 | 1 | 2,
@@ -93,7 +94,7 @@ export function LandUseBuilder({
       {/* ---- POBLACIÓN: proporciones (mezcla) + densidad por estrato ---- */}
       <CollapsibleSection
         title={t("land_use.section_poblacion")}
-        meta={`≈ ${Math.round(totalH).toLocaleString("es-CL")}`}
+        meta={`≈ ${fmtEntero(totalH)}`}
       >
         <div className="mb-1 text-etiqueta text-muted">
           {t("land_use.proporciones")}
@@ -137,7 +138,7 @@ export function LandUseBuilder({
 
         <p className="mt-2 text-etiqueta text-muted">
           {t("land_use.poblacion_total_corto", {
-            total: Math.round(totalH).toLocaleString("es-CL"),
+            total: fmtEntero(totalH),
             dens: Math.round(densMedia),
           })}
         </p>
@@ -204,7 +205,7 @@ export function LandUseBuilder({
       {/* ---- PARÁMETROS DE PUJA (bid-rent): μ se mueve; λ sólo se muestra (D-41) ---- */}
       <CollapsibleSection
         title={t("land_use.section_bidrent")}
-        meta={`μ=${config.mu.toFixed(2)}`}
+        meta={`μ=${fmtDecimal(config.mu, 2)}`}
         defaultOpen
       >
         <p className="text-etiqueta text-muted">
@@ -217,7 +218,7 @@ export function LandUseBuilder({
           min={0.05}
           max={1}
           step={0.05}
-          format={(v) => v.toFixed(2)}
+          format={(v) => fmtDecimal(v, 2)}
           hint={t("land_use.mu_corto")}
           onChange={(v) => onChange((c) => ({ ...c, mu: v }))}
         />
@@ -230,7 +231,7 @@ export function LandUseBuilder({
               style={{ flex: 1 }}
               onClick={() => onChange((c) => ({ ...c, mu: p.mu }))}
             >
-              {t(`land_use.mu_preset_${p.key}`, { mu: p.mu.toFixed(2) })}
+              {t(`land_use.mu_preset_${p.key}`, { mu: fmtDecimal(p.mu, 2) })}
             </button>
           ))}
         </div>
@@ -252,7 +253,7 @@ export function LandUseBuilder({
           <CollapsibleSection
             key={i}
             title={`${labels[idx]} · ${t("land_use.section_bidrent_short")}`}
-            meta={`ρ=${s.rho.toFixed(0)}`}
+            meta={`ρ=${fmtDecimal(s.rho, 0)}`}
             defaultOpen={false}
           >
             <LabeledSlider
@@ -261,7 +262,7 @@ export function LandUseBuilder({
               min={0}
               max={60}
               step={1}
-              format={(v) => v.toFixed(0)}
+              format={(v) => fmtDecimal(v, 0)}
               hint={t("land_use.rho_corto")}
               onChange={(v) => setStratum(idx, { rho: v })}
             />
@@ -272,7 +273,7 @@ export function LandUseBuilder({
               min={100_000}
               max={10_000_000}
               step={100_000}
-              format={(v) => `$${(v / 1_000_000).toFixed(1)}M`}
+              format={(v) => `$${fmtDecimal(v / 1_000_000)}M`}
               disabled
               hint={t("land_use.y_na_corto")}
               onChange={(v) => setStratum(idx, { y: v })}
