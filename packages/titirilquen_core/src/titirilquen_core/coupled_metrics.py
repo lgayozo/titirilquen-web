@@ -39,6 +39,16 @@ Caveats de unidades (ver discusión en DISCREPANCIES.md / OVERLEAF_CHANGES.md):
   (demoras, espera, modos que dejan de ser factibles); Δ > 0 ⇒ domina el
   **efecto Mohring** (más demanda ⇒ más frecuencia de metro ⇒ menos espera que
   con la red vacía).
+- Junto al Δ va el **nivel** (`excedente_hogar_mes_clp`, `excedente_total_mes_clp`),
+  que solo sirve para restarlo entre dos escenarios. El Δ contra la red vacía
+  compara cada escenario consigo mismo, y la red vacía fija sólo los TIEMPOS:
+  los precios (peaje, parking, tarifa) entran igual en los dos términos y se
+  cancelan, y en el acoplado cada hogar se evalúa donde quedó localizado en ese
+  escenario. Restar esos Δ entre escenarios no da el cambio de bienestar entre
+  ellos —un peaje no aparecería—. Restar niveles sí (Williams 1977; Small y
+  Rosen 1981), siempre que los dos compartan β, modos habilitados, teletrabajo y
+  medida: con otros β cambia la unidad; con otro menú o con otro teletrabajo,
+  un hogar entra o sale de la suma con el cero arbitrario de las ASC.
 """
 
 from __future__ import annotations
@@ -112,6 +122,14 @@ class StratumMetrics:
     Mohring (frecuencia endógena). Eficiencia/DAP, NO bienestar interpersonal, y
     sin rentas — ver módulo docstring."""
 
+    excedente_hogar_mes_clp: float
+    """**Nivel** del excedente, en $/hogar-mes: VIAJES_MES·logsum/−b_costo, con
+    el mismo denominador y la misma medida que `delta_excedente_hogar_mes_clp`.
+    Su cero lo fijan las ASC: no se lee solo. Existe para restarlo entre DOS
+    escenarios, que es el cambio de bienestar entre ellos; el Δ contra la red
+    vacía no sirve para eso, porque los precios se cancelan dentro de él. Ver
+    módulo docstring."""
+
     carga_costo_ingreso: float
     """Carga **mensual**: (costo medio por viaje · 44 viajes/mes) / ingreso
     mensual del estrato ($/mes). Fracción interpretable (~0.02–0.30) — antes
@@ -157,6 +175,12 @@ class SystemMetrics:
     """Σ sobre los hogares de ΔCS mensual ($/mes) — D-35, D11. Efecto agregado de
     bienestar de la demanda sobre la red (congestión vs Mohring), respecto a la
     red vacía. Sólo transporte: cota inferior en el sentido de Martínez p. 264."""
+
+    excedente_total_mes_clp: float
+    """**Nivel** del excedente de la ciudad, en $/mes: la misma suma que
+    `delta_bienestar_total_mes_clp` sin restar la red vacía. Sólo su diferencia
+    con otro escenario es interpretable, y sólo si comparten β, modos
+    habilitados, teletrabajo y medida (ver `excedente_hogar_mes_clp`)."""
 
     medida_bienestar: MedidaBienestar
     """Con qué medida se calculó el ΔCS: `logsum` bajo los métodos logit,
@@ -344,6 +368,7 @@ def compute_equilibrium_metrics(
     t_sum = np.zeros(n_strata)
     c_sum = np.zeros(n_strata)
     cs_sum = np.zeros(n_strata)
+    cs_nivel = np.zeros(n_strata)
     viajan = np.zeros(n_strata, dtype=int)
     modal = np.zeros((n_strata, len(_CATEGORIAS_MODALES)), dtype=float)
     total_ag = np.zeros(n_strata, dtype=int)
@@ -405,6 +430,9 @@ def compute_equilibrium_metrics(
         # diferencia es interpretable (congestión vs efecto Mohring).
         if not np.isnan(ls) and not np.isnan(ls_ff):
             cs_sum[h] += (ls - ls_ff) / (-b_costo[h])
+            # El nivel, con la misma condición: así nivel y Δ suman sobre los
+            # mismos agentes y el Δ entre escenarios sale de restar niveles.
+            cs_nivel[h] += ls / (-b_costo[h])
         viajan[h] += 1
 
     # --- Construir métricas por estrato ---
@@ -420,6 +448,7 @@ def compute_equilibrium_metrics(
         # varado no tiene medida y queda fuera del denominador.
         con_medida = tot - int(modal[h, cat_idx["Varado"]])
         cs_hogar_mes = float(VIAJES_MES * cs_sum[h] / con_medida) if con_medida > 0 else 0.0
+        nivel_hogar_mes = float(VIAJES_MES * cs_nivel[h] / con_medida) if con_medida > 0 else 0.0
         reparto = {c: (float(modal[h, k] / tot) if tot > 0 else 0.0) for c, k in cat_idx.items()}
         # Carga mensual: costo por viaje × viajes/mes sobre ingreso mensual (D-27).
         carga = (c_medio * VIAJES_MES) / ingresos[h] if ingresos[h] > 0 else 0.0
@@ -433,6 +462,7 @@ def compute_equilibrium_metrics(
                 reparto_modal=reparto,
                 costo_medio_clp=c_medio,
                 delta_excedente_hogar_mes_clp=cs_hogar_mes,
+                excedente_hogar_mes_clp=nivel_hogar_mes,
                 carga_costo_ingreso=carga,
             )
         )
@@ -479,6 +509,7 @@ def compute_equilibrium_metrics(
         emisiones_metro_kg=float(trace.emisiones_metro_kg),
         segregacion_theil=_theil(Q, S),
         delta_bienestar_total_mes_clp=bienestar_total,
+        excedente_total_mes_clp=float(VIAJES_MES * cs_nivel.sum()),
         medida_bienestar=medida,
         ratio_tiempo_bajo_alto=ratio_t,
         ratio_carga_bajo_alto=ratio_carga,

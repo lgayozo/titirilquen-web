@@ -277,16 +277,16 @@
     <tr><td class="n">(7.7)</td><td class="ruta py">bienestar.py</td><td class="n">496</td><td><code>subsidio_metro_clp</code> — el único término que lleva el factor día/punta</td></tr>
     <tr><td class="n">(7.7)</td><td class="ruta py">emissions.py</td><td class="n">43</td><td><code>tren_km_hora</code> — única definición de los tren-km; el costo del operador y las emisiones la comparten</td></tr>
     <tr><td class="n">(7.7)</td><td class="ruta py">config.py</td><td class="n">301</td><td><code>costo_operacion_tren_km</code> — y <code>factor_dia_punta</code> (322), con el razonamiento del factor en el comentario</td></tr>
-    <tr><td class="n">(7.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">270</td><td><code>_theil</code> — con <code>S</code> pesa por hogares; sin él, por celda</td></tr>
+    <tr><td class="n">(7.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">294</td><td><code>_theil</code> — con <code>S</code> pesa por hogares; sin él, por celda</td></tr>
     <tr><td class="n">(7.8)</td><td class="ruta py">serializacion.py</td><td class="n">304</td><td><code>_theil</code> — el suelo standalone lo publica con la misma función</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">407</td><td><code>cs_sum</code> — ΔCS contra la red vacía, agente a agente; <code>cs_hogar_mes</code> (422) y <code>bienestar_total</code> (457), en pesos por mes (cap. 6)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">425</td><td><code>carga</code> — costo mensual sobre ingreso mensual; los cocientes de equidad en <code>ratio_t</code> (461) y <code>ratio_carga</code> (464)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">432</td><td><code>cs_sum</code> — ΔCS contra la red vacía, agente a agente; <code>cs_hogar_mes</code> (450) y <code>bienestar_total</code> (487), en pesos por mes (cap. 6)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">454</td><td><code>carga</code> — costo mensual sobre ingreso mensual; los cocientes de equidad en <code>ratio_t</code> (491) y <code>ratio_carga</code> (494)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">land_use/config.py</td><td class="n">22</td><td><code>LandUseStratumConfig</code> — el ingreso <code>y</code> por estrato que la carga divide</td></tr>
     <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">269</td><td><code>calcular_agregados</code> — los agregados viajan en el trace, una sola vez para API y worker</td></tr>
     <tr><td class="n">—</td><td class="ruta tsx">components/viz/ReferenceComparison.tsx</td><td class="n">78</td><td><code>ReferenceComparison</code> — la tabla del Sandbox; <code>excedenteComparable</code> (111) bloquea el Δ cuando las medidas o los modos no coinciden</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">952</td><td><code>excedente_social_porque</code> — dice qué hace la ponderación social y remite al costo generalizado social (D13), plegado bajo la nota corta <code>excedente_social_corto</code> (951) desde B3; <code>excedente_social</code> (950)</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">946</td><td><code>costo_operador_nota</code> — rotula la base, la hora punta; <code>subsidio_nota</code> (948) lleva el factor</td></tr>
-    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">782</td><td><code>welfare_total_sub</code> — el total del acoplado, suma sobre hogares en $/mes (D11); <code>cs</code> (753)</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">957</td><td><code>excedente_social_porque</code> — dice qué hace la ponderación social y remite al costo generalizado social (D13), plegado bajo la nota corta <code>excedente_social_corto</code> (956) desde B3; <code>excedente_social</code> (955)</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">951</td><td><code>costo_operador_nota</code> — rotula la base, la hora punta; <code>subsidio_nota</code> (953) lleva el factor</td></tr>
+    <tr><td class="n">—</td><td class="ruta json">i18n/locales/es/simulator.json</td><td class="n">787</td><td><code>welfare_total_sub</code> — el total del acoplado, suma sobre hogares en $/mes (D11); <code>cs</code> (758)</td></tr>
   </tbody>
 </table>
 </div>
@@ -319,9 +319,9 @@
     <tr><td><code class="ruta py">tests/test_bienestar.py</code>:273</td><td>D14: con sólo el auto habilitado, los varados son exactamente quienes no tienen auto, en los tres métodos, y no entran a los viajeros.</td></tr>
     <tr><td><code class="ruta py">tests/test_bienestar.py</code>:303</td><td>Un metro sin emisiones sigue costando operarlo: los tren-km salen del servicio.</td></tr>
     <tr><td><code class="ruta py">tests/test_bienestar.py</code>:317</td><td>(7.6): los minutos ponderados pesan espera y acceso, y el costo social supera al de minutos planos (340).</td></tr>
-    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:104</td><td>Con ingresos 100/50/10 la carga del estrato bajo es la mayor.</td></tr>
-    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:112</td><td>El bienestar total del acoplado es el ΔCS por hogar-mes por los hogares con medida, sin los varados (cap. 6).</td></tr>
-    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:197</td><td>(7.8) pesa por hogares: dos celdas de tamaños distintos no pesan igual.</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:105</td><td>Con ingresos 100/50/10 la carga del estrato bajo es la mayor.</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:113</td><td>El bienestar total del acoplado es el ΔCS por hogar-mes por los hogares con medida, sin los varados (cap. 6).</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:229</td><td>(7.8) pesa por hogares: dos celdas de tamaños distintos no pesan igual.</td></tr>
   </tbody>
 </table>
 </div>

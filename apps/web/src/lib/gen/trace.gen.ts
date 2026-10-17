@@ -186,6 +186,15 @@ export interface StratumMetrics {
    */
   delta_excedente_hogar_mes_clp: number;
   /**
+   *  **Nivel** del excedente, en $/hogar-mes: VIAJES_MES·logsum/−b_costo, con
+   *  el mismo denominador y la misma medida que
+   *  `delta_excedente_hogar_mes_clp`. Su cero lo fijan las ASC: no se lee solo.
+   *  Existe para restarlo entre DOS escenarios, que es el cambio de bienestar
+   *  entre ellos; el Δ contra la red vacía no sirve para eso, porque los
+   *  precios se cancelan dentro de él. Ver módulo docstring.
+   */
+  excedente_hogar_mes_clp: number;
+  /**
    *  Carga **mensual**: (costo medio por viaje · 44 viajes/mes) / ingreso
    *  mensual del estrato ($/mes). Fracción interpretable (~0.02–0.30) — antes
    *  mezclaba costo por viaje en $ con un ingreso adimensional (D-27).
@@ -229,6 +238,13 @@ export interface SystemMetrics {
    *  264.
    */
   delta_bienestar_total_mes_clp: number;
+  /**
+   *  **Nivel** del excedente de la ciudad, en $/mes: la misma suma que
+   *  `delta_bienestar_total_mes_clp` sin restar la red vacía. Sólo su
+   *  diferencia con otro escenario es interpretable, y sólo si comparten β,
+   *  modos habilitados, teletrabajo y medida (ver `excedente_hogar_mes_clp`).
+   */
+  excedente_total_mes_clp: number;
   /**
    *  Con qué medida se calculó el ΔCS: `logsum` bajo los métodos logit,
    *  `utilidad_maxima` bajo `todo_o_nada`. La decide el núcleo

@@ -211,6 +211,20 @@
   declara como tal.
 </p>
 
+<p>
+  (6.8) compara cada escenario consigo mismo, y por eso no sirve para
+  comparar dos escenarios. La red vacía fija sólo los <em>tiempos</em>: los
+  precios (peaje, estacionamiento, tarifa) entran igual en los dos logsum y
+  casi se cancelan, y cada hogar se evalúa donde quedó localizado en ese
+  escenario. Restar el (6.8) de dos escenarios no ve un peaje. Desde
+  oct-2026 el núcleo exporta además el <strong>nivel</strong>, el mismo
+  (6.8) sin restar la red vacía (<code>excedente_hogar_mes_clp</code> y
+  <code>excedente_total_mes_clp</code>), cuya diferencia entre dos escenarios
+  sí es el cambio de bienestar entre ellos (Williams 1977; Small y Rosen
+  1981), siempre que compartan β, modos habilitados, teletrabajo y medida.
+  Solo, el nivel no se lee: su cero lo fijan las ASC.
+</p>
+
 <div class="aviso idea">
   <h4>Alcance</h4>
   <p>
@@ -318,18 +332,18 @@
     <tr><td class="n">(6.7)</td><td class="ruta py">coupled.py</td><td class="n">198</td><td><code>residual</code> — la brecha <em>max |T_new − T|/λ_h</em>; el criterio compuesto en <code>is_converged</code> (214) y el corte (241), que no espera a las otras dos partes</td></tr>
     <tr><td class="n">(6.7)</td><td class="ruta py">constantes.py</td><td class="n">64</td><td><code>TOL_ACOPLADO_CLP_MES</code> — 100 $/hogar-mes; default de <code>iter_coupled</code>, de la API y del worker</td></tr>
     <tr><td class="n">—</td><td class="ruta py">coupled.py</td><td class="n">55</td><td><code>OuterIteration</code> — lo que se emite por vuelta; <code>CoupledResult</code> (71) lo agrega</td></tr>
-    <tr><td class="n">(6.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">304</td><td><code>compute_equilibrium_metrics</code> — métricas por estrato y de sistema, por vuelta; el baseline del ΔCS es <code>tiempos_red_vacia</code> (363), el mismo objeto que la <em>T</em> del standalone</td></tr>
-    <tr><td class="n">(6.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">422</td><td><code>cs_hogar_mes</code> — (6.8) por estrato; el total del sistema en <code>bienestar_total</code> (457), en $/mes</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">125</td><td><code>convergio_exterior</code> — el veredicto del núcleo, que viaja en las métricas; <code>residual_final</code> (129) en $/hogar-mes</td></tr>
+    <tr><td class="n">(6.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">328</td><td><code>compute_equilibrium_metrics</code> — métricas por estrato y de sistema, por vuelta; el baseline del ΔCS es <code>tiempos_red_vacia</code> (388), el mismo objeto que la <em>T</em> del standalone</td></tr>
+    <tr><td class="n">(6.8)</td><td class="ruta py">coupled_metrics.py</td><td class="n">450</td><td><code>cs_hogar_mes</code> — (6.8) por estrato; el total del sistema en <code>bienestar_total</code> (487), en $/mes</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">coupled_metrics.py</td><td class="n">143</td><td><code>convergio_exterior</code> — el veredicto del núcleo, que viaja en las métricas; <code>residual_final</code> (147) en $/hogar-mes</td></tr>
     <tr><td class="n">—</td><td class="ruta py">serializacion.py</td><td class="n">310</td><td><code>outer_iteration_to_dict</code> — la forma JSON de cada vuelta, una sola vez para API y worker</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">lib/api.ts</td><td class="n">167</td><td><code>resolverAcoplado</code> — la puerta única al motor; en el motor local toma <code>converged</code> (179) del veredicto del núcleo; <code>resolverAcopladoStream</code> (190) es la que usa la página acoplada</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">194</td><td><code>applyJointPreset</code> — el preset fija sus palancas y conserva los estratos calibrados del usuario (228), y con ellos su <em>λ</em> (D10)</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">32</td><td><code>poblacion</code> — la población del preset, que <code>applyJointPreset</code> escribe en <code>H_por_estrato</code> (262): la única fuente de población es el suelo (D10d)</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">195</td><td><code>applyJointPreset</code> — el preset fija sus palancas y conserva los estratos calibrados del usuario (228), y con ellos su <em>λ</em> (D10)</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">lib/joint-presets.ts</td><td class="n">33</td><td><code>poblacion</code> — la población del preset, que <code>applyJointPreset</code> escribe en <code>H_por_estrato</code> (263): la única fuente de población es el suelo (D10d)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">93</td><td><code>coupledOuterMaxIter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; el usuario lo baja, el setter (123) no deja pasar el tope</td></tr>
-    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">211</td><td><code>resolverAcoplado</code> — la lente acoplada corre con el suelo de la tarjeta, como las otras dos (D10d); el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code> (214)</td></tr>
+    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">212</td><td><code>resolverAcoplado</code> — la lente acoplada corre con el suelo de la tarjeta, como las otras dos (D10d); el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code> (215)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">146</td><td><code>outer_max_iter</code> — default y tope <code>VUELTAS_ACOPLADO_MAX</code>; <code>outer_tol</code> (149) toma la constante del núcleo</td></tr>
     <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">308</td><td><code>iter_msa_desde_suelo</code> — con <code>Q_dada</code> no resuelve la subasta: puebla con la <em>Q</em> de otra corrida y la publica en <code>localizacion_Q</code>; la valida <code>_valida_Q</code> (406) (D11c)</td></tr>
-    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">85</td><td><code>mismaCiudad</code> — misma geometría y misma oferta <em>S</em>: sólo entonces la tarjeta corre con la <em>Q</em> de la base (177) (D11c)</td></tr>
+    <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">86</td><td><code>mismaCiudad</code> — misma geometría y misma oferta <em>S</em>: sólo entonces la tarjeta corre con la <em>Q</em> de la base (177) (D11c)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">204</td><td><code>outer_max_iter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; la cota la valida el núcleo; <code>outer_tol</code> (205) toma la constante del núcleo</td></tr>
   </tbody>
 </table>
@@ -380,10 +394,10 @@
     <tr><td><code class="ruta py">tests/test_q_congelada.py</code>:48</td><td>Con el peaje de Tarificación Vial la <em>Q</em> propia se mueve y la congelada deja a cada hogar en su celda y su estrato; el reparto modal sí cambia.</td></tr>
     <tr><td><code class="ruta py">tests/test_q_congelada.py</code>:60</td><td>La <em>Q</em> dada se valida: forma, signo, suma 1 en cada celda con vivienda, y «original» no la admite.</td></tr>
     <tr><td><code class="ruta py">tests/test_coupled.py</code>:121</td><td>La <em>T</em> del snapshot es el logsum de la demanda y nada más: con estratos idénticos las tres filas coinciden; con la demanda calibrada difieren (139).</td></tr>
-    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:112</td><td>(6.8): el total del sistema es el ΔCS por hogar-mes por los hogares que viajan o teletrabajan, sin los varados.</td></tr>
-    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:170</td><td>Al agotar el tope, la ciudad final es la que ese transporte vio.</td></tr>
-    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:181</td><td>El acoplado no converge si el transporte no convergió, y el loop para en cuanto la brecha cumple en vez de repetir la misma ciudad hasta el tope.</td></tr>
-    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:141</td><td>Las métricas reciben la configuración efectiva, con la carga esperada que el loop fuerza, y el núcleo decide la medida una sola vez (152); el Theil pesa por hogares y no por celdas (197).</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:113</td><td>(6.8): el total del sistema es el ΔCS por hogar-mes por los hogares que viajan o teletrabajan, sin los varados.</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:202</td><td>Al agotar el tope, la ciudad final es la que ese transporte vio.</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:213</td><td>El acoplado no converge si el transporte no convergió, y el loop para en cuanto la brecha cumple en vez de repetir la misma ciudad hasta el tope.</td></tr>
+    <tr><td><code class="ruta py">tests/test_coupled_metrics.py</code>:172</td><td>Las métricas reciben la configuración efectiva, con la carga esperada que el loop fuerza, y el núcleo decide la medida una sola vez (184); el Theil pesa por hogares y no por celdas (229).</td></tr>
     <tr><td><code class="ruta py">tests/test_linea_base.py</code>:207</td><td>La línea base «equilibrio» del Sandbox, que se mueve con (6.2) porque su localización usa la <em>T</em> de la red vacía.</td></tr>
   </tbody>
 </table>

@@ -82,6 +82,7 @@ def test_valores_finitos_y_signos(corrida) -> None:
         assert np.isfinite(sm.costo_medio_clp) and sm.costo_medio_clp >= 0
         # ΔCS vs red vacía: signo libre (congestión <0, Mohring >0), pero finito.
         assert np.isfinite(sm.delta_excedente_hogar_mes_clp)
+        assert np.isfinite(sm.excedente_hogar_mes_clp)
         assert np.isfinite(sm.carga_costo_ingreso) and sm.carga_costo_ingreso >= 0
     s = m.sistema
     assert 0.0 <= s.segregacion_theil <= 1.0
@@ -125,6 +126,37 @@ def test_bienestar_total_es_suma_por_hogar(corrida_res) -> None:
         for sm, n in zip(m.por_estrato, con_medida, strict=True)
     )
     assert m.sistema.delta_bienestar_total_mes_clp == pytest.approx(esperado, rel=1e-9, abs=1e-6)
+    # El nivel se agrega igual: mismos hogares, mismo denominador.
+    nivel = sum(
+        sm.excedente_hogar_mes_clp * n for sm, n in zip(m.por_estrato, con_medida, strict=True)
+    )
+    assert m.sistema.excedente_total_mes_clp == pytest.approx(nivel, rel=1e-9, abs=1e-6)
+
+
+def test_un_peaje_lo_ve_el_nivel_y_no_el_delta_contra_la_red_vacia(corrida_res) -> None:
+    """Por qué existe el nivel. La red vacía fija sólo los TIEMPOS: un precio
+    entra en el logsum real y en el de la red vacía, y el Δ contra ella casi no
+    lo ve. Con la misma ciudad y los mismos tiempos, un peaje tiene que bajar el
+    nivel del excedente mucho más de lo que mueve ese Δ — restar los Δ de dos
+    escenarios no daría el costo del peaje."""
+    from titirilquen_core.coupled_metrics import compute_equilibrium_metrics
+
+    res, sim, lu = corrida_res
+    it = res.iterations[-1]
+    assert res.final_city is not None
+    con_peaje = sim.model_copy(deep=True)
+    con_peaje.demand.globales.peaje_km = 2000.0
+
+    def medir(s):
+        return compute_equilibrium_metrics(
+            land_use=it.land_use, trace=it.transport, S=res.final_city.S, sim=s, land_use_config=lu
+        ).sistema
+
+    base, peaje = medir(sim), medir(con_peaje)
+    d_nivel = peaje.excedente_total_mes_clp - base.excedente_total_mes_clp
+    d_delta = peaje.delta_bienestar_total_mes_clp - base.delta_bienestar_total_mes_clp
+    assert d_nivel < 0
+    assert abs(d_delta) < 0.2 * abs(d_nivel)
 
 
 # ---------------------------------------------------------------------------
