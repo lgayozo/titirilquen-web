@@ -126,8 +126,14 @@ export const TUTORIAL_TOC_ES: readonly TutorialMeta[] = [
     tagline: "Bid-rent + subasta logit",
   },
   {
-    slug: "experimenting",
+    slug: "welfare",
     order: 8,
+    title: "Bienestar",
+    tagline: "Excedente, bienestar social y qué se compara",
+  },
+  {
+    slug: "experimenting",
+    order: 9,
     title: "Experimentar",
     tagline: "Presets y actividades",
   },
@@ -167,8 +173,14 @@ export const TUTORIAL_TOC_EN: readonly TutorialMeta[] = [
     tagline: "Bid-rent + logit auction",
   },
   {
-    slug: "experimenting",
+    slug: "welfare",
     order: 8,
+    title: "Welfare",
+    tagline: "Surplus, social welfare and what compares",
+  },
+  {
+    slug: "experimenting",
+    order: 9,
     title: "Experiment",
     tagline: "Presets and activities",
   },

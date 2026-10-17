@@ -1,0 +1,105 @@
+---
+slug: welfare
+order: 8
+title: Bienestar
+tagline: Excedente del logsum, bienestar social y qué se puede comparar
+---
+
+# Bienestar
+
+Una política de transporte no se evalúa sólo por cuántos cambian de modo. Las preguntas de fondo son dos: **quién gana y quién pierde**, y si la ciudad en conjunto gana. El simulador responde con el **excedente del consumidor** que se desprende del mismo logit con que cada hogar elige modo.
+
+## El logsum es el excedente del viajero
+
+Bajo el logit del capítulo de Demanda, la utilidad esperada de la **mejor** alternativa disponible tiene forma cerrada (Williams 1977; Small y Rosen 1981):
+
+$$
+E\big[\max_m (V_m + \varepsilon_m)\big] = \ln \sum_m e^{V_m} + \gamma
+$$
+
+Es el mismo **logsum** que los capítulos de Equilibrio y Uso de suelo usan como accesibilidad: el valor de tener ese menú de modos desde esa celda. Sube si mejora cualquier alternativa, y más si mejora la que ya era buena. La constante de Euler $\gamma$ se omite, porque ninguna diferencia la ve.
+
+Con el método **todo o nada** no hay término aleatorio: el agente toma el mejor modo y su valor esperado es $\max_m V_m$. El simulador empareja la medida con el método de asignación y no deja elegir: logsum con los métodos logit y utilidad máxima con todo o nada (capítulo de Métodos de asignación).
+
+## De útiles a pesos
+
+Los útiles de estratos distintos no se suman. Para llevarlos a pesos se divide por la **utilidad marginal del ingreso** de cada estrato, el coeficiente de costo del logit:
+
+$$
+\lambda_h = |\beta_c^h| \qquad\Longrightarrow\qquad CS_h = \frac{1}{\lambda_h}\,\ln \sum_m e^{V_m^h}
+$$
+
+Es el mismo $\lambda_h$ del capítulo de Uso de suelo. En la página **Transporte**, $CS_h$ es un promedio **por viajero** de la hora punta, ponderado por la demanda esperada de cada celda, y el total de la ciudad suma los $CS_h$ por el número de viajeros de cada estrato.
+
+## El nivel no significa nada; la diferencia, sí
+
+<Callout type="warn">
+**Nunca leas el nivel del excedente.** Las utilidades incluyen las constantes específicas de modo (ASC), cuyo cero es arbitrario, y el excedente las arrastra. En la configuración por defecto el excedente por viajero sale \$59 para el estrato alto, −\$304 para el medio y −\$148 para el bajo: eso no dice que el estrato medio esté peor, dice dónde dejaron el cero las ASC.
+</Callout>
+
+Lo que sí significa algo es la **diferencia entre dos escenarios**, con el cero cancelado:
+
+$$
+\Delta CS_h = \frac{1}{\lambda_h}\left(\ln \sum_m e^{V_m^{h,1}} - \ln \sum_m e^{V_m^{h,0}}\right)
+$$
+
+Esa resta vale como cambio de bienestar sólo si los dos escenarios comparten tres cosas:
+
+- **El mismo método de asignación.** El logsum y la utilidad máxima difieren en una brecha que cambia entre escenarios; si la referencia se corrió con otro método, la interfaz muestra los niveles pero no el Δ.
+- **Los mismos modos habilitados.** Con otro menú de alternativas la medida cambia de escala.
+- **Los mismos $\beta$.** Mover la calibración cambia $\lambda_h$, y con él la unidad en que se mide.
+
+Quien no tiene ningún modo factible queda fuera del promedio, y la tabla publica cuántos son en la fila **Varados**. Una política que deja gente sin alternativas no se cuenta como bienestar bajo: esa gente desaparece de la cuenta. Por eso conviene mirar esa fila antes de leer el excedente.
+
+## Bienestar social: lo que pierde el viajero puede ganarlo la ciudad
+
+El excedente no basta para evaluar políticas de precio. Un peaje empeora al viajero y a la vez recauda, y esa recaudación no se pierde: es una **transferencia** que vuelve a la ciudad. La función objetivo suma las transferencias y resta lo que se consume de verdad, todo en la hora punta que simula el modelo:
+
+$$
+W = CS + R_{\text{parking}} + R_{\text{peaje}} + R_{\text{tarifa}} - C_{\text{op}}, \qquad C_{\text{op}} = \text{tren-km} \cdot c_{\text{km}}
+$$
+
+La bencina no entra en la recaudación: se quema, no la recibe nadie. El costo de operación del metro sí entra, porque consume recursos. Como $CS$, el nivel de $W$ tiene un cero arbitrario y sólo se lee su Δ.
+
+El **subsidio requerido** responde otra pregunta: si la tarifa cubre el costo del día completo. Por eso multiplica el costo de la punta por un factor día/punta, y $W$ no.
+
+## Dos monedas
+
+Hay una segunda forma de pasar de útiles a pesos. En vez del $\lambda$ conductual de cada estrato, se despeja uno a partir de un **valor social del tiempo** único, el de la norma de evaluación social chilena (\$3.338/h, Sistema Nacional de Inversiones 2026):
+
+$$
+\lambda_h^{\text{soc}} = \frac{|\beta_{t_{\text{viaje}}}^h| \cdot 60}{VoT_{\text{social}}} \qquad\Longrightarrow\qquad \frac{CS_h^{\text{soc}}}{CS_h} = \frac{VoT_{\text{social}}}{VoT_h}
+$$
+
+El cociente muestra lo que hace: no revalúa el tiempo, **pondera a cada estrato** por la inversa de su valor del tiempo, dinero incluido. Con los valores por defecto, el viajero del estrato alto pesa 0,53 y el del bajo 2,04. Es una ponderación distributiva legítima, y por eso la interfaz la llama **excedente con ponderación social**. La lectura de la evaluación social chilena, en cambio, es el **costo generalizado social**, que valora el tiempo de todos al mismo precio y el dinero a un peso.
+
+En pesos conductuales, \$1 no vale lo mismo para un hogar de ingreso alto que para uno de ingreso bajo. El excedente en pesos sirve para medir eficiencia; para la lectura distributiva están la **carga costo/ingreso** y los tiempos por estrato.
+
+<Callout type="info">
+Probá en **Transporte**, con la configuración por defecto:
+
+1. Elige el escenario **Base** y simula. En la tabla **Agregados y comparación**, pulsa **Fijar como referencia**.
+2. Elige **Tarificación Vial** (peaje de \$275/km al auto) y vuelve a simular. La tabla pasa a mostrar el Δ contra la referencia.
+
+Los tres estratos pierden excedente: −\$90 por viajero el alto, −\$126 el medio y −\$32 el bajo. Pagan el peaje y el tiempo que ahorran no lo compensa a su valor del tiempo. Sin embargo, el **bienestar social sube \$2,69 millones** en la hora punta: la recaudación sube \$6,22 millones, que vuelven a la ciudad, y la congestión baja (el tiempo medio pasa de 20,4 a 18,9 min). En cambio, el **excedente con ponderación social baja \$3,44 millones**, porque no cuenta la recaudación y pesa más a quien valora menos el tiempo.
+
+¿Qué habría que hacer con lo recaudado para que nadie salga perdiendo?
+</Callout>
+
+## En la ciudad acoplada
+
+La página **Ciudad en equilibrio** mide de otra forma, porque ahí los hogares también se relocalizan. Recorre los agentes uno por uno y compara su logsum con el que tendrían en la **red vacía**: la misma infraestructura sin nadie usándola (sin congestión y con el metro a su frecuencia mínima). Lo mensualiza con 44 viajes al mes:
+
+$$
+\Delta CS_h = \frac{44}{\bar N_h} \sum_{n \in h,\ \text{viaja}} \frac{\text{logsum}_n - \text{logsum}_n^{0}}{\lambda_h} \qquad [\$/\text{hogar-mes}]
+$$
+
+$\bar N_h$ son los hogares del estrato que viajan o teletrabajan, y quien teletrabaja aporta cero. El signo dice qué domina: negativo, la congestión; positivo, el efecto Mohring del metro, que con más demanda sube la frecuencia.
+
+Es una medida **sólo de transporte**, y a propósito. El beneficio de los usuarios de transporte y la variación de las rentas del suelo son, cada uno, una cota inferior del beneficio total, y sumarlos cuenta dos veces lo mismo (Martínez 2018, §10.10). Aquí no se puede medir la segunda, porque los precios del suelo valen salvo una constante.
+
+<Callout type="warn">
+El Δ contra la red vacía compara cada escenario consigo mismo. En **Comparar**, la fila «Δ Bienestar (red)» de dos escenarios **no** se puede restar para obtener el cambio de bienestar entre ellos si uno cambia la oferta: con más pistas o más trenes cambia también su red vacía.
+</Callout>
+
+<NextStep to="experimenting">Experimentar</NextStep>
