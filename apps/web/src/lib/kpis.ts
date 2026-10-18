@@ -32,7 +32,9 @@ export interface ScenarioKPIs {
    * capacidad direccional). null si el trace no trae flujos (wheel antiguo). */
   vc_auto: number | null;
   vc_bici: number | null;
-  /** Metro: carga máx del tramo / capacidad operativa (f_op · capacidad_tren). */
+  /** Metro: carga máx del tramo / capacidad MÁXIMA (frec_max · capacidad_tren),
+   *  la misma cifra que Transporte. Contra la operativa (f_op · K) valía 1 por
+   *  construcción, porque el modelo fija f_op = carga/K. */
   vc_metro: number | null;
   co2_total: number;
   co2_auto: number;
@@ -83,6 +85,7 @@ export function computeKPIs(
   // denominador del v/c bici; sin ella el ratio queda null.
   capacidadBici?: number,
   capacidadTren?: number,
+  frecMax?: number,
 ): ScenarioKPIs {
   const lastIter = result.iteraciones.at(-1);
   const modal_share = zeroModes();
@@ -174,10 +177,9 @@ export function computeKPIs(
     result.flujos_bici_veh_h?.length && capacidadBici && capacidadBici > 0
       ? Math.max(...result.flujos_bici_veh_h) / capacidadBici
       : null;
-  const fOp = lastIter?.frecuencia_metro ?? 0;
   const vc_metro =
-    result.carga_metro?.length && capacidadTren && fOp > 0
-      ? Math.max(...result.carga_metro) / (fOp * capacidadTren)
+    result.carga_metro?.length && capacidadTren && frecMax && frecMax > 0
+      ? Math.max(...result.carga_metro) / (frecMax * capacidadTren)
       : null;
 
   return {

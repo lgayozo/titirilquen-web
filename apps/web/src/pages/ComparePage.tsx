@@ -398,6 +398,7 @@ export function ComparePage() {
                 s.config.demand.globales.v_caminata,
                 s.config.supply.bike.capacidad_pista,
                 s.config.supply.train.capacidad_tren,
+                s.config.supply.train.frec_max,
               )
             : null,
       })),
