@@ -6,6 +6,7 @@ import { KPIStrip, type KPI } from "@/components/ui/KPIStrip";
 import { Panel } from "@/components/ui/Panel";
 import { PorQue } from "@/components/ui/PorQue";
 import { CityShapePreview } from "@/components/viz/CityShapePreview";
+import { CompositionDiff } from "@/components/viz/CompositionDiff";
 import { EquilibriumMetricsTable } from "@/components/viz/EquilibriumMetricsTable";
 import { OuterTrajectory } from "@/components/viz/OuterTrajectory";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
@@ -348,6 +349,12 @@ export function CoupledPage() {
           </div>
         )}
 
+        {/* La lectura va junto al veredicto, antes de los insumos: es lo
+            primero que el alumno tiene que ver tras correr. */}
+        {iters.length > 0 && (
+          <Interpretation first={first!} last={last!} tS={tS} />
+        )}
+
         {/* Palancas del escenario */}
         <div className="panel-grid">
           <Panel
@@ -382,7 +389,7 @@ export function CoupledPage() {
             {result && (
               <div className="panel-grid">
                 <Panel
-                  n="04"
+                  n="05"
                   title={tS("coupled.convergence_title")}
                   meta={tS("coupled.convergence_meta")}
                   cls="col-12"
@@ -399,7 +406,7 @@ export function CoupledPage() {
             {last && (
               <div className="panel-grid">
                 <Panel
-                  n="05"
+                  n="06"
                   title={tS("eqt.title")}
                   meta={tS("coupled_metrics.outer_count", { n: iters.length })}
                   cls="col-12"
@@ -411,8 +418,6 @@ export function CoupledPage() {
                 </Panel>
               </div>
             )}
-
-            <Interpretation first={first!} last={last!} tS={tS} />
           </>
         )}
 
@@ -494,6 +499,18 @@ function Comparison({
         </p>
         <StratumDistribution composition={lastComposition} />
       </Panel>
+
+      {!isSameIter && (
+        <Panel
+          n="04"
+          title={tS("coupled.diff_title")}
+          meta={tS("coupled.diff_meta")}
+          cls="col-12"
+        >
+          <p className="coupled-panel-hint">{tS("coupled.diff_hint")}</p>
+          <CompositionDiff antes={firstComposition} despues={lastComposition} />
+        </Panel>
+      )}
     </div>
   );
 }
