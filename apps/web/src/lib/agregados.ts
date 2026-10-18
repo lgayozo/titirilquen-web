@@ -13,7 +13,9 @@
  * frontend: adaptar los nombres y decidir cuándo una comparación es válida.
  */
 
+import { defaultLandUseConfig } from "@/lib/defaults";
 import type { AgregadosDict } from "@/lib/gen/trace.gen";
+import type { LandUseConfig } from "@/lib/types-v2";
 import type {
   DemandConfig,
   SimulationConfig,
@@ -44,19 +46,59 @@ export function votClpHora(demand: DemandConfig, h: StratumId): number {
   return (b.b_tiempo_viaje / b.b_costo) * 60;
 }
 
+/** Por qué el excedente de dos corridas no se puede restar. */
+export type RazonIncomparable =
+  | "modos"
+  | "betas"
+  | "teletrabajo"
+  | "poblacion"
+  | "medida";
+
+/** Lo que hace falta de una corrida para decidir si su excedente se compara. */
+export interface CorridaBienestar {
+  config: SimulationConfig;
+  /** `null` ⇒ el uso de suelo por defecto. */
+  landUse: LandUseConfig | null;
+  medida: "logsum" | "utilidad_maxima";
+}
+
 /**
- * ¿Es válido comparar el excedente de dos configuraciones?
+ * ¿Es válido restar el excedente de dos corridas? `null` si sí; si no, la
+ * primera razón que lo impide.
  *
- * Sólo si comparten el conjunto de modos: el logsum tiene cero arbitrario y con
- * distinto choice set cambia de escala, así que la diferencia deja de ser un
- * excedente y pasa a ser un artefacto. Es una regla de interpretación, no un
- * cálculo, y por eso vive del lado que decide qué mostrar.
+ * El nivel del excedente tiene un cero arbitrario (lo fijan las ASC), y la
+ * resta sólo lo cancela si las dos corridas lo comparten. Lo mueven:
+ * - el conjunto de modos: con otro choice set el logsum cambia de escala;
+ * - los β, ASC incluidas: mueven el cero y λ_h = |b_costo|, la unidad;
+ * - el teletrabajo y la población: cambian cuántas personas suman un nivel
+ *   que no es cero, así que el total se mueve aunque nadie gane ni pierda
+ *   (H-E4 de la auditoría de oct-2026);
+ * - la medida: logsum y utilidad máxima son definiciones distintas.
+ * La tenencia de auto (`prob_auto`) NO está: bajarla es una política, y la
+ * pérdida de logsum es lo que se quiere medir. Es una regla de
+ * interpretación, no un cálculo, y por eso vive del lado que decide qué
+ * mostrar.
  */
-export function logsumComparable(
-  a: SimulationConfig,
-  b: SimulationConfig,
-): boolean {
-  const sa = [...a.modos_habilitados].sort().join(",");
-  const sb = [...b.modos_habilitados].sort().join(",");
-  return sa === sb;
+export function bienestarComparable(
+  a: CorridaBienestar,
+  b: CorridaBienestar,
+): RazonIncomparable | null {
+  const modos = (c: SimulationConfig) =>
+    [...c.modos_habilitados].sort().join(",");
+  if (modos(a.config) !== modos(b.config)) return "modos";
+  const estratos = [1, 2, 3] as const;
+  const betas = (c: SimulationConfig) =>
+    JSON.stringify(estratos.map((h) => c.demand.estratos[h].betas));
+  if (betas(a.config) !== betas(b.config)) return "betas";
+  const tele = (c: SimulationConfig) =>
+    JSON.stringify([
+      c.demand.globales.teletrabajo_factor,
+      estratos.map((h) => c.demand.estratos[h].prob_teletrabajo),
+    ]);
+  if (tele(a.config) !== tele(b.config)) return "teletrabajo";
+  const h = (lu: LandUseConfig | null) =>
+    JSON.stringify((lu ?? defaultLandUseConfig).H_por_estrato);
+  if (h(a.landUse) !== h(b.landUse)) return "poblacion";
+  if (a.medida !== b.medida) return "medida";
+  return null;
 }

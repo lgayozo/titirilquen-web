@@ -89,8 +89,8 @@ interface PyodideInterface {
 type LoadPyodide = (opts: { indexURL: string }) => Promise<PyodideInterface>;
 
 let pyodide: PyodideInterface | null = null;
-let iterSueloFn: ((req: unknown) => unknown) | null = null;
-let lastTraceFn: (() => unknown) | null = null;
+let iterSueloFn: ((req: unknown, reqId: string) => unknown) | null = null;
+let lastTraceFn: ((reqId: string) => unknown) | null = null;
 let landUseSolveFn: ((req: unknown) => unknown) | null = null;
 let coupledIterFn: ((req: unknown) => unknown) | null = null;
 
@@ -158,9 +158,14 @@ from titirilquen_core.serializacion import (
 # Streaming en una sola corrida: iter_msa_desde_suelo popula el trace completo
 # mientras emite los snapshots. Tras agotar el generador, last_trace_to_py()
 # devuelve el resultado final (agentes/emisiones) SIN volver a correr.
-_LAST_TRACE = {"trace": None, "cfg": None}
+# Una entrada POR CORRIDA: Comparar lanza varias a la vez y el loop del worker
+# cede el event loop entre iteraciones, así que se intercalan. Con un solo
+# global, la config de la última en arrancar pisaba la de las otras, y sus
+# agregados (excedente, recaudación, bienestar) salían con los precios de
+# otra tarjeta: un peaje desaparecía del excedente (oct-2026).
+_TRACES = {}
 
-def iter_from_json_suelo(req_json: str):
+def iter_from_json_suelo(req_json: str, req_id: str):
     # La población del transporte se deriva del uso de suelo (hogares por
     # estrato → hogares por celda); es la única ruta desde sep-2026.
     req = json.loads(req_json)
@@ -169,15 +174,13 @@ def iter_from_json_suelo(req_json: str):
     localizacion = req.get("localizacion", "equilibrio")
     Q_dada = req.get("Q_dada")
     trace = ConvergenceTrace()
-    _LAST_TRACE["trace"] = None
-    _LAST_TRACE["cfg"] = cfg
     for snap in iter_msa_desde_suelo(cfg, lu, trace, localizacion=localizacion, Q_dada=Q_dada):
         yield iteration_to_dict(snap)
-    _LAST_TRACE["trace"] = trace
+    _TRACES[req_id] = (trace, cfg)
 
-def last_trace_to_py():
-    t = _LAST_TRACE["trace"]
-    return None if t is None else trace_to_dict(t, _LAST_TRACE["cfg"])
+def last_trace_to_py(req_id: str):
+    par = _TRACES.pop(req_id, None)
+    return None if par is None else trace_to_dict(*par)
 
 def land_use_solve_from_json(req_json: str):
     # La accesibilidad de la puja es el logsum de transporte a flujo libre,
@@ -218,8 +221,11 @@ def coupled_iter_from_json(req_json: str):
     land_use_solve_from_json: unknown;
     coupled_iter_from_json: unknown;
   };
-  iterSueloFn = globals.iter_from_json_suelo as (r: unknown) => unknown;
-  lastTraceFn = globals.last_trace_to_py as () => unknown;
+  iterSueloFn = globals.iter_from_json_suelo as (
+    r: unknown,
+    reqId: string,
+  ) => unknown;
+  lastTraceFn = globals.last_trace_to_py as (reqId: string) => unknown;
   landUseSolveFn = globals.land_use_solve_from_json as (r: unknown) => unknown;
   coupledIterFn = globals.coupled_iter_from_json as (r: unknown) => unknown;
 }
@@ -263,6 +269,7 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
           localizacion: msg.localizacion ?? "equilibrio",
           Q_dada: msg.Q_dada ?? null,
         }),
+        msg.id,
       ) as {
         [Symbol.iterator](): Iterator<unknown>;
       };
@@ -282,7 +289,7 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
       }
       // El trace completo (agentes, carga_metro final, emisiones) ya quedó poblado
       // durante el streaming (iter_msa con trace) — lo leemos sin volver a correr.
-      const result = jsFromPy(lastTraceFn!()) as SimulationResult;
+      const result = jsFromPy(lastTraceFn!(msg.id)) as SimulationResult;
       post({ id: msg.id, type: "done", result });
       return;
     }

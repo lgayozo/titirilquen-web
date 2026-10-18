@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-16",
-  "commit": "34b1726",
+  "fecha": "2026-10-17",
+  "commit": "9eeef4c",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -12,7 +12,7 @@
   "al_dia": true
  },
  "paridad_worker_api": {
-  "lineas_de_python_en_el_worker": 76,
+  "lineas_de_python_en_el_worker": 79,
   "entradas": {
    "simulateStream": {
     "api": "/simulate",
@@ -100,9 +100,9 @@
    "emisiones_perfil_kg": 0.06,
    "flujos_auto_veh_h": 0.06
   },
-  "outer_iteration_bytes": 6788747,
+  "outer_iteration_bytes": 6788934,
   "outer_por_clave_pct": {
-   "transport": 99.55,
+   "transport": 99.54,
    "land_use": 0.24,
    "T_matrix": 0.18,
    "metrics": 0.03,
@@ -115,13 +115,13 @@
    "transport": 0,
    "T_matrix": 0,
    "T_residual": 2,
-   "metrics": 10
+   "metrics": 11
   },
   "mb_por_corrida_acoplada_al_maximo_de_la_ui": 67.9,
   "mb_que_el_frontend_abre_de_eso": 0.19
  },
  "campos_sin_lector": {
-  "campos_totales": 116,
+  "campos_totales": 118,
   "sin_lector": {
    "TraceDict": [
     "gap_final_min",
@@ -141,12 +141,11 @@
    ],
    "AgregadosDict": [
     "excedente_social_por_estrato_clp",
-    "viajeros_por_estrato",
-    "excedente_total_clp",
-    "excedente_max_total_clp"
+    "viajeros_por_estrato"
    ],
    "StratumMetrics": [
-    "n_viajeros"
+    "n_viajeros",
+    "excedente_hogar_mes_clp"
    ],
    "SystemMetrics": [
     "tiempo_total_pax_min"
@@ -169,7 +168,7 @@
     "S"
    ]
   },
-  "cantidad_sin_lector": 14
+  "cantidad_sin_lector": 13
  },
  "determinismo": {
   "standalone_dos_corridas": {
@@ -195,7 +194,7 @@
     "tipos.gen.ts",
     "trace.gen.ts"
    ],
-   "lineas": 959,
+   "lineas": 975,
    "interfaces": 29
   },
   "version_del_nucleo": "0.2.0",

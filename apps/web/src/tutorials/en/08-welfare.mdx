@@ -43,11 +43,14 @@ $$
 \Delta CS_h = \frac{1}{\lambda_h}\left(\ln \sum_m e^{V_m^{h,1}} - \ln \sum_m e^{V_m^{h,0}}\right)
 $$
 
-That difference is a welfare change only if both scenarios share three things:
+That difference is a welfare change only if both scenarios share four things:
 
-- **The same assignment method.** Logsum and maximum utility differ by a gap that changes across scenarios; if the reference was run with another method, the interface shows the levels but not the Δ.
+- **The same assignment method.** Logsum and maximum utility differ by a gap that changes across scenarios.
 - **The same enabled modes.** With a different menu of alternatives the measure changes scale.
-- **The same $\beta$.** Moving the calibration changes $\lambda_h$, and with it the unit of measurement.
+- **The same $\beta$.** Moving the calibration, ASCs included, shifts the zero and changes $\lambda_h$, and with it the unit of measurement.
+- **The same people.** The total adds a non-zero level for each traveller, so with another population or another teleworking share it moves even if nobody gains or loses.
+
+If any is missing, the interface shows the levels but not the Δ, and says which one.
 
 Whoever has no feasible mode drops out of the average, and the table reports how many in the **Stranded** row. A policy that leaves people without alternatives is not counted as low welfare: those people vanish from the count. That is why it pays to check that row before reading the surplus.
 
@@ -99,7 +102,7 @@ $\bar N_h$ are the households of the stratum that travel or telework, and telewo
 It is a **transport-only** measure, on purpose. The benefit to transport users and the change in land rents are each a lower bound of the total benefit, and adding them counts the same thing twice (Martínez 2018, §10.10). The second one cannot be measured here, because land prices are only defined up to a constant.
 
 <Callout type="warn">
-The Δ against the empty network compares each scenario with itself, and the empty network fixes only the **times**: a toll or a fare enters both logsums alike and almost cancels out. That is why, in **Compare**, the «Δ Welfare (network)» row of two scenarios **cannot** be subtracted to get the welfare change between them: a toll would not show up.
+The Δ against the empty network compares each scenario with itself, and the empty network fixes only the **times**: a toll or a fare enters both logsums alike and almost cancels out. That is why, in **Compare**, the welfare change between scenarios is the «Δ Surplus vs baseline» row: each scenario's **level** minus the baseline's, under the same four conditions above. The «vs its own empty network» row is for reading each scenario on its own (does congestion or the Mohring effect dominate?), not for subtracting across scenarios: a toll would not show up.
 </Callout>
 
 <NextStep to="experimenting">Experiment</NextStep>

@@ -10,12 +10,21 @@ export interface MetricRow {
   fmtDelta?: (d: number) => string;
   /** Dirección "buena" del delta para colorear (verde/rojo); sin definir = neutro. */
   betterWhen?: "down" | "up";
+  /** El valor de la columna YA es el Δ contra la base y se muestra solo, con
+   *  signo. Para magnitudes cuyo nivel no se lee (el excedente: su cero lo
+   *  fijan las ASC). La base muestra «—». */
+  soloDelta?: boolean;
+  /** Lo contrario: sólo el valor, sin Δ. Para magnitudes que se leen dentro
+   *  de cada escenario y no se restan entre ellos. */
+  sinDelta?: boolean;
 }
 
 export interface MetricCol {
   id: string;
   name: string;
   values: Record<string, number | null> | null;
+  /** Texto en lugar del valor cuando éste es `null` (p. ej. «no comparable»). */
+  texto?: Record<string, string>;
 }
 
 interface MetricCompareTableProps {
@@ -78,12 +87,30 @@ export function MetricCompareTable({
                       key={c.id}
                       className="px-3 py-1.5 text-right text-[var(--muted)]"
                     >
-                      —
+                      {c.texto?.[row.key] ?? "—"}
+                    </td>
+                  );
+                }
+                if (row.soloDelta) {
+                  return (
+                    <td
+                      key={c.id}
+                      className={cn(
+                        "px-3 py-1.5 text-right font-medium",
+                        Math.abs(v) > 1e-9
+                          ? deltaColor(v, row.betterWhen)
+                          : "text-[var(--muted)]",
+                      )}
+                    >
+                      {v > 0 ? "+" : ""}
+                      {(row.fmtDelta ?? row.fmt)(v)}
                     </td>
                   );
                 }
                 const baseV =
-                  base && base.id !== c.id ? base.values?.[row.key] : null;
+                  base && base.id !== c.id && !row.sinDelta
+                    ? base.values?.[row.key]
+                    : null;
                 const delta = baseV != null ? v - baseV : null;
                 return (
                   <td key={c.id} className="px-3 py-1.5 text-right">

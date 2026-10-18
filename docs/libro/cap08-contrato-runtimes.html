@@ -22,8 +22,8 @@
     Módulos: <code>serializacion.py</code> · <code>apps/api</code> ·
     <code>pyodide.worker.ts</code> · <code>lib/api.ts</code> ·
     <code>lib/gen/</code> · goldens ·
-    auditado el 2026-09-08, revisado el 2026-10-14 ·
-    datos regenerados el 2026-10-14 ·
+    auditado el 2026-09-08, revisado el 2026-10-17 ·
+    datos regenerados el 2026-10-17 ·
     <span class="estado auditado">auditado</span>
   </p>
 </header>
@@ -130,13 +130,13 @@
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
       <td class="n">85</td>
-      <td><code>runPythonAsync</code> — el bloque Python embebido: 76 líneas que ninguna herramienta lee</td>
+      <td><code>runPythonAsync</code> — el bloque Python embebido: 79 líneas que ninguna herramienta lee</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
-      <td class="n">163</td>
-      <td><code>iter_from_json_suelo</code> — la entrada del Sandbox; <code>land_use_solve_from_json</code> (182), <code>coupled_iter_from_json</code> (200). <code>simulate_from_json</code>, sin llamadores, se borró el 2026-09-10 (D-63)</td>
+      <td class="n">168</td>
+      <td><code>iter_from_json_suelo</code> — la entrada del Sandbox; <code>land_use_solve_from_json</code> (185), <code>coupled_iter_from_json</code> (203). <code>simulate_from_json</code>, sin llamadores, se borró el 2026-09-10 (D-63)</td>
     </tr>
     <tr>
       <td class="n">2</td>
@@ -314,7 +314,7 @@
 </div>
 
 <p class="pie-tabla">
-  Comparación JSON con tolerancia relativa 10⁻¹². Son 76 líneas de Python
+  Comparación JSON con tolerancia relativa 10⁻¹². Son 79 líneas de Python
   dentro de un string de TypeScript.
 </p>
 
@@ -408,7 +408,7 @@
   </thead>
   <tbody>
     <tr><td><code>trace_to_dict</code> (una corrida)</td><td class="n">6.769.385</td><td><code>agentes</code> 83,66 % · <code>iteraciones</code> 15,50 % · <code>demanda_estrato</code> 0,58 %</td></tr>
-    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">6.788.747</td><td><code>transport</code> 99,55 % · <code>land_use</code> 0,24 % · <code>T_matrix</code> 0,18 % · <code>metrics</code> 0,03 %</td></tr>
+    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">6.788.934</td><td><code>transport</code> 99,54 % · <code>land_use</code> 0,24 % · <code>T_matrix</code> 0,18 % · <code>metrics</code> 0,03 %</td></tr>
   </tbody>
 </table>
 </div>
@@ -444,19 +444,24 @@
 <h3>4.6 Campos sin lector, y el CI que no ve octubre</h3>
 
 <p>
-  De los 116 campos del contrato, <strong>14</strong> no aparecen en ningún
+  De los 118 campos del contrato, <strong>13</strong> no aparecen en ningún
   archivo del frontend fuera de <code>lib/gen/</code>: <code>gap_final_min</code>,
   <code>v_libre_auto</code>, <code>alpha_auto_bpr</code>, <code>beta_auto_bpr</code>,
   <code>f_msa</code>, <code>teletrabaja</code>, <code>tiene_auto</code>,
   <code>T_matrix</code>, <code>excedente_social_por_estrato_clp</code>,
-  <code>viajeros_por_estrato</code>, <code>excedente_total_clp</code>,
-  <code>excedente_max_total_clp</code>, <code>n_viajeros</code> y
+  <code>viajeros_por_estrato</code>, <code>n_viajeros</code>,
+  <code>excedente_hogar_mes_clp</code> y
   <code>tiempo_total_pax_min</code>. Dos son
   pendientes declarados que siguen abiertos: <code>gap_final_min</code> (D-39) y
   <code>n_viajeros</code> (D-35). Son los quince de septiembre menos
   <code>convergio_msa</code>, que desde oct-2026 lee la tabla de Ciudad en
-  equilibrio para decir «MSA sin converger»; los dos campos nuevos del
-  contrato, como <code>t_bici_libre</code> (D9), sí tienen lector.
+  equilibrio para decir «MSA sin converger», y menos
+  <code>excedente_total_clp</code> y <code>excedente_max_total_clp</code>, que
+  desde el 2026-10-17 leen la fila de excedente total de Transporte y la tabla
+  de bienestar de Comparar. Entra uno: <code>excedente_hogar_mes_clp</code>, el
+  nivel por estrato del acoplado, que ninguna página muestra todavía; su total,
+  <code>excedente_total_mes_clp</code>, sí lo lee Comparar. Los otros campos
+  nuevos de octubre, como <code>t_bici_libre</code> (D9), sí tienen lector.
 </p>
 
 <div class="aviso alerta">
@@ -496,9 +501,9 @@
 </ul>
 
 <p class="pie-tabla">
-  Fuente: <code>datos/cap08.json</code>, regenerado el 2026-10-14 con
+  Fuente: <code>datos/cap08.json</code>, regenerado el 2026-10-17 con
   <code>uv run python ../../docs/libro/datos/datos_cap08.py</code>. Goldens:
-  18 casos de oferta, 33 de utilidad. Contrato generado: 5 archivos, 959 líneas,
+  18 casos de oferta, 33 de utilidad. Contrato generado: 5 archivos, 975 líneas,
   29 interfaces.
 </p>
 
@@ -620,7 +625,7 @@
     </tr>
     <tr>
       <td class="n">D-63</td>
-      <td>La entrada <code>simulate</code> del worker no tenía llamadores (borrada el 2026-09-10), y 14 campos del contrato no tienen lector.</td>
+      <td>La entrada <code>simulate</code> del worker no tenía llamadores (borrada el 2026-09-10), y 13 campos del contrato no tienen lector.</td>
       <td>Código y contrato muertos, sin efecto sobre los números.</td>
       <td>pendiente (baja)</td>
     </tr>

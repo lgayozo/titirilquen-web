@@ -2,7 +2,11 @@ import { useTranslation } from "react-i18next";
 
 import { PorQue } from "@/components/ui/PorQue";
 import { CaptionTabla } from "@/components/viz/CaptionTabla";
-import { agregadosDe, logsumComparable, type Agregados } from "@/lib/agregados";
+import {
+  agregadosDe,
+  bienestarComparable,
+  type Agregados,
+} from "@/lib/agregados";
 import { VOT_SOCIAL_CLP_HORA } from "@/lib/gen/constantes.gen";
 import { ciudadActiva, politicaActiva } from "@/lib/presets";
 import type {
@@ -73,6 +77,9 @@ interface FilaAgg {
   nota?: string;
   /** Explicación de la nota, plegada en un «¿por qué?» (B3). */
   porque?: string;
+  /** Excedente o bienestar: su cero es arbitrario. Sin referencia se rotula
+   *  «nivel», para que nadie lea el número solo. */
+  nivel?: boolean;
 }
 
 export function ReferenceComparison({
@@ -88,10 +95,6 @@ export function ReferenceComparison({
   const aggRef = reference ? agregadosDe(reference.result) : null;
   if (!agg) return null;
 
-  // El logsum solo es comparable con el MISMO choice set: con distinto conjunto
-  // de modos cambia de escala y su diferencia deja de ser un excedente.
-  const lsOk = reference ? logsumComparable(config, reference.config) : true;
-
   // Cuál de las dos medidas de excedente corresponde al método de asignación lo
   // decide el NÚCLEO (`medida_bienestar`): logsum bajo logit, utilidad máxima
   // media bajo determinístico, donde no hay término aleatorio que promediar.
@@ -103,12 +106,21 @@ export function ReferenceComparison({
   const excedenteRefPorEstrato = usaMax
     ? aggRef?.excedente_max_por_estrato_clp
     : aggRef?.excedente_por_estrato_clp;
-  // Dos corridas con métodos distintos miden el excedente con reglas distintas,
-  // así que su diferencia no es un delta de bienestar: es la brecha entre dos
-  // definiciones. Se muestra el nivel, no el delta.
-  const mismaMedida =
-    !aggRef || aggRef.medida_bienestar === agg.medida_bienestar;
-  const excedenteComparable = lsOk && mismaMedida;
+  // El Δ del excedente sólo es un cambio de bienestar si las dos corridas
+  // comparten el cero del nivel (modos, β, teletrabajo, población y medida:
+  // `bienestarComparable`). Si no, se muestra el nivel, no el Δ.
+  const razon =
+    reference && aggRef
+      ? bienestarComparable(
+          { config, landUse, medida: agg.medida_bienestar },
+          {
+            config: reference.config,
+            landUse: reference.landUse,
+            medida: aggRef.medida_bienestar,
+          },
+        )
+      : null;
+  const excedenteComparable = razon == null;
 
   const filas: FilaAgg[] = [
     {
@@ -210,6 +222,24 @@ export function ReferenceComparison({
       }),
     },
     {
+      // El total que suma el bienestar social, a la vista: sin él, el Δ del
+      // bienestar no se podía descomponer en lo que pierde el viajero y lo
+      // que vuelve como recaudación.
+      label: t(usaMax ? "agg.excedente_total_max" : "agg.excedente_total"),
+      actual: usaMax ? agg.excedente_max_total_clp : agg.excedente_total_clp,
+      ref:
+        aggRef == null
+          ? null
+          : usaMax
+            ? aggRef.excedente_max_total_clp
+            : aggRef.excedente_total_clp,
+      fmt: fmtMoney,
+      menorEsMejor: false,
+      comparable: excedenteComparable,
+      unidad: t("agg.u_ciudad"),
+      nivel: true,
+    },
+    {
       label: t("agg.bienestar"),
       actual: agg.bienestar_social_clp,
       ref: aggRef?.bienestar_social_clp ?? null,
@@ -218,6 +248,7 @@ export function ReferenceComparison({
       // Lleva dentro el excedente de la medida emparejada, así que hereda su
       // condición de comparabilidad.
       comparable: excedenteComparable,
+      nivel: true,
       nota: t("agg.bienestar_nota"),
     },
     {
@@ -234,6 +265,7 @@ export function ReferenceComparison({
       menorEsMejor: false,
       comparable: excedenteComparable,
       unidad: t("agg.u_ciudad"),
+      nivel: true,
       nota: t("agg.excedente_social_corto", {
         vot: fmtMoney(VOT_SOCIAL_CLP_HORA),
       }),
@@ -249,6 +281,7 @@ export function ReferenceComparison({
       menorEsMejor: false,
       comparable: excedenteComparable,
       unidad: t("agg.u_persona"),
+      nivel: true,
     })),
   ];
 
@@ -295,6 +328,11 @@ export function ReferenceComparison({
                   {f.label}
                   {f.unidad && (
                     <span className="celda-unidad ml-1">{f.unidad}</span>
+                  )}
+                  {f.nivel && !reference && (
+                    <span className="celda-unidad ml-1">
+                      {t("agg.u_nivel")}
+                    </span>
                   )}
                   {f.nota && <span className="celda-nota ml-1">{f.nota}</span>}
                   {f.porque && <PorQue>{f.porque}</PorQue>}
@@ -347,14 +385,9 @@ export function ReferenceComparison({
           {t("agg.medida_utilidad_maxima")}
         </p>
       )}
-      {!lsOk && (
+      {razon && (
         <p className="mt-1 text-etiqueta leading-snug text-[var(--alerta)]">
-          {t("agg.logsum_incomparable")}
-        </p>
-      )}
-      {!mismaMedida && (
-        <p className="mt-1 text-etiqueta leading-snug text-[var(--alerta)]">
-          {t("agg.medida_incomparable")}
+          {t("agg.incomparable", { razon: t(`agg.razon.${razon}`) })}
         </p>
       )}
     </div>

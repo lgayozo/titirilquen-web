@@ -43,11 +43,14 @@ $$
 \Delta CS_h = \frac{1}{\lambda_h}\left(\ln \sum_m e^{V_m^{h,1}} - \ln \sum_m e^{V_m^{h,0}}\right)
 $$
 
-Esa resta vale como cambio de bienestar sólo si los dos escenarios comparten tres cosas:
+Esa resta vale como cambio de bienestar sólo si los dos escenarios comparten cuatro cosas:
 
-- **El mismo método de asignación.** El logsum y la utilidad máxima difieren en una brecha que cambia entre escenarios; si la referencia se corrió con otro método, la interfaz muestra los niveles pero no el Δ.
+- **El mismo método de asignación.** El logsum y la utilidad máxima difieren en una brecha que cambia entre escenarios.
 - **Los mismos modos habilitados.** Con otro menú de alternativas la medida cambia de escala.
-- **Los mismos $\beta$.** Mover la calibración cambia $\lambda_h$, y con él la unidad en que se mide.
+- **Los mismos $\beta$.** Mover la calibración, ASC incluidas, corre el cero y cambia $\lambda_h$, y con él la unidad en que se mide.
+- **La misma gente.** El total suma un nivel que no es cero por cada viajero, así que con otra población o con otro teletrabajo se mueve aunque nadie gane ni pierda.
+
+Si falta alguna, la interfaz muestra los niveles pero no el Δ, y dice cuál.
 
 Quien no tiene ningún modo factible queda fuera del promedio, y la tabla publica cuántos son en la fila **Varados**. Una política que deja gente sin alternativas no se cuenta como bienestar bajo: esa gente desaparece de la cuenta. Por eso conviene mirar esa fila antes de leer el excedente.
 
@@ -99,7 +102,7 @@ $\bar N_h$ son los hogares del estrato que viajan o teletrabajan, y quien teletr
 Es una medida **sólo de transporte**, y a propósito. El beneficio de los usuarios de transporte y la variación de las rentas del suelo son, cada uno, una cota inferior del beneficio total, y sumarlos cuenta dos veces lo mismo (Martínez 2018, §10.10). Aquí no se puede medir la segunda, porque los precios del suelo valen salvo una constante.
 
 <Callout type="warn">
-El Δ contra la red vacía compara cada escenario consigo mismo, y la red vacía fija sólo los **tiempos**: un peaje o una tarifa entran igual en los dos logsum y casi se cancelan. Por eso, en **Comparar**, la fila «Δ Bienestar (red)» de dos escenarios **no** se puede restar para obtener el cambio de bienestar entre ellos: un peaje no aparecería.
+El Δ contra la red vacía compara cada escenario consigo mismo, y la red vacía fija sólo los **tiempos**: un peaje o una tarifa entran igual en los dos logsum y casi se cancelan. Por eso, en **Comparar**, el cambio de bienestar entre escenarios es la fila «Δ Excedente vs base»: el **nivel** de cada escenario menos el de la base, con las mismas cuatro condiciones de arriba. La fila «vs su red vacía» sirve para leer cada escenario por separado (¿domina la congestión o el efecto Mohring?), no para restarla entre escenarios: un peaje no aparecería.
 </Callout>
 
 <NextStep to="experimenting">Experimentar</NextStep>

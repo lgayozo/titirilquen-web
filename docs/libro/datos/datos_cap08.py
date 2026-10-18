@@ -230,10 +230,11 @@ def paridad_worker_api() -> dict:
                 "land_use": lu_json,
                 "localizacion": "equilibrio",
             }
-        )
+        ),
+        "libro",
     ):
         pass
-    w = ns["last_trace_to_py"]()
+    w = ns["last_trace_to_py"]("libro")
     a = trace_to_dict(run_msa(sim, lu, "equilibrio"), sim)
     out["entradas"]["simulateStream"] = {
         "api": "/simulate",

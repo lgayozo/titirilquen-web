@@ -21,6 +21,12 @@ import {
   resolverUsoDeSuelo,
   simularTransporte,
 } from "@/lib/api";
+import {
+  agregadosDe,
+  bienestarComparable,
+  type CorridaBienestar,
+  type RazonIncomparable,
+} from "@/lib/agregados";
 import { defaultLandUseConfig } from "@/lib/defaults";
 import { expectedComposition } from "@/lib/citySupply";
 import { downloadCsv } from "@/lib/csv";
@@ -64,6 +70,140 @@ function coupledValues(sc: Scenario): Record<string, number | null> | null {
     emisiones: sis.emisiones_total_kg,
     iteraciones: cr.iterations,
   };
+}
+
+/** Niveles de bienestar de una corrida y lo que decide si se restan. */
+interface NivelesBienestar {
+  corrida: CorridaBienestar;
+  niveles: Record<string, number>;
+}
+
+/** Δ de bienestar de cada escenario contra la base, por nivel. */
+type DeltasBienestar = Map<
+  string,
+  { d: Record<string, number | null>; razon: RazonIncomparable | null }
+>;
+
+/** Lente Transporte: los agregados de hora punta del núcleo (`bienestar.py`).
+ *  El excedente es el de la medida emparejada con el método de asignación. */
+function nivelesTransporte(s: Scenario): NivelesBienestar | null {
+  const agg = s.result ? agregadosDe(s.result) : null;
+  if (!agg || !s.config) return null;
+  const max = agg.medida_bienestar === "utilidad_maxima";
+  return {
+    corrida: {
+      config: s.config,
+      landUse: s.landUse ?? null,
+      medida: agg.medida_bienestar,
+    },
+    niveles: {
+      excedente: max ? agg.excedente_max_total_clp : agg.excedente_total_clp,
+      bienestar: agg.bienestar_social_clp,
+      excedente_social: agg.excedente_social_total_clp,
+    },
+  };
+}
+
+/** Lente Ciudad en equilibrio: el NIVEL del excedente mensual, no el Δ contra
+ *  la red vacía. Ese Δ compara cada escenario consigo mismo, y como la red
+ *  vacía fija sólo los tiempos, un peaje entra igual en los dos logsum y casi
+ *  se cancela: restarlo entre escenarios no ve los precios. */
+function nivelesAcoplado(s: Scenario): NivelesBienestar | null {
+  const sis = s.coupledResult?.last.sistema;
+  // Un wheel anterior a 9eeef4c no trae el nivel.
+  if (!sis || !s.config || !Number.isFinite(sis.excedente_total_mes_clp))
+    return null;
+  return {
+    corrida: {
+      config: s.config,
+      landUse: s.landUse ?? null,
+      medida: sis.medida_bienestar,
+    },
+    niveles: { excedente: sis.excedente_total_mes_clp },
+  };
+}
+
+/**
+ * Δ de bienestar contra la base. El nivel del excedente no se lee —su cero lo
+ * fijan las ASC—; la resta sí, pero sólo entre corridas que comparten ese cero
+ * (`bienestarComparable`). La base no entra; una incomparable entra con la
+ * razón y sin Δ.
+ */
+function deltasBienestar(
+  scenarios: Scenario[],
+  baseId: string | undefined,
+  nivelesDe: (s: Scenario) => NivelesBienestar | null,
+): DeltasBienestar {
+  const out: DeltasBienestar = new Map();
+  const base = scenarios.find((s) => s.id === baseId);
+  const nb = base ? nivelesDe(base) : null;
+  if (!nb) return out;
+  for (const s of scenarios) {
+    const n = s.id === baseId ? null : nivelesDe(s);
+    if (!n) continue;
+    const razon = bienestarComparable(n.corrida, nb.corrida);
+    const d = Object.fromEntries(
+      Object.entries(nb.niveles).map(([k, vb]) => {
+        const v = n.niveles[k];
+        return [k, razon || v == null ? null : v - vb];
+      }),
+    );
+    out.set(s.id, { d, razon });
+  }
+  return out;
+}
+
+/** Agrega los Δ a las columnas como `d_<nivel>`, para filas `soloDelta`. */
+function conDeltas(
+  cols: MetricCol[],
+  deltas: DeltasBienestar,
+  noComparable: string,
+): MetricCol[] {
+  return cols.map((c) => {
+    const x = deltas.get(c.id);
+    if (!c.values || !x) return c;
+    const claves = Object.keys(x.d);
+    return {
+      ...c,
+      values: {
+        ...c.values,
+        ...Object.fromEntries(claves.map((k) => [`d_${k}`, x.d[k] ?? null])),
+      },
+      texto: x.razon
+        ? Object.fromEntries(claves.map((k) => [`d_${k}`, noComparable]))
+        : undefined,
+    };
+  });
+}
+
+/** Por qué cada escenario incomparable no tiene Δ de bienestar. */
+function AvisosBienestar({
+  deltas,
+  cols,
+}: {
+  deltas: DeltasBienestar;
+  cols: MetricCol[];
+}) {
+  const { t } = useTranslation("simulator");
+  return (
+    <>
+      {cols.map((c) => {
+        const r = deltas.get(c.id)?.razon;
+        return r ? (
+          <p
+            key={c.id}
+            className="kpi-caption"
+            style={{ marginTop: 4, color: "var(--alerta)" }}
+          >
+            {t("compare.bien.incomparable", {
+              nombre: c.name,
+              razon: t(`agg.razon.${r}`),
+            })}
+          </p>
+        ) : null;
+      })}
+    </>
+  );
 }
 
 /** Localización de la tarjeta en la lente Transporte (C-02): el snapshot
@@ -324,7 +464,8 @@ export function ComparePage() {
   );
 
   // ---- Ciudad en equilibrio ----
-  const cpCols = useMemo<MetricCol[]>(
+  // Sin los Δ de bienestar, que dependen de la base (más abajo).
+  const cpColsSinDelta = useMemo<MetricCol[]>(
     () =>
       scenarios.map((s) => ({
         id: s.id,
@@ -371,10 +512,19 @@ export function ComparePage() {
         betterWhen: "down",
       },
       {
+        key: "d_excedente",
+        label: t("compare.cp.excedente_vs_base"),
+        fmt: (v) => fmtPesos(v),
+        betterWhen: "up",
+        soloDelta: true,
+      },
+      {
         key: "bienestar",
         label: t("compare.cp.bienestar"),
         fmt: (v) => fmtPesos(v),
-        betterWhen: "up",
+        // Restarlo entre escenarios es justo lo que no se puede: la red vacía
+        // fija sólo los tiempos, y un peaje casi se cancela en él.
+        sinDelta: true,
       },
       {
         key: "emisiones",
@@ -416,6 +566,38 @@ export function ComparePage() {
     scenarios.some((s) => s.id === baseIdSel && s.status === "done")
       ? baseIdSel
       : undefined) ?? scenarios.find((s) => s.status === "done")?.id;
+
+  // Bienestar: sólo el Δ contra la base de RESULTADOS, y sólo si se puede
+  // restar. Sin memo: son tres restas por escenario.
+  const noComparable = t("agg.no_comparable");
+  const dCp = deltasBienestar(scenarios, baseId, nivelesAcoplado);
+  const cpCols = conDeltas(cpColsSinDelta, dCp, noComparable);
+  const dTr = deltasBienestar(scenarios, baseId, nivelesTransporte);
+  const trCols = conDeltas(
+    rows.map((r) => {
+      const s = scenarios.find((x) => x.id === r.id);
+      return {
+        id: r.id,
+        name: r.name,
+        values: s && nivelesTransporte(s) ? {} : null,
+      };
+    }),
+    dTr,
+    noComparable,
+  );
+  const trRows: MetricRow[] = (
+    [
+      ["d_excedente", "compare.bien.excedente"],
+      ["d_bienestar", "compare.bien.bienestar"],
+      ["d_excedente_social", "compare.bien.excedente_social"],
+    ] as const
+  ).map(([key, label]) => ({
+    key,
+    label: t(label),
+    fmt: (v) => fmtPesos(v),
+    betterWhen: "up",
+    soloDelta: true,
+  }));
 
   // C-04: export CSV de la lente activa. Para transporte el spec espeja las
   // secciones de KPITable (mismas claves i18n); mantener ambos en sync.
@@ -529,6 +711,12 @@ export function ComparePage() {
             ),
           ];
         }),
+        ...trRows.map((r) => [
+          `${t("compare.bien.title")} · ${r.label}`,
+          ...cols.map((c) =>
+            num(trCols.find((x) => x.id === c.id)?.values?.[r.key] ?? null, 0),
+          ),
+        ]),
       ];
     } else if (kind === "land_use") {
       const cols = luCols.filter((c) => c.values);
@@ -700,6 +888,19 @@ export function ComparePage() {
 
           <Panel
             n="02"
+            title={t("compare.bien.title")}
+            meta="delta vs base"
+            cls="col-12"
+          >
+            <MetricCompareTable cols={trCols} rows={trRows} baseId={baseId} />
+            <p className="kpi-caption" style={{ marginTop: 8 }}>
+              {t("compare.bien.caption")}
+            </p>
+            <AvisosBienestar deltas={dTr} cols={trCols} />
+          </Panel>
+
+          <Panel
+            n="03"
             title={t("compare.flow_profile")}
             meta={
               <div className="seg">
@@ -765,6 +966,7 @@ export function ComparePage() {
             <p className="kpi-caption" style={{ marginTop: 8 }}>
               {t("compare.cp.caption")}
             </p>
+            <AvisosBienestar deltas={dCp} cols={cpCols} />
           </Panel>
         </div>
       )}
