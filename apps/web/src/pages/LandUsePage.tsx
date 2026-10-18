@@ -12,8 +12,6 @@ import { Panel } from "@/components/ui/Panel";
 import { PorQue } from "@/components/ui/PorQue";
 import { BidPriceCurve } from "@/components/viz/BidPriceCurve";
 import { CityShapePreview } from "@/components/viz/CityShapePreview";
-import { DensityProfile } from "@/components/viz/DensityProfile";
-import { StrataHeatmap } from "@/components/viz/StrataHeatmap";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import { resolverUsoDeSuelo } from "@/lib/api";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
@@ -84,35 +82,16 @@ export function LandUsePage() {
 
   const parcelas = result?.parcelas;
   const prices = result?.result.p ?? null;
-  const densidadCelda = result?.densidad_celda ?? null;
   const hasResult = !!result;
-
-  // Heatmap de composición: ANTES = mezcla uniforme (proporciones π_h en cada
-  // celda) · DESPUÉS = composición Q del equilibrio (ordenada por el bid-rent).
-  const heatmap = useMemo<{
-    before: number[][];
-    after: number[][];
-  } | null>(() => {
-    if (!result) return null;
-    const Q = result.result.Q; // Q[h][i]
-    const Hc = (runContext?.config ?? config).H_por_estrato;
-    const tot = Hc.reduce((a, b) => a + b, 0) || 1;
-    const pi = Hc.map((h) => h / tot);
-    const before = Array.from({ length: result.L }, () => [...pi]);
-    const after = Array.from({ length: result.L }, (_, i) => [
-      Q[0]?.[i] ?? 0,
-      Q[1]?.[i] ?? 0,
-      Q[2]?.[i] ?? 0,
-    ]);
-    return { before, after };
-  }, [result, runContext, config]);
 
   // Hogares por celda = oferta S(i), repartidos por la composición Q del
   // equilibrio: N[h,i] = Q[h,i]·S_i. La envolvente es el perfil de OFERTA (la
   // «forma de la ciudad», Fig. 00), igual que como el core coloca los hogares
-  // (asignar_hogares reparte según S). La Fig. de densidad usa la MISMA envolvente
-  // (densidad = S/Δx), así que todas las figuras comparten forma. `smoothSupply`
-  // reproduce la forma continua (sin el dentado de la discretización entera).
+  // (asignar_hogares reparte según S). Por eso no hay figura de densidad
+  // (= S/Δx): sería esta envolvente otra vez, y es un insumo, no un resultado.
+  // Tampoco «antes/después»: el antes es la mezcla uniforme, sin información,
+  // y el después repite esta figura. `smoothSupply` reproduce la forma
+  // continua (sin el dentado de la discretización entera).
   const composition = useMemo<number[][] | null>(() => {
     if (!result) return null;
     const cfg = runContext?.config ?? config;
@@ -328,53 +307,9 @@ export function LandUsePage() {
                 </Panel>
               )}
 
-              {heatmap && (
-                <Panel
-                  n="02"
-                  title={tS("land_use.heatmap_title")}
-                  meta={tS("land_use.heatmap_meta")}
-                  cls="col-12"
-                >
-                  <ExportableFigure
-                    name="heatmap-estratos"
-                    title={tS("land_use.heatmap_title")}
-                    exportSize={{ width: 1000, height: 200 }}
-                  >
-                    <StrataHeatmap
-                      before={heatmap.before}
-                      after={heatmap.after}
-                      largoKm={
-                        runContext?.largoKm ?? simConfig.city.largo_ciudad_km
-                      }
-                    />
-                  </ExportableFigure>
-                  <p className="kpi-caption" style={{ marginTop: 8 }}>
-                    {tS("land_use.heatmap_caption_corto")}
-                  </p>
-                  <PorQue>{tS("land_use.heatmap_caption_porque")}</PorQue>
-                </Panel>
-              )}
-
-              {densidadCelda && densidadCelda.length > 0 && (
-                <Panel
-                  n="03"
-                  title={tS("land_use.density_title")}
-                  meta={tS("land_use.density_meta")}
-                  cls="col-12"
-                >
-                  <ExportableFigure
-                    name="densidad-por-celda"
-                    title={tS("land_use.density_title")}
-                    exportSize={{ width: 800, height: 200 }}
-                  >
-                    <DensityProfile densidad={densidadCelda} />
-                  </ExportableFigure>
-                </Panel>
-              )}
-
               {prices && (
                 <Panel
-                  n="04"
+                  n="02"
                   title={tS("land_use.bid_price_title")}
                   meta={tS("land_use.bid_price_meta")}
                   cls="col-12"

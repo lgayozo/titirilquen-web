@@ -80,6 +80,9 @@ interface FilaAgg {
   /** Excedente o bienestar: su cero es arbitrario. Sin referencia se rotula
    *  «nivel», para que nadie lea el número solo. */
   nivel?: boolean;
+  /** La cifra principal de la tabla. Hay dos medidas de bienestar que pueden
+   *  tener signo opuesto; sin una marcada, no se sabe cuál es «el resultado». */
+  destacada?: boolean;
 }
 
 export function ReferenceComparison({
@@ -249,6 +252,7 @@ export function ReferenceComparison({
       // condición de comparabilidad.
       comparable: excedenteComparable,
       nivel: true,
+      destacada: true,
       nota: t("agg.bienestar_nota"),
     },
     {
@@ -323,7 +327,10 @@ export function ReferenceComparison({
             const neutro = f.neutra === true;
             const bueno = d == null ? false : f.menorEsMejor ? d < 0 : d > 0;
             return (
-              <tr key={f.label}>
+              <tr
+                key={f.label}
+                className={f.destacada ? "fila-destacada" : undefined}
+              >
                 <td>
                   {f.label}
                   {f.unidad && (

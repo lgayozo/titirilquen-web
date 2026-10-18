@@ -1350,6 +1350,14 @@ table.tabla-datos td:first-child {
   font-variant-numeric: normal;
 }
 
+/* La cifra principal de una tabla (el bienestar social en los agregados de
+   Transporte): en negrita y con raya de tinta arriba. */
+table.tabla-datos tr.fila-destacada td {
+  font-weight: 600;
+  color: var(--ink);
+  border-top: 1px solid var(--ink);
+}
+
 /* Nota al pie de una etiqueta («(VoT conductual por estrato)»): más chica y
    apagada, pero en la MISMA familia que la etiqueta que acompaña. */
 table.tabla-datos .celda-nota {
