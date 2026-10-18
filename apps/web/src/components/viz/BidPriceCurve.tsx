@@ -9,6 +9,9 @@ interface BidPriceCurveProps {
   p: readonly number[];
   className?: string;
   height?: number;
+  /** Largo de la ciudad (km). Activa el tooltip por parcela, como en la
+   *  figura de la ciudad de Transporte; sin él la curva no responde al hover. */
+  largoKm?: number;
 }
 
 // left 70 y top 12: con 12 px (B2) un tick de seis cifras («133165») pisaba el
@@ -41,6 +44,7 @@ export function BidPriceCurve({
   p,
   className,
   height = 160,
+  largoKm,
 }: BidPriceCurveProps) {
   const { t } = useTranslation("simulator");
   const cbd = Math.floor(p.length / 2);
@@ -62,6 +66,7 @@ export function BidPriceCurve({
   }, [p, cbd]);
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const [W, setW] = useState(600);
   useEffect(() => {
     if (!wrapRef.current) return;
@@ -81,6 +86,23 @@ export function BidPriceCurve({
     MARGIN.left + (i / Math.max(path.p.length - 1, 1)) * plotW;
   const yOf = (v: number) =>
     MARGIN.top + plotH - ((v - path.mn) / path.range) * plotH;
+
+  // Una sola capa de captura, como en StratumDistribution. La curva es una
+  // línea de puntos en xOf(i), no barras: la parcela bajo el puntero es la del
+  // punto más cercano (round), no la del intervalo (floor).
+  const n = path.p.length;
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const onMove = (e: React.MouseEvent<SVGRectElement>) => {
+    const svg = svgRef.current;
+    if (!svg || n === 0) return;
+    const r = svg.getBoundingClientRect();
+    // El SVG se escala con maxWidth:100%: px del puntero → coordenadas del viewBox.
+    const xView = ((e.clientX - r.left) * W) / Math.max(r.width, 1);
+    const i = Math.round(((xView - MARGIN.left) / plotW) * Math.max(n - 1, 1));
+    setHoverIdx(i >= 0 && i < n ? i : null);
+  };
+  const cellKm = largoKm != null && n > 0 ? largoKm / n : 0;
+  const hoverV = hoverIdx != null ? path.p[hoverIdx] : undefined;
 
   // `M` tras cada hueco: el trazo se interrumpe en el CBD en vez de cruzarlo
   // con una recta que insinuaría un precio que no existe.
@@ -107,6 +129,7 @@ export function BidPriceCurve({
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
       <svg
+        ref={svgRef}
         width={W}
         height={H}
         viewBox={`0 0 ${W} ${H}`}
@@ -185,6 +208,27 @@ export function BidPriceCurve({
           L
         </text>
 
+        {/* Guía y punto de la parcela bajo el puntero */}
+        {hoverIdx != null && (
+          <line
+            x1={xOf(hoverIdx)}
+            y1={MARGIN.top}
+            x2={xOf(hoverIdx)}
+            y2={MARGIN.top + plotH}
+            stroke="var(--ink)"
+            strokeWidth={0.8}
+            opacity={0.5}
+          />
+        )}
+        {hoverIdx != null && hoverV != null && Number.isFinite(hoverV) && (
+          <circle
+            cx={xOf(hoverIdx)}
+            cy={yOf(hoverV)}
+            r={3}
+            fill="var(--accent)"
+          />
+        )}
+
         {/* Y-axis title */}
         <text
           className="label"
@@ -195,7 +239,53 @@ export function BidPriceCurve({
         >
           {t("bid_price.y_label")}
         </text>
+
+        {/* Capa de captura del puntero, encima de todo. */}
+        {largoKm != null && (
+          <rect
+            x={MARGIN.left}
+            y={MARGIN.top}
+            width={plotW}
+            height={plotH}
+            fill="transparent"
+            onMouseMove={onMove}
+            onMouseLeave={() => setHoverIdx(null)}
+          />
+        )}
       </svg>
+
+      {/* Tooltip como HTML, con el estilo del de StratumDistribution. */}
+      {largoKm != null && hoverIdx != null && (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{
+            left: Math.min(Math.max(xOf(hoverIdx), 92), Math.max(W - 92, 92)),
+            top: MARGIN.top + 4,
+            transform: "translateX(-50%)",
+            background: "var(--panel)",
+            border: "1px solid var(--rule)",
+            borderRadius: 7,
+            padding: "6px 8px",
+            fontFamily: "var(--font-fig)",
+            fontSize: "var(--fs-etiqueta)",
+            lineHeight: 1.5,
+            whiteSpace: "nowrap",
+            color: "var(--ink)",
+          }}
+        >
+          <div style={{ color: "var(--muted)" }}>
+            {t("stratum_distribution.tooltip_pos", {
+              km: fmtDecimal((hoverIdx + 0.5) * cellKm),
+              dist: fmtDecimal(Math.abs(cbd - hoverIdx) * cellKm),
+            })}
+          </div>
+          <div style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+            {hoverV != null && Number.isFinite(hoverV)
+              ? t("bid_price.tooltip_precio", { v: fmt(hoverV) })
+              : t("bid_price.tooltip_cbd")}
+          </div>
+        </div>
+      )}
 
       <div
         style={{

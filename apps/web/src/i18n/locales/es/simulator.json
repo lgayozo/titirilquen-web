@@ -431,6 +431,8 @@
     "subtitle": "Modelo Alonso-Muth-Mills",
     "iteraciones": "{{n}} iteraciones",
     "shape_y_axis": "Oferta",
+    "shape_tooltip_oferta": "{{n}} hogares de oferta",
+    "shape_tooltip_cbd": "CBD: sin oferta de vivienda",
     "mode_standalone": "Sólo suelo",
     "mode_coupled": "Ciudad en equilibrio",
     "info_standalone": "Resuelve el equilibrio de Alonso con la accesibilidad de Transporte: el logsum del logit modal a flujo libre, por estrato, mensualizado. Sin congestión.",
@@ -506,7 +508,9 @@
   "bid_price": {
     "y_label": "Precio (rel.)",
     "footer": "Relativo · 0 = mínimo · Δ {{delta}} (precio salvo constante)",
-    "units_logit": "Pesos por mes: el máximo esperado de las pujas y + f/λ (Martínez, ec. 4.27)."
+    "units_logit": "Pesos por mes: el máximo esperado de las pujas y + f/λ (Martínez, ec. 4.27).",
+    "tooltip_precio": "{{v}} $/mes sobre el mínimo",
+    "tooltip_cbd": "CBD: sin mercado de suelo residencial"
   },
   "supply_builder": {
     "bpr_curve_auto": "Curva BPR — Auto",

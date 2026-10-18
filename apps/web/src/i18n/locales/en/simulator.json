@@ -431,6 +431,8 @@
     "subtitle": "Alonso-Muth-Mills model",
     "iteraciones": "{{n}} iterations",
     "shape_y_axis": "Supply",
+    "shape_tooltip_oferta": "{{n}} households of supply",
+    "shape_tooltip_cbd": "CBD: no housing supply",
     "mode_standalone": "Land use only",
     "mode_coupled": "City at equilibrium",
     "info_standalone": "Solves the Alonso equilibrium with Transport's accessibility: the mode-choice logsum at free flow, per stratum, monthly. No congestion.",
@@ -506,7 +508,9 @@
   "bid_price": {
     "y_label": "Price (rel.)",
     "footer": "Relative · 0 = minimum · Δ {{delta}} (price up to a constant)",
-    "units_logit": "Pesos per month: the expected maximum of the bids y + f/λ (Martínez, eq. 4.27)."
+    "units_logit": "Pesos per month: the expected maximum of the bids y + f/λ (Martínez, eq. 4.27).",
+    "tooltip_precio": "{{v}} $/month above the minimum",
+    "tooltip_cbd": "CBD: no residential land market"
   },
   "supply_builder": {
     "bpr_curve_auto": "BPR curve — Car",

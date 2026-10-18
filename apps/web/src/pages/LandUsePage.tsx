@@ -302,6 +302,9 @@ export function LandUsePage() {
                     <StratumDistribution
                       parcelas={parcelas}
                       composition={composition ?? undefined}
+                      largoKm={
+                        runContext?.largoKm ?? simConfig.city.largo_ciudad_km
+                      }
                     />
                   </ExportableFigure>
                 </Panel>
@@ -319,7 +322,12 @@ export function LandUsePage() {
                     title={tS("land_use.bid_price_title")}
                     exportSize={{ width: 800, height: 200 }}
                   >
-                    <BidPriceCurve p={prices} />
+                    <BidPriceCurve
+                      p={prices}
+                      largoKm={
+                        runContext?.largoKm ?? simConfig.city.largo_ciudad_km
+                      }
+                    />
                   </ExportableFigure>
                 </Panel>
               )}
@@ -339,6 +347,8 @@ export function LandUsePage() {
                 CBD={CBD}
                 sigmaFrac={config.oferta_sigma_frac}
                 formaParam={config.forma_param}
+                largoKm={simConfig.city.largo_ciudad_km}
+                hogares={config.H_por_estrato.reduce((a, b) => a + b, 0)}
               />
               <p className="kpi-caption" style={{ marginTop: 8 }}>
                 {tS("land_use.shape_preview_caption")}
@@ -357,7 +367,10 @@ export function LandUsePage() {
                   title={tS("land_use.initial_pop_title")}
                   exportSize={{ width: 1000, height: 260 }}
                 >
-                  <StratumDistribution composition={initComposition} />
+                  <StratumDistribution
+                    composition={initComposition}
+                    largoKm={simConfig.city.largo_ciudad_km}
+                  />
                 </ExportableFigure>
                 <p className="kpi-caption" style={{ marginTop: 8 }}>
                   {tS("land_use.initial_pop_caption_corto")}
