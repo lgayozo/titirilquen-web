@@ -42,8 +42,9 @@ def base() -> dict[str, float]:
     [
         (("demand", "globales", "peaje_km"), 150.0, "Auto", -1),
         (("demand", "globales", "costo_tarifa_metro"), 0.0, "Metro", +1),
-        (("supply", "car", "num_pistas"), 3, "Auto", +1),
-        (("supply", "bike", "capacidad_pista"), 6000, "Bici", +1),
+        # Una pista más y 2.000 bici/h más que la base (4 pistas, 6.000).
+        (("supply", "car", "num_pistas"), 5, "Auto", +1),
+        (("supply", "bike", "capacidad_pista"), 8000, "Bici", +1),
     ],
     ids=["peaje-baja-auto", "tarifa-cero-sube-metro", "pista-sube-auto", "ciclovia-sube-bici"],
 )

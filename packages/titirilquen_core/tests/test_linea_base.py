@@ -122,18 +122,24 @@ ESPERADO = {
     #     2,0; bajo a 6,4, antes 5,8) y el bajo, más lejos, camina menos. Sólo se
     #     mueve «equilibrio»: auto +0,07, metro +0,56, bici −0,15, caminata
     #     −0,47; mismas iteraciones.
+    # 15. Oferta de la base: 4 pistas y ciclovía de 6.000 bici/h en vez de 2 y
+    #     4.000 (2026-10-18, decisión de Leandro). Con 2 pistas el tramo junto
+    #     al CBD cargaba v/c 2,01 (auto a ~4,4 km/h) y la ciclovía 1,54; ahora
+    #     1,19 y 1,07. Más capacidad induce auto: original auto +4,57, metro
+    #     −5,45, bici +1,51, caminata −0,65; equilibrio auto +3,23, metro −4,65,
+    #     bici +2,10, caminata −0,68. El MSA cierra mucho antes: 29 → 10 y 12.
     "equilibrio": {
-        "Auto": 25.12,
-        "Metro": 30.44,
-        "Bici": 33.94,
-        "Caminata": 10.50,
+        "Auto": 28.35,
+        "Metro": 25.79,
+        "Bici": 36.04,
+        "Caminata": 9.82,
         "Teletrabajo": 0.0,
     },
     "original": {
-        "Auto": 24.68,
-        "Metro": 28.52,
-        "Bici": 34.19,
-        "Caminata": 12.62,
+        "Auto": 29.25,
+        "Metro": 23.07,
+        "Bici": 35.70,
+        "Caminata": 11.97,
         "Teletrabajo": 0.0,
     },
 }
@@ -152,8 +158,9 @@ ESPERADO = {
 #: de `equilibrio`: 20 → 17. Sin teletrabajo por defecto y D5 (oct-2026): la
 #: demanda sube ~24 % y la brecha baja como 1/n desde más arriba: 17 → 29 y
 #: 13 → 29, con `max_iter` 40 (150 desde oct-2026: no cambia, porque cortan
-#: por brecha).
-ITERACIONES_ESPERADAS = {"equilibrio": 29, "original": 29}
+#: por brecha). La oferta de 4 pistas y ciclovía 6.000 (oct-2026) descongestiona
+#: el corredor y la brecha cae mucho antes: 29 → 12 y 29 → 10.
+ITERACIONES_ESPERADAS = {"equilibrio": 12, "original": 10}
 
 
 def _config_web() -> SimulationConfig:
@@ -168,7 +175,10 @@ def _config_web() -> SimulationConfig:
             n_celdas=201,  # web: 201 · core: 1001
             largo_ciudad_km=20,
         ),
-        supply=SupplyConfig(),
+        # Explícitos y no del default de Pydantic, por la regla de arriba.
+        supply=SupplyConfig.model_validate(
+            {"car": {"num_pistas": 4}, "bike": {"capacidad_pista": 6000}}
+        ),
         demand=DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
         max_iter=150,
         tolerance=0.2,

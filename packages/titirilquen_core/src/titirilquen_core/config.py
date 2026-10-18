@@ -234,16 +234,15 @@ class BikeSupplyParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     v_media_kmh: float = 14
-    # 4000 bici/h (2026-09-15). Con la ciudad por defecto la ciclovía queda a
-    # v/c ≈ 1,3, la misma saturación que la vía con 2 pistas, y la bicicleta
-    # empata con el metro (≈ 28 % cada uno): las dos palancas de capacidad
-    # responden en ambas direcciones y ningún modo queda dominado. Con 2500 la
-    # ciclovía operaba a v/c 1,7 y era la restricción que ataba la base; la
-    # capacidad de ciclovía es la palanca de oferta más fuerte del simulador
-    # (1000 → 5000 mueve la bici de 15 a 31 %). El techo de caminata se activa
-    # sobre v/c = ((v_bici/v_caminata - 1)/alpha)^(1/beta) = 1,96: por encima la
-    # BPR ya no opera. Medido en docs/libro/datos/cap03.json.
-    capacidad_pista: int = 4000
+    # 6000 bici/h (oct-2026, junto con las 4 pistas de la vía): la ciclovía
+    # queda a v/c ≈ 1,07 en el tramo junto al CBD, con la base de 2 pistas y
+    # 4000 operaba a 1,54 (unos 6 km/h en ese tramo). Antes: 2500 (v/c 1,7, la
+    # restricción que ataba la base) y 4000 (2026-09-15, v/c ≈ 1,3 al elegirse).
+    # La capacidad de ciclovía es la palanca de oferta más fuerte del simulador.
+    # El techo de caminata se activa sobre
+    # v/c = ((v_bici/v_caminata - 1)/alpha)^(1/beta) = 1,96: por encima la BPR
+    # ya no opera. Medido en docs/libro/datos/cap03.json.
+    capacidad_pista: int = 6000
     alpha_bpr: float = 0.5
     beta_bpr: float = 2.0
 
@@ -255,12 +254,19 @@ class CarSupplyParams(BaseModel):
     ancho_pista_m: float = 3.5
     largo_vehiculo_m: float = 5.0
     gap_m: float = 2.0
-    # 2 pistas: daba v/c ~1.05 al elegirse (hoy la base carga ~1,7 la capacidad
-    # real, cap. 3 del libro). Con 3 (v/c 0.71) la oferta vial quedaba MUERTA
-    # como palanca: bajo capacidad la BPR es plana; de 3 a 6 pistas, 0.11 pp. Todo
-    # el efecto vive cerca de v/c = 1. No se puede tener a la vez una ciudad base
-    # descongestionada y una oferta vial que mueva el reparto.
-    num_pistas: int = Field(default=2, ge=1)
+    # 4 pistas (oct-2026). Con 2 la base cargaba el tramo junto al CBD a v/c
+    # 2,01 sobre la capacidad real: la BPR multiplicaba el tiempo de ese tramo
+    # por ~7 (el auto a ~4,4 km/h, más lento que caminar) y el costo externo
+    # marginal ahí, t0·α·β·x^β, valía ~24 veces el tiempo a flujo libre: la
+    # tarificación rendía en una zona donde la BPR ya no describe nada. Con 4,
+    # v/c 1,19 (rama original; 1,15 en equilibrio).
+    # Subir capacidad baja el v/c despacio porque la demanda se induce: con 3,
+    # 1,54; con 5, 0,98. El techo es el codo estricto (5 pistas), descartado
+    # porque ahí la oferta vial queda MUERTA como palanca: bajo capacidad la
+    # BPR es plana (+1 pista: +0,17 pp de auto con 5; +0,44 con 4; +3,7 con 2).
+    # No se puede tener a la vez una ciudad base descongestionada y una oferta
+    # vial que mueva el reparto; 4 es el punto medio.
+    num_pistas: int = Field(default=4, ge=1)
     # BPR estándar del Bureau of Public Roads (1964), la que usa la FHWA:
     # t = t0·[1 + 0,15·(v/c)^4], con c la capacidad PRÁCTICA = 0,8·C real
     # (`FACTOR_CAPACIDAD_PRACTICA`, D6): +15 % en v = 0,8·C, +37 % en v = C. Hasta

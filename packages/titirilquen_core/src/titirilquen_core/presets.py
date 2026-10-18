@@ -20,15 +20,15 @@ class CityPreset(TypedDict, total=False):
     poblacion: int
     # Pistas por sentido. Va en el preset de CIUDAD —y no solo en los de
     # política— porque a una escala dada la capacidad vial no es neutra: con
-    # 144.000 habitantes las 2 pistas del default dejan el corredor en v/c 3,68
-    # y el auto en 52 min, o sea saturado POR CONSTRUCCIÓN, y el escenario deja
-    # de estar en la rodilla de la BPR donde las palancas responden. Lo declaran
+    # 144.000 habitantes las 4 pistas del default dejan el corredor saturado
+    # POR CONSTRUCCIÓN (con 8 pistas, v/c 1,92), y el escenario deja de estar
+    # cerca de la rodilla de la BPR donde las palancas responden. Lo declaran
     # los mismos presets que declaran `poblacion`: los que fijan la escala.
     num_pistas: int
     # Capacidad de la ciclovía (bici/h). Misma lógica que `num_pistas`: los
     # presets de escala la declaran para que la bicicleta compita en la misma
-    # condición que en Base (v/c ≈ 1,2–1,3); sin ella, escalar la población
-    # dejaba la ciclovía a v/c 2,4–2,7 y la bici fuera de competencia.
+    # condición que en Base (v/c ≈ 1,0–1,1); sin ella, escalar la población
+    # dejaba la ciclovía muy sobre capacidad y la bici fuera de competencia.
     cap_bici: int
 
 
@@ -70,22 +70,22 @@ CITY_PRESETS: dict[str, CityPreset] = {
         "largo_ciudad": 20,
         "sigma": 0.50,
         "poblacion": 36_000,
-        "num_pistas": 2,
-        "cap_bici": 4_000,
+        "num_pistas": 4,
+        "cap_bici": 6_000,
     },
     # ESCALA intermedia: el preset «ciudad con metro». Con 72.000 hogares la
     # carga del tramo crítico del metro pasa de 5.800 a 14.600 pax/h y la
     # frecuencia de 5,8 a ~11 tph (espera de 3 min): un metro urbano, no un tren
     # de cercanías. Para que auto y bici sigan compitiendo en la misma condición
-    # que en Base, 4 pistas y 7.500 bici/h dejan la vía y la ciclovía a v/c
-    # 1,2–1,3. Medido (equilibrio completo, cap03.json): auto 14,8 · metro 30,8
-    # · bici 26,5 · caminata 8,4.
+    # que en Base, la oferta escala con la población: 8 pistas y 12.000 bici/h
+    # (el doble de Base) dejan la vía y la ciclovía a v/c 1,13 y 1,00 (oct-2026,
+    # rama original; con 4 pistas y 7.500, la calibración anterior, 1,95 y 1,53).
     "Ciudad con metro": {
         "largo_ciudad": 20,
         "sigma": 0.50,
         "poblacion": 72_000,
-        "num_pistas": 4,
-        "cap_bici": 7_500,
+        "num_pistas": 8,
+        "cap_bici": 12_000,
     },
     "Dispersa": {"largo_ciudad": 40, "sigma": 0.90},
     # ESCALA, no forma: misma geometría que Base (20 km, sigma 0.50) con 4x la
@@ -103,17 +103,16 @@ CITY_PRESETS: dict[str, CityPreset] = {
         "largo_ciudad": 20,
         "sigma": 0.50,
         "poblacion": 144_000,
-        # 8 pistas y 16.000 bici/h: el número que deja la vía y la ciclovía en
-        # v/c 1,16 y 1,19 con esta población, o sea la MISMA condición que las 2
-        # pistas y 4.000 bici/h dan en Base, y el metro a 22,6 tph. Con el
-        # default de 2 pistas el v/c era 3,2 y el auto no competía; con 12 (la
-        # calibración anterior, hecha con la BPR heredada) la vía queda a v/c
-        # 0,78–0,87 y la palanca vial muere porque la BPR estándar es plana bajo
-        # capacidad. Ojo con leer 8 pistas como un dato urbano: en la ciudad
-        # lineal TODA la población atraviesa un único corredor, así que este
-        # número agrega la capacidad vial completa, no la de una avenida.
-        "num_pistas": 8,
-        "cap_bici": 16_000,
+        # 16 pistas y 24.000 bici/h, el cuádruple de Base: dejan la vía y la
+        # ciclovía en v/c 1,11 y 0,97 (oct-2026, rama original), la MISMA
+        # condición que las 4 pistas y 6.000 bici/h dan en Base. Con las 8 y
+        # 16.000 de la calibración anterior el v/c era 1,92 (la saturación de
+        # la base de 2 pistas). Ojo con leer 16 pistas como un dato urbano: en
+        # la ciudad lineal TODA la población atraviesa un único corredor, así
+        # que este número agrega la capacidad vial completa, no la de una
+        # avenida.
+        "num_pistas": 16,
+        "cap_bici": 24_000,
     },
 }
 
@@ -123,11 +122,12 @@ CITY_PRESETS: dict[str, CityPreset] = {
 # se reescalan manteniendo su RAZÓN contra la base, que es lo que define su
 # intensidad. Ya pasó dos veces (`frec_max: 20` y `parking: 6000`).
 #
-# Recalibración vigente — defaults: parking 2000 · 2 pistas · cap_bici 2500 ·
-# frec_max 40. Deliberados reescalados: Tarificación Vial (antes parking 2.5x, hoy peaje),
-# Pro-Auto parking 0.5x (1000) y una pista más que la base (3), Ciclorrecreovía
-# una menos (1). Sin reescalar, Pro-Auto habría quedado más caro que la base y
-# con menos pistas, invirtiendo su sentido.
+# Recalibración vigente (oct-2026) — defaults: parking 2000 · 4 pistas ·
+# cap_bici 6000 · frec_max 40. Deliberados reescalados: Tarificación Vial (antes
+# parking 2.5x, hoy peaje), Pro-Auto parking 0.5x (1000), ciclovía 0.5x (3000) y
+# una pista más que la base (5), Pro-Bici ciclovía 2x (12.000), Ciclorrecreovía
+# una pista menos (3) y ciclovía 2.4x (14.400). Sin reescalar, Pro-Auto habría
+# quedado con menos pistas que la base, invirtiendo su sentido.
 #
 # `frec_max` de las metro-friendly (TP Gratis y Máx Metro) queda en 50, por
 # encima del default: un tope PERMISIVO es inocuo si no muerde, mientras que uno
@@ -148,11 +148,11 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Base": {
         "tarifa": 800,
         "parking": 2000,
-        "num_pistas": 2,
+        "num_pistas": 4,
         "num_estaciones": 10,
         "bencina": 120,
         "peaje": 0,
-        "cap_bici": 4000,
+        "cap_bici": 6000,
         "frec_max": 40,
         "cap_tren": 1000,
         "factor_flota": 1.0,
@@ -160,11 +160,11 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "TP Gratis": {
         "tarifa": 0,
         "parking": 2000,
-        "num_pistas": 2,
+        "num_pistas": 4,
         "num_estaciones": 10,
         "bencina": 120,
         "peaje": 0,
-        "cap_bici": 4000,
+        "cap_bici": 6000,
         "frec_max": 50,
         "cap_tren": 1000,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
@@ -174,19 +174,21 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     # D7 (oct-2026): un peaje por km, no un parking más caro. En esta ciudad
     # todos van al CBD, así que el parking es un cordón plano; el costo externo
     # de un viaje crece con los tramos que cruza, y un cobro por km se le acerca.
-    # 275 $/km es el máximo medido del bienestar social sin teletrabajo
-    # (oct-2026; con teletrabajo era 150), en una meseta de 250–300 $/km
-    # (datos_cap04 `peaje_y_bienestar`). El parking de 5.000 que usaba antes
-    # da menos bienestar que el peaje.
+    # 50 $/km es el máximo medido del bienestar social con la base de 4 pistas
+    # (oct-2026, +51 mil $ en la hora punta; meseta de 25–50 $/km, ΔW < 0 desde
+    # 100 $/km; datos_cap04 `peaje_y_bienestar`). Con 2 pistas, v/c 2, el máximo era
+    # 275 $/km: el cobro óptimo crece con la congestión, y con congestión
+    # moderada hay poco que corregir. El parking de 5.000 que usaba antes da
+    # menos bienestar que el peaje.
     "Tarificación Vial": {
         "tarifa": 800,
         "parking": 2000,
-        "num_pistas": 2,
+        "num_pistas": 4,
         "num_estaciones": 10,
         "bencina": 120,
-        "peaje": 275,
+        "peaje": 50,
         "cap_tren": 1000,
-        "cap_bici": 4000,
+        "cap_bici": 6000,
         "frec_max": 40,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
         # hibridos» dejaba la flota en 0.7 en silencio.
@@ -195,12 +197,12 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Pro-Auto": {
         "tarifa": 1000,
         "parking": 1000,
-        "num_pistas": 3,
+        "num_pistas": 5,
         "num_estaciones": 8,
         "bencina": 100,
         "peaje": 0,
         "cap_tren": 800,
-        "cap_bici": 2000,
+        "cap_bici": 3000,
         "frec_max": 6,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
         # hibridos» dejaba la flota en 0.7 en silencio.
@@ -209,8 +211,8 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Pro-Bici": {
         "tarifa": 800,
         "parking": 2000,
-        "num_pistas": 2,
-        "cap_bici": 8000,
+        "num_pistas": 4,
+        "cap_bici": 12000,
         "frec_max": 40,
         "bencina": 120,
         "peaje": 0,
@@ -223,7 +225,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     "Vehículos híbridos": {
         # AHORA sí reduce la emisión por km: antes solo abarataba la bencina, o
         # sea abarataba el auto y terminaba SUBIENDO el CO2 (+1.6% medido).
-        "num_pistas": 2,
+        "num_pistas": 4,
         "bencina": 65,
         "peaje": 0,
         "tarifa": 800,
@@ -231,7 +233,7 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "frec_max": 40,
         "cap_tren": 1000,
         "num_estaciones": 10,
-        "cap_bici": 4000,
+        "cap_bici": 6000,
         "factor_flota": 0.7,
     },
     "Máx Metro": {
@@ -242,8 +244,8 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         "parking": 2000,
         "bencina": 120,
         "peaje": 0,
-        "num_pistas": 2,
-        "cap_bici": 4000,
+        "num_pistas": 4,
+        "cap_bici": 6000,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
         # hibridos» dejaba la flota en 0.7 en silencio.
         "factor_flota": 1.0,
@@ -253,8 +255,8 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         # vigente, así que aplicarla desde «Máx Metro» (20 est.) daba otro
         # escenario que aplicarla desde el default. Completada con 10 = default,
         # para que el preset sea reproducible.
-        "num_pistas": 1,
-        "cap_bici": 9600,
+        "num_pistas": 3,
+        "cap_bici": 14400,
         "tarifa": 800,
         "parking": 2000,
         "bencina": 120,

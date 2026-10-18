@@ -116,9 +116,9 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   se deriva donde se muestra (D-46). `teletrabajo_factor` vive en
   `demand.globales`.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
-  defecto de la app da **auto 24,68 · metro 28,52 · bici 34,19 · caminata 12,62**
-  con la localización «original» (mezcla uniforme), y **25,12 · 30,44 · 33,94 ·
-  10,50** con la de equilibrio (seed 42, brecha < 0,2 min), pineadas en
+  defecto de la app da **auto 29,25 · metro 23,07 · bici 35,70 · caminata 11,97**
+  con la localización «original» (mezcla uniforme), y **28,35 · 25,79 · 36,04 ·
+  9,82** con la de equilibrio (seed 42, brecha < 0,2 min), pineadas en
   `tests/test_linea_base.py` — ese archivo manda si estos números y él difieren. Si un cambio las mueve más de 0,05 pp,
   no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
   sep-2026 (λ heterogéneo en suelo; transporte homoscedástico; accesibilidad =
@@ -128,8 +128,9 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   capacidad práctica 0,8·C, D6; la parada del MSA sobre la brecha no amortiguada,
   D8; los escalones de la bici sobre su tiempo de red vacía, D9; la accesibilidad
   del suelo descuenta el teletrabajo, D11; sin teletrabajo por defecto y los VoT
-  anclados al VST, D5; μ del suelo 0,30 como valor de escenario): ver
-  ese test.
+  anclados al VST, D5; μ del suelo 0,30 como valor de escenario; oferta de 4
+  pistas y ciclovía de 6.000 bici/h, con el corredor a v/c 1,19 en vez de 2,01):
+  ver ese test.
 - **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
   0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`
   aborte con `already installed` y el motor por defecto deja de arrancar. Ningún
