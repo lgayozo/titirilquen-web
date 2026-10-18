@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-16",
-  "commit": "34b1726",
+  "fecha": "2026-10-18",
+  "commit": "1444619",
   "script": "docs/libro/datos/datos_cap10.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`), rama «equilibrio» salvo donde se indica; el acoplado con una vuelta."
  },
@@ -10,82 +10,82 @@
    {
     "estrato": "alto",
     "celda": 60,
-    "logsum_demanda": 0.118959582,
-    "logsum_desde_choice": 0.118959582,
-    "logsum_bienestar": 0.118959582,
-    "logsum_accesibilidad_con_auto": 0.118959582,
+    "logsum_demanda": 0.313467554,
+    "logsum_desde_choice": 0.313467554,
+    "logsum_bienestar": 0.313467554,
+    "logsum_accesibilidad_con_auto": 0.313467554,
     "coinciden": true
    },
    {
     "estrato": "alto",
     "celda": 125,
-    "logsum_demanda": 0.189267848,
-    "logsum_desde_choice": 0.189267848,
-    "logsum_bienestar": 0.189267848,
-    "logsum_accesibilidad_con_auto": 0.189267848,
+    "logsum_demanda": 0.397197808,
+    "logsum_desde_choice": 0.397197808,
+    "logsum_bienestar": 0.397197808,
+    "logsum_accesibilidad_con_auto": 0.397197808,
     "coinciden": true
    },
    {
     "estrato": "alto",
     "celda": 180,
-    "logsum_demanda": -0.314137958,
-    "logsum_desde_choice": -0.314137958,
-    "logsum_bienestar": -0.314137958,
-    "logsum_accesibilidad_con_auto": -0.314137958,
+    "logsum_demanda": -0.127293097,
+    "logsum_desde_choice": -0.127293097,
+    "logsum_bienestar": -0.127293097,
+    "logsum_accesibilidad_con_auto": -0.127293097,
     "coinciden": true
    },
    {
     "estrato": "medio",
     "celda": 60,
-    "logsum_demanda": 0.036479241,
-    "logsum_desde_choice": 0.036479241,
-    "logsum_bienestar": 0.036479241,
-    "logsum_accesibilidad_con_auto": 0.036479241,
+    "logsum_demanda": 0.214510316,
+    "logsum_desde_choice": 0.214510316,
+    "logsum_bienestar": 0.214510316,
+    "logsum_accesibilidad_con_auto": 0.214510316,
     "coinciden": true
    },
    {
     "estrato": "medio",
     "celda": 125,
-    "logsum_demanda": 0.135628688,
-    "logsum_desde_choice": 0.135628688,
-    "logsum_bienestar": 0.135628688,
-    "logsum_accesibilidad_con_auto": 0.135628688,
+    "logsum_demanda": 0.329609709,
+    "logsum_desde_choice": 0.329609709,
+    "logsum_bienestar": 0.329609709,
+    "logsum_accesibilidad_con_auto": 0.329609709,
     "coinciden": true
    },
    {
     "estrato": "medio",
     "celda": 180,
-    "logsum_demanda": -0.500146648,
-    "logsum_desde_choice": -0.500146648,
-    "logsum_bienestar": -0.500146648,
-    "logsum_accesibilidad_con_auto": -0.500146648,
+    "logsum_demanda": -0.343893596,
+    "logsum_desde_choice": -0.343893596,
+    "logsum_bienestar": -0.343893596,
+    "logsum_accesibilidad_con_auto": -0.343893596,
     "coinciden": true
    },
    {
     "estrato": "bajo",
     "celda": 60,
-    "logsum_demanda": -0.001651414,
-    "logsum_desde_choice": -0.001651414,
-    "logsum_bienestar": -0.001651414,
-    "logsum_accesibilidad_con_auto": -0.001651414,
+    "logsum_demanda": 0.151626595,
+    "logsum_desde_choice": 0.151626595,
+    "logsum_bienestar": 0.151626595,
+    "logsum_accesibilidad_con_auto": 0.151626595,
     "coinciden": true
    },
    {
     "estrato": "bajo",
     "celda": 125,
-    "logsum_demanda": 0.143318068,
-    "logsum_desde_choice": 0.143318068,
-    "logsum_bienestar": 0.143318068,
-    "logsum_accesibilidad_con_auto": 0.143318068,
+    "logsum_demanda": 0.312594097,
+    "logsum_desde_choice": 0.312594097,
+    "logsum_bienestar": 0.312594097,
+    "logsum_accesibilidad_con_auto": 0.312594097,
     "coinciden": true
    },
    {
     "estrato": "bajo",
     "celda": 180,
-    "logsum_demanda": -0.68469683,
-    "logsum_desde_choice": -0.68469683,
-    "logsum_bienestar": -0.68469683,
-    "logsum_accesibilidad_con_auto": -0.68469683,
+    "logsum_demanda": -0.575277614,
+    "logsum_desde_choice": -0.575277614,
+    "logsum_bienestar": -0.575277614,
+    "logsum_accesibilidad_con_auto": -0.575277614,
     "coinciden": true
    }
   ],
@@ -108,7 +108,7 @@
    }
   },
   "logsum_accesibilidad_pondera_por_prob_auto": {
-   "estrato_medio_celda_125_ponderado": -0.137375,
+   "estrato_medio_celda_125_ponderado": -0.002083,
    "nota": "La accesibilidad es la esperanza sobre la tenencia de auto; el bienestar la calcula por rama y la mezcla con `prob_auto` aparte."
   }
  },
@@ -132,60 +132,60 @@
  },
  "cuatro_repartos": {
   "snapshot_modal_split (agentes, con teletrabajo)": {
-   "Auto": 25.125,
-   "Metro": 30.436,
-   "Bici": 33.937,
-   "Caminata": 10.502,
+   "Auto": 28.35,
+   "Metro": 25.786,
+   "Bici": 36.043,
+   "Caminata": 9.822,
    "Teletrabajo": 0.0
   },
   "agregados_viajes_por_modo (demanda esperada, sin teletrabajo)": {
-   "Auto": 25.125,
-   "Metro": 30.436,
-   "Bici": 33.937,
-   "Caminata": 10.502
+   "Auto": 28.345,
+   "Metro": 25.794,
+   "Bici": 36.04,
+   "Caminata": 9.821
   },
   "coupled_reparto_modal (agentes, con teletrabajo y varado)": {
-   "Auto": 24.686,
-   "Metro": 30.758,
-   "Bici": 34.022,
-   "Caminata": 10.533,
+   "Auto": 27.975,
+   "Metro": 26.108,
+   "Bici": 36.1,
+   "Caminata": 9.817,
    "Teletrabajo": 0.0,
    "Varado": 0.0
   },
   "snapshot_sin_teletrabajo": {
-   "Auto": 25.125,
-   "Metro": 30.436,
-   "Bici": 33.937,
-   "Caminata": 10.502
+   "Auto": 28.35,
+   "Metro": 25.786,
+   "Bici": 36.043,
+   "Caminata": 9.822
   },
   "snapshot_de_la_corrida_del_acoplado": {
-   "Auto": 25.125,
-   "Metro": 30.436,
-   "Bici": 33.937,
-   "Caminata": 10.502,
+   "Auto": 28.35,
+   "Metro": 25.786,
+   "Bici": 36.043,
+   "Caminata": 9.822,
    "Teletrabajo": 0.0
   },
-  "brecha_dentro_de_la_misma_corrida_pp": 0.439,
+  "brecha_dentro_de_la_misma_corrida_pp": 0.375,
   "brecha_entre_corridas_mismo_conteo_pp": 0.0,
-  "brecha_snapshot_vs_coupled_pp": 0.439,
-  "brecha_esperado_vs_realizado_pp": 0.0,
+  "brecha_snapshot_vs_coupled_pp": 0.375,
+  "brecha_esperado_vs_realizado_pp": 0.008,
   "nota": "Dos denominadores (con y sin teletrabajo) y dos numeradores (demanda esperada vs agentes realizados): cuatro repartos legítimos para la misma corrida, y ninguna tabla dice cuál usa."
  },
  "baselines": {
   "por_componente": {
    "auto_total": {
     "max_abs_ingenuo_vs_vacia_min": 0.096,
-    "max_abs_vacia_vs_convergido_min": 11.384,
+    "max_abs_vacia_vs_convergido_min": 1.21,
     "media_ingenuo_min": 9.677,
     "media_vacia_min": 9.581,
-    "media_convergido_min": 20.004
+    "media_convergido_min": 10.687
    },
    "bici_total": {
     "max_abs_ingenuo_vs_vacia_min": 0.213,
-    "max_abs_vacia_vs_convergido_min": 12.959,
+    "max_abs_vacia_vs_convergido_min": 6.828,
     "media_ingenuo_min": 21.428,
     "media_vacia_min": 21.216,
-    "media_convergido_min": 31.66
+    "media_convergido_min": 26.683
    },
    "tren_acceso": {
     "max_abs_ingenuo_vs_vacia_min": 10.0,
@@ -196,10 +196,10 @@
    },
    "tren_espera": {
     "max_abs_ingenuo_vs_vacia_min": 10.0,
-    "max_abs_vacia_vs_convergido_min": 9.453,
+    "max_abs_vacia_vs_convergido_min": 8.397,
     "media_ingenuo_min": 5.0,
     "media_vacia_min": 13.433,
-    "media_convergido_min": 4.968
+    "media_convergido_min": 5.913
    },
    "tren_viaje": {
     "max_abs_ingenuo_vs_vacia_min": 3.62,
@@ -217,13 +217,13 @@
    "Teletrabajo": 0.0
   },
   "reparto_final_pct": {
-   "Auto": 25.125,
-   "Metro": 30.436,
-   "Bici": 33.937,
-   "Caminata": 10.502,
+   "Auto": 28.35,
+   "Metro": 25.786,
+   "Bici": 36.043,
+   "Caminata": 9.822,
    "Teletrabajo": 0.0
   },
-  "iteraciones": 29,
+  "iteraciones": 12,
   "nota": "D-30 documenta tres baselines; desde D-34/D-42 son dos: el arranque ingenuo del MSA y la red vacía, que sirve tanto al ΔCS como al suelo. La fila «arranque del acoplado en minutos a v_auto» de D-30 ya no describe el código."
  },
  "geometria": {
@@ -315,51 +315,51 @@
  "linea_base": {
   "citado_en_CLAUDE_md": {
    "original": [
-    24.68,
-    28.52,
-    34.19,
-    12.62
+    29.25,
+    23.07,
+    35.7,
+    11.97
    ],
    "equilibrio": [
-    25.12,
-    30.44,
-    33.94,
-    10.5
+    28.35,
+    25.79,
+    36.04,
+    9.82
    ]
   },
   "ramas": {
    "original": {
     "fijado_en_test_linea_base": [
-     24.68,
-     28.52,
-     34.19,
-     12.62
+     29.25,
+     23.07,
+     35.7,
+     11.97
     ],
     "medido_hoy": [
-     24.68,
-     28.52,
-     34.19,
-     12.62
+     29.25,
+     23.07,
+     35.7,
+     11.97
     ],
-    "iteraciones": 29,
+    "iteraciones": 10,
     "convergio": true,
     "test_vs_medido_max_pp": 0.0,
     "CLAUDE_md_vs_test_max_pp": 0.0
    },
    "equilibrio": {
     "fijado_en_test_linea_base": [
-     25.12,
-     30.44,
-     33.94,
-     10.5
+     28.35,
+     25.79,
+     36.04,
+     9.82
     ],
     "medido_hoy": [
-     25.12,
-     30.44,
-     33.94,
-     10.5
+     28.35,
+     25.79,
+     36.04,
+     9.82
     ],
-    "iteraciones": 29,
+    "iteraciones": 12,
     "convergio": true,
     "test_vs_medido_max_pp": 0.0,
     "CLAUDE_md_vs_test_max_pp": 0.0
@@ -369,7 +369,7 @@
  "documentacion": {
   "tests_nucleo": {
    "citados_en_CLAUDE_md": 200,
-   "recolectados_hoy": 236
+   "recolectados_hoy": 237
   },
   "tests_e2e": {
    "citados_en_CLAUDE_md": 58,
@@ -378,14 +378,14 @@
   "discrepancias_registradas": 70,
   "i18n": {
    "simulator.json": {
-    "claves_es": 844,
-    "claves_en": 844,
+    "claves_es": 855,
+    "claves_en": 855,
     "solo_en_es": [],
     "solo_en_en": []
    },
    "common.json": {
-    "claves_es": 55,
-    "claves_en": 55,
+    "claves_es": 54,
+    "claves_en": 54,
     "solo_en_es": [],
     "solo_en_en": []
    }

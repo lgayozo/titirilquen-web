@@ -120,7 +120,11 @@ CITY_PRESETS: dict[str, CityPreset] = {
 # se recalibra un default hay que moverlos, o aplicar cualquier política revierte
 # ese parámetro en silencio. Los valores neutros van al default; los deliberados
 # se reescalan manteniendo su RAZÓN contra la base, que es lo que define su
-# intensidad. Ya pasó dos veces (`frec_max: 20` y `parking: 6000`).
+# intensidad, salvo las PISTAS, que se cuentan por unidades: «una pista más» o
+# «una menos» es la política que se lee, y Ciclorrecreovía es literalmente
+# convertir una pista en ciclovía (decisión de Leandro, oct-2026; con la base de
+# 2 pistas las dos reglas coincidían). Ya pasó dos veces (`frec_max: 20` y
+# `parking: 6000`).
 #
 # Recalibración vigente (oct-2026) — defaults: parking 2000 · 4 pistas ·
 # cap_bici 6000 · frec_max 40. Deliberados reescalados: Tarificación Vial (antes

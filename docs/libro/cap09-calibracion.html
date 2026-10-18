@@ -22,7 +22,7 @@
     Módulos: <code>presets.py</code> · <code>config.py</code> ·
     <code>land_use/config.py</code> · <code>constantes.py</code> ·
     auditado el 2026-09-08, revisado el 2026-10-14 ·
-    datos regenerados el 2026-10-14 ·
+    datos regenerados el 2026-10-18 ·
     <span class="estado auditado">auditado</span>
   </p>
 </header>
@@ -131,14 +131,14 @@
     <tr>
       <td class="n">(9.1)–(9.4)</td>
       <td class="ruta py">presets.py</td>
-      <td class="n">370</td>
+      <td class="n">374</td>
       <td><code>DEFAULT_STRATA</code> — los 42 betas y las dos probabilidades por estrato; el comentario de arriba es la historia de la calibración</td>
     </tr>
     <tr>
       <td class="n">—</td>
       <td class="ruta py">presets.py</td>
       <td class="n">50</td>
-      <td><code>CITY_PRESETS</code> — forma urbana a iso-población; <code>POLICY_PRESETS</code> (142) con valores absolutos, no diferencias</td>
+      <td><code>CITY_PRESETS</code> — forma urbana a iso-población; <code>POLICY_PRESETS</code> (146) con valores absolutos, no diferencias</td>
     </tr>
     <tr>
       <td class="n">(9.4)</td>
@@ -162,7 +162,7 @@
       <td class="n">—</td>
       <td class="ruta py">config.py</td>
       <td class="n">233</td>
-      <td><code>BikeSupplyParams</code> — <code>capacidad_pista</code> (245): 4.000, no los 800 que S-10 cita</td>
+      <td><code>BikeSupplyParams</code> — <code>capacidad_pista</code> (245): 6.000, no los 800 que S-10 cita</td>
     </tr>
     <tr>
       <td class="n">—</td>
@@ -347,48 +347,48 @@
     <tr><th class="n">#</th><th>parámetro</th><th class="n">valor → perturbado</th><th class="n">Δ máx (pp)</th><th class="n">Δ t medio (min)</th><th class="n">Δ CO₂ (kg/h)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">1</td><td><code>estratos.2.prob_teletrabajo</code></td><td class="n">0 → 0,1</td><td class="n">4,989</td><td class="n">−0,165</td><td class="n">−969,98</td></tr>
-    <tr><td class="n">2</td><td><code>car.num_pistas</code></td><td class="n">2 → 3</td><td class="n">3,730</td><td class="n">−1,897</td><td class="n">−2.488,09</td></tr>
-    <tr><td class="n">3</td><td><code>city.largo_ciudad_km</code></td><td class="n">20,0 → 22,0</td><td class="n">1,584</td><td class="n">0,765</td><td class="n">1.314,47</td></tr>
-    <tr><td class="n">4</td><td><code>car.v_max_kmh</code></td><td class="n">31 → 34</td><td class="n">1,417</td><td class="n">−0,640</td><td class="n">−739,26</td></tr>
-    <tr><td class="n">5</td><td><code>globales.v_caminata</code></td><td class="n">4,8 → 5,28</td><td class="n">1,167</td><td class="n">−0,166</td><td class="n">−135,73</td></tr>
-    <tr><td class="n">6</td><td><code>bike.v_media_kmh</code></td><td class="n">14 → 15</td><td class="n">1,071</td><td class="n">−0,065</td><td class="n">−227,45</td></tr>
-    <tr><td class="n">7</td><td><code>globales.costo_tarifa_metro</code></td><td class="n">800 → 880</td><td class="n">0,987</td><td class="n">0,507</td><td class="n">357,99</td></tr>
-    <tr><td class="n">8</td><td><code>city.pendiente_porcentaje</code></td><td class="n">0 → 1,0</td><td class="n">0,976</td><td class="n">0,014</td><td class="n">198,37</td></tr>
-    <tr><td class="n">9</td><td><code>car.beta_bpr</code></td><td class="n">4,0 → 4,4</td><td class="n">0,859</td><td class="n">0,341</td><td class="n">257,15</td></tr>
-    <tr><td class="n">10</td><td><code>train.num_estaciones</code></td><td class="n">10 → 11</td><td class="n">0,836</td><td class="n">−0,328</td><td class="n">−334,97</td></tr>
-    <tr><td class="n">11</td><td><code>car.largo_vehiculo_m</code></td><td class="n">5,0 → 5,5</td><td class="n">0,808</td><td class="n">0,325</td><td class="n">282,38</td></tr>
-    <tr><td class="n">12</td><td><code>bike.capacidad_pista</code></td><td class="n">4.000 → 4.400</td><td class="n">0,789</td><td class="n">−0,218</td><td class="n">−147,75</td></tr>
-    <tr><td class="n">13</td><td><code>estratos.2.prob_auto</code></td><td class="n">0,6 → 0,66</td><td class="n">0,687</td><td class="n">0,410</td><td class="n">1.021,58</td></tr>
-    <tr><td class="n">14</td><td><code>train.capacidad_tren</code></td><td class="n">1.000 → 1.100</td><td class="n">0,651</td><td class="n">0,340</td><td class="n">238,30</td></tr>
-    <tr><td class="n">15</td><td><code>train.v_caminata_kmh</code></td><td class="n">4,8 → 5,28</td><td class="n">0,588</td><td class="n">−0,305</td><td class="n">−255,23</td></tr>
-    <tr><td class="n">16</td><td><code>globales.corte_caminata_min</code></td><td class="n">30,0 → 33,0</td><td class="n">0,444</td><td class="n">−0,073</td><td class="n">−56,06</td></tr>
-    <tr><td class="n">17</td><td><code>estratos.2.betas.b_tiempo_viaje</code></td><td class="n">−0,0331 → −0,0364</td><td class="n">0,442</td><td class="n">−0,281</td><td class="n">−175,76</td></tr>
-    <tr><td class="n">18</td><td><code>globales.costo_parking</code></td><td class="n">2.000 → 2.200</td><td class="n">0,433</td><td class="n">−0,234</td><td class="n">−599,60</td></tr>
-    <tr><td class="n">19</td><td><code>bike.alpha_bpr</code></td><td class="n">0,5 → 0,55</td><td class="n">0,418</td><td class="n">0,112</td><td class="n">77,86</td></tr>
-    <tr><td class="n">20</td><td><code>estratos.2.betas.asc_bici</code></td><td class="n">−0,4918 → −0,541</td><td class="n">0,395</td><td class="n">−0,117</td><td class="n">74,30</td></tr>
-    <tr class="destacada"><td class="n">21</td><td><code>estratos.2.betas.b_costo</code></td><td class="n">×1,1</td><td class="n">0,352</td><td class="n">−0,000</td><td class="n">−368,58</td></tr>
-    <tr><td colspan="6">… 20 parámetros entre 0,326 y 0,007 pp …</td></tr>
-    <tr><td class="n">42</td><td><code>globales.v_auto</code></td><td class="n">31 → 34</td><td class="n">0,002</td><td class="n">−0,002</td><td class="n">−0,98</td></tr>
-    <tr><td class="n">43</td><td><code>globales.v_metro</code></td><td class="n">35 → 38</td><td class="n">0,001</td><td class="n">−0,001</td><td class="n">−0,30</td></tr>
-    <tr><td class="n">44</td><td><code>train.anden_beta</code></td><td class="n">4,0 → 4,4</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,07</td></tr>
-    <tr><td class="n">45</td><td><code>train.frec_max</code></td><td class="n">40 → 44</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,04</td></tr>
+    <tr><td class="n">1</td><td><code>estratos.2.prob_teletrabajo</code></td><td class="n">0 → 0,1</td><td class="n">4,989</td><td class="n">0,006</td><td class="n">−674,68</td></tr>
+    <tr><td class="n">2</td><td><code>estratos.2.prob_auto</code></td><td class="n">0,6 → 0,66</td><td class="n">1,458</td><td class="n">0,125</td><td class="n">796,38</td></tr>
+    <tr><td class="n">3</td><td><code>city.largo_ciudad_km</code></td><td class="n">20,0 → 22,0</td><td class="n">1,253</td><td class="n">0,642</td><td class="n">1.225,24</td></tr>
+    <tr><td class="n">4</td><td><code>globales.costo_tarifa_metro</code></td><td class="n">800 → 880</td><td class="n">1,201</td><td class="n">0,334</td><td class="n">205,15</td></tr>
+    <tr><td class="n">5</td><td><code>bike.v_media_kmh</code></td><td class="n">14 → 15</td><td class="n">1,160</td><td class="n">−0,086</td><td class="n">−164,70</td></tr>
+    <tr><td class="n">6</td><td><code>globales.v_caminata</code></td><td class="n">4,8 → 5,28</td><td class="n">1,100</td><td class="n">−0,080</td><td class="n">−63,86</td></tr>
+    <tr><td class="n">7</td><td><code>city.pendiente_porcentaje</code></td><td class="n">0 → 1,0</td><td class="n">1,069</td><td class="n">0,038</td><td class="n">148,35</td></tr>
+    <tr><td class="n">8</td><td><code>train.capacidad_tren</code></td><td class="n">1.000 → 1.100</td><td class="n">0,985</td><td class="n">0,260</td><td class="n">164,59</td></tr>
+    <tr><td class="n">9</td><td><code>train.num_estaciones</code></td><td class="n">10 → 11</td><td class="n">0,948</td><td class="n">−0,198</td><td class="n">−196,25</td></tr>
+    <tr><td class="n">10</td><td><code>globales.costo_parking</code></td><td class="n">2.000 → 2.200</td><td class="n">0,755</td><td class="n">−0,048</td><td class="n">−371,26</td></tr>
+    <tr><td class="n">11</td><td><code>train.v_caminata_kmh</code></td><td class="n">4,8 → 5,28</td><td class="n">0,689</td><td class="n">−0,181</td><td class="n">−136,60</td></tr>
+    <tr><td class="n">12</td><td><code>estratos.2.betas.asc_auto</code></td><td class="n">0,766 → 0,843</td><td class="n">0,531</td><td class="n">0,041</td><td class="n">269,38</td></tr>
+    <tr><td class="n">13</td><td><code>car.v_max_kmh</code></td><td class="n">31 → 34</td><td class="n">0,531</td><td class="n">−0,350</td><td class="n">−754,08</td></tr>
+    <tr><td class="n">14</td><td><code>estratos.2.betas.b_tiempo_espera</code></td><td class="n">−0,0662 → −0,0728</td><td class="n">0,512</td><td class="n">0,136</td><td class="n">110,41</td></tr>
+    <tr class="destacada"><td class="n">15</td><td><code>estratos.2.betas.b_costo</code></td><td class="n">×1,1</td><td class="n">0,477</td><td class="n">0,084</td><td class="n">−239,93</td></tr>
+    <tr><td class="n">16</td><td><code>bike.capacidad_pista</code></td><td class="n">6.000 → 6.600</td><td class="n">0,475</td><td class="n">−0,133</td><td class="n">−57,43</td></tr>
+    <tr><td class="n">17</td><td><code>estratos.2.betas.asc_bici</code></td><td class="n">−0,4918 → −0,541</td><td class="n">0,471</td><td class="n">−0,112</td><td class="n">55,91</td></tr>
+    <tr><td class="n">18</td><td><code>car.num_pistas</code></td><td class="n">4 → 5</td><td class="n">0,439</td><td class="n">−0,283</td><td class="n">−600,03</td></tr>
+    <tr><td class="n">19</td><td><code>globales.corte_caminata_min</code></td><td class="n">30,0 → 33,0</td><td class="n">0,405</td><td class="n">−0,039</td><td class="n">−27,59</td></tr>
+    <tr><td class="n">20</td><td><code>estratos.2.betas.b_tiempo_acceso</code></td><td class="n">−0,0662 → −0,0728</td><td class="n">0,405</td><td class="n">0,111</td><td class="n">85,49</td></tr>
+    <tr><td class="n">21</td><td><code>train.v_tren_kmh</code></td><td class="n">35 → 38</td><td class="n">0,397</td><td class="n">−0,119</td><td class="n">−94,52</td></tr>
+    <tr><td colspan="6">… 20 parámetros entre 0,388 y 0,008 pp …</td></tr>
+    <tr><td class="n">42</td><td><code>estratos.2.betas.penalizaciones_fisicas.walk_25</code></td><td class="n">−0,2 → −0,22</td><td class="n">0,007</td><td class="n">0,001</td><td class="n">0,53</td></tr>
+    <tr><td class="n">43</td><td><code>globales.v_metro</code></td><td class="n">35 → 38</td><td class="n">0,005</td><td class="n">−0,003</td><td class="n">−0,22</td></tr>
+    <tr><td class="n">44</td><td><code>train.frec_max</code></td><td class="n">40 → 44</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,01</td></tr>
+    <tr><td class="n">45</td><td><code>train.anden_beta</code></td><td class="n">4,0 → 4,4</td><td class="n">0,000</td><td class="n">−0,000</td><td class="n">−0,02</td></tr>
     <tr><td class="n">46</td><td><code>car.ancho_pista_m</code></td><td class="n">3,5 → 3,85</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
     <tr><td class="n">47</td><td><code>train.costo_operacion_tren_km</code></td><td class="n">12.000 → 13.200</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
     <tr><td class="n">48</td><td><code>train.factor_dia_punta</code></td><td class="n">2,0 → 2,2</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
     <tr><td class="n">49</td><td><code>train.frec_min</code></td><td class="n">2 → 3</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">50</td><td><code>train.anden_alpha</code></td><td class="n">0,5 → 0,55</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,01</td></tr>
+    <tr><td class="n">50</td><td><code>train.anden_alpha</code></td><td class="n">0,5 → 0,55</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
     <tr><td class="n">51</td><td><code>globales.corte_bici_min</code></td><td class="n">45,0 → 49,5</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
-    <tr><td class="n">52</td><td><code>globales.factor_flota_auto</code></td><td class="n">1,0 → 1,1</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">1.459,31</td></tr>
-    <tr><td class="n">53</td><td><code>globales.factor_emision_metro_tren_km</code></td><td class="n">2,5 → 2,75</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">51,33</td></tr>
+    <tr><td class="n">52</td><td><code>globales.factor_flota_auto</code></td><td class="n">1,0 → 1,1</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">1.037,69</td></tr>
+    <tr><td class="n">53</td><td><code>globales.factor_emision_metro_tren_km</code></td><td class="n">2,5 → 2,75</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">41,53</td></tr>
     <tr><td class="n">54</td><td><code>globales.teletrabajo_factor</code></td><td class="n">1,0 → 1,1</td><td class="n">0,000</td><td class="n">0,000</td><td class="n">0,00</td></tr>
   </tbody>
 </table>
 </div>
 
 <p class="pie-tabla">
-  Reparto de referencia: auto 24,678 · metro 28,517 · bici 34,189 · caminata
-  12,616 · teletrabajo 0, la línea base «original». Los betas se perturban sólo en el estrato medio:
+  Reparto de referencia: auto 29,252 · metro 23,072 · bici 35,701 · caminata
+  11,974 · teletrabajo 0, la línea base «original». Los betas se perturban sólo en el estrato medio:
   por (9.3), la sensibilidad a un beta es la sensibilidad a su razón, común a
   los tres. La lista completa está en <code>datos/cap09.json</code>.
 </p>
@@ -399,22 +399,22 @@
 
 <ul>
   <li>
-    <strong>Lo que más mueve es cuánta gente viaja y la red, no la
-    calibración.</strong> Encabeza <code>prob_teletrabajo</code> del estrato
+    <strong>Lo que más mueve es cuánta gente viaja, quién tiene auto y la
+    forma de la ciudad, no la calibración.</strong> Encabeza <code>prob_teletrabajo</code> del estrato
     medio, de 0 a 0,1, con 4,99 pp; pero ese máximo es la propia cuota de
     teletrabajo, y entre los modos de viaje el que más se mueve es el metro,
-    −2,54 pp. Lo siguen el número de pistas (3,73 pp), ahora que la BPR
-    de la FHWA sobre la capacidad práctica muerde (D6), y el largo de la ciudad
-    (1,58). Ningún beta entra al top 10: el más sensible,
-    <code>b_tiempo_viaje</code>, es el 17º con 0,44 pp, y
-    <code>b_costo</code>, el de la dispersión sin fuente, el 21º con 0,35.
+    −1,98 pp. Lo siguen <code>prob_auto</code> del estrato medio (1,46 pp) y
+    el largo de la ciudad (1,25); el número de pistas, de 4 a 5, queda 18º con
+    0,44. Ningún beta entra al top 10: el más sensible,
+    <code>asc_auto</code>, es el 12º con 0,53 pp, y
+    <code>b_costo</code>, el de la dispersión sin fuente, el 15º con 0,48.
   </li>
   <li>
-    <strong>Ocho inertes, por cinco razones.</strong> Por diseño:
+    <strong>Nueve inertes, por cinco razones.</strong> Por diseño:
     los dos del costo del operador (no entran al reparto). Por régimen:
-    <code>frec_min</code>, <code>frec_max</code> y <code>anden_alpha</code>; la
-    frecuencia demandada es interior y el andén no satura a esta demanda
-    (<code>anden_beta</code> mueve 0,0002 pp; S-09 mostró que con la frecuencia
+    <code>frec_min</code>, <code>frec_max</code>, <code>anden_alpha</code> y
+    <code>anden_beta</code>; la frecuencia demandada es interior y el andén no
+    satura a esta demanda (<code>anden_beta</code> mueve 0,0001 pp; S-09 mostró que con la frecuencia
     topada el andén mueve 23×). Por escalón: <code>ancho_pista_m</code>, cuyo
     factor es una función por tramos que no cambia entre 3,5 y 3,85. Por
     geometría: <code>corte_bici_min</code>, que desde D9 corta sobre la bici en
@@ -425,15 +425,15 @@
   </li>
   <li>
     <strong>Dos que casi no mueven, como corresponde.</strong>
-    <code>globales.v_auto</code> (0,0023 pp) y <code>globales.v_bici</code>
-    (0,0074) sólo siembran la iteración 0 del MSA; lo que queda es dependencia
+    <code>globales.v_auto</code> (0,0098 pp) y <code>globales.v_bici</code>
+    (0,0083) sólo siembran la iteración 0 del MSA; lo que queda es dependencia
     de camino dentro de la tolerancia. Sus gemelas de <code>supply</code> mueven
-    1,417 y 1,071 (D-65).
+    0,531 y 1,160 (D-65).
   </li>
   <li>
     <strong>Y dos que están dos veces.</strong> Hay dos velocidades de caminata
     con el mismo default: la global es el modo caminata y el techo de la bici
-    (1,167 pp), la del tren es el acceso a la estación (0,588). Editar una no
+    (1,100 pp), la del tren es el acceso a la estación (0,689). Editar una no
     edita la otra.
   </li>
 </ul>
@@ -446,9 +446,9 @@
     <tr><th>parámetro</th><th class="n">valor → perturbado</th><th class="n">Δ máx reparto (pp)</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td><code>oferta_sigma_frac</code></td><td class="n">0,5 → 0,55</td><td class="n">1,4672</td></tr>
-    <tr><td><code>mu</code></td><td class="n">0,30 → 0,33</td><td class="n">0,0621</td></tr>
-    <tr><td><code>estratos.1.rho</code></td><td class="n">0 → 1,0</td><td class="n">0,0197</td></tr>
+    <tr class="destacada"><td><code>oferta_sigma_frac</code></td><td class="n">0,5 → 0,55</td><td class="n">1,3296</td></tr>
+    <tr><td><code>mu</code></td><td class="n">0,30 → 0,33</td><td class="n">0,0805</td></tr>
+    <tr><td><code>estratos.1.rho</code></td><td class="n">0 → 1,0</td><td class="n">0,0262</td></tr>
     <tr><td><code>estratos.1.y</code></td><td class="n">1,5M → 1,65M</td><td class="n">0,0000</td></tr>
     <tr><td><code>forma_param</code></td><td class="n">0,5 → 0,55</td><td class="n">0,0000</td></tr>
   </tbody>
@@ -460,8 +460,8 @@
   la <strong>forma de la oferta</strong> (dónde hay casas), no la puja. De la
   función de puje quedan dos campos (α y λ dejaron de serlo, D1): la escala
   <code>μ</code>, de vuelta en v10 como valor de escenario, y <code>ρ</code>.
-  Subir μ un 10 % mueve 0,0621 pp; <code>ρ</code> parte en 0, Alonso puro (D2),
-  y llevarlo a 1 mueve 0,0197 pp; los dos contra 1,467 de <code>sigma</code>. <code>y</code> da cero por construcción
+  Subir μ un 10 % mueve 0,0805 pp; <code>ρ</code> parte en 0, Alonso puro (D2),
+  y llevarlo a 1 mueve 0,0262 pp; los dos contra 1,330 de <code>sigma</code>. <code>y</code> da cero por construcción
   (D-08: se absorbe en la utilidad de reserva) y <code>forma_param</code> no
   actúa sobre la forma «normal».
 </p>
@@ -475,27 +475,28 @@
   </thead>
   <tbody>
     <tr><td>TP Gratis</td><td class="n">2</td><td>tarifa 800 → 0 (×0) · frec_max 40 → 50 (×1,25)</td></tr>
-    <tr><td>Tarificación Vial</td><td class="n">1</td><td>peaje 0 → 275 $/km (sin razón: la base es 0; D7)</td></tr>
-    <tr class="destacada"><td>Pro-Auto</td><td class="n">8</td><td>tarifa ×1,25 · parking ×0,5 · pistas 2 → 3 · estaciones 10 → 8 · bencina ×0,833 · cap_tren ×0,8 · cap_bici ×0,5 · frec_max 40 → 6 (×0,15)</td></tr>
-    <tr><td>Pro-Bici</td><td class="n">1</td><td>cap_bici 4.000 → 8.000 (×2,0)</td></tr>
+    <tr><td>Tarificación Vial</td><td class="n">1</td><td>peaje 0 → 50 $/km (sin razón: la base es 0; D7)</td></tr>
+    <tr class="destacada"><td>Pro-Auto</td><td class="n">8</td><td>tarifa ×1,25 · parking ×0,5 · pistas 4 → 5 · estaciones 10 → 8 · bencina ×0,833 · cap_tren ×0,8 · cap_bici ×0,5 · frec_max 40 → 6 (×0,15)</td></tr>
+    <tr><td>Pro-Bici</td><td class="n">1</td><td>cap_bici 6.000 → 12.000 (×2,0)</td></tr>
     <tr><td>Vehículos híbridos</td><td class="n">2</td><td>bencina 120 → 65 (×0,542) · factor_flota 1 → 0,7</td></tr>
     <tr><td>Máx Metro</td><td class="n">3</td><td>tarifa ×0,5 · estaciones 10 → 20 · frec_max 40 → 50</td></tr>
-    <tr><td>Ciclorrecreovía</td><td class="n">2</td><td>pistas 2 → 1 · cap_bici 4.000 → 9.600 (×2,4)</td></tr>
+    <tr><td>Ciclorrecreovía</td><td class="n">2</td><td>pistas 4 → 3 · cap_bici 6.000 → 14.400 (×2,4)</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Los defaults del original eran frec_max 20, cap_tren 1.200, cap_bici 800,
-  parking 6.000; hoy 40, 1.000, 4.000, 2.000 (el parking, por día). Las siete políticas del original
+  parking 6.000; hoy 40, 1.000, 6.000, 2.000 (el parking, por día). Las siete políticas del original
   se reescribieron enteras con la regla de <code>presets.py</code>: los valores
   neutros van al default y los deliberados conservan su <em>razón</em> contra
-  la base. Seis de las siete tocan una, dos o tres claves; <strong>Pro-Auto
+  la base, salvo las pistas, que se cuentan por unidades: «una pista más» en
+  Pro-Auto, «una menos» en Ciclorrecreovía. Seis de las siete tocan una, dos o tres claves; <strong>Pro-Auto
   toca ocho</strong>, y es la única que no es una política sino un escenario.
 </p>
 
 <p class="pie-tabla">
-  Fuente: <code>datos/cap09.json</code>, regenerado el 2026-10-14 con
+  Fuente: <code>datos/cap09.json</code>, regenerado el 2026-10-18 con
   <code>uv run python ../../docs/libro/datos/datos_cap09.py</code>.
 </p>
 
@@ -534,7 +535,7 @@
     </tr>
     <tr>
       <td><code>test_linea_base.py::test_linea_base_reparto_modal</code></td>
-      <td>El reparto de la app en las dos ramas, ±0,05 pp, y sus 29 iteraciones (<code>test_linea_base_iteraciones</code>).</td>
+      <td>El reparto de la app en las dos ramas, ±0,05 pp, y su número de iteraciones (<code>test_linea_base_iteraciones</code>).</td>
       <td>Qué parámetro lo movió: cuando falla dice <em>que</em> cambió el modelo, no <em>por dónde</em>.</td>
     </tr>
     <tr>
@@ -678,13 +679,13 @@
   <code>α</code> y <code>λ</code>. Dos ya no son campos del escenario (λ desde
   v6, α desde v7); la escala, constante μ = 1/√44 entre v7 y v9, volvió en v10
   como valor de escenario, μ = 0,30, sin fuente, y un +10 % mueve el reparto
-  0,062 pp; y
-  <code>ρ</code> mueve el reparto modal 0,020 pp contra 1,47 de <code>sigma</code>;
+  0,081 pp; y
+  <code>ρ</code> mueve el reparto modal 0,026 pp contra 1,33 de <code>sigma</code>;
   ningún beta llega al top 10 del transporte. Eso no los vuelve irrelevantes
   —la segregación y el bienestar no son el reparto modal— pero sí ordena la
   agenda: quien quiera cambiar lo que el simulador <em>muestra</em> debería
   empezar por la tasa de teletrabajo, que hoy está en cero y es la palanca más
-  fuerte, el número de pistas, el largo de la ciudad y la forma de la oferta,
+  fuerte, la tenencia de auto (<code>prob_auto</code>), el largo de la ciudad y la forma de la oferta,
   no por la subasta.
 </p>
 

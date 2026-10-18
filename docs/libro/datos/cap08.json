@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-17",
-  "commit": "9eeef4c",
+  "fecha": "2026-10-18",
+  "commit": "1444619",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -36,20 +36,20 @@
  "c02": {
   "motor_api_run_msa": {
    "reparto_pct": {
-    "Auto": 24.678,
-    "Metro": 28.517,
-    "Bici": 34.189,
-    "Caminata": 12.616,
+    "Auto": 29.252,
+    "Metro": 23.072,
+    "Bici": 35.701,
+    "Caminata": 11.974,
     "Teletrabajo": 0.0
    },
    "agentes": 36000
   },
   "motor_local_iter_msa_desde_suelo": {
    "reparto_pct": {
-    "Auto": 24.678,
-    "Metro": 28.517,
-    "Bici": 34.189,
-    "Caminata": 12.616,
+    "Auto": 29.252,
+    "Metro": 23.072,
+    "Bici": 35.701,
+    "Caminata": 11.974,
     "Teletrabajo": 0.0
    },
    "agentes": 36000
@@ -91,21 +91,21 @@
   "la_interfaz_pasa_por_la_api": true
  },
  "payload": {
-  "trace_to_dict_bytes": 6769385,
+  "trace_to_dict_bytes": 6083222,
   "trace_agentes": 36000,
   "trace_por_clave_pct": {
-   "agentes": 83.66,
-   "iteraciones": 15.5,
-   "demanda_estrato": 0.58,
+   "agentes": 93.12,
+   "iteraciones": 5.96,
+   "demanda_estrato": 0.64,
    "emisiones_perfil_kg": 0.06,
    "flujos_auto_veh_h": 0.06
   },
-  "outer_iteration_bytes": 6788934,
+  "outer_iteration_bytes": 6173775,
   "outer_por_clave_pct": {
-   "transport": 99.54,
-   "land_use": 0.24,
-   "T_matrix": 0.18,
-   "metrics": 0.03,
+   "transport": 99.5,
+   "land_use": 0.27,
+   "T_matrix": 0.19,
+   "metrics": 0.04,
    "T_residual": 0.0,
    "outer_iter": 0.0
   },
@@ -117,7 +117,7 @@
    "T_residual": 2,
    "metrics": 11
   },
-  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 67.9,
+  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 61.7,
   "mb_que_el_frontend_abre_de_eso": 0.19
  },
  "campos_sin_lector": {

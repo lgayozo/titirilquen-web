@@ -81,7 +81,7 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
     "supply.bike.v_media_kmh": (HEREDADO, "original: 14 km/h", False),
     "supply.bike.capacidad_pista": (
         DECISION,
-        "4.000 bici/h (ciclovía, sep-2026); S-10 la marca como calibración de primer orden",
+        "6.000 bici/h (ciclovía, oct-2026, con las 4 pistas); S-10 la marca como calibración de primer orden",
         False,
     ),
     "supply.bike.alpha_bpr": (HEREDADO, "original", False),
@@ -92,7 +92,7 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
     "supply.car.gap_m": (HEREDADO, "Overleaf §oferta", False),
     "supply.car.num_pistas": (
         DECISION,
-        "2: la rodilla de la BPR en la ciudad base",
+        "4 (oct-2026): v/c 1,19 en la base; con 2, 2,01, y con 5 la palanca vial muere",
         False,
     ),
     "supply.car.alpha_bpr": (

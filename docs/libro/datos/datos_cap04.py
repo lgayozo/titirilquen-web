@@ -224,7 +224,7 @@ def peaje_y_bienestar() -> dict:
 
     w0 = None
     filas = []
-    for v in (0, 50, 100, 150, 200, 250, 275, 300, 350, 400, 500, 600):
+    for v in (0, 25, 50, 75, 100, 150, 200, 250, 275, 300, 350, 400, 500, 600):
         m = mide(_con_globales(peaje_km=v))
         w0 = m["bienestar"] if w0 is None else w0
         filas.append({"peaje_km": v, **m})
@@ -237,7 +237,8 @@ def peaje_y_bienestar() -> dict:
         "peaje_preset_tarificacion_vial": POLICY_PRESETS["Tarificación Vial"]["peaje"],
         "nota": (
             "Localización «original», tolerancia de la app (0,2 min). Sin "
-            "teletrabajo por defecto (oct-2026) el máximo pasó de 150 a 250–300 $/km."
+            "teletrabajo por defecto (oct-2026) el máximo pasó de 150 a 250–300 $/km; "
+            "con la base de 4 pistas y ciclovía 6.000 (oct-2026), a 25–50 $/km."
         ),
         "barrido": filas,
         "parking_5000_sin_peaje": parking,

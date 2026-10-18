@@ -24,7 +24,7 @@
     <code>bienestar</code> · <code>coupled</code> · <code>tests/test_linea_base.py</code> ·
     <code>CLAUDE.md</code> ·
     auditado el 2026-09-08, revisado el 2026-10-15 ·
-    datos regenerados el 2026-10-15 ·
+    datos regenerados el 2026-10-18 ·
     <span class="estado auditado">auditado</span>
   </p>
 </header>
@@ -288,16 +288,16 @@
     <tr><th>quién lo calcula</th><th>numerador</th><th>denominador</th><th class="n">auto</th><th class="n">metro</th><th class="n">bici</th><th class="n">caminata</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>modal_split</code> del MSA (Sandbox, <code>RunStatus</code>)</td><td>esperado <em>n·p_m</em></td><td>con teletrabajo</td><td class="n">25,125</td><td class="n">30,436</td><td class="n">33,937</td><td class="n">10,502</td></tr>
-    <tr class="destacada"><td><code>reparto_modal</code> del acoplado (agentes)</td><td>muestreado</td><td>con teletrabajo y varado</td><td class="n">24,686</td><td class="n">30,758</td><td class="n">34,022</td><td class="n">10,533</td></tr>
-    <tr><td><code>viajes_por_modo</code> de los agregados</td><td>esperado</td><td>sin teletrabajo</td><td class="n">25,125</td><td class="n">30,436</td><td class="n">33,937</td><td class="n">10,502</td></tr>
-    <tr><td><code>modal_split</code> sin teletrabajo</td><td>esperado</td><td>sin teletrabajo</td><td class="n">25,125</td><td class="n">30,436</td><td class="n">33,937</td><td class="n">10,502</td></tr>
+    <tr><td><code>modal_split</code> del MSA (Sandbox, <code>RunStatus</code>)</td><td>esperado <em>n·p_m</em></td><td>con teletrabajo</td><td class="n">28,350</td><td class="n">25,786</td><td class="n">36,043</td><td class="n">9,822</td></tr>
+    <tr class="destacada"><td><code>reparto_modal</code> del acoplado (agentes)</td><td>muestreado</td><td>con teletrabajo y varado</td><td class="n">27,975</td><td class="n">26,108</td><td class="n">36,100</td><td class="n">9,817</td></tr>
+    <tr><td><code>viajes_por_modo</code> de los agregados</td><td>esperado</td><td>sin teletrabajo</td><td class="n">28,345</td><td class="n">25,794</td><td class="n">36,040</td><td class="n">9,821</td></tr>
+    <tr><td><code>modal_split</code> sin teletrabajo</td><td>esperado</td><td>sin teletrabajo</td><td class="n">28,350</td><td class="n">25,786</td><td class="n">36,043</td><td class="n">9,822</td></tr>
   </tbody>
 </table>
 </div>
 
 <div class="aviso alerta">
-  <h4>D-67 — el mismo trace, dos conteos, 0,44 pp</h4>
+  <h4>D-67 — el mismo trace, dos conteos, 0,38 pp</h4>
   <p>
     Las dos páginas corren la <strong>misma</strong> simulación: el
     <code>modal_split</code> del acoplado es idéntico al del Sandbox (brecha
@@ -313,10 +313,10 @@
 
 <p>
   El muestreo es deliberado —«preserva modos minoritarios como la bici» frente
-  al argmax— y la brecha, 0,44 pp, es chica frente al reparto, aunque casi nueve veces la tolerancia de 0,05 pp de la línea base. Pero <code>expected</code> se eligió
+  al argmax— y la brecha, 0,38 pp, es chica frente al reparto, aunque siete veces y media la tolerancia de 0,05 pp de la línea base. Pero <code>expected</code> se eligió
   justamente para que las curvas de sensibilidad se lean sin ruido de muestreo,
   y por esta puerta el ruido vuelve a entrar a la mitad de los indicadores. La
-  brecha esperado ↔ realizado en el mismo denominador es de 0,000 pp. La de
+  brecha esperado ↔ realizado en el mismo denominador es de 0,008 pp. La de
   denominador, «con» o «sin» teletrabajo, hoy es cero porque nadie teletrabaja:
   la primera fila y la cuarta coinciden. Con <code>prob_teletrabajo</code> &gt; 0
   vuelve a ser la que importa, la que un lector no avisado toma por un cambio de
@@ -331,10 +331,10 @@
     <tr><th>componente</th><th class="n">media ingenuo (min)</th><th class="n">media red vacía</th><th class="n">media convergido</th><th class="n">máx |ingenuo − vacía|</th><th class="n">máx |vacía − convergido|</th></tr>
   </thead>
   <tbody>
-    <tr><td>auto</td><td class="n">9,677</td><td class="n">9,581</td><td class="n">20,004</td><td class="n">0,096</td><td class="n">11,384</td></tr>
-    <tr><td>bici</td><td class="n">21,428</td><td class="n">21,216</td><td class="n">31,660</td><td class="n">0,213</td><td class="n">12,959</td></tr>
+    <tr><td>auto</td><td class="n">9,677</td><td class="n">9,581</td><td class="n">10,687</td><td class="n">0,096</td><td class="n">1,210</td></tr>
+    <tr><td>bici</td><td class="n">21,428</td><td class="n">21,216</td><td class="n">26,683</td><td class="n">0,213</td><td class="n">6,828</td></tr>
     <tr><td>acceso al tren</td><td class="n">10,000</td><td class="n">6,250</td><td class="n">6,250</td><td class="n">10,000</td><td class="n">0,000</td></tr>
-    <tr class="destacada"><td>espera del tren</td><td class="n">5,000</td><td class="n">13,433</td><td class="n">4,968</td><td class="n">10,000</td><td class="n">9,453</td></tr>
+    <tr class="destacada"><td>espera del tren</td><td class="n">5,000</td><td class="n">13,433</td><td class="n">5,913</td><td class="n">10,000</td><td class="n">8,397</td></tr>
     <tr><td>viaje en tren</td><td class="n">8,571</td><td class="n">9,325</td><td class="n">9,325</td><td class="n">3,620</td><td class="n">0,000</td></tr>
   </tbody>
 </table>
@@ -351,11 +351,11 @@
 <p>
   Y los dos que quedan difieren en lo que importa: la espera. El ingenuo supone
   5 minutos; la red vacía, con el tren a frecuencia mínima, 13,4. El convergido
-  queda en 5,0 porque la demanda trae frecuencia (Mohring). Así que el MSA
+  queda en 5,9 porque la demanda trae frecuencia (Mohring). Así que el MSA
   arranca <em>más cerca</em> del punto fijo que la red vacía en la espera y más
   lejos en el acceso. El reparto de la iteración 0 —auto 27,759, metro 23,514,
-  bici 39,704— está a 6,9 pp del final en el metro y a 5,8 en la bici, y el
-  MSA lo corrige en 29 iteraciones: el arranque no importa para el resultado,
+  bici 39,704— está a 2,3 pp del final en el metro y a 3,7 en la bici, y el
+  MSA lo corrige en 12 iteraciones: el arranque no importa para el resultado,
   sí para el camino. El capítulo 9 midió el residuo de ese camino:
   0,0023 pp por cambiar <code>v_auto</code> global.
 </p>
@@ -405,8 +405,8 @@
     <tr><th>rama</th><th class="n">fijado en el test</th><th class="n">medido hoy</th><th class="n">citado en CLAUDE.md</th><th class="n">CLAUDE.md − test (pp)</th></tr>
   </thead>
   <tbody>
-    <tr><td>original (sin suelo)</td><td class="n">24,68 · 28,52 · 34,19 · 12,62</td><td class="n">24,68 · 28,52 · 34,19 · 12,62</td><td class="n">24,68 · 28,52 · 34,19 · 12,62</td><td class="n">0,00</td></tr>
-    <tr class="destacada"><td>equilibrio (con suelo)</td><td class="n">25,12 · 30,44 · 33,94 · 10,50</td><td class="n">25,12 · 30,44 · 33,94 · 10,50</td><td class="n">25,12 · 30,44 · 33,94 · 10,50</td><td class="n">0,00</td></tr>
+    <tr><td>original (sin suelo)</td><td class="n">29,25 · 23,07 · 35,70 · 11,97</td><td class="n">29,25 · 23,07 · 35,70 · 11,97</td><td class="n">29,25 · 23,07 · 35,70 · 11,97</td><td class="n">0,00</td></tr>
+    <tr class="destacada"><td>equilibrio (con suelo)</td><td class="n">28,35 · 25,79 · 36,04 · 9,82</td><td class="n">28,35 · 25,79 · 36,04 · 9,82</td><td class="n">28,35 · 25,79 · 36,04 · 9,82</td><td class="n">0,00</td></tr>
   </tbody>
 </table>
 </div>
@@ -417,9 +417,9 @@
     En septiembre <code>CLAUDE.md</code> citaba la línea base anterior a D-42,
     0,11 pp fuera, más del doble de la tolerancia del test. Hoy cita los números
     de <code>test_linea_base.py</code> y declara que ese archivo manda; en las
-    dos ramas coinciden a 0,00 pp, y las 29 iteraciones de cada una
+    dos ramas coinciden a 0,00 pp, y las 10 y 12 iteraciones de cada una
     también son las del test. Los conteos que el documento da como orientación
-    siguen siendo aproximados: «~200 tests del núcleo» contra 236 recolectados hoy, y
+    siguen siendo aproximados: «~200 tests del núcleo» contra 237 recolectados hoy, y
     «58 e2e», que se refiere a <code>test:e2e:fast</code> y no se recontó.
   </p>
 </div>
@@ -429,7 +429,7 @@
 <ul>
   <li>
     <strong>i18n</strong>: los dos idiomas tienen exactamente el mismo conjunto de
-    claves — 844 en <code>simulator.json</code>, 55 en <code>common.json</code>,
+    claves — 855 en <code>simulator.json</code>, 54 en <code>common.json</code>,
     ninguna huérfana en ningún sentido. Es la comprobación que
     <code>CLAUDE.md</code> advierte que un grep no puede hacer.
   </li>
@@ -442,7 +442,7 @@
 </ul>
 
 <p class="pie-tabla">
-  Fuente: <code>datos/cap10.json</code>, regenerado el 2026-10-15 con
+  Fuente: <code>datos/cap10.json</code>, regenerado el 2026-10-18 con
   <code>uv run python ../../docs/libro/datos/datos_cap10.py</code>.
 </p>
 
@@ -528,7 +528,7 @@
   <tbody>
     <tr>
       <td class="n">D-67</td>
-      <td>Una misma corrida tiene dos repartos modales —esperado y muestreado, 0,44 pp— y el Sandbox muestra ambos sin rótulo.</td>
+      <td>Una misma corrida tiene dos repartos modales —esperado y muestreado, 0,38 pp— y el Sandbox muestra ambos sin rótulo.</td>
       <td>Dos definiciones legítimas publicadas como una.</td>
       <td>pendiente</td>
     </tr>
