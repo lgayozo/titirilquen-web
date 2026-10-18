@@ -985,9 +985,10 @@ export function SandboxPage() {
                   type="button"
                   className={config.assignment === m ? "active" : ""}
                   // Todo o nada promedia flujos con paso 1/n y su costo en
-                  // exceso cae lento: con 1–2 pistas necesita ~55 iteraciones
-                  // (D-70). Al elegirlo se sube el tope a 100; no se baja al
-                  // volver al logit, que converge antes y corta solo.
+                  // exceso cae lento cuando el corredor satura: con la base
+                  // vieja de 2 pistas necesitaba 52 iteraciones (D-70); con la
+                  // de 4 converge en 2. Al elegirlo se sube el tope a 100; no
+                  // se baja al volver al logit, que converge antes y corta solo.
                   onClick={() =>
                     setConfig((c) => ({
                       ...c,

@@ -32,7 +32,7 @@ $$
 
 <OverleafRef sec="Criterio de Parada" tag="R-11" />
 
-— la **brecha sin amortiguar**: lo que devuelve la red cargada contra los tiempos con que se calculó la demanda, el máximo en cualquier modo y parcela — es menor que la tolerancia (**0,2 min**) durante **dos iteraciones consecutivas** (robusto al ruido del Monte Carlo). `max_iter` (150 por defecto, hasta 300) queda como tope de seguridad: la ciudad por defecto converge en 29 iteraciones, y con 1 pista en 115, porque la cola del MSA baja como $1/it$. Si una corrida agota el tope, la barra de estado lo avisa: lo que muestra no es un equilibrio.
+— la **brecha sin amortiguar**: lo que devuelve la red cargada contra los tiempos con que se calculó la demanda, el máximo en cualquier modo y parcela — es menor que la tolerancia (**0,2 min**) durante **dos iteraciones consecutivas** (robusto al ruido del Monte Carlo). `max_iter` (150 por defecto, hasta 300) queda como tope de seguridad: la ciudad por defecto converge en 10 iteraciones, y con 1 pista en 119, porque la cola del MSA baja como $1/it$. Si una corrida agota el tope, la barra de estado lo avisa: lo que muestra no es un equilibrio.
 
 <MSAFlowchart />
 

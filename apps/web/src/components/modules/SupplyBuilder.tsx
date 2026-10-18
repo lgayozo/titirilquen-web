@@ -91,12 +91,12 @@ export function SupplyBuilder({
           label={t("supply_params.car.num_pistas")}
           value={car.num_pistas}
           min={1}
-          // 12 y no 5: el preset Metrópolis trae 12 pistas —es lo que deja el
-          // corredor en la rodilla de la BPR con 144.000 habitantes— y un tope
-          // de 5 impedía volver a ese valor después de moverlo. En la ciudad
-          // lineal TODA la población cruza un único corredor, así que este
-          // número agrega la capacidad vial de la ciudad entera.
-          max={12}
+          // 16: el preset Metrópolis trae 16 pistas —las 4 de la base escaladas
+          // con la población, 144.000 habitantes— y un tope menor impedía volver
+          // a ese valor después de moverlo. En la ciudad lineal TODA la
+          // población cruza un único corredor, así que este número agrega la
+          // capacidad vial de la ciudad entera.
+          max={16}
           step={1}
           hint={t("supply_params.car.num_pistas_hint")}
           onChange={(v) => setSupply("car", { num_pistas: v })}
@@ -193,7 +193,10 @@ export function SupplyBuilder({
           label={t("supply_params.bike.capacidad_pista")}
           value={bike.capacidad_pista}
           min={200}
-          max={6000}
+          // 24.000: el preset Metrópolis trae 24.000 bici/h (las 6.000 de la
+          // base escaladas con la población) y Ciclorrecreovía 14.400; con un
+          // tope de 6.000 el slider no podía mostrarlos ni volver a ellos.
+          max={24000}
           step={100}
           unit={t("supply_params.bike.unit")}
           onChange={(v) => setSupply("bike", { capacidad_pista: v })}

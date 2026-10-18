@@ -211,8 +211,8 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
       ...c,
       city: { ...c.city, largo_ciudad_km: largo },
       // La capacidad vial la traen SOLO los presets de escala (los que declaran
-      // `poblacion`): a 144.000 habitantes las 2 pistas del default dejan el
-      // corredor en v/c 3,68 y el auto deja de competir, así que el escenario
+      // `poblacion`): con el doble o el cuádruple de población, las 4 pistas de la base
+      // saturan el corredor y el auto deja de competir, así que el escenario
       // no compara lo que dice comparar. Los de iso-población (Compacta,
       // Dispersa) no la declaran y conservan la del usuario, igual que hacen
       // con la población.

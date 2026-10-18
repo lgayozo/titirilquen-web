@@ -74,15 +74,15 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialScenario> = {
   // C. Capacidad de ciclovía
   bici_base: {
     to: "/sandbox",
-    build: () => ({ sim: sim() }), // default del núcleo (4.000 bici/h)
+    build: () => ({ sim: sim() }), // default del núcleo (6.000 bici/h)
   },
   bici_probici: {
     to: "/sandbox",
     build: () => {
       const s = sim();
-      // El valor del preset Pro-Bici (presets.py). Con 5.000 el escenario
-      // quedaba a un 25 % del default de 4.000 y casi no movía nada.
-      s.supply.bike.capacidad_pista = 8000;
+      // El valor del preset Pro-Bici (presets.py), el doble del default de
+      // 6.000. Con 5.000 sobre el default de 4.000 casi no movía nada.
+      s.supply.bike.capacidad_pista = 12000;
       return { sim: s };
     },
   },

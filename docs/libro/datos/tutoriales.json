@@ -1,7 +1,7 @@
 {
  "_meta": {
   "generado": "2026-10-18",
-  "commit": "1444619",
+  "commit": "776b827",
   "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)"
  },
  "parametros": {
@@ -530,6 +530,40 @@
       "Caminata": 20.54
      }
     }
+   }
+  }
+ },
+ "bienestar": {
+  "peaje_km": 50,
+  "excedente_por_viajero_base_clp": {
+   "alto": 694,
+   "medio": -100,
+   "bajo": -87
+  },
+  "delta_excedente_por_viajero_clp": {
+   "alto": -76,
+   "medio": -47,
+   "bajo": -12
+  },
+  "delta_bienestar_social_clp": 51032,
+  "delta_recaudacion_clp": 1657930,
+  "delta_excedente_social_clp": -1451051,
+  "tiempo_medio_min": {
+   "base": 16.1,
+   "tarificacion": 16.2
+  },
+  "viajes_por_modo": {
+   "base": {
+    "Auto": 10529,
+    "Metro": 8310,
+    "Bici": 12851,
+    "Caminata": 4310
+   },
+   "tarificacion": {
+    "Auto": 10036,
+    "Metro": 8650,
+    "Bici": 12989,
+    "Caminata": 4324
    }
   }
  },

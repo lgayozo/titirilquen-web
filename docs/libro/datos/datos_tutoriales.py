@@ -245,6 +245,46 @@ def experimentos_transporte() -> dict:
 # ---------------------------------------------------------------------------
 
 
+def bienestar() -> dict:
+    """Tutorial 08: el nivel del excedente por viajero en la base y el Δ de
+    «Tarificación Vial» contra ella, como lo muestra la tabla «Agregados y
+    comparación» de Transporte."""
+    peaje = POLICY_PRESETS["Tarificación Vial"]["peaje"]
+    a0, _ = _corre(_sim())
+    a1, _ = _corre(_sim({"demand.globales.peaje_km": peaje}))
+
+    def recaudacion(a: dict) -> float:
+        return (
+            a["recaudacion_peaje_clp"] + a["recaudacion_parking_clp"] + a["recaudacion_tarifa_clp"]
+        )
+
+    exc0, exc1 = a0["excedente_por_estrato_clp"], a1["excedente_por_estrato_clp"]
+    return {
+        "peaje_km": peaje,
+        "excedente_por_viajero_base_clp": {
+            NOMBRES[h - 1]: round(exc0[str(h)]) for h in ESTRATOS
+        },
+        "delta_excedente_por_viajero_clp": {
+            NOMBRES[h - 1]: round(exc1[str(h)] - exc0[str(h)]) for h in ESTRATOS
+        },
+        "delta_bienestar_social_clp": round(
+            a1["bienestar_social_clp"] - a0["bienestar_social_clp"]
+        ),
+        "delta_recaudacion_clp": round(recaudacion(a1) - recaudacion(a0)),
+        "delta_excedente_social_clp": round(
+            a1["excedente_social_total_clp"] - a0["excedente_social_total_clp"]
+        ),
+        "tiempo_medio_min": {
+            "base": round(a0["tiempo_medio_min"], 1),
+            "tarificacion": round(a1["tiempo_medio_min"], 1),
+        },
+        "viajes_por_modo": {
+            "base": {m: round(v) for m, v in a0["viajes_por_modo"].items()},
+            "tarificacion": {m: round(v) for m, v in a1["viajes_por_modo"].items()},
+        },
+    }
+
+
 def _suelo(sim: SimulationConfig, lu: LandUseConfig | None = None) -> LandUseCity:
     """Lo mismo que `land_use_solve_from_json` del worker."""
     L = sim.city.n_celdas
@@ -371,6 +411,7 @@ def main() -> None:
         "limite_del_logit": limite_del_logit(),
         "pistas": pistas(),
         "experimentos_transporte": experimentos_transporte(),
+        "bienestar": bienestar(),
         "suelo": suelo(),
     }
     SALIDA.write_text(json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
