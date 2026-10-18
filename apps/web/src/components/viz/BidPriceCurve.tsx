@@ -1,3 +1,4 @@
+import { ticks } from "d3";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -52,11 +53,11 @@ export function BidPriceCurve({
     const pr = p.map((v, i) =>
       i === cbd || !Number.isFinite(v) ? NaN : v - mn,
     );
-    const ticks = [0, range * 0.25, range * 0.5, range * 0.75, range];
+    // Marcas 1·2·5×10ⁿ dentro del rango, no cuartos del máximo (33.076, …).
     return {
       path: { p: pr, mn: 0, mx: range, range },
       max: range,
-      yTicks: ticks,
+      yTicks: ticks(0, range, 4),
     };
   }, [p, cbd]);
 
@@ -98,9 +99,10 @@ export function BidPriceCurve({
     .join(" ");
 
   // Separador de miles en los enteros, como `fmtInt` de las tablas de
-  // transporte: «Δ 133165» se leía mal.
+  // transporte: «Δ 133165» se leía mal. Las marcas enteras sin decimales
+  // («0», no «0,0»).
   const fmt = (v: number) =>
-    Math.abs(v) >= 100 ? fmtEntero(v) : fmtDecimal(v);
+    Math.abs(v) >= 100 || Number.isInteger(v) ? fmtEntero(v) : fmtDecimal(v);
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>

@@ -1393,7 +1393,9 @@ export function SandboxPage() {
                       largoKm={cfgRes.city.largo_ciudad_km}
                       color="var(--co2)"
                       label="kg/h"
-                      valueFmt={(v) => fmtDecimal(v)}
+                      valueFmt={(v) =>
+                        fmtDecimal(v, Number.isInteger(v) ? 0 : 1)
+                      }
                       height={130}
                     />
                   </ExportableFigure>

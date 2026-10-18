@@ -1,3 +1,4 @@
+import { ticks } from "d3";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -142,13 +143,14 @@ export function CityPreview({ config, className }: CityPreviewProps) {
     return xs;
   }, [plotW, nCeldas, cbdIdx]);
 
-  const xTicks = useMemo(() => {
-    const n = 5;
-    return Array.from({ length: n }, (_, i) => ({
-      km: (i / (n - 1)) * largoKm,
-      x: MARGIN.left + (i / (n - 1)) * plotW,
-    }));
-  }, [largoKm, plotW]);
+  const xTicks = useMemo(
+    () =>
+      ticks(0, largoKm, 4).map((km) => ({
+        km,
+        x: MARGIN.left + (km / largoKm) * plotW,
+      })),
+    [largoKm, plotW],
+  );
 
   // Perfil de pendiente: línea de terreno que se inclina según pendiente_%.
   // Subida hacia los bordes (el CBD al centro es la cota de referencia).

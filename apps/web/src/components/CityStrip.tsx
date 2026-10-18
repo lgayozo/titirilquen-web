@@ -1,3 +1,4 @@
+import { ticks } from "d3";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -171,10 +172,11 @@ export function CityStrip({
 
   const yTicks = useMemo(() => {
     if (maxValue <= 0) return [0];
-    return [0, maxValue / 2, maxValue];
+    return ticks(0, maxValue, 3);
   }, [maxValue]);
 
-  const fmt = (v: number) => (v >= 10 ? fmtDecimal(v, 0) : fmtDecimal(v));
+  const fmt = (v: number) =>
+    v >= 10 || Number.isInteger(v) ? fmtDecimal(v, 0) : fmtDecimal(v);
 
   const showStations =
     !!estacionesKm &&

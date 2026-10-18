@@ -1,3 +1,4 @@
+import { ticks } from "d3";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -153,13 +154,14 @@ export function NetworkDiagram({
   }, [result.estaciones_km, lengthKm, plotW]);
 
   // X ticks
-  const xTicks = useMemo(() => {
-    const n = 5;
-    return Array.from({ length: n }, (_, i) => ({
-      km: (i / (n - 1)) * lengthKm,
-      x: MARGIN.left + (i / (n - 1)) * plotW,
-    }));
-  }, [lengthKm, plotW]);
+  const xTicks = useMemo(
+    () =>
+      ticks(0, lengthKm, 4).map((km) => ({
+        km,
+        x: MARGIN.left + (km / lengthKm) * plotW,
+      })),
+    [lengthKm, plotW],
+  );
 
   const onEnter = (payload: HoverPayload) => setHover(payload);
   const onLeave = () => setHover(null);

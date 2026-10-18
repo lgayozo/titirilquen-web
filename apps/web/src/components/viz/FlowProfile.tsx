@@ -1,3 +1,4 @@
+import { ticks as marcas } from "d3";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
@@ -104,7 +105,7 @@ export function FlowProfile({
   const base = yMax != null ? Math.max(yMax, 1) : localMax;
   const scale = Math.max(base, capacity ?? 0, 1);
   const effectiveMax = yMax ?? localMax;
-  const ticks = [0, scale / 2, scale];
+  const ticks = marcas(0, scale, 3);
   // Una barra por celda, igual que StratumDistribution/CityStrip. Con 201
   // celdas la barra mide ~2 px: se dibuja sin separación para que la envolvente
   // se lea; con pocas celdas se deja 1 px de aire y se ven individuales.

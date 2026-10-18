@@ -1,3 +1,4 @@
+import { ticks } from "d3";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -131,20 +132,18 @@ export function StratumDistribution({
   // "HOGARES" no permitía leer magnitudes, solo la forma.
   const yTicks = useMemo(() => {
     if (!conEjes) return [] as { v: number; y: number }[];
-    const n = 4;
-    return Array.from({ length: n + 1 }, (_, i) => {
-      const v = (i / n) * max;
-      return { v, y: yFloor - (v / max) * plotH };
-    });
+    return ticks(0, max, 4).map((v) => ({
+      v,
+      y: yFloor - (v / max) * plotH,
+    }));
   }, [conEjes, max, yFloor, plotH]);
 
-  // Mismos 5 cortes que el eje X de CityPreview, para que apilados coincidan.
+  // Mismas marcas que el eje X de CityPreview, para que apilados coincidan.
   const xTicks = useMemo(() => {
     if (largoKm == null) return [] as { km: number; x: number }[];
-    const n = 5;
-    return Array.from({ length: n }, (_, i) => ({
-      km: (i / (n - 1)) * largoKm,
-      x: MARGIN.left + (i / (n - 1)) * plotW,
+    return ticks(0, largoKm, 4).map((km) => ({
+      km,
+      x: MARGIN.left + (km / largoKm) * plotW,
     }));
   }, [largoKm, MARGIN.left, plotW]);
 

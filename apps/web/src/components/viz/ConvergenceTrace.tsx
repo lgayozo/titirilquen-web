@@ -1,3 +1,4 @@
+import { ticks } from "d3";
 import { useMemo } from "react";
 import {
   Area,
@@ -80,6 +81,26 @@ export function ConvergenceTrace({
     [iterations],
   );
 
+  // Marcas 1·2·5×10ⁿ: el redondeo propio de recharts daba 9,5k · 19k · 28,5k.
+  const yRes = useMemo(
+    () => ticks(0, Math.max(...data.map((d) => d.residuo ?? 0), 0), 4),
+    [data],
+  );
+  const yViajes = useMemo(
+    () =>
+      ticks(
+        0,
+        Math.max(
+          ...data.map(
+            (d) => d.Auto + d.Metro + d.Bici + d.Caminata + d.Teletrabajo,
+          ),
+          0,
+        ),
+        4,
+      ),
+    [data],
+  );
+
   if (data.length === 0) return null;
 
   const fmtMin = (v: number | string) =>
@@ -132,6 +153,7 @@ export function ConvergenceTrace({
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
                 width={52}
+                ticks={yRes}
                 tickFormatter={fmtResidualTick}
                 label={{
                   value: t("convergence.y_min"),
@@ -193,6 +215,7 @@ export function ConvergenceTrace({
                 style={AXIS_STYLE}
                 // 64 y offset 4: con ticks de 12 px (B2) «28.5k» pisaba el rótulo.
                 width={64}
+                ticks={yViajes}
                 tickFormatter={fmtTickCompact}
                 label={{
                   value: t("convergence.y_trips"),
