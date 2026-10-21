@@ -50,6 +50,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
       v_caminata: 4.8,
       corte_caminata_min: 30.0,
       corte_bici_min: 45.0,
+      umbrales: "escalones",
       costo_combustible_km: 120,
       costo_tarifa_metro: 800,
       costo_parking: 2000,

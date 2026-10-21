@@ -118,6 +118,16 @@ class GlobalConfig(BaseModel):
     # corte NO es una política de transporte, es un supuesto de comportamiento.
     corte_caminata_min: float = Field(default=CORTE_CAMINATA_MIN, gt=0, le=180)
     corte_bici_min: float = Field(default=CORTE_BICI_MIN, gt=0, le=180)
+    # Forma de esos umbrales (oct-2026). «escalones» es la especificación
+    # simplificada: penalizaciones escalonadas (D-02), cortes duros y metro
+    # infactible donde la estación más cercana es la del CBD (D-69). «suaves»
+    # cambia cada discontinuidad por su versión continua —rampas, corte CMNL
+    # (Martínez, Aguila y Hurtubia 2009) y dominancia suave del metro frente a
+    # caminar (Cascetta y Papola 2009)—, que quita los saltos del logsum y de la
+    # T del suelo. Las dos usan las mismas penalizaciones y cortes; detalle en
+    # demand/utility.py. Cambia la función de utilidad: no se comparan
+    # bienestares entre especificaciones.
+    umbrales: Literal["escalones", "suaves"] = "escalones"
     costo_combustible_km: float = 120
     costo_tarifa_metro: float = 800
     # 2000 (antes 4000, antes 6000). NO es un precio de lista: el modelo le cobra

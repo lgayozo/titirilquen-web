@@ -18,6 +18,13 @@ export const MODOS_CON_TELETRABAJO = [
 export const CORTE_CAMINATA_MIN = 30.0;
 export const CORTE_BICI_MIN = 45.0;
 
+/** Especificación `umbrales="suaves"`: pendiente del corte CMNL (1/min),
+ *  umbral de dominancia del metro y su pendiente (1/min generalizado).
+ *  Ver `constantes.OMEGA_CORTE_SUAVE` y siguientes. */
+export const OMEGA_CORTE_SUAVE = 0.5;
+export const A_DOMINANCIA_METRO = 1.2;
+export const OMEGA_DOMINANCIA_METRO = 0.25;
+
 /** Valor social del tiempo ($/hora-pasajero), Precios Sociales del SNI.
  *  Se actualiza cada año. */
 export const VOT_SOCIAL_CLP_HORA = 3338.0;

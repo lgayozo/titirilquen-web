@@ -381,6 +381,12 @@ def emite_constantes() -> str:
         + " *  (min). Son supuestos del modelo de elección, no parámetros. */\n"
         + f"export const CORTE_CAMINATA_MIN = {constantes.CORTE_CAMINATA_MIN};\n"
         + f"export const CORTE_BICI_MIN = {constantes.CORTE_BICI_MIN};\n"
+        + '\n/** Especificación `umbrales="suaves"`: pendiente del corte CMNL (1/min),\n'
+        + " *  umbral de dominancia del metro y su pendiente (1/min generalizado).\n"
+        + " *  Ver `constantes.OMEGA_CORTE_SUAVE` y siguientes. */\n"
+        + f"export const OMEGA_CORTE_SUAVE = {constantes.OMEGA_CORTE_SUAVE!r};\n"
+        + f"export const A_DOMINANCIA_METRO = {constantes.A_DOMINANCIA_METRO!r};\n"
+        + f"export const OMEGA_DOMINANCIA_METRO = {constantes.OMEGA_DOMINANCIA_METRO!r};\n"
         + "\n/** Valor social del tiempo ($/hora-pasajero), Precios Sociales del SNI.\n"
         + " *  Se actualiza cada año. */\n"
         + f"export const VOT_SOCIAL_CLP_HORA = {constantes.VOT_SOCIAL_CLP_HORA};\n"

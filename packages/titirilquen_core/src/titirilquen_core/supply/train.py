@@ -44,6 +44,7 @@ def oferta_tren(
     tiempo_detencion_min: float = 0.5,
     anden_alpha: float = 0.15,
     anden_beta: float = 4.0,
+    excluir_estacion_cbd: bool = False,
 ) -> TrainSupplyResult:
     N = len(demanda)
     dx = L_ciudad_km / N
@@ -67,16 +68,23 @@ def oferta_tren(
     idx_estacion_usuario = np.zeros(N, dtype=int)
 
     idx_cbd_parcela = int((x_centro_km / L_ciudad_km) * N)
+    # `excluir_estacion_cbd` (especificación `umbrales="suaves"`, ver
+    # demand/utility.py): fuera de la celda del CBD, la estación del CBD no es de
+    # acceso, porque bajarse ahí es el destino. La celda a menos de media
+    # interestación del centro accede por la siguiente, y la dominancia suave de
+    # la utilidad decide cuánto vale ese metro. Sin la exclusión, esas celdas
+    # tienen `tren_viaje = 0` y el metro sale del conjunto (D-69).
+    idx_centro_est = int(np.argmin(np.abs(estaciones - x_centro_km)))
     for i in range(N):
         dists = np.abs(estaciones - x_parcelas[i])
+        if excluir_estacion_cbd and i != idx_cbd_parcela and num_s > 1:
+            dists[idx_centro_est] = np.inf
         idx_est = int(np.argmin(dists))
         dist_acceso[i] = dists[idx_est]
         loc_estacion_acceso[i] = estaciones[idx_est]
         idx_estacion_usuario[i] = idx_est
         if i != idx_cbd_parcela:
             pax_suben[idx_est] += demanda[i]
-
-    idx_centro_est = int(np.argmin(np.abs(estaciones - x_centro_km)))
 
     carga_por_tramo = np.zeros(num_s - 1) if num_s >= 2 else np.zeros(0)
     carga_al_salir_estacion = np.zeros(num_s)

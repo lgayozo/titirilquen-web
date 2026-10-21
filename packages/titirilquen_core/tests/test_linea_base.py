@@ -162,8 +162,19 @@ ESPERADO = {
 #: el corredor y la brecha cae mucho antes: 29 → 12 y 29 → 10.
 ITERACIONES_ESPERADAS = {"equilibrio": 12, "original": 10}
 
+#: La misma corrida con `umbrales="suaves"` (oct-2026): rampas, corte CMNL y
+#: dominancia suave del metro en vez de escalones, cortes duros y D-69. Es la
+#: especificación alternativa que el usuario elige en la interfaz, y se pinea
+#: aparte para que un cambio en ella tampoco pase inadvertido. Frente a la base:
+#: el metro pierde 0,4-0,6 pp, que se reparten entre los otros tres modos.
+ESPERADO_SUAVES = {
+    "equilibrio": {"Auto": 28.61, "Metro": 25.36, "Bici": 36.09, "Caminata": 9.93},
+    "original": {"Auto": 29.51, "Metro": 22.50, "Bici": 35.89, "Caminata": 12.10},
+}
+ITERACIONES_SUAVES = {"equilibrio": 12, "original": 9}
 
-def _config_web() -> SimulationConfig:
+
+def _config_web(umbrales: str = "escalones") -> SimulationConfig:
     """La `SimulationConfig` con la que arranca la aplicación.
 
     Valores de `apps/web/src/lib/defaults.ts::defaultSimulationConfig`; los que
@@ -179,7 +190,9 @@ def _config_web() -> SimulationConfig:
         supply=SupplyConfig.model_validate(
             {"car": {"num_pistas": 4}, "bike": {"capacidad_pista": 6000}}
         ),
-        demand=DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
+        demand=DemandConfig.model_validate(
+            {"estratos": DEFAULT_STRATA, "globales": {"umbrales": umbrales}}
+        ),
         max_iter=150,
         tolerance=0.2,
         seed=42,  # web fija la semilla; el core la deja libre
@@ -203,9 +216,10 @@ def _land_use_web() -> LandUseConfig:
     )
 
 
-def _corre(localizacion: str) -> tuple[dict[str, float], int, bool]:
+def _corre(localizacion: str, umbrales: str = "escalones") -> tuple[dict[str, float], int, bool]:
     trace = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(_config_web(), _land_use_web(), trace, localizacion=localizacion):
+    sim = _config_web(umbrales)
+    for _ in iter_msa_desde_suelo(sim, _land_use_web(), trace, localizacion=localizacion):
         pass
     split = trace.iteraciones[-1].modal_split
     total = sum(split.values())
@@ -238,6 +252,16 @@ def test_linea_base_iteraciones(localizacion: str) -> None:
     """La dinámica del MSA tampoco: mismo número de iteraciones hasta converger."""
     _, iteraciones, _ = _corre(localizacion)
     assert iteraciones == ITERACIONES_ESPERADAS[localizacion]
+
+
+@pytest.mark.parametrize("localizacion", ["equilibrio", "original"])
+def test_linea_base_umbrales_suaves(localizacion: str) -> None:
+    """La especificación alternativa también tiene su base pineada."""
+    pct, iteraciones, converged = _corre(localizacion, "suaves")
+    assert converged
+    assert iteraciones == ITERACIONES_SUAVES[localizacion]
+    for modo, objetivo in ESPERADO_SUAVES[localizacion].items():
+        assert abs(pct[modo] - objetivo) <= TOL_PP, f"{modo}: {pct[modo]:.2f} vs {objetivo}"
 
 
 def test_las_dos_ramas_de_localizacion_difieren() -> None:

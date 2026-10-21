@@ -86,6 +86,7 @@ def resolver_oferta(
             frec_max=train_p.frec_max,
             anden_alpha=train_p.anden_alpha,
             anden_beta=train_p.anden_beta,
+            excluir_estacion_cbd=sim.demand.globales.umbrales == "suaves",
         ),
     )
 

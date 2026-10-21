@@ -39,6 +39,20 @@ CORTE_CAMINATA_MIN: Final[float] = 30.0
 #: Ídem para la bicicleta (min).
 CORTE_BICI_MIN: Final[float] = 45.0
 
+#: Especificación `umbrales="suaves"` (oct-2026, ver `demand/utility.py`).
+#: Pendiente (1/min) del corte CMNL de caminata y bici, `ln φ = −ln(1 +
+#: e^{ω(t − corte)})`: φ pasa de 0,92 a 0,08 en ±5 min alrededor del corte.
+#: Supuesto, no calibrado.
+OMEGA_CORTE_SUAVE: Final[float] = 0.5
+
+#: Umbral de percepción multiplicativo de la dominancia del metro por caminar
+#: directo (Cascetta y Papola 2009, ec. 3): el metro es dominado cuando su
+#: tiempo generalizado supera `a` veces el de caminar. Supuesto, no calibrado.
+A_DOMINANCIA_METRO: Final[float] = 1.2
+
+#: Pendiente (1/min generalizado) de esa dominancia suave. Supuesto.
+OMEGA_DOMINANCIA_METRO: Final[float] = 0.25
+
 #: Valor social del tiempo, $/hora-pasajero. Precios Sociales 2026 del Sistema
 #: Nacional de Inversiones, Tabla 2.1, «Viaje en vehículo».
 #:
