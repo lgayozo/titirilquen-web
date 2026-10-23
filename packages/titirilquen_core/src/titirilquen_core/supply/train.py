@@ -59,7 +59,15 @@ def oferta_tren(
             ]
         )
     )
-    estaciones = np.sort(estaciones[(estaciones >= 0) & (estaciones <= L_ciudad_km)])
+    # Tolerancia en los bordes: el arange hacia la izquierda deja la estación
+    # extrema en −1,8e−15 cuando el espaciado no es exacto en binario (20 km con
+    # N = 6 o 14), y un filtro `>= 0` estricto la descartaba mientras su espejo
+    # en 20 km sí entraba: la red quedaba asimétrica respecto del CBD.
+    eps = 1e-9
+    estaciones = np.clip(
+        estaciones[(estaciones >= -eps) & (estaciones <= L_ciudad_km + eps)], 0.0, L_ciudad_km
+    )
+    estaciones = np.sort(estaciones)
     num_s = len(estaciones)
 
     pax_suben = np.zeros(num_s)

@@ -385,7 +385,13 @@ def iter_msa_desde_suelo(
             ancho_celda_km=ciudad.ancho_celda_km,
             S=S,
             T=T_flujo_libre(
-                sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
+                sim.demand,
+                L,
+                CBD,
+                ciudad.ancho_celda_km,
+                sim.modos_habilitados,
+                supply=sim.supply,
+                pendiente_porcentaje=sim.city.pendiente_porcentaje,
             ),
             lambda_h=lambda_desde_demanda(sim.demand),
         )

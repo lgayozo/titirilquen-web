@@ -234,6 +234,7 @@ class PyodideEngine {
       demand: DemandConfig;
       supply: SupplyConfig;
       modos_habilitados?: readonly string[] | null;
+      pendiente_porcentaje: number;
     },
     signal?: AbortSignal,
   ): Promise<LandUseSolveResponse> {

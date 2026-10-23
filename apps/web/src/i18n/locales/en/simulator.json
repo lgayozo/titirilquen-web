@@ -81,7 +81,7 @@
       "freq_clip_libre": "Frequency free at {{op}} tph: demand sets it (load / train capacity). Neither cap is binding, so moving the minimum or maximum changes nothing until it crosses that value.",
       "anden_hint": "Platform congestion (BPR): penalizes waiting once load exceeds the max-frequency capacity (v/c>1).",
       "tiempo_detencion": "Dwell per station",
-      "num_estaciones_hint": "More stations shorten the walk to the platform but lengthen the ride: the train stops at each one. There is an interior optimum.",
+      "num_estaciones_hint": "Sets the spacing (length ÷ this number), with a station at the CBD and at both ends when they fall exactly: 10 over 20 km gives 11 stations, every 2 km. More stations shorten the walk to the platform but lengthen the ride: the train stops at each one. There is an interior optimum.",
       "costo_operacion": "Operating cost ($/train-km)",
       "costo_operacion_hint": "Illustrative value, no official source yet. Enables operator cost, subsidy and self-financing in the results table.",
       "factor_dia_punta": "Day/peak factor",

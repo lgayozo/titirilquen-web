@@ -153,6 +153,9 @@ export async function resolverUsoDeSuelo(
      *  accesibilidad; sin la oferta no hay una honesta que devolver (D-42). */
     supply: SupplyConfig;
     modos_habilitados?: readonly string[] | null;
+    /** La del escenario (`city.pendiente_porcentaje`): la bici la ve en su
+     *  velocidad, así que mueve la accesibilidad y la localización. */
+    pendiente_porcentaje: number;
   },
   signal?: AbortSignal,
 ): Promise<LandUseSolveResponse> {

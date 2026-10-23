@@ -302,6 +302,9 @@ class TrainSupplyParams(BaseModel):
     # Con 300 la frecuencia era ~21 tph y la espera 1.4 min: curva plana, metro
     # insensible a todo.
     capacidad_tren: int = 1000
+    # Fija el ESPACIADO, `largo / num_estaciones`, no el conteo: las estaciones
+    # van cada ese espaciado a ambos lados del CBD, CBD incluido, así que con 20
+    # km y 10 resultan 11 (0, 2, …, 20). El conteo real viaja en `estaciones_km`.
     num_estaciones: int = Field(default=10, ge=2)
     v_caminata_kmh: float = 4.8
     # PROVISORIO — pendiente de fuente. Costo de operación por tren-km ($), con

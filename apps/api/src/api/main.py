@@ -121,6 +121,7 @@ class LandUseOnlyRequest(BaseModel):
         description="Oferta de transporte: la accesibilidad es la de la red VACÍA configurada (D-42)",
     )
     modos_habilitados: tuple[str, ...] | None = None
+    pendiente_porcentaje: float = Field(default=0.0, description="La del escenario: la ve la bici")
 
 
 @app.post("/land-use/solve")
@@ -132,7 +133,15 @@ def land_use_solve(req: LandUseOnlyRequest) -> dict[str, object]:
         CBD=req.CBD,
         cfg=req.land_use,
         ancho_celda_km=dx,
-        T=T_flujo_libre(req.demand, req.L, req.CBD, dx, req.modos_habilitados, supply=req.supply),
+        T=T_flujo_libre(
+            req.demand,
+            req.L,
+            req.CBD,
+            dx,
+            req.modos_habilitados,
+            supply=req.supply,
+            pendiente_porcentaje=req.pendiente_porcentaje,
+        ),
         lambda_h=lambda_desde_demanda(req.demand),
     )
     return land_use_city_to_dict(city)

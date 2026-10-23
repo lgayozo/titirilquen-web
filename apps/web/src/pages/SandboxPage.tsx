@@ -880,7 +880,12 @@ export function SandboxPage() {
           {t("hero.stats_line", {
             total: totalAgents > 0 ? fmtEntero(totalAgents) : "—",
             length: cfgRes.city.largo_ciudad_km,
-            stations: cfgRes.supply.train.num_estaciones,
+            // Las que el modelo construyó, no el parámetro: `num_estaciones`
+            // fija el espaciado y con el CBD y los dos extremos resultan una
+            // más (10 → 11 en 20 km). Sin resultado, el parámetro.
+            stations:
+              result?.estaciones_km?.length ??
+              cfgRes.supply.train.num_estaciones,
             lanes: cfgRes.supply.car.num_pistas,
           })}
         </span>

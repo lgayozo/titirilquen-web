@@ -71,3 +71,19 @@ def test_subir_capacidad_del_tren_baja_la_frecuencia() -> None:
     chico = _correr(demanda_por_celda=10.0, capacidad_tren=100, frec_min=1.0, frec_max=1000.0)
     grande = _correr(demanda_por_celda=10.0, capacidad_tren=1000, frec_min=1.0, frec_max=1000.0)
     assert grande.frecuencia_teorica < chico.frecuencia_teorica
+
+
+def test_la_red_es_simetrica_respecto_del_cbd() -> None:
+    """Con 20 km y N = 6 o 14 el redondeo dejaba la estación extrema izquierda en
+    −1,8e−15 y un filtro `>= 0` la descartaba, mientras su espejo en 20 km
+    entraba. La red tiene que ser su propio espejo para todo N."""
+    for n in range(2, 31):
+        r = oferta_tren(
+            demanda=np.zeros(101),
+            capacidad_tren=1000,
+            frec_min=2.0,
+            frec_max=40.0,
+            **(BASE | {"num_estaciones": n}),
+        )
+        e = r.estaciones_km
+        assert np.allclose(np.sort(20.0 - e), e, atol=1e-9), f"N={n}: {e}"

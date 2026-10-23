@@ -344,6 +344,7 @@ export function ComparePage() {
           demand: sc.config.demand,
           supply: sc.config.supply,
           modos_habilitados: sc.config.modos_habilitados,
+          pendiente_porcentaje: sc.config.city.pendiente_porcentaje,
         });
         setLuResult(id, r);
       } else {

@@ -159,6 +159,7 @@ def T_flujo_libre(
     modos_habilitados: tuple[str, ...] | None = None,
     *,
     supply: SupplyConfig,
+    pendiente_porcentaje: float = 0.0,
 ) -> NDArray[np.float64]:
     """La `T` del módulo de suelo *standalone* y del arranque del acoplado: la
     accesibilidad de la **red vacía configurada** (estaciones, frecuencia mínima,
@@ -168,12 +169,20 @@ def T_flujo_libre(
     de acceso + 5 de espera fijos—, así que cambiar la oferta del metro no movía
     el suelo standalone. La oferta es obligatoria a propósito: sin ella no hay
     una accesibilidad honesta que devolver. `CBD` se acepta por simetría con
-    `LandUseCity.build`; `CiudadLineal` lo fija en `n_celdas // 2`."""
+    `LandUseCity.build`; `CiudadLineal` lo fija en `n_celdas // 2`.
+
+    `pendiente_porcentaje` es la del escenario (`CityConfig`): la bici la ve en
+    su velocidad. Hasta oct-2026 no se pasaba y la accesibilidad salía siempre
+    con terreno plano, así que la pendiente no movía la localización."""
     ciudad = CiudadLineal(n_celdas=L, largo_total_km=ancho_celda_km * L)
     if ciudad.cbd_index != CBD:
         raise ValueError(f"CBD={CBD} pero la ciudad lineal lo pone en {ciudad.cbd_index}")
     sim = SimulationConfig(
-        city=CityConfig(n_celdas=L, largo_ciudad_km=ancho_celda_km * L),
+        city=CityConfig(
+            n_celdas=L,
+            largo_ciudad_km=ancho_celda_km * L,
+            pendiente_porcentaje=pendiente_porcentaje,
+        ),
         supply=supply,
         demand=demand,
     )

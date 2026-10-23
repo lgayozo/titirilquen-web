@@ -81,7 +81,7 @@
       "freq_clip_libre": "Frecuencia libre en {{op}} tph: la fija la demanda (carga/capacidad del tren). Ningún tope está mordiendo, así que mover mínima o máxima no cambia nada hasta cruzar ese valor.",
       "anden_hint": "Congestión de andén (BPR): castiga la espera cuando la carga supera la capacidad a frecuencia máxima (v/c>1).",
       "tiempo_detencion": "Detención por estación",
-      "num_estaciones_hint": "Más estaciones acortan el acceso a pie pero alargan el viaje: el tren para en cada una. Existe un óptimo intermedio.",
+      "num_estaciones_hint": "Fija el espaciado (largo ÷ este número), con una estación en el CBD y en ambos extremos cuando caen exactos: 10 en 20 km da 11 estaciones, cada 2 km. Más estaciones acortan el acceso a pie pero alargan el viaje: el tren para en cada una. Existe un óptimo intermedio.",
       "costo_operacion": "Costo de operación ($/tren-km)",
       "costo_operacion_hint": "Valor ilustrativo, todavía sin fuente oficial. Habilita el costo del operador, el subsidio y el autofinanciamiento en la tabla de resultados.",
       "factor_dia_punta": "Factor día/punta",

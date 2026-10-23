@@ -158,3 +158,33 @@ def test_la_oferta_de_metro_mueve_la_accesibilidad_standalone() -> None:
     pocas.train.num_estaciones = 3
     otra = T_flujo_libre(dem, L, CBD, DX, supply=pocas)
     assert np.max(np.abs(otra - base)) > 1.0, "las estaciones no movieron la accesibilidad"
+
+
+def test_la_pendiente_mueve_la_accesibilidad_y_la_localizacion() -> None:
+    """La pendiente del escenario llega a la `T` del suelo (standalone y vuelta 0
+    del acoplado) y a la localización «equilibrio» de Transporte. Hasta oct-2026
+    no llegaba: la accesibilidad salía siempre con terreno plano."""
+    from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
+
+    dem = _demanda()
+    plano = T_flujo_libre(dem, L, CBD, DX, supply=SupplyConfig())
+    cuesta = T_flujo_libre(dem, L, CBD, DX, supply=SupplyConfig(), pendiente_porcentaje=8.0)
+    assert np.max(np.abs(cuesta - plano)) > 1.0, "la pendiente no movió T"
+
+    def ubicacion(pendiente: float) -> list[tuple[int, int]]:
+        sim = SimulationConfig(
+            city=CityConfig(n_celdas=51, largo_ciudad_km=LARGO, pendiente_porcentaje=pendiente),
+            demand=dem,
+            max_iter=1,
+            seed=1,
+            assignment="expected",
+        )
+        trace = ConvergenceTrace()
+        lu = LandUseConfig(H_por_estrato=(720, 1800, 1080))
+        for _ in iter_msa_desde_suelo(sim, lu, trace, localizacion="equilibrio"):
+            pass
+        return sorted((a.estrato, a.celda_origen) for a in trace.agentes)
+
+    # La ubicación de los hogares sale sólo del suelo (la T de red vacía), no
+    # del reparto: si difiere, la pendiente llegó a la localización.
+    assert ubicacion(0.0) != ubicacion(8.0), "la pendiente no movió la localización"

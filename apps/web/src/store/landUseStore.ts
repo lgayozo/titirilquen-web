@@ -22,14 +22,15 @@ export interface LandUseRunContext {
   /** Lo que el suelo lee de Transporte: la demanda fija la accesibilidad T y
    *  λ_h = |b_costo_h| (schema v6); la oferta y los modos habilitados, T. Se
    *  editan en otras páginas (Calibración, Transporte), así que también dejan
-   *  el resultado desactualizado. */
+   *  el resultado desactualizado. La pendiente del terreno también: la bici la
+   *  ve en su velocidad, y con ella cambia T. */
   transporte: LandUseTransportInputs;
 }
 
 export type LandUseTransportInputs = Pick<
   SimulationConfig,
   "demand" | "supply" | "modos_habilitados"
->;
+> & { pendiente_porcentaje: number };
 
 /** Snapshot del escenario con el que se lanzó la corrida acoplada. */
 export interface CoupledRunSnapshot {

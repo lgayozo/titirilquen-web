@@ -193,7 +193,10 @@ def land_use_solve_from_json(req_json: str):
     L = int(req["L"]); CBD = int(req["CBD"])
     largo_km = float(req.get("largo_km", 20.0))
     dx = largo_km / L
-    T = T_flujo_libre(demand, L, CBD, dx, tuple(modos) if modos else None, supply=supply)
+    T = T_flujo_libre(
+        demand, L, CBD, dx, tuple(modos) if modos else None, supply=supply,
+        pendiente_porcentaje=float(req.get("pendiente_porcentaje", 0.0)),
+    )
     city = LandUseCity.build(
         L=L, CBD=CBD, cfg=cfg, ancho_celda_km=dx, T=T,
         lambda_h=lambda_desde_demanda(demand),

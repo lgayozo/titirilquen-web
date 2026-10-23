@@ -118,12 +118,12 @@
       <td class="n">2</td>
       <td class="ruta py">apps/api/src/api/main.py</td>
       <td class="n">96</td>
-      <td><code>simulate</code> — <code>run_msa(sim, land_use, localizacion, Q_dada=…)</code>; <code>SimulateRequest</code> (71) trae el uso de suelo desde el 2026-09-10 (C-02, cerrado) y, desde oct-2026, la <code>Q_dada</code> opcional de Comparar (D11c); <code>land_use_solve</code> (127), <code>coupled_solve</code> (157), <code>coupled_stream</code> (173)</td>
+      <td><code>simulate</code> — <code>run_msa(sim, land_use, localizacion, Q_dada=…)</code>; <code>SimulateRequest</code> (71) trae el uso de suelo desde el 2026-09-10 (C-02, cerrado) y, desde oct-2026, la <code>Q_dada</code> opcional de Comparar (D11c); <code>land_use_solve</code> (128), <code>coupled_solve</code> (166), <code>coupled_stream</code> (182)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta py">apps/api/src/api/main.py</td>
-      <td class="n">141</td>
+      <td class="n">150</td>
       <td><code>CoupledRequest</code> — <code>outer_max_iter</code> con default y cota <code>VUELTAS_ACOPLADO_MAX</code> (D-61)</td>
     </tr>
     <tr>
@@ -136,7 +136,7 @@
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
       <td class="n">168</td>
-      <td><code>iter_from_json_suelo</code> — la entrada del Sandbox; <code>land_use_solve_from_json</code> (185), <code>coupled_iter_from_json</code> (203). <code>simulate_from_json</code>, sin llamadores, se borró el 2026-09-10 (D-63)</td>
+      <td><code>iter_from_json_suelo</code> — la entrada del Sandbox; <code>land_use_solve_from_json</code> (185), <code>coupled_iter_from_json</code> (206). <code>simulate_from_json</code>, sin llamadores, se borró el 2026-09-10 (D-63)</td>
     </tr>
     <tr>
       <td class="n">2</td>
@@ -148,13 +148,13 @@
       <td class="n">2</td>
       <td class="ruta ts">lib/api.ts</td>
       <td class="n">41</td>
-      <td><code>motorLocal</code> — la única decisión de motor; <code>simularTransporte</code> (106), <code>resolverUsoDeSuelo</code> (142), <code>resolverAcoplado</code> (167), <code>resolverAcopladoStream</code> (190)</td>
+      <td><code>motorLocal</code> — la única decisión de motor; <code>simularTransporte</code> (106), <code>resolverUsoDeSuelo</code> (142), <code>resolverAcoplado</code> (170), <code>resolverAcopladoStream</code> (193)</td>
     </tr>
     <tr>
       <td class="n">2</td>
       <td class="ruta ts">lib/pyodide-engine.ts</td>
       <td class="n">73</td>
-      <td><code>PyodideEngine</code> — el cliente del worker; <code>simulateStream</code> (193), <code>solveLandUse</code> (228), <code>solveCoupledStream</code> (257). El <code>simulate</code> sin llamadores se borró el 2026-09-10 (D-63)</td>
+      <td><code>PyodideEngine</code> — el cliente del worker; <code>simulateStream</code> (193), <code>solveLandUse</code> (228), <code>solveCoupledStream</code> (258). El <code>simulate</code> sin llamadores se borró el 2026-09-10 (D-63)</td>
     </tr>
     <tr>
       <td class="n">3</td>
@@ -177,7 +177,7 @@
     <tr>
       <td class="n">3</td>
       <td class="ruta ts">store/landUseStore.ts</td>
-      <td class="n">93</td>
+      <td class="n">94</td>
       <td><code>coupledOuterMaxIter</code> — 12, el cuarto default del mismo parámetro</td>
     </tr>
     <tr>

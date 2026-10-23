@@ -42,6 +42,7 @@ export function LandUsePage() {
     demand: simConfig.demand,
     supply: simConfig.supply,
     modos_habilitados: simConfig.modos_habilitados,
+    pendiente_porcentaje: simConfig.city.pendiente_porcentaje,
   };
 
   const handleRun = async () => {
@@ -61,6 +62,7 @@ export function LandUsePage() {
         demand: simConfig.demand,
         supply: simConfig.supply,
         modos_habilitados: simConfig.modos_habilitados,
+        pendiente_porcentaje: simConfig.city.pendiente_porcentaje,
       });
       finishStandalone(r);
     } catch (e) {

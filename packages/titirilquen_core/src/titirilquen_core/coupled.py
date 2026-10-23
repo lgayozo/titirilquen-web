@@ -160,7 +160,13 @@ def iter_coupled(
     # Baseline "sin feedback": la misma accesibilidad (logsum mensual) a flujo
     # libre, en la misma escala que las iteraciones (D-23, D-34).
     T_init = T_flujo_libre(
-        sim.demand, L, CBD, ciudad.ancho_celda_km, sim.modos_habilitados, supply=sim.supply
+        sim.demand,
+        L,
+        CBD,
+        ciudad.ancho_celda_km,
+        sim.modos_habilitados,
+        supply=sim.supply,
+        pendiente_porcentaje=sim.city.pendiente_porcentaje,
     )
     lam = lambda_desde_demanda(sim.demand)
     city = LandUseCity.build(
@@ -178,6 +184,12 @@ def iter_coupled(
     # mitad cada vez que la brecha crece (Boyles et al., §8.3.5, p. 314). Hasta
     # oct-2026 era 1/(n+1): el mapa contrae fuerte (la brecha cae ~10× por
     # vuelta con paso 1), así que el MSA sólo frenaba la convergencia.
+    #
+    # «Crece» se lee como «no baja»: con 90.000 hogares el mapa cae en un ciclo
+    # de periodo 2 (T alterna entre dos estados) y la brecha queda clavada en
+    # el mismo valor vuelta tras vuelta. Con la desigualdad estricta el paso no
+    # se reducía nunca y el lazo no salía del ciclo. La holgura relativa evita
+    # que el ruido de coma flotante esconda la igualdad.
     paso = 1.0
     residual_prev = float("inf")
 
@@ -203,7 +215,7 @@ def iter_coupled(
         if T_state is None:
             T_state = T_new
         else:
-            if residual > residual_prev:
+            if residual >= residual_prev * (1.0 - 1e-6):
                 paso /= 2.0
             T_state = paso * T_new + (1.0 - paso) * T_state
         residual_prev = residual
