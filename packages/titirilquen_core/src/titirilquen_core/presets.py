@@ -126,6 +126,13 @@ CITY_PRESETS: dict[str, CityPreset] = {
 # 2 pistas las dos reglas coincidían). Ya pasó dos veces (`frec_max: 20` y
 # `parking: 6000`).
 #
+# Pistas y ciclovía se declaran a la escala de Base (4 pistas, 6.000 bici/h).
+# A otra escala (Ciudad con metro, Metrópolis) la galería aplica su RAZÓN
+# contra Base sobre la escala de la ciudad (`capacidadPolitica` en
+# apps/web/src/lib/presets.ts, auditoría A3, oct-2026): Pro-Auto en Metrópolis
+# son 20 pistas, no 5. Antes la política pisaba la escala y el resultado
+# dependía del orden de los clics (hasta 15,6 pp de metro).
+#
 # Recalibración vigente (oct-2026) — defaults: parking 2000 · 4 pistas ·
 # cap_bici 6000 · frec_max 40. Deliberados reescalados: Tarificación Vial (antes
 # parking 2.5x, hoy peaje), Pro-Auto parking 0.5x (1000), ciclovía 0.5x (3000) y

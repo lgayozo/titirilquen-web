@@ -9,8 +9,11 @@ import {
   CITY_PRESETS,
   LEE_POLITICA,
   POLICY_PRESETS,
+  capacidadPolitica,
   ciudadActiva,
+  escalaCiudad,
   politicaActiva,
+  type CityPresetName,
   type PolicyPresetValues,
 } from "@/lib/presets";
 import { fmtParking } from "@/lib/parking";
@@ -178,7 +181,7 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
 
   const activeCity = ciudadActiva(config, landUse);
 
-  const activePolicy = politicaActiva(config);
+  const activePolicy = politicaActiva(config, landUse);
 
   /**
    * ISO-POBLACIÓN: el preset de ciudad cambia SOLO el largo y conserva ΣH; la
@@ -207,6 +210,14 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
     if (!p?.largo_ciudad) return;
     const largo = p.largo_ciudad;
     const sumaH = landUse.H_por_estrato.reduce((a, b) => a + b, 0);
+    // Si hay una política activa, sus pistas y ciclovía se recalculan a la
+    // escala de la ciudad nueva (A3): el par ciudad-política da lo mismo en
+    // cualquier orden. Sin política reconocible, la ciudad fija su escala si la
+    // declara y si no deja la del usuario, como antes.
+    const pol = activePolicy ? POLICY_PRESETS[activePolicy] : undefined;
+    const cap = pol
+      ? capacidadPolitica(pol, escalaCiudad(name as CityPresetName))
+      : { num_pistas: p.num_pistas, cap_bici: p.cap_bici };
     setConfig((c) => ({
       ...c,
       city: { ...c.city, largo_ciudad_km: largo },
@@ -220,11 +231,11 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
         ...c.supply,
         car: {
           ...c.supply.car,
-          ...(p.num_pistas !== undefined && { num_pistas: p.num_pistas }),
+          ...(cap.num_pistas !== undefined && { num_pistas: cap.num_pistas }),
         },
         bike: {
           ...c.supply.bike,
-          ...(p.cap_bici !== undefined && { capacidad_pista: p.cap_bici }),
+          ...(cap.cap_bici !== undefined && { capacidad_pista: cap.cap_bici }),
         },
       },
     }));
@@ -249,17 +260,19 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
   const applyPolicy = (name: string) => {
     const p = POLICY_PRESETS[name];
     if (!p) return;
+    // Pistas y ciclovía a la escala de la ciudad activa (A3).
+    const cap = capacidadPolitica(p, escalaCiudad(activeCity));
     setConfig((c) => ({
       ...c,
       supply: {
         ...c.supply,
         car: {
           ...c.supply.car,
-          ...(p.num_pistas !== undefined && { num_pistas: p.num_pistas }),
+          ...(cap.num_pistas !== undefined && { num_pistas: cap.num_pistas }),
         },
         bike: {
           ...c.supply.bike,
-          ...(p.cap_bici !== undefined && { capacidad_pista: p.cap_bici }),
+          ...(cap.cap_bici !== undefined && { capacidad_pista: cap.cap_bici }),
         },
         train: {
           ...c.supply.train,

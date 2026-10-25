@@ -8,6 +8,8 @@
  * (`test_presets.py`): los presets declaran valores ABSOLUTOS, no diferencias
  * contra el default. Si una política omite un parámetro, aplicarla NO lo
  * restaura — hereda el del escenario vigente, y eso ya causó cuatro incidentes.
+ * Excepción: pistas y ciclovía se aplican a la escala de la ciudad
+ * (`capacidadPolitica`).
  */
 
 import {
@@ -64,19 +66,79 @@ export const LEE_POLITICA: Record<
  * una lista vacía es `true`, o sea que matchearía con TODO y sería siempre el
  * primer resultado.
  *
- * Sólo mira la POLÍTICA; la ciudad la reconoce `ciudadActiva`, que necesita
- * además el uso de suelo.
+ * La ciudad la reconoce `ciudadActiva`, que necesita además el uso de suelo.
+ * Con `lu` la política se compara A LA ESCALA de esa ciudad (pistas y
+ * ciclovía, ver `capacidadPolitica`); sin él, a la de Base.
  */
-export function politicaActiva(cfg: SimulationConfig): PolicyPresetName | null {
+export function politicaActiva(
+  cfg: SimulationConfig,
+  lu?: LandUseConfig,
+): PolicyPresetName | null {
+  const escala = escalaCiudad(lu ? ciudadActiva(cfg, lu) : null);
   return (
-    Object.entries(POLICY_PRESETS).find(
-      ([nombre, v]) =>
-        nombre !== "Personalizado" &&
-        (Object.keys(v) as (keyof PolicyPresetValues)[]).every(
-          (k) => LEE_POLITICA[k](cfg) === v[k],
-        ),
-    )?.[0] ?? null
+    Object.entries(POLICY_PRESETS).find(([nombre, v]) => {
+      if (nombre === "Personalizado") return false;
+      const esperado = { ...v, ...capacidadPolitica(v, escala) };
+      return (Object.keys(v) as (keyof PolicyPresetValues)[]).every(
+        (k) => LEE_POLITICA[k](cfg) === esperado[k],
+      );
+    })?.[0] ?? null
   );
+}
+
+/** La política de referencia: sus pistas y ciclovía definen la escala 1. */
+const REFERENCIA = POLICY_PRESETS.Base as Required<
+  Pick<PolicyPresetValues, "num_pistas" | "cap_bici">
+>;
+
+/**
+ * Pistas y ciclovía de la ESCALA de una ciudad: las que declara su preset
+ * (Base, Ciudad con metro, Metrópolis) o, si no declara escala (Compacta,
+ * Dispersa, ninguna), las de Base.
+ */
+export function escalaCiudad(ciudad: CityPresetName | null): {
+  num_pistas: number;
+  cap_bici: number;
+} {
+  const c = ciudad ? CITY_PRESETS[ciudad] : undefined;
+  return {
+    num_pistas: c?.num_pistas ?? REFERENCIA.num_pistas,
+    cap_bici: c?.cap_bici ?? REFERENCIA.cap_bici,
+  };
+}
+
+/**
+ * Pistas y ciclovía que una política fija a una escala dada (auditoría A3,
+ * oct-2026). Las políticas declaran sus valores para Base (4 pistas, 6.000
+ * bici/h); a otra escala se lee su INTENSIDAD: la razón contra Base. Pro-Auto
+ * es ×1,25 pistas y ×0,5 ciclovía; Ciclorrecreovía convierte un cuarto de las
+ * pistas y multiplica la ciclovía ×2,4.
+ *
+ * Antes la política fijaba los absolutos y pisaba la escala de la ciudad:
+ * Metrópolis + cualquier política volvía a 4 pistas (v/c del auto 2,5-2,9) y el
+ * mismo par ciudad-política cambiaba hasta 15,6 pp de metro según el orden de
+ * los clics. Con la razón, el resultado es f(ciudad, política) en cualquier
+ * orden, y en Base no cambia nada.
+ */
+export function capacidadPolitica(
+  pol: PolicyPresetValues,
+  escala: { num_pistas: number; cap_bici: number },
+): Partial<Pick<PolicyPresetValues, "num_pistas" | "cap_bici">> {
+  return {
+    ...(pol.num_pistas !== undefined && {
+      num_pistas: Math.max(
+        1,
+        Math.round(
+          (escala.num_pistas * pol.num_pistas) / REFERENCIA.num_pistas,
+        ),
+      ),
+    }),
+    ...(pol.cap_bici !== undefined && {
+      cap_bici: Math.round(
+        (escala.cap_bici * pol.cap_bici) / REFERENCIA.cap_bici,
+      ),
+    }),
+  };
 }
 
 /**

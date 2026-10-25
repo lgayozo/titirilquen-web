@@ -131,14 +131,14 @@
     <tr>
       <td class="n">(9.1)–(9.4)</td>
       <td class="ruta py">presets.py</td>
-      <td class="n">374</td>
+      <td class="n">381</td>
       <td><code>DEFAULT_STRATA</code> — los 42 betas y las dos probabilidades por estrato; el comentario de arriba es la historia de la calibración</td>
     </tr>
     <tr>
       <td class="n">—</td>
       <td class="ruta py">presets.py</td>
       <td class="n">50</td>
-      <td><code>CITY_PRESETS</code> — forma urbana a iso-población; <code>POLICY_PRESETS</code> (146) con valores absolutos, no diferencias</td>
+      <td><code>CITY_PRESETS</code> — forma urbana a iso-población; <code>POLICY_PRESETS</code> (153) con valores absolutos, no diferencias</td>
     </tr>
     <tr>
       <td class="n">(9.4)</td>
@@ -491,7 +491,11 @@
   se reescribieron enteras con la regla de <code>presets.py</code>: los valores
   neutros van al default y los deliberados conservan su <em>razón</em> contra
   la base, salvo las pistas, que se cuentan por unidades: «una pista más» en
-  Pro-Auto, «una menos» en Ciclorrecreovía. Seis de las siete tocan una, dos o tres claves; <strong>Pro-Auto
+  Pro-Auto, «una menos» en Ciclorrecreovía. Eso vale a la escala de Base. En
+  una ciudad de escala (Ciudad con metro, Metrópolis) la galería aplica la
+  razón de pistas y ciclovía contra Base sobre la escala de la ciudad
+  (<code>capacidadPolitica</code>, auditoría A3 de oct-2026): antes la política
+  pisaba la escala y el par ciudad-política dependía del orden de los clics. Seis de las siete tocan una, dos o tres claves; <strong>Pro-Auto
   toca ocho</strong>, y es la única que no es una política sino un escenario.
 </p>
 

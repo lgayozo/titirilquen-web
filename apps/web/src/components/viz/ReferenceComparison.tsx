@@ -429,7 +429,7 @@ function Escenario({
         <span className="th-tipo">({t("agg.tipo_ciudad")})</span>
       </span>
       <span>
-        {politicaActiva(config) ?? custom}{" "}
+        {politicaActiva(config, landUse ?? undefined) ?? custom}{" "}
         <span className="th-tipo">({t("agg.tipo_politica")})</span>
       </span>
     </span>
