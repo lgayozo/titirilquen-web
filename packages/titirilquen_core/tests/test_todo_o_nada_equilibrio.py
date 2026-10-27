@@ -4,7 +4,9 @@ Hasta D-70 el MSA promediaba TIEMPOS también bajo `todo_o_nada`, y con 1 a 3
 pistas el reparto oscilaba sin converger: el grupo marginal saltaba entero de
 modo. Ahora promedia los FLUJOS de cada grupo —el MSA clásico del equilibrio de
 usuario— y para cuando el costo en exceso medio (minutos que cada viajero paga
-sobre el mínimo de su grupo) baja de `tolerance`.
+sobre el mínimo de su grupo), dividido por el tiempo medio de viaje, baja de
+`TOL_RELATIVA_TON` (auditoría B, oct-2026; antes, el costo en exceso absoluto
+contra `tolerance`, que cortaba en un valle).
 
 Se corre la ciudad de la aplicación porque es ahí donde se midió la falla
 (D-70, `docs/DISCREPANCIES.md`).
@@ -18,7 +20,7 @@ import pytest
 
 from tests.test_linea_base import _config_web, _land_use_web
 from titirilquen_core.config import SimulationConfig
-from titirilquen_core.constantes import MODOS
+from titirilquen_core.constantes import MODOS, TOL_RELATIVA_TON
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
 
 
@@ -26,7 +28,7 @@ def _corre(pistas: int) -> tuple[SimulationConfig, ConvergenceTrace]:
     d = _config_web().model_dump()
     d["supply"]["car"]["num_pistas"] = pistas
     d["assignment"] = "todo_o_nada"
-    d["max_iter"] = 100  # el tope que la interfaz pone al elegir todo o nada
+    d["max_iter"] = 700  # el tope que la interfaz pone al elegir todo o nada
     sim = SimulationConfig.model_validate(d)
     tr = ConvergenceTrace()
     for _ in iter_msa_desde_suelo(sim, _land_use_web(), tr, localizacion="original"):
@@ -44,10 +46,7 @@ def test_converge_bajo_la_tolerancia(corrida: tuple[SimulationConfig, Convergenc
     sim, tr = corrida
     assert tr.converged, f"agotó {len(tr.iteraciones)} iteraciones"
     assert len(tr.iteraciones) < sim.max_iter
-    assert tr.iteraciones[-1].residuo < sim.tolerance
-    # La brecha final es el mismo costo en exceso, sobre los tiempos que el
-    # loop entrega.
-    assert tr.gap_final_min < sim.tolerance
+    assert tr.iteraciones[-1].residuo < TOL_RELATIVA_TON
 
 
 def test_el_costo_en_exceso_cae(corrida: tuple[SimulationConfig, ConvergenceTrace]) -> None:

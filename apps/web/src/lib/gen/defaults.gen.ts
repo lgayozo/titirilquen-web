@@ -132,7 +132,7 @@ export const DEFAULTS_CORE: SimulationConfig = {
     },
   },
   max_iter: 150,
-  tolerance: 0.2,
+  tolerance: 0.02,
   seed: null,
   assignment: "montecarlo",
   modos_habilitados: ["Auto", "Metro", "Bici", "Caminata"],

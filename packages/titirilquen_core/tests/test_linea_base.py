@@ -128,18 +128,25 @@ ESPERADO = {
     #     1,19 y 1,07. Más capacidad induce auto: original auto +4,57, metro
     #     −5,45, bici +1,51, caminata −0,65; equilibrio auto +3,23, metro −4,65,
     #     bici +2,10, caminata −0,68. El MSA cierra mucho antes: 29 → 10 y 12.
+    # 16. Parada del equilibrio (2026-10-25, auditoría B, decisión de Leandro):
+    #     'expected' promedia FLUJOS con el paso halving de Boyles §8.3.5 y para
+    #     con la brecha no amortiguada < 0,02 min, no < 0,2 con paso 1/n. No es
+    #     otro modelo sino el mismo equilibrio resuelto más cerca: lo pineado
+    #     antes estaba 0,12-0,17 pp lejos del punto fijo (verificado contra
+    #     G < 1e-6). Original auto −0,07, metro +0,17, bici −0,07, caminata
+    #     −0,02; equilibrio auto −0,07, metro +0,12, bici −0,04, caminata −0,01.
     "equilibrio": {
-        "Auto": 28.35,
-        "Metro": 25.79,
-        "Bici": 36.04,
-        "Caminata": 9.82,
+        "Auto": 28.28,
+        "Metro": 25.91,
+        "Bici": 36.00,
+        "Caminata": 9.81,
         "Teletrabajo": 0.0,
     },
     "original": {
-        "Auto": 29.25,
-        "Metro": 23.07,
-        "Bici": 35.70,
-        "Caminata": 11.97,
+        "Auto": 29.18,
+        "Metro": 23.24,
+        "Bici": 35.63,
+        "Caminata": 11.95,
         "Teletrabajo": 0.0,
     },
 }
@@ -159,19 +166,23 @@ ESPERADO = {
 #: demanda sube ~24 % y la brecha baja como 1/n desde más arriba: 17 → 29 y
 #: 13 → 29, con `max_iter` 40 (150 desde oct-2026: no cambia, porque cortan
 #: por brecha). La oferta de 4 pistas y ciclovía 6.000 (oct-2026) descongestiona
-#: el corredor y la brecha cae mucho antes: 29 → 12 y 29 → 10.
-ITERACIONES_ESPERADAS = {"equilibrio": 12, "original": 10}
+#: el corredor y la brecha cae mucho antes: 29 → 12 y 29 → 10. La parada de la
+#: auditoría B (oct-2026: flujos con paso halving, brecha < 0,02) llega más
+#: cerca en menos pasadas: 12 → 6 y 10 → 6.
+ITERACIONES_ESPERADAS = {"equilibrio": 6, "original": 6}
 
 #: La misma corrida con `umbrales="suaves"` (oct-2026): rampas, corte CMNL y
 #: dominancia suave del metro en vez de escalones, cortes duros y D-69. Es la
 #: especificación alternativa que el usuario elige en la interfaz, y se pinea
 #: aparte para que un cambio en ella tampoco pase inadvertido. Frente a la base:
 #: el metro pierde 0,4-0,6 pp, que se reparten entre los otros tres modos.
+#: Con la parada de la auditoría B (oct-2026) se movió como la base: metro +0,15
+#: y +0,19; 12 → 6 y 9 → 6 iteraciones.
 ESPERADO_SUAVES = {
-    "equilibrio": {"Auto": 28.61, "Metro": 25.36, "Bici": 36.09, "Caminata": 9.93},
-    "original": {"Auto": 29.51, "Metro": 22.50, "Bici": 35.89, "Caminata": 12.10},
+    "equilibrio": {"Auto": 28.55, "Metro": 25.51, "Bici": 36.04, "Caminata": 9.91},
+    "original": {"Auto": 29.43, "Metro": 22.69, "Bici": 35.81, "Caminata": 12.07},
 }
-ITERACIONES_SUAVES = {"equilibrio": 12, "original": 9}
+ITERACIONES_SUAVES = {"equilibrio": 6, "original": 6}
 
 
 def _config_web(umbrales: str = "escalones") -> SimulationConfig:
@@ -194,7 +205,7 @@ def _config_web(umbrales: str = "escalones") -> SimulationConfig:
             {"estratos": DEFAULT_STRATA, "globales": {"umbrales": umbrales}}
         ),
         max_iter=150,
-        tolerance=0.2,
+        tolerance=0.02,  # = default del core desde la auditoría B (oct-2026)
         seed=42,  # web fija la semilla; el core la deja libre
         assignment="expected",  # web: expected · core: montecarlo
     )

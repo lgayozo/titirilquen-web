@@ -77,6 +77,14 @@ VIAJES_MES: Final[int] = 44
 #: nada relevante sobre la mesa.
 TOL_ACOPLADO_CLP_MES: Final[float] = 100.0
 
+#: Tolerancia de todo o nada sobre su brecha relativa, costo en exceso medio /
+#: tiempo medio de viaje (`msa._brecha_relativa_ton`). 1e-3 son ≈ 0,016 min en
+#: la base (t̄ ≈ 16 min), del orden de la tolerancia del logit. Con el MSA 1/n
+#: la brecha baja como 1/n: la base corta en 10-15 iteraciones, 1 pista en
+#: ~520 y Máx Metro en ~615, todavía a 0,4-1,2 pp del equilibrio (auditoría B,
+#: oct-2026). Por eso la interfaz sube el tope a 700 al elegir el método.
+TOL_RELATIVA_TON: Final[float] = 1e-3
+
 #: Tope de vueltas del loop acoplado: default y cota de TODOS sus consumidores
 #: (núcleo, API, worker, página acoplada y comparador; D-61). Antes eran 5 / 3 /
 #: 3 / 12 / 8 y la API rechazaba el 12 de la interfaz. Con el paso exterior 1

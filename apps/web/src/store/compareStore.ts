@@ -300,8 +300,10 @@ export const useCompareStore = create<CompareState>()(
       // tarjeta perdió `poblacion`; la población es ΣH de su `landUse`, y un
       // v3 correría el acoplado con otra gente sin decirlo. v6 (oct-2026): el
       // tope del MSA subió de 40 a 150 y la tarjeta no tiene control de
-      // `max_iter`, así que un v5 seguiría corriendo con el tope viejo.
-      name: "titirilquen.compare.v6",
+      // `max_iter`, así que un v5 seguiría corriendo con el tope viejo. v7
+      // (oct-2026, auditoría B): la tolerancia por defecto bajó de 0,2 a
+      // 0,02 min, y por lo mismo un v6 seguiría cortando con la vieja.
+      name: "titirilquen.compare.v7",
       partialize: (s): CompareInputs => ({
         kind: s.kind,
         baseId: s.baseId,

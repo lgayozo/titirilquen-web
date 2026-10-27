@@ -5,6 +5,8 @@ Portado y extendido desde `titirilquen-repo/app.py:470-524`. Cambios:
 - Criterio de convergencia real: brecha no amortiguada
   `‖c(x(t_{n−1})) − t_{n−1}‖_∞ < tol` (D8). Si `tol=0`, se respeta `max_iter`
   como antes (ver D-10).
+- 'expected' promedia flujos con el paso halving de Boyles §8.3.5 (auditoría
+  B, oct-2026); ver `_iter_loop`.
 - Retorna `ConvergenceTrace` con snapshot por iteración para visualización
   en vivo (antes este dato se perdía tras el loop).
 """
@@ -20,7 +22,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import DemandConfig, SimulationConfig, StratumId
-from titirilquen_core.constantes import MODOS
+from titirilquen_core.constantes import MODOS, TOL_RELATIVA_TON
 from titirilquen_core.demand.choice import probabilidades_logit, probabilidades_todo_o_nada
 from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.emissions import calcular_emisiones
@@ -30,7 +32,7 @@ from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.supply import generar_oferta
 from titirilquen_core.population import Agente, _mayor_residuo, generar_poblacion_desde_land_use_det
-from titirilquen_core.supply.oferta import resolver_oferta, resolver_red_vacia
+from titirilquen_core.supply.oferta import OfertaResuelta, resolver_oferta, resolver_red_vacia
 
 ModalSplit = dict[str, float]
 
@@ -40,6 +42,8 @@ class IterationSnapshot:
     """Estado de la red al final de una iteración del MSA."""
 
     iter: int
+    #: Paso con que se promedió esta iteración: 1/(it+1) en 'montecarlo' y
+    #: 'todo_o_nada'; el paso halving en 'expected' (`_iter_loop`).
     f_msa: float
     modal_split: ModalSplit
     demanda_auto: NDArray[np.float64]
@@ -62,7 +66,8 @@ class IterationSnapshot:
     #: modos y celdas, con `t` los tiempos con que se calculó la demanda y
     #: `c(x(t))` los que devuelve la red cargada con ella. Hasta D8 era el cambio
     #: del iterado amortiguado, `f · (esto)`, y con f = 1/(n+1) la tolerancia se
-    #: aflojaba sola en cada iteración (Boyles et al., p. 314).
+    #: aflojaba sola en cada iteración (Boyles et al., p. 314). Con
+    #: 'todo_o_nada' es la brecha relativa, adimensional (`_brecha_relativa_ton`).
     residuo: float
 
 
@@ -274,6 +279,25 @@ def _costo_en_exceso_medio(
     return float((masa * exceso).sum() / total)
 
 
+def _brecha_relativa_ton(
+    aec: float,
+    demandas: tuple[NDArray[np.float64], ...],
+    tiempos: tuple[NDArray[np.float64], ...],
+) -> float:
+    """Criterio de parada de todo o nada: el costo en exceso medio (min) sobre
+    el tiempo medio de viaje t̄ del iterado (min, ponderado por la demanda de
+    cada modo y celda). Sigue la idea de la brecha relativa de Boyles et al.
+    (§6.1.3, ec. 6.7, `γ₁ = (TSTT − SPTT)/SPTT`: el exceso sobre un total de
+    referencia), pero con t̄ físico en el denominador, porque el costo
+    generalizado de la utilidad tiene un cero arbitrario (las ASC) y su SPTT
+    sale negativo. Con el AEC absoluto la parada cortaba en un valle: con Mohring el
+    AEC baja, sube y recién después cae como 1/n, y Máx Metro «convergía» en la
+    iteración 2 a 29 pp del equilibrio (auditoría B, oct-2026)."""
+    num = sum(float((d * t).sum()) for d, t in zip(demandas, tiempos, strict=True))
+    den = sum(float(d.sum()) for d in demandas)
+    return aec / (num / den) if den > 0 and num > 0 else aec
+
+
 def _asignar_modos_agentes(
     grupos: list[_GrupoDemanda],
     ciudad: CiudadLineal,
@@ -310,7 +334,6 @@ def iter_msa_desde_suelo(
     land_use_config: LandUseConfig,
     trace: ConvergenceTrace | None = None,
     localizacion: Literal["equilibrio", "original"] = "equilibrio",
-    promediar_flujos: bool = False,
     Q_dada: ArrayLike | None = None,
 ) -> Iterator[IterationSnapshot]:
     """El MSA de transporte con la población derivada del **uso de suelo**: los
@@ -406,7 +429,7 @@ def iter_msa_desde_suelo(
     )
     if trace is not None:
         trace.localizacion_Q = np.asarray(Q, dtype=float)
-    yield from _iter_loop(sim, ciudad, agentes, rng, trace, promediar_flujos)
+    yield from _iter_loop(sim, ciudad, agentes, rng, trace)
 
 
 def _valida_Q(Q: ArrayLike, S: NDArray[np.int_], n_estratos: int) -> NDArray[np.float64]:
@@ -424,51 +447,80 @@ def _valida_Q(Q: ArrayLike, S: NDArray[np.int_], n_estratos: int) -> NDArray[np.
     return Q
 
 
+def _brecha_tiempos(
+    oferta: OfertaResuelta,
+    t_auto: NDArray[np.float64],
+    t_bici: NDArray[np.float64],
+    t_metro: NDArray[np.float64],
+) -> float:
+    """`max |c − t|` sobre modos y celdas: los tiempos que devuelve la red
+    cargada (`oferta`) contra los tiempos `t` dados (D8)."""
+    tren = oferta.tren
+    return float(
+        max(
+            np.max(np.abs(oferta.auto.t_usuarios_min - t_auto)),
+            np.max(np.abs(oferta.bici.t_usuarios_min - t_bici)),
+            np.max(np.abs(tren.t_acceso_min + tren.t_espera_min + tren.t_viaje_min - t_metro)),
+        )
+    )
+
+
 def _iter_loop(
     sim: SimulationConfig,
     ciudad: CiudadLineal,
     agentes: list[Agente],
     rng: np.random.Generator,
     trace: ConvergenceTrace | None = None,
-    promediar_flujos: bool = False,
 ) -> Iterator[IterationSnapshot]:
     """Loop MSA sobre una **población ya construida** (compartido por
     `iter_msa_desde_suelo` y el loop acoplado). Si se pasa `trace`, lo popula por completo.
 
-    `promediar_flujos` cambia CUÁL variable promedia el MSA, y existe solo para
-    medir: el default (`False`) es el comportamiento histórico y ninguna ruta de
-    producción lo activa. No es un campo del schema a propósito — moverlo ahí
-    obligaría a tocar los espejos TS, el golden y los escenarios guardados.
+    Cada método de asignación promedia una variable distinta (auditoría B,
+    oct-2026):
 
-      * `False` — promedia los TIEMPOS: `t <- f·c(x(t)) + (1−f)·t`, y los flujos
-        se recalculan frescos cada iteración desde los tiempos promediados.
-      * `True` — promedia los FLUJOS y recalcula los tiempos desde el flujo
-        promediado: `x <- f·x* + (1−f)·x`, `t = c(x)`. Es el algoritmo estándar
-        (Boyles, Lownes & Unnikrishnan, "Transportation Network Analysis", §6.2
-        p. 159), y el único para el que vale el argumento de convergencia: con
-        `x*` todo-o-nada, `x*−x` es dirección de descenso de la función de
-        Beckmann (p. 160), y eso se apoya en promediar la variable primal.
+      * 'expected' promedia los FLUJOS y recalcula los tiempos desde el flujo
+        promediado: `x <- α·x* + (1−α)·x`, `t = c(x)`, con `x*` la demanda
+        logit a los tiempos vigentes. Es el MSA del equilibrio estocástico
+        (Boyles, Lownes & Unnikrishnan, "Transportation Network Analysis",
+        §8.3.5 pp. 313-314). El paso es el halving que recomienda ese texto:
+        parte en 1 y se divide por 2 cada vez que la brecha deja de bajar. Con
+        1/n la brecha caía como 1/n y una tolerancia de 0,02 min no cabía en
+        150 iteraciones; con halving la base converge en 6 y los 776 casos del
+        rango de la interfaz quedan a una mediana de 0,002 pp del equilibrio.
+      * 'montecarlo' promedia los TIEMPOS con paso 1/n: `t <- f·c(x(t)) +
+        (1−f)·t`. El halving no sirve con sorteo: el ruido de muestreo hace
+        subir la brecha y el paso colapsaría a cero. Por lo mismo su
+        `converged` se lee de `gap_final_min`, que carga flujos esperados
+        (`_finalizar_trace`).
+      * 'todo_o_nada' promedia los flujos **de cada grupo** con paso 1/n (D-70):
+        promediando tiempos la respuesta salta entera de modo y el reparto
+        oscila sin converger, aunque el equilibrio de usuario existe. Se
+        promedia el reparto de cada grupo (no sólo el total por celda) porque lo
+        necesitan la brecha —el costo en exceso medio, `_costo_en_exceso_medio`—
+        y el estado final: en el equilibrio un grupo indiferente queda repartido
+        entre sus mejores modos.
 
-    El paso `f = 1/(it+1)` es el mismo en ambos, e incluye la inicialización
-    `x <- x*` de la iteración 0 (con `it=0`, `f=1`).
-
-    **Todo o nada promedia siempre flujos, y por grupo** (D-70): promediando
-    tiempos la respuesta salta entera de modo y el reparto oscila sin converger,
-    aunque el equilibrio de usuario existe. Se promedia el reparto de cada grupo
-    (no sólo el total por celda) porque lo necesitan la brecha —el costo en
-    exceso medio, `_costo_en_exceso_medio`— y el estado final: en el equilibrio
-    un grupo indiferente queda repartido entre sus mejores modos.
+    La brecha (`residuo`) es la de D8 en los tres casos logit —`max |c(x(t)) −
+    t|`, con `x(t)` la demanda calculada a los tiempos `t`—, y en todo o nada el
+    costo en exceso medio sobre el tiempo medio de viaje (`_brecha_relativa_ton`).
+    Para 'expected' cuesta una evaluación extra de la oferta: la red cargada con
+    `x*` antes de promediar. El residuo de los tiempos consecutivos, `c(x̄_n) −
+    c(x̄_{n−1})`, no sirve: con flujos promediados es un cambio amortiguado y en
+    los casos difíciles declaraba convergencia con una brecha de 6 min.
     """
     grupos, n_tele = _agrupar_agentes(agentes)
     if trace is not None:
         trace.agentes = agentes
 
     ton = sim.assignment == "todo_o_nada"
+    flujos = sim.assignment == "expected"
     x_ton: NDArray[np.float64] | None = None  # reparto promediado por grupo
     if ton:
         n_g = np.array([len(g.agentes) for g in grupos], dtype=float)
         b_t = np.array([abs(sim.demand.estratos[g.estrato].betas.b_tiempo_viaje) for g in grupos])
         celda_g = np.array([g.celda for g in grupos], dtype=int)
+        dist_km = np.abs(np.arange(ciudad.n_celdas) - ciudad.cbd_index) * ciudad.ancho_celda_km
+        t_cam = dist_km / sim.demand.globales.v_caminata * 60
         # La utilidad de la iteración `it` se calcula al final de la `it−1`
         # (sirve para la brecha de ese iterado y para la carga de éste).
         V_ton, y_ton = _utilidad_y_reparto_ton(
@@ -485,11 +537,13 @@ def _iter_loop(
     t_bici_libre = resolver_red_vacia(sim, ciudad).bici.t_usuarios_min
     estables = 0  # iteraciones consecutivas bajo tolerancia
     last_state: dict | None = None
+    alfa = 1.0  # paso halving de 'expected'
+    brecha = brecha_prev = float("inf")
 
     for it in range(sim.max_iter):
+        paso = 1.0 / (it + 1)
         if ton:
-            f_x = 1.0 / (it + 1)
-            x_ton = y_ton if x_ton is None else f_x * y_ton + (1 - f_x) * x_ton
+            x_ton = y_ton if x_ton is None else paso * y_ton + (1 - paso) * x_ton
             masa = n_g[:, None] * x_ton
             dem = [np.zeros(ciudad.n_celdas) for _ in _MODOS]
             for j in range(len(_MODOS)):
@@ -514,17 +568,22 @@ def _iter_loop(
                 sim.modos_habilitados,
             )
 
-        if promediar_flujos and not ton:
-            # `d_*` recién salido de `_correr_iteracion` es el target x*: la
-            # asignación a los tiempos actuales. Se promedia ACÁ, antes de las
-            # funciones de oferta, para que los tiempos salgan del flujo
-            # promediado y no al revés.
-            f_x = 1.0 / (it + 1)
+        if flujos:
+            # `d_*` recién salido de `_correr_iteracion` es el objetivo x*: la
+            # demanda a los tiempos vigentes. La brecha se mide con él, antes de
+            # promediar; después se promedia ACÁ, antes de las funciones de
+            # oferta, para que los tiempos salgan del flujo promediado.
+            paso = 1.0 if it == 0 else alfa
+            if tiempos_actuales is not None:
+                objetivo = resolver_oferta(sim, ciudad, d_auto, d_bici, d_metro)
+                brecha = _brecha_tiempos(
+                    objetivo, t_auto_ac, t_bici_ac, t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
+                )
             nuevos = (d_auto, d_metro, d_bici, d_caminata)
             d_ac = (
                 nuevos
                 if d_ac is None
-                else tuple(f_x * n + (1 - f_x) * a for n, a in zip(nuevos, d_ac, strict=True))
+                else tuple(paso * n + (1 - paso) * a for n, a in zip(nuevos, d_ac, strict=True))
             )
             d_auto, d_metro, d_bici, d_caminata = d_ac
 
@@ -538,32 +597,18 @@ def _iter_loop(
             t_tren_v_ac = train_result.t_viaje_min.copy()
             residuo = float("inf")
         else:
-            # Con `promediar_flujos` el suavizado ya ocurrió sobre `d_*`, así que
-            # los tiempos se toman tal como salen de la oferta (f = 1). Promediar
-            # las dos variables amortiguaría dos veces y frenaría la convergencia
-            # sin cambiar el punto fijo. El residuo se mide con la misma fórmula,
-            # pero ya no es la brecha: los dos tiempos que compara salen de
-            # flujos que difieren en una fracción f, así que vuelve a ser un
-            # cambio amortiguado. Para esta variante la vara es `gap_final_min`.
-            f = 1.0 if promediar_flujos or ton else 1.0 / (it + 1)
-            old_auto = t_auto_ac.copy()
-            old_bici = t_bici_ac.copy()
-            old_metro = t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
-            # Brecha no amortiguada (D8): lo que devuelve la red cargada contra
-            # los tiempos con que se calculó la demanda. Es `Δt/f` del promedio
-            # de tiempos —`t_nuevo − t = f·(c − t)`—, medido sin dividir.
-            residuo = float(
-                max(
-                    np.max(np.abs(car_result.t_usuarios_min - old_auto)),
-                    np.max(np.abs(bike_result.t_usuarios_min - old_bici)),
-                    np.max(
-                        np.abs(
-                            train_result.t_acceso_min
-                            + train_result.t_espera_min
-                            + train_result.t_viaje_min
-                            - old_metro
-                        )
-                    ),
+            # Al promediar flujos (expected, todo o nada) los tiempos se toman
+            # tal como salen de la oferta (f = 1): promediar las dos variables
+            # amortiguaría dos veces sin cambiar el punto fijo. En 'montecarlo'
+            # la brecha no amortiguada (D8) es lo que devuelve la red cargada
+            # contra los tiempos con que se calculó la demanda: `Δt/f` del
+            # promedio de tiempos —`t_nuevo − t = f·(c − t)`—, medido sin dividir.
+            f = 1.0 if flujos or ton else paso
+            residuo = (
+                brecha
+                if flujos
+                else _brecha_tiempos(
+                    oferta, t_auto_ac, t_bici_ac, t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac
                 )
             )
             t_auto_ac = f * car_result.t_usuarios_min + (1 - f) * t_auto_ac
@@ -588,11 +633,15 @@ def _iter_loop(
             V_ton, y_ton = _utilidad_y_reparto_ton(
                 grupos, ciudad, sim.demand, tiempos_actuales, sim.modos_habilitados
             )
-            residuo = _costo_en_exceso_medio(x_ton, V_ton, n_g, b_t)
+            residuo = _brecha_relativa_ton(
+                _costo_en_exceso_medio(x_ton, V_ton, n_g, b_t),
+                (d_auto, d_metro, d_bici, d_caminata),
+                (t_auto_ac, t_tren_acc_ac + t_tren_esp_ac + t_tren_v_ac, t_bici_ac, t_cam),
+            )
 
         snap = IterationSnapshot(
             iter=it,
-            f_msa=1.0 / (it + 1),
+            f_msa=paso,
             modal_split=conteo,
             demanda_auto=d_auto,
             demanda_metro=d_metro,
@@ -624,15 +673,24 @@ def _iter_loop(
             }
         yield snap
 
-        # Criterio de convergencia: brecha no amortiguada < tolerancia en 2
-        # iteraciones consecutivas (robusto al ruido estocástico). Fallback a
-        # max_iter. Con tolerance=0 nunca corta (sólo número de iteraciones).
-        # Con 'montecarlo' el ruido de muestreo deja la brecha en ~0,15–0,75 min
-        # y la corrida agota max_iter aunque `gap_final_min`, que carga flujos
-        # esperados, quede bajo la tolerancia. Con 'todo_o_nada' el residuo es
-        # el costo en exceso medio (D-70), que baja como 1/n: converge, pero
-        # con pocas pistas pide más vueltas que el logit.
-        if sim.tolerance > 0 and residuo < sim.tolerance:
+        # Halving (Boyles §8.3.5, p. 314): si la brecha no bajó, el paso se
+        # divide por 2. Con un pliegue del metro (b_tiempo_espera ×1,5 en
+        # «suaves») la brecha sube un tramo en el camino al equilibrio, el paso
+        # colapsa y la corrida termina sin converger: queda dicho, no escondido.
+        if flujos and it > 0:
+            if residuo >= brecha_prev * (1.0 - 1e-6):
+                alfa /= 2.0
+            brecha_prev = residuo
+
+        # Criterio de convergencia: brecha < tolerancia en 2 iteraciones
+        # consecutivas. Fallback a max_iter; con tolerance=0 nunca corta (sólo
+        # número de iteraciones). Con 'montecarlo' el ruido de muestreo deja la
+        # brecha sorteada en ~0,15–0,75 min aunque la de flujos esperados
+        # (`gap_final_min`) quede bajo la tolerancia; por eso el veredicto sale
+        # de esa última. Todo o nada compara su brecha relativa contra
+        # `TOL_RELATIVA_TON`, no contra `tolerance` en minutos.
+        tol = TOL_RELATIVA_TON if ton else sim.tolerance
+        if sim.tolerance > 0 and residuo < tol:
             estables += 1
             if estables >= 2:
                 if trace is not None:
@@ -803,6 +861,10 @@ def _finalizar_trace(
                 np.max(np.abs(metro_fresco - metro_final)),
             )
         )
+        # Montecarlo: la brecha sorteada del loop mide el ruido de muestreo, no
+        # el equilibrio, así que el veredicto sale de esta (auditoría B).
+        if sim.assignment == "montecarlo" and sim.tolerance > 0:
+            trace.converged = trace.gap_final_min < sim.tolerance
 
     trace.capacidad_auto = last_state["capacidad"]
     trace.v_libre_auto = last_state["v_libre"]

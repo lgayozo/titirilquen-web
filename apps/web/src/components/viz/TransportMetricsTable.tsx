@@ -40,6 +40,9 @@ export interface TransportMetricsData {
   tiempoSistemaMin: number;
   frecuenciaMetro: number;
   residuoMin: number | null;
+  /** Todo o nada: `residuoMin` es la brecha relativa (adimensional, auditoría
+   *  B) y se muestra en %. */
+  residuoRelativo?: boolean;
   co2Total: number;
   co2Auto: number;
   co2Metro: number;
@@ -169,8 +172,13 @@ export function TransportMetricsTable({ data, className }: Props) {
       sys,
       H("residual"),
       "",
-      data.residuoMin == null ? "" : data.residuoMin.toFixed(3),
-      "min",
+      data.residuoMin == null
+        ? ""
+        : (data.residuoRelativo
+            ? 100 * data.residuoMin
+            : data.residuoMin
+          ).toFixed(3),
+      data.residuoRelativo ? "%" : "min",
     ]);
     rows.push([sys, H("co2_total"), "", data.co2Total.toFixed(2), "kg/h"]);
     rows.push([sys, H("co2"), "auto", data.co2Auto.toFixed(2), "kg/h"]);

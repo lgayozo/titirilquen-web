@@ -20,6 +20,9 @@ import { COLOR_MODO, ORDEN_MODOS, fmtDecimal, localeCifras } from "@/lib/modos";
 
 interface ConvergenceTraceProps {
   iterations: readonly IterationSnapshot[];
+  /** Todo o nada: el residuo es la brecha relativa (adimensional, auditoría
+   *  B), que se dibuja en %; en los métodos logit es la brecha en minutos. */
+  relativa?: boolean;
   className?: string;
 }
 
@@ -62,6 +65,7 @@ const TOOLTIP_STYLE: React.CSSProperties = {
 
 export function ConvergenceTrace({
   iterations,
+  relativa = false,
   className,
 }: ConvergenceTraceProps) {
   const { t } = useTranslation("simulator");
@@ -70,7 +74,8 @@ export function ConvergenceTrace({
     () =>
       iterations.map((it) => ({
         iter: it.iter + 1,
-        residuo: it.residuo ?? null,
+        residuo:
+          it.residuo == null ? null : relativa ? 100 * it.residuo : it.residuo,
         Auto: it.modal_split.Auto ?? 0,
         Metro: it.modal_split.Metro ?? 0,
         Bici: it.modal_split.Bici ?? 0,
@@ -78,7 +83,7 @@ export function ConvergenceTrace({
         Teletrabajo: it.modal_split.Teletrabajo ?? 0,
         frec: it.frecuencia_metro,
       })),
-    [iterations],
+    [iterations, relativa],
   );
 
   // Marcas 1·2·5×10ⁿ: el redondeo propio de recharts daba 9,5k · 19k · 28,5k.
@@ -104,7 +109,9 @@ export function ConvergenceTrace({
   if (data.length === 0) return null;
 
   const fmtMin = (v: number | string) =>
-    typeof v === "number" ? `${fmtDecimal(v, 3)} min` : String(v);
+    typeof v === "number"
+      ? `${fmtDecimal(v, 3)} ${relativa ? "%" : "min"}`
+      : String(v);
   // Ticks del residuo: hasta 3 decimales pero sin ceros sobrantes (12.000 → 12,
   // 0.030 → 0.03) para que no invadan la etiqueta rotada del eje Y.
   const fmtResidualTick = (v: number) =>
@@ -126,8 +133,14 @@ export function ConvergenceTrace({
         <p style={PANEL_SUB}>
           {/* La brecha no amortiguada (D8), no el cambio del iterado: ver
               cap. 5 del libro, ec. (5.4). */}
-          ‖c(d(T<sub>n</sub>)) − T<sub>n</sub>‖<sub>∞</sub> · min · debe tender
-          a 0
+          {relativa ? (
+            t("convergence.sub_relativa")
+          ) : (
+            <>
+              ‖c(d(T<sub>n</sub>)) − T<sub>n</sub>‖<sub>∞</sub> · min · debe
+              tender a 0
+            </>
+          )}
         </p>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
@@ -156,7 +169,9 @@ export function ConvergenceTrace({
                 ticks={yRes}
                 tickFormatter={fmtResidualTick}
                 label={{
-                  value: t("convergence.y_min"),
+                  value: t(
+                    relativa ? "convergence.y_pct" : "convergence.y_min",
+                  ),
                   angle: -90,
                   position: "insideLeft",
                   offset: 0,

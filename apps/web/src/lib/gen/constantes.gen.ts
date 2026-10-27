@@ -44,6 +44,10 @@ export const TOL_ACOPLADO_CLP_MES = 100.0;
  *  consumidores (D-61). Ver `constantes.VUELTAS_ACOPLADO_MAX`. */
 export const VUELTAS_ACOPLADO_MAX = 10;
 
+/** Tolerancia de todo o nada sobre su brecha relativa (costo en exceso
+ *  medio / tiempo medio de viaje): ver `constantes.TOL_RELATIVA_TON`. */
+export const TOL_RELATIVA_TON = 0.001;
+
 /** Fracción de la capacidad real sobre la que se evalúa la BPR del auto
  *  (capacidad práctica, D6): ver `constantes.FACTOR_CAPACIDAD_PRACTICA`. */
 export const FACTOR_CAPACIDAD_PRACTICA = 0.8;

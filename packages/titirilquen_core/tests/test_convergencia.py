@@ -1,9 +1,11 @@
 """La brecha no amortiguada del MSA (D-39, D8).
 
-El MSA promedia con paso 1/n. Hasta D8 su `residuo` medía el cambio del
-promedio, que subestima el desajuste real en ~n veces; desde D8 mide la brecha
-misma, `max |c(x(t)) − t|`, y es lo que decide la parada. `gap_final_min` la
-recalcula una vez más sobre los tiempos que el loop entrega.
+Hasta D8 el `residuo` medía el cambio del promedio, que con paso 1/n subestima
+el desajuste real en ~n veces; desde D8 mide la brecha misma,
+`max |c(x(t)) − t|`, y es lo que decide la parada. `gap_final_min` la recalcula
+una vez más sobre los tiempos que el loop entrega. Desde la auditoría B
+(oct-2026) 'expected' promedia flujos con paso halving y mide la brecha sobre
+el objetivo; 'montecarlo' sigue promediando tiempos con 1/n.
 """
 
 from __future__ import annotations
@@ -43,8 +45,12 @@ def test_el_residuo_es_la_brecha_no_amortiguada(demanda_sintetica: DemandConfig)
     """D8: con promedio de tiempos, `t_nuevo − t = f·(c(x(t)) − t)`, así que el
     cambio del iterado entre dos iteraciones es EXACTAMENTE `f · residuo`. Si el
     residuo volviera a ser el cambio amortiguado, la igualdad fallaría por un
-    factor 1/f — que es justo lo que aflojaba la tolerancia sola."""
-    trace = run_msa(_sim(demanda_sintetica, max_iter=6, tolerance=0.0), SUELO)
+    factor 1/f — que es justo lo que aflojaba la tolerancia sola. Promedian
+    tiempos sólo 'montecarlo' (con 'expected' el iterado es el flujo y la
+    igualdad no vale si el paso baja de 1)."""
+    trace = run_msa(
+        _sim(demanda_sintetica, max_iter=6, tolerance=0.0, assignment="montecarlo"), SUELO
+    )
 
     def metro(s):
         return s.t_tren_acceso + s.t_tren_espera + s.t_tren_viaje

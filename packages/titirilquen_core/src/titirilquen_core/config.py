@@ -391,22 +391,24 @@ class SimulationConfig(BaseModel):
     city: CityConfig = Field(default_factory=CityConfig)
     supply: SupplyConfig = Field(default_factory=SupplyConfig)
     demand: DemandConfig
-    # 150 (antes 40, y 20 antes de D8): desde D8 el corte mira la brecha NO
-    # amortiguada, que con paso 1/n baja como ~1/n. Sin teletrabajo, la base
-    # converge en 29 y Pro-Auto en 34, pero con 1 sola pista (Ciclorrecreovía)
-    # pide 125 y con 72.000 hogares sobre las 2 pistas de la base, 114
-    # (oct-2026). Una corrida que converge corta antes y no paga el tope; el
-    # techo de 300 deja aire para el slider de la web.
-    max_iter: int = Field(default=150, ge=1, le=300)
-    # 0.2 min sobre la brecha no amortiguada `max |c(x(t)) − t|` (D8). Hasta D8
-    # era 0,1 sobre el cambio del iterado amortiguado, `f·brecha`: con f = 1/n
-    # la tolerancia real se aflojaba sola y la base «convergía» en la iteración
-    # 8 con una brecha de 0,42 min. Con 0,05 la partición se mueve ≤ 0,01 pp
-    # y no se cumple ni en 100 iteraciones (docs/libro/datos/cap05.json).
+    # 150 (antes 40, y 20 antes de D8). Con el paso halving de 'expected'
+    # (auditoría B, oct-2026) la base converge en 6 y el p95 del rango de la
+    # interfaz en 11; el tope lo muerden 'montecarlo' (paso 1/n) y todo o nada,
+    # cuya brecha baja como 1/n: con 1 pista pide ~520 y Máx Metro ~615. El
+    # techo de 1.000 cubre esos casos; la interfaz sube el tope a 700 al elegir
+    # todo o nada. Una corrida que converge corta antes y no paga el tope.
+    max_iter: int = Field(default=150, ge=1, le=1000)
+    # 0,02 min sobre la brecha no amortiguada `max |c(x(t)) − t|` (D8). Con
+    # 0,2 y el paso 1/n la base quedaba 0,12-0,19 pp lejos del equilibrio;
+    # con halving y 0,02, la mediana de los 776 casos del rango de la interfaz
+    # queda a 0,002 pp y el p95 a 0,008 (auditoría B, oct-2026). Montecarlo
+    # no llega a 0,02 —su brecha tiene un piso de ruido de muestreo—, así que la
+    # interfaz le sube la tolerancia a 0,2 al elegirlo; todo o nada no usa este
+    # valor sino `TOL_RELATIVA_TON` (sólo hereda que 0 apaga el corte).
     # `tolerance=0` sigue siendo válido y significa «no cortar por brecha».
     # Historia: el 0 original replicaba al repo de origen, que cortaba sólo por
-    # max_iter y marcaba «sin converger» siempre.
-    tolerance: float = Field(default=0.2, ge=0)
+    # max_iter y marcaba «sin converger» siempre; D8 la llevó a 0,2.
+    tolerance: float = Field(default=0.02, ge=0)
     seed: int | None = None
     assignment: Literal["montecarlo", "expected", "todo_o_nada"] = Field(
         default="montecarlo",

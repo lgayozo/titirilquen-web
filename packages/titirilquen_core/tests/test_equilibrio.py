@@ -15,6 +15,8 @@ recalibración.
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 import pytest
 from pydantic import ValidationError
@@ -98,36 +100,45 @@ def test_el_todo_o_nada_concentra_mas_que_el_logit(
     )
 
 
-def test_promediar_flujos_llega_a_un_punto_fijo_parecido(
+def test_expected_promedia_flujos_con_paso_halving(
     sim_liviana: SimulationConfig, lu_chica: LandUseConfig
 ) -> None:
-    """El esquema estándar del MSA promedia FLUJOS; el nuestro promedia TIEMPOS.
-
-    Existe sólo como instrumento de medición (ninguna ruta de producción lo
-    activa), y este test fija lo que la auditoría de agosto de 2026 midió: los
-    dos esquemas convergen al mismo punto fijo dentro de unos pocos puntos
-    porcentuales. Si algún día divergen mucho, la elección de esquema dejó de
-    ser inocua y hay que decidirla en serio.
-    """
+    """'expected' promedia FLUJOS con el paso halving de Boyles §8.3.5
+    (auditoría B, oct-2026): el paso parte en 1 y, cuando cambia, sólo se
+    divide por 2. Y el corte es honesto: la brecha fresca del estado que se
+    entrega (`gap_final_min`, medida un paso más allá) también queda bajo la
+    tolerancia. Con el residuo de tiempos consecutivos, que con flujos
+    promediados es un cambio amortiguado, eso fallaba."""
     sim_liviana.assignment = "expected"
-    sim_liviana.max_iter = 12
-    sim_liviana.tolerance = 0.05
+    sim_liviana.max_iter = 150
+    sim_liviana.tolerance = 0.02
+    tr = _drena(sim_liviana, lu_chica)
 
-    def reparto(promediar_flujos: bool) -> dict[str, float]:
-        tr = _drena(sim_liviana.model_copy(deep=True), lu_chica, promediar_flujos=promediar_flujos)
-        último = tr.iteraciones[-1]
-        d = {
-            "Auto": float(último.demanda_auto.sum()),
-            "Metro": float(último.demanda_metro.sum()),
-            "Bici": float(último.demanda_bici.sum()),
-            "Caminata": float(último.demanda_caminata.sum()),
-        }
-        total = sum(d.values()) or 1.0
-        return {k: 100 * v / total for k, v in d.items()}
+    pasos = [s.f_msa for s in tr.iteraciones]
+    assert pasos[0] == 1.0
+    assert all(b in (a, a / 2) for a, b in itertools.pairwise(pasos))
+    assert tr.converged
+    assert tr.gap_final_min < sim_liviana.tolerance
 
-    tiempos, flujos = reparto(False), reparto(True)
-    peor = max(abs(tiempos[m] - flujos[m]) for m in tiempos)
-    assert peor < 8.0, f"los dos esquemas divergen {peor:.1f} pp: {tiempos} vs {flujos}"
+
+def test_montecarlo_converge_segun_la_brecha_esperada(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """Con sorteo, la brecha del loop mide el ruido de muestreo: el veredicto
+    sale de `gap_final_min`, que carga flujos esperados (auditoría B). Antes el
+    loop podía declarar «convergió» con esa brecha sobre la tolerancia, o
+    agotar las iteraciones con ella bajo la tolerancia."""
+    sim_liviana.assignment = "montecarlo"
+    vistos = set()
+    # Con max_iter=2 el loop no alcanza a ver 2 brechas bajo la tolerancia (la
+    # primera es inf): antes era siempre «no convergió», aunque la brecha
+    # esperada cumpliera con holgura.
+    for max_iter, tol in ((2, 10.0), (20, 0.2), (20, 0.02), (20, 1e-6)):
+        sim = sim_liviana.model_copy(update={"max_iter": max_iter, "tolerance": tol})
+        tr = _drena(sim, lu_chica)
+        assert tr.converged == (tr.gap_final_min < tol), (max_iter, tol, tr.gap_final_min)
+        vistos.add(tr.converged)
+    assert vistos == {True, False}, "los casos no ejercen las dos caras del veredicto"
 
 
 # ---------------------------------------------------------------------------

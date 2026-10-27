@@ -5,25 +5,26 @@ si el MSA converge de verdad, si converge al mismo punto por caminos distintos,
 y qué tan lejos del punto fijo queda la corrida que la aplicación declara
 convergida.
 
-La tercera fue D-39 y la cerró D8 (oct-2026): el residuo medía el cambio del
-iterado **amortiguado**, `f·brecha`, y con paso 1/n la tolerancia se aflojaba
-sola. Desde D8 el residuo ES la brecha no amortiguada `max |c(x(t)) − t|`, y la
-parada la mira a ella.
+La tercera fue D-39, la cerró D8 (oct-2026) y la auditoría B (oct-2026) cambió
+el algoritmo: con flujos esperados el MSA promedia FLUJOS con paso halving
+(Boyles §8.3.5) y para sobre la brecha no amortiguada `max |c(x*) − t|`, medida
+sobre el objetivo antes de promediar.
 
 Diez bloques:
 
-1. `trayectoria` — brecha iteración a iteración, y dónde paraba la regla vieja.
+1. `trayectoria` — brecha y paso iteración a iteración.
 2. `tolerancia` — qué cambia al exigir más: reparto, iteraciones y brecha.
-3. `variantes` — promediar tiempos (el default) contra promediar flujos (el
-   algoritmo estándar de Boyles, §6.2, el único con argumento de convergencia).
+3. `precision` — la corrida de la app contra la del mismo algoritmo llevada a
+   brecha 1e-6, en la base y en los escenarios difíciles de la auditoría B.
 4. `unicidad` — ¿el punto fijo depende del punto de partida?
 5. `emisiones` — el reparto entre auto y metro (D-29, tren-km).
 6. `downs_thomson` — el barrido de pistas que absorbe el informe homónimo.
 7. `bici_umbrales` — D9: cuánto mueve la congestión el tiempo de la bici y
    cuánta demanda cambiaría de escalón si se evaluaran sobre él.
 8. `todo_o_nada` — D-70: promediando flujos, todo o nada converge lento al
-   equilibrio de usuario.
-9. `montecarlo` — D8: el ruido de muestreo pone un piso a la brecha.
+   equilibrio de usuario; para sobre la brecha relativa AEC/t̄.
+9. `montecarlo` — D8: el ruido de muestreo pone un piso a la brecha; el
+   veredicto sale de la brecha con flujos esperados.
 10. `presets` — D8: si el tope de iteraciones alcanza para los presets de política.
 
 Correr desde `packages/titirilquen_core` (~6 min):
@@ -34,6 +35,7 @@ Correr desde `packages/titirilquen_core` (~6 min):
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -45,6 +47,7 @@ RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 import test_linea_base as base
+from titirilquen_core.constantes import TOL_RELATIVA_TON
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
 
 SALIDA = Path(__file__).parent / "cap05.json"
@@ -63,17 +66,18 @@ def _commit() -> str:
         return "desconocido"
 
 
-def _corre(sim, *, promediar_flujos: bool = False, localizacion: str = "original"):
+def _corre(sim, *, localizacion: str = "original"):
     trace = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(
-        sim,
-        base._land_use_web(),
-        trace,
-        localizacion=localizacion,
-        promediar_flujos=promediar_flujos,
-    ):
+    for _ in iter_msa_desde_suelo(sim, base._land_use_web(), trace, localizacion=localizacion):
         pass
     return trace
+
+
+def _constante_ui(nombre: str) -> float:
+    """Una constante de `SandboxPage.tsx`: la interfaz, no el núcleo, sube el
+    tope de todo o nada y la tolerancia de Montecarlo al elegirlos."""
+    ts = (RAIZ / "apps" / "web" / "src" / "pages" / "SandboxPage.tsx").read_text(encoding="utf-8")
+    return float(re.search(rf"const {nombre} = ([0-9.]+);", ts).group(1))
 
 
 def _reparto(trace) -> dict:
@@ -93,41 +97,19 @@ def _resumen(trace) -> dict:
     }
 
 
-def _regla_vieja(trace, tol: float = 0.1) -> int | None:
-    """Iteración (contada desde 1, como `len(iteraciones)`) en que la regla
-    anterior a D8 —`f·brecha < tol` dos veces seguidas— habría cortado."""
-    estables = 0
-    for k, s in enumerate(trace.iteraciones):
-        if np.isfinite(s.residuo) and s.f_msa * s.residuo < tol:
-            estables += 1
-            if estables >= 2:
-                return k + 1
-        else:
-            estables = 0
-    return None
-
-
 def trayectoria() -> dict:
-    """Brecha iteración a iteración y el cambio amortiguado que medía la regla
-    vieja. La serie se corre sin corte hasta la iteración 40, el mismo
-    presupuesto que `variantes`, para ver dónde habría parado cada regla; el
-    resumen es el de la corrida con la regla vigente."""
+    """Brecha y paso halving iteración a iteración. La serie se corre sin corte
+    hasta la iteración 20 para ver cómo sigue bajando la brecha después de la
+    parada; el resumen es el de la corrida con la regla vigente."""
     sim = base._config_web()
-    serie = _corre(sim.model_copy(update={"tolerance": 0.0, "max_iter": 40}))
-    vieja = _regla_vieja(serie)
+    serie = _corre(sim.model_copy(update={"tolerance": 0.0, "max_iter": 20}))
     return {
         "tolerancia": sim.tolerance,
         "brecha_por_iteracion": [
-            None if not np.isfinite(s.residuo) else round(float(s.residuo), 5)
-            for s in serie.iteraciones
-        ],
-        "cambio_amortiguado_por_iteracion": [
-            None if not np.isfinite(s.residuo) else round(float(s.f_msa * s.residuo), 5)
+            None if not np.isfinite(s.residuo) else float(f"{s.residuo:.3g}")
             for s in serie.iteraciones
         ],
         "paso_msa_por_iteracion": [round(float(s.f_msa), 5) for s in serie.iteraciones],
-        "regla_vieja_paraba_en": vieja,
-        "brecha_donde_paraba_la_vieja": round(float(serie.iteraciones[vieja - 1].residuo), 5),
         **_resumen(_corre(sim)),
     }
 
@@ -135,42 +117,64 @@ def trayectoria() -> dict:
 def tolerancia() -> list[dict]:
     """Qué compra exigir más precisión."""
     filas = []
-    for tol, max_iter in ((0.5, 100), (0.2, 100), (0.1, 100), (0.05, 100)):
-        sim = base._config_web()
+    sim = base._config_web()
+    for tol in (0.2, 0.1, 0.05, 0.02, 0.005, 0.001):
         filas.append(
             {
                 "tolerancia": tol,
-                **_resumen(_corre(sim.model_copy(update={"tolerance": tol, "max_iter": max_iter}))),
+                **_resumen(_corre(sim.model_copy(update={"tolerance": tol}))),
             }
         )
     return filas
 
 
-def variantes() -> dict:
-    """Promediar tiempos (default) contra promediar flujos (Boyles §6.2).
+def _beta_mult(sim, clave: str, m: float):
+    d = sim.model_dump()
+    for h in (1, 2, 3):
+        d["demand"]["estratos"][h]["betas"][clave] *= m
+    return type(sim).model_validate(d)
 
-    El argumento de convergencia del MSA se apoya en promediar la variable
-    PRIMAL —los flujos—: con la carga todo-o-nada, `x* − x` es dirección de
-    descenso de la función de Beckmann. Promediando tiempos no hay tal
-    argumento. La aplicación usa la segunda.
 
-    Mismo presupuesto para las dos —40 iteraciones, sin corte— y se comparan
-    por `gap_final_min`: con promedio de flujos el residuo vuelve a ser un
-    cambio amortiguado (los tiempos salen de un flujo que se movió sólo una
-    fracción f), así que la regla de parada no las trataría igual.
-    """
-    sim = base._config_web().model_copy(update={"tolerance": 0.0, "max_iter": 40})
+def _pistas(sim, n: int):
+    car = sim.supply.car.model_copy(update={"num_pistas": n})
+    return sim.model_copy(update={"supply": sim.supply.model_copy(update={"car": car})})
+
+
+def precision() -> dict:
+    """¿Qué tan lejos del punto fijo queda lo que la app declara convergido?
+
+    Cada escenario se corre dos veces con el mismo algoritmo: con la regla de la
+    app y llevado a brecha 1e-6 (tope 3.000), que hace de referencia. La
+    diferencia de reparto es el error que deja la tolerancia. Los escenarios
+    son los difíciles de la auditoría B: congestión fuerte (1 y 2 pistas) y
+    un metro con espera muy pesada (`b_tiempo_espera` ×1,45 y ×1,5 con
+    umbrales suaves), donde Mohring acerca el modelo a un pliegue."""
+    casos = {
+        "base_original": (base._config_web(), "original"),
+        "base_equilibrio": (base._config_web(), "equilibrio"),
+        "1_pista": (_pistas(base._config_web(), 1), "original"),
+        "2_pistas": (_pistas(base._config_web(), 2), "original"),
+        "b_espera_x1_45_suaves": (
+            _beta_mult(base._config_web("suaves"), "b_tiempo_espera", 1.45),
+            "original",
+        ),
+        "b_espera_x1_5_suaves": (
+            _beta_mult(base._config_web("suaves"), "b_tiempo_espera", 1.5),
+            "original",
+        ),
+    }
     out = {}
-    for nombre, pf in (
-        ("promedia_tiempos_default", False),
-        ("promedia_flujos_boyles", True),
-    ):
-        out[nombre] = _resumen(_corre(sim.model_copy(deep=True), promediar_flujos=pf))
-    a, b = (
-        out["promedia_tiempos_default"]["reparto_pct"],
-        out["promedia_flujos_boyles"]["reparto_pct"],
-    )
-    out["diferencia_maxima_pp"] = round(max(abs(a[m] - b[m]) for m in a), 3)
+    for nombre, (sim, loc) in casos.items():
+        app = _resumen(_corre(sim, localizacion=loc))
+        ref = _resumen(
+            _corre(sim.model_copy(update={"tolerance": 1e-6, "max_iter": 3000}), localizacion=loc)
+        )
+        a, r = app["reparto_pct"], ref["reparto_pct"]
+        out[nombre] = {
+            "app": app,
+            "referencia": ref,
+            "diferencia_maxima_pp": round(max(abs(a[m] - r[m]) for m in a), 3),
+        }
     return out
 
 
@@ -227,10 +231,7 @@ def downs_thomson() -> list[dict]:
     """Barrido de pistas: ¿ampliar la vía mejora el sistema?"""
     filas = []
     for pistas in (1, 2, 3, 4):
-        sim = base._config_web()
-        car = sim.supply.car.model_copy(update={"num_pistas": pistas})
-        sup = sim.supply.model_copy(update={"car": car})
-        trace = _corre(sim.model_copy(update={"supply": sup}))
+        trace = _corre(_pistas(base._config_web(), pistas))
         snap = trace.iteraciones[-1]
         n = sum(snap.modal_split.values()) - snap.modal_split.get("Teletrabajo", 0)
         t_medio = float(
@@ -282,20 +283,23 @@ def bici_umbrales() -> dict:
 
 
 def todo_o_nada() -> dict:
-    """D-70: todo o nada promedia los flujos de cada grupo y para por el costo
-    en exceso medio (su `gap_final_min`). Sin corte hasta 20/40/60/80/100
-    iteraciones, el reparto y ese costo en cada una; y la regla de la app, que
-    al elegir todo o nada lleva el tope a 100 como mínimo, con cuántos grupos
-    quedan repartidos entre modos."""
+    """D-70: todo o nada promedia los flujos de cada grupo con paso 1/n. Su
+    `gap_final_min` es el costo en exceso medio (AEC) y su residuo la brecha
+    relativa AEC/t̄, que para contra `TOL_RELATIVA_TON`. Sin corte hasta
+    20…700 iteraciones, el reparto y las dos brechas en cada una; y la regla de
+    la app, que al elegir todo o nada lleva el tope a `MAX_ITER_TODO_O_NADA`
+    como mínimo, con cuántos grupos quedan repartidos entre modos."""
     sim = base._config_web().model_copy(update={"assignment": "todo_o_nada"})
+    tope = int(_constante_ui("MAX_ITER_TODO_O_NADA"))
     cortes = {}
-    for n in (20, 40, 60, 80, 100):
+    for n in (20, 40, 100, 200, 400, 700):
         tr = _corre(sim.model_copy(update={"tolerance": 0.0, "max_iter": n}))
         cortes[str(n)] = {
             "reparto_pct": _reparto(tr),
-            "gap_final_min": round(float(tr.gap_final_min), 3),
+            "gap_final_min": round(float(tr.gap_final_min), 4),
+            "brecha_relativa": float(f"{tr.iteraciones[-1].residuo:.3g}"),
         }
-    tr = _corre(sim.model_copy(update={"max_iter": max(sim.max_iter, 100)}))
+    tr = _corre(sim.model_copy(update={"max_iter": max(sim.max_iter, tope)}))
     modos: dict[tuple, set] = {}
     for a in tr.agentes:
         if not a.teletrabaja:
@@ -304,6 +308,8 @@ def todo_o_nada() -> dict:
         "sin_corte": cortes,
         "con_regla_app": {
             **_resumen(tr),
+            "tope": max(sim.max_iter, tope),
+            "brecha_relativa": float(f"{tr.iteraciones[-1].residuo:.3g}"),
             "grupos": len(modos),
             "grupos_repartidos": sum(len(m) > 1 for m in modos.values()),
         },
@@ -312,10 +318,16 @@ def todo_o_nada() -> dict:
 
 def montecarlo() -> dict:
     """D8: con 'montecarlo' cada iteración sortea de nuevo y la brecha tiene un
-    piso de ruido. Corrida con la regla por defecto, y la brecha de las últimas
-    diez iteraciones."""
-    tr = _corre(base._config_web().model_copy(update={"assignment": "montecarlo"}))
+    piso de ruido. Corrida con la tolerancia que pone la interfaz al elegirlo
+    (`TOL_MONTECARLO`); el veredicto sale de `gap_final_min`, la brecha con
+    flujos esperados. Se guarda la brecha sorteada de las últimas diez
+    iteraciones."""
+    tol = _constante_ui("TOL_MONTECARLO")
+    tr = _corre(
+        base._config_web().model_copy(update={"assignment": "montecarlo", "tolerance": tol})
+    )
     return {
+        "tolerancia": tol,
         **_resumen(tr),
         "brecha_ultimas_10": [round(float(s.residuo), 3) for s in tr.iteraciones[-10:]],
     }
@@ -378,7 +390,11 @@ def parametros_vigentes() -> dict:
             "max_iter": SimulationConfig.model_fields["max_iter"].default,
             "assignment": SimulationConfig.model_fields["assignment"].default,
         },
-        "promediar_flujos_default": False,
+        "tol_relativa_ton": TOL_RELATIVA_TON,
+        "ui": {
+            "max_iter_todo_o_nada": int(_constante_ui("MAX_ITER_TODO_O_NADA")),
+            "tol_montecarlo": _constante_ui("TOL_MONTECARLO"),
+        },
         "curva_emision_auto": {
             "a_g_km": 2467.4,
             "exponente": -0.699,
@@ -389,6 +405,7 @@ def parametros_vigentes() -> dict:
 
 
 def main() -> None:
+    sim = base._config_web()
     datos = {
         "_meta": {
             "fecha": datetime.now(UTC).date().isoformat(),
@@ -397,15 +414,15 @@ def main() -> None:
             "configuracion": (
                 "La de la aplicación (`test_linea_base._config_web`), localización "
                 "«original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, "
-                "asignación esperada, tolerancia 0,2 min sobre la brecha no "
-                f"amortiguada, máximo {base._config_web().max_iter} iteraciones (la "
-                "trayectoria y las variantes, 40 sin corte)."
+                f"asignación esperada, tolerancia {sim.tolerance} min sobre la brecha "
+                f"no amortiguada, máximo {sim.max_iter} iteraciones (la trayectoria, "
+                "20 sin corte)."
             ),
         },
         "parametros_vigentes": parametros_vigentes(),
         "trayectoria": trayectoria(),
         "tolerancia": tolerancia(),
-        "variantes": variantes(),
+        "precision": precision(),
         "unicidad": unicidad(),
         "emisiones": emisiones(),
         "downs_thomson": downs_thomson(),
@@ -419,8 +436,7 @@ def main() -> None:
     t = datos["trayectoria"]
     print(
         f"Trayectoria: {t['iteraciones']} iter · brecha final {t['residuo_final_min']} · "
-        f"gap_final {t['gap_final_min']} min · la regla vieja paraba en "
-        f"{t['regla_vieja_paraba_en']} con brecha {t['brecha_donde_paraba_la_vieja']}"
+        f"gap_final {t['gap_final_min']} min · brechas {t['brecha_por_iteracion']}"
     )
     print("\nTolerancia:")
     for f in datos["tolerancia"]:
@@ -428,13 +444,13 @@ def main() -> None:
             f"  tol={f['tolerancia']:<6} iter={f['iteraciones']:>3}  residuo={f['residuo_final_min']:>8.5f}  "
             f"brecha={f['gap_final_min']:>8.5f}  auto={f['reparto_pct']['Auto']:.3f}"
         )
-    v = datos["variantes"]
-    print(f"\nVariantes del MSA (diferencia máxima {v['diferencia_maxima_pp']} pp):")
-    for k in ("promedia_tiempos_default", "promedia_flujos_boyles"):
-        r = v[k]
+    print("\nPrecisión (app vs referencia):")
+    for k, v in datos["precision"].items():
+        a, r = v["app"], v["referencia"]
         print(
-            f"  {k:<26} iter={r['iteraciones']:>3} brecha={r['gap_final_min']:>8.5f} "
-            f"auto={r['reparto_pct']['Auto']:.3f} metro={r['reparto_pct']['Metro']:.3f}"
+            f"  {k:<22} app {a['iteraciones']:>4} it conv={a['convergio']!s:<5} "
+            f"ref {r['iteraciones']:>4} it conv={r['convergio']!s:<5} "
+            f"brecha ref={r['gap_final_min']:.2e}  dif={v['diferencia_maxima_pp']} pp"
         )
     print(
         f"\nUnicidad: dispersión máxima {datos['unicidad']['dispersion_maxima_pp']} pp entre semillas"

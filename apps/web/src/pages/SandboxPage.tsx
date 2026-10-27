@@ -44,6 +44,8 @@ import { cn } from "@/lib/cn";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { simularTransporte } from "@/lib/api";
 import { calcularFlujo } from "@/lib/derivados";
+import { TOL_RELATIVA_TON } from "@/lib/gen/constantes.gen";
+import { DEFAULTS_CORE } from "@/lib/gen/defaults.gen";
 import {
   COLOR_ESTRATO,
   COLOR_MODO,
@@ -89,6 +91,15 @@ const FLOW_MODES: readonly FlowMode[] = ["auto", "bici", "metro", "caminata"];
 
 // El umbral de factibilidad por modo lo exporta CityStrip (`MODE_CUTOFF_MIN`):
 // es un parámetro del modelo, no de la página, y tenerlo dos veces derivaba.
+
+/** Tope de iteraciones al elegir todo o nada: el peor caso medido corta en
+ *  ~615 con `TOL_RELATIVA_TON` (Máx Metro; auditoría B, oct-2026). */
+const MAX_ITER_TODO_O_NADA = 700;
+
+/** Tolerancia (min) al elegir Montecarlo: con sorteo la brecha esperada final
+ *  queda en ~0,1-0,4 min tras 150 iteraciones, y no baja de ~0,05 ni con
+ *  3.000; con el default de 0,02 nunca convergería (auditoría B, oct-2026). */
+const TOL_MONTECARLO = 0.2;
 
 export function SandboxPage() {
   const { t } = useTranslation("simulator");
@@ -511,15 +522,26 @@ export function SandboxPage() {
   // max_iter fijas), así que ese caso se dice aparte.
   const convergencia = useMemo(() => {
     if (!result || !lastIter) return null;
-    const res = lastIter.residuo;
+    // Con sorteo el residuo de la última iteración mide el ruido de muestreo;
+    // el veredicto del núcleo sale de la brecha con flujos esperados
+    // (auditoría B), y se muestra esa para que número y veredicto coincidan.
+    const res =
+      cfgRes.assignment === "montecarlo"
+        ? result.gap_final_min
+        : lastIter.residuo;
     return {
       ok: result.converged,
       sinCriterio: !(cfgRes.tolerance > 0),
-      // Todo o nada para por el costo en exceso medio, no por el cambio de
-      // tiempos (D-70), así que su veredicto lo dice aparte.
+      // Todo o nada para por su brecha relativa —costo en exceso medio sobre
+      // tiempo medio de viaje— contra `TOL_RELATIVA_TON`, no por la brecha de
+      // tiempos contra la tolerancia (D-70, auditoría B), así que su veredicto
+      // lo dice aparte.
       aon: cfgRes.assignment === "todo_o_nada",
       res: res == null || !isFinite(res) ? null : res,
-      tol: cfgRes.tolerance,
+      tol:
+        cfgRes.assignment === "todo_o_nada"
+          ? TOL_RELATIVA_TON
+          : cfgRes.tolerance,
       usadas: lastIter.iter + 1,
       total: cfgRes.max_iter,
     };
@@ -742,6 +764,7 @@ export function SandboxPage() {
         lastIter.residuo == null || !isFinite(lastIter.residuo)
           ? null
           : lastIter.residuo,
+      residuoRelativo: cfgRes.assignment === "todo_o_nada",
       co2Total: result.emisiones_total_kg,
       co2Auto: result.emisiones_auto_kg,
       co2Metro: result.emisiones_metro_kg,
@@ -757,42 +780,47 @@ export function SandboxPage() {
       medidaBienestar: agg?.medida_bienestar ?? null,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result, lastIter, avgStats, t]);
+  }, [result, lastIter, avgStats, cfgRes.assignment, t]);
 
   // Barra de estado (B3): una línea con el veredicto; el texto largo, que
   // dice qué hacer si no convergió, va en su «¿por qué?».
   const textosEstado = (() => {
     if (!convergencia) return null;
-    const res =
-      convergencia.res == null ? "—" : fmtDecimal(convergencia.res, 3);
-    // 3 decimales como el residuo: con toFixed(2) una tolerancia de 0,001 se
-    // imprimía "0.00" y se leía como si no hubiera criterio.
-    const tol = fmtDecimal(convergencia.tol, 3);
+    // La unidad va con el número: minutos para la brecha de tiempos, % para
+    // la brecha relativa de todo o nada. 3 decimales en ambos: con toFixed(2)
+    // una tolerancia de 0,001 se imprimía "0.00" y se leía como si no hubiera
+    // criterio.
+    const brecha = (v: number) =>
+      convergencia.aon
+        ? `${fmtDecimal(100 * v, 3)} %`
+        : `${fmtDecimal(v, 3)} min`;
+    const res = convergencia.res == null ? "—" : brecha(convergencia.res);
+    const tol = brecha(convergencia.tol);
     const total = convergencia.total;
     if (convergencia.sinCriterio)
       return {
         estado: t("equilibrium.estado_no_tol", { total, res }),
         veredicto: t("equilibrium.verdict_no_tol", { total, res }),
       };
+    const clave = convergencia.aon ? "_aon" : "";
     if (convergencia.ok)
       return {
-        estado: t("equilibrium.estado_ok", {
+        estado: t(`equilibrium.estado_ok${clave}`, {
           n: convergencia.usadas,
           total,
           res,
           tol,
         }),
-        veredicto: t("equilibrium.verdict_ok", {
+        veredicto: t(`equilibrium.verdict_ok${clave}`, {
           n: convergencia.usadas,
           total,
           res,
           tol,
         }),
       };
-    const clave = convergencia.aon ? "fail_aon" : "fail";
     return {
-      estado: t(`equilibrium.estado_${clave}`, { total, res, tol }),
-      veredicto: t(`equilibrium.verdict_${clave}`, { total, res, tol }),
+      estado: t(`equilibrium.estado_fail${clave}`, { total, res, tol }),
+      veredicto: t(`equilibrium.verdict_fail${clave}`, { total, res, tol }),
     };
   })();
 
@@ -947,7 +975,7 @@ export function SandboxPage() {
             <input
               type="range"
               min={3}
-              max={300}
+              max={1000}
               step={1}
               value={config.max_iter}
               onChange={(e) =>
@@ -970,7 +998,7 @@ export function SandboxPage() {
               type="range"
               min={0}
               max={1}
-              step={0.05}
+              step={0.01}
               value={config.tolerance}
               onChange={(e) =>
                 setConfig((c) => ({ ...c, tolerance: Number(e.target.value) }))
@@ -989,19 +1017,31 @@ export function SandboxPage() {
                   key={m}
                   type="button"
                   className={config.assignment === m ? "active" : ""}
-                  // Todo o nada promedia flujos con paso 1/n y su costo en
-                  // exceso cae lento cuando el corredor satura: con la base
-                  // vieja de 2 pistas necesitaba 52 iteraciones (D-70); con la
-                  // de 4 converge en 2. Al elegirlo se sube el tope a 100; no
-                  // se baja al volver al logit, que converge antes y corta solo.
+                  // Todo o nada promedia flujos con paso 1/n y su brecha
+                  // relativa cae como 1/n: con 1 pista pide ~520 iteraciones y
+                  // Máx Metro ~615 (auditoría B, oct-2026). Al elegirlo se sube
+                  // el tope a 700; no se baja al volver al logit, que converge
+                  // antes y corta solo. Montecarlo no llega a la tolerancia
+                  // por defecto (0,02 min): su brecha tiene un piso de ruido
+                  // de muestreo. Al elegirlo la tolerancia sube a 0,2, y vuelve
+                  // al default al dejarlo si nadie la movió.
                   onClick={() =>
                     setConfig((c) => ({
                       ...c,
                       assignment: m,
                       max_iter:
                         m === "todo_o_nada"
-                          ? Math.max(c.max_iter, 100)
+                          ? Math.max(c.max_iter, MAX_ITER_TODO_O_NADA)
                           : c.max_iter,
+                      tolerance:
+                        m === "montecarlo" &&
+                        c.tolerance === DEFAULTS_CORE.tolerance
+                          ? TOL_MONTECARLO
+                          : m !== "montecarlo" &&
+                              c.assignment === "montecarlo" &&
+                              c.tolerance === TOL_MONTECARLO
+                            ? DEFAULTS_CORE.tolerance
+                            : c.tolerance,
                     }))
                   }
                   style={{ flex: 1 }}
@@ -1366,7 +1406,10 @@ export function SandboxPage() {
                   meta="MSA"
                   cls="col-12"
                 >
-                  <ConvergenceTrace iterations={liveIterations} />
+                  <ConvergenceTrace
+                    iterations={liveIterations}
+                    relativa={cfgRes.assignment === "todo_o_nada"}
+                  />
                 </Panel>
               )}
 
