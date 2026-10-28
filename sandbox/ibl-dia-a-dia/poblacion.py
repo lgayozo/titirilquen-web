@@ -40,6 +40,15 @@ agentes (o de sus viajes), no de réplicas de una persona.
   el METRO (tiempo en vehículo, que es el que pesa `b_tiempo_viaje`; espera y
   acceso quedan en `V_ref`). Sin truncar (ver `persona.py`).
 * Teletrabajadores fuera: no eligen.
+**La ciudad de la app con los cuatro modos (`python poblacion.py ciudad`).**
+La configuración de la app tal cual (tenencia de auto por estrato, auto, metro,
+bici y caminata), con el ruido en tres condiciones (`CONDICIONES`): sólo en el
+auto, sólo en el metro, y en los dos. Bici y caminata nunca llevan ruido. El
+IBL aprende auto, metro y bici —la bici se congestiona en la ciclovía—; la
+caminata no: su tiempo es geométrico, sin congestión ni ruido, y queda en
+`V_ref`. Las medidas se generalizan a los J modos factibles de cada persona
+(con J = 2 son las de la fase 1). Escribe `salida/ciudad4.json`.
+
 * La escala del logit `μ` multiplica las utilidades antes del softmax; `μ = 1`
   es el logit del núcleo y la única escala que se analiza.
 """
@@ -47,7 +56,9 @@ agentes (o de sus viajes), no de réplicas de una persona.
 from __future__ import annotations
 
 import json
+import sys
 import time
+from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
@@ -88,10 +99,14 @@ MUS = (1.0,)
 
 
 class Escenario:
-    """La ciudad, la población y la referencia del día 0, listas para vectorizar."""
+    """La ciudad, la población y la referencia del día 0, listas para vectorizar.
 
-    def __init__(self) -> None:
-        sim, lu = _config_fase1()
+    Se aprenden los `K` primeros modos de `MODOS`: auto y metro (fase 1), más la
+    bici en la ciudad con cuatro modos. La caminata nunca: no tiene congestión
+    ni ruido, así que su tiempo percibido es siempre el geométrico.
+    """
+
+    def __init__(self, sim: SimulationConfig, lu: LandUseConfig, K: int) -> None:
         trace = run_msa(sim, lu, localizacion="equilibrio")
         s = trace.iteraciones[-1]
         self.sim: SimulationConfig = sim
@@ -104,9 +119,10 @@ class Escenario:
         self.celda = np.array([a.celda_origen for a in agentes])
         self.estrato = np.array([a.estrato for a in agentes])
         self.tiene_auto = np.array([a.tiene_auto for a in agentes])
-        # Referencia del día 0: tiempos del equilibrio por celda.
-        self.t_auto_ref = np.asarray(s.t_auto, dtype=float)
-        self.t_viaje_ref = np.asarray(s.t_tren_viaje, dtype=float)
+        # Referencia del día 0: tiempos del equilibrio por celda de los modos que
+        # se aprenden (auto total, metro en vehículo, bici total), (L, K).
+        self.K = K
+        self.t_ref = np.stack([s.t_auto, s.t_tren_viaje, s.t_bici][:K], axis=1).astype(float)
         ref = [
             TiemposObservados(
                 auto_total=float(s.t_auto[i]),
@@ -147,11 +163,15 @@ class Escenario:
         tot = sum(v for m, v in split.items() if m != "Teletrabajo")
         self.split_equilibrio = [split[m] / tot for m in MODOS]
         self.n_grupos = len(cache)
-        # El modo mejor de cada persona y su ventaja, en el equilibrio (día 0):
-        # la referencia de Φ, como el modo mejor y P* de E2 (experimentos.py).
-        self.ambos = self.feas[:, 0] & self.feas[:, 1]
-        self.mejor = np.where(self.V_ref[:, 0] >= self.V_ref[:, 1], 0, 1)
-        self.dv = np.abs(self.V_ref[:, 0] - self.V_ref[:, 1])
+        # El modo mejor de cada persona y su ventaja sobre el segundo, en el
+        # equilibrio (día 0): la referencia de Φ, como el modo mejor y P* de E2
+        # (experimentos.py). Sólo cuentan quienes pueden elegir: J ≥ 2 modos.
+        Vf = np.where(self.feas, self.V_ref, -np.inf)
+        self.J = self.feas.sum(axis=1)
+        self.elige = self.J >= 2
+        self.mejor = Vf.argmax(axis=1)
+        orden = np.sort(Vf, axis=1)
+        self.dv = orden[:, -1] - orden[:, -2]
 
 
 def _softmax_filas(V: np.ndarray, mu: float) -> np.ndarray:
@@ -177,35 +197,34 @@ def _suerte(primera_eps: np.ndarray, ult_share: np.ndarray) -> tuple[float, floa
     return float(mala.mean()), float(buena.mean())
 
 
-#: Bandas de la ventaja |V_auto − V_metro| (útiles) para leer el efecto de
+#: Bandas de la ventaja del mejor sobre el segundo (útiles) para leer el efecto de
 #: variabilidad por tamaño de la ventaja: con ventajas grandes no hay recorrido.
 BANDAS = ((0.0, 0.1), (0.1, 0.3), (0.3, 0.6), (0.6, np.inf))
 
 
-def _cuota_mejor(esc: Escenario, ult: np.ndarray, v_am: np.ndarray) -> dict:
+def _cuota_mejor(esc: Escenario, ult: np.ndarray, v_ult: np.ndarray) -> dict:
     """Efecto de variabilidad del pago, en la población.
 
-    Entre quienes tienen auto y metro disponibles, la fracción de sus viajes en
-    auto o metro (últimos días) hecha en el que de verdad es mejor para ellos
-    —por la utilidad verdadera media de esos días—. El efecto dice que con más
-    σ esa cuota se acerca a 1/2. Se promedia por persona, en total y por banda
-    de ventaja; las personas que no usaron ni auto ni metro no cuentan.
+    Entre quienes pueden elegir (J ≥ 2 modos factibles), la fracción de sus
+    viajes de los últimos días hecha en el modo que de verdad es mejor para
+    ellos —por la utilidad verdadera media de esos días—. El efecto dice que con
+    más σ esa cuota se acerca a 1/J. Se promedia por persona, en total y por
+    banda de ventaja del mejor sobre el segundo.
     """
-    ambos = esc.feas[:, 0] & esc.feas[:, 1]
-    mejor = np.where(v_am[:, 0] >= v_am[:, 1], 0, 1)
-    n_am = ((ult == 0) | (ult == 1)).sum(axis=1)
-    n_mejor = (ult == mejor[:, None]).sum(axis=1)
-    ok = ambos & (n_am > 0)
-    cuota = np.where(ok, n_mejor / np.maximum(n_am, 1), np.nan)
-    ventaja = np.abs(v_am[:, 0] - v_am[:, 1])
-    out = {"todos": float(np.nanmean(cuota[ok])), "n": int(ok.sum()), "bandas": []}
+    Vf = np.where(esc.feas, v_ult, -np.inf)
+    mejor = Vf.argmax(axis=1)
+    orden = np.sort(Vf, axis=1)
+    ventaja = orden[:, -1] - orden[:, -2]
+    ok = esc.elige
+    cuota = (ult == mejor[:, None]).mean(axis=1)
+    out = {"todos": float(cuota[ok].mean()), "n": int(ok.sum()), "bandas": []}
     for lo, hi in BANDAS:
         sel = ok & (ventaja >= lo) & (ventaja < hi)
         out["bandas"].append(
             {
                 "desde": lo,
                 "hasta": None if np.isinf(hi) else hi,
-                "cuota": float(np.nanmean(cuota[sel])) if sel.any() else float("nan"),
+                "cuota": float(cuota[sel].mean()) if sel.any() else float("nan"),
                 "n": int(sel.sum()),
             }
         )
@@ -213,19 +232,19 @@ def _cuota_mejor(esc: Escenario, ult: np.ndarray, v_am: np.ndarray) -> dict:
 
 
 def _dispersion_iguales(esc: Escenario, ult: np.ndarray) -> float:
-    """Varianza del share de auto entre personas iguales, sobre la binomial.
+    """Varianza del share de días en el modo mejor entre personas iguales, sobre la binomial.
 
-    Personas iguales = mismo (estrato, celda), con auto y metro factibles. Si
-    todas eligieran con la misma P, la varianza de su share en los últimos
-    días sería la binomial p̄(1 − p̄)/ULTIMOS; la razón agregada (ponderada por
-    tamaño de grupo) mide cuánto la historia diferenció a personas idénticas.
-    Con σ = 0 debe dar ≈ 1.
+    Personas iguales = mismo (estrato, celda, tenencia de auto) y J ≥ 2: tienen
+    el mismo modo mejor del equilibrio. Si todas eligieran con la misma P, la
+    varianza de su share en los últimos días sería la binomial p̄(1 − p̄)/ULTIMOS;
+    la razón agregada (ponderada por tamaño de grupo) mide cuánto la historia
+    diferenció a personas idénticas. Con σ = 0 debe dar ≈ 1. Con dos modos es
+    la del share de auto.
     """
-    ambos = esc.feas[:, 0] & esc.feas[:, 1]
-    share = (ult[ambos] == 0).mean(axis=1)
-    _, g = np.unique(
-        esc.estrato[ambos] * esc.ciudad.n_celdas + esc.celda[ambos], return_inverse=True
-    )
+    el = esc.elige
+    share = (ult[el] == esc.mejor[el][:, None]).mean(axis=1)
+    clave = (esc.estrato[el] * esc.ciudad.n_celdas + esc.celda[el]) * 2 + esc.tiene_auto[el]
+    _, g = np.unique(clave, return_inverse=True)
     n = np.bincount(g).astype(float)
     p = np.bincount(g, weights=share) / n
     var_obs = np.bincount(g, weights=(share - p[g]) ** 2) / n
@@ -235,25 +254,31 @@ def _dispersion_iguales(esc: Escenario, ult: np.ndarray) -> float:
 
 
 def _phi(esc: Escenario, p_ventana: dict[str, np.ndarray], mu: float) -> dict:
-    """Φ = (S − ½)/(P* − ½) por horizonte, ec. (13) del informe, en la población.
+    """Φ = (S − 1/J)/(P* − 1/J) por horizonte, ec. (13) del informe, en la población.
 
-    S es la media de P̄_n del modo mejor del equilibrio; P* la media de su
-    probabilidad con los tiempos del equilibrio. Sólo quienes tienen auto y
-    metro; en total y por banda de ventaja. Con σ = 0 debe dar ≈ 1.
+    Con dos modos 1/J = ½ y es la (13) tal cual; con más, el punto de comparación
+    es el reparto uniforme entre los J modos factibles de cada persona. S es la
+    media de P̄_n del modo mejor del equilibrio; P* la media de su probabilidad
+    con los tiempos del equilibrio. Sólo quienes pueden elegir (J ≥ 2); en total
+    y por banda de ventaja sobre el segundo. Con σ = 0 debe dar ≈ 1.
     """
-    p_est = 1.0 / (1.0 + np.exp(-mu * esc.dv))
-    out: dict = {"todos": {}, "bandas": []}
-    sel_todos = esc.ambos
-    for w in VENTANAS:
-        S, Pe = p_ventana[w][sel_todos].mean(), p_est[sel_todos].mean()
-        out["todos"][w] = float((S - 0.5) / (Pe - 0.5))
+    el = esc.elige
+    p_est = np.full(esc.N, np.nan)
+    P_ref = _softmax_filas(np.where(esc.feas[el], esc.V_ref[el], -np.inf), mu)
+    p_est[el] = P_ref[np.arange(el.sum()), esc.mejor[el]]
+    u = 1.0 / np.maximum(esc.J, 1)
+
+    def phi(sel: np.ndarray, w: str) -> float:
+        U = u[sel].mean()
+        return float((p_ventana[w][sel].mean() - U) / (p_est[sel].mean() - U))
+
+    out: dict = {"todos": {w: phi(el, w) for w in VENTANAS}, "bandas": []}
     for lo, hi in BANDAS:
-        sel = esc.ambos & (esc.dv >= lo) & (esc.dv < hi)
+        sel = el & (esc.dv >= lo) & (esc.dv < hi)
         fila = {"desde": lo, "hasta": None if np.isinf(hi) else hi, "n": int(sel.sum())}
-        Pe = p_est[sel].mean()
-        fila["p_estrella"] = float(Pe)
+        fila["p_estrella"] = float(p_est[sel].mean())
         for w in VENTANAS:
-            fila[w] = float((p_ventana[w][sel].mean() - 0.5) / (Pe - 0.5))
+            fila[w] = phi(sel, w)
         out["bandas"].append(fila)
     return out
 
@@ -265,32 +290,34 @@ def simular(
     d: float,
     rng: np.random.Generator,
     *,
+    ruido: tuple[bool, ...] | None = None,
     truncar: bool = False,
 ) -> dict:
-    N, L = esc.N, esc.ciudad.n_celdas
-    x = np.zeros((N, DIAS + 1, 2))
-    a = np.zeros((N, DIAS + 1, 2), dtype=bool)
-    x[:, 0, 0] = esc.t_auto_ref[esc.celda]
-    x[:, 0, 1] = esc.t_viaje_ref[esc.celda]
+    # ruido[k]: si el modo aprendido k lleva ε (por defecto, todos).
+    N, L, K = esc.N, esc.ciudad.n_celdas, esc.K
+    ruido = (True,) * K if ruido is None else ruido
+    x = np.zeros((N, DIAS + 1, K))
+    a = np.zeros((N, DIAS + 1, K), dtype=bool)
+    x[:, 0, :] = esc.t_ref[esc.celda]
     a[:, 0, :] = True
     t_ref = x[:, 0, :].copy()
 
     modo_hist = np.zeros((N, DIAS), dtype=np.int8)
     p_ventana = {w: np.zeros(N) for w in VENTANAS}  # P̄_n del modo mejor, ec. (10)
-    primera_eps = np.full((N, 2), np.nan)  # el ε del primer día en auto / metro
+    primera_eps = np.full((N, K), np.nan)  # el ε del primer día en cada modo con ruido
     split_dia = np.zeros((DIAS, 4))
     t_auto_medio = np.zeros(DIAS)  # tiempo real del auto, promedio sobre quienes lo usaron
     t_metro_medio = np.zeros(DIAS)
     bienestar = np.zeros(DIAS)  # utilidad VERDADERA media del modo elegido
     bienestar_decision = np.zeros(DIAS)  # la PERCIBIDA, con la que se decidió
-    # Utilidad verdadera de auto y metro acumulada en los últimos días: define
-    # cuál de los dos es el mejor para cada persona (efecto de variabilidad).
-    v_am_ult = np.zeros((N, 2))
+    # Utilidad verdadera de cada modo acumulada en los últimos días: define
+    # cuál es el mejor para cada persona (efecto de variabilidad).
+    v_ult = np.zeros((N, len(MODOS)))
 
     for t in range(1, DIAS + 1):
         b = tiempo_percibido(x, a, t, d)
         V = esc.V_ref.copy()
-        V[:, :2] += esc.btv[:, None] * (b - t_ref)
+        V[:, :K] += esc.btv[:, None] * (b - t_ref)
         V[~esc.feas] = -np.inf
         P = _softmax_filas(V, mu)
         modo = _sortear(P, rng)
@@ -305,27 +332,27 @@ def simular(
         d_metro = np.bincount(esc.celda[modo == 1], minlength=L).astype(float)
         d_bici = np.bincount(esc.celda[modo == 2], minlength=L).astype(float)
         oferta = resolver_oferta(esc.sim, esc.ciudad, d_auto, d_bici, d_metro)
-        t_auto_dia = np.asarray(oferta.auto.t_usuarios_min, dtype=float)
-        t_viaje_dia = np.asarray(oferta.tren.t_viaje_min, dtype=float)
+        red = (oferta.auto.t_usuarios_min, oferta.tren.t_viaje_min, oferta.bici.t_usuarios_min)
 
         eps = rng.normal(0.0, sigma, size=N)
-        real = np.stack([t_auto_dia[esc.celda], t_viaje_dia[esc.celda]], axis=1)
-        for k in (0, 1):
+        real = np.stack([np.asarray(r, dtype=float)[esc.celda] for r in red[:K]], axis=1)
+        for k in range(K):
             usa = modo == k
-            vivido = real[usa, k] + eps[usa]
+            vivido = real[usa, k] + eps[usa] if ruido[k] else real[usa, k]
             x[usa, t, k] = np.maximum(vivido, 0.0) if truncar else vivido
             a[usa, t, k] = True
-            nuevo = usa & np.isnan(primera_eps[:, k])
-            primera_eps[nuevo, k] = eps[nuevo]
+            if ruido[k]:
+                nuevo = usa & np.isnan(primera_eps[:, k])
+                primera_eps[nuevo, k] = eps[nuevo]
 
         split_dia[t - 1] = np.bincount(modo, minlength=4) / N
         t_auto_medio[t - 1] = real[modo == 0, 0].mean() if (modo == 0).any() else np.nan
         t_metro_medio[t - 1] = real[modo == 1, 1].mean() if (modo == 1).any() else np.nan
         V_true = esc.V_ref.copy()
-        V_true[:, :2] += esc.btv[:, None] * (real - t_ref)
+        V_true[:, :K] += esc.btv[:, None] * (real - t_ref)
         bienestar[t - 1] = V_true[np.arange(N), modo].mean()
         if t > DIAS - ULTIMOS:
-            v_am_ult += V_true[:, :2] / ULTIMOS
+            v_ult += V_true / ULTIMOS
 
     ult = modo_hist[:, -ULTIMOS:]
     fila = {
@@ -340,7 +367,7 @@ def simular(
         "bienestar_por_dia": bienestar.tolist(),
         "bienestar_decision_por_dia": bienestar_decision.tolist(),
     }
-    fila["cuota_mejor_auto_metro"] = _cuota_mejor(esc, ult, v_am_ult)
+    fila["cuota_mejor_auto_metro"] = _cuota_mejor(esc, ult, v_ult)
     fila["dispersion_iguales"] = _dispersion_iguales(esc, ult)
     fila["phi"] = _phi(esc, p_ventana, mu)
     for k, nombre in ((0, "auto"), (1, "metro")):
@@ -355,7 +382,7 @@ def simular(
 
 def main() -> None:
     t0 = time.time()
-    esc = Escenario()
+    esc = Escenario(*_config_fase1(), K=2)
     print(
         f"\n  FASE 1 · población: {esc.N} agentes que eligen, {esc.n_grupos} grupos, "
         f"{DIAS} días  (escenario en {time.time() - t0:.1f} s)"
@@ -430,5 +457,75 @@ def main() -> None:
     print(f"\n  Datos en {SALIDA / 'poblacion.json'}  ({time.time() - t0:.0f} s en total)\n")
 
 
+#: Ruido de la ciudad con cuatro modos: si ε entra en (auto, metro, bici).
+#: Bici y caminata nunca llevan ruido; la caminata ni siquiera se aprende.
+CONDICIONES = {
+    "auto": (True, False, False),
+    "tp": (False, True, False),
+    "auto_tp": (True, True, False),
+}
+_ESC: Escenario | None = None
+
+
+def _inicia_ciudad() -> None:
+    global _ESC
+    _ESC = Escenario(*_config_web(), K=3)
+
+
+def _corre_ciudad(clave: tuple[str, float, float]) -> dict:
+    cond, sigma, d = clave
+    ruido = CONDICIONES.get(cond, (False, False, False))
+    r = simular(_ESC, sigma, MUS[0], d, np.random.default_rng(42), ruido=ruido)
+    r["condicion"] = cond
+    return r
+
+
+def main_ciudad() -> None:
+    """La ciudad de la app con los cuatro modos → salida/ciudad4.json."""
+    t0 = time.time()
+    esc = Escenario(*_config_web(), K=3)
+    print(
+        f"\n  CIUDAD · cuatro modos: {esc.N} agentes que eligen, {esc.n_grupos} grupos, "
+        f"{DIAS} días · partición del equilibrio: "
+        + "  ".join(
+            f"{m} {100 * v:.1f}%" for m, v in zip(MODOS, esc.split_equilibrio, strict=True)
+        ),
+        flush=True,
+    )
+    claves = [("sin_ruido", 0.0, d) for d in DECAIMIENTOS] + [
+        (c, s, d) for c in CONDICIONES for s in SIGMAS if s > 0 for d in DECAIMIENTOS
+    ]
+    filas = []
+    with Pool(6, initializer=_inicia_ciudad) as pool:
+        for i, r in enumerate(pool.imap_unordered(_corre_ciudad, claves), 1):
+            filas.append(r)
+            print(
+                f"  [{i}/{len(claves)}] {r['condicion']:<9} σ={r['sigma']:>3.0f} d={r['d']:<4}"
+                f" Φ corto {r['phi']['todos']['corto']:.3f} largo {r['phi']['todos']['largo']:.3f}"
+                f"  ({time.time() - t0:.0f} s)",
+                flush=True,
+            )
+    SALIDA.mkdir(exist_ok=True)
+    (SALIDA / "ciudad4.json").write_text(
+        json.dumps(
+            {
+                "N": esc.N,
+                "dias": DIAS,
+                "ultimos": ULTIMOS,
+                "modos": MODOS,
+                "split_equilibrio": esc.split_equilibrio,
+                "condiciones": CONDICIONES,
+                "filas": filas,
+            },
+            indent=1,
+        ),
+        encoding="utf-8",
+    )
+    print(f"\n  Datos en {SALIDA / 'ciudad4.json'}  ({time.time() - t0:.0f} s en total)\n")
+
+
 if __name__ == "__main__":
-    main()
+    if "ciudad" in sys.argv[1:]:
+        main_ciudad()
+    else:
+        main()
