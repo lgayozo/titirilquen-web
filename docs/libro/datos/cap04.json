@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-27",
-  "commit": "80bacd5",
+  "fecha": "2026-10-28",
+  "commit": "ff7c952",
   "script": "docs/libro/datos/datos_cap04.py",
   "configuracion": "Demanda de la aplicación (`presets.DEFAULT_STRATA`, homoscedástica desde D-33) sobre la ciudad por defecto: 201 celdas, 20 km, localización «original». Los costos por modo son a flujo libre."
  },
@@ -471,7 +471,7 @@
     "recaudacion_peaje_clp": 969194,
     "recaudacion_parking_clp": 10256627,
     "iteraciones": 6,
-    "delta_bienestar_clp": 49898
+    "delta_bienestar_clp": 49751
    },
    {
     "peaje_km": 50,
@@ -480,7 +480,7 @@
     "recaudacion_peaje_clp": 1871937,
     "recaudacion_parking_clp": 10010106,
     "iteraciones": 6,
-    "delta_bienestar_clp": 50718
+    "delta_bienestar_clp": 50421
    },
    {
     "peaje_km": 75,
@@ -489,7 +489,7 @@
     "recaudacion_peaje_clp": 2709448,
     "recaudacion_parking_clp": 9765388,
     "iteraciones": 6,
-    "delta_bienestar_clp": 4413
+    "delta_bienestar_clp": 3964
    },
    {
     "peaje_km": 100,
@@ -498,7 +498,7 @@
     "recaudacion_peaje_clp": 3483552,
     "recaudacion_parking_clp": 9523406,
     "iteraciones": 6,
-    "delta_bienestar_clp": -86442
+    "delta_bienestar_clp": -87045
    },
    {
     "peaje_km": 150,
@@ -507,7 +507,7 @@
     "recaudacion_peaje_clp": 4850960,
     "recaudacion_parking_clp": 9050592,
     "iteraciones": 6,
-    "delta_bienestar_clp": -389659
+    "delta_bienestar_clp": -390578
    },
    {
     "peaje_km": 200,
@@ -516,7 +516,7 @@
     "recaudacion_peaje_clp": 5995575,
     "recaudacion_parking_clp": 8596247,
     "iteraciones": 6,
-    "delta_bienestar_clp": -833064
+    "delta_bienestar_clp": -834309
    },
    {
     "peaje_km": 250,
@@ -525,7 +525,7 @@
     "recaudacion_peaje_clp": 6941150,
     "recaudacion_parking_clp": 8163276,
     "iteraciones": 6,
-    "delta_bienestar_clp": -1390360
+    "delta_bienestar_clp": -1391936
    },
    {
     "peaje_km": 275,
@@ -534,7 +534,7 @@
     "recaudacion_peaje_clp": 7346896,
     "recaudacion_parking_clp": 7955368,
     "iteraciones": 6,
-    "delta_bienestar_clp": -1703864
+    "delta_bienestar_clp": -1705606
    },
    {
     "peaje_km": 300,
@@ -543,7 +543,7 @@
     "recaudacion_peaje_clp": 7711942,
     "recaudacion_parking_clp": 7753353,
     "iteraciones": 6,
-    "delta_bienestar_clp": -2036699
+    "delta_bienestar_clp": -2038608
    },
    {
     "peaje_km": 350,
@@ -552,7 +552,7 @@
     "recaudacion_peaje_clp": 8331441,
     "recaudacion_parking_clp": 7367204,
     "iteraciones": 6,
-    "delta_bienestar_clp": -2749704
+    "delta_bienestar_clp": -2751945
    },
    {
     "peaje_km": 400,
@@ -561,7 +561,7 @@
     "recaudacion_peaje_clp": 8821461,
     "recaudacion_parking_clp": 7004819,
     "iteraciones": 6,
-    "delta_bienestar_clp": -3510022
+    "delta_bienestar_clp": -3512589
    },
    {
     "peaje_km": 500,
@@ -570,7 +570,7 @@
     "recaudacion_peaje_clp": 9488980,
     "recaudacion_parking_clp": 6348671,
     "iteraciones": 6,
-    "delta_bienestar_clp": -5111020
+    "delta_bienestar_clp": -5114207
    },
    {
     "peaje_km": 600,
@@ -579,7 +579,7 @@
     "recaudacion_peaje_clp": 9842285,
     "recaudacion_parking_clp": 5776556,
     "iteraciones": 6,
-    "delta_bienestar_clp": -6745190
+    "delta_bienestar_clp": -6748934
    }
   ],
   "parking_5000_sin_peaje": {
@@ -588,7 +588,7 @@
    "recaudacion_peaje_clp": 0,
    "recaudacion_parking_clp": 16833114,
    "iteraciones": 6,
-   "delta_bienestar_clp": -3616390
+   "delta_bienestar_clp": -3617563
   }
  },
  "ancla_vot": {

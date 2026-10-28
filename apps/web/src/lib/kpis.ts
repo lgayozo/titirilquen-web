@@ -1,31 +1,33 @@
 /**
- * KPIs derivados de un `SimulationResult` para comparar escenarios.
- * Incluye desgloses por **modo** y por **tipo de usuario (estrato)**.
+ * KPIs de un `SimulationResult` para comparar escenarios, por **modo** y por
+ * **tipo de usuario (estrato)**.
+ *
+ * Es un adaptador: el reparto y los tiempos los calcula el núcleo sobre la
+ * demanda ESPERADA (`agregados`, `bienestar.py`). Hasta oct-2026 se contaban
+ * acá sobre el `modo_elegido` sorteado de cada agente, que con carga esperada
+ * sólo agrega ruido de muestreo (~0,2 pp, auditoría C, ítem 9). De los agentes
+ * quedan dos conteos exactos: los hogares y quienes teletrabajan.
  */
 
-import type {
-  AgentRecord,
-  Modo,
-  SimulationResult,
-  StratumId,
-} from "@/lib/types";
+import { agregadosDe } from "@/lib/agregados";
+import type { ModoTransporte, SimulationResult, StratumId } from "@/lib/types";
 
 export interface StratumKPIs {
-  /** Agentes del estrato. */
+  /** Hogares del estrato. */
   n: number;
-  /** Tiempo de viaje medio (min), excluyendo teletrabajo. */
+  /** Tiempo de viaje medio (min) de los que viajan. */
   mean_time_min: number;
-  /** Utilidad media de los que viajan (excluye teletrabajo). */
-  mean_utility: number;
-  /** Reparto modal dentro del estrato (fracción sobre el total del estrato). */
-  modal_share: Record<Modo, number>;
+  /** Reparto modal del estrato, sobre sus viajes físicos. */
+  modal_share: Record<ModoTransporte, number>;
 }
 
 export interface ScenarioKPIs {
-  total_agentes: number;
   viajes_fisicos: number;
-  modal_share: Record<Modo, number>;
-  tiempo_medio_min: Record<Modo, number>;
+  /** Reparto modal sobre los viajes FÍSICOS (auditoría C, ítem 10). */
+  modal_share: Record<ModoTransporte, number>;
+  /** Fracción de los hogares que teletrabaja: no es un modo del reparto. */
+  tele_share_hogares: number;
+  tiempo_medio_min: Record<ModoTransporte, number>;
   frecuencia_metro: number;
   residuo_final: number | null;
   /** v/c del corredor en el equilibrio (flujo máx acumulado hacia el CBD /
@@ -42,126 +44,48 @@ export interface ScenarioKPIs {
   by_stratum: Record<StratumId, StratumKPIs>;
 }
 
-const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
+const MODOS: ModoTransporte[] = ["Auto", "Metro", "Bici", "Caminata"];
 const STRATA: StratumId[] = [1, 2, 3];
 
-function zeroModes(): Record<Modo, number> {
-  return { Auto: 0, Metro: 0, Bici: 0, Caminata: 0, Teletrabajo: 0 };
+/** Divide cada modo por la suma de los cuatro (0 si no viaja nadie). */
+function shares(
+  viajes: Record<string, number> | undefined,
+): Record<ModoTransporte, number> {
+  const total = MODOS.reduce((s, m) => s + (viajes?.[m] ?? 0), 0);
+  return Object.fromEntries(
+    MODOS.map((m) => [m, total > 0 ? (viajes?.[m] ?? 0) / total : 0]),
+  ) as Record<ModoTransporte, number>;
 }
 
-function modeTimeFor(
-  modo: Modo,
-  celda: number,
-  snap: SimulationResult["iteraciones"][number],
-  distCbdKm: number,
-  vCaminata: number,
-): number {
-  switch (modo) {
-    case "Auto":
-      return snap.t_auto[celda] ?? 0;
-    case "Metro":
-      return (
-        (snap.t_tren_acceso[celda] ?? 0) +
-        (snap.t_tren_espera[celda] ?? 0) +
-        (snap.t_tren_viaje[celda] ?? 0)
-      );
-    case "Bici":
-      return snap.t_bici[celda] ?? 0;
-    case "Caminata":
-      return (distCbdKm / vCaminata) * 60;
-    case "Teletrabajo":
-      return 0;
-  }
-}
-
+/** `null` si el resultado no trae los agregados que hacen falta (un wheel
+ *  anterior a la auditoría C): la columna se muestra con «—». */
 export function computeKPIs(
   result: SimulationResult,
-  largoKm: number,
-  nCeldas: number,
-  // Velocidad de caminata DEL ESCENARIO (config.demand.globales.v_caminata):
-  // antes estaba hardcodeada en 4.8 y los KPIs de Comparar la ignoraban.
-  vCaminata = 4.8,
   // Capacidad de la ciclovía DEL ESCENARIO (config.supply.bike.capacidad_pista),
   // denominador del v/c bici; sin ella el ratio queda null.
   capacidadBici?: number,
   capacidadTren?: number,
   frecMax?: number,
-): ScenarioKPIs {
+): ScenarioKPIs | null {
+  const agg = agregadosDe(result);
+  if (!agg?.tiempo_medio_por_modo_min || !agg.tiempo_medio_por_estrato_min)
+    return null;
   const lastIter = result.iteraciones.at(-1);
-  const modal_share = zeroModes();
-  const tiempo_medio_min = zeroModes();
-  const counts = zeroModes();
 
-  const cbdIdx = Math.floor(nCeldas / 2);
-  const cellWidthKm = largoKm / nCeldas;
-
-  // Acumuladores por estrato.
-  const stratumAgg: Record<
-    StratumId,
-    {
-      n: number;
-      timeSum: number;
-      utilSum: number;
-      travelN: number;
-      modes: Record<Modo, number>;
-    }
-  > = {
-    1: { n: 0, timeSum: 0, utilSum: 0, travelN: 0, modes: zeroModes() },
-    2: { n: 0, timeSum: 0, utilSum: 0, travelN: 0, modes: zeroModes() },
-    3: { n: 0, timeSum: 0, utilSum: 0, travelN: 0, modes: zeroModes() },
-  };
-
-  const agentes: readonly AgentRecord[] = result.agentes;
-  let varados = 0;
-  for (const a of agentes) {
-    // `null` es el varado, no el teletrabajo —ése llega como "Teletrabajo"—.
-    // Contarlo como teletrabajo inflaba ese share; queda fuera de todos (D14).
-    if (a.modo_elegido == null) {
-      varados += 1;
-      continue;
-    }
-    const m = a.modo_elegido as Modo;
-    const distKm = Math.abs(a.celda_origen - cbdIdx) * cellWidthKm;
-    const t = lastIter
-      ? modeTimeFor(m, a.celda_origen, lastIter, distKm, vCaminata)
-      : 0;
-
-    modal_share[m] += 1;
-    if (lastIter) {
-      tiempo_medio_min[m] += t;
-      counts[m] += 1;
-    }
-
-    const sg = stratumAgg[a.estrato as StratumId];
-    if (sg) {
-      sg.n += 1;
-      sg.modes[m] += 1;
-      if (m !== "Teletrabajo") {
-        sg.timeSum += t;
-        sg.utilSum += a.utilidad_elegida;
-        sg.travelN += 1;
-      }
-    }
-  }
-
-  const total = agentes.length - varados;
-  const viajesFisicos = total - (modal_share.Teletrabajo ?? 0);
-  for (const m of MODES) {
-    const n = counts[m];
-    tiempo_medio_min[m] = n > 0 ? tiempo_medio_min[m] / n : 0;
-    modal_share[m] = total > 0 ? modal_share[m] / total : 0;
+  const hogares: Record<StratumId, number> = { 1: 0, 2: 0, 3: 0 };
+  let tele = 0;
+  for (const a of result.agentes) {
+    hogares[a.estrato as StratumId] += 1;
+    if (a.modo_elegido === "Teletrabajo") tele += 1;
   }
 
   const by_stratum = STRATA.reduce<Record<StratumId, StratumKPIs>>(
     (acc, s) => {
-      const sg = stratumAgg[s];
-      const share = zeroModes();
-      for (const m of MODES) share[m] = sg.n > 0 ? sg.modes[m] / sg.n : 0;
+      const h = String(s) as "1" | "2" | "3";
       acc[s] = {
-        n: sg.n,
-        mean_time_min: sg.travelN > 0 ? sg.timeSum / sg.travelN : 0,
-        mean_utility: sg.travelN > 0 ? sg.utilSum / sg.travelN : 0,
-        modal_share: share,
+        n: hogares[s],
+        mean_time_min: agg.tiempo_medio_por_estrato_min[h] ?? 0,
+        modal_share: shares(agg.viajes_por_modo_estrato[h]),
       };
       return acc;
     },
@@ -183,10 +107,13 @@ export function computeKPIs(
       : null;
 
   return {
-    total_agentes: total,
-    viajes_fisicos: viajesFisicos,
-    modal_share,
-    tiempo_medio_min,
+    viajes_fisicos: agg.viajeros,
+    modal_share: shares(agg.viajes_por_modo),
+    tele_share_hogares:
+      result.agentes.length > 0 ? tele / result.agentes.length : 0,
+    tiempo_medio_min: Object.fromEntries(
+      MODOS.map((m) => [m, agg.tiempo_medio_por_modo_min[m] ?? 0]),
+    ) as Record<ModoTransporte, number>,
     frecuencia_metro: lastIter?.frecuencia_metro ?? 0,
     residuo_final: lastIter?.residuo ?? null,
     vc_auto,

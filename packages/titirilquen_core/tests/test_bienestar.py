@@ -255,6 +255,23 @@ def test_el_reparto_por_estrato_agrega_al_de_ciudad(
         assert suma == pytest.approx(agg["viajes_por_modo"][m], rel=1e-12), f"modo {m}"
 
 
+@pytest.mark.parametrize("metodo", ["montecarlo", "expected", "todo_o_nada"])
+def test_los_tiempos_medios_reconstruyen_el_total(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig, metodo: str
+) -> None:
+    """`Σ_m viajes_m · t̄_m = Σ_h viajeros_h · t̄_h = tiempo_total`: los tiempos
+    medios por modo y por estrato ponderan con la misma demanda esperada que el
+    total, no con un sorteo de agentes (auditoría C, ítem 9)."""
+    agg = _agregados(sim_liviana, lu_chica, metodo)
+    por_modo = sum(agg["viajes_por_modo"][m] * agg["tiempo_medio_por_modo_min"][m] for m in MODOS)
+    por_estrato = sum(
+        sum(agg["viajes_por_modo_estrato"][h].values()) * agg["tiempo_medio_por_estrato_min"][h]
+        for h in ESTRATOS
+    )
+    assert por_modo == pytest.approx(agg["tiempo_total_min"], rel=1e-12)
+    assert por_estrato == pytest.approx(agg["tiempo_total_min"], rel=1e-12)
+
+
 def test_el_reparto_modal_reacciona_a_la_politica(
     sim_liviana: SimulationConfig, lu_chica: LandUseConfig
 ) -> None:

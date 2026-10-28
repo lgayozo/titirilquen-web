@@ -18,7 +18,9 @@ interface RunStatusProps {
 
 const MODE_CSS_VAR: Record<Modo, string> = COLOR_MODO;
 
-const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
+/** Los modos físicos: el reparto es sobre viajes, el teletrabajo no viaja
+ *  (auditoría C, ítem 10). */
+const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
 
 /**
  * Indicador rico durante una corrida, en estética editorial paper/ink.
@@ -94,7 +96,7 @@ export function RunStatus({
     prevResidual.current = residual;
   }
 
-  const totalAgents = lastIter
+  const totalViajes = lastIter
     ? MODES.reduce((s, m) => s + (lastIter.modal_split[m] ?? 0), 0)
     : 0;
 
@@ -172,11 +174,11 @@ export function RunStatus({
         />
       </div>
 
-      {lastIter && totalAgents > 0 && (
+      {lastIter && totalViajes > 0 && (
         <div className="run-status-split">
           <div className="run-status-split-head">
             <span>{t("sandbox.modal_split_last")}</span>
-            <span className="num">{fmtEntero(totalAgents)}</span>
+            <span className="num">{fmtEntero(totalViajes)}</span>
           </div>
           <div
             className="run-status-split-bar"
@@ -185,7 +187,7 @@ export function RunStatus({
           >
             {MODES.map((m) => {
               const n = lastIter.modal_split[m] ?? 0;
-              const w = (n / totalAgents) * 100;
+              const w = (n / totalViajes) * 100;
               if (w < 0.1) return null;
               return (
                 <div

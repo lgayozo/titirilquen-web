@@ -2,19 +2,25 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
-import type { AgentRecord, Modo } from "@/lib/types";
-import { COLOR_MODO, ORDEN_MODOS, fmtEntero, fmtPct } from "@/lib/modos";
+import type { ModoTransporte } from "@/lib/types";
+import { COLOR_MODO, MODOS, fmtEntero, fmtPct } from "@/lib/modos";
 
-/** Un grupo de agentes a comparar (un estrato, o estrato×tenencia, etc.). */
-export interface AgentGroup {
+/** Un grupo a comparar (un estrato, o estrato×tenencia, etc.) con sus viajes
+ *  por modo. Son los viajes ESPERADOS del núcleo (`viajes_por_modo_estrato`),
+ *  no un conteo de los modos sorteados por agente (auditoría C, ítem 9). */
+export interface ModeGroup {
   label: string;
   /** Etiqueta secundaria opcional (p. ej. "con auto"). */
   tag?: string;
-  agents: readonly AgentRecord[];
+  viajes: Partial<Record<ModoTransporte, number>>;
 }
 
+/** Los cuatro modos físicos: el reparto es sobre viajes (auditoría C, ítem
+ *  10); el teletrabajo no viaja y, si lo hay, va en la etiqueta del grupo. */
+const ORDEN = MODOS as readonly ModoTransporte[];
+
 interface ModeShareBarsProps {
-  groups: readonly AgentGroup[];
+  groups: readonly ModeGroup[];
   className?: string;
 }
 
@@ -34,7 +40,7 @@ const LEGEND_H = 22;
  *  que no agrega un dialecto más. */
 interface HoverSegmento {
   grupo: string;
-  modo: Modo;
+  modo: ModoTransporte;
   conteo: number;
   share: number;
   total: number;
@@ -64,17 +70,10 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
   const rows = useMemo(
     () =>
       groups.map((g) => {
-        const counts: Record<Modo, number> = {
-          Auto: 0,
-          Metro: 0,
-          Bici: 0,
-          Caminata: 0,
-          Teletrabajo: 0,
-        };
-        for (const a of g.agents) {
-          if (a.modo_elegido) counts[a.modo_elegido] += 1;
-        }
-        const total = ORDEN_MODOS.reduce((s, m) => s + counts[m], 0);
+        const counts = Object.fromEntries(
+          ORDEN.map((m) => [m, g.viajes[m] ?? 0]),
+        ) as Record<ModoTransporte, number>;
+        const total = ORDEN.reduce((s, m) => s + counts[m], 0);
         return { ...g, counts, total };
       }),
     [groups],
@@ -134,7 +133,7 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
 
               {/* Segmentos apilados */}
               {r.total > 0 &&
-                ORDEN_MODOS.map((m) => {
+                ORDEN.map((m) => {
                   const share = r.counts[m] / r.total;
                   if (share <= 0) return null;
                   const w = share * barW;
@@ -198,8 +197,8 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
         })}
 
         {/* Leyenda */}
-        {ORDEN_MODOS.map((m, i) => {
-          const x = 2 + i * Math.min(104, (W - 6) / ORDEN_MODOS.length);
+        {ORDEN.map((m, i) => {
+          const x = 2 + i * Math.min(104, (W - 6) / ORDEN.length);
           return (
             <g key={`lg-${m}`} transform={`translate(${x}, ${legendY})`}>
               <rect x={0} y={-7} width={10} height={8} fill={COLOR_MODO[m]} />
@@ -216,7 +215,12 @@ export function ModeShareBars({ groups, className }: ModeShareBarsProps) {
             {t(`modes.${hover.modo.toLowerCase()}`)} · {hover.grupo}
           </div>
           <div className="nt-row">
-            <span>{`${fmtEntero(hover.conteo)} de ${fmtEntero(hover.total)} ${t("sandbox.agentes")}`}</span>
+            <span>
+              {t("sandbox.n_de_viajes", {
+                n: fmtEntero(hover.conteo),
+                total: fmtEntero(hover.total),
+              })}
+            </span>
           </div>
           <div className="nt-row">
             <span>{fmtPct(hover.share * 100)}</span>

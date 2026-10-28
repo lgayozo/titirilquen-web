@@ -196,7 +196,10 @@
     "land_use_city_caption_pre": "Composición inicial (mezcla uniforme π_h sobre la forma de la ciudad). Corre Uso de Suelo para ver la composición de equilibrio.",
     "land_use_city_caption_none": "Define la población en el módulo de Uso de Suelo para ver la distribución por estrato.",
     "total": "Total",
-    "agentes": "agentes"
+    "viajes": "viajes",
+    "hogares": "hogares",
+    "n_de_viajes": "{{n}} de {{total}} viajes",
+    "tele_tag": "teletrabaja {{pct}}"
   },
   "metrics_table": {
     "meta": "ciudad completa · por modo · por estrato",
@@ -256,7 +259,7 @@
     "metro_pct": "% Metro",
     "bici_pct": "% Bici",
     "walk_pct": "% Caminata",
-    "tele_pct": "% Teletrabajo",
+    "tele_pct": "Teletrabajo (% hogares)",
     "frequency": "Frec. operativa",
     "frequency_capped": "topada · demanda pide {{teo}}",
     "co2": "CO₂ total",
@@ -543,7 +546,7 @@
       "total": "Total",
       "stratum": "Estrato",
       "travel_time": "Tiempo de viaje (min)",
-      "utility": "Utilidad media",
+      "tele_hogares": "Teletrabajo (% de los hogares)",
       "congestion": "Congestión (v/c corredor)",
       "ver_estratos": "Ver por estrato ›",
       "ocultar_estratos": "Ocultar por estrato"
@@ -615,6 +618,7 @@
       "excedente": "Δ Excedente del consumidor",
       "bienestar": "Δ Bienestar social",
       "excedente_social": "Δ Excedente con ponderación social",
+      "excedente_estrato": "Δ Excedente · {{estrato}}",
       "caption": "Hora punta, ciudad completa. Sólo el Δ contra la base: el nivel tiene un cero arbitrario, el de las ASC. El excedente usa la medida del método de asignación (logsum o utilidad máxima), y el bienestar social le suma la recaudación y le resta el costo de operación (capítulo Bienestar del tutorial).",
       "incomparable": "⚠ {{nombre}}: su excedente no se puede restar al de la base porque {{razon}}."
     },

@@ -19,7 +19,8 @@ interface ModeShareByLocationProps {
     Caminata: readonly number[];
   };
   /** Teletrabajo por celda de origen (conteo determinista: no viaja, así que no
-   *  aparece en `demandByCell`). */
+   *  aparece en `demandByCell`). No entra al apilado —el reparto es sobre los
+   *  viajes físicos, auditoría C, ítem 10—: va en el tooltip de la celda. */
   teleByCell: readonly number[];
   largoKm: number;
   /** Celdas por barra. `1` —el default— dibuja una barra por celda, que es la
@@ -34,7 +35,7 @@ interface ModeShareByLocationProps {
   normalize?: boolean;
 }
 
-const MODE_ORDER: Modo[] = ["Teletrabajo", "Caminata", "Bici", "Metro", "Auto"];
+const MODE_ORDER: Modo[] = ["Caminata", "Bici", "Metro", "Auto"];
 // El eje horizontal lo fija `EJE_ESPACIAL` (ver lib/ejeEspacial.ts). Antes esta
 // figura traía `left: 34`, así que el CBD caía 20 px a la izquierda del de las
 // otras figuras del mismo eje y no se podían leer en columna.
@@ -55,6 +56,7 @@ interface HoverCelda {
   i: number;
   km: number;
   total: number;
+  tele: number;
   porModo: { modo: Modo; valor: number; share: number }[];
 }
 
@@ -224,6 +226,7 @@ export function ModeShareByLocation({
                   i,
                   km,
                   total,
+                  tele: bin.Teletrabajo,
                   porModo: MODE_ORDER.slice()
                     .reverse()
                     .map((m) => ({
@@ -318,8 +321,16 @@ export function ModeShareByLocation({
           ))}
           <div className="nt-row">
             <span>{t("sandbox.total")}</span>
-            <span>{`${fmtEntero(hover.total)} ${t("sandbox.agentes")}`}</span>
+            <span>{`${fmtEntero(hover.total)} ${t("sandbox.viajes")}`}</span>
           </div>
+          {hover.tele > 0 && (
+            <div className="nt-row">
+              <span style={{ color: COLOR_MODO.Teletrabajo }}>
+                {t("modes.teletrabajo")}
+              </span>
+              <span>{`${fmtEntero(hover.tele)} ${t("sandbox.hogares")}`}</span>
+            </div>
+          )}
         </div>
       )}
     </div>

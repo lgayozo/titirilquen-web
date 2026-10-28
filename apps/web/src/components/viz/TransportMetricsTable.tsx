@@ -36,7 +36,11 @@ export interface StratumMetric {
 /** Todas las métricas de una corrida de Transporte, ya agregadas. */
 export interface TransportMetricsData {
   viajesFisicos: number;
+  /** Reparto de los cuatro modos físicos, sobre `viajesFisicos`. */
   reparto: ModalEntry[];
+  /** Hogares que teletrabajan y su % sobre TODOS los hogares: no es un modo
+   *  del reparto (auditoría C, ítem 10). */
+  teletrabajo: { count: number; pct: number };
   tiempoSistemaMin: number;
   frecuenciaMetro: number;
   residuoMin: number | null;
@@ -230,6 +234,20 @@ export function TransportMetricsTable({ data, className }: Props) {
         "viajes",
       ]);
     }
+    rows.push([
+      "teletrabajo",
+      t("modes.teletrabajo"),
+      "pct_hogares",
+      data.teletrabajo.pct.toFixed(2),
+      "%",
+    ]);
+    rows.push([
+      "teletrabajo",
+      t("modes.teletrabajo"),
+      "hogares",
+      Math.round(data.teletrabajo.count),
+      "hogares",
+    ]);
 
     // Tiempo medio por modo
     for (const m of data.tiempoPorModo) {
@@ -281,10 +299,9 @@ export function TransportMetricsTable({ data, className }: Props) {
   };
 
   // Los rótulos de las filas de reparto por estrato salen del PROPIO reparto
-  // por estrato, no de `data.reparto`: ése lleva Teletrabajo como quinta
-  // categoría (es el de la tira de KPIs, sobre todos los agentes) y el del
-  // estrato tiene sólo los cuatro modos que viajan. Tomándolos de ahí aparecía
-  // una fila «% en Teletrabajo» en 0,0% — un índice sin dato.
+  // por estrato. Hasta la auditoría C `data.reparto` llevaba Teletrabajo como
+  // quinta categoría, y tomándolos de ahí aparecía una fila «% en Teletrabajo»
+  // en 0,0 %; hoy los dos tienen los mismos cuatro modos.
   const modos = (data.porEstrato[0]?.reparto ?? []).map((r) => r.modo);
 
   return (

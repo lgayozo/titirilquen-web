@@ -27,6 +27,8 @@ export interface AgregadosDict {
   viajes_por_modo: Record<string, number>;
   viajes_por_modo_estrato: Record<"1" | "2" | "3", Record<string, number>>;
   tiempo_medio_min: number;
+  tiempo_medio_por_modo_min: Record<string, number>;
+  tiempo_medio_por_estrato_min: Record<"1" | "2" | "3", number>;
   costo_generalizado_percibido_clp: number;
   costo_generalizado_social_clp: number;
   vot_por_estrato_clp_hora: Record<"1" | "2" | "3", number>;

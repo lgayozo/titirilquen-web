@@ -3,12 +3,14 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from titirilquen_core.bienestar import calcular_agregados
 from titirilquen_core.config import (
     CityConfig,
     DemandConfig,
     SimulationConfig,
     SupplyConfig,
 )
+from titirilquen_core.constantes import VIAJES_MES
 from titirilquen_core.coupled import run_coupled
 from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
 
@@ -100,6 +102,37 @@ def test_consistencia_tiempo_sistema(corrida) -> None:
         # El medio del sistema debe caer dentro del rango de los medios por estrato
         medios = [sm.tiempo_medio_min for sm in m.por_estrato if sm.tiempo_medio_min > 0]
         assert min(medios) - 1e-6 <= s.tiempo_medio_min <= max(medios) + 1e-6
+
+
+def test_acoplado_y_transporte_dan_el_mismo_excedente_y_tiempo(corrida_res) -> None:
+    """Sobre el MISMO trace, el reporte acoplado (suma por agente) y los
+    agregados de Transporte (suma por celda de la demanda esperada) tienen que
+    dar el mismo excedente y el mismo tiempo medio por estrato.
+
+    Hasta la auditoría C no coincidían: Transporte mezclaba los logsums con y
+    sin auto por la `prob_auto` nominal y el acoplado por la tenencia realizada
+    de cada agente (`round(n·prob_auto)` por celda), y el acoplado promediaba el
+    tiempo sobre el modo sorteado. Con ~2 hogares por celda y estrato, como acá,
+    el redondeo de la tenencia pesa mucho: el test lo nota."""
+    res, sim, _lu = corrida_res
+    it = res.iterations[-1]
+    agg = calcular_agregados(sim, it.transport)
+    assert agg is not None
+    clave = (
+        "excedente_max_por_estrato_clp"
+        if agg["medida_bienestar"] == "utilidad_maxima"
+        else "excedente_por_estrato_clp"
+    )
+    for sm in it.metrics.por_estrato:
+        h = str(sm.estrato)
+        agentes = [a for a in it.transport.agentes if a.estrato == sm.estrato]
+        con_medida = sum(1 for a in agentes if a.modo_elegido is not None)
+        acoplado = sm.excedente_hogar_mes_clp * con_medida / VIAJES_MES
+        transporte = agg[clave][h] * agg["viajeros_por_estrato"][h]
+        assert acoplado == pytest.approx(transporte, rel=1e-9), f"excedente, estrato {h}"
+        assert sm.tiempo_medio_min == pytest.approx(
+            agg["tiempo_medio_por_estrato_min"][h], rel=1e-9
+        ), f"tiempo, estrato {h}"
 
 
 def test_regresividad_por_ingreso(corrida) -> None:

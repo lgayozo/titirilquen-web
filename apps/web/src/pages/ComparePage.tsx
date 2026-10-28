@@ -90,6 +90,9 @@ function nivelesTransporte(s: Scenario): NivelesBienestar | null {
   const agg = s.result ? agregadosDe(s.result) : null;
   if (!agg || !s.config) return null;
   const max = agg.medida_bienestar === "utilidad_maxima";
+  const porViaje = max
+    ? agg.excedente_max_por_estrato_clp
+    : agg.excedente_por_estrato_clp;
   return {
     corrida: {
       config: s.config,
@@ -98,6 +101,15 @@ function nivelesTransporte(s: Scenario): NivelesBienestar | null {
     },
     niveles: {
       excedente: max ? agg.excedente_max_total_clp : agg.excedente_total_clp,
+      // El excedente total, abierto por estrato (Σ_h = `excedente`): reemplaza
+      // a la «utilidad media» de la tabla de KPIs, que no era una medida de
+      // bienestar y no miraba si las dos corridas eran restables.
+      ...Object.fromEntries(
+        (["1", "2", "3"] as const).map((h) => [
+          `excedente_${h}`,
+          porViaje[h] * agg.viajeros_por_estrato[h],
+        ]),
+      ),
       bienestar: agg.bienestar_social_clp,
       excedente_social: agg.excedente_social_total_clp,
     },
@@ -394,9 +406,6 @@ export function ComparePage() {
           s.result && s.config
             ? computeKPIs(
                 s.result,
-                s.config.city.largo_ciudad_km,
-                s.config.city.n_celdas,
-                s.config.demand.globales.v_caminata,
                 s.config.supply.bike.capacidad_pista,
                 s.config.supply.train.capacidad_tren,
                 s.config.supply.train.frec_max,
@@ -587,15 +596,20 @@ export function ComparePage() {
     dTr,
     noComparable,
   );
+  const estratoBien = (k: string) =>
+    t("compare.bien.excedente_estrato", { estrato: t(`strata.${k}`) });
   const trRows: MetricRow[] = (
     [
-      ["d_excedente", "compare.bien.excedente"],
-      ["d_bienestar", "compare.bien.bienestar"],
-      ["d_excedente_social", "compare.bien.excedente_social"],
+      ["d_excedente", t("compare.bien.excedente")],
+      ["d_excedente_1", estratoBien("alto")],
+      ["d_excedente_2", estratoBien("medio")],
+      ["d_excedente_3", estratoBien("bajo")],
+      ["d_bienestar", t("compare.bien.bienestar")],
+      ["d_excedente_social", t("compare.bien.excedente_social")],
     ] as const
   ).map(([key, label]) => ({
     key,
-    label: t(label),
+    label,
     fmt: (v) => fmtPesos(v),
     betterWhen: "up",
     soloDelta: true,
@@ -604,7 +618,7 @@ export function ComparePage() {
   // C-04: export CSV de la lente activa. Para transporte el spec espeja las
   // secciones de KPITable (mismas claves i18n); mantener ambos en sync.
   const exportCsv = () => {
-    const MODES = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"] as const;
+    const MODES = ["Auto", "Metro", "Bici", "Caminata"] as const;
     const num = (v: number | null | undefined, dec = 2): string | number =>
       v == null || !Number.isFinite(v) ? "" : Number(v.toFixed(dec));
     let header: (string | number)[];
@@ -630,7 +644,13 @@ export function ComparePage() {
             1,
           ),
         ),
-        ...MODES.slice(0, 4).map((m) =>
+        fila(
+          t("compare.kpi.modal_share"),
+          t("compare.kpi.tele_hogares"),
+          (k) => k.tele_share_hogares * 100,
+          1,
+        ),
+        ...MODES.map((m) =>
           fila(
             t("compare.kpi.mean_time"),
             `${t(`modes.${m.toLowerCase()}`)} (min)`,
@@ -698,12 +718,7 @@ export function ComparePage() {
               (k) => k.by_stratum[s].mean_time_min,
               1,
             ),
-            fila(
-              sec,
-              t("compare.kpi.utility"),
-              (k) => k.by_stratum[s].mean_utility,
-            ),
-            ...MODES.slice(0, 4).map((m) =>
+            ...MODES.map((m) =>
               fila(
                 sec,
                 `% ${t(`modes.${m.toLowerCase()}`)}`,

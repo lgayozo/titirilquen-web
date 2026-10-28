@@ -28,11 +28,10 @@ import { ConvergenceTrace } from "@/components/viz/ConvergenceTrace";
 import { EsperaMetro } from "@/components/viz/EsperaMetro";
 import { CorridorFlowFigure } from "@/components/viz/CorridorFlowFigure";
 import { FlowProfile } from "@/components/viz/FlowProfile";
-import { ModeShareBars, type AgentGroup } from "@/components/viz/ModeShareBars";
+import { ModeShareBars, type ModeGroup } from "@/components/viz/ModeShareBars";
 import { ModeShareByLocation } from "@/components/viz/ModeShareByLocation";
 import { NetworkDiagram } from "@/components/viz/NetworkDiagram";
 import { ReferenceComparison } from "@/components/viz/ReferenceComparison";
-import type { StatBar } from "@/lib/tipos-ui";
 import { StratumDistribution } from "@/components/viz/StratumDistribution";
 import {
   CargaDeRed,
@@ -47,7 +46,6 @@ import { calcularFlujo } from "@/lib/derivados";
 import { TOL_RELATIVA_TON } from "@/lib/gen/constantes.gen";
 import { DEFAULTS_CORE } from "@/lib/gen/defaults.gen";
 import {
-  COLOR_ESTRATO,
   COLOR_MODO,
   COLOR_MODO_MINUSCULA,
   fmtDecimal,
@@ -433,8 +431,12 @@ export function SandboxPage() {
     }
     const modal = lastIter.modal_split;
     const total = (Object.values(modal) as number[]).reduce((s, n) => s + n, 0);
-    const tot = total > 0 ? total : 1;
-    const pct = (m: Modo) => fmtPct(((modal[m] ?? 0) / tot) * 100);
+    // Reparto sobre los viajes FÍSICOS, como la tabla por estrato y la
+    // comparación con la referencia; el teletrabajo, sobre los hogares
+    // (auditoría C, ítem 10). Antes las tarjetas dividían por todos.
+    const fisicos = total - (modal.Teletrabajo ?? 0);
+    const pct = (m: Modo) =>
+      fmtPct(((modal[m] ?? 0) / (fisicos > 0 ? fisicos : 1)) * 100);
     const count = (m: Modo) =>
       t("kpi.trips_subline", {
         n: fmtEntero(modal[m] ?? 0),
@@ -442,7 +444,7 @@ export function SandboxPage() {
     return [
       {
         label: t("kpi.trips"),
-        value: fmtEntero(total - (modal.Teletrabajo ?? 0)),
+        value: fmtEntero(fisicos),
       },
       {
         label: t("kpi.auto_pct"),
@@ -470,7 +472,9 @@ export function SandboxPage() {
       },
       {
         label: t("kpi.tele_pct"),
-        value: pct("Teletrabajo"),
+        value: fmtPct(
+          ((modal.Teletrabajo ?? 0) / (total > 0 ? total : 1)) * 100,
+        ),
         color: "var(--tele)",
         delta: t("kpi.tele_subline", {
           n: fmtEntero(modal.Teletrabajo ?? 0),
@@ -549,88 +553,30 @@ export function SandboxPage() {
 
   // Grupos de agentes para las figuras de reparto por estrato y tenencia.
   const STRATUM_KEY = ["alto", "medio", "bajo"] as const;
-  const stratumGroups = useMemo<AgentGroup[]>(() => {
-    const agents = result?.agentes;
-    if (!agents) return [];
-    return [1, 2, 3].map((s) => ({
-      label: t(`sandbox.stratum_${STRATUM_KEY[s - 1]}`),
-      agents: agents.filter((a) => a.estrato === s),
-    }));
+  // Los viajes ESPERADOS del núcleo, no un conteo del modo sorteado de cada
+  // agente (auditoría C, ítem 9); el teletrabajo va en la etiqueta del grupo.
+  const stratumGroups = useMemo<ModeGroup[]>(() => {
+    const agg = result ? agregadosDe(result) : null;
+    if (!result || !agg) return [];
+    return [1, 2, 3].map((s) => {
+      const h = String(s) as "1" | "2" | "3";
+      const delEstrato = result.agentes.filter((a) => a.estrato === s);
+      const tele = delEstrato.filter(
+        (a) => a.modo_elegido === "Teletrabajo",
+      ).length;
+      return {
+        label: t(`sandbox.stratum_${STRATUM_KEY[s - 1]}`),
+        tag:
+          tele > 0
+            ? t("sandbox.tele_tag", {
+                pct: fmtPct((tele / delEstrato.length) * 100, 0),
+              })
+            : undefined,
+        viajes: agg.viajes_por_modo_estrato[h] ?? {},
+      };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, t]);
-
-  // Estadísticas agregadas: el tiempo de viaje no está por agente, así que se
-  // reconstruye combinando el snapshot final (tiempos por celda y modo) con la
-  // celda/modo de cada agente. Teletrabajo se excluye (no viaja).
-  // Presentación: calcula promedios pero además rotula cada barra con i18n.
-  // Ver la nota de `lib/derivados`.
-  const avgStats = useMemo(() => {
-    const agents = result?.agentes;
-    if (!agents || !lastIter) return null;
-    const MODE_C: Record<string, string> = COLOR_MODO;
-    const STR_C: Record<number, string> = COLOR_ESTRATO;
-    const timeOf = (a: (typeof agents)[number]): number | null => {
-      const c = a.celda_origen;
-      switch (a.modo_elegido) {
-        case "Auto":
-          return lastIter.t_auto[c] ?? 0;
-        case "Bici":
-          return lastIter.t_bici[c] ?? 0;
-        case "Metro":
-          return (
-            (lastIter.t_tren_acceso[c] ?? 0) +
-            (lastIter.t_tren_espera[c] ?? 0) +
-            (lastIter.t_tren_viaje[c] ?? 0)
-          );
-        case "Caminata":
-          return ((Math.abs(cbdIdx - c) * cellKm) / vCaminata) * 60;
-        default:
-          return null; // Teletrabajo / sin modo
-      }
-    };
-    const modeAgg: Record<string, [number, number]> = {
-      Auto: [0, 0],
-      Metro: [0, 0],
-      Bici: [0, 0],
-      Caminata: [0, 0],
-    };
-    const strTime: Record<number, [number, number]> = {
-      1: [0, 0],
-      2: [0, 0],
-      3: [0, 0],
-    };
-    for (const a of agents) {
-      const tt = timeOf(a);
-      if (tt != null) {
-        const e = a.modo_elegido ? modeAgg[a.modo_elegido] : undefined;
-        if (e) {
-          e[0] += tt;
-          e[1] += 1;
-        }
-        const st = strTime[a.estrato];
-        if (st) {
-          st[0] += tt;
-          st[1] += 1;
-        }
-      }
-    }
-    const mean = (p: [number, number]) => (p[1] > 0 ? p[0] / p[1] : 0);
-    const strLabel = (s: number) => t(`sandbox.stratum_${STRATUM_KEY[s - 1]}`);
-    const timeByMode: StatBar[] = (
-      ["Auto", "Metro", "Bici", "Caminata"] as const
-    ).map((m) => ({
-      label: t(`modes.${m.toLowerCase()}`),
-      value: mean(modeAgg[m]!),
-      color: MODE_C[m]!,
-    }));
-    const timeByStratum: StatBar[] = [1, 2, 3].map((s) => ({
-      label: strLabel(s),
-      value: mean(strTime[s]!),
-      color: STR_C[s]!,
-    }));
-    return { timeByMode, timeByStratum };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result, lastIter, t]);
 
   // Teletrabajo por celda de origen (determinista: no viaja, no está en las
   // demandas de modo). Alimenta la Fig. 9 junto con el flujo esperado por celda.
@@ -681,51 +627,37 @@ export function SandboxPage() {
   }, [result, cfgRes.city.n_celdas, t]);
 
   // Consolidado de métricas para la tabla final (sistema · reparto · estrato ·
-  // modo). Reutiliza lo ya agregado (modal_split, avgStats, operatingRatios).
+  // modo). Reutiliza lo ya agregado (modal_split, agregados, operatingRatios).
   // Se queda acá y no en `lib/derivados`: arma las etiquetas de la tabla con
   // i18n, así que depende del idioma activo. Es presentación, no cálculo.
   const transportMetrics = useMemo<TransportMetricsData | null>(() => {
-    if (!result || !lastIter || !avgStats) return null;
+    const agg = result ? agregadosDe(result) : null;
+    // Un wheel anterior a la auditoría C no trae los tiempos medios.
+    if (!result || !lastIter || !agg?.tiempo_medio_por_modo_min) return null;
     const modal = lastIter.modal_split;
     const totalAll =
       (Object.values(modal) as number[]).reduce((s, n) => s + n, 0) || 1;
-    const MODE_ORDER: Modo[] = [
-      "Auto",
-      "Metro",
-      "Bici",
-      "Caminata",
-      "Teletrabajo",
-    ];
     /** Los cuatro modos que efectivamente viajan, en el orden de
      *  `constantes.MODOS`. El teletrabajo no es una alternativa del mismo
      *  conjunto: se decide antes y no viaja. */
     const MODOS_FISICOS = ["Auto", "Metro", "Bici", "Caminata"] as const;
     const MODE_COLOR: Record<string, string> = COLOR_MODO;
-    const reparto = MODE_ORDER.map((m) => ({
+    // Sobre los viajes físicos, como las tarjetas (auditoría C, ítem 10).
+    const fisicos = totalAll - (modal.Teletrabajo ?? 0);
+    const reparto = MODOS_FISICOS.map((m) => ({
       modo: m,
       label: t(`modes.${m.toLowerCase()}`),
       count: modal[m] ?? 0,
-      pct: ((modal[m] ?? 0) / totalAll) * 100,
+      pct: fisicos > 0 ? ((modal[m] ?? 0) / fisicos) * 100 : 0,
       color: MODE_COLOR[m]!,
     }));
-    // avgStats.timeByMode está en orden Auto · Metro · Bici · Caminata.
-    const MODE4: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
-    const tiempoPorModo = avgStats.timeByMode.map((b, i) => ({
-      modo: MODE4[i]!,
-      label: b.label,
-      min: b.value,
-      color: b.color,
+    // Tiempos ponderados por la demanda esperada, del núcleo (ítem 9).
+    const tiempoPorModo = MODOS_FISICOS.map((m) => ({
+      modo: m,
+      label: t(`modes.${m.toLowerCase()}`),
+      min: agg.tiempo_medio_por_modo_min[m] ?? 0,
+      color: MODE_COLOR[m]!,
     }));
-    // Tiempo medio del sistema = promedio por modo ponderado por su conteo
-    // (cada agente cuenta una vez bajo su modo; teletrabajo no viaja).
-    let twSum = 0;
-    let wSum = 0;
-    for (const tm of tiempoPorModo) {
-      const c = modal[tm.modo as Modo] ?? 0;
-      twSum += tm.min * c;
-      wSum += c;
-    }
-    const agg = agregadosDe(result);
     const porEstratoUtil =
       agg == null
         ? null
@@ -747,7 +679,7 @@ export function SandboxPage() {
         color: `var(--s${sNum})`,
         nHogares: result.agentes.filter((a) => a.estrato === sNum).length,
         viajes: viajesModo ? viajesS : null,
-        tiempoMin: avgStats.timeByStratum[idx]?.value ?? 0,
+        tiempoMin: agg.tiempo_medio_por_estrato_min[h] ?? 0,
         utilidad: porEstratoUtil?.[h] ?? null,
         reparto: MODOS_FISICOS.map((m) => ({
           modo: m,
@@ -756,9 +688,13 @@ export function SandboxPage() {
       };
     });
     return {
-      viajesFisicos: Math.round(totalAll - (modal.Teletrabajo ?? 0)),
+      viajesFisicos: Math.round(fisicos),
       reparto,
-      tiempoSistemaMin: wSum > 0 ? twSum / wSum : 0,
+      teletrabajo: {
+        count: modal.Teletrabajo ?? 0,
+        pct: ((modal.Teletrabajo ?? 0) / totalAll) * 100,
+      },
+      tiempoSistemaMin: agg.tiempo_medio_min,
       frecuenciaMetro: lastIter.frecuencia_metro,
       residuoMin:
         lastIter.residuo == null || !isFinite(lastIter.residuo)
@@ -780,7 +716,7 @@ export function SandboxPage() {
       medidaBienestar: agg?.medida_bienestar ?? null,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result, lastIter, avgStats, cfgRes.assignment, t]);
+  }, [result, lastIter, cfgRes.assignment, t]);
 
   // Barra de estado (B3): una línea con el veredicto; el texto largo, que
   // dice qué hacer si no convergió, va en su «¿por qué?».

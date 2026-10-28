@@ -24,7 +24,7 @@
     <code>bienestar</code> · <code>coupled</code> · <code>tests/test_linea_base.py</code> ·
     <code>CLAUDE.md</code> ·
     auditado el 2026-09-08, revisado el 2026-10-15 ·
-    datos regenerados el 2026-10-27 ·
+    datos regenerados el 2026-10-28 ·
     <span class="estado auditado">auditado</span>
   </p>
 </header>
@@ -124,8 +124,8 @@
     <tr>
       <td class="n">1</td>
       <td class="ruta py">bienestar.py</td>
-      <td class="n">268</td>
-      <td><code>medidas_de_utilidad</code> — por rama con/sin auto, mezcladas aparte; <code>calcular_agregados</code> (311) cuenta viajeros en 349</td>
+      <td class="n">274</td>
+      <td><code>medidas_de_utilidad</code> — por rama con/sin auto, mezcladas por la tenencia realizada de la celda (auditoría C); <code>calcular_agregados</code> (317) cuenta viajeros en 349</td>
     </tr>
     <tr>
       <td class="n">1</td>
@@ -155,19 +155,19 @@
       <td class="n">3</td>
       <td class="ruta py">equilibrium/msa.py</td>
       <td class="n">309</td>
-      <td><code>_asignar_modos_agentes</code> — el <code>modo_elegido</code> MUESTREADO por agente al final (D-67)</td>
+      <td><code>_asignar_modos_agentes</code> — el <code>modo_elegido</code> MUESTREADO por agente al final, sólo para lo que se dibuja agente a agente (D-67, corregido)</td>
     </tr>
     <tr>
       <td class="n">3</td>
       <td class="ruta ts">lib/kpis.ts</td>
-      <td class="n">91</td>
-      <td><code>modal_share</code> — de los agentes (muestreado); <code>RunStatus.tsx</code> lee <code>modal_split</code> (esperado)</td>
+      <td class="n">88</td>
+      <td><code>modal_share</code> — adaptador de <code>agregados.viajes_por_modo</code> (esperado, sobre viajes físicos); <code>RunStatus.tsx</code> lee <code>modal_split</code> (esperado)</td>
     </tr>
     <tr>
       <td class="n">3</td>
       <td class="ruta py">coupled_metrics.py</td>
-      <td class="n">328</td>
-      <td><code>compute_equilibrium_metrics</code> — <code>reparto_modal</code> de los agentes, con teletrabajo y varado en el denominador</td>
+      <td class="n">329</td>
+      <td><code>compute_equilibrium_metrics</code> — <code>reparto_modal</code> de la demanda esperada (<code>demanda_estrato</code>), con teletrabajo y varado en el denominador</td>
     </tr>
     <tr>
       <td class="n">4</td>
@@ -280,7 +280,7 @@
   no se midió con teletrabajo positivo.
 </p>
 
-<h3>4.3 Un reparto modal: hay dos, y la interfaz muestra ambos</h3>
+<h3>4.3 Un reparto modal: se cumple desde la auditoría C</h3>
 
 <div class="envoltorio-tabla">
 <table>
@@ -289,38 +289,41 @@
   </thead>
   <tbody>
     <tr><td><code>modal_split</code> del MSA (Sandbox, <code>RunStatus</code>)</td><td>esperado <em>n·p_m</em></td><td>con teletrabajo</td><td class="n">28,284</td><td class="n">25,913</td><td class="n">35,998</td><td class="n">9,805</td></tr>
-    <tr class="destacada"><td><code>reparto_modal</code> del acoplado (agentes)</td><td>muestreado</td><td>con teletrabajo y varado</td><td class="n">27,908</td><td class="n">26,242</td><td class="n">36,058</td><td class="n">9,792</td></tr>
+    <tr class="destacada"><td><code>reparto_modal</code> del acoplado</td><td>esperado</td><td>con teletrabajo y varado</td><td class="n">28,284</td><td class="n">25,914</td><td class="n">35,998</td><td class="n">9,805</td></tr>
     <tr><td><code>viajes_por_modo</code> de los agregados</td><td>esperado</td><td>sin teletrabajo</td><td class="n">28,284</td><td class="n">25,914</td><td class="n">35,998</td><td class="n">9,805</td></tr>
     <tr><td><code>modal_split</code> sin teletrabajo</td><td>esperado</td><td>sin teletrabajo</td><td class="n">28,284</td><td class="n">25,913</td><td class="n">35,998</td><td class="n">9,805</td></tr>
   </tbody>
 </table>
 </div>
 
-<div class="aviso alerta">
-  <h4>D-67 — el mismo trace, dos conteos, 0,38 pp</h4>
+<div class="aviso">
+  <h4>D-67 — corregido: un solo numerador</h4>
   <p>
-    Las dos páginas corren la <strong>misma</strong> simulación: el
-    <code>modal_split</code> del acoplado es idéntico al del Sandbox (brecha
-    0,0 pp). Lo que difiere es el conteo <em>dentro</em> de la corrida: el MSA
-    acumula la demanda esperada <em>n·p_m</em>, y al terminar
-    <code>_asignar_modos_agentes</code> le sortea a cada agente un modo con
-    <code>rng.choice</code>. El Sandbox muestra el esperado en
-    <code>RunStatus</code> y el muestreado en los KPI y la tabla por estrato; el
-    acoplado, sólo el muestreado; la línea base fija el esperado. Dos números
-    para un indicador, en una pantalla, sin rótulo.
+    Hasta octubre la misma corrida tenía dos conteos: el MSA acumula la demanda
+    esperada <em>n·p_m</em>, y al terminar <code>_asignar_modos_agentes</code>
+    le sortea a cada agente un modo con <code>rng.choice</code>. El Sandbox
+    mostraba el esperado en las tarjetas y el sorteado en Comparar, en los
+    tiempos por modo y por estrato y en el reparto por estrato; el acoplado,
+    sólo el sorteado. Desde la auditoría C todo indicador agregado sale de la
+    demanda esperada —los tiempos medios por modo y por estrato, nuevos en
+    <code>calcular_agregados</code>, y el reparto, el tiempo y el costo del
+    acoplado, de <code>demanda_estrato</code>— y el sorteo queda sólo para lo
+    que se dibuja agente a agente. La brecha entre el reparto acoplado y el
+    <code>modal_split</code> del mismo trace es hoy de 0,001 pp.
   </p>
 </div>
 
 <p>
-  El muestreo es deliberado —«preserva modos minoritarios como la bici» frente
-  al argmax— y la brecha, 0,38 pp, es chica frente al reparto, aunque siete veces y media la tolerancia de 0,05 pp de la línea base. Pero <code>expected</code> se eligió
-  justamente para que las curvas de sensibilidad se lean sin ruido de muestreo,
-  y por esta puerta el ruido vuelve a entrar a la mitad de los indicadores. La
-  brecha esperado ↔ realizado en el mismo denominador es de 0,001 pp. La de
-  denominador, «con» o «sin» teletrabajo, hoy es cero porque nadie teletrabaja:
-  la primera fila y la cuarta coinciden. Con <code>prob_teletrabajo</code> &gt; 0
-  vuelve a ser la que importa, la que un lector no avisado toma por un cambio de
-  modelo; con las tasas heredadas de septiembre era de 3,7 pp.
+  El sorteo sigue siendo deliberado —«preserva modos minoritarios como la
+  bici» frente al argmax— para las figuras que muestran agentes, pero ya no
+  entra en ningún número: <code>expected</code> se eligió para que las curvas de
+  sensibilidad se lean sin ruido de muestreo, y ahora es así en toda la
+  interfaz. Queda el denominador, «con» o «sin» teletrabajo, que hoy no se ve
+  porque nadie teletrabaja: la primera fila y la cuarta coinciden. Con
+  <code>prob_teletrabajo</code> &gt; 0 la interfaz de Transporte reparte
+  siempre sobre los viajes físicos y muestra el teletrabajo aparte, como
+  porcentaje de los hogares; el acoplado lo muestra como una categoría más de
+  los hogares, junto a los varados.
 </p>
 
 <h3>4.4 Dos «sin congestión», no tres</h3>
@@ -420,7 +423,7 @@
     de <code>test_linea_base.py</code> y declara que ese archivo manda; en las
     dos ramas coinciden a 0,00 pp, y las 6 iteraciones de cada una
     también son las del test. Los conteos que el documento da como orientación
-    siguen siendo aproximados: «~200 tests del núcleo» contra 250 recolectados hoy, y
+    siguen siendo aproximados: «~200 tests del núcleo» contra 254 recolectados hoy, y
     «58 e2e», que se refiere a <code>test:e2e:fast</code> y no se recontó.
   </p>
 </div>
@@ -430,7 +433,7 @@
 <ul>
   <li>
     <strong>i18n</strong>: los dos idiomas tienen exactamente el mismo conjunto de
-    claves — 863 en <code>simulator.json</code>, 54 en <code>common.json</code>,
+    claves — 867 en <code>simulator.json</code>, 54 en <code>common.json</code>,
     ninguna huérfana en ningún sentido. Es la comprobación que
     <code>CLAUDE.md</code> advierte que un grep no puede hacer.
   </li>
@@ -463,7 +466,7 @@
     <tr>
       <td><code>test_linea_base.py</code> (3 tests)</td>
       <td>El reparto <em>esperado</em> de las dos ramas, ±0,05 pp, y sus iteraciones.</td>
-      <td>El reparto <em>muestreado</em> que muestran los KPI (D-67); y que <code>CLAUDE.md</code> cite lo mismo que el test (D-68).</td>
+      <td>Los repartos y tiempos por estrato que muestra la interfaz (desde D-67 salen de los mismos agregados, sin un test que los pinee); y que <code>CLAUDE.md</code> cite lo mismo que el test (D-68).</td>
     </tr>
     <tr>
       <td><code>test_coupled_metrics.py::test_el_estado_final_es_el_de_la_ultima_iteracion</code></td>
@@ -473,7 +476,7 @@
     <tr>
       <td><code>test_coupled_metrics.py::test_reparto_modal_suma_uno</code></td>
       <td>Que el reparto por agentes sume 1.</td>
-      <td>Que coincida con el <code>modal_split</code> del mismo trace (no coincide: D-67).</td>
+      <td>Que coincida con el <code>modal_split</code> del mismo trace: coincide a 0,001 pp desde D-67 (§4.3), pero ningún test lo fija.</td>
     </tr>
     <tr>
       <td><code>test_libro.py</code> (6 tests)</td>
@@ -529,9 +532,9 @@
   <tbody>
     <tr>
       <td class="n">D-67</td>
-      <td>Una misma corrida tiene dos repartos modales —esperado y muestreado, 0,38 pp— y el Sandbox muestra ambos sin rótulo.</td>
+      <td>Una misma corrida tenía dos repartos modales —esperado y muestreado— y el Sandbox mostraba ambos sin rótulo.</td>
       <td>Dos definiciones legítimas publicadas como una.</td>
-      <td>pendiente</td>
+      <td>corregido 2026-10-28 (auditoría C)</td>
     </tr>
     <tr>
       <td class="n">D-68</td>
@@ -548,10 +551,11 @@
 <h3>Lo que se sostiene</h3>
 
 <p>
-  Tres de las cinco identidades se cumplen exactamente: el hogar es uno (logsum
+  Cuatro de las cinco identidades se cumplen exactamente: el hogar es uno (logsum
   único a 10⁻⁹, VoT idéntico en nivel), la población es una (36.000 agentes con
-  los mismos sorteos en las dos páginas) y la ciudad es una (cinco grillas, cuatro
-  convenciones, un CBD). Es el saldo de las correcciones de septiembre —D-33,
+  los mismos sorteos en las dos páginas), la ciudad es una (cinco grillas, cuatro
+  convenciones, un CBD) y, desde la auditoría C, el reparto también (un solo
+  numerador, el esperado). Es el saldo de las correcciones de septiembre —D-33,
   D-34, D-45— y de una decisión de arquitectura anterior: que la matemática viva
   una vez. Donde hay una sola implementación, la consistencia sale gratis.
 </p>
@@ -559,10 +563,10 @@
 <h3>Lo que no</h3>
 
 <p>
-  Las dos identidades que fallan fallan por lo mismo: <strong>hay dos
-  implementaciones legítimas y ningún rótulo</strong>. El reparto esperado y el
-  muestreado son ambos correctos; el arranque ingenuo y la red vacía son ambos
-  razonables; los tres residuos de convergencia son cada uno defendible en su
+  La identidad que falla, y la que falló hasta octubre, fallan por lo mismo:
+  <strong>hay dos implementaciones legítimas y ningún rótulo</strong>. El
+  reparto esperado y el muestreado eran ambos correctos; el arranque ingenuo y
+  la red vacía son ambos razonables; los tres residuos de convergencia son cada uno defendible en su
   loop. El problema nunca es que uno esté mal, es que se muestran con la misma
   palabra. Diez capítulos después, es el patrón dominante del libro: <em>el
   modelo calcula bien; lo que se despega es lo que dice de sí mismo</em>.
@@ -583,10 +587,6 @@
 <div class="aviso idea">
   <h4>Pendientes</h4>
   <ul>
-    <li>
-      <strong>Rotular los dos repartos</strong> (D-67), o derivar las figuras
-      agente-nivel del reparto esperado bajo <code>expected</code>.
-    </li>
     <li>
       <strong>Medir las identidades 2 y 3 con teletrabajo</strong>: con
       <code>prob_teletrabajo</code> = 0 se cumplen de manera trivial.

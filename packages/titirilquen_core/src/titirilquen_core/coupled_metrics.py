@@ -68,6 +68,7 @@ from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
 from titirilquen_core.constantes import (
     CATEGORIAS_MODALES,
+    MODOS,
     VIAJES_MES,
     CategoriaModal,
 )
@@ -397,10 +398,6 @@ def compute_equilibrium_metrics(
             modal[h, cat_idx["Varado"]] += 1
             continue
         i = a.celda_origen
-        d = dist[i]
-        modal[h, cat_idx[a.modo_elegido]] += 1
-        t_sum[h] += _tiempo_modo(snap, a.modo_elegido, i, d, gl.v_caminata)
-        c_sum[h] += _costo_modo(a.modo_elegido, d, gl)
         key = (a.estrato, i, a.tiene_auto)
         ls = cache_ls.get(key)
         if ls is None:
@@ -434,6 +431,20 @@ def compute_equilibrium_metrics(
             # mismos agentes y el Δ entre escenarios sale de restar niveles.
             cs_nivel[h] += ls / (-b_costo[h])
         viajan[h] += 1
+
+    # Reparto, tiempo y costo de los que viajan, desde la demanda ESPERADA por
+    # (estrato, modo, celda) y no desde el `modo_elegido` sorteado de cada
+    # agente: con carga esperada el sorteo sólo agrega ruido de muestreo
+    # (auditoría C, ítem 9). Teletrabajo y varados no viajan: siguen siendo
+    # conteos de agentes, que son exactos.
+    assert trace.demanda_estrato is not None
+    for h in range(n_strata):
+        for m_idx, modo in enumerate(MODOS):
+            dem = trace.demanda_estrato[h, m_idx]
+            modal[h, cat_idx[modo]] += float(dem.sum())
+            for i in np.flatnonzero(dem > 0):
+                t_sum[h] += dem[i] * _tiempo_modo(snap, modo, int(i), dist[i], gl.v_caminata)
+                c_sum[h] += dem[i] * _costo_modo(modo, dist[i], gl)
 
     # --- Construir métricas por estrato ---
     por_estrato: list[StratumMetrics] = []

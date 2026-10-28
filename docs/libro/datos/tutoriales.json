@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "generado": "2026-10-27",
-  "commit": "80bacd5",
+  "generado": "2026-10-28",
+  "commit": "ff7c952",
   "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)"
  },
  "parametros": {
@@ -536,7 +536,7 @@
  "bienestar": {
   "peaje_km": 50,
   "excedente_por_viajero_base_clp": {
-   "alto": 706,
+   "alto": 707,
    "medio": -92,
    "bajo": -82
   },
@@ -545,9 +545,9 @@
    "medio": -47,
    "bajo": -12
   },
-  "delta_bienestar_social_clp": 50718,
+  "delta_bienestar_social_clp": 50421,
   "delta_recaudacion_clp": 1649816,
-  "delta_excedente_social_clp": -1441456,
+  "delta_excedente_social_clp": -1441366,
   "tiempo_medio_min": {
    "base": 16.0,
    "tarificacion": 16.1

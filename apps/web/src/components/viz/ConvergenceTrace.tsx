@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { IterationSnapshot } from "@/lib/types";
-import { COLOR_MODO, ORDEN_MODOS, fmtDecimal, localeCifras } from "@/lib/modos";
+import { COLOR_MODO, MODOS, fmtDecimal, localeCifras } from "@/lib/modos";
 
 interface ConvergenceTraceProps {
   iterations: readonly IterationSnapshot[];
@@ -80,7 +80,6 @@ export function ConvergenceTrace({
         Metro: it.modal_split.Metro ?? 0,
         Bici: it.modal_split.Bici ?? 0,
         Caminata: it.modal_split.Caminata ?? 0,
-        Teletrabajo: it.modal_split.Teletrabajo ?? 0,
         frec: it.frecuencia_metro,
       })),
     [iterations, relativa],
@@ -95,12 +94,7 @@ export function ConvergenceTrace({
     () =>
       ticks(
         0,
-        Math.max(
-          ...data.map(
-            (d) => d.Auto + d.Metro + d.Bici + d.Caminata + d.Teletrabajo,
-          ),
-          0,
-        ),
+        Math.max(...data.map((d) => d.Auto + d.Metro + d.Bici + d.Caminata), 0),
         4,
       ),
     [data],
@@ -257,7 +251,9 @@ export function ConvergenceTrace({
                   letterSpacing: "0.04em",
                 }}
               />
-              {ORDEN_MODOS.map((m) => (
+              {/* Sólo los modos físicos: el eje es de viajes y el teletrabajo
+                  no viaja ni cambia entre iteraciones (auditoría C, ítem 10). */}
+              {MODOS.map((m) => (
                 <Area
                   key={m}
                   type="monotone"

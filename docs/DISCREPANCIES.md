@@ -2018,7 +2018,13 @@ cumple, y eso está en D-39.
 - **Veredicto**: dos definiciones legítimas del mismo indicador, publicadas sin
   decir cuál es cuál. Corrección: rotular («esperado» / «realizado»), o derivar
   las figuras agente-nivel del reparto esperado cuando `assignment = expected`.
-- **Estado**: pendiente.
+- **Estado**: corregido 2026-10-28 (auditoría C, ítem 9). Todo indicador
+  agregado sale de la demanda esperada: `calcular_agregados` expone los tiempos
+  medios por modo y por estrato, `kpis.ts` es un adaptador de los agregados, y
+  `coupled_metrics` toma reparto, tiempo y costo de `demanda_estrato`. El
+  sorteo queda sólo para lo que se dibuja agente a agente. El reparto modal de
+  Transporte va siempre sobre los viajes físicos, con el teletrabajo aparte
+  (ítem 10).
 
 ---
 
@@ -2199,7 +2205,7 @@ cumple, y eso está en D-39.
 | D-64 | Calibración: 0 de 77 parámetros estimados; los tres VoT que ordenan a los estratos no tienen fuente escrita | Parcial 2026-10-13: nivel anclado al VST (D5); falta la dispersión | Alta |
 | D-65 | Calibración: cuatro velocidades duplicadas entre `globales` y `supply`; tres globales inertes, `v_caminata` con dos dueños | Pendiente (libro, cap. 9) | Media |
 | D-66 | Calibración: `ANALISIS_SENSIBILIDAD.md` y comentarios con defaults que ya no existen | Corregido 2026-10-14 (cabecera + comentarios fechados) | Baja |
-| D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Pendiente (libro, cap. 10) | Media |
+| D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Corregido 2026-10-28 (auditoría C) | Media |
 | D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Corregido 2026-10-14 | Media |
 | D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia) | Baja |
 | D-70 | Equilibrio: con todo o nada el MSA no converge porque promedia tiempos; promediando flujos llega al equilibrio de usuario y Downs-Thomson se mantiene | Corregido 2026-10-14 (tolerancia sobre el costo en exceso, pendiente) | Alta |

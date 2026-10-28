@@ -287,7 +287,7 @@ def cuatro_repartos() -> dict:
     return {
         "snapshot_modal_split (agentes, con teletrabajo)": snapshot,
         "agregados_viajes_por_modo (demanda esperada, sin teletrabajo)": agreg,
-        "coupled_reparto_modal (agentes, con teletrabajo y varado)": coupled,
+        "coupled_reparto_modal (demanda esperada, con teletrabajo y varado)": coupled,
         "snapshot_sin_teletrabajo": snapshot_sin_tt,
         "snapshot_de_la_corrida_del_acoplado": snapshot_coupled,
         "brecha_dentro_de_la_misma_corrida_pp": round(
@@ -303,9 +303,9 @@ def cuatro_repartos() -> dict:
             max(abs(agreg[k] - snapshot_sin_tt[k]) for k in modos), 3
         ),
         "nota": (
-            "Dos denominadores (con y sin teletrabajo) y dos numeradores (demanda "
-            "esperada vs agentes realizados): cuatro repartos legítimos para la "
-            "misma corrida, y ninguna tabla dice cuál usa."
+            "Desde la auditoría C (oct-2026) los cuatro salen de la demanda "
+            "esperada; sólo difieren en el denominador (con o sin teletrabajo), "
+            "y la interfaz de Transporte usa siempre los viajes físicos."
         ),
     }
 

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { deltaColor } from "@/components/compare/MetricCompareTable";
 import { cn } from "@/lib/cn";
 import type { ScenarioKPIs } from "@/lib/kpis";
-import type { Modo, StratumId } from "@/lib/types";
+import type { ModoTransporte, StratumId } from "@/lib/types";
 import { fmtDecimal, fmtDelta, fmtEntero, fmtPct } from "@/lib/modos";
 
 interface KPITableProps {
@@ -13,14 +13,13 @@ interface KPITableProps {
   baseId?: string;
 }
 
-const MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"];
 const STRATA: StratumId[] = [1, 2, 3];
 const STRATUM_KEY: Record<StratumId, string> = {
   1: "alto",
   2: "medio",
   3: "bajo",
 };
-const TRAVEL_MODES: Modo[] = ["Auto", "Metro", "Bici", "Caminata"];
+const TRAVEL_MODES: ModoTransporte[] = ["Auto", "Metro", "Bici", "Caminata"];
 
 /**
  * Tabla KPI comparativa. La primera columna con datos es la base; las demás
@@ -61,7 +60,7 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
         </thead>
         <tbody>
           <Section label={t("compare.kpi.modal_share")}>
-            {MODES.map((m) => (
+            {TRAVEL_MODES.map((m) => (
               <KPIRow
                 key={m}
                 label={t(`modes.${m.toLowerCase()}`)}
@@ -72,10 +71,19 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                 deltaFormatter={(d) => `${fmtDelta(d)} pp`}
               />
             ))}
+            {/* El teletrabajo no es un modo del reparto: va sobre los hogares. */}
+            <KPIRow
+              label={t("compare.kpi.tele_hogares")}
+              scenarios={scenarios}
+              valueOf={(kpi) => kpi.tele_share_hogares * 100}
+              baseKpis={base?.kpis ?? null}
+              formatter={(v) => fmtPct(v)}
+              deltaFormatter={(d) => `${fmtDelta(d)} pp`}
+            />
           </Section>
 
           <Section label={t("compare.kpi.mean_time")}>
-            {MODES.slice(0, 4).map((m) => (
+            {TRAVEL_MODES.map((m) => (
               <KPIRow
                 key={m}
                 label={t(`modes.${m.toLowerCase()}`)}
@@ -213,15 +221,6 @@ export function KPITable({ scenarios, baseId }: KPITableProps) {
                   formatter={(v) => (v > 0 ? fmtDecimal(v) : "—")}
                   deltaFormatter={(d) => fmtDelta(d)}
                   betterWhen="down"
-                />
-                <KPIRow
-                  label={t("compare.kpi.utility")}
-                  scenarios={scenarios}
-                  valueOf={(kpi) => kpi.by_stratum[s].mean_utility}
-                  baseKpis={base?.kpis ?? null}
-                  formatter={(v) => fmtDecimal(v, 2)}
-                  deltaFormatter={(d) => fmtDelta(d, 2)}
-                  betterWhen="up"
                 />
                 {TRAVEL_MODES.map((m) => (
                   <KPIRow

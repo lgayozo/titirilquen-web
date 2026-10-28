@@ -142,6 +142,12 @@ class AgregadosDict(TypedDict):
     #: coincidían si uno hacía la conversión a mano.
     viajes_por_modo_estrato: dict[EstratoKey, dict[str, float]]
     tiempo_medio_min: float
+    #: Tiempo medio (min) por modo físico y por estrato, ponderado por la MISMA
+    #: demanda esperada. Antes la UI los promediaba sobre el `modo_elegido`
+    #: sorteado de cada agente, que con carga esperada mete ruido de muestreo
+    #: en un indicador que no lo tiene (auditoría C, ítem 9). 0 si nadie viaja.
+    tiempo_medio_por_modo_min: dict[str, float]
+    tiempo_medio_por_estrato_min: dict[EstratoKey, float]
     #: Tiempo valorado al VoT conductual de cada estrato, más dinero.
     costo_generalizado_percibido_clp: float
     #: Ídem con un VoT único (evaluación social).
@@ -331,7 +337,21 @@ def calcular_agregados(
     viajes_modo_estrato: dict[str, dict[str, float]] = {
         str(h): dict.fromkeys(MODOS, 0.0) for h in (1, 2, 3)
     }
+    tiempo_modo = dict.fromkeys(MODOS, 0.0)
+    tiempo_estrato = dict.fromkeys(estratos, 0.0)
+    viajes_estrato = dict.fromkeys(estratos, 0.0)
     rec_parking = rec_peaje = rec_tarifa = 0.0
+    # Tenencia de auto REALIZADA por (estrato, celda) entre quienes viajan: la
+    # población la fija por conteo redondeado, `round(n·prob_auto)` en cada
+    # celda, y con ella se calculó la demanda. Ponderar el logsum por la
+    # `prob_auto` nominal lo apartaba de esa demanda (y del acoplado, que suma
+    # por agente) en 0,3-2,8 % del nivel (auditoría C, ítem 11).
+    n_viaja = np.zeros((3, ciudad.n_celdas))
+    n_con_auto = np.zeros((3, ciudad.n_celdas))
+    for a in trace.agentes:
+        if not a.teletrabaja:
+            n_viaja[a.estrato - 1, a.celda_origen] += 1
+            n_con_auto[a.estrato - 1, a.celda_origen] += a.tiene_auto
     ls_suma = dict.fromkeys(estratos, 0.0)
     mx_suma = dict.fromkeys(estratos, 0.0)
     ls_n = dict.fromkeys(estratos, 0.0)
@@ -365,6 +385,9 @@ def calcular_agregados(
                 viajeros += d
                 viajes_modo[modo] += d
                 viajes_modo_estrato[str(h)][modo] += d
+                tiempo_modo[modo] += d * minutos
+                tiempo_estrato[h] += d * minutos
+                viajes_estrato[h] += d
                 # Costo generalizado por COMPONENTES (D-37): el percibido pesa
                 # espera, acceso y caminata como la utilidad del estrato; el
                 # social, como la tabla 2.1 del SNI.
@@ -400,10 +423,12 @@ def calcular_agregados(
             if n_estrato <= 0:
                 continue
             # El conjunto de alternativas depende de tener auto, así que el
-            # logsum del estrato es la mezcla de ambos casos ponderada por
-            # `prob_auto`. Usar `True` para todos sobreestimaría el excedente de
-            # quienes no tienen auto.
-            p_auto = cfg.demand.estratos[h].prob_auto
+            # logsum del estrato es la mezcla de ambos casos ponderada por la
+            # tenencia de la celda. Usar `True` para todos sobreestimaría el
+            # excedente de quienes no tienen auto. Sin agentes (un trace armado
+            # a mano) queda la `prob_auto` nominal.
+            nv = n_viaja[h - 1, i]
+            p_auto = n_con_auto[h - 1, i] / nv if nv > 0 else cfg.demand.estratos[h].prob_auto
             partes = [
                 (medidas_de_utilidad(h, i, True, ciudad, cfg, tiempos), p_auto),
                 (medidas_de_utilidad(h, i, False, ciudad, cfg, tiempos), 1 - p_auto),
@@ -475,6 +500,13 @@ def calcular_agregados(
         "viajes_por_modo": viajes_modo,
         "viajes_por_modo_estrato": viajes_modo_estrato,
         "tiempo_medio_min": tiempo_total / viajeros if viajeros > 0 else 0.0,
+        "tiempo_medio_por_modo_min": {
+            m: tiempo_modo[m] / viajes_modo[m] if viajes_modo[m] > 0 else 0.0 for m in MODOS
+        },
+        "tiempo_medio_por_estrato_min": {
+            str(h): tiempo_estrato[h] / viajes_estrato[h] if viajes_estrato[h] > 0 else 0.0
+            for h in estratos
+        },
         "costo_generalizado_percibido_clp": cg_percibido,
         "costo_generalizado_social_clp": cg_social,
         "vot_por_estrato_clp_hora": {str(h): vot[h] for h in estratos},

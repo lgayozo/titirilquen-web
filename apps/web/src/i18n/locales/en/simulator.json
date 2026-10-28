@@ -196,7 +196,10 @@
     "land_use_city_caption_pre": "Initial composition (uniform π_h mix over the city shape). Run Land Use to see the equilibrium composition.",
     "land_use_city_caption_none": "Define the population in the Land Use module to see the distribution by stratum.",
     "total": "Total",
-    "agentes": "agents"
+    "viajes": "trips",
+    "hogares": "households",
+    "n_de_viajes": "{{n}} of {{total}} trips",
+    "tele_tag": "telework {{pct}}"
   },
   "metrics_table": {
     "meta": "city-wide · by mode · by stratum",
@@ -256,7 +259,7 @@
     "metro_pct": "Metro %",
     "bici_pct": "Bike %",
     "walk_pct": "Walk %",
-    "tele_pct": "Remote %",
+    "tele_pct": "Remote (% households)",
     "frequency": "Operating freq",
     "frequency_capped": "capped · demand asks {{teo}}",
     "co2": "Total CO₂",
@@ -543,7 +546,7 @@
       "total": "Total",
       "stratum": "Stratum",
       "travel_time": "Travel time (min)",
-      "utility": "Mean utility",
+      "tele_hogares": "Telework (% of households)",
       "congestion": "Congestion (corridor v/c)",
       "ver_estratos": "Show by stratum ›",
       "ocultar_estratos": "Hide by stratum"
@@ -615,6 +618,7 @@
       "excedente": "Δ Consumer surplus",
       "bienestar": "Δ Social welfare",
       "excedente_social": "Δ Socially weighted surplus",
+      "excedente_estrato": "Δ Surplus · {{estrato}}",
       "caption": "Peak hour, whole city. Only the Δ against the baseline: the level has an arbitrary zero, set by the ASCs. Surplus uses the measure of the assignment method (logsum or maximum utility), and social welfare adds revenue and subtracts operating cost (Welfare chapter of the tutorial).",
       "incomparable": "⚠ {{nombre}}: its surplus cannot be subtracted from the baseline's because {{razon}}."
     },
