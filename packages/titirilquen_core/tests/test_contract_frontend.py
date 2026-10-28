@@ -139,6 +139,11 @@ UTILIDAD_CASOS = [
 UTILIDAD_CASOS_PEAJE = [(88, True), (30, True)]
 PEAJE_GOLDEN_KM = 150.0
 
+#: La rejilla entera otra vez con `umbrales="suaves"` (oct-2026): rampas, corte
+#: CMNL y dominancia suave del metro. Sin ella, un espejo que ignorara el campo
+#: pasaría, porque el default es «escalones». Las celdas 0 y 30 quedan sobre el
+#: corte de la bici y de la caminata, donde «suaves» sigue siendo factible.
+
 
 def _utilidad_casos() -> list[dict]:
     ciudad = CiudadLineal(n_celdas=201, largo_total_km=20)
@@ -147,9 +152,14 @@ def _utilidad_casos() -> list[dict]:
         update={"globales": sin_peaje.globales.model_copy(update={"peaje_km": PEAJE_GOLDEN_KM})}
     )
     casos = []
-    rejilla = [(c, a, sin_peaje) for c, a in UTILIDAD_CASOS] + [
-        (c, a, con_peaje) for c, a in UTILIDAD_CASOS_PEAJE
-    ]
+    suaves = sin_peaje.model_copy(
+        update={"globales": sin_peaje.globales.model_copy(update={"umbrales": "suaves"})}
+    )
+    rejilla = (
+        [(c, a, sin_peaje) for c, a in UTILIDAD_CASOS]
+        + [(c, a, con_peaje) for c, a in UTILIDAD_CASOS_PEAJE]
+        + [(c, a, suaves) for c, a in UTILIDAD_CASOS]
+    )
     for celda, tiene_auto, demanda in rejilla:
         dist_km = abs(ciudad.cbd_index - celda) * ciudad.ancho_celda_km
         # Tiempos plausibles para esa distancia, con algo de congestión en el
@@ -182,6 +192,7 @@ def _utilidad_casos() -> list[dict]:
                     "dist_km": dist_km,
                     "tiene_auto": tiene_auto,
                     "peaje_km": demanda.globales.peaje_km,
+                    "umbrales": demanda.globales.umbrales,
                     "tiempos": {
                         "auto_total": tiempos.auto_total,
                         "bici_total": tiempos.bici_total,

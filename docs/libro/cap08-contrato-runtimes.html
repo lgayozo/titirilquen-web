@@ -172,7 +172,7 @@
       <td class="n">3</td>
       <td class="ruta py">packages/titirilquen_core/tests/test_contract_frontend.py</td>
       <td class="n">67</td>
-      <td><code>_defaults</code> — escribe el golden de defaults; <code>test_defaults_golden_vigente</code> (99), <code>test_utilidad_golden_vigente</code> (202)</td>
+      <td><code>_defaults</code> — escribe el golden de defaults; <code>test_defaults_golden_vigente</code> (99), <code>test_utilidad_golden_vigente</code> (213)</td>
     </tr>
     <tr>
       <td class="n">3</td>
@@ -183,8 +183,8 @@
     <tr>
       <td class="n">3</td>
       <td class="ruta ts">lib/serialization.ts</td>
-      <td class="n">49</td>
-      <td><code>TTRQ_SCHEMA</code> — <code>titirilquen-scenario/v10</code>, sin migraciones; <code>parseTtrqJson</code> (83) falla explícito con un schema anterior</td>
+      <td class="n">52</td>
+      <td><code>TTRQ_SCHEMA</code> — <code>titirilquen-scenario/v11</code>, sin migraciones; <code>parseTtrqJson</code> (86) falla explícito con un schema anterior</td>
     </tr>
   </tbody>
 </table>
@@ -509,7 +509,7 @@
 <p class="pie-tabla">
   Fuente: <code>datos/cap08.json</code>, regenerado el 2026-10-18 con
   <code>uv run python ../../docs/libro/datos/datos_cap08.py</code>. Goldens:
-  18 casos de oferta, 33 de utilidad. Contrato generado: 5 archivos, 990 líneas,
+  18 casos de oferta, 60 de utilidad. Contrato generado: 5 archivos, 990 líneas,
   29 interfaces.
 </p>
 
@@ -528,7 +528,7 @@
     </tr>
     <tr>
       <td><code>test_contract_frontend.py::test_utilidad_golden_vigente</code> y <code>contract.spec.ts</code> «utility.ts ↔ utility.py»</td>
-      <td>El espejo de la utilidad, 33 casos en los bordes de factibilidad, con y sin peaje (D7).</td>
+      <td>El espejo de la utilidad, 60 casos en los bordes de factibilidad, con y sin peaje (D7) y con las dos especificaciones de los umbrales: sin los casos «suaves», un espejo que ignorara el campo pasaría, porque el default es «escalones».</td>
       <td>Que el inspector use esa función con la misma configuración que el motor.</td>
     </tr>
     <tr>

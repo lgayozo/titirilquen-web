@@ -10,7 +10,12 @@ import type {
   ModoTransporte,
   StratumId,
 } from "@/lib/types";
-import { VIAJES_POR_TOUR } from "@/lib/gen/constantes.gen";
+import {
+  A_DOMINANCIA_METRO,
+  OMEGA_CORTE_SUAVE,
+  OMEGA_DOMINANCIA_METRO,
+  VIAJES_POR_TOUR,
+} from "@/lib/gen/constantes.gen";
 
 export interface TiemposObservados {
   auto_total: number;
@@ -33,6 +38,46 @@ export interface UtilityBreakdown {
 }
 
 const UTIL_IMPOSIBLE = -9999;
+
+type Tres = readonly [number, number, number];
+
+/** Espejo de `_escalones` (D-02): suma `p_k` por cada umbral cruzado. */
+function escalones(t: number, umbrales: Tres, penal: Tres): number {
+  let p = 0;
+  for (let k = 0; k < 3; k++) if (t > umbrales[k]!) p += penal[k]!;
+  return p;
+}
+
+/** Espejo de `_rampa` (`umbrales="suaves"`): la penalización acumulada de los
+ *  escalones interpolada por sus puntos medios, y más allá del último nodo la
+ *  última pendiente. */
+function rampa(t: number, umbrales: Tres, penal: Tres): number {
+  const h0 = (umbrales[1] - umbrales[0]) / 2;
+  const h2 = (umbrales[2] - umbrales[1]) / 2;
+  const xs = [
+    umbrales[0] - h0,
+    umbrales[1] - h0,
+    umbrales[2] - h2,
+    umbrales[2] + h2,
+  ];
+  const ys = [0, penal[0], penal[0] + penal[1], penal[0] + penal[1] + penal[2]];
+  // `np.interp` deja el valor del extremo a la izquierda del primer nodo.
+  if (t <= xs[0]!) return ys[0]!;
+  for (let k = 1; k < 4; k++) {
+    if (t <= xs[k]!) {
+      const w = (t - xs[k - 1]!) / (xs[k]! - xs[k - 1]!);
+      return ys[k - 1]! + w * (ys[k]! - ys[k - 1]!);
+    }
+  }
+  return ys[3]! + ((t - xs[3]!) * (ys[3]! - ys[2]!)) / (xs[3]! - xs[2]!);
+}
+
+/** Espejo de `_ln_phi`: corte CMNL, `−ln(1 + e^{ωx})`, sin desbordar para
+ *  x grande (lo mismo que `np.logaddexp(0, ωx)`). */
+function lnPhi(x: number, omega: number): number {
+  const z = omega * x;
+  return -(Math.max(z, 0) + Math.log1p(Math.exp(-Math.abs(z))));
+}
 
 function flujoLibreTiempos(
   distKm: number,
@@ -70,6 +115,7 @@ export function calcularUtilidades({
   const penal = betas.penalizaciones_fisicas;
   const gl = config.globales;
 
+  const suaves = gl.umbrales === "suaves";
   const tt = tiempos ?? flujoLibreTiempos(distKm, gl);
   const tCam = (distKm / gl.v_caminata) * 60;
 
@@ -111,7 +157,22 @@ export function calcularUtilidades({
   // Espejo de `calcular_utilidades`: sin tramo en tren no hay viaje en metro.
   // `tren_viaje == 0` ⇒ la estación más cercana es la del CBD (el destino), así
   // que "tomar el metro" sería caminar hasta el destino sin subirse a nada —
-  // caso que además esquivaba el corte de 30 min de la caminata.
+  // caso que además esquivaba el corte de 30 min de la caminata. Con «suaves»
+  // la oferta ya no asigna esa estación fuera del CBD y el filtro es la
+  // dominancia suave frente a caminar directo, en minutos de vehículo.
+  let pMetro = 0;
+  if (suaves) {
+    const bv = betas.b_tiempo_viaje;
+    const gtMetro =
+      (betas.b_tiempo_acceso / bv) * tt.tren_acceso +
+      (betas.b_tiempo_espera / bv) * tt.tren_espera +
+      tt.tren_viaje;
+    const gtCam = (betas.b_tiempo_caminata / bv) * tCam;
+    pMetro = lnPhi(
+      gtMetro - A_DOMINANCIA_METRO * gtCam,
+      OMEGA_DOMINANCIA_METRO,
+    );
+  }
   const metro: UtilityBreakdown =
     tt.tren_viaje <= 0
       ? {
@@ -128,15 +189,36 @@ export function calcularUtilidades({
           asc: betas.asc_metro,
           v_tiempo: vTMetro,
           v_costo: vCMetro,
-          v_penalizaciones: 0,
-          valor: betas.asc_metro + vTMetro + vCMetro,
+          v_penalizaciones: pMetro,
+          valor: betas.asc_metro + vTMetro + vCMetro + pMetro,
           feasible: true,
         };
 
-  // Bici — escalones y corte sobre el tiempo de red vacía; la congestión
+  // Penalización física y corte (D-02). «escalones»: saltos y, sobre el corte,
+  // el modo sale del conjunto. «suaves»: rampas y el corte como penalización
+  // CMNL, siempre factible. `null` ⇒ infactible.
+  const fisica = (
+    t: number,
+    umbrales: Tres,
+    pen: Tres,
+    corte: number,
+  ): number | null => {
+    if (suaves)
+      return rampa(t, umbrales, pen) + lnPhi(t - corte, OMEGA_CORTE_SUAVE);
+    if (t > corte) return null;
+    return escalones(t, umbrales, pen);
+  };
+
+  // Bici — penalización y corte sobre el tiempo de red vacía; la congestión
   // entra sólo por b_tiempo (D9). El corte es el configurable, como en el core.
+  const pBici = fisica(
+    tt.bici_libre,
+    [10, 20, 30],
+    [penal.bici_10, penal.bici_20, penal.bici_30],
+    gl.corte_bici_min,
+  );
   let bici: UtilityBreakdown;
-  if (tt.bici_libre > gl.corte_bici_min) {
+  if (pBici === null) {
     bici = {
       modo: "Bici",
       asc: 0,
@@ -147,10 +229,7 @@ export function calcularUtilidades({
       feasible: false,
     };
   } else {
-    let p = 0;
-    if (tt.bici_libre > 10) p += penal.bici_10;
-    if (tt.bici_libre > 20) p += penal.bici_20;
-    if (tt.bici_libre > 30) p += penal.bici_30;
+    const p = pBici;
     const vT = betas.b_tiempo_viaje * tt.bici_total;
     bici = {
       modo: "Bici",
@@ -164,8 +243,14 @@ export function calcularUtilidades({
   }
 
   // Caminata
+  const pCam = fisica(
+    tCam,
+    [5, 15, 25],
+    [penal.walk_5, penal.walk_15, penal.walk_25],
+    gl.corte_caminata_min,
+  );
   let cam: UtilityBreakdown;
-  if (tCam > gl.corte_caminata_min) {
+  if (pCam === null) {
     cam = {
       modo: "Caminata",
       asc: 0,
@@ -176,10 +261,7 @@ export function calcularUtilidades({
       feasible: false,
     };
   } else {
-    let p = 0;
-    if (tCam > 5) p += penal.walk_5;
-    if (tCam > 15) p += penal.walk_15;
-    if (tCam > 25) p += penal.walk_25;
+    const p = pCam;
     const vT = betas.b_tiempo_caminata * tCam;
     cam = {
       modo: "Caminata",

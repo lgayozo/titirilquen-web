@@ -4,7 +4,7 @@
  * Formato de archivo `.ttrq.json`:
  * ```json
  * {
- *   "$schema": "titirilquen-scenario/v10",
+ *   "$schema": "titirilquen-scenario/v11",
  *   "name": "Mi escenario",
  *   "config": { ...SimulationConfig },
  *   "land_use": { ...LandUseConfig },          // opcional
@@ -23,7 +23,7 @@
  * educativo cuyos escenarios se rehacen en minutos, no un sistema con datos
  * que no se pueden perder.
  *
- * La consecuencia es explícita: un archivo o link anterior a v10 falla al
+ * La consecuencia es explícita: un archivo o link anterior a v11 falla al
  * importarse, con un mensaje que dice por qué. v5 (sep-2026): el campo de
  * suelo `beta` pasó a llamarse `mu`, la precisión μ de Martínez; `beta` era
  * la otra precisión de su libro (D-31). v6 (sep-2026): se eliminó
@@ -38,7 +38,10 @@
  * `coupled.poblacion`; la población es ΣH de `land_use`, y un v8 correría el
  * acoplado con otra gente sin avisar. v10 (oct-2026): `mu` vuelve al suelo
  * como valor de escenario (0,30 por defecto, antes la constante 1/√44); un v9
- * no lo trae y correría otra ciudad sin avisar. Si algún día hay escenarios que
+ * no lo trae y correría otra ciudad sin avisar. v11 (oct-2026): la demanda
+ * ganó `globales.umbrales` («escalones» o «suaves»); un v10 no lo trae, el
+ * selector de Transporte quedaría sin opción activa y Comparar declararía
+ * incomparables dos corridas con la misma especificación. Si algún día hay escenarios que
  * de verdad importe conservar, la decisión se revisa — y entonces el lugar
  * correcto es un migrador versionado, no cinco parches sueltos.
  */
@@ -46,7 +49,7 @@
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 
-export const TTRQ_SCHEMA = "titirilquen-scenario/v10";
+export const TTRQ_SCHEMA = "titirilquen-scenario/v11";
 export const TTRQ_EXT = ".ttrq.json";
 
 export interface CoupledPrefs {
@@ -141,11 +144,19 @@ export function scenarioFromUrlParam(param: string): ScenarioPayload {
   // El link no lleva `$schema`. Un campo QUITADO lo rechaza el core
   // (`extra="forbid"`), pero uno AGREGADO pasa con su default de Pydantic y
   // deja al inspector de utilidad en NaN: se rechaza igual que un archivo v7.
+  // Ídem `umbrales` (v11): sin él, el selector queda sin opción activa.
   const cfg = data.config as SimulationConfig;
   if (typeof cfg.demand?.globales?.peaje_km !== "number") {
     throw new Error(
       "Este link es de una versión anterior del simulador (sin peaje por km, " +
         "schema v7) y ya no se puede abrir. Vuelve a generarlo.",
+    );
+  }
+  if (typeof cfg.demand.globales.umbrales !== "string") {
+    throw new Error(
+      "Este link es de una versión anterior del simulador (sin la " +
+        "especificación de los umbrales, schema v10) y ya no se puede abrir. " +
+        "Vuelve a generarlo.",
     );
   }
   return data as unknown as ScenarioPayload;

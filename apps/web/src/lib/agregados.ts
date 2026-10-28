@@ -50,6 +50,7 @@ export function votClpHora(demand: DemandConfig, h: StratumId): number {
 export type RazonIncomparable =
   | "modos"
   | "betas"
+  | "umbrales"
   | "teletrabajo"
   | "poblacion"
   | "medida";
@@ -70,6 +71,8 @@ export interface CorridaBienestar {
  * resta sólo lo cancela si las dos corridas lo comparten. Lo mueven:
  * - el conjunto de modos: con otro choice set el logsum cambia de escala;
  * - los β, ASC incluidas: mueven el cero y λ_h = |b_costo|, la unidad;
+ * - la especificación de los umbrales («escalones» o «suaves»): es otra
+ *   función de utilidad, con otras penalizaciones en cada distancia;
  * - el teletrabajo y la población: cambian cuántas personas suman un nivel
  *   que no es cero, así que el total se mueve aunque nadie gane ni pierda
  *   (H-E4 de la auditoría de oct-2026);
@@ -90,6 +93,8 @@ export function bienestarComparable(
   const betas = (c: SimulationConfig) =>
     JSON.stringify(estratos.map((h) => c.demand.estratos[h].betas));
   if (betas(a.config) !== betas(b.config)) return "betas";
+  if (a.config.demand.globales.umbrales !== b.config.demand.globales.umbrales)
+    return "umbrales";
   const tele = (c: SimulationConfig) =>
     JSON.stringify([
       c.demand.globales.teletrabajo_factor,

@@ -991,6 +991,43 @@ export function SandboxPage() {
             </p>
           </div>
 
+          {/* Especificación de los umbrales físicos (oct-2026). Va junto al
+              método de asignación porque cambia la función de utilidad, no
+              una política: el bienestar no se compara entre las dos. */}
+          <div className="mt-2">
+            <div className="mb-1 text-etiqueta text-muted">
+              {t("equilibrium.umbrales")}
+            </div>
+            <div className="seg" style={{ width: "100%" }}>
+              {(["escalones", "suaves"] as const).map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  className={
+                    config.demand.globales.umbrales === u ? "active" : ""
+                  }
+                  onClick={() =>
+                    setConfig((c) => ({
+                      ...c,
+                      demand: {
+                        ...c.demand,
+                        globales: { ...c.demand.globales, umbrales: u },
+                      },
+                    }))
+                  }
+                  style={{ flex: 1 }}
+                >
+                  {t(`equilibrium.umbrales_${u}`)}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-etiqueta text-muted">
+              {t(
+                `equilibrium.umbrales_hint_${config.demand.globales.umbrales}`,
+              )}
+            </p>
+          </div>
+
           <div className="mt-3">
             <div className="mb-1 text-etiqueta text-muted">
               {t("equilibrium.modos")}

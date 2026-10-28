@@ -302,8 +302,10 @@ export const useCompareStore = create<CompareState>()(
       // tope del MSA subió de 40 a 150 y la tarjeta no tiene control de
       // `max_iter`, así que un v5 seguiría corriendo con el tope viejo. v7
       // (oct-2026, auditoría B): la tolerancia por defecto bajó de 0,2 a
-      // 0,02 min, y por lo mismo un v6 seguiría cortando con la vieja.
-      name: "titirilquen.compare.v7",
+      // 0,02 min, y por lo mismo un v6 seguiría cortando con la vieja. v8
+      // (oct-2026): la demanda ganó `umbrales`; un v7 no lo trae y su
+      // bienestar quedaría incomparable con el de una tarjeta nueva.
+      name: "titirilquen.compare.v8",
       partialize: (s): CompareInputs => ({
         kind: s.kind,
         baseId: s.baseId,

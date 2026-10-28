@@ -48,13 +48,35 @@ test.describe("escenarios: exportar y compartir", () => {
     for await (const chunk of stream) chunks.push(chunk as Buffer);
     const file = JSON.parse(Buffer.concat(chunks).toString("utf-8"));
 
-    expect(file.$schema).toBe("titirilquen-scenario/v10");
+    expect(file.$schema).toBe("titirilquen-scenario/v11");
     expect(file.config.max_iter).toBe(17);
     // El escenario incluye también el suelo y las preferencias del acoplado.
     expect(file.land_use).toBeDefined();
     expect(file.coupled?.outer_max_iter).toBeGreaterThan(0);
     // D10d: la población es ΣH de `land_use`; el acoplado no tiene otra.
     expect(file.coupled?.poblacion).toBeUndefined();
+  });
+
+  test("el selector de umbrales llega al escenario exportado", async ({
+    page,
+  }) => {
+    await page.goto("/sandbox");
+    // El selector vive en la sección «Equilibrio», que arranca cerrada.
+    await page
+      .locator("summary")
+      .filter({ hasText: /^Equilibrio/ })
+      .click();
+    await page.getByRole("button", { name: "Suaves", exact: true }).click();
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Exportar configuración" }).click();
+    const download = await downloadPromise;
+    const stream = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(chunk as Buffer);
+    const file = JSON.parse(Buffer.concat(chunks).toString("utf-8"));
+
+    expect(file.config.demand.globales.umbrales).toBe("suaves");
   });
 
   test("compartir genera un link ?s= que restaura la config", async ({

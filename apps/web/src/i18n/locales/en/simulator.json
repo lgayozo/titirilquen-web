@@ -96,6 +96,11 @@
     "assignment_expected": "Logit — probabilities",
     "assignment_hint_montecarlo": "The same logit, simulated: draws each agent's mode from its probabilities (noisy across iterations). Sampling noise keeps the gap from falling below ~0.05 min, so choosing it raises the tolerance to 0.2 min (and returns it to 0.02 when you leave it, unless you moved it); the verdict is read from the expected-flow gap of the final state.",
     "assignment_hint_expected": "Analytical logit loading: splits each group n·P(m) by the logit probabilities, with no draw and no noise. Its equilibrium is the SUE (stochastic user equilibrium).",
+    "umbrales": "Physical thresholds",
+    "umbrales_escalones": "Steps",
+    "umbrales_suaves": "Smooth",
+    "umbrales_hint_escalones": "The simplified specification (default): bike and walking penalties jump when crossing 10/20/30 and 5/15/25 min, beyond the cutoff the mode leaves the choice set, and the metro is not offered where the nearest station is the CBD one. Each rule is a step: the logsum, and with it land-use accessibility, jumps at those distances.",
+    "umbrales_hint_suaves": "The same penalties and cutoffs, made continuous: ramps through the midpoints of the steps, the cutoff as a CMNL penalty (Martínez, Aguila and Hurtubia 2009), and the metro fading out where walking directly dominates it (Cascetta and Papola 2009). It removes the jumps in the logsum and in land use. It is another utility function: its surplus is not subtracted from the «steps» one.",
     "modos": "Available modes",
     "modos_hint": "Remove modes from the choice set to study stylized scenarios (e.g. Car vs Metro only).",
     "modos_min": "At least one mode must stay enabled.",
@@ -951,6 +956,7 @@
     "razon": {
       "modos": "they do not share the mode set (with another choice set the logsum changes scale)",
       "betas": "they have different β, ASCs included (they move the zero of the surplus and its unit, λ = |β_cost|)",
+      "umbrales": "they use a different threshold specification (it is another utility function: the zero of the surplus is not the same)",
       "teletrabajo": "they have different teleworking (it changes how many people add up a level that is not zero)",
       "poblacion": "they have a different population per stratum (it changes how many people add up a level that is not zero)",
       "medida": "they were run with different assignment methods (they measure surplus with different definitions)"

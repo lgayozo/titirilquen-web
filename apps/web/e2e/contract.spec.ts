@@ -80,20 +80,25 @@ test.describe("contrato utility.ts ↔ utility.py", () => {
       dist_km: number;
       tiene_auto: boolean;
       peaje_km: number;
+      umbrales: "escalones" | "suaves";
       tiempos: TiemposObservados;
       utilidades: Record<string, { valor: number; feasible: boolean }>;
     }>;
   };
 
   for (const c of cases) {
-    test(`estrato=${c.estrato} celda=${c.celda} auto=${c.tiene_auto} peaje=${c.peaje_km}`, () => {
+    test(`estrato=${c.estrato} celda=${c.celda} auto=${c.tiene_auto} peaje=${c.peaje_km} umbrales=${c.umbrales}`, () => {
       const utils = calcularUtilidades({
         estrato: c.estrato,
         distKm: c.dist_km,
         tieneAuto: c.tiene_auto,
         config: {
           ...defaultDemandConfig,
-          globales: { ...defaultDemandConfig.globales, peaje_km: c.peaje_km },
+          globales: {
+            ...defaultDemandConfig.globales,
+            peaje_km: c.peaje_km,
+            umbrales: c.umbrales,
+          },
         },
         tiempos: c.tiempos,
       });

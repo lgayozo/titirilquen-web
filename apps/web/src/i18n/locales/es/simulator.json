@@ -96,6 +96,11 @@
     "assignment_expected": "Logit — probabilidades",
     "assignment_hint_montecarlo": "El mismo logit, simulado: sortea el modo de cada agente con sus probabilidades (tiene ruido entre iteraciones). El ruido de muestreo no deja que la brecha baje de ~0,05 min, así que al elegirlo la tolerancia sube a 0,2 min (y vuelve a 0,02 al dejarlo, si no la moviste); el veredicto se lee de la brecha con flujos esperados del estado final.",
     "assignment_hint_expected": "Carga logit analítica: reparte cada grupo n·P(m) según las probabilidades logit, sin sorteo ni ruido. Su equilibrio es el SUE (equilibrio estocástico de usuario).",
+    "umbrales": "Umbrales físicos",
+    "umbrales_escalones": "Escalones",
+    "umbrales_suaves": "Suaves",
+    "umbrales_hint_escalones": "La especificación simplificada (por defecto): las penalizaciones de la bici y la caminata saltan al cruzar 10/20/30 y 5/15/25 min, sobre el corte el modo sale del conjunto de elección, y el metro no se ofrece donde la estación más cercana es la del CBD. Cada regla es un escalón: el logsum, y con él la accesibilidad del suelo, salta en esas distancias.",
+    "umbrales_hint_suaves": "Las mismas penalizaciones y cortes, continuos: rampas por los puntos medios de los escalones, el corte como penalización CMNL (Martínez, Aguila y Hurtubia 2009) y el metro desvanecido donde caminar directo lo domina (Cascetta y Papola 2009). Quita los saltos del logsum y del suelo. Es otra función de utilidad: su excedente no se resta al de «escalones».",
     "modos": "Modos disponibles",
     "modos_hint": "Quita modos del set de elección para estudiar escenarios estilizados (p.ej. solo Auto vs Metro).",
     "modos_min": "Debe quedar al menos un modo habilitado.",
@@ -951,6 +956,7 @@
     "razon": {
       "modos": "no comparten el conjunto de modos (con otro choice set el logsum cambia de escala)",
       "betas": "tienen otros β, ASC incluidas (mueven el cero del excedente y su unidad, λ = |β_costo|)",
+      "umbrales": "usan otra especificación de los umbrales (es otra función de utilidad: el cero del excedente no es el mismo)",
       "teletrabajo": "tienen otro teletrabajo (cambia cuántos suman un nivel que no es cero)",
       "poblacion": "tienen otra población por estrato (cambia cuántos suman un nivel que no es cero)",
       "medida": "se corrieron con métodos de asignación distintos (miden el excedente con definiciones distintas)"
