@@ -14,6 +14,7 @@ Correr desde `packages/titirilquen_core`:
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -205,14 +206,23 @@ def limite_del_logit() -> dict:
     return {"grupos": len(grupos), "filas": filas}
 
 
+def _tope_todo_o_nada() -> int:
+    """`MAX_ITER_TODO_O_NADA` de `SandboxPage.tsx`: al elegir todo o nada la
+    interfaz lleva el tope a ese valor como mínimo (auditoría B)."""
+    ts = (RAIZ / "apps" / "web" / "src" / "pages" / "SandboxPage.tsx").read_text(encoding="utf-8")
+    return int(re.search(r"const MAX_ITER_TODO_O_NADA = (\d+);", ts).group(1))
+
+
 def pistas() -> dict:
     """Downs-Thomson con los dos métodos, con la parada de la aplicación: lo
     que el usuario ve al mover el control de pistas. Al elegir todo o nada la
-    interfaz lleva el tope a 100 iteraciones como mínimo (D-70)."""
+    interfaz sube el tope (D-70, auditoría B)."""
     out = {}
     for metodo in ("expected", "todo_o_nada"):
         tope = (
-            {"max_iter": max(base._config_web().max_iter, 100)} if metodo == "todo_o_nada" else {}
+            {"max_iter": max(base._config_web().max_iter, _tope_todo_o_nada())}
+            if metodo == "todo_o_nada"
+            else {}
         )
         out[metodo] = [
             {

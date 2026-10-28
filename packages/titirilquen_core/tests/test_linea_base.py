@@ -275,6 +275,21 @@ def test_linea_base_umbrales_suaves(localizacion: str) -> None:
         assert abs(pct[modo] - objetivo) <= TOL_PP, f"{modo}: {pct[modo]:.2f} vs {objetivo}"
 
 
+def test_un_ciclo_de_periodo_dos_parte_el_paso() -> None:
+    """Con el doble de hogares la iteración directa oscila entre dos estados
+    (el auto salta entre ~21 % y ~27 %) y la brecha baja apenas ~0,5 % por
+    vuelta. El halving con «no bajó» estricto nunca partía el paso y la corrida
+    agotaba el tope con brecha 11,8 min; con disminución suficiente
+    (`_RHO_HALVING`) el paso se parte y converge."""
+    lu = _land_use_web()
+    lu = lu.model_copy(update={"H_por_estrato": tuple(2 * h for h in lu.H_por_estrato)})
+    trace = ConvergenceTrace()
+    for _ in iter_msa_desde_suelo(_config_web(), lu, trace, localizacion="original"):
+        pass
+    assert trace.converged
+    assert min(s.f_msa for s in trace.iteraciones) < 1.0
+
+
 def test_las_dos_ramas_de_localizacion_difieren() -> None:
     """Guard del propio test: si las dos ramas coincidieran, una de las dos no
     se estaría ejerciendo y el pineo sería falso.

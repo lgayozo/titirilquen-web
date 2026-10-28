@@ -113,6 +113,14 @@ class ConvergenceTrace:
 
 #: Alias local del orden canónico (`titirilquen_core.constantes.MODOS`).
 _MODOS = MODOS
+#: Disminución suficiente del halving de 'expected': si la brecha no baja al
+#: menos 10 % respecto de la anterior, el paso se divide por 2. Con «no bajó»
+#: estricto, un ciclo de periodo 2 que se amortigua despacio (72.000 hogares en
+#: 20 km, «Ciudad con metro» + «Base») bajaba la brecha ~0,5 % por iteración,
+#: nunca partía el paso y agotaba el tope con brecha 11,8 min. Con 0,9 converge
+#: toda la galería ciudad × política y los 776 casos del barrido salvo el pliegue
+#: de b_tiempo_espera ×1,5 (auditoría B, oct-2026).
+_RHO_HALVING = 0.9
 
 
 @dataclass
@@ -673,12 +681,13 @@ def _iter_loop(
             }
         yield snap
 
-        # Halving (Boyles §8.3.5, p. 314): si la brecha no bajó, el paso se
-        # divide por 2. Con un pliegue del metro (b_tiempo_espera ×1,5 en
-        # «suaves») la brecha sube un tramo en el camino al equilibrio, el paso
-        # colapsa y la corrida termina sin converger: queda dicho, no escondido.
+        # Halving (Boyles §8.3.5, p. 314): si la brecha no bajó lo suficiente
+        # (`_RHO_HALVING`), el paso se divide por 2. Con un pliegue del metro
+        # (b_tiempo_espera ×1,5 en «suaves») la brecha sube un tramo en el
+        # camino al equilibrio, el paso colapsa y la corrida termina sin
+        # converger: queda dicho, no escondido.
         if flujos and it > 0:
-            if residuo >= brecha_prev * (1.0 - 1e-6):
+            if residuo >= brecha_prev * _RHO_HALVING:
                 alfa /= 2.0
             brecha_prev = residuo
 

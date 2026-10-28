@@ -571,7 +571,7 @@ def _loop_msa(sim, land_use, n_outer: int) -> list[dict]:
 
 def paso() -> dict:
     """D10: la regla vieja (MSA 1/(k+1)) contra la del núcleo (paso 1, a la
-    mitad si la brecha crece), sin corte (`outer_tol = 0`), en la base y en dos
+    mitad si la brecha no baja, A4), sin corte (`outer_tol = 0`), en la base y en dos
     casos de estrés: ρ = 54 —el del tutorial `alonso_invertido`, ciudad con
     mucha retroalimentación por densidad— y la población ×2,5."""
     sim = base._config_web()
@@ -755,7 +755,7 @@ def parametros_vigentes() -> dict:
         ],
         "rho": [float(e.rho) for e in lu.estratos],
         "lambda_h": _lambdas(),
-        "paso": "1; a la mitad cada vez que la brecha crece",
+        "paso": "1; a la mitad cada vez que la brecha no baja (A4)",
         "assignment_forzado": "expected",
         "tolerancia_interior_min": float(base._config_web().tolerance),
         "outer_tol": {
@@ -815,7 +815,8 @@ def main() -> None:
             "configuracion": (
                 "La de la aplicación (`test_linea_base._config_web` y "
                 "`_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, "
-                "semilla 42, asignación esperada, brecha interior < 0,2 min. El "
+                "semilla 42, asignación esperada, brecha interior < "
+                f"{str(base._config_web().tolerance).replace('.', ',')} min. El "
                 f"acoplado con `outer_max_iter = {VUELTAS_ACOPLADO_MAX}` y la "
                 "tolerancia del núcleo, 100 $/hogar-mes."
             ),

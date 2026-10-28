@@ -30,6 +30,7 @@ Correr desde `packages/titirilquen_core` (~2 min):
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -236,7 +237,8 @@ def peaje_y_bienestar() -> dict:
     return {
         "peaje_preset_tarificacion_vial": POLICY_PRESETS["Tarificación Vial"]["peaje"],
         "nota": (
-            "Localización «original», tolerancia de la app (0,2 min). Sin "
+            "Localización «original», tolerancia de la app "
+            f"({str(base._config_web().tolerance).replace('.', ',')} min). Sin "
             "teletrabajo por defecto (oct-2026) el máximo pasó de 150 a 250–300 $/km; "
             "con la base de 4 pistas y ciclovía 6.000 (oct-2026), a 25–50 $/km."
         ),
@@ -304,14 +306,22 @@ def ancla_vot() -> dict:
     }
 
 
+def _tope_todo_o_nada() -> int:
+    """`MAX_ITER_TODO_O_NADA` de `SandboxPage.tsx`: al elegir todo o nada la
+    interfaz lleva el tope a ese valor como mínimo (auditoría B)."""
+    ts = (RAIZ / "apps" / "web" / "src" / "pages" / "SandboxPage.tsx").read_text(encoding="utf-8")
+    return int(re.search(r"const MAX_ITER_TODO_O_NADA = (\d+);", ts).group(1))
+
+
 def logit_vs_determinista() -> dict:
     """El mismo escenario con las dos reglas de elección."""
     out = {}
     for metodo in ("expected", "todo_o_nada"):
-        # Al elegir todo o nada la app lleva el tope a 100 como mínimo (con el
-        # default de 150 no lo toca): converge lento (D-70).
+        # Al elegir todo o nada la app sube el tope: converge lento (D-70).
         tope = (
-            {"max_iter": max(base._config_web().max_iter, 100)} if metodo == "todo_o_nada" else {}
+            {"max_iter": max(base._config_web().max_iter, _tope_todo_o_nada())}
+            if metodo == "todo_o_nada"
+            else {}
         )
         tr = _traza(base._config_web().model_copy(update={"assignment": metodo, **tope}))
         s = tr.iteraciones[-1].modal_split

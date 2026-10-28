@@ -20,7 +20,7 @@
   </p>
   <p class="meta">
     Módulos: <code>equilibrium/msa.py</code> · <code>emissions.py</code> ·
-    datos regenerados el 2026-10-25 ·
+    datos regenerados el 2026-10-27 ·
     <span class="estado vigente">vigente</span>
   </p>
 </header>
@@ -86,7 +86,13 @@
   la distancia al objetivo deja de bajar. Con la carga esperada, la de la
   aplicación, el simulador hace eso: <strong>promedia flujos con paso
   halving</strong>. Mientras la brecha baje, el paso sigue en 1 y el método
-  es la iteración directa; cuando sube, el paso se parte en dos y amortigua.
+  es la iteración directa; cuando no baja lo suficiente, el paso se parte en
+  dos y amortigua. «Lo suficiente» es un 10 %: el paso se divide si la brecha
+  nueva supera ρ = 0,9 veces la anterior. Es una condición de
+  <strong>disminución suficiente</strong>, como la de Armijo en la búsqueda
+  lineal, y no está en Boyles: se agregó porque con «no bajó» a secas un
+  ciclo de periodo 2 que se amortigua despacio nunca partía el paso
+  (<a href="informe-parada-msa.html">informe-parada-msa</a>, §4).
 </p>
 
 <p>
@@ -254,7 +260,7 @@
   <tbody>
     <tr><td><code>tolerance</code></td><td class="n">0,02</td><td class="n">0,02</td><td>min</td><td><span class="etiqueta neutra">decisión</span> auditoría B: sobre la brecha (5.4), dos iteraciones seguidas; con Montecarlo la interfaz la sube a 0,2</td></tr>
     <tr><td><code>max_iter</code></td><td class="n">150</td><td class="n">150</td><td>—</td><td><span class="etiqueta neutra">decisión</span> cubre los 8 presets de política, que convergen en 11 o menos, y la pista única de la §5.5; con todo o nada la interfaz lo sube a 700 (el schema admite hasta 1.000)</td></tr>
-    <tr><td>paso del MSA</td><td class="n">halving</td><td class="n">halving</td><td>—</td><td><span class="etiqueta ok">literatura</span> Boyles §8.3.5: con carga esperada parte en 1 y se divide por 2 cuando la brecha no baja; Montecarlo y todo o nada, 1/(n+1)</td></tr>
+    <tr><td>paso del MSA</td><td class="n">halving</td><td class="n">halving</td><td>—</td><td><span class="etiqueta ok">literatura</span> Boyles §8.3.5: con carga esperada parte en 1 y se divide por 2 cuando la brecha no baja al menos un 10 % (ρ = 0,9, decisión propia, auditoría B); Montecarlo y todo o nada, 1/(n+1)</td></tr>
     <tr><td><code>TOL_RELATIVA_TON</code></td><td class="n">10<sup>−3</sup></td><td class="n">10<sup>−3</sup></td><td>—</td><td><span class="etiqueta neutra">decisión</span> auditoría B: todo o nada para con AEC/<em>t̄</em> bajo este valor; constante del núcleo, no campo del schema</td></tr>
     <tr><td><code>assignment</code></td><td class="n">expected</td><td class="n">montecarlo</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la app usa «Logit — probabilidades» (carga los flujos esperados n·P, sin ruido de muestreo); es una de las divergencias declaradas</td></tr>
     <tr><td><code>seed</code></td><td class="n">42</td><td class="n">—</td><td>—</td><td><span class="etiqueta neutra">decisión</span> reproducibilidad</td></tr>
@@ -273,8 +279,8 @@
   la brecha de la base cae geométricamente. Pasar de 0,2 a 0,001 pide 8
   iteraciones en vez de 4 y mueve el reparto 0,047 puntos. Desde la tolerancia
   de la aplicación, sólo 0,002 (§5.2). Bajarla más no cuesta en la base, pero
-  sí en los escenarios que contraen lento: con 2 pistas, 0,02 ya no se alcanza
-  en 150 iteraciones (§5.3).
+  sí en los escenarios que contraen lento: con una pista la aplicación pide
+  20 iteraciones y la referencia de 10<sup>−6</sup> min, 51 (§5.3).
 </p>
 
 <p>
@@ -324,20 +330,20 @@
     <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">332</td><td><code>iter_msa_desde_suelo</code> — la entrada: población desde el suelo, una iteración por vez; <code>run_msa</code> (706) la consume entera y <code>run_msa_con_poblacion</code> (733) sirve al acoplado</td></tr>
-    <tr><td class="n">(5.2), (5.3)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">468</td><td><code>_iter_loop</code> — el loop; su docstring explica qué promedia cada método de carga</td></tr>
-    <tr><td class="n">(5.1)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">175</td><td><code>_correr_iteracion</code> — el lado <em>d(t)</em>: carga por grupo, esperada o sorteada; <code>_agrupar_agentes</code> (132) separa a los teletrabajadores</td></tr>
-    <tr><td class="n">(5.5)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">537</td><td><code>resolver_red_vacia</code> — el tiempo de bici de la red vacía, una vez por corrida, para los escalones (D9)</td></tr>
-    <tr><td class="n">(5.2)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">516</td><td><code>flujos</code> — con carga esperada el loop promedia flujos; <code>alfa</code> (540) es el paso halving, que se divide por 2 cuando la brecha no baja (682)</td></tr>
-    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">450</td><td><code>_brecha_tiempos</code> — la brecha: máximo de |tiempo de la oferta − tiempo vigente| en auto, bici y metro</td></tr>
-    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">607</td><td><code>residuo</code> — lo que decide la parada: la brecha contra el objetivo con carga esperada, contra el iterado con Montecarlo</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">694</td><td><code>estables</code> — criterio de parada: residuo bajo la tolerancia dos veces seguidas</td></tr>
-    <tr><td class="n">(5.2)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">515</td><td><code>ton</code> — con todo o nada el loop promedia el reparto de cada grupo con paso 1/(n+1) (D-70)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">257</td><td><code>_costo_en_exceso_medio</code> — Σ<em>n·x</em>·(<em>V*</em> − <em>V</em>)/|<em>β<sub>t</sub></em>| sobre Σ<em>n·x</em>, en minutos</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">282</td><td><code>_brecha_relativa_ton</code> — el residuo de todo o nada: el AEC dividido por el tiempo medio ponderado por la demanda</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">770</td><td><code>_finalizar_ton</code> — el estado final es el reparto promediado: modos por agente con cuotas de mayor residuo, sin sorteo</td></tr>
-    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">808</td><td><code>_finalizar_trace</code> — modos por agente, demanda por estrato, brecha final y emisiones; con Montecarlo, <code>converged</code> (867) sale de esa brecha</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">301</td><td><code>_asignar_modos_agentes</code> — el modo muestreado por agente al final, para las figuras y el bienestar</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">340</td><td><code>iter_msa_desde_suelo</code> — la entrada: población desde el suelo, una iteración por vez; <code>run_msa</code> (715) la consume entera y <code>run_msa_con_poblacion</code> (742) sirve al acoplado</td></tr>
+    <tr><td class="n">(5.2), (5.3)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">476</td><td><code>_iter_loop</code> — el loop; su docstring explica qué promedia cada método de carga</td></tr>
+    <tr><td class="n">(5.1)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">183</td><td><code>_correr_iteracion</code> — el lado <em>d(t)</em>: carga por grupo, esperada o sorteada; <code>_agrupar_agentes</code> (140) separa a los teletrabajadores</td></tr>
+    <tr><td class="n">(5.5)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">545</td><td><code>resolver_red_vacia</code> — el tiempo de bici de la red vacía, una vez por corrida, para los escalones (D9)</td></tr>
+    <tr><td class="n">(5.2)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">524</td><td><code>flujos</code> — con carga esperada el loop promedia flujos; <code>alfa</code> (548) es el paso halving, que se divide por 2 cuando la brecha no baja al menos un 10 % (690), el umbral <code>_RHO_HALVING</code> (123)</td></tr>
+    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">458</td><td><code>_brecha_tiempos</code> — la brecha: máximo de |tiempo de la oferta − tiempo vigente| en auto, bici y metro</td></tr>
+    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">615</td><td><code>residuo</code> — lo que decide la parada: la brecha contra el objetivo con carga esperada, contra el iterado con Montecarlo</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">703</td><td><code>estables</code> — criterio de parada: residuo bajo la tolerancia dos veces seguidas</td></tr>
+    <tr><td class="n">(5.2)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">523</td><td><code>ton</code> — con todo o nada el loop promedia el reparto de cada grupo con paso 1/(n+1) (D-70)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">265</td><td><code>_costo_en_exceso_medio</code> — Σ<em>n·x</em>·(<em>V*</em> − <em>V</em>)/|<em>β<sub>t</sub></em>| sobre Σ<em>n·x</em>, en minutos</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">290</td><td><code>_brecha_relativa_ton</code> — el residuo de todo o nada: el AEC dividido por el tiempo medio ponderado por la demanda</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">779</td><td><code>_finalizar_ton</code> — el estado final es el reparto promediado: modos por agente con cuotas de mayor residuo, sin sorteo</td></tr>
+    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">817</td><td><code>_finalizar_trace</code> — modos por agente, demanda por estrato, brecha final y emisiones; con Montecarlo, <code>converged</code> (876) sale de esa brecha</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">309</td><td><code>_asignar_modos_agentes</code> — el modo muestreado por agente al final, para las figuras y el bienestar</td></tr>
     <tr><td class="n">(5.5)</td><td class="ruta py">demand/utility.py</td><td class="n">87</td><td><code>bici_libre</code> — el campo de <code>TiemposObservados</code> sobre el que van escalones y corte; <code>t_esfuerzo</code> (237) los evalúa</td></tr>
     <tr><td class="n">(5.6)</td><td class="ruta py">emissions.py</td><td class="n">56</td><td><code>calcular_emisiones</code> — auto por velocidad local; <code>factor_emision_auto</code> (29) es la curva; <code>tren_km_hora</code> (43) los tren-km del metro</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">385</td><td><code>SimulationConfig</code> — <code>max_iter</code> (400), <code>tolerance</code> (411), <code>seed</code> (412), <code>assignment</code> (413), <code>modos_habilitados</code> (432)</td></tr>
@@ -420,8 +426,8 @@
 </div>
 
 <p>
-  En la base la brecha baja en cada iteración, así que el halving nunca se
-  activa: el paso queda en 1 y el MSA es la iteración directa, que aquí
+  En la base la brecha baja mucho más que un 10 % en cada iteración, así que
+  el halving nunca se activa: el paso queda en 1 y el MSA es la iteración directa, que aquí
   contrae. La brecha cae entre tres y seis veces por iteración, de 1,02 min en
   la segunda a 5,5·10<sup>−12</sup> en la 20. La corrida de la aplicación para
   en la <strong>6</strong>, la segunda seguida bajo 0,02 min, con una brecha de
@@ -467,9 +473,9 @@
     <tr class="destacada"><td>Base, original</td><td class="n">6</td><td>sí</td><td class="n">0,00064</td><td class="n">13</td><td class="n">0,003</td></tr>
     <tr><td>Base, equilibrio</td><td class="n">6</td><td>sí</td><td class="n">0,00019</td><td class="n">12</td><td class="n">0,001</td></tr>
     <tr><td>1 pista</td><td class="n">20</td><td>sí</td><td class="n">0,00973</td><td class="n">51</td><td class="n">0,001</td></tr>
-    <tr><td>2 pistas</td><td class="n">150</td><td>no</td><td class="n">0,02203</td><td class="n">379</td><td class="n">0,005</td></tr>
+    <tr><td>2 pistas</td><td class="n">9</td><td>sí</td><td class="n">0,00414</td><td class="n">26</td><td class="n">0,003</td></tr>
     <tr><td><code>b_tiempo_espera</code> ×1,45, suaves</td><td class="n">13</td><td>sí</td><td class="n">0,01085</td><td class="n">52</td><td class="n">0,068</td></tr>
-    <tr><td><code>b_tiempo_espera</code> ×1,5, suaves</td><td class="n">150</td><td>no</td><td class="n">0,26164</td><td class="n">3.000, no converge</td><td class="n">—</td></tr>
+    <tr><td><code>b_tiempo_espera</code> ×1,5, suaves</td><td class="n">150</td><td>no</td><td class="n">0,21282</td><td class="n">3.000, no converge</td><td class="n">—</td></tr>
   </tbody>
 </table>
 </div>
@@ -486,22 +492,22 @@
 </p>
 
 <p>
-  Dos escenarios terminan «no convergió», y las dos veces es la respuesta
-  honesta. Con <strong>2 pistas</strong> el paso se queda en 1 y la brecha baja
-  todo el tiempo, pero lento: a las 150 iteraciones está en 0,022 min, apenas
-  sobre la tolerancia, y el reparto ya está a 0,005 puntos de la referencia,
-  que necesita 379 iteraciones. Con <strong>×1,5</strong> el modelo está más
+  Con <strong>2 pistas</strong> la brecha baja todo el tiempo, pero despacio.
+  Con «no bajó» a secas el paso se quedaba en 1 y la corrida agotaba las 150
+  iteraciones; con la disminución suficiente el paso se parte y converge en
+  9, a 0,003 puntos de la referencia. Un solo escenario termina «no
+  convergió», y es la respuesta honesta. Con <strong>×1,5</strong> el modelo está más
   allá de un pliegue. El equilibrio interior del metro desaparece y la
   trayectoria tiene que cruzar una zona donde la brecha sube un tramo antes de
   bajar; el halving reacciona partiendo el paso hasta que queda en nada. La
-  corrida se detiene con brecha 0,26 min, en el mismo estado que la
+  corrida se detiene con brecha 0,21 min, en el mismo estado que la
   referencia de 3.000 iteraciones, que tampoco converge. No es un equilibrio,
   y la aplicación lo dice.
 </p>
 
 <p>
   Hay además un hecho que la tabla no muestra. En ×1,45 la auditoría B
-  encontró <strong>dos puntos fijos</strong>: el que se alcanza desde el
+  (<a href="informe-parada-msa.html">informe-parada-msa</a>) encontró <strong>dos puntos fijos</strong>: el que se alcanza desde el
   arranque del núcleo, el de la tabla, y otro con el metro en su frecuencia
   mínima, al que se llega partiendo cerca de él. Ninguna regla de parada
   elige entre los dos, porque es una propiedad del modelo, el efecto Mohring
@@ -529,7 +535,7 @@
   </thead>
   <tbody>
     <tr><td class="n">1</td><td class="n">20</td><td class="n">16,15</td><td class="n">31,23</td><td class="n">5,62</td><td class="n">57,4</td><td class="n">14.545,2</td></tr>
-    <tr><td class="n">2</td><td class="n">150, no converge</td><td class="n">24,38</td><td class="n">26,21</td><td class="n">4,72</td><td class="n">33,9</td><td class="n">14.555,9</td></tr>
+    <tr><td class="n">2</td><td class="n">9</td><td class="n">24,38</td><td class="n">26,22</td><td class="n">4,72</td><td class="n">33,9</td><td class="n">14.560,2</td></tr>
     <tr><td class="n">3</td><td class="n">6</td><td class="n">27,95</td><td class="n">24,00</td><td class="n">4,32</td><td class="n">24,4</td><td class="n">12.159,5</td></tr>
     <tr class="destacada"><td class="n">4</td><td class="n">6</td><td class="n">29,18</td><td class="n">23,24</td><td class="n">4,18</td><td class="n">21,2</td><td class="n">10.747,7</td></tr>
   </tbody>
@@ -537,12 +543,12 @@
 </div>
 
 <p>
-  Al pasar de una a dos pistas el auto gana 8,23 puntos, el metro pierde 5,02
+  Al pasar de una a dos pistas el auto gana 8,24 puntos, el metro pierde 5,02
   y su frecuencia cae de 5,62 a 4,72 trenes por hora, un 16 %. Es el efecto
   Mohring operando en reversa, la cadena que produce la paradoja de
   Downs-Thomson. Lo que no ocurre es que llegue a dominar. El tiempo del auto
   desde el borde baja de 57,4 a 33,9 min. Las emisiones suben de 14.545 a
-  14.556 kg/h: la velocidad baja la emisión por kilómetro, pero el auto gana
+  14.560 kg/h: la velocidad baja la emisión por kilómetro, pero el auto gana
   viajes y eso pesa más.
 </p>
 
@@ -551,8 +557,7 @@
   transporte público sea el modo dominante y que su frecuencia sea muy
   sensible a la demanda, y aquí el metro lleva el 23,2 % de los viajes. De
   tres a cuatro pistas el auto gana 1,23 puntos: la palanca vial se agota en
-  cuanto la vía baja de su capacidad. La fila de 2 pistas es la que no
-  converge en la §5.3, a 0,005 puntos de su referencia. La población está fija
+  cuanto la vía baja de su capacidad. La población está fija
   en todas las filas; con la localización de equilibrio la vía nueva movería
   además a los hogares, que es materia del capítulo 6.
 </p>
@@ -682,10 +687,11 @@
     pantalla que puede haber más de un equilibrio sería lo mínimo.
   </li>
   <li>
-    <strong>Las corridas que contraen lento.</strong> Con 2 pistas la brecha
-    baja todo el tiempo pero no alcanza 0,02 en 150 iteraciones, aunque el
-    reparto ya está a milésimas de punto. Hoy se declara «no convergió». Un
-    tope más alto, o acelerar la contracción, lo resolvería.
+    <strong>El umbral del halving.</strong> ρ = 0,9 es una elección propia,
+    medida sobre la galería de ciudades y políticas y el barrido de
+    parámetros (<a href="informe-parada-msa.html">informe</a>, §4), no un
+    valor de la literatura. Una búsqueda lineal con respaldo teórico podría
+    reemplazarlo.
   </li>
   <li>
     <strong>Un test de que la brecha acota el error del reparto</strong>, para

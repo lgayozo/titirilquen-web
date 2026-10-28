@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-16",
-  "commit": "34b1726",
+  "fecha": "2026-10-27",
+  "commit": "80bacd5",
   "script": "docs/libro/datos/datos_cap02.py",
   "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la densidad relativa, μ=LandUseConfig.mu=0,30 (schema v10), λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
  },

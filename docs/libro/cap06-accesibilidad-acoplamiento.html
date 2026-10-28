@@ -22,7 +22,7 @@
   <p class="meta">
     Módulos: <code>land_use/accesibilidad.py</code> · <code>coupled.py</code> ·
     <code>coupled_metrics.py</code> ·
-    datos regenerados el 2026-10-18 ·
+    datos regenerados el 2026-10-27 ·
     <span class="estado vigente">vigente</span>
   </p>
 </header>
@@ -151,11 +151,13 @@
 
 <p>
   Se itera con un paso <em>s_k</em> que parte en 1 y se reduce a la mitad
-  cada vez que la brecha crece respecto de la vuelta anterior:
+  cada vez que la brecha no baja respecto de la vuelta anterior. Hasta la
+  auditoría A4 (oct-2026) se reducía sólo si crecía, y un ciclo de periodo 2
+  con la brecha clavada en el mismo valor no lo partía nunca:
 </p>
 
-<div class="ecuacion" data-tex="T^{(k)} \;=\; T^{(k-1)} + s_k\,\Big(F\big(T^{(k-1)}\big) - T^{(k-1)}\Big), \qquad s_1 = 1, \quad s_k = \begin{cases} s_{k-1}/2 & \text{si } r_k &gt; r_{k-1} \\ s_{k-1} & \text{si no} \end{cases}" data-id="(6.6)">
-  <span class="id">(6.6)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>T</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup><mtext>  </mtext><mo>=</mo><mtext>  </mtext><msup><mi>T</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo>+</mo><msub><mi>s</mi><mi>k</mi></msub><mtext> </mtext><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">(</mo><mi>F</mi><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msup><mi>T</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo>−</mo><msup><mi>T</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>s</mi><mn>1</mn></msub><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mspace width="1em"/><msub><mi>s</mi><mi>k</mi></msub><mo>=</mo><mrow><mo fence="true">{</mo><mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><msub><mi>s</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mi mathvariant="normal">/</mi><mn>2</mn></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mtext>si </mtext><msub><mi>r</mi><mi>k</mi></msub><mo>&gt;</mo><msub><mi>r</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><msub><mi>s</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>si no</mtext></mstyle></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">T^{(k)} \;=\; T^{(k-1)} + s_k\,\Big(F\big(T^{(k-1)}\big) - T^{(k-1)}\Big), \qquad s_1 = 1, \quad s_k = \begin{cases} s_{k-1}/2 &amp; \text{si } r_k &gt; r_{k-1} \\ s_{k-1} &amp; \text{si no} \end{cases}</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="T^{(k)} \;=\; T^{(k-1)} + s_k\,\Big(F\big(T^{(k-1)}\big) - T^{(k-1)}\Big), \qquad s_1 = 1, \quad s_k = \begin{cases} s_{k-1}/2 & \text{si } r_k \ge r_{k-1} \\ s_{k-1} & \text{si no} \end{cases}" data-id="(6.6)">
+  <span class="id">(6.6)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>T</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup><mtext>  </mtext><mo>=</mo><mtext>  </mtext><msup><mi>T</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo>+</mo><msub><mi>s</mi><mi>k</mi></msub><mtext> </mtext><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">(</mo><mi>F</mi><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msup><mi>T</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo>−</mo><msup><mi>T</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>s</mi><mn>1</mn></msub><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mspace width="1em"/><msub><mi>s</mi><mi>k</mi></msub><mo>=</mo><mrow><mo fence="true">{</mo><mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><msub><mi>s</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mi mathvariant="normal">/</mi><mn>2</mn></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mtext>si </mtext><msub><mi>r</mi><mi>k</mi></msub><mo>≥</mo><msub><mi>r</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><msub><mi>s</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>si no</mtext></mstyle></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">T^{(k)} \;=\; T^{(k-1)} + s_k\,\Big(F\big(T^{(k-1)}\big) - T^{(k-1)}\Big), \qquad s_1 = 1, \quad s_k = \begin{cases} s_{k-1}/2 &amp; \text{si } r_k \ge r_{k-1} \\ s_{k-1} &amp; \text{si no} \end{cases}</annotation></semantics></math></span>
 </div>
 
 <p>
@@ -256,11 +258,11 @@
     <tr><td><code>alpha</code></td><td class="n">1,0</td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la puja lee el logsum mensual tal cual (cap. 2). Fijo: desde el schema v7 no es campo, porque sólo μα se identifica</td></tr>
     <tr><td><code>lambda</code></td><td class="n">3,14 · 6,28 · 12,16 ·10⁻⁴</td><td class="n">ídem</td><td>útiles/$</td><td><span class="etiqueta frio">norma</span> el <code>|b_costo|</code> del logit modal, literal; 1/λ = 3.187 · 1.593 · 822 $ por útil</td></tr>
     <tr><td><code>rho</code></td><td class="n">0</td><td class="n">0</td><td>útiles-mes por unidad de densidad relativa (v7)</td><td><span class="etiqueta neutra">decisión</span> Alonso puro: sólo la accesibilidad decide la localización (cap. 2)</td></tr>
-    <tr><td>paso</td><td class="n">1, ÷2</td><td class="n">1, ÷2</td><td>—</td><td><span class="etiqueta neutra">decisión</span> (6.6): parte en 1 y se reduce a la mitad si la brecha crece (D10); no es ajustable</td></tr>
+    <tr><td>paso</td><td class="n">1, ÷2</td><td class="n">1, ÷2</td><td>—</td><td><span class="etiqueta neutra">decisión</span> (6.6): parte en 1 y se reduce a la mitad si la brecha no baja (D10, A4); no es ajustable</td></tr>
     <tr><td><code>outer_tol</code></td><td class="n">100</td><td class="n">100</td><td>$/hogar-mes</td><td><span class="etiqueta neutra">decisión</span> <code>TOL_ACOPLADO_CLP_MES</code>, una sola constante del núcleo (D10). La API y el worker la usan por nombre; la página acoplada y el comparador no mandan el campo</td></tr>
     <tr><td><code>outer_max_iter</code></td><td class="n">10</td><td class="n">10</td><td>vueltas</td><td><span class="etiqueta neutra">decisión</span> <code>VUELTAS_ACOPLADO_MAX</code>, una sola constante del núcleo (D-61): default y cota de la API, el worker, la página acoplada y el comparador. El loop corta antes al converger</td></tr>
     <tr><td><code>assignment</code></td><td class="n">expected</td><td class="n">expected</td><td>—</td><td><span class="etiqueta neutra">decisión</span> forzado por el loop, cualquiera sea el de la configuración</td></tr>
-    <tr><td><code>tolerance</code> (interior)</td><td class="n">0,2</td><td class="n">0,2</td><td>min</td><td><span class="etiqueta neutra">decisión</span> la brecha del MSA de transporte (cap. 5, D8); cada vuelta corre uno entero</td></tr>
+    <tr><td><code>tolerance</code> (interior)</td><td class="n">0,02</td><td class="n">0,02</td><td>min</td><td><span class="etiqueta neutra">decisión</span> la brecha del MSA de transporte (cap. 5, D8); cada vuelta corre uno entero</td></tr>
   </tbody>
 </table>
 </div>
@@ -286,9 +288,9 @@
   822 $/mes según el estrato: el mismo número exigía casi cuatro veces
   más al estrato bajo que al alto. 100 $/hogar-mes es una
   fracción menor de cualquier diferencia que se reporte. En la base la
-  primera brecha medida ya es 98,7 $/hogar-mes, apenas bajo la tolerancia,
-  y sin corte el paso de (6.6) la lleva a 0,6 en la vuelta siguiente y a
-  cero en la otra (§5.6), así que la tolerancia corta en la primera
+  primera brecha medida es 118,4 $/hogar-mes, algo sobre la tolerancia,
+  y sin corte el paso de (6.6) la lleva a 10,5 en la vuelta siguiente y a
+  3,3 en la otra (§5.6), así que la tolerancia corta en la segunda
   medición.
 </p>
 
@@ -296,7 +298,7 @@
   <strong>El tope de vueltas</strong> es uno solo,
   <code>VUELTAS_ACOPLADO_MAX</code> = 10, y lo usan el núcleo, la API, el
   worker, la página acoplada y el comparador (D-61). La base no lo alcanza:
-  bastan 2.
+  bastan 3.
 </p>
 
 <h2 id="s3"><span class="num">§3</span> Código</h2>
@@ -342,7 +344,7 @@
     <tr><td class="n">—</td><td class="ruta ts">store/landUseStore.ts</td><td class="n">94</td><td><code>coupledOuterMaxIter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; el usuario lo baja, el setter (123) no deja pasar el tope</td></tr>
     <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">353</td><td><code>resolverAcoplado</code> — la lente acoplada corre con el suelo de la tarjeta, como las otras dos (D10d); el tope de vueltas es <code>VUELTAS_ACOPLADO_MAX</code> (356)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">apps/api/src/api/main.py</td><td class="n">155</td><td><code>outer_max_iter</code> — default y tope <code>VUELTAS_ACOPLADO_MAX</code>; <code>outer_tol</code> (158) toma la constante del núcleo</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">332</td><td><code>iter_msa_desde_suelo</code> — con <code>Q_dada</code> no resuelve la subasta: puebla con la <em>Q</em> de otra corrida y la publica en <code>localizacion_Q</code>; la valida <code>_valida_Q</code> (435) (D11c)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">340</td><td><code>iter_msa_desde_suelo</code> — con <code>Q_dada</code> no resuelve la subasta: puebla con la <em>Q</em> de otra corrida y la publica en <code>localizacion_Q</code>; la valida <code>_valida_Q</code> (443) (D11c)</td></tr>
     <tr><td class="n">—</td><td class="ruta tsx">pages/ComparePage.tsx</td><td class="n">226</td><td><code>mismaCiudad</code> — misma geometría y misma oferta <em>S</em>: sólo entonces la tarjeta corre con la <em>Q</em> de la base (177) (D11c)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">workers/pyodide.worker.ts</td><td class="n">210</td><td><code>outer_max_iter</code> — default <code>VUELTAS_ACOPLADO_MAX</code>; la cota la valida el núcleo; <code>outer_tol</code> (211) toma la constante del núcleo</td></tr>
   </tbody>
@@ -417,7 +419,7 @@
 <p>
   Todo sale de <code>datos/cap06.json</code>: la configuración de la
   aplicación, 201 celdas, 20 km, 36.000 hogares, semilla 42, carga esperada,
-  brecha interior bajo 0,2 min; el acoplado con tope
+  brecha interior bajo 0,02 min; el acoplado con tope
   10 y la tolerancia exterior del núcleo,
   100 $/hogar-mes.
 </p>
@@ -595,7 +597,7 @@
   </thead>
   <tbody>
     <tr><td class="n">4</td><td class="n">—</td><td class="n">1,326</td><td class="n">2,953</td><td class="n">6,305</td></tr>
-    <tr><td class="n">6</td><td class="n">24,754</td><td class="n">1,378</td><td class="n">2,860</td><td class="n">6,426</td></tr>
+    <tr><td class="n">6</td><td class="n">12,481</td><td class="n">1,378</td><td class="n">2,863</td><td class="n">6,420</td></tr>
     <tr class="destacada"><td class="n">10</td><td class="n">18,595</td><td class="n">1,383</td><td class="n">2,888</td><td class="n">6,376</td></tr>
     <tr><td class="n">20</td><td class="n">17,408</td><td class="n">1,332</td><td class="n">2,899</td><td class="n">6,391</td></tr>
     <tr><td class="n">30</td><td class="n">16,267</td><td class="n">1,296</td><td class="n">2,907</td><td class="n">6,402</td></tr>
@@ -610,7 +612,7 @@
 
 <p>
   La oferta del metro mueve la accesibilidad, y fuerte: entre
-  16,3 y 24,8 útiles/mes junto a las estaciones. Lo que casi no mueve es la
+  12,5 y 18,6 útiles/mes junto a las estaciones. Lo que casi no mueve es la
   <strong>asignación</strong>: entre 4 y 30 estaciones el estrato alto se corre
   0,03 km y el bajo 0,10. Dónde para el tren redistribuye
   accesibilidad localmente, pero la localización de los estratos la fija la
@@ -625,8 +627,9 @@
     <tr><th class="n">k</th><th class="n">brecha ($/hogar-mes)</th><th class="n">máx |ΔQ|</th><th class="n">Theil</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th class="n">auto %</th><th class="n">metro %</th><th class="n">t medio</th><th class="n">f metro</th><th>convergió</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0</td><td class="n">—</td><td class="n">—</td><td class="n">0,3918</td><td class="n">1,383</td><td class="n">2,888</td><td class="n">6,376</td><td class="n">27,98</td><td class="n">26,11</td><td class="n">16,61</td><td class="n">4,64</td><td>no</td></tr>
-    <tr class="destacada"><td class="n">1</td><td class="n">98,7</td><td class="n">0,1084</td><td class="n">0,3729</td><td class="n">1,447</td><td class="n">2,910</td><td class="n">6,297</td><td class="n">27,99</td><td class="n">25,95</td><td class="n">16,61</td><td class="n">4,62</td><td><strong>sí</strong></td></tr>
+    <tr><td class="n">0</td><td class="n">—</td><td class="n">—</td><td class="n">0,3918</td><td class="n">1,383</td><td class="n">2,888</td><td class="n">6,376</td><td class="n">27,91</td><td class="n">26,24</td><td class="n">16,51</td><td class="n">4,66</td><td>no</td></tr>
+    <tr><td class="n">1</td><td class="n">118,4</td><td class="n">0,1102</td><td class="n">0,3721</td><td class="n">1,451</td><td class="n">2,909</td><td class="n">6,295</td><td class="n">27,94</td><td class="n">26,07</td><td class="n">16,51</td><td class="n">4,65</td><td>no</td></tr>
+    <tr class="destacada"><td class="n">2</td><td class="n">10,5</td><td class="n">0,0007</td><td class="n">0,3723</td><td class="n">1,450</td><td class="n">2,909</td><td class="n">6,296</td><td class="n">27,93</td><td class="n">26,09</td><td class="n">16,51</td><td class="n">4,65</td><td><strong>sí</strong></td></tr>
   </tbody>
 </table>
 </div>
@@ -636,25 +639,26 @@
 </p>
 
 <p>
-  El loop converge en la vuelta 1, con una brecha de
-  98,7 $/hogar-mes. El feedback existe y es modesto. Entre la ciudad sin
-  congestión y la acoplada el Theil baja de 0,3918 a 0,3729, el
-  estrato alto se aleja 0,06 km del
+  El loop converge en la vuelta 2, con una brecha de
+  10,5 $/hogar-mes; la de la vuelta 1,
+  118,4, quedaba sobre la tolerancia. El feedback existe y es modesto. Entre la ciudad sin
+  congestión y la acoplada el Theil baja de 0,3918 a 0,3723, el
+  estrato alto se aleja 0,07 km del
   centro y el bajo se acerca 0,08. El reparto modal se mueve a lo más
   0,16 puntos y la
-  frecuencia del metro pasa de 4,64 a
-  4,62 trenes por hora. Lo que responde fuerte al transporte
+  frecuencia del metro pasa de 4,66 a
+  4,65 trenes por hora. Lo que responde fuerte al transporte
   no es <em>dónde vive</em> la gente sino <em>cómo viaja</em>, y eso ya lo
   resuelve el capítulo 5.
 </p>
 
 <p>
   <strong>El bienestar.</strong> (6.8) en la vuelta final vale
-  1.474, 2.434 y 1.750 $/hogar-mes para el alto, el medio y el bajo,
-  y 73,3 millones de pesos al mes en la ciudad:
+  1.750, 2.728 y 2.021 $/hogar-mes para el alto, el medio y el bajo,
+  y 83,5 millones de pesos al mes en la ciudad:
   es el cambio para los usuarios frente a la misma red vacía, neto del
   efecto Mohring, y sale positivo en los tres estratos. El acoplamiento lo
-  mueve poco: en la vuelta 0 era 1.140, 2.430 y 1.901. El que más gana por
+  mueve poco: en la vuelta 0 era 1.390, 2.729 y 2.176. El que más gana por
   hogar es el medio y el que menos el alto, aunque en pesos un minuto le
   vale 3,9 veces lo que al bajo. Es eficiencia en disposición a pagar, no
   bienestar interpersonal, y es la cota directa: no incluye las rentas.
@@ -677,32 +681,32 @@
     <tr><th>caso</th><th>regla</th><th class="n">k = 1</th><th class="n">k = 2</th><th class="n">k = 3</th><th class="n">k = 4</th><th class="n">k = 5</th><th class="n">k = 6</th><th class="n">k = 7</th></tr>
   </thead>
   <tbody>
-    <tr><td>base</td><td>MSA 1/(k+1)</td><td class="n">98,7</td><td class="n">49,9</td><td class="n">33,2</td><td class="n">24,9</td><td class="n">19,9</td><td class="n">16,6</td><td class="n">14,2</td></tr>
-    <tr class="destacada"><td>base</td><td>núcleo</td><td class="n">98,7</td><td class="n">0,6</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
-    <tr><td>ρ = 54</td><td>MSA 1/(k+1)</td><td class="n">50,3</td><td class="n">25,1</td><td class="n">16,8</td><td class="n">13,9</td><td class="n">11,1</td><td class="n">9,2</td><td class="n">7,9</td></tr>
-    <tr class="destacada"><td>ρ = 54</td><td>núcleo</td><td class="n">50,3</td><td class="n">3,4</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
-    <tr><td>población ×2,5</td><td>MSA 1/(k+1)</td><td class="n">1.240,0</td><td class="n">583,3</td><td class="n">381,9</td><td class="n">282,9</td><td class="n">235,5</td><td class="n">196,2</td><td class="n">171,6</td></tr>
-    <tr class="destacada"><td>población ×2,5</td><td>núcleo</td><td class="n">1.240,0</td><td class="n">40,8</td><td class="n">8,4</td><td class="n">6,3</td><td class="n">6,3</td><td class="n">6,3</td><td class="n">6,3</td></tr>
+    <tr><td>base</td><td>MSA 1/(k+1)</td><td class="n">118,4</td><td class="n">56,8</td><td class="n">37,9</td><td class="n">28,4</td><td class="n">21,0</td><td class="n">14,4</td><td class="n">12,4</td></tr>
+    <tr class="destacada"><td>base</td><td>núcleo</td><td class="n">118,4</td><td class="n">10,5</td><td class="n">3,3</td><td class="n">3,3</td><td class="n">1,7</td><td class="n">0,8</td><td class="n">0,4</td></tr>
+    <tr><td>ρ = 54</td><td>MSA 1/(k+1)</td><td class="n">46,4</td><td class="n">23,2</td><td class="n">15,5</td><td class="n">11,6</td><td class="n">9,3</td><td class="n">7,7</td><td class="n">6,6</td></tr>
+    <tr class="destacada"><td>ρ = 54</td><td>núcleo</td><td class="n">46,4</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
+    <tr><td>población ×2,5</td><td>MSA 1/(k+1)</td><td class="n">1.216,2</td><td class="n">600,6</td><td class="n">398,6</td><td class="n">281,8</td><td class="n">227,9</td><td class="n">190,3</td><td class="n">167,3</td></tr>
+    <tr class="destacada"><td>población ×2,5</td><td>núcleo</td><td class="n">1.216,2</td><td class="n">16,6</td><td class="n">1,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   El mapa contrae muchísimo: con el paso entero la primera vuelta reduce la
-  brecha entre 15 y 166 veces. En la base y con ρ = 54 llega a
-  <strong>cero exacto</strong> en la vuelta 3: el
-  transporte es determinista, así que una vez que la ciudad no cambia, el
-  mapa devuelve la misma <em>T</em>. La población ×2,5 no llega a cero: la
-  brecha se estanca en 6,3 desde la vuelta 4. El promedio, en cambio, arrastra el error
-  del arranque con peso <em>1/k</em>: después de 7 vueltas la brecha sigue en
-  14,2, 7,9 y 171,6 $/hogar-mes. Con la tolerancia de
-  100, la regla del núcleo para en la vuelta 1 en la base y con ρ = 54, y
-  en la vuelta 2 con la población ×2,5. El promedio para también en la
-  vuelta 1 en los dos primeros casos, porque las dos reglas coinciden en la
-  primera vuelta, y con la población ×2,5 no la cumple en ninguna de las 7.
-  En ningún caso la brecha crece de una vuelta a la siguiente, así que la
-  reducción del paso a la mitad no se activa: el resguardo sigue sin
-  ejercerse.
+  brecha 11 veces en la base y 73 con la población ×2,5, y con
+  ρ = 54 la lleva a <strong>cero exacto</strong> en la vuelta 2. La población
+  ×2,5 llega a cero en la vuelta 4: el transporte es determinista, así que una
+  vez que la ciudad no cambia, el mapa devuelve la misma <em>T</em>. La base
+  no llega a cero: la brecha queda en 3,3 en las vueltas 3 y 4, el paso se
+  parte en dos y desde ahí la brecha cae a la mitad en cada vuelta. Es la
+  única vez que la reducción del paso se activa en estas mediciones. El
+  promedio, en cambio, arrastra el error del arranque con peso <em>1/k</em>:
+  después de 7 vueltas la brecha sigue en 12,4,
+  6,6 y 167,3 $/hogar-mes. Con la tolerancia de
+  100, la regla del núcleo para en la vuelta 2 en la base y con la población
+  ×2,5, y en la vuelta 1 con ρ = 54. El promedio para en las mismas vueltas
+  en la base y con ρ = 54, y con la población ×2,5 no la cumple en ninguna
+  de las 7.
 </p>
 
 <p>
@@ -717,7 +721,7 @@
     <tr><th class="n">mediana</th><th class="n">p90</th><th class="n">p99</th><th class="n">máximo</th><th class="n">celdas &gt; tolerancia</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">40,6</td><td class="n">80,1</td><td class="n">95,0</td><td class="n">98,7</td><td class="n">0 de 603</td></tr>
+    <tr><td class="n">45,7</td><td class="n">97,3</td><td class="n">114,3</td><td class="n">118,4</td><td class="n">50 de 603</td></tr>
   </tbody>
 </table>
 </div>
@@ -725,7 +729,8 @@
 <p>
   El máximo lo pone una celda, a 9,95 km del CBD,
   en el estrato alto, pero no es un caso aislado: el p99 está en
-  95,0. Ninguna de las 603 celdas supera la tolerancia. La primera
+  114,3, y 50 de las 603 celdas superan la tolerancia: por eso la
+  base pide una segunda medición. La primera
   vuelta pasa de la red vacía a la congestionada y mueve la accesibilidad de
   toda la ciudad. El salto de la celda más discontinua, que antes podía fijar
   cuántas vueltas daba el loop, desapareció con D9: los escalones de la bici
@@ -745,13 +750,14 @@
   </thead>
   <tbody>
     <tr><td class="n">0</td><td class="n">—</td><td>no</td><td>no</td></tr>
-    <tr><td class="n">1</td><td class="n">55,8</td><td>no</td><td>no</td></tr>
+    <tr><td class="n">1</td><td class="n">101,7</td><td>no</td><td>no</td></tr>
+    <tr><td class="n">2</td><td class="n">1,4</td><td>no</td><td>no</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  La brecha cumple en la vuelta 1 y el loop para ahí, con el veredicto
+  La brecha cumple en la vuelta 2 y el loop para ahí, con el veredicto
   correcto: no convergió, porque el transporte no convergió. Antes seguía
   hasta el tope de 6 vueltas repitiendo la misma ciudad. Y el motor
   local de la interfaz, que reconstruía el veredicto sólo con la brecha y lo
@@ -766,11 +772,11 @@
     <tr><th class="n">ΣH</th><th class="n">vueltas</th><th class="n">brecha final</th><th>convergió</th><th class="n">Theil</th><th class="n">alto</th><th class="n">medio</th><th class="n">bajo</th><th class="n">auto %</th><th class="n">metro %</th><th class="n">bici %</th><th class="n">t medio</th><th class="n">ΔCS (M$/mes)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">12.000</td><td class="n">2</td><td class="n">0,7</td><td>sí</td><td class="n">0,392</td><td class="n">1,38</td><td class="n">2,89</td><td class="n">6,37</td><td class="n">30,5</td><td class="n">15,9</td><td class="n">43,9</td><td class="n">15,9</td><td class="n">−8,6</td></tr>
-    <tr><td class="n">24.000</td><td class="n">2</td><td class="n">16,3</td><td>sí</td><td class="n">0,390</td><td class="n">1,38</td><td class="n">2,90</td><td class="n">6,36</td><td class="n">29,8</td><td class="n">18,0</td><td class="n">42,1</td><td class="n">17,0</td><td class="n">−44,4</td></tr>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">2</td><td class="n">98,7</td><td>sí</td><td class="n">0,373</td><td class="n">1,45</td><td class="n">2,91</td><td class="n">6,30</td><td class="n">28,0</td><td class="n">26,0</td><td class="n">36,2</td><td class="n">16,6</td><td class="n">73,3</td></tr>
-    <tr><td class="n">60.000</td><td class="n">3</td><td class="n">7,1</td><td>sí</td><td class="n">0,389</td><td class="n">1,35</td><td class="n">2,98</td><td class="n">6,24</td><td class="n">25,9</td><td class="n">32,6</td><td class="n">31,4</td><td class="n">18,1</td><td class="n">−18,5</td></tr>
-    <tr><td class="n">90.000</td><td class="n">3</td><td class="n">40,8</td><td>sí</td><td class="n">0,430</td><td class="n">1,17</td><td class="n">3,09</td><td class="n">6,18</td><td class="n">22,5</td><td class="n">39,0</td><td class="n">27,7</td><td class="n">20,8</td><td class="n">−685,9</td></tr>
+    <tr><td class="n">12.000</td><td class="n">2</td><td class="n">0,6</td><td>sí</td><td class="n">0,392</td><td class="n">1,38</td><td class="n">2,89</td><td class="n">6,37</td><td class="n">30,5</td><td class="n">15,9</td><td class="n">43,9</td><td class="n">15,9</td><td class="n">−9,1</td></tr>
+    <tr><td class="n">24.000</td><td class="n">2</td><td class="n">18,4</td><td>sí</td><td class="n">0,391</td><td class="n">1,37</td><td class="n">2,90</td><td class="n">6,36</td><td class="n">29,9</td><td class="n">17,6</td><td class="n">42,4</td><td class="n">17,1</td><td class="n">−54,5</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">3</td><td class="n">10,5</td><td>sí</td><td class="n">0,372</td><td class="n">1,45</td><td class="n">2,91</td><td class="n">6,30</td><td class="n">27,9</td><td class="n">26,1</td><td class="n">36,1</td><td class="n">16,5</td><td class="n">83,5</td></tr>
+    <tr><td class="n">60.000</td><td class="n">3</td><td class="n">3,7</td><td>sí</td><td class="n">0,388</td><td class="n">1,35</td><td class="n">2,98</td><td class="n">6,24</td><td class="n">25,9</td><td class="n">32,5</td><td class="n">31,4</td><td class="n">18,0</td><td class="n">−7,5</td></tr>
+    <tr><td class="n">90.000</td><td class="n">3</td><td class="n">16,6</td><td>sí</td><td class="n">0,429</td><td class="n">1,18</td><td class="n">3,09</td><td class="n">6,18</td><td class="n">22,5</td><td class="n">39,0</td><td class="n">27,8</td><td class="n">20,7</td><td class="n">−677,8</td></tr>
   </tbody>
 </table>
 </div>
@@ -785,10 +791,10 @@
   15,9 % a 39,0 %, y menos auto y menos bici. La congestión
   sí mueve la localización, pero no de forma monótona: hasta 36.000 hogares
   el alto se aleja del centro, de 1,38 a 1,45 km, y la segregación baja de
-  0,392 a 0,373; desde ahí el alto se acerca hasta 1,17 km y la segregación
-  sube a 0,430 con 90.000. El ΔCS tampoco es monótono: es negativo en todo
-  el rango salvo en la base, 36.000 hogares, donde vale 73,3 millones de
-  pesos al mes, y en los extremos va de −8,6 a −685,9. El
+  0,392 a 0,372; desde ahí el alto se acerca hasta 1,18 km y la segregación
+  sube a 0,429 con 90.000. El ΔCS tampoco es monótono: es negativo en todo
+  el rango salvo en la base, 36.000 hogares, donde vale 83,5 millones de
+  pesos al mes, y en los extremos va de −9,1 a −677,8. El
   loop exterior para en dos o tres vueltas en todo el rango y el acoplado
   converge en los cinco casos, también con 90.000 hogares. Cuando el
   <strong>MSA interior no converge</strong>, el acoplado queda,

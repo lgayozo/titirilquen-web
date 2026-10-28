@@ -36,6 +36,7 @@ Correr desde `packages/titirilquen_core` (~1 min):
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -226,21 +227,27 @@ def el_dinero_tambien_se_reprecia() -> dict:
 # ---------------------------------------------------------------------------
 
 
+def _tope_todo_o_nada() -> int:
+    """`MAX_ITER_TODO_O_NADA` de `SandboxPage.tsx`: al elegir todo o nada la
+    interfaz lleva el tope a ese valor como mínimo (auditoría B)."""
+    ts = (RAIZ / "apps" / "web" / "src" / "pages" / "SandboxPage.tsx").read_text(encoding="utf-8")
+    return int(re.search(r"const MAX_ITER_TODO_O_NADA = (\d+);", ts).group(1))
+
+
 def downs_thomson_por_unidad() -> dict:
     """¿Sigue en pie que el signo del Δ depende de la unidad de agregación?
 
     Se barre el número de pistas con los dos métodos: el de la aplicación
     (`expected`, medida = logsum) y el del informe (`todo_o_nada`, medida =
-    utilidad máxima, tolerancia 0,02 y 120 iteraciones).
+    utilidad máxima). Los dos con la parada de la aplicación; todo o nada con
+    el tope que pone la interfaz al elegirlo.
     """
     out = {}
-    # `expected` con la parada y el tope de la aplicación (D8, 150 desde
-    # oct-2026): una pista, la referencia de todos los Δ, pide 115 iteraciones
-    # porque la brecha baja como 1/n; con el tope en 100 no convergía. Se
-    # reporta igual su brecha. Todo o nada con la parada del informe: no
-    # equilibra (D9b) y se reporta con su veredicto.
+    # Se reportan iteraciones, veredicto y brecha de cada corrida: con 2
+    # pistas `expected` no alcanza la tolerancia en el tope (auditoría B).
     tope_app = base._config_web().max_iter
-    for metodo, tol, max_iter in (("expected", None, tope_app), ("todo_o_nada", 0.02, 120)):
+    tope_ton = max(tope_app, _tope_todo_o_nada())
+    for metodo, tol, max_iter in (("expected", None, tope_app), ("todo_o_nada", None, tope_ton)):
         filas = []
         for pistas in (1, 2, 3, 4, 6):
             sim = base._config_web()
@@ -635,10 +642,11 @@ def main() -> None:
             "configuracion": (
                 "La de la aplicación (`test_linea_base._config_web`), rama "
                 "«original»: 201 celdas, 20 km, 36.000 hogares, semilla 42, "
-                "asignación esperada, brecha < 0,2 min (D8), tope "
+                "asignación esperada, brecha < "
+                f"{str(base._config_web().tolerance).replace('.', ',')} min, tope "
                 f"{base._config_web().max_iter} iteraciones. El barrido de pistas "
-                "repite además el método del informe de bienestar "
-                "(`todo_o_nada`, tolerancia 0,02, 120 iteraciones)."
+                "repite además el método del informe de bienestar (`todo_o_nada`), "
+                f"con la parada de la app y tope {_tope_todo_o_nada()}."
             ),
         },
         "fuentes_externas": FUENTES_EXTERNAS,

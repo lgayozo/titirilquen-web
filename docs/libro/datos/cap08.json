@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-18",
-  "commit": "1444619",
+  "fecha": "2026-10-27",
+  "commit": "80bacd5",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -12,7 +12,7 @@
   "al_dia": true
  },
  "paridad_worker_api": {
-  "lineas_de_python_en_el_worker": 79,
+  "lineas_de_python_en_el_worker": 82,
   "entradas": {
    "simulateStream": {
     "api": "/simulate",
@@ -36,20 +36,20 @@
  "c02": {
   "motor_api_run_msa": {
    "reparto_pct": {
-    "Auto": 29.252,
-    "Metro": 23.072,
-    "Bici": 35.701,
-    "Caminata": 11.974,
+    "Auto": 29.178,
+    "Metro": 23.238,
+    "Bici": 35.631,
+    "Caminata": 11.953,
     "Teletrabajo": 0.0
    },
    "agentes": 36000
   },
   "motor_local_iter_msa_desde_suelo": {
    "reparto_pct": {
-    "Auto": 29.252,
-    "Metro": 23.072,
-    "Bici": 35.701,
-    "Caminata": 11.974,
+    "Auto": 29.178,
+    "Metro": 23.238,
+    "Bici": 35.631,
+    "Caminata": 11.953,
     "Teletrabajo": 0.0
    },
    "agentes": 36000
@@ -91,20 +91,20 @@
   "la_interfaz_pasa_por_la_api": true
  },
  "payload": {
-  "trace_to_dict_bytes": 6083222,
+  "trace_to_dict_bytes": 5939229,
   "trace_agentes": 36000,
   "trace_por_clave_pct": {
-   "agentes": 93.12,
-   "iteraciones": 5.96,
-   "demanda_estrato": 0.64,
-   "emisiones_perfil_kg": 0.06,
-   "flujos_auto_veh_h": 0.06
+   "agentes": 95.38,
+   "iteraciones": 3.67,
+   "demanda_estrato": 0.66,
+   "emisiones_perfil_kg": 0.07,
+   "flujos_auto_veh_h": 0.07
   },
-  "outer_iteration_bytes": 6173775,
+  "outer_iteration_bytes": 5955701,
   "outer_por_clave_pct": {
-   "transport": 99.5,
-   "land_use": 0.27,
-   "T_matrix": 0.19,
+   "transport": 99.48,
+   "land_use": 0.28,
+   "T_matrix": 0.2,
    "metrics": 0.04,
    "T_residual": 0.0,
    "outer_iter": 0.0
@@ -117,14 +117,13 @@
    "T_residual": 2,
    "metrics": 11
   },
-  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 61.7,
+  "mb_por_corrida_acoplada_al_maximo_de_la_ui": 59.6,
   "mb_que_el_frontend_abre_de_eso": 0.19
  },
  "campos_sin_lector": {
   "campos_totales": 118,
   "sin_lector": {
    "TraceDict": [
-    "gap_final_min",
     "v_libre_auto",
     "alpha_auto_bpr",
     "beta_auto_bpr"
@@ -168,7 +167,7 @@
     "S"
    ]
   },
-  "cantidad_sin_lector": 13
+  "cantidad_sin_lector": 12
  },
  "determinismo": {
   "standalone_dos_corridas": {
@@ -194,7 +193,7 @@
     "tipos.gen.ts",
     "trace.gen.ts"
    ],
-   "lineas": 975,
+   "lineas": 988,
    "interfaces": 29
   },
   "version_del_nucleo": "0.2.0",

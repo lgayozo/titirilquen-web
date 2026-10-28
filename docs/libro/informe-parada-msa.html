@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Informe: la parada del equilibrio</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<!--
+  INFORME FECHADO (mediciones del 2026-10-23 sobre el commit cada1a6). No es un
+  capítulo: sus cifras salen de corridas puntuales, transcritas de las salidas
+  guardadas en _datos_informe/parada-msa/. Varias variantes que mide no existen
+  en el código vigente (se midieron con una copia local del loop), así que no
+  se pueden regenerar contra el núcleo actual. Lo vigente está en el cap. 5.
+-->
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · informe de auditoría</div>
+  <h1>La parada del equilibrio</h1>
+  <p class="bajada">
+    ¿Qué tan lejos del equilibrio queda una corrida que la aplicación declara
+    convergida? Esta pregunta llevó a cambiar el algoritmo del MSA, no sólo su
+    tolerancia. Aquí están las mediciones que sostienen esa decisión.
+  </p>
+  <p class="meta">
+    Mediciones del 2026-10-23 sobre el commit <code>cada1a6</code>; decisión
+    implementada en <code>80bacd5</code> y corregida (§4) en el commit
+    siguiente · evidencia en
+    <code>_datos_informe/parada-msa/</code> ·
+    <span class="estado auditado">fechado</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">La pregunta y el método</a></li>
+    <li><a href="#s2">Logit: todo el rango de la interfaz</a></li>
+    <li><a href="#s3">Lo que no converge</a></li>
+    <li><a href="#s4">Un ciclo que el halving no veía</a></li>
+    <li><a href="#s5">Un pliegue y dos equilibrios</a></li>
+    <li><a href="#s6">Todo o nada</a></li>
+    <li><a href="#s7">Montecarlo</a></li>
+    <li><a href="#s8">El acoplado</a></li>
+    <li><a href="#s9">Qué se adoptó y qué no</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> La pregunta y el método</h2>
+
+<p>
+  Hasta el commit <code>cada1a6</code>, la carga esperada promediaba
+  <strong>tiempos</strong> con paso 1/(n+1). Paraba cuando la brecha (5.4)
+  del capítulo 5 quedaba bajo 0,2 min dos iteraciones seguidas. Para saber
+  cuánto error deja eso, cada escenario se resolvió además hasta una brecha
+  menor que 10<sup>−6</sup> min, que hace de <strong>referencia</strong>. En
+  los escenarios difíciles se resolvió además con otro algoritmo, para
+  descartar que la referencia dependa del camino
+  (<code>analiza_logit.txt</code>). El error es la mayor diferencia de reparto modal contra
+  la referencia, en puntos porcentuales, y su efecto en el excedente se mide
+  en pesos por viaje.
+</p>
+
+<p>
+  El barrido cubre <strong>776 casos</strong>. Cada control de la interfaz se
+  mueve en su rango, con umbrales en escalones y suaves y con las dos
+  localizaciones, «original» y «equilibrio». La referencia quedó con brecha
+  menor que 10<sup>−4</sup> en los 776. Las reglas medidas:
+</p>
+
+<ul>
+  <li><strong>L0</strong>, la de entonces: tiempos, paso 1/(n+1), tolerancia 0,2.</li>
+  <li><strong>L2</strong>: lo mismo con tolerancia 0,02.</li>
+  <li><strong>Adoptada</strong>: flujos con paso halving (Boyles §8.3.5),
+    brecha medida sobre el objetivo antes de promediar, a cuatro tolerancias.</li>
+  <li><strong>L8</strong>: la anterior con un reinicio heurístico. Si la mejor
+    brecha no baja 1 % en 20 iteraciones, el paso vuelve a 1.</li>
+</ul>
+
+<p>Todas usan tope 150 y cortan con dos iteraciones seguidas bajo la tolerancia.</p>
+
+<h2 id="s2"><span class="num">§2</span> Logit: todo el rango de la interfaz</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Regla</th><th class="n">No convergen</th><th class="n">«Convergidas» a &gt; 0,1 pp</th><th class="n">Error mediana / p95 / máx (pp)</th><th class="n">Iteraciones mediana / p95</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>L0 · tiempos, 1/(n+1), 0,2</td><td class="n">7</td><td class="n">531</td><td class="n">0,161 / 0,237 / 4,011</td><td class="n">10 / 45</td></tr>
+    <tr><td>L2 · tiempos, 1/(n+1), 0,02</td><td class="n">433</td><td class="n">0</td><td class="n">0,020 / 0,069 / 4,011</td><td class="n">150 / 150</td></tr>
+    <tr><td>Adoptada · 0,2</td><td class="n">1</td><td class="n">23</td><td class="n">0,031 / 0,072 / 2,312</td><td class="n">4 / 7</td></tr>
+    <tr><td>Adoptada · 0,1</td><td class="n">2</td><td class="n">9</td><td class="n">0,011 / 0,038 / 2,312</td><td class="n">5 / 8</td></tr>
+    <tr><td>Adoptada · 0,05</td><td class="n">2</td><td class="n">1</td><td class="n">0,003 / 0,019 / 2,312</td><td class="n">6 / 10</td></tr>
+    <tr class="destacada"><td>Adoptada · 0,02</td><td class="n">3</td><td class="n">1</td><td class="n">0,002 / 0,008 / 2,312</td><td class="n">6 / 11</td></tr>
+    <tr><td>L8 · con reinicio, 0,02</td><td class="n">2</td><td class="n">1</td><td class="n">0,002 / 0,007 / 0,109</td><td class="n">6 / 11</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con L0, 531 de los 776 casos se declaraban convergidos a más de una décima
+  de punto del equilibrio. El error típico era 0,16 puntos y 7,40 $/viaje de
+  excedente. Bajar la tolerancia sin cambiar el paso (L2) arregla el error
+  pero no cabe en el tope: con 1/(n+1) la cola es lenta, y 433 casos agotan
+  las 150 iteraciones.
+</p>
+
+<p>
+  Con la regla adoptada y 0,02 min, la mediana del error es 0,002 puntos, con
+  6 iteraciones. Entre las corridas que convergen, el peor caso
+  (<code>b_tiempo_caminata</code> ×0,5, suaves) queda a 0,109. En excedente, la
+  mediana es 0,03 $/viaje y el p95 0,12. El máximo de 2,312 puntos es una
+  corrida que no converge y lo dice (§3).
+</p>
+
+<h2 id="s3"><span class="num">§3</span> Lo que no converge</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Caso (localización original)</th><th class="n">Brecha a las 150</th><th class="n">Paso final</th><th class="n">Error (pp)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>2 pistas, escalones</td><td class="n">0,023</td><td class="n">1</td><td class="n">0,004</td></tr>
+    <tr><td>2 pistas, suaves</td><td class="n">0,145</td><td class="n">1</td><td class="n">0,027</td></tr>
+    <tr><td><code>b_tiempo_espera</code> ×1,5, suaves</td><td class="n">0,262</td><td class="n">1,4·10<sup>−42</sup></td><td class="n">2,312</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con la regla tal como se implementó primero (§4), en los dos de 2 pistas
+  el paso queda en 1 y la brecha baja todo el tiempo, geométricamente pero
+  lento: sin tope, escalones converge en la iteración 155 y suaves en la 215
+  (<code>diag_2pistas.txt</code>). El reparto ya está a milésimas de punto.
+  El de ×1,5 es otra cosa: el paso colapsa a casi cero y la corrida queda
+  2,3 puntos lejos. Los tres se declaran «no convergió».
+</p>
+
+<h2 id="s4"><span class="num">§4</span> Un ciclo que el halving no veía</h2>
+
+<p>
+  La primera implementación (commit <code>80bacd5</code>) partía el paso
+  sólo si la brecha no bajaba en absoluto. Al regenerar el libro apareció
+  un caso que el barrido no cubría: 72.000 hogares en 20 km, que es lo que
+  produce «Ciudad con metro» con la política «Base» desde la galería. Ahí la
+  iteración directa cae en un <strong>ciclo de periodo 2</strong>: el reparto
+  va y vuelve entre dos estados de una iteración a la otra, y la brecha baja
+  apenas medio por ciento por vuelta. Como sí baja, el paso nunca se parte, y
+  la corrida agotaba las 150 iteraciones con brecha 11,8 min (escalones) y 13,7 min
+  (suaves), a 2,5 y 2,9 puntos del equilibrio.
+</p>
+
+<p>
+  El arreglo es una condición de <strong>disminución suficiente</strong>,
+  como la de Armijo en la búsqueda lineal: el paso se divide por 2 si la
+  brecha no baja al menos un 10 %, es decir, si queda sobre ρ = 0,9 veces la
+  anterior. Se midieron cuatro valores de ρ con el núcleo, sobre los 776
+  casos y sobre la galería completa (6 ciudades × 9 políticas × 2 umbrales =
+  108 casos, cada uno con su propia referencia; <code>analiza_rho.txt</code>):
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">ρ</th><th class="n">Galería: no convergen</th><th class="n">Galería: error máx (pp)</th><th class="n">Barrido: no convergen</th><th class="n">Barrido: error mediana / p95 (pp)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">1 − 10<sup>−6</sup> («no bajó»)</td><td class="n">2</td><td class="n">2,873</td><td class="n">3</td><td class="n">0,002 / 0,008</td></tr>
+    <tr><td class="n">0,99</td><td class="n">0</td><td class="n">0,010</td><td class="n">3</td><td class="n">0,002 / 0,008</td></tr>
+    <tr><td class="n">0,95</td><td class="n">0</td><td class="n">0,010</td><td class="n">1</td><td class="n">0,002 / 0,008</td></tr>
+    <tr class="destacada"><td class="n">0,9</td><td class="n">0</td><td class="n">0,010</td><td class="n">1</td><td class="n">0,002 / 0,008</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con 0,95 y 0,9 converge toda la galería, y también los dos casos de 2
+  pistas de la §3: su brecha bajaba menos de un 10 % por iteración, así que
+  ahora el paso se parte y terminan dentro del tope. Sólo queda sin converger
+  el pliegue de ×1,5 (§5). Entre 0,95 y 0,9 se eligió 0,9 porque la galería
+  termina antes (52 iteraciones como máximo, contra 74). El error frente a la
+  referencia no cambia con ρ, y la línea base de
+  <code>test_linea_base.py</code> queda idéntica.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Un pliegue y dos equilibrios</h2>
+
+<p>
+  Con la espera del metro muy pesada (<code>b_tiempo_espera</code> ×1,5 en los
+  tres estratos, umbrales suaves) el halving se atasca. Para saber adónde
+  debería llegar, se resolvió con paso constante y desde cinco arranques
+  distintos (<code>pliegue_ref.txt</code>):
+</p>
+
+<ul>
+  <li>paso 1, con 28 iteraciones;</li>
+  <li>paso 0,5, con 55;</li>
+  <li>en caliente desde una frecuencia de 2 trenes/h, con 13;</li>
+  <li>desde el estado en que se atasca la aplicación, con 23;</li>
+  <li>desde el equilibrio de ×1,45, con 25.</li>
+</ul>
+
+<p>
+  Los cinco llegan al mismo punto: frecuencia 2,0 trenes/h, el piso
+  <code>frec_min</code>, y metro 10,377 %. Desde el estado de la aplicación la
+  brecha no baja monótona: pasa de 0,254 a 0,213 en la quinta iteración, sube
+  a 0,390 en la décima y cae a 10<sup>−5</sup> en la vigésima. Esa subida
+  transitoria es la que hace partir el paso hasta apagarlo.
+</p>
+
+<p>
+  Con ×1,45 hay <strong>dos puntos fijos</strong>. Desde el arranque del
+  núcleo se llega a uno interior: frecuencia 2,771 y metro 15,393 %. En
+  caliente desde una frecuencia de 2 se llega a otro en la esquina: frecuencia
+  2,0 y metro 10,926 %, ambos con brecha menor que 10<sup>−6</sup>. Ninguna
+  regla de parada elige entre ellos: es el efecto Mohring con un piso de
+  frecuencia, una propiedad del modelo. La aplicación entrega el interior.
+  Boyles (Prop. 5.2) obtiene la unicidad de costos estrictamente crecientes,
+  y la espera del metro decrece con la demanda.
+</p>
+
+<h2 id="s6"><span class="num">§6</span> Todo o nada</h2>
+
+<p>
+  Todo o nada promedia los flujos de cada grupo con paso 1/(n+1); eso no se
+  cambió. Lo que se midió es dónde cortar. Cada escenario corrió 10.000
+  iteraciones, que hacen de referencia, y cada criterio se comparó contra ese
+  límite (<code>analiza_ton.txt</code>):
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Escenario</th><th class="n">Metro a 10.000 it (%)</th><th class="n">AEC &lt; 0,2 min: it / error (pp)</th><th class="n">AEC/<em>t̄</em> &lt; 10<sup>−3</sup>: it / error (pp)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Base, original, escalones</td><td class="n">2,76</td><td class="n">2 / 0,86</td><td class="n">10 / 0,17</td></tr>
+    <tr><td>1 pista, original, escalones</td><td class="n">22,77</td><td class="n">48 / 4,47</td><td class="n">524 / 0,44</td></tr>
+    <tr><td>Máx Metro, equilibrio, escalones</td><td class="n">43,14</td><td class="n">2 / 28,81</td><td class="n">615 / 0,56</td></tr>
+    <tr><td>Máx Metro, equilibrio, suaves</td><td class="n">43,43</td><td class="n">13 / 10,57</td><td class="n">333 / 1,16</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con Mohring el costo en exceso medio <strong>no baja monótono</strong>. En
+  Máx Metro vale 0,0963 min en la primera iteración, sube a 0,3014 en la
+  décima, mientras la frecuencia trepa, y baja a 0,0208 en la 400. La regla
+  absoluta cortaba en ese valle inicial, 28,8 puntos lejos.
+</p>
+
+<p>
+  La brecha relativa de Boyles (§6.1.3, ec. 6.7) divide por el costo mínimo
+  total. Con utilidades ese costo sale negativo, −6,2 y −14,6 min en estos
+  escenarios, porque el cero de la utilidad es arbitrario. Por eso se divide
+  por <em>t̄</em>, el tiempo físico medio. La regla relativa es honesta, pero
+  1/(n+1) sigue siendo lento: Máx Metro pide 615 iteraciones. Por eso la
+  interfaz sube el tope a 700 al elegir el método.
+</p>
+
+<p>
+  Se descartaron dos alternativas:
+</p>
+
+<ul>
+  <li><strong>El costo en exceso máximo:</strong> con flujos promediados un
+    modo usado una vez conserva masa ∝ 1/<em>n</em>, y en Máx Metro no cumple
+    ni en 10.000 iteraciones.</li>
+  <li><strong>Un mínimo de iteraciones:</strong> con <em>n</em> ≥ 100 y la
+    regla absoluta, Máx Metro sigue 3,40 puntos lejos.</li>
+</ul>
+
+<h2 id="s7"><span class="num">§7</span> Montecarlo</h2>
+
+<p>
+  Con sorteo, la brecha de cada iteración lleva ruido de muestreo. Se corrió
+  la base y Metrópolis con 16 semillas cada una (<code>analiza_mc.txt</code>):
+</p>
+
+<ul>
+  <li><strong>Base:</strong> las 16 semillas convergían, y una lo hacía con la
+    brecha esperada sobre la tolerancia.</li>
+  <li><strong>Metrópolis:</strong> ninguna convergía, porque la brecha sorteada
+    quedaba entre 0,42 y 2,56 min. Sin embargo, la brecha con flujos
+    esperados estaba entre 0,15 y 0,41, y en 6 de las 16 bajo 0,2.</li>
+</ul>
+
+<p>
+  El veredicto medía el ruido, no el equilibrio. Ni con 3.000 iteraciones
+  sorteadas la brecha baja de unos 0,047 min. Se adoptó lo mínimo: el
+  veredicto sale de <code>gap_final_min</code>, la brecha con flujos
+  esperados sobre el estado final, y la interfaz usa 0,2 min con este método.
+</p>
+
+<p>
+  No se adoptó correr la trayectoria con flujos esperados y sortear sólo al
+  final. Es la única variante coherente por construcción, pero cambia lo que
+  significa «Montecarlo» en la interfaz.
+</p>
+
+<h2 id="s8"><span class="num">§8</span> El acoplado</h2>
+
+<p>
+  La tolerancia del MSA interior sesgaba el bienestar del lazo suelo ↔
+  transporte. La referencia es el MSA interior a brecha 10<sup>−6</sup> y el
+  exterior a brecha 0. Con el interior a 0,2 min, la variación de excedente
+  era 73,33 M$/mes contra 83,52 de la referencia, un sesgo de −12,2 %.
+  Con 0,02 y paso 1/(n+1) bajaba a −1,7 %, pero a costa de 396 iteraciones de
+  MSA. El sesgo es proporcional a la tolerancia interior y no depende del
+  corte exterior. Con la regla adoptada el interior llega a la referencia en
+  pocas iteraciones; las cifras vigentes están en el capítulo 6.
+</p>
+
+<h2 id="s9"><span class="num">§9</span> Qué se adoptó y qué no</h2>
+
+<ul>
+  <li>
+    <strong>Adoptado.</strong> La carga esperada promedia flujos con paso
+    halving y para con brecha menor que 0,02 min; el paso se parte cuando la
+    brecha no baja al menos un 10 % (ρ = 0,9, §4). Todo o nada para con
+    AEC/<em>t̄</em> &lt; 10<sup>−3</sup>, y la interfaz le da 700 iteraciones.
+    En Montecarlo, «convergió» sale de la brecha con flujos esperados, y la
+    interfaz usa 0,2 min. Todo mueve la línea base entre 0,07 y 0,17 puntos:
+    es un cambio de modelo declarado en <code>tests/test_linea_base.py</code>.
+  </li>
+  <li>
+    <strong>No adoptado: el reinicio del paso (L8).</strong> Cerró el pliegue
+    de ×1,5 en 73 iteraciones (<code>analiza_logit.txt</code>). En el barrido
+    sólo dejó sin converger los dos casos de 2 pistas. Pero es una heurística
+    propia, sin respaldo en Boyles. Queda como
+    pendiente del capítulo 5, junto con avisar que puede haber más de un
+    equilibrio.
+  </li>
+  <li>
+    <strong>No adoptado: la trayectoria esperada en Montecarlo</strong>, por
+    lo dicho en la §7.
+  </li>
+</ul>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    <a href="cap05-equilibrio-transporte.html">capítulo 5</a> ·
+    evidencia en <code>_datos_informe/parada-msa/</code> ·
+    Boyles, S. D., Lownes, N. E. y Unnikrishnan, A. <em>Transportation Network
+    Analysis</em>, vol. I, Prop. 5.2, §6.1.3 y §8.3.5.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

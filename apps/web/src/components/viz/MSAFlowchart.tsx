@@ -80,8 +80,8 @@ export function MSAFlowchart() {
         tooltip: {
           title: t("flowchart.msa.smooth_title"),
           description: t("flowchart.msa.smooth_desc"),
-          formula: String.raw`T^{(n+1)} = \frac{1}{n+1} T_{\text{obs}}^{(n)} + \frac{n}{n+1} T^{(n)}`,
-          ref: { path: "equilibrium/msa.py", label: "iter_msa" },
+          formula: String.raw`x^{(n+1)} = \alpha_n\, x^{*} + (1 - \alpha_n)\, x^{(n)}`,
+          ref: { path: "equilibrium/msa.py", label: "_iter_loop" },
         },
       },
       {

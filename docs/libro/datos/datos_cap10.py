@@ -435,7 +435,8 @@ def convergencias() -> dict:
         "loops": [
             {
                 "loop": "MSA de transporte",
-                "residuo": "max|c(x(t)) − t|, brecha NO amortiguada (D8), "
+                "residuo": "max|c(x(t)) − t|, brecha NO amortiguada (D8) medida "
+                "sobre el objetivo, flujos con paso halving (auditoría B); "
                 "2 iteraciones seguidas bajo tol",
                 "unidad": "minutos",
                 "tolerancia_default": sim_core_tol,

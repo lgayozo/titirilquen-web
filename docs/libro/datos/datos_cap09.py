@@ -183,6 +183,12 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "0; palanca de política, transferencia (D7); 275 en «Tarificación Vial»",
         False,
     ),
+    "demand.globales.umbrales": (
+        DECISION,
+        "«escalones» (D-02, D-69); «suaves» es la versión continua: corte CMNL "
+        "(Martínez, Aguila y Hurtubia 2009) y dominancia (Cascetta y Papola 2009)",
+        False,
+    ),
     "demand.estratos.*.prob_auto": (HEREDADO, "original: 0,90 / 0,60 / 0,25", False),
     "demand.estratos.*.betas.asc_auto": (
         DECISION,
@@ -235,8 +241,12 @@ ORIGEN: dict[str, tuple[str, str, bool]] = {
         "original, reescaladas por k; bici_30 del bajo reemplazada",
         False,
     ),
-    "max_iter": (DECISION, "150 (tope 300), numérico", False),
-    "tolerance": (DECISION, "0,2 min sobre la brecha no amortiguada (D8)", False),
+    "max_iter": (DECISION, "150 (tope 1.000; 700 con todo o nada en la interfaz), numérico", False),
+    "tolerance": (
+        DECISION,
+        "0,02 min sobre la brecha no amortiguada; flujos con paso halving (auditoría B)",
+        False,
+    ),
     "seed": (DECISION, "42 en la app; None en el núcleo", False),
     "assignment": (DECISION, "expected en la app; montecarlo en el núcleo", False),
     "modos_habilitados": (DECISION, "los cuatro", False),

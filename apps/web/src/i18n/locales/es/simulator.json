@@ -274,7 +274,7 @@
     "supply_porque": "Auto: capacidad por Greenshields (el ancho de pista la reduce) y demora BPR acumulada hacia el CBD. Bici: misma forma volumen/capacidad, corregida por pendiente y acotada por abajo al tiempo de caminata. Metro: frecuencia topada por frec_min/frec_max, espera de medio intervalo amplificada por saturación de andén, y detenciones intermedias dentro del tiempo a bordo — más estaciones acortan el acceso pero alargan el viaje.",
     "equilibrium_title": "Equilibrio",
     "equilibrium_corto": "El MSA alterna demanda y red hasta que los tiempos con que se calcula la demanda coinciden con los que devuelve la red.",
-    "equilibrium_porque": "Con «Logit — probabilidades» promedia los FLUJOS: el paso parte en 1 y se divide por 2 cada vez que la brecha deja de bajar (halving). Con sorteo promedia los tiempos con paso 1/k, y con todo o nada los flujos de cada grupo con paso 1/k. El residuo es la brecha sin amortiguar: la mayor diferencia, en cualquier modo y celda, entre el tiempo que devuelve la red cargada con la demanda de la iteración y el tiempo con que esa demanda se calculó (en todo o nada, la brecha relativa). Converge cuando queda bajo la tolerancia en 2 iteraciones seguidas (con tolerancia 0 corre hasta el tope de iteraciones)."
+    "equilibrium_porque": "Con «Logit — probabilidades» promedia los FLUJOS: el paso parte en 1 y se divide por 2 cada vez que la brecha no baja al menos un 10 % (halving). Con sorteo promedia los tiempos con paso 1/k, y con todo o nada los flujos de cada grupo con paso 1/k. El residuo es la brecha sin amortiguar: la mayor diferencia, en cualquier modo y celda, entre el tiempo que devuelve la red cargada con la demanda de la iteración y el tiempo con que esa demanda se calculó (en todo o nada, la brecha relativa). Converge cuando queda bajo la tolerancia en 2 iteraciones seguidas (con tolerancia 0 corre hasta el tope de iteraciones)."
   },
   "sections_sidebar": {
     "infra": "Infraestructura",
@@ -854,7 +854,7 @@
       "congestion_desc": "Asignada la demanda, los tiempos se recomputan con funciones BPR (auto, bici) o saturación de andén (metro).",
       "smooth": "Promedio MSA",
       "smooth_title": "Método de promedios sucesivos",
-      "smooth_desc": "Para evitar oscilaciones, la nueva T se pondera con las anteriores: peso f_n = 1/(n+1) disminuye con n.",
+      "smooth_desc": "Para evitar oscilaciones, el flujo nuevo x* se mezcla con el vigente con un paso α que parte en 1 y se divide por 2 cada vez que la brecha no baja al menos un 10 % (Boyles §8.3.5). Con «Logit — sorteo» se promedian los tiempos con peso 1/(n+1).",
       "check": "¿‖ΔT‖ < ε?",
       "check_title": "Convergencia",
       "check_desc": "Si la brecha —lo que devuelve la red cargada contra los tiempos con que se calculó la demanda— queda bajo la tolerancia dos iteraciones seguidas, el equilibrio está alcanzado.",

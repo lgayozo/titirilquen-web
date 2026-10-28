@@ -21,7 +21,7 @@
   </p>
   <p class="meta">
     Módulos: <code>bienestar.py</code> · <code>coupled_metrics.py</code> ·
-    datos regenerados el 2026-10-18 ·
+    datos regenerados el 2026-10-27 ·
     <span class="estado vigente">vigente</span>
   </p>
 </header>
@@ -340,9 +340,10 @@
 <p>
   Todo sale de <code>datos/cap07.json</code>: la configuración de la
   aplicación con localización «original», 201 celdas, 20 km, 36.000 hogares,
-  semilla 42, carga esperada, brecha bajo 0,2 min y tope de
+  semilla 42, carga esperada, brecha bajo 0,02 min y tope de
   150 iteraciones. El barrido de pistas repite la carga
-  todo o nada con tolerancia 0,02 y 120 iteraciones.
+  todo o nada con su propia parada, la de la aplicación, y tope de 700
+  iteraciones.
 </p>
 
 <h3>5.1 Las dos monedas</h3>
@@ -393,14 +394,14 @@
     <tr><th>medida</th><th class="n">derivada medida</th><th class="n">si 1 $ vale 1 $</th><th class="n">si el dinero se repondera</th><th class="n">error</th></tr>
   </thead>
   <tbody>
-    <tr><td>conductual</td><td class="n">−8.308,4</td><td class="n">−8.310,4</td><td class="n">—</td><td class="n">0,02 %</td></tr>
-    <tr class="destacada"><td>ponderación social</td><td class="n">−10.769,9</td><td class="n">−8.310,4</td><td class="n">−10.773,3</td><td class="n">0,03 %</td></tr>
+    <tr><td>conductual</td><td class="n">−8.364,3</td><td class="n">−8.366,3</td><td class="n">—</td><td class="n">0,02 %</td></tr>
+    <tr class="destacada"><td>ponderación social</td><td class="n">−10.840,2</td><td class="n">−8.366,3</td><td class="n">−10.843,6</td><td class="n">0,03 %</td></tr>
   </tbody>
 </table>
 </div>
 
 <p class="pie-tabla">
-  Los 8.310,4 son los viajes de metro de la corrida. La predicción «se
+  Los 8.366,3 son los viajes de metro de la corrida. La predicción «se
   repondera» es la suma por estrato de los viajes de metro por
   <em>VoT_social/VoT_h</em>.
 </p>
@@ -429,17 +430,17 @@
   </thead>
   <tbody>
     <tr><td colspan="7"><strong><code>expected</code> · medida logsum · el método de la aplicación</strong></td></tr>
-    <tr><td class="n">1</td><td class="n">31,35</td><td class="n">−372,1</td><td class="n">+0,0</td><td class="n">−365,0</td><td class="n">+0,0</td><td>sí (119)</td></tr>
-    <tr><td class="n">2</td><td class="n">26,18</td><td class="n">−121,2</td><td class="n">+250,9</td><td class="n">−174,2</td><td class="n">+190,8</td><td>sí (21)</td></tr>
-    <tr><td class="n">3</td><td class="n">23,86</td><td class="n">9,9</td><td class="n">+382,0</td><td class="n">−73,7</td><td class="n">+291,3</td><td>sí (11)</td></tr>
-    <tr><td class="n">4</td><td class="n">23,08</td><td class="n">62,7</td><td class="n">+434,8</td><td class="n">−32,7</td><td class="n">+332,3</td><td>sí (10)</td></tr>
-    <tr><td class="n">6</td><td class="n">22,72</td><td class="n">88,8</td><td class="n">+460,9</td><td class="n">−12,4</td><td class="n">+352,6</td><td>sí (9)</td></tr>
+    <tr><td class="n">1</td><td class="n">31,23</td><td class="n">−375,3</td><td class="n">+0,0</td><td class="n">−368,0</td><td class="n">+0,0</td><td>sí (20)</td></tr>
+    <tr><td class="n">2</td><td class="n">26,21</td><td class="n">−114,3</td><td class="n">+261,0</td><td class="n">−167,3</td><td class="n">+200,7</td><td>sí (9)</td></tr>
+    <tr><td class="n">3</td><td class="n">24,00</td><td class="n">20,0</td><td class="n">+395,3</td><td class="n">−63,7</td><td class="n">+304,3</td><td>sí (6)</td></tr>
+    <tr><td class="n">4</td><td class="n">23,24</td><td class="n">70,4</td><td class="n">+445,7</td><td class="n">−24,6</td><td class="n">+343,4</td><td>sí (6)</td></tr>
+    <tr><td class="n">6</td><td class="n">22,87</td><td class="n">95,5</td><td class="n">+470,8</td><td class="n">−5,1</td><td class="n">+362,9</td><td>sí (6)</td></tr>
     <tr><td colspan="7"><strong><code>todo_o_nada</code> · medida utilidad máxima · carga determinística</strong></td></tr>
-    <tr><td class="n">1</td><td class="n">20,91</td><td class="n">−1.890,6</td><td class="n">+0,0</td><td class="n">−1.826,1</td><td class="n">+0,0</td><td><strong>no</strong> (120)</td></tr>
-    <tr class="destacada"><td class="n">2</td><td class="n">6,50</td><td class="n">−2.010,2</td><td class="n">−119,6</td><td class="n">−1.964,3</td><td class="n">−138,2</td><td><strong>no</strong> (120)</td></tr>
-    <tr><td class="n">3</td><td class="n">3,78</td><td class="n">−1.835,4</td><td class="n">+55,2</td><td class="n">−1.802,6</td><td class="n">+23,5</td><td><strong>no</strong> (120)</td></tr>
-    <tr><td class="n">4</td><td class="n">2,83</td><td class="n">−1.333,7</td><td class="n">+556,9</td><td class="n">−1.409,9</td><td class="n">+416,2</td><td>sí (10)</td></tr>
-    <tr><td class="n">6</td><td class="n">2,55</td><td class="n">−1.029,8</td><td class="n">+860,8</td><td class="n">−1.167,3</td><td class="n">+658,8</td><td>sí (10)</td></tr>
+    <tr><td class="n">1</td><td class="n">22,32</td><td class="n">−1.856,2</td><td class="n">+0,0</td><td class="n">−1.793,1</td><td class="n">+0,0</td><td>sí (524)</td></tr>
+    <tr class="destacada"><td class="n">2</td><td class="n">6,51</td><td class="n">−2.010,1</td><td class="n">−153,9</td><td class="n">−1.964,2</td><td class="n">−171,1</td><td>sí (161)</td></tr>
+    <tr class="destacada"><td class="n">3</td><td class="n">3,78</td><td class="n">−1.836,2</td><td class="n">+20,0</td><td class="n">−1.803,2</td><td class="n">−10,1</td><td>sí (142)</td></tr>
+    <tr><td class="n">4</td><td class="n">2,83</td><td class="n">−1.333,7</td><td class="n">+522,5</td><td class="n">−1.409,9</td><td class="n">+383,2</td><td>sí (10)</td></tr>
+    <tr><td class="n">6</td><td class="n">2,52</td><td class="n">−1.029,9</td><td class="n">+826,3</td><td class="n">−1.167,4</td><td class="n">+625,7</td><td>sí (13)</td></tr>
   </tbody>
 </table>
 </div>
@@ -452,32 +453,36 @@
 <p>
   <strong>Con el método de la aplicación no hay paradoja en ninguna
   unidad.</strong> Ampliar la vía mejora el excedente monótonamente en las
-  dos monedas, el metro cede de 31,4 % a 22,7 % y se estabiliza, y con la BPR
+  dos monedas, el metro cede de 31,2 % a 22,9 % y se estabiliza, y con la BPR
   sobre la capacidad práctica (D6) la palanca vial se agota desde la cuarta
   pista. La referencia de una pista, que es contra la que se miden los Δ,
-  converge, pero pide 119 iteraciones y termina con brecha
-  0,195 min: sin teletrabajo por defecto viajan todos los hogares, el
-  corredor de una pista queda muy por sobre su capacidad y la brecha baja
-  como 1/<em>n</em> (capítulo 5). Hasta oct-2026, con el tope en 100, no
+  converge, pero pide 20 iteraciones y termina con brecha
+  0,010 min: sin teletrabajo por defecto viajan todos los hogares y el
+  corredor de una pista queda muy por sobre su capacidad (capítulo 5).
+  Hasta oct-2026, con el tope en 100, no
   convergía y los Δ se medían contra una corrida cortada.
 </p>
 
 <p>
   <strong>Con la carga determinística la caída aparece, y en el equilibrio de
   usuario.</strong> Al pasar de una a dos pistas el metro se desploma de
-  20,91 % a 6,50 % y el excedente baja en las dos medidas,
-  119,6 $ por viajero en la conductual y 138,2 en la de ponderación
-  social; con tres pistas el Δ ya vuelve a ser positivo, +55,2 y +23,5 $. Todo o nada
-  promedia los flujos de cada grupo (D-70): las corridas de 4 y 6 pistas
-  convergen, y las de 1 a 3 agotan las 120 iteraciones con un costo en exceso
-  medio de 0,093, 0,037 y 0,031 min, sobre la tolerancia de
-  0,02 pero cerca del equilibrio: ese costo cae como 1/<em>n</em> (capítulo 5). La versión anterior de este capítulo sostenía que con este método el signo
-  de la política lo decidía la convención de agregación. Con la oferta
-  corregida eso <strong>no se sostiene</strong>: en los ocho Δ medidos las dos
-  monedas coinciden en el signo. (7.5) dice cuándo podrían discrepar: sólo si
-  la política reparte ganancias y pérdidas entre estratos lo bastante como
-  para que el ponderador 3,88 veces mayor del estrato bajo
-  dé vuelta la suma. El barrido de pistas no lo hace.
+  22,32 % a 6,51 % y el excedente baja en las dos medidas,
+  153,9 $ por viajero en la conductual y 171,1 en la de ponderación
+  social; con tres pistas el Δ conductual ya vuelve a ser positivo, +20,0 $,
+  pero el social sigue negativo, −10,1 $. Todo o nada promedia los flujos de
+  cada grupo (D-70) y para cuando el costo en exceso medio baja de una
+  milésima del tiempo medio de viaje (auditoría B): las cinco corridas
+  convergen, la de una pista en 524 iteraciones, con un costo en exceso
+  medio de entre 0,014 y 0,027 min, y ese costo cae como 1/<em>n</em>
+  (capítulo 5). La versión anterior de este capítulo sostenía que con este
+  método el signo de la política lo decidía la convención de agregación. Con
+  la oferta corregida eso <strong>casi no se sostiene</strong>: de los cuatro
+  escenarios medidos contra la pista única, las dos monedas coinciden en el
+  signo en tres y discrepan sólo con tres pistas, donde los dos Δ son chicos.
+  (7.5) dice cuándo pueden discrepar: sólo si la política reparte ganancias y
+  pérdidas entre estratos lo bastante como para que el ponderador 3,88 veces
+  mayor del estrato bajo dé vuelta la suma. Con tres pistas lo hace, por
+  poco.
 </p>
 
 <h3>5.4 De qué está hecho el bienestar social</h3>
@@ -488,12 +493,12 @@
     <tr><th>término</th><th class="n">$ (hora punta)</th></tr>
   </thead>
   <tbody>
-    <tr><td>excedente emparejado</td><td class="n">2.258.717</td></tr>
-    <tr><td>+ recaudación de estacionamiento</td><td class="n">+10.528.606</td></tr>
+    <tr><td>excedente emparejado</td><td class="n">2.533.448</td></tr>
+    <tr><td>+ recaudación de estacionamiento</td><td class="n">+10.503.856</td></tr>
     <tr><td>+ recaudación de peaje</td><td class="n">+0</td></tr>
-    <tr><td>+ recaudación de tarifa</td><td class="n">+6.648.350</td></tr>
-    <tr><td>− costo del operador</td><td class="n">−1.993.407</td></tr>
-    <tr class="destacada"><td>= bienestar social <em>W</em></td><td class="n">+17.442.266</td></tr>
+    <tr><td>+ recaudación de tarifa</td><td class="n">+6.693.071</td></tr>
+    <tr><td>− costo del operador</td><td class="n">−2.007.741</td></tr>
+    <tr class="destacada"><td>= bienestar social <em>W</em></td><td class="n">+17.722.634</td></tr>
   </tbody>
 </table>
 </div>
@@ -504,10 +509,10 @@
     <tr><th class="n">factor día/punta</th><th class="n">costo del día</th><th class="n">subsidio</th><th>autofinancia</th><th class="n"><em>W</em></th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">1,0</td><td class="n">1.993.407</td><td class="n">−4.654.943</td><td><strong>sí</strong></td><td class="n">17.442.266</td></tr>
-    <tr class="destacada"><td class="n">2,0</td><td class="n">3.986.815</td><td class="n">−2.661.535</td><td><strong>sí</strong></td><td class="n">17.442.266</td></tr>
-    <tr><td class="n">3,0</td><td class="n">5.980.222</td><td class="n">−668.128</td><td><strong>sí</strong></td><td class="n">17.442.266</td></tr>
-    <tr><td class="n">3,7</td><td class="n">7.375.607</td><td class="n">727.257</td><td><strong>no</strong></td><td class="n">17.442.266</td></tr>
+    <tr><td class="n">1,0</td><td class="n">2.007.741</td><td class="n">−4.685.330</td><td><strong>sí</strong></td><td class="n">17.722.634</td></tr>
+    <tr class="destacada"><td class="n">2,0</td><td class="n">4.015.482</td><td class="n">−2.677.589</td><td><strong>sí</strong></td><td class="n">17.722.634</td></tr>
+    <tr><td class="n">3,0</td><td class="n">6.023.224</td><td class="n">−669.847</td><td><strong>sí</strong></td><td class="n">17.722.634</td></tr>
+    <tr><td class="n">3,7</td><td class="n">7.428.642</td><td class="n">735.571</td><td><strong>no</strong></td><td class="n">17.722.634</td></tr>
   </tbody>
 </table>
 </div>
@@ -516,7 +521,7 @@
   <strong>El código acierta su propia predicción.</strong> El comentario del
   factor dice que haría falta cerca de 3,7 para que el metro requiera
   subsidio. Medido: autofinancia con 1, 2 y 3, y a 3,7 el subsidio se vuelve
-  positivo, 727.257 $. <em>W</em> no se mueve en ninguna fila: es la
+  positivo, 735.571 $. <em>W</em> no se mueve en ninguna fila: es la
   prueba de D12.
 </p>
 
@@ -524,13 +529,13 @@
   <strong>Lo que cambió con D12.</strong> Con la regla anterior el costo del
   operador entraba a <em>W</em> multiplicado por el factor, así que tres de
   los cuatro términos eran de la hora punta y el cuarto, del día. La base
-  medía 15.448.859 $ con esa regla y mide 17.442.266 $ con la nueva: un
+  medía 15.714.893 $ con esa regla y mide 17.722.634 $ con la nueva: un
   13 % más, que es exactamente el costo del valle que se le cargaba
   a la punta. En el Δ, que es lo que se lee, el cambio casi se cancela: ampliar
-  de 2 a 4 pistas vale 7.752.723 $ con la regla nueva y
-  8.020.895 $ con la anterior. No se cancela del todo porque la
+  de 2 a 4 pistas vale 7.774.600 $ con la regla nueva y
+  8.032.841 $ con la anterior. No se cancela del todo porque la
   frecuencia del metro es endógena: con menos pasajeros circulan menos trenes,
-  y el costo del operador cae 268.173 $ en la punta.
+  y el costo del operador cae 258.242 $ en la punta.
 </p>
 
 <h3>5.5 La población que desaparece</h3>
@@ -546,10 +551,10 @@
     <tr><th>escenario</th><th class="n">viajeros en el agregado</th><th class="n">varados</th><th class="n">% de quienes viajarían</th><th class="n">excedente total</th><th class="n">por viajero</th><th class="n">tren-km/h</th><th class="n">costo operador</th><th class="n">recaudación de tarifa</th></tr>
   </thead>
   <tbody>
-    <tr><td>todos</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">2.258.717</td><td class="n">62,7</td><td class="n">166,1</td><td class="n">1.993.407</td><td class="n">6.648.350</td></tr>
-    <tr><td>sin metro</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">−21.242.296</td><td class="n">−590,1</td><td class="n">80,0</td><td class="n">960.000</td><td class="n">0</td></tr>
-    <tr><td>sin auto</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">−28.196.817</td><td class="n">−783,2</td><td class="n">285,1</td><td class="n">3.421.601</td><td class="n">11.405.116</td></tr>
-    <tr class="destacada"><td>sin bici ni caminata</td><td class="n">33.324</td><td class="n">2.676</td><td class="n">7,43</td><td class="n">−25.283.365</td><td class="n">−758,7</td><td class="n">379,7</td><td class="n">4.555.853</td><td class="n">15.185.373</td></tr>
+    <tr><td>todos</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">2.533.448</td><td class="n">70,4</td><td class="n">167,3</td><td class="n">2.007.741</td><td class="n">6.693.071</td></tr>
+    <tr><td>sin metro</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">−21.212.084</td><td class="n">−589,2</td><td class="n">80,0</td><td class="n">960.000</td><td class="n">0</td></tr>
+    <tr><td>sin auto</td><td class="n">36.000</td><td class="n">0</td><td class="n">0,00</td><td class="n">−28.009.195</td><td class="n">−778,0</td><td class="n">285,1</td><td class="n">3.420.641</td><td class="n">11.401.961</td></tr>
+    <tr class="destacada"><td>sin bici ni caminata</td><td class="n">33.324</td><td class="n">2.676</td><td class="n">7,43</td><td class="n">−25.159.724</td><td class="n">−755,0</td><td class="n">379,4</td><td class="n">4.552.942</td><td class="n">15.176.365</td></tr>
   </tbody>
 </table>
 </div>
@@ -557,11 +562,11 @@
 <p>
   Apagar la bici y la caminata deja <strong>2.676 personas varadas,
   el 7,43 % de quienes viajarían</strong>, y las saca del
-  cálculo. El daño medido es −27.542.082 $. Si a esos varados se los
+  cálculo. El daño medido es −27.693.172 $. Si a esos varados se los
   valorara al excedente del viajero medio del mismo escenario (una cota
   inferior, porque quedaron varados justamente por estar peor que el
-  promedio), el daño sería −29.572.363 $: el agregado
-  <strong>lo subestima en al menos un 7,37 %</strong>. Y no es sólo
+  promedio), el daño sería −29.713.552 $: el agregado
+  <strong>lo subestima en al menos un 7,30 %</strong>. Y no es sólo
   el promedio: el total también se contrae porque el número de viajeros cae.
   La política sale mejor evaluada por haber sacado gente del denominador.
 </p>
@@ -625,9 +630,9 @@
     <tr><th>ponderador</th><th class="n">espera</th><th class="n">acceso</th><th class="n">caminata</th><th class="n">minutos totales</th><th class="n">recargo</th></tr>
   </thead>
   <tbody>
-    <tr><td>plano</td><td class="n">1,0</td><td class="n">1,0</td><td class="n">1,0</td><td class="n">579.893,6</td><td class="n">—</td></tr>
-    <tr><td>SNI (costo social)</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,0</td><td class="n">688.640,1</td><td class="n">+18,75 %</td></tr>
-    <tr><td>utilidad (costo percibido)</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">725.086,7</td><td class="n">+25,04 %</td></tr>
+    <tr><td>plano</td><td class="n">1,0</td><td class="n">1,0</td><td class="n">1,0</td><td class="n">576.526,4</td><td class="n">—</td></tr>
+    <tr><td>SNI (costo social)</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,0</td><td class="n">684.311,8</td><td class="n">+18,70 %</td></tr>
+    <tr><td>utilidad (costo percibido)</td><td class="n">2,0</td><td class="n">2,0</td><td class="n">1,7</td><td class="n">720.657,1</td><td class="n">+25,00 %</td></tr>
   </tbody>
 </table>
 </div>
@@ -638,8 +643,8 @@
 </p>
 
 <p>
-  El costo generalizado social sube de 54.265.376 $ con minutos
-  planos a <strong>60.315.305 $</strong> al ponderar, un 11,15 %. Y los
+  El costo generalizado social sube de 54.083.684 $ con minutos
+  planos a <strong>60.080.143 $</strong> al ponderar, un 11,09 %. Y los
   ponderadores de espera y acceso de la utilidad <strong>coinciden
   exactamente</strong> con los del SNI, 2,0 y 2,0, porque los betas del
   capítulo 4 se calibraron contra esa misma tabla. Toda la diferencia entre
@@ -663,7 +668,8 @@
   de oct-2026 son de alcance, no de matemática: la función objetivo vuelve a
   una sola base contable (D12) y la ponderación social se rotula por lo que
   hace (D13). Y el resultado que el capítulo destacaba, que el signo de una
-  ampliación vial dependía de la unidad, no sobrevive a la oferta corregida.
+  ampliación vial dependía de la unidad, sobrevive a la oferta corregida sólo
+  en un caso chico: todo o nada con tres pistas, +20,0 $ contra −10,1 $.
 </p>
 
 <h3>Alternativas medidas</h3>
@@ -671,7 +677,7 @@
 <ul>
   <li>
     <strong>Costo generalizado con minutos planos</strong>: subvalúa el costo
-    social en 11,15 % y no cumple la tabla que dice cumplir.
+    social en 11,09 % y no cumple la tabla que dice cumplir.
   </li>
   <li>
     <strong>Theil territorial</strong>: se conserva en el código como la rama

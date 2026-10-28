@@ -23,7 +23,7 @@
     <code>pyodide.worker.ts</code> · <code>lib/api.ts</code> ·
     <code>lib/gen/</code> · goldens ·
     auditado el 2026-09-08, revisado el 2026-10-17 ·
-    datos regenerados el 2026-10-18 ·
+    datos regenerados el 2026-10-27 ·
     <span class="estado auditado">auditado</span>
   </p>
 </header>
@@ -130,7 +130,7 @@
       <td class="n">2</td>
       <td class="ruta ts">workers/pyodide.worker.ts</td>
       <td class="n">85</td>
-      <td><code>runPythonAsync</code> — el bloque Python embebido: 79 líneas que ninguna herramienta lee</td>
+      <td><code>runPythonAsync</code> — el bloque Python embebido: 82 líneas que ninguna herramienta lee</td>
     </tr>
     <tr>
       <td class="n">2</td>
@@ -269,7 +269,7 @@
     </tr>
     <tr>
       <td><code>outer_tol</code></td>
-      <td class="n">100</td>
+      <td class="n">99</td>
       <td><code>constantes.TOL_ACOPLADO_CLP_MES</code></td>
       <td><span class="etiqueta neutra">decisión</span> $/hogar-mes sobre max_h |ΔT_h|/λ_h (D10); núcleo, API y worker la importan, proyectada en <code>constantes.gen.ts</code>, las páginas no la mandan (D-54, corregido)</td>
     </tr>
@@ -314,7 +314,7 @@
 </div>
 
 <p class="pie-tabla">
-  Comparación JSON con tolerancia relativa 10⁻¹². Son 79 líneas de Python
+  Comparación JSON con tolerancia relativa 10⁻¹². Son 82 líneas de Python
   dentro de un string de TypeScript.
 </p>
 
@@ -334,8 +334,8 @@
     <tr><th>motor</th><th class="n">auto</th><th class="n">metro</th><th class="n">bici</th><th class="n">caminata</th><th class="n">teletrabajo</th><th class="n">agentes</th></tr>
   </thead>
   <tbody>
-    <tr><td>api — <code>run_msa(sim, suelo, «original»)</code>, lo que corre <code>/simulate</code></td><td class="n">29,252</td><td class="n">23,072</td><td class="n">35,701</td><td class="n">11,974</td><td class="n">0,000</td><td class="n">36.000</td></tr>
-    <tr class="destacada"><td>local — <code>iter_msa_desde_suelo</code>, lo que corre el worker</td><td class="n">29,252</td><td class="n">23,072</td><td class="n">35,701</td><td class="n">11,974</td><td class="n">0,000</td><td class="n">36.000</td></tr>
+    <tr><td>api — <code>run_msa(sim, suelo, «original»)</code>, lo que corre <code>/simulate</code></td><td class="n">29,178</td><td class="n">23,238</td><td class="n">35,631</td><td class="n">11,953</td><td class="n">0,000</td><td class="n">36.000</td></tr>
+    <tr class="destacada"><td>local — <code>iter_msa_desde_suelo</code>, lo que corre el worker</td><td class="n">29,178</td><td class="n">23,238</td><td class="n">35,631</td><td class="n">11,953</td><td class="n">0,000</td><td class="n">36.000</td></tr>
     <tr><td>diferencia (pp)</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0,0</td><td class="n">0</td></tr>
   </tbody>
 </table>
@@ -407,8 +407,8 @@
     <tr><th>objeto</th><th class="n">bytes</th><th>de qué está hecho</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>trace_to_dict</code> (una corrida)</td><td class="n">6.083.222</td><td><code>agentes</code> 93,12 % · <code>iteraciones</code> 5,96 % · <code>demanda_estrato</code> 0,64 %</td></tr>
-    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">6.173.775</td><td><code>transport</code> 99,50 % · <code>land_use</code> 0,27 % · <code>T_matrix</code> 0,19 % · <code>metrics</code> 0,04 %</td></tr>
+    <tr><td><code>trace_to_dict</code> (una corrida)</td><td class="n">5.939.229</td><td><code>agentes</code> 95,38 % · <code>iteraciones</code> 3,67 % · <code>demanda_estrato</code> 0,66 %</td></tr>
+    <tr class="destacada"><td><code>outer_iteration_to_dict</code> (una vuelta)</td><td class="n">5.955.701</td><td><code>transport</code> 99,48 % · <code>land_use</code> 0,28 % · <code>T_matrix</code> 0,20 % · <code>metrics</code> 0,04 %</td></tr>
   </tbody>
 </table>
 </div>
@@ -430,11 +430,11 @@
 </div>
 
 <div class="aviso alerta">
-  <h4>D-62 — 61,7 MB por corrida acoplada, 0,19 MB abiertos</h4>
+  <h4>D-62 — 59,6 MB por corrida acoplada, 0,19 MB abiertos</h4>
   <p>
     Cada vuelta del acoplado transporta el trace de transporte entero —36.000
     agentes con seis campos— y la interfaz no lee <code>transport</code> ni una
-    vez. Con las 10 vueltas del tope cruzan la frontera 61,7 MB, de los que
+    vez. Con las 10 vueltas del tope cruzan la frontera 59,6 MB, de los que
     el frontend abre 0,19 MB. En el motor local cada mensaje pasa además por
     <code>jsFromPy</code> antes de descartarse. Es la misma familia que
     <code>T_matrix</code> (cap. 6), tres órdenes de magnitud más grande.
@@ -444,18 +444,19 @@
 <h3>4.6 Campos sin lector, y el CI que no ve octubre</h3>
 
 <p>
-  De los 118 campos del contrato, <strong>13</strong> no aparecen en ningún
-  archivo del frontend fuera de <code>lib/gen/</code>: <code>gap_final_min</code>,
+  De los 118 campos del contrato, <strong>12</strong> no aparecen en ningún
+  archivo del frontend fuera de <code>lib/gen/</code>:
   <code>v_libre_auto</code>, <code>alpha_auto_bpr</code>, <code>beta_auto_bpr</code>,
   <code>f_msa</code>, <code>teletrabaja</code>, <code>tiene_auto</code>,
   <code>T_matrix</code>, <code>excedente_social_por_estrato_clp</code>,
   <code>viajeros_por_estrato</code>, <code>n_viajeros</code>,
   <code>excedente_hogar_mes_clp</code> y
-  <code>tiempo_total_pax_min</code>. Dos son
-  pendientes declarados que siguen abiertos: <code>gap_final_min</code> (D-39) y
-  <code>n_viajeros</code> (D-35). Son los quince de septiembre menos
-  <code>convergio_msa</code>, que desde oct-2026 lee la tabla de Ciudad en
-  equilibrio para decir «MSA sin converger», y menos
+  <code>tiempo_total_pax_min</code>. Uno es un
+  pendiente declarado que sigue abierto: <code>n_viajeros</code> (D-35). Son
+  los quince de septiembre menos <code>convergio_msa</code>, que desde oct-2026
+  lee la tabla de Ciudad en equilibrio para decir «MSA sin converger», menos
+  <code>gap_final_min</code> (D-39), que desde la auditoría B lee el veredicto
+  de convergencia del Sandbox con Montecarlo, y menos
   <code>excedente_total_clp</code> y <code>excedente_max_total_clp</code>, que
   desde el 2026-10-17 leen la fila de excedente total de Transporte y la tabla
   de bienestar de Comparar. Entra uno: <code>excedente_hogar_mes_clp</code>, el
@@ -503,7 +504,7 @@
 <p class="pie-tabla">
   Fuente: <code>datos/cap08.json</code>, regenerado el 2026-10-18 con
   <code>uv run python ../../docs/libro/datos/datos_cap08.py</code>. Goldens:
-  18 casos de oferta, 33 de utilidad. Contrato generado: 5 archivos, 975 líneas,
+  18 casos de oferta, 33 de utilidad. Contrato generado: 5 archivos, 988 líneas,
   29 interfaces.
 </p>
 
@@ -619,13 +620,13 @@
     </tr>
     <tr>
       <td class="n">D-62</td>
-      <td>Cada vuelta del acoplado lleva 6,2 MB que la interfaz no abre: 61,7 MB por corrida al tope, 0,19 usados.</td>
+      <td>Cada vuelta del acoplado lleva 6,0 MB que la interfaz no abre: 59,6 MB por corrida al tope, 0,19 usados.</td>
       <td>Carga útil que nadie abre.</td>
       <td>pendiente</td>
     </tr>
     <tr>
       <td class="n">D-63</td>
-      <td>La entrada <code>simulate</code> del worker no tenía llamadores (borrada el 2026-09-10), y 13 campos del contrato no tienen lector.</td>
+      <td>La entrada <code>simulate</code> del worker no tenía llamadores (borrada el 2026-09-10), y 12 campos del contrato no tienen lector.</td>
       <td>Código y contrato muertos, sin efecto sobre los números.</td>
       <td>pendiente (baja)</td>
     </tr>
@@ -715,9 +716,8 @@
       moverlo a <code>tests/</code> del núcleo para que corra con pytest.
     </li>
     <li>
-      <strong>Podar el contrato</strong> (D-63), empezando por cerrar los dos
-      pendientes que quedaron en el aire: mostrar <code>gap_final_min</code> y
-      <code>n_viajeros</code>.
+      <strong>Podar el contrato</strong> (D-63), empezando por cerrar el
+      pendiente que quedó en el aire: mostrar <code>n_viajeros</code>.
     </li>
   </ul>
 </div>

@@ -274,7 +274,7 @@
     "supply_porque": "Car: capacity from Greenshields (lane width reduces it) and BPR delay accumulated toward the CBD. Bike: same volume/capacity form, corrected for slope and floored at walking time. Metro: frequency capped by frec_min/frec_max, half-headway wait amplified by platform saturation, and intermediate stops inside the in-vehicle time — more stations shorten access but lengthen the ride.",
     "equilibrium_title": "Equilibrium",
     "equilibrium_corto": "MSA alternates demand and network until the times used to compute demand match those the network returns.",
-    "equilibrium_porque": "With «Logit — probabilities» it averages FLOWS: the step starts at 1 and is halved every time the gap stops falling (halving). With sampling it averages travel times with step 1/k, and with all-or-nothing each group's flows with step 1/k. The residual is the undamped gap: the largest difference, in any mode and cell, between the time the network returns when loaded with the iteration's demand and the time that demand was computed from (under all-or-nothing, the relative gap). It converges when that stays below tolerance for 2 consecutive iterations (with tolerance 0 it runs to the iteration cap)."
+    "equilibrium_porque": "With «Logit — probabilities» it averages FLOWS: the step starts at 1 and is halved every time the gap fails to fall by at least 10% (halving). With sampling it averages travel times with step 1/k, and with all-or-nothing each group's flows with step 1/k. The residual is the undamped gap: the largest difference, in any mode and cell, between the time the network returns when loaded with the iteration's demand and the time that demand was computed from (under all-or-nothing, the relative gap). It converges when that stays below tolerance for 2 consecutive iterations (with tolerance 0 it runs to the iteration cap)."
   },
   "sections_sidebar": {
     "infra": "Infrastructure",
@@ -854,7 +854,7 @@
       "congestion_desc": "Given assigned demand, times are recomputed with BPR (auto, bike) or platform saturation (metro).",
       "smooth": "MSA average",
       "smooth_title": "Method of successive averages",
-      "smooth_desc": "To avoid oscillation, the new T is averaged with prior ones: weight f_n = 1/(n+1) decays with n.",
+      "smooth_desc": "To avoid oscillation, the new flow x* is mixed with the current one with a step α that starts at 1 and halves every time the gap fails to fall by at least 10% (Boyles §8.3.5). With «Logit — sampling» the times are averaged with weight 1/(n+1).",
       "check": "‖ΔT‖ < ε?",
       "check_title": "Convergence",
       "check_desc": "If the gap — what the loaded network returns against the times the demand was computed with — stays below the tolerance for two iterations in a row, equilibrium is reached.",
