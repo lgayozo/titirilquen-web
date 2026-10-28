@@ -21,7 +21,7 @@ BINS = np.array(D["bins"])
 DIAS = np.arange(1, D["dias"] + 1)
 
 AUTO, METRO, TINTA, GRIS, REGLA = "#b4532a", "#2f6690", "#1a1a1a", "#6b6b6b", "#d8d4cc"
-COLOR_CASO = {"C1": "#8a8a8a", "C2": AUTO, "C3": METRO}
+COLOR_CASO = {"C1": METRO, "C2": "#e3a587", "C3": "#7d3519"}  # el color del modo mejor
 COLOR_K = {1: "#e3a587", 2: "#d0794f", 3: AUTO, 5: "#7d3519", 10: TINTA}
 HORIZONTES = {
     "corto": "Corto plazo (días 1–10)",

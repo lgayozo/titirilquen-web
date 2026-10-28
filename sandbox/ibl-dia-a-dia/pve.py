@@ -73,6 +73,7 @@ def referencia() -> dict:
         tren_acceso=float(s.t_tren_acceso[CELDA]),
         tren_espera=float(s.t_tren_espera[CELDA]),
         tren_viaje=float(s.t_tren_viaje[CELDA]),
+        bici_libre=float(s.t_bici_libre[CELDA]),
     )
     u = calcular_utilidades(
         estrato=ESTRATO,

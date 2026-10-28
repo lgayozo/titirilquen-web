@@ -418,9 +418,10 @@ s2 = f"""
   todos con auto) se eligieron tres celdas cuya {tex("P^{*}")} barre el rango. Con {
     tex("\\mu = 1")
 } ninguna
-  celda pasa de una probabilidad de 0,81 a favor del auto (barrido de las 201 celdas × 3 estratos
-  hecho al elegir los casos; no está en el JSON); el caso más marcado (C3) es uno donde gana el metro, por costo:
-  el auto es más rápido pero el estrato Bajo valora poco el tiempo.
+  celda con metro factible pasa de una probabilidad de 0,85 a favor del auto ni de 0,65 a favor del
+  metro (barrido de las celdas × 3 estratos hecho al elegir los casos; no está en el JSON); el caso más
+  parejo (C1) es uno donde gana el metro, por costo: el auto es más rápido pero el estrato Bajo valora
+  poco el tiempo. Hay uno por estrato.
 </p>
 {
     tabla(

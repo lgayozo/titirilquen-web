@@ -69,8 +69,8 @@ def _config_web() -> tuple[SimulationConfig, LandUseConfig]:
         city=CityConfig(n_celdas=201, largo_ciudad_km=20),
         supply=SupplyConfig(),
         demand=DemandConfig.model_validate({"estratos": DEFAULT_STRATA}),
-        max_iter=20,
-        tolerance=0.1,
+        max_iter=150,
+        tolerance=0.02,
         seed=42,
         assignment="expected",
     )
@@ -99,6 +99,7 @@ def escenario() -> Escenario:
         tren_acceso=float(s.t_tren_acceso[CELDA]),
         tren_espera=float(s.t_tren_espera[CELDA]),
         tren_viaje=float(s.t_tren_viaje[CELDA]),
+        bici_libre=float(s.t_bici_libre[CELDA]),
     )
     dist_km = abs(ciudad.cbd_index - CELDA) * ciudad.ancho_celda_km
     libre = dist_km / sim.demand.globales.v_auto * 60
@@ -113,6 +114,7 @@ def utilidades(esc: Escenario, t_auto_percibido: float) -> np.ndarray:
         tren_acceso=esc.equilibrio.tren_acceso,
         tren_espera=esc.equilibrio.tren_espera,
         tren_viaje=esc.equilibrio.tren_viaje,
+        bici_libre=esc.equilibrio.bici_libre,
     )
     u = calcular_utilidades(
         estrato=ESTRATO,

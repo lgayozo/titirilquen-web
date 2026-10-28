@@ -112,6 +112,7 @@ class Escenario:
                 tren_acceso=float(s.t_tren_acceso[i]),
                 tren_espera=float(s.t_tren_espera[i]),
                 tren_viaje=float(s.t_tren_viaje[i]),
+                bici_libre=float(s.t_bici_libre[i]),
             )
             for i in range(L)
         ]

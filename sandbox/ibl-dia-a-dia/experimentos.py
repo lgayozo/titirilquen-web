@@ -16,8 +16,9 @@ Las ecuaciones llevan el número que tienen en el informe (`informe.html`):
 **Los casos son celdas reales.** `run_msa` con la configuración web da los
 tiempos de equilibrio; `calcular_utilidades` del núcleo da `V^ref` con sólo
 auto y metro y `tiene_auto = True`. Se eligieron tres celdas cuya probabilidad
-verdadera del modo mejor barre 0,60 / 0,75 / 0,86 (`CASOS`). Con μ = 1 ninguna
-celda pasa de 0,81 a favor del auto; el caso de 0,86 es uno donde gana el metro.
+verdadera del modo mejor barre 0,60 / 0,75 / 0,85 (`CASOS`), uno por estrato.
+Con μ = 1 ninguna celda con metro factible pasa de 0,85 a favor del auto ni de
+0,65 a favor del metro; el caso de 0,60 es uno donde gana el metro.
 
 **Una persona, no una población.** Cada réplica es la misma persona con su
 propia secuencia aleatoria; no hay congestión. El tratamiento y el control usan
@@ -52,7 +53,7 @@ SEMILLA = 42
 # Horizontes: corto, mediano y largo plazo (días, ambos extremos incluidos).
 VENTANAS = {"corto": (1, 10), "medio": (11, 50), "largo": (51, 250)}
 # (nombre, estrato, celda). 1 = Alto, 2 = Medio, 3 = Bajo; celda 100 = CBD.
-CASOS = (("C1", 2, 169), ("C2", 1, 153), ("C3", 3, 199))
+CASOS = (("C1", 3, 198), ("C2", 2, 135), ("C3", 1, 111))
 # d = 0: promedio simple. 0,5: valor convencional (Guevara et al. 2018, §3.2).
 # 1,28: estimado con los datos de Ben-Elia y Shiftan (2010) (Guevara et al. 2018, tabla 4).
 DECAIMIENTOS = (0.0, 0.5, 1.28)
@@ -111,6 +112,7 @@ def casos() -> list[Caso]:
             tren_acceso=float(s.t_tren_acceso[celda]),
             tren_espera=float(s.t_tren_espera[celda]),
             tren_viaje=float(s.t_tren_viaje[celda]),
+            bici_libre=float(s.t_bici_libre[celda]),
         )
         u = calcular_utilidades(
             estrato=estrato,
