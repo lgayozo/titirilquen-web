@@ -41,7 +41,7 @@ agentes (o de sus viajes), no de réplicas de una persona.
   acceso quedan en `V_ref`). Sin truncar (ver `persona.py`).
 * Teletrabajadores fuera: no eligen.
 * La escala del logit `μ` multiplica las utilidades antes del softmax; `μ = 1`
-  es el logit del núcleo.
+  es el logit del núcleo y la única escala que se analiza.
 """
 
 from __future__ import annotations
@@ -80,8 +80,10 @@ DIAS = 100
 ULTIMOS = 20
 # σ = 0 es la referencia de cada μ: la misma dinámica sin ruido converge al
 # equilibrio del logit con escala μ, y el hot stove es la diferencia con σ > 0.
-SIGMAS = (0.0, 5.0, 10.0, 20.0)
-MUS = (1.0, 3.0, 10.0)
+# Hasta 80 min, el mismo rango que E2 (experimentos.py) para una persona.
+SIGMAS = (0.0, 5.0, 10.0, 20.0, 40.0, 80.0)
+# Escala única: μ = 1, el logit del núcleo. Todos los análisis se hacen con ella.
+MUS = (1.0,)
 DECAIMIENTOS = (0.0, 0.5, 1.0)
 
 
@@ -205,6 +207,28 @@ def _cuota_mejor(esc: Escenario, ult: np.ndarray, v_am: np.ndarray) -> dict:
     return out
 
 
+def _dispersion_iguales(esc: Escenario, ult: np.ndarray) -> float:
+    """Varianza del share de auto entre personas iguales, sobre la binomial.
+
+    Personas iguales = mismo (estrato, celda), con auto y metro factibles. Si
+    todas eligieran con la misma P, la varianza de su share en los últimos
+    días sería la binomial p̄(1 − p̄)/ULTIMOS; la razón agregada (ponderada por
+    tamaño de grupo) mide cuánto la historia diferenció a personas idénticas.
+    Con σ = 0 debe dar ≈ 1.
+    """
+    ambos = esc.feas[:, 0] & esc.feas[:, 1]
+    share = (ult[ambos] == 0).mean(axis=1)
+    _, g = np.unique(
+        esc.estrato[ambos] * esc.ciudad.n_celdas + esc.celda[ambos], return_inverse=True
+    )
+    n = np.bincount(g).astype(float)
+    p = np.bincount(g, weights=share) / n
+    var_obs = np.bincount(g, weights=(share - p[g]) ** 2) / n
+    var_bin = p * (1.0 - p) / ult.shape[1]
+    ok = n >= 2
+    return float((n[ok] * var_obs[ok]).sum() / (n[ok] * var_bin[ok]).sum())
+
+
 def simular(
     esc: Escenario,
     sigma: float,
@@ -228,6 +252,7 @@ def simular(
     t_auto_medio = np.zeros(DIAS)  # tiempo real del auto, promedio sobre quienes lo usaron
     t_metro_medio = np.zeros(DIAS)
     bienestar = np.zeros(DIAS)  # utilidad VERDADERA media del modo elegido
+    bienestar_decision = np.zeros(DIAS)  # la PERCIBIDA, con la que se decidió
     # Utilidad verdadera de auto y metro acumulada en los últimos días: define
     # cuál de los dos es el mejor para cada persona (efecto de variabilidad).
     v_am_ult = np.zeros((N, 2))
@@ -239,6 +264,7 @@ def simular(
         V[~esc.feas] = -np.inf
         modo = _sortear(_softmax_filas(V, mu), rng)
         modo_hist[:, t - 1] = modo
+        bienestar_decision[t - 1] = V[np.arange(N), modo].mean()
 
         d_auto = np.bincount(esc.celda[modo == 0], minlength=L).astype(float)
         d_metro = np.bincount(esc.celda[modo == 1], minlength=L).astype(float)
@@ -277,8 +303,10 @@ def simular(
         "t_auto_medio_por_dia": t_auto_medio.tolist(),
         "t_metro_medio_por_dia": t_metro_medio.tolist(),
         "bienestar_por_dia": bienestar.tolist(),
+        "bienestar_decision_por_dia": bienestar_decision.tolist(),
     }
     fila["cuota_mejor_auto_metro"] = _cuota_mejor(esc, ult, v_am_ult)
+    fila["dispersion_iguales"] = _dispersion_iguales(esc, ult)
     for k, nombre in ((0, "auto"), (1, "metro")):
         puede = esc.feas[:, k]
         share_ult = (ult == k).mean(axis=1)
