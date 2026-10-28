@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-28",
-  "commit": "10d0f04",
+  "commit": "53eb058",
   "script": "docs/libro/datos/datos_cap04.py",
   "configuracion": "Demanda de la aplicación (`presets.DEFAULT_STRATA`, homoscedástica desde D-33) sobre la ciudad por defecto: 201 celdas, 20 km, localización «original». Los costos por modo son a flujo libre."
  },
@@ -689,5 +689,305 @@
    "brecha_heredada_pct": -2.04,
    "factor_aplicado": 1.0208
   }
+ },
+ "umbrales": {
+  "base": {
+   "escalones": {
+    "original": {
+     "reparto_pct": {
+      "Auto": 29.16,
+      "Metro": 23.42,
+      "Bici": 35.42,
+      "Caminata": 12.01
+     },
+     "iteraciones": 6
+    },
+    "saltos_medio": {
+     "logsum": {
+      "max": 0.179,
+      "km": 2.49,
+      "paso_mediano": 0.033
+     },
+     "metro_cambio_estacion": {
+      "limites": 4,
+      "min": 0.072,
+      "max": 0.122
+     },
+     "metro_infactible_hasta_km": 1.0
+    },
+    "equilibrio": {
+     "reparto_pct": {
+      "Auto": 28.25,
+      "Metro": 26.11,
+      "Bici": 35.79,
+      "Caminata": 9.85
+     },
+     "iteraciones": 6
+    }
+   },
+   "suaves": {
+    "original": {
+     "reparto_pct": {
+      "Auto": 29.41,
+      "Metro": 22.9,
+      "Bici": 35.56,
+      "Caminata": 12.12
+     },
+     "iteraciones": 6
+    },
+    "saltos_medio": {
+     "logsum": {
+      "max": 0.063,
+      "km": 2.39,
+      "paso_mediano": 0.034
+     },
+     "metro_cambio_estacion": {
+      "limites": 4,
+      "min": 0.072,
+      "max": 0.122
+     },
+     "metro_infactible_hasta_km": 0.0
+    },
+    "equilibrio": {
+     "reparto_pct": {
+      "Auto": 28.53,
+      "Metro": 25.74,
+      "Bici": 35.78,
+      "Caminata": 9.96
+     },
+     "iteraciones": 6
+    }
+   }
+  },
+  "compacta": {
+   "Base": {
+    "escalones": {
+     "metro_pct": 8.81,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "suaves": {
+     "metro_pct": 3.55,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "delta_metro_pp": -5.26,
+    "frec_min": 2.0
+   },
+   "TP Gratis": {
+    "escalones": {
+     "metro_pct": 20.1,
+     "frecuencia_metro_tph": 3.62,
+     "convergio": true
+    },
+    "suaves": {
+     "metro_pct": 5.85,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "delta_metro_pp": -14.25,
+    "frec_min": 2.0
+   },
+   "Tarificación Vial": {
+    "escalones": {
+     "metro_pct": 8.88,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "suaves": {
+     "metro_pct": 3.6,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "delta_metro_pp": -5.28,
+    "frec_min": 2.0
+   },
+   "Pro-Auto": {
+    "escalones": {
+     "metro_pct": 6.88,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "suaves": {
+     "metro_pct": 2.71,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "delta_metro_pp": -4.17,
+    "frec_min": 2.0
+   },
+   "Pro-Bici": {
+    "escalones": {
+     "metro_pct": 8.72,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "suaves": {
+     "metro_pct": 3.49,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "delta_metro_pp": -5.23,
+    "frec_min": 2.0
+   },
+   "Vehículos híbridos": {
+    "escalones": {
+     "metro_pct": 8.74,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "suaves": {
+     "metro_pct": 3.5,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "delta_metro_pp": -5.24,
+    "frec_min": 2.0
+   },
+   "Máx Metro": {
+    "escalones": {
+     "metro_pct": 18.36,
+     "frecuencia_metro_tph": 3.3,
+     "convergio": true
+    },
+    "suaves": {
+     "metro_pct": 5.07,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "delta_metro_pp": -13.29,
+    "frec_min": 2.0
+   },
+   "Ciclorrecreovía": {
+    "escalones": {
+     "metro_pct": 8.74,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "suaves": {
+     "metro_pct": 3.51,
+     "frecuencia_metro_tph": 2.0,
+     "convergio": true
+    },
+    "delta_metro_pp": -5.23,
+    "frec_min": 2.0
+   }
+  },
+  "compacta_rango_delta_metro_pp": [
+   -14.25,
+   -4.17
+  ],
+  "compacta_largo_km": 8,
+  "suelo_escalones_valle": {
+   "km_min": 1.0,
+   "q_min": 0.391,
+   "km_max": 1.09,
+   "q_max": 0.46,
+   "profundidad": 0.069
+  },
+  "suelo_suaves_valle": {
+   "km_min": 1.49,
+   "q_min": 0.277,
+   "km_max": 1.89,
+   "q_max": 0.328,
+   "profundidad": 0.051
+  },
+  "suelo_suaves_sensibilidad": [
+   {
+    "a": 1.0,
+    "omega": 0.1,
+    "valle": {
+     "km_min": 1.79,
+     "q_min": 0.278,
+     "km_max": 1.99,
+     "q_max": 0.286,
+     "profundidad": 0.008
+    }
+   },
+   {
+    "a": 1.0,
+    "omega": 0.25,
+    "valle": {
+     "km_min": 1.69,
+     "q_min": 0.255,
+     "km_max": 1.99,
+     "q_max": 0.318,
+     "profundidad": 0.063
+    }
+   },
+   {
+    "a": 1.0,
+    "omega": 1.0,
+    "valle": {
+     "km_min": 1.69,
+     "q_min": 0.224,
+     "km_max": 1.89,
+     "q_max": 0.34,
+     "profundidad": 0.115
+    }
+   },
+   {
+    "a": 1.2,
+    "omega": 0.1,
+    "valle": {
+     "km_min": 1.69,
+     "q_min": 0.296,
+     "km_max": 1.99,
+     "q_max": 0.303,
+     "profundidad": 0.006
+    }
+   },
+   {
+    "a": 1.2,
+    "omega": 0.25,
+    "valle": {
+     "km_min": 1.49,
+     "q_min": 0.277,
+     "km_max": 1.89,
+     "q_max": 0.328,
+     "profundidad": 0.051
+    }
+   },
+   {
+    "a": 1.2,
+    "omega": 1.0,
+    "valle": {
+     "km_min": 1.59,
+     "q_min": 0.246,
+     "km_max": 1.79,
+     "q_max": 0.346,
+     "profundidad": 0.1
+    }
+   },
+   {
+    "a": 1.5,
+    "omega": 0.1,
+    "valle": null
+   },
+   {
+    "a": 1.5,
+    "omega": 0.25,
+    "valle": {
+     "km_min": 1.39,
+     "q_min": 0.31,
+     "km_max": 1.59,
+     "q_max": 0.347,
+     "profundidad": 0.037
+    }
+   },
+   {
+    "a": 1.5,
+    "omega": 1.0,
+    "valle": {
+     "km_min": 1.39,
+     "q_min": 0.281,
+     "km_max": 1.59,
+     "q_max": 0.367,
+     "profundidad": 0.085
+    }
+   }
+  ],
+  "a_vigente": 1.2,
+  "omega_vigente": 0.25
  }
 }

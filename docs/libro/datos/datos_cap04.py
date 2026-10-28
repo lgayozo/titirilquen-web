@@ -21,6 +21,9 @@ Cinco bloques:
    contra el parking de 5.000 que era la «Tarificación Vial» hasta oct-2026.
 7. `ancla_vot` — la media de los VoT ponderada por viajeros y por hogares,
    contra el VST de Precios Sociales 2026 (D5).
+8. `umbrales` — «escalones» contra «suaves» (`globales.umbrales`): reparto,
+   saltos del logsum y del metro, la ciudad Compacta con cada política y el
+   valle de Q_alto en el suelo con su sensibilidad a `a` y `ω`.
 
 Correr desde `packages/titirilquen_core` (~2 min):
 
@@ -42,6 +45,7 @@ RAIZ = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 import test_linea_base as base
+import titirilquen_core.demand.utility as utility_mod
 import titirilquen_core.equilibrium.msa as msa
 from titirilquen_core.bienestar import calcular_agregados
 from titirilquen_core.city import CiudadLineal
@@ -50,9 +54,11 @@ from titirilquen_core.demand.choice import (
     probabilidades_logit,
     probabilidades_todo_o_nada,
 )
-from titirilquen_core.demand.utility import calcular_utilidades
+from titirilquen_core.demand.utility import TiemposObservados, calcular_utilidades
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, iter_msa_desde_suelo
-from titirilquen_core.presets import DEFAULT_STRATA
+from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
+from titirilquen_core.land_use.ciudad import LandUseCity
+from titirilquen_core.presets import CITY_PRESETS, DEFAULT_STRATA, POLICY_PRESETS
 
 SALIDA = Path(__file__).parent / "cap04.json"
 ESTRATOS = (1, 2, 3)
@@ -173,9 +179,10 @@ def factibilidad() -> dict:
     }
 
 
-def _traza(sim, localizacion: str = "original") -> ConvergenceTrace:
+def _traza(sim, localizacion: str = "original", lu=None) -> ConvergenceTrace:
     trace = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(sim, base._land_use_web(), trace, localizacion=localizacion):
+    lu = lu or base._land_use_web()
+    for _ in iter_msa_desde_suelo(sim, lu, trace, localizacion=localizacion):
         pass
     return trace
 
@@ -409,6 +416,209 @@ def logit_vs_determinista() -> dict:
     return out
 
 
+def _con_umbrales(sim, umbrales: str):
+    gl = sim.demand.globales.model_copy(update={"umbrales": umbrales})
+    return sim.model_copy(update={"demand": sim.demand.model_copy(update={"globales": gl})})
+
+
+def _reparto(trace: ConvergenceTrace) -> dict:
+    s = trace.iteraciones[-1].modal_split
+    t = sum(v for m, v in s.items() if m != "Teletrabajo")
+    return {m: round(100.0 * v / t, 2) for m, v in s.items() if m != "Teletrabajo"}
+
+
+#: Espejo de `applyPolicy` en `apps/web/src/components/modules/PresetGallery.tsx`:
+#: clave del preset de política → ruta en la config. Pistas y ciclovía van a la
+#: escala de la ciudad (A3); Compacta no declara ninguna de las dos, así que su
+#: escala es la de referencia y la política se aplica con sus valores.
+_MAPA_POLITICA = {
+    "num_pistas": ("supply", "car", "num_pistas"),
+    "cap_bici": ("supply", "bike", "capacidad_pista"),
+    "num_estaciones": ("supply", "train", "num_estaciones"),
+    "frec_max": ("supply", "train", "frec_max"),
+    "cap_tren": ("supply", "train", "capacidad_tren"),
+    "tarifa": ("demand", "globales", "costo_tarifa_metro"),
+    "parking": ("demand", "globales", "costo_parking"),
+    "bencina": ("demand", "globales", "costo_combustible_km"),
+    "peaje": ("demand", "globales", "peaje_km"),
+    "factor_flota": ("demand", "globales", "factor_flota_auto"),
+}
+
+
+def _compacta(politica: str, umbrales: str):
+    c = CITY_PRESETS["Compacta"]
+    assert "num_pistas" not in c and "cap_bici" not in c and "poblacion" not in c
+    d = base._config_web().model_dump()
+    d["city"]["largo_ciudad_km"] = c["largo_ciudad"]
+    for k, v in POLICY_PRESETS[politica].items():
+        a, b, h = _MAPA_POLITICA[k]
+        d[a][b][h] = v
+    d["demand"]["globales"]["umbrales"] = umbrales
+    lu = base._land_use_web().model_copy(update={"oferta_sigma_frac": c["sigma"]})
+    return type(base._config_web()).model_validate(d), lu
+
+
+def _saltos(serie: np.ndarray, km: np.ndarray) -> dict:
+    d = np.abs(np.diff(serie))
+    k = int(np.argmax(d))
+    return {
+        "max": round(float(d[k]), 3),
+        "km": round(float(km[k + 1]), 2),
+        "paso_mediano": round(float(np.median(d)), 3),
+    }
+
+
+def _perfil_logsum(sim, trace: ConvergenceTrace) -> dict:
+    """Lado derecho del CBD, estrato medio, tiempos del estado final: saltos del
+    logsum (promedio por tenencia de auto) entre celdas vecinas, y de la
+    utilidad del metro sin auto donde cambia la estación asignada (cambia
+    `t_tren_viaje`, constante dentro de cada captación; ítem 13)."""
+    snap = trace.iteraciones[-1]
+    ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
+    cbd, dx = ciudad.cbd_index, ciudad.ancho_celda_km
+    celdas = range(cbd + 1, sim.city.n_celdas)
+    pa = sim.demand.estratos[2].prob_auto
+    ls, vm = [], []
+    for i in celdas:
+        t = TiemposObservados(
+            auto_total=float(snap.t_auto[i]),
+            bici_total=float(snap.t_bici[i]),
+            bici_libre=float(snap.t_bici_libre[i]),
+            tren_acceso=float(snap.t_tren_acceso[i]),
+            tren_espera=float(snap.t_tren_espera[i]),
+            tren_viaje=float(snap.t_tren_viaje[i]),
+        )
+        lsi = 0.0
+        for tiene_auto, w in ((True, pa), (False, 1.0 - pa)):
+            u = calcular_utilidades(
+                estrato=2,
+                celda_origen=i,
+                tiene_auto=tiene_auto,
+                ciudad=ciudad,
+                config=sim.demand,
+                tiempos_observados=t,
+            )
+            lsi += w * float(np.logaddexp.reduce([x.valor for x in u.values() if x.feasible]))
+            if not tiene_auto:
+                vm.append(u["Metro"].valor if u["Metro"].feasible else np.nan)
+        ls.append(lsi)
+    km = np.array([(i - cbd) * dx for i in celdas])
+    vm = np.asarray(vm)
+    tv = np.asarray(snap.t_tren_viaje, dtype=float)[cbd + 1 :]
+    cambio = (np.abs(np.diff(tv)) > 1e-9) & ~np.isnan(vm[1:]) & ~np.isnan(vm[:-1])
+    dv = np.abs(np.diff(vm))[cambio]
+    return {
+        "logsum": _saltos(np.asarray(ls), km),
+        "metro_cambio_estacion": {
+            "limites": int(cambio.sum()),
+            "min": round(float(dv.min()), 3),
+            "max": round(float(dv.max()), 3),
+        },
+        "metro_infactible_hasta_km": (
+            round(float(km[np.isnan(vm)].max()), 2) if np.isnan(vm).any() else 0.0
+        ),
+    }
+
+
+def _q_alto_suelo(sim) -> tuple[np.ndarray, np.ndarray]:
+    """Q del estrato alto del uso de suelo solo, con la T de red vacía (lo que
+    resuelve la página Uso de suelo, `land_use_solve_from_json`)."""
+    L = sim.city.n_celdas
+    dx = sim.city.largo_ciudad_km / L
+    T = T_flujo_libre(sim.demand, L, L // 2, dx, sim.modos_habilitados, supply=sim.supply)
+    city = LandUseCity.build(
+        L=L,
+        CBD=L // 2,
+        cfg=base._land_use_web(),
+        ancho_celda_km=dx,
+        T=T,
+        lambda_h=lambda_desde_demanda(sim.demand),
+        rng=np.random.default_rng(42),
+    )
+    assert city.result is not None and city.result.converged
+    km = (np.arange(L) - L // 2) * dx
+    return np.asarray(city.result.Q[0], dtype=float), km
+
+
+def _valle(q: np.ndarray, km: np.ndarray) -> dict | None:
+    """Primer mínimo local de Q_alto entre 0,5 y 3 km a la derecha del CBD,
+    con el máximo que lo sigue; None si es monótono ahí."""
+    idx = np.where((km > 0.5) & (km <= 3.0))[0]
+    seg = q[idx]
+    for j in range(1, len(seg) - 1):
+        if seg[j] < seg[j - 1] and seg[j] < seg[j + 1]:
+            k = j + int(np.argmax(seg[j:]))
+            return {
+                "km_min": round(float(km[idx[j]]), 2),
+                "q_min": round(float(seg[j]), 3),
+                "km_max": round(float(km[idx[k]]), 2),
+                "q_max": round(float(seg[k]), 3),
+                "profundidad": round(float(seg[k] - seg[j]), 3),
+            }
+    return None
+
+
+def umbrales() -> dict:
+    """«escalones» contra «suaves». (a) El reparto de la app con cada una; (b)
+    los saltos del logsum y del metro (ítem 13 de la auditoría D); (c) la
+    ciudad Compacta con cada política de la galería, con la frecuencia del
+    metro para ver dónde actúa Mohring (ítem 17); (d) el valle de Q_alto en el
+    suelo con «suaves» y su sensibilidad a `A_DOMINANCIA_METRO` y
+    `OMEGA_DOMINANCIA_METRO`, supuestos sin calibrar (ítem 14). Para (d) las
+    dos constantes se reemplazan EN MEMORIA en `demand.utility` y se
+    restauran; ningún archivo cambia."""
+    sim0 = base._config_web()
+    out: dict = {"base": {}, "compacta": {}}
+    for esp in ("escalones", "suaves"):
+        sim = _con_umbrales(sim0, esp)
+        fila = {}
+        for loc in ("original", "equilibrio"):
+            tr = _traza(sim, loc)
+            fila[loc] = {"reparto_pct": _reparto(tr), "iteraciones": len(tr.iteraciones)}
+            if loc == "original":
+                fila["saltos_medio"] = _perfil_logsum(sim, tr)
+        out["base"][esp] = fila
+    for pol in POLICY_PRESETS:
+        if pol == "Personalizado":
+            continue
+        fila = {}
+        for esp in ("escalones", "suaves"):
+            sim, lu = _compacta(pol, esp)
+            tr = _traza(sim, "original", lu)
+            fila[esp] = {
+                "metro_pct": _reparto(tr)["Metro"],
+                "frecuencia_metro_tph": round(float(tr.iteraciones[-1].frecuencia_metro), 2),
+                "convergio": bool(tr.converged),
+            }
+        fila["delta_metro_pp"] = round(
+            fila["suaves"]["metro_pct"] - fila["escalones"]["metro_pct"], 2
+        )
+        fila["frec_min"] = sim.supply.train.frec_min
+        out["compacta"][pol] = fila
+    dm = [f["delta_metro_pp"] for f in out["compacta"].values()]
+    out["compacta_rango_delta_metro_pp"] = [min(dm), max(dm)]
+    out["compacta_largo_km"] = CITY_PRESETS["Compacta"]["largo_ciudad"]
+
+    q, km = _q_alto_suelo(_con_umbrales(sim0, "escalones"))
+    out["suelo_escalones_valle"] = _valle(q, km)
+    a0, w0 = utility_mod.A_DOMINANCIA_METRO, utility_mod.OMEGA_DOMINANCIA_METRO
+    sens = []
+    try:
+        for a in (1.0, 1.2, 1.5):
+            for w in (0.1, 0.25, 1.0):
+                utility_mod.A_DOMINANCIA_METRO, utility_mod.OMEGA_DOMINANCIA_METRO = a, w
+                q, km = _q_alto_suelo(_con_umbrales(sim0, "suaves"))
+                sens.append({"a": a, "omega": w, "valle": _valle(q, km)})
+    finally:
+        utility_mod.A_DOMINANCIA_METRO, utility_mod.OMEGA_DOMINANCIA_METRO = a0, w0
+    out["suelo_suaves_valle"] = next(
+        f["valle"] for f in sens if f["a"] == a0 and f["omega"] == w0
+    )
+    out["suelo_suaves_sensibilidad"] = sens
+    out["a_vigente"], out["omega_vigente"] = a0, w0
+    return out
+
+
 def parametros_vigentes() -> dict:
     """Los parámetros de demanda con los que corre la aplicación, tal como
     están en el schema y en `presets.DEFAULT_STRATA`."""
@@ -474,6 +684,7 @@ def main() -> None:
         "logit_vs_determinista": logit_vs_determinista(),
         "peaje_y_bienestar": peaje_y_bienestar(),
         "ancla_vot": ancla_vot(),
+        "umbrales": umbrales(),
     }
     SALIDA.write_text(json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 

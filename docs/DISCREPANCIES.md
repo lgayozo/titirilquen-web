@@ -62,6 +62,15 @@ Convenciones:
   con `τ ∈ {10,20,30}` y `π_k` los parámetros de `penalizaciones_fisicas`.
 - **Veredicto**: Overleaf incorrecto. La ecuación multiplicativa es inconsistente con el código y con la interpretación de "penalizaciones físicas escalonadas".
 - **Acción**: Reescribir ecuaciones 4 y 5 del Overleaf como sumas aditivas indicadoras.
+- **Actualización 2026-10-28**: la forma escalonada sigue siendo la del
+  default (`globales.umbrales = "escalones"`), ahora sobre el tiempo de red
+  vacía (D9). Desde d5a638b hay una alternativa, «suaves»: la misma
+  penalización como rampa por los puntos medios de los escalones (vale lo
+  mismo que el escalón en el centro de cada tramo) y el corte como factor
+  CMNL `ln φ`, más la dominancia suave del metro de D-69. Con ella el mayor
+  salto del logsum del estrato medio entre celdas vecinas baja de 0,179 a
+  0,063 útiles. Libro, cap. 4: ecuaciones (4.4)–(4.6) y §5.7, con lo que la
+  alternativa no quita (ítems 13, 14 y 17 de la auditoría D).
 
 ---
 
@@ -2099,7 +2108,10 @@ cumple, y eso está en D-39.
   (`globales.umbrales`) los reemplaza por rampas, un corte CMNL y una
   dominancia suave del metro con la estación del CBD excluida, y con ella
   `Q_alto` y el logsum son monótonos en esas celdas (0,375 → 0,411 y
-  0,533 → 0,558 útiles). «escalones» sigue siendo el default.
+  0,533 → 0,558 útiles). «escalones» sigue siendo el default. Más lejos del
+  CBD, en el uso de suelo solo, «suaves» abre en cambio un valle de `Q_alto`
+  cuyo lugar y profundidad fija la dominancia, con `a` y `ω` sin calibrar
+  (libro, cap. 4 §5.7, ítem 14).
 
 ---
 
@@ -2170,7 +2182,7 @@ cumple, y eso está en D-39.
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
 | ---- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------- | ------------------------------------------------------------ | ---- |
 | D-01 | Factor pendiente bici                                                                                      | Overleaf incorrecto                                  | Alta                       |
-| D-02 | Penalizaciones bici/caminata                                                                               | Overleaf incorrecto                                  | Alta                       |
+| D-02 | Penalizaciones bici/caminata                                                                               | Overleaf incorrecto; alternativa continua «suaves» desde d5a638b (libro, cap. 4 §5.7) | Alta                       |
 | D-03 | β caminata                                                                                                 | Overleaf incorrecto                                  | Alta                       |
 | D-04 | `t_espera` base                                                                                            | Equivalentes                                         | Baja                       |
 | D-05 | Caminata habilitada                                                                                        | Overleaf desactualizado                              | Media                      |
