@@ -169,7 +169,10 @@
     "mode_share_by_location_stratum": "Modal split by location and stratum",
     "mode_share_stratum_meta": "expected · height ∝ density (city shape)",
     "city_figure_desc": "Linear city of {{length}} km with {{cells}} cells. CBD at center. Bar height and color scale with travel time on {{mode}}.",
-    "cutoff_label": "{{min}} min · infeasible →",
+    "cutoff_label": "{{min}} min{{base}} · {{tipo}} →",
+    "cutoff_base_t0": " free-flow",
+    "cutoff_tipo_escalones": "infeasible",
+    "cutoff_tipo_suaves": "smooth cutoff",
     "view_all": "All modes",
     "view_wait": "Train wait",
     "trips_by_stratum": "Mode split by stratum",
@@ -305,8 +308,8 @@
     "g_tiempo_corto": "In utils per minute and per peso; all negative. A single cost β covers fuel, fare and parking.",
     "g_tiempo_porque": "Metro access and the walking mode use SEPARATE coefficients: the walk to a station is not the same as walking the whole trip.",
     "g_penal": "Physical penalties",
-    "g_penal_corto": "Additive and cumulative, by minute thresholds: a 25-min bike trip adds both the 10-min and the 20-min penalty.",
-    "g_penal_porque": "Infeasibility is not a penalty: it is set by the time cutoffs, at the end of the panel.",
+    "g_penal_corto": "Additive and cumulative, by minute thresholds: with «steps», a 25-min bike trip adds both the 10-min and the 20-min penalty; with «smooth», each enters as a ramp through the midpoints (Transport › Equilibrium).",
+    "g_penal_porque": "With «steps», infeasibility is not a penalty: it is set by the time cutoffs, at the end of the panel.",
     "g_poblacion": "Population",
     "prob_teletrabajo_hint": "Share of workdays without commuting. Default 0 (no sourced figure). The policy is the multiplier, under “Economy”.",
     "reset": "Restore the stratum's default values",
@@ -333,7 +336,7 @@
     },
     "ratio_acceso": "Metro access / in-vehicle",
     "g_cortes": "Feasibility cutoffs (global)",
-    "cortes_corto": "Above this time the alternative leaves the choice set: it is not penalised, it stops existing. They are global, not per stratum.",
+    "cortes_corto": "With «steps», above this time the alternative leaves the choice set: it is not penalised, it stops existing. With «smooth» it stays in the set, penalised by a CMNL cutoff. They are global, not per stratum.",
     "cortes_porque": "It is a behavioural assumption, not a transport policy. Moving a cutoff changes how many alternatives there are, so it also moves the gap between logsum and max-utility surplus."
   },
   "calibration_page": {
@@ -653,7 +656,10 @@
       "anden_beta": "β platform",
       "max_iter": "Max iterations",
       "tolerance": "Tolerance",
-      "assignment": "Assignment"
+      "assignment": "Assignment",
+      "modelo": "Behavioural model",
+      "calibracion": "Stratum calibration (β, ASC, penalties, car ownership, telework)",
+      "calibracion_n": "calibration {{n}}"
     }
   },
   "coupled": {
@@ -897,7 +903,11 @@
     "toc": "Contents",
     "loading": "Loading tutorial",
     "not_found": "Tutorial {{slug}} not found.",
-    "chapter": "Chapter {{n}}"
+    "chapter": "Chapter {{n}}",
+    "callout_info": "Info",
+    "callout_warn": "Note",
+    "callout_info_aria": "Information",
+    "callout_warn_aria": "Warning"
   },
   "preview": {
     "aria": "Linear city blueprint: car corridor, metro line with stations and bike lane",
@@ -989,7 +999,7 @@
     "u_ciudad": "(city)",
     "u_persona": "(person)",
     "u_nivel": "· level",
-    "reparto_corto": "Mode shares and Δ in percentage points over physical trips. The Δ is not coloured.",
+    "reparto_corto": "Mode shares in % and Δ in percentage points, over physical trips. The Δ is not coloured.",
     "reparto_porque": "A mode going up is not an improvement by itself: it depends at whose expense.",
     "unidades_corto": "Monetary figures: city-wide totals, except those marked (person), which are the per-traveller mean of the stratum.",
     "unidades_porque": "The LEVEL of surplus is not interpretable —its zero is set by the ASCs—; only the Δ is."

@@ -124,7 +124,6 @@ export function describePresetParams(
       key: "compacidad",
       labelKey: "coupled.param.compacidad",
       value: fmtDecimal(landUse.oferta_sigma_frac, 2),
-      unit: "σ",
       group: "land_use",
     },
     // --- Transporte (¿pro-auto, pro-bici, pro-metro?) ---
@@ -179,6 +178,16 @@ export function describePresetParams(
       labelKey: "coupled.param.peaje",
       value: `$${nf(sim.demand.globales.peaje_km)}`,
       unit: "/km",
+      group: "transport",
+    },
+    {
+      // No es una palanca de política, pero cambia la función de utilidad: sin
+      // ella, dos corridas con resultados distintos se veían configuradas igual.
+      key: "umbrales",
+      labelKey: "equilibrium.umbrales",
+      value: t(`equilibrium.umbrales_${sim.demand.globales.umbrales}`, {
+        ns: "simulator",
+      }),
       group: "transport",
     },
   ];

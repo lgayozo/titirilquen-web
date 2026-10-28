@@ -43,7 +43,7 @@
     "por_dia": "/día",
     "parking_por_viaje": "{{viaje}}/viaje",
     "bencina": "Bencina",
-    "bencina_hint": "Efecto chico: quien maneja (estratos altos) es poco sensible al costo por km. Para desincentivar el auto, usá el parking (costo fijo) o la tarificación.",
+    "bencina_hint": "Efecto chico: quien maneja (estratos altos) es poco sensible al costo por km. Para desincentivar el auto, usa el parking (costo fijo) o la tarificación.",
     "peaje": "Peaje vial (por km)",
     "peaje_hint": "Cobro por km recorrido en auto. Como la bencina, crece con la distancia; a diferencia de ella, es recaudación de la ciudad y suma al bienestar social. El parking es un cordón plano; el peaje se acerca más al cobro de Pigou, porque el costo de congestión que un viaje impone crece con los tramos que cruza.",
     "teletrabajo_factor": "Factor de teletrabajo",
@@ -116,7 +116,7 @@
     "estado_fail_aon": "⚠ Sin equilibrio · {{total}} iteraciones · brecha relativa {{res}} > {{tol}}: no sirve para comparar escenarios",
     "estado_no_tol": "Sin criterio de convergencia · {{total}} iteraciones fijas · residuo final {{res}}",
     "verdict_fail": "Agotó las {{total}} iteraciones sin converger: el residuo quedó en {{res}}, sobre la tolerancia de {{tol}}. Los tiempos todavía se están moviendo, así que lo de abajo NO es un equilibrio y no sirve para comparar escenarios. Subí las iteraciones máximas o afloja la tolerancia.",
-    "verdict_fail_aon": "Agotó las {{total}} iteraciones sin converger: la brecha relativa —el costo en exceso medio, los minutos que cada viajero paga sobre el mejor modo de su grupo, dividido por el tiempo medio de viaje— quedó en {{res}}, sobre la tolerancia de {{tol}}. Lo de abajo NO es un equilibrio. Con todo o nada el MSA promedia los flujos de cada grupo con paso 1/n y esa brecha cae lento: subí las iteraciones máximas.",
+    "verdict_fail_aon": "Agotó las {{total}} iteraciones sin converger: la brecha relativa —el costo en exceso medio, los minutos que cada viajero paga sobre el mejor modo de su grupo, dividido por el tiempo medio de viaje— quedó en {{res}}, sobre la tolerancia de {{tol}}. Lo de abajo NO es un equilibrio. Con todo o nada el MSA promedia los flujos de cada grupo con paso 1/n y esa brecha cae lento: sube las iteraciones máximas.",
     "verdict_no_tol": "Sin criterio de convergencia (tolerancia 0): corrió las {{total}} iteraciones fijas y se detuvo por conteo, no porque los tiempos se estabilizaran. El residuo final es {{res}}.",
     "booting_pyodide": "Inicializando Pyodide en el navegador (primera vez ~10–20s)…",
     "assignment_montecarlo": "Logit — sorteo",
@@ -159,7 +159,7 @@
     "strip_tooltip_pos": "{{km}} km · a {{dist}} km del CBD",
     "city_strip_y_time": "Tiempo · min",
     "city_strip_y_wait": "Espera · min",
-    "modal_split_last": "Modal split (última iteración)",
+    "modal_split_last": "Reparto modal (última iteración)",
     "corridor_flow": "{{mode}} — flujo en el corredor",
     "origin_demand": "{{mode}} — demanda originada por celda",
     "flow_replay": "▶ Ver acumulación",
@@ -169,7 +169,10 @@
     "mode_share_by_location_stratum": "Reparto modal por ubicación y estrato",
     "mode_share_stratum_meta": "esperado · alto ∝ densidad (forma de la ciudad)",
     "city_figure_desc": "Ciudad lineal de {{length}} km con {{cells}} celdas. CBD al centro. Altura y color de cada barra proporcional al tiempo de viaje en {{mode}}.",
-    "cutoff_label": "{{min}} min · no factible →",
+    "cutoff_label": "{{min}} min{{base}} · {{tipo}} →",
+    "cutoff_base_t0": " en red vacía",
+    "cutoff_tipo_escalones": "no factible",
+    "cutoff_tipo_suaves": "corte suave",
     "view_all": "Todos",
     "view_wait": "Espera tren",
     "trips_by_stratum": "Reparto de viajes por estrato",
@@ -305,8 +308,8 @@
     "g_tiempo_corto": "En utiles por minuto y por peso; todos negativos. Un único β costo para bencina, tarifa y estacionamiento.",
     "g_tiempo_porque": "El acceso al metro y el modo caminata llevan coeficientes SEPARADOS: no es lo mismo el tramo a pie de un viaje en metro que el viaje entero caminando.",
     "g_penal": "Penalizaciones físicas",
-    "g_penal_corto": "Aditivas y acumulativas, por umbral de minutos: un viaje en bici de 25 min suma la de 10 y la de 20.",
-    "g_penal_porque": "La infactibilidad no es una penalización: la fijan los cortes de tiempo, al final del panel.",
+    "g_penal_corto": "Aditivas y acumulativas, por umbral de minutos: con «escalones», un viaje en bici de 25 min suma la de 10 y la de 20; con «suaves», cada una entra como rampa por los puntos medios (Transporte › Equilibrio).",
+    "g_penal_porque": "Con «escalones», la infactibilidad no es una penalización: la fijan los cortes de tiempo, al final del panel.",
     "g_poblacion": "Población",
     "prob_teletrabajo_hint": "Fracción de días laborales sin desplazamiento. Por defecto 0 (sin dato con fuente). La política es el factor multiplicador, en «Economía».",
     "reset": "Restaurar valores por defecto del estrato",
@@ -333,7 +336,7 @@
     },
     "ratio_acceso": "Acceso metro / viaje",
     "g_cortes": "Cortes de factibilidad (globales)",
-    "cortes_corto": "Sobre este tiempo la alternativa sale del conjunto de elección: no se penaliza, deja de existir. Son globales, no por estrato.",
+    "cortes_corto": "Con «escalones», sobre este tiempo la alternativa sale del conjunto de elección: no se penaliza, deja de existir. Con «suaves» sigue en el conjunto, castigada por un corte CMNL. Son globales, no por estrato.",
     "cortes_porque": "Es un supuesto de comportamiento, no una política de transporte. Mover el corte cambia cuántas alternativas hay, así que también mueve la brecha entre el excedente logsum y el de utilidad máxima."
   },
   "calibration_page": {
@@ -411,7 +414,7 @@
     "beta_tiempo": "β·Tiempo",
     "beta_costo": "β·Costo",
     "penalizaciones": "Penalizaciones",
-    "infeasible": "infeasible"
+    "infeasible": "infactible"
   },
   "stratum_distribution": {
     "left_periphery": "Periferia izquierda",
@@ -653,7 +656,10 @@
       "anden_beta": "β andén",
       "max_iter": "Iteraciones máximas",
       "tolerance": "Tolerancia",
-      "assignment": "Asignación"
+      "assignment": "Asignación",
+      "modelo": "Modelo de comportamiento",
+      "calibracion": "Calibración de los estratos (β, ASC, penalizaciones, tenencia, teletrabajo)",
+      "calibracion_n": "calibración {{n}}"
     }
   },
   "coupled": {
@@ -678,14 +684,14 @@
     "running_hint": "Corriendo iteración {{n}}…",
     "reset": "Nuevo análisis",
     "source_custom_label": "Tu escenario",
-    "source_preset_label": "O probá un escenario predefinido (prueba rápida)",
+    "source_preset_label": "O prueba un escenario predefinido (prueba rápida)",
     "custom_title": "Mi configuración",
     "custom_desc": "Corre el loop con la ciudad que configuraste en los módulos Transporte y Uso de Suelo.",
     "custom_tag": "transporte + suelo",
     "preset_detail_title": "Qué configura este escenario",
     "preset_detail_meta": "ciudad · suelo · transporte",
     "preset_detail_hint": "Los parámetros que mueve el preset: si la ciudad es compacta o dispersa y si la política favorece al auto, la bici o el metro.",
-    "preset_detail_hint_custom": "Estos son los parámetros que vienen de tus módulos de Transporte (Sandbox) y Uso de Suelo. Para cambiarlos, ajustalos en esos módulos y volvé acá.",
+    "preset_detail_hint_custom": "Estos son los parámetros que vienen de tus módulos de Transporte (Sandbox) y Uso de Suelo. Para cambiarlos, ajústalos en esos módulos y vuelve acá.",
     "preset_detail_params": "Palancas del escenario",
     "preset_detail_shape": "Forma de la ciudad (oferta de vivienda)",
     "convergence_title": "Convergencia del loop suelo↔transporte",
@@ -739,7 +745,7 @@
       "accessibility_title": "Accesibilidad (tiempo medio)",
       "accessibility_body": "Tiempo medio vs. sin feedback: alto {{alto}} min, bajo {{bajo}} min. El estrato bajo queda en {{tBajo}} min.",
       "stable_title": "Equilibrio estable",
-      "stable_body": "Las iteraciones exteriores no cambiaron significativamente las métricas agregadas. El feedback fue débil en este escenario — probá una política más agresiva."
+      "stable_body": "Las iteraciones exteriores no cambiaron significativamente las métricas agregadas. El feedback fue débil en este escenario — prueba una política más agresiva."
     },
     "placeholder_title": "Ciudad en equilibrio · suelo ↔ transporte",
     "placeholder_desc_corto": "El loop exterior alterna suelo (bid-rent sobre la accesibilidad T) y transporte (MSA) hasta que T se estabiliza.",
@@ -805,7 +811,7 @@
     "regress_time_sub": "tiempo bajo / alto",
     "regress_burden": "Regresividad (carga)",
     "regress_burden_sub": "carga bajo / alto",
-    "caveat_corto": "El Δ excedente mide eficiencia (disposición a pagar) vs. la red vacía, no bienestar interpersonal. Para la lectura distributiva, mirá la carga y el tiempo.",
+    "caveat_corto": "El Δ excedente mide eficiencia (disposición a pagar) vs. la red vacía, no bienestar interpersonal. Para la lectura distributiva, mira la carga y el tiempo.",
     "caveat_porque": "Compara el logsum observado contra la misma red sin demanda (BPR en 0, tren a frecuencia mínima): Δ<0 ⇒ domina la congestión; Δ>0 ⇒ domina el efecto Mohring (más demanda ⇒ más frecuencia ⇒ menos espera). Está en $/hogar-mes (44 viajes; quien teletrabaja aporta 0), y un $1 vale distinto para cada estrato (b_costo varía ~3,9×). Cuenta sólo transporte, sin rentas del suelo: es una cota inferior del beneficio (Martínez 2018, §10.10)."
   },
   "convergence": {
@@ -817,7 +823,7 @@
     "y_trips": "viajes",
     "iter": "Iter.",
     "trips_unit": "viajes",
-    "modal_split_title": "Modal split por iteración",
+    "modal_split_title": "Reparto modal por iteración",
     "modal_split_sub": "Evolución del reparto modal mientras el MSA suaviza (viajes acumulados por modo)"
   },
   "network": {
@@ -897,7 +903,11 @@
     "toc": "Contenido",
     "loading": "Cargando tutorial",
     "not_found": "Tutorial {{slug}} no encontrado.",
-    "chapter": "Capítulo {{n}}"
+    "chapter": "Capítulo {{n}}",
+    "callout_info": "Info",
+    "callout_warn": "Nota",
+    "callout_info_aria": "Información",
+    "callout_warn_aria": "Advertencia"
   },
   "preview": {
     "aria": "Plano de la ciudad lineal: corredor de autos, línea de metro con estaciones y ciclovía",
@@ -989,7 +999,7 @@
     "u_ciudad": "(ciudad)",
     "u_persona": "(persona)",
     "u_nivel": "· nivel",
-    "reparto_corto": "Reparto modal y Δ en puntos porcentuales sobre los viajes físicos. El Δ no se colorea.",
+    "reparto_corto": "Reparto modal en % y Δ en puntos porcentuales, sobre los viajes físicos. El Δ no se colorea.",
     "reparto_porque": "Que un modo suba no es una mejora en sí: depende a costa de cuál.",
     "unidades_corto": "Cifras monetarias: totales de la ciudad, salvo las marcadas (persona), que son el promedio por viajero del estrato.",
     "unidades_porque": "El nivel del excedente no se interpreta —su cero lo fijan las ASC—; sólo el Δ."

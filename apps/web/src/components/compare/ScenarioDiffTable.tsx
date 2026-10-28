@@ -29,6 +29,9 @@ interface Campo {
     v: number | string,
     t: (k: string, o?: Record<string, unknown>) => string,
   ) => string;
+  /** El valor es una firma (JSON) que no se muestra: se rotula «calibración
+   *  1, 2…» por orden de aparición en la fila, base primero. */
+  firma?: boolean;
 }
 
 const nf = (v: number | string) =>
@@ -179,6 +182,32 @@ const GRUPOS: { labelKey: string; campos: Campo[] }[] = [
     ],
   },
   {
+    // Lo que cambia el comportamiento y no la ciudad: sin estas filas, dos
+    // escenarios que difieren sólo en los umbrales o en los β se declaraban
+    // idénticos, con resultados distintos.
+    labelKey: "compare.diff.modelo",
+    campos: [
+      {
+        labelKey: "equilibrium.umbrales",
+        get: (c) => c.demand.globales.umbrales,
+        fmt: (v, t) => t(`equilibrium.umbrales_${v}`),
+      },
+      {
+        labelKey: "calibration.p.corte_caminata_min",
+        get: (c) => c.demand.globales.corte_caminata_min,
+      },
+      {
+        labelKey: "calibration.p.corte_bici_min",
+        get: (c) => c.demand.globales.corte_bici_min,
+      },
+      {
+        labelKey: "compare.diff.calibracion",
+        get: (c) => JSON.stringify(c.demand.estratos),
+        firma: true,
+      },
+    ],
+  },
+  {
     labelKey: "compare.diff.numerico",
     campos: [
       { labelKey: "compare.diff.max_iter", get: (c) => c.max_iter },
@@ -230,8 +259,18 @@ export function ScenarioDiffTable({ scenarios, baseId }: Props) {
     );
   }
 
-  const fmt = (campo: Campo, v: number | string | null) =>
-    v == null ? "—" : campo.fmt ? campo.fmt(v, t) : nf(v);
+  const fmt = (
+    campo: Campo,
+    v: number | string | null,
+    fila: (number | string | null)[],
+  ) => {
+    if (v == null) return "—";
+    if (campo.firma) {
+      const firmas = [...new Set(fila.filter((x) => x != null))];
+      return t("compare.diff.calibracion_n", { n: firmas.indexOf(v) + 1 });
+    }
+    return campo.fmt ? campo.fmt(v, t) : nf(v);
+  };
 
   return (
     <div className="overflow-x-auto">
@@ -276,11 +315,11 @@ export function ScenarioDiffTable({ scenarios, baseId }: Props) {
               >
                 <td className="py-1 pr-2">{t(campo.labelKey)}</td>
                 <td className="py-1 text-right tabular-nums text-[var(--muted)]">
-                  {fmt(campo, vBase)}
+                  {fmt(campo, vBase, [vBase, ...vOtros])}
                 </td>
                 {vOtros.map((v, i) => (
                   <td key={otros[i]!.id} className={cnDiff(v !== vBase)}>
-                    {fmt(campo, v)}
+                    {fmt(campo, v, [vBase, ...vOtros])}
                   </td>
                 ))}
               </tr>

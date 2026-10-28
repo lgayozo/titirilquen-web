@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 
 import {
   CityStrip,
-  MODE_CUTOFF_MIN,
   type CityView,
   type SingleMode,
 } from "@/components/CityStrip";
@@ -86,9 +85,6 @@ const PRE_VIEW_OPTIONS: readonly HeatMode[] = ["ciudad"];
 /** Modos del panel de carga del corredor (FIG. 02), en orden. */
 type FlowMode = "auto" | "bici" | "metro" | "caminata";
 const FLOW_MODES: readonly FlowMode[] = ["auto", "bici", "metro", "caminata"];
-
-// El umbral de factibilidad por modo lo exporta CityStrip (`MODE_CUTOFF_MIN`):
-// es un parámetro del modelo, no de la página, y tenerlo dos veces derivaba.
 
 /** Tope de iteraciones al elegir todo o nada: el peor caso medido corta en
  *  ~615 con `TOL_RELATIVA_TON` (Máx Metro; auditoría B, oct-2026). */
@@ -232,6 +228,7 @@ export function SandboxPage() {
           lastIter.t_tren_acceso[i]! +
           lastIter.t_tren_espera[i]!,
         t_bici: lastIter.t_bici[i]!,
+        t_bici_libre: lastIter.t_bici_libre[i]!,
         // Caminata: tiempo puramente geométrico (sin congestión), mismo
         // criterio que demand/utility.py → dist/v_caminata · 60.
         t_caminata: ((Math.abs(cbdIdx - i) * cellKm) / vCaminata) * 60,
@@ -315,6 +312,17 @@ export function SandboxPage() {
       <CityStripInterna />
     );
 
+  // Cortes de la configuración (Calibración los edita). Con «suaves» el corte
+  // es una penalización CMNL: se dibuja la línea, pero ningún modo sale del
+  // conjunto, así que nada se tacha.
+  const cortesCfg: Partial<Record<SingleMode, number>> = {
+    caminata: cfgRes.demand.globales.corte_caminata_min,
+    bici: cfgRes.demand.globales.corte_bici_min,
+  };
+  const cortesFactibilidad =
+    cfgRes.demand.globales.umbrales === "suaves" ? {} : cortesCfg;
+  const corteResaltado = stripHighlight ? cortesCfg[stripHighlight] : undefined;
+
   const CityStripInterna = () => (
     <CityStrip
       nCeldas={cfgRes.city.n_celdas}
@@ -323,14 +331,18 @@ export function SandboxPage() {
       modeProfile={profile}
       heatMode={stripMode}
       highlight={stripHighlight ?? null}
-      cutoffMin={stripHighlight ? MODE_CUTOFF_MIN[stripHighlight] : undefined}
+      cutoffMin={corteResaltado}
       cutoffLabel={
-        stripHighlight && MODE_CUTOFF_MIN[stripHighlight] != null
+        corteResaltado != null
           ? t("sandbox.cutoff_label", {
-              min: MODE_CUTOFF_MIN[stripHighlight],
+              min: corteResaltado,
+              base:
+                stripHighlight === "bici" ? t("sandbox.cutoff_base_t0") : "",
+              tipo: t(`sandbox.cutoff_tipo_${cfgRes.demand.globales.umbrales}`),
             })
           : undefined
       }
+      cortes={cortesFactibilidad}
       estacionesKm={result?.estaciones_km ?? undefined}
       shareEstratos={shareEstratos}
       iterationToken={lastIter?.iter ?? -1}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
 import { CoupledFlowchart } from "@/components/viz/CoupledFlowchart";
@@ -13,14 +14,14 @@ interface CalloutProps {
 }
 
 export function Callout({ type = "info", children }: CalloutProps) {
-  const label = type === "warn" ? "Nota" : "Info";
+  const { t } = useTranslation("simulator");
   return (
     <aside
       role="note"
-      aria-label={type === "warn" ? "Advertencia" : "Información"}
+      aria-label={t(`tutorial.callout_${type}_aria`)}
       className={cn("tut-callout", type === "warn" && "warn")}
     >
-      <div className="tut-callout-label">{label}</div>
+      <div className="tut-callout-label">{t(`tutorial.callout_${type}`)}</div>
       <div className="tut-callout-body">{children}</div>
     </aside>
   );

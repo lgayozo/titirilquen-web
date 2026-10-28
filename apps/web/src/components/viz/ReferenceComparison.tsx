@@ -51,8 +51,9 @@ const fmtMin = (v: number) => `${fmtDecimal(v)} min`;
 // El signo va ANTES del símbolo: «−$3.331», no «$-3.331».
 const fmtMoney = (v: number) => fmtPesos(v);
 const fmtMiles = (v: number) => fmtEntero(v);
-// Un share y su delta van en la MISMA unidad: puntos porcentuales. Escribir el
+// Un share se escribe en «%» y su delta en puntos porcentuales: escribir el
 // delta como «%» invitaría a leerlo como variación relativa.
+const fmtPct = (v: number) => `${fmtDecimal(v)} %`;
 const fmtPuntos = (v: number) => `${fmtDecimal(v)} pp`;
 
 interface FilaAgg {
@@ -60,6 +61,8 @@ interface FilaAgg {
   actual: number;
   ref: number | null;
   fmt: (v: number) => string;
+  /** Formato del Δ, cuando no es el del nivel (el share: % y pp). */
+  fmtDelta?: (v: number) => string;
   /** true ⇒ bajar es mejor (tiempos y costos). Solo colorea, no juzga. */
   menorEsMejor: boolean;
   /** Δ sin color: la fila no tiene dirección buena. Un share modal que sube no
@@ -154,7 +157,8 @@ export function ReferenceComparison({
       label: t("agg.reparto_modo", { modo: t(`modes.${m.toLowerCase()}`) }),
       actual: share(agg.viajes_por_modo[m], agg.viajeros),
       ref: aggRef ? share(aggRef.viajes_por_modo[m], aggRef.viajeros) : null,
-      fmt: fmtPuntos,
+      fmt: fmtPct,
+      fmtDelta: fmtPuntos,
       menorEsMejor: false,
       neutra: true,
     })),
@@ -363,7 +367,10 @@ export function ReferenceComparison({
                   >
                     {!mostrarDelta
                       ? t("agg.no_comparable")
-                      : `${d! > 0 ? "+" : ""}${f.fmt(d!)}`.replace("+−", "−")}
+                      : `${d! > 0 ? "+" : ""}${(f.fmtDelta ?? f.fmt)(d!)}`.replace(
+                          "+−",
+                          "−",
+                        )}
                   </td>
                 )}
               </tr>

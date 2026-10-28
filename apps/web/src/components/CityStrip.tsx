@@ -14,10 +14,15 @@ interface ModeTimes {
   t_auto: number;
   t_metro: number;
   t_bici: number;
+  /** Tiempo de la bici en red vacía: sobre él se aplica su corte (D9). */
+  t_bici_libre?: number;
   t_caminata: number;
   /** Tiempo de espera del metro (escalonado por estación). */
   t_espera: number;
 }
+
+/** Las series que se grafican: `t_bici_libre` sólo sirve para el corte. */
+type TiempoKey = Exclude<keyof ModeTimes, "t_bici_libre">;
 
 interface CityStripProps {
   nCeldas: number;
@@ -29,8 +34,12 @@ interface CityStripProps {
   shareEstratos?: readonly [number, number, number];
   /** Vista activa; define qué se grafica y el color uniforme de las barras */
   heatMode?: CityView;
-  /** Umbral de factibilidad (min) del modo: sobre él las barras se atenúan y se dibuja una línea de corte. */
+  /** Corte (min) del modo resaltado: se dibuja como línea. */
   cutoffMin?: number;
+  /** Cortes de factibilidad por modo (min): sobre ellos el modo se atenúa y se
+   *  tacha en el tooltip. Vacío si la especificación no saca modos del
+   *  conjunto de elección («suaves»). */
+  cortes?: Partial<Record<SingleMode, number>>;
   /** Etiqueta de la línea de corte (ya traducida). */
   cutoffLabel?: string;
   /** Posiciones (km) de las estaciones de tren — marcadores verticales. */
@@ -56,23 +65,20 @@ const MODE_COLOR: Record<SingleMode, string> = {
 };
 
 /** Modos incluidos (en orden de apilado de leyenda) en la vista "todos". */
-const ALL_MODES: ReadonlyArray<{ mode: SingleMode; key: keyof ModeTimes }> = [
+const ALL_MODES: ReadonlyArray<{ mode: SingleMode; key: TiempoKey }> = [
   { mode: "auto", key: "t_auto" },
   { mode: "metro", key: "t_metro" },
   { mode: "bici", key: "t_bici" },
   { mode: "caminata", key: "t_caminata" },
 ];
 
-/** Umbral de factibilidad por modo (min): sobre él el modo deja de ser
- *  elegible. Ver `demand/utility.py` — caminata > 30, bici > 45. Se exporta
- *  para que la página no lo repita: es un parámetro del modelo, no de la
- *  figura, y dos copias derivan. */
-export const MODE_CUTOFF_MIN: Partial<Record<string, number>> = {
-  caminata: 30,
-  bici: 45,
-};
+/** El tiempo contra el que se compara el corte: la bici corta sobre su tiempo
+ *  de red vacía (D9), los demás sobre el que se grafica. */
+function tiempoCorte(p: ModeTimes, mode: SingleMode, v: number): number {
+  return mode === "bici" ? (p.t_bici_libre ?? v) : v;
+}
 
-const KEY_BY_MODE: Record<SingleMode, keyof ModeTimes> = {
+const KEY_BY_MODE: Record<SingleMode, TiempoKey> = {
   auto: "t_auto",
   metro: "t_metro",
   bici: "t_bici",
@@ -95,6 +101,7 @@ export function CityStrip({
   heatMode = "auto",
   cutoffMin,
   cutoffLabel,
+  cortes,
   estacionesKm,
   iterationToken,
   highlight = null,
@@ -153,7 +160,7 @@ export function CityStrip({
       const max = Math.max(...ls.flatMap((l) => l.values), 0.1);
       return { lines: ls, barValues: null, maxValue: max };
     }
-    const key: keyof ModeTimes = isEspera
+    const key: TiempoKey = isEspera
       ? "t_espera"
       : KEY_BY_MODE[heatMode as SingleMode];
     const values = modeProfile.map((p) => p[key]);
@@ -271,7 +278,11 @@ export function CityStrip({
             const x = MARGIN.left + idx * barW;
             const barH = Math.max(0.5, (raw / maxValue) * plotH);
             const floor = yFloor + slopeOffset(((idx + 0.5) / nCeldas) * 100);
-            const infeasible = cutoffMin != null && raw > cutoffMin;
+            const modo = heatMode as SingleMode;
+            const corte = cortes?.[modo];
+            const p = modeProfile?.[idx];
+            const infeasible =
+              corte != null && (p ? tiempoCorte(p, modo, raw) : raw) > corte;
             return (
               <rect
                 key={idx}
@@ -336,7 +347,7 @@ export function CityStrip({
           strokeWidth={0.8}
         />
 
-        {/* Línea de corte de factibilidad del modo (caminata 30, bici 45). */}
+        {/* Línea de corte del modo resaltado (el de la configuración). */}
         {cutoffMin != null && cutoffMin > 0 && cutoffMin <= maxValue && (
           <g>
             <line
@@ -467,8 +478,10 @@ export function CityStrip({
           </div>
           {ALL_MODES.map(({ mode, key }) => {
             const v = modeProfile[hover]![key];
-            const corte = MODE_CUTOFF_MIN[mode];
-            const infeasible = corte != null && v > corte;
+            const corte = cortes?.[mode];
+            const infeasible =
+              corte != null &&
+              tiempoCorte(modeProfile[hover]!, mode, v) > corte;
             return (
               <div key={mode} className="flex items-center gap-1.5">
                 <span
