@@ -280,6 +280,15 @@ def _phi(esc: Escenario, p_ventana: dict[str, np.ndarray], mu: float) -> dict:
         for w in VENTANAS:
             fila[w] = phi(sel, w)
         out["bandas"].append(fila)
+    # Por modo mejor del equilibrio: separa a quienes viven el ruido en su modo
+    # mejor de quienes lo viven en uno peor («sólo el mejor» / «sólo el peor» de E2).
+    out["por_mejor"] = {}
+    for k, m in enumerate(MODOS):
+        sel = el & (esc.mejor == k)
+        if sel.any():
+            fila = {"n": int(sel.sum()), "p_estrella": float(p_est[sel].mean())}
+            fila.update({w: phi(sel, w) for w in VENTANAS})
+            out["por_mejor"][m] = fila
     return out
 
 

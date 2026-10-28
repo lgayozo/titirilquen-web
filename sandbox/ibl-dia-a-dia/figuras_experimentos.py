@@ -1,5 +1,5 @@
-"""Figuras de E1 y E2, desde `salida/experimentos.json`, y de E3, desde
-`salida/poblacion.json`. No calcula nada.
+"""Figuras de E1 y E2, desde `salida/experimentos.json`, de E3, desde
+`salida/poblacion.json`, y de E4, desde `salida/ciudad4.json`. No calcula nada.
 
 uv run python figuras_experimentos.py
 """
@@ -18,6 +18,7 @@ import numpy as np
 SALIDA = Path(__file__).parent / "salida"
 D = json.loads((SALIDA / "experimentos.json").read_text(encoding="utf-8"))
 POB = json.loads((SALIDA / "poblacion.json").read_text(encoding="utf-8"))
+C4 = json.loads((SALIDA / "ciudad4.json").read_text(encoding="utf-8"))
 CASOS = {c["nombre"]: c for c in D["casos"]}
 BINS = np.array(D["bins"])
 DIAS = np.arange(1, D["dias"] + 1)
@@ -320,6 +321,81 @@ def fig_e3_iguales():
     guarda(fig, "e3-iguales.png")
 
 
+COLOR_MODO = {"Auto": AUTO, "Metro": METRO, "Bici": "#4b7f52", "Caminata": GRIS}
+TITULO_COND = {
+    "auto": "Ruido sólo en el auto",
+    "tp": "Ruido sólo en el metro",
+    "auto_tp": "Ruido en los dos",
+}
+
+
+def _c4(cond, sigma, d):
+    if sigma == 0:
+        cond = "sin_ruido"
+    return next(
+        f for f in C4["filas"] if f["condicion"] == cond and f["sigma"] == sigma and f["d"] == d
+    )
+
+
+def fig_e4_particion():
+    """Cambio de la partición por modo contra σ, una condición de ruido por panel."""
+    sigmas = sorted({f["sigma"] for f in C4["filas"]})
+    fig, axs = plt.subplots(1, 3, figsize=(10.5, 3.4), sharey=True)
+    for ax, (cond, titulo) in zip(axs, TITULO_COND.items(), strict=True):
+        for k, m in enumerate(C4["modos"]):
+            for d, estilo in ((0.5, "-"), (1.28, "--")):
+                y = [
+                    100
+                    * (_c4(cond, s, d)["split_ultimos"][k] - _c4(cond, 0, d)["split_ultimos"][k])
+                    for s in sigmas
+                ]
+                ax.plot(
+                    sigmas,
+                    y,
+                    estilo,
+                    marker="o",
+                    color=COLOR_MODO[m],
+                    ms=3,
+                    lw=1.4,
+                    label=m if d == 0.5 else None,
+                )
+        ax.axhline(0, color=GRIS, lw=0.7, ls=":")
+        ax.set_title(titulo)
+        ax.set_xlabel("σ (min)")
+        limpia(ax)
+    axs[0].set_ylabel("Δ cuota contra sin ruido (pp)")
+    axs[0].legend(loc="lower left", fontsize=8)
+    guarda(fig, "e4-particion.png")
+
+
+def fig_e4_phi_mejor(w="medio"):
+    """Φ separado por el modo mejor de cada persona, contra σ, una condición por panel."""
+    sigmas = sorted({f["sigma"] for f in C4["filas"]})
+    fig, axs = plt.subplots(1, 3, figsize=(10.5, 3.4), sharey=True)
+    for ax, (cond, titulo) in zip(axs, TITULO_COND.items(), strict=True):
+        for m in C4["modos"]:
+            for d, estilo in ((0.5, "-"), (1.28, "--")):
+                y = [_c4(cond, s, d)["phi"]["por_mejor"][m][w] for s in sigmas]
+                ax.plot(
+                    sigmas,
+                    y,
+                    estilo,
+                    marker="o",
+                    color=COLOR_MODO[m],
+                    ms=3,
+                    lw=1.4,
+                    label=m if d == 0.5 else None,
+                )
+        ax.axhline(1, color=GRIS, lw=0.7, ls="--")
+        ax.axhline(0, color=TINTA, lw=0.7, ls=":")
+        ax.set_title(titulo)
+        ax.set_xlabel("σ (min)")
+        limpia(ax)
+    axs[0].set_ylabel(f"Φ, {HORIZONTES[w].lower()} (adim.)")
+    axs[0].legend(loc="lower left", fontsize=8, title="modo mejor", title_fontsize=8)
+    guarda(fig, "e4-phi-mejor.png")
+
+
 if __name__ == "__main__":
     fig_e1_trayectorias()
     fig_e1_critico()
@@ -331,4 +407,6 @@ if __name__ == "__main__":
     fig_e2_decaimiento()
     fig_e3_phi()
     fig_e3_iguales()
+    fig_e4_particion()
+    fig_e4_phi_mejor()
     print(f"  figuras en {SALIDA}")

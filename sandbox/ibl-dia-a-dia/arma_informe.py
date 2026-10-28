@@ -1,4 +1,4 @@
-"""Escribe `informe.html` entero desde `salida/experimentos.json`.
+"""Escribe `informe.html` entero desde `salida/experimentos.json`, `poblacion.json` y `ciudad4.json`.
 
     uv run python arma_informe.py
     node ../../tools/renderiza_ecuaciones.js     # data-tex → MathML
@@ -122,6 +122,24 @@ def delta_exp_min(f):
     return (ultimos(f["bienestar_por_dia"]) - ultimos(f0["bienestar_por_dia"])) / BETA
 
 
+C4 = json.loads((AQUI / "salida" / "ciudad4.json").read_text(encoding="utf-8"))
+COND_TXT = {"auto": "auto", "tp": "metro", "auto_tp": "auto y metro"}
+
+
+def c4(cond, sigma, d):
+    """Fila de E4; con σ = 0 es el control sin ruido, común a las tres condiciones."""
+    cond = cond if sigma > 0 else "sin_ruido"
+    return next(
+        f for f in C4["filas"] if f["condicion"] == cond and f["sigma"] == sigma and f["d"] == d
+    )
+
+
+def delta_exp_c4(f):
+    """Bienestar experimentado de E4 contra su control sin ruido (mismo d), en minutos por viaje."""
+    f0 = c4(None, 0.0, f["d"])
+    return (ultimos(f["bienestar_por_dia"]) - ultimos(f0["bienestar_por_dia"])) / BETA
+
+
 # --- verificaciones que el texto afirma -----------------------------------------
 # (9) contra simulación con d = 0: deben coincidir exactamente (sin ruido, el orden no importa).
 err_d0 = max(
@@ -193,7 +211,8 @@ cabeza = f"""<!DOCTYPE html>
     instancias (IBL). Dos experimentos: cuántas experiencias malas, y de qué
     tamaño, cambian su conducta (E1), y si más variabilidad en los tiempos
     vuelve la elección más aleatoria (E2), primero para una persona y después para
-    la ciudad completa, con congestión (E3). Corto, mediano y largo plazo.
+    la ciudad completa, con congestión (E3), y la ciudad de la app con sus cuatro
+    modos y ruido en el auto, en el metro o en los dos (E4). Corto, mediano y largo plazo.
   </p>
   <p class="meta">
     Código: <code>sandbox/ibl-dia-a-dia/</code> · Correr: ver <a href="#reproducir">Reproducir</a><br>
@@ -210,7 +229,8 @@ cabeza = f"""<!DOCTYPE html>
     <li><a href="#s4">E1 · Experiencias malas al inicio</a></li>
     <li><a href="#s5">E2 · Variabilidad del tiempo</a></li>
     <li><a href="#s6">E3 · La ciudad completa</a> — ecuaciones (18)–(19)</li>
-    <li><a href="#s7">Qué concluir, y bajo qué supuestos</a></li>
+    <li><a href="#s7">E4 · La ciudad con cuatro modos</a> — ecuación (20)</li>
+    <li><a href="#s8">Qué concluir, y bajo qué supuestos</a></li>
     <li><a href="#reproducir">Reproducir paso a paso</a></li>
   </ol>
 </nav>
@@ -269,6 +289,9 @@ s1 = f"""
     corto plazo y toda en el largo (Φ = {num(pob(80.0, 0.5)["phi"]["todos"]["largo"], 2)},
     ecuación 13); la partición no se mueve, pero
     personas iguales terminan distintas y el bienestar percibido sobrestima el vivido (§6.2).
+    Con los cuatro modos (E4) el ruido saca viajes hacia la bici, y el promedio esconde signos
+    opuestos: quien vive el ruido en su modo mejor pierde ventaja y quien lo vive en una
+    alternativa la gana (§7.2).
   </p></div>
 
 <div class="aviso neutro"><p>
@@ -1163,11 +1186,246 @@ s6 = f"""
 }
 """
 
-# --- §7 ----------------------------------------------------------------------------------
+# --- §7 E4 ------------------------------------------------------------------------------
+
+MODOS4 = C4["modos"]
+SIGMAS_C4 = sorted({f["sigma"] for f in C4["filas"]})
+ctrl4 = [c4(None, 0.0, d) for d in DS]
+ctrl4_phi = [f["phi"]["todos"][w] for f in ctrl4 for w in VENTANAS] + [
+    v[w] for f in ctrl4 for v in f["phi"]["por_mejor"].values() for w in VENTANAS
+]
+ctrl4_split = max(
+    abs(a - b)
+    for f in ctrl4
+    for a, b in zip(f["split_ultimos"], C4["split_equilibrio"], strict=True)
+)
+ctrl4_disp = [f["dispersion_iguales"] for f in ctrl4]
+assert ctrl4_split < 0.001 and all(abs(x - 1) < 0.01 for x in ctrl4_phi)
+assert all(abs(x - 1) < 0.05 for x in ctrl4_disp)
+
+
+def dsplit(cond, d, k, sigma=80.0):
+    return c4(cond, sigma, d)["split_ultimos"][k] - c4(cond, 0.0, d)["split_ultimos"][k]
+
+
+# El texto afirma: con σ = 80 el modo con ruido pierde cuota y la bici gana, con todo d.
+RUIDO_EN = {c: [k for k, r in enumerate(C4["condiciones"][c]) if r] for c in COND_TXT}
+assert all(dsplit(c, d, k) < 0 for c in COND_TXT for d in DS for k in RUIDO_EN[c])
+assert all(dsplit(c, d, 2) > 0 for c in COND_TXT for d in DS)
+bici_max = max(dsplit(c, d, 2) for c in COND_TXT for d in DS)
+# «Con d ≤ 0,5 los cambios son de décimas de punto.»
+assert max(abs(dsplit(c, d, k)) for c in COND_TXT for d in (0.0, 0.5) for k in range(4)) < 0.01
+split4_max = max(abs(dsplit(c, d, k)) for c in COND_TXT for d in DS for k in range(4))
+ab0 = sum(f["abandono_metro"] for f in ctrl4) / len(ctrl4)
+ab_max = max(c4(c, 80.0, d)["abandono_metro"] for c in COND_TXT for d in DS)
+
+
+def phi_m(cond, d, m, w="medio"):
+    return c4(cond, 80.0, d)["phi"]["por_mejor"][m][w]
+
+
+# Quien vive el ruido en su modo mejor pierde ventaja; quien lo vive sólo en alternativas, no.
+# El metro como modo mejor pierde más que el auto, con d = 0,5 y 1,28.
+assert all(phi_m("tp", d, "Metro") < phi_m("auto", d, "Auto") < 1 for d in (0.5, 1.28))
+sin_ruido_mejor = [
+    phi_m(c, d, m)
+    for c in COND_TXT
+    for d in DS
+    for k, m in enumerate(MODOS4)
+    if k not in RUIDO_EN[c]
+]
+assert min(sin_ruido_mejor) > 0.95
+agg = {c: c4(c, 80.0, 0.5)["phi"]["todos"] for c in COND_TXT}
+f4r = c4("auto_tp", 80.0, 1.28)
+exp4_max = max(
+    abs(delta_exp_c4(c4(c, s_, d))) for c in COND_TXT for s_ in SIGMAS_C4[1:] for d in DS
+)
+n_mejor = {m: v["n"] for m, v in c4("auto", 80.0, 0.5)["phi"]["por_mejor"].items()}
+
+filas_mejor = ""
+for c, ruido_en in COND_TXT.items():
+    for m in MODOS4:
+        filas_mejor += (
+            f"<tr><td>{ruido_en}</td><td>{m}</td>"
+            f"<td class='n'>{f'{n_mejor[m]:,}'.replace(',', '.')}</td>"
+            + "".join(
+                f"<td class='n'>{num(round(phi_m(c, d, m, w), 2) + 0.0, 2)}</td>"
+                for d in (0.5, 1.28)
+                for w in VENTANAS
+            )
+            + "</tr>"
+        )
+
+filas_c4 = ""
+for c, ruido_en in COND_TXT.items():
+    for d in DS:
+        f = c4(c, 80.0, d)
+        filas_c4 += (
+            f"<tr><td>{ruido_en}</td><td class='n'>{num(d, 2)}</td>"
+            + "".join(f"<td class='n'>{pp(dsplit(c, d, k))}</td>" for k in range(4))
+            + f"<td class='n'>{num(f['dispersion_iguales'], 2)}</td>"
+            f"<td class='n'>{num(round(delta_exp_c4(f), 2) + 0.0, 2)}</td>"
+            f"<td class='n'>{num(round(brecha_min(f), 2) + 0.0, 2)}</td>"
+            f"<td class='n'>{num(100 * f['abandono_metro'], 1)}</td></tr>"
+        )
 
 s7 = f"""
 <!-- ==================================================================== -->
-<h2 id="s7"><span class="num">7</span>Qué concluir, y bajo qué supuestos</h2>
+<h2 id="s7"><span class="num">7</span>E4 · La ciudad con cuatro modos</h2>
+
+<p>
+  <strong>Diseño.</strong> La ciudad de la app tal cual, con sus {
+    f"{C4['N']:,}".replace(",", ".")
+} personas
+  (<code>poblacion.py ciudad</code>): cada hogar tiene o no auto según su estrato y se elige entre
+  los cuatro modos. Quien no tiene auto no lo elige; quien vive a menos de 1 km del CBD no tiene metro.
+  El día 0 es otra vez el equilibrio del simulador. El IBL aprende el tiempo del auto, del metro (en
+  vehículo) y de la bici, que se congestiona; la caminata no se aprende, porque su tiempo es
+  geométrico y no cambia. El ruido {tex("\\varepsilon \\sim \\mathcal{N}(0, \\sigma^2)")} entra en
+  tres condiciones: sólo en el auto, sólo en el metro y en los dos; nunca en la bici ni en la
+  caminata. σ ∈ {{{", ".join(num(x, 0) for x in SIGMAS_C4)}}} min, {tex("d")} ∈ {{0; 0,5; 1,28}},
+  {C4["dias"]} días y un control sin ruido por {tex("d")}, todos con la misma semilla.
+</p>
+<p>
+  <strong>Control.</strong> Con σ = 0 la partición de los últimos {C4["ultimos"]} días es la del
+  equilibrio ({
+    ", ".join(
+        f"{m.lower()} {num(100 * x, 2)}"
+        for m, x in zip(MODOS4, C4["split_equilibrio"], strict=True)
+    )
+} %)
+  con a lo sumo {num(100 * ctrl4_split, 2)} pp de diferencia; Φ queda entre {num(min(ctrl4_phi), 3)}
+  y {num(max(ctrl4_phi), 3)}, también separado por modo mejor, y {tex("R")} en
+  {num(sum(ctrl4_disp) / len(ctrl4_disp), 2)}.
+</p>
+
+<h3>7.1 El ruido saca viajes del modo que lo tiene, y la bici los recibe</h3>
+<p>
+  Con σ = 80 min el modo con ruido pierde cuota en todas las condiciones y con todo {tex("d")}, y la
+  bici gana en todas: hasta {pp(bici_max)} pp, con ruido en los dos modos y {tex("d = 1{,}28")}.
+  Es lo que E3 no podía mostrar: con bici y caminata sin ruido, la elección migra hacia ellas. Es
+  coherente con el hot stove de E2, aunque aquí no se aisló: una experiencia mala hace evitar el modo ruidoso, y quien lo evita no
+  junta las experiencias buenas que lo compensarían. Con {tex("d \\le 0{,}5")} los cambios son de
+  décimas de punto; ningún modo se mueve más de {pp(split4_max).lstrip("+−")} pp. La partición
+  agregada, otra vez, casi no cambia.
+</p>
+{
+    fig(
+        "e4-particion.png",
+        11,
+        "A qué modo se van los viajes cuando el tiempo de uno es variable. Un panel por condición de"
+        " ruido. Eje horizontal: desviación estándar del tiempo vivido, σ (min). Eje vertical: cambio"
+        f" de la cuota de cada modo en los últimos {C4['ultimos']} días contra el control sin ruido"
+        " (pp). Color: el modo. Tipo de línea: decaimiento d = 0,5 (continua) y 1,28 (discontinua). Se"
+        " lee por panel: baja el modo con ruido, sube la bici.",
+    )
+}
+
+<h3>7.2 El promedio esconde signos opuestos</h3>
+<p>
+  Con más de dos modos, el punto de comparación de (13) ya no es ½ sino el reparto uniforme entre los
+  {tex("J_n")} modos que tiene cada persona. Con las medias sobre todas las personas:
+</p>
+{
+    ec(
+        "\\Phi = \\frac{\\bar S - \\overline{1/J_n}}{\\bar P^{*} - \\overline{1/J_n}}",
+        20,
+    )
+}
+<p>
+  Con {tex("J_n = 2")} es (13). Con σ = 80 min y {tex("d = 0{,}5")}, Φ de la ciudad vale
+  {num(agg["auto"]["corto"], 2)}, {num(agg["auto"]["medio"], 2)} y {num(agg["auto"]["largo"], 2)}
+  en los tres horizontes con ruido en el auto, pero {num(agg["tp"]["corto"], 2)},
+  {num(agg["tp"]["medio"], 2)} y {num(agg["tp"]["largo"], 2)} con ruido en el metro: en el mediano y
+  largo plazo, más ventaja que sin ruido. Separado por el modo mejor de cada persona (figura 12, tabla 9) se ve por qué.
+  Quien vive el ruido en su modo mejor pierde ventaja; quien lo vive sólo en sus alternativas la
+  conserva o la gana: en el mediano plazo, Φ ≥ {
+    num(min(sin_ruido_mejor), 2)
+} para todos ellos, y hasta
+  {num(phi_m("tp", 1.28, "Bici"), 2)} para quienes tienen la bici como modo mejor con ruido en el
+  metro. Son las condiciones «sólo el mejor» y «sólo el peor» de E2, ahora mezcladas dentro de la
+  ciudad, y se compensan en el promedio.
+</p>
+<p>
+  El metro es el modo mejor más sensible. Con ruido sólo en su modo y en el mediano plazo, quienes
+  tienen el metro como mejor conservan Φ = {num(phi_m("tp", 0.5, "Metro"), 2)} de la ventaja con
+  {tex("d = 0{,}5")} y {num(phi_m("tp", 1.28, "Metro"), 2)} con {tex("d = 1{,}28")}: lo usan menos
+  que el reparto uniforme. Quienes tienen el auto como mejor, con ruido sólo en el auto, conservan
+  {num(phi_m("auto", 0.5, "Auto"), 2)} y {
+    num(phi_m("auto", 1.28, "Auto"), 2)
+}. Por qué la diferencia
+  es tan grande no está verificado (§8.2).
+</p>
+{
+    fig(
+        "e4-phi-mejor.png",
+        12,
+        "Cuánto de la ventaja sobrevive según cuál sea el modo mejor de cada persona, en el mediano"
+        " plazo (días 11–50). Un panel por condición de ruido. Eje horizontal: desviación estándar del"
+        " tiempo vivido, σ (min). Eje vertical: Φ (adim.), ecuación (20), sobre las personas con ese"
+        " modo mejor en el equilibrio; la línea discontinua en 1 es «nada cambió» y la punteada en 0,"
+        " el reparto uniforme. Color: el modo mejor. Tipo de línea: d = 0,5 (continua) y 1,28"
+        " (discontinua). Se lee por color: bajo 1 si el ruido está en ese modo, sobre 1 si está en una"
+        " alternativa.",
+    )
+}
+{
+    tabla(
+        9,
+        "Fracción de la ventaja que sobrevive, por modo mejor (σ = 80 min)",
+        '<tr><th rowspan="2">Ruido en</th><th rowspan="2">Modo mejor</th>'
+        '<th rowspan="2" class="n">Personas</th>'
+        '<th colspan="3" class="n">Φ con d = 0,5 (adim.)</th>'
+        '<th colspan="3" class="n">Φ con d = 1,28 (adim.)</th></tr>'
+        "<tr>" + "".join(f'<th class="n">{H_TXT[w]}</th>' for w in VENTANAS) * 2 + "</tr>",
+        filas_mejor,
+        "Una fila por condición de ruido y modo mejor en el equilibrio; Φ es la ecuación (20) sobre esas"
+        " personas. 1: nada cambió; 0: reparto uniforme entre sus modos; menos de 0, usa su modo mejor"
+        " menos que el reparto uniforme. Se lee por bloque: las filas del modo con ruido quedan bajo 1;"
+        " las demás, en 1 o sobre 1.",
+    )
+}
+
+<h3>7.3 Lo demás, como en E3</h3>
+<p>
+  Personas iguales terminan distintas y la decisión sobrestima la experiencia, más con recencia: con
+  ruido en los dos modos, σ = 80 min y {tex("d = 1{,}28")}, {tex("R")} =
+  {num(f4r["dispersion_iguales"], 2)} y {tex("B")} = {num(brecha_min(f4r), 2)} min por viaje. El
+  bienestar experimentado cambia a lo sumo {
+    num(exp4_max, 2)
+} min por viaje. Lo nuevo es el abandono:
+  la fracción de quienes tienen metro y no lo usaron ningún día de los últimos {
+    C4["ultimos"]
+} pasa de
+  {num(100 * ab0, 1)} % sin ruido a {num(100 * ab_max, 1)} % con ruido en el metro y
+  {tex("d = 1{,}28")}.
+</p>
+{
+    tabla(
+        10,
+        "La ciudad con cuatro modos: partición, dispersión, bienestar y abandono (σ = 80 min)",
+        '<tr><th rowspan="2">Ruido en</th><th rowspan="2" class="n simb">d (adim.)</th>'
+        '<th colspan="4" class="n">Δ cuota (pp)</th><th rowspan="2" class="n simb">R (adim.)</th>'
+        '<th rowspan="2" class="n">Δ bienestar experimentado (min/viaje)</th>'
+        '<th rowspan="2" class="n simb">B (min/viaje)</th>'
+        '<th rowspan="2" class="n">Abandono del metro (%)</th></tr>'
+        "<tr>" + "".join(f'<th class="n">{m}</th>' for m in MODOS4) + "</tr>",
+        filas_c4,
+        f"Una fila por condición de ruido y decaimiento d; todo en los últimos {C4['ultimos']} días de"
+        f" {C4['dias']}. Las Δ son contra el control sin ruido con el mismo d. R, ecuación (18), con"
+        " grupos de personas del mismo estrato, celda y tenencia de auto, sobre el share de días en su"
+        " modo mejor. Bienestar experimentado en minutos (÷|β|). B, ecuación (19). Abandono: fracción"
+        " de quienes tienen metro que no lo usaron ningún día; sin ruido es"
+        f" {num(100 * ab0, 1)} %. Se lee por columnas, como la tabla 7.",
+    )
+}
+"""
+
+# --- §8 ----------------------------------------------------------------------------------
+
+s8 = f"""
+<!-- ==================================================================== -->
+<h2 id="s8"><span class="num">8</span>Qué concluir, y bajo qué supuestos</h2>
 
 <ol>
   <li><strong>Hay un valor crítico de corto plazo y es simple:</strong> {tex("\\Delta^{*}_k = A/W_k")}.
@@ -1183,9 +1441,13 @@ s7 = f"""
       el bienestar experimentado no cambian, pero personas iguales se diferencian, (18), y deciden con
       un modo que creen más rápido de lo que es, (19): el logsum de lo percibido sobrestima el
       bienestar, más cuanto más recencia.</li>
+  <li><strong>Con los cuatro modos (E4), el ruido saca viajes hacia la bici y el promedio esconde
+      signos opuestos.</strong> Quien vive el ruido en su modo mejor pierde ventaja —mucho más si es
+      el metro—, y quien lo vive en una alternativa la gana, (20). La partición sigue moviéndose
+      poco y crece el abandono del metro.</li>
 </ol>
 
-<h3>7.1 Los supuestos que mueven los números</h3>
+<h3>8.1 Los supuestos que mueven los números</h3>
 <ul>
   <li><strong>La escala.</strong> {tex("\\mu\\beta")} decide cuántos minutos es «mucho». Con el
       {tex("\\beta")} de elección repetida de la literatura ({tex("-0{,}2")}/min) los minutos de este
@@ -1197,21 +1459,24 @@ s7 = f"""
   <li><strong>El decaimiento.</strong> {tex("d")} cambia poco el corto plazo y mucho el largo: con
       {tex("d > 1")} la memoria no promedia y los efectos de variabilidad persisten.</li>
   <li><strong>Congestión y costo de cambiar.</strong> En E1 y E2 una persona sola no mueve los
-      tiempos; E3 sí carga la red cada día. En ninguno hay inercia ni hábito más allá del IBL.</li>
+      tiempos; E3 y E4 sí cargan la red cada día. En ninguno hay inercia ni hábito más allá del IBL.</li>
 </ul>
 
-<h3>7.2 Lo que queda</h3>
+<h3>8.2 Lo que queda</h3>
 <ul>
-  <li><strong>Los cuatro modos.</strong> E3 tiene sólo auto y metro, con ruido en los dos. Con bici y
-      caminata sin ruido, serían un refugio hacia el que migraría la elección por construcción; el
-      paso siguiente es la ciudad con los cuatro modos y ruido en todos.</li>
-  <li><strong>Acceso y espera del metro fijos.</strong> En E3 el IBL aprende el tiempo en vehículo;
+  <li><strong>Por qué el metro.</strong> Con ruido en su propio modo, quienes tienen el metro como
+      modo mejor pierden mucha más ventaja que quienes tienen el auto (tabla 9). No se examinó por
+      qué; la ventaja sobre el segundo modo, cuántas alternativas tiene cada uno y el peso del tiempo
+      en vehículo en el tiempo total son candidatos sin verificar.</li>
+  <li><strong>Bici y caminata sin ruido.</strong> En E4 son el refugio por construcción; con ruido
+      en la bici, la migración de §7.1 tendría otro destino.</li>
+  <li><strong>Acceso y espera del metro fijos.</strong> En E3 y E4 el IBL aprende el tiempo en vehículo;
       acceso y espera quedan en los del equilibrio.</li>
   <li><strong>Una semilla por combinación.</strong> Las diferencias contra σ = 0 usan los mismos números
       aleatorios, pero no hay réplicas de la ciudad.</li>
 </ul>
 
-<h3>7.3 Referencias</h3>
+<h3>8.3 Referencias</h3>
 <ul class="refs">
   <li>Guevara, C. A., Tang, Y. y Gao, S. (2018). The initial condition problem with complete history
       dependency in learning models for travel choices. <em>Transportation Research Part B</em> 117,
@@ -1252,6 +1517,8 @@ mapa = [
     ("(13), ciudad", "Φ de la población", linea("poblacion.py", "_phi")),
     ("(18)", "R, dispersión entre iguales", linea("poblacion.py", "_dispersion_iguales")),
     ("(19)", "B, decisión − experiencia", linea("poblacion.py", "simular")),
+    ("(20)", "Φ con J modos, por modo mejor", linea("poblacion.py", "_phi")),
+    ("E4", "condiciones de ruido", linea("poblacion.py", "CONDICIONES")),
 ]
 filas_mapa = "".join(f"<tr><td>{a}</td><td>{b}</td><td>{c}</td></tr>" for a, b, c in mapa)
 reproducir = f"""
@@ -1263,8 +1530,9 @@ uv sync --extra dev --reinstall-package titirilquen-core   # el núcleo del repo
 uv run --extra dev pytest                                  # las fórmulas (7)–(9), (12) y (16)
 uv run python experimentos.py           # ~5 min → salida/experimentos.json
 uv run python poblacion.py              # ~20 min → salida/poblacion.json (E3)
-uv run python figuras_experimentos.py   # figuras 1–10, desde los dos JSON
-uv run python arma_informe.py           # este informe, desde los dos JSON
+uv run python poblacion.py ciudad       # ~15 min → salida/ciudad4.json (E4)
+uv run python figuras_experimentos.py   # figuras 1–12, desde los tres JSON
+uv run python arma_informe.py           # este informe, desde los tres JSON
 node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
 
 <p>
@@ -1273,11 +1541,13 @@ node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
   {tex("r")}, más el control) y <code>e2</code> (una por caso, {
     tex("d")
 }, condición, σ). E3 sale de <code>salida/poblacion.json</code>: una fila por σ y {tex("d")}.
+  E4, de <code>salida/ciudad4.json</code>: una fila por condición, σ y {tex("d")}, más el
+  control sin ruido.
   Las figuras no calculan nada.
 </p>
 {
     tabla(
-        8,
+        11,
         "Dónde está cada ecuación en el código",
         "<tr><th>Ecuación (número del informe)</th><th>Qué calcula</th><th>Archivo:línea</th></tr>",
         filas_mapa,
@@ -1292,7 +1562,7 @@ node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
 }, (8) anula la
   ventaja, la dispersión acerca a ½, y sin ruido ni shock no hay aprendizaje.
   Los scripts de la versión anterior del informe (<code>persona.py</code>, <code>pve.py</code>,
-  <code>sensibilidad.py</code>) siguen en la carpeta; <code>poblacion.py</code> es ahora E3.
+  <code>sensibilidad.py</code>) siguen en la carpeta; <code>poblacion.py</code> es ahora E3 y E4.
 </p>
 
 </div>
@@ -1300,6 +1570,6 @@ node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
 </html>
 """
 
-html = cabeza + s1 + s2 + s3 + s4 + s5 + s6 + s7 + reproducir
+html = cabeza + s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8 + reproducir
 (AQUI / "informe.html").write_text(html, encoding="utf-8", newline="\n")
 print(f"  informe.html: {len(html):,} caracteres")

@@ -38,7 +38,8 @@
     instancias (IBL). Dos experimentos: cuántas experiencias malas, y de qué
     tamaño, cambian su conducta (E1), y si más variabilidad en los tiempos
     vuelve la elección más aleatoria (E2), primero para una persona y después para
-    la ciudad completa, con congestión (E3). Corto, mediano y largo plazo.
+    la ciudad completa, con congestión (E3), y la ciudad de la app con sus cuatro
+    modos y ruido en el auto, en el metro o en los dos (E4). Corto, mediano y largo plazo.
   </p>
   <p class="meta">
     Código: <code>sandbox/ibl-dia-a-dia/</code> · Correr: ver <a href="#reproducir">Reproducir</a><br>
@@ -55,7 +56,8 @@
     <li><a href="#s4">E1 · Experiencias malas al inicio</a></li>
     <li><a href="#s5">E2 · Variabilidad del tiempo</a></li>
     <li><a href="#s6">E3 · La ciudad completa</a> — ecuaciones (18)–(19)</li>
-    <li><a href="#s7">Qué concluir, y bajo qué supuestos</a></li>
+    <li><a href="#s7">E4 · La ciudad con cuatro modos</a> — ecuación (20)</li>
+    <li><a href="#s8">Qué concluir, y bajo qué supuestos</a></li>
     <li><a href="#reproducir">Reproducir paso a paso</a></li>
   </ol>
 </nav>
@@ -108,6 +110,9 @@
     corto plazo y toda en el largo (Φ = 1,02,
     ecuación 13); la partición no se mueve, pero
     personas iguales terminan distintas y el bienestar percibido sobrestima el vivido (§6.2).
+    Con los cuatro modos (E4) el ruido saca viajes hacia la bici, y el promedio esconde signos
+    opuestos: quien vive el ruido en su modo mejor pierde ventaja y quien lo vive en una
+    alternativa la gana (§7.2).
   </p></div>
 
 <div class="aviso neutro"><p>
@@ -607,7 +612,94 @@
 <p class="pie-tabla">Una fila por σ y decaimiento d; todo en los últimos 20 días de 250. Las Δ son contra σ = 0 con el mismo d. Cuota del modo mejor: entre quienes pueden elegir, la fracción de viajes en el modo de mayor utilidad verdadera. R, ecuación (18): 1 es la binomial. Bienestar experimentado: utilidad verdadera del modo elegido, en minutos (÷|β| = 0,0331). B, ecuación (19). Se lee por columnas: las Δ quedan cerca de 0 mientras R y B crecen.</p>
 
 <!-- ==================================================================== -->
-<h2 id="s7"><span class="num">7</span>Qué concluir, y bajo qué supuestos</h2>
+<h2 id="s7"><span class="num">7</span>E4 · La ciudad con cuatro modos</h2>
+
+<p>
+  <strong>Diseño.</strong> La ciudad de la app tal cual, con sus 36.000 personas
+  (<code>poblacion.py ciudad</code>): cada hogar tiene o no auto según su estrato y se elige entre
+  los cuatro modos. Quien no tiene auto no lo elige; quien vive a menos de 1 km del CBD no tiene metro.
+  El día 0 es otra vez el equilibrio del simulador. El IBL aprende el tiempo del auto, del metro (en
+  vehículo) y de la bici, que se congestiona; la caminata no se aprende, porque su tiempo es
+  geométrico y no cambia. El ruido <span class="mat" data-tex="\varepsilon \sim \mathcal{N}(0, \sigma^2)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>∼</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon \sim \mathcal{N}(0, \sigma^2)</annotation></semantics></math></span> entra en
+  tres condiciones: sólo en el auto, sólo en el metro y en los dos; nunca en la bici ni en la
+  caminata. σ ∈ {0, 5, 10, 20, 40, 80} min, <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> ∈ {0; 0,5; 1,28},
+  250 días y un control sin ruido por <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, todos con la misma semilla.
+</p>
+<p>
+  <strong>Control.</strong> Con σ = 0 la partición de los últimos 20 días es la del
+  equilibrio (auto 28,25, metro 26,11, bici 35,79, caminata 9,85 %)
+  con a lo sumo 0,04 pp de diferencia; Φ queda entre 0,997
+  y 1,002, también separado por modo mejor, y <span class="mat" data-tex="R"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span> en
+  0,99.
+</p>
+
+<h3>7.1 El ruido saca viajes del modo que lo tiene, y la bici los recibe</h3>
+<p>
+  Con σ = 80 min el modo con ruido pierde cuota en todas las condiciones y con todo <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, y la
+  bici gana en todas: hasta +2,2 pp, con ruido en los dos modos y <span class="mat" data-tex="d = 1{,}28"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1,28</mn></mrow><annotation encoding="application/x-tex">d = 1{,}28</annotation></semantics></math></span>.
+  Es lo que E3 no podía mostrar: con bici y caminata sin ruido, la elección migra hacia ellas. Es
+  coherente con el hot stove de E2, aunque aquí no se aisló: una experiencia mala hace evitar el modo ruidoso, y quien lo evita no
+  junta las experiencias buenas que lo compensarían. Con <span class="mat" data-tex="d \le 0{,}5"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>≤</mo><mn>0,5</mn></mrow><annotation encoding="application/x-tex">d \le 0{,}5</annotation></semantics></math></span> los cambios son de
+  décimas de punto; ningún modo se mueve más de 2,2 pp. La partición
+  agregada, otra vez, casi no cambia.
+</p>
+<figure><img src="salida/e4-particion.png" alt="Figura 11"><figcaption><span class="n">Figura 11</span>A qué modo se van los viajes cuando el tiempo de uno es variable. Un panel por condición de ruido. Eje horizontal: desviación estándar del tiempo vivido, σ (min). Eje vertical: cambio de la cuota de cada modo en los últimos 20 días contra el control sin ruido (pp). Color: el modo. Tipo de línea: decaimiento d = 0,5 (continua) y 1,28 (discontinua). Se lee por panel: baja el modo con ruido, sube la bici.</figcaption></figure>
+
+<h3>7.2 El promedio esconde signos opuestos</h3>
+<p>
+  Con más de dos modos, el punto de comparación de (13) ya no es ½ sino el reparto uniforme entre los
+  <span class="mat" data-tex="J_n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">J_n</annotation></semantics></math></span> modos que tiene cada persona. Con las medias sobre todas las personas:
+</p>
+<div class="ecuacion" data-tex="\Phi = \frac{\bar S - \overline{1/J_n}}{\bar P^{*} - \overline{1/J_n}}" data-id="(20)">
+  <span class="id">(20)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Φ</mi><mo>=</mo><mfrac><mrow><mover accent="true"><mi>S</mi><mo>ˉ</mo></mover><mo>−</mo><mover accent="true"><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>J</mi><mi>n</mi></msub></mrow><mo stretchy="true">‾</mo></mover></mrow><mrow><msup><mover accent="true"><mi>P</mi><mo>ˉ</mo></mover><mo lspace="0em" rspace="0em">∗</mo></msup><mo>−</mo><mover accent="true"><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>J</mi><mi>n</mi></msub></mrow><mo stretchy="true">‾</mo></mover></mrow></mfrac></mrow><annotation encoding="application/x-tex">\Phi = \frac{\bar S - \overline{1/J_n}}{\bar P^{*} - \overline{1/J_n}}</annotation></semantics></math></span>
+</div>
+<p>
+  Con <span class="mat" data-tex="J_n = 2"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>n</mi></msub><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">J_n = 2</annotation></semantics></math></span> es (13). Con σ = 80 min y <span class="mat" data-tex="d = 0{,}5"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0,5</mn></mrow><annotation encoding="application/x-tex">d = 0{,}5</annotation></semantics></math></span>, Φ de la ciudad vale
+  0,86, 0,84 y 0,96
+  en los tres horizontes con ruido en el auto, pero 0,96,
+  1,05 y 1,04 con ruido en el metro: en el mediano y
+  largo plazo, más ventaja que sin ruido. Separado por el modo mejor de cada persona (figura 12, tabla 9) se ve por qué.
+  Quien vive el ruido en su modo mejor pierde ventaja; quien lo vive sólo en sus alternativas la
+  conserva o la gana: en el mediano plazo, Φ ≥ 0,98 para todos ellos, y hasta
+  1,60 para quienes tienen la bici como modo mejor con ruido en el
+  metro. Son las condiciones «sólo el mejor» y «sólo el peor» de E2, ahora mezcladas dentro de la
+  ciudad, y se compensan en el promedio.
+</p>
+<p>
+  El metro es el modo mejor más sensible. Con ruido sólo en su modo y en el mediano plazo, quienes
+  tienen el metro como mejor conservan Φ = 0,29 de la ventaja con
+  <span class="mat" data-tex="d = 0{,}5"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0,5</mn></mrow><annotation encoding="application/x-tex">d = 0{,}5</annotation></semantics></math></span> y −0,29 con <span class="mat" data-tex="d = 1{,}28"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1,28</mn></mrow><annotation encoding="application/x-tex">d = 1{,}28</annotation></semantics></math></span>: lo usan menos
+  que el reparto uniforme. Quienes tienen el auto como mejor, con ruido sólo en el auto, conservan
+  0,77 y 0,57. Por qué la diferencia
+  es tan grande no está verificado (§8.2).
+</p>
+<figure><img src="salida/e4-phi-mejor.png" alt="Figura 12"><figcaption><span class="n">Figura 12</span>Cuánto de la ventaja sobrevive según cuál sea el modo mejor de cada persona, en el mediano plazo (días 11–50). Un panel por condición de ruido. Eje horizontal: desviación estándar del tiempo vivido, σ (min). Eje vertical: Φ (adim.), ecuación (20), sobre las personas con ese modo mejor en el equilibrio; la línea discontinua en 1 es «nada cambió» y la punteada en 0, el reparto uniforme. Color: el modo mejor. Tipo de línea: d = 0,5 (continua) y 1,28 (discontinua). Se lee por color: bajo 1 si el ruido está en ese modo, sobre 1 si está en una alternativa.</figcaption></figure>
+<p class="titulo-tabla"><span class="n">Tabla 9</span>Fracción de la ventaja que sobrevive, por modo mejor (σ = 80 min)</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan="2">Ruido en</th><th rowspan="2">Modo mejor</th><th rowspan="2" class="n">Personas</th><th colspan="3" class="n">Φ con d = 0,5 (adim.)</th><th colspan="3" class="n">Φ con d = 1,28 (adim.)</th></tr><tr><th class="n">corto (1–10)</th><th class="n">mediano (11–50)</th><th class="n">largo (51–250)</th><th class="n">corto (1–10)</th><th class="n">mediano (11–50)</th><th class="n">largo (51–250)</th></tr></thead>
+  <tbody><tr><td>auto</td><td>Auto</td><td class='n'>18.696</td><td class='n'>0,80</td><td class='n'>0,77</td><td class='n'>0,94</td><td class='n'>0,69</td><td class='n'>0,57</td><td class='n'>0,77</td></tr><tr><td>auto</td><td>Metro</td><td class='n'>4.966</td><td class='n'>1,01</td><td class='n'>1,08</td><td class='n'>1,03</td><td class='n'>1,03</td><td class='n'>1,13</td><td class='n'>1,07</td></tr><tr><td>auto</td><td>Bici</td><td class='n'>10.812</td><td class='n'>1,00</td><td class='n'>0,99</td><td class='n'>1,00</td><td class='n'>0,99</td><td class='n'>0,98</td><td class='n'>0,99</td></tr><tr><td>auto</td><td>Caminata</td><td class='n'>1.526</td><td class='n'>1,00</td><td class='n'>1,01</td><td class='n'>1,00</td><td class='n'>1,01</td><td class='n'>1,02</td><td class='n'>1,01</td></tr><tr><td>metro</td><td>Auto</td><td class='n'>18.696</td><td class='n'>0,97</td><td class='n'>1,04</td><td class='n'>1,03</td><td class='n'>0,98</td><td class='n'>1,08</td><td class='n'>1,06</td></tr><tr><td>metro</td><td>Metro</td><td class='n'>4.966</td><td class='n'>0,33</td><td class='n'>0,29</td><td class='n'>0,84</td><td class='n'>−0,04</td><td class='n'>−0,29</td><td class='n'>0,33</td></tr><tr><td>metro</td><td>Bici</td><td class='n'>10.812</td><td class='n'>1,15</td><td class='n'>1,35</td><td class='n'>1,12</td><td class='n'>1,28</td><td class='n'>1,60</td><td class='n'>1,32</td></tr><tr><td>metro</td><td>Caminata</td><td class='n'>1.526</td><td class='n'>1,00</td><td class='n'>1,02</td><td class='n'>1,02</td><td class='n'>1,00</td><td class='n'>1,04</td><td class='n'>1,03</td></tr><tr><td>auto y metro</td><td>Auto</td><td class='n'>18.696</td><td class='n'>0,78</td><td class='n'>0,81</td><td class='n'>0,97</td><td class='n'>0,68</td><td class='n'>0,65</td><td class='n'>0,82</td></tr><tr><td>auto y metro</td><td>Metro</td><td class='n'>4.966</td><td class='n'>0,34</td><td class='n'>0,39</td><td class='n'>0,88</td><td class='n'>0,00</td><td class='n'>−0,13</td><td class='n'>0,40</td></tr><tr><td>auto y metro</td><td>Bici</td><td class='n'>10.812</td><td class='n'>1,15</td><td class='n'>1,34</td><td class='n'>1,11</td><td class='n'>1,28</td><td class='n'>1,59</td><td class='n'>1,30</td></tr><tr><td>auto y metro</td><td>Caminata</td><td class='n'>1.526</td><td class='n'>1,00</td><td class='n'>1,03</td><td class='n'>1,02</td><td class='n'>1,01</td><td class='n'>1,07</td><td class='n'>1,04</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Una fila por condición de ruido y modo mejor en el equilibrio; Φ es la ecuación (20) sobre esas personas. 1: nada cambió; 0: reparto uniforme entre sus modos; menos de 0, usa su modo mejor menos que el reparto uniforme. Se lee por bloque: las filas del modo con ruido quedan bajo 1; las demás, en 1 o sobre 1.</p>
+
+<h3>7.3 Lo demás, como en E3</h3>
+<p>
+  Personas iguales terminan distintas y la decisión sobrestima la experiencia, más con recencia: con
+  ruido en los dos modos, σ = 80 min y <span class="mat" data-tex="d = 1{,}28"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1,28</mn></mrow><annotation encoding="application/x-tex">d = 1{,}28</annotation></semantics></math></span>, <span class="mat" data-tex="R"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span> =
+  2,01 y <span class="mat" data-tex="B"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span> = 5,87 min por viaje. El
+  bienestar experimentado cambia a lo sumo 0,63 min por viaje. Lo nuevo es el abandono:
+  la fracción de quienes tienen metro y no lo usaron ningún día de los últimos 20 pasa de
+  1,5 % sin ruido a 7,0 % con ruido en el metro y
+  <span class="mat" data-tex="d = 1{,}28"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1,28</mn></mrow><annotation encoding="application/x-tex">d = 1{,}28</annotation></semantics></math></span>.
+</p>
+<p class="titulo-tabla"><span class="n">Tabla 10</span>La ciudad con cuatro modos: partición, dispersión, bienestar y abandono (σ = 80 min)</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan="2">Ruido en</th><th rowspan="2" class="n simb">d (adim.)</th><th colspan="4" class="n">Δ cuota (pp)</th><th rowspan="2" class="n simb">R (adim.)</th><th rowspan="2" class="n">Δ bienestar experimentado (min/viaje)</th><th rowspan="2" class="n simb">B (min/viaje)</th><th rowspan="2" class="n">Abandono del metro (%)</th></tr><tr><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th></tr></thead>
+  <tbody><tr><td>auto</td><td class='n'>0,00</td><td class='n'>−0,4</td><td class='n'>+0,2</td><td class='n'>+0,1</td><td class='n'>+0,1</td><td class='n'>1,16</td><td class='n'>−0,09</td><td class='n'>0,00</td><td class='n'>1,5</td></tr><tr><td>auto</td><td class='n'>0,50</td><td class='n'>−0,3</td><td class='n'>+0,2</td><td class='n'>+0,1</td><td class='n'>+0,1</td><td class='n'>1,17</td><td class='n'>−0,08</td><td class='n'>0,19</td><td class='n'>1,5</td></tr><tr><td>auto</td><td class='n'>1,28</td><td class='n'>−2,1</td><td class='n'>+0,8</td><td class='n'>+0,8</td><td class='n'>+0,4</td><td class='n'>1,52</td><td class='n'>−0,56</td><td class='n'>2,59</td><td class='n'>1,3</td></tr><tr><td>metro</td><td class='n'>0,00</td><td class='n'>+0,3</td><td class='n'>−0,8</td><td class='n'>+0,4</td><td class='n'>+0,1</td><td class='n'>1,18</td><td class='n'>0,07</td><td class='n'>0,01</td><td class='n'>4,5</td></tr><tr><td>metro</td><td class='n'>0,50</td><td class='n'>+0,2</td><td class='n'>−0,5</td><td class='n'>+0,2</td><td class='n'>+0,1</td><td class='n'>1,22</td><td class='n'>0,05</td><td class='n'>0,39</td><td class='n'>4,7</td></tr><tr><td>metro</td><td class='n'>1,28</td><td class='n'>+0,4</td><td class='n'>−1,7</td><td class='n'>+1,2</td><td class='n'>+0,1</td><td class='n'>1,54</td><td class='n'>−0,04</td><td class='n'>3,28</td><td class='n'>7,0</td></tr><tr><td>auto y metro</td><td class='n'>0,00</td><td class='n'>−0,1</td><td class='n'>−0,6</td><td class='n'>+0,5</td><td class='n'>+0,2</td><td class='n'>1,35</td><td class='n'>−0,02</td><td class='n'>0,01</td><td class='n'>4,2</td></tr><tr><td>auto y metro</td><td class='n'>0,50</td><td class='n'>−0,1</td><td class='n'>−0,4</td><td class='n'>+0,4</td><td class='n'>+0,1</td><td class='n'>1,40</td><td class='n'>−0,04</td><td class='n'>0,57</td><td class='n'>4,5</td></tr><tr><td>auto y metro</td><td class='n'>1,28</td><td class='n'>−1,7</td><td class='n'>−1,1</td><td class='n'>+2,2</td><td class='n'>+0,6</td><td class='n'>2,01</td><td class='n'>−0,63</td><td class='n'>5,87</td><td class='n'>6,2</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Una fila por condición de ruido y decaimiento d; todo en los últimos 20 días de 250. Las Δ son contra el control sin ruido con el mismo d. R, ecuación (18), con grupos de personas del mismo estrato, celda y tenencia de auto, sobre el share de días en su modo mejor. Bienestar experimentado en minutos (÷|β|). B, ecuación (19). Abandono: fracción de quienes tienen metro que no lo usaron ningún día; sin ruido es 1,5 %. Se lee por columnas, como la tabla 7.</p>
+
+<!-- ==================================================================== -->
+<h2 id="s8"><span class="num">8</span>Qué concluir, y bajo qué supuestos</h2>
 
 <ol>
   <li><strong>Hay un valor crítico de corto plazo y es simple:</strong> <span class="mat" data-tex="\Delta^{*}_k = A/W_k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi mathvariant="normal">Δ</mi><mi>k</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup><mo>=</mo><mi>A</mi><mi mathvariant="normal">/</mi><msub><mi>W</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">\Delta^{*}_k = A/W_k</annotation></semantics></math></span>.
@@ -623,9 +715,13 @@
       el bienestar experimentado no cambian, pero personas iguales se diferencian, (18), y deciden con
       un modo que creen más rápido de lo que es, (19): el logsum de lo percibido sobrestima el
       bienestar, más cuanto más recencia.</li>
+  <li><strong>Con los cuatro modos (E4), el ruido saca viajes hacia la bici y el promedio esconde
+      signos opuestos.</strong> Quien vive el ruido en su modo mejor pierde ventaja —mucho más si es
+      el metro—, y quien lo vive en una alternativa la gana, (20). La partición sigue moviéndose
+      poco y crece el abandono del metro.</li>
 </ol>
 
-<h3>7.1 Los supuestos que mueven los números</h3>
+<h3>8.1 Los supuestos que mueven los números</h3>
 <ul>
   <li><strong>La escala.</strong> <span class="mat" data-tex="\mu\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>β</mi></mrow><annotation encoding="application/x-tex">\mu\beta</annotation></semantics></math></span> decide cuántos minutos es «mucho». Con el
       <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de elección repetida de la literatura (<span class="mat" data-tex="-0{,}2"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>0,2</mn></mrow><annotation encoding="application/x-tex">-0{,}2</annotation></semantics></math></span>/min) los minutos de este
@@ -637,21 +733,24 @@
   <li><strong>El decaimiento.</strong> <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> cambia poco el corto plazo y mucho el largo: con
       <span class="mat" data-tex="d \gt  1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d \gt  1</annotation></semantics></math></span> la memoria no promedia y los efectos de variabilidad persisten.</li>
   <li><strong>Congestión y costo de cambiar.</strong> En E1 y E2 una persona sola no mueve los
-      tiempos; E3 sí carga la red cada día. En ninguno hay inercia ni hábito más allá del IBL.</li>
+      tiempos; E3 y E4 sí cargan la red cada día. En ninguno hay inercia ni hábito más allá del IBL.</li>
 </ul>
 
-<h3>7.2 Lo que queda</h3>
+<h3>8.2 Lo que queda</h3>
 <ul>
-  <li><strong>Los cuatro modos.</strong> E3 tiene sólo auto y metro, con ruido en los dos. Con bici y
-      caminata sin ruido, serían un refugio hacia el que migraría la elección por construcción; el
-      paso siguiente es la ciudad con los cuatro modos y ruido en todos.</li>
-  <li><strong>Acceso y espera del metro fijos.</strong> En E3 el IBL aprende el tiempo en vehículo;
+  <li><strong>Por qué el metro.</strong> Con ruido en su propio modo, quienes tienen el metro como
+      modo mejor pierden mucha más ventaja que quienes tienen el auto (tabla 9). No se examinó por
+      qué; la ventaja sobre el segundo modo, cuántas alternativas tiene cada uno y el peso del tiempo
+      en vehículo en el tiempo total son candidatos sin verificar.</li>
+  <li><strong>Bici y caminata sin ruido.</strong> En E4 son el refugio por construcción; con ruido
+      en la bici, la migración de §7.1 tendría otro destino.</li>
+  <li><strong>Acceso y espera del metro fijos.</strong> En E3 y E4 el IBL aprende el tiempo en vehículo;
       acceso y espera quedan en los del equilibrio.</li>
   <li><strong>Una semilla por combinación.</strong> Las diferencias contra σ = 0 usan los mismos números
       aleatorios, pero no hay réplicas de la ciudad.</li>
 </ul>
 
-<h3>7.3 Referencias</h3>
+<h3>8.3 Referencias</h3>
 <ul class="refs">
   <li>Guevara, C. A., Tang, Y. y Gao, S. (2018). The initial condition problem with complete history
       dependency in learning models for travel choices. <em>Transportation Research Part B</em> 117,
@@ -675,20 +774,23 @@ uv sync --extra dev --reinstall-package titirilquen-core   # el núcleo del repo
 uv run --extra dev pytest                                  # las fórmulas (7)–(9), (12) y (16)
 uv run python experimentos.py           # ~5 min → salida/experimentos.json
 uv run python poblacion.py              # ~20 min → salida/poblacion.json (E3)
-uv run python figuras_experimentos.py   # figuras 1–10, desde los dos JSON
-uv run python arma_informe.py           # este informe, desde los dos JSON
+uv run python poblacion.py ciudad       # ~15 min → salida/ciudad4.json (E4)
+uv run python figuras_experimentos.py   # figuras 1–12, desde los tres JSON
+uv run python arma_informe.py           # este informe, desde los tres JSON
 node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
 
 <p>
   Cada número del texto sale de <code>salida/experimentos.json</code>: <code>casos</code> (tabla de §2.1,
   <span class="mat" data-tex="W_k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">W_k</annotation></semantics></math></span> y <span class="mat" data-tex="\Delta^*"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">Δ</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">\Delta^*</annotation></semantics></math></span>), <code>e1</code> (una fila por caso, <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, <span class="mat" data-tex="k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span>,
   <span class="mat" data-tex="r"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span>, más el control) y <code>e2</code> (una por caso, <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, condición, σ). E3 sale de <code>salida/poblacion.json</code>: una fila por σ y <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>.
+  E4, de <code>salida/ciudad4.json</code>: una fila por condición, σ y <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, más el
+  control sin ruido.
   Las figuras no calculan nada.
 </p>
-<p class="titulo-tabla"><span class="n">Tabla 8</span>Dónde está cada ecuación en el código</p>
+<p class="titulo-tabla"><span class="n">Tabla 11</span>Dónde está cada ecuación en el código</p>
 <div class="envoltorio-tabla"><table>
   <thead><tr><th>Ecuación (número del informe)</th><th>Qué calcula</th><th>Archivo:línea</th></tr></thead>
-  <tbody><tr><td>(1)</td><td>pesos del IBL</td><td><code>ibl.py:30</code></td></tr><tr><td>(2)</td><td>tiempo percibido</td><td><code>ibl.py:48</code></td></tr><tr><td>(3)–(5)</td><td>utilidad, logit, experiencia</td><td><code>experimentos.py:162</code></td></tr><tr><td>(6)</td><td>ΔV, A, P*</td><td><code>experimentos.py:70</code></td></tr><tr><td>(7)</td><td>W_k</td><td><code>experimentos.py:141</code></td></tr><tr><td>(8)</td><td>Δ*</td><td><code>experimentos.py:152</code></td></tr><tr><td>(9)</td><td>P post</td><td><code>experimentos.py:157</code></td></tr><tr><td>(10)</td><td>P̄ por persona</td><td><code>experimentos.py:214</code></td></tr><tr><td>(11), (13)</td><td>S, E, I, cuantiles, histograma</td><td><code>experimentos.py:220</code></td></tr><tr><td>(12)</td><td>vida media</td><td><code>experimentos.py:234</code></td></tr><tr><td>(13)</td><td>Φ</td><td><code>experimentos.py:324</code></td></tr><tr><td>(14)</td><td>n*</td><td><code>arma_informe.py:650</code></td></tr><tr><td>(15)–(17)</td><td>ventaja percibida, dispersión y sesgo</td><td><code>experimentos.py:254</code></td></tr><tr><td>(16)</td><td>Gauss–Hermite</td><td><code>experimentos.py:248</code></td></tr><tr><td>(13), ciudad</td><td>Φ de la población</td><td><code>poblacion.py:237</code></td></tr><tr><td>(18)</td><td>R, dispersión entre iguales</td><td><code>poblacion.py:215</code></td></tr><tr><td>(19)</td><td>B, decisión − experiencia</td><td><code>poblacion.py:261</code></td></tr></tbody>
+  <tbody><tr><td>(1)</td><td>pesos del IBL</td><td><code>ibl.py:30</code></td></tr><tr><td>(2)</td><td>tiempo percibido</td><td><code>ibl.py:48</code></td></tr><tr><td>(3)–(5)</td><td>utilidad, logit, experiencia</td><td><code>experimentos.py:162</code></td></tr><tr><td>(6)</td><td>ΔV, A, P*</td><td><code>experimentos.py:70</code></td></tr><tr><td>(7)</td><td>W_k</td><td><code>experimentos.py:141</code></td></tr><tr><td>(8)</td><td>Δ*</td><td><code>experimentos.py:152</code></td></tr><tr><td>(9)</td><td>P post</td><td><code>experimentos.py:157</code></td></tr><tr><td>(10)</td><td>P̄ por persona</td><td><code>experimentos.py:214</code></td></tr><tr><td>(11), (13)</td><td>S, E, I, cuantiles, histograma</td><td><code>experimentos.py:220</code></td></tr><tr><td>(12)</td><td>vida media</td><td><code>experimentos.py:234</code></td></tr><tr><td>(13)</td><td>Φ</td><td><code>experimentos.py:324</code></td></tr><tr><td>(14)</td><td>n*</td><td><code>arma_informe.py:673</code></td></tr><tr><td>(15)–(17)</td><td>ventaja percibida, dispersión y sesgo</td><td><code>experimentos.py:254</code></td></tr><tr><td>(16)</td><td>Gauss–Hermite</td><td><code>experimentos.py:248</code></td></tr><tr><td>(13), ciudad</td><td>Φ de la población</td><td><code>poblacion.py:256</code></td></tr><tr><td>(18)</td><td>R, dispersión entre iguales</td><td><code>poblacion.py:234</code></td></tr><tr><td>(19)</td><td>B, decisión − experiencia</td><td><code>poblacion.py:295</code></td></tr><tr><td>(20)</td><td>Φ con J modos, por modo mejor</td><td><code>poblacion.py:256</code></td></tr><tr><td>E4</td><td>condiciones de ruido</td><td><code>poblacion.py:471</code></td></tr></tbody>
 </table></div>
 <p class="pie-tabla">Una fila por ecuación del informe, con la función que la implementa. Las líneas se buscan en el código cada vez que se arma el informe, así que siempre apuntan a la versión vigente.</p>
 <p class="pie-tabla">
@@ -696,7 +798,7 @@ node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
   igual a los pesos de <code>ibl.py</code>, (9) igual a la simulación con <span class="mat" data-tex="d = 0"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d = 0</annotation></semantics></math></span>, (8) anula la
   ventaja, la dispersión acerca a ½, y sin ruido ni shock no hay aprendizaje.
   Los scripts de la versión anterior del informe (<code>persona.py</code>, <code>pve.py</code>,
-  <code>sensibilidad.py</code>) siguen en la carpeta; <code>poblacion.py</code> es ahora E3.
+  <code>sensibilidad.py</code>) siguen en la carpeta; <code>poblacion.py</code> es ahora E3 y E4.
 </p>
 
 </div>
