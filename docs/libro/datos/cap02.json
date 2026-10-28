@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-27",
-  "commit": "80bacd5",
+  "fecha": "2026-10-28",
+  "commit": "10d0f04",
   "script": "docs/libro/datos/datos_cap02.py",
   "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la densidad relativa, μ=LandUseConfig.mu=0,30 (schema v10), λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
  },
@@ -73,59 +73,59 @@
     "forma": "normal",
     "convergio": true,
     "iteraciones": 62,
-    "error_max_hogares": 5.701e-09,
-    "error_relativo_max": 5.278e-13
+    "error_max_hogares": 5.768e-09,
+    "error_relativo_max": 5.341e-13
    },
    {
     "forma": "uniforme",
     "convergio": true,
     "iteraciones": 63,
-    "error_max_hogares": 6.81e-09,
-    "error_relativo_max": 6.306e-13
+    "error_max_hogares": 6.434e-09,
+    "error_relativo_max": 5.957e-13
    },
    {
     "forma": "exponencial",
     "convergio": true,
     "iteraciones": 69,
-    "error_max_hogares": 6.567e-09,
-    "error_relativo_max": 6.08e-13
+    "error_max_hogares": 6.605e-09,
+    "error_relativo_max": 6.116e-13
    },
    {
     "forma": "meseta",
     "convergio": true,
     "iteraciones": 45,
-    "error_max_hogares": 6.256e-09,
-    "error_relativo_max": 5.792e-13
+    "error_max_hogares": 6.05e-09,
+    "error_relativo_max": 5.602e-13
    },
    {
     "forma": "bimodal",
     "convergio": true,
     "iteraciones": 48,
-    "error_max_hogares": 5.482e-09,
-    "error_relativo_max": 5.076e-13
+    "error_max_hogares": 4.908e-09,
+    "error_relativo_max": 4.544e-13
    },
    {
     "forma": "valle",
     "convergio": true,
     "iteraciones": 45,
-    "error_max_hogares": 3.431e-09,
-    "error_relativo_max": 3.176e-13
+    "error_max_hogares": 3.507e-09,
+    "error_relativo_max": 3.247e-13
    }
   ],
   "por_escala": [
    {
     "suma_H": 3600,
-    "error_max_hogares": 6.776e-10,
+    "error_max_hogares": 7.001e-10,
     "iteraciones": 61
    },
    {
     "suma_H": 36000,
-    "error_max_hogares": 5.701e-09,
+    "error_max_hogares": 5.768e-09,
     "iteraciones": 62
    },
    {
     "suma_H": 144000,
-    "error_max_hogares": 2.541e-08,
+    "error_max_hogares": 2.467e-08,
     "iteraciones": 62
    }
   ]
@@ -142,8 +142,8 @@
     "rama": "forma cerrada",
     "razon_escalas": 1.0,
     "convergio": true,
-    "iteraciones": 30,
-    "error_balance_hogares": 7.037e-06,
+    "iteraciones": 31,
+    "error_balance_hogares": 3.947e-06,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -157,7 +157,7 @@
     "razon_escalas": 3.9,
     "convergio": true,
     "iteraciones": 62,
-    "error_balance_hogares": 5.701e-09,
+    "error_balance_hogares": 5.768e-09,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -171,7 +171,7 @@
     "razon_escalas": 10.0,
     "convergio": true,
     "iteraciones": 50,
-    "error_balance_hogares": 6.539e-07,
+    "error_balance_hogares": 1.695e-06,
     "columnas_suman_uno_error": 2.22e-16
    },
    {
@@ -185,7 +185,7 @@
     "razon_escalas": 100.0,
     "convergio": true,
     "iteraciones": 63,
-    "error_balance_hogares": 6.034e-07,
+    "error_balance_hogares": 6.352e-07,
     "columnas_suman_uno_error": 2.22e-16
    }
   ],
@@ -217,22 +217,22 @@
     "mu": 0.05,
     "dist_km": [
      2.922,
-     3.317,
+     3.318,
      4.634
     ],
-    "theil": 0.0382,
-    "grad_p": 0.923,
+    "theil": 0.0381,
+    "grad_p": 0.921,
     "iteraciones": 18
    },
    {
     "mu": 0.3,
     "dist_km": [
      1.383,
-     2.888,
-     6.376
+     2.889,
+     6.375
     ],
-    "theil": 0.4035,
-    "grad_p": 0.925,
+    "theil": 0.4034,
+    "grad_p": 0.922,
     "iteraciones": 62
    },
    {
@@ -242,8 +242,8 @@
      2.884,
      6.612
     ],
-    "theil": 0.5727,
-    "grad_p": 0.924,
+    "theil": 0.5726,
+    "grad_p": 0.921,
     "iteraciones": 102
    },
    {
@@ -251,11 +251,11 @@
     "dist_km": [
      0.803,
      2.895,
-     6.751
+     6.75
     ],
-    "theil": 0.7667,
-    "grad_p": 0.924,
-    "iteraciones": 228
+    "theil": 0.7661,
+    "grad_p": 0.921,
+    "iteraciones": 226
    }
   ],
   "rho": [
@@ -263,43 +263,43 @@
     "rho": 0.0,
     "dist_km": [
      1.383,
-     2.888,
-     6.376
+     2.889,
+     6.375
     ],
-    "theil": 0.4035,
-    "grad_p": 0.925,
+    "theil": 0.4034,
+    "grad_p": 0.922,
     "iteraciones": 62
    },
    {
     "rho": 10.0,
     "dist_km": [
      1.702,
-     2.948,
-     6.063
+     2.949,
+     6.061
     ],
     "theil": 0.2982,
-    "grad_p": 0.628,
+    "grad_p": 0.626,
     "iteraciones": 44
    },
    {
     "rho": 20.0,
     "dist_km": [
-     2.477,
-     3.013,
-     5.438
+     2.478,
+     3.014,
+     5.436
     ],
     "theil": 0.1764,
-    "grad_p": 0.42,
+    "grad_p": 0.419,
     "iteraciones": 30
    },
    {
     "rho": 31.0,
     "dist_km": [
-     4.372,
+     4.374,
      3.045,
-     4.121
+     4.119
     ],
-    "theil": 0.1089,
+    "theil": 0.1093,
     "grad_p": 0.233,
     "iteraciones": 21
    },
@@ -307,10 +307,10 @@
     "rho": 40.0,
     "dist_km": [
      5.962,
-     3.005,
-     3.128
+     3.004,
+     3.129
     ],
-    "theil": 0.1947,
+    "theil": 0.195,
     "grad_p": 0.091,
     "iteraciones": 28
    },
@@ -318,19 +318,19 @@
     "rho": 54.0,
     "dist_km": [
      7.012,
-     2.993,
-     2.447
+     2.992,
+     2.449
     ],
-    "theil": 0.3444,
+    "theil": 0.3445,
     "grad_p": -0.082,
     "iteraciones": 55
    },
    {
     "rho": 60.0,
     "dist_km": [
-     7.18,
-     3.037,
-     2.262
+     7.181,
+     3.036,
+     2.263
     ],
     "theil": 0.3912,
     "grad_p": -0.138,
@@ -342,28 +342,28 @@
   "grilla": [
    {
     "n_celdas": 101,
-    "theil": 0.3999,
+    "theil": 0.3997,
     "dist_km": [
      1.435,
-     2.906,
-     6.376
+     2.907,
+     6.374
     ]
    },
    {
     "n_celdas": 201,
-    "theil": 0.4035,
+    "theil": 0.4034,
     "dist_km": [
      1.383,
-     2.888,
-     6.376
+     2.889,
+     6.375
     ]
    },
    {
     "n_celdas": 401,
-    "theil": 0.4053,
+    "theil": 0.4052,
     "dist_km": [
      1.356,
-     2.878,
+     2.879,
      6.375
     ]
    }
@@ -372,35 +372,35 @@
    {
     "largo_km": 10.0,
     "dist_km": [
-     1.809,
+     1.808,
      2.817,
-     6.209
+     6.21
     ],
-    "theil": 0.3061,
-    "grad_p": 0.967,
+    "theil": 0.3063,
+    "grad_p": 0.964,
     "iteraciones": 50
    },
    {
     "largo_km": 20.0,
     "dist_km": [
      1.383,
-     2.888,
-     6.376
+     2.889,
+     6.375
     ],
-    "theil": 0.4035,
-    "grad_p": 0.925,
+    "theil": 0.4034,
+    "grad_p": 0.922,
     "iteraciones": 62
    },
    {
     "largo_km": 40.0,
     "dist_km": [
-     1.058,
-     2.861,
-     6.637
+     1.059,
+     2.862,
+     6.635
     ],
-    "theil": 0.5863,
-    "grad_p": 0.787,
-    "iteraciones": 116
+    "theil": 0.5844,
+    "grad_p": 0.784,
+    "iteraciones": 115
    }
   ]
  },
@@ -415,10 +415,10 @@
      "rho": 54.0,
      "dist_km": [
       7.012,
-      2.993,
-      2.447
+      2.992,
+      2.449
      ],
-     "theil": 0.3444,
+     "theil": 0.3445,
      "grad_p": -0.082,
      "iteraciones": 55
     },
@@ -426,10 +426,10 @@
      "rho_en_v7": 54.0,
      "dist_km": [
       7.012,
-      2.993,
-      2.447
+      2.992,
+      2.449
      ],
-     "theil": 0.3444,
+     "theil": 0.3445,
      "grad_p": -0.082,
      "iteraciones": 55
     }
@@ -441,10 +441,10 @@
      "rho": 54.0,
      "dist_km": [
       7.012,
-      2.995,
-      2.445
+      2.994,
+      2.447
      ],
-     "theil": 0.3445,
+     "theil": 0.3446,
      "grad_p": -0.082,
      "iteraciones": 55
     },
@@ -467,10 +467,10 @@
      "rho": 54.0,
      "dist_km": [
       7.012,
-      2.995,
-      2.445
+      2.994,
+      2.447
      ],
-     "theil": 0.3446,
+     "theil": 0.3447,
      "grad_p": -0.082,
      "iteraciones": 55
     },
@@ -481,8 +481,8 @@
       3.608,
       1.081
      ],
-     "theil": 0.8041,
-     "grad_p": -0.6,
+     "theil": 0.804,
+     "grad_p": -0.599,
      "iteraciones": 363
     }
    }
@@ -545,7 +545,7 @@
   "por_estrato": [
    {
     "estrato": "alto",
-    "senal_accesibilidad_clp": 203255,
+    "senal_accesibilidad_clp": 203341,
     "ruido_clp": 10623,
     "senal_sobre_ruido": 19.1,
     "ruido_con_mu_1_clp": 3187,
@@ -553,22 +553,22 @@
    },
    {
     "estrato": "medio",
-    "senal_accesibilidad_clp": 139278,
+    "senal_accesibilidad_clp": 139357,
     "ruido_clp": 5311,
     "senal_sobre_ruido": 26.2,
     "ruido_con_mu_1_clp": 1593,
-    "senal_sobre_ruido_con_mu_1": 87.4
+    "senal_sobre_ruido_con_mu_1": 87.5
    },
    {
     "estrato": "bajo",
-    "senal_accesibilidad_clp": 89790,
+    "senal_accesibilidad_clp": 89868,
     "ruido_clp": 2741,
     "senal_sobre_ruido": 32.8,
     "ruido_con_mu_1_clp": 822,
-    "senal_sobre_ruido_con_mu_1": 109.2
+    "senal_sobre_ruido_con_mu_1": 109.3
    }
   ],
-  "rango_T_medio_utiles_mes": 87.4,
+  "rango_T_medio_utiles_mes": 87.5,
   "rango_densidad_relativa": 1.463,
   "rho_que_iguala_T": 59.8
  },
@@ -576,19 +576,19 @@
   "k": 0.3,
   "rho_base": 20.0,
   "hev_mu_1_con_lambda_alpha_rho_por_k": {
-   "max_delta_Q": 2.5757174171303632e-14,
-   "max_delta_p_clp": 1.862645149230957e-09,
+   "max_delta_Q": 2.3092638912203256e-14,
+   "max_delta_p_clp": 1.3969838619232178e-09,
    "max_delta_u_clp": 0.0
   },
   "hev_mu_1_con_solo_lambda_por_k": {
-   "max_delta_Q": 0.45567034258643346,
-   "max_delta_p_clp": 295288.1854122691,
-   "max_delta_u_clp": 62373.325235630386
+   "max_delta_Q": 0.45576109966232475,
+   "max_delta_p_clp": 295288.1940118503,
+   "max_delta_u_clp": 63170.21855603345
   },
   "cerrada_mu_1_con_lambda_alpha_rho_por_k": {
-   "max_delta_Q": 1.8263168755083825e-14,
-   "max_delta_p_clp": 4.656612873077393e-10,
-   "max_delta_u_clp": 0.0
+   "max_delta_Q": 4.246603069191224e-14,
+   "max_delta_p_clp": 9.313225746154785e-10,
+   "max_delta_u_clp": 4.656612873077393e-10
   },
   "parametros_equivalentes_con_mu_1": {
    "lambda": [
@@ -601,7 +601,7 @@
   }
  },
  "rho_umbral": {
-  "rho_inversion": 30.27,
+  "rho_inversion": 30.26,
   "criterio": "d_alto = d_bajo",
   "dial_ui_max": 60.0
  },

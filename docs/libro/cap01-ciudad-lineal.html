@@ -19,7 +19,7 @@
   </p>
   <p class="meta">
     Módulo: <code>city.py</code> · <code>CityConfig</code> ·
-    datos regenerados el 2026-10-27 ·
+    datos regenerados el 2026-10-28 ·
     <span class="estado vigente">vigente</span>
   </p>
 </header>
@@ -174,7 +174,7 @@
 <p>
   <strong>201 celdas</strong> es un compromiso entre resolución y tiempo de
   cálculo, y la §5 lo respalda: refinar de 201 a 401 celdas mueve el reparto
-  modal 0,093 puntos porcentuales como máximo, y de 401 a 801, 0,314: refinar
+  modal 0,078 puntos porcentuales como máximo, y de 401 a 801, 0,317: refinar
   más no achica el residuo, que se queda en unas tres décimas. Sobre
   20 km dan Δx = 99,5 m, la «cuadra» de cien metros con la que se lee la
   densidad. El núcleo conserva las 1001 celdas del documento original para
@@ -397,11 +397,11 @@
     <tr><th class="n">n</th><th class="n">Población</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">51</td><td class="n">36.000</td><td class="n">29,146</td><td class="n">23,419</td><td class="n">36,128</td><td class="n">11,307</td><td class="n">10.969,1</td></tr>
-    <tr><td class="n">101</td><td class="n">36.000</td><td class="n">29,173</td><td class="n">23,223</td><td class="n">35,828</td><td class="n">11,776</td><td class="n">10.807,6</td></tr>
-    <tr class="destacada"><td class="n">201</td><td class="n">36.000</td><td class="n">29,178</td><td class="n">23,238</td><td class="n">35,631</td><td class="n">11,953</td><td class="n">10.747,7</td></tr>
-    <tr><td class="n">401</td><td class="n">36.000</td><td class="n">29,137</td><td class="n">23,245</td><td class="n">35,573</td><td class="n">12,046</td><td class="n">10.684,8</td></tr>
-    <tr><td class="n">801</td><td class="n">36.000</td><td class="n">29,451</td><td class="n">23,152</td><td class="n">35,423</td><td class="n">11,974</td><td class="n">10.798,5</td></tr>
+    <tr><td class="n">51</td><td class="n">36.000</td><td class="n">29,108</td><td class="n">24,333</td><td class="n">35,041</td><td class="n">11,517</td><td class="n">10.972,0</td></tr>
+    <tr><td class="n">101</td><td class="n">36.000</td><td class="n">29,138</td><td class="n">23,603</td><td class="n">35,369</td><td class="n">11,890</td><td class="n">10.791,3</td></tr>
+    <tr class="destacada"><td class="n">201</td><td class="n">36.000</td><td class="n">29,157</td><td class="n">23,419</td><td class="n">35,418</td><td class="n">12,005</td><td class="n">10.738,1</td></tr>
+    <tr><td class="n">401</td><td class="n">36.000</td><td class="n">29,128</td><td class="n">23,341</td><td class="n">35,456</td><td class="n">12,075</td><td class="n">10.680,7</td></tr>
+    <tr><td class="n">801</td><td class="n">36.000</td><td class="n">29,445</td><td class="n">23,198</td><td class="n">35,370</td><td class="n">11,987</td><td class="n">10.795,8</td></tr>
   </tbody>
 </table>
 </div>
@@ -419,21 +419,25 @@
     <tr><th>Refinamiento</th><th class="n">Δ máx (pp)</th></tr>
   </thead>
   <tbody>
-    <tr><td>51 → 101</td><td class="n">0,469</td></tr>
-    <tr><td>101 → 201</td><td class="n">0,197</td></tr>
-    <tr class="destacada"><td>201 → 401</td><td class="n">0,093</td></tr>
-    <tr><td>401 → 801</td><td class="n">0,314</td></tr>
+    <tr><td>51 → 101</td><td class="n">0,730</td></tr>
+    <tr><td>101 → 201</td><td class="n">0,184</td></tr>
+    <tr class="destacada"><td>201 → 401</td><td class="n">0,078</td></tr>
+    <tr><td>401 → 801</td><td class="n">0,317</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Las dos primeras duplicaciones reducen el salto, pero la de 401 a 801 lo
-  vuelve a subir a 0,314 pp, que es el auto: de 29,137 % a 29,451 %. Desde 201
+  vuelve a subir a 0,317 pp, que es el auto: de 29,128 % a 29,445 %. Desde 201
   celdas ningún salto llega a un tercio de punto. La causa está en la demanda, no en la geometría: los cortes de caminata y
-  bicicleta y las penalizaciones físicas por tramo son <strong>funciones
-  escalón de la distancia</strong>, y con cada Δx el escalón cae en una
-  fracción distinta de una celda. Mientras existan escalones la grilla tendrá
+  bicicleta, las penalizaciones físicas por tramo y los límites de captación
+  de las estaciones de metro son <strong>funciones escalón de la
+  distancia</strong>, y con cada Δx el escalón cae en una fracción distinta de
+  una celda. El salto mayor, de 51 a 101 celdas, es del metro: de
+  24,333 % a 23,603 %. Desde oct-2026 auto y bici recorren
+  la media celda del CBD como los demás modos (D-71); antes les faltaba, y la
+  bici ganaba reparto con la celda gruesa. Mientras existan escalones la grilla tendrá
   un residuo, y nada obliga a que decrezca con cada refinamiento; lo que se
   exige es que quede acotado entre 201, 401 y 801 celdas, y eso es lo que fija
   <code>test_la_grilla_converge</code>.
@@ -452,21 +456,21 @@
     <tr><th class="n">ΣH</th><th class="n">hab/km</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th><th class="n">Iter.</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">18.000</td><td class="n">900</td><td class="n">31,240</td><td class="n">15,199</td><td class="n">41,459</td><td class="n">12,101</td><td class="n">5.152,2</td><td class="n">4</td></tr>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">29,178</td><td class="n">23,238</td><td class="n">35,631</td><td class="n">11,953</td><td class="n">10.747,7</td><td class="n">6</td></tr>
-    <tr><td class="n">54.000</td><td class="n">2.700</td><td class="n">26,842</td><td class="n">28,813</td><td class="n">32,235</td><td class="n">12,110</td><td class="n">18.872,0</td><td class="n">10</td></tr>
-    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">24,281</td><td class="n">33,200</td><td class="n">30,035</td><td class="n">12,485</td><td class="n">28.741,7</td><td class="n">14</td></tr>
+    <tr><td class="n">18.000</td><td class="n">900</td><td class="n">31,266</td><td class="n">15,283</td><td class="n">41,304</td><td class="n">12,147</td><td class="n">5.157,0</td><td class="n">4</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">29,157</td><td class="n">23,419</td><td class="n">35,418</td><td class="n">12,005</td><td class="n">10.738,1</td><td class="n">6</td></tr>
+    <tr><td class="n">54.000</td><td class="n">2.700</td><td class="n">26,773</td><td class="n">29,020</td><td class="n">32,024</td><td class="n">12,184</td><td class="n">18.778,1</td><td class="n">10</td></tr>
+    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">24,164</td><td class="n">33,441</td><td class="n">29,812</td><td class="n">12,583</td><td class="n">28.425,7</td><td class="n">15</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Con el largo fijo, más gente es más congestión: el auto cae de 31,24 % a
-  24,28 %, la bicicleta pierde más de un cuarto de su cuota cuando la ciclovía
-  satura, y el metro, con economías de escala, sube de 15,20 % a 33,20 %. La
-  caminata sube poco, de 12,10 % a 12,48 %, porque su tiempo no depende del
+  Con el largo fijo, más gente es más congestión: el auto cae de 31,27 % a
+  24,16 %, la bicicleta pierde más de un cuarto de su cuota cuando la ciclovía
+  satura, y el metro, con economías de escala, sube de 15,28 % a 33,44 %. La
+  caminata sube poco, de 12,15 % a 12,58 %, porque su tiempo no depende del
   flujo. Las emisiones crecen cinco veces y media con cuatro veces la población, y el
-  MSA necesita cada vez más iteraciones: 10 con 54.000 hogares y 14 con
+  MSA necesita cada vez más iteraciones: 10 con 54.000 hogares y 15 con
   72.000, cuando la vía y la ciclovía de la base ya no dan abasto. Las cuatro
   filas convergen.
 </p>
@@ -479,19 +483,19 @@
     <tr><th class="n">L (km)</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">A pie %</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">10</td><td class="n">27,185</td><td class="n">15,999</td><td class="n">21,500</td><td class="n">4.904,5</td></tr>
-    <tr class="destacada"><td class="n">20</td><td class="n">29,178</td><td class="n">23,238</td><td class="n">11,953</td><td class="n">10.747,7</td></tr>
-    <tr><td class="n">30</td><td class="n">30,239</td><td class="n">29,526</td><td class="n">8,406</td><td class="n">17.064,0</td></tr>
-    <tr><td class="n">40</td><td class="n">30,882</td><td class="n">34,043</td><td class="n">6,473</td><td class="n">23.303,0</td></tr>
+    <tr><td class="n">10</td><td class="n">27,175</td><td class="n">16,104</td><td class="n">21,542</td><td class="n">4.903,5</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">29,157</td><td class="n">23,419</td><td class="n">12,005</td><td class="n">10.738,1</td></tr>
+    <tr><td class="n">30</td><td class="n">30,214</td><td class="n">29,797</td><td class="n">8,471</td><td class="n">17.042,1</td></tr>
+    <tr><td class="n">40</td><td class="n">30,856</td><td class="n">34,529</td><td class="n">6,543</td><td class="n">23.287,9</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Con la población fija en 36.000, estirar la ciudad alarga los viajes: la
-  caminata se derrumba de 21,5 % a 6,5 %, el metro se multiplica por 2,2 y
+  caminata se derrumba de 21,5 % a 6,5 %, el metro se multiplica por 2,1 y
   las emisiones por 4,7. La dirección de esos tres efectos es la que la teoría
-  predice. El auto sube de 27,18 % a 30,88 %.
+  predice. El auto sube de 27,18 % a 30,86 %.
 </p>
 
 <h3>Por qué n impar</h3>

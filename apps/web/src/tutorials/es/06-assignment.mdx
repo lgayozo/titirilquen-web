@@ -39,10 +39,10 @@ Se puede comprobar con los tiempos del equilibrio por defecto fijos. Multiplican
 
 | Escala de los coeficientes | Mayor diferencia de reparto con el determinístico |
 | --- | --- |
-| ×1 | 19,78 pp |
-| ×5 | 2,73 pp |
-| ×20 | 1,69 pp |
-| ×50 | 1,09 pp |
+| ×1 | 20,27 pp |
+| ×5 | 2,41 pp |
+| ×20 | 0,85 pp |
+| ×50 | 0,42 pp |
 
 ## Por qué importa: el mismo modelo, dos elasticidades
 
@@ -54,29 +54,29 @@ Agregando pistas de 1 a 6, la participación del metro:
 
 | Pistas por sentido | Metro, logit | Metro, determinístico |
 | --- | --- | --- |
-| 1 | 31,23 % | 22,32 %\* |
-| 2 | 26,21 % | 6,51 % |
-| 3 | 24,00 % | 3,78 % |
-| 4 | 23,24 % | 2,83 % |
-| 6 | 22,87 % | 2,52 % |
+| 1 | 31,49 % | 25,42 %\* |
+| 2 | 26,45 % | 6,76 % |
+| 3 | 24,21 % | 3,89 % |
+| 4 | 23,42 % | 2,94 % |
+| 6 | 23,04 % | 2,61 % |
 
-\* Converge, pero pide 524 iteraciones, dentro del tope de 700 que la interfaz pone al elegir el método. Todas las corridas convergen.
+\* Converge, pero pide 548 iteraciones, dentro del tope de 700 que la interfaz pone al elegir el método. Todas las corridas convergen.
 
-El logit pierde 8,4 puntos; el determinístico, casi 20. **Misma ciudad, misma calibración, mismos datos**: sólo cambia cuánta heterogeneidad no observada se le atribuye a la población.
+El logit pierde 8,45 puntos; el determinístico, 22,81. **Misma ciudad, misma calibración, mismos datos**: sólo cambia cuánta heterogeneidad no observada se le atribuye a la población.
 
 ## El fenómeno que sólo aparece de un lado
 
 Ese trasvase más brusco tiene una consecuencia que vale el capítulo entero. Al perder pasajeros, el metro reduce su frecuencia —menos demanda, menos trenes— y la espera sube. Bajo el método determinístico, entre 1 y 2 pistas:
 
-- la frecuencia cae de 4,02 a 2,00 trenes/hora,
-- la espera sube de 7,47 a 15,00 minutos,
-- y el **costo generalizado percibido medio sube** de 31,93 a 36,91 minutos-equivalentes (los minutos ponderados como en la utilidad, más el dinero pasado a minutos con el valor del tiempo de cada estrato).
+- la frecuencia cae de 4,58 a 2,00 trenes/hora,
+- la espera sube de 6,56 a 15,00 minutos,
+- y el **costo generalizado percibido medio sube** de 31,51 a 37,00 minutos-equivalentes (los minutos ponderados como en la utilidad, más el dinero pasado a minutos con el valor del tiempo de cada estrato).
 
 Es decir: **agregar capacidad vial empeoró a la población**. Ésa es la paradoja de Downs-Thomson, y se puede reproducir desde la interfaz eligiendo el método determinístico y moviendo el control de pistas.
 
-Con un matiz: el determinístico converge, pero lento. El MSA promedia los **flujos** de cada grupo entre iteraciones —el MSA clásico del equilibrio de usuario— y para cuando el **costo en exceso medio**, los minutos que cada viajero paga sobre el mejor modo de su grupo, baja de una milésima del tiempo medio de viaje. Ese costo cae como 1/n: con 1 y 2 pistas tarda 524 y 161 iteraciones, y por eso al elegir el método la interfaz sube el tope a 700. La regla corta con el reparto todavía moviéndose un poco —el capítulo 5 del libro muestra que con 4 pistas corta en la iteración 10 con el metro en 2,83 %, y que sin corte baja a 2,76 % en la iteración 700—, pero la caída entre 1 y 2 pistas, casi 16 puntos, es mucho mayor que eso. El capítulo 7 mide el bienestar con la misma regla, y cae entre 1 y 2 pistas.
+Con un matiz: el determinístico converge, pero lento. El MSA promedia los **flujos** de cada grupo entre iteraciones —el MSA clásico del equilibrio de usuario— y para cuando el **costo en exceso medio**, los minutos que cada viajero paga sobre el mejor modo de su grupo, baja de una milésima del tiempo medio de viaje. Ese costo cae como 1/n: con 1 y 2 pistas tarda 548 y 167 iteraciones, y por eso al elegir el método la interfaz sube el tope a 700. La regla corta con el reparto todavía moviéndose un poco —el capítulo 5 del libro muestra que con 4 pistas corta en la iteración 10 con el metro en 2,94 %, y que sin corte baja a 2,93 % en la iteración 700—, pero la caída entre 1 y 2 pistas, casi 19 puntos, es mucho mayor que eso. El capítulo 7 mide el bienestar con la misma regla, y cae entre 1 y 2 pistas.
 
-Bajo logit, la misma curva de costo generalizado baja monótonamente de 35,93 a 31,23: la paradoja no aparece. El trasvase fraccional del logit es demasiado suave para que la degradación del metro alcance a superar la mejora del auto.
+Bajo logit, la misma curva de costo generalizado baja monótonamente de 36,13 a 31,39: la paradoja no aparece. El trasvase fraccional del logit es demasiado suave para que la degradación del metro alcance a superar la mejora del auto.
 
 ## Una advertencia importante sobre el nombre
 
@@ -91,9 +91,9 @@ En esta ciudad cada celda es un origen distinto y cada estrato una clase de usua
 | Modo usado | Costo generalizado medio (min-equiv) |
 | --- | --- |
 | Caminata | 12,47 |
-| Bicicleta | 24,08 |
-| Auto | 40,28 |
-| Metro | 72,32 |
+| Bicicleta | 24,39 |
+| Auto | 40,82 |
+| Metro | 71,85 |
 
 La razón es que la igualdad se cumple **dentro** de cada grupo. La mayoría pone su masa en un solo modo, y un grupo con una sola alternativa usada cumple la condición trivialmente: no hay dos rutas usadas que comparar. Los que quedan repartidos entre dos modos son los indiferentes, y en ellos los dos costos sí se igualan, dentro de la tolerancia. El reparto modal que se observa en el agregado es **composición** entre 1.200 grupos que deciden distinto, no arbitraje entre viajeros.
 
@@ -111,6 +111,6 @@ Dicho de otro modo: **el fenómeno que el capítulo enseña y la falta de unicid
 - **Logit — sorteo** — cuando interesa ver la variabilidad del muestreo, o para ilustrar que el reparto esperado es un promedio de realizaciones.
 - **Todo o nada** — para aislar mecanismos de equilibrio. Al eliminar la dispersión de gustos deja ver fenómenos que el logit amortigua. Es más nítido, no más realista.
 
-Dos cosas prácticas. Primera: el determinístico converge mucho más lento. Pide 524 y 161 iteraciones con 1 y 2 pistas, 142 con 3, y 10 y 13 con 4 y 6; el logit, 20 con 1 pista y entre 6 y 9 con más. Al elegir el determinístico la interfaz lleva el tope a 700 como mínimo, por si lo habías bajado. Mira el indicador de convergencia antes de leer un resultado determinístico. Segunda: la medida de bienestar cambia con el método: bajo logit el excedente se mide con el **logsum** (`ln Σ e^{V_m}`, que es `E[máx]` cuando hay un término aleatorio Gumbel), y bajo determinístico con la **utilidad máxima media** (`máx_m V_m`, porque sin ese término el agente simplemente toma el mejor modo). La tabla de resultados cambia sola de medida y la rotula. No compares el nivel entre métodos: el logsum siempre queda por encima, y esa brecha es el valor que el logit le atribuye a la variedad.
+Dos cosas prácticas. Primera: el determinístico converge mucho más lento. Pide 548 y 167 iteraciones con 1 y 2 pistas, 147 con 3, y 10 y 13 con 4 y 6; el logit, 20 con 1 pista y entre 6 y 16 con más. Al elegir el determinístico la interfaz lleva el tope a 700 como mínimo, por si lo habías bajado. Mira el indicador de convergencia antes de leer un resultado determinístico. Segunda: la medida de bienestar cambia con el método: bajo logit el excedente se mide con el **logsum** (`ln Σ e^{V_m}`, que es `E[máx]` cuando hay un término aleatorio Gumbel), y bajo determinístico con la **utilidad máxima media** (`máx_m V_m`, porque sin ese término el agente simplemente toma el mejor modo). La tabla de resultados cambia sola de medida y la rotula. No compares el nivel entre métodos: el logsum siempre queda por encima, y esa brecha es el valor que el logit le atribuye a la variedad.
 
 <NextStep to="land-use">Módulo Uso de suelo</NextStep>

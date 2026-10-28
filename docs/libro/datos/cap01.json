@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-27",
-  "commit": "80bacd5",
+  "fecha": "2026-10-28",
+  "commit": "10d0f04",
   "script": "docs/libro/datos/datos_cap01.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30 sobre oferta normal, semilla 42, asignación esperada, tolerancia 0,02 min. Localización «original» (mezcla uniforme): el capítulo 1 mira la geometría, no la subasta de suelo."
  },
@@ -103,98 +103,98 @@
    "n_celdas": 51,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 29.146,
-    "Metro": 23.419,
-    "Bici": 36.128,
-    "Caminata": 11.307,
+    "Auto": 29.108,
+    "Metro": 24.333,
+    "Bici": 35.041,
+    "Caminata": 11.517,
     "Teletrabajo": 0.0
    },
    "iteraciones": 6,
    "convergio": true,
-   "gap_final_min": 0.0006,
-   "emisiones_kg_h": 10969.1
+   "gap_final_min": 0.0004,
+   "emisiones_kg_h": 10972.0
   },
   {
    "n_celdas": 101,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 29.173,
-    "Metro": 23.223,
-    "Bici": 35.828,
-    "Caminata": 11.776,
+    "Auto": 29.138,
+    "Metro": 23.603,
+    "Bici": 35.369,
+    "Caminata": 11.89,
     "Teletrabajo": 0.0
    },
    "iteraciones": 6,
    "convergio": true,
    "gap_final_min": 0.0006,
-   "emisiones_kg_h": 10807.6
+   "emisiones_kg_h": 10791.3
   },
   {
    "n_celdas": 201,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 29.178,
-    "Metro": 23.238,
-    "Bici": 35.631,
-    "Caminata": 11.953,
+    "Auto": 29.157,
+    "Metro": 23.419,
+    "Bici": 35.418,
+    "Caminata": 12.005,
     "Teletrabajo": 0.0
    },
    "iteraciones": 6,
    "convergio": true,
    "gap_final_min": 0.0006,
-   "emisiones_kg_h": 10747.7
+   "emisiones_kg_h": 10738.1
   },
   {
    "n_celdas": 401,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 29.137,
-    "Metro": 23.245,
-    "Bici": 35.573,
-    "Caminata": 12.046,
+    "Auto": 29.128,
+    "Metro": 23.341,
+    "Bici": 35.456,
+    "Caminata": 12.075,
     "Teletrabajo": 0.0
    },
    "iteraciones": 6,
    "convergio": true,
    "gap_final_min": 0.0006,
-   "emisiones_kg_h": 10684.8
+   "emisiones_kg_h": 10680.7
   },
   {
    "n_celdas": 801,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 29.451,
-    "Metro": 23.152,
-    "Bici": 35.423,
-    "Caminata": 11.974,
+    "Auto": 29.445,
+    "Metro": 23.198,
+    "Bici": 35.37,
+    "Caminata": 11.987,
     "Teletrabajo": 0.0
    },
    "iteraciones": 6,
    "convergio": true,
    "gap_final_min": 0.0007,
-   "emisiones_kg_h": 10798.5
+   "emisiones_kg_h": 10795.8
   }
  ],
  "grilla_saltos": [
   {
    "de": 51,
    "a": 101,
-   "max_delta_pp": 0.469
+   "max_delta_pp": 0.73
   },
   {
    "de": 101,
    "a": 201,
-   "max_delta_pp": 0.197
+   "max_delta_pp": 0.184
   },
   {
    "de": 201,
    "a": 401,
-   "max_delta_pp": 0.093
+   "max_delta_pp": 0.078
   },
   {
    "de": 401,
    "a": 801,
-   "max_delta_pp": 0.314
+   "max_delta_pp": 0.317
   }
  ],
  "poblacion": [
@@ -203,64 +203,64 @@
    "densidad_media_hab_km": 900,
    "agentes": 18000,
    "reparto_pct": {
-    "Auto": 31.24,
-    "Metro": 15.199,
-    "Bici": 41.459,
-    "Caminata": 12.101,
+    "Auto": 31.266,
+    "Metro": 15.283,
+    "Bici": 41.304,
+    "Caminata": 12.147,
     "Teletrabajo": 0.0
    },
    "iteraciones": 4,
    "convergio": true,
    "gap_final_min": 0.0,
-   "emisiones_kg_h": 5152.2
+   "emisiones_kg_h": 5157.0
   },
   {
    "poblacion": 36000,
    "densidad_media_hab_km": 1800,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 29.178,
-    "Metro": 23.238,
-    "Bici": 35.631,
-    "Caminata": 11.953,
+    "Auto": 29.157,
+    "Metro": 23.419,
+    "Bici": 35.418,
+    "Caminata": 12.005,
     "Teletrabajo": 0.0
    },
    "iteraciones": 6,
    "convergio": true,
    "gap_final_min": 0.0006,
-   "emisiones_kg_h": 10747.7
+   "emisiones_kg_h": 10738.1
   },
   {
    "poblacion": 54000,
    "densidad_media_hab_km": 2700,
    "agentes": 54000,
    "reparto_pct": {
-    "Auto": 26.842,
-    "Metro": 28.813,
-    "Bici": 32.235,
-    "Caminata": 12.11,
+    "Auto": 26.773,
+    "Metro": 29.02,
+    "Bici": 32.024,
+    "Caminata": 12.184,
     "Teletrabajo": 0.0
    },
    "iteraciones": 10,
    "convergio": true,
-   "gap_final_min": 0.0026,
-   "emisiones_kg_h": 18872.0
+   "gap_final_min": 0.0032,
+   "emisiones_kg_h": 18778.1
   },
   {
    "poblacion": 72000,
    "densidad_media_hab_km": 3600,
    "agentes": 72000,
    "reparto_pct": {
-    "Auto": 24.281,
-    "Metro": 33.2,
-    "Bici": 30.035,
-    "Caminata": 12.485,
+    "Auto": 24.164,
+    "Metro": 33.441,
+    "Bici": 29.812,
+    "Caminata": 12.583,
     "Teletrabajo": 0.0
    },
-   "iteraciones": 14,
+   "iteraciones": 15,
    "convergio": true,
-   "gap_final_min": 0.0054,
-   "emisiones_kg_h": 28741.7
+   "gap_final_min": 0.0038,
+   "emisiones_kg_h": 28425.7
   }
  ],
  "largo": [
@@ -268,61 +268,61 @@
    "largo_ciudad_km": 10,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 27.185,
-    "Metro": 15.999,
-    "Bici": 35.315,
-    "Caminata": 21.5,
+    "Auto": 27.175,
+    "Metro": 16.104,
+    "Bici": 35.18,
+    "Caminata": 21.542,
     "Teletrabajo": 0.0
    },
    "iteraciones": 8,
    "convergio": true,
    "gap_final_min": 0.0049,
-   "emisiones_kg_h": 4904.5
+   "emisiones_kg_h": 4903.5
   },
   {
    "largo_ciudad_km": 20,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 29.178,
-    "Metro": 23.238,
-    "Bici": 35.631,
-    "Caminata": 11.953,
+    "Auto": 29.157,
+    "Metro": 23.419,
+    "Bici": 35.418,
+    "Caminata": 12.005,
     "Teletrabajo": 0.0
    },
    "iteraciones": 6,
    "convergio": true,
    "gap_final_min": 0.0006,
-   "emisiones_kg_h": 10747.7
+   "emisiones_kg_h": 10738.1
   },
   {
    "largo_ciudad_km": 30,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 30.239,
-    "Metro": 29.526,
-    "Bici": 31.829,
-    "Caminata": 8.406,
+    "Auto": 30.214,
+    "Metro": 29.797,
+    "Bici": 31.518,
+    "Caminata": 8.471,
     "Teletrabajo": 0.0
    },
-   "iteraciones": 5,
+   "iteraciones": 6,
    "convergio": true,
-   "gap_final_min": 0.0007,
-   "emisiones_kg_h": 17064.0
+   "gap_final_min": 0.0003,
+   "emisiones_kg_h": 17042.1
   },
   {
    "largo_ciudad_km": 40,
    "agentes": 36000,
    "reparto_pct": {
-    "Auto": 30.882,
-    "Metro": 34.043,
-    "Bici": 28.601,
-    "Caminata": 6.473,
+    "Auto": 30.856,
+    "Metro": 34.529,
+    "Bici": 28.072,
+    "Caminata": 6.543,
     "Teletrabajo": 0.0
    },
-   "iteraciones": 6,
+   "iteraciones": 5,
    "convergio": true,
-   "gap_final_min": 0.0004,
-   "emisiones_kg_h": 23303.0
+   "gap_final_min": 0.0008,
+   "emisiones_kg_h": 23287.9
   }
  ],
  "convenciones": {

@@ -2135,6 +2135,26 @@ cumple, y eso está en D-39.
 
 ---
 
+## D-71 — Oferta: auto y bici no recorrían la media celda del CBD
+
+- **Hallado**: auditoría del núcleo, ítem D16, 2026-10-25.
+- **Evidencia**: `demora_auto_tramo` y `demora_bici_tramo` daban a la celda a
+  k celdas del CBD un tiempo de (k − ½)·dx/v: media celda propia y las k − 1
+  intermedias, sin la media celda del CBD. La caminata, el metro y el costo en
+  $ usan k·dx, de centroide a centroide. El sesgo a favor de auto y bici es
+  dx/2, O(1/n): al refinar de 201 a 1001 celdas la bici bajaba 0,12 pp.
+- **Estado**: corregido 2026-10-28 (decidido por Leandro). La media celda del
+  CBD se cruza con el flujo de la celda vecina, que es todo el de ese lado
+  porque el CBD no genera viajes (con el piso de caminata en la bici). La
+  deriva de la bici entre 201 y 1001 celdas pasa a +0,04 pp; queda la del
+  metro, −0,19 pp con escalones y −0,31 con suaves, repartida en los límites
+  de captación de las estaciones, donde la utilidad salta (la estación
+  asignada es la más cercana, no la de menor costo). Línea base: original
+  auto −0,02, metro +0,18, bici −0,21, caminata +0,06. Test:
+  `test_flujo_libre_es_de_centroide_a_centroide`.
+
+---
+
 ## Tabla resumen
 
 | ID   | Tema                                                                                                       | Veredicto                                            | Prioridad                  |
@@ -2209,3 +2229,4 @@ cumple, y eso está en D-39.
 | D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Corregido 2026-10-14 | Media |
 | D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia) | Baja |
 | D-70 | Equilibrio: con todo o nada el MSA no converge porque promedia tiempos; promediando flujos llega al equilibrio de usuario y Downs-Thomson se mantiene | Corregido 2026-10-14 (tolerancia sobre el costo en exceso, pendiente) | Alta |
+| D-71 | Oferta: auto y bici recorrían (k − ½)·dx hasta el CBD, no k·dx como la caminata y el metro; la bici derivaba con n_celdas | Corregido 2026-10-28 (auditoría D) | Baja |

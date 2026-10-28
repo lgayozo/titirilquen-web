@@ -173,11 +173,77 @@ def factibilidad() -> dict:
     }
 
 
-def _traza(sim) -> ConvergenceTrace:
+def _traza(sim, localizacion: str = "original") -> ConvergenceTrace:
     trace = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(sim, base._land_use_web(), trace, localizacion="original"):
+    for _ in iter_msa_desde_suelo(sim, base._land_use_web(), trace, localizacion=localizacion):
         pass
     return trace
+
+
+def bici_saturada() -> dict:
+    """Auditoría D, ítem 12 (oct-2026): el corte de la bici se evalúa sobre t⁰ (D9) y
+    el tramo congestionado se acota a la caminata (D-15), así que una ciclovía
+    saturada no saca la bici del conjunto: la deja más lenta que el corte y, en
+    la periferia, a paso de caminata."""
+    filas = []
+    for cap in (200, 1000, 2000, 6000):
+        sim = base._config_web().model_copy(deep=True)
+        sim.supply.bike.capacidad_pista = cap
+        s = _traza(sim).iteraciones[-1]
+        gl = sim.demand.globales
+        ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
+        dist = np.abs(np.arange(ciudad.n_celdas) - ciudad.cbd_index) * ciudad.ancho_celda_km
+        d = s.demanda_bici
+        con = d > 0
+        a_pie = con & (dist > 0) & (s.t_bici >= 0.98 * dist / gl.v_caminata * 60)
+        filas.append(
+            {
+                "capacidad_bici_h": cap,
+                "bici_pct": round(100.0 * float(d.sum()) / sum(s.modal_split.values()), 1),
+                "sobre_corte_pct": round(
+                    100.0 * float(d[s.t_bici > gl.corte_bici_min].sum() / d.sum()), 1
+                ),
+                "a_paso_caminata_pct": round(100.0 * float(d[a_pie].sum() / d.sum()), 1),
+                "t_max_min": round(float(s.t_bici[con].max()), 0),
+                "t_libre_max_min": round(float(s.t_bici_libre[con].max()), 0),
+            }
+        )
+    return {
+        "nota": "Base, localización «original». % de los viajes en bici; t con demanda.",
+        "filas": filas,
+    }
+
+
+def tenencia_por_celda() -> dict:
+    """Auditoría D, ítem 15 (oct-2026): `round(n_viaja·prob_auto)` por celda y estrato
+    (population.py) da dientes en la fracción con auto entre celdas vecinas."""
+    out = {}
+    for loc in ("original", "equilibrio"):
+        sim = base._config_web()
+        trace = _traza(sim, loc)
+        n = sim.city.n_celdas
+        viaja = np.zeros((3, n))
+        auto = np.zeros((3, n))
+        for a in trace.agentes:
+            if not a.teletrabaja:
+                viaja[a.estrato - 1, a.celda_origen] += 1
+                auto[a.estrato - 1, a.celda_origen] += a.tiene_auto
+        saltos, minimo = [], []
+        for h in range(3):
+            ok = viaja[h] > 0
+            f = np.where(ok, auto[h] / np.maximum(viaja[h], 1), np.nan)
+            par = ok[:-1] & ok[1:]
+            saltos.extend(100.0 * np.abs(np.diff(f))[par])
+            minimo.append(viaja[h][ok].min())
+        out[loc] = {
+            "salto_mediana_pp": round(float(np.median(saltos)), 1),
+            "salto_max_pp": round(float(np.max(saltos)), 1),
+            "hogares_min_celda": int(min(minimo)),
+            "tenencia_agregada": [
+                round(float(auto[h].sum() / viaja[h].sum()), 4) for h in range(3)
+            ],
+        }
+    return out
 
 
 def _con_globales(**cambios):
@@ -402,6 +468,8 @@ def main() -> None:
         "anatomia": anatomia(),
         "costo_por_modo": costo_por_modo(),
         "factibilidad": factibilidad(),
+        "bici_saturada": bici_saturada(),
+        "tenencia_por_celda": tenencia_por_celda(),
         "elasticidades": elasticidades(),
         "logit_vs_determinista": logit_vs_determinista(),
         "peaje_y_bienestar": peaje_y_bienestar(),

@@ -85,8 +85,9 @@ def test_la_bpr_se_evalua_sobre_la_capacidad_practica() -> None:
     """D6 (oct-2026): t = t0·[1 + α·(x / (0,8·C))^β], con C la capacidad real.
 
     A mano: dos celdas de 1 km, CBD en la primera, 30 km/h ⇒ t0 = 2 min por
-    celda; el viajero de la celda 1 recorre media celda, así que su tiempo es
-    t0/2·factor. C = 1.000 veh/h ⇒ capacidad práctica 800. Con x = 800 el
+    celda; el viajero de la celda 1 recorre media celda propia y media del CBD
+    (centroide a centroide, D-71), así que su tiempo es t0·factor. C = 1.000
+    veh/h ⇒ capacidad práctica 800. Con x = 800 el
     factor es 1 + 0,15 = 1,15 (la BPR estándar en su capacidad); con x = C,
     1 + 0,15·1,25⁴ ≈ 1,366, no el 1,15 que daba evaluarla sobre la real."""
     kwargs = {
@@ -105,5 +106,5 @@ def test_la_bpr_se_evalua_sobre_la_capacidad_practica() -> None:
     en_real = demora_auto_tramo(demanda=np.array([0.0, 1000.0]), **kwargs)
     assert en_practica.capacidad_direccion == 1000.0
     assert en_practica.capacidad_practica == 800.0
-    assert abs(en_practica.t_usuarios_min[1] - 1.0 * 1.15) < 1e-12
-    assert abs(en_real.t_usuarios_min[1] - 1.0 * (1 + 0.15 * 1.25**4)) < 1e-12
+    assert abs(en_practica.t_usuarios_min[1] - 2.0 * 1.15) < 1e-12
+    assert abs(en_real.t_usuarios_min[1] - 2.0 * (1 + 0.15 * 1.25**4)) < 1e-12

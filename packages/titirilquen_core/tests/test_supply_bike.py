@@ -45,6 +45,24 @@ def test_demanda_cero_produce_tiempos_flujo_libre_no_negativos() -> None:
     assert np.all(res.t_usuarios_min >= 0)
 
 
+def test_flujo_libre_es_de_centroide_a_centroide() -> None:
+    """D-71 (oct-2026): a k celdas del CBD se recorren k·dx, media celda propia,
+    las k − 1 intermedias y media del CBD, como en la caminata y el metro. Antes
+    faltaba la media del CBD: (k − ½)·dx."""
+    N = 11
+    res = demora_bici_tramo(
+        ubicacion_centro_km=5.5,
+        capacidad=800,
+        demanda=np.zeros(N),
+        v_media=14,
+        L_ciudad_km=11.0,
+        alpha=0.5,
+        beta=2.0,
+    )
+    k = np.abs(np.arange(N) - N // 2)
+    assert np.allclose(res.t_usuarios_min, k * 1.0 / 14 * 60, rtol=0, atol=1e-12)
+
+
 def test_centro_tiene_tiempo_cero() -> None:
     N = 11
     demanda = np.full(N, 100.0)

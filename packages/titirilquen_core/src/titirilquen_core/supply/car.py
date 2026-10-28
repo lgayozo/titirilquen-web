@@ -73,13 +73,18 @@ def demora_auto_tramo(
     demanda_aj = demanda.copy()
     demanda_aj[idx_centro] = 0
 
+    # Cada usuario recorre media celda propia, las intermedias y media celda del
+    # CBD: centroide a centroide, la misma distancia que la caminata, el metro y
+    # el costo en $. La media celda del CBD la cruza todo el flujo de ese lado,
+    # el de la celda vecina (nadie sale del CBD). Sin ella el tiempo era
+    # (k − ½)·dx/v y la bici derivaba con n_celdas (D-71).
     if idx_centro > 0:
         d_izq = demanda_aj[:idx_centro]
         flujo_izq = np.cumsum(d_izq)
         flujos[:idx_centro] = flujo_izq
         with np.errstate(divide="ignore", invalid="ignore"):
             t_local = t0 * (1 + alpha_bpr * ((flujo_izq / capacidad_practica) ** beta_bpr))
-        t_usuarios[:idx_centro] = np.cumsum(t_local[::-1])[::-1] - (t_local / 2)
+        t_usuarios[:idx_centro] = np.cumsum(t_local[::-1])[::-1] - (t_local / 2) + t_local[-1] / 2
 
     if idx_centro < N - 1:
         d_der = demanda_aj[idx_centro + 1 :]
@@ -87,7 +92,7 @@ def demora_auto_tramo(
         flujos[idx_centro + 1 :] = flujo_der
         with np.errstate(divide="ignore", invalid="ignore"):
             t_local = t0 * (1 + alpha_bpr * ((flujo_der / capacidad_practica) ** beta_bpr))
-        t_usuarios[idx_centro + 1 :] = np.cumsum(t_local) - (t_local / 2)
+        t_usuarios[idx_centro + 1 :] = np.cumsum(t_local) - (t_local / 2) + t_local[0] / 2
 
     t_usuarios[idx_centro] = 0
     flujos[idx_centro] = 0

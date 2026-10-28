@@ -20,7 +20,7 @@
   </p>
   <p class="meta">
     Módulos: <code>equilibrium/msa.py</code> · <code>emissions.py</code> ·
-    datos regenerados el 2026-10-27 ·
+    datos regenerados el 2026-10-28 ·
     <span class="estado vigente">vigente</span>
   </p>
 </header>
@@ -277,8 +277,8 @@
 <p>
   <strong>La tolerancia</strong> de 0,02 min es barata porque, con el halving,
   la brecha de la base cae geométricamente. Pasar de 0,2 a 0,001 pide 8
-  iteraciones en vez de 4 y mueve el reparto 0,047 puntos. Desde la tolerancia
-  de la aplicación, sólo 0,002 (§5.2). Bajarla más no cuesta en la base, pero
+  iteraciones en vez de 4 y mueve el reparto 0,048 puntos. Desde la tolerancia
+  de la aplicación, sólo 0,003 (§5.2). Bajarla más no cuesta en la base, pero
   sí en los escenarios que contraen lento: con una pista la aplicación pide
   20 iteraciones y la referencia de 10<sup>−6</sup> min, 51 (§5.3).
 </p>
@@ -286,7 +286,7 @@
 <p>
   <strong>El tope</strong> de 150 iteraciones alcanza para la base, para la
   pista única, que pide 20, y para los 8 presets de política, que convergen
-  entre 5 y 11. Una corrida que converge para antes, así que el tope sólo
+  entre 5 y 12. Una corrida que converge para antes, así que el tope sólo
   cuesta tiempo en las que no lo hacen.
 </p>
 
@@ -388,7 +388,7 @@
     <tr><td><code class="ruta py">tests/test_convergencia.py</code>:39</td><td>La brecha final existe y es finita; con Montecarlo, que promedia tiempos, la brecha de cada iteración es exactamente el cambio del iterado dividido por <em>f</em> (44, D8); y se cierra al exigir más tolerancia (67).</td></tr>
     <tr><td><code class="ruta py">tests/test_demand.py</code>:117</td><td>D9: la congestión no suma escalones ni saca a la bici del conjunto; sólo pesa por <em>β<sub>t</sub></em>.</td></tr>
     <tr><td><code class="ruta py">tests/test_estatica_comparativa.py</code>:51</td><td>Los efectos propios tienen el signo de la teoría: el peaje baja el auto, la tarifa cero sube el metro, una pista más sube el auto y más ciclovía sube la bici.</td></tr>
-    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:242</td><td>El reparto de las dos ramas y el número de iteraciones (262), con cinco centésimas de punto de tolerancia; lo mismo con umbrales suaves (269); las dos ramas difieren (278).</td></tr>
+    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:248</td><td>El reparto de las dos ramas y el número de iteraciones (268), con cinco centésimas de punto de tolerancia; lo mismo con umbrales suaves (269); las dos ramas difieren (285).</td></tr>
     <tr><td><code class="ruta py">tests/test_emissions.py</code>:25</td><td>El metro emite por tren-km e independiente de la carga (32); el perfil espacial suma el total (44); sin servicio no hay emisiones de metro (50).</td></tr>
     <tr><td><code class="ruta py">tests/test_equilibrium_smoke.py</code>:13</td><td>Una corrida chica conserva invariantes básicas y converge con tolerancia alta (43).</td></tr>
   </tbody>
@@ -420,7 +420,7 @@
   </thead>
   <tbody>
     <tr><td><strong>paso <em>α</em></strong></td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td></tr>
-    <tr><td><strong>brecha (min)</strong></td><td class="n">1,02</td><td class="n">0,187</td><td class="n">0,0506</td><td class="n">0,0111</td><td class="n">0,00282</td><td class="n">0,00064</td><td class="n">0,00016</td><td class="n">9,1·10<sup>−6</sup></td><td class="n">7,0·10<sup>−9</sup></td><td class="n">5,5·10<sup>−12</sup></td></tr>
+    <tr><td><strong>brecha (min)</strong></td><td class="n">1,11</td><td class="n">0,194</td><td class="n">0,0545</td><td class="n">0,011</td><td class="n">0,00277</td><td class="n">0,000613</td><td class="n">0,000151</td><td class="n">8,2·10<sup>−6</sup></td><td class="n">5,7·10<sup>−9</sup></td><td class="n">4,1·10<sup>−12</sup></td></tr>
   </tbody>
 </table>
 </div>
@@ -428,11 +428,11 @@
 <p>
   En la base la brecha baja mucho más que un 10 % en cada iteración, así que
   el halving nunca se activa: el paso queda en 1 y el MSA es la iteración directa, que aquí
-  contrae. La brecha cae entre tres y seis veces por iteración, de 1,02 min en
-  la segunda a 5,5·10<sup>−12</sup> en la 20. La corrida de la aplicación para
+  contrae. La brecha cae entre tres y seis veces por iteración, de 1,11 min en
+  la segunda a 4,1·10<sup>−12</sup> en la 20. La corrida de la aplicación para
   en la <strong>6</strong>, la segunda seguida bajo 0,02 min, con una brecha de
-  0,00282 min. Recalculada sobre los tiempos que se entregan, la brecha final
-  es 0,00064. El amortiguamiento sólo entra donde hace falta, en los
+  0,00277 min. Recalculada sobre los tiempos que se entregan, la brecha final
+  es 0,00061. El amortiguamiento sólo entra donde hace falta, en los
   escenarios de la §5.3.
 </p>
 
@@ -444,20 +444,20 @@
     <tr><th class="n">Tolerancia</th><th class="n">Iteraciones</th><th class="n">Brecha al parar</th><th class="n">Brecha final</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0,2</td><td class="n">4</td><td class="n">0,0506</td><td class="n">0,0111</td><td class="n">29,202</td><td class="n">23,193</td><td class="n">35,646</td></tr>
-    <tr><td class="n">0,1</td><td class="n">5</td><td class="n">0,0111</td><td class="n">0,00282</td><td class="n">29,180</td><td class="n">23,229</td><td class="n">35,637</td></tr>
-    <tr><td class="n">0,05</td><td class="n">6</td><td class="n">0,00282</td><td class="n">0,00064</td><td class="n">29,178</td><td class="n">23,238</td><td class="n">35,631</td></tr>
-    <tr class="destacada"><td class="n">0,02</td><td class="n">6</td><td class="n">0,00282</td><td class="n">0,00064</td><td class="n">29,178</td><td class="n">23,238</td><td class="n">35,631</td></tr>
-    <tr><td class="n">0,005</td><td class="n">7</td><td class="n">0,00064</td><td class="n">0,00016</td><td class="n">29,177</td><td class="n">23,240</td><td class="n">35,630</td></tr>
-    <tr><td class="n">0,001</td><td class="n">8</td><td class="n">0,00016</td><td class="n">0,00004</td><td class="n">29,177</td><td class="n">23,240</td><td class="n">35,630</td></tr>
+    <tr><td class="n">0,2</td><td class="n">4</td><td class="n">0,0545</td><td class="n">0,011</td><td class="n">29,182</td><td class="n">23,374</td><td class="n">35,432</td></tr>
+    <tr><td class="n">0,1</td><td class="n">5</td><td class="n">0,011</td><td class="n">0,00277</td><td class="n">29,158</td><td class="n">23,410</td><td class="n">35,425</td></tr>
+    <tr><td class="n">0,05</td><td class="n">6</td><td class="n">0,00277</td><td class="n">0,00061</td><td class="n">29,157</td><td class="n">23,419</td><td class="n">35,418</td></tr>
+    <tr class="destacada"><td class="n">0,02</td><td class="n">6</td><td class="n">0,00277</td><td class="n">0,00061</td><td class="n">29,157</td><td class="n">23,419</td><td class="n">35,418</td></tr>
+    <tr><td class="n">0,005</td><td class="n">7</td><td class="n">0,00061</td><td class="n">0,00015</td><td class="n">29,156</td><td class="n">23,421</td><td class="n">35,418</td></tr>
+    <tr><td class="n">0,001</td><td class="n">8</td><td class="n">0,00015</td><td class="n">0,00003</td><td class="n">29,156</td><td class="n">23,422</td><td class="n">35,418</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Bajar la tolerancia de 0,2 a 0,001 min pide 8 iteraciones en vez de 4, y el
-  reparto se mueve a lo sumo 0,047 puntos; desde la tolerancia de la
-  aplicación, 0,002. Como la brecha cae varias veces por iteración, cada
+  reparto se mueve a lo sumo 0,048 puntos; desde la tolerancia de la
+  aplicación, 0,003. Como la brecha cae varias veces por iteración, cada
   iteración más cuesta poco tiempo y gana bastante precisión. Por eso la
   tolerancia pudo bajar diez veces respecto de D8.
 </p>
@@ -470,12 +470,12 @@
     <tr><th>Escenario</th><th class="n">Iter. app</th><th>¿Convergió?</th><th class="n">Brecha final app (min)</th><th class="n">Iter. referencia</th><th class="n">Diferencia máx. (pp)</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td>Base, original</td><td class="n">6</td><td>sí</td><td class="n">0,00064</td><td class="n">13</td><td class="n">0,003</td></tr>
-    <tr><td>Base, equilibrio</td><td class="n">6</td><td>sí</td><td class="n">0,00019</td><td class="n">12</td><td class="n">0,001</td></tr>
-    <tr><td>1 pista</td><td class="n">20</td><td>sí</td><td class="n">0,00973</td><td class="n">51</td><td class="n">0,001</td></tr>
-    <tr><td>2 pistas</td><td class="n">9</td><td>sí</td><td class="n">0,00414</td><td class="n">26</td><td class="n">0,003</td></tr>
-    <tr><td><code>b_tiempo_espera</code> ×1,45, suaves</td><td class="n">13</td><td>sí</td><td class="n">0,01085</td><td class="n">52</td><td class="n">0,068</td></tr>
-    <tr><td><code>b_tiempo_espera</code> ×1,5, suaves</td><td class="n">150</td><td>no</td><td class="n">0,21282</td><td class="n">3.000, no converge</td><td class="n">—</td></tr>
+    <tr class="destacada"><td>Base, original</td><td class="n">6</td><td>sí</td><td class="n">0,00061</td><td class="n">13</td><td class="n">0,003</td></tr>
+    <tr><td>Base, equilibrio</td><td class="n">6</td><td>sí</td><td class="n">0,00017</td><td class="n">12</td><td class="n">0,001</td></tr>
+    <tr><td>1 pista</td><td class="n">20</td><td>sí</td><td class="n">0,00972</td><td class="n">51</td><td class="n">0,001</td></tr>
+    <tr><td>2 pistas</td><td class="n">16</td><td>sí</td><td class="n">0,00514</td><td class="n">51</td><td class="n">0,001</td></tr>
+    <tr><td><code>b_tiempo_espera</code> ×1,45, suaves</td><td class="n">11</td><td>sí</td><td class="n">0,00975</td><td class="n">42</td><td class="n">0,055</td></tr>
+    <tr><td><code>b_tiempo_espera</code> ×1,5, suaves</td><td class="n">150</td><td>no</td><td class="n">0,10210</td><td class="n">3.000, no converge</td><td class="n">—</td></tr>
   </tbody>
 </table>
 </div>
@@ -486,7 +486,7 @@
   que hace de referencia. En la base y con una pista la corrida de la
   aplicación queda a milésimas de punto del punto fijo. El peor caso que
   converge es el metro con la espera muy pesada, ×1,45: el metro queda en
-  15,461 % contra 15,393 % de la referencia, a 0,068 puntos. Ahí Mohring
+  16,013 % contra 15,958 % de la referencia, a 0,055 puntos. Ahí Mohring
   amplifica, porque un poco menos de metro es menos frecuencia, más espera y
   todavía menos metro, y la misma brecha se traduce en más error de reparto.
 </p>
@@ -495,12 +495,12 @@
   Con <strong>2 pistas</strong> la brecha baja todo el tiempo, pero despacio.
   Con «no bajó» a secas el paso se quedaba en 1 y la corrida agotaba las 150
   iteraciones; con la disminución suficiente el paso se parte y converge en
-  9, a 0,003 puntos de la referencia. Un solo escenario termina «no
+  16, a 0,001 puntos de la referencia. Un solo escenario termina «no
   convergió», y es la respuesta honesta. Con <strong>×1,5</strong> el modelo está más
   allá de un pliegue. El equilibrio interior del metro desaparece y la
   trayectoria tiene que cruzar una zona donde la brecha sube un tramo antes de
   bajar; el halving reacciona partiendo el paso hasta que queda en nada. La
-  corrida se detiene con brecha 0,21 min, en el mismo estado que la
+  corrida se detiene con brecha 0,10 min, en el mismo estado que la
   referencia de 3.000 iteraciones, que tampoco converge. No es un equilibrio,
   y la aplicación lo dice.
 </p>
@@ -534,29 +534,29 @@
     <tr><th class="n">Pistas</th><th class="n">Iter.</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Frecuencia (tph)</th><th class="n">Auto desde el borde (min)</th><th class="n">CO₂ kg/h</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">1</td><td class="n">20</td><td class="n">16,15</td><td class="n">31,23</td><td class="n">5,62</td><td class="n">57,4</td><td class="n">14.545,2</td></tr>
-    <tr><td class="n">2</td><td class="n">9</td><td class="n">24,38</td><td class="n">26,22</td><td class="n">4,72</td><td class="n">33,9</td><td class="n">14.560,2</td></tr>
-    <tr><td class="n">3</td><td class="n">6</td><td class="n">27,95</td><td class="n">24,00</td><td class="n">4,32</td><td class="n">24,4</td><td class="n">12.159,5</td></tr>
-    <tr class="destacada"><td class="n">4</td><td class="n">6</td><td class="n">29,18</td><td class="n">23,24</td><td class="n">4,18</td><td class="n">21,2</td><td class="n">10.747,7</td></tr>
+    <tr><td class="n">1</td><td class="n">20</td><td class="n">15,97</td><td class="n">31,49</td><td class="n">5,67</td><td class="n">57,8</td><td class="n">14.174,8</td></tr>
+    <tr><td class="n">2</td><td class="n">16</td><td class="n">24,26</td><td class="n">26,45</td><td class="n">4,76</td><td class="n">34,3</td><td class="n">14.388,8</td></tr>
+    <tr><td class="n">3</td><td class="n">6</td><td class="n">27,89</td><td class="n">24,20</td><td class="n">4,36</td><td class="n">24,7</td><td class="n">12.114,2</td></tr>
+    <tr class="destacada"><td class="n">4</td><td class="n">6</td><td class="n">29,16</td><td class="n">23,42</td><td class="n">4,21</td><td class="n">21,3</td><td class="n">10.738,1</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
-  Al pasar de una a dos pistas el auto gana 8,24 puntos, el metro pierde 5,02
-  y su frecuencia cae de 5,62 a 4,72 trenes por hora, un 16 %. Es el efecto
+  Al pasar de una a dos pistas el auto gana 8,29 puntos, el metro pierde 5,04
+  y su frecuencia cae de 5,67 a 4,76 trenes por hora, un 16 %. Es el efecto
   Mohring operando en reversa, la cadena que produce la paradoja de
   Downs-Thomson. Lo que no ocurre es que llegue a dominar. El tiempo del auto
-  desde el borde baja de 57,4 a 33,9 min. Las emisiones suben de 14.545 a
-  14.560 kg/h: la velocidad baja la emisión por kilómetro, pero el auto gana
+  desde el borde baja de 57,8 a 34,3 min. Las emisiones suben de 14.175 a
+  14.389 kg/h: la velocidad baja la emisión por kilómetro, pero el auto gana
   viajes y eso pesa más.
 </p>
 
 <p>
   No hay obligación teórica de que la paradoja aparezca. Requiere que el
   transporte público sea el modo dominante y que su frecuencia sea muy
-  sensible a la demanda, y aquí el metro lleva el 23,2 % de los viajes. De
-  tres a cuatro pistas el auto gana 1,23 puntos: la palanca vial se agota en
+  sensible a la demanda, y aquí el metro lleva el 23,4 % de los viajes. De
+  tres a cuatro pistas el auto gana 1,27 puntos: la palanca vial se agota en
   cuanto la vía baja de su capacidad. La población está fija
   en todas las filas; con la localización de equilibrio la vía nueva movería
   además a los hogares, que es materia del capítulo 6.
@@ -565,9 +565,9 @@
 <h3>5.6 Emisiones</h3>
 
 <p>
-  Del total de 10.747,7 kg/h, el metro aporta
-  <strong>418,3 kg/h</strong>, el 3,89 %, y el auto
-  los otros 10.329,4. La huella del metro no depende de cuánta gente
+  Del total de 10.738,1 kg/h, el metro aporta
+  <strong>421,5 kg/h</strong>, el 3,93 %, y el auto
+  los otros 10.316,6. La huella del metro no depende de cuánta gente
   lleve sino de cuántos trenes circulen, así que baja sólo si baja la
   frecuencia, que es lo que se ve en la tabla anterior al agregar pistas.
 </p>
@@ -580,18 +580,18 @@
     <tr><th>Localización</th><th class="n">Demora media (min)</th><th class="n">Demora máxima (min)</th><th class="n">En otro escalón %</th><th class="n">A &lt; 0,5 min de un umbral %</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td>original</td><td class="n">4,1</td><td class="n">5,6</td><td class="n">36,6</td><td class="n">9,2</td></tr>
-    <tr><td>equilibrio</td><td class="n">5,0</td><td class="n">6,6</td><td class="n">42,1</td><td class="n">8,6</td></tr>
+    <tr class="destacada"><td>original</td><td class="n">4,2</td><td class="n">5,6</td><td class="n">35,4</td><td class="n">6,8</td></tr>
+    <tr><td>equilibrio</td><td class="n">5,1</td><td class="n">6,7</td><td class="n">43,8</td><td class="n">9,2</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   En el equilibrio de transporte de la base, la congestión de la ciclovía
-  agrega en promedio 4,1 min al viaje en bicicleta, y hasta 5,6. Si los
-  escalones se evaluaran sobre ese tiempo, como antes de D9, el 36,6 % de la
+  agrega en promedio 4,2 min al viaje en bicicleta, y hasta 5,6. Si los
+  escalones se evaluaran sobre ese tiempo, como antes de D9, el 35,4 % de la
   demanda de bici quedaría en otro tramo: un escalón más arriba o fuera del
-  corte. Y el 9,2 % está a menos de medio minuto de un umbral del tiempo
+  corte. Y el 6,8 % está a menos de medio minuto de un umbral del tiempo
   congestionado, la masa que el mapa discontinuo hacía saltar entera de una
   iteración a otra. Las cifras son del equilibrio vigente; el reparto con la
   regla anterior está en la historia de <code>tests/test_linea_base.py</code>,
@@ -606,12 +606,12 @@
     <tr><th class="n">Iteraciones</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">Caminata %</th><th class="n">AEC (min)</th><th class="n">AEC / <em>t̄</em></th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">20</td><td class="n">48,17</td><td class="n">2,79</td><td class="n">39,59</td><td class="n">9,45</td><td class="n">0,0083</td><td class="n">4,2·10<sup>−4</sup></td></tr>
-    <tr><td class="n">40</td><td class="n">48,16</td><td class="n">2,77</td><td class="n">39,57</td><td class="n">9,50</td><td class="n">0,0041</td><td class="n">2,1·10<sup>−4</sup></td></tr>
-    <tr><td class="n">100</td><td class="n">48,16</td><td class="n">2,76</td><td class="n">39,56</td><td class="n">9,52</td><td class="n">0,0017</td><td class="n">8,3·10<sup>−5</sup></td></tr>
-    <tr><td class="n">200</td><td class="n">48,16</td><td class="n">2,76</td><td class="n">39,55</td><td class="n">9,53</td><td class="n">0,0008</td><td class="n">4,2·10<sup>−5</sup></td></tr>
-    <tr><td class="n">400</td><td class="n">48,16</td><td class="n">2,76</td><td class="n">39,55</td><td class="n">9,54</td><td class="n">0,0004</td><td class="n">2,1·10<sup>−5</sup></td></tr>
-    <tr><td class="n">700</td><td class="n">48,16</td><td class="n">2,76</td><td class="n">39,55</td><td class="n">9,54</td><td class="n">0,0002</td><td class="n">1,2·10<sup>−5</sup></td></tr>
+    <tr><td class="n">20</td><td class="n">48,13</td><td class="n">2,94</td><td class="n">39,48</td><td class="n">9,45</td><td class="n">0,0085</td><td class="n">4,2·10<sup>−4</sup></td></tr>
+    <tr><td class="n">40</td><td class="n">48,12</td><td class="n">2,93</td><td class="n">39,45</td><td class="n">9,50</td><td class="n">0,0042</td><td class="n">2,1·10<sup>−4</sup></td></tr>
+    <tr><td class="n">100</td><td class="n">48,12</td><td class="n">2,93</td><td class="n">39,43</td><td class="n">9,52</td><td class="n">0,0017</td><td class="n">8,4·10<sup>−5</sup></td></tr>
+    <tr><td class="n">200</td><td class="n">48,11</td><td class="n">2,93</td><td class="n">39,42</td><td class="n">9,53</td><td class="n">0,0008</td><td class="n">4,2·10<sup>−5</sup></td></tr>
+    <tr><td class="n">400</td><td class="n">48,11</td><td class="n">2,93</td><td class="n">39,42</td><td class="n">9,54</td><td class="n">0,0004</td><td class="n">2,1·10<sup>−5</sup></td></tr>
+    <tr><td class="n">700</td><td class="n">48,11</td><td class="n">2,93</td><td class="n">39,42</td><td class="n">9,54</td><td class="n">0,0002</td><td class="n">1,2·10<sup>−5</sup></td></tr>
   </tbody>
 </table>
 </div>
@@ -619,22 +619,22 @@
 <p>
   Con todo o nada el MSA promedia los flujos de cada grupo, el MSA clásico del
   equilibrio de usuario, y mide el costo en exceso medio, cero en el
-  equilibrio (D-70). Sin corte, el AEC cae como 1/<em>n</em>, de 0,0083 min a
-  las 20 iteraciones a 0,0002 a las 700. El metro baja de 2,79 % a 2,76 % en
+  equilibrio (D-70). Sin corte, el AEC cae como 1/<em>n</em>, de 0,0085 min a
+  las 20 iteraciones a 0,0002 a las 700. El metro baja de 2,94 % a 2,93 % en
   cada corte, sin oscilar.
 </p>
 
 <p>
   Con la regla de la aplicación la corrida converge en 10 iteraciones, con la
-  brecha relativa en 8,35·10<sup>−4</sup> y el metro en 2,83 %. Su reparto
+  brecha relativa en 8,4·10<sup>−4</sup> y el metro en 2,94 %. Su reparto
   está a 0,17 puntos del de 700 iteraciones; lo que más se mueve es la
-  caminata, 9,37 % contra 9,54 %. Ahí 98 de los 1.200 grupos quedan
+  caminata, 9,37 % contra 9,54 %. Ahí 100 de los 1.200 grupos quedan
   repartidos entre dos modos: son los indiferentes, y es lo que distingue al
   equilibrio de la respuesta todo o nada a los tiempos finales, que los
   mandaría enteros a uno. El reparto es muy distinto del logit. El metro cae
-  al 2,8 % contra el 23,2 % de la carga esperada, porque sin heterogeneidad de
-  gustos cada grupo va entero a su mejor modo, y las emisiones pasan de 10.748
-  a 26.556 kg/h.
+  al 2,9 % contra el 23,4 % de la carga esperada, porque sin heterogeneidad de
+  gustos cada grupo va entero a su mejor modo, y las emisiones pasan de 10.738
+  a 26.495 kg/h.
 </p>
 
 <h3>5.9 Montecarlo: el ruido pone un piso a la brecha</h3>
@@ -642,12 +642,12 @@
 <p>
   Con sorteo, cada iteración carga una demanda distinta. Con la tolerancia de
   0,2 min que pone la interfaz, la brecha de las últimas diez iteraciones
-  salta entre 0,09 y 0,40 min sin tendencia. El loop para en la iteración 17,
-  cuando dos sorteos seguidos caen bajo la tolerancia, aunque cinco de las
+  salta entre 0,16 y 0,40 min sin tendencia. El loop para en la iteración 15,
+  cuando dos sorteos seguidos caen bajo la tolerancia, aunque siete de las
   ocho iteraciones anteriores estaban sobre ella. El veredicto no sale de esos
-  sorteos sino de la brecha final, medida con carga esperada: 0,115 min, bajo
+  sorteos sino de la brecha final, medida con carga esperada: 0,122 min, bajo
   la tolerancia, así que «convergió». El reparto difiere del de la carga
-  esperada en a lo sumo 0,54 puntos, en la bici.
+  esperada en a lo sumo 0,23 puntos, en la bici.
 </p>
 
 <h2 id="s6"><span class="num">§6</span> Discusión</h2>

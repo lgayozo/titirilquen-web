@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-27",
-  "commit": "80bacd5",
+  "fecha": "2026-10-28",
+  "commit": "10d0f04",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },
@@ -36,20 +36,20 @@
  "c02": {
   "motor_api_run_msa": {
    "reparto_pct": {
-    "Auto": 29.178,
-    "Metro": 23.238,
-    "Bici": 35.631,
-    "Caminata": 11.953,
+    "Auto": 29.157,
+    "Metro": 23.419,
+    "Bici": 35.418,
+    "Caminata": 12.005,
     "Teletrabajo": 0.0
    },
    "agentes": 36000
   },
   "motor_local_iter_msa_desde_suelo": {
    "reparto_pct": {
-    "Auto": 29.178,
-    "Metro": 23.238,
-    "Bici": 35.631,
-    "Caminata": 11.953,
+    "Auto": 29.157,
+    "Metro": 23.419,
+    "Bici": 35.418,
+    "Caminata": 12.005,
     "Teletrabajo": 0.0
    },
    "agentes": 36000
@@ -91,16 +91,16 @@
   "la_interfaz_pasa_por_la_api": true
  },
  "payload": {
-  "trace_to_dict_bytes": 5939229,
+  "trace_to_dict_bytes": 5938169,
   "trace_agentes": 36000,
   "trace_por_clave_pct": {
    "agentes": 95.38,
-   "iteraciones": 3.67,
+   "iteraciones": 3.66,
    "demanda_estrato": 0.66,
    "emisiones_perfil_kg": 0.07,
    "flujos_auto_veh_h": 0.07
   },
-  "outer_iteration_bytes": 5955701,
+  "outer_iteration_bytes": 5955438,
   "outer_por_clave_pct": {
    "transport": 99.48,
    "land_use": 0.28,
@@ -121,7 +121,7 @@
   "mb_que_el_frontend_abre_de_eso": 0.19
  },
  "campos_sin_lector": {
-  "campos_totales": 118,
+  "campos_totales": 120,
   "sin_lector": {
    "TraceDict": [
     "v_libre_auto",
@@ -132,15 +132,14 @@
     "f_msa"
    ],
    "AgenteDict": [
-    "teletrabaja",
-    "tiene_auto"
+    "tiene_auto",
+    "utilidad_elegida"
    ],
    "OuterIterationDict": [
     "T_matrix"
    ],
    "AgregadosDict": [
-    "excedente_social_por_estrato_clp",
-    "viajeros_por_estrato"
+    "excedente_social_por_estrato_clp"
    ],
    "StratumMetrics": [
     "n_viajeros",
@@ -167,7 +166,7 @@
     "S"
    ]
   },
-  "cantidad_sin_lector": 12
+  "cantidad_sin_lector": 11
  },
  "determinismo": {
   "standalone_dos_corridas": {
@@ -193,7 +192,7 @@
     "tipos.gen.ts",
     "trace.gen.ts"
    ],
-   "lineas": 988,
+   "lineas": 990,
    "interfaces": 29
   },
   "version_del_nucleo": "0.2.0",

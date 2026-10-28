@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "fecha": "2026-10-27",
-  "commit": "80bacd5",
+  "fecha": "2026-10-28",
+  "commit": "10d0f04",
   "script": "docs/libro/datos/datos_cap03.py",
   "configuracion": "Oferta de la aplicación (`test_linea_base._config_web().supply`) sobre la ciudad por defecto: 201 celdas, 20 km. Las demandas son uniformes y sintéticas — el capítulo mide las funciones de costo, no el equilibrio, que es el capítulo 5."
  },
@@ -85,47 +85,47 @@
   "capacidad_explicita_configurada": null,
   "alpha_bpr": 0.15,
   "beta_bpr": 4.0,
-  "t_flujo_libre_borde_min": 19.162,
+  "t_flujo_libre_borde_min": 19.259,
   "curva_bpr": [
    {
     "vc_borde": 0.0,
-    "t_borde_min": 19.162,
+    "t_borde_min": 19.259,
     "razon_vs_flujo_libre": 1.0
    },
    {
     "vc_borde": 0.25,
-    "t_borde_min": 19.168,
+    "t_borde_min": 19.264,
     "razon_vs_flujo_libre": 1.0003
    },
    {
     "vc_borde": 0.5,
-    "t_borde_min": 19.253,
-    "razon_vs_flujo_libre": 1.0047
+    "t_borde_min": 19.351,
+    "razon_vs_flujo_libre": 1.0048
    },
    {
     "vc_borde": 0.75,
-    "t_borde_min": 19.62,
-    "razon_vs_flujo_libre": 1.0239
+    "t_borde_min": 19.727,
+    "razon_vs_flujo_libre": 1.0243
    },
    {
     "vc_borde": 1.0,
-    "t_borde_min": 20.608,
-    "razon_vs_flujo_libre": 1.0755
+    "t_borde_min": 20.74,
+    "razon_vs_flujo_libre": 1.0769
    },
    {
     "vc_borde": 1.25,
-    "t_borde_min": 22.693,
-    "razon_vs_flujo_libre": 1.1842
+    "t_borde_min": 22.875,
+    "razon_vs_flujo_libre": 1.1878
    },
    {
     "vc_borde": 1.5,
-    "t_borde_min": 26.483,
-    "razon_vs_flujo_libre": 1.382
+    "t_borde_min": 26.758,
+    "razon_vs_flujo_libre": 1.3894
    },
    {
     "vc_borde": 2.0,
-    "t_borde_min": 42.299,
-    "razon_vs_flujo_libre": 2.2074
+    "t_borde_min": 42.959,
+    "razon_vs_flujo_libre": 2.2307
    }
   ]
  },
@@ -138,42 +138,42 @@
    {
     "demanda_por_celda": 0.0,
     "flujo_max_bici_h": 0.0,
-    "t_borde_min": 42.431,
+    "t_borde_min": 42.644,
     "tramos_con_piso_activo": 0,
     "tramos_totales": 201
    },
    {
     "demanda_por_celda": 5.0,
     "flujo_max_bici_h": 500.0,
-    "t_borde_min": 42.481,
+    "t_borde_min": 42.695,
     "tramos_con_piso_activo": 0,
     "tramos_totales": 201
    },
    {
     "demanda_por_celda": 20.0,
     "flujo_max_bici_h": 2000.0,
-    "t_borde_min": 43.232,
+    "t_borde_min": 43.457,
     "tramos_con_piso_activo": 0,
     "tramos_totales": 201
    },
    {
     "demanda_por_celda": 50.0,
     "flujo_max_bici_h": 5000.0,
-    "t_borde_min": 47.441,
+    "t_borde_min": 47.728,
     "tramos_con_piso_activo": 0,
     "tramos_totales": 201
    },
    {
     "demanda_por_celda": 200.0,
     "flujo_max_bici_h": 20000.0,
-    "t_borde_min": 92.568,
+    "t_borde_min": 93.19,
     "tramos_con_piso_activo": 84,
     "tramos_totales": 201
    },
    {
     "demanda_por_celda": 1000.0,
     "flujo_max_bici_h": 100000.0,
-    "t_borde_min": 118.168,
+    "t_borde_min": 118.79,
     "tramos_con_piso_activo": 178,
     "tramos_totales": 201
    }
@@ -181,23 +181,23 @@
   "pendiente": [
    {
     "pendiente_pct": -6.0,
-    "t_borde_min": 33.961
+    "t_borde_min": 34.138
    },
    {
     "pendiente_pct": -3.0,
-    "t_borde_min": 38.04
+    "t_borde_min": 38.238
    },
    {
     "pendiente_pct": 0.0,
-    "t_borde_min": 43.232
+    "t_borde_min": 43.457
    },
    {
     "pendiente_pct": 3.0,
-    "t_borde_min": 52.371
+    "t_borde_min": 52.644
    },
    {
     "pendiente_pct": 6.0,
-    "t_borde_min": 66.328
+    "t_borde_min": 66.673
    }
   ],
   "pendiente_es_simetrica": false
@@ -464,14 +464,14 @@
  },
  "red_vacia": {
   "vacia": {
-   "auto_borde_min": 19.162,
-   "bici_borde_min": 42.431,
+   "auto_borde_min": 19.259,
+   "bici_borde_min": 42.644,
    "metro_borde_min": 34.765,
    "frecuencia_tph": 2.0
   },
   "cargada": {
-   "auto_borde_min": 19.467,
-   "bici_borde_min": 43.232,
+   "auto_borde_min": 19.57,
+   "bici_borde_min": 43.457,
    "metro_borde_min": 34.765,
    "frecuencia_tph": 2.0
   }
@@ -590,10 +590,10 @@
     "cap_bici": 1500,
     "iteraciones": 5,
     "convergio": true,
-    "brecha_final_min": 0.001,
-    "metro_pct": 18.41,
+    "brecha_final_min": 0.0,
+    "metro_pct": 18.54,
     "auto_pct": 30.36,
-    "carga_maxima_pax_h": 829,
+    "carga_maxima_pax_h": 834,
     "frecuencia_teorica_tph": 0.83,
     "frecuencia_operativa_tph": 2.0,
     "topada_en": "frec_min",
@@ -607,15 +607,15 @@
     "cap_bici": 3000,
     "iteraciones": 5,
     "convergio": true,
-    "brecha_final_min": 0.001,
-    "metro_pct": 18.37,
+    "brecha_final_min": 0.0,
+    "metro_pct": 18.5,
     "auto_pct": 30.49,
-    "carga_maxima_pax_h": 1653,
-    "frecuencia_teorica_tph": 1.65,
+    "carga_maxima_pax_h": 1665,
+    "frecuencia_teorica_tph": 1.66,
     "frecuencia_operativa_tph": 2.0,
     "topada_en": "frec_min",
     "espera_media_min": 15.0,
-    "rho_anden": 0.041,
+    "rho_anden": 0.042,
     "vc_auto_maximo": 1.24
    },
    {
@@ -625,13 +625,13 @@
     "iteraciones": 6,
     "convergio": true,
     "brecha_final_min": 0.0,
-    "metro_pct": 25.91,
-    "auto_pct": 28.28,
-    "carga_maxima_pax_h": 4664,
-    "frecuencia_teorica_tph": 4.66,
-    "frecuencia_operativa_tph": 4.66,
+    "metro_pct": 26.11,
+    "auto_pct": 28.25,
+    "carga_maxima_pax_h": 4699,
+    "frecuencia_teorica_tph": 4.7,
+    "frecuencia_operativa_tph": 4.7,
     "topada_en": "no",
-    "espera_media_min": 6.43,
+    "espera_media_min": 6.38,
     "rho_anden": 0.117,
     "vc_auto_maximo": 1.15
    },
@@ -642,14 +642,14 @@
     "iteraciones": 6,
     "convergio": true,
     "brecha_final_min": 0.0,
-    "metro_pct": 29.56,
+    "metro_pct": 29.72,
     "auto_pct": 27.14,
-    "carga_maxima_pax_h": 10641,
-    "frecuencia_teorica_tph": 10.64,
-    "frecuencia_operativa_tph": 10.64,
+    "carga_maxima_pax_h": 10698,
+    "frecuencia_teorica_tph": 10.7,
+    "frecuencia_operativa_tph": 10.7,
     "topada_en": "no",
-    "espera_media_min": 2.82,
-    "rho_anden": 0.266,
+    "espera_media_min": 2.81,
+    "rho_anden": 0.267,
     "vc_auto_maximo": 1.1
    },
    {
@@ -659,14 +659,14 @@
     "iteraciones": 6,
     "convergio": true,
     "brecha_final_min": 0.0,
-    "metro_pct": 31.08,
-    "auto_pct": 26.67,
-    "carga_maxima_pax_h": 22378,
-    "frecuencia_teorica_tph": 22.38,
-    "frecuencia_operativa_tph": 22.38,
+    "metro_pct": 31.23,
+    "auto_pct": 26.66,
+    "carga_maxima_pax_h": 22487,
+    "frecuencia_teorica_tph": 22.49,
+    "frecuencia_operativa_tph": 22.49,
     "topada_en": "no",
-    "espera_media_min": 1.36,
-    "rho_anden": 0.559,
+    "espera_media_min": 1.35,
+    "rho_anden": 0.562,
     "vc_auto_maximo": 1.08
    },
    {
@@ -676,14 +676,14 @@
     "iteraciones": 7,
     "convergio": true,
     "brecha_final_min": 0.0,
-    "metro_pct": 31.45,
+    "metro_pct": 31.59,
     "auto_pct": 26.56,
-    "carga_maxima_pax_h": 45292,
-    "frecuencia_teorica_tph": 45.29,
+    "carga_maxima_pax_h": 45492,
+    "frecuencia_teorica_tph": 45.49,
     "frecuencia_operativa_tph": 40.0,
     "topada_en": "frec_max",
-    "espera_media_min": 0.93,
-    "rho_anden": 1.132,
+    "espera_media_min": 0.94,
+    "rho_anden": 1.137,
     "vc_auto_maximo": 1.08
    }
   ],
@@ -694,15 +694,15 @@
    "iteraciones": 20,
    "convergio": true,
    "brecha_final_min": 0.01,
-   "metro_pct": 45.32,
-   "auto_pct": 17.28,
-   "carga_maxima_pax_h": 32630,
-   "frecuencia_teorica_tph": 32.63,
-   "frecuencia_operativa_tph": 32.63,
+   "metro_pct": 45.62,
+   "auto_pct": 17.03,
+   "carga_maxima_pax_h": 32847,
+   "frecuencia_teorica_tph": 32.85,
+   "frecuencia_operativa_tph": 32.85,
    "topada_en": "no",
-   "espera_media_min": 0.98,
-   "rho_anden": 0.816,
-   "vc_auto_maximo": 2.81
+   "espera_media_min": 0.97,
+   "rho_anden": 0.821,
+   "vc_auto_maximo": 2.77
   },
   "por_largo": [
    {
@@ -710,14 +710,14 @@
     "iteraciones": 8,
     "convergio": true,
     "brecha_final_min": 0.003,
-    "metro_pct": 17.6,
-    "auto_pct": 26.11,
-    "carga_maxima_pax_h": 3167,
-    "frecuencia_teorica_tph": 3.17,
-    "frecuencia_operativa_tph": 3.17,
+    "metro_pct": 17.7,
+    "auto_pct": 26.1,
+    "carga_maxima_pax_h": 3187,
+    "frecuencia_teorica_tph": 3.19,
+    "frecuencia_operativa_tph": 3.19,
     "topada_en": "no",
-    "espera_media_min": 9.47,
-    "rho_anden": 0.079,
+    "espera_media_min": 9.41,
+    "rho_anden": 0.08,
     "vc_auto_maximo": 1.06
    },
    {
@@ -725,13 +725,13 @@
     "iteraciones": 6,
     "convergio": true,
     "brecha_final_min": 0.0,
-    "metro_pct": 25.91,
-    "auto_pct": 28.28,
-    "carga_maxima_pax_h": 4664,
-    "frecuencia_teorica_tph": 4.66,
-    "frecuencia_operativa_tph": 4.66,
+    "metro_pct": 26.11,
+    "auto_pct": 28.25,
+    "carga_maxima_pax_h": 4699,
+    "frecuencia_teorica_tph": 4.7,
+    "frecuencia_operativa_tph": 4.7,
     "topada_en": "no",
-    "espera_media_min": 6.43,
+    "espera_media_min": 6.38,
     "rho_anden": 0.117,
     "vc_auto_maximo": 1.15
    },
@@ -740,44 +740,44 @@
     "iteraciones": 6,
     "convergio": true,
     "brecha_final_min": 0.0,
-    "metro_pct": 34.35,
-    "auto_pct": 29.14,
-    "carga_maxima_pax_h": 6183,
-    "frecuencia_teorica_tph": 6.18,
-    "frecuencia_operativa_tph": 6.18,
+    "metro_pct": 34.6,
+    "auto_pct": 29.13,
+    "carga_maxima_pax_h": 6228,
+    "frecuencia_teorica_tph": 6.23,
+    "frecuencia_operativa_tph": 6.23,
     "topada_en": "no",
-    "espera_media_min": 4.85,
-    "rho_anden": 0.155,
+    "espera_media_min": 4.82,
+    "rho_anden": 0.156,
     "vc_auto_maximo": 1.18
    },
    {
     "largo_km": 40.0,
-    "iteraciones": 5,
+    "iteraciones": 4,
     "convergio": true,
     "brecha_final_min": 0.0,
-    "metro_pct": 40.18,
-    "auto_pct": 29.78,
-    "carga_maxima_pax_h": 7233,
-    "frecuencia_teorica_tph": 7.23,
-    "frecuencia_operativa_tph": 7.23,
+    "metro_pct": 40.75,
+    "auto_pct": 29.76,
+    "carga_maxima_pax_h": 7336,
+    "frecuencia_teorica_tph": 7.34,
+    "frecuencia_operativa_tph": 7.34,
     "topada_en": "no",
-    "espera_media_min": 4.15,
-    "rho_anden": 0.181,
+    "espera_media_min": 4.09,
+    "rho_anden": 0.183,
     "vc_auto_maximo": 1.21
    },
    {
     "largo_km": 60.0,
-    "iteraciones": 5,
+    "iteraciones": 6,
     "convergio": true,
-    "brecha_final_min": 0.001,
-    "metro_pct": 47.07,
-    "auto_pct": 31.04,
-    "carga_maxima_pax_h": 8472,
-    "frecuencia_teorica_tph": 8.47,
-    "frecuencia_operativa_tph": 8.47,
+    "brecha_final_min": 0.0,
+    "metro_pct": 47.27,
+    "auto_pct": 30.98,
+    "carga_maxima_pax_h": 8508,
+    "frecuencia_teorica_tph": 8.51,
+    "frecuencia_operativa_tph": 8.51,
     "topada_en": "no",
-    "espera_media_min": 3.54,
-    "rho_anden": 0.212,
+    "espera_media_min": 3.53,
+    "rho_anden": 0.213,
     "vc_auto_maximo": 1.26
    }
   ],
@@ -790,16 +790,16 @@
    "num_pistas": 4,
    "cap_bici": 6000,
    "reparto_pct": {
-    "Auto": 28.28,
-    "Metro": 25.91,
-    "Bici": 36.0,
-    "Caminata": 9.81,
+    "Auto": 28.25,
+    "Metro": 26.11,
+    "Bici": 35.79,
+    "Caminata": 9.85,
     "Teletrabajo": 0.0
    },
    "vc_auto": 1.15,
-   "vc_bici": 1.08,
+   "vc_bici": 1.07,
    "frecuencia_tph": 4.7,
-   "espera_media_min": 6.43
+   "espera_media_min": 6.38
   },
   "Ciudad con metro": {
    "poblacion": 72000,
@@ -807,31 +807,31 @@
    "cap_bici": 12000,
    "reparto_pct": {
     "Auto": 27.14,
-    "Metro": 29.56,
-    "Bici": 33.74,
-    "Caminata": 9.56,
+    "Metro": 29.72,
+    "Bici": 33.54,
+    "Caminata": 9.6,
     "Teletrabajo": 0.0
    },
    "vc_auto": 1.1,
    "vc_bici": 1.01,
-   "frecuencia_tph": 10.6,
-   "espera_media_min": 2.82
+   "frecuencia_tph": 10.7,
+   "espera_media_min": 2.81
   },
   "Metrópolis": {
    "poblacion": 144000,
    "num_pistas": 16,
    "cap_bici": 24000,
    "reparto_pct": {
-    "Auto": 26.67,
-    "Metro": 31.08,
-    "Bici": 32.79,
-    "Caminata": 9.46,
+    "Auto": 26.66,
+    "Metro": 31.23,
+    "Bici": 32.61,
+    "Caminata": 9.5,
     "Teletrabajo": 0.0
    },
    "vc_auto": 1.08,
    "vc_bici": 0.98,
-   "frecuencia_tph": 22.4,
-   "espera_media_min": 1.36
+   "frecuencia_tph": 22.5,
+   "espera_media_min": 1.35
   }
  }
 }

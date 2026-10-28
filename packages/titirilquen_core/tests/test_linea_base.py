@@ -135,18 +135,24 @@ ESPERADO = {
     #     antes estaba 0,12-0,17 pp lejos del punto fijo (verificado contra
     #     G < 1e-6). Original auto −0,07, metro +0,17, bici −0,07, caminata
     #     −0,02; equilibrio auto −0,07, metro +0,12, bici −0,04, caminata −0,01.
+    # 17. Media celda del CBD (2026-10-28, D-71, decisión de Leandro):
+    #     auto y bici recorrían (k − ½)·dx, no k·dx como la caminata, el metro y
+    #     el costo; les faltaba la media celda del CBD, que ahora cruzan con el
+    #     flujo de su lado. La bici se alarga 50 m y deja de derivar con
+    #     n_celdas. Original auto −0,02, metro +0,18, bici −0,21, caminata
+    #     +0,06; equilibrio auto −0,03, metro +0,20, bici −0,21, caminata +0,04.
     "equilibrio": {
-        "Auto": 28.28,
-        "Metro": 25.91,
-        "Bici": 36.00,
-        "Caminata": 9.81,
+        "Auto": 28.25,
+        "Metro": 26.11,
+        "Bici": 35.79,
+        "Caminata": 9.85,
         "Teletrabajo": 0.0,
     },
     "original": {
-        "Auto": 29.18,
-        "Metro": 23.24,
-        "Bici": 35.63,
-        "Caminata": 11.95,
+        "Auto": 29.16,
+        "Metro": 23.42,
+        "Bici": 35.42,
+        "Caminata": 12.01,
         "Teletrabajo": 0.0,
     },
 }
@@ -177,10 +183,11 @@ ITERACIONES_ESPERADAS = {"equilibrio": 6, "original": 6}
 #: aparte para que un cambio en ella tampoco pase inadvertido. Frente a la base:
 #: el metro pierde 0,4-0,6 pp, que se reparten entre los otros tres modos.
 #: Con la parada de la auditoría B (oct-2026) se movió como la base: metro +0,15
-#: y +0,19; 12 → 6 y 9 → 6 iteraciones.
+#: y +0,19; 12 → 6 y 9 → 6 iteraciones. Con la media celda del CBD (D-71,
+#: oct-2026), también como la base: bici −0,25 y −0,26, metro +0,21 y +0,23.
 ESPERADO_SUAVES = {
-    "equilibrio": {"Auto": 28.55, "Metro": 25.51, "Bici": 36.04, "Caminata": 9.91},
-    "original": {"Auto": 29.43, "Metro": 22.69, "Bici": 35.81, "Caminata": 12.07},
+    "equilibrio": {"Auto": 28.53, "Metro": 25.74, "Bici": 35.78, "Caminata": 9.96},
+    "original": {"Auto": 29.41, "Metro": 22.90, "Bici": 35.56, "Caminata": 12.12},
 }
 ITERACIONES_SUAVES = {"equilibrio": 6, "original": 6}
 

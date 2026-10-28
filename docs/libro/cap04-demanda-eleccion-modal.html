@@ -142,7 +142,15 @@
   teletrabajo, no viaja (0 por defecto desde oct-2026: viajan todos); de los
   que viajan, una fracción <em>prob_auto</em>
   dispone de auto. Los conteos son redondeados, no sorteados, para que la
-  población sea reproducible y el equilibrio acoplado converja. La demanda por
+  población sea reproducible y el equilibrio acoplado converja. El redondeo es
+  por celda y estrato, y deja dientes en la fracción con auto entre celdas
+  vecinas: 0,3 puntos en la mediana y hasta
+  5,8 con la localización «original», y hasta
+  50,0 con la de equilibrio, donde un estrato llega a tener
+  1 hogar en una celda. Se ven en el
+  reparto espacial por estrato, no en el agregado: la tenencia de la ciudad
+  queda en 0,9009, 0,6000
+  y 0,2504 contra 0,90, 0,60 y 0,25. La demanda por
   celda y modo que resulta es la <strong>esperada</strong>, hogares por
   probabilidad; la alternativa de sortear un modo por agente y su efecto sobre
   el equilibrio son del capítulo 5.
@@ -434,6 +442,39 @@
   2,4 km y no vuelve a cambiar.
 </p>
 
+<p>
+  Eso es con la red vacía, y el corte se evalúa sobre ella: sobre <em>t⁰</em>,
+  igual que los escalones (D9, capítulo 5). La congestión no saca la bicicleta
+  del conjunto. Con la ciclovía saturada el viaje tarda más que el corte y el
+  piso de la oferta (capítulo 3) lo deja, en el peor caso, a paso de caminata.
+  Bajando la capacidad de la ciclovía en la ciudad base:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ciclovía (bici/h)</th><th class="n">Bici (%)</th><th class="n">Viajes en bici sobre 45 min (%)</th><th class="n">A paso de caminata (%)</th><th class="n">El más largo (min)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">200</td><td class="n">21,6</td><td class="n">28,3</td><td class="n">93,0</td><td class="n">95</td></tr>
+    <tr><td class="n">1.000</td><td class="n">23,6</td><td class="n">32,9</td><td class="n">64,5</td><td class="n">77</td></tr>
+    <tr><td class="n">2.000</td><td class="n">26,6</td><td class="n">20,3</td><td class="n">26,9</td><td class="n">66</td></tr>
+    <tr class="destacada"><td class="n">6.000</td><td class="n">35,4</td><td class="n">1,5</td><td class="n">0,0</td><td class="n">48</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con la red vacía el viaje en bici más largo es de 43 minutos
+  en todas las filas. Con 200 bici/h llega a
+  95 minutos, y el 93,0 % de los viajes
+  en bici va a paso de caminata: es el ciclista que desmonta y empuja. Es una
+  decisión, no un error. Evaluar el corte sobre el tiempo congestionado haría
+  que el conjunto de elección dependa del propio equilibrio, con un salto que
+  el MSA no amortigua; la congestión entra, como en los escalones, por el
+  término de tiempo.
+</p>
+
 <h3>5.3 Las tres palancas de precio</h3>
 
 <div class="envoltorio-tabla">
@@ -442,9 +483,9 @@
     <tr><th>Tarifa metro ($)</th><th class="n">0</th><th class="n">400</th><th class="n">800</th><th class="n">1.200</th><th class="n">1.600</th></tr>
   </thead>
   <tbody>
-    <tr><td>Metro %</td><td class="n">35,36</td><td class="n">29,30</td><td class="n">23,24</td><td class="n">17,23</td><td class="n">10,86</td></tr>
-    <tr><td>Auto %</td><td class="n">25,65</td><td class="n">27,43</td><td class="n">29,18</td><td class="n">30,92</td><td class="n">32,82</td></tr>
-    <tr><td>Bici %</td><td class="n">28,06</td><td class="n">31,82</td><td class="n">35,63</td><td class="n">39,41</td><td class="n">43,41</td></tr>
+    <tr><td>Metro %</td><td class="n">35,52</td><td class="n">29,46</td><td class="n">23,42</td><td class="n">17,44</td><td class="n">10,95</td></tr>
+    <tr><td>Auto %</td><td class="n">25,63</td><td class="n">27,41</td><td class="n">29,16</td><td class="n">30,89</td><td class="n">32,83</td></tr>
+    <tr><td>Bici %</td><td class="n">27,88</td><td class="n">31,63</td><td class="n">35,42</td><td class="n">39,18</td><td class="n">43,23</td></tr>
   </tbody>
 </table>
 </div>
@@ -455,9 +496,9 @@
     <tr><th>Combustible ($/km)</th><th class="n">60</th><th class="n">120</th><th class="n">240</th><th class="n">480</th></tr>
   </thead>
   <tbody>
-    <tr><td>Auto %</td><td class="n">30,81</td><td class="n">29,18</td><td class="n">25,92</td><td class="n">20,26</td></tr>
-    <tr><td>Metro %</td><td class="n">22,11</td><td class="n">23,24</td><td class="n">25,47</td><td class="n">29,29</td></tr>
-    <tr><td>Bici %</td><td class="n">35,17</td><td class="n">35,63</td><td class="n">36,55</td><td class="n">38,18</td></tr>
+    <tr><td>Auto %</td><td class="n">30,79</td><td class="n">29,16</td><td class="n">25,91</td><td class="n">20,26</td></tr>
+    <tr><td>Metro %</td><td class="n">22,29</td><td class="n">23,42</td><td class="n">25,65</td><td class="n">29,47</td></tr>
+    <tr><td>Bici %</td><td class="n">34,96</td><td class="n">35,42</td><td class="n">36,33</td><td class="n">37,94</td></tr>
   </tbody>
 </table>
 </div>
@@ -468,20 +509,20 @@
     <tr><th>Peaje ($/km)</th><th class="n">0</th><th class="n">50</th><th class="n">100</th><th class="n">150</th><th class="n">200</th><th class="n">300</th></tr>
   </thead>
   <tbody>
-    <tr><td>Auto %</td><td class="n">29,18</td><td class="n">27,81</td><td class="n">26,45</td><td class="n">25,14</td><td class="n">23,88</td><td class="n">21,54</td></tr>
-    <tr><td>Metro %</td><td class="n">23,24</td><td class="n">24,18</td><td class="n">25,11</td><td class="n">26,00</td><td class="n">26,86</td><td class="n">28,43</td></tr>
-    <tr><td>Bici %</td><td class="n">35,63</td><td class="n">36,02</td><td class="n">36,40</td><td class="n">36,78</td><td class="n">37,14</td><td class="n">37,81</td></tr>
+    <tr><td>Auto %</td><td class="n">29,16</td><td class="n">27,79</td><td class="n">26,44</td><td class="n">25,13</td><td class="n">23,88</td><td class="n">21,54</td></tr>
+    <tr><td>Metro %</td><td class="n">23,42</td><td class="n">24,36</td><td class="n">25,29</td><td class="n">26,18</td><td class="n">27,04</td><td class="n">28,62</td></tr>
+    <tr><td>Bici %</td><td class="n">35,42</td><td class="n">35,80</td><td class="n">36,18</td><td class="n">36,55</td><td class="n">36,91</td><td class="n">37,57</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Las direcciones son las correctas y las magnitudes, razonables. Duplicar la
-  tarifa saca 12,4 puntos al metro, que se
+  tarifa saca 12,5 puntos al metro, que se
   reparten la bicicleta, 7,8, y el auto,
-  3,6; cuadruplicar el combustible saca
+  3,7; cuadruplicar el combustible saca
   8,9 al auto, que van en su mayor parte al metro,
-  6,0. El
+  6,1. El
   peaje y la bencina son, para la elección, el mismo término, dinero por
   kilómetro, y por eso responden igual: un peaje de 150 $/km, que lleva el
   dinero por km a 270, saca 4,0 puntos al auto,
@@ -499,17 +540,17 @@
     <tr><th>Método</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td>Logit (esperado)</td><td class="n">29,18</td><td class="n">23,24</td><td class="n">35,63</td><td class="n">11,95</td></tr>
-    <tr><td>Todo o nada</td><td class="n">48,18</td><td class="n">2,83</td><td class="n">39,63</td><td class="n">9,37</td></tr>
+    <tr class="destacada"><td>Logit (esperado)</td><td class="n">29,16</td><td class="n">23,42</td><td class="n">35,42</td><td class="n">12,01</td></tr>
+    <tr><td>Todo o nada</td><td class="n">48,15</td><td class="n">2,94</td><td class="n">39,55</td><td class="n">9,37</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   Bajo el determinístico el auto sube de 29,2 a
-  48,2 %, la bicicleta sube de
-  35,6 a 39,6 % y el metro cae
-  de 23,2 a 2,8 %: cada
+  48,1 %, la bicicleta sube de
+  35,4 a 39,5 % y el metro cae
+  de 23,4 a 2,9 %: cada
   grupo va entero a su mejor modo, y el segundo no recibe nada salvo en los
   grupos que el equilibrio deja indiferentes. Se ve mejor en
   una celda que en el agregado: a 3 km del centro, el estrato medio con auto
@@ -531,21 +572,21 @@
     <tr><th class="n">Peaje ($/km)</th><th class="n">Auto %</th><th class="n">v/c auto</th><th class="n">Recaudación peaje (M$)</th><th class="n">Δ bienestar social (M$)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0</td><td class="n">29,18</td><td class="n">1,19</td><td class="n">0,00</td><td class="n">0,00</td></tr>
-    <tr><td class="n">25</td><td class="n">28,49</td><td class="n">1,16</td><td class="n">0,97</td><td class="n">0,05</td></tr>
-    <tr class="destacada"><td class="n">50</td><td class="n">27,81</td><td class="n">1,13</td><td class="n">1,87</td><td class="n">0,05</td></tr>
-    <tr><td class="n">75</td><td class="n">27,13</td><td class="n">1,10</td><td class="n">2,71</td><td class="n">0,00</td></tr>
-    <tr><td class="n">100</td><td class="n">26,45</td><td class="n">1,07</td><td class="n">3,48</td><td class="n">−0,09</td></tr>
-    <tr><td class="n">150</td><td class="n">25,14</td><td class="n">1,02</td><td class="n">4,85</td><td class="n">−0,39</td></tr>
-    <tr><td class="n">200</td><td class="n">23,88</td><td class="n">0,97</td><td class="n">6,00</td><td class="n">−0,83</td></tr>
-    <tr><td class="n">250</td><td class="n">22,68</td><td class="n">0,92</td><td class="n">6,94</td><td class="n">−1,39</td></tr>
-    <tr><td class="n">275</td><td class="n">22,10</td><td class="n">0,90</td><td class="n">7,35</td><td class="n">−1,71</td></tr>
-    <tr><td class="n">300</td><td class="n">21,54</td><td class="n">0,88</td><td class="n">7,71</td><td class="n">−2,04</td></tr>
-    <tr><td class="n">350</td><td class="n">20,46</td><td class="n">0,83</td><td class="n">8,33</td><td class="n">−2,75</td></tr>
-    <tr><td class="n">400</td><td class="n">19,46</td><td class="n">0,79</td><td class="n">8,82</td><td class="n">−3,51</td></tr>
-    <tr><td class="n">500</td><td class="n">17,64</td><td class="n">0,72</td><td class="n">9,49</td><td class="n">−5,11</td></tr>
-    <tr><td class="n">600</td><td class="n">16,05</td><td class="n">0,65</td><td class="n">9,84</td><td class="n">−6,75</td></tr>
-    <tr><td>parking 5.000, sin peaje</td><td class="n">18,70</td><td class="n">0,76</td><td class="n">—</td><td class="n">−3,62</td></tr>
+    <tr><td class="n">0</td><td class="n">29,16</td><td class="n">1,19</td><td class="n">0,00</td><td class="n">0,00</td></tr>
+    <tr><td class="n">25</td><td class="n">28,47</td><td class="n">1,16</td><td class="n">0,97</td><td class="n">0,05</td></tr>
+    <tr class="destacada"><td class="n">50</td><td class="n">27,79</td><td class="n">1,13</td><td class="n">1,87</td><td class="n">0,06</td></tr>
+    <tr><td class="n">75</td><td class="n">27,11</td><td class="n">1,10</td><td class="n">2,71</td><td class="n">0,01</td></tr>
+    <tr><td class="n">100</td><td class="n">26,44</td><td class="n">1,07</td><td class="n">3,48</td><td class="n">−0,07</td></tr>
+    <tr><td class="n">150</td><td class="n">25,13</td><td class="n">1,02</td><td class="n">4,85</td><td class="n">−0,37</td></tr>
+    <tr><td class="n">200</td><td class="n">23,88</td><td class="n">0,97</td><td class="n">5,99</td><td class="n">−0,81</td></tr>
+    <tr><td class="n">250</td><td class="n">22,68</td><td class="n">0,92</td><td class="n">6,94</td><td class="n">−1,36</td></tr>
+    <tr><td class="n">275</td><td class="n">22,10</td><td class="n">0,90</td><td class="n">7,35</td><td class="n">−1,68</td></tr>
+    <tr><td class="n">300</td><td class="n">21,54</td><td class="n">0,88</td><td class="n">7,71</td><td class="n">−2,01</td></tr>
+    <tr><td class="n">350</td><td class="n">20,47</td><td class="n">0,83</td><td class="n">8,33</td><td class="n">−2,72</td></tr>
+    <tr><td class="n">400</td><td class="n">19,46</td><td class="n">0,79</td><td class="n">8,82</td><td class="n">−3,48</td></tr>
+    <tr><td class="n">500</td><td class="n">17,64</td><td class="n">0,72</td><td class="n">9,49</td><td class="n">−5,07</td></tr>
+    <tr><td class="n">600</td><td class="n">16,05</td><td class="n">0,65</td><td class="n">9,84</td><td class="n">−6,71</td></tr>
+    <tr><td>parking 5.000, sin peaje</td><td class="n">18,71</td><td class="n">0,76</td><td class="n">—</td><td class="n">−3,58</td></tr>
   </tbody>
 </table>
 </div>
@@ -557,9 +598,9 @@
 </p>
 
 <p>
-  El bienestar sube con el peaje sólo en el primer tramo: gana 0,05 M$ con
+  El bienestar sube con el peaje sólo en el primer tramo: gana 0,05 y 0,06 M$ con
   <strong>25 y 50 $/km</strong>, casi nada con 75, y desde ahí baja: a
-  100 $/km ya pierde 0,09 M$, y a 275 $/km, 1,70 M$. Sin peaje
+  100 $/km ya pierde 0,07 M$, y a 275 $/km, 1,68 M$. Sin peaje
   el corredor carga v/c 1,19, y hay poca congestión que quitar: pasado el
   primer tramo, el cobro encarece el viaje a quien sigue en auto más de lo que
   descongestiona la vía, aunque lo que se paga no se pierde, porque es
@@ -569,7 +610,7 @@
   congestionada, el máximo estaba bastante más arriba: el cobro óptimo crece
   con la congestión. Hasta oct-2026 el preset era un parking
   de 5.000 $/día: baja el auto a 18,7 %, más que el peaje
-  óptimo, y pierde 3,62 M$. Cobra
+  óptimo, y pierde 3,58 M$. Cobra
   2.500 $ por viaje y lo cobra igual a un viaje de un kilómetro que a uno desde
   el borde: no crece con los tramos que el viaje cruza, que es de lo que crece
   su costo externo.
@@ -644,7 +685,8 @@
   </li>
   <li>
     <strong>El corte de la bicicleta.</strong> Dejar dicho en la interfaz que
-    no actúa en ciudades de menos de 21 km, o bajarlo a un valor que actúe.
+    no actúa en ciudades de menos de 21 km, o bajarlo a un valor que actúe;
+    y que tampoco actúa bajo congestión (§5.2).
   </li>
   <li>
     <strong>La iteración cero.</strong> El metro arranca con diez minutos de
