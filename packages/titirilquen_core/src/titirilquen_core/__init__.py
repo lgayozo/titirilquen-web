@@ -11,7 +11,12 @@ from titirilquen_core.config import (
 )
 from titirilquen_core.coupled import CoupledResult, OuterIteration, run_coupled
 from titirilquen_core.equilibrium.msa import ConvergenceTrace, IterationSnapshot, run_msa
-from titirilquen_core.land_use import LandUseCity, LandUseConfig, LandUseResult, LandUseStratumConfig
+from titirilquen_core.land_use import (
+    LandUseCity,
+    LandUseConfig,
+    LandUseResult,
+    LandUseStratumConfig,
+)
 from titirilquen_core.presets import CITY_PRESETS, POLICY_PRESETS
 
 __all__ = [

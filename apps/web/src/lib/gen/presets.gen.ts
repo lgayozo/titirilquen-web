@@ -1,0 +1,165 @@
+// GENERADO por packages/titirilquen_core/tools/genera_contrato.py — NO EDITAR.
+// Para cambiar algo de acá, cambiá el núcleo Python y corré `npm run sync:core`.
+
+/** Presets de ciudad y de política. Declaran valores ABSOLUTOS, no
+ *  diferencias contra el default: al recalibrar hay que moverlos, o
+ *  aplicar una política revierte ese parámetro en silencio. */
+
+/** Parámetros de forma urbana. */
+export interface CityPresetValues {
+  largo_ciudad?: number;
+  sigma?: number;
+  poblacion?: number;
+  num_pistas?: number;
+  cap_bici?: number;
+}
+
+/** Parámetros de política. */
+export interface PolicyPresetValues {
+  tarifa?: number;
+  parking?: number;
+  num_pistas?: number;
+  num_estaciones?: number;
+  bencina?: number;
+  peaje?: number;
+  cap_bici?: number;
+  frec_max?: number;
+  cap_tren?: number;
+  factor_flota?: number;
+}
+
+export const CITY_PRESETS: Record<string, CityPresetValues> = {
+  Personalizado: {},
+  Compacta: {
+    largo_ciudad: 8,
+    sigma: 0.3,
+  },
+  Base: {
+    largo_ciudad: 20,
+    sigma: 0.5,
+    poblacion: 36000,
+    num_pistas: 4,
+    cap_bici: 6000,
+  },
+  "Ciudad con metro": {
+    largo_ciudad: 20,
+    sigma: 0.5,
+    poblacion: 72000,
+    num_pistas: 8,
+    cap_bici: 12000,
+  },
+  Dispersa: {
+    largo_ciudad: 40,
+    sigma: 0.9,
+  },
+  Metrópolis: {
+    largo_ciudad: 20,
+    sigma: 0.5,
+    poblacion: 144000,
+    num_pistas: 16,
+    cap_bici: 24000,
+  },
+};
+
+export const POLICY_PRESETS: Record<string, PolicyPresetValues> = {
+  Personalizado: {},
+  Base: {
+    tarifa: 800,
+    parking: 2000,
+    num_pistas: 4,
+    num_estaciones: 10,
+    bencina: 120,
+    peaje: 0,
+    cap_bici: 6000,
+    frec_max: 40,
+    cap_tren: 1000,
+    factor_flota: 1.0,
+  },
+  "TP Gratis": {
+    tarifa: 0,
+    parking: 2000,
+    num_pistas: 4,
+    num_estaciones: 10,
+    bencina: 120,
+    peaje: 0,
+    cap_bici: 6000,
+    frec_max: 50,
+    cap_tren: 1000,
+    factor_flota: 1.0,
+  },
+  "Tarificación Vial": {
+    tarifa: 800,
+    parking: 2000,
+    num_pistas: 4,
+    num_estaciones: 10,
+    bencina: 120,
+    peaje: 50,
+    cap_tren: 1000,
+    cap_bici: 6000,
+    frec_max: 40,
+    factor_flota: 1.0,
+  },
+  "Pro-Auto": {
+    tarifa: 1000,
+    parking: 1000,
+    num_pistas: 5,
+    num_estaciones: 8,
+    bencina: 100,
+    peaje: 0,
+    cap_tren: 800,
+    cap_bici: 3000,
+    frec_max: 6,
+    factor_flota: 1.0,
+  },
+  "Pro-Bici": {
+    tarifa: 800,
+    parking: 2000,
+    num_pistas: 4,
+    cap_bici: 12000,
+    frec_max: 40,
+    bencina: 120,
+    peaje: 0,
+    cap_tren: 1000,
+    num_estaciones: 10,
+    factor_flota: 1.0,
+  },
+  "Vehículos híbridos": {
+    num_pistas: 4,
+    bencina: 65,
+    peaje: 0,
+    tarifa: 800,
+    parking: 2000,
+    frec_max: 40,
+    cap_tren: 1000,
+    num_estaciones: 10,
+    cap_bici: 6000,
+    factor_flota: 0.7,
+  },
+  "Máx Metro": {
+    tarifa: 400,
+    num_estaciones: 20,
+    frec_max: 50,
+    cap_tren: 1000,
+    parking: 2000,
+    bencina: 120,
+    peaje: 0,
+    num_pistas: 4,
+    cap_bici: 6000,
+    factor_flota: 1.0,
+  },
+  Ciclorrecreovía: {
+    num_pistas: 3,
+    cap_bici: 14400,
+    tarifa: 800,
+    parking: 2000,
+    bencina: 120,
+    peaje: 0,
+    frec_max: 40,
+    cap_tren: 1000,
+    num_estaciones: 10,
+    factor_flota: 1.0,
+  },
+};
+
+export type CityPresetName = keyof typeof CITY_PRESETS;
+export type PolicyPresetName = keyof typeof POLICY_PRESETS;

@@ -1,0 +1,107 @@
+---
+slug: land-use
+order: 7
+title: Land use
+tagline: Bid-rent, heteroskedastic auction and the value of time
+---
+
+# Land use
+
+The land module (**Land use** page) decides where each household lives through an Alonso–Muth–Mills **auction**: each stratum bids for the plots and whoever values a location most wins it, pushing the rest towards the periphery. The notation is Martínez's (2018, ch. 4).
+
+## Utility and willingness to pay
+
+The utility of a household of stratum $h$ in plot $i$, paying rent $p_i$, is **linear in income** and has a random term:
+
+$$
+v_{hi} = \lambda_h\,(y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad \varepsilon_{hi} \sim \text{Gumbel}(0, \mu)
+$$
+
+<OverleafRef sec="Suelo · Función de puje" />
+
+where $\lambda_h$ is the marginal utility of income, in utils per peso, $y_h$ the stratum's monthly income and $f_h(z_i)$ what the plot is worth by itself:
+
+$$
+f_h(z_i) = -T_h(i) - \rho_h\, d_i, \qquad d_i = \frac{S_i}{\bar S}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-2" />
+
+$T_h(i)$ is **accessibility**: the monthly cost of living in $i$ and having to travel, equal to $-44$ times the logsum of the mode-choice logit of the Demand chapter, at free flow. It is in transport utils per month and differs by stratum, since each one has its own logit. It enters with weight 1: the bid reads that accessibility as is. $\rho_h$ penalizes **relative density** $d_i$, the cell's density over the city mean, and is 0 by default; it is in util-months, and being relative, the same $\rho$ means the same with 25,000 as with 100,000 households.
+
+With $\lambda_h$ equal to the cost coefficient of the mode-choice logit, the same household has **a single utility function** in both modules: its value of time is 6,329, 3,164 and 1,633 pesos per hour for the high, middle and low strata, the same one it uses to choose a mode. That is why land use has no $\lambda$ of its own: it reads it from demand, and it moves from the **Calibration** page. Changing $b_{\text{cost}}$ moves both $\lambda_h$ and the accessibility $T_h$.
+
+Solving for the price at the reservation utility level $u_h$ gives the **willingness to pay**, which is also random:
+
+$$
+w_{hi} = y_h + \frac{f_h(z_i) - u_h}{\lambda_h}, \qquad \theta_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-3" />
+
+Dividing by $\lambda_h$ turns everything into pesos, including the noise: the bid has precision $\beta_h = \lambda_h\,\mu$. Since the $\lambda_h$ differ, **each stratum bids with different noise**: the high stratum, which values each peso less, has the widest noise in pesos.
+
+## The auction
+
+If all bidders for a plot had the same precision $\beta_i$, the probability that a household of stratum $h$ wins it would be a logit:
+
+$$
+Q_{h/i} = \frac{H_h\, e^{\beta_i w_{hi}}}{\sum_{g} H_g\, e^{\beta_i w_{gi}}}
+$$
+
+<OverleafRef sec="Suelo · Asignación probabilística" />
+
+That only happens if the three $\lambda_h$ are equal. With the default values the precisions differ, and the simulator uses the **heteroskedastic auction** (HEV, Train §4.5): the same idea, but with an integral instead of a fraction, solved by quadrature. The factor $H_h$ (number of bidders of each type) guarantees **conservation by stratum** at equilibrium: $\sum_i S_i\, Q_{h/i} = H_h$.
+
+<OverleafRef sec="Suelo · Asignación probabilística" tag="S-4" />
+
+Equilibrium is found as a fixed point on the reservation utilities $u_h$ (each stratum places exactly its $H_h$ households). The plot's **price** is the expected maximum of the bids; with a common precision it has a closed form:
+
+$$
+p_i^{*} = \frac{1}{\beta_i} \ln\left( \sum_g H_g\, e^{\beta_i w_{gi}} \right) + \frac{\gamma}{\beta_i}
+$$
+
+<OverleafRef sec="Suelo · Interpretación del punto fijo" />
+
+with $\gamma \approx 0.577$ Euler's constant. Prices are defined up to a constant: only the spatial **gradient** is informative.
+
+## $\lambda$, the value of time and why the heteroskedastic auction matters
+
+What sorts the strata in space is **$\lambda$**: accessibility is worth $T_h/\lambda_h$ in pesos, and the high stratum, with the smallest $\lambda$, values it more and bids harder for the center's.
+
+<Callout type="warn">
+**Under the common-precision logit auction, $\lambda$ cannot be read.** The bid divides $f$ by $\lambda_h$, and $f$ is linear in $T$ and $\rho$:
+
+$$
+y_h + \frac{f_h(z_i)}{\lambda_h} \;\equiv\; y_h + f\!\left(z_i;\; \frac{T_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
+$$
+
+Moving $\lambda_h$ would be exactly rescaling that stratum's preferences. The heteroskedastic auction breaks that equivalence, because $\lambda_h$ also moves the dispersion of the bid, which rescaling preferences does not touch. That is why the simulator uses it: with it, $\lambda$ is identified. In an auction, however, $\lambda$ never acts through price sensitivity: all bidders for a plot pay the same, so the price cancels out.
+
+</Callout>
+
+<Callout type="info">
+Try, on the page's default configuration:
+
+- **Set the three $\lambda$ equal** to the middle stratum's, that is, their $b_{\text{cost}}$: in **Calibration**, set the "$s$" slider of "Value of time across strata" to 0 and rerun. The value of time becomes the same for everyone and **the Alonso order is lost**: Theil falls from 0.39 to 0.10 and the city ends up inverted, with the high stratum 5.0 km from the CBD and the low one 2.4 km. Without differences in value of time there is no Alonso. What remains is car ownership: the high stratum has more cars, and the car flattens its accessibility, so the center is worth less to it than to the low stratum.
+- **Double the high stratum's $\lambda$.** Its value of time halves and it moves away from the center: from 1.4 to 3.1 km, farther than the middle stratum. With $\lambda$ halved it moves closer, to 1.0 km.
+- **Double the high stratum's income $y$.** It reallocates nobody: income enters as a constant and is absorbed into the reservation utility $u_h$.
+</Callout>
+
+## The precision $\mu$
+
+$\mu$ measures how noisy choosing a home is relative to choosing a mode: the bid noise, in pesos per month, is $1/(\mu\lambda_h)$. It is a **scenario value**, 0.30 by default, set on the Land use page under "Bid parameters", with three presets: _Mixed_ (0.10), _Base_ (0.30) and _Segregated_ (0.80). With low $\mu$ each household's idiosyncratic taste dominates and strata mix; with high $\mu$ accessibility dominates and each stratum keeps its band. With $\mu = 1$ the auction is nearly deterministic and Theil rises from 0.39 to 0.75.
+
+There is no $\mu$ that can be borrowed from another city: it is **calibrated**. The bid-auction logit is estimated from data on where each stratum lives (Martínez 2018, §9.3), and if rents are also observed, the rent equation identifies the noise scale (Lerman and Kern 1983). For Santiago the target would be the mean distance to the employment center by income stratum, not a Theil: segregation there is sectoral (the eastern cone) and a linear city cannot reproduce it. Until October 2026 $\mu$ was $1/\sqrt{44} \approx 0.151$, by an analogy with 44 independent trip shocks a month; it does not hold, because those shocks are already integrated in the accessibility logsum.
+
+Only $\mu T$ and $\mu \rho$ enter the auction: moving $\mu$ scales the sensitivity to accessibility and the density penalty at once. That is why the $\rho$ threshold that inverts Alonso barely depends on $\mu$: 31 with 0.151 and 30 with 0.30.
+
+## The shape of the city
+
+The supply $S(i)$ is generated **deterministically** (largest-remainder discretization, $\sum_i S_i = \sum_h H_h$ exact, empty CBD) with six parameterizable shapes: normal, uniform, exponential, plateau, bimodal and valley, with dispersion $\sigma$ as a fraction of the half-city.
+
+The **per-cell density** is a direct consequence of supply: $\text{dens}(i) = S_i/\Delta x$, so it follows the chosen shape (not an imposed gradient). The strata distribution figure has that envelope; bid-rent only reorders _who_ lives where, without changing _how many_ per cell.
+
+<OverleafRef sec="Suelo (oferta S)" tag="S-1" />
+
+<NextStep to="welfare">Welfare</NextStep>

@@ -1,0 +1,645 @@
+{
+ "_meta": {
+  "fecha": "2026-10-28",
+  "commit": "7067cc8",
+  "script": "docs/libro/datos/datos_cap02.py",
+  "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la densidad relativa, μ=LandUseConfig.mu=0,30 (schema v10), λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
+ },
+ "formas": [
+  {
+   "forma": "normal",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 3045.1,
+   "densidad_pico_en_km": 0.3
+  },
+  {
+   "forma": "uniforme",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 1809.0,
+   "densidad_pico_en_km": 9.95
+  },
+  {
+   "forma": "exponencial",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 4140.6,
+   "densidad_pico_en_km": 0.1
+  },
+  {
+   "forma": "meseta",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 126,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 3889.3,
+   "densidad_pico_en_km": 0.1
+  },
+  {
+   "forma": "bimodal",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 2954.7,
+   "densidad_pico_en_km": 5.07
+  },
+  {
+   "forma": "valle",
+   "suma_S": 36000,
+   "conserva_N": true,
+   "cbd_vacio": true,
+   "celdas_con_oferta": 200,
+   "densidad_min_hab_km": 0.0,
+   "densidad_max_hab_km": 3577.8,
+   "densidad_pico_en_km": 9.95
+  }
+ ],
+ "conservacion": {
+  "por_forma": [
+   {
+    "forma": "normal",
+    "convergio": true,
+    "iteraciones": 62,
+    "error_max_hogares": 5.768e-09,
+    "error_relativo_max": 5.341e-13
+   },
+   {
+    "forma": "uniforme",
+    "convergio": true,
+    "iteraciones": 63,
+    "error_max_hogares": 6.434e-09,
+    "error_relativo_max": 5.957e-13
+   },
+   {
+    "forma": "exponencial",
+    "convergio": true,
+    "iteraciones": 69,
+    "error_max_hogares": 6.605e-09,
+    "error_relativo_max": 6.116e-13
+   },
+   {
+    "forma": "meseta",
+    "convergio": true,
+    "iteraciones": 45,
+    "error_max_hogares": 6.05e-09,
+    "error_relativo_max": 5.602e-13
+   },
+   {
+    "forma": "bimodal",
+    "convergio": true,
+    "iteraciones": 48,
+    "error_max_hogares": 4.908e-09,
+    "error_relativo_max": 4.544e-13
+   },
+   {
+    "forma": "valle",
+    "convergio": true,
+    "iteraciones": 45,
+    "error_max_hogares": 3.507e-09,
+    "error_relativo_max": 3.247e-13
+   }
+  ],
+  "por_escala": [
+   {
+    "suma_H": 3600,
+    "error_max_hogares": 7.001e-10,
+    "iteraciones": 61
+   },
+   {
+    "suma_H": 36000,
+    "error_max_hogares": 5.768e-09,
+    "iteraciones": 62
+   },
+   {
+    "suma_H": 144000,
+    "error_max_hogares": 2.467e-08,
+    "iteraciones": 62
+   }
+  ]
+ },
+ "despacho": {
+  "filas": [
+   {
+    "caso": "lambda uniforme (forma cerrada)",
+    "lambdas": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "rama": "forma cerrada",
+    "razon_escalas": 1.0,
+    "convergio": true,
+    "iteraciones": 31,
+    "error_balance_hogares": 3.947e-06,
+    "columnas_suman_uno_error": 2.22e-16
+   },
+   {
+    "caso": "lambda del default (HEV)",
+    "lambdas": [
+     0.000314,
+     0.000628,
+     0.001216
+    ],
+    "rama": "HEV",
+    "razon_escalas": 3.9,
+    "convergio": true,
+    "iteraciones": 62,
+    "error_balance_hogares": 5.768e-09,
+    "columnas_suman_uno_error": 2.22e-16
+   },
+   {
+    "caso": "lambda razon 10 (HEV)",
+    "lambdas": [
+     0.1,
+     1.0,
+     1.0
+    ],
+    "rama": "HEV",
+    "razon_escalas": 10.0,
+    "convergio": true,
+    "iteraciones": 50,
+    "error_balance_hogares": 1.695e-06,
+    "columnas_suman_uno_error": 2.22e-16
+   },
+   {
+    "caso": "lambda razon 100 (HEV)",
+    "lambdas": [
+     0.01,
+     1.0,
+     1.0
+    ],
+    "rama": "HEV",
+    "razon_escalas": 100.0,
+    "convergio": true,
+    "iteraciones": 63,
+    "error_balance_hogares": 6.352e-07,
+    "columnas_suman_uno_error": 2.22e-16
+   }
+  ],
+  "nota": "El balance `Σ_i S_i·Q_hi = H_h` se cumple a precisión de máquina en las dos ramas, pero NINGUNA lo exige para declarar `converged`: la bandera sale del residuo del punto fijo. Es el pendiente que dejó la auditoría externa del 2026-09-05."
+ },
+ "asignacion_entera": {
+  "S_conservado_por_celda": true,
+  "H_objetivo": [
+   7200,
+   18000,
+   10800
+  ],
+  "H_obtenido": [
+   7200,
+   18000,
+   10800
+  ],
+  "desvio_por_estrato": [
+   0,
+   0,
+   0
+  ],
+  "desvio_total_abs": 0,
+  "desvio_relativo_max_pct": 0.0
+ },
+ "perillas": {
+  "mu": [
+   {
+    "mu": 0.05,
+    "dist_km": [
+     2.922,
+     3.318,
+     4.634
+    ],
+    "theil": 0.037,
+    "grad_p": 0.944,
+    "iteraciones": 18
+   },
+   {
+    "mu": 0.3,
+    "dist_km": [
+     1.383,
+     2.889,
+     6.375
+    ],
+    "theil": 0.3918,
+    "grad_p": 0.952,
+    "iteraciones": 62
+   },
+   {
+    "mu": 0.5,
+    "dist_km": [
+     1.038,
+     2.884,
+     6.612
+    ],
+    "theil": 0.5561,
+    "grad_p": 0.952,
+    "iteraciones": 102
+   },
+   {
+    "mu": 1.0,
+    "dist_km": [
+     0.803,
+     2.895,
+     6.75
+    ],
+    "theil": 0.7441,
+    "grad_p": 0.952,
+    "iteraciones": 226
+   }
+  ],
+  "rho": [
+   {
+    "rho": 0.0,
+    "dist_km": [
+     1.383,
+     2.889,
+     6.375
+    ],
+    "theil": 0.3918,
+    "grad_p": 0.952,
+    "iteraciones": 62
+   },
+   {
+    "rho": 10.0,
+    "dist_km": [
+     1.702,
+     2.949,
+     6.061
+    ],
+    "theil": 0.2896,
+    "grad_p": 0.935,
+    "iteraciones": 44
+   },
+   {
+    "rho": 20.0,
+    "dist_km": [
+     2.478,
+     3.014,
+     5.436
+    ],
+    "theil": 0.1713,
+    "grad_p": 0.903,
+    "iteraciones": 30
+   },
+   {
+    "rho": 31.0,
+    "dist_km": [
+     4.374,
+     3.045,
+     4.119
+    ],
+    "theil": 0.1061,
+    "grad_p": 0.796,
+    "iteraciones": 21
+   },
+   {
+    "rho": 40.0,
+    "dist_km": [
+     5.962,
+     3.004,
+     3.129
+    ],
+    "theil": 0.1894,
+    "grad_p": 0.48,
+    "iteraciones": 28
+   },
+   {
+    "rho": 54.0,
+    "dist_km": [
+     7.012,
+     2.992,
+     2.449
+    ],
+    "theil": 0.3346,
+    "grad_p": -0.381,
+    "iteraciones": 55
+   },
+   {
+    "rho": 60.0,
+    "dist_km": [
+     7.181,
+     3.036,
+     2.263
+    ],
+    "theil": 0.3799,
+    "grad_p": -0.543,
+    "iteraciones": 67
+   }
+  ]
+ },
+ "invariancias": {
+  "grilla": [
+   {
+    "n_celdas": 101,
+    "theil": 0.3882,
+    "dist_km": [
+     1.435,
+     2.907,
+     6.374
+    ]
+   },
+   {
+    "n_celdas": 201,
+    "theil": 0.3918,
+    "dist_km": [
+     1.383,
+     2.889,
+     6.375
+    ]
+   },
+   {
+    "n_celdas": 401,
+    "theil": 0.3936,
+    "dist_km": [
+     1.356,
+     2.879,
+     6.375
+    ]
+   }
+  ],
+  "tamano_fisico": [
+   {
+    "largo_km": 10.0,
+    "dist_km": [
+     1.808,
+     2.817,
+     6.21
+    ],
+    "theil": 0.2975,
+    "grad_p": 0.987,
+    "iteraciones": 50
+   },
+   {
+    "largo_km": 20.0,
+    "dist_km": [
+     1.383,
+     2.889,
+     6.375
+    ],
+    "theil": 0.3918,
+    "grad_p": 0.952,
+    "iteraciones": 62
+   },
+   {
+    "largo_km": 40.0,
+    "dist_km": [
+     1.059,
+     2.862,
+     6.635
+    ],
+    "theil": 0.5676,
+    "grad_p": 0.812,
+    "iteraciones": 115
+   }
+  ]
+ },
+ "invariancia_poblacion": {
+  "rho_v7": 54.0,
+  "rho_v6_por_hog_km": 0.03,
+  "filas": [
+   {
+    "suma_H": 36000,
+    "densidad_media_hog_km": 1800,
+    "v7": {
+     "rho": 54.0,
+     "dist_km": [
+      7.012,
+      2.992,
+      2.449
+     ],
+     "theil": 0.3346,
+     "grad_p": -0.381,
+     "iteraciones": 55
+    },
+    "v6_equivalente": {
+     "rho_en_v7": 54.0,
+     "dist_km": [
+      7.012,
+      2.992,
+      2.449
+     ],
+     "theil": 0.3346,
+     "grad_p": -0.381,
+     "iteraciones": 55
+    }
+   },
+   {
+    "suma_H": 72000,
+    "densidad_media_hog_km": 3600,
+    "v7": {
+     "rho": 54.0,
+     "dist_km": [
+      7.012,
+      2.994,
+      2.447
+     ],
+     "theil": 0.3347,
+     "grad_p": -0.381,
+     "iteraciones": 55
+    },
+    "v6_equivalente": {
+     "rho_en_v7": 108.0,
+     "dist_km": [
+      7.476,
+      3.352,
+      1.542
+     ],
+     "theil": 0.5759,
+     "grad_p": -0.891,
+     "iteraciones": 158
+    }
+   },
+   {
+    "suma_H": 144000,
+    "densidad_media_hog_km": 7200,
+    "v7": {
+     "rho": 54.0,
+     "dist_km": [
+      7.012,
+      2.994,
+      2.447
+     ],
+     "theil": 0.3348,
+     "grad_p": -0.381,
+     "iteraciones": 55
+    },
+    "v6_equivalente": {
+     "rho_en_v7": 216.0,
+     "dist_km": [
+      7.525,
+      3.608,
+      1.081
+     ],
+     "theil": 0.7808,
+     "grad_p": -0.982,
+     "iteraciones": 363
+    }
+   }
+  ]
+ },
+ "configuracion_vigente": {
+  "H_por_estrato": [
+   7200,
+   18000,
+   10800
+  ],
+  "y_clp_mes": [
+   3500000.0,
+   1500000.0,
+   500000.0
+  ],
+  "lambda_utiles_por_clp": [
+   0.000313794,
+   0.000627686,
+   0.001216167
+  ],
+  "alpha": 1.0,
+  "rho": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "mu": 0.3,
+  "mu_formula": "valor de escenario, LandUseConfig.mu (schema v10)",
+  "beta_h_por_clp": [
+   9.41382e-05,
+   0.0001883058,
+   0.0003648501
+  ],
+  "escala_ruido_puja_clp_mes": [
+   10623,
+   5311,
+   2741
+  ],
+  "VIAJES_MES": 44,
+  "vot_transporte_clp_h": [
+   6329,
+   3164,
+   1633
+  ],
+  "clp_por_util_de_accesibilidad": [
+   3187,
+   1593,
+   822
+  ],
+  "forma": "normal",
+  "oferta_sigma_frac": 0.5,
+  "vot_sobre_salario_hora_implicito": [
+   0.33,
+   0.38,
+   0.59
+  ]
+ },
+ "escalas": {
+  "por_estrato": [
+   {
+    "estrato": "alto",
+    "senal_accesibilidad_clp": 203341,
+    "ruido_clp": 10623,
+    "senal_sobre_ruido": 19.1,
+    "ruido_con_mu_1_clp": 3187,
+    "senal_sobre_ruido_con_mu_1": 63.8
+   },
+   {
+    "estrato": "medio",
+    "senal_accesibilidad_clp": 139357,
+    "ruido_clp": 5311,
+    "senal_sobre_ruido": 26.2,
+    "ruido_con_mu_1_clp": 1593,
+    "senal_sobre_ruido_con_mu_1": 87.5
+   },
+   {
+    "estrato": "bajo",
+    "senal_accesibilidad_clp": 89868,
+    "ruido_clp": 2741,
+    "senal_sobre_ruido": 32.8,
+    "ruido_con_mu_1_clp": 822,
+    "senal_sobre_ruido_con_mu_1": 109.3
+   }
+  ],
+  "rango_T_medio_utiles_mes": 87.5,
+  "rango_densidad_relativa": 1.463,
+  "rho_que_iguala_T": 59.8
+ },
+ "reescala_mu": {
+  "k": 0.3,
+  "rho_base": 20.0,
+  "hev_mu_1_con_lambda_alpha_rho_por_k": {
+   "max_delta_Q": 2.3092638912203256e-14,
+   "max_delta_p_clp": 1.3969838619232178e-09,
+   "max_delta_u_clp": 0.0
+  },
+  "hev_mu_1_con_solo_lambda_por_k": {
+   "max_delta_Q": 0.45576109966232475,
+   "max_delta_p_clp": 295288.1940118503,
+   "max_delta_u_clp": 63170.21855603345
+  },
+  "cerrada_mu_1_con_lambda_alpha_rho_por_k": {
+   "max_delta_Q": 4.246603069191224e-14,
+   "max_delta_p_clp": 9.313225746154785e-10,
+   "max_delta_u_clp": 4.656612873077393e-10
+  },
+  "parametros_equivalentes_con_mu_1": {
+   "lambda": [
+    9.41382e-05,
+    0.0001883058,
+    0.0003648501
+   ],
+   "alpha": 0.3,
+   "rho": 6.0
+  }
+ },
+ "rho_umbral": {
+  "rho_inversion": 30.26,
+  "criterio": "d_alto = d_bajo",
+  "dial_ui_max": 60.0
+ },
+ "fuentes_externas": {
+  "casen_2022": {
+   "que": "Ingreso autónomo promedio mensual de los hogares por decil de ingreso autónomo per cápita, $ de noviembre de 2022 (Observatorio Social, «Ingresos de los hogares, síntesis de resultados», versión oct-2023)",
+   "por_decil_clp": [
+    94767,
+    386988,
+    551052,
+    670525,
+    842463,
+    1044632,
+    1163685,
+    1496944,
+    2002295,
+    4154848
+   ],
+   "promedio_nacional_clp": 1236534,
+   "promedio_por_tercil_20_50_30_clp": [
+    3078572,
+    1043650,
+    344269
+   ]
+  },
+  "sni_2026": {
+   "que": "Precios Sociales 2026, cap. 2 y Tabla 2.1 (CLP de diciembre de 2025)",
+   "vst_urbano_en_vehiculo_clp_h": 3338,
+   "vst_urbano_espera_y_caminata_clp_h": 6676,
+   "costo_mano_de_obra_hora_clp": 8235,
+   "viaje_al_trabajo_clp_h": 4117.5,
+   "nota": "El documento no distingue valores por ingreso: «aduciendo regresividad, se ha desestimado la distinción por ingresos de las personas»."
+  },
+  "binsuwadan_2023": {
+   "que": "Binsuwadan, Wardman, de Jong, Batley y Wheat (2023), Transport Policy 136, 126–136, Tabla 5: elasticidad-ingreso del valor del tiempo, viaje al trabajo en auto",
+   "transversal_ingreso_hogar_media": 0.27,
+   "transversal_ingreso_personal_media": 0.37,
+   "intertemporal_ingreso_hogar_media": 0.62
+  }
+ }
+}

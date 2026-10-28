@@ -1,0 +1,116 @@
+---
+slug: assignment
+order: 6
+title: Assignment methods
+tagline: Logit (probabilities or sampling) and all-or-nothing
+---
+
+# Assignment methods
+
+The equilibrium loop of the previous chapter needs, at every iteration, to split each group of travellers across the available modes. The simulator offers **three ways of doing it**, and the choice is not a numerical detail: it changes the assumption about how people decide, and with it the results.
+
+| Method | What it does with a group of $n$ travellers |
+| --- | --- |
+| **Logit — sampling** | Draws each traveller's mode from the logit probabilities (Monte Carlo) |
+| **Logit — probabilities** | Assigns $n \cdot P_m$ travellers to each mode $m$ (no draw) |
+| **All-or-nothing** | Sends all $n$ to the highest-utility mode |
+
+The first two are the **same model**, the logit, computed in two ways: "probabilities" is the expected value of the draw, without sampling noise. In the literature it is *stochastic network loading*, and its equilibrium is the **stochastic user equilibrium** (SUE). The third one is different, and is the one worth understanding.
+
+## The deterministic method is logit with zero variance
+
+In the demand chapter, the probability of choosing mode $m$ comes from the multinomial logit:
+
+$$
+P_m = \frac{e^{\lambda V_m}}{\sum_k e^{\lambda V_k}}
+$$
+
+where $V_m$ is the systematic utility — what the model observes: times, costs, constants — and $\lambda$ scales the relative weight of the observed part against the **unobserved** one (each person's idiosyncratic taste, which the modeller cannot see).
+
+As $\lambda$ grows, the unobserved part becomes negligible and the logit concentrates on the best mode:
+
+$$
+P_m \;\longrightarrow\; \mathbb{1}\{m = \arg\max_k V_k\} \qquad \text{as } \lambda \to \infty
+$$
+
+That is exactly the deterministic method. It is not a rival of the logit: it is its **limiting case**, the one of a perfectly homogeneous population within each group.
+
+This can be checked with the times of the default equilibrium held fixed. Multiplying every utility coefficient by a growing factor — which is equivalent to raising $\lambda$ — brings the logit split monotonically towards sending each group to its best mode (with fixed times because the deterministic method, as we will see, does not always have an equilibrium to measure against):
+
+| Coefficient scale | Largest split difference with the deterministic method |
+| --- | --- |
+| ×1 | 20.27 pp |
+| ×5 | 2.41 pp |
+| ×20 | 0.85 pp |
+| ×50 | 0.42 pp |
+
+## Why it matters: same model, two elasticities
+
+A group in the simulator is the triple **(stratum, origin cell, car ownership)**: people facing the same times with the same coefficients. The default city has 1,200 groups.
+
+Under logit, when a policy improves a mode, each group shifts **a fraction** of its mass. Under the deterministic method the group moves **as a whole**, or not at all. Aggregated over 1,200 groups, that changes the system's response by a large factor.
+
+Going from 1 to 6 lanes, the metro's share:
+
+| Lanes per direction | Metro, logit | Metro, deterministic |
+| --- | --- | --- |
+| 1 | 31.49 % | 25.42 %\* |
+| 2 | 26.45 % | 6.76 % |
+| 3 | 24.21 % | 3.89 % |
+| 4 | 23.42 % | 2.94 % |
+| 6 | 23.04 % | 2.61 % |
+
+\* Converges, but needs 548 iterations, within the cap of 700 that the interface sets when the method is chosen. Every run converges.
+
+The logit loses 8.45 points; the deterministic method, 22.81. **Same city, same calibration, same data**: only the amount of unobserved heterogeneity attributed to the population changes.
+
+## The phenomenon that shows up on one side only
+
+That sharper shift has a consequence worth the whole chapter. As it loses passengers, the metro reduces its frequency — less demand, fewer trains — and waiting time rises. Under the deterministic method, between 1 and 2 lanes:
+
+- frequency falls from 4.58 to 2.00 trains/hour,
+- waiting time rises from 6.56 to 15.00 minutes,
+- and the **mean perceived generalized cost rises** from 31.51 to 37.00 equivalent-minutes (minutes weighted as in the utility, plus money turned into minutes with each stratum's value of time).
+
+In other words: **adding road capacity made the population worse off**. That is the Downs-Thomson paradox, and it can be reproduced from the interface by picking the deterministic method and moving the lanes control.
+
+With a caveat: the deterministic method converges, but slowly. The MSA averages each group's **flows** between iterations — the classic MSA for user equilibrium — and stops when the **average excess cost**, the minutes each traveller pays over the best mode for their group, falls below one thousandth of the mean travel time. That cost falls like 1/n: with 1 and 2 lanes it takes 548 and 167 iterations, which is why choosing the method makes the interface raise the cap to 700. The rule stops with the split still moving a little — chapter 5 of the book shows that with 4 lanes it stops at iteration 10 with the metro at 2.94 %, and that without a cutoff it falls to 2.93 % by iteration 700 — but the drop between 1 and 2 lanes, almost 19 points, is far larger than that. Chapter 7 measures welfare with the same rule, and it falls between 1 and 2 lanes.
+
+Under logit the same generalized-cost curve falls monotonically from 36.13 to 31.39: the paradox does not appear. The logit's fractional shift is too smooth for the metro's degradation to outweigh the car's improvement.
+
+## An important warning about the name
+
+The deterministic method is often called "Wardrop", after the **user equilibrium principle** (Wardrop, 1952), which states:
+
+> Every used route connecting an origin and destination has equal and minimal travel time.
+
+The key phrase is **"connecting an origin and destination"**: equality is required *within* an origin-destination pair. Used routes belonging to different pairs may well have different times.
+
+In this city each cell is a different origin and each stratum a different user class, so the condition **says nothing about the aggregate**. And indeed it does not hold: in the deterministic equilibrium with 4 lanes all four modes are used at once with mean generalized costs differing by almost 60 minutes.
+
+| Mode used | Mean generalized cost (equiv-min) |
+| --- | --- |
+| Walking | 12.47 |
+| Bicycle | 24.39 |
+| Car | 40.82 |
+| Metro | 71.85 |
+
+The reason is that equality holds **within** each group. Most groups put their mass on a single mode, and a group with only one alternative in use satisfies the condition trivially: there are no two used routes to compare. The groups left split between two modes are the indifferent ones, and for them the two costs do equalize, within the tolerance. The modal split observed in the aggregate is **composition** across 1,200 groups that decide differently, not arbitrage among travellers.
+
+That is why the interface calls it "All-or-nothing" and not "Wardrop".
+
+## Multiple equilibria
+
+Under all-or-nothing, two similar setups can end up with different splits, because the equilibrium need not be unique. This is not a programming defect: uniqueness of user equilibrium requires each mode's cost to be **strictly increasing** in its own flow, and the metro does the opposite — more passengers, more frequency, less waiting. It is the same Mohring effect that makes Downs-Thomson possible.
+
+Put differently: **the phenomenon this chapter teaches and the lack of uniqueness are the same thing seen twice.** To compare scenarios, always use the same sweep from the same initial configuration.
+
+## Which one to use
+
+- **Logit — probabilities** — the default, and the right choice for almost everything. It is the standard discrete-choice model with a heterogeneous population, without sampling noise.
+- **Logit — sampling** — when sampling variability is the point, or to illustrate that the expected split is an average of realizations.
+- **All-or-nothing** — to isolate equilibrium mechanisms. Removing taste dispersion exposes phenomena that the logit damps out. It is sharper, not more realistic.
+
+Two practical notes. First, the deterministic method converges much more slowly. It needs 548 and 167 iterations with 1 and 2 lanes, 147 with 3, and 10 and 13 with 4 and 6; the logit, 20 with 1 lane and 6 to 16 with more. Choosing the deterministic method makes the interface raise the cap to at least 700, in case you had lowered it. Check the convergence indicator before reading a deterministic result. Second, the welfare measure changes with the method: under the logit, surplus is measured with the **logsum** (`ln Σ e^{V_m}`, which is `E[max]` when there is a Gumbel random term), and under the deterministic method with **mean maximum utility** (`max_m V_m`, since without that term the agent simply takes the best mode). The results table switches measure on its own and labels it. Do not compare levels across methods: the logsum always sits above, and that gap is the value the logit assigns to variety.
+
+<NextStep to="land-use">Land-use module</NextStep>

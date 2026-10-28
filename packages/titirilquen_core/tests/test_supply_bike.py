@@ -45,6 +45,24 @@ def test_demanda_cero_produce_tiempos_flujo_libre_no_negativos() -> None:
     assert np.all(res.t_usuarios_min >= 0)
 
 
+def test_flujo_libre_es_de_centroide_a_centroide() -> None:
+    """D-71 (oct-2026): a k celdas del CBD se recorren k·dx, media celda propia,
+    las k − 1 intermedias y media del CBD, como en la caminata y el metro. Antes
+    faltaba la media del CBD: (k − ½)·dx."""
+    N = 11
+    res = demora_bici_tramo(
+        ubicacion_centro_km=5.5,
+        capacidad=800,
+        demanda=np.zeros(N),
+        v_media=14,
+        L_ciudad_km=11.0,
+        alpha=0.5,
+        beta=2.0,
+    )
+    k = np.abs(np.arange(N) - N // 2)
+    assert np.allclose(res.t_usuarios_min, k * 1.0 / 14 * 60, rtol=0, atol=1e-12)
+
+
 def test_centro_tiene_tiempo_cero() -> None:
     N = 11
     demanda = np.full(N, 100.0)
@@ -78,3 +96,39 @@ def test_demora_creciente_con_distancia() -> None:
     # Celda contigua al centro debe tener menos demora que el extremo
     assert res.t_usuarios_min[0] > res.t_usuarios_min[idx_centro - 1]
     assert res.t_usuarios_min[-1] > res.t_usuarios_min[idx_centro + 1]
+
+
+def test_pendiente_afecta_igual_a_los_dos_lados_de_la_ciudad() -> None:
+    """La pendiente es la del viaje HACIA el CBD, comun a toda la ciudad.
+
+    Antes se aplicaba +p a la izquierda y -p a la derecha (un plano inclinado),
+    asi que el agregado promediaba subida y bajada y `+p` daba lo MISMO que
+    `-p`: el signo de un parametro fisico era irrelevante (AT-05). Ahora subir
+    la pendiente encarece el viaje de todos, y el perfil queda simetrico
+    respecto del CBD.
+    """
+    n, cbd = 101, 50
+    demanda = np.full(n, 5.0)
+    args = {
+        "ubicacion_centro_km": 10.0,
+        "capacidad": 800,
+        "demanda": demanda,
+        "v_media": 14.0,
+        "L_ciudad_km": 20.0,
+        "alpha": 0.5,
+        "beta": 2.0,
+        "v_caminata": 4.8,
+    }
+
+    subida = demora_bici_tramo(**args, pendiente_porcentaje=8.0).t_usuarios_min
+    bajada = demora_bici_tramo(**args, pendiente_porcentaje=-8.0).t_usuarios_min
+
+    # 1) El signo YA NO es irrelevante: subir cuesta mas que bajar.
+    assert subida.max() > bajada.max()
+
+    # 2) Con demanda simetrica el perfil de tiempos es simetrico respecto del
+    #    CBD: los dos lados enfrentan la misma pendiente.
+    izq = subida[:cbd][::-1]
+    der = subida[cbd + 1 :]
+    m = min(len(izq), len(der))
+    np.testing.assert_allclose(izq[:m], der[:m], rtol=1e-9)

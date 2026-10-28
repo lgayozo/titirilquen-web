@@ -1,0 +1,107 @@
+---
+slug: land-use
+order: 7
+title: Uso de suelo
+tagline: Bid-rent, subasta heteroscedástica y el valor del tiempo
+---
+
+# Uso de suelo
+
+El módulo de suelo (página **Uso de suelo**) resuelve dónde vive cada hogar mediante una **subasta** tipo Alonso–Muth–Mills: cada estrato puja por las parcelas y el que más valora cada ubicación la gana, empujando al resto hacia la periferia. La notación es la de Martínez (2018, cap. 4).
+
+## Utilidad y disposición a pagar
+
+La utilidad de un hogar del estrato $h$ en la parcela $i$, pagando renta $p_i$, es **lineal en el ingreso** y tiene un término aleatorio:
+
+$$
+v_{hi} = \lambda_h\,(y_h - p_i) + f_h(z_i) + \varepsilon_{hi}, \qquad \varepsilon_{hi} \sim \text{Gumbel}(0, \mu)
+$$
+
+<OverleafRef sec="Suelo · Función de puje" />
+
+donde $\lambda_h$ es la utilidad marginal del ingreso, en utiles por peso, $y_h$ el ingreso mensual del estrato y $f_h(z_i)$ lo que la parcela vale por sí misma:
+
+$$
+f_h(z_i) = -T_h(i) - \rho_h\, d_i, \qquad d_i = \frac{S_i}{\bar S}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-2" />
+
+$T_h(i)$ es la **accesibilidad**: el costo mensual de vivir en $i$ y tener que viajar, igual a $-44$ veces el logsum del logit modal del capítulo de Demanda, a flujo libre. Está en utiles de transporte por mes y es distinta para cada estrato, porque cada uno tiene su propio logit. Entra con peso 1: la puja lee esa accesibilidad tal cual. $\rho_h$ penaliza la **densidad relativa** $d_i$, la densidad de la celda sobre la media de la ciudad, y vale 0 por defecto; está en utiles-mes, y por ser relativa el mismo $\rho$ significa lo mismo con 25.000 que con 100.000 hogares.
+
+Con $\lambda_h$ igual al coeficiente de costo del logit modal, el mismo hogar tiene **una sola función de utilidad** en los dos módulos: su valor del tiempo es 6.329, 3.164 y 1.633 pesos por hora para los estratos alto, medio y bajo, el mismo con que elige modo. Por eso el suelo no tiene un $\lambda$ propio: lo lee de la demanda, y se mueve desde la página **Calibración**. Cambiar $b_{\text{costo}}$ mueve a la vez $\lambda_h$ y la accesibilidad $T_h$.
+
+Despejando el precio al nivel de utilidad de reserva $u_h$ se obtiene la **disposición a pagar** (_willingness to pay_), que también es aleatoria:
+
+$$
+w_{hi} = y_h + \frac{f_h(z_i) - u_h}{\lambda_h}, \qquad \theta_{hi} = w_{hi} + \frac{\varepsilon_{hi}}{\lambda_h}
+$$
+
+<OverleafRef sec="Suelo · Función de puje" tag="S-3" />
+
+Dividir por $\lambda_h$ pasa todo a pesos, también el ruido: la puja tiene precisión $\beta_h = \lambda_h\,\mu$. Como los $\lambda_h$ difieren, **cada estrato puja con un ruido distinto**: el alto, que valora menos cada peso, tiene el ruido más ancho en pesos.
+
+## La subasta
+
+Si todos los postores de una parcela tuvieran la misma precisión $\beta_i$, la probabilidad de que la gane un hogar del estrato $h$ sería un logit:
+
+$$
+Q_{h/i} = \frac{H_h\, e^{\beta_i w_{hi}}}{\sum_{g} H_g\, e^{\beta_i w_{gi}}}
+$$
+
+<OverleafRef sec="Suelo · Asignación probabilística" />
+
+Eso pasa sólo si los tres $\lambda_h$ son iguales. Con los valores por defecto las precisiones difieren, y el simulador usa la **subasta heteroscedástica** (HEV, Train §4.5): la misma idea, pero con una integral en vez de una fracción, que se resuelve por cuadratura. El factor $H_h$ (número de postores de cada tipo) garantiza la **conservación por estrato** en el equilibrio: $\sum_i S_i\, Q_{h/i} = H_h$.
+
+<OverleafRef sec="Suelo · Asignación probabilística" tag="S-4" />
+
+El equilibrio se obtiene como punto fijo sobre las utilidades de reserva $u_h$ (cada estrato coloca exactamente sus $H_h$ hogares). El **precio** de la parcela es el máximo esperado de las pujas; en el caso de precisión común tiene forma cerrada:
+
+$$
+p_i^{*} = \frac{1}{\beta_i} \ln\left( \sum_g H_g\, e^{\beta_i w_{gi}} \right) + \frac{\gamma}{\beta_i}
+$$
+
+<OverleafRef sec="Suelo · Interpretación del punto fijo" />
+
+con $\gamma \approx 0{,}577$ la constante de Euler. Los precios están definidos salvo una constante: solo el **gradiente** espacial es informativo.
+
+## $\lambda$, el valor del tiempo y por qué importa la subasta heteroscedástica
+
+Lo que ordena a los estratos en el espacio es **$\lambda$**: la accesibilidad vale en pesos $T_h/\lambda_h$, y el estrato alto, con el $\lambda$ menor, la valora más y puja más fuerte por la del centro.
+
+<Callout type="warn">
+**Con la subasta logit de precisión común, $\lambda$ no se puede leer.** La puja divide $f$ por $\lambda_h$, y $f$ es lineal en $T$ y $\rho$:
+
+$$
+y_h + \frac{f_h(z_i)}{\lambda_h} \;\equiv\; y_h + f\!\left(z_i;\; \frac{T_h}{\lambda_h},\; \frac{\rho_h}{\lambda_h}\right)
+$$
+
+Mover $\lambda_h$ sería exactamente re-escalar las preferencias de ese estrato. La subasta heteroscedástica rompe esa equivalencia, porque $\lambda_h$ mueve además la dispersión de la puja, que la re-escala de preferencias no toca. Por eso el simulador la usa: con ella $\lambda$ queda identificado. En una subasta, en cambio, $\lambda$ nunca actúa por sensibilidad al precio: todos los postores de una parcela pagan lo mismo, así que el precio se cancela.
+
+</Callout>
+
+<Callout type="info">
+Probá, en la configuración por defecto de la página:
+
+- **Igualar los tres $\lambda$** al del estrato medio, es decir, sus $b_{\text{costo}}$: en **Calibración**, lleva el slider «$s$» de «Valor del tiempo entre estratos» a 0 y vuelve a simular. El valor del tiempo pasa a ser el mismo para todos y **el orden de Alonso se pierde**: el Theil cae de 0,39 a 0,10 y la ciudad queda invertida, con el estrato alto a 5,0 km del CBD y el bajo a 2,4. Sin diferencias de valor del tiempo no hay Alonso. Lo que queda es la tenencia de auto: el alto tiene más, y el auto le aplana la accesibilidad, así que el centro le vale menos que al bajo.
+- **Duplicar $\lambda$ del estrato alto.** Su valor del tiempo baja a la mitad y se aleja del centro: pasa de 1,4 a 3,1 km, más lejos que el medio. Con $\lambda$ a la mitad se acerca, a 1,0 km.
+- **Duplicar el ingreso $y$ del estrato alto.** No reasigna a nadie: el ingreso entra como constante y se absorbe en la utilidad de reserva $u_h$.
+</Callout>
+
+## La precisión $\mu$
+
+$\mu$ mide cuánto ruido tiene elegir casa frente a elegir modo: el ruido de la puja, en pesos al mes, es $1/(\mu\lambda_h)$. Es un **valor de escenario**, 0,30 por defecto, y se mueve en Uso de suelo, en «Parámetros de puja», con tres presets: _Mezclada_ (0,10), _Base_ (0,30) y _Segregada_ (0,80). Con $\mu$ bajo pesa el gusto idiosincrático de cada hogar y los estratos se mezclan; con $\mu$ alto pesa la accesibilidad y cada estrato se queda con su franja. Con $\mu = 1$ la subasta es casi determinista y el Theil sube de 0,39 a 0,75.
+
+No hay un $\mu$ que se pueda traer de otra ciudad: se **calibra**. El logit de subasta se estima con datos de dónde vive cada estrato (Martínez 2018, §9.3), y si además se observan rentas, la ecuación de rentas identifica la escala del ruido (Lerman y Kern 1983). Para Santiago el blanco sería la distancia media al centro de empleo por estrato de ingreso, no un Theil: allí la segregación es sectorial (el cono oriente) y una ciudad lineal no la reproduce. Hasta octubre de 2026 $\mu$ valía $1/\sqrt{44} \approx 0{,}151$, por una analogía con 44 shocks de viaje independientes al mes; no se sostiene, porque esos shocks ya están integrados en el logsum de la accesibilidad.
+
+En la subasta sólo entran $\mu T$ y $\mu \rho$: mover $\mu$ escala a la vez la sensibilidad a la accesibilidad y la penalización por densidad. Por eso el umbral de $\rho$ que invierte a Alonso casi no depende de $\mu$: 31 con 0,151 y 30 con 0,30.
+
+## La forma de la ciudad
+
+La oferta $S(i)$ se genera **determinista** (discretización por mayor residuo, $\sum_i S_i = \sum_h H_h$ exacto, CBD vacío) con seis formas parametrizables: normal, uniforme, exponencial, meseta, bimodal y valle, con dispersión $\sigma$ como fracción de la semi-ciudad.
+
+La **densidad por celda** es una consecuencia directa de la oferta: $\text{dens}(i) = S_i/\Delta x$, así que sigue la forma elegida (no es un gradiente impuesto). La figura de distribución de estratos tiene esa envolvente; el bid-rent solo reordena _quién_ vive dónde, sin cambiar _cuántos_ por celda.
+
+<OverleafRef sec="Suelo (oferta S)" tag="S-1" />
+
+<NextStep to="welfare">Bienestar</NextStep>

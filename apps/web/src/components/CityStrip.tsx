@@ -1,8 +1,11 @@
+import { ticks } from "d3";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
+import { COLOR_MODO, fmtDecimal } from "@/lib/modos";
 
-type SingleMode = "auto" | "metro" | "bici" | "caminata";
+export type SingleMode = "auto" | "metro" | "bici" | "caminata";
 /** Vistas de la figura: un modo individual, todos los modos a la vez, o el
  *  tiempo de espera del tren por estación. */
 export type CityView = SingleMode | "todos" | "espera";
@@ -11,10 +14,15 @@ interface ModeTimes {
   t_auto: number;
   t_metro: number;
   t_bici: number;
+  /** Tiempo de la bici en red vacía: sobre él se aplica su corte (D9). */
+  t_bici_libre?: number;
   t_caminata: number;
   /** Tiempo de espera del metro (escalonado por estación). */
   t_espera: number;
 }
+
+/** Las series que se grafican: `t_bici_libre` sólo sirve para el corte. */
+type TiempoKey = Exclude<keyof ModeTimes, "t_bici_libre">;
 
 interface CityStripProps {
   nCeldas: number;
@@ -26,37 +34,51 @@ interface CityStripProps {
   shareEstratos?: readonly [number, number, number];
   /** Vista activa; define qué se grafica y el color uniforme de las barras */
   heatMode?: CityView;
-  /** Umbral de factibilidad (min) del modo: sobre él las barras se atenúan y se dibuja una línea de corte. */
+  /** Corte (min) del modo resaltado: se dibuja como línea. */
   cutoffMin?: number;
+  /** Cortes de factibilidad por modo (min): sobre ellos el modo se atenúa y se
+   *  tacha en el tooltip. Vacío si la especificación no saca modos del
+   *  conjunto de elección («suaves»). */
+  cortes?: Partial<Record<SingleMode, number>>;
   /** Etiqueta de la línea de corte (ya traducida). */
   cutoffLabel?: string;
   /** Posiciones (km) de las estaciones de tren — marcadores verticales. */
   estacionesKm?: readonly number[];
   /** Cuando cambia este token, se dispara un flash visual (para indicar "nueva iteración"). */
   iterationToken?: number | string;
+  /** Modo a resaltar en la vista "todos"; los otros se atenúan. Deja de hacer
+   *  falta cambiar de figura para comparar dos modos. */
+  highlight?: SingleMode | null;
   className?: string;
   height?: number;
 }
 
-const MARGIN = { top: 12, right: 10, bottom: 26, left: 48 };
+// top 15: el rótulo «CBD» va sobre la franja y con 12 px (B2) se cortaba.
+const MARGIN = { top: 15, right: 10, bottom: 26, left: 48 };
 
 /** Color uniforme por modo — el color codifica QUÉ modo se está mostrando. */
 const MODE_COLOR: Record<SingleMode, string> = {
-  auto: "var(--auto)",
-  metro: "var(--metro)",
-  bici: "var(--bici)",
-  caminata: "var(--walk)",
+  auto: COLOR_MODO.Auto,
+  metro: COLOR_MODO.Metro,
+  bici: COLOR_MODO.Bici,
+  caminata: COLOR_MODO.Caminata,
 };
 
 /** Modos incluidos (en orden de apilado de leyenda) en la vista "todos". */
-const ALL_MODES: ReadonlyArray<{ mode: SingleMode; key: keyof ModeTimes }> = [
+const ALL_MODES: ReadonlyArray<{ mode: SingleMode; key: TiempoKey }> = [
   { mode: "auto", key: "t_auto" },
   { mode: "metro", key: "t_metro" },
   { mode: "bici", key: "t_bici" },
   { mode: "caminata", key: "t_caminata" },
 ];
 
-const KEY_BY_MODE: Record<SingleMode, keyof ModeTimes> = {
+/** El tiempo contra el que se compara el corte: la bici corta sobre su tiempo
+ *  de red vacía (D9), los demás sobre el que se grafica. */
+function tiempoCorte(p: ModeTimes, mode: SingleMode, v: number): number {
+  return mode === "bici" ? (p.t_bici_libre ?? v) : v;
+}
+
+const KEY_BY_MODE: Record<SingleMode, TiempoKey> = {
   auto: "t_auto",
   metro: "t_metro",
   bici: "t_bici",
@@ -79,18 +101,25 @@ export function CityStrip({
   heatMode = "auto",
   cutoffMin,
   cutoffLabel,
+  cortes,
   estacionesKm,
   iterationToken,
+  highlight = null,
   className,
   height = 160,
 }: CityStripProps) {
+  const { t } = useTranslation("simulator");
   const cbdIdx = Math.floor(nCeldas / 2);
   const isAll = heatMode === "todos";
   const isEspera = heatMode === "espera";
-  const singleColor = isEspera ? MODE_COLOR.metro : MODE_COLOR[(heatMode as SingleMode) ?? "auto"];
+  const singleColor = isEspera
+    ? MODE_COLOR.metro
+    : MODE_COLOR[(heatMode as SingleMode) ?? "auto"];
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const [W, setW] = useState(600);
+  const [hover, setHover] = useState<number | null>(null);
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
@@ -131,7 +160,9 @@ export function CityStrip({
       const max = Math.max(...ls.flatMap((l) => l.values), 0.1);
       return { lines: ls, barValues: null, maxValue: max };
     }
-    const key: keyof ModeTimes = isEspera ? "t_espera" : KEY_BY_MODE[heatMode as SingleMode];
+    const key: TiempoKey = isEspera
+      ? "t_espera"
+      : KEY_BY_MODE[heatMode as SingleMode];
     const values = modeProfile.map((p) => p[key]);
     const max = Math.max(...values, 0.1);
     return { lines: null, barValues: values, maxValue: max };
@@ -148,21 +179,28 @@ export function CityStrip({
 
   const yTicks = useMemo(() => {
     if (maxValue <= 0) return [0];
-    return [0, maxValue / 2, maxValue];
+    return ticks(0, maxValue, 3);
   }, [maxValue]);
 
-  const fmt = (v: number) => (v >= 10 ? v.toFixed(0) : v.toFixed(1));
+  const fmt = (v: number) =>
+    v >= 10 || Number.isInteger(v) ? fmtDecimal(v, 0) : fmtDecimal(v);
 
   const showStations =
-    !!estacionesKm && estacionesKm.length > 0 && (isAll || isEspera || heatMode === "metro");
+    !!estacionesKm &&
+    estacionesKm.length > 0 &&
+    (isAll || isEspera || heatMode === "metro");
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
       <svg
+        ref={svgRef}
         width={W}
         height={H}
         viewBox={`0 0 ${W} ${H}`}
-        className={cn("block transition-colors", flash && "animate-iteration-flash")}
+        className={cn(
+          "block transition-colors",
+          flash && "animate-iteration-flash",
+        )}
         style={{
           display: "block",
           maxWidth: "100%",
@@ -170,7 +208,7 @@ export function CityStrip({
           border: `1px solid ${flash ? "var(--accent)" : "var(--rule)"}`,
         }}
         role="img"
-        aria-label="Ciudad lineal"
+        aria-label={t("sandbox.city_strip_aria")}
       >
         {/* Grid horizontales + etiquetas Y */}
         {yTicks.map((v, i) => {
@@ -208,7 +246,9 @@ export function CityStrip({
           transform="rotate(-90)"
           className="label"
         >
-          {isEspera ? "ESPERA · MIN" : "TIEMPO · MIN"}
+          {isEspera
+            ? t("sandbox.city_strip_y_wait")
+            : t("sandbox.city_strip_y_time")}
         </text>
 
         {/* Marcadores de estación (posición km) */}
@@ -238,7 +278,11 @@ export function CityStrip({
             const x = MARGIN.left + idx * barW;
             const barH = Math.max(0.5, (raw / maxValue) * plotH);
             const floor = yFloor + slopeOffset(((idx + 0.5) / nCeldas) * 100);
-            const infeasible = cutoffMin != null && raw > cutoffMin;
+            const modo = heatMode as SingleMode;
+            const corte = cortes?.[modo];
+            const p = modeProfile?.[idx];
+            const infeasible =
+              corte != null && (p ? tiempoCorte(p, modo, raw) : raw) > corte;
             return (
               <rect
                 key={idx}
@@ -268,22 +312,30 @@ export function CityStrip({
                 height={0.5}
                 fill="var(--rule)"
               />
-            )
+            ),
           )}
 
         {/* Líneas (vista "todos") — una por modo */}
         {lines &&
-          lines.map((l) => (
-            <polyline
-              key={l.mode}
-              points={l.values.map((v, i) => `${xOfCell(i)},${yOf(v)}`).join(" ")}
-              fill="none"
-              stroke={l.color}
-              strokeWidth={1.6}
-              strokeLinejoin="round"
-              opacity={0.95}
-            />
-          ))}
+          lines.map((l) => {
+            // Con un modo resaltado los demás se atenúan pero NO desaparecen:
+            // el punto de la vista es comparar, y para eso el resto tiene que
+            // seguir siendo legible.
+            const on = !highlight || highlight === l.mode;
+            return (
+              <polyline
+                key={l.mode}
+                points={l.values
+                  .map((v, i) => `${xOfCell(i)},${yOf(v)}`)
+                  .join(" ")}
+                fill="none"
+                stroke={l.color}
+                strokeWidth={on ? 2.1 : 1.1}
+                strokeLinejoin="round"
+                opacity={on ? 0.95 : 0.32}
+              />
+            );
+          })}
 
         {/* Baseline del plot (eje X visual) */}
         <line
@@ -295,7 +347,7 @@ export function CityStrip({
           strokeWidth={0.8}
         />
 
-        {/* Línea de corte de factibilidad del modo (caminata 30, bici 45). */}
+        {/* Línea de corte del modo resaltado (el de la configuración). */}
         {cutoffMin != null && cutoffMin > 0 && cutoffMin <= maxValue && (
           <g>
             <line
@@ -359,9 +411,111 @@ export function CityStrip({
           className="label"
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
-          {largoKm.toFixed(0)} KM
+          {fmtDecimal(largoKm, 0)} KM
         </text>
+
+        {/* Guía del cursor */}
+        {hover != null && hover >= 0 && hover < nCeldas && (
+          <line
+            x1={xOfCell(hover)}
+            y1={yTop}
+            x2={xOfCell(hover)}
+            y2={yFloor}
+            stroke="var(--ink)"
+            strokeWidth={0.8}
+            opacity={0.55}
+          />
+        )}
+
+        {/* Capa de captura: una sola, encima de todo. Con 201 celdas poner un
+            handler por barra serían 201 listeners para un dato que se deduce
+            de la coordenada x. */}
+        {modeProfile && (
+          <rect
+            x={MARGIN.left}
+            y={yTop}
+            width={plotW}
+            height={plotH}
+            fill="transparent"
+            onMouseMove={(e) => {
+              const svg = svgRef.current;
+              if (!svg) return;
+              const r = svg.getBoundingClientRect();
+              const xView = ((e.clientX - r.left) * W) / Math.max(r.width, 1);
+              const i = Math.floor((xView - MARGIN.left) / barW);
+              setHover(i >= 0 && i < nCeldas ? i : null);
+            }}
+            onMouseLeave={() => setHover(null)}
+          />
+        )}
       </svg>
+
+      {/* Tooltip: los CUATRO modos a la vez en la ubicación del cursor. Antes
+          había que alternar de vista y recordar el número para comparar dos
+          modos; eso era lo más caro de la figura. */}
+      {modeProfile && hover != null && modeProfile[hover] && (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{
+            left: Math.min(Math.max(xOfCell(hover), 96), Math.max(W - 96, 96)),
+            top: yTop + 2,
+            transform: "translateX(-50%)",
+            background: "var(--panel)",
+            border: "1px solid var(--rule)",
+            padding: "6px 8px",
+            fontFamily: "var(--font-fig)",
+            fontSize: "var(--fs-etiqueta)",
+            lineHeight: 1.5,
+            whiteSpace: "nowrap",
+            color: "var(--ink)",
+          }}
+        >
+          <div style={{ color: "var(--muted)" }}>
+            {t("sandbox.strip_tooltip_pos", {
+              km: fmtDecimal(((hover + 0.5) / nCeldas) * largoKm),
+              dist: fmtDecimal((Math.abs(cbdIdx - hover) / nCeldas) * largoKm),
+            })}
+          </div>
+          {ALL_MODES.map(({ mode, key }) => {
+            const v = modeProfile[hover]![key];
+            const corte = cortes?.[mode];
+            const infeasible =
+              corte != null &&
+              tiempoCorte(modeProfile[hover]!, mode, v) > corte;
+            return (
+              <div key={mode} className="flex items-center gap-1.5">
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    background: MODE_COLOR[mode],
+                    display: "inline-block",
+                    opacity: infeasible ? 0.35 : 1,
+                  }}
+                />
+                <span
+                  style={{
+                    color: infeasible ? "var(--muted)" : "var(--ink-2)",
+                    textDecoration: infeasible ? "line-through" : undefined,
+                  }}
+                >
+                  {t(`modes.${mode}`)}
+                </span>
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    fontVariantNumeric: "tabular-nums",
+                    color: infeasible ? "var(--muted)" : "var(--ink)",
+                    fontWeight: highlight === mode ? 600 : 400,
+                  }}
+                >
+                  {fmtDecimal(v)} min
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,108 @@
+---
+slug: welfare
+order: 8
+title: Welfare
+tagline: Logsum surplus, social welfare and what can be compared
+---
+
+# Welfare
+
+A transport policy is not judged only by how many people switch modes. The underlying questions are two: **who wins and who loses**, and whether the city as a whole gains. The simulator answers with the **consumer surplus** implied by the same logit each household uses to choose its mode.
+
+## The logsum is the traveller's surplus
+
+Under the logit of the Demand chapter, the expected utility of the **best** available alternative has a closed form (Williams 1977; Small and Rosen 1981):
+
+$$
+E\big[\max_m (V_m + \varepsilon_m)\big] = \ln \sum_m e^{V_m} + \gamma
+$$
+
+It is the same **logsum** that the Equilibrium and Land use chapters use as accessibility: the value of having that menu of modes from that cell. It rises when any alternative improves, and more so when the improved one was already good. Euler's constant $\gamma$ is dropped, because no difference sees it.
+
+With the **all-or-nothing** method there is no random term: the agent takes the best mode and its expected value is $\max_m V_m$. The simulator pairs the measure with the assignment method and does not let you choose: logsum with the logit methods and maximum utility with all-or-nothing (Assignment methods chapter).
+
+## From utils to pesos
+
+Utils of different strata cannot be added. To turn them into pesos, divide by each stratum's **marginal utility of income**, the cost coefficient of the logit:
+
+$$
+\lambda_h = |\beta_c^h| \qquad\Longrightarrow\qquad CS_h = \frac{1}{\lambda_h}\,\ln \sum_m e^{V_m^h}
+$$
+
+It is the same $\lambda_h$ as in the Land use chapter. On the **Transport** page, $CS_h$ is an average **per traveller** in the peak hour, weighted by the expected demand of each cell, and the city total adds up the $CS_h$ times the number of travellers in each stratum.
+
+## The level means nothing; the difference does
+
+<Callout type="warn">
+**Never read the level of the surplus.** Utilities include the alternative-specific constants (ASC), whose zero is arbitrary, and the surplus carries them along. In the default setup the surplus per traveller comes out at \$693 for the high stratum, −\$99 for the middle one and −\$86 for the low one: that does not say the middle stratum is worse off, it says where the ASC left the zero.
+</Callout>
+
+What does mean something is the **difference between two scenarios**, where the zero cancels out:
+
+$$
+\Delta CS_h = \frac{1}{\lambda_h}\left(\ln \sum_m e^{V_m^{h,1}} - \ln \sum_m e^{V_m^{h,0}}\right)
+$$
+
+That difference is a welfare change only if both scenarios share four things:
+
+- **The same assignment method.** Logsum and maximum utility differ by a gap that changes across scenarios.
+- **The same enabled modes.** With a different menu of alternatives the measure changes scale.
+- **The same $\beta$.** Moving the calibration, ASCs included, shifts the zero and changes $\lambda_h$, and with it the unit of measurement.
+- **The same people.** The total adds a non-zero level for each traveller, so with another population or another teleworking share it moves even if nobody gains or loses.
+
+If any is missing, the interface shows the levels but not the Δ, and says which one.
+
+Whoever has no feasible mode drops out of the average, and the table reports how many in the **Stranded** row. A policy that leaves people without alternatives is not counted as low welfare: those people vanish from the count. That is why it pays to check that row before reading the surplus.
+
+## Social welfare: what the traveller loses the city may gain
+
+Surplus is not enough to assess pricing policies. A toll makes the traveller worse off and at the same time raises revenue, and that revenue is not lost: it is a **transfer** that goes back to the city. The objective function adds the transfers and subtracts what is actually consumed, all in the peak hour the model simulates:
+
+$$
+W = CS + R_{\text{parking}} + R_{\text{toll}} + R_{\text{fare}} - C_{\text{op}}, \qquad C_{\text{op}} = \text{train-km} \cdot c_{\text{km}}
+$$
+
+Fuel does not enter the revenue: it is burnt, nobody receives it. The metro operating cost does enter, because it consumes resources. Like $CS$, the level of $W$ has an arbitrary zero and only its Δ is read.
+
+The **required subsidy** answers a different question: whether the fare covers the cost of the whole day. That is why it multiplies the peak cost by a day/peak factor, and $W$ does not.
+
+## Two currencies
+
+There is a second way to go from utils to pesos. Instead of each stratum's behavioural $\lambda$, one is backed out from a single **social value of time**, the one in Chile's social appraisal standard (\$3,338/h, National Investment System 2026):
+
+$$
+\lambda_h^{\text{soc}} = \frac{|\beta_{t_{\text{viaje}}}^h| \cdot 60}{VoT_{\text{social}}} \qquad\Longrightarrow\qquad \frac{CS_h^{\text{soc}}}{CS_h} = \frac{VoT_{\text{social}}}{VoT_h}
+$$
+
+The ratio shows what it does: it does not revalue time, it **weights each stratum** by the inverse of its value of time, money included. With the default values, a high-stratum traveller weighs 0.53 and a low-stratum one 2.04. It is a legitimate distributive weighting, and that is why the interface calls it **socially weighted surplus**. The reading of the Chilean social appraisal is instead the **social generalized cost**, which values everyone's time at the same price and money at one peso.
+
+In behavioural pesos, \$1 is not worth the same to a high-income household as to a low-income one. Surplus in pesos measures efficiency; for the distributive reading there are the **cost/income burden** and the travel times by stratum.
+
+<Callout type="info">
+Try it on **Transport**, with the default setup:
+
+1. Pick the **Base** scenario and simulate. In the **Aggregates and comparison** table, press **Pin as reference**.
+2. Pick **Tarificación Vial** (a \$50/km toll on cars) and simulate again. The table now shows the Δ against the reference.
+
+All three strata lose surplus: −\$75 per traveller for the high stratum, −\$47 for the middle one and −\$12 for the low one. They pay the toll and whatever changes in their travel times does not make up for it at their value of time. **Social welfare rises by only \$57 thousand** in the peak hour: revenue rises by \$1.65 million, which goes back to the city, but mean travel time does not fall: it stays at 16.2 min, because the roughly 490 trips the car loses go mostly to the metro, a slower mode. That toll is the optimum, and even so it gains little: with the 4-lane base there is little congestion to correct. The **socially weighted surplus**, on the other hand, **falls by \$1.44 million**, because it does not count revenue and weighs more those who value time less.
+
+What would have to be done with the revenue so that nobody ends up worse off?
+</Callout>
+
+## In the coupled city
+
+The **City at equilibrium** page measures differently, because there households also relocate. It goes through the agents one by one and compares each logsum with the one it would have on the **empty network**: the same infrastructure with nobody using it (no congestion and the metro at its minimum frequency). It is turned into a monthly figure with 44 trips a month:
+
+$$
+\Delta CS_h = \frac{44}{\bar N_h} \sum_{n \in h,\ \text{travels}} \frac{\text{logsum}_n - \text{logsum}_n^{0}}{\lambda_h} \qquad [\$/\text{household-month}]
+$$
+
+$\bar N_h$ are the households of the stratum that travel or telework, and teleworkers contribute zero. The sign says what dominates: negative, congestion; positive, the metro's Mohring effect, which raises frequency as demand grows.
+
+It is a **transport-only** measure, on purpose. The benefit to transport users and the change in land rents are each a lower bound of the total benefit, and adding them counts the same thing twice (Martínez 2018, §10.10). The second one cannot be measured here, because land prices are only defined up to a constant.
+
+<Callout type="warn">
+The Δ against the empty network compares each scenario with itself, and the empty network fixes only the **times**: a toll or a fare enters both logsums alike and almost cancels out. That is why, in **Compare**, the welfare change between scenarios is the «Δ Surplus vs baseline» row: each scenario's **level** minus the baseline's, under the same four conditions above. The «vs its own empty network» row is for reading each scenario on its own (does congestion or the Mohring effect dominate?), not for subtracting across scenarios: a toll would not show up.
+</Callout>
+
+<NextStep to="experimenting">Experiment</NextStep>

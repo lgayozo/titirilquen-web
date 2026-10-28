@@ -1,36 +1,84 @@
 /**
- * Import/export de configuración del simulador.
+ * Import/export de escenarios del simulador.
  *
  * Formato de archivo `.ttrq.json`:
  * ```json
  * {
- *   "$schema": "titirilquen-scenario/v1",
+ *   "$schema": "titirilquen-scenario/v11",
  *   "name": "Mi escenario",
- *   "config": { ...SimulationConfig }
+ *   "config": { ...SimulationConfig },
+ *   "land_use": { ...LandUseConfig },          // opcional
+ *   "coupled": { "outer_max_iter": 10 }       // opcional
  * }
  * ```
+ * URL-state: `?s=<base64url(JSON)>` con el mismo objeto.
  *
- * URL-state: `?s=<base64url(JSON.stringify(config))>` — sin compresión
- * adicional; el config completo pesa ~3 KB, manejable en URL.
+ * SIN MIGRACIONES, a propósito
+ * ----------------------------
+ * Hubo aquí cinco migraciones que rellenaban o descartaban campos para que un
+ * escenario viejo siguiera validando contra el core (`extra="forbid"` rechaza
+ * cualquier clave que sobre). Se retiraron en agosto de 2026 junto con la
+ * limpieza del esquema: mantenerlas obliga a arrastrar para siempre la
+ * historia de cada parámetro que alguna vez existió, y este es un simulador
+ * educativo cuyos escenarios se rehacen en minutos, no un sistema con datos
+ * que no se pueden perder.
+ *
+ * La consecuencia es explícita: un archivo o link anterior a v11 falla al
+ * importarse, con un mensaje que dice por qué. v5 (sep-2026): el campo de
+ * suelo `beta` pasó a llamarse `mu`, la precisión μ de Martínez; `beta` era
+ * la otra precisión de su libro (D-31). v6 (sep-2026): se eliminó
+ * `estratos[h].lambda` del suelo; λ_h = |b_costo_h| lo deriva el núcleo de
+ * la demanda, así que calibrar `b_costo` mueve los dos módulos (D-41). v7
+ * (oct-2026, D1–D2 de la auditoría): se eliminaron `estratos[h].alpha` y `mu`
+ * del suelo —la accesibilidad entra con peso 1 y μ es la constante
+ * `MU_SUELO`— y `rho` pasó a penalizar la densidad relativa a la media, en
+ * utiles-mes (ρ_v7 = ρ_v6 × densidad media en hog/km). v8 (oct-2026, D7): la
+ * demanda ganó `globales.peaje_km`; un v7 no lo trae y el inspector de
+ * utilidad, que no pasa por Pydantic, daría NaN. v9 (oct-2026, D10d): se eliminó
+ * `coupled.poblacion`; la población es ΣH de `land_use`, y un v8 correría el
+ * acoplado con otra gente sin avisar. v10 (oct-2026): `mu` vuelve al suelo
+ * como valor de escenario (0,30 por defecto, antes la constante 1/√44); un v9
+ * no lo trae y correría otra ciudad sin avisar. v11 (oct-2026): la demanda
+ * ganó `globales.umbrales` («escalones» o «suaves»); un v10 no lo trae, el
+ * selector de Transporte quedaría sin opción activa y Comparar declararía
+ * incomparables dos corridas con la misma especificación. Si algún día hay escenarios que
+ * de verdad importe conservar, la decisión se revisa — y entonces el lugar
+ * correcto es un migrador versionado, no cinco parches sueltos.
  */
 
 import type { SimulationConfig } from "@/lib/types";
+import type { LandUseConfig } from "@/lib/types-v2";
 
-export const TTRQ_SCHEMA = "titirilquen-scenario/v1";
+export const TTRQ_SCHEMA = "titirilquen-scenario/v11";
 export const TTRQ_EXT = ".ttrq.json";
 
-export interface TtrqFile {
+export interface CoupledPrefs {
+  outer_max_iter: number;
+}
+
+export interface ScenarioPayload {
+  config: SimulationConfig;
+  land_use?: LandUseConfig;
+  coupled?: CoupledPrefs;
+}
+
+export interface TtrqFile extends ScenarioPayload {
   $schema: typeof TTRQ_SCHEMA;
   name?: string;
   description?: string;
-  config: SimulationConfig;
 }
 
-export function serializeToJson(config: SimulationConfig, name?: string): string {
+export function serializeToJson(
+  config: SimulationConfig,
+  name?: string,
+  extras?: { land_use?: LandUseConfig; coupled?: CoupledPrefs },
+): string {
   const file: TtrqFile = {
     $schema: TTRQ_SCHEMA,
     ...(name ? { name } : {}),
     config,
+    ...(extras?.land_use ? { land_use: extras.land_use } : {}),
+    ...(extras?.coupled ? { coupled: extras.coupled } : {}),
   };
   return JSON.stringify(file, null, 2);
 }
@@ -40,7 +88,9 @@ export function parseTtrqJson(raw: string): TtrqFile {
   try {
     data = JSON.parse(raw);
   } catch (e) {
-    throw new Error(`Archivo no es JSON válido: ${e instanceof Error ? e.message : String(e)}`);
+    throw new Error(
+      `Archivo no es JSON válido: ${e instanceof Error ? e.message : String(e)}`,
+    );
   }
   if (typeof data !== "object" || data === null) {
     throw new Error("El archivo no contiene un objeto JSON.");
@@ -48,7 +98,12 @@ export function parseTtrqJson(raw: string): TtrqFile {
   const obj = data as Record<string, unknown>;
   if (obj.$schema !== TTRQ_SCHEMA) {
     throw new Error(
-      `Esquema desconocido: ${String(obj.$schema)}. Esperado: "${TTRQ_SCHEMA}".`
+      `Este escenario es de una versión anterior del simulador ` +
+        `(${String(obj.$schema)}; se espera "${TTRQ_SCHEMA}") y ya no se puede ` +
+        `importar. El esquema cambió en agosto de 2026 (parámetros que ningún ` +
+        `cálculo leía) y en septiembre de 2026 (la población viene sólo del uso ` +
+        `de suelo: \`city\` perdió densidad, shares y teletrabajo). Vuelve a ` +
+        `exportarlo desde la versión actual.`,
     );
   }
   if (typeof obj.config !== "object" || obj.config === null) {
@@ -65,20 +120,53 @@ function base64UrlEncode(s: string): string {
 }
 
 function base64UrlDecode(s: string): string {
-  const padded = s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
+  const padded =
+    s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
   return decodeURIComponent(escape(atob(padded)));
 }
 
-export function configToUrlParam(config: SimulationConfig): string {
-  return base64UrlEncode(JSON.stringify(config));
+/** Codifica el escenario completo para `?s=` (config + suelo + coupled). */
+export function scenarioToUrlParam(payload: ScenarioPayload): string {
+  return base64UrlEncode(JSON.stringify(payload));
 }
 
-export function configFromUrlParam(param: string): SimulationConfig {
+/** Decodifica `?s=` — formato `{config, land_use?, coupled?}`.
+ *
+ * Los links generados antes de agosto de 2026 llevan campos que el core ya no
+ * acepta (`extra="forbid"`), así que fallarán al validar. Es deliberado: ver
+ * la nota sobre migraciones más arriba. */
+export function scenarioFromUrlParam(param: string): ScenarioPayload {
   const raw = base64UrlDecode(param);
-  return JSON.parse(raw) as SimulationConfig;
+  const data = JSON.parse(raw) as Record<string, unknown>;
+  if (typeof data.config !== "object" || data.config === null) {
+    throw new Error("El link no contiene un escenario válido.");
+  }
+  // El link no lleva `$schema`. Un campo QUITADO lo rechaza el core
+  // (`extra="forbid"`), pero uno AGREGADO pasa con su default de Pydantic y
+  // deja al inspector de utilidad en NaN: se rechaza igual que un archivo v7.
+  // Ídem `umbrales` (v11): sin él, el selector queda sin opción activa.
+  const cfg = data.config as SimulationConfig;
+  if (typeof cfg.demand?.globales?.peaje_km !== "number") {
+    throw new Error(
+      "Este link es de una versión anterior del simulador (sin peaje por km, " +
+        "schema v7) y ya no se puede abrir. Vuelve a generarlo.",
+    );
+  }
+  if (typeof cfg.demand.globales.umbrales !== "string") {
+    throw new Error(
+      "Este link es de una versión anterior del simulador (sin la " +
+        "especificación de los umbrales, schema v10) y ya no se puede abrir. " +
+        "Vuelve a generarlo.",
+    );
+  }
+  return data as unknown as ScenarioPayload;
 }
 
-export function downloadFile(filename: string, content: string, mime = "application/json"): void {
+export function downloadFile(
+  filename: string,
+  content: string,
+  mime = "application/json",
+): void {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

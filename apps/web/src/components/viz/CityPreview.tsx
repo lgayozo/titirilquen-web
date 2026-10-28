@@ -1,15 +1,35 @@
+import { ticks } from "d3";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PorQue } from "@/components/ui/PorQue";
 import { cn } from "@/lib/cn";
 import type { SimulationConfig } from "@/lib/types";
+import { useLandUseStore } from "@/store/landUseStore";
+import { fmtDecimal, fmtPct, localeCifras } from "@/lib/modos";
 
 interface CityPreviewProps {
   config: SimulationConfig;
   className?: string;
 }
 
-const MARGIN = { top: 30, right: 16, bottom: 34, left: 130 };
+// left 204: el rótulo más largo («definida en Uso de Suelo») mide 190 px en
+// Plex Mono de 12 px (B2). bottom 38 (y H 324) separa los ticks del título.
+const MARGIN = { top: 30, right: 16, bottom: 38, left: 204 };
+
+/** Ancho mínimo del SVG: bajo esto la figura deja de encoger y desborda. */
+const MIN_W = 420;
+
+/** Geometría horizontal del área de dibujo. La exporta para que las figuras que
+ *  se apilan sobre el plano (StratumDistribution en la vista de ciudad) alineen
+ *  su eje x con el de acá. Van los tres datos: con distinto margen derecho el
+ *  ancho útil difiere y el eje deriva, y con distinto `minWidth` se desalinean
+ *  justo cuando el contenedor es más angosto que el piso de una de las dos. */
+export const CITY_PREVIEW_X_LAYOUT = {
+  marginLeft: MARGIN.left,
+  marginRight: MARGIN.right,
+  minWidth: MIN_W,
+};
 
 /**
  * Posiciones (km) de las estaciones de metro, replicando el cálculo del core
@@ -51,27 +71,51 @@ export function CityPreview({ config, className }: CityPreviewProps) {
   useEffect(() => {
     if (!wrapRef.current) return;
     const el = wrapRef.current;
-    const update = () => setW(Math.max(420, el.clientWidth));
+    const update = () => setW(Math.max(MIN_W, el.clientWidth));
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
+  // Opción A: la composición de estratos y la densidad las define Uso de Suelo.
+  // La composición (proporciones) sale de H_por_estrato; la población exacta del
+  // perfil densidad_celda del último resultado de suelo (si lo hay).
+  const luConfig = useLandUseStore((s) => s.config);
+  const luResult = useLandUseStore((s) => s.result);
+
   const largoKm = config.city.largo_ciudad_km;
   const nCeldas = config.city.n_celdas;
   const cbdIdx = Math.floor(nCeldas / 2);
-  const densidad = config.city.densidad_por_celda;
   const numPistas = config.supply.car.num_pistas;
   const numEst = config.supply.train.num_estaciones;
   const pendiente = config.city.pendiente_porcentaje;
-  const share = config.city.share_estratos;
-  // Ancho de celda en metros (Δx = L/N) y población total EXCLUYENDO el CBD
-  // (nadie viaja hacia sí mismo). Coincide con population.py: (N−1)·densidad.
-  const dxMetros = Math.round((largoKm / nCeldas) * 1000);
-  const poblacion = Math.round(densidad * (nCeldas - 1));
 
-  const H = 320;
+  // Proporciones de estratos = H_por_estrato normalizado (siempre disponible).
+  const hTot = luConfig.H_por_estrato.reduce((a, b) => a + b, 0) || 1;
+  const share = luConfig.H_por_estrato.map((h) => h / hTot) as [
+    number,
+    number,
+    number,
+  ];
+
+  const dxMetros = Math.round((largoKm / nCeldas) * 1000);
+  // Perfil densidad_celda válido solo si la geometría coincide con la del
+  // resultado de suelo (si el usuario cambió L, el perfil viejo no aplica).
+  const densidadCelda =
+    luResult && luResult.densidad_celda.length === nCeldas
+      ? luResult.densidad_celda
+      : null;
+  const densidadMediaKm = densidadCelda
+    ? densidadCelda.reduce((a, b) => a + b, 0) /
+      Math.max(densidadCelda.length, 1)
+    : null;
+  // Población = Σ_i densidad_celda(i)·Δx (exacta) cuando hay resultado de suelo.
+  const poblacion = densidadCelda
+    ? Math.round(densidadCelda.reduce((a, b) => a + b, 0) * (largoKm / nCeldas))
+    : null;
+
+  const H = 324;
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
   const cbdX = MARGIN.left + plotW / 2;
   const xOfKm = (km: number) => MARGIN.left + (km / largoKm) * plotW;
@@ -99,13 +143,14 @@ export function CityPreview({ config, className }: CityPreviewProps) {
     return xs;
   }, [plotW, nCeldas, cbdIdx]);
 
-  const xTicks = useMemo(() => {
-    const n = 5;
-    return Array.from({ length: n }, (_, i) => ({
-      km: (i / (n - 1)) * largoKm,
-      x: MARGIN.left + (i / (n - 1)) * plotW,
-    }));
-  }, [largoKm, plotW]);
+  const xTicks = useMemo(
+    () =>
+      ticks(0, largoKm, 4).map((km) => ({
+        km,
+        x: MARGIN.left + (km / largoKm) * plotW,
+      })),
+    [largoKm, plotW],
+  );
 
   // Perfil de pendiente: línea de terreno que se inclina según pendiente_%.
   // Subida hacia los bordes (el CBD al centro es la cota de referencia).
@@ -164,7 +209,8 @@ export function CityPreview({ config, className }: CityPreviewProps) {
           labelColor="var(--auto)"
           spec={t("preview.spec_auto", {
             lanes: numPistas,
-            width: config.supply.car.ancho_pista_m,
+            width:
+              config.supply.car.ancho_pista_m.toLocaleString(localeCifras()),
           })}
         />
         {Array.from({ length: Math.max(0, numPistas - 1) }).map((_, i) => {
@@ -213,7 +259,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             cx={xOfKm(km)}
             cy={yMetro + BAND_H / 2}
             r={4}
-            fill="var(--paper)"
+            fill="var(--panel)"
             stroke="var(--metro)"
             strokeWidth={1.6}
             pointerEvents="none"
@@ -282,18 +328,18 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             cx={cbdX}
             cy={yDemand + DEMAND_H / 2}
             r={3.5}
-            fill="var(--paper)"
+            fill="var(--panel)"
             stroke="var(--accent)"
             strokeWidth={1.4}
           />
           <text
             x={MARGIN.left - 8}
-            y={yDemand + DEMAND_H / 2 - 1}
+            y={yDemand + DEMAND_H / 2 - 3}
             textAnchor="end"
             className="network-band-label"
             fill="var(--ink-2)"
           >
-            {t("preview.demand_label").toUpperCase()}
+            {t("preview.demand_label")}
           </text>
           <text
             x={MARGIN.left - 8}
@@ -302,7 +348,11 @@ export function CityPreview({ config, className }: CityPreviewProps) {
             className="label"
             fill="var(--muted)"
           >
-            {t("preview.spec_demand", { pop: densidad })}
+            {densidadMediaKm != null
+              ? t("preview.spec_demand_mean", {
+                  dens: Math.round(densidadMediaKm),
+                })
+              : t("preview.spec_demand_land_use")}
           </text>
         </g>
 
@@ -353,7 +403,7 @@ export function CityPreview({ config, className }: CityPreviewProps) {
               className="label"
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
-              {tick.km.toFixed(0)}
+              {fmtDecimal(tick.km, 0)}
             </text>
           </g>
         ))}
@@ -379,18 +429,29 @@ export function CityPreview({ config, className }: CityPreviewProps) {
                 flex: Math.max(share[s], 0.001),
                 background: `var(--s${s + 1})`,
               }}
-              title={`${(share[s] * 100).toFixed(0)}%`}
+              title={fmtPct(share[s] * 100, 0)}
             />
           ))}
         </div>
         <p className="cpf-caption">
-          {t("preview.caption", {
-            length: largoKm,
-            cells: nCeldas,
-            dx: dxMetros,
-            pop: poblacion.toLocaleString(),
-          })}
+          {poblacion != null
+            ? t("preview.caption_corto", {
+                length: largoKm,
+                cells: nCeldas,
+                dx: dxMetros,
+                pop: poblacion.toLocaleString(localeCifras()),
+              })
+            : t("preview.caption_no_pop_corto", {
+                length: largoKm,
+                cells: nCeldas,
+                dx: dxMetros,
+              })}
         </p>
+        <PorQue>
+          {poblacion != null
+            ? t("preview.caption_porque")
+            : t("preview.caption_no_pop_porque")}
+        </PorQue>
       </div>
     </div>
   );
@@ -422,14 +483,18 @@ function InfraBand({
         stroke="var(--rule)"
         strokeWidth={0.8}
       />
+      {/* El color del modo marca la banda; el rótulo va en tinta porque el
+          naranja del metro y el gris de la caminata no alcanzan contraste
+          como texto. */}
+      <rect x={x - 4} y={y} width={3} height={BAND_H} fill={labelColor} />
       <text
         x={x - 8}
-        y={y + BAND_H / 2 - 1}
+        y={y + BAND_H / 2 - 3}
         textAnchor="end"
         className="network-band-label"
-        fill={labelColor}
+        fill="var(--ink-2)"
       >
-        {label.toUpperCase()}
+        {label}
       </text>
       <text
         x={x - 8}

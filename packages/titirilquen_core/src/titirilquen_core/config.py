@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from titirilquen_core.constantes import CORTE_BICI_MIN, CORTE_CAMINATA_MIN
+
 StratumId = Literal[1, 2, 3]
 """1 = Alto, 2 = Medio, 3 = Bajo."""
 
@@ -18,6 +20,11 @@ Modo = Literal["Auto", "Metro", "Bici", "Caminata"]
 """Modos de transporte que el usuario puede habilitar/deshabilitar en el set de
 elección antes de correr el equilibrio. El teletrabajo no es un modo elegible:
 se decide antes (prob_teletrabajo) y no se ve afectado por esta selección."""
+
+ModoElegido = Literal["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"]
+"""Lo que un agente termina teniendo asignado. A diferencia de `Modo`, incluye
+el teletrabajo; y donde se usa admite `None`, para el agente varado — aquel al
+que ningún modo le resultó factible."""
 
 
 class PhysicalPenalties(BaseModel):
@@ -46,47 +53,132 @@ class StratumBetas(BaseModel):
     asc_metro: float
     asc_bici: float
     asc_caminata: float
-    b_tiempo_viaje: float
-    b_costo: float
+    b_tiempo_viaje: float = Field(
+        lt=0, description="Desutilidad del tiempo en vehículo (utiles/min); negativo"
+    )
+    b_costo: float = Field(
+        lt=0, description="Desutilidad del dinero (utiles/$); negativo. Es λ en el suelo (D-34)"
+    )
     b_tiempo_espera: float
+    # ACCESO caminando a la estación de metro. Separado de `b_tiempo_caminata`
+    # en ago-2026: un solo coeficiente pesaba las dos cosas, y no son lo mismo.
+    #
+    # Este SÍ tiene valor de norma: Precios Sociales 2026 del SNI, Tabla 2.1,
+    # asigna ponderador 2 a la caminata frente a 1 del viaje en vehículo, y acota
+    # que esos valores aplican «solo para los usuarios de transporte público
+    # mayor» y que en viajes combinados «solo el tramo de transporte público está
+    # afecto a ellos» — o sea, exactamente este término. De ahí el 2.0 x
+    # `b_tiempo_viaje`.
+    b_tiempo_acceso: float
+    # Modo CAMINATA completo (el viaje entero a pie). NO está cubierto por la
+    # tabla del SNI, que habla del tramo caminado de un viaje en transporte
+    # público. Queda en 1.7 x `b_tiempo_viaje`, que es un juicio, no una norma:
+    # caminar todo el viaje es un modo elegido, no un tramo forzado de otro.
     b_tiempo_caminata: float
     penalizaciones_fisicas: PhysicalPenalties
 
 
-class JornadaHoras(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    horas_rigido: float = 9.0
-    horas_flexible: float = 8.0
-    horas_part_time: float = 4.0
-
-
 class StratumConfig(BaseModel):
-    """Configuración por estrato. Inactiva por defecto: jornada/part_time sólo afectan
-    metadatos de agentes, no la utilidad (ver D-07)."""
+    """Configuración por estrato: quién es y cómo valora el viaje.
+
+    Tuvo también `prob_jornada_flexible`, `prob_part_time` y una `jornada` con
+    horas por tipo de contrato. Se retiraron en la limpieza de agosto de 2026:
+    ningún módulo del núcleo los leía (D-07 ya lo declaraba: "sólo afectan
+    metadatos de agentes"), y ni siquiera eso — `Agente` no tiene campos de
+    jornada. Eran ocho números por estrato que el frontend mostraba y nadie
+    usaba. Si algún día la jornada entra al modelo, entra con su ecuación.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     prob_teletrabajo: float = Field(ge=0, le=1)
     prob_auto: float = Field(ge=0, le=1)
-    prob_jornada_flexible: float = Field(default=0.3, ge=0, le=1)
-    prob_part_time: float = Field(default=0.1, ge=0, le=1)
-    jornada: JornadaHoras = Field(default_factory=JornadaHoras)
     betas: StratumBetas
 
 
 class GlobalConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    v_auto: float = 31
-    v_metro: float = 35
-    v_bici: float = 14
-    v_caminata: float = 4.8
+    v_auto: float = Field(default=31, gt=0)
+    v_metro: float = Field(default=35, gt=0)
+    v_bici: float = Field(default=14, gt=0)
+    v_caminata: float = Field(default=4.8, gt=0)
+    # Cortes de FACTIBILIDAD del conjunto de elección: sobre ese tiempo la
+    # alternativa sale del set, no recibe una penalización grande. Distíngase de
+    # `penalizaciones_fisicas`, que castigan progresivamente al cruzar umbrales
+    # (10/20/30 min en bici, 5/15/25 a pie) pero dejan la alternativa disponible.
+    #
+    # Eran constantes del núcleo hasta el 2026-08-18 y se volvieron configurables
+    # a pedido. El default sigue viniendo de `constantes.py` para no tener el
+    # número escrito dos veces: ahí es el supuesto del modelo, acá el valor
+    # inicial que el usuario puede mover.
+    #
+    # Ojo al moverlos: cambian el `J` del conjunto factible, y con él la brecha
+    # entre logsum y utilidad máxima (docs/libro/informe-bienestar.html §4.1). Mover el
+    # corte NO es una política de transporte, es un supuesto de comportamiento.
+    corte_caminata_min: float = Field(default=CORTE_CAMINATA_MIN, gt=0, le=180)
+    corte_bici_min: float = Field(default=CORTE_BICI_MIN, gt=0, le=180)
+    # Forma de esos umbrales (oct-2026). «escalones» es la especificación
+    # simplificada: penalizaciones escalonadas (D-02), cortes duros y metro
+    # infactible donde la estación más cercana es la del CBD (D-69). «suaves»
+    # cambia cada discontinuidad por su versión continua —rampas, corte CMNL
+    # (Martínez, Aguila y Hurtubia 2009) y dominancia suave del metro frente a
+    # caminar (Cascetta y Papola 2009)—, que quita los saltos del logsum y de la
+    # T del suelo. Las dos usan las mismas penalizaciones y cortes; detalle en
+    # demand/utility.py. Cambia la función de utilidad: no se comparan
+    # bienestares entre especificaciones.
+    umbrales: Literal["escalones", "suaves"] = "escalones"
     costo_combustible_km: float = 120
     costo_tarifa_metro: float = 800
-    costo_parking: float = 6000
-    factor_emision_auto: float = 0.180
-    factor_emision_metro: float = 0.040
+    # 2000 (antes 4000, antes 6000). NO es un precio de lista: el modelo le cobra
+    # parking a TODOS los viajes en auto, cuando en la realidad buena parte
+    # estaciona gratis (en la calle o provisto por el empleador). O sea es un
+    # costo ESPERADO = precio x probabilidad de pagarlo.
+    #
+    # Bajo de 4000 al recalibrar el valor del tiempo (ago-2026): 4000 se habia
+    # elegido cuando `b_costo` era 6.7x menor y valia 5.8 minutos del tiempo del
+    # estrato alto; con el VoT corregido (6.200 $/h) pasaba a valer 39 y hundia
+    # el auto a 5.7% con el corredor descongestionado (v/c 0.47). Con 2000 el
+    # reparto vuelve a 12.7% y el v/c a 1.03, la rodilla de la BPR. Esas cifras
+    # son de ago-2026: D5, D6 y el parking por tour las movieron, y la linea
+    # base vigente esta en `tests/test_linea_base.py`.
+    #
+    # Como hay un UNICO `b_costo` que aplica a la suma de todo el dinero, la
+    # razon entre las elasticidades de parking, bencina y tarifa la fijan los
+    # MONTOS, no los betas — ver scripts/diagnostico_elasticidades.py.
+    #
+    # Desde oct-2026 es un costo POR DÍA (por tour casa-trabajo-casa), no por
+    # viaje: se paga al llegar al trabajo y no al volver. Cada viaje de ida carga
+    # `costo_parking / VIAJES_POR_TOUR` = 1000. Antes se cargaba entero en cada
+    # uno de los 44 viajes del mes, o sea dos veces por día.
+    costo_parking: float = 2000
+    # Peaje vial por km recorrido en auto (D7, oct-2026), en $/km por viaje,
+    # como la bencina pero TRANSFERENCIA: entra a la recaudación del bienestar.
+    # Es la palanca que se acerca al cobro de Pigou, porque el costo externo de
+    # un viaje crece con los tramos que cruza; el parking, en una ciudad donde
+    # todos van al CBD, es un cobro de cordón plano. 0 = sin peaje.
+    peaje_km: float = Field(default=0, ge=0)
+    # Multiplicador ADIMENSIONAL sobre la curva COPERT de emision del auto
+    # (`emissions.factor_emision_auto(v)`), para representar la composicion de
+    # la flota: 1.0 = flota de referencia, ~0.7 hibrida, ~0.15 electrica.
+    #
+    # Reemplaza al antiguo `factor_emision_auto = 0.180`, que era un parametro
+    # HUERFANO: nadie lo leia. Por eso el preset «Vehiculos hibridos» solo
+    # abarataba la bencina y terminaba SUBIENDO el CO2 (mas viajes en auto, la
+    # misma emision por km). Se multiplica en vez de reemplazar la curva para
+    # conservar la dependencia de la velocidad, que es lo pedagogicamente
+    # valioso: congestion => menos velocidad => mas emision por km.
+    factor_flota_auto: float = Field(default=1.0, gt=0)
+    # kg CO₂ por tren-km (D-29): el metro emite por servicio circulando, no por
+    # pasajero. 2.5 ≈ continuidad con la calibración anterior (0.040 kg/pax·km)
+    # en el escenario de referencia, y plausible para metro eléctrico
+    # (~8 kWh/km × ~0.3 kgCO₂/kWh). El frontend migra configs viejas.
+    factor_emision_metro_tren_km: float = 2.5
+    # Multiplica la probabilidad de teletrabajo de cada estrato (acotada a 1):
+    # la única palanca que saca viajes de la punta. Vivía en `CityConfig` hasta
+    # sep-2026, pero es gestión de demanda, no forma urbana; la interfaz ya lo
+    # editaba en «Economía» desde ago-2026.
+    teletrabajo_factor: float = Field(default=1.0, ge=0.0, le=5.0)
 
 
 class DemandConfig(BaseModel):
@@ -105,7 +197,9 @@ class DemandConfig(BaseModel):
 
     @field_validator("estratos")
     @classmethod
-    def _check_strata_complete(cls, v: dict[StratumId, StratumConfig]) -> dict[StratumId, StratumConfig]:
+    def _check_strata_complete(
+        cls, v: dict[StratumId, StratumConfig]
+    ) -> dict[StratumId, StratumConfig]:
         missing = {1, 2, 3} - set(v.keys())
         if missing:
             raise ValueError(f"Faltan estratos: {sorted(missing)}")
@@ -113,23 +207,36 @@ class DemandConfig(BaseModel):
 
 
 class CityConfig(BaseModel):
-    """Ciudad lineal. `n_celdas` debe ser impar para que el CBD quede centrado."""
+    """Ciudad lineal: la geometría y nada más.
+
+    Tres números. `n_celdas` es la resolución numérica (impar, para que el CBD
+    sea una celda y su centroide caiga en L/2); `largo_ciudad_km` el tamaño
+    físico; `pendiente_porcentaje` el terreno, que sólo ve la bicicleta.
+
+    Hasta sep-2026 traía además `densidad_hab_km`, `share_estratos` y
+    `teletrabajo_factor`. Los dos primeros eran la fuente de población de la
+    ruta «transporte solo», que dejó de existir: la población viene SIEMPRE del
+    uso de suelo (`LandUseConfig.H_por_estrato` sobre la oferta `S`), así que
+    eran inertes por la ruta de la app y el schema afirmaba «población =
+    densidad × largo» sin condición (D-46). El tercero es una palanca de
+    demanda y vive ahora en `GlobalConfig`. La densidad media es una
+    CONSECUENCIA, ΣH / largo, y así se reporta."""
 
     model_config = ConfigDict(extra="forbid")
 
     n_celdas: int = Field(default=1001, ge=11)
     largo_ciudad_km: float = Field(default=20.0, gt=0)
-    densidad_por_celda: int = Field(default=100, ge=1)
     pendiente_porcentaje: float = Field(default=0.0)
-    teletrabajo_factor: float = Field(default=1.0, ge=0.0, le=5.0)
-    share_estratos: tuple[float, float, float] = Field(default=(0.10, 0.40, 0.50))
-    ingresos_estratos: tuple[float, float, float] = Field(default=(120.0, 50.0, 10.0))
 
-    @field_validator("share_estratos")
+    @field_validator("n_celdas")
     @classmethod
-    def _shares_sum_to_one(cls, v: tuple[float, float, float]) -> tuple[float, float, float]:
-        if abs(sum(v) - 1.0) > 1e-6:
-            raise ValueError(f"Los shares de estratos deben sumar 1, obtuve {sum(v)}")
+    def _impar(cls, v: int) -> int:
+        # Con n par el centroide de la celda n//2 cae medio Δx a la derecha de
+        # L/2 y la «celda del CBD» queda a esa distancia de sí misma (D-45). El
+        # docstring lo exigía y ningún validador lo leía; la interfaz lo
+        # forzaba por su cuenta (CityBuilder). Ahora lo exige el schema.
+        if v % 2 == 0:
+            raise ValueError(f"n_celdas debe ser impar para que el CBD sea una celda; obtuve {v}")
         return v
 
 
@@ -137,7 +244,15 @@ class BikeSupplyParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     v_media_kmh: float = 14
-    capacidad_pista: int = 800
+    # 6000 bici/h (oct-2026, junto con las 4 pistas de la vía): la ciclovía
+    # queda a v/c ≈ 1,07 en el tramo junto al CBD, con la base de 2 pistas y
+    # 4000 operaba a 1,54 (unos 6 km/h en ese tramo). Antes: 2500 (v/c 1,7, la
+    # restricción que ataba la base) y 4000 (2026-09-15, v/c ≈ 1,3 al elegirse).
+    # La capacidad de ciclovía es la palanca de oferta más fuerte del simulador.
+    # El techo de caminata se activa sobre
+    # v/c = ((v_bici/v_caminata - 1)/alpha)^(1/beta) = 1,96: por encima la BPR
+    # ya no opera. Medido en docs/libro/datos/cap03.json.
+    capacidad_pista: int = 6000
     alpha_bpr: float = 0.5
     beta_bpr: float = 2.0
 
@@ -149,34 +264,115 @@ class CarSupplyParams(BaseModel):
     ancho_pista_m: float = 3.5
     largo_vehiculo_m: float = 5.0
     gap_m: float = 2.0
-    num_pistas: int = Field(default=2, ge=1)
-    alpha_bpr: float = 0.8
-    beta_bpr: float = 2.0
+    # 4 pistas (oct-2026). Con 2 la base cargaba el tramo junto al CBD a v/c
+    # 2,01 sobre la capacidad real: la BPR multiplicaba el tiempo de ese tramo
+    # por ~7 (el auto a ~4,4 km/h, más lento que caminar) y el costo externo
+    # marginal ahí, t0·α·β·x^β, valía ~24 veces el tiempo a flujo libre: la
+    # tarificación rendía en una zona donde la BPR ya no describe nada. Con 4,
+    # v/c 1,19 (rama original; 1,15 en equilibrio).
+    # Subir capacidad baja el v/c despacio porque la demanda se induce: con 3,
+    # 1,54; con 5, 0,98. El techo es el codo estricto (5 pistas), descartado
+    # porque ahí la oferta vial queda MUERTA como palanca: bajo capacidad la
+    # BPR es plana (+1 pista: +0,17 pp de auto con 5; +0,44 con 4; +3,7 con 2).
+    # No se puede tener a la vez una ciudad base descongestionada y una oferta
+    # vial que mueva el reparto; 4 es el punto medio.
+    num_pistas: int = Field(default=4, ge=1)
+    # BPR estándar del Bureau of Public Roads (1964), la que usa la FHWA:
+    # t = t0·[1 + 0,15·(v/c)^4], con c la capacidad PRÁCTICA = 0,8·C real
+    # (`FACTOR_CAPACIDAD_PRACTICA`, D6): +15 % en v = 0,8·C, +37 % en v = C. Hasta
+    # sep-2026 se heredaba 0,8 / 2,0 sin fuente; hasta oct-2026, c = C real.
+    alpha_bpr: float = 0.15
+    beta_bpr: float = 4.0
+    # Capacidad por pista (veh/h). None ⇒ Greenshields q_max = k_j·v_l/4, que
+    # ACOPLA capacidad y velocidad (subir v_max sube C en igual proporción y la
+    # velocidad nunca puede empeorar la congestión). Un valor explícito separa
+    # C de v_f como en la BPR estándar — ver docs/ANALISIS_SENSIBILIDAD.md S-04.
+    capacidad_pista: float | None = Field(default=None, gt=0)
 
 
 class TrainSupplyParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     v_tren_kmh: float = 35
-    # Capacidad por tren a la escala de demanda del modelo. Calibrada para que la
-    # frecuencia endógena f_op = clip(carga_pico/cap_tren, f_min, f_max) sea
-    # responsiva en el rango de uso (antes 1200 dejaba f clavada en f_min y el
-    # efecto Möhring inactivo — ver docs/VERIFICACION_TRANSPORTE.md, H1).
-    capacidad_tren: int = 300
+    # 1000 (antes 300): capacidad realista de un tren de metro. Ademas de
+    # realismo, pone al metro en la zona EMPINADA de su economia de escala
+    # (f_op = carga/K queda en ~5-7 tph, espera ~4-6 min): ahi las palancas del
+    # metro muerden y la paradoja de Downs-Thomson es observable bajo Wardrop
+    # (ver scripts/buscar_downs_thomson.py y docs/libro/informe-downs-thomson.html).
+    # Con 300 la frecuencia era ~21 tph y la espera 1.4 min: curva plana, metro
+    # insensible a todo.
+    capacidad_tren: int = 1000
+    # Fija el ESPACIADO, `largo / num_estaciones`, no el conteo: las estaciones
+    # van cada ese espaciado a ambos lados del CBD, CBD incluido, así que con 20
+    # km y 10 resultan 11 (0, 2, …, 20). El conteo real viaja en `estaciones_km`.
     num_estaciones: int = Field(default=10, ge=2)
     v_caminata_kmh: float = 4.8
-    tasa_carga: float = 6.0
-    # Rango de frecuencia operativa (trenes/h). Valores realistas de metro:
-    # frec_min≈6 ⇒ ~10 min de intervalo (valle); frec_max≈30 ⇒ ~2 min (punta).
-    # El rango amplio fortalece el efecto Mohring: al perder demanda la
-    # frecuencia cae más y la espera (=30/f) sube con pendiente -30/f^2, más
-    # pronunciada a baja frecuencia. Ver docs/DISCREPANCIES.md (D-18).
-    frec_min: float = 6
-    frec_max: float = 30
+    # PROVISORIO — pendiente de fuente. Costo de operación por tren-km ($), con
+    # tren-km/h = f_op · largo de línea · 2 (misma definición que usa
+    # `emissions.py`). Habilita el costo del operador, el subsidio
+    # (= costo − recaudación por tarifa) y la pregunta de autofinanciamiento.
+    #
+    # OJO al interpretarlo: este modelo representa SOLO la hora punta, sin valle
+    # ni recorridos en vacío, así que su carga por tren-km es varias veces la de
+    # un sistema real. Con un valor por tren-km realista, el metro del modelo
+    # sale holgadamente superavitario — y eso es un artefacto del alcance, no un
+    # resultado. Ver docs/CONTINUAR.md.
+    costo_operacion_tren_km: float = Field(default=12000, ge=0)
+    # Factor DÍA/PUNTA para que el subsidio y el autofinanciamiento signifiquen
+    # algo. NO entra al bienestar social, que es de la hora punta (D12). El
+    # autofinanciamiento compara costo DIARIO contra ingreso DIARIO, pero este
+    # modelo entrega solo la hora punta. Escalando:
+    #
+    #   autofinancia  <=>  costo_punta · (R_costo / R_ingreso) <= ingreso_punta
+    #
+    # con R_costo = tren-km del día / tren-km de la punta y R_ingreso = viajes
+    # del día / viajes de la punta. Como el servicio fuera de punta circula más
+    # vacío, R_costo > R_ingreso y el factor es > 1. En una sola frase: cuánto
+    # más caro sale operar el día completo, POR VIAJE, que si todo el día
+    # tuviera la carga de la punta.
+    #
+    # 2.0 es un orden de magnitud razonable (la punta concentra ~10-12% de los
+    # viajes del día mientras el servicio corre ~18 h), pero es PROVISORIO como
+    # el costo por tren-km. Con los defaults el metro igual sale superavitario:
+    # haría falta ~3.7 para que requiera subsidio. La diferencia restante no es
+    # del factor sino de dos rasgos del modelo — los viajes son cortos (~5 km en
+    # una ciudad de 20, porque la demanda se concentra junto al CBD) y la tarifa
+    # es plana, así que el ingreso por pax-km sale alto. Ver docs/CONTINUAR.md.
+    factor_dia_punta: float = Field(default=2.0, gt=0)
+    # Detención en cada estación INTERMEDIA entre la de subida y el CBD. Sin
+    # esto, agregar estaciones acortaba el acceso a caminar SIN ningún costo en
+    # tiempo de viaje: un almuerzo gratis que hacía monótonamente buena la
+    # densificación de la red. Con la detención aparece el trade-off real —más
+    # estaciones = menos acceso pero más viaje— que es el fenómeno que se quiere
+    # enseñar. 0.5 min = 30 s por parada.
+    #
+    # Es una detención FIJA. Un dwell que crezca con los pasajeros que suben
+    # sería una DESECONOMÍA
+    # de escala del metro, que juega en contra del efecto Möhring; es una
+    # decisión de modelación aparte, no un simple refinamiento.
+    tiempo_detencion_min: float = Field(default=0.5, ge=0)
+    # 2 (antes 6): con K=1000 la frecuencia demandada queda en ~5-7 tph, y un
+    # piso de 6 la dejaria RECORTADA justo donde vive el efecto Mohring — al
+    # perder pasajeros la frecuencia no podria caer y el metro seria insensible.
+    # El piso de 2 (intervalo maximo 30 min) solo actua como resguardo extremo.
+    frec_min: float = 2
+    # 40 (antes 30): con 30 la frecuencia demandada quedaba justo en el tope,
+    # asi que f_op estaba RECORTADA y el efecto Mohring agotado en el default
+    # (mas demanda ya no traia mas trenes). Con 40 la frecuencia queda interior
+    # y vuelve a responder a la demanda. Ojo: por encima de la frecuencia que
+    # pide la demanda este tope no recorta nada (el indicador de la UI lo dice,
+    # AT-08), pero SI entra en la congestion de anden: la capacidad del sistema
+    # es frec_max·K (supply/train.py). Subirlo sobre 40 no mueve nada medible;
+    # bajarlo cerca de la frecuencia operativa encarece la espera antes de
+    # recortar (base: con 5 tph, sobre 4,1 operativos, el metro pierde 0,9 pp).
+    frec_max: float = 40
     anden_alpha: float = Field(
         default=0.5,
         ge=0,
-        description="α de la BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), ρ = carga/(frec_max·K)",
+        description=(
+            "α de la BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), "
+            "ρ = carga/(frec_max·K)"
+        ),
     )
     anden_beta: float = Field(default=4.0, ge=0, description="β de la BPR de congestión de andén")
 
@@ -198,15 +394,42 @@ class SimulationConfig(BaseModel):
     city: CityConfig = Field(default_factory=CityConfig)
     supply: SupplyConfig = Field(default_factory=SupplyConfig)
     demand: DemandConfig
-    max_iter: int = Field(default=12, ge=1, le=100)
-    tolerance: float = Field(default=0.0, ge=0)
+    # 150 (antes 40, y 20 antes de D8). Con el paso halving de 'expected'
+    # (auditoría B, oct-2026) la base converge en 6 y el p95 del rango de la
+    # interfaz en 11; el tope lo muerden 'montecarlo' (paso 1/n) y todo o nada,
+    # cuya brecha baja como 1/n: con 1 pista pide ~520 y Máx Metro ~615. El
+    # techo de 1.000 cubre esos casos; la interfaz sube el tope a 700 al elegir
+    # todo o nada. Una corrida que converge corta antes y no paga el tope.
+    max_iter: int = Field(default=150, ge=1, le=1000)
+    # 0,02 min sobre la brecha no amortiguada `max |c(x(t)) − t|` (D8). Con
+    # 0,2 y el paso 1/n la base quedaba 0,12-0,19 pp lejos del equilibrio;
+    # con halving y 0,02, la mediana de los 776 casos del rango de la interfaz
+    # queda a 0,002 pp y el p95 a 0,008 (auditoría B, oct-2026). Montecarlo
+    # no llega a 0,02 —su brecha tiene un piso de ruido de muestreo—, así que la
+    # interfaz le sube la tolerancia a 0,2 al elegirlo; todo o nada no usa este
+    # valor sino `TOL_RELATIVA_TON` (sólo hereda que 0 apaga el corte).
+    # `tolerance=0` sigue siendo válido y significa «no cortar por brecha».
+    # Historia: el 0 original replicaba al repo de origen, que cortaba sólo por
+    # max_iter y marcaba «sin converger» siempre; D8 la llevó a 0,2.
+    tolerance: float = Field(default=0.02, ge=0)
     seed: int | None = None
-    assignment: Literal["montecarlo", "expected"] = Field(
+    assignment: Literal["montecarlo", "expected", "todo_o_nada"] = Field(
         default="montecarlo",
         description=(
-            "Método de asignación de demanda: 'montecarlo' sortea el modo de cada "
-            "agente (estocástico); 'expected' usa los flujos esperados = "
-            "probabilidades logit (determinista, sin ruido entre iteraciones)."
+            "Método de asignación de demanda. 'montecarlo' sortea el modo de cada "
+            "agente; 'expected' usa los flujos esperados = probabilidades logit "
+            "(el mismo modelo sin ruido de muestreo); 'todo_o_nada' manda al "
+            "grupo ENTERO al modo de mayor utilidad. "
+            "Los tres son el mismo modelo de utilidad aleatoria: 'todo_o_nada' es "
+            "el límite del logit cuando la escala de los coeficientes crece, o sea "
+            "con varianza cero en la parte no observada. "
+            "NO produce igualación de costos entre modos — medido en "
+            "scripts/auditoria_wardrop.py: los cuatro modos se usan a la vez con "
+            "costos que difieren hasta 32 min. Lo que cambia es que el grupo "
+            "marginal salta entero en vez de trasvasar una fracción, y de ahí que "
+            "sólo con este método aparezca Downs-Thomson (docs/CONTINUAR.md §5). "
+            "Se llamó 'wardrop' hasta agosto de 2026; el nombre prometía una "
+            "condición de equilibrio de usuario que este modelo no cumple."
         ),
     )
     modos_habilitados: tuple[Modo, ...] = Field(

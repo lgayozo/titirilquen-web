@@ -1,0 +1,116 @@
+---
+slug: assignment
+order: 6
+title: Métodos de asignación
+tagline: Logit (probabilidades o sorteo) y todo o nada
+---
+
+# Métodos de asignación
+
+El equilibrio del capítulo anterior necesita, en cada iteración, repartir a cada grupo de viajeros entre los modos disponibles. El simulador ofrece **tres formas de hacerlo**, y la elección no es un detalle numérico: cambia el supuesto sobre cómo deciden las personas, y con él los resultados.
+
+| Método | Qué hace con un grupo de $n$ viajeros |
+| --- | --- |
+| **Logit — sorteo** | Sortea el modo de cada viajero con las probabilidades logit (Monte Carlo) |
+| **Logit — probabilidades** | Reparte $n \cdot P_m$ viajeros a cada modo $m$ (sin sorteo) |
+| **Todo o nada** | Manda los $n$ al modo de mayor utilidad |
+
+Los dos primeros son el **mismo modelo**, el logit, calculado de dos formas: «probabilidades» es el valor esperado del sorteo, sin ruido de muestreo. En la literatura es la *carga estocástica* de la red, y su equilibrio, el **equilibrio estocástico de usuario** (SUE). El tercero es distinto, y es el que vale la pena entender.
+
+## El determinístico es el logit con varianza cero
+
+En el capítulo de demanda, la probabilidad de elegir el modo $m$ sale del logit multinomial:
+
+$$
+P_m = \frac{e^{\lambda V_m}}{\sum_k e^{\lambda V_k}}
+$$
+
+donde $V_m$ es la utilidad sistemática —lo que el modelo observa: tiempos, costos, constantes— y $\lambda$ escala la importancia relativa de lo observado frente a lo **no** observado (el gusto idiosincrático de cada persona, que el modelador no ve).
+
+Cuando $\lambda$ crece, la parte no observada se vuelve despreciable y el logit se concentra en el mejor modo:
+
+$$
+P_m \;\longrightarrow\; \mathbb{1}\{m = \arg\max_k V_k\} \qquad \text{cuando } \lambda \to \infty
+$$
+
+Ése es exactamente el método determinístico. No es un modelo rival del logit: es su **caso límite**, el de una población perfectamente homogénea dentro de cada grupo.
+
+Se puede comprobar con los tiempos del equilibrio por defecto fijos. Multiplicando todos los coeficientes de la utilidad por un factor creciente —lo que equivale a subir $\lambda$— el reparto del logit se acerca de forma monótona al de mandar cada grupo a su mejor modo (con los tiempos fijos porque el determinístico, como se verá, no siempre tiene un equilibrio contra el cual medir):
+
+| Escala de los coeficientes | Mayor diferencia de reparto con el determinístico |
+| --- | --- |
+| ×1 | 20,27 pp |
+| ×5 | 2,41 pp |
+| ×20 | 0,85 pp |
+| ×50 | 0,42 pp |
+
+## Por qué importa: el mismo modelo, dos elasticidades
+
+Un grupo del simulador es la tripleta **(estrato, celda de origen, tenencia de auto)**: personas que enfrentan los mismos tiempos y tienen los mismos coeficientes. En la ciudad por defecto hay 1.200 grupos.
+
+Bajo logit, cuando una política mejora un modo, cada grupo mueve **una fracción** de su masa. Bajo determinístico, el grupo se mueve **entero** o no se mueve. Agregado sobre 1.200 grupos, eso cambia la respuesta del sistema por un factor grande.
+
+Agregando pistas de 1 a 6, la participación del metro:
+
+| Pistas por sentido | Metro, logit | Metro, determinístico |
+| --- | --- | --- |
+| 1 | 31,49 % | 25,42 %\* |
+| 2 | 26,45 % | 6,76 % |
+| 3 | 24,21 % | 3,89 % |
+| 4 | 23,42 % | 2,94 % |
+| 6 | 23,04 % | 2,61 % |
+
+\* Converge, pero pide 548 iteraciones, dentro del tope de 700 que la interfaz pone al elegir el método. Todas las corridas convergen.
+
+El logit pierde 8,45 puntos; el determinístico, 22,81. **Misma ciudad, misma calibración, mismos datos**: sólo cambia cuánta heterogeneidad no observada se le atribuye a la población.
+
+## El fenómeno que sólo aparece de un lado
+
+Ese trasvase más brusco tiene una consecuencia que vale el capítulo entero. Al perder pasajeros, el metro reduce su frecuencia —menos demanda, menos trenes— y la espera sube. Bajo el método determinístico, entre 1 y 2 pistas:
+
+- la frecuencia cae de 4,58 a 2,00 trenes/hora,
+- la espera sube de 6,56 a 15,00 minutos,
+- y el **costo generalizado percibido medio sube** de 31,51 a 37,00 minutos-equivalentes (los minutos ponderados como en la utilidad, más el dinero pasado a minutos con el valor del tiempo de cada estrato).
+
+Es decir: **agregar capacidad vial empeoró a la población**. Ésa es la paradoja de Downs-Thomson, y se puede reproducir desde la interfaz eligiendo el método determinístico y moviendo el control de pistas.
+
+Con un matiz: el determinístico converge, pero lento. El MSA promedia los **flujos** de cada grupo entre iteraciones —el MSA clásico del equilibrio de usuario— y para cuando el **costo en exceso medio**, los minutos que cada viajero paga sobre el mejor modo de su grupo, baja de una milésima del tiempo medio de viaje. Ese costo cae como 1/n: con 1 y 2 pistas tarda 548 y 167 iteraciones, y por eso al elegir el método la interfaz sube el tope a 700. La regla corta con el reparto todavía moviéndose un poco —el capítulo 5 del libro muestra que con 4 pistas corta en la iteración 10 con el metro en 2,94 %, y que sin corte baja a 2,93 % en la iteración 700—, pero la caída entre 1 y 2 pistas, casi 19 puntos, es mucho mayor que eso. El capítulo 7 mide el bienestar con la misma regla, y cae entre 1 y 2 pistas.
+
+Bajo logit, la misma curva de costo generalizado baja monótonamente de 36,13 a 31,39: la paradoja no aparece. El trasvase fraccional del logit es demasiado suave para que la degradación del metro alcance a superar la mejora del auto.
+
+## Una advertencia importante sobre el nombre
+
+Al método determinístico se le suele llamar «Wardrop», por el **principio de equilibrio de usuario** (Wardrop, 1952). Ese principio dice:
+
+> Toda ruta usada que conecta un origen con un destino tiene tiempo de viaje igual y mínimo.
+
+La palabra clave es **«que conecta un origen con un destino»**: la igualdad se exige *dentro* de un par origen-destino. Rutas usadas de pares distintos pueden tener tiempos distintos.
+
+En esta ciudad cada celda es un origen distinto y cada estrato una clase de usuario distinta, así que la condición **no dice nada sobre el agregado**. Y efectivamente no se cumple: en el equilibrio determinístico con 4 pistas los cuatro modos están usados a la vez con costos generalizados medios que difieren en casi 60 minutos.
+
+| Modo usado | Costo generalizado medio (min-equiv) |
+| --- | --- |
+| Caminata | 12,47 |
+| Bicicleta | 24,39 |
+| Auto | 40,82 |
+| Metro | 71,85 |
+
+La razón es que la igualdad se cumple **dentro** de cada grupo. La mayoría pone su masa en un solo modo, y un grupo con una sola alternativa usada cumple la condición trivialmente: no hay dos rutas usadas que comparar. Los que quedan repartidos entre dos modos son los indiferentes, y en ellos los dos costos sí se igualan, dentro de la tolerancia. El reparto modal que se observa en el agregado es **composición** entre 1.200 grupos que deciden distinto, no arbitraje entre viajeros.
+
+Por eso la interfaz lo llama «Todo o nada» y no «Wardrop».
+
+## Multiplicidad de equilibrios
+
+Bajo todo o nada, dos configuraciones parecidas pueden quedar en repartos distintos, porque el equilibrio no tiene por qué ser único. No es un defecto de programación: la unicidad del equilibrio de usuario exige que el costo de cada modo sea **estrictamente creciente** en su propio flujo, y el metro hace lo contrario —más pasajeros, más frecuencia, menos espera. Es el mismo efecto Mohring que hace posible Downs-Thomson.
+
+Dicho de otro modo: **el fenómeno que el capítulo enseña y la falta de unicidad son la misma cosa vista dos veces.** Para comparar escenarios, usar siempre el mismo barrido desde la misma configuración inicial.
+
+## Cuál usar
+
+- **Logit — probabilidades** — el default, y el apropiado para casi todo. Es el modelo de elección discreta estándar con población heterogénea, sin ruido de muestreo.
+- **Logit — sorteo** — cuando interesa ver la variabilidad del muestreo, o para ilustrar que el reparto esperado es un promedio de realizaciones.
+- **Todo o nada** — para aislar mecanismos de equilibrio. Al eliminar la dispersión de gustos deja ver fenómenos que el logit amortigua. Es más nítido, no más realista.
+
+Dos cosas prácticas. Primera: el determinístico converge mucho más lento. Pide 548 y 167 iteraciones con 1 y 2 pistas, 147 con 3, y 10 y 13 con 4 y 6; el logit, 20 con 1 pista y entre 6 y 16 con más. Al elegir el determinístico la interfaz lleva el tope a 700 como mínimo, por si lo habías bajado. Mira el indicador de convergencia antes de leer un resultado determinístico. Segunda: la medida de bienestar cambia con el método: bajo logit el excedente se mide con el **logsum** (`ln Σ e^{V_m}`, que es `E[máx]` cuando hay un término aleatorio Gumbel), y bajo determinístico con la **utilidad máxima media** (`máx_m V_m`, porque sin ese término el agente simplemente toma el mejor modo). La tabla de resultados cambia sola de medida y la rotula. No compares el nivel entre métodos: el logsum siempre queda por encima, y esa brecha es el valor que el logit le atribuye a la variedad.
+
+<NextStep to="land-use">Módulo Uso de suelo</NextStep>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Cap. 4: Demanda y elección modal</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · capítulo 4</div>
+  <h1>Demanda y elección modal</h1>
+  <p class="bajada">
+    Quién viaja en qué. Un logit multinomial sobre cuatro modos, con la
+    calibración más delicada del simulador: aquí es donde el ingreso entra al
+    modelo, y donde un coeficiente mal puesto cambia la ciudad entera.
+  </p>
+  <p class="meta">
+    Módulos: <code>demand/utility.py</code> · <code>demand/choice.py</code> ·
+    <code>population.py</code> · <code>presets.py</code> ·
+    schema v8 · datos regenerados el 2026-10-28 ·
+    <span class="estado vigente">vigente</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Teoría</a></li>
+    <li><a href="#s2">Parámetros</a></li>
+    <li><a href="#s3">Código</a></li>
+    <li><a href="#s4">Pruebas</a></li>
+    <li><a href="#s5">Resultados</a></li>
+    <li><a href="#s6">Discusión</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="num">§1</span> Teoría</h2>
+
+<p>
+  La población que distribuyó el capítulo 2 viaja al CBD por la red que
+  describe el capítulo 3. Cada hogar que no teletrabaja elige uno de cuatro
+  modos, auto, metro, bicicleta o caminata, con un <strong>logit
+  multinomial</strong> (Train 2009, cap. 3; Ortúzar y Willumsen 2011, cap. 7).
+  La utilidad de un modo para un hogar del estrato <em>s</em> suma una
+  constante específica, los tiempos valorados con su coeficiente, el dinero y,
+  en los modos activos, penalizaciones escalonadas por esfuerzo:
+</p>
+
+<div class="ecuacion" data-tex="V_m^s = \mathrm{ASC}_m^s + \sum_k \beta_{t_k}^s\, t_{k,m} + \beta_c^s\, c_m + \sum_j \pi_j^s\, \mathbb{1}\{t^{0}_m &gt; u_j\}" data-id="(4.1)">
+  <span class="id">(4.1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>V</mi><mi>m</mi><mi>s</mi></msubsup><mo>=</mo><msubsup><mrow><mi mathvariant="normal">A</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">C</mi></mrow><mi>m</mi><mi>s</mi></msubsup><mo>+</mo><munder><mo>∑</mo><mi>k</mi></munder><msubsup><mi>β</mi><msub><mi>t</mi><mi>k</mi></msub><mi>s</mi></msubsup><mtext> </mtext><msub><mi>t</mi><mrow><mi>k</mi><mo separator="true">,</mo><mi>m</mi></mrow></msub><mo>+</mo><msubsup><mi>β</mi><mi>c</mi><mi>s</mi></msubsup><mtext> </mtext><msub><mi>c</mi><mi>m</mi></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msubsup><mi>π</mi><mi>j</mi><mi>s</mi></msubsup><mtext> </mtext><mn mathvariant="double-struck">1</mn><mo stretchy="false">{</mo><msubsup><mi>t</mi><mi>m</mi><mn>0</mn></msubsup><mo>&gt;</mo><msub><mi>u</mi><mi>j</mi></msub><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">V_m^s = \mathrm{ASC}_m^s + \sum_k \beta_{t_k}^s\, t_{k,m} + \beta_c^s\, c_m + \sum_j \pi_j^s\, \mathbb{1}\{t^{0}_m &gt; u_j\}</annotation></semantics></math></span>
+</div>
+
+<p>
+  Los tiempos <em>t_k</em> son los componentes del viaje: en vehículo, espera
+  y acceso a pie para el metro, pedaleo, caminata. El dinero <em>c_m</em> es,
+  para el auto, bencina y peaje por kilómetro más la mitad del estacionamiento
+  diario; para el metro, la tarifa; cero para los modos activos. La unidad de
+  elección es el <strong>viaje representativo</strong>: un hogar hace 44
+  viajes al mes, dos por cada tour casa-trabajo-casa, y el estacionamiento,
+  que se paga una vez al día, se reparte entre los dos. Las penalizaciones <em>π_j</em> son saltos fijos que
+  se suman cuando el tiempo del modo con la red vacía, <em>t⁰_m</em>, supera
+  un umbral <em>u_j</em>: 10, 20 y 30 minutos en bicicleta; 5, 15 y 25 minutos
+  a pie. La caminata no se congestiona, así que su <em>t⁰</em> es su tiempo; en
+  la bicicleta los escalones miden esfuerzo, distancia y pendiente, y la
+  congestión de la ciclovía entra sólo por el término de tiempo (D9, capítulo
+  5). Con un término aleatorio
+  Gumbel independiente e idénticamente distribuido, la probabilidad de elegir
+  el modo <em>m</em> entre los factibles es
+</p>
+
+<div class="ecuacion" data-tex="P_m = \frac{e^{V_m}}{\sum_{m' \in \mathcal{C}} e^{V_{m'}}}" data-id="(4.2)">
+  <span class="id">(4.2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mfrac><msup><mi>e</mi><msub><mi>V</mi><mi>m</mi></msub></msup><mrow><munder><mo>∑</mo><mrow><msup><mi>m</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>∈</mo><mi mathvariant="script">C</mi></mrow></munder><msup><mi>e</mi><msub><mi>V</mi><msup><mi>m</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></msub></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">P_m = \frac{e^{V_m}}{\sum_{m&#x27; \in \mathcal{C}} e^{V_{m&#x27;}}}</annotation></semantics></math></span>
+</div>
+
+<p>
+  El conjunto de elección <em>C</em> depende del hogar y de la celda. El auto
+  exige tener auto; el metro exige que exista un tramo en tren desde la
+  estación más cercana; la caminata y la bicicleta desaparecen cuando su
+  tiempo supera un corte. Un hogar sin ningún modo factible no viaja.
+</p>
+
+<h3>Minutos-equivalentes: la única forma de comparar</h3>
+
+<p>
+  La escala de la utilidad es arbitraria: multiplicar todos los coeficientes
+  de un estrato por una constante no cambia sus razones internas, sólo la
+  varianza del término aleatorio. Por eso los coeficientes de estratos
+  distintos no se comparan directamente. Dividir cada término por
+  <em>|β_t|</em>, el coeficiente del tiempo en vehículo, cancela la escala y
+  deja todo en <strong>minutos-equivalentes de viaje en vehículo</strong>:
+</p>
+
+<div class="ecuacion" data-tex="\tilde V_m^s = \frac{V_m^s}{\lvert \beta_t^s \rvert}, \qquad \mathrm{VoT}^s = \frac{\beta_t^s}{\beta_c^s}\cdot 60 \ \text{\$/h}" data-id="(4.3)">
+  <span class="id">(4.3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mover accent="true"><mi>V</mi><mo>~</mo></mover><mi>m</mi><mi>s</mi></msubsup><mo>=</mo><mfrac><msubsup><mi>V</mi><mi>m</mi><mi>s</mi></msubsup><mrow><mo stretchy="false">∣</mo><msubsup><mi>β</mi><mi>t</mi><mi>s</mi></msubsup><mo stretchy="false">∣</mo></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><msup><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">T</mi></mrow><mi>s</mi></msup><mo>=</mo><mfrac><msubsup><mi>β</mi><mi>t</mi><mi>s</mi></msubsup><msubsup><mi>β</mi><mi>c</mi><mi>s</mi></msubsup></mfrac><mo>⋅</mo><mn>60</mn><mtext> $/h</mtext></mrow><annotation encoding="application/x-tex">\tilde V_m^s = \frac{V_m^s}{\lvert \beta_t^s \rvert}, \qquad \mathrm{VoT}^s = \frac{\beta_t^s}{\beta_c^s}\cdot 60 \ \text{\$/h}</annotation></semantics></math></span>
+</div>
+
+<p>
+  En esa unidad, una constante modal es una ventaja en minutos, una
+  penalización es un salto en minutos y el cociente entre el coeficiente del
+  tiempo y el del dinero es el valor del tiempo. Todo este capítulo está
+  escrito así, y es la misma cuenta que hace
+  <code>scripts/diagnostico_calibracion.py</code>. El coeficiente del dinero,
+  <em>β_c</em>, es la utilidad marginal del ingreso, y es el mismo <em>λ_h</em>
+  que usa la subasta de suelo: un hogar, una función de utilidad (cap. 2).
+</p>
+
+<h3>La escala por estrato, y lo que el logit no tiene</h3>
+
+<p>
+  En un logit sólo se identifica el cociente entre cada coeficiente y la
+  desviación del término aleatorio. Un estrato «con menos ruido» no se
+  distingue de uno con coeficientes más grandes, y como aquí los coeficientes
+  ya son por estrato, cualquier diferencia de escala entre estratos está
+  absorbida en ellos: reescribir el modelo como <em>V/θ_s</em>, con una escala
+  propia por estrato, no cambia ninguna probabilidad. Un «logit heterocedástico
+  por estrato» no es, en la elección modal, un modelo distinto del que está
+  implementado. En el suelo sí lo es (cap. 2): ahí compiten en una subasta
+  postores con utilidades marginales del ingreso distintas, y la escala de la
+  puja en dinero difiere entre ellos. En la elección modal cada hogar compara
+  sus propias alternativas con su propio <em>λ_h</em>, y la heterocedasticidad
+  no aparece sola; habría que postularla.
+</p>
+
+<p>
+  Lo que el modelo no tiene es <strong>varianza distinta entre modos</strong>
+  (el logit de valores extremos heterocedásticos, Train 2009, §4.5) ni
+  <strong>correlación entre modos</strong> (el logit anidado). Dentro de cada
+  grupo de estrato, celda y tenencia de auto rige la independencia de
+  alternativas irrelevantes: la bicicleta y la caminata no son, para el
+  modelo, sustitutos más cercanos entre sí que del auto. Es un supuesto
+  declarado, no un error de cálculo, y las dos extensiones quedan como tales.
+</p>
+
+<h3>Quién viaja</h3>
+
+<p>
+  Los agentes salen de la composición del suelo: en cada celda, los hogares de
+  cada estrato se cuentan por mayor residuo sobre <em>S_i·Q_{h|i}</em>, y de
+  ellos una fracción <em>prob_teletrabajo</em>, escalada por el factor de
+  teletrabajo, no viaja (0 por defecto desde oct-2026: viajan todos); de los
+  que viajan, una fracción <em>prob_auto</em>
+  dispone de auto. Los conteos son redondeados, no sorteados, para que la
+  población sea reproducible y el equilibrio acoplado converja. El redondeo es
+  por celda y estrato, y deja dientes en la fracción con auto entre celdas
+  vecinas: 0,3 puntos en la mediana y hasta
+  5,8 con la localización «original», y hasta
+  50,0 con la de equilibrio, donde un estrato llega a tener
+  1 hogar en una celda. Se ven en el
+  reparto espacial por estrato, no en el agregado: la tenencia de la ciudad
+  queda en 0,9009, 0,6000
+  y 0,2504 contra 0,90, 0,60 y 0,25. La demanda por
+  celda y modo que resulta es la <strong>esperada</strong>, hogares por
+  probabilidad; la alternativa de sortear un modo por agente y su efecto sobre
+  el equilibrio son del capítulo 5.
+</p>
+
+<h3>Escalones o suaves</h3>
+
+<p>
+  Tres reglas de (4.1) y (4.2) son discontinuas en la distancia: las
+  penalizaciones saltan al cruzar cada umbral, el modo sale de <em>C</em> al
+  pasar su corte y el metro aparece de golpe donde la estación más cercana
+  deja de ser la del CBD (D-69). El logsum hereda esos saltos, y con él la
+  accesibilidad con que los hogares pujan por suelo (capítulo 2). Desde
+  oct-2026 hay una segunda especificación, <code>globales.umbrales =
+  "suaves"</code>, que conserva las mismas penalizaciones y los mismos cortes
+  y cambia cada discontinuidad por su versión continua. «escalones» sigue
+  siendo el default, y es la de la línea base.
+</p>
+
+<p>
+  Las penalizaciones pasan a una rampa por los puntos medios de los escalones:
+  la penalización acumulada <em>Π(t)</em> es lineal por tramos y vale lo mismo
+  que el escalón en el centro de cada tramo, así que las <em>π_j</em>
+  calibradas siguen significando lo mismo. Con umbrales <em>u_1 &lt; u_2 &lt;
+  u_3</em> y <em>h_1 = (u_2 − u_1)/2</em>, <em>h_3 = (u_3 − u_2)/2</em>,
+</p>
+
+<div class="ecuacion" data-tex="\Pi(t) = \operatorname{interp}\Big(t;\ \big(u_1 - h_1,\ u_2 - h_1,\ u_3 - h_3,\ u_3 + h_3\big),\ \big(0,\ \pi_1,\ \pi_1 + \pi_2,\ \pi_1 + \pi_2 + \pi_3\big)\Big)" data-id="(4.4)">
+  <span class="id">(4.4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Π</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">interp</mi><mo>⁡</mo><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">(</mo><mi>t</mi><mo separator="true">;</mo><mtext> </mtext><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>u</mi><mn>1</mn></msub><mo>−</mo><msub><mi>h</mi><mn>1</mn></msub><mo separator="true">,</mo><mtext> </mtext><msub><mi>u</mi><mn>2</mn></msub><mo>−</mo><msub><mi>h</mi><mn>1</mn></msub><mo separator="true">,</mo><mtext> </mtext><msub><mi>u</mi><mn>3</mn></msub><mo>−</mo><msub><mi>h</mi><mn>3</mn></msub><mo separator="true">,</mo><mtext> </mtext><msub><mi>u</mi><mn>3</mn></msub><mo>+</mo><msub><mi>h</mi><mn>3</mn></msub><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo separator="true">,</mo><mtext> </mtext><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mn>0</mn><mo separator="true">,</mo><mtext> </mtext><msub><mi>π</mi><mn>1</mn></msub><mo separator="true">,</mo><mtext> </mtext><msub><mi>π</mi><mn>1</mn></msub><mo>+</mo><msub><mi>π</mi><mn>2</mn></msub><mo separator="true">,</mo><mtext> </mtext><msub><mi>π</mi><mn>1</mn></msub><mo>+</mo><msub><mi>π</mi><mn>2</mn></msub><mo>+</mo><msub><mi>π</mi><mn>3</mn></msub><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">)</mo></mrow><annotation encoding="application/x-tex">\Pi(t) = \operatorname{interp}\Big(t;\ \big(u_1 - h_1,\ u_2 - h_1,\ u_3 - h_3,\ u_3 + h_3\big),\ \big(0,\ \pi_1,\ \pi_1 + \pi_2,\ \pi_1 + \pi_2 + \pi_3\big)\Big)</annotation></semantics></math></span>
+</div>
+
+<p>
+  con la última pendiente más allá del último nodo: 5, 15, 25 y 35 minutos en
+  bicicleta; 0, 10, 20 y 30 a pie. El corte deja de sacar el modo del
+  conjunto y entra como penalización, el factor binomial del logit
+  multinomial restringido (CMNL) de Martínez, Aguila y Hurtubia (2009), en la
+  forma de Martínez (2018, ec. 5.33):
+</p>
+
+<div class="ecuacion" data-tex="\ln \varphi_\omega(x) = -\ln\!\left(1 + e^{\,\omega x}\right), \qquad x = t^{0}_m - \bar t_m" data-id="(4.5)">
+  <span class="id">(4.5)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>ln</mi><mo>⁡</mo><msub><mi>φ</mi><mi>ω</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><mi>ln</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mtext> </mtext><mi>ω</mi><mi>x</mi></mrow></msup><mo fence="true">)</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><mi>x</mi><mo>=</mo><msubsup><mi>t</mi><mi>m</mi><mn>0</mn></msubsup><mo>−</mo><msub><mover accent="true"><mi>t</mi><mo>ˉ</mo></mover><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">\ln \varphi_\omega(x) = -\ln\!\left(1 + e^{\,\omega x}\right), \qquad x = t^{0}_m - \bar t_m</annotation></semantics></math></span>
+</div>
+
+<p>
+  con <em>ω</em> = <code>OMEGA_CORTE_SUAVE</code> por minuto. Vale casi cero
+  bastante antes del corte <em>t̄_m</em>, −ln 2 justo en él y castiga casi
+  linealmente después. Martínez recomienda desplazarlo con un margen
+  <em>r</em> &gt; 0, que empieza a cortar antes del borde; aquí <em>r</em> = 0,
+  para que «suaves» corte donde corta «escalones».
+</p>
+
+<p>
+  El metro deja de asignar la estación del CBD fuera de la celda del CBD, y el
+  filtro que esa regla hacía de golpe pasa a ser una dominancia suave
+  (Cascetta y Papola 2009, ec. 3): el metro está dominado por caminar directo
+  cuando su tiempo generalizado supera <em>a</em> veces el de la caminata.
+  Como la tarifa del metro ya es mayor que la de caminar, que es cero, basta
+  comparar tiempos, en minutos en vehículo con los cocientes de los
+  coeficientes del estrato:
+</p>
+
+<div class="ecuacion" data-tex="V_{\text{metro}}^s \mathrel{+}= \ln \varphi_{\omega_d}\!\left(\tfrac{\beta_{\text{acc}}^s}{\beta_{v}^s}\, t_{\text{acc}} + \tfrac{\beta_{\text{esp}}^s}{\beta_{v}^s}\, t_{\text{esp}} + t_{v} - a\, \tfrac{\beta_{\text{cam}}^s}{\beta_{v}^s}\, t_{\text{cam}}\right)" data-id="(4.6)">
+  <span class="id">(4.6)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>V</mi><mtext>metro</mtext><mi>s</mi></msubsup><mo>+</mo><mo>=</mo><mi>ln</mi><mo>⁡</mo><msub><mi>φ</mi><msub><mi>ω</mi><mi>d</mi></msub></msub><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mstyle scriptlevel="0" displaystyle="false"><mfrac><msubsup><mi>β</mi><mtext>acc</mtext><mi>s</mi></msubsup><msubsup><mi>β</mi><mi>v</mi><mi>s</mi></msubsup></mfrac></mstyle><mtext> </mtext><msub><mi>t</mi><mtext>acc</mtext></msub><mo>+</mo><mstyle scriptlevel="0" displaystyle="false"><mfrac><msubsup><mi>β</mi><mtext>esp</mtext><mi>s</mi></msubsup><msubsup><mi>β</mi><mi>v</mi><mi>s</mi></msubsup></mfrac></mstyle><mtext> </mtext><msub><mi>t</mi><mtext>esp</mtext></msub><mo>+</mo><msub><mi>t</mi><mi>v</mi></msub><mo>−</mo><mi>a</mi><mtext> </mtext><mstyle scriptlevel="0" displaystyle="false"><mfrac><msubsup><mi>β</mi><mtext>cam</mtext><mi>s</mi></msubsup><msubsup><mi>β</mi><mi>v</mi><mi>s</mi></msubsup></mfrac></mstyle><mtext> </mtext><msub><mi>t</mi><mtext>cam</mtext></msub><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">V_{\text{metro}}^s \mathrel{+}= \ln \varphi_{\omega_d}\!\left(\tfrac{\beta_{\text{acc}}^s}{\beta_{v}^s}\, t_{\text{acc}} + \tfrac{\beta_{\text{esp}}^s}{\beta_{v}^s}\, t_{\text{esp}} + t_{v} - a\, \tfrac{\beta_{\text{cam}}^s}{\beta_{v}^s}\, t_{\text{cam}}\right)</annotation></semantics></math></span>
+</div>
+
+<p>
+  con <em>a</em> = <code>A_DOMINANCIA_METRO</code> y <em>ω_d</em> =
+  <code>OMEGA_DOMINANCIA_METRO</code>. Cascetta y Papola definen la dominancia
+  sobre atributos, no sobre utilidades, y prefieren aplicarla de forma
+  estocástica antes que como exclusión. Comparar utilidades tampoco serviría
+  aquí: las ASC ya están en ellas. Los tres parámetros nuevos son supuestos,
+  no calibraciones (§5.7).
+</p>
+
+<div class="aviso idea">
+  <h4>Alcance</h4>
+  <p>
+    La demanda convierte tiempos y costos en probabilidades. No decide dónde
+    vive la gente, que es del suelo, ni cuánto tardan los modos, que es de la
+    oferta; toma ambos como dados en cada iteración del equilibrio. El límite
+    determinístico, todo el grupo al modo de mayor utilidad, es el logit con
+    la varianza del ruido llevada a cero, y no es un equilibrio de Wardrop en
+    el agregado: cada celda es un origen distinto y cada estrato una clase de
+    usuario, así que la condición de tiempos iguales no dice nada sobre la
+    ciudad entera.
+  </p>
+</div>
+
+<h2 id="s2"><span class="num">§2</span> Parámetros</h2>
+
+<p>
+  Por estrato, en minutos-equivalentes. El coeficiente del tiempo en vehículo
+  es común, <em>β_t</em> = −0,0331, así que toda la heterogeneidad del valor
+  del tiempo vive en <em>β_c</em>.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Estrato</th><th class="n">β_c (·10⁻⁴)</th><th class="n">VoT $/h</th><th class="n">prob_auto</th><th class="n">prob_teletrabajo</th><th class="n">ASC auto</th><th class="n">ASC bici</th><th class="n">ASC caminata</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>alto</td><td class="n">3,14</td><td class="n">6.329</td><td class="n">0,90</td><td class="n">0,00</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
+    <tr class="destacada"><td>medio</td><td class="n">6,28</td><td class="n">3.164</td><td class="n">0,60</td><td class="n">0,00</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
+    <tr><td>bajo</td><td class="n">12,16</td><td class="n">1.633</td><td class="n">0,25</td><td class="n">0,00</td><td class="n">+20,0</td><td class="n">−18,0</td><td class="n">0,0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Las ASC son ventajas en minutos sobre el metro, que es la referencia. Los
+  pesos de los componentes de tiempo son comunes: en vehículo 1,0, pedaleo
+  1,0, caminata 1,7, espera 2,0, acceso a pie 2,0.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Penalización (min-eq.)</th><th class="n">bici &gt; 10</th><th class="n">bici &gt; 20</th><th class="n">bici &gt; 30</th><th class="n">caminata &gt; 5</th><th class="n">caminata &gt; 15</th><th class="n">caminata &gt; 25</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>alto</td><td class="n">1,64</td><td class="n">4,36</td><td class="n">13,45</td><td class="n">1,64</td><td class="n">4,91</td><td class="n">12,18</td></tr>
+    <tr class="destacada"><td>medio</td><td class="n">1,92</td><td class="n">4,94</td><td class="n">17,02</td><td class="n">1,51</td><td class="n">4,23</td><td class="n">10,27</td></tr>
+    <tr><td>bajo</td><td class="n">2,00</td><td class="n">5,33</td><td class="n">18,67</td><td class="n">1,67</td><td class="n">4,33</td><td class="n">9,67</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Parámetro global</th><th class="n">Valor</th><th>Unidad</th><th>Origen</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>costo_parking</code></td><td class="n">2.000</td><td>$/día</td><td><span class="etiqueta neutra">decisión</span> ago-2026 (el original traía 6.000); costo esperado, no precio de lista; cada viaje carga la mitad desde oct-2026</td></tr>
+    <tr><td><code>costo_combustible_km</code></td><td class="n">120</td><td>$/km</td><td><span class="etiqueta lim">heredado</span></td></tr>
+    <tr><td><code>peaje_km</code></td><td class="n">0</td><td>$/km</td><td><span class="etiqueta neutra">decisión</span> palanca de política (D7, oct-2026): transferencia, no consumo; 50 en «Tarificación Vial»</td></tr>
+    <tr><td><code>costo_tarifa_metro</code></td><td class="n">800</td><td>$/viaje</td><td><span class="etiqueta lim">heredado</span></td></tr>
+    <tr><td><code>corte_caminata_min</code></td><td class="n">30</td><td>min</td><td><span class="etiqueta neutra">decisión</span> 2,4 km a 4,8 km/h</td></tr>
+    <tr><td><code>corte_bici_min</code></td><td class="n">45</td><td>min</td><td><span class="etiqueta neutra">decisión</span> 10,5 km a 14 km/h: no actúa en una ciudad de 20 km</td></tr>
+    <tr><td><code>v_auto</code> / <code>v_metro</code> / <code>v_bici</code> / <code>v_caminata</code></td><td class="n">31 / 35 / 14 / 4,8</td><td>km/h</td><td><span class="etiqueta lim">heredado</span> las tres primeras sólo siembran la iteración cero; la caminata es el único modo que se calcula con ellas siempre</td></tr>
+    <tr><td><code>teletrabajo_factor</code></td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> el control de política de teletrabajo: multiplica <code>prob_teletrabajo</code>, que es 0 por defecto, así que sin una tasa base no hace nada</td></tr>
+    <tr><td><code>factor_flota_auto</code></td><td class="n">1,0</td><td>—</td><td><span class="etiqueta neutra">decisión</span> multiplica la emisión del auto; no entra a la elección (cap. 7)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>La elección de los valores</h3>
+
+<p>
+  <strong>El valor del tiempo.</strong> Los tres valores, 6.329, 3.164 y
+  1.633 pesos por hora, tienen una dispersión declarada, no estimada, y de
+  ellos se despeja <em>β_c</em> con <em>β_t</em> fijo. Las referencias que los
+  acotan están en el capítulo 2: el valor social del SNI de 3.338 $/h, sin
+  distinción por ingreso, y las elasticidades-ingreso transversales de la
+  literatura, más bajas que la dispersión que estos tres implican. Lo que sí
+  tiene teoría detrás es su orden: la utilidad marginal del ingreso decrece
+  con el ingreso, y eso es lo que produce el gradiente de Alonso en el suelo.
+  Su <strong>nivel</strong> está anclado (D5, oct-2026): la media de los tres,
+  ponderada por los viajeros de la ciudad por defecto, es el VST de 3.338 $/h.
+  Los valores heredados, 6.200, 3.100 y 1.600, daban 3.270,0, un 2,0 % bajo, y
+  se escalaron los tres por 1,0208 (§5.6). El VST es por hora-pasajero, así
+  que el ponderador que corresponde es el de los viajeros.
+</p>
+
+<p>
+  <strong>Una escala de tiempo común, como supuesto.</strong> Que <em>β_t</em>
+  valga lo mismo en los tres estratos es un supuesto sobre las preferencias, y
+  tiene un modelo detrás. En el modelo de bienes y ocio con salario
+  <em>w</em> y una Cobb-Douglas de parámetro <em>β</em>, la utilidad indirecta
+  condicional de un modo es (Jara-Díaz 2007, ec. 2.24, p. 59)
+</p>
+
+<div class="ecuacion" data-tex="U_i = -K'\,w^{1-\beta}\,t_i - K'\,w^{-\beta}\,c_i \;\xrightarrow{\;\beta \to 1\;}\; -K'\left(t_i + \frac{c_i}{w}\right)" data-id="(4.7)">
+  <span class="id">(4.7)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>U</mi><mi>i</mi></msub><mo>=</mo><mo>−</mo><msup><mi>K</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mtext> </mtext><msup><mi>w</mi><mrow><mn>1</mn><mo>−</mo><mi>β</mi></mrow></msup><mtext> </mtext><msub><mi>t</mi><mi>i</mi></msub><mo>−</mo><msup><mi>K</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mtext> </mtext><msup><mi>w</mi><mrow><mo>−</mo><mi>β</mi></mrow></msup><mtext> </mtext><msub><mi>c</mi><mi>i</mi></msub><mtext>  </mtext><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext>  </mtext><mi>β</mi><mo>→</mo><mn>1</mn><mtext>  </mtext></mrow></mpadded></mover><mtext>  </mtext><mo>−</mo><msup><mi>K</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mrow><mo fence="true">(</mo><msub><mi>t</mi><mi>i</mi></msub><mo>+</mo><mfrac><msub><mi>c</mi><mi>i</mi></msub><mi>w</mi></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">U_i = -K&#x27;\,w^{1-\beta}\,t_i - K&#x27;\,w^{-\beta}\,c_i \;\xrightarrow{\;\beta \to 1\;}\; -K&#x27;\left(t_i + \frac{c_i}{w}\right)</annotation></semantics></math></span>
+</div>
+
+<p>
+  En el límite <em>β</em> → 1 el coeficiente del tiempo es común a todos los
+  ingresos y el del dinero va como 1/<em>w</em>: es exactamente la
+  especificación del simulador, con el valor del tiempo proporcional al
+  salario. El caso general admite un coeficiente del tiempo que crece con el
+  salario; el simulador no lo usa, y lo declara. Con la escala común, todo lo
+  que distingue a los estratos es cuánto vale un peso para cada uno y qué
+  modos tiene disponibles.
+</p>
+
+<p>
+  <strong>Las constantes modales</strong> son una ventaja común a los tres
+  estratos, medida en minutos sobre el metro: el auto vale 20 minutos, la
+  bicicleta −18, la caminata 0. Son valores neutrales, elegidos para que el
+  reparto agregado no se moviera al fijarlos, y no estimados: con una encuesta
+  origen-destino que diera reparto por estrato habría que reemplazarlos por
+  el ajuste estándar de constantes. Un gradiente de ingreso en las constantes
+  contaría dos veces el ingreso, que ya entra por el valor del tiempo y la
+  tenencia de auto.
+</p>
+
+<p>
+  <strong>Los pesos del tiempo.</strong> Espera y acceso a pie pesan el doble
+  que el tiempo en vehículo, que es el ponderador 2 de la Tabla 2.1 de los
+  Precios Sociales 2026. La caminata como modo pesa 1,7, un juicio declarado
+  como tal. Pedalear pesa 1,0, igual que ir sentado: la bicicleta no tiene
+  coeficiente propio y usa el del vehículo, y lo único que distingue su
+  esfuerzo son las penalizaciones escalonadas.
+</p>
+
+<p>
+  <strong>Las penalizaciones</strong> son herencia del simulador original,
+  reescaladas junto con el resto del bloque de cada estrato, y conservan un
+  gradiente que nadie declaró: la de la bicicleta a los 30 minutos crece del
+  estrato alto al bajo, de 13,45 a 18,67, y la de la caminata a los 25
+  decrece, de 12,18 a 9,67. Son los dos términos que la calibración no revisó.
+</p>
+
+<p>
+  <strong>Los cortes de factibilidad</strong> convierten un tiempo en una
+  imposibilidad. El de la caminata, 30 minutos, son 2,4 km y deja sin ese modo
+  al 75,6 % de las celdas. El de la bicicleta, 45 minutos, son 10,5 km, medio
+  kilómetro más que el radio de la ciudad: en 20 km no actúa nunca, y sólo
+  mordería en una ciudad de más de 21 km.
+</p>
+
+<h2 id="s3"><span class="num">§3</span> Código</h2>
+
+<p>
+  La cadena es: los agentes se agrupan por estrato, celda y tenencia de auto;
+  para cada grupo se calculan las cuatro utilidades con los tiempos que
+  entrega la oferta; el logit da las probabilidades; y la demanda esperada por
+  celda y modo vuelve a la oferta. En la iteración cero, sin tiempos
+  observados, los tiempos son los de flujo libre con las velocidades globales
+  y, para el metro, diez minutos de acceso y cinco de espera fijos.
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">122</td><td><code>calcular_utilidades</code> — los cuatro modos; <code>UtilityBreakdown</code> (91) guarda la descomposición y la factibilidad; <code>_tiempos_flujo_libre</code> (111) es la iteración cero</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">103</td><td><code>costo_monetario_auto</code> — bencina y peaje por km más medio parking; la usan también los agregados de bienestar, que antes tenían su copia</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">245</td><td>bicicleta: usa <code>b_tiempo_viaje</code>; las penalizaciones se suman como saltos fijos por umbral (132)</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">258</td><td>caminata: usa <code>b_tiempo_caminata</code>, propio, con sus umbrales de 5, 15 y 25 minutos</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">demand/utility.py</td><td class="n">199</td><td>el metro es factible si <code>tren_viaje</code> es positivo: hay un tramo en tren desde la estación más cercana</td></tr>
+    <tr><td class="n">(4.4)</td><td class="ruta py">demand/utility.py</td><td class="n">38</td><td><code>_rampa</code> — la penalización por los puntos medios de los escalones; <code>_escalones</code> (31) es la de «escalones»</td></tr>
+    <tr><td class="n">(4.5)</td><td class="ruta py">demand/utility.py</td><td class="n">59</td><td><code>_ln_phi</code> — el corte CMNL, también para la dominancia; <code>_fisica</code> (230) elige entre escalones y corte duro o rampa y corte suave</td></tr>
+    <tr><td class="n">(4.6)</td><td class="ruta py">demand/utility.py</td><td class="n">198</td><td><code>suaves</code> — la rama de la especificación; la dominancia del metro (211)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">supply/train.py</td><td class="n">88</td><td><code>excluir_estacion_cbd</code> — fuera de la celda del CBD, la estación del CBD no es de acceso; la activa <code>supply/oferta.py</code> con «suaves»</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">constantes.py</td><td class="n">46</td><td><code>OMEGA_CORTE_SUAVE</code> — y <code>A_DOMINANCIA_METRO</code> (51), <code>OMEGA_DOMINANCIA_METRO</code> (54): supuestos, no calibrados</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">130</td><td><code>umbrales</code> — «escalones» (default) o «suaves»; el selector está en Transporte → Equilibrio</td></tr>
+    <tr><td class="n">(4.2)</td><td class="ruta py">demand/choice.py</td><td class="n">19</td><td><code>probabilidades_logit</code> — sobre los modos factibles, con resta del máximo por estabilidad</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">demand/choice.py</td><td class="n">44</td><td><code>probabilidades_todo_o_nada</code> — el límite determinístico; su docstring explica por qué no es Wardrop</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">population.py</td><td class="n">57</td><td><code>generar_poblacion_desde_land_use_det</code> — agentes desde el suelo; teletrabajo y auto por conteos redondeados</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">140</td><td><code>_agrupar_agentes</code> — separa a los teletrabajadores y agrupa por estrato, celda y auto; <code>_probs_grupo</code> (161) llama a la utilidad y al logit</td></tr>
+    <tr><td class="n">(4.3)</td><td class="ruta py">presets.py</td><td class="n">381</td><td><code>DEFAULT_STRATA</code> — la calibración de los tres estratos, con los minutos-equivalentes en sus comentarios</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">47</td><td><code>StratumBetas</code> — <code>b_tiempo_viaje</code> (56), <code>b_costo</code> (59), <code>b_tiempo_espera</code> (62), <code>b_tiempo_acceso</code> (72), <code>b_tiempo_caminata</code> (77); <code>PhysicalPenalties</code> (30)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">81</td><td><code>StratumConfig</code> — <code>prob_teletrabajo</code> (94), <code>prob_auto</code> (95)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">99</td><td><code>GlobalConfig</code> — <code>corte_caminata_min</code> (119), <code>corte_bici_min</code> (120), <code>costo_combustible_km</code> (131), <code>costo_tarifa_metro</code> (132), <code>costo_parking</code> (154), <code>peaje_km</code> (160), <code>teletrabajo_factor</code> (181)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">constantes.py</td><td class="n">37</td><td><code>CORTE_CAMINATA_MIN</code> — los dos cortes por defecto; <code>CORTE_BICI_MIN</code> (40)</td></tr>
+    <tr><td class="n">(4.3)</td><td class="ruta py">packages/titirilquen_core/scripts/diagnostico_calibracion.py</td><td class="n">89</td><td><code>razones</code> — los betas en minutos-equivalentes contra rangos declarados</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">components/modules/EconomyBuilder.tsx</td><td class="n">59</td><td><code>costo_tarifa_metro</code> — el panel de economía: tarifa, estacionamiento, combustible, flota y teletrabajo</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">components/modules/CalibrationPanel.tsx</td><td class="n">69</td><td><code>b_costo</code> — el panel de calibración de la interfaz: los tres valores del tiempo y las tasas base de auto y teletrabajo</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Dónde se aparta el código del documento original, y por qué. Las
+  penalizaciones se suman como saltos fijos; en el documento multiplican al
+  tiempo, lo que las haría crecer sin tope con la distancia. La caminata tiene
+  coeficiente propio y umbrales en 5, 15 y 25 minutos; en el documento usa el
+  del vehículo y el último umbral está en 30. El auto exige tenencia, y el
+  metro exige un tramo en tren, que es la forma de cerrar el caso de la celda
+  pegada al CBD sin un corte por acceso.
+</p>
+
+<h2 id="s4"><span class="num">§4</span> Pruebas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Test</th><th>Qué fija</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code class="ruta py">tests/test_demand.py</code>:36</td><td>Sin auto no se elige auto.</td></tr>
+    <tr><td><code class="ruta py">tests/test_demand.py</code>:52</td><td>La caminata es infactible por sobre 30 minutos.</td></tr>
+    <tr><td><code class="ruta py">tests/test_demand.py</code>:67</td><td>Las probabilidades suman uno.</td></tr>
+    <tr><td><code class="ruta py">tests/test_demand.py</code>:82</td><td>La penalización de la bicicleta es escalonada.</td></tr>
+    <tr><td><code class="ruta py">tests/test_demand.py</code>:144</td><td>El peaje suma <em>peaje_km · distancia</em> al dinero del auto, a mano, y no toca el tiempo ni los otros modos.</td></tr>
+    <tr><td><code class="ruta py">tests/test_umbrales.py</code>:59</td><td>La rampa pasa por el centro de cada escalón y no crece.</td></tr>
+    <tr><td><code class="ruta py">tests/test_umbrales.py</code>:71</td><td>Sobre el corte, «escalones» saca la caminata del conjunto y «suaves» no: la castiga con −ln 2 justo en el corte.</td></tr>
+    <tr><td><code class="ruta py">tests/test_umbrales.py</code>:80</td><td>Con «suaves» la utilidad es continua en la distancia, celda a celda.</td></tr>
+    <tr><td><code class="ruta py">tests/test_umbrales.py</code>:95</td><td>La dominancia del metro vale −ln 2 en la frontera y es despreciable con un metro mucho mejor que caminar.</td></tr>
+    <tr><td><code class="ruta py">tests/test_umbrales.py</code>:111</td><td>Con la exclusión, sólo la celda del CBD queda sin tramo en tren.</td></tr>
+    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:276</td><td>La línea base con «suaves», en las dos localizaciones.</td></tr>
+    <tr><td><code class="ruta py">tests/test_contract_frontend.py</code>:213</td><td>El núcleo reproduce el golden del espejo TypeScript, con casos de las dos especificaciones.</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:124</td><td>El peaje es transferencia: entra a la recaudación y al bienestar social.</td></tr>
+    <tr><td><code class="ruta py">tests/test_choice_todo_o_nada.py</code>:22</td><td>Toda la masa al mejor modo; ignora los infactibles aunque tengan mejor valor (28).</td></tr>
+    <tr><td><code class="ruta py">tests/test_choice_todo_o_nada.py</code>:41</td><td>Un empate se reparte en partes iguales; sin modos factibles devuelve todo cero (51).</td></tr>
+    <tr><td><code class="ruta py">tests/test_choice_todo_o_nada.py</code>:57</td><td>Es el límite del logit al escalar las utilidades.</td></tr>
+    <tr><td><code class="ruta py">tests/test_presets.py</code>:66</td><td>Los tres estratos están calibrados y el valor del tiempo los ordena (75).</td></tr>
+    <tr><td><code class="ruta py">tests/test_presets.py</code>:92</td><td>Los estratos comparten la escala del tiempo, y la utilidad marginal del ingreso decrece con el ingreso (104).</td></tr>
+    <tr><td><code class="ruta py">tests/test_presets.py</code>:129</td><td>Las ASC conservan sus minutos-equivalentes: 20 de ventaja del auto en los tres estratos.</td></tr>
+    <tr><td><code class="ruta py">tests/test_vot_consistente.py</code>:107</td><td>El valor del tiempo es el mismo en la elección de modo y en la puja por suelo.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Lo que no cubre ningún test: las penalizaciones en minutos-equivalentes y
+  su gradiente, el equivalente del test que fija las ASC; que la bicicleta use
+  el coeficiente del vehículo; que el corte de la bicicleta no actúe en 20 km;
+  y las elasticidades a las palancas de precio, que la §5 mide.
+</p>
+
+<h2 id="s5"><span class="num">§5</span> Resultados</h2>
+
+<p>
+  Todo sale de <code>datos/cap04.json</code>: la demanda de la aplicación
+  sobre la ciudad por defecto, con localización «original». Los costos por
+  modo son a flujo libre; los repartos, del equilibrio de transporte.
+</p>
+
+<h3>5.1 El costo generalizado, modo por modo</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">km al CBD</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0,5</td><td class="n">−2,08</td><td class="n">42,88</td><td class="n">16,99</td><td class="n">8,94</td></tr>
+    <tr><td class="n">1</td><td class="n">0,01</td><td class="n">43,73</td><td class="n">19,12</td><td class="n">19,51</td></tr>
+    <tr><td class="n">2</td><td class="n">4,20</td><td class="n">45,44</td><td class="n">23,39</td><td class="n">43,38</td></tr>
+    <tr><td class="n">3</td><td class="n">8,39</td><td class="n">47,15</td><td class="n">29,57</td><td>—</td></tr>
+    <tr><td class="n">5</td><td class="n">16,77</td><td class="n">50,56</td><td class="n">41,12</td><td>—</td></tr>
+    <tr><td class="n">7</td><td class="n">25,15</td><td class="n">53,97</td><td class="n">49,65</td><td>—</td></tr>
+    <tr class="destacada"><td class="n">10</td><td class="n">37,72</td><td class="n">59,09</td><td class="n">74,52</td><td>—</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Minutos-equivalentes en vehículo a flujo libre, estrato medio con auto;
+  menor es mejor. Incluye constante, tiempo, dinero y penalizaciones; el metro
+  lleva los tiempos de la iteración cero, diez minutos de acceso y cinco de
+  espera.
+</p>
+
+<p>
+  Para quien tiene auto, el auto es el modo más barato a cualquier distancia.
+  Con el estacionamiento repartido entre los dos viajes del tour, su dinero
+  fijo es la mitad del diario, y su constante de 20 minutos pesa más que el
+  tiempo y el dinero de un viaje corto: a 500 metros el costo generalizado es
+  negativo, −2,08. El metro parte con 42,88
+  minutos-equivalentes para ese mismo viaje, porque espera y acceso pesan
+  doble, y a 10 km sigue 21,37 detrás del auto: no compite por
+  velocidad sino por distancia, y frente a quien no tiene auto. Para ellos la
+  caminata gana en el primer medio kilómetro, la bicicleta entre 1 y 7 km, y el
+  metro a 10 km, donde la bicicleta ya lleva las tres penalizaciones encima.
+</p>
+
+<h3>5.2 Qué modos existen, según dónde se viva</h3>
+
+<p>
+  Con el corte de 30 minutos a pie, el
+  75,6 % de las celdas no tiene caminata; con
+  el de 45 minutos en bicicleta, ninguna celda la
+  pierde. El conjunto de elección cambia a los
+  2,4 km y no vuelve a cambiar.
+</p>
+
+<p>
+  Eso es con la red vacía, y el corte se evalúa sobre ella: sobre <em>t⁰</em>,
+  igual que los escalones (D9, capítulo 5). La congestión no saca la bicicleta
+  del conjunto. Con la ciclovía saturada el viaje tarda más que el corte y el
+  piso de la oferta (capítulo 3) lo deja, en el peor caso, a paso de caminata.
+  Bajando la capacidad de la ciclovía en la ciudad base:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Ciclovía (bici/h)</th><th class="n">Bici (%)</th><th class="n">Viajes en bici sobre 45 min (%)</th><th class="n">A paso de caminata (%)</th><th class="n">El más largo (min)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">200</td><td class="n">21,6</td><td class="n">28,3</td><td class="n">93,0</td><td class="n">95</td></tr>
+    <tr><td class="n">1.000</td><td class="n">23,6</td><td class="n">32,9</td><td class="n">64,5</td><td class="n">77</td></tr>
+    <tr><td class="n">2.000</td><td class="n">26,6</td><td class="n">20,3</td><td class="n">26,9</td><td class="n">66</td></tr>
+    <tr class="destacada"><td class="n">6.000</td><td class="n">35,4</td><td class="n">1,5</td><td class="n">0,0</td><td class="n">48</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Con la red vacía el viaje en bici más largo es de 43 minutos
+  en todas las filas. Con 200 bici/h llega a
+  95 minutos, y el 93,0 % de los viajes
+  en bici va a paso de caminata: es el ciclista que desmonta y empuja. Es una
+  decisión, no un error. Evaluar el corte sobre el tiempo congestionado haría
+  que el conjunto de elección dependa del propio equilibrio, con un salto que
+  el MSA no amortigua; la congestión entra, como en los escalones, por el
+  término de tiempo.
+</p>
+
+<h3>5.3 Las tres palancas de precio</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Tarifa metro ($)</th><th class="n">0</th><th class="n">400</th><th class="n">800</th><th class="n">1.200</th><th class="n">1.600</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Metro %</td><td class="n">35,52</td><td class="n">29,46</td><td class="n">23,42</td><td class="n">17,44</td><td class="n">10,95</td></tr>
+    <tr><td>Auto %</td><td class="n">25,63</td><td class="n">27,41</td><td class="n">29,16</td><td class="n">30,89</td><td class="n">32,83</td></tr>
+    <tr><td>Bici %</td><td class="n">27,88</td><td class="n">31,63</td><td class="n">35,42</td><td class="n">39,18</td><td class="n">43,23</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Combustible ($/km)</th><th class="n">60</th><th class="n">120</th><th class="n">240</th><th class="n">480</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Auto %</td><td class="n">30,79</td><td class="n">29,16</td><td class="n">25,91</td><td class="n">20,26</td></tr>
+    <tr><td>Metro %</td><td class="n">22,29</td><td class="n">23,42</td><td class="n">25,65</td><td class="n">29,47</td></tr>
+    <tr><td>Bici %</td><td class="n">34,96</td><td class="n">35,42</td><td class="n">36,33</td><td class="n">37,94</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Peaje ($/km)</th><th class="n">0</th><th class="n">50</th><th class="n">100</th><th class="n">150</th><th class="n">200</th><th class="n">300</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Auto %</td><td class="n">29,16</td><td class="n">27,79</td><td class="n">26,44</td><td class="n">25,13</td><td class="n">23,88</td><td class="n">21,54</td></tr>
+    <tr><td>Metro %</td><td class="n">23,42</td><td class="n">24,36</td><td class="n">25,29</td><td class="n">26,18</td><td class="n">27,04</td><td class="n">28,62</td></tr>
+    <tr><td>Bici %</td><td class="n">35,42</td><td class="n">35,80</td><td class="n">36,18</td><td class="n">36,55</td><td class="n">36,91</td><td class="n">37,57</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Las direcciones son las correctas y las magnitudes, razonables. Duplicar la
+  tarifa saca 12,5 puntos al metro, que se
+  reparten la bicicleta, 7,8, y el auto,
+  3,7; cuadruplicar el combustible saca
+  8,9 al auto, que van en su mayor parte al metro,
+  6,1. El
+  peaje y la bencina son, para la elección, el mismo término, dinero por
+  kilómetro, y por eso responden igual: un peaje de 150 $/km, que lleva el
+  dinero por km a 270, saca 4,0 puntos al auto,
+  entre lo que sacan 240 y 480 $/km de bencina. Lo que los separa no es la
+  demanda sino el bienestar: la bencina es consumo de recursos y el peaje es
+  una transferencia que la ciudad recauda (§5.5). El auto es la palanca más
+  inelástica, como era de esperar: su techo lo pone la tenencia de auto.
+</p>
+
+<h3>5.4 Logit contra determinístico</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Método</th><th class="n">Auto</th><th class="n">Metro</th><th class="n">Bici</th><th class="n">Caminata</th></tr>
+  </thead>
+  <tbody>
+    <tr class="destacada"><td>Logit (esperado)</td><td class="n">29,16</td><td class="n">23,42</td><td class="n">35,42</td><td class="n">12,01</td></tr>
+    <tr><td>Todo o nada</td><td class="n">48,15</td><td class="n">2,94</td><td class="n">39,55</td><td class="n">9,37</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Bajo el determinístico el auto sube de 29,2 a
+  48,1 %, la bicicleta sube de
+  35,4 a 39,5 % y el metro cae
+  de 23,4 a 2,9 %: cada
+  grupo va entero a su mejor modo, y el segundo no recibe nada salvo en los
+  grupos que el equilibrio deja indiferentes. Se ve mejor en
+  una celda que en el agregado: a 3 km del centro, el estrato medio con auto
+  reparte 56,4 % auto,
+  15,6 % metro y 28,0 %
+  bici bajo el logit, y 100 % auto bajo el determinístico. El logit no es otro
+  método de asignación: es otro supuesto sobre cuánta heterogeneidad de gustos
+  hay dentro de un grupo. Las cifras del determinístico son un equilibrio de
+  usuario: el MSA promedia los flujos de cada grupo y converge en
+  10 iteraciones, con un costo en exceso medio de 0,017 min (D-70,
+  capítulo 5).
+</p>
+
+<h3>5.5 El peaje y el bienestar</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n">Peaje ($/km)</th><th class="n">Auto %</th><th class="n">v/c auto</th><th class="n">Recaudación peaje (M$)</th><th class="n">Δ bienestar social (M$)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">0</td><td class="n">29,16</td><td class="n">1,19</td><td class="n">0,00</td><td class="n">0,00</td></tr>
+    <tr><td class="n">25</td><td class="n">28,47</td><td class="n">1,16</td><td class="n">0,97</td><td class="n">0,05</td></tr>
+    <tr class="destacada"><td class="n">50</td><td class="n">27,79</td><td class="n">1,13</td><td class="n">1,87</td><td class="n">0,06</td></tr>
+    <tr><td class="n">75</td><td class="n">27,11</td><td class="n">1,10</td><td class="n">2,71</td><td class="n">0,01</td></tr>
+    <tr><td class="n">100</td><td class="n">26,44</td><td class="n">1,07</td><td class="n">3,48</td><td class="n">−0,07</td></tr>
+    <tr><td class="n">150</td><td class="n">25,13</td><td class="n">1,02</td><td class="n">4,85</td><td class="n">−0,37</td></tr>
+    <tr><td class="n">200</td><td class="n">23,88</td><td class="n">0,97</td><td class="n">5,99</td><td class="n">−0,81</td></tr>
+    <tr><td class="n">250</td><td class="n">22,68</td><td class="n">0,92</td><td class="n">6,94</td><td class="n">−1,36</td></tr>
+    <tr><td class="n">275</td><td class="n">22,10</td><td class="n">0,90</td><td class="n">7,35</td><td class="n">−1,68</td></tr>
+    <tr><td class="n">300</td><td class="n">21,54</td><td class="n">0,88</td><td class="n">7,71</td><td class="n">−2,01</td></tr>
+    <tr><td class="n">350</td><td class="n">20,47</td><td class="n">0,83</td><td class="n">8,33</td><td class="n">−2,72</td></tr>
+    <tr><td class="n">400</td><td class="n">19,46</td><td class="n">0,79</td><td class="n">8,82</td><td class="n">−3,48</td></tr>
+    <tr><td class="n">500</td><td class="n">17,64</td><td class="n">0,72</td><td class="n">9,49</td><td class="n">−5,07</td></tr>
+    <tr><td class="n">600</td><td class="n">16,05</td><td class="n">0,65</td><td class="n">9,84</td><td class="n">−6,71</td></tr>
+    <tr><td>parking 5.000, sin peaje</td><td class="n">18,71</td><td class="n">0,76</td><td class="n">—</td><td class="n">−3,58</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="pie-tabla">
+  Δ del bienestar social del capítulo 7 (excedente emparejado más
+  recaudación menos costo del operador) contra la base sin peaje, en su misma
+  unidad. Parking base de 2.000 $/día en todas las filas salvo la última.
+</p>
+
+<p>
+  El bienestar sube con el peaje sólo en el primer tramo: gana 0,05 y 0,06 M$ con
+  <strong>25 y 50 $/km</strong>, casi nada con 75, y desde ahí baja: a
+  100 $/km ya pierde 0,07 M$, y a 275 $/km, 1,68 M$. Sin peaje
+  el corredor carga v/c 1,19, y hay poca congestión que quitar: pasado el
+  primer tramo, el cobro encarece el viaje a quien sigue en auto más de lo que
+  descongestiona la vía, aunque lo que se paga no se pierde, porque es
+  recaudación. Cerca del máximo el barrido va de 25 en 25 $/km: el máximo es
+  una meseta entre 25 y 50 $/km, y 50 $/km es el valor que usa el preset
+  «Tarificación Vial». Con la base anterior de 2 pistas, mucho más
+  congestionada, el máximo estaba bastante más arriba: el cobro óptimo crece
+  con la congestión. Hasta oct-2026 el preset era un parking
+  de 5.000 $/día: baja el auto a 18,7 %, más que el peaje
+  óptimo, y pierde 3,58 M$. Cobra
+  2.500 $ por viaje y lo cobra igual a un viaje de un kilómetro que a uno desde
+  el borde: no crece con los tramos que el viaje cruza, que es de lo que crece
+  su costo externo.
+</p>
+
+<h3>5.6 El ancla del valor del tiempo</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Estrato</th><th class="n">VoT heredado ($/h)</th><th class="n">VoT vigente ($/h)</th><th class="n">Hogares</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>alto</td><td class="n">6.200</td><td class="n">6.329</td><td class="n">7.200</td></tr>
+    <tr><td>medio</td><td class="n">3.100</td><td class="n">3.164</td><td class="n">18.000</td></tr>
+    <tr><td>bajo</td><td class="n">1.600</td><td class="n">1.633</td><td class="n">10.800</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Los VoT heredados, ponderados por los hogares de la ciudad por defecto,
+  daban 3.270,0 $/h, un
+  2,0 % bajo el VST de 3.338 $/h
+  de los Precios Sociales 2026. D5 (oct-2026) escaló los tres por
+  1,0208, conservando sus razones, y los redondeó al peso.
+  Medida sobre la población de la corrida, que difiere de la nominal en decenas
+  de hogares por el redondeo por celda, la media vigente es
+  3.338,1 $/h. El VST es por hora-pasajero, así
+  que el ponderador que corresponde es el de los viajeros; sin teletrabajo por
+  defecto, viajeros y hogares coinciden. Si se agrega teletrabajo en
+  Calibración, el estrato que más teletrabaja pierde peso entre los viajeros y
+  la media se aparta del VST: el ancla vale para la calibración por defecto, y
+  <code>tests/test_presets.py</code> la vigila.
+</p>
+
+<h3>5.7 Escalones contra suaves</h3>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Umbrales</th><th>Localización</th><th class="n">Auto (%)</th><th class="n">Metro (%)</th><th class="n">Bici (%)</th><th class="n">Caminata (%)</th><th class="n">Iteraciones</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>escalones</td><td>original</td><td class="n">29,16</td><td class="n">23,42</td><td class="n">35,42</td><td class="n">12,01</td><td class="n">6</td></tr>
+    <tr><td>escalones</td><td>equilibrio</td><td class="n">28,25</td><td class="n">26,11</td><td class="n">35,79</td><td class="n">9,85</td><td class="n">6</td></tr>
+    <tr><td>suaves</td><td>original</td><td class="n">29,41</td><td class="n">22,90</td><td class="n">35,56</td><td class="n">12,12</td><td class="n">6</td></tr>
+    <tr><td>suaves</td><td>equilibrio</td><td class="n">28,53</td><td class="n">25,74</td><td class="n">35,78</td><td class="n">9,96</td><td class="n">6</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  En la ciudad base el reparto se mueve menos de un punto. Lo que cambia es la
+  forma del logsum. Del lado derecho del CBD, con el estrato medio y los
+  tiempos del estado final, su mayor salto entre dos celdas vecinas es de
+  0,179 útiles con «escalones», a 2,49 km, donde la
+  caminata cruza su corte, contra un paso mediano de 0,033. Con
+  «suaves» baja a 0,063 (paso mediano 0,034),
+  y lo que queda es la pendiente del corte suave en el mismo lugar, fuerte
+  pero continua. Con «escalones» el metro es infactible hasta
+  1,0 km del CBD; con «suaves» existe en todas las celdas
+  salvo la del CBD y se desvanece cerca de él.
+</p>
+
+<p>
+  <strong>Lo que «suaves» no quita (ítem 13 de la auditoría D).</strong> En los
+  4 límites de captación del lado derecho la utilidad del metro salta
+  entre 0,072 y 0,122 útiles, y salta lo mismo con las dos
+  especificaciones. Cada celda accede por la estación más cercana, no por la
+  de menor costo: en el límite, la de un lado ofrece menos tramo en tren y la
+  del otro, menos caminata. Es pequeño, pero es exactamente el tipo de salto
+  que la especificación promete quitar.
+</p>
+
+<p>
+  <strong>En una ciudad chica no es pequeño (ítem 17).</strong> En la Compacta
+  de la galería, 8 km con la población de la base, el metro de
+  «suaves» queda entre 4,17 y 14,25 puntos bajo el de «escalones»,
+  según la política:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Política</th><th class="n">Metro escalones (%)</th><th class="n">Metro suaves (%)</th><th class="n">Δ (pp)</th><th class="n">Frecuencia escalones (tph)</th><th class="n">Frecuencia suaves (tph)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Base</td><td class="n">8,81</td><td class="n">3,55</td><td class="n">−5,26</td><td class="n">2,00</td><td class="n">2,00</td></tr>
+    <tr class="destacada"><td>TP Gratis</td><td class="n">20,10</td><td class="n">5,85</td><td class="n">−14,25</td><td class="n">3,62</td><td class="n">2,00</td></tr>
+    <tr><td>Tarificación Vial</td><td class="n">8,88</td><td class="n">3,60</td><td class="n">−5,28</td><td class="n">2,00</td><td class="n">2,00</td></tr>
+    <tr><td>Pro-Auto</td><td class="n">6,88</td><td class="n">2,71</td><td class="n">−4,17</td><td class="n">2,00</td><td class="n">2,00</td></tr>
+    <tr><td>Pro-Bici</td><td class="n">8,72</td><td class="n">3,49</td><td class="n">−5,23</td><td class="n">2,00</td><td class="n">2,00</td></tr>
+    <tr><td>Vehículos híbridos</td><td class="n">8,74</td><td class="n">3,50</td><td class="n">−5,24</td><td class="n">2,00</td><td class="n">2,00</td></tr>
+    <tr class="destacada"><td>Máx Metro</td><td class="n">18,36</td><td class="n">5,07</td><td class="n">−13,29</td><td class="n">3,30</td><td class="n">2,00</td></tr>
+    <tr><td>Ciclorrecreovía</td><td class="n">8,74</td><td class="n">3,51</td><td class="n">−5,23</td><td class="n">2,00</td><td class="n">2,00</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  En 6 de las 8 políticas el metro está en su frecuencia mínima,
+  2 trenes por hora, con las dos especificaciones, y la diferencia,
+  entre 4,17 y 5,28 puntos, es sólo dominancia: en 8 km casi
+  toda la ciudad está cerca del CBD, donde caminar directo domina al metro.
+  En TP Gratis y Máx Metro, destacadas, «escalones» sostiene una frecuencia sobre
+  el mínimo y «suaves» la devuelve al piso: menos demanda, menos frecuencia,
+  más espera y menos demanda otra vez, el efecto Mohring al revés. Ahí la
+  diferencia llega a 14,25 puntos.
+</p>
+
+<p>
+  <strong>El valle de <em>Q</em> del estrato alto (ítem 14).</strong> En el
+  uso de suelo solo, con la accesibilidad de la red vacía, «escalones» deja
+  el salto de D-69: <em>Q_alto</em> cae de 0,460 a 1,09 km a
+  0,391 a 1,00 km, más cerca del centro. «suaves» lo quita, pero
+  abre un valle: un mínimo de 0,277 a 1,49 km y un máximo de
+  0,328 a 1,89 km, 0,051 de profundidad. Es lo que
+  predice la puja: donde la accesibilidad se hunde, el estrato que más paga
+  por ella puja menos. Pero el lugar y la profundidad del valle los fija la
+  dominancia, con dos parámetros sin calibrar:
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th class="n"><em>a</em></th><th class="n">Profundidad, ω_d = 0,10</th><th class="n">Profundidad, ω_d = 0,25</th><th class="n">Profundidad, ω_d = 1,00</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="n">1,0</td><td class="n">0,008</td><td class="n">0,063</td><td class="n">0,115</td></tr>
+    <tr class="destacada"><td class="n">1,2</td><td class="n">0,006</td><td class="n">0,051</td><td class="n">0,100</td></tr>
+    <tr><td class="n">1,5</td><td class="n">—</td><td class="n">0,037</td><td class="n">0,085</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  La profundidad va de 0,006 a 0,115, y con <em>a</em> =
+  1,5 y <em>ω_d</em> = 0,10 el valle desaparece. La fila
+  destacada es la vigente (<em>a</em> = 1,2, <em>ω_d</em> = 0,25). Las
+  constantes se reemplazan en memoria para medir; el código no las expone.
+</p>
+
+<h2 id="s6"><span class="num">§6</span> Discusión</h2>
+
+<p>
+  La mecánica del logit es correcta y la calibración tiene una estructura
+  defendible: una escala de tiempo común, que es el límite del modelo de
+  bienes y ocio de Jara-Díaz; toda la heterogeneidad del valor del tiempo en
+  el coeficiente del dinero; constantes modales sin gradiente de ingreso; y
+  pesos de espera y acceso con norma. La escala por estrato no es un supuesto
+  faltante, porque no se identifica aparte de los coeficientes. Las
+  elasticidades responden con signo y magnitud razonables, el mismo hogar que
+  elige modo es el que puja por suelo, y desde oct-2026 hay un peaje por km que
+  se distingue del parking donde importa, en el bienestar.
+</p>
+
+<p>
+  Lo que queda son dos términos que la calibración no revisó. Pedalear pesa
+  como ir sentado, y lo compensan penalizaciones que llegan tarde y de golpe:
+  el salto de los 30 minutos vale entre 13 y 19 minutos-equivalentes de una
+  vez. Y esas penalizaciones conservan un gradiente por estrato en
+  direcciones opuestas sin razón declarada. Ninguno es un error de cálculo;
+  los dos son números que llegaron del original y nadie decidió.
+</p>
+
+<p>
+  La especificación «suaves» quita los saltos que más pesan en el suelo, con
+  las mismas penalizaciones y cortes, pero no es neutral: agrega tres
+  supuestos sin calibrar, deja el salto de la estación más cercana y en una
+  ciudad chica cambia el metro en puntos, no en décimas (§5.7). Por eso es
+  una especificación alternativa, elegible en la interfaz, y no el default.
+</p>
+
+<h3>Pendientes</h3>
+
+<ul>
+  <li>
+    <strong>Varianza o correlación entre modos.</strong> La HEV por modo o un
+    logit anidado son extensiones declaradas (§1), no correcciones.
+  </li>
+  <li>
+    <strong>El esfuerzo de pedalear.</strong> Darle a la bicicleta un
+    coeficiente propio, como tiene la caminata, y resolver el gradiente de las
+    penalizaciones: justificarlo u homogeneizarlo como se hizo con las
+    constantes. Cualquiera de las dos mueve la línea base.
+  </li>
+  <li>
+    <strong>El corte de la bicicleta.</strong> Dejar dicho en la interfaz que
+    no actúa en ciudades de menos de 21 km, o bajarlo a un valor que actúe;
+    y que tampoco actúa bajo congestión (§5.2).
+  </li>
+  <li>
+    <strong>La estación de menor costo.</strong> Elegir la estación de acceso
+    por costo y no por distancia quita el salto que «suaves» deja en los
+    límites de captación: el máximo de funciones continuas es continuo, con un
+    quiebre y sin salto (§5.7, ítem 13 de la auditoría D).
+  </li>
+  <li>
+    <strong>Calibrar la dominancia.</strong> <em>a</em> y <em>ω_d</em> fijan si
+    hay valle de <em>Q_alto</em> y cuán hondo es; <em>ω</em> del corte, cuánto
+    se extiende la caminata más allá de 30 minutos.
+  </li>
+  <li>
+    <strong>¿«suaves» por defecto?</strong> Cambiar el default mueve la línea
+    base; es una decisión, no un arreglo.
+  </li>
+  <li>
+    <strong>La iteración cero.</strong> El metro arranca con diez minutos de
+    acceso y cinco de espera fijos; el suelo ya usa la red vacía configurada
+    para lo mismo. Unificar es un cambio pequeño que quita un número mágico.
+  </li>
+  <li>
+    <strong>Un test para las penalizaciones</strong> en minutos-equivalentes,
+    el equivalente del que fija las constantes.
+  </li>
+</ul>
+
+<footer>
+  <p class="meta">
+    El libro de Titirilquén · <a href="index.html">índice</a> ·
+    <a href="cap03-oferta-transporte.html">← capítulo 3</a> ·
+    datos en <code>datos/cap04.json</code>, regenerados con
+    <code>uv run python ../../docs/libro/datos/datos_cap04.py</code> ·
+    Train, K. (2009). <em>Discrete Choice Methods with Simulation</em>, 2.ª
+    ed., Cambridge, cap. 3 · Ortúzar, J. de D. y Willumsen, L. G. (2011).
+    <em>Modelling Transport</em>, 4.ª ed., Wiley, cap. 7 · Ministerio de
+    Desarrollo Social y Familia (2026). <em>Precios Sociales 2026</em>, Tabla
+    2.1, p. 7 · Jara-Díaz, S. (2007). <em>Transport Economic Theory</em>.
+    Elsevier, cap. 2 · Martínez, F. J. (2018). <em>Microeconomic Modeling in
+    Urban Science</em>. Academic Press, cap. 5, ec. 5.33 · Martínez, F.,
+    Aguila, F. y Hurtubia, R. (2009). The constrained multinomial logit: A
+    semi-compensatory choice model. <em>Transportation Research Part B</em>
+    43(3), 365–377 · Cascetta, E. y Papola, A. (2009). Dominance among
+    alternatives in random utility models. <em>Transportation Research Part
+    A</em> 43(2), 170–179 · documento original del simulador, §Utilidades.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

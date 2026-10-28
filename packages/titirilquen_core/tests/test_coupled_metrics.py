@@ -1,0 +1,274 @@
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from titirilquen_core.bienestar import calcular_agregados
+from titirilquen_core.config import (
+    CityConfig,
+    DemandConfig,
+    SimulationConfig,
+    SupplyConfig,
+)
+from titirilquen_core.constantes import VIAJES_MES
+from titirilquen_core.coupled import run_coupled
+from titirilquen_core.land_use.config import LandUseConfig, LandUseStratumConfig
+
+
+def _sim_small(demanda_sintetica: DemandConfig) -> SimulationConfig:
+    return SimulationConfig(
+        city=CityConfig(n_celdas=51, largo_ciudad_km=5),
+        supply=SupplyConfig(),
+        demand=demanda_sintetica,
+        max_iter=3,
+        seed=42,
+    )
+
+
+def _land_use_config() -> LandUseConfig:
+    return LandUseConfig(
+        H_por_estrato=(50, 100, 100),
+        estratos=(
+            LandUseStratumConfig(y=100.0, rho=1.0),
+            LandUseStratumConfig(y=50.0, rho=1.0),
+            LandUseStratumConfig(y=10.0, rho=1.0),
+        ),
+        max_iter=2000,
+    )
+
+
+@pytest.fixture(scope="module")
+def corrida_res(demanda_sintetica_modulo: DemandConfig):
+    sim = _sim_small(demanda_sintetica_modulo)
+    lu = _land_use_config()
+    res = run_coupled(sim=sim, land_use_config=lu, outer_max_iter=2, outer_tol=0.1)
+    return res, sim, lu
+
+
+@pytest.fixture(scope="module")
+def corrida(corrida_res):
+    res, sim, lu = corrida_res
+    return res.iterations[-1].metrics, sim, lu
+
+
+def test_estructura_basica(corrida) -> None:
+    m, _sim, lu = corrida
+    assert len(m.por_estrato) == 3
+    for h, sm in enumerate(m.por_estrato):
+        assert sm.estrato == h + 1
+    # n_hogares total ≈ Σ H (la oferta redistribuye el CBD, Σ S = Σ H)
+    total = sum(s.n_hogares for s in m.por_estrato)
+    assert abs(total - sum(lu.H_por_estrato)) < 1.0
+
+
+def test_reparto_modal_suma_uno(corrida) -> None:
+    m, _sim, _lu = corrida
+    for sm in m.por_estrato:
+        assert abs(sum(sm.reparto_modal.values()) - 1.0) < 1e-9
+        assert set(sm.reparto_modal) == {
+            "Auto",
+            "Metro",
+            "Bici",
+            "Caminata",
+            "Teletrabajo",
+            "Varado",
+        }
+    assert abs(sum(m.sistema.reparto_modal.values()) - 1.0) < 1e-9
+
+
+def test_valores_finitos_y_signos(corrida) -> None:
+    m, _sim, _lu = corrida
+    for sm in m.por_estrato:
+        assert np.isfinite(sm.dist_media_cbd_km) and sm.dist_media_cbd_km >= 0
+        assert np.isfinite(sm.tiempo_medio_min) and sm.tiempo_medio_min >= 0
+        assert np.isfinite(sm.costo_medio_clp) and sm.costo_medio_clp >= 0
+        # ΔCS vs red vacía: signo libre (congestión <0, Mohring >0), pero finito.
+        assert np.isfinite(sm.delta_excedente_hogar_mes_clp)
+        assert np.isfinite(sm.excedente_hogar_mes_clp)
+        assert np.isfinite(sm.carga_costo_ingreso) and sm.carga_costo_ingreso >= 0
+    s = m.sistema
+    assert 0.0 <= s.segregacion_theil <= 1.0
+    assert s.tiempo_total_pax_min >= 0
+    assert s.emisiones_total_kg >= 0
+    assert s.iteraciones_exteriores >= 1
+
+
+def test_consistencia_tiempo_sistema(corrida) -> None:
+    """El tiempo medio del sistema = total / nº de viajeros; coherente con estratos."""
+    m, _sim, _lu = corrida
+    s = m.sistema
+    if s.tiempo_total_pax_min > 0:
+        assert s.tiempo_medio_min > 0
+        # El medio del sistema debe caer dentro del rango de los medios por estrato
+        medios = [sm.tiempo_medio_min for sm in m.por_estrato if sm.tiempo_medio_min > 0]
+        assert min(medios) - 1e-6 <= s.tiempo_medio_min <= max(medios) + 1e-6
+
+
+def test_acoplado_y_transporte_dan_el_mismo_excedente_y_tiempo(corrida_res) -> None:
+    """Sobre el MISMO trace, el reporte acoplado (suma por agente) y los
+    agregados de Transporte (suma por celda de la demanda esperada) tienen que
+    dar el mismo excedente y el mismo tiempo medio por estrato.
+
+    Hasta la auditoría C no coincidían: Transporte mezclaba los logsums con y
+    sin auto por la `prob_auto` nominal y el acoplado por la tenencia realizada
+    de cada agente (`round(n·prob_auto)` por celda), y el acoplado promediaba el
+    tiempo sobre el modo sorteado. Con ~2 hogares por celda y estrato, como acá,
+    el redondeo de la tenencia pesa mucho: el test lo nota."""
+    res, sim, _lu = corrida_res
+    it = res.iterations[-1]
+    agg = calcular_agregados(sim, it.transport)
+    assert agg is not None
+    clave = (
+        "excedente_max_por_estrato_clp"
+        if agg["medida_bienestar"] == "utilidad_maxima"
+        else "excedente_por_estrato_clp"
+    )
+    for sm in it.metrics.por_estrato:
+        h = str(sm.estrato)
+        agentes = [a for a in it.transport.agentes if a.estrato == sm.estrato]
+        con_medida = sum(1 for a in agentes if a.modo_elegido is not None)
+        acoplado = sm.excedente_hogar_mes_clp * con_medida / VIAJES_MES
+        transporte = agg[clave][h] * agg["viajeros_por_estrato"][h]
+        assert acoplado == pytest.approx(transporte, rel=1e-9), f"excedente, estrato {h}"
+        assert sm.tiempo_medio_min == pytest.approx(
+            agg["tiempo_medio_por_estrato_min"][h], rel=1e-9
+        ), f"tiempo, estrato {h}"
+
+
+def test_regresividad_por_ingreso(corrida) -> None:
+    """Con ingresos 100/50/10 y betas iguales, la carga costo/ingreso del estrato
+    bajo supera a la del alto (regresivo)."""
+    m, _sim, _lu = corrida
+    if m.sistema.ratio_carga_bajo_alto is not None:
+        assert m.sistema.ratio_carga_bajo_alto > 1.0
+
+
+def test_bienestar_total_es_suma_por_hogar(corrida_res) -> None:
+    """D-35 y D11: el ΔCS por hogar-mes se promedia sobre los hogares que viajan
+    o teletrabajan (éstos aportan 0); el varado no tiene medida y queda fuera.
+    El total del sistema es ese promedio por esos mismos hogares."""
+    res, _sim, _lu = corrida_res
+    m = res.iterations[-1].metrics
+    agentes = res.iterations[-1].transport.agentes
+    con_medida = [
+        sum(1 for a in agentes if a.estrato == h + 1 and (a.teletrabaja or a.modo_elegido))
+        for h in range(3)
+    ]
+    esperado = sum(
+        sm.delta_excedente_hogar_mes_clp * n
+        for sm, n in zip(m.por_estrato, con_medida, strict=True)
+    )
+    assert m.sistema.delta_bienestar_total_mes_clp == pytest.approx(esperado, rel=1e-9, abs=1e-6)
+    # El nivel se agrega igual: mismos hogares, mismo denominador.
+    nivel = sum(
+        sm.excedente_hogar_mes_clp * n for sm, n in zip(m.por_estrato, con_medida, strict=True)
+    )
+    assert m.sistema.excedente_total_mes_clp == pytest.approx(nivel, rel=1e-9, abs=1e-6)
+
+
+def test_un_peaje_lo_ve_el_nivel_y_no_el_delta_contra_la_red_vacia(corrida_res) -> None:
+    """Por qué existe el nivel. La red vacía fija sólo los TIEMPOS: un precio
+    entra en el logsum real y en el de la red vacía, y el Δ contra ella casi no
+    lo ve. Con la misma ciudad y los mismos tiempos, un peaje tiene que bajar el
+    nivel del excedente mucho más de lo que mueve ese Δ — restar los Δ de dos
+    escenarios no daría el costo del peaje."""
+    from titirilquen_core.coupled_metrics import compute_equilibrium_metrics
+
+    res, sim, lu = corrida_res
+    it = res.iterations[-1]
+    assert res.final_city is not None
+    con_peaje = sim.model_copy(deep=True)
+    con_peaje.demand.globales.peaje_km = 2000.0
+
+    def medir(s):
+        return compute_equilibrium_metrics(
+            land_use=it.land_use, trace=it.transport, S=res.final_city.S, sim=s, land_use_config=lu
+        ).sistema
+
+    base, peaje = medir(sim), medir(con_peaje)
+    d_nivel = peaje.excedente_total_mes_clp - base.excedente_total_mes_clp
+    d_delta = peaje.delta_bienestar_total_mes_clp - base.delta_bienestar_total_mes_clp
+    assert d_nivel < 0
+    assert abs(d_delta) < 0.2 * abs(d_nivel)
+
+
+# ---------------------------------------------------------------------------
+# La medida del excedente sigue al método (emparejamiento con el Sandbox)
+# ---------------------------------------------------------------------------
+#
+# Esta página calculaba su propio logsum y no aplicaba el emparejamiento, así
+# que bajo `todo_o_nada` medía el bienestar con una regla distinta de la del
+# Sandbox para el mismo escenario. Nada lo detectaba: los dos números eran
+# plausibles.
+
+
+@pytest.mark.parametrize("metodo", ["montecarlo", "expected", "todo_o_nada"])
+def test_la_medida_sigue_al_metodo_efectivo(demanda_sintetica: DemandConfig, metodo: str) -> None:
+    """D-40: el acoplado SIEMPRE corre el transporte con `expected` (flujos
+    fraccionales, logit), así que la medida emparejada es el logsum pida lo que
+    pida la configuración. Antes las métricas recibían la configuración original
+    y con `todo_o_nada` rotulaban `utilidad_maxima` un flujo que era logit."""
+    sim = _sim_small(demanda_sintetica)
+    sim.assignment = metodo
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
+    assert res.iterations[-1].metrics.sistema.medida_bienestar == "logsum"
+
+
+def test_el_nucleo_decide_la_medida_una_sola_vez(demanda_sintetica: DemandConfig) -> None:
+    """La página acoplada y el Sandbox deben coincidir para la misma config.
+
+    Es el punto del refactor: una sola implementación (`medidas_de_utilidad`) y
+    un solo criterio (`medida_emparejada`). Si alguien reintroduce un logsum
+    local en `coupled_metrics`, este test no lo ve — pero sí ve que el criterio
+    se bifurque, que es como empezaría.
+    """
+    from titirilquen_core.bienestar import medida_emparejada
+
+    sim = _sim_small(demanda_sintetica)
+    sim.assignment = "todo_o_nada"
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
+    acoplada = res.iterations[-1].metrics.sistema.medida_bienestar
+    # El criterio es uno solo, aplicado a la configuración EFECTIVA del acoplado.
+    assert acoplada == medida_emparejada("expected")
+
+
+def test_el_estado_final_es_el_de_la_ultima_iteracion(demanda_sintetica: DemandConfig) -> None:
+    """D-40: al agotar `outer_max_iter`, `final_city` es la ciudad cuyo transporte
+    se simuló en la última iteración, no una actualizada después."""
+    import numpy as np
+
+    sim = _sim_small(demanda_sintetica)
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=1e-9)
+    assert res.final_city is not None and res.final_city.result is not None
+    np.testing.assert_array_equal(res.final_city.result.Q, res.iterations[-1].land_use.Q)
+
+
+def test_el_acoplado_no_converge_si_el_transporte_no_convergio(
+    demanda_sintetica: DemandConfig,
+) -> None:
+    """D-39: con `max_iter=1` interior el MSA no puede converger; el acoplado no
+    puede declararse convergido aunque su residual exterior sea chico."""
+    sim = _sim_small(demanda_sintetica)
+    sim.max_iter = 1
+    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=3, outer_tol=1e9)
+    assert not any(it.transport.converged for it in res.iterations)
+    assert res.converged is False
+    assert all(not it.metrics.sistema.convergio_exterior for it in res.iterations)
+    # D10: la brecha exterior ya cumplió en la iteración 1, así que se para
+    # ahí en vez de repetir la misma ciudad hasta el tope.
+    assert len(res.iterations) == 2
+
+
+def test_el_theil_pesa_por_hogares_no_por_celdas() -> None:
+    """D-38: dos celdas, una con 100 hogares mezclados y otra con 1 hogar de un
+    solo estrato. Por celdas la segregada pesa la mitad; por hogares, casi nada."""
+    import numpy as np
+
+    from titirilquen_core.coupled_metrics import _theil
+
+    Q = np.array([[0.5, 1.0], [0.5, 0.0]])
+    S = np.array([100.0, 1.0])
+    territorial = _theil(Q)
+    poblacional = _theil(Q, S)
+    assert territorial > 0.3
+    assert poblacional < 0.05

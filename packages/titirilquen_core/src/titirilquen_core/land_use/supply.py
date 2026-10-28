@@ -12,9 +12,7 @@ from typing import Literal
 import numpy as np
 from numpy.typing import NDArray
 
-FormaOferta = Literal[
-    "normal", "uniforme", "exponencial", "meseta", "bimodal", "valle"
-]
+FormaOferta = Literal["normal", "uniforme", "exponencial", "meseta", "bimodal", "valle"]
 """Forma del perfil de oferta de vivienda S(d) a lo largo del corredor:
 
 - `normal`: campana gaussiana centrada en el CBD (monocéntrica compacta).
@@ -154,46 +152,5 @@ def generar_oferta_normal(
         # segunda guarda por si el reflejo también sale del rango
         i = max(0, min(i, I - 1))
         S[i] += 1
-
-    return S
-
-
-def generar_oferta_normal_det(
-    I: int,
-    N: int,
-    CBD: int,
-    stdv: float | None = None,
-) -> NDArray[np.int_]:
-    """Versión determinista de :func:`generar_oferta_normal`.
-
-    En vez de muestrear N hogares (histograma ruidoso), discretiza la densidad
-    Normal(CBD, stdv) directamente: S[i] ∝ pdf(i), excluyendo el CBD, y redondea
-    al entero garantizando Σ S = N (método del mayor residuo). El resultado es
-    una campana suave (sin el "dentado" parcela‑a‑parcela del muestreo).
-    """
-    if stdv is None:
-        stdv = min(CBD, I - 1 - CBD) / 2
-    stdv = max(float(stdv), 1e-6)
-
-    idx = np.arange(I, dtype=float)
-    w = np.exp(-0.5 * ((idx - CBD) / stdv) ** 2)
-    w[CBD] = 0.0  # no se construyen viviendas sobre el centro de negocios
-    total = w.sum()
-    if total <= 0:
-        # Degenerado (p. ej. CBD único): reparte uniforme fuera del CBD.
-        w[:] = 1.0
-        w[CBD] = 0.0
-        total = w.sum()
-
-    target = w / total * N
-    S = np.floor(target).astype(int)
-    resto = int(N - S.sum())
-
-    # Reparte las `resto` unidades faltantes a las parcelas con mayor fracción.
-    frac = target - np.floor(target)
-    frac[CBD] = -1.0  # nunca al CBD
-    orden = np.argsort(-frac)
-    for k in range(max(0, resto)):
-        S[orden[k % I]] += 1
 
     return S

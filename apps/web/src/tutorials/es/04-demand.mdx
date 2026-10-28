@@ -5,46 +5,114 @@ title: Demanda
 tagline: Utilidades logit multinomial
 ---
 
-# 3. Demanda
+# Demanda
 
 Cada agente evalúa la utilidad de cada modo disponible y elige con un **logit multinomial**:
 
 $$
-P(m) = \frac{e^{V_m}}{\sum_{j \in M} e^{V_j}}
+P(i) = \frac{e^{V_i}}{\sum_{j} e^{V_j}}
 $$
+
+<OverleafRef sec="Demanda · Elección de modo" />
 
 ## Utilidades por modo
 
-**Auto**
+**Auto** — el costo tiene un componente por viaje (medio parking) y uno **por kilómetro** (combustible y peaje):
+
 $$
-V_{\text{auto}}^s = \text{ASC}_{\text{auto}}^s + \beta_t^s \cdot t_{\text{auto}} + \beta_c^s \cdot (c_{\text{parking}} + c_{\text{combustible}} \cdot d)
+V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(\frac{c_{\text{parking}}}{2} + \left(c_{\text{combustible}} + c_{\text{peaje}}\right) \cdot d_i\right)
 $$
 
-**Metro** (componentes de tiempo descompuestas)
+<OverleafRef sec="Modelo de Demanda" tag="R-14" />
+
+con $d_i$ la distancia (km) del origen al CBD. El parking se paga **por día**, y cada viaje de ida carga la mitad; el peaje por km vale 0 salvo que una política lo active.
+
+**Metro** — tres componentes de tiempo, cada una con su sensibilidad:
+
 $$
-V_{\text{metro}}^s = \text{ASC}_{\text{metro}}^s + \beta_t^s \cdot t_v + \beta_{\text{esp}}^s \cdot t_e + \beta_{\text{cam}}^s \cdot t_a + \beta_c^s \cdot c_{\text{tarifa}}
+V_{\text{metro}}^s = ASC_{\text{metro}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_{t_{\text{espera}}}^s \cdot t_{\text{espera}} + \beta_{t_{\text{caminata}}}^s \cdot t_{\text{caminata}} + \beta_c^s \cdot c_{\text{tarifa}}
 $$
 
-**Bicicleta** con penalizaciones físicas escalonadas
-$$
-V_{\text{bici}}^s = \text{ASC}_{\text{bici}}^s + \beta_t^s \cdot t_{\text{bici}} + \sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t_{\text{bici}} > k\} \cdot \pi_k^s
-$$
-con corte $V = -\infty$ si $t_{\text{bici}} > 45$ min.
+<OverleafRef sec="Modelo de Demanda" />
 
-**Caminata** análoga, con umbrales $\{5, 15, 25\}$ y corte en 30 min.
+donde $t_{\text{caminata}}$ es el **acceso a la estación** ($t_a$ en la notación del módulo de oferta de trenes) y $t_{\text{espera}}$ la espera en andén ($t_e$). Cada celda accede por la estación **más cercana**. Si esa estación es la del CBD, el metro no es alternativa: «tomarlo» sería caminar hasta el destino sin subirse a nada.
+
+**Bicicleta** — penalizaciones físicas **aditivas escalonadas** y corte de factibilidad, los dos sobre el tiempo de **red vacía** $t^0_{\text{bici}}$; la congestión entra sólo por el término de tiempo:
+
+$$
+V^s_{\text{bicicleta}} = \begin{cases}
+-\infty & \text{si } t^0_{\text{bici}} > 45 \
+ASC_{\text{bici}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{bici}} + \displaystyle\sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t^0_{\text{bici}} > k\} \cdot \pi_k^s & \text{si } t^0_{\text{bici}} \le 45
+\end{cases}
+$$
+
+<OverleafRef sec="Modelo de Demanda" tag="R-2" />
+
+Evaluar los escalones y el corte sobre el tiempo congestionado haría que el conjunto de elección dependa del propio equilibrio, con saltos que el algoritmo no amortigua.
+
+**Caminata** — con su **sensibilidad propia** $\beta_{t_{\text{caminata}}}^s$ (no $\beta_{t_{\text{viaje}}}^s$), umbrales $\{5, 15, 25\}$ y corte a los 30 min:
+
+$$
+V^s_{\text{caminata}} = \begin{cases}
+-\infty & \text{si } t_{\text{caminata}} > 30 \
+ASC_{\text{caminata}}^s + \beta_{t_{\text{caminata}}}^s \cdot t_{\text{caminata}} + \displaystyle\sum_{k \in \{5, 15, 25\}} \mathbb{1}\{t_{\text{caminata}} > k\} \cdot \pi_k^s & \text{si } t_{\text{caminata}} \le 30
+\end{cases}
+$$
+
+<OverleafRef sec="Modelo de Demanda" tag="R-3" />
+
+<Callout type="info">
+Las penalizaciones $\pi_k^s$ son **constantes aditivas** que se suman al superar cada umbral de fatiga — no coeficientes que multipliquen al tiempo. Los umbrales de penalización (10/20/30 bici, 5/15/25 caminata) son un concepto distinto del **corte de factibilidad** (45 y 30 min), donde el modo sale del set de elección.
+</Callout>
+
+## Escalones o suaves
+
+Las ecuaciones de arriba son la especificación **«escalones»**, la que usa el simulador por defecto. Cada regla es un salto: la penalización cambia de golpe al cruzar un umbral, el modo desaparece al pasar el corte y el metro aparece de golpe donde la estación más cercana deja de ser la del CBD. El logsum hereda esos saltos, y con él la accesibilidad que entra al uso de suelo. En la ciudad base, el mayor salto del logsum del estrato medio entre dos celdas vecinas es de **0,179** útiles (a 2,49 km del CBD, donde la caminata cruza su corte de 30 min), contra un paso mediano de 0,033.
+
+La especificación **«suaves»** usa las mismas penalizaciones y los mismos cortes, pero continuos:
+
+**Rampas.** Cada escalón se reemplaza por una rampa por los puntos medios de los umbrales, de modo que el nivel medio de cada tramo se conserva. Para la bici, la penalización acumulada $\Pi(t)$ vale $0$ hasta 5 min, $\pi_{10}$ a los 15, $\pi_{10}+\pi_{20}$ a los 25 y $\pi_{10}+\pi_{20}+\pi_{30}$ a los 35, lineal entre esos puntos y con la última pendiente después; para la caminata, $0$, $\pi_5$, $\pi_5+\pi_{15}$ y $\pi_5+\pi_{15}+\pi_{25}$ a los 0, 10, 20 y 30 min.
+
+**Corte suave** (Martínez, Aguila y Hurtubia 2009). En vez de sacar el modo del conjunto, se suma a su utilidad
+
+$$
+\ln \varphi(t) = -\ln\left(1 + e^{\,\omega\,(t - t_{\text{corte}})}\right), \qquad \omega = 0{,}5 \ \text{min}^{-1}
+$$
+
+que es casi 0 bastante antes del corte, $-\ln 2$ en el corte y castiga cada vez más después.
+
+**Dominancia suave del metro** (Cascetta y Papola 2009). La estación del CBD ya no se asigna fuera del CBD: las celdas cercanas acceden por la siguiente. Si el tiempo generalizado del metro supera $a = 1{,}2$ veces el de caminar directo, el metro está **dominado** y se desvanece con la misma forma:
+
+$$
+V_{\text{metro}}^s \mathrel{+}= \ln \varphi_{0{,}25}\!\left(GT_{\text{metro}} - a \cdot GT_{\text{caminata}}\right)
+$$
+
+con $\omega = 0{,}25$ por minuto generalizado y los tiempos generalizados en minutos de viaje en vehículo, ponderados por los cocientes de los $\beta$ del estrato.
+
+El selector está en **Transporte → Equilibrio → Umbrales físicos**.
+
+En la ciudad base el reparto casi no cambia: auto 29,16 → 29,41 %, metro 23,42 → 22,91 %, bici 35,42 → 35,56 % y caminata 12,00 → 12,12 %. Lo que cambia es la forma del logsum: su mayor salto entre celdas vecinas baja de 0,179 a **0,063** útiles, con el paso mediano en 0,034. Lo que queda está en el corte de la caminata, que ahora es una pendiente fuerte pero continua.
 
 <Callout type="warn">
-Las penalizaciones $\pi_k$ son **constantes aditivas escalonadas**, no multiplicativas como sugiere una lectura ingenua del Overleaf (ver <DocLink path="/docs/DISCREPANCIES.md#d-02-penalizaciones-físicas-de-bicicleta-y-caminata-forma-funcional">D-02</DocLink>).
+**Lo que «suaves» todavía no quita.** Cada celda sigue accediendo por la estación más cercana, no por la de menor costo. En los 4 límites de captación del lado derecho del CBD la utilidad del metro salta entre 0,072 y 0,122 útiles, con las dos especificaciones. Es pequeño, pero es exactamente lo que la especificación promete quitar.
+</Callout>
+
+<Callout type="warn">
+**En una ciudad chica la diferencia no es pequeña.** En la ciudad **Compacta** (8 km de largo, la galería de ciudades) el metro baja de 8,81 a **3,55 %**, y lo ganan la caminata (33,41 → 35,41 %) y la bici (32,41 → 34,40 %). En 8 km casi toda la ciudad está cerca del CBD, donde caminar directo domina al metro. El metro está en su frecuencia mínima (2 trenes/h) con las dos especificaciones, así que la diferencia no viene de la frecuencia: es la dominancia.
+</Callout>
+
+<Callout type="info">
+«Suaves» es **otra función de utilidad**, no una política: el cero del excedente no es el mismo. Por eso el bienestar de una corrida con «suaves» no se resta al de una con «escalones»; la comparación con una referencia lo avisa.
 </Callout>
 
 ## Descomposición pedagógica
 
-En el **Transporte** (página Transporte) hay un "Inspector de utilidad" que muestra la descomposición:
+En la página **Transporte** hay un "Inspector de utilidad" que muestra la descomposición:
 - Componente ASC (constante por modo/estrato)
 - Componente $\beta_t \cdot T$ (sensibilidad al tiempo)
 - Componente $\beta_c \cdot C$ (sensibilidad al costo)
-- Componente penalizaciones físicas (bici/caminata)
+- Componente penalizaciones físicas (bici/caminata; con «suaves», también el corte y la dominancia del metro)
 
 Permite al estudiante ver **por qué** un modo gana en cada contexto.
 
-<NextStep to="equilibrium">Módulo Equilibrio →</NextStep>
+<NextStep to="equilibrium">Módulo Equilibrio</NextStep>

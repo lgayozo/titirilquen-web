@@ -5,26 +5,55 @@ title: Equilibrium
 tagline: MSA — Method of Successive Averages
 ---
 
-# 4. Equilibrium
+# Equilibrium
 
-First iteration has no congestion info, so agents assume **free flow**. After assignment, cars overload (fastest mode). To avoid oscillations we use **MSA**:
+In the first iteration agents have no congestion information and assume **free flow**. When demand is assigned, the car overloads (it's the fastest). To avoid oscillations, the **Method of Successive Averages** (MSA) is used: the new flow $x^{*}$ — what comes out of splitting demand with the current times — is mixed with the current one,
 
 $$
-T^{(n+1)} = f_n \cdot T_{\text{obs}}^{(n)} + (1 - f_n) \cdot T^{(n)}, \quad f_n = \frac{1}{n + 1}
+x^{(n+1)} = \alpha_n\, x^{*} + (1 - \alpha_n)\, x^{(n)}
 $$
 
-The weight of new information decays with $1/n$: first iteration fully replaces, second averages 50/50, third weights 1/3 and 2/3, etc.
+<OverleafRef sec="Bucle de equilibrio" />
 
-The residual shown live is $\|T^{(n+1)} - T^{(n)}\|_\infty$ in minutes. Values near 0.01 mean the system is essentially in equilibrium.
+The step $\alpha$ starts at 1 — the first iteration replaces fully — and halves every time the gap fails to fall by at least 10% (Boyles, §8.3.5). With «Logit — sampling» the times are averaged instead, with weight $1/(n+1)$: the sampled gap is too noisy to decide the step.
+
+## Interpretation
+
+- $\alpha = 1$ → the city reacts fully to the previous iteration's times; if that converges, the step is never halved
+- Small $\alpha$ → the city "remembers" and corrects only a fraction; that is what damps an oscillation
+
+## Stopping criterion
+
+The loop stops when the residual
+
+$$
+r^{(it)} = \left\lVert T_{\text{new}}^{(it)} - T_{\text{current}}^{(it)} \right\rVert_{\infty}
+$$
+
+<OverleafRef sec="Criterio de Parada" tag="R-11" />
+
+— the **undamped gap**: what the loaded network returns against the times the demand was computed with, the maximum over any mode and parcel — falls below the tolerance (**0.02 min**) for **two consecutive iterations**. `max_iter` (150 by default, up to 1,000) remains as a safety cap: the default city converges in 6 iterations, and with 1 lane in 20. With «Logit — sampling» the interface uses 0.2 min, because sampling leaves a noise floor in the gap; with «All-or-nothing» the run stops when the average excess cost falls below one thousandth of the mean travel time, with a cap of 700. If a run exhausts the cap, the status bar says so: what it shows is not an equilibrium.
 
 <MSAFlowchart />
 
-## V2: coupled land-use↔transport loop
+## Coupled land ↔ transport loop
 
-The outer loop (Land use page, *Coupled* mode) adds another layer:
+The outer loop (**City at equilibrium** page) alternates both modules to the joint fixed point: land use allocates households given accessibility $T_h$, that population runs the MSA, and the new times update $T_h$. Accessibility is the one of the Land use chapter — each stratum's mode-choice logsum, times the 44 trips of the month — now evaluated on the MSA's congested times instead of free flow:
+
+$$
+T_h^{\text{new}}(i) = -44 \cdot LS_h(i)
+$$
+
+<OverleafRef sec="Acoplamiento suelo–transporte" tag="R-12" />
+
+with $LS_h(i)$ the logsum of stratum $h$ in cell $i$, averaged over those who own a car and those who do not. Between laps, $T_h \leftarrow \theta\, T_h^{\text{new}} + (1-\theta)\, T_h$, with a step $\theta$ that starts at 1 and halves every time the gap grows. The gap is measured in pesos, $\max_{h,i} \lvert T_h^{\text{new}}(i) - T_h(i) \rvert / \lambda_h$, in **\$/household-month**, with tolerance 100 \$/household-month: dividing by $\lambda_h$ makes it mean the same in the three strata. The coupled loop is declared converged only if its three parts converge — the outer gap, the MSA and the auction —; if the gap is met and another part is not, the loop stops anyway and reports it as not converged.
+
+<Callout type="info">
+Why one $T$ per stratum and not a common one? Each stratum chooses its mode with its own logit, so the same network yields it something different: the car, for instance, is owned by only part of each stratum. Until Sep-2026 accessibility was a time in minutes common to all, because per stratum it inverted the bid-rent. With the logsum turned into pesos by $\lambda_h$ — the same cost coefficient of the logit — that no longer happens, and the access difference between strata is part of the bid again (Land use chapter).
+</Callout>
 
 <CoupledFlowchart />
 
-Outer convergence usually needs more iterations than inner because two processes feed back into each other.
+Each outer lap runs a full MSA, so it is expensive. In exchange, the map contracts strongly — the gap falls by about tenfold per lap — and a few laps suffice: more congestion downtown → households redistribute → congestion changes, less each time.
 
-<NextStep to="experimenting">Experiment →</NextStep>
+<NextStep to="assignment">Assignment methods</NextStep>

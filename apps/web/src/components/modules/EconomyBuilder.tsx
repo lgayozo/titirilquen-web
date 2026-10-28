@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
-import { SidebarSection } from "@/components/ui/SidebarSection";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
+import { fmtParking } from "@/lib/parking";
 import type { SimulationConfig } from "@/lib/types";
+import { fmtDecimal, localeCifras } from "@/lib/modos";
 
 interface EconomyBuilderProps {
   config: SimulationConfig;
@@ -10,13 +12,23 @@ interface EconomyBuilderProps {
 }
 
 /**
- * Controles de las 3 variables económicas que el estudiante ajusta con
- * mayor frecuencia en actividades de política:
+ * Las palancas de política que actúan sobre la DEMANDA — cuánto y cómo se
+ * viaja— por oposición a `SupplyBuilder`, que mueve la oferta física:
  *   - Tarifa Metro ($)
  *   - Estacionamiento ($)
  *   - Bencina ($/km)
+ *   - Peaje por km ($/km, D7): transferencia, a diferencia de la bencina
+ *   - Factor de teletrabajo (×)
  *
- * Paridad con la versión Streamlit original (app.py → tab_conf2).
+ * El teletrabajo llegó acá el 2026-08-17. Vivía en `CityBuilder`, o sea en la
+ * página de Uso de Suelo, porque su campo estaba en `city.teletrabajo_factor`; y
+ * el alumno tenía que cambiar de página para usar la única palanca que saca
+ * viajes de la punta, mientras las otras tres estaban en esta sección. La
+ * interfaz llegaba a admitirlo: el panel de calibración decía «la política de
+ * teletrabajo es el factor multiplicador que está en Uso de Suelo».
+ *
+ * El campo se movió al schema en sep-2026 (`demand.globales`), con el resto
+ * de la limpieza de `CityConfig` (D-46) y el salto a `.ttrq.json` v4.
  */
 export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
   const { t } = useTranslation("simulator");
@@ -30,14 +42,15 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
       },
     }));
 
-  const { costo_tarifa_metro, costo_parking, costo_combustible_km } =
+  const { costo_tarifa_metro, costo_parking, costo_combustible_km, peaje_km } =
     config.demand.globales;
 
-  const fmtCurrency = (v: number) => `$${v.toLocaleString("es-CL")}`;
-  const fmtCurrencyPerKm = (v: number) => `$${v.toLocaleString("es-CL")}/km`;
+  const fmtCurrency = (v: number) => `$${v.toLocaleString(localeCifras())}`;
+  const fmtCurrencyPerKm = (v: number) =>
+    `$${v.toLocaleString(localeCifras())}/km`;
 
   return (
-    <SidebarSection
+    <CollapsibleSection
       title={t("sections_sidebar.economy")}
       meta={`$${costo_tarifa_metro} · $${costo_parking}`}
     >
@@ -56,7 +69,7 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         min={0}
         max={15000}
         step={500}
-        format={fmtCurrency}
+        format={(v) => fmtParking(v, t)}
         onChange={(v) => setGlobal({ costo_parking: v })}
       />
       <LabeledSlider
@@ -69,6 +82,28 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
         hint={t("economy_params.bencina_hint")}
         onChange={(v) => setGlobal({ costo_combustible_km: v })}
       />
-    </SidebarSection>
+      <LabeledSlider
+        label={t("economy_params.peaje")}
+        value={peaje_km}
+        min={0}
+        max={500}
+        step={10}
+        format={fmtCurrencyPerKm}
+        hint={t("economy_params.peaje_hint")}
+        onChange={(v) => setGlobal({ peaje_km: v })}
+      />
+      {/* Única palanca de esta sección que no es un precio: multiplica la tasa
+          de teletrabajo de cada estrato, y esos agentes salen de la demanda. */}
+      <LabeledSlider
+        label={t("economy_params.teletrabajo_factor")}
+        value={config.demand.globales.teletrabajo_factor}
+        min={0}
+        max={2}
+        step={0.1}
+        format={(v) => `× ${fmtDecimal(v)}`}
+        hint={t("economy_params.teletrabajo_hint")}
+        onChange={(v) => setGlobal({ teletrabajo_factor: v })}
+      />
+    </CollapsibleSection>
   );
 }
