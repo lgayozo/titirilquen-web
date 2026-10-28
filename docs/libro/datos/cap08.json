@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-28",
-  "commit": "10d0f04",
+  "commit": "7067cc8",
   "script": "docs/libro/datos/datos_cap08.py",
   "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`). El bloque Python del worker se extrae de `pyodide.worker.ts` y se ejecuta en CPython sin las dos líneas de micropip; la sonda de la API corre en el venv de `apps/api` con `TestClient`."
  },

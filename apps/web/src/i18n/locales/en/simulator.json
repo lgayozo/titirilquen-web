@@ -78,7 +78,7 @@
       "frec_max": "Max frequency",
       "freq_clip_max": "⚠ Frequency CAPPED by max frequency at {{op}} tph — demand asks for {{teo}}. Raising it does change the result; lowering the minimum does nothing. The Mohring effect is exhausted: more riders no longer bring more trains.",
       "freq_clip_min": "⚠ Frequency CAPPED by min frequency at {{op}} tph — demand only asks for {{teo}}. Lowering it does change the result; raising the maximum does nothing.",
-      "freq_clip_libre": "Frequency free at {{op}} tph: demand sets it (load / train capacity). Neither cap is binding, so moving the minimum or maximum changes nothing until it crosses that value.",
+      "freq_clip_libre": "Frequency free at {{op}} tph: demand sets it (load / train capacity). Neither cap clips it: the minimum changes nothing until it crosses that value. The maximum also sets the platform capacity, so lowering it close to that value raises the wait before it clips.",
       "anden_hint": "Platform congestion (BPR): penalizes waiting once load exceeds the max-frequency capacity (v/c>1).",
       "tiempo_detencion": "Dwell per station",
       "num_estaciones_hint": "Sets the spacing (length ÷ this number), with a station at the CBD and at both ends when they fall exactly: 10 over 20 km gives 11 stations, every 2 km. More stations shorten the walk to the platform but lengthen the ride: the train stops at each one. There is an interior optimum.",

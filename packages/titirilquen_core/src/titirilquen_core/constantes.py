@@ -71,10 +71,11 @@ VIAJES_MES: Final[int] = 44
 #: convergió cuando `max_h max_i |Φ(T) − T|_{h,i} / λ_h` baja de este valor
 #: (D10 de la auditoría). En pesos y no en utiles porque λ_h varía ~3,9× entre
 #: estratos: 1 util/mes —la tolerancia anterior— eran 806 a 3.122 $/mes según el
-#: estrato. Con el paso exterior 1 la brecha de la base cae de ~183 a ~3 $/mes
-#: en una vuelta y a 0 en la siguiente (con ρ = 54 o la población ×2,5, a 0 en
-#: la cuarta; medido, docs/libro cap. 6): 100 corta en la vuelta 2 sin dejar
-#: nada relevante sobre la mesa.
+#: estrato. Con el paso exterior 1 la brecha de la base cae de ~130 a ~4 $/mes
+#: en una vuelta y a 0 en la siguiente; con ρ = 54, a 0 en la cuarta; con la
+#: población ×2,5 baja de ~1.140 a ~32 y queda entre 1,6 y 3,2 (medido,
+#: docs/libro cap. 6, `paso`): 100 corta en la vuelta 2 sin dejar nada
+#: relevante sobre la mesa.
 TOL_ACOPLADO_CLP_MES: Final[float] = 100.0
 
 #: Tolerancia de todo o nada sobre su brecha relativa, costo en exceso medio /

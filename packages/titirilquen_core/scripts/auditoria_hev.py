@@ -354,31 +354,39 @@ def s7_sensibilidad_escala() -> None:
 
 
 def s8_sensibilidad_poblacion() -> None:
-    print("\n### 8. SENSIBILIDAD (III): el HEV rompe la invariancia de escala")
-    print("  La localizacion lleva theta_h*ln(H_h), asi que la poblacion entra en")
-    print("  la subasta en cuanto los theta difieren. Es la propiedad AU-03 del")
-    print("  logit cerrado —asignacion invariante a la escala— que el HEV NO")
-    print("  conserva.\n")
+    print("\n### 8. SENSIBILIDAD (III): la poblacion, tambien invariante")
+    print("  La localizacion lleva theta_h*ln(H_h), pero es una constante por")
+    print("  ESTRATO: no varia entre parcelas, y el punto fijo la absorbe en u_h")
+    print("  como al ingreso. Escalar los H_h y la oferta por un mismo factor no")
+    print("  debe mover la asignacion, con lambda uniforme o no (AU-03).\n")
     print(
         f"{'suma H':>10}{'ln H':>8}{'d_alto lam=0,8':>17}{'d_alto lam=1':>15}"
-        f"{'d_alto lam=1,25':>18}"
+        f"{'d_alto lam=1,25':>18}{'max|dQ| vs 36.000':>20}"
     )
-    print("-" * 70)
-    for suma in (9_000, 36_000, 99_900, 144_000):
+    print("-" * 90)
+    ref = {}
+    for suma in (36_000, 9_000, 99_900, 144_000):
         h = suma // 3
         Hn = (h, h, suma - 2 * h)
-        fila = []
+        fila, dq = [], 0.0
         for lam in (0.8, 1.0, 1.25):
-            fila.append(perfil(ciudad((lam, 1.0, 1.0), H=Hn))[0][0])
-        print(f"{suma:>10,}{np.log(h):>8.2f}{fila[0]:>17.2f}{fila[1]:>15.2f}{fila[2]:>18.2f}")
+            c = ciudad((lam, 1.0, 1.0), H=Hn)
+            Q = np.asarray(c.result.Q, float)
+            ref.setdefault(lam, Q)
+            dq = max(dq, float(np.max(np.abs(Q - ref[lam]))))
+            fila.append(perfil(c)[0][0])
+        print(
+            f"{suma:>10,}{np.log(h):>8.2f}{fila[0]:>17.2f}{fila[1]:>15.2f}"
+            f"{fila[2]:>18.2f}{dq:>20.2e}"
+        )
     print()
-    print("  Con lambda UNIFORME la columna del medio da 1,47 en las cuatro")
-    print("  poblaciones: el logit cerrado es homogeneo de grado 0 en la escala")
-    print("  (AU-03). Con lambda heterogeneo deja de serlo: a lambda=1,25 el")
-    print("  estrato alto pasa de 5,96 km con 9.000 hogares a 4,67 km con")
-    print("  144.000. Es consecuencia directa de la teoria —el maximo de H draws")
-    print("  depende de H y de la escala a la vez— pero hay que declararlo: la")
-    print("  misma ciudad a distinta escala ya no da el mismo mapa.")
+    print("  El max|dQ| que queda no es del HEV: aparece igual con lambda=1 (la")
+    print("  forma cerrada) y sale del redondeo entero de la oferta S, cuya forma")
+    print("  difiere 0,7 % con 9.000 hogares y 0,2 % con 144.000.")
+    print("  Invariante en las tres columnas. Hasta oct-2026 esta seccion")
+    print("  afirmaba lo contrario (a lambda=1,25 el alto pasaba de 5,96 km con")
+    print("  9.000 hogares a 4,67 km con 144.000); el nucleo vigente no lo")
+    print("  reproduce, y la teoria tampoco lo pide (auditoria E1).")
 
 
 def s9_sensibilidad_beta() -> None:

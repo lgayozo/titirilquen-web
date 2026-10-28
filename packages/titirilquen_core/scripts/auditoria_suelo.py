@@ -1,4 +1,12 @@
-"""Auditoría de sensibilidad del módulo de USO DE SUELO.
+"""Auditoría de sensibilidad del módulo de USO DE SUELO — REGISTRO HISTÓRICO (schema v6).
+
+No corre desde el schema v7 (sep-2026), y se deja así a propósito (auditoría
+E4, oct-2026): está escrita sobre lo que v7 retiró —`alpha` por estrato, la
+colinealidad α–ρ (AU-12) y el nivel de α (AU-13)— y lo que reproduce son las
+cifras v6 de `docs/AUDITORIA_USO_SUELO.md`. Portarla daría otros números que
+no corresponden a ese documento. La auditoría vigente del suelo es
+`docs/libro/datos/datos_cap02.py` (capítulo 2 del libro), con el Theil H y el
+`grad_p` de la aplicación. Correrla se detiene con un aviso.
 
 Barre cada parámetro de `LandUseConfig` (y los de ciudad que lo afectan) y
 reporta el efecto sobre los resultados observables, para verificar que el modelo
@@ -385,4 +393,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(
+        "auditoria_suelo.py es el registro de la auditoria v6 y no corre desde el schema v7 "
+        "(usa `alpha`). La auditoria vigente del suelo es docs/libro/datos/datos_cap02.py."
+    )

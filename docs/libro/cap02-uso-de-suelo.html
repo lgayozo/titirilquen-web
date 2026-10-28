@@ -298,7 +298,7 @@
     <span class="mat" data-tex="\alpha_h = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>h</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_h = 1</annotation></semantics></math></span> están anclados a esa escala. Con esos anclajes,
     <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> es la <strong>razón entre la escala del ruido de elegir casa y
     la de elegir modo</strong>, y moverlo cambia la ciudad: la §5.5 mide un
-    Theil que va de 0,04 a 0,77 entre <span class="mat" data-tex="\mu = 0{,}05"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>0,05</mn></mrow><annotation encoding="application/x-tex">\mu = 0{,}05</annotation></semantics></math></span> y
+    Theil que va de 0,04 a 0,74 entre <span class="mat" data-tex="\mu = 0{,}05"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>0,05</mn></mrow><annotation encoding="application/x-tex">\mu = 0{,}05</annotation></semantics></math></span> y
     <span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span>. Es un supuesto de contenido, que con rentas observadas se
     estimaría. Que <span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span> con <span class="mat" data-tex="\lambda"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span>,
     <span class="mat" data-tex="\alpha"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> y <span class="mat" data-tex="\rho"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi></mrow><annotation encoding="application/x-tex">\rho</annotation></semantics></math></span> multiplicados por <span class="mat" data-tex="0{,}30"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0,30</mn></mrow><annotation encoding="application/x-tex">0{,}30</annotation></semantics></math></span> dé
@@ -784,7 +784,7 @@
   Con <em>μ = 1</em> la señal supera al ruido entre 64 y 109 veces: la subasta
   es casi determinista y cada estrato ocupa su franja. Con <em>μ = 0,30</em>
   la razón baja a entre 19,1 y 32,8: la subasta conserva ruido y los estratos
-  se superponen en parte, con un Theil de 0,40 contra 0,77 con <em>μ = 1</em>. Con <em>ρ</em> = 0 toda la señal es accesibilidad. Como
+  se superponen en parte, con un Theil de 0,39 contra 0,74 con <em>μ = 1</em>. Con <em>ρ</em> = 0 toda la señal es accesibilidad. Como
   referencia para el control de <em>ρ</em>: la accesibilidad del estrato medio
   recorre 87,5 útiles-mes entre el centro y el borde, y la densidad relativa
   recorre 1,46; un <em>ρ</em> de 59,8 haría que el término de densidad
@@ -803,20 +803,26 @@
     <tr><th class="n">μ</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th class="n">Iter.</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">0,05</td><td class="n">0,0381</td><td class="n">2,922</td><td class="n">3,318</td><td class="n">4,634</td><td class="n">+0,921</td><td class="n">18</td></tr>
-    <tr class="destacada"><td class="n">0,30</td><td class="n">0,4034</td><td class="n">1,383</td><td class="n">2,889</td><td class="n">6,375</td><td class="n">+0,922</td><td class="n">62</td></tr>
-    <tr><td class="n">0,50</td><td class="n">0,5726</td><td class="n">1,038</td><td class="n">2,884</td><td class="n">6,612</td><td class="n">+0,921</td><td class="n">102</td></tr>
-    <tr><td class="n">1,00</td><td class="n">0,7661</td><td class="n">0,803</td><td class="n">2,895</td><td class="n">6,750</td><td class="n">+0,921</td><td class="n">226</td></tr>
+    <tr><td class="n">0,05</td><td class="n">0,0370</td><td class="n">2,922</td><td class="n">3,318</td><td class="n">4,634</td><td class="n">+0,944</td><td class="n">18</td></tr>
+    <tr class="destacada"><td class="n">0,30</td><td class="n">0,3918</td><td class="n">1,383</td><td class="n">2,889</td><td class="n">6,375</td><td class="n">+0,952</td><td class="n">62</td></tr>
+    <tr><td class="n">0,50</td><td class="n">0,5561</td><td class="n">1,038</td><td class="n">2,884</td><td class="n">6,612</td><td class="n">+0,952</td><td class="n">102</td></tr>
+    <tr><td class="n">1,00</td><td class="n">0,7441</td><td class="n">0,803</td><td class="n">2,895</td><td class="n">6,750</td><td class="n">+0,952</td><td class="n">226</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>
   <em>μ</em> gobierna la nitidez sin tocar el valor del tiempo: con
-  <em>ρ</em> = 0 el gradiente de renta casi no se mueve, entre +0,921 y
-  +0,922 en todo el rango, y lo que cambia es cuánto se separan los estratos.
-  El Theil va de 0,04 a 0,77, y el número de iteraciones del punto fijo crece
-  con la nitidez. Es el tamaño del supuesto que <code>mu</code> encierra.
+  <em>ρ</em> = 0 el gradiente de renta casi no se mueve, entre +0,944 y
+  +0,952 en todo el rango, y lo que cambia es cuánto se separan los estratos.
+  El Theil va de 0,04 a 0,74, y el número de iteraciones del punto fijo crece
+  con la nitidez. El Theil es el índice H de la aplicación, normalizado entre
+  0 (cada celda con la composición de la ciudad) y 1 (cada celda con un solo
+  estrato), pesado por hogares; <code>grad_p</code> es el precio de la celda
+  habitada más cercana al centro menos el de las dos de la periferia, sobre el
+  rango de precios de las celdas con oferta. Hasta oct-2026 este capítulo
+  reportaba otro índice, el M de Theil sin normalizar, y el rango incluía la
+  celda del CBD, que no tiene oferta (auditoría E2). Es el tamaño del supuesto que <code>mu</code> encierra.
 </p>
 
 <p>
@@ -855,13 +861,13 @@
     <tr><th class="n">ρ</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th>Asignación</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td class="n">0</td><td class="n">0,4034</td><td class="n">1,383</td><td class="n">2,889</td><td class="n">6,375</td><td class="n">+0,922</td><td>Alonso puro</td></tr>
-    <tr><td class="n">10</td><td class="n">0,2982</td><td class="n">1,702</td><td class="n">2,949</td><td class="n">6,061</td><td class="n">+0,626</td><td>—</td></tr>
-    <tr><td class="n">20</td><td class="n">0,1764</td><td class="n">2,478</td><td class="n">3,014</td><td class="n">5,436</td><td class="n">+0,419</td><td>—</td></tr>
-    <tr><td class="n">31</td><td class="n">0,1093</td><td class="n">4,374</td><td class="n">3,045</td><td class="n">4,119</td><td class="n">+0,233</td><td>recién invertida</td></tr>
-    <tr><td class="n">40</td><td class="n">0,1950</td><td class="n">5,962</td><td class="n">3,004</td><td class="n">3,129</td><td class="n">+0,091</td><td>invertida</td></tr>
-    <tr><td class="n">54</td><td class="n">0,3445</td><td class="n">7,012</td><td class="n">2,992</td><td class="n">2,449</td><td class="n">−0,082</td><td>invertida, renta invertida</td></tr>
-    <tr><td class="n">60</td><td class="n">0,3912</td><td class="n">7,181</td><td class="n">3,036</td><td class="n">2,263</td><td class="n">−0,138</td><td>invertida, renta invertida</td></tr>
+    <tr class="destacada"><td class="n">0</td><td class="n">0,3918</td><td class="n">1,383</td><td class="n">2,889</td><td class="n">6,375</td><td class="n">+0,952</td><td>Alonso puro</td></tr>
+    <tr><td class="n">10</td><td class="n">0,2896</td><td class="n">1,702</td><td class="n">2,949</td><td class="n">6,061</td><td class="n">+0,935</td><td>—</td></tr>
+    <tr><td class="n">20</td><td class="n">0,1713</td><td class="n">2,478</td><td class="n">3,014</td><td class="n">5,436</td><td class="n">+0,903</td><td>—</td></tr>
+    <tr><td class="n">31</td><td class="n">0,1061</td><td class="n">4,374</td><td class="n">3,045</td><td class="n">4,119</td><td class="n">+0,796</td><td>recién invertida</td></tr>
+    <tr><td class="n">40</td><td class="n">0,1894</td><td class="n">5,962</td><td class="n">3,004</td><td class="n">3,129</td><td class="n">+0,480</td><td>invertida</td></tr>
+    <tr><td class="n">54</td><td class="n">0,3346</td><td class="n">7,012</td><td class="n">2,992</td><td class="n">2,449</td><td class="n">−0,381</td><td>invertida, renta invertida</td></tr>
+    <tr><td class="n">60</td><td class="n">0,3799</td><td class="n">7,181</td><td class="n">3,036</td><td class="n">2,263</td><td class="n">−0,543</td><td>invertida, renta invertida</td></tr>
   </tbody>
 </table>
 </div>
@@ -888,9 +894,9 @@
     <tr><th class="n">Celdas</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">101</td><td class="n">0,3997</td><td class="n">1,435</td><td class="n">2,907</td><td class="n">6,374</td></tr>
-    <tr class="destacada"><td class="n">201</td><td class="n">0,4034</td><td class="n">1,383</td><td class="n">2,889</td><td class="n">6,375</td></tr>
-    <tr><td class="n">401</td><td class="n">0,4052</td><td class="n">1,356</td><td class="n">2,879</td><td class="n">6,375</td></tr>
+    <tr><td class="n">101</td><td class="n">0,3882</td><td class="n">1,435</td><td class="n">2,907</td><td class="n">6,374</td></tr>
+    <tr class="destacada"><td class="n">201</td><td class="n">0,3918</td><td class="n">1,383</td><td class="n">2,889</td><td class="n">6,375</td></tr>
+    <tr><td class="n">401</td><td class="n">0,3936</td><td class="n">1,356</td><td class="n">2,879</td><td class="n">6,375</td></tr>
   </tbody>
 </table>
 </div>
@@ -901,9 +907,9 @@
     <tr><th class="n">L (km)</th><th class="n">Theil</th><th class="n">d alto (km)</th><th class="n">d medio (km)</th><th class="n">d bajo (km)</th><th class="n">grad_p</th><th class="n">Iter.</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">10</td><td class="n">0,3063</td><td class="n">1,808</td><td class="n">2,817</td><td class="n">6,210</td><td class="n">+0,964</td><td class="n">50</td></tr>
-    <tr class="destacada"><td class="n">20</td><td class="n">0,4034</td><td class="n">1,383</td><td class="n">2,889</td><td class="n">6,375</td><td class="n">+0,922</td><td class="n">62</td></tr>
-    <tr><td class="n">40</td><td class="n">0,5844</td><td class="n">1,059</td><td class="n">2,862</td><td class="n">6,635</td><td class="n">+0,784</td><td class="n">115</td></tr>
+    <tr><td class="n">10</td><td class="n">0,2975</td><td class="n">1,808</td><td class="n">2,817</td><td class="n">6,210</td><td class="n">+0,987</td><td class="n">50</td></tr>
+    <tr class="destacada"><td class="n">20</td><td class="n">0,3918</td><td class="n">1,383</td><td class="n">2,889</td><td class="n">6,375</td><td class="n">+0,952</td><td class="n">62</td></tr>
+    <tr><td class="n">40</td><td class="n">0,5676</td><td class="n">1,059</td><td class="n">2,862</td><td class="n">6,635</td><td class="n">+0,812</td><td class="n">115</td></tr>
   </tbody>
 </table>
 </div>
@@ -929,9 +935,9 @@
     <tr><th class="n">ΣH</th><th class="n">Densidad media (hog/km)</th><th class="n">v7: Theil</th><th class="n">d alto</th><th class="n">d bajo</th><th class="n">v6: ρ en v7</th><th class="n">Theil</th><th class="n">d alto</th><th class="n">d bajo</th></tr>
   </thead>
   <tbody>
-    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">0,3445</td><td class="n">7,012</td><td class="n">2,449</td><td class="n">54</td><td class="n">0,3445</td><td class="n">7,012</td><td class="n">2,449</td></tr>
-    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">0,3446</td><td class="n">7,012</td><td class="n">2,447</td><td class="n">108</td><td class="n">0,5930</td><td class="n">7,476</td><td class="n">1,542</td></tr>
-    <tr><td class="n">144.000</td><td class="n">7.200</td><td class="n">0,3447</td><td class="n">7,012</td><td class="n">2,447</td><td class="n">216</td><td class="n">0,8040</td><td class="n">7,525</td><td class="n">1,081</td></tr>
+    <tr class="destacada"><td class="n">36.000</td><td class="n">1.800</td><td class="n">0,3346</td><td class="n">7,012</td><td class="n">2,449</td><td class="n">54</td><td class="n">0,3346</td><td class="n">7,012</td><td class="n">2,449</td></tr>
+    <tr><td class="n">72.000</td><td class="n">3.600</td><td class="n">0,3347</td><td class="n">7,012</td><td class="n">2,447</td><td class="n">108</td><td class="n">0,5759</td><td class="n">7,476</td><td class="n">1,542</td></tr>
+    <tr><td class="n">144.000</td><td class="n">7.200</td><td class="n">0,3348</td><td class="n">7,012</td><td class="n">2,447</td><td class="n">216</td><td class="n">0,7808</td><td class="n">7,525</td><td class="n">1,081</td></tr>
   </tbody>
 </table>
 </div>
@@ -941,7 +947,7 @@
   oferta escala con ΣH sin cambiar de forma, así que <em>d_i</em> no cambia, y
   el factor común de <em>H_h</em> y <em>S_i</em> lo absorben las utilidades de
   reserva. En v6 el mismo control habría producido otra ciudad, con un Theil
-  de 0,34 a 0,80, sólo por agregar hogares y sin que nadie cambiara de
+  de 0,33 a 0,78, sólo por agregar hogares y sin que nadie cambiara de
   preferencias. Lo fija <code>tests/test_land_use.py</code>.
 </p>
 

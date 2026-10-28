@@ -42,6 +42,7 @@ sys.path.insert(0, str(RAIZ / "packages" / "titirilquen_core" / "tests"))
 
 from titirilquen_core.config import DemandConfig, SupplyConfig
 from titirilquen_core.constantes import VIAJES_MES
+from titirilquen_core.coupled_metrics import _theil
 from titirilquen_core.land_use import LandUseCity, LandUseConfig
 from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_demanda
 from titirilquen_core.land_use.config import LandUseStratumConfig
@@ -238,24 +239,18 @@ def _metricas(c) -> dict:
     dist = np.abs(np.arange(L) - CBD) * DX
     ocup = S[None, :] * Q
     d = (ocup * dist[None, :]).sum(1) / ocup.sum(1)
-    tot = ocup.sum()
-    pi = ocup.sum(1) / tot
-    th = 0.0
-    for i in range(L):
-        n_i = ocup[:, i].sum()
-        if n_i <= 0:
-            continue
-        for h in range(3):
-            q = ocup[h, i] / n_i
-            if q > 0:
-                th += (n_i / tot) * q * np.log(q / pi[h])
+    # El índice H de Theil de la app (normalizado, 0 a 1; auditoría E2): hasta
+    # oct-2026 este capítulo reportaba el M sin normalizar, otro número.
+    th = _theil(Q, S)
     hab = np.flatnonzero(np.asarray(c.S) > 0)
     cc = int(hab[np.argmin(np.abs(hab - CBD))])
     per = float(np.nanmean([p[hab[0]], p[hab[-1]]]))
-    rango = float(np.nanmax(p) - np.nanmin(p))
+    # El rango sobre las celdas con oferta, como el centro y la periferia: el
+    # precio del CBD, sin oferta, no es un precio de mercado (auditoría E2).
+    rango = float(np.nanmax(p[hab]) - np.nanmin(p[hab]))
     return {
         "dist_km": [round(float(x), 3) for x in d],
-        "theil": round(th, 4),
+        "theil": round(float(th), 4),
         "grad_p": round((float(p[cc]) - per) / rango if rango > 1e-12 else 0.0, 3),
         "iteraciones": int(c.result.iterations),
     }
@@ -331,21 +326,11 @@ def invariancias() -> dict:
         dist = np.abs(np.arange(n) - cbd) * dx
         ocup = S[None, :] * Q
         d = (ocup * dist[None, :]).sum(1) / ocup.sum(1)
-        tot = ocup.sum()
-        pi = ocup.sum(1) / tot
-        th = 0.0
-        for i in range(n):
-            n_i = ocup[:, i].sum()
-            if n_i <= 0:
-                continue
-            for h in range(3):
-                q = ocup[h, i] / n_i
-                if q > 0:
-                    th += (n_i / tot) * q * np.log(q / pi[h])
+        th = _theil(Q, S)
         grilla.append(
             {
                 "n_celdas": n,
-                "theil": round(th, 4),
+                "theil": round(float(th), 4),
                 "dist_km": [round(float(x), 3) for x in d],
             }
         )

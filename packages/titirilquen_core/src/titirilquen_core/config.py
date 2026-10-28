@@ -360,8 +360,11 @@ class TrainSupplyParams(BaseModel):
     # asi que f_op estaba RECORTADA y el efecto Mohring agotado en el default
     # (mas demanda ya no traia mas trenes). Con 40 la frecuencia queda interior
     # y vuelve a responder a la demanda. Ojo: por encima de la frecuencia que
-    # pide la demanda, subir este tope no hace NADA — el indicador de la UI lo
-    # dice explicitamente (AT-08).
+    # pide la demanda este tope no recorta nada (el indicador de la UI lo dice,
+    # AT-08), pero SI entra en la congestion de anden: la capacidad del sistema
+    # es frec_max·K (supply/train.py). Subirlo sobre 40 no mueve nada medible;
+    # bajarlo cerca de la frecuencia operativa encarece la espera antes de
+    # recortar (base: con 5 tph, sobre 4,1 operativos, el metro pierde 0,9 pp).
     frec_max: float = 40
     anden_alpha: float = Field(
         default=0.5,

@@ -144,6 +144,21 @@
   </p>
 </header>
 
+<div class="aviso alerta">
+  <h4>Vigencia: cifras de 2026-08-24, núcleo con schema v6</h4>
+  <p>
+    Las tablas de este informe se midieron con el núcleo de agosto de 2026
+    (schema v6). El script de hoy corre sobre un escenario traducido al schema
+    vigente y da otras cifras: con λ uniforme el estrato alto queda a 6,56 km
+    del CBD, no a 1,47. Sus conclusiones, en cambio, se sostienen: la cuadratura
+    (§5), la reducción exacta al logit cerrado, la brecha γ/β del precio, la
+    conservación y la identificación de λ (§6), y la invariancia ante escalar
+    los tres λ (§8.1). La única que no se sostuvo fue la de §8.2, corregida abajo
+    (auditoría E1, 2026-10-28). La página no se regeneró entera: es un informe
+    fechado.
+  </p>
+</div>
+
 <div class="indice">
   <strong>Contenido</strong>
   <ol>
@@ -826,39 +841,46 @@
   </p>
 </div>
 
-<h3>8.2 La población: el HEV rompe la invariancia de escala</h3>
+<h3>8.2 La población: también invariante</h3>
 
 <p>
-  La localización lleva <code>θ<sub>h</sub>·ln(H<sub>h</sub>)</code>, así que la
-  población entra en la comparación de pujas en cuanto los θ difieren.
+  La localización lleva <code>θ<sub>h</sub>·ln(H<sub>h</sub>)</code>, pero es
+  una constante por <em>estrato</em>: no varía entre parcelas, y el punto fijo
+  la absorbe en <code>ū<sub>h</sub></code> como absorbe el ingreso. Escalar
+  los H<sub>h</sub> y la oferta por un mismo factor no mueve la asignación,
+  con λ uniforme o no. Medido el 2026-10-28 con el núcleo vigente:
 </p>
 
 <div class="envoltorio-tabla">
 <table>
-  <thead><tr><th class="simb">ΣH</th><th class="n">ln H</th><th class="simb n">d_alto con λ=0,8</th><th class="simb n">d_alto con λ=1</th><th class="simb n">d_alto con λ=1,25</th></tr></thead>
+  <thead><tr><th class="simb">ΣH</th><th class="n">ln H</th><th class="simb n">d_alto con λ=0,8</th><th class="simb n">d_alto con λ=1</th><th class="simb n">d_alto con λ=1,25</th><th class="simb n">máx |ΔQ| contra 36.000</th></tr></thead>
   <tbody>
-    <tr><td>9.000</td><td class="n">8,01</td><td class="n">1,10</td><td class="n">1,47</td><td class="n">5,96</td></tr>
-    <tr><td>36.000</td><td class="n">9,39</td><td class="n">1,10</td><td class="n">1,47</td><td class="n">5,79</td></tr>
-    <tr><td>99.900</td><td class="n">10,41</td><td class="n">1,11</td><td class="n">1,47</td><td class="n">5,21</td></tr>
-    <tr><td>144.000</td><td class="n">10,78</td><td class="n">1,12</td><td class="n">1,47</td><td class="n">4,67</td></tr>
+    <tr><td>9.000</td><td class="n">8,01</td><td class="n">4,42</td><td class="n">6,56</td><td class="n">6,60</td><td class="n">1,35·10⁻²</td></tr>
+    <tr><td>36.000</td><td class="n">9,39</td><td class="n">4,42</td><td class="n">6,56</td><td class="n">6,60</td><td class="n">0</td></tr>
+    <tr><td>99.900</td><td class="n">10,41</td><td class="n">4,42</td><td class="n">6,56</td><td class="n">6,60</td><td class="n">2,05·10⁻³</td></tr>
+    <tr><td>144.000</td><td class="n">10,78</td><td class="n">4,42</td><td class="n">6,56</td><td class="n">6,60</td><td class="n">6,77·10⁻⁴</td></tr>
   </tbody>
 </table>
 </div>
 
+<p>
+  El |ΔQ| que queda no es del HEV. Aparece igual con λ = 1, donde el despacho
+  va a la forma cerrada, y sale del redondeo entero de la oferta
+  <code>S</code>: su forma difiere 0,7 % entre 9.000 y 36.000 hogares, y
+  0,2 % entre 144.000 y 36.000.
+</p>
+
 <div class="aviso alerta">
-  <h4>Una propiedad que se pierde, y hay que declararla</h4>
+  <h4>Esta sección decía lo contrario</h4>
   <p>
-    La columna del medio da <strong>1,47 en las cuatro poblaciones</strong>: el
-    logit cerrado es homogéneo de grado 0 en la escala, que es la propiedad AU-03
-    de la auditoría de uso de suelo.
-  </p>
-  <p>
-    <strong>El HEV no la conserva.</strong> Con λ = 1,25 el estrato alto pasa de
-    5,96 km en una ciudad de 9.000 hogares a 4,67 km en una de 144.000. Es
-    consecuencia directa de la teoría —el máximo de <em>H</em> draws depende de
-    <em>H</em> y de la escala a la vez— pero significa que
-    <strong>la misma ciudad a distinta escala ya no da el mismo mapa</strong>
-    cuando los λ difieren.
+    Hasta el 2026-10-28 se titulaba «el HEV rompe la invariancia de escala».
+    Su tabla daba, con λ = 1,25, al estrato alto a 5,96 km con 9.000 hogares y
+    a 4,67 km con 144.000, y concluía que la misma ciudad a distinta escala ya
+    no daba el mismo mapa. El núcleo vigente no lo reproduce, y la teoría
+    tampoco lo pide: <code>θ<sub>h</sub>·ln H<sub>h</sub></code> desplaza por
+    igual la puja del estrato en todas las parcelas, y una constante por estrato
+    no cambia quién gana cada subasta. La propiedad AU-03 de la auditoría de uso
+    de suelo vale también para el HEV (auditoría E1).
   </p>
 </div>
 
@@ -931,11 +953,12 @@
   advertencia pedagógica sigue vigente: λ no se lee como una perilla continua.
 </p>
 
-<h3>9.4 La escala de población deja de ser neutral</h3>
+<h3>9.4 La escala de población sigue siendo neutral</h3>
 
 <p>
-  Ver <a href="#s8">§8.2</a>. Es el precio de que el número de postores entre en
-  la localización con el peso de cada escala.
+  Ver <a href="#s8">§8.2</a>. El número de postores entra en la localización
+  como una constante por estrato, y el punto fijo la absorbe. Hasta oct-2026
+  este apartado decía lo contrario (auditoría E1).
 </p>
 
 <!-- ==================================================================== -->
@@ -989,7 +1012,7 @@ uv run --extra dev pytest tests/test_hev.py -v</code></pre>
   <li><a href="../../sandbox/impacto-hev/informe.html"><code>sandbox/impacto-hev/</code></a> — cuanto cambio el resultado al aplicar la correccion: mismos datos y mismos λ, los dos solvers. Con la calibracion vigente el error es de dispersion: reubica el 9 % de los hogares y el modelo viejo sobreestimaba la segregacion.</li>
   <li><a href="../../sandbox/hev-paso-a-paso/informe.html"><code>sandbox/hev-paso-a-paso/</code></a> — el mismo equilibrio del §4 en el caso más simple (2 estratos, 5 parcelas), donde se reduce a una ecuación escalar y se puede verificar contra bisección y contra la subasta simulada hogar por hogar.</li>
   <li><code>docs/informe-uso-suelo.html</code> §7.1 y §7.6 — el módulo completo y dónde encaja esto.</li>
-  <li><code>docs/AUDITORIA_USO_SUELO.md</code> — AU-06 (el artefacto de λ), AU-03 (la invariancia de escala que §8.2 rompe), AU-07 (el solver que se eliminó).</li>
+  <li><code>docs/AUDITORIA_USO_SUELO.md</code> — AU-06 (el artefacto de λ), AU-03 (la invariancia de escala, que §8.2 confirma también para el HEV), AU-07 (el solver que se eliminó).</li>
   <li><code>docs/DISCREPANCIES.md</code> D-08 — el hallazgo original, cerrado por este trabajo.</li>
 </ul>
 

@@ -150,7 +150,7 @@ Todos desde `packages/titirilquen_core`, con `uv run python scripts/<x>.py`:
 |---|---|
 | `diagnostico_calibracion.py` | **Los betas en minutos-equivalentes**: razones, VoT, penalizaciones, ASC. Es el que hace legibles los 42 coeficientes |
 | `auditoria_transporte.py` | Barrido de todos los parámetros de transporte: dirección y magnitud |
-| `auditoria_suelo.py` | Ídem para uso de suelo |
+| `auditoria_suelo.py` | Ídem para uso de suelo; registro v6, no corre desde el schema v7 (la vigente es `datos_cap02.py`) |
 | `diagnostico_elasticidades.py` | Elasticidades arco, techo de la bici, capacidad de tren vs frecuencia |
 | `diagnostico_bienestar.py` | **Las dos medidas del excedente lado a lado**: brecha logsum vs utilidad maxima en utiles, $ y minutos-equivalentes; cuanto se mueve entre escenarios; y cuantos agentes quedan fuera por no tener modo factible |
 | `paradojas.py` | Downs-Thomson y Braess por número de pistas |

@@ -3,7 +3,11 @@
 Barrido de **todos** los parámetros de `LandUseConfig` con medición del efecto
 sobre los resultados. Hallazgos con ID `AU-xx` (auditoría uso de suelo).
 
-Reproducir: `cd packages/titirilquen_core && uv run python scripts/auditoria_suelo.py`
+Reproducir: `cd packages/titirilquen_core && uv run python scripts/auditoria_suelo.py`,
+con un núcleo de schema v6 (anterior a sep-2026). Desde el schema v7, que retiró
+`alpha`, el script se detiene con un aviso y queda como registro de esta
+auditoría; la vigente del suelo es el capítulo 2 del libro
+(`docs/libro/datos/datos_cap02.py`).
 Base: 201 celdas · 20 km · ΣH = 36.000 · shares 10/40/50 · α = 6,5/6,0/5,5 · β = 1.
 
 Todas las cifras de este documento salen de ese script. Las columnas son

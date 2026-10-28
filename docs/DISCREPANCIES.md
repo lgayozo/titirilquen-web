@@ -2090,6 +2090,16 @@ cumple, y eso está en D-39.
   minutos, D-02), que producen saltos del mismo tipo en `T` a 0,4 / 1,2 /
   2,0 / 2,3 / 2,4 / 4,7 / 7,0 km del CBD; esos sí son artefactos de
   especificación y quedan pendientes de decisión.
+- **Actualización 2026-10-28** (auditoría E, núcleo de 7067cc8): con la
+  calibración vigente el salto sigue en el mismo lugar. En la
+  localización de equilibrio `Q_alto` pasa de 0,459 en la celda 89 (1,09 km)
+  a 0,391 en la 90 (1,0 km), y el logsum de transporte del estrato alto, con
+  la red cargada, baja 0,082 útiles por viaje: 3,6 útiles/mes, unos $11.500/mes. Los escalones ya no
+  están pendientes de decisión: desde d5a638b la especificación «suaves»
+  (`globales.umbrales`) los reemplaza por rampas, un corte CMNL y una
+  dominancia suave del metro con la estación del CBD excluida, y con ella
+  `Q_alto` y el logsum son monótonos en esas celdas (0,375 → 0,411 y
+  0,533 → 0,558 útiles). «escalones» sigue siendo el default.
 
 ---
 
@@ -2227,6 +2237,6 @@ cumple, y eso está en D-39.
 | D-66 | Calibración: `ANALISIS_SENSIBILIDAD.md` y comentarios con defaults que ya no existen | Corregido 2026-10-14 (cabecera + comentarios fechados) | Baja |
 | D-67 | Consistencia: la misma corrida tiene dos repartos modales (esperado y muestreado, 0,2 pp) y la interfaz muestra ambos sin rótulo | Corregido 2026-10-28 (auditoría C) | Media |
 | D-68 | Consistencia: `CLAUDE.md` cita una línea base desfasada 0,11 pp y conteos de tests viejos; D-30 describe un baseline que ya no existe | Corregido 2026-10-14 | Media |
-| D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia) | Baja |
+| D-69 | Suelo/Transporte: `T` salta a 1 km del CBD porque ahí el metro sale del conjunto de elección (estación más cercana = CBD); la alternativa continua da metro dominado | Documentado 2026-09-30, sin cambio (filtro de dominancia); alternativa continua «suaves» desde d5a638b, cifras al día 2026-10-28 | Baja |
 | D-70 | Equilibrio: con todo o nada el MSA no converge porque promedia tiempos; promediando flujos llega al equilibrio de usuario y Downs-Thomson se mantiene | Corregido 2026-10-14 (tolerancia sobre el costo en exceso, pendiente) | Alta |
 | D-71 | Oferta: auto y bici recorrían (k − ½)·dx hasta el CBD, no k·dx como la caminata y el metro; la bici derivaba con n_celdas | Corregido 2026-10-28 (auditoría D) | Baja |

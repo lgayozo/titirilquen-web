@@ -53,10 +53,14 @@ def base_sim() -> SimulationConfig:
     """La configuración que ve el usuario al abrir el módulo de transporte."""
     return SimulationConfig(
         city=CityConfig(n_celdas=201, largo_ciudad_km=20),
-        supply=SupplyConfig(),
+        # Los de la app (defaults.ts), como `tests/test_linea_base.py::_config_web`.
+        # Estaba en max_iter 20 y tolerancia 0,1: cortaba antes que la app.
+        supply=SupplyConfig.model_validate(
+            {"car": {"num_pistas": 4}, "bike": {"capacidad_pista": 6000}}
+        ),
         demand=demanda_ui(),
-        max_iter=20,
-        tolerance=0.1,
+        max_iter=150,
+        tolerance=0.02,
         seed=42,
         assignment="expected",
     )

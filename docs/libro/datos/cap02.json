@@ -1,7 +1,7 @@
 {
  "_meta": {
   "fecha": "2026-10-28",
-  "commit": "10d0f04",
+  "commit": "7067cc8",
   "script": "docs/libro/datos/datos_cap02.py",
   "configuracion": "Uso de suelo de la aplicación: 201 celdas, 20 km, ΣH = 36.000 (20/50/30), oferta normal σ=0,5, α = 1 (fijo, no es campo), ρ=0 sobre la densidad relativa, μ=LandUseConfig.mu=0,30 (schema v10), λ=|b_costo| (D-34). Accesibilidad: red vacía configurada (D-42)."
  },
@@ -220,8 +220,8 @@
      3.318,
      4.634
     ],
-    "theil": 0.0381,
-    "grad_p": 0.921,
+    "theil": 0.037,
+    "grad_p": 0.944,
     "iteraciones": 18
    },
    {
@@ -231,8 +231,8 @@
      2.889,
      6.375
     ],
-    "theil": 0.4034,
-    "grad_p": 0.922,
+    "theil": 0.3918,
+    "grad_p": 0.952,
     "iteraciones": 62
    },
    {
@@ -242,8 +242,8 @@
      2.884,
      6.612
     ],
-    "theil": 0.5726,
-    "grad_p": 0.921,
+    "theil": 0.5561,
+    "grad_p": 0.952,
     "iteraciones": 102
    },
    {
@@ -253,8 +253,8 @@
      2.895,
      6.75
     ],
-    "theil": 0.7661,
-    "grad_p": 0.921,
+    "theil": 0.7441,
+    "grad_p": 0.952,
     "iteraciones": 226
    }
   ],
@@ -266,8 +266,8 @@
      2.889,
      6.375
     ],
-    "theil": 0.4034,
-    "grad_p": 0.922,
+    "theil": 0.3918,
+    "grad_p": 0.952,
     "iteraciones": 62
    },
    {
@@ -277,8 +277,8 @@
      2.949,
      6.061
     ],
-    "theil": 0.2982,
-    "grad_p": 0.626,
+    "theil": 0.2896,
+    "grad_p": 0.935,
     "iteraciones": 44
    },
    {
@@ -288,8 +288,8 @@
      3.014,
      5.436
     ],
-    "theil": 0.1764,
-    "grad_p": 0.419,
+    "theil": 0.1713,
+    "grad_p": 0.903,
     "iteraciones": 30
    },
    {
@@ -299,8 +299,8 @@
      3.045,
      4.119
     ],
-    "theil": 0.1093,
-    "grad_p": 0.233,
+    "theil": 0.1061,
+    "grad_p": 0.796,
     "iteraciones": 21
    },
    {
@@ -310,8 +310,8 @@
      3.004,
      3.129
     ],
-    "theil": 0.195,
-    "grad_p": 0.091,
+    "theil": 0.1894,
+    "grad_p": 0.48,
     "iteraciones": 28
    },
    {
@@ -321,8 +321,8 @@
      2.992,
      2.449
     ],
-    "theil": 0.3445,
-    "grad_p": -0.082,
+    "theil": 0.3346,
+    "grad_p": -0.381,
     "iteraciones": 55
    },
    {
@@ -332,8 +332,8 @@
      3.036,
      2.263
     ],
-    "theil": 0.3912,
-    "grad_p": -0.138,
+    "theil": 0.3799,
+    "grad_p": -0.543,
     "iteraciones": 67
    }
   ]
@@ -342,7 +342,7 @@
   "grilla": [
    {
     "n_celdas": 101,
-    "theil": 0.3997,
+    "theil": 0.3882,
     "dist_km": [
      1.435,
      2.907,
@@ -351,7 +351,7 @@
    },
    {
     "n_celdas": 201,
-    "theil": 0.4034,
+    "theil": 0.3918,
     "dist_km": [
      1.383,
      2.889,
@@ -360,7 +360,7 @@
    },
    {
     "n_celdas": 401,
-    "theil": 0.4052,
+    "theil": 0.3936,
     "dist_km": [
      1.356,
      2.879,
@@ -376,8 +376,8 @@
      2.817,
      6.21
     ],
-    "theil": 0.3063,
-    "grad_p": 0.964,
+    "theil": 0.2975,
+    "grad_p": 0.987,
     "iteraciones": 50
    },
    {
@@ -387,8 +387,8 @@
      2.889,
      6.375
     ],
-    "theil": 0.4034,
-    "grad_p": 0.922,
+    "theil": 0.3918,
+    "grad_p": 0.952,
     "iteraciones": 62
    },
    {
@@ -398,8 +398,8 @@
      2.862,
      6.635
     ],
-    "theil": 0.5844,
-    "grad_p": 0.784,
+    "theil": 0.5676,
+    "grad_p": 0.812,
     "iteraciones": 115
    }
   ]
@@ -418,8 +418,8 @@
       2.992,
       2.449
      ],
-     "theil": 0.3445,
-     "grad_p": -0.082,
+     "theil": 0.3346,
+     "grad_p": -0.381,
      "iteraciones": 55
     },
     "v6_equivalente": {
@@ -429,8 +429,8 @@
       2.992,
       2.449
      ],
-     "theil": 0.3445,
-     "grad_p": -0.082,
+     "theil": 0.3346,
+     "grad_p": -0.381,
      "iteraciones": 55
     }
    },
@@ -444,8 +444,8 @@
       2.994,
       2.447
      ],
-     "theil": 0.3446,
-     "grad_p": -0.082,
+     "theil": 0.3347,
+     "grad_p": -0.381,
      "iteraciones": 55
     },
     "v6_equivalente": {
@@ -455,8 +455,8 @@
       3.352,
       1.542
      ],
-     "theil": 0.593,
-     "grad_p": -0.4,
+     "theil": 0.5759,
+     "grad_p": -0.891,
      "iteraciones": 158
     }
    },
@@ -470,8 +470,8 @@
       2.994,
       2.447
      ],
-     "theil": 0.3447,
-     "grad_p": -0.082,
+     "theil": 0.3348,
+     "grad_p": -0.381,
      "iteraciones": 55
     },
     "v6_equivalente": {
@@ -481,8 +481,8 @@
       3.608,
       1.081
      ],
-     "theil": 0.804,
-     "grad_p": -0.599,
+     "theil": 0.7808,
+     "grad_p": -0.982,
      "iteraciones": 363
     }
    }
