@@ -37,12 +37,13 @@
     que tarda cada uno, y lo aprende de sus experiencias con un modelo por
     instancias (IBL). Dos experimentos: cuántas experiencias malas, y de qué
     tamaño, cambian su conducta (E1), y si más variabilidad en los tiempos
-    vuelve la elección más aleatoria (E2). Corto, mediano y largo plazo.
+    vuelve la elección más aleatoria (E2), primero para una persona y después para
+    la ciudad completa, con congestión (E3). Corto, mediano y largo plazo.
   </p>
   <p class="meta">
     Código: <code>sandbox/ibl-dia-a-dia/</code> · Correr: ver <a href="#reproducir">Reproducir</a><br>
     Escala del logit <span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span> (la del simulador) · 250 días · 500 réplicas ·
-    semilla 42 · núcleo en schema v6 · 1-oct-2026
+    semilla 42 · núcleo titirilquen-scenario/v11 · 28-oct-2026
   </p>
 </header>
 
@@ -53,7 +54,8 @@
     <li><a href="#s3">Los indicadores</a> — ecuaciones (7)–(17)</li>
     <li><a href="#s4">E1 · Experiencias malas al inicio</a></li>
     <li><a href="#s5">E2 · Variabilidad del tiempo</a></li>
-    <li><a href="#s6">Qué concluir, y bajo qué supuestos</a></li>
+    <li><a href="#s6">E3 · La ciudad completa</a> — ecuaciones (18)–(19)</li>
+    <li><a href="#s7">Qué concluir, y bajo qué supuestos</a></li>
     <li><a href="#reproducir">Reproducir paso a paso</a></li>
   </ol>
 </nav>
@@ -64,7 +66,7 @@
 <p>
   Todo se mide sobre <strong>una persona</strong>: 500 réplicas de la misma
   persona, cada una con su propia secuencia aleatoria. No hay congestión ni
-  interacción; la ciudad completa es la etapa siguiente. Las ventajas se dan en
+  interacción, salvo en E3, que repite la última pregunta con la ciudad completa. Las ventajas se dan en
   <span class="mat" data-tex="A"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span>, la ventaja del modo mejor expresada en minutos (ecuación 6).
 </p>
 <div class="paso"><h3>¿Qué tan extrema debe ser una experiencia, o cuántas, para cambiar la conducta?</h3><p>
@@ -100,7 +102,12 @@
     más grande es −8,7 pp en el largo plazo. Además el hot stove empuja en contra
     cuando el modo peor también tiene ruido: lo evita tras sus malas experiencias y
     se queda más en el mejor. Se acerca a 50-50 sólo con alternativas parejas, el ruido
-    en el modo mejor y memoria con mucha recencia.
+    en el modo mejor y memoria con mucha recencia. En la ciudad completa (E3) pasa lo mismo:
+    con σ = 80 min y <span class="mat" data-tex="d = 0{,}5"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0,5</mn></mrow><annotation encoding="application/x-tex">d = 0{,}5</annotation></semantics></math></span> se conserva el
+    71 % de la ventaja del modo mejor en el
+    corto plazo y toda en el largo (Φ = 1,02,
+    ecuación 13); la partición no se mueve, pero
+    personas iguales terminan distintas y el bienestar percibido sobrestima el vivido (§6.2).
   </p></div>
 
 <div class="aviso neutro"><p>
@@ -515,7 +522,92 @@
 </p>
 
 <!-- ==================================================================== -->
-<h2 id="s6"><span class="num">6</span>Qué concluir, y bajo qué supuestos</h2>
+<h2 id="s6"><span class="num">6</span>E3 · La ciudad completa</h2>
+
+<p>
+  <strong>Diseño.</strong> La pregunta de E2, ahora con las 36.000 personas de la ciudad a la vez
+  (<code>poblacion.py</code>). Es la ciudad de la app con dos cambios: todos tienen auto y sólo se
+  elige entre auto y metro, como en E1 y E2. El día 0 es el equilibrio del simulador: sus tiempos
+  son la percepción inicial de todos. Cada día todos eligen con lo que perciben, los flujos cargan la
+  red y cada persona vive el tiempo de su modo en su celda más un ruido propio
+  <span class="mat" data-tex="\varepsilon \sim \mathcal{N}(0, \sigma^2)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>∼</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\varepsilon \sim \mathcal{N}(0, \sigma^2)</annotation></semantics></math></span>, en los dos modos (en el metro, sobre el
+  tiempo en vehículo; acceso y espera quedan en los del equilibrio). Quien vive a menos de 1 km del CBD
+  no tiene metro: carga la red pero no elige. σ ∈ {0, 5, 10, 20, 40, 80} min,
+  <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> ∈ {0; 0,5; 1,28}, 250 días y los horizontes de E1 y E2. Una corrida por
+  combinación con la misma semilla: cada σ se compara con σ = 0 usando los mismos números aleatorios.
+</p>
+<p>
+  <strong>Control.</strong> Con σ = 0 la ciudad se queda en el equilibrio del simulador: Φ entre
+  0,999 y 1,000 en los tres horizontes y la razón de dispersión
+  (18) de 0,99. Todo lo que sigue es efecto del ruido.
+</p>
+
+<h3>6.1 ¿Más varianza, más 50-50? En la ciudad, también sólo en el corto plazo</h3>
+<p>
+  Φ es la ecuación (13) con <span class="mat" data-tex="S"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span> y <span class="mat" data-tex="P^{*}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>P</mi><mo lspace="0em" rspace="0em">∗</mo></msup></mrow><annotation encoding="application/x-tex">P^{*}</annotation></semantics></math></span> promediados sobre las personas que pueden
+  elegir: el modo mejor y <span class="mat" data-tex="P^{*}_n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>P</mi><mi>n</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup></mrow><annotation encoding="application/x-tex">P^{*}_n</annotation></semantics></math></span> de cada una son los del equilibrio. El resultado repite el
+  de E2: con σ = 80 min y <span class="mat" data-tex="d = 0{,}5"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0,5</mn></mrow><annotation encoding="application/x-tex">d = 0{,}5</annotation></semantics></math></span>, Φ vale 0,71 en el corto
+  plazo, 0,94 en el mediano y 1,02 en
+  el largo (C2 en E2: 0,76, 0,97 y
+  1,01). Sólo con mucha recencia (<span class="mat" data-tex="d = 1{,}28"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1,28</mn></mrow><annotation encoding="application/x-tex">d = 1{,}28</annotation></semantics></math></span>) el efecto llega al largo
+  plazo: Φ = 0,87.
+</p>
+<figure><img src="salida/e3-phi.png" alt="Figura 9"><figcaption><span class="n">Figura 9</span>Cuánto de la ventaja del modo mejor sobrevive a la variabilidad en la ciudad, por horizonte. Un panel por horizonte. Eje horizontal: desviación estándar del tiempo vivido, σ (min). Eje vertical: Φ de la población (adim.), ecuación (13) promediada sobre las personas. Tipo de línea: decaimiento d = 0 (puntos), 0,5 (continua) y 1,28 (discontinua). Es el par de la figura 6 (una persona, C2): se lee igual, comparando paneles y líneas.</figcaption></figure>
+<p class="titulo-tabla"><span class="n">Tabla 6</span>La ciudad contra una persona: fracción de la ventaja que sobrevive</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan="2" class="n">σ (min)</th><th rowspan="2" class="n simb">d (adim.)</th><th colspan="3" class="n">Φ ciudad (adim.)</th><th colspan="3" class="n">Φ caso C2, E2 (adim.)</th></tr><tr><th class="n">corto (1–10)</th><th class="n">mediano (11–50)</th><th class="n">largo (51–250)</th><th class="n">corto (1–10)</th><th class="n">mediano (11–50)</th><th class="n">largo (51–250)</th></tr></thead>
+  <tbody><tr><td class='n'>20</td><td class='n'>0,00</td><td class='n'>0,97</td><td class='n'>1,00</td><td class='n'>1,00</td><td class='n'>0,98</td><td class='n'>1,00</td><td class='n'>1,00</td></tr><tr><td class='n'>20</td><td class='n'>0,50</td><td class='n'>0,97</td><td class='n'>1,00</td><td class='n'>1,00</td><td class='n'>0,98</td><td class='n'>1,00</td><td class='n'>1,00</td></tr><tr><td class='n'>20</td><td class='n'>1,28</td><td class='n'>0,95</td><td class='n'>0,99</td><td class='n'>0,98</td><td class='n'>0,97</td><td class='n'>0,99</td><td class='n'>0,99</td></tr><tr><td class='n'>40</td><td class='n'>0,00</td><td class='n'>0,91</td><td class='n'>1,00</td><td class='n'>1,01</td><td class='n'>0,94</td><td class='n'>1,01</td><td class='n'>1,01</td></tr><tr><td class='n'>40</td><td class='n'>0,50</td><td class='n'>0,89</td><td class='n'>1,00</td><td class='n'>1,00</td><td class='n'>0,92</td><td class='n'>1,01</td><td class='n'>1,00</td></tr><tr><td class='n'>40</td><td class='n'>1,28</td><td class='n'>0,85</td><td class='n'>0,96</td><td class='n'>0,95</td><td class='n'>0,88</td><td class='n'>0,97</td><td class='n'>0,95</td></tr><tr><td class='n'>80</td><td class='n'>0,00</td><td class='n'>0,75</td><td class='n'>0,94</td><td class='n'>1,04</td><td class='n'>0,79</td><td class='n'>0,98</td><td class='n'>1,05</td></tr><tr><td class='n'>80</td><td class='n'>0,50</td><td class='n'>0,71</td><td class='n'>0,94</td><td class='n'>1,02</td><td class='n'>0,76</td><td class='n'>0,97</td><td class='n'>1,01</td></tr><tr><td class='n'>80</td><td class='n'>1,28</td><td class='n'>0,65</td><td class='n'>0,86</td><td class='n'>0,87</td><td class='n'>0,67</td><td class='n'>0,88</td><td class='n'>0,88</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Una fila por σ y decaimiento d, con ruido en los dos modos. Φ es la fracción de la ventaja del modo mejor que sobrevive: 1, nada cambió; 0, moneda al aire. A la izquierda la ciudad completa, con congestión; a la derecha una persona sola (caso C2, tabla 1). Se lee por columnas: el corto plazo pierde ventaja en los dos; el largo, sólo con d = 1,28.</p>
+
+<h3>6.2 Lo que la media no muestra</h3>
+<p>
+  La partición modal casi no se mueve: con cualquier σ y <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, la cuota del auto en los últimos
+  20 días cambia a lo sumo 0,2 pp, y el bienestar experimentado
+  0,12 min por viaje. Mirar sólo la partición haría concluir que la variabilidad no
+  importa. Dos cosas sí cambian.
+</p>
+<p>
+  <strong>Personas iguales terminan distintas.</strong> En cada grupo <span class="mat" data-tex="g"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span> de personas del mismo
+  estrato y celda, con los dos modos, se compara la varianza del share de días en auto de cada persona,
+  <span class="mat" data-tex="s_n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">s_n</annotation></semantics></math></span>, con la que daría la misma probabilidad sin historia, la binomial de <span class="mat" data-tex="T"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span> =
+  20 días:
+</p>
+<div class="ecuacion" data-tex="R = \frac{\sum_g n_g\,\widehat{\mathrm{Var}}_g(s_n)}{\sum_g n_g\,\bar s_g (1 - \bar s_g)/T}" data-id="(18)">
+  <span class="id">(18)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>R</mi><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>n</mi><mi>g</mi></msub><mtext> </mtext><msub><mover accent="true"><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="true">^</mo></mover><mi>g</mi></msub><mo stretchy="false">(</mo><msub><mi>s</mi><mi>n</mi></msub><mo stretchy="false">)</mo></mrow><mrow><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>n</mi><mi>g</mi></msub><mtext> </mtext><msub><mover accent="true"><mi>s</mi><mo>ˉ</mo></mover><mi>g</mi></msub><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msub><mover accent="true"><mi>s</mi><mo>ˉ</mo></mover><mi>g</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mi>T</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">R = \frac{\sum_g n_g\,\widehat{\mathrm{Var}}_g(s_n)}{\sum_g n_g\,\bar s_g (1 - \bar s_g)/T}</annotation></semantics></math></span>
+</div>
+<p>
+  <span class="mat" data-tex="R = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">R = 1</annotation></semantics></math></span>: la historia no diferenció a nadie. Con σ = 80 min, <span class="mat" data-tex="R"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span> =
+  1,74 con <span class="mat" data-tex="d = 0{,}5"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0,5</mn></mrow><annotation encoding="application/x-tex">d = 0{,}5</annotation></semantics></math></span> y 2,58 con
+  <span class="mat" data-tex="d = 1{,}28"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1,28</mn></mrow><annotation encoding="application/x-tex">d = 1{,}28</annotation></semantics></math></span>: es la heterogeneidad de §5.3, ahora en la población.
+</p>
+<p>
+  <strong>La utilidad con que se decide sobrestima la que se vive.</strong> Cada persona elige el
+  modo que hoy percibe mejor, y lo percibe mejor en parte por suerte: un sesgo de selección. Medido en
+  minutos, es cuánto más lento es el modo elegido de lo que se creía, promediado sobre personas y los
+  últimos 20 días, con <span class="mat" data-tex="\tau_{nj}(t)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\tau_{nj}(t)</annotation></semantics></math></span> el tiempo de la red ese día y
+  <span class="mat" data-tex="b_{nj}(t)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">b_{nj}(t)</annotation></semantics></math></span> el percibido (2):
+</p>
+<div class="ecuacion" data-tex="B = \overline{\tau_{n j_n(t)}(t) - b_{n j_n(t)}(t)}" data-id="(19)">
+  <span class="id">(19)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>B</mi><mo>=</mo><mover accent="true"><mrow><msub><mi>τ</mi><mrow><mi>n</mi><msub><mi>j</mi><mi>n</mi></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>b</mi><mrow><mi>n</mi><msub><mi>j</mi><mi>n</mi></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mo stretchy="true">‾</mo></mover></mrow><annotation encoding="application/x-tex">B = \overline{\tau_{n j_n(t)}(t) - b_{n j_n(t)}(t)}</annotation></semantics></math></span>
+</div>
+<p>
+  Con σ = 80 min, <span class="mat" data-tex="B"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span> = 0,02 min con <span class="mat" data-tex="d = 0"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d = 0</annotation></semantics></math></span>,
+  0,59 con <span class="mat" data-tex="d = 0{,}5"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0,5</mn></mrow><annotation encoding="application/x-tex">d = 0{,}5</annotation></semantics></math></span> y 6,83 con
+  <span class="mat" data-tex="d = 1{,}28"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1,28</mn></mrow><annotation encoding="application/x-tex">d = 1{,}28</annotation></semantics></math></span>. Crece con la recencia porque la percepción queda dominada por las últimas
+  experiencias, que son ruidosas. Por eso el bienestar no puede medirse con el logsum de las
+  utilidades percibidas: lo sobrestimaría en esa magnitud.
+</p>
+<figure><img src="salida/e3-iguales.png" alt="Figura 10"><figcaption><span class="n">Figura 10</span>Lo que la variabilidad deja en la ciudad aunque la partición no cambie. Eje horizontal en los dos paneles: desviación estándar del tiempo vivido, σ (min). Izquierda: razón de dispersión entre personas iguales R (adim.), ecuación (18); la línea discontinua en 1 es la binomial. Derecha: brecha B entre el tiempo de red y el percibido del modo elegido (min por viaje), ecuación (19). Tipo de línea: decaimiento d = 0 (puntos), 0,5 (continua) y 1,28 (discontinua). Se lee siguiendo cada línea hacia la derecha: cuánto crece con σ y cuánto más con recencia.</figcaption></figure>
+<p class="titulo-tabla"><span class="n">Tabla 7</span>La ciudad con variabilidad: partición, dispersión y bienestar</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th class="n">σ (min)</th><th class="n simb">d (adim.)</th><th class="n">Δ cuota auto (pp)</th><th class="n">Δ cuota del modo mejor (pp)</th><th class="n simb">R (adim.)</th><th class="n">Δ bienestar experimentado (min/viaje)</th><th class="n simb">B (min/viaje)</th></tr></thead>
+  <tbody><tr><td class='n'>0</td><td class='n'>0,00</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>0,99</td><td class='n'>0,00</td><td class='n'>0,02</td></tr><tr><td class='n'>0</td><td class='n'>0,50</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>0,99</td><td class='n'>0,00</td><td class='n'>0,02</td></tr><tr><td class='n'>0</td><td class='n'>1,28</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>0,99</td><td class='n'>0,00</td><td class='n'>0,01</td></tr><tr><td class='n'>20</td><td class='n'>0,00</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>1,03</td><td class='n'>0,00</td><td class='n'>0,02</td></tr><tr><td class='n'>20</td><td class='n'>0,50</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>1,04</td><td class='n'>0,00</td><td class='n'>0,06</td></tr><tr><td class='n'>20</td><td class='n'>1,28</td><td class='n'>−0,1</td><td class='n'>−0,2</td><td class='n'>1,16</td><td class='n'>0,00</td><td class='n'>0,60</td></tr><tr><td class='n'>40</td><td class='n'>0,00</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>1,13</td><td class='n'>0,01</td><td class='n'>0,02</td></tr><tr><td class='n'>40</td><td class='n'>0,50</td><td class='n'>0,0</td><td class='n'>−0,1</td><td class='n'>1,17</td><td class='n'>0,01</td><td class='n'>0,16</td></tr><tr><td class='n'>40</td><td class='n'>1,28</td><td class='n'>−0,1</td><td class='n'>−0,6</td><td class='n'>1,55</td><td class='n'>−0,04</td><td class='n'>2,19</td></tr><tr><td class='n'>80</td><td class='n'>0,00</td><td class='n'>0,0</td><td class='n'>+0,3</td><td class='n'>1,65</td><td class='n'>0,04</td><td class='n'>0,02</td></tr><tr><td class='n'>80</td><td class='n'>0,50</td><td class='n'>0,0</td><td class='n'>−0,1</td><td class='n'>1,74</td><td class='n'>0,03</td><td class='n'>0,59</td></tr><tr><td class='n'>80</td><td class='n'>1,28</td><td class='n'>−0,2</td><td class='n'>−1,6</td><td class='n'>2,58</td><td class='n'>−0,12</td><td class='n'>6,83</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Una fila por σ y decaimiento d; todo en los últimos 20 días de 250. Las Δ son contra σ = 0 con el mismo d. Cuota del modo mejor: entre quienes pueden elegir, la fracción de viajes en el modo de mayor utilidad verdadera. R, ecuación (18): 1 es la binomial. Bienestar experimentado: utilidad verdadera del modo elegido, en minutos (÷|β| = 0,0331). B, ecuación (19). Se lee por columnas: las Δ quedan cerca de 0 mientras R y B crecen.</p>
+
+<!-- ==================================================================== -->
+<h2 id="s7"><span class="num">7</span>Qué concluir, y bajo qué supuestos</h2>
 
 <ol>
   <li><strong>Hay un valor crítico de corto plazo y es simple:</strong> <span class="mat" data-tex="\Delta^{*}_k = A/W_k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi mathvariant="normal">Δ</mi><mi>k</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup><mo>=</mo><mi>A</mi><mi mathvariant="normal">/</mi><msub><mi>W</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">\Delta^{*}_k = A/W_k</annotation></semantics></math></span>.
@@ -527,9 +619,13 @@
   <li><strong>El efecto de variabilidad existe pero es chico con <span class="mat" data-tex="\mu = 1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mu = 1</annotation></semantics></math></span></strong>, es de corto
       plazo con <span class="mat" data-tex="d \le 0{,}5"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>≤</mo><mn>0,5</mn></mrow><annotation encoding="application/x-tex">d \le 0{,}5</annotation></semantics></math></span>, y el hot stove lo compensa cuando el ruido está en los dos modos.
       Lo que sí deja es heterogeneidad entre personas iguales.</li>
+  <li><strong>En la ciudad completa (E3) pasa lo mismo, y la media lo esconde.</strong> La partición y
+      el bienestar experimentado no cambian, pero personas iguales se diferencian, (18), y deciden con
+      un modo que creen más rápido de lo que es, (19): el logsum de lo percibido sobrestima el
+      bienestar, más cuanto más recencia.</li>
 </ol>
 
-<h3>6.1 Los supuestos que mueven los números</h3>
+<h3>7.1 Los supuestos que mueven los números</h3>
 <ul>
   <li><strong>La escala.</strong> <span class="mat" data-tex="\mu\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>β</mi></mrow><annotation encoding="application/x-tex">\mu\beta</annotation></semantics></math></span> decide cuántos minutos es «mucho». Con el
       <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de elección repetida de la literatura (<span class="mat" data-tex="-0{,}2"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>0,2</mn></mrow><annotation encoding="application/x-tex">-0{,}2</annotation></semantics></math></span>/min) los minutos de este
@@ -540,20 +636,22 @@
       mismo paper, visto desde la simulación.</li>
   <li><strong>El decaimiento.</strong> <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> cambia poco el corto plazo y mucho el largo: con
       <span class="mat" data-tex="d \gt  1"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d \gt  1</annotation></semantics></math></span> la memoria no promedia y los efectos de variabilidad persisten.</li>
-  <li><strong>Sin congestión ni costo de cambiar.</strong> Una persona sola no mueve los tiempos; y no
-      hay inercia ni hábito más allá del IBL.</li>
+  <li><strong>Congestión y costo de cambiar.</strong> En E1 y E2 una persona sola no mueve los
+      tiempos; E3 sí carga la red cada día. En ninguno hay inercia ni hábito más allá del IBL.</li>
 </ul>
 
-<h3>6.2 La etapa siguiente: la ciudad completa</h3>
-<p>
-  Comparar el equilibrio del simulador con y sin variabilidad, con los mismos parámetros (efecto
-  puro, sin recalibrar). Dos cuidados que este informe deja planteados: el bienestar debe medirse con
-  los tiempos <em>experimentados</em>, no con el logsum de la utilidad de decisión (que usa los
-  percibidos); y la dispersión entre personas iguales (§5.3) es un resultado a mirar por sí mismo,
-  no sólo la partición media.
-</p>
+<h3>7.2 Lo que queda</h3>
+<ul>
+  <li><strong>Los cuatro modos.</strong> E3 tiene sólo auto y metro, con ruido en los dos. Con bici y
+      caminata sin ruido, serían un refugio hacia el que migraría la elección por construcción; el
+      paso siguiente es la ciudad con los cuatro modos y ruido en todos.</li>
+  <li><strong>Acceso y espera del metro fijos.</strong> En E3 el IBL aprende el tiempo en vehículo;
+      acceso y espera quedan en los del equilibrio.</li>
+  <li><strong>Una semilla por combinación.</strong> Las diferencias contra σ = 0 usan los mismos números
+      aleatorios, pero no hay réplicas de la ciudad.</li>
+</ul>
 
-<h3>6.3 Referencias</h3>
+<h3>7.3 Referencias</h3>
 <ul class="refs">
   <li>Guevara, C. A., Tang, Y. y Gao, S. (2018). The initial condition problem with complete history
       dependency in learning models for travel choices. <em>Transportation Research Part B</em> 117,
@@ -576,20 +674,21 @@
 uv sync --extra dev --reinstall-package titirilquen-core   # el núcleo del repo, no uno cacheado
 uv run --extra dev pytest                                  # las fórmulas (7)–(9), (12) y (16)
 uv run python experimentos.py           # ~5 min → salida/experimentos.json
-uv run python figuras_experimentos.py   # figuras 1–8, desde el JSON
-uv run python arma_informe.py           # este informe, desde el JSON
+uv run python poblacion.py              # ~20 min → salida/poblacion.json (E3)
+uv run python figuras_experimentos.py   # figuras 1–10, desde los dos JSON
+uv run python arma_informe.py           # este informe, desde los dos JSON
 node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
 
 <p>
   Cada número del texto sale de <code>salida/experimentos.json</code>: <code>casos</code> (tabla de §2.1,
   <span class="mat" data-tex="W_k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">W_k</annotation></semantics></math></span> y <span class="mat" data-tex="\Delta^*"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">Δ</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">\Delta^*</annotation></semantics></math></span>), <code>e1</code> (una fila por caso, <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, <span class="mat" data-tex="k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span>,
-  <span class="mat" data-tex="r"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span>, más el control) y <code>e2</code> (una por caso, <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, condición, σ). Las figuras
-  no calculan nada.
+  <span class="mat" data-tex="r"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span>, más el control) y <code>e2</code> (una por caso, <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, condición, σ). E3 sale de <code>salida/poblacion.json</code>: una fila por σ y <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>.
+  Las figuras no calculan nada.
 </p>
-<p class="titulo-tabla"><span class="n">Tabla 6</span>Dónde está cada ecuación en el código</p>
+<p class="titulo-tabla"><span class="n">Tabla 8</span>Dónde está cada ecuación en el código</p>
 <div class="envoltorio-tabla"><table>
   <thead><tr><th>Ecuación (número del informe)</th><th>Qué calcula</th><th>Archivo:línea</th></tr></thead>
-  <tbody><tr><td>(1)</td><td>pesos del IBL</td><td><code>ibl.py:30</code></td></tr><tr><td>(2)</td><td>tiempo percibido</td><td><code>ibl.py:48</code></td></tr><tr><td>(3)–(5)</td><td>utilidad, logit, experiencia</td><td><code>experimentos.py:162</code></td></tr><tr><td>(6)</td><td>ΔV, A, P*</td><td><code>experimentos.py:70</code></td></tr><tr><td>(7)</td><td>W_k</td><td><code>experimentos.py:141</code></td></tr><tr><td>(8)</td><td>Δ*</td><td><code>experimentos.py:152</code></td></tr><tr><td>(9)</td><td>P post</td><td><code>experimentos.py:157</code></td></tr><tr><td>(10)</td><td>P̄ por persona</td><td><code>experimentos.py:214</code></td></tr><tr><td>(11), (13)</td><td>S, E, I, cuantiles, histograma</td><td><code>experimentos.py:220</code></td></tr><tr><td>(12)</td><td>vida media</td><td><code>experimentos.py:234</code></td></tr><tr><td>(13)</td><td>Φ</td><td><code>experimentos.py:324</code></td></tr><tr><td>(14)</td><td>n*</td><td><code>arma_informe.py:619</code></td></tr><tr><td>(15)–(17)</td><td>ventaja percibida, dispersión y sesgo</td><td><code>experimentos.py:254</code></td></tr><tr><td>(16)</td><td>Gauss–Hermite</td><td><code>experimentos.py:248</code></td></tr></tbody>
+  <tbody><tr><td>(1)</td><td>pesos del IBL</td><td><code>ibl.py:30</code></td></tr><tr><td>(2)</td><td>tiempo percibido</td><td><code>ibl.py:48</code></td></tr><tr><td>(3)–(5)</td><td>utilidad, logit, experiencia</td><td><code>experimentos.py:162</code></td></tr><tr><td>(6)</td><td>ΔV, A, P*</td><td><code>experimentos.py:70</code></td></tr><tr><td>(7)</td><td>W_k</td><td><code>experimentos.py:141</code></td></tr><tr><td>(8)</td><td>Δ*</td><td><code>experimentos.py:152</code></td></tr><tr><td>(9)</td><td>P post</td><td><code>experimentos.py:157</code></td></tr><tr><td>(10)</td><td>P̄ por persona</td><td><code>experimentos.py:214</code></td></tr><tr><td>(11), (13)</td><td>S, E, I, cuantiles, histograma</td><td><code>experimentos.py:220</code></td></tr><tr><td>(12)</td><td>vida media</td><td><code>experimentos.py:234</code></td></tr><tr><td>(13)</td><td>Φ</td><td><code>experimentos.py:324</code></td></tr><tr><td>(14)</td><td>n*</td><td><code>arma_informe.py:650</code></td></tr><tr><td>(15)–(17)</td><td>ventaja percibida, dispersión y sesgo</td><td><code>experimentos.py:254</code></td></tr><tr><td>(16)</td><td>Gauss–Hermite</td><td><code>experimentos.py:248</code></td></tr><tr><td>(13), ciudad</td><td>Φ de la población</td><td><code>poblacion.py:237</code></td></tr><tr><td>(18)</td><td>R, dispersión entre iguales</td><td><code>poblacion.py:215</code></td></tr><tr><td>(19)</td><td>B, decisión − experiencia</td><td><code>poblacion.py:261</code></td></tr></tbody>
 </table></div>
 <p class="pie-tabla">Una fila por ecuación del informe, con la función que la implementa. Las líneas se buscan en el código cada vez que se arma el informe, así que siempre apuntan a la versión vigente.</p>
 <p class="pie-tabla">
@@ -597,8 +696,7 @@ node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
   igual a los pesos de <code>ibl.py</code>, (9) igual a la simulación con <span class="mat" data-tex="d = 0"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d = 0</annotation></semantics></math></span>, (8) anula la
   ventaja, la dispersión acerca a ½, y sin ruido ni shock no hay aprendizaje.
   Los scripts de la versión anterior del informe (<code>persona.py</code>, <code>pve.py</code>,
-  <code>poblacion.py</code>, <code>sensibilidad.py</code>) siguen en la carpeta; la población completa
-  vuelve en la etapa siguiente.
+  <code>sensibilidad.py</code>) siguen en la carpeta; <code>poblacion.py</code> es ahora E3.
 </p>
 
 </div>

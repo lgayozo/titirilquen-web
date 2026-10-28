@@ -58,6 +58,7 @@ from titirilquen_core.equilibrium.msa import run_msa
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.supply.oferta import resolver_oferta
 
+from experimentos import DECAIMIENTOS, VENTANAS
 from ibl import tiempo_percibido
 from persona import _config_web
 
@@ -76,7 +77,7 @@ def _config_fase1() -> tuple[SimulationConfig, LandUseConfig]:
 
 SALIDA = Path(__file__).parent / "salida"
 MODOS = ("Auto", "Metro", "Bici", "Caminata")
-DIAS = 100
+DIAS = VENTANAS["largo"][1]  # 250: los mismos horizontes que E1 y E2
 ULTIMOS = 20
 # σ = 0 es la referencia de cada μ: la misma dinámica sin ruido converge al
 # equilibrio del logit con escala μ, y el hot stove es la diferencia con σ > 0.
@@ -84,7 +85,6 @@ ULTIMOS = 20
 SIGMAS = (0.0, 5.0, 10.0, 20.0, 40.0, 80.0)
 # Escala única: μ = 1, el logit del núcleo. Todos los análisis se hacen con ella.
 MUS = (1.0,)
-DECAIMIENTOS = (0.0, 0.5, 1.0)
 
 
 class Escenario:
@@ -147,6 +147,11 @@ class Escenario:
         tot = sum(v for m, v in split.items() if m != "Teletrabajo")
         self.split_equilibrio = [split[m] / tot for m in MODOS]
         self.n_grupos = len(cache)
+        # El modo mejor de cada persona y su ventaja, en el equilibrio (día 0):
+        # la referencia de Φ, como el modo mejor y P* de E2 (experimentos.py).
+        self.ambos = self.feas[:, 0] & self.feas[:, 1]
+        self.mejor = np.where(self.V_ref[:, 0] >= self.V_ref[:, 1], 0, 1)
+        self.dv = np.abs(self.V_ref[:, 0] - self.V_ref[:, 1])
 
 
 def _softmax_filas(V: np.ndarray, mu: float) -> np.ndarray:
@@ -229,6 +234,30 @@ def _dispersion_iguales(esc: Escenario, ult: np.ndarray) -> float:
     return float((n[ok] * var_obs[ok]).sum() / (n[ok] * var_bin[ok]).sum())
 
 
+def _phi(esc: Escenario, p_ventana: dict[str, np.ndarray], mu: float) -> dict:
+    """Φ = (S − ½)/(P* − ½) por horizonte, ec. (13) del informe, en la población.
+
+    S es la media de P̄_n del modo mejor del equilibrio; P* la media de su
+    probabilidad con los tiempos del equilibrio. Sólo quienes tienen auto y
+    metro; en total y por banda de ventaja. Con σ = 0 debe dar ≈ 1.
+    """
+    p_est = 1.0 / (1.0 + np.exp(-mu * esc.dv))
+    out: dict = {"todos": {}, "bandas": []}
+    sel_todos = esc.ambos
+    for w in VENTANAS:
+        S, Pe = p_ventana[w][sel_todos].mean(), p_est[sel_todos].mean()
+        out["todos"][w] = float((S - 0.5) / (Pe - 0.5))
+    for lo, hi in BANDAS:
+        sel = esc.ambos & (esc.dv >= lo) & (esc.dv < hi)
+        fila = {"desde": lo, "hasta": None if np.isinf(hi) else hi, "n": int(sel.sum())}
+        Pe = p_est[sel].mean()
+        fila["p_estrella"] = float(Pe)
+        for w in VENTANAS:
+            fila[w] = float((p_ventana[w][sel].mean() - 0.5) / (Pe - 0.5))
+        out["bandas"].append(fila)
+    return out
+
+
 def simular(
     esc: Escenario,
     sigma: float,
@@ -247,6 +276,7 @@ def simular(
     t_ref = x[:, 0, :].copy()
 
     modo_hist = np.zeros((N, DIAS), dtype=np.int8)
+    p_ventana = {w: np.zeros(N) for w in VENTANAS}  # P̄_n del modo mejor, ec. (10)
     primera_eps = np.full((N, 2), np.nan)  # el ε del primer día en auto / metro
     split_dia = np.zeros((DIAS, 4))
     t_auto_medio = np.zeros(DIAS)  # tiempo real del auto, promedio sobre quienes lo usaron
@@ -262,7 +292,12 @@ def simular(
         V = esc.V_ref.copy()
         V[:, :2] += esc.btv[:, None] * (b - t_ref)
         V[~esc.feas] = -np.inf
-        modo = _sortear(_softmax_filas(V, mu), rng)
+        P = _softmax_filas(V, mu)
+        modo = _sortear(P, rng)
+        p_mejor = P[np.arange(N), esc.mejor]
+        for w, (ini, fin) in VENTANAS.items():
+            if ini <= t <= fin:
+                p_ventana[w] += p_mejor / (fin - ini + 1)
         modo_hist[:, t - 1] = modo
         bienestar_decision[t - 1] = V[np.arange(N), modo].mean()
 
@@ -307,6 +342,7 @@ def simular(
     }
     fila["cuota_mejor_auto_metro"] = _cuota_mejor(esc, ult, v_am_ult)
     fila["dispersion_iguales"] = _dispersion_iguales(esc, ult)
+    fila["phi"] = _phi(esc, p_ventana, mu)
     for k, nombre in ((0, "auto"), (1, "metro")):
         puede = esc.feas[:, k]
         share_ult = (ult == k).mean(axis=1)

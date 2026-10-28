@@ -1,4 +1,5 @@
-"""Figuras de E1 y E2, desde `salida/experimentos.json`. No calcula nada.
+"""Figuras de E1 y E2, desde `salida/experimentos.json`, y de E3, desde
+`salida/poblacion.json`. No calcula nada.
 
 uv run python figuras_experimentos.py
 """
@@ -16,6 +17,7 @@ import numpy as np
 
 SALIDA = Path(__file__).parent / "salida"
 D = json.loads((SALIDA / "experimentos.json").read_text(encoding="utf-8"))
+POB = json.loads((SALIDA / "poblacion.json").read_text(encoding="utf-8"))
 CASOS = {c["nombre"]: c for c in D["casos"]}
 BINS = np.array(D["bins"])
 DIAS = np.arange(1, D["dias"] + 1)
@@ -257,6 +259,67 @@ def fig_e2_decaimiento(caso="C2", cond="ambos"):
     guarda(fig, "e2-decaimiento.png")
 
 
+def _pob(sigma, d):
+    return next(f for f in POB["filas"] if f["sigma"] == sigma and f["d"] == d)
+
+
+def fig_e3_phi():
+    """Φ de la población por horizonte y decaimiento d: el par de e2-decaimiento."""
+    sigmas = sorted({f["sigma"] for f in POB["filas"]})
+    fig, axs = plt.subplots(1, 3, figsize=(10.5, 3.3), sharey=True)
+    for ax, (w, titulo) in zip(axs, HORIZONTES.items(), strict=True):
+        for d, estilo in ((0.0, ":"), (0.5, "-"), (1.28, "--")):
+            y = [_pob(s, d)["phi"]["todos"][w] for s in sigmas]
+            ax.plot(sigmas, y, estilo, marker="o", color=METRO, ms=3, lw=1.5, label=f"d = {d:g}")
+        ax.axhline(1, color=GRIS, lw=0.7, ls="--")
+        ax.axhline(0, color=TINTA, lw=0.7, ls=":")
+        ax.set_title(titulo)
+        ax.set_xlabel("σ (min)")
+        limpia(ax)
+    axs[0].set_ylabel("Φ, población (adim.)")
+    axs[0].legend(loc="lower left", fontsize=8)
+    guarda(fig, "e3-phi.png")
+
+
+def fig_e3_iguales():
+    """Dispersión entre personas iguales y brecha decisión − experiencia, contra σ."""
+    sigmas = sorted({f["sigma"] for f in POB["filas"]})
+    beta = abs(CASOS["C2"]["beta"])  # igual en los tres estratos
+    u = POB["ultimos"]
+    fig, axs = plt.subplots(1, 2, figsize=(9.0, 3.3))
+    for d, estilo in ((0.0, ":"), (0.5, "-"), (1.28, "--")):
+        filas = [_pob(s, d) for s in sigmas]
+        axs[0].plot(
+            sigmas,
+            [f["dispersion_iguales"] for f in filas],
+            estilo,
+            marker="o",
+            color=METRO,
+            ms=3,
+            lw=1.5,
+            label=f"d = {d:g}",
+        )
+        brecha = [
+            (np.mean(f["bienestar_decision_por_dia"][-u:]) - np.mean(f["bienestar_por_dia"][-u:]))
+            / beta
+            for f in filas
+        ]
+        axs[1].plot(
+            sigmas, brecha, estilo, marker="o", color=AUTO, ms=3, lw=1.5, label=f"d = {d:g}"
+        )
+    axs[0].axhline(1, color=GRIS, lw=0.7, ls="--")
+    axs[1].axhline(0, color=GRIS, lw=0.7, ls="--")
+    axs[0].set_title("Dispersión entre personas iguales")
+    axs[0].set_ylabel("varianza / binomial (adim.)")
+    axs[1].set_title("Utilidad de decisión − experimentada")
+    axs[1].set_ylabel("min por viaje")
+    for ax in axs:
+        ax.set_xlabel("σ (min)")
+        ax.legend(loc="upper left", fontsize=8)
+        limpia(ax)
+    guarda(fig, "e3-iguales.png")
+
+
 if __name__ == "__main__":
     fig_e1_trayectorias()
     fig_e1_critico()
@@ -266,4 +329,6 @@ if __name__ == "__main__":
     fig_e2_descomposicion()
     fig_e2_distribuciones()
     fig_e2_decaimiento()
+    fig_e3_phi()
+    fig_e3_iguales()
     print(f"  figuras en {SALIDA}")

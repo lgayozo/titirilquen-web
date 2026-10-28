@@ -100,6 +100,28 @@ RUIDO_LOGIT_MIN = 3.14159265 / 3**0.5 / BETA
 DS = (0.0, 0.5, 1.28)
 H_TXT = {"corto": "corto (1–10)", "medio": "mediano (11–50)", "largo": "largo (51–250)"}
 
+P = json.loads((AQUI / "salida" / "poblacion.json").read_text(encoding="utf-8"))
+
+
+def pob(sigma, d):
+    return next(f for f in P["filas"] if f["sigma"] == sigma and f["d"] == d)
+
+
+def ultimos(serie):
+    return sum(serie[-P["ultimos"] :]) / P["ultimos"]
+
+
+def brecha_min(f):
+    """(19): tiempo de red menos tiempo percibido del modo elegido, en minutos."""
+    return (ultimos(f["bienestar_decision_por_dia"]) - ultimos(f["bienestar_por_dia"])) / BETA
+
+
+def delta_exp_min(f):
+    """Bienestar experimentado contra σ = 0 (mismo d), en minutos por viaje."""
+    f0 = pob(0.0, f["d"])
+    return (ultimos(f["bienestar_por_dia"]) - ultimos(f0["bienestar_por_dia"])) / BETA
+
+
 # --- verificaciones que el texto afirma -----------------------------------------
 # (9) contra simulación con d = 0: deben coincidir exactamente (sin ruido, el orden no importa).
 err_d0 = max(
@@ -126,6 +148,8 @@ pve_max = min(f["descomposicion"]["largo"]["pve"] for f in D["e2"])
 PHI_BAJO = [e2(c, d, "ambos", 80.0)["phi"]["largo"] for c in CASOS for d in (0.0, 0.5)]
 PHI_ALTO = [e2(c, 1.28, "ambos", 80.0)["phi"]["largo"] for c in CASOS]
 assert all(f["descomposicion"][w]["pve"] <= 1e-9 for f in D["e2"] for w in VENTANAS)
+# §1 dice que en la ciudad, con σ = 80 y d = 0,5, el largo plazo conserva «toda» la ventaja.
+assert pob(80.0, 0.5)["phi"]["todos"]["largo"] > 0.98
 
 # --- portada e índice -------------------------------------------------------------
 
@@ -168,12 +192,13 @@ cabeza = f"""<!DOCTYPE html>
     que tarda cada uno, y lo aprende de sus experiencias con un modelo por
     instancias (IBL). Dos experimentos: cuántas experiencias malas, y de qué
     tamaño, cambian su conducta (E1), y si más variabilidad en los tiempos
-    vuelve la elección más aleatoria (E2). Corto, mediano y largo plazo.
+    vuelve la elección más aleatoria (E2), primero para una persona y después para
+    la ciudad completa, con congestión (E3). Corto, mediano y largo plazo.
   </p>
   <p class="meta">
     Código: <code>sandbox/ibl-dia-a-dia/</code> · Correr: ver <a href="#reproducir">Reproducir</a><br>
     Escala del logit {tex("\\mu = 1")} (la del simulador) · {D["dias"]} días · {D["replicas"]} réplicas ·
-    semilla {D["semilla"]} · núcleo en schema v6 · 1-oct-2026
+    semilla {D["semilla"]} · núcleo titirilquen-scenario/v11 · 28-oct-2026
   </p>
 </header>
 
@@ -184,7 +209,8 @@ cabeza = f"""<!DOCTYPE html>
     <li><a href="#s3">Los indicadores</a> — ecuaciones (7)–(17)</li>
     <li><a href="#s4">E1 · Experiencias malas al inicio</a></li>
     <li><a href="#s5">E2 · Variabilidad del tiempo</a></li>
-    <li><a href="#s6">Qué concluir, y bajo qué supuestos</a></li>
+    <li><a href="#s6">E3 · La ciudad completa</a> — ecuaciones (18)–(19)</li>
+    <li><a href="#s7">Qué concluir, y bajo qué supuestos</a></li>
     <li><a href="#reproducir">Reproducir paso a paso</a></li>
   </ol>
 </nav>
@@ -201,7 +227,7 @@ s1 = f"""
 <p>
   Todo se mide sobre <strong>una persona</strong>: {D["replicas"]} réplicas de la misma
   persona, cada una con su propia secuencia aleatoria. No hay congestión ni
-  interacción; la ciudad completa es la etapa siguiente. Las ventajas se dan en
+  interacción, salvo en E3, que repite la última pregunta con la ciudad completa. Las ventajas se dan en
   {tex("A")}, la ventaja del modo mejor expresada en minutos (ecuación 6).
 </p>
 <div class="paso"><h3>¿Qué tan extrema debe ser una experiencia, o cuántas, para cambiar la conducta?</h3><p>
@@ -237,7 +263,12 @@ s1 = f"""
     más grande es {pp(pve_max)} pp en el largo plazo. Además el hot stove empuja en contra
     cuando el modo peor también tiene ruido: lo evita tras sus malas experiencias y
     se queda más en el mejor. Se acerca a 50-50 sólo con alternativas parejas, el ruido
-    en el modo mejor y memoria con mucha recencia.
+    en el modo mejor y memoria con mucha recencia. En la ciudad completa (E3) pasa lo mismo:
+    con σ = 80 min y {tex("d = 0{,}5")} se conserva el
+    {num(100 * pob(80.0, 0.5)["phi"]["todos"]["corto"], 0)} % de la ventaja del modo mejor en el
+    corto plazo y toda en el largo (Φ = {num(pob(80.0, 0.5)["phi"]["todos"]["largo"], 2)},
+    ecuación 13); la partición no se mueve, pero
+    personas iguales terminan distintas y el bienestar percibido sobrestima el vivido (§6.2).
   </p></div>
 
 <div class="aviso neutro"><p>
@@ -949,11 +980,194 @@ s5 = f"""
 </p>
 """
 
-# --- §6 ----------------------------------------------------------------------------------
+# --- §6 E3 ------------------------------------------------------------------------------
+
+SIGMAS_P = sorted({f["sigma"] for f in P["filas"]})
+ruidosas = [f for f in P["filas"] if f["sigma"] > 0]
+max_split = max(abs(f["split_ultimos"][0] - pob(0.0, f["d"])["split_ultimos"][0]) for f in ruidosas)
+max_exp = max(abs(delta_exp_min(f)) for f in ruidosas)
+ctrl = [pob(0.0, d) for d in DS]
+ctrl_phi = [f["phi"]["todos"][w] for f in ctrl for w in VENTANAS]
+ctrl_disp = [f["dispersion_iguales"] for f in ctrl]
+f80 = pob(80.0, 0.5)
+f80r = pob(80.0, 1.28)
+phi_c2_80 = e2("C2", 0.5, "ambos", 80.0)["phi"]
+assert all(abs(x - 1) < 0.01 for x in ctrl_phi) and all(abs(x - 1) < 0.05 for x in ctrl_disp)
+
+filas_phi_pob = ""
+for sigma in (20.0, 40.0, 80.0):
+    for d in DS:
+        f, g = pob(sigma, d)["phi"]["todos"], e2("C2", d, "ambos", sigma)["phi"]
+        filas_phi_pob += (
+            f"<tr><td class='n'>{num(sigma, 0)}</td><td class='n'>{num(d, 2)}</td>"
+            + "".join(f"<td class='n'>{num(f[w], 2)}</td>" for w in VENTANAS)
+            + "".join(f"<td class='n'>{num(g[w], 2)}</td>" for w in VENTANAS)
+            + "</tr>"
+        )
+
+filas_iguales = ""
+for sigma in (0.0, 20.0, 40.0, 80.0):
+    for d in DS:
+        f, f0 = pob(sigma, d), pob(0.0, d)
+        cm = f["cuota_mejor_auto_metro"]["todos"] - f0["cuota_mejor_auto_metro"]["todos"]
+        filas_iguales += (
+            f"<tr><td class='n'>{num(sigma, 0)}</td><td class='n'>{num(d, 2)}</td>"
+            f"<td class='n'>{pp(f['split_ultimos'][0] - f0['split_ultimos'][0])}</td>"
+            f"<td class='n'>{pp(cm)}</td><td class='n'>{num(f['dispersion_iguales'], 2)}</td>"
+            f"<td class='n'>{num(round(delta_exp_min(f), 2) + 0.0, 2)}</td><td class='n'>{num(brecha_min(f), 2)}</td></tr>"
+        )
 
 s6 = f"""
 <!-- ==================================================================== -->
-<h2 id="s6"><span class="num">6</span>Qué concluir, y bajo qué supuestos</h2>
+<h2 id="s6"><span class="num">6</span>E3 · La ciudad completa</h2>
+
+<p>
+  <strong>Diseño.</strong> La pregunta de E2, ahora con las {
+    f"{P['N']:,}".replace(",", ".")
+} personas de la ciudad a la vez
+  (<code>poblacion.py</code>). Es la ciudad de la app con dos cambios: todos tienen auto y sólo se
+  elige entre auto y metro, como en E1 y E2. El día 0 es el equilibrio del simulador: sus tiempos
+  son la percepción inicial de todos. Cada día todos eligen con lo que perciben, los flujos cargan la
+  red y cada persona vive el tiempo de su modo en su celda más un ruido propio
+  {tex("\\varepsilon \\sim \\mathcal{N}(0, \\sigma^2)")}, en los dos modos (en el metro, sobre el
+  tiempo en vehículo; acceso y espera quedan en los del equilibrio). Quien vive a menos de 1 km del CBD
+  no tiene metro: carga la red pero no elige. σ ∈ {{{", ".join(num(x, 0) for x in SIGMAS_P)}}} min,
+  {tex("d")} ∈ {{0; 0,5; 1,28}}, {P["dias"]} días y los horizontes de E1 y E2. Una corrida por
+  combinación con la misma semilla: cada σ se compara con σ = 0 usando los mismos números aleatorios.
+</p>
+<p>
+  <strong>Control.</strong> Con σ = 0 la ciudad se queda en el equilibrio del simulador: Φ entre
+  {num(min(ctrl_phi), 3)} y {num(max(ctrl_phi), 3)} en los tres horizontes y la razón de dispersión
+  (18) de {num(sum(ctrl_disp) / len(ctrl_disp), 2)}. Todo lo que sigue es efecto del ruido.
+</p>
+
+<h3>6.1 ¿Más varianza, más 50-50? En la ciudad, también sólo en el corto plazo</h3>
+<p>
+  Φ es la ecuación (13) con {tex("S")} y {tex("P^{*}")} promediados sobre las personas que pueden
+  elegir: el modo mejor y {
+    tex("P^{*}_n")
+} de cada una son los del equilibrio. El resultado repite el
+  de E2: con σ = 80 min y {tex("d = 0{,}5")}, Φ vale {
+    num(f80["phi"]["todos"]["corto"], 2)
+} en el corto
+  plazo, {num(f80["phi"]["todos"]["medio"], 2)} en el mediano y {
+    num(f80["phi"]["todos"]["largo"], 2)
+} en
+  el largo (C2 en E2: {num(phi_c2_80["corto"], 2)}, {num(phi_c2_80["medio"], 2)} y
+  {num(phi_c2_80["largo"], 2)}). Sólo con mucha recencia ({
+    tex("d = 1{,}28")
+}) el efecto llega al largo
+  plazo: Φ = {num(f80r["phi"]["todos"]["largo"], 2)}.
+</p>
+{
+    fig(
+        "e3-phi.png",
+        9,
+        "Cuánto de la ventaja del modo mejor sobrevive a la variabilidad en la ciudad, por horizonte."
+        " Un panel por horizonte. Eje horizontal: desviación estándar del tiempo vivido, σ (min). Eje"
+        " vertical: Φ de la población (adim.), ecuación (13) promediada sobre las personas. Tipo de"
+        " línea: decaimiento d = 0 (puntos), 0,5 (continua) y 1,28 (discontinua). Es el par de la"
+        " figura 6 (una persona, C2): se lee igual, comparando paneles y líneas.",
+    )
+}
+{
+    tabla(
+        6,
+        "La ciudad contra una persona: fracción de la ventaja que sobrevive",
+        '<tr><th rowspan="2" class="n">σ (min)</th><th rowspan="2" class="n simb">d (adim.)</th>'
+        '<th colspan="3" class="n">Φ ciudad (adim.)</th><th colspan="3" class="n">Φ caso C2, E2 (adim.)</th></tr>'
+        "<tr>" + "".join(f'<th class="n">{H_TXT[w]}</th>' for w in VENTANAS) * 2 + "</tr>",
+        filas_phi_pob,
+        "Una fila por σ y decaimiento d, con ruido en los dos modos. Φ es la fracción de la ventaja"
+        " del modo mejor que sobrevive: 1, nada cambió; 0, moneda al aire. A la izquierda la ciudad"
+        " completa, con congestión; a la derecha una persona sola (caso C2, tabla 1). Se lee por"
+        " columnas: el corto plazo pierde ventaja en los dos; el largo, sólo con d = 1,28.",
+    )
+}
+
+<h3>6.2 Lo que la media no muestra</h3>
+<p>
+  La partición modal casi no se mueve: con cualquier σ y {
+    tex("d")
+}, la cuota del auto en los últimos
+  {P["ultimos"]} días cambia a lo sumo {pp(max_split).lstrip("+")} pp, y el bienestar experimentado
+  {num(max_exp, 2)} min por viaje. Mirar sólo la partición haría concluir que la variabilidad no
+  importa. Dos cosas sí cambian.
+</p>
+<p>
+  <strong>Personas iguales terminan distintas.</strong> En cada grupo {
+    tex("g")
+} de personas del mismo
+  estrato y celda, con los dos modos, se compara la varianza del share de días en auto de cada persona,
+  {tex("s_n")}, con la que daría la misma probabilidad sin historia, la binomial de {tex("T")} =
+  {P["ultimos"]} días:
+</p>
+{
+    ec(
+        "R = \\frac{\\sum_g n_g\\,\\widehat{\\mathrm{Var}}_g(s_n)}"
+        "{\\sum_g n_g\\,\\bar s_g (1 - \\bar s_g)/T}",
+        18,
+    )
+}
+<p>
+  {tex("R = 1")}: la historia no diferenció a nadie. Con σ = 80 min, {tex("R")} =
+  {num(f80["dispersion_iguales"], 2)} con {tex("d = 0{,}5")} y {
+    num(f80r["dispersion_iguales"], 2)
+} con
+  {tex("d = 1{,}28")}: es la heterogeneidad de §5.3, ahora en la población.
+</p>
+<p>
+  <strong>La utilidad con que se decide sobrestima la que se vive.</strong> Cada persona elige el
+  modo que hoy percibe mejor, y lo percibe mejor en parte por suerte: un sesgo de selección. Medido en
+  minutos, es cuánto más lento es el modo elegido de lo que se creía, promediado sobre personas y los
+  últimos {P["ultimos"]} días, con {tex("\\tau_{nj}(t)")} el tiempo de la red ese día y
+  {tex("b_{nj}(t)")} el percibido (2):
+</p>
+{ec("B = \\overline{\\tau_{n j_n(t)}(t) - b_{n j_n(t)}(t)}", 19)}
+<p>
+  Con σ = 80 min, {tex("B")} = {num(brecha_min(pob(80.0, 0.0)), 2)} min con {tex("d = 0")},
+  {num(brecha_min(f80), 2)} con {tex("d = 0{,}5")} y {num(brecha_min(f80r), 2)} con
+  {tex("d = 1{,}28")}. Crece con la recencia porque la percepción queda dominada por las últimas
+  experiencias, que son ruidosas. Por eso el bienestar no puede medirse con el logsum de las
+  utilidades percibidas: lo sobrestimaría en esa magnitud.
+</p>
+{
+    fig(
+        "e3-iguales.png",
+        10,
+        "Lo que la variabilidad deja en la ciudad aunque la partición no cambie. Eje horizontal en los"
+        " dos paneles: desviación estándar del tiempo vivido, σ (min). Izquierda: razón de dispersión"
+        " entre personas iguales R (adim.), ecuación (18); la línea discontinua en 1 es la binomial."
+        " Derecha: brecha B entre el tiempo de red y el percibido del modo elegido (min por viaje),"
+        " ecuación (19). Tipo de línea: decaimiento d = 0 (puntos), 0,5 (continua) y 1,28"
+        " (discontinua). Se lee siguiendo cada línea hacia la derecha: cuánto crece con σ y cuánto"
+        " más con recencia.",
+    )
+}
+{
+    tabla(
+        7,
+        "La ciudad con variabilidad: partición, dispersión y bienestar",
+        '<tr><th class="n">σ (min)</th><th class="n simb">d (adim.)</th>'
+        '<th class="n">Δ cuota auto (pp)</th><th class="n">Δ cuota del modo mejor (pp)</th>'
+        '<th class="n simb">R (adim.)</th><th class="n">Δ bienestar experimentado (min/viaje)</th>'
+        '<th class="n simb">B (min/viaje)</th></tr>',
+        filas_iguales,
+        f"Una fila por σ y decaimiento d; todo en los últimos {P['ultimos']} días de {P['dias']}."
+        " Las Δ son contra σ = 0 con el mismo d. Cuota del modo mejor: entre quienes pueden elegir, la"
+        " fracción de viajes en el modo de mayor utilidad verdadera. R, ecuación (18): 1 es la"
+        " binomial. Bienestar experimentado: utilidad verdadera del modo elegido, en minutos"
+        f" (÷|β| = {num(BETA, 4)}). B, ecuación (19). Se lee por columnas: las Δ quedan cerca de 0"
+        " mientras R y B crecen.",
+    )
+}
+"""
+
+# --- §7 ----------------------------------------------------------------------------------
+
+s7 = f"""
+<!-- ==================================================================== -->
+<h2 id="s7"><span class="num">7</span>Qué concluir, y bajo qué supuestos</h2>
 
 <ol>
   <li><strong>Hay un valor crítico de corto plazo y es simple:</strong> {tex("\\Delta^{*}_k = A/W_k")}.
@@ -965,9 +1179,13 @@ s6 = f"""
   <li><strong>El efecto de variabilidad existe pero es chico con {tex("\\mu = 1")}</strong>, es de corto
       plazo con {tex("d \\le 0{,}5")}, y el hot stove lo compensa cuando el ruido está en los dos modos.
       Lo que sí deja es heterogeneidad entre personas iguales.</li>
+  <li><strong>En la ciudad completa (E3) pasa lo mismo, y la media lo esconde.</strong> La partición y
+      el bienestar experimentado no cambian, pero personas iguales se diferencian, (18), y deciden con
+      un modo que creen más rápido de lo que es, (19): el logsum de lo percibido sobrestima el
+      bienestar, más cuanto más recencia.</li>
 </ol>
 
-<h3>6.1 Los supuestos que mueven los números</h3>
+<h3>7.1 Los supuestos que mueven los números</h3>
 <ul>
   <li><strong>La escala.</strong> {tex("\\mu\\beta")} decide cuántos minutos es «mucho». Con el
       {tex("\\beta")} de elección repetida de la literatura ({tex("-0{,}2")}/min) los minutos de este
@@ -978,20 +1196,22 @@ s6 = f"""
       mismo paper, visto desde la simulación.</li>
   <li><strong>El decaimiento.</strong> {tex("d")} cambia poco el corto plazo y mucho el largo: con
       {tex("d > 1")} la memoria no promedia y los efectos de variabilidad persisten.</li>
-  <li><strong>Sin congestión ni costo de cambiar.</strong> Una persona sola no mueve los tiempos; y no
-      hay inercia ni hábito más allá del IBL.</li>
+  <li><strong>Congestión y costo de cambiar.</strong> En E1 y E2 una persona sola no mueve los
+      tiempos; E3 sí carga la red cada día. En ninguno hay inercia ni hábito más allá del IBL.</li>
 </ul>
 
-<h3>6.2 La etapa siguiente: la ciudad completa</h3>
-<p>
-  Comparar el equilibrio del simulador con y sin variabilidad, con los mismos parámetros (efecto
-  puro, sin recalibrar). Dos cuidados que este informe deja planteados: el bienestar debe medirse con
-  los tiempos <em>experimentados</em>, no con el logsum de la utilidad de decisión (que usa los
-  percibidos); y la dispersión entre personas iguales (§5.3) es un resultado a mirar por sí mismo,
-  no sólo la partición media.
-</p>
+<h3>7.2 Lo que queda</h3>
+<ul>
+  <li><strong>Los cuatro modos.</strong> E3 tiene sólo auto y metro, con ruido en los dos. Con bici y
+      caminata sin ruido, serían un refugio hacia el que migraría la elección por construcción; el
+      paso siguiente es la ciudad con los cuatro modos y ruido en todos.</li>
+  <li><strong>Acceso y espera del metro fijos.</strong> En E3 el IBL aprende el tiempo en vehículo;
+      acceso y espera quedan en los del equilibrio.</li>
+  <li><strong>Una semilla por combinación.</strong> Las diferencias contra σ = 0 usan los mismos números
+      aleatorios, pero no hay réplicas de la ciudad.</li>
+</ul>
 
-<h3>6.3 Referencias</h3>
+<h3>7.3 Referencias</h3>
 <ul class="refs">
   <li>Guevara, C. A., Tang, Y. y Gao, S. (2018). The initial condition problem with complete history
       dependency in learning models for travel choices. <em>Transportation Research Part B</em> 117,
@@ -1029,6 +1249,9 @@ mapa = [
         linea("experimentos.py", "descomposicion"),
     ),
     ("(16)", "Gauss–Hermite", linea("experimentos.py", "gauss_logistica")),
+    ("(13), ciudad", "Φ de la población", linea("poblacion.py", "_phi")),
+    ("(18)", "R, dispersión entre iguales", linea("poblacion.py", "_dispersion_iguales")),
+    ("(19)", "B, decisión − experiencia", linea("poblacion.py", "simular")),
 ]
 filas_mapa = "".join(f"<tr><td>{a}</td><td>{b}</td><td>{c}</td></tr>" for a, b, c in mapa)
 reproducir = f"""
@@ -1039,8 +1262,9 @@ reproducir = f"""
 uv sync --extra dev --reinstall-package titirilquen-core   # el núcleo del repo, no uno cacheado
 uv run --extra dev pytest                                  # las fórmulas (7)–(9), (12) y (16)
 uv run python experimentos.py           # ~5 min → salida/experimentos.json
-uv run python figuras_experimentos.py   # figuras 1–8, desde el JSON
-uv run python arma_informe.py           # este informe, desde el JSON
+uv run python poblacion.py              # ~20 min → salida/poblacion.json (E3)
+uv run python figuras_experimentos.py   # figuras 1–10, desde los dos JSON
+uv run python arma_informe.py           # este informe, desde los dos JSON
 node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
 
 <p>
@@ -1048,12 +1272,12 @@ node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
   {tex("W_k")} y {tex("\\Delta^*")}), <code>e1</code> (una fila por caso, {tex("d")}, {tex("k")},
   {tex("r")}, más el control) y <code>e2</code> (una por caso, {
     tex("d")
-}, condición, σ). Las figuras
-  no calculan nada.
+}, condición, σ). E3 sale de <code>salida/poblacion.json</code>: una fila por σ y {tex("d")}.
+  Las figuras no calculan nada.
 </p>
 {
     tabla(
-        6,
+        8,
         "Dónde está cada ecuación en el código",
         "<tr><th>Ecuación (número del informe)</th><th>Qué calcula</th><th>Archivo:línea</th></tr>",
         filas_mapa,
@@ -1068,8 +1292,7 @@ node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
 }, (8) anula la
   ventaja, la dispersión acerca a ½, y sin ruido ni shock no hay aprendizaje.
   Los scripts de la versión anterior del informe (<code>persona.py</code>, <code>pve.py</code>,
-  <code>poblacion.py</code>, <code>sensibilidad.py</code>) siguen en la carpeta; la población completa
-  vuelve en la etapa siguiente.
+  <code>sensibilidad.py</code>) siguen en la carpeta; <code>poblacion.py</code> es ahora E3.
 </p>
 
 </div>
@@ -1077,6 +1300,6 @@ node ../../tools/renderiza_ecuaciones.js   # data-tex → MathML</code></pre>
 </html>
 """
 
-html = cabeza + s1 + s2 + s3 + s4 + s5 + s6 + reproducir
+html = cabeza + s1 + s2 + s3 + s4 + s5 + s6 + s7 + reproducir
 (AQUI / "informe.html").write_text(html, encoding="utf-8", newline="\n")
 print(f"  informe.html: {len(html):,} caracteres")
