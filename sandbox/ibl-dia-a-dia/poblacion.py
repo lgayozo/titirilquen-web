@@ -288,6 +288,9 @@ def _phi(esc: Escenario, p_ventana: dict[str, np.ndarray], mu: float) -> dict:
         if sel.any():
             fila = {"n": int(sel.sum()), "p_estrella": float(p_est[sel].mean())}
             fila.update({w: phi(sel, w) for w in VENTANAS})
+            # S̄ y 1/J del grupo: Φ divide por P* − 1/J, y donde es chico amplifica.
+            fila["uniforme"] = float(u[sel].mean())
+            fila["s"] = {w: float(p_ventana[w][sel].mean()) for w in VENTANAS}
             out["por_mejor"][m] = fila
     return out
 

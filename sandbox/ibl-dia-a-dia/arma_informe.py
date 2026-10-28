@@ -1224,9 +1224,25 @@ def phi_m(cond, d, m, w="medio"):
     return c4(cond, 80.0, d)["phi"]["por_mejor"][m][w]
 
 
+def caida(cond, d, m, w="medio"):
+    """Cuota del modo mejor menos P*, entre quienes lo tienen como mejor: la pérdida en puntos."""
+    g = c4(cond, 80.0, d)["phi"]["por_mejor"][m]
+    return g["s"][w] - g["p_estrella"]
+
+
+def margen(m):
+    """P* − 1/J del grupo: el denominador de (20). Es del equilibrio, igual en toda condición."""
+    g = c4("auto", 80.0, 0.5)["phi"]["por_mejor"][m]
+    return g["p_estrella"] - g["uniforme"]
+
+
 # Quien vive el ruido en su modo mejor pierde ventaja; quien lo vive sólo en alternativas, no.
-# El metro como modo mejor pierde más que el auto, con d = 0,5 y 1,28.
+# En Φ el metro parece perder mucho más que el auto, pero en puntos pierden lo mismo: lo que
+# cambia es el denominador de (20), tres veces más chico para el metro.
 assert all(phi_m("tp", d, "Metro") < phi_m("auto", d, "Auto") < 1 for d in (0.5, 1.28))
+assert all(abs(caida("tp", d, "Metro") - caida("auto", d, "Auto")) < 0.005 for d in DS)
+assert margen("Metro") < margen("Auto") / 2
+uni_metro = c4("auto", 80.0, 0.5)["phi"]["por_mejor"]["Metro"]["uniforme"]
 sin_ruido_mejor = [
     phi_m(c, d, m)
     for c in COND_TXT
@@ -1248,10 +1264,11 @@ for c, ruido_en in COND_TXT.items():
         filas_mejor += (
             f"<tr><td>{ruido_en}</td><td>{m}</td>"
             f"<td class='n'>{f'{n_mejor[m]:,}'.replace(',', '.')}</td>"
+            f"<td class='n'>{num(100 * margen(m), 1)}</td>"
             + "".join(
-                f"<td class='n'>{num(round(phi_m(c, d, m, w), 2) + 0.0, 2)}</td>"
+                f"<td class='n'>{num(round(phi_m(c, d, m), 2) + 0.0, 2)}</td>"
+                f"<td class='n'>{pp(caida(c, d, m))}</td>"
                 for d in (0.5, 1.28)
-                for w in VENTANAS
             )
             + "</tr>"
         )
@@ -1347,14 +1364,20 @@ s7 = f"""
   ciudad, y se compensan en el promedio.
 </p>
 <p>
-  El metro es el modo mejor más sensible. Con ruido sólo en su modo y en el mediano plazo, quienes
-  tienen el metro como mejor conservan Φ = {num(phi_m("tp", 0.5, "Metro"), 2)} de la ventaja con
-  {tex("d = 0{,}5")} y {num(phi_m("tp", 1.28, "Metro"), 2)} con {tex("d = 1{,}28")}: lo usan menos
-  que el reparto uniforme. Quienes tienen el auto como mejor, con ruido sólo en el auto, conservan
-  {num(phi_m("auto", 0.5, "Auto"), 2)} y {
-    num(phi_m("auto", 1.28, "Auto"), 2)
-}. Por qué la diferencia
-  es tan grande no está verificado (§8.2).
+  En Φ, el metro parece el modo mejor más sensible. Con ruido sólo en su modo y en el mediano plazo,
+  quienes lo tienen como mejor conservan Φ = {num(phi_m("tp", 0.5, "Metro"), 2)} de la ventaja con
+  {tex("d = 0{,}5")} y {num(phi_m("tp", 1.28, "Metro"), 2)} con {tex("d = 1{,}28")}; quienes tienen
+  el auto, con ruido sólo en el auto, {num(phi_m("auto", 0.5, "Auto"), 2)} y
+  {num(phi_m("auto", 1.28, "Auto"), 2)}. Pero en puntos la cuota del modo mejor cae lo mismo:
+  {pp(caida("tp", 0.5, "Metro"))} y {pp(caida("auto", 0.5, "Auto"))} pp con {tex("d = 0{,}5")},
+  {pp(caida("tp", 1.28, "Metro"))} y {pp(caida("auto", 1.28, "Auto"))} pp con {tex("d = 1{,}28")}.
+  Lo distinto es el denominador de (20). Quienes tienen el metro como mejor eligen casi todos entre
+  dos modos ({tex("\\overline{1/J_n}")} = {num(uni_metro, 2)}) y su modo mejor está apenas
+  {num(100 * margen("Metro"), 1)} pp sobre el reparto uniforme; los del auto, {
+    num(100 * margen("Auto"), 1)
+} pp.
+  La misma pérdida es una fracción mucho mayor de una ventaja más chica, y Φ &lt; 0 sólo dice que la
+  pérdida superó ese margen. Para comparar grupos hay que mirar las dos medidas (tabla 9).
 </p>
 {
     fig(
@@ -1366,23 +1389,27 @@ s7 = f"""
         " modo mejor en el equilibrio; la línea discontinua en 1 es «nada cambió» y la punteada en 0,"
         " el reparto uniforme. Color: el modo mejor. Tipo de línea: d = 0,5 (continua) y 1,28"
         " (discontinua). Se lee por color: bajo 1 si el ruido está en ese modo, sobre 1 si está en una"
-        " alternativa.",
+        " alternativa. La caída del metro se ve más grande que la del auto porque su P* − 1/J es"
+        " chico (tabla 9).",
     )
 }
 {
     tabla(
         9,
-        "Fracción de la ventaja que sobrevive, por modo mejor (σ = 80 min)",
+        "Ventaja que sobrevive y pérdida en puntos, por modo mejor (σ = 80 min, días 11–50)",
         '<tr><th rowspan="2">Ruido en</th><th rowspan="2">Modo mejor</th>'
         '<th rowspan="2" class="n">Personas</th>'
-        '<th colspan="3" class="n">Φ con d = 0,5 (adim.)</th>'
-        '<th colspan="3" class="n">Φ con d = 1,28 (adim.)</th></tr>'
-        "<tr>" + "".join(f'<th class="n">{H_TXT[w]}</th>' for w in VENTANAS) * 2 + "</tr>",
+        '<th rowspan="2" class="n">P* − 1/J (pp)</th>'
+        '<th colspan="2" class="n">d = 0,5</th><th colspan="2" class="n">d = 1,28</th></tr>'
+        "<tr>"
+        + '<th class="n">Φ (adim.)</th><th class="n">Δ cuota del mejor (pp)</th>' * 2
+        + "</tr>",
         filas_mejor,
-        "Una fila por condición de ruido y modo mejor en el equilibrio; Φ es la ecuación (20) sobre esas"
-        " personas. 1: nada cambió; 0: reparto uniforme entre sus modos; menos de 0, usa su modo mejor"
-        " menos que el reparto uniforme. Se lee por bloque: las filas del modo con ruido quedan bajo 1;"
-        " las demás, en 1 o sobre 1.",
+        "Una fila por condición de ruido y modo mejor en el equilibrio, en el mediano plazo. P* − 1/J:"
+        " cuánto está el modo mejor sobre el reparto uniforme en el equilibrio, el denominador de (20)."
+        " Φ, ecuación (20): 1, nada cambió; 0, reparto uniforme; menos de 0, usa su modo mejor menos que"
+        " el reparto uniforme. Δ cuota del mejor: cuota de días en el modo mejor menos P*. Se lee por"
+        " pares de columnas: con el mismo Δ en puntos, Φ cae más donde P* − 1/J es chico (el metro).",
     )
 }
 
@@ -1442,8 +1469,8 @@ s8 = f"""
       un modo que creen más rápido de lo que es, (19): el logsum de lo percibido sobrestima el
       bienestar, más cuanto más recencia.</li>
   <li><strong>Con los cuatro modos (E4), el ruido saca viajes hacia la bici y el promedio esconde
-      signos opuestos.</strong> Quien vive el ruido en su modo mejor pierde ventaja —mucho más si es
-      el metro—, y quien lo vive en una alternativa la gana, (20). La partición sigue moviéndose
+      signos opuestos.</strong> Quien vive el ruido en su modo mejor lo usa menos —en puntos, lo mismo
+      si es el auto o el metro—, y quien lo vive en una alternativa lo usa más, (20). La partición sigue moviéndose
       poco y crece el abandono del metro.</li>
 </ol>
 
@@ -1458,16 +1485,15 @@ s8 = f"""
       mismo paper, visto desde la simulación.</li>
   <li><strong>El decaimiento.</strong> {tex("d")} cambia poco el corto plazo y mucho el largo: con
       {tex("d > 1")} la memoria no promedia y los efectos de variabilidad persisten.</li>
+  <li><strong>Φ con ventajas chicas.</strong> (13) y (20) dividen por {tex("P^{*} - 1/J")}; donde es
+      chico, Φ amplifica. Para comparar grupos con ventajas distintas, mirar también la pérdida en
+      puntos (tabla 9).</li>
   <li><strong>Congestión y costo de cambiar.</strong> En E1 y E2 una persona sola no mueve los
       tiempos; E3 y E4 sí cargan la red cada día. En ninguno hay inercia ni hábito más allá del IBL.</li>
 </ul>
 
 <h3>8.2 Lo que queda</h3>
 <ul>
-  <li><strong>Por qué el metro.</strong> Con ruido en su propio modo, quienes tienen el metro como
-      modo mejor pierden mucha más ventaja que quienes tienen el auto (tabla 9). No se examinó por
-      qué; la ventaja sobre el segundo modo, cuántas alternativas tiene cada uno y el peso del tiempo
-      en vehículo en el tiempo total son candidatos sin verificar.</li>
   <li><strong>Bici y caminata sin ruido.</strong> En E4 son el refugio por construcción; con ruido
       en la bici, la migración de §7.1 tendría otro destino.</li>
   <li><strong>Acceso y espera del metro fijos.</strong> En E3 y E4 el IBL aprende el tiempo en vehículo;
