@@ -334,7 +334,7 @@ a:hover {
   width: 100%;
   max-width: 150px;
   height: auto;
-  margin-top: 6px;
+  margin: 0 8px;
 }
 
 [data-theme="dark"] .appnav-logo {

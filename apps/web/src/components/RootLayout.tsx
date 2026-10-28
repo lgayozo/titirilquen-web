@@ -102,9 +102,14 @@ export function RootLayout() {
         {t("skip_to_main")}
       </a>
 
-      {/* Menú lateral persistente: marca, páginas, y al pie tema, idioma y
-          logo institucional. */}
+      {/* Menú lateral persistente: logo institucional, marca, páginas, y al
+          pie tema e idioma. */}
       <header className="appnav" role="banner">
+        <img
+          src={fcfmLogo}
+          className="appnav-logo"
+          alt="Facultad de Ciencias Físicas y Matemáticas · Universidad de Chile"
+        />
         <div className="appnav-brand">
           <ChartNoAxesColumn className="appnav-icon" aria-hidden />
           <span className="brand-block">
@@ -134,11 +139,6 @@ export function RootLayout() {
         <div className="appnav-foot">
           <ThemeSwitcher />
           <LanguageSwitcher />
-          <img
-            src={fcfmLogo}
-            className="appnav-logo"
-            alt="Facultad de Ciencias Físicas y Matemáticas · Universidad de Chile"
-          />
         </div>
       </header>
 
