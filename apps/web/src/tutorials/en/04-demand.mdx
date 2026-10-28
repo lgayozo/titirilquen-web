@@ -17,15 +17,15 @@ $$
 
 ## Utilities per mode
 
-**Car** — the cost has a fixed component (parking) and a **per-kilometre** one (fuel):
+**Car** — the cost has a per-trip component (half the parking) and a **per-kilometre** one (fuel and toll):
 
 $$
-V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(c_{\text{parking}} + c_{\text{combustible}} \cdot d_i\right)
+V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(\frac{c_{\text{parking}}}{2} + \left(c_{\text{combustible}} + c_{\text{peaje}}\right) \cdot d_i\right)
 $$
 
 <OverleafRef sec="Modelo de Demanda" tag="R-14" />
 
-with $d_i$ the distance (km) from origin to the CBD.
+with $d_i$ the distance (km) from origin to the CBD. Parking is paid **per day**, and each outbound trip carries half of it; the per-km toll is 0 unless a policy turns it on.
 
 **Metro** — three time components, each with its own sensitivity:
 
@@ -35,24 +35,26 @@ $$
 
 <OverleafRef sec="Modelo de Demanda" />
 
-where $t_{\text{caminata}}$ is the **station access time** ($t_a$ in the train-supply notation) and $t_{\text{espera}}$ the platform wait ($t_e$).
+where $t_{\text{caminata}}$ is the **station access time** ($t_a$ in the train-supply notation) and $t_{\text{espera}}$ the platform wait ($t_e$). Each cell uses its **nearest** station. If that station is the CBD one, the metro is not an alternative: "taking it" would mean walking to the destination without boarding anything.
 
-**Bicycle** — **additive stepped** physical penalties and a feasibility cutoff:
+**Bicycle** — **additive stepped** physical penalties and a feasibility cutoff, both on the **empty-network** time $t^0_{\text{bici}}$; congestion enters only through the time term:
 
 $$
 V^s_{\text{bicicleta}} = \begin{cases}
--\infty & \text{if } t_{\text{bici}} > 45 \\
-ASC_{\text{bici}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{bici}} + \displaystyle\sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t_{\text{bici}} > k\} \cdot \pi_k^s & \text{if } t_{\text{bici}} \le 45
+-\infty & \text{if } t^0_{\text{bici}} > 45 \
+ASC_{\text{bici}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{bici}} + \displaystyle\sum_{k \in \{10, 20, 30\}} \mathbb{1}\{t^0_{\text{bici}} > k\} \cdot \pi_k^s & \text{if } t^0_{\text{bici}} \le 45
 \end{cases}
 $$
 
 <OverleafRef sec="Modelo de Demanda" tag="R-2" />
 
+Evaluating the steps and the cutoff on the congested time would make the choice set depend on the equilibrium itself, with jumps the algorithm does not damp.
+
 **Walking** — with its **own sensitivity** $\beta_{t_{\text{caminata}}}^s$ (not $\beta_{t_{\text{viaje}}}^s$), thresholds $\{5, 15, 25\}$ and a 30-min cutoff:
 
 $$
 V^s_{\text{caminata}} = \begin{cases}
--\infty & \text{if } t_{\text{caminata}} > 30 \\
+-\infty & \text{if } t_{\text{caminata}} > 30 \
 ASC_{\text{caminata}}^s + \beta_{t_{\text{caminata}}}^s \cdot t_{\text{caminata}} + \displaystyle\sum_{k \in \{5, 15, 25\}} \mathbb{1}\{t_{\text{caminata}} > k\} \cdot \pi_k^s & \text{if } t_{\text{caminata}} \le 30
 \end{cases}
 $$
@@ -63,13 +65,53 @@ $$
 Penalties $\pi_k^s$ are **additive constants** added when each fatigue threshold is exceeded — not coefficients multiplying time. The penalty thresholds (10/20/30 bike, 5/15/25 walk) are a different concept from the **feasibility cutoffs** (45 and 30 min), where the mode leaves the choice set.
 </Callout>
 
+## Steps or smooth
+
+The equations above are the **"steps"** specification, the simulator's default. Every rule is a jump: the penalty changes abruptly when a threshold is crossed, the mode disappears past the cutoff, and the metro appears abruptly where the nearest station stops being the CBD one. The logsum inherits those jumps, and with it the accessibility that enters land use. In the base city, the largest jump of the middle stratum's logsum between two neighbouring cells is **0.179** utils (2.49 km from the CBD, where walking crosses its 30-min cutoff), against a median step of 0.033.
+
+The **"smooth"** specification uses the same penalties and the same cutoffs, made continuous:
+
+**Ramps.** Each step is replaced by a ramp through the midpoints of the thresholds, so the mean level of each segment is preserved. For the bike, the accumulated penalty $\Pi(t)$ is $0$ up to 5 min, $\pi_{10}$ at 15, $\pi_{10}+\pi_{20}$ at 25 and $\pi_{10}+\pi_{20}+\pi_{30}$ at 35, linear in between and with the last slope beyond; for walking, $0$, $\pi_5$, $\pi_5+\pi_{15}$ and $\pi_5+\pi_{15}+\pi_{25}$ at 0, 10, 20 and 30 min.
+
+**Smooth cutoff** (Martínez, Aguila and Hurtubia 2009). Instead of removing the mode from the set, its utility gets
+
+$$
+\ln \varphi(t) = -\ln\left(1 + e^{\,\omega\,(t - t_{\text{corte}})}\right), \qquad \omega = 0.5 \ \text{min}^{-1}
+$$
+
+which is almost 0 well before the cutoff, $-\ln 2$ at the cutoff, and penalises more and more beyond it.
+
+**Smooth dominance of the metro** (Cascetta and Papola 2009). The CBD station is no longer assigned outside the CBD: nearby cells use the next one. If the metro's generalised time exceeds $a = 1.2$ times that of walking directly, the metro is **dominated** and fades out with the same shape:
+
+$$
+V_{\text{metro}}^s \mathrel{+}= \ln \varphi_{0.25}\!\left(GT_{\text{metro}} - a \cdot GT_{\text{caminata}}\right)
+$$
+
+with $\omega = 0.25$ per generalised minute and the generalised times in in-vehicle minutes, weighted by the ratios of the stratum's $\beta$.
+
+The selector is in **Transport → Equilibrium → Physical thresholds**.
+
+In the base city the mode split barely changes: car 29.16 → 29.41 %, metro 23.42 → 22.91 %, bike 35.42 → 35.56 % and walking 12.00 → 12.12 %. What changes is the shape of the logsum: its largest jump between neighbouring cells falls from 0.179 to **0.063** utils, with the median step at 0.034. What remains is at the walking cutoff, now a steep but continuous slope.
+
+<Callout type="warn">
+**What "smooth" does not remove yet.** Each cell still uses the nearest station, not the least-cost one. At the 4 catchment boundaries right of the CBD, the metro's utility jumps by 0.072 to 0.122 utils, under both specifications. It is small, but it is exactly what the specification promises to remove.
+</Callout>
+
+<Callout type="warn">
+**In a small city the difference is not small.** In the **Compacta** city (8 km long, from the city gallery) the metro falls from 8.81 to **3.55 %**, and walking (33.41 → 35.41 %) and the bike (32.41 → 34.40 %) take it. In 8 km almost the whole city is close to the CBD, where walking directly dominates the metro. The metro runs at its minimum frequency (2 trains/h) under both specifications, so the difference does not come from frequency: it is dominance.
+</Callout>
+
+<Callout type="info">
+"Smooth" is **another utility function**, not a policy: the zero of the surplus is not the same. So the welfare of a "smooth" run is not subtracted from a "steps" one; the comparison with a reference warns about it.
+</Callout>
+
 ## Pedagogical breakdown
 
 The **Transport** page includes a "Utility inspector" showing the decomposition:
 - ASC component (constant per mode/stratum)
 - $\beta_t \cdot T$ component (time sensitivity)
 - $\beta_c \cdot C$ component (cost sensitivity)
-- Physical penalties component (bike/walk)
+- Physical penalties component (bike/walk; with "smooth", also the cutoff and the metro's dominance)
 
 It lets the student see **why** a mode wins in each context.
 

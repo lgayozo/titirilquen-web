@@ -47,7 +47,7 @@ from titirilquen_core.land_use.accesibilidad import T_flujo_libre, lambda_desde_
 from titirilquen_core.land_use.ciudad import LandUseCity
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.land_use.equilibrium import solve_subasta
-from titirilquen_core.presets import POLICY_PRESETS
+from titirilquen_core.presets import CITY_PRESETS, POLICY_PRESETS
 from titirilquen_core.serializacion import _dist_media_km
 
 SALIDA = Path(__file__).parent / "tutoriales.json"
@@ -85,9 +85,12 @@ def _sim(cambios: dict | None = None) -> SimulationConfig:
 # ---------------------------------------------------------------------------
 
 
-def _corre(sim: SimulationConfig) -> tuple[dict, ConvergenceTrace]:
+def _corre(
+    sim: SimulationConfig, lu: LandUseConfig | None = None
+) -> tuple[dict, ConvergenceTrace]:
     trace = ConvergenceTrace()
-    for _ in iter_msa_desde_suelo(sim, base._land_use_web(), trace, localizacion="original"):
+    lu = lu or base._land_use_web()
+    for _ in iter_msa_desde_suelo(sim, lu, trace, localizacion="original"):
         pass
     a = calcular_agregados(sim, trace)
     assert a is not None
@@ -204,6 +207,86 @@ def limite_del_logit() -> dict:
         r = 100.0 * (w @ p) / w.sum()
         filas.append({"escala": k, "distancia_max_pp": round(float(np.max(np.abs(r - r_aon))), 2)})
     return {"grupos": len(grupos), "filas": filas}
+
+
+def _saltos(serie: np.ndarray, km: np.ndarray) -> dict:
+    """Salto máximo entre celdas vecinas, dónde ocurre y el paso mediano."""
+    d = np.abs(np.diff(serie))
+    k = int(np.argmax(d))
+    return {
+        "max": round(float(d[k]), 3),
+        "km": round(float(km[k + 1]), 2),
+        "paso_mediano": round(float(np.median(d)), 3),
+    }
+
+
+def umbrales() -> dict:
+    """Tutorial 04: «escalones» contra «suaves». El reparto de la app con cada
+    una, en la ciudad base y en la Compacta (`CITY_PRESETS`: 8 km, σ 0,30, el
+    resto de la base); y, en la base, los saltos entre celdas vecinas del lado
+    derecho del CBD: del logsum del estrato medio (promedio por tenencia de
+    auto) y, donde cambia la estación asignada (cambia `t_tren_viaje`, que es
+    constante dentro de cada captación), de la utilidad del metro sin auto.
+    Ese salto queda también con «suaves»: se asigna la estación más cercana,
+    no la de menor costo (auditoría D, ítem 13). Cerca del CBD, con «suaves»
+    el metro no salta: se desvanece por la dominancia, con pendiente fuerte."""
+    compacta = CITY_PRESETS["Compacta"]
+    lu_c = base._land_use_web().model_copy(update={"oferta_sigma_frac": compacta["sigma"]})
+    out: dict = {"compacta": {"largo_km": compacta["largo_ciudad"], "sigma": compacta["sigma"]}}
+    for esp in ("escalones", "suaves"):
+        sim = _sim({"demand.globales.umbrales": esp})
+        out[esp] = {"base": _fila(sim)}
+        sim_c = _sim(
+            {"demand.globales.umbrales": esp, "city.largo_ciudad_km": compacta["largo_ciudad"]}
+        )
+        a, trace = _corre(sim_c, lu_c)
+        out[esp]["compacta"] = {
+            "iteraciones": len(trace.iteraciones),
+            "convergio": bool(trace.converged),
+            "reparto_pct": {
+                m: round(100.0 * a["viajes_por_modo"][m] / a["viajeros"], 2) for m in MODOS
+            },
+            "frecuencia_metro_tph": round(float(trace.iteraciones[-1].frecuencia_metro), 2),
+        }
+        # Perfiles en la base, con los tiempos del estado final.
+        _, trace = _corre(sim)
+        snap = trace.iteraciones[-1]
+        ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
+        cbd, dx = ciudad.cbd_index, ciudad.ancho_celda_km
+        celdas = range(cbd + 1, sim.city.n_celdas)
+        pa = sim.demand.estratos[2].prob_auto
+        ls, v_metro = [], []
+        for i in celdas:
+            lsi = 0.0
+            for tiene_auto, w in ((True, pa), (False, 1.0 - pa)):
+                u = calcular_utilidades(
+                    estrato=2,
+                    celda_origen=i,
+                    tiene_auto=tiene_auto,
+                    ciudad=ciudad,
+                    config=sim.demand,
+                    tiempos_observados=_tiempos(snap, i),
+                )
+                lsi += w * float(np.logaddexp.reduce([x.valor for x in u.values() if x.feasible]))
+                if not tiene_auto:
+                    v_metro.append(u["Metro"].valor if u["Metro"].feasible else np.nan)
+            ls.append(lsi)
+        km = np.array([(i - cbd) * dx for i in celdas])
+        out[esp]["saltos_medio"] = {"logsum": _saltos(np.asarray(ls), km)}
+        vm = np.asarray(v_metro)
+        tv = np.asarray(snap.t_tren_viaje, dtype=float)[cbd + 1 :]
+        cambio = (np.abs(np.diff(tv)) > 1e-9) & ~np.isnan(vm[1:]) & ~np.isnan(vm[:-1])
+        dv = np.abs(np.diff(vm))[cambio]
+        out[esp]["saltos_medio"]["metro_cambio_estacion"] = {
+            "limites": int(cambio.sum()),
+            "min": round(float(dv.min()), 3),
+            "max": round(float(dv.max()), 3),
+        }
+        infactible = np.isnan(vm)
+        out[esp]["saltos_medio"]["metro_infactible_hasta_km"] = (
+            round(float(km[infactible].max()), 2) if infactible.any() else 0.0
+        )
+    return out
 
 
 def _tope_todo_o_nada() -> int:
@@ -423,6 +506,7 @@ def main() -> None:
         "experimentos_transporte": experimentos_transporte(),
         "bienestar": bienestar(),
         "suelo": suelo(),
+        "umbrales": umbrales(),
     }
     SALIDA.write_text(json.dumps(datos, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in datos.items() if k != "_meta"}, ensure_ascii=False)[:6000])

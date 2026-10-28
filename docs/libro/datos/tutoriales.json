@@ -1,7 +1,7 @@
 {
  "_meta": {
   "generado": "2026-10-28",
-  "commit": "10d0f04",
+  "commit": "4050079",
   "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)"
  },
  "parametros": {
@@ -611,5 +611,117 @@
    "theil": 0.335
   },
   "rho_umbral_inversion": 30
+ },
+ "umbrales": {
+  "compacta": {
+   "largo_km": 8,
+   "sigma": 0.3
+  },
+  "escalones": {
+   "base": {
+    "iteraciones": 6,
+    "convergio": true,
+    "brecha_final_min": 0.001,
+    "reparto_pct": {
+     "Auto": 29.16,
+     "Metro": 23.42,
+     "Bici": 35.42,
+     "Caminata": 12.0
+    },
+    "auto_por_estrato_pct": {
+     "alto": 54.4,
+     "medio": 31.23,
+     "bajo": 8.85
+    },
+    "frecuencia_metro_tph": 4.22,
+    "espera_metro_min": 7.12,
+    "cg_min_equiv": {
+     "medio": 31.77,
+     "por_modo": {
+      "Auto": 33.96,
+      "Metro": 53.36,
+      "Bici": 19.52,
+      "Caminata": 20.51
+     }
+    }
+   },
+   "compacta": {
+    "iteraciones": 4,
+    "convergio": true,
+    "reparto_pct": {
+     "Auto": 25.37,
+     "Metro": 8.81,
+     "Bici": 32.41,
+     "Caminata": 33.41
+    },
+    "frecuencia_metro_tph": 2.0
+   },
+   "saltos_medio": {
+    "logsum": {
+     "max": 0.179,
+     "km": 2.49,
+     "paso_mediano": 0.033
+    },
+    "metro_cambio_estacion": {
+     "limites": 4,
+     "min": 0.072,
+     "max": 0.122
+    },
+    "metro_infactible_hasta_km": 1.0
+   }
+  },
+  "suaves": {
+   "base": {
+    "iteraciones": 6,
+    "convergio": true,
+    "brecha_final_min": 0.001,
+    "reparto_pct": {
+     "Auto": 29.41,
+     "Metro": 22.91,
+     "Bici": 35.56,
+     "Caminata": 12.12
+    },
+    "auto_por_estrato_pct": {
+     "alto": 54.84,
+     "medio": 31.51,
+     "bajo": 8.94
+    },
+    "frecuencia_metro_tph": 4.12,
+    "espera_metro_min": 7.28,
+    "cg_min_equiv": {
+     "medio": 31.66,
+     "por_modo": {
+      "Auto": 34.0,
+      "Metro": 53.67,
+      "Bici": 19.3,
+      "Caminata": 20.62
+     }
+    }
+   },
+   "compacta": {
+    "iteraciones": 4,
+    "convergio": true,
+    "reparto_pct": {
+     "Auto": 26.64,
+     "Metro": 3.55,
+     "Bici": 34.4,
+     "Caminata": 35.41
+    },
+    "frecuencia_metro_tph": 2.0
+   },
+   "saltos_medio": {
+    "logsum": {
+     "max": 0.063,
+     "km": 2.39,
+     "paso_mediano": 0.034
+    },
+    "metro_cambio_estacion": {
+     "limites": 4,
+     "min": 0.072,
+     "max": 0.122
+    },
+    "metro_infactible_hasta_km": 0.0
+   }
+  }
  }
 }
