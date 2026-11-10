@@ -43,7 +43,13 @@ const ARCHIVOS = [
     .sort()
     .map((f) => `docs/libro/${f}`),
   "sandbox/hev-paso-a-paso/informe.html",
-  "sandbox/ibl-dia-a-dia/informe.html",
+  // IBL va por patron: hay un informe por experimento y una lista fija
+  // dejaria los nuevos sin renderizar, en silencio.
+  ...fs
+    .readdirSync(path.join(RAIZ, "sandbox/ibl-dia-a-dia"))
+    .filter((f) => f.startsWith("informe") && f.endsWith(".html"))
+    .sort()
+    .map((f) => `sandbox/ibl-dia-a-dia/${f}`),
   "sandbox/impacto-hev/informe.html",
   "sandbox/impacto-rho/informe.html",
 ];

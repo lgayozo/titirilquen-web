@@ -34,6 +34,7 @@ persona, sin el ruido de Bernoulli de la elección del día.
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -57,6 +58,15 @@ CASOS = (("C1", 3, 198), ("C2", 2, 135), ("C3", 1, 111))
 # d = 0: promedio simple. 0,5: valor convencional (Guevara et al. 2018, §3.2).
 # 1,28: estimado con los datos de Ben-Elia y Shiftan (2010) (Guevara et al. 2018, tabla 4).
 DECAIMIENTOS = (0.0, 0.5, 1.28)
+
+# Escala del logit. El simulador usa mu = 1 con b_tiempo_viaje = -0,0331
+# utiles/min; Guevara, Tang y Gao (2018, tabla 4) estiman -0,198 /min para la
+# ruta rapida con elecciones repetidas de una misma persona. Adoptar su escala
+# es multiplicar TODA la utilidad por k: preserva el VoT y los trade-offs y solo
+# afila el logit — es formalmente equivalente a mu = k con los beta de hoy.
+# Cambiar solo b_tiempo_viaje, en cambio, dividiria el VoT por k y descalibraria
+# los ASC: seria otro modelo, no otra escala.
+ESCALA_GUEVARA = 0.198 / 0.0331  # ~= 5,982
 # E1: número de experiencias malas y su tamaño, en múltiplos de la ventaja A (min).
 E1_K = (1, 2, 3, 5, 10)
 E1_R = (0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0)
@@ -100,7 +110,13 @@ def logistica(z: np.ndarray | float) -> np.ndarray | float:
     return 1.0 / (1.0 + np.exp(-z))
 
 
-def casos() -> list[Caso]:
+def casos(escala: float = 1.0) -> list[Caso]:
+    """Los tres casos. `escala` multiplica toda la utilidad (v_ref y beta).
+
+    Con `escala = k` el resultado es identico a correr con mu = k: A = dV/|beta|
+    no cambia, pero la dispersion en utiles (|beta| sigma) crece k veces y la
+    logistica se afila, asi que P* se satura. Ver ESCALA_GUEVARA.
+    """
     sim, lu = _config_web()
     s = run_msa(sim, lu, localizacion="equilibrio").iteraciones[-1]
     ciudad = CiudadLineal(n_celdas=sim.city.n_celdas, largo_total_km=sim.city.largo_ciudad_km)
@@ -131,8 +147,8 @@ def casos() -> list[Caso]:
                 km=(celda - ciudad.cbd_index) * ciudad.ancho_celda_km,
                 tau=np.array([t.auto_total, t.tren_viaje]),
                 t_total=np.array([t.auto_total, t.tren_acceso + t.tren_espera + t.tren_viaje]),
-                v_ref=np.array([u[m].valor for m in MODOS]),
-                beta=float(sim.demand.estratos[estrato].betas.b_tiempo_viaje),
+                v_ref=np.array([u[m].valor for m in MODOS]) * escala,
+                beta=float(sim.demand.estratos[estrato].betas.b_tiempo_viaje) * escala,
             )
         )
     return out
@@ -351,8 +367,18 @@ def e2(caso: Caso) -> list[dict]:
 
 
 def main() -> None:
-    cs = casos()
-    print(f"\n  {DIAS} días · {REPLICAS} réplicas · μ = 1\n")
+    """Sin argumentos corre con mu = 1. Con `--guevara`, con ESCALA_GUEVARA.
+
+    Cada escala escribe su propio JSON: los resultados de mu = 1 ya estan
+    publicados en el informe y no se pisan.
+    """
+    guevara = "--guevara" in sys.argv[1:]
+    escala = ESCALA_GUEVARA if guevara else 1.0
+    nombre = "experimentos-guevara.json" if guevara else "experimentos.json"
+    cs = casos(escala)
+    print()
+    print(f"  {DIAS} dias · {REPLICAS} replicas · escala k = {escala:.3f}")
+    print()
     for c in cs:
         print(
             f"  {c.nombre}: estrato {c.estrato}, celda {c.celda} ({c.km:+.1f} km) · "
@@ -360,6 +386,7 @@ def main() -> None:
             f"ΔV {c.dv:.3f} útiles = A {c.ventaja_min:.1f} min · P verdadera {c.p_verdadera:.3f}"
         )
     out = {
+        "escala": escala,
         "dias": DIAS,
         "replicas": REPLICAS,
         "semilla": SEMILLA,
@@ -396,8 +423,10 @@ def main() -> None:
         print(f"  E2 {c.nombre} …", flush=True)
         out["e2"] += e2(c)
     SALIDA.mkdir(exist_ok=True)
-    (SALIDA / "experimentos.json").write_text(json.dumps(out), encoding="utf-8")
-    print(f"\n  Datos en {SALIDA / 'experimentos.json'}\n")
+    (SALIDA / nombre).write_text(json.dumps(out), encoding="utf-8")
+    print()
+    print(f"  Datos en {SALIDA / nombre}")
+    print()
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ uv run python figuras_experimentos.py
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import matplotlib
@@ -16,7 +17,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 SALIDA = Path(__file__).parent / "salida"
-D = json.loads((SALIDA / "experimentos.json").read_text(encoding="utf-8"))
+# Con `--guevara`, E1 y E2 salen del JSON de la otra escala y los PNG se sufijan,
+# para que las dos escalas convivan en salida/ y el informe pueda mostrar ambas.
+GUEVARA = "--guevara" in sys.argv[1:]
+SUFIJO = "-guevara" if GUEVARA else ""
+D = json.loads(
+    (SALIDA / ("experimentos-guevara.json" if GUEVARA else "experimentos.json")).read_text(
+        encoding="utf-8"
+    )
+)
 POB = json.loads((SALIDA / "poblacion.json").read_text(encoding="utf-8"))
 C4 = json.loads((SALIDA / "ciudad4.json").read_text(encoding="utf-8"))
 CASOS = {c["nombre"]: c for c in D["casos"]}
@@ -57,8 +66,21 @@ def horizontes(ax):
         ax.axvline(x, color=REGLA, lw=0.8)
 
 
+def suf(caso, default, d=None, default_d=0.5):
+    """Sufijo de caso y decaimiento en el nombre del PNG, vacio para el default.
+
+    El informe publicado apunta a `e2-descomposicion.png` (C2, d = 0,5);
+    sufijar solo lo que se aparta de ese default deja esos punteros intactos.
+    """
+    out = "" if caso == default else f"-{caso}"
+    if d is not None and d != default_d:
+        out += f"-d{d}"
+    return out
+
+
 def guarda(fig, nombre):
     fig.tight_layout()
+    nombre = nombre.replace(".png", f"{SUFIJO}.png")
     fig.savefig(SALIDA / nombre, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
@@ -106,7 +128,7 @@ def fig_e1_trayectorias(caso="C2", d=0.5):
         limpia(ax)
     axs[0].set_ylabel(f"s̄(t): prob. de elegir {c['mejor'].lower()} (0–1)")
     axs[1].legend(loc="lower right", fontsize=8)
-    guarda(fig, "e1-trayectorias.png")
+    guarda(fig, f"e1-trayectorias{suf(caso, 'C2', d)}.png")
 
 
 def fig_e1_critico(caso="C2"):
@@ -134,7 +156,7 @@ def fig_e1_critico(caso="C2"):
         limpia(ax)
     axs[0].set_ylabel("P del mejor tras el k-ésimo shock (0–1)")
     axs[2].legend(loc="upper right", fontsize=8)
-    guarda(fig, "e1-critico.png")
+    guarda(fig, f"e1-critico{suf(caso, 'C2')}.png")
 
 
 def fig_e1_horizontes(caso="C2", d=0.5):
@@ -151,7 +173,7 @@ def fig_e1_horizontes(caso="C2", d=0.5):
         limpia(ax)
     axs[0].set_ylabel("efecto E en la cuota del mejor (pp)")
     axs[2].legend(loc="lower left", fontsize=8)
-    guarda(fig, "e1-horizontes.png")
+    guarda(fig, f"e1-horizontes{suf(caso, 'C2', d)}.png")
 
 
 def fig_e1_distribuciones(caso="C2", d=0.5, k=3):
@@ -172,7 +194,7 @@ def fig_e1_distribuciones(caso="C2", d=0.5, k=3):
         limpia(ax)
     axs[0].set_ylabel("fracción de réplicas (0–1)")
     axs[0].legend(loc="upper left", fontsize=8)
-    guarda(fig, "e1-distribuciones.png")
+    guarda(fig, f"e1-distribuciones{suf(caso, 'C2', d)}.png")
 
 
 def fig_e2_phi(d=0.5):
@@ -224,7 +246,7 @@ def fig_e2_descomposicion(caso="C2", d=0.5):
         limpia(ax)
     axs[0].set_ylabel("contribución a S − P*, largo plazo (pp)")
     axs[0].legend(loc="lower left", fontsize=8)
-    guarda(fig, "e2-descomposicion.png")
+    guarda(fig, f"e2-descomposicion{suf(caso, 'C2', d)}.png")
 
 
 def fig_e2_distribuciones(caso="C2", d=0.5, cond="ambos"):
@@ -239,7 +261,7 @@ def fig_e2_distribuciones(caso="C2", d=0.5, cond="ambos"):
     ax.set_ylabel("fracción de réplicas (0–1)")
     ax.legend(loc="upper left", fontsize=8)
     limpia(ax)
-    guarda(fig, "e2-distribuciones.png")
+    guarda(fig, f"e2-distribuciones{suf(caso, 'C2', d)}.png")
 
 
 def fig_e2_decaimiento(caso="C2", cond="ambos"):
@@ -257,7 +279,7 @@ def fig_e2_decaimiento(caso="C2", cond="ambos"):
         limpia(ax)
     axs[0].set_ylabel("Φ (adim.)")
     axs[0].legend(loc="lower left", fontsize=8)
-    guarda(fig, "e2-decaimiento.png")
+    guarda(fig, f"e2-decaimiento{suf(caso, 'C2')}.png")
 
 
 def _pob(sigma, d):
@@ -397,6 +419,7 @@ def fig_e4_phi_mejor(w="medio"):
 
 
 if __name__ == "__main__":
+    # Los defaults (C2, d = 0,5) son los que apunta el informe publicado.
     fig_e1_trayectorias()
     fig_e1_critico()
     fig_e1_horizontes()
@@ -405,8 +428,21 @@ if __name__ == "__main__":
     fig_e2_descomposicion()
     fig_e2_distribuciones()
     fig_e2_decaimiento()
-    fig_e3_phi()
-    fig_e3_iguales()
-    fig_e4_particion()
-    fig_e4_phi_mejor()
-    print(f"  figuras en {SALIDA}")
+    # C1 y d = 1,28 son la referencia de los informes por experimento: a la escala
+    # de Guevara C1 es el unico caso sin saturar (P* = 0,92 frente a 0,999 de C2 y
+    # C3), y d = 1,28 es el valor que Guevara, Tang y Gao (2018, tabla 4) estiman
+    # con datos reales.
+    fig_e1_trayectorias(caso="C1", d=1.28)
+    fig_e1_critico(caso="C1")
+    fig_e1_horizontes(caso="C1", d=1.28)
+    fig_e1_distribuciones(caso="C1", d=1.28)
+    fig_e2_descomposicion(caso="C1", d=1.28)
+    fig_e2_distribuciones(caso="C1", d=1.28)
+    fig_e2_decaimiento(caso="C1")
+    # E3 (poblacion) y E4 (ciudad 4) no tienen corrida en la escala de Guevara.
+    if not GUEVARA:
+        fig_e3_phi()
+        fig_e3_iguales()
+        fig_e4_particion()
+        fig_e4_phi_mejor()
+    print(f"  figuras en {SALIDA} (sufijo {SUFIJO!r})")

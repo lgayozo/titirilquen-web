@@ -49,3 +49,6 @@ blob-report/
 # máquinas, ya que el directorio no viaja en git.
 reference/
 reference.rar
+
+# Papers de editorial del sandbox IBL — no versionar, igual que reference/
+sandbox/ibl-dia-a-dia/papers/
