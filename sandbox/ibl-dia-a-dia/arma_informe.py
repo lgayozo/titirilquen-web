@@ -247,7 +247,7 @@ s1 = f"""
 <p>
   Todo se mide sobre <strong>una persona</strong>: {D["replicas"]} réplicas de la misma
   persona, cada una con su propia secuencia aleatoria. No hay congestión ni
-  interacción, salvo en E3, que repite la última pregunta con la ciudad completa. Las ventajas se dan en
+  interacción, salvo en E3 y E4, que repiten la última pregunta con la ciudad completa. Las ventajas se dan en
   {tex("A")}, la ventaja del modo mejor expresada en minutos (ecuación 6).
 </p>
 <div class="paso"><h3>¿Qué tan extrema debe ser una experiencia, o cuántas, para cambiar la conducta?</h3><p>
@@ -759,7 +759,7 @@ s4 = f"""
         "Trayectoria día a día después de las experiencias malas, caso C2, d = 0,5. Izquierda: una"
         " experiencia mala (k = 1); derecha: cinco (k = 5). Eje horizontal: día (1 a 250). Eje"
         " vertical: probabilidad media de elegir el modo mejor, s̄(t) (0–1), promedio de las 500"
-        " réplicas. Línea gris discontinua: sin shocks (control, constante en P*). Líneas naranjas:"
+        " réplicas. Línea gris discontinua: sin shocks (control, constante en P*). Líneas granate:"
         " shocks de 1, 2, 4 y 6 veces A, más oscuras cuanto mayores. Líneas verticales: fin del corto"
         " (día 10) y del mediano plazo (día 50). Se lee como una caída y una recuperación: la"
         " profundidad depende de Δ y k; la duración, de si la persona vuelve a probar el modo. Con"
@@ -849,7 +849,7 @@ s4 = f"""
         " d = 0,5, tres experiencias malas (k = 3). Un panel por horizonte. Eje horizontal: P̄ₙ, la"
         " probabilidad media de cada réplica en ese horizonte (0–1), ecuación (10), en tramos de"
         " 0,05. Eje vertical: fracción de las 500 réplicas en cada tramo (0–1). Gris: sin shocks;"
-        " naranjo: Δ = 2A; negro: Δ = 6A. Línea de puntos: ½. Se lee como un histograma: sin shock"
+        " granate: Δ = 2A; negro: Δ = 6A. Línea de puntos: ½. Se lee como un histograma: sin shock"
         " todas las réplicas están en P*; con Δ = 2A todas bajan juntas y vuelven; con Δ = 6A, en el"
         " largo plazo la distribución se abre: unas réplicas volvieron a P* y otras siguen en el"
         " modo peor.",
@@ -960,7 +960,7 @@ s5 = f"""
         " condición de ruido. Eje horizontal: desviación estándar del tiempo vivido, σ (min). Eje"
         " vertical: contribución a S − P*, la diferencia entre la cuota del modo mejor y la"
         " probabilidad sin ruido (pp), ecuación (17). Barra azul: dispersión de lo percibido, el"
-        " efecto de variabilidad (siempre negativo: hacia ½). Barra naranja: sesgo de la media"
+        " efecto de variabilidad (siempre negativo: hacia ½). Barra granate: sesgo de la media"
         " percibida, el hot stove (su signo depende de dónde está el ruido). Raya negra: el total."
         " Se lee comparando el largo de las dos barras: cuando son parecidas y de signo opuesto, se"
         " compensan y la cuota casi no se mueve.",

@@ -23,9 +23,9 @@ CASOS = {c["nombre"]: c for c in D["casos"]}
 BINS = np.array(D["bins"])
 DIAS = np.arange(1, D["dias"] + 1)
 
-AUTO, METRO, TINTA, GRIS, REGLA = "#b4532a", "#2f6690", "#1a1a1a", "#6b6b6b", "#d8d4cc"
-COLOR_CASO = {"C1": METRO, "C2": "#e3a587", "C3": "#7d3519"}  # el color del modo mejor
-COLOR_K = {1: "#e3a587", 2: "#d0794f", 3: AUTO, 5: "#7d3519", 10: TINTA}
+AUTO, METRO, TINTA, GRIS, REGLA = "#9b2c3a", "#2f6690", "#1a1a1a", "#6b6b6b", "#d8d4cc"
+COLOR_CASO = {"C1": METRO, "C2": "#d9a0a8", "C3": "#5e1a24"}  # el color del modo mejor
+COLOR_K = {1: "#d9a0a8", 2: "#c0606e", 3: AUTO, 5: "#5e1a24", 10: TINTA}
 HORIZONTES = {
     "corto": "Corto plazo (días 1–10)",
     "medio": "Mediano (11–50)",
@@ -159,7 +159,7 @@ def fig_e1_distribuciones(caso="C2", d=0.5, k=3):
     fig, axs = plt.subplots(1, 3, figsize=(10.5, 3.2), sharey=True)
     series = (
         ("sin shock", e1(caso, d), GRIS),
-        (f"k = {k}, Δ = 2·A", e1(caso, d, k, 2.0), "#d0794f"),
+        (f"k = {k}, Δ = 2·A", e1(caso, d, k, 2.0), "#c0606e"),
         (f"k = {k}, Δ = 6·A", e1(caso, d, k, 6.0), TINTA),
     )
     for ax, (w, titulo) in zip(axs, HORIZONTES.items(), strict=True):
