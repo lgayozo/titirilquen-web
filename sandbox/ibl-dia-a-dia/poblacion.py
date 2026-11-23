@@ -69,7 +69,7 @@ from titirilquen_core.equilibrium.msa import run_msa
 from titirilquen_core.land_use.config import LandUseConfig
 from titirilquen_core.supply.oferta import resolver_oferta
 
-from experimentos import DECAIMIENTOS, VENTANAS
+from experimentos import DECAIMIENTOS, ESCALA_GUEVARA, VENTANAS
 from ibl import tiempo_percibido
 from persona import _config_web
 
@@ -94,8 +94,14 @@ ULTIMOS = 20
 # equilibrio del logit con escala μ, y el hot stove es la diferencia con σ > 0.
 # Hasta 80 min, el mismo rango que E2 (experimentos.py) para una persona.
 SIGMAS = (0.0, 5.0, 10.0, 20.0, 40.0, 80.0)
-# Escala única: μ = 1, el logit del núcleo. Todos los análisis se hacen con ella.
-MUS = (1.0,)
+# Escala del logit. `_softmax_filas` hace z = μ·(V − max), o sea μ multiplica
+# TODA la utilidad: μ = k es exactamente la reescala de experimentos.py, no un
+# cambio de modelo. Sin argumentos corre con μ = 1 (el logit del núcleo); con
+# `--guevara`, con la escala de Guevara, Tang y Gao (2018). Cada escala escribe
+# su propio JSON: los resultados de μ = 1 ya están publicados y no se pisan.
+GUEVARA = "--guevara" in sys.argv[1:]
+MUS = (ESCALA_GUEVARA,) if GUEVARA else (1.0,)
+SUF = "-guevara" if GUEVARA else ""
 
 
 class Escenario:
@@ -452,10 +458,11 @@ def main() -> None:
             f"{dv['bienestar']:>+13.4f}"
         )
     SALIDA.mkdir(exist_ok=True)
-    (SALIDA / "poblacion.json").write_text(
+    (SALIDA / f"poblacion{SUF}.json").write_text(
         json.dumps(
             {
                 "N": esc.N,
+                "escala": MUS[0],
                 "dias": DIAS,
                 "ultimos": ULTIMOS,
                 "modos": MODOS,
@@ -466,7 +473,7 @@ def main() -> None:
         ),
         encoding="utf-8",
     )
-    print(f"\n  Datos en {SALIDA / 'poblacion.json'}  ({time.time() - t0:.0f} s en total)\n")
+    print(f"\n  Datos en {SALIDA / f'poblacion{SUF}.json'}  ({time.time() - t0:.0f} s en total)\n")
 
 
 #: Ruido de la ciudad con cuatro modos: si ε entra en (auto, metro, bici).
@@ -477,17 +484,23 @@ CONDICIONES = {
     "auto_tp": (True, True, False),
 }
 _ESC: Escenario | None = None
+_MU: float = 1.0
 
 
-def _inicia_ciudad() -> None:
-    global _ESC
+def _inicia_ciudad(mu: float = 1.0) -> None:
+    """Prepara el worker. `mu` viaja explícito porque en Windows el Pool
+    re-importa el módulo y no hay que confiar en que `sys.argv` llegue igual:
+    si no llegara, E4 correría a μ = 1 etiquetado como otra escala.
+    """
+    global _ESC, _MU
     _ESC = Escenario(*_config_web(), K=3)
+    _MU = mu
 
 
 def _corre_ciudad(clave: tuple[str, float, float]) -> dict:
     cond, sigma, d = clave
     ruido = CONDICIONES.get(cond, (False, False, False))
-    r = simular(_ESC, sigma, MUS[0], d, np.random.default_rng(42), ruido=ruido)
+    r = simular(_ESC, sigma, _MU, d, np.random.default_rng(42), ruido=ruido)
     r["condicion"] = cond
     return r
 
@@ -508,7 +521,7 @@ def main_ciudad() -> None:
         (c, s, d) for c in CONDICIONES for s in SIGMAS if s > 0 for d in DECAIMIENTOS
     ]
     filas = []
-    with Pool(6, initializer=_inicia_ciudad) as pool:
+    with Pool(6, initializer=_inicia_ciudad, initargs=(MUS[0],)) as pool:
         for i, r in enumerate(pool.imap_unordered(_corre_ciudad, claves), 1):
             filas.append(r)
             print(
@@ -518,10 +531,11 @@ def main_ciudad() -> None:
                 flush=True,
             )
     SALIDA.mkdir(exist_ok=True)
-    (SALIDA / "ciudad4.json").write_text(
+    (SALIDA / f"ciudad4{SUF}.json").write_text(
         json.dumps(
             {
                 "N": esc.N,
+                "escala": MUS[0],
                 "dias": DIAS,
                 "ultimos": ULTIMOS,
                 "modos": MODOS,
@@ -533,7 +547,7 @@ def main_ciudad() -> None:
         ),
         encoding="utf-8",
     )
-    print(f"\n  Datos en {SALIDA / 'ciudad4.json'}  ({time.time() - t0:.0f} s en total)\n")
+    print(f"\n  Datos en {SALIDA / f'ciudad4{SUF}.json'}  ({time.time() - t0:.0f} s en total)\n")
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ CB = {c["nombre"]: c for c in BASE["casos"]}
 CG = {c["nombre"]: c for c in GUEV["casos"]}
 
 # Mismo caso y configuracion de referencia que el informe de E2: C1 es el unico
-# sin saturar a la escala de Guevara, y d = 1,28 es el decaimiento que Guevara,
+# sin saturar con los β de la literatura, y d = 1,28 es el decaimiento que Guevara,
 # Tang y Gao (2018, tabla 4) estiman con datos reales.
 REF, D_REF = "C1", 1.28
 KS = sorted({r["k"] for r in BASE["e1"] if r.get("k")})
@@ -81,9 +81,9 @@ minutos según cuántas veces ocurra. Y es <strong>el mismo en las dos escalas</
 el umbral es una propiedad de la memoria, no del logit.</p>
 
 <p><strong>P2. ¿El efecto se borra o se queda?</strong> Depende de si cruza una
-segunda frontera, y ahí las dos escalas no se parecen en nada. Con la escala vieja
+segunda frontera, y ahí las dos escalas no se parecen en nada. Con los β del simulador
 <em>todo</em> se recupera: el peor efecto de largo plazo de las {len(KS) * len(RS) * len(DECS)}
-combinaciones es {pp(peor_base)}. A la escala de Guevara hay una región donde <strong>no se recupera
+combinaciones es {pp(peor_base)}. Con los β de la literatura hay una región donde <strong>no se recupera
 nunca</strong>: el peor llega a {pp(peor_guev)} y la persona sigue ahí el día 250.</p>
 
 <p><strong>P3. ¿La fórmula predice lo que hace la simulación?</strong> Sí, y es la
@@ -116,8 +116,8 @@ def s2() -> str:
         "Los tres casos",
         f"<tr><th>caso</th><th>estrato</th><th class='n'>km</th><th>mejor</th>"
         f"<th class='n'>{sim('A')} (min)</th>"
-        f"<th class='n'>{sim('P*')} con {sim('k')} = 1</th>"
-        f"<th class='n'>{sim('P*')} con {sim('k')} = {num(K, 2)}</th></tr>",
+        f"<th class='n'>{sim('P*')} (simulador)</th>"
+        f"<th class='n'>{sim('P*')} (β × {num(K, 1)})</th></tr>",
         filas,
         f"La ventaja {sim('A')} no depende de la escala; la probabilidad verdadera "
         f"{sim('P*')} sí. El caso de referencia es {REF}, el mismo del informe de E2. "
@@ -247,8 +247,7 @@ dato faltante.</p>
 
 
 def s4() -> str:
-    bb, bg = abs(CB[REF]["beta"]), abs(CG[REF]["beta"])
-    k_tex = r"k_e \;=\; \frac{" + ntex(bg, 3) + "}{" + ntex(bb, 4) + r"} \;=\; " + ntex(K, 3)
+    bsim, blit = abs(CB[REF]["beta"]), abs(CG[REF]["beta"])
     t2 = tabla(
         2,
         "Guevara, Tang y Gao (2018), tabla 4, dataset completo",
@@ -261,39 +260,77 @@ def s4() -> str:
         "<tr><td>error estándar</td><td class='n'>0,137</td><td class='n'>0,015</td>"
         "<td class='n'>0,013</td><td class='n'>0,144</td><td class='n'>0,12</td>"
         "<td class='n'>0,192</td></tr>",
-        "TIMEF y TIMES son los coeficientes del tiempo percibido de la ruta rápida y la "
-        "lenta: no son un rango, son dos coeficientes específicos de alternativa dentro "
-        "de un mismo modelo (su ec. 15). Tomamos TIMEF = −0,198. De acá sale también el "
-        "d = 1,28 que usamos como decaimiento de referencia.",
+        "TIMEF multiplica el tiempo <em>percibido</em> de la ruta rápida (su ec. 15), "
+        "no el real: es el análogo exacto de nuestro tiempo del IBL. TIMES es el de la "
+        "ruta lenta — son dos coeficientes específicos de alternativa dentro del mismo "
+        "modelo, no un rango. De acá sale también el d = 1,28 que usamos de referencia, "
+        "que el paper subraya como estimado y no fijado.",
+    )
+    razon = (
+        r"\frac{|\beta|_{\text{lit}}}{|\beta|_{\text{sim}}} \;=\; \frac{"
+        + ntex(blit, 3)
+        + "}{"
+        + ntex(bsim, 4)
+        + r"} \;=\; "
+        + ntex(blit / bsim, 3)
     )
     return f"""
-<h2 id="escala">4. La escala del logit</h2>
+<h2 id="escala">4. La calibración de {tex(r"\beta")}, y qué tan lejos puede estar</h2>
 
-<p>El simulador venía con {tex(r"\beta")} = {num(-bb, 4)} útiles/min y
-{tex(r"\mu")} = 1, un número que viene de la calibración del modelo de ciudad, no de
-elecciones repetidas de una misma persona. Guevara, Tang y Gao (2018) estiman un IBL
-con los datos de laboratorio de ruta de Ben-Elia y Shiftan (2010) —que es casi
-exactamente el experimento que E1 simula— y obtienen:</p>
+<p>Todo lo que sigue está calculado con los {tex(r"\beta")} del simulador. Esta sección
+explica qué son, por qué la literatura de elección repetida sugiere valores bastante
+mayores, y por qué eso se reporta como <strong>sensibilidad</strong> y no como
+corrección.</p>
+
+<h3>4.1 {tex(r"\mu")} = 1 no es una medición, es una convención</h3>
+
+<p>En un logit sólo se identifica el producto {tex(r"\mu\beta")}: multiplicar la escala
+por un número y dividir los coeficientes por el mismo deja <em>exactamente</em> las
+mismas probabilidades. Por eso el logit de transporte del simulador fija
+{tex(r"\mu")} = 1 —{linea("../../packages/titirilquen_core/src/titirilquen_core/demand/choice.py", "probabilidades_logit", "titirilquen_core/demand/choice.py")}
+calcula {tex("e^V")} a secas, sin ninguna escala— y son los {tex(r"\beta")} los que la
+absorben.</p>
+
+<p>La consecuencia importa: <strong>{tex(r"\mu")} no es una perilla disponible, ya está
+consumida</strong>. Los {tex(r"\beta")} valen lo que valen porque, con
+{tex(r"\mu")} = 1, reproducen una partición modal observada. (El {tex(r"\mu")} del uso
+de suelo es otra cosa: ahí sí es un parámetro de escenario, porque fija cuánto pesa el
+ruido de localizarse frente a una accesibilidad que ya trae su propia escala.)</p>
+
+<h3>4.2 Qué dice la literatura de elección repetida</h3>
+
+<p>Guevara, Tang y Gao (2018) estiman un IBL con los datos de laboratorio de ruta de
+Ben-Elia y Shiftan (2010) —que es casi exactamente el experimento que estos informes
+simulan— y obtienen:</p>
 
 {t2}
 
-<p>Adoptar ese {tex(r"\beta")} <strong>no</strong> es cambiar
-{tex(r"\beta_t")} y dejar el resto: eso multiplicaría el valor del tiempo por
-{num(K, 2)} y descalibraría las constantes modales — sería otro modelo. Lo correcto es
-multiplicar <em>toda</em> la utilidad por</p>
+<p>Su coeficiente de tiempo es {num(-blit, 3)} útiles/min contra los
+{num(-bsim, 4)} del simulador:</p>
 
-{ec(k_tex, 10)}
+{ec(razon, 10)}
 
-<p>que es formalmente idéntico a fijar {tex(r"\mu = k_e")} dejando los coeficientes como
-estaban. Preserva el valor del tiempo, los <em>trade-offs</em> y las constantes; lo
-único que cambia es cuán determinista es la elección. Se puede verificar: {tex("A")},
-{tex("W_k")} y {tex(r"\Delta^*")} quedan idénticos hasta el último decimal (§5.2).</p>
+<h3>4.3 Por qué no lo adoptamos</h3>
 
-<p>Para E1 la consecuencia es precisa. El umbral {tex(r"\Delta^*")} no se mueve, pero
-{tex("P_{\\text{post}}")} de la ec. (8) pasa a ser {tex(r"\Lambda(k_e z)")} donde antes
-era {tex(r"\Lambda(z)")}. <strong>La misma pregunta, una respuesta mucho más
-abrupta</strong>: apenas pasado el umbral, la probabilidad de volver a usar el modo se
-desploma, y de eso depende si la persona recupera o no.</p>
+<p>Tomar ese número <em>no</em> es «elegir otra escala». Como {tex(r"\mu")} ya está
+normalizado, equivale a afirmar que los {tex(r"\beta")} de transporte del simulador son
+seis veces chicos — es decir, que la elección modal del modelo es mucho más ruidosa de
+lo que sería en la realidad. Y eso contradice su calibración, que es lo que fija esos
+{tex(r"\beta")}.</p>
+
+<p>Hay además una razón de fondo: <strong>la escala del logit no es transferible entre
+contextos de elección</strong>. El dato de Guevara viene de elegir entre dos rutas que
+difieren sólo en tiempo, en laboratorio, con información en pantalla. Elegir entre auto,
+metro, bici y caminata en una ciudad real es una decisión con mucha más heterogeneidad
+no observada — y esa heterogeneidad es precisamente lo que un {tex(r"\beta")} chico
+representa. Su valor no es «el verdadero» que el simulador debería copiar.</p>
+
+<p>Por eso los resultados van con los {tex(r"\beta")} del simulador y las tablas traen
+una columna <strong>«{tex(r"\beta")} × {num(blit / bsim, 1)}»</strong> como
+sensibilidad de calibración: dice cuánto crecería cada efecto si la elección modal fuera
+tan determinista como sugiere el laboratorio. Cuando un efecto se vea chico, esa columna
+contesta la pregunta obligada — <em>¿chico de verdad, o chico porque el modelo elige con
+demasiado ruido?</em></p>
 """
 
 
@@ -350,12 +387,12 @@ def _t4() -> str:
         filas += (
             f"<tr><td class='n'>{num(r, 1)}</td><td class='n'>{num(a['delta_min'], 1)}</td>"
             f"<td class='n'>{num(a['p_post_analitica'], 3)}</td>"
-            f"<td class='n'><strong>{num(g['p_post_analitica'], 3)}</strong></td>"
+            f"<td class='n'>{num(g['p_post_analitica'], 3)}</td>"
             f"<td class='n'>{pp(a['efecto']['corto'])}</td>"
-            f"<td class='n'><strong>{pp(g['efecto']['corto'])}</strong></td>"
+            f"<td class='n'>{pp(g['efecto']['corto'])}</td>"
             f"<td class='n'>{pp(a['efecto']['largo'])}</td>"
-            f"<td class='n'><strong>{pp(g['efecto']['largo'])}</strong></td>"
-            f"<td class='n'>{vm(a)}</td><td class='n'><strong>{vm(g)}</strong></td></tr>"
+            f"<td class='n'>{pp(g['efecto']['largo'])}</td>"
+            f"<td class='n'>{vm(a)}</td><td class='n'>{vm(g)}</td></tr>"
         )
     dc = CB[REF]["delta_critico"][str(D_REF)][str(kk)]
     cab = (
@@ -366,8 +403,7 @@ def _t4() -> str:
         "<th colspan='2'>efecto largo plazo (pp)</th>"
         "<th colspan='2'>vida media (días)</th></tr><tr>"
         + "".join(
-            f"<th class='n'>{sim('k_e')} = 1</th><th class='n'>{sim('k_e')} = {num(K, 2)}</th>"
-            for _ in range(4)
+            f"<th class='n'>simulador</th><th class='n'>β × {num(K, 1)}</th>" for _ in range(4)
         )
         + "</tr>"
     )
@@ -377,16 +413,16 @@ def _t4() -> str:
         cab,
         filas,
         f"El umbral de este caso es {sim('Δ*')} = {num(dc, 1)} min, entre "
-        f"{sim('r')} = 1,0 y 1,5. Con la escala vieja cruzarlo casi no se nota: el efecto "
+        f"{sim('r')} = 1,0 y 1,5. Con los β del simulador cruzarlo casi no se nota: el efecto "
         f"de largo plazo nunca pasa de {pp(min(a['efecto']['largo'] for a in [r1(BASE, REF, D_REF, kk, x) for x in RS]))} "
-        f"y todo se recupera en días. A la escala de Guevara (negrita) la misma fila cambia "
+        f"y todo se recupera en días. Con los β de la literatura (negrita) la misma fila cambia "
         f"de naturaleza: a partir de {sim('r')} = 3 el efecto se queda, y desde "
         f"{sim('r')} = 4 ya no hay recuperación dentro del horizonte («—»).",
     )
 
 
 def _t5() -> str:
-    """Mapa de largo plazo a la escala de Guevara."""
+    """Mapa de largo plazo con los β de la literatura."""
     filas = ""
     for k in KS:
         celdas = "".join(
@@ -397,7 +433,7 @@ def _t5() -> str:
     return tabla(
         5,
         f"Mapa de la trampa — efecto de largo plazo (pp), {REF}, "
-        f"{sim('d')} = {num(D_REF, 2)}, escala de Guevara",
+        f"{sim('d')} = {num(D_REF, 2)}, sensibilidad de calibración",
         f"<tr><th class='n'>{sim('k')} \\ {sim('r')}</th>"
         + "".join(f"<th class='n'>{num(r, 1)}</th>" for r in RS)
         + "</tr>",
@@ -406,7 +442,7 @@ def _t5() -> str:
         f"de ella el daño es permanente y se estabiliza cerca de "
         f"{pp(min(r1(GUEV, REF, D_REF, k, r)['efecto']['largo'] for k in KS for r in RS))}, "
         f"que es el abandono casi total del modo mejor. Abajo y a la izquierda, la "
-        f"recuperación es completa. <strong>La misma tabla con la escala vieja no tiene "
+        f"recuperación es completa. <strong>La misma tabla con los β del simulador no tiene "
         f"ninguna celda bajo {pp(peor_base_d)}</strong>: ahí el daño permanente, "
         f"sencillamente, no existe.",
     )
@@ -435,8 +471,8 @@ def _t6() -> str:
         6,
         f"Verificación de la ec. (8) — {REF}, {sim('d')} = {num(D_REF, 2)}",
         f"<tr><th class='n'>{sim('k')}</th><th class='n'>{sim('r')}</th>"
-        f"<th colspan='2'>{sim('k_e')} = 1</th>"
-        f"<th colspan='2'>{sim('k_e')} = {num(K, 2)}</th></tr>"
+        f"<th colspan='2'>simulador</th>"
+        f"<th colspan='2'>β × {num(K, 1)}</th></tr>"
         "<tr><th></th><th></th><th class='n'>analítica</th><th class='n'>simulada</th>"
         "<th class='n'>analítica</th><th class='n'>simulada</th></tr>",
         filas,
@@ -463,7 +499,7 @@ def _t7() -> str:
     return tabla(
         7,
         f"Autotruncamiento — % de réplicas que llega a recibir las {sim('k')} experiencias "
-        f"({REF}, {sim('d')} = {num(D_REF, 2)}, escala de Guevara)",
+        f"({REF}, {sim('d')} = {num(D_REF, 2)}, sensibilidad de calibración)",
         f"<tr><th class='n'>{sim('k')} \\ {sim('r')}</th>"
         + "".join(f"<th class='n'>{num(r, 1)}</th>" for r in RS)
         + "</tr>",
@@ -473,7 +509,7 @@ def _t7() -> str:
         f"{sim('k')} = {max(KS)} y {sim('r')} = 3 sólo el "
         f"{num(100 * r1(GUEV, REF, D_REF, max(KS), 3.0)['llegan_a_k'], 1)} % llega. En "
         f"toda la grilla hay {cero_g} celdas de {tot} donde <strong>ninguna</strong> "
-        f"réplica llega, contra {cero_b} con la escala vieja. No es un defecto del "
+        f"réplica llega, contra {cero_b} con los β del simulador. No es un defecto del "
         f"diseño: es el mecanismo. Pero sí obliga a leer las celdas extremas como "
         f"«{sim('k')} intentos de shock», no «{sim('k')} shocks recibidos».",
     )
@@ -491,7 +527,7 @@ def _t8() -> str:
             f"<td class='n'>{num(CG[c]['p_verdadera'], 4)}</td>"
             f"<td class='n'>{num(g['p_post_analitica'], 4)}</td>"
             f"<td class='n'>{pp(a['efecto']['largo'])}</td>"
-            f"<td class='n'><strong>{pp(g['efecto']['largo'])}</strong></td></tr>"
+            f"<td class='n'>{pp(g['efecto']['largo'])}</td></tr>"
         )
     return tabla(
         8,
@@ -501,8 +537,8 @@ def _t8() -> str:
         f"<th class='n'>{sim('Δ')} (min)</th>"
         f"<th class='n'>{sim('P*')} (Guevara)</th>"
         f"<th class='n'>{sim('P_post')} (Guevara)</th>"
-        f"<th class='n'>largo plazo, {sim('k_e')} = 1</th>"
-        f"<th class='n'>largo plazo, {sim('k_e')} = {num(K, 2)}</th></tr>",
+        f"<th class='n'>largo plazo (simulador)</th>"
+        f"<th class='n'>largo plazo (β × {num(K, 1)})</th></tr>",
         filas,
         f"Acá el caso más dominante es el <strong>más</strong> dañado, al revés que en E2. "
         f"La razón está en la columna {sim('Δ')}: como el shock se define en múltiplos de "
@@ -532,13 +568,13 @@ def s5() -> str:
 <p>Las dos figuras siguientes son el mismo gráfico en las dos escalas, y son el
 resultado central de E1.</p>
 
-{fig(f"e1-trayectorias-{REF}-d{D_REF}.png", 2, f"Trayectoria día a día con la escala vieja ({tex('k_e')} = 1), caso {REF}, {tex('d')} = {num(D_REF, 2)}. Izquierda: una experiencia mala; derecha: cinco. Todas las curvas vuelven al control — el daño es transitorio en toda la grilla.")}
+{fig(f"e1-trayectorias-{REF}-d{D_REF}.png", 2, f"Trayectoria día a día con los β del simulador ({tex('k_e')} = 1), caso {REF}, {tex('d')} = {num(D_REF, 2)}. Izquierda: una experiencia mala; derecha: cinco. Todas las curvas vuelven al control — el daño es transitorio en toda la grilla.")}
 
-{fig(f"e1-trayectorias-{REF}-d{D_REF}-guevara.png", 3, f"Lo mismo a la escala de Guevara. Con {tex('k')} = 5 y {tex(r'\Delta')} = 6{tex('A')} la curva cae a cero y <strong>se queda plana los 250 días</strong>. Con {tex('k')} = 1 el mismo shock todavía se recupera, aunque lento.")}
+{fig(f"e1-trayectorias-{REF}-d{D_REF}-guevara.png", 3, f"Lo mismo con los β de la literatura. Con {tex('k')} = 5 y {tex(r'\Delta')} = 6{tex('A')} la curva cae a cero y <strong>se queda plana los 250 días</strong>. Con {tex('k')} = 1 el mismo shock todavía se recupera, aunque lento.")}
 
 {_t5()}
 
-{fig(f"e1-horizontes-{REF}-d{D_REF}-guevara.png", 4, "Efecto por horizonte a la escala de Guevara. Se lee comparando paneles: lo que en el corto plazo le pasa a todas las combinaciones, en el largo plazo sólo les queda a las que cruzaron la frontera de la tabla 5.")}
+{fig(f"e1-horizontes-{REF}-d{D_REF}-guevara.png", 4, "Efecto por horizonte con los β de la literatura. Se lee comparando paneles: lo que en el corto plazo le pasa a todas las combinaciones, en el largo plazo sólo les queda a las que cruzaron la frontera de la tabla 5.")}
 
 <h3>5.4 ¿Predice la fórmula?</h3>
 
@@ -579,13 +615,13 @@ castiga rápido y perdona sólo si le das la oportunidad.</p>
 
 <h3>6.2 Por qué con μ = 1 no había trampa</h3>
 
-<p>Con la escala vieja, el {tex("P_{\\text{post}}")} más bajo de toda la grilla del
+<p>Con los β del simulador, el {tex("P_{\\text{post}}")} más bajo de toda la grilla del
 caso de referencia es {num(minp, 3)}. Eso es un {num(100 * minp, 0)} % de probabilidad
 de volver a probar el modo <em>cada día</em>: en una semana la persona vuelve casi
 seguro, recibe información nueva y se recupera. Por eso todas las curvas de la figura 2
 vuelven al control.</p>
 
-<p>A la escala de Guevara ese mismo {tex("P_{\\text{post}}")} se va a órdenes de
+<p>Con los β de la literatura ese mismo {tex("P_{\\text{post}}")} se va a órdenes de
 {num(r1(GUEV, REF, D_REF, 5, 6.0)["p_post_analitica"], 5)}. Ahí la persona no vuelve a
 probar nunca, y lo que era una caída transitoria se vuelve permanente. <strong>No es
 que la escala amplifique el efecto: es que crea el fenómeno</strong>, porque la
@@ -653,7 +689,7 @@ def s7() -> str:
       {tex("P_{\\text{post}}")} caiga tan bajo que la persona deje de muestrear.</li>
   <li><strong>La trampa permanente sólo aparece a escala realista.</strong> Con
       {tex(r"\mu")} = 1 el peor efecto de largo plazo de las {len(KS) * len(RS) * len(DECS)}
-      combinaciones es {pp(peor_base)} —ruido—; a la escala de Guevara llega a {pp(peor_guev)} y no se
+      combinaciones es {pp(peor_base)} —ruido—; con los β de la literatura llega a {pp(peor_guev)} y no se
       recupera dentro de los {BASE["dias"]} días.</li>
   <li><strong>La persona se autotrunca.</strong> En buena parte de la grilla abandona
       antes de recibir todos los shocks, lo que protege de más información mala y
@@ -668,7 +704,7 @@ def s7() -> str:
 
 <ul>
   <li>Rehacer E3 (ciudad completa) y E4 (cuatro modos) a esta escala; hoy no tienen
-      corrida en la escala de Guevara.</li>
+      corrida en la sensibilidad de calibración.</li>
   <li>Mapear la frontera de persistencia con una grilla más fina entre
       {tex("r")} = 2 y 4, que es donde cambia de régimen.</li>
   <li>Medir shock y variabilidad juntos, que es lo que pasa en la realidad.</li>

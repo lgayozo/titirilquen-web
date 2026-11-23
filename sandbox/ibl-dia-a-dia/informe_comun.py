@@ -24,6 +24,15 @@ def num(x: float, n: int = 2) -> str:
     return f"{x:.{n}f}".replace(".", ",").replace("-", "\u2212")
 
 
+def miles(n: int) -> str:
+    """Separador de miles en espanol: 18.696, no 18,696.
+
+    La coma ya es el separador decimal en todo el informe, asi que usarla tambien
+    para los miles hace que 18.696 personas se lea como 18 personas y pico.
+    """
+    return f"{n:,}".replace(",", ".")
+
+
 def pp(x: float, n: int = 1) -> str:
     """Diferencia de cuotas en puntos porcentuales, con signo."""
     v = 100 * x
@@ -55,16 +64,18 @@ def ec(t: str, n: int | str) -> str:
     return f'<div class="ecuacion" data-tex="{_atributo(t)}" data-id="({n})"></div>'
 
 
-def linea(archivo: str, simbolo: str) -> str:
+def linea(archivo: str, simbolo: str, mostrar: str | None = None) -> str:
     """`archivo:linea` de `def`/`class simbolo` (o de la primera asignacion).
 
     Se resuelve al armar el informe, asi que la referencia nunca envejece.
+    `mostrar` acorta lo que se imprime sin tocar la ruta que se lee: sirve para
+    apuntar al nucleo sin ensuciar la pagina con `../../packages/...`.
     """
     texto = (AQUI / archivo).read_text(encoding="utf-8").splitlines()
     patron = re.compile(rf"^\s*((def|class) {simbolo}\b|{simbolo}\s*=)")
     for i, linea_ in enumerate(texto, 1):
         if patron.match(linea_):
-            return f"<code>{archivo}:{i}</code>"
+            return f"<code>{mostrar or archivo}:{i}</code>"
     raise KeyError(f"{simbolo} no esta en {archivo}")
 
 

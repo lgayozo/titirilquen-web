@@ -26,8 +26,21 @@ D = json.loads(
         encoding="utf-8"
     )
 )
-POB = json.loads((SALIDA / "poblacion.json").read_text(encoding="utf-8"))
-C4 = json.loads((SALIDA / "ciudad4.json").read_text(encoding="utf-8"))
+_CACHE: dict[str, dict] = {}
+
+
+def datos(nombre: str) -> dict:
+    """Carga perezosa y por escala de los JSON de E3 y E4.
+
+    Perezosa porque las figuras de E1 y E2 no tienen por que exigir los datos de
+    poblacion.py, que son veinte minutos de corrida aparte.
+    """
+    clave = f"{nombre}{SUFIJO}.json"
+    if clave not in _CACHE:
+        _CACHE[clave] = json.loads((SALIDA / clave).read_text(encoding="utf-8"))
+    return _CACHE[clave]
+
+
 CASOS = {c["nombre"]: c for c in D["casos"]}
 BINS = np.array(D["bins"])
 DIAS = np.arange(1, D["dias"] + 1)
@@ -283,12 +296,12 @@ def fig_e2_decaimiento(caso="C2", cond="ambos"):
 
 
 def _pob(sigma, d):
-    return next(f for f in POB["filas"] if f["sigma"] == sigma and f["d"] == d)
+    return next(f for f in datos("poblacion")["filas"] if f["sigma"] == sigma and f["d"] == d)
 
 
 def fig_e3_phi():
     """Φ de la población por horizonte y decaimiento d: el par de e2-decaimiento."""
-    sigmas = sorted({f["sigma"] for f in POB["filas"]})
+    sigmas = sorted({f["sigma"] for f in datos("poblacion")["filas"]})
     fig, axs = plt.subplots(1, 3, figsize=(10.5, 3.3), sharey=True)
     for ax, (w, titulo) in zip(axs, HORIZONTES.items(), strict=True):
         for d, estilo in ((0.0, ":"), (0.5, "-"), (1.28, "--")):
@@ -306,9 +319,13 @@ def fig_e3_phi():
 
 def fig_e3_iguales():
     """Dispersión entre personas iguales y brecha decisión − experiencia, contra σ."""
-    sigmas = sorted({f["sigma"] for f in POB["filas"]})
-    beta = abs(CASOS["C2"]["beta"])  # igual en los tres estratos
-    u = POB["ultimos"]
+    sigmas = sorted({f["sigma"] for f in datos("poblacion")["filas"]})
+    # El bienestar de poblacion.py esta en utiles del NUCLEO: mu entra solo en el
+    # softmax, no multiplica V. El beta de CASOS si viene escalado, asi que hay que
+    # dividirlo por la escala para volver al del nucleo; con otro beta la brecha
+    # saldria k veces mas chica, etiquetada como minutos.
+    beta = abs(CASOS["C2"]["beta"]) / D.get("escala", 1.0)  # igual en los tres estratos
+    u = datos("poblacion")["ultimos"]
     fig, axs = plt.subplots(1, 2, figsize=(9.0, 3.3))
     for d, estilo in ((0.0, ":"), (0.5, "-"), (1.28, "--")):
         filas = [_pob(s, d) for s in sigmas]
@@ -355,16 +372,18 @@ def _c4(cond, sigma, d):
     if sigma == 0:
         cond = "sin_ruido"
     return next(
-        f for f in C4["filas"] if f["condicion"] == cond and f["sigma"] == sigma and f["d"] == d
+        f
+        for f in datos("ciudad4")["filas"]
+        if f["condicion"] == cond and f["sigma"] == sigma and f["d"] == d
     )
 
 
 def fig_e4_particion():
     """Cambio de la partición por modo contra σ, una condición de ruido por panel."""
-    sigmas = sorted({f["sigma"] for f in C4["filas"]})
+    sigmas = sorted({f["sigma"] for f in datos("ciudad4")["filas"]})
     fig, axs = plt.subplots(1, 3, figsize=(10.5, 3.4), sharey=True)
     for ax, (cond, titulo) in zip(axs, TITULO_COND.items(), strict=True):
-        for k, m in enumerate(C4["modos"]):
+        for k, m in enumerate(datos("ciudad4")["modos"]):
             for d, estilo in ((0.5, "-"), (1.28, "--")):
                 y = [
                     100
@@ -392,10 +411,10 @@ def fig_e4_particion():
 
 def fig_e4_phi_mejor(w="medio"):
     """Φ separado por el modo mejor de cada persona, contra σ, una condición por panel."""
-    sigmas = sorted({f["sigma"] for f in C4["filas"]})
+    sigmas = sorted({f["sigma"] for f in datos("ciudad4")["filas"]})
     fig, axs = plt.subplots(1, 3, figsize=(10.5, 3.4), sharey=True)
     for ax, (cond, titulo) in zip(axs, TITULO_COND.items(), strict=True):
-        for m in C4["modos"]:
+        for m in datos("ciudad4")["modos"]:
             for d, estilo in ((0.5, "-"), (1.28, "--")):
                 y = [_c4(cond, s, d)["phi"]["por_mejor"][m][w] for s in sigmas]
                 ax.plot(
@@ -439,10 +458,8 @@ if __name__ == "__main__":
     fig_e2_descomposicion(caso="C1", d=1.28)
     fig_e2_distribuciones(caso="C1", d=1.28)
     fig_e2_decaimiento(caso="C1")
-    # E3 (poblacion) y E4 (ciudad 4) no tienen corrida en la escala de Guevara.
-    if not GUEVARA:
-        fig_e3_phi()
-        fig_e3_iguales()
-        fig_e4_particion()
-        fig_e4_phi_mejor()
+    fig_e3_phi()
+    fig_e3_iguales()
+    fig_e4_particion()
+    fig_e4_phi_mejor()
     print(f"  figuras en {SALIDA} (sufijo {SUFIJO!r})")

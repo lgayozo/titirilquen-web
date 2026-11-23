@@ -67,9 +67,9 @@ minutos según cuántas veces ocurra. Y es <strong>el mismo en las dos escalas</
 el umbral es una propiedad de la memoria, no del logit.</p>
 
 <p><strong>P2. ¿El efecto se borra o se queda?</strong> Depende de si cruza una
-segunda frontera, y ahí las dos escalas no se parecen en nada. Con la escala vieja
+segunda frontera, y ahí las dos escalas no se parecen en nada. Con los β del simulador
 <em>todo</em> se recupera: el peor efecto de largo plazo de las 105
-combinaciones es −19,7. A la escala de Guevara hay una región donde <strong>no se recupera
+combinaciones es −19,7. Con los β de la literatura hay una región donde <strong>no se recupera
 nunca</strong>: el peor llega a −91,7 y la persona sigue ahí el día 250.</p>
 
 <p><strong>P3. ¿La fórmula predice lo que hace la simulación?</strong> Sí, y es la
@@ -116,7 +116,7 @@ logit de la §4.</p>
 
 <p class="titulo-tabla"><span class="n">Tabla 1</span>Los tres casos</p>
 <div class="envoltorio-tabla"><table>
-  <thead><tr><th>caso</th><th>estrato</th><th class='n'>km</th><th>mejor</th><th class='n'><span class="sim">A</span> (min)</th><th class='n'><span class="sim">P*</span> con <span class="sim">k</span> = 1</th><th class='n'><span class="sim">P*</span> con <span class="sim">k</span> = 5,98</th></tr></thead>
+  <thead><tr><th>caso</th><th>estrato</th><th class='n'>km</th><th>mejor</th><th class='n'><span class="sim">A</span> (min)</th><th class='n'><span class="sim">P*</span> (simulador)</th><th class='n'><span class="sim">P*</span> (β × 6,0)</th></tr></thead>
   <tbody><tr><td>C1</td><td>3</td><td class='n'>9,8</td><td>Metro</td><td class='n'>12,3</td><td class='n'>0,6006</td><td class='n'>0,9198</td></tr><tr><td>C2</td><td>2</td><td class='n'>3,5</td><td>Auto</td><td class='n'>33,4</td><td class='n'>0,7511</td><td class='n'>0,9987</td></tr><tr><td>C3</td><td>1</td><td class='n'>1,1</td><td>Auto</td><td class='n'>52,7</td><td class='n'>0,8512</td><td class='n'>1,0000</td></tr></tbody>
 </table></div>
 <p class="pie-tabla">La ventaja <span class="sim">A</span> no depende de la escala; la probabilidad verdadera <span class="sim">P*</span> sí. El caso de referencia es C1, el mismo del informe de E2. Ojo: el tamaño del shock se define como <span class="sim">Δ</span> = <span class="sim">r</span>·<span class="sim">A</span>, así que un caso con más ventaja recibe un shock absoluto más grande — por eso acá el patrón entre casos es el <em>contrario</em> al de E2 (§5.6).</p>
@@ -216,40 +216,69 @@ recupera dentro de los 250 días, se anota «—», y eso es el resultado, no un
 dato faltante.</p>
 
 
-<h2 id="escala">4. La escala del logit</h2>
+<h2 id="escala">4. La calibración de <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>, y qué tan lejos puede estar</h2>
 
-<p>El simulador venía con <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> = −0,0331 útiles/min y
-<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1, un número que viene de la calibración del modelo de ciudad, no de
-elecciones repetidas de una misma persona. Guevara, Tang y Gao (2018) estiman un IBL
-con los datos de laboratorio de ruta de Ben-Elia y Shiftan (2010) —que es casi
-exactamente el experimento que E1 simula— y obtienen:</p>
+<p>Todo lo que sigue está calculado con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador. Esta sección
+explica qué son, por qué la literatura de elección repetida sugiere valores bastante
+mayores, y por qué eso se reporta como <strong>sensibilidad</strong> y no como
+corrección.</p>
+
+<h3>4.1 <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1 no es una medición, es una convención</h3>
+
+<p>En un logit sólo se identifica el producto <span class="mat" data-tex="\mu\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>β</mi></mrow><annotation encoding="application/x-tex">\mu\beta</annotation></semantics></math></span>: multiplicar la escala
+por un número y dividir los coeficientes por el mismo deja <em>exactamente</em> las
+mismas probabilidades. Por eso el logit de transporte del simulador fija
+<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1 —<code>titirilquen_core/demand/choice.py:19</code>
+calcula <span class="mat" data-tex="e^V"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>e</mi><mi>V</mi></msup></mrow><annotation encoding="application/x-tex">e^V</annotation></semantics></math></span> a secas, sin ninguna escala— y son los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> los que la
+absorben.</p>
+
+<p>La consecuencia importa: <strong><span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> no es una perilla disponible, ya está
+consumida</strong>. Los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> valen lo que valen porque, con
+<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1, reproducen una partición modal observada. (El <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> del uso
+de suelo es otra cosa: ahí sí es un parámetro de escenario, porque fija cuánto pesa el
+ruido de localizarse frente a una accesibilidad que ya trae su propia escala.)</p>
+
+<h3>4.2 Qué dice la literatura de elección repetida</h3>
+
+<p>Guevara, Tang y Gao (2018) estiman un IBL con los datos de laboratorio de ruta de
+Ben-Elia y Shiftan (2010) —que es casi exactamente el experimento que estos informes
+simulan— y obtienen:</p>
 
 <p class="titulo-tabla"><span class="n">Tabla 2</span>Guevara, Tang y Gao (2018), tabla 4, dataset completo</p>
 <div class="envoltorio-tabla"><table>
   <thead><tr><th>parámetro</th><th class='n'>d</th><th class='n'>TIMEF</th><th class='n'>TIMES</th><th class='n'>LRISK</th><th class='n'>FRISKY</th><th class='n'>CWA</th></tr></thead>
   <tbody><tr><td>estimación</td><td class='n'>1,28</td><td class='n'>−0,198</td><td class='n'>−0,086</td><td class='n'>0,864</td><td class='n'>0,405</td><td class='n'>5,71</td></tr><tr><td>error estándar</td><td class='n'>0,137</td><td class='n'>0,015</td><td class='n'>0,013</td><td class='n'>0,144</td><td class='n'>0,12</td><td class='n'>0,192</td></tr></tbody>
 </table></div>
-<p class="pie-tabla">TIMEF y TIMES son los coeficientes del tiempo percibido de la ruta rápida y la lenta: no son un rango, son dos coeficientes específicos de alternativa dentro de un mismo modelo (su ec. 15). Tomamos TIMEF = −0,198. De acá sale también el d = 1,28 que usamos como decaimiento de referencia.</p>
+<p class="pie-tabla">TIMEF multiplica el tiempo <em>percibido</em> de la ruta rápida (su ec. 15), no el real: es el análogo exacto de nuestro tiempo del IBL. TIMES es el de la ruta lenta — son dos coeficientes específicos de alternativa dentro del mismo modelo, no un rango. De acá sale también el d = 1,28 que usamos de referencia, que el paper subraya como estimado y no fijado.</p>
 
-<p>Adoptar ese <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> <strong>no</strong> es cambiar
-<span class="mat" data-tex="\beta_t"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\beta_t</annotation></semantics></math></span> y dejar el resto: eso multiplicaría el valor del tiempo por
-5,98 y descalibraría las constantes modales — sería otro modelo. Lo correcto es
-multiplicar <em>toda</em> la utilidad por</p>
+<p>Su coeficiente de tiempo es −0,198 útiles/min contra los
+−0,0331 del simulador:</p>
 
-<div class="ecuacion" data-tex="k_e \;=\; \frac{0{,}198}{0{,}0331} \;=\; 5{,}982" data-id="(10)">
-  <span class="id">(10)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>k</mi><mi>e</mi></msub><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mn>0,198</mn><mn>0,0331</mn></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mn>5,982</mn></mrow><annotation encoding="application/x-tex">k_e \;=\; \frac{0{,}198}{0{,}0331} \;=\; 5{,}982</annotation></semantics></math></span>
+<div class="ecuacion" data-tex="\frac{|\beta|_{\text{lit}}}{|\beta|_{\text{sim}}} \;=\; \frac{0{,}198}{0{,}0331} \;=\; 5{,}982" data-id="(10)">
+  <span class="id">(10)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∣</mi><mi>β</mi><msub><mi mathvariant="normal">∣</mi><mtext>lit</mtext></msub></mrow><mrow><mi mathvariant="normal">∣</mi><mi>β</mi><msub><mi mathvariant="normal">∣</mi><mtext>sim</mtext></msub></mrow></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mn>0,198</mn><mn>0,0331</mn></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mn>5,982</mn></mrow><annotation encoding="application/x-tex">\frac{|\beta|_{\text{lit}}}{|\beta|_{\text{sim}}} \;=\; \frac{0{,}198}{0{,}0331} \;=\; 5{,}982</annotation></semantics></math></span>
 </div>
 
-<p>que es formalmente idéntico a fijar <span class="mat" data-tex="\mu = k_e"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><msub><mi>k</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">\mu = k_e</annotation></semantics></math></span> dejando los coeficientes como
-estaban. Preserva el valor del tiempo, los <em>trade-offs</em> y las constantes; lo
-único que cambia es cuán determinista es la elección. Se puede verificar: <span class="mat" data-tex="A"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span>,
-<span class="mat" data-tex="W_k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">W_k</annotation></semantics></math></span> y <span class="mat" data-tex="\Delta^*"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">Δ</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">\Delta^*</annotation></semantics></math></span> quedan idénticos hasta el último decimal (§5.2).</p>
+<h3>4.3 Por qué no lo adoptamos</h3>
 
-<p>Para E1 la consecuencia es precisa. El umbral <span class="mat" data-tex="\Delta^*"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">Δ</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">\Delta^*</annotation></semantics></math></span> no se mueve, pero
-<span class="mat" data-tex="P_{\text{post}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mtext>post</mtext></msub></mrow><annotation encoding="application/x-tex">P_{\text{post}}</annotation></semantics></math></span> de la ec. (8) pasa a ser <span class="mat" data-tex="\Lambda(k_e z)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Λ</mi><mo stretchy="false">(</mo><msub><mi>k</mi><mi>e</mi></msub><mi>z</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Lambda(k_e z)</annotation></semantics></math></span> donde antes
-era <span class="mat" data-tex="\Lambda(z)"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Λ</mi><mo stretchy="false">(</mo><mi>z</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Lambda(z)</annotation></semantics></math></span>. <strong>La misma pregunta, una respuesta mucho más
-abrupta</strong>: apenas pasado el umbral, la probabilidad de volver a usar el modo se
-desploma, y de eso depende si la persona recupera o no.</p>
+<p>Tomar ese número <em>no</em> es «elegir otra escala». Como <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> ya está
+normalizado, equivale a afirmar que los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de transporte del simulador son
+seis veces chicos — es decir, que la elección modal del modelo es mucho más ruidosa de
+lo que sería en la realidad. Y eso contradice su calibración, que es lo que fija esos
+<span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>.</p>
+
+<p>Hay además una razón de fondo: <strong>la escala del logit no es transferible entre
+contextos de elección</strong>. El dato de Guevara viene de elegir entre dos rutas que
+difieren sólo en tiempo, en laboratorio, con información en pantalla. Elegir entre auto,
+metro, bici y caminata en una ciudad real es una decisión con mucha más heterogeneidad
+no observada — y esa heterogeneidad es precisamente lo que un <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> chico
+representa. Su valor no es «el verdadero» que el simulador debería copiar.</p>
+
+<p>Por eso los resultados van con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador y las tablas traen
+una columna <strong>«<span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> × 6,0»</strong> como
+sensibilidad de calibración: dice cuánto crecería cada efecto si la elección modal fuera
+tan determinista como sugiere el laboratorio. Cuando un efecto se vea chico, esa columna
+contesta la pregunta obligada — <em>¿chico de verdad, o chico porque el modelo elige con
+demasiado ruido?</em></p>
 
 
 <h2 id="resultados">5. Resultados</h2>
@@ -269,46 +298,46 @@ desploma, y de eso depende si la persona recupera o no.</p>
 
 <p class="titulo-tabla"><span class="n">Tabla 4</span>Alrededor del umbral — C1, <span class="sim">k</span> = 3, <span class="sim">d</span> = 1,28</p>
 <div class="envoltorio-tabla"><table>
-  <thead><tr><th rowspan='2' class='n'><span class="sim">r</span></th><th rowspan='2' class='n'><span class="sim">Δ</span> (min)</th><th colspan='2'><span class="sim">P</span> tras el shock</th><th colspan='2'>efecto corto plazo (pp)</th><th colspan='2'>efecto largo plazo (pp)</th><th colspan='2'>vida media (días)</th></tr><tr><th class='n'><span class="sim">k_e</span> = 1</th><th class='n'><span class="sim">k_e</span> = 5,98</th><th class='n'><span class="sim">k_e</span> = 1</th><th class='n'><span class="sim">k_e</span> = 5,98</th><th class='n'><span class="sim">k_e</span> = 1</th><th class='n'><span class="sim">k_e</span> = 5,98</th><th class='n'><span class="sim">k_e</span> = 1</th><th class='n'><span class="sim">k_e</span> = 5,98</th></tr></thead>
-  <tbody><tr><td class='n'>0,5</td><td class='n'>6,2</td><td class='n'>0,555</td><td class='n'><strong>0,791</strong></td><td class='n'>−2,6</td><td class='n'><strong>−5,3</strong></td><td class='n'>0,0</td><td class='n'><strong>0,0</strong></td><td class='n'>5</td><td class='n'><strong>2</strong></td></tr><tr><td class='n'>1,0</td><td class='n'>12,3</td><td class='n'>0,509</td><td class='n'><strong>0,556</strong></td><td class='n'>−5,3</td><td class='n'><strong>−17,4</strong></td><td class='n'>0,0</td><td class='n'><strong>0,0</strong></td><td class='n'>5</td><td class='n'><strong>3</strong></td></tr><tr><td class='n'>1,5</td><td class='n'>18,5</td><td class='n'>0,463</td><td class='n'><strong>0,293</strong></td><td class='n'>−8,2</td><td class='n'><strong>−39,3</strong></td><td class='n'>−0,1</td><td class='n'><strong>−0,1</strong></td><td class='n'>6</td><td class='n'><strong>6</strong></td></tr><tr><td class='n'>2,0</td><td class='n'>24,6</td><td class='n'>0,418</td><td class='n'><strong>0,121</strong></td><td class='n'>−11,3</td><td class='n'><strong>−59,5</strong></td><td class='n'>−0,1</td><td class='n'><strong>−0,1</strong></td><td class='n'>7</td><td class='n'><strong>11</strong></td></tr><tr><td class='n'>3,0</td><td class='n'>37,0</td><td class='n'>0,331</td><td class='n'><strong>0,015</strong></td><td class='n'>−17,7</td><td class='n'><strong>−73,4</strong></td><td class='n'>−0,1</td><td class='n'><strong>−12,2</strong></td><td class='n'>8</td><td class='n'><strong>52</strong></td></tr><tr><td class='n'>4,0</td><td class='n'>49,3</td><td class='n'>0,255</td><td class='n'><strong>0,002</strong></td><td class='n'>−23,7</td><td class='n'><strong>−78,8</strong></td><td class='n'>−0,2</td><td class='n'><strong>−76,8</strong></td><td class='n'>9</td><td class='n'><strong>—</strong></td></tr><tr><td class='n'>6,0</td><td class='n'>73,9</td><td class='n'>0,140</td><td class='n'><strong>0,000</strong></td><td class='n'>−33,2</td><td class='n'><strong>−81,8</strong></td><td class='n'>−0,3</td><td class='n'><strong>−91,7</strong></td><td class='n'>13</td><td class='n'><strong>—</strong></td></tr></tbody>
+  <thead><tr><th rowspan='2' class='n'><span class="sim">r</span></th><th rowspan='2' class='n'><span class="sim">Δ</span> (min)</th><th colspan='2'><span class="sim">P</span> tras el shock</th><th colspan='2'>efecto corto plazo (pp)</th><th colspan='2'>efecto largo plazo (pp)</th><th colspan='2'>vida media (días)</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th></tr></thead>
+  <tbody><tr><td class='n'>0,5</td><td class='n'>6,2</td><td class='n'>0,555</td><td class='n'>0,791</td><td class='n'>−2,6</td><td class='n'>−5,3</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>5</td><td class='n'>2</td></tr><tr><td class='n'>1,0</td><td class='n'>12,3</td><td class='n'>0,509</td><td class='n'>0,556</td><td class='n'>−5,3</td><td class='n'>−17,4</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>5</td><td class='n'>3</td></tr><tr><td class='n'>1,5</td><td class='n'>18,5</td><td class='n'>0,463</td><td class='n'>0,293</td><td class='n'>−8,2</td><td class='n'>−39,3</td><td class='n'>−0,1</td><td class='n'>−0,1</td><td class='n'>6</td><td class='n'>6</td></tr><tr><td class='n'>2,0</td><td class='n'>24,6</td><td class='n'>0,418</td><td class='n'>0,121</td><td class='n'>−11,3</td><td class='n'>−59,5</td><td class='n'>−0,1</td><td class='n'>−0,1</td><td class='n'>7</td><td class='n'>11</td></tr><tr><td class='n'>3,0</td><td class='n'>37,0</td><td class='n'>0,331</td><td class='n'>0,015</td><td class='n'>−17,7</td><td class='n'>−73,4</td><td class='n'>−0,1</td><td class='n'>−12,2</td><td class='n'>8</td><td class='n'>52</td></tr><tr><td class='n'>4,0</td><td class='n'>49,3</td><td class='n'>0,255</td><td class='n'>0,002</td><td class='n'>−23,7</td><td class='n'>−78,8</td><td class='n'>−0,2</td><td class='n'>−76,8</td><td class='n'>9</td><td class='n'>—</td></tr><tr><td class='n'>6,0</td><td class='n'>73,9</td><td class='n'>0,140</td><td class='n'>0,000</td><td class='n'>−33,2</td><td class='n'>−81,8</td><td class='n'>−0,3</td><td class='n'>−91,7</td><td class='n'>13</td><td class='n'>—</td></tr></tbody>
 </table></div>
-<p class="pie-tabla">El umbral de este caso es <span class="sim">Δ*</span> = 13,6 min, entre <span class="sim">r</span> = 1,0 y 1,5. Con la escala vieja cruzarlo casi no se nota: el efecto de largo plazo nunca pasa de −0,3 y todo se recupera en días. A la escala de Guevara (negrita) la misma fila cambia de naturaleza: a partir de <span class="sim">r</span> = 3 el efecto se queda, y desde <span class="sim">r</span> = 4 ya no hay recuperación dentro del horizonte («—»).</p>
+<p class="pie-tabla">El umbral de este caso es <span class="sim">Δ*</span> = 13,6 min, entre <span class="sim">r</span> = 1,0 y 1,5. Con los β del simulador cruzarlo casi no se nota: el efecto de largo plazo nunca pasa de −0,3 y todo se recupera en días. Con los β de la literatura (negrita) la misma fila cambia de naturaleza: a partir de <span class="sim">r</span> = 3 el efecto se queda, y desde <span class="sim">r</span> = 4 ya no hay recuperación dentro del horizonte («—»).</p>
 
 <h3>5.3 Recuperación o trampa</h3>
 
 <p>Las dos figuras siguientes son el mismo gráfico en las dos escalas, y son el
 resultado central de E1.</p>
 
-<figure><img src="salida/e1-trayectorias-C1-d1.28.png" alt="Figura 2"><figcaption><span class="n">Figura 2</span>Trayectoria día a día con la escala vieja (<span class="mat" data-tex="k_e"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">k_e</annotation></semantics></math></span> = 1), caso C1, <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> = 1,28. Izquierda: una experiencia mala; derecha: cinco. Todas las curvas vuelven al control — el daño es transitorio en toda la grilla.</figcaption></figure>
+<figure><img src="salida/e1-trayectorias-C1-d1.28.png" alt="Figura 2"><figcaption><span class="n">Figura 2</span>Trayectoria día a día con los β del simulador (<span class="mat" data-tex="k_e"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">k_e</annotation></semantics></math></span> = 1), caso C1, <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> = 1,28. Izquierda: una experiencia mala; derecha: cinco. Todas las curvas vuelven al control — el daño es transitorio en toda la grilla.</figcaption></figure>
 
-<figure><img src="salida/e1-trayectorias-C1-d1.28-guevara.png" alt="Figura 3"><figcaption><span class="n">Figura 3</span>Lo mismo a la escala de Guevara. Con <span class="mat" data-tex="k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span> = 5 y <span class="mat" data-tex="\Delta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi></mrow><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></span> = 6<span class="mat" data-tex="A"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span> la curva cae a cero y <strong>se queda plana los 250 días</strong>. Con <span class="mat" data-tex="k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span> = 1 el mismo shock todavía se recupera, aunque lento.</figcaption></figure>
+<figure><img src="salida/e1-trayectorias-C1-d1.28-guevara.png" alt="Figura 3"><figcaption><span class="n">Figura 3</span>Lo mismo con los β de la literatura. Con <span class="mat" data-tex="k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span> = 5 y <span class="mat" data-tex="\Delta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi></mrow><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></span> = 6<span class="mat" data-tex="A"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span> la curva cae a cero y <strong>se queda plana los 250 días</strong>. Con <span class="mat" data-tex="k"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span> = 1 el mismo shock todavía se recupera, aunque lento.</figcaption></figure>
 
-<p class="titulo-tabla"><span class="n">Tabla 5</span>Mapa de la trampa — efecto de largo plazo (pp), C1, <span class="sim">d</span> = 1,28, escala de Guevara</p>
+<p class="titulo-tabla"><span class="n">Tabla 5</span>Mapa de la trampa — efecto de largo plazo (pp), C1, <span class="sim">d</span> = 1,28, sensibilidad de calibración</p>
 <div class="envoltorio-tabla"><table>
   <thead><tr><th class='n'><span class="sim">k</span> \ <span class="sim">r</span></th><th class='n'>0,5</th><th class='n'>1,0</th><th class='n'>1,5</th><th class='n'>2,0</th><th class='n'>3,0</th><th class='n'>4,0</th><th class='n'>6,0</th></tr></thead>
   <tbody><tr><td class='n'>1</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>−0,3</td><td class='n'>−34,6</td></tr><tr><td class='n'>2</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>−0,1</td><td class='n'>−1,2</td><td class='n'>−28,3</td><td class='n'>−90,4</td></tr><tr><td class='n'>3</td><td class='n'>0,0</td><td class='n'>0,0</td><td class='n'>−0,1</td><td class='n'>−0,1</td><td class='n'>−12,2</td><td class='n'>−76,8</td><td class='n'>−91,7</td></tr><tr><td class='n'>5</td><td class='n'>0,0</td><td class='n'>−0,1</td><td class='n'>−0,1</td><td class='n'>−0,7</td><td class='n'>−62,7</td><td class='n'>−91,4</td><td class='n'>−91,7</td></tr><tr><td class='n'>10</td><td class='n'>−0,1</td><td class='n'>−0,2</td><td class='n'>−0,5</td><td class='n'>−15,7</td><td class='n'>−90,4</td><td class='n'>−91,4</td><td class='n'>−91,7</td></tr></tbody>
 </table></div>
-<p class="pie-tabla">Días 51–250 contra el control. Hay una frontera nítida: arriba y a la derecha de ella el daño es permanente y se estabiliza cerca de −91,7, que es el abandono casi total del modo mejor. Abajo y a la izquierda, la recuperación es completa. <strong>La misma tabla con la escala vieja no tiene ninguna celda bajo −7,3</strong>: ahí el daño permanente, sencillamente, no existe.</p>
+<p class="pie-tabla">Días 51–250 contra el control. Hay una frontera nítida: arriba y a la derecha de ella el daño es permanente y se estabiliza cerca de −91,7, que es el abandono casi total del modo mejor. Abajo y a la izquierda, la recuperación es completa. <strong>La misma tabla con los β del simulador no tiene ninguna celda bajo −7,3</strong>: ahí el daño permanente, sencillamente, no existe.</p>
 
-<figure><img src="salida/e1-horizontes-C1-d1.28-guevara.png" alt="Figura 4"><figcaption><span class="n">Figura 4</span>Efecto por horizonte a la escala de Guevara. Se lee comparando paneles: lo que en el corto plazo le pasa a todas las combinaciones, en el largo plazo sólo les queda a las que cruzaron la frontera de la tabla 5.</figcaption></figure>
+<figure><img src="salida/e1-horizontes-C1-d1.28-guevara.png" alt="Figura 4"><figcaption><span class="n">Figura 4</span>Efecto por horizonte con los β de la literatura. Se lee comparando paneles: lo que en el corto plazo le pasa a todas las combinaciones, en el largo plazo sólo les queda a las que cruzaron la frontera de la tabla 5.</figcaption></figure>
 
 <h3>5.4 ¿Predice la fórmula?</h3>
 
 <p class="titulo-tabla"><span class="n">Tabla 6</span>Verificación de la ec. (8) — C1, <span class="sim">d</span> = 1,28</p>
 <div class="envoltorio-tabla"><table>
-  <thead><tr><th class='n'><span class="sim">k</span></th><th class='n'><span class="sim">r</span></th><th colspan='2'><span class="sim">k_e</span> = 1</th><th colspan='2'><span class="sim">k_e</span> = 5,98</th></tr><tr><th></th><th></th><th class='n'>analítica</th><th class='n'>simulada</th><th class='n'>analítica</th><th class='n'>simulada</th></tr></thead>
+  <thead><tr><th class='n'><span class="sim">k</span></th><th class='n'><span class="sim">r</span></th><th colspan='2'>simulador</th><th colspan='2'>β × 6,0</th></tr><tr><th></th><th></th><th class='n'>analítica</th><th class='n'>simulada</th><th class='n'>analítica</th><th class='n'>simulada</th></tr></thead>
   <tbody><tr><td class='n'>1</td><td class='n'>1,0</td><td class='n'>0,5297</td><td class='n'>0,5246</td><td class='n'>0,6707</td><td class='n'>0,6665</td></tr><tr><td class='n'>1</td><td class='n'>3,0</td><td class='n'>0,3873</td><td class='n'>0,3729</td><td class='n'>0,0604</td><td class='n'>0,0581</td></tr><tr><td class='n'>3</td><td class='n'>1,0</td><td class='n'>0,5095</td><td class='n'>0,5067</td><td class='n'>0,5564</td><td class='n'>0,5476</td></tr><tr><td class='n'>3</td><td class='n'>3,0</td><td class='n'>0,3314</td><td class='n'>0,3216</td><td class='n'>0,0148</td><td class='n'>0,0086</td></tr><tr><td class='n'>10</td><td class='n'>1,0</td><td class='n'>0,5020</td><td class='n'>0,5012</td><td class='n'>0,5120</td><td class='n'>0,5082</td></tr></tbody>
 </table></div>
 <p class="pie-tabla">La fórmula predice la simulación en las dos escalas. Sobre <em>todas</em> las celdas de los tres casos y los tres <span class="sim">d</span> en que al menos la mitad de las réplicas llega a las <span class="sim">k</span> experiencias, la desviación máxima es 0,0242. Las celdas donde no llega —ver tabla 7— quedan fuera porque ahí la cantidad simulada se promedia sobre muy pocas réplicas o sobre ninguna.</p>
 
 <h3>5.5 La persona se protege sola</h3>
 
-<p class="titulo-tabla"><span class="n">Tabla 7</span>Autotruncamiento — % de réplicas que llega a recibir las <span class="sim">k</span> experiencias (C1, <span class="sim">d</span> = 1,28, escala de Guevara)</p>
+<p class="titulo-tabla"><span class="n">Tabla 7</span>Autotruncamiento — % de réplicas que llega a recibir las <span class="sim">k</span> experiencias (C1, <span class="sim">d</span> = 1,28, sensibilidad de calibración)</p>
 <div class="envoltorio-tabla"><table>
   <thead><tr><th class='n'><span class="sim">k</span> \ <span class="sim">r</span></th><th class='n'>0,5</th><th class='n'>1,0</th><th class='n'>1,5</th><th class='n'>2,0</th><th class='n'>3,0</th><th class='n'>4,0</th><th class='n'>6,0</th></tr></thead>
   <tbody><tr><td class='n'>1</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td></tr><tr><td class='n'>2</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>83,4</td></tr><tr><td class='n'>3</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>92,6</td><td class='n'>2,8</td></tr><tr><td class='n'>5</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>94,0</td><td class='n'>4,6</td><td class='n'>0,0</td></tr><tr><td class='n'>10</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>100,0</td><td class='n'>1,6</td><td class='n'>0,0</td><td class='n'>0,0</td></tr></tbody>
 </table></div>
-<p class="pie-tabla">Los shocks se entregan cuando la persona <em>elige</em> el modo, así que abandonar antes de tiempo la protege de recibir el resto. Con <span class="sim">k</span> = 10 y <span class="sim">r</span> = 3 sólo el 1,6 % llega. En toda la grilla hay 68 celdas de 315 donde <strong>ninguna</strong> réplica llega, contra 6 con la escala vieja. No es un defecto del diseño: es el mecanismo. Pero sí obliga a leer las celdas extremas como «<span class="sim">k</span> intentos de shock», no «<span class="sim">k</span> shocks recibidos».</p>
+<p class="pie-tabla">Los shocks se entregan cuando la persona <em>elige</em> el modo, así que abandonar antes de tiempo la protege de recibir el resto. Con <span class="sim">k</span> = 10 y <span class="sim">r</span> = 3 sólo el 1,6 % llega. En toda la grilla hay 68 celdas de 315 donde <strong>ninguna</strong> réplica llega, contra 6 con los β del simulador. No es un defecto del diseño: es el mecanismo. Pero sí obliga a leer las celdas extremas como «<span class="sim">k</span> intentos de shock», no «<span class="sim">k</span> shocks recibidos».</p>
 
 <figure><img src="salida/e1-distribuciones-C1-d1.28-guevara.png" alt="Figura 5"><figcaption><span class="n">Figura 5</span>Distribución entre réplicas, no sólo el promedio. En el largo plazo la distribución se parte en dos: réplicas que volvieron al control y réplicas que se quedaron abajo. El promedio de la tabla 5 es la mezcla de esas dos poblaciones, no el estado típico de nadie.</figcaption></figure>
 
@@ -316,8 +345,8 @@ resultado central de E1.</p>
 
 <p class="titulo-tabla"><span class="n">Tabla 8</span>Los tres casos — <span class="sim">k</span> = 3, <span class="sim">r</span> = 2,0, <span class="sim">d</span> = 1,28</p>
 <div class="envoltorio-tabla"><table>
-  <thead><tr><th>caso</th><th class='n'><span class="sim">A</span> (min)</th><th class='n'><span class="sim">Δ</span> (min)</th><th class='n'><span class="sim">P*</span> (Guevara)</th><th class='n'><span class="sim">P_post</span> (Guevara)</th><th class='n'>largo plazo, <span class="sim">k_e</span> = 1</th><th class='n'>largo plazo, <span class="sim">k_e</span> = 5,98</th></tr></thead>
-  <tbody><tr><td>C1</td><td class='n'>12,3</td><td class='n'>24,6</td><td class='n'>0,9198</td><td class='n'>0,1206</td><td class='n'>−0,1</td><td class='n'><strong>−0,1</strong></td></tr><tr><td>C2</td><td class='n'>33,4</td><td class='n'>66,7</td><td class='n'>0,9987</td><td class='n'>0,0046</td><td class='n'>−0,1</td><td class='n'><strong>−19,9</strong></td></tr><tr><td>C3</td><td class='n'>52,7</td><td class='n'>105,4</td><td class='n'>1,0000</td><td class='n'>0,0002</td><td class='n'>−0,1</td><td class='n'><strong>−89,4</strong></td></tr></tbody>
+  <thead><tr><th>caso</th><th class='n'><span class="sim">A</span> (min)</th><th class='n'><span class="sim">Δ</span> (min)</th><th class='n'><span class="sim">P*</span> (Guevara)</th><th class='n'><span class="sim">P_post</span> (Guevara)</th><th class='n'>largo plazo (simulador)</th><th class='n'>largo plazo (β × 6,0)</th></tr></thead>
+  <tbody><tr><td>C1</td><td class='n'>12,3</td><td class='n'>24,6</td><td class='n'>0,9198</td><td class='n'>0,1206</td><td class='n'>−0,1</td><td class='n'>−0,1</td></tr><tr><td>C2</td><td class='n'>33,4</td><td class='n'>66,7</td><td class='n'>0,9987</td><td class='n'>0,0046</td><td class='n'>−0,1</td><td class='n'>−19,9</td></tr><tr><td>C3</td><td class='n'>52,7</td><td class='n'>105,4</td><td class='n'>1,0000</td><td class='n'>0,0002</td><td class='n'>−0,1</td><td class='n'>−89,4</td></tr></tbody>
 </table></div>
 <p class="pie-tabla">Acá el caso más dominante es el <strong>más</strong> dañado, al revés que en E2. La razón está en la columna <span class="sim">Δ</span>: como el shock se define en múltiplos de la ventaja, C3 recibe 105 min de penalización contra 25 de C1. Eso hunde su <span class="sim">P_post</span> a 0,00020: deja de muestrear el modo y no tiene cómo enterarse de que ya no es malo.</p>
 
@@ -339,13 +368,13 @@ castiga rápido y perdona sólo si le das la oportunidad.</p>
 
 <h3>6.2 Por qué con μ = 1 no había trampa</h3>
 
-<p>Con la escala vieja, el <span class="mat" data-tex="P_{\text{post}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mtext>post</mtext></msub></mrow><annotation encoding="application/x-tex">P_{\text{post}}</annotation></semantics></math></span> más bajo de toda la grilla del
+<p>Con los β del simulador, el <span class="mat" data-tex="P_{\text{post}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mtext>post</mtext></msub></mrow><annotation encoding="application/x-tex">P_{\text{post}}</annotation></semantics></math></span> más bajo de toda la grilla del
 caso de referencia es 0,120. Eso es un 12 % de probabilidad
 de volver a probar el modo <em>cada día</em>: en una semana la persona vuelve casi
 seguro, recibe información nueva y se recupera. Por eso todas las curvas de la figura 2
 vuelven al control.</p>
 
-<p>A la escala de Guevara ese mismo <span class="mat" data-tex="P_{\text{post}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mtext>post</mtext></msub></mrow><annotation encoding="application/x-tex">P_{\text{post}}</annotation></semantics></math></span> se va a órdenes de
+<p>Con los β de la literatura ese mismo <span class="mat" data-tex="P_{\text{post}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mtext>post</mtext></msub></mrow><annotation encoding="application/x-tex">P_{\text{post}}</annotation></semantics></math></span> se va a órdenes de
 0,00001. Ahí la persona no vuelve a
 probar nunca, y lo que era una caída transitoria se vuelve permanente. <strong>No es
 que la escala amplifique el efecto: es que crea el fenómeno</strong>, porque la
@@ -404,7 +433,7 @@ pregunta de investigación.</p>
       <span class="mat" data-tex="P_{\text{post}}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mtext>post</mtext></msub></mrow><annotation encoding="application/x-tex">P_{\text{post}}</annotation></semantics></math></span> caiga tan bajo que la persona deje de muestrear.</li>
   <li><strong>La trampa permanente sólo aparece a escala realista.</strong> Con
       <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1 el peor efecto de largo plazo de las 105
-      combinaciones es −19,7 —ruido—; a la escala de Guevara llega a −91,7 y no se
+      combinaciones es −19,7 —ruido—; con los β de la literatura llega a −91,7 y no se
       recupera dentro de los 250 días.</li>
   <li><strong>La persona se autotrunca.</strong> En buena parte de la grilla abandona
       antes de recibir todos los shocks, lo que protege de más información mala y
@@ -419,7 +448,7 @@ pregunta de investigación.</p>
 
 <ul>
   <li>Rehacer E3 (ciudad completa) y E4 (cuatro modos) a esta escala; hoy no tienen
-      corrida en la escala de Guevara.</li>
+      corrida en la sensibilidad de calibración.</li>
   <li>Mapear la frontera de persistencia con una grilla más fina entre
       <span class="mat" data-tex="r"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span> = 2 y 4, que es donde cambia de régimen.</li>
   <li>Medir shock y variabilidad juntos, que es lo que pasa en la realidad.</li>

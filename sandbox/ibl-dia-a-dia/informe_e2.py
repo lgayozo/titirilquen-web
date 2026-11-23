@@ -27,7 +27,7 @@ K = GUEV["escala"]
 CB = {c["nombre"]: c for c in BASE["casos"]}
 CG = {c["nombre"]: c for c in GUEV["casos"]}
 
-# Caso y configuracion de referencia. C1 es el unico que a la escala de Guevara
+# Caso y configuracion de referencia. C1 es el unico que con los β de la literatura
 # no esta saturado (P* = 0,92 frente a 0,999 de C2 y C3), y d = 1,28 es el
 # decaimiento que Guevara, Tang y Gao (2018, tabla 4) estiman con datos reales.
 REF, D_REF, W = "C1", 1.28, "largo"
@@ -60,38 +60,43 @@ def par(caso: str, d: float, cond: str, sigma: float) -> tuple[dict, dict]:
 
 
 def s1() -> str:
-    _, g = par(REF, D_REF, "solo_mejor", 80.0)
-    amb_b, amb_g = par(REF, D_REF, "ambos", 80.0)
-    _, pg = par(REF, D_REF, "solo_peor", 80.0)
+    mb, mg = par(REF, D_REF, "solo_mejor", 80.0)
+    ab, ag = par(REF, D_REF, "ambos", 80.0)
+    pb, pg = par(REF, D_REF, "solo_peor", 80.0)
     return f"""
 <h2 id="preguntas">1. Preguntas de investigación</h2>
 
 <p>E2 pregunta qué le hace la <strong>variabilidad del tiempo de viaje</strong> a una
-persona que elige todos los días y sólo observa lo que eligió. Cuatro preguntas, con
-la respuesta corta al lado; el resto del informe las sostiene.</p>
+persona que elige todos los días y sólo observa lo que eligió. Cuatro preguntas, con la
+respuesta corta al lado; el resto del informe las sostiene. Los números son los del
+simulador —sus {tex(r"\beta")}, {tex(r"\mu")} = 1— y la §4 explica qué tan lejos podrían
+estar.</p>
 
 <p><strong>P1. ¿Cuánta de la ventaja verdadera del modo mejor sobrevive al
-aprendizaje?</strong> Menos de la que uno esperaría, y de forma muy no lineal. Con el
-caso de referencia ({REF}, ventaja {num(CB[REF]["ventaja_min"], 1)} min) y ruido en los
-dos modos, {tex(r"\Phi")} cae de 1 a {num(amb_g["phi"][W], 2)} cuando
-{tex(r"\sigma")} llega a 80 min. Con la escala vieja del simulador la misma celda daba
-{num(amb_b["phi"][W], 2)}: el experimento no tenía resolución para verlo.</p>
+aprendizaje?</strong> En promedio, casi toda: con el caso de referencia ({REF}, ventaja
+{num(CB[REF]["ventaja_min"], 1)} min) y ruido en los dos modos, {tex(r"\Phi")} cae de 1 a
+{num(ab["phi"][W], 2)} aun con {tex(r"\sigma")} = 80 min. Esa respuesta tranquilizadora
+es justamente la que P2 desarma.</p>
 
 <p><strong>P2. ¿Importa en cuál de los dos modos está la variabilidad?</strong> Es
-<em>lo único</em> que importa de verdad. Con {tex(r"\sigma")} = 80 min sobre el modo
-<em>mejor</em>, {tex(r"\Phi")} = {num(g["phi"][W], 2)} —negativo: en promedio la
-persona elige el modo <em>peor</em>— y el {num(100 * g["ventanas"][W]["invertidos"], 1)} %
-de las personas queda invertido. El mismo ruido sobre el modo <em>peor</em> da
-{tex(r"\Phi")} = {num(pg["phi"][W], 2)}, o sea <em>mejora</em> la decisión.</p>
+<em>lo único</em> que importa de verdad, y es el resultado de E2. Con
+{tex(r"\sigma")} = 80 min sobre el modo <em>mejor</em>, {tex(r"\Phi")} baja a
+{num(mb["phi"][W], 2)} y el {num(100 * mb["ventanas"][W]["invertidos"], 1)} % de las
+personas queda <strong>invertido</strong>: elige sistemáticamente el modo peor. El mismo
+ruido sobre el modo <em>peor</em> da {tex(r"\Phi")} = {num(pb["phi"][W], 2)}, o sea
+<em>mejora</em> la decisión. El promedio de P1 es la mezcla de esos dos signos.</p>
 
 <p><strong>P3. ¿El daño viene de que la creencia se desplaza o de que se
-dispersa?</strong> De las dos, y cuál manda depende de dónde está el ruido. Con ruido
-en ambos modos domina la dispersión; con ruido sólo en el mejor domina el
-desplazamiento, que es el <em>hot stove</em> en su forma de manual.</p>
+dispersa?</strong> De las dos, y cuál manda depende de dónde está el ruido. Con ruido en
+ambos modos domina la dispersión; con ruido sólo en el mejor domina el desplazamiento,
+que es el <em>hot stove</em> en su forma de manual.</p>
 
-<p><strong>P4. ¿La escala del logit cambia la respuesta?</strong> Cambia el signo de
-la conclusión, no sólo su tamaño. Es el hallazgo que motivó rehacer E2 y la §4 explica
-por qué la escala no es un detalle de calibración.</p>
+<p><strong>P4. ¿Cuánto de esto depende de la calibración?</strong> El mecanismo no, el
+tamaño sí, y bastante. Si los {tex(r"\beta")} de transporte fueran los que sugiere la
+literatura de elección repetida —{num(K, 1)} veces mayores, §4— las mismas tres celdas
+darían {num(ag["phi"][W], 2)}, {num(mg["phi"][W], 2)} y {num(pg["phi"][W], 2)}: con ruido
+en el modo mejor {tex(r"\Phi")} se vuelve <em>negativo</em> y los invertidos pasan a
+{num(100 * mg["ventanas"][W]["invertidos"], 1)} %. Cada tabla trae esa columna.</p>
 """
 
 
@@ -143,11 +148,11 @@ desviación {tex(r"\sigma")}.</p>
             "<tr><th>caso</th><th>estrato</th><th class='n'>km</th>"
             "<th class='n'>auto (min)</th><th class='n'>metro (min)</th><th>mejor</th>"
             f"<th class='n'>{_a()} (min)</th>"
-            f"<th class='n'>{sim('P*')} con {sim('k')} = 1</th>"
-            f"<th class='n'>{sim('P*')} con {sim('k')} = {num(K, 2)}</th></tr>",
+            f"<th class='n'>{sim('P*')} (simulador)</th>"
+            f"<th class='n'>{sim('P*')} (β × {num(K, 1)})</th></tr>",
             filas,
             f"Los tiempos y la ventaja {_a()} no dependen de la escala; la probabilidad "
-            f"verdadera P* sí. A la escala de Guevara, C2 y C3 están <strong>saturados</strong> "
+            f"verdadera P* sí. Con los β de la literatura, C2 y C3 están <strong>saturados</strong> "
             f"(P* ≥ {num(CG['C2']['p_verdadera'], 3)}): casi no queda margen para que el "
             f"aprendizaje empeore nada medible. Por eso el caso de referencia de este informe "
             f"es {REF}, el único con rango útil, y C2 y C3 entran como control.",
@@ -227,7 +232,7 @@ personas y días. Lo que daría sólo la dispersión, con la media en su valor v
 es {tex(r"P_{disp} = \mathbb{E}\bigl[\Lambda(\Delta V + \hat s Z)\bigr]")}, y
 entonces</p>
 
-{ec(r"\underbrace{S - P^*}_{total} \;=\; \underbrace{P_{disp} - P^*}_{dispersión} \;+\; \underbrace{S - P_{disp}}_{sesgo}", 7)}
+{ec(r"\underbrace{S - P^*}_{\text{total}} \;=\; \underbrace{P_{\text{disp}} - P^*}_{\text{dispersión}} \;+\; \underbrace{S - P_{\text{disp}}}_{\text{sesgo}}", 7)}
 
 <p>La <strong>dispersión</strong> es puro Jensen: {tex(r"\Lambda")} es cóncava arriba
 de ½, así que ruido simétrico alrededor de una ventaja positiva siempre acerca a ½.
@@ -242,11 +247,7 @@ es lo que falta: cuánto se corrió la creencia media. Ahí vive el <em>hot stov
 
 
 def s4() -> str:
-    bb, bg = abs(CB[REF]["beta"]), abs(CG[REF]["beta"])
-    sb = r2(BASE, REF, D_REF, "ambos", 80.0)["sigma_utiles"]
-    sg = r2(GUEV, REF, D_REF, "ambos", 80.0)["sigma_utiles"]
-    ruido = 3.141592653589793 / 3**0.5
-    k_tex = r"k \;=\; \frac{" + ntex(bg, 3) + "}{" + ntex(bb, 4) + r"} \;=\; " + ntex(K, 3)
+    bsim, blit = abs(CB[REF]["beta"]), abs(CG[REF]["beta"])
     t2 = tabla(
         2,
         "Guevara, Tang y Gao (2018), tabla 4, dataset completo",
@@ -259,57 +260,77 @@ def s4() -> str:
         "<tr><td>error estándar</td><td class='n'>0,137</td><td class='n'>0,015</td>"
         "<td class='n'>0,013</td><td class='n'>0,144</td><td class='n'>0,12</td>"
         "<td class='n'>0,192</td></tr>",
-        "TIMEF y TIMES son los coeficientes del tiempo percibido de la ruta rápida y la "
-        "lenta: <strong>no son un rango</strong>, son dos coeficientes específicos de "
-        "alternativa dentro de un mismo modelo (su ec. 15). Tomamos TIMEF = −0,198, el de "
-        "la ruta que la mayoría elige. LRISK y FRISKY son dummies de escenario y CWA la "
-        "inercia de repetir lo elegido; ninguno tiene análogo acá.",
+        "TIMEF multiplica el tiempo <em>percibido</em> de la ruta rápida (su ec. 15), "
+        "no el real: es el análogo exacto de nuestro tiempo del IBL. TIMES es el de la "
+        "ruta lenta — son dos coeficientes específicos de alternativa dentro del mismo "
+        "modelo, no un rango. De acá sale también el d = 1,28 que usamos de referencia, "
+        "que el paper subraya como estimado y no fijado.",
+    )
+    razon = (
+        r"\frac{|\beta|_{\text{lit}}}{|\beta|_{\text{sim}}} \;=\; \frac{"
+        + ntex(blit, 3)
+        + "}{"
+        + ntex(bsim, 4)
+        + r"} \;=\; "
+        + ntex(blit / bsim, 3)
     )
     return f"""
-<h2 id="escala">4. La escala del logit, y por qué no es un detalle</h2>
+<h2 id="escala">4. La calibración de {tex(r"\beta")}, y qué tan lejos puede estar</h2>
 
-<p>El simulador venía con {tex(r"\beta")} = {num(-bb, 4)} útiles/min y
-{tex(r"\mu")} = 1. Ese número no se estimó con elecciones repetidas de una misma
-persona: viene de la calibración del modelo de ciudad. Guevara, Tang y Gao (2018)
-estiman un IBL con los datos de laboratorio de ruta de Ben-Elia y Shiftan (2010) —que
-es casi exactamente el experimento que E2 simula— y obtienen:</p>
+<p>Todo lo que sigue está calculado con los {tex(r"\beta")} del simulador. Esta sección
+explica qué son, por qué la literatura de elección repetida sugiere valores bastante
+mayores, y por qué eso se reporta como <strong>sensibilidad</strong> y no como
+corrección.</p>
+
+<h3>4.1 {tex(r"\mu")} = 1 no es una medición, es una convención</h3>
+
+<p>En un logit sólo se identifica el producto {tex(r"\mu\beta")}: multiplicar la escala
+por un número y dividir los coeficientes por el mismo deja <em>exactamente</em> las
+mismas probabilidades. Por eso el logit de transporte del simulador fija
+{tex(r"\mu")} = 1 —{linea("../../packages/titirilquen_core/src/titirilquen_core/demand/choice.py", "probabilidades_logit", "titirilquen_core/demand/choice.py")}
+calcula {tex("e^V")} a secas, sin ninguna escala— y son los {tex(r"\beta")} los que la
+absorben.</p>
+
+<p>La consecuencia importa: <strong>{tex(r"\mu")} no es una perilla disponible, ya está
+consumida</strong>. Los {tex(r"\beta")} valen lo que valen porque, con
+{tex(r"\mu")} = 1, reproducen una partición modal observada. (El {tex(r"\mu")} del uso
+de suelo es otra cosa: ahí sí es un parámetro de escenario, porque fija cuánto pesa el
+ruido de localizarse frente a una accesibilidad que ya trae su propia escala.)</p>
+
+<h3>4.2 Qué dice la literatura de elección repetida</h3>
+
+<p>Guevara, Tang y Gao (2018) estiman un IBL con los datos de laboratorio de ruta de
+Ben-Elia y Shiftan (2010) —que es casi exactamente el experimento que estos informes
+simulan— y obtienen:</p>
 
 {t2}
 
-<h3>4.1 Reescalar todo, no sólo el tiempo</h3>
+<p>Su coeficiente de tiempo es {num(-blit, 3)} útiles/min contra los
+{num(-bsim, 4)} del simulador:</p>
 
-<p>La tentación es cambiar {tex(r"\beta")} y dejar el resto. Sería un error: el valor
-del tiempo es el cociente {tex(r"\beta_t / \beta_c")}, así que mover sólo
-{tex(r"\beta_t")} lo multiplicaría por {num(K, 2)} y descalibraría además todas las
-constantes modales. <strong>Sería otro modelo, no otra escala.</strong></p>
+{ec(razon, 8)}
 
-<p>Lo correcto es multiplicar <em>toda</em> la utilidad por un factor</p>
+<h3>4.3 Por qué no lo adoptamos</h3>
 
-{ec(k_tex, 8)}
+<p>Tomar ese número <em>no</em> es «elegir otra escala». Como {tex(r"\mu")} ya está
+normalizado, equivale a afirmar que los {tex(r"\beta")} de transporte del simulador son
+seis veces chicos — es decir, que la elección modal del modelo es mucho más ruidosa de
+lo que sería en la realidad. Y eso contradice su calibración, que es lo que fija esos
+{tex(r"\beta")}.</p>
 
-<p>lo que es <strong>formalmente idéntico</strong> a fijar {tex(r"\mu = k")} dejando
-los coeficientes como estaban: en un logit, {tex(r"k \cdot V")} y
-{tex(r"(k\beta)\,x")} son la misma cosa. Eso preserva el valor del tiempo, todos los
-<em>trade-offs</em> y las constantes modales; lo único que cambia es cuán determinista
-es la elección. Es una reescala, y se la puede verificar: la ventaja {tex("A")} en
-minutos y el umbral crítico de E1 quedan idénticos hasta el último decimal, mientras
-que {tex(r"\sigma")} medido en útiles escala por {tex("k")} (de {num(sb, 2)} a
-{num(sg, 2)} útiles para {tex(r"\sigma")} = 80 min).</p>
+<p>Hay además una razón de fondo: <strong>la escala del logit no es transferible entre
+contextos de elección</strong>. El dato de Guevara viene de elegir entre dos rutas que
+difieren sólo en tiempo, en laboratorio, con información en pantalla. Elegir entre auto,
+metro, bici y caminata en una ciudad real es una decisión con mucha más heterogeneidad
+no observada — y esa heterogeneidad es precisamente lo que un {tex(r"\beta")} chico
+representa. Su valor no es «el verdadero» que el simulador debería copiar.</p>
 
-<h3>4.2 Por qué eso cambia las conclusiones</h3>
-
-<p>El logit trae su propio ruido: el término de Gumbel tiene desviación
-{tex(r"\pi/\sqrt3")} ≈ {num(ruido, 3)} útiles, y <strong>no depende de
-{tex("k")}</strong>. Lo que cambia con {tex("k")} es el tamaño de la señal y del ruido
-<em>del experimento</em> frente a ese piso fijo. Con {tex(r"\mu")} = 1 y
-{tex(r"\sigma")} = 80 min, la variabilidad valía {num(sb, 2)} útiles contra un piso de
-{num(ruido, 2)}: una razón de {num(sb / ruido, 2)}. A la escala de Guevara vale
-{num(sg, 2)} útiles, razón {num(sg / ruido, 1)}.</p>
-
-<p>Dicho sin fórmulas: <strong>con {tex(r"\mu")} = 1 el experimento estaba midiendo el
-ruido del logit, no la variabilidad del tiempo de viaje.</strong> Por eso E2 daba casi
-siempre {tex(r"\Phi")} ≈ 1, y la conclusión «la variabilidad casi no importa» era un
-artefacto de escala, no un resultado.</p>
+<p>Por eso los resultados van con los {tex(r"\beta")} del simulador y las tablas traen
+una columna <strong>«{tex(r"\beta")} × {num(blit / bsim, 1)}»</strong> como
+sensibilidad de calibración: dice cuánto crecería cada efecto si la elección modal fuera
+tan determinista como sugiere el laboratorio. Cuando un efecto se vea chico, esa columna
+contesta la pregunta obligada — <em>¿chico de verdad, o chico porque el modelo elige con
+demasiado ruido?</em></p>
 """
 
 
@@ -323,16 +344,15 @@ def s5() -> str:
         celdas = ""
         for cond in CONDS:
             a, g = par(REF, D_REF, cond, s)
-            celdas += f"<td class='n'>{num(a['phi'][W], 3)}</td><td class='n'><strong>{num(g['phi'][W], 3)}</strong></td>"
+            celdas += (
+                f"<td class='n'>{num(a['phi'][W], 3)}</td><td class='n'>{num(g['phi'][W], 3)}</td>"
+            )
         filas += f"<tr><td class='n'>{num(s, 0)}</td>{celdas}</tr>"
     cab = (
         f"<tr><th rowspan='2' class='n'>{sim('σ')} (min)</th>"
         + "".join(f"<th colspan='2'>ruido {NOM_COND[c]}</th>" for c in CONDS)
         + "</tr><tr>"
-        + "".join(
-            f"<th class='n'>{sim('k')} = 1</th><th class='n'>{sim('k')} = {num(K, 2)}</th>"
-            for _ in CONDS
-        )
+        + "".join(f"<th class='n'>simulador</th><th class='n'>β × {num(K, 1)}</th>" for _ in CONDS)
         + "</tr>"
     )
     t3 = tabla(
@@ -342,7 +362,7 @@ def s5() -> str:
         filas,
         "Cada par de columnas es la misma celda del diseño en las dos escalas. "
         "Con k = 1 (izquierda de cada par) casi nada se mueve de 1, y en «sólo en el "
-        "peor» <em>sube</em> hasta 1,44. A la escala de Guevara (negrita) el "
+        "peor» <em>sube</em> hasta 1,44. Con los β de la literatura (negrita) el "
         "experimento separa: el ruido sobre el modo mejor es devastador, el ruido "
         "sobre el peor es benigno, y el ruido en ambos queda en medio.",
     )
@@ -406,10 +426,7 @@ def s5() -> str:
         f"<th rowspan='2' class='n'>{sim('P*')} con {sim('k')} = {num(K, 2)}</th>"
         + "".join(f"<th colspan='2'>ruido {NOM_COND[c]}</th>" for c in CONDS)
         + "</tr><tr>"
-        + "".join(
-            f"<th class='n'>{sim('k')} = 1</th><th class='n'>{sim('k')} = {num(K, 2)}</th>"
-            for _ in CONDS
-        )
+        + "".join(f"<th class='n'>simulador</th><th class='n'>β × {num(K, 1)}</th>" for _ in CONDS)
         + "</tr>",
         filas5,
         "C2 y C3 están saturados: con P* ≥ 0,998 el denominador de Φ ya vale casi ½ y "
@@ -428,9 +445,9 @@ def s5() -> str:
 horizontal: está en útiles, así que la misma grilla de {tex(r"\sigma")} en minutos
 cubre un rango {num(K, 1)} veces más ancho en la segunda.</p>
 
-{fig("e2-phi.png", 1, f"Φ a {NOM_W['largo']} con la escala vieja (k = 1), por condición y caso. Todo pegado a 1, y «sólo en el peor» por encima.")}
+{fig("e2-phi.png", 1, f"Φ a {NOM_W['largo']} con los β del simulador (k = 1), por condición y caso. Todo pegado a 1, y «sólo en el peor» por encima.")}
 
-{fig("e2-phi-guevara.png", 2, f"Lo mismo con la escala de Guevara (k = {num(K, 2)}). Ahora el experimento separa, y C1 —la curva azul— es el que más se mueve, por ser el de ventaja más chica.")}
+{fig("e2-phi-guevara.png", 2, f"Lo mismo con los β de la literatura (k = {num(K, 2)}). Ahora el experimento separa, y C1 —la curva azul— es el que más se mueve, por ser el de ventaja más chica.")}
 
 <h3>5.2 El caso de referencia</h3>
 
@@ -447,7 +464,7 @@ puesto sólo en el peor, <em>sube</em> a
 
 {t4}
 
-{fig(f"e2-descomposicion-{REF}-d{D_REF}-guevara.png", 3, f"La ec. (7) celda por celda, en puntos porcentuales, para {REF} a la escala de Guevara. La barra azul (dispersión) apunta siempre hacia abajo; la roja (sesgo) cambia de signo y es la que decide el resultado neto.")}
+{fig(f"e2-descomposicion-{REF}-d{D_REF}-guevara.png", 3, f"La ec. (7) celda por celda, en puntos porcentuales, para {REF} con los β de la literatura. La barra azul (dispersión) apunta siempre hacia abajo; la roja (sesgo) cambia de signo y es la que decide el resultado neto.")}
 
 <h3>5.4 La memoria</h3>
 
@@ -463,26 +480,25 @@ puesto sólo en el peor, <em>sube</em> a
 
 
 def s6() -> str:
-    _, g_mej = par(REF, D_REF, "solo_mejor", 80.0)
-    _, g_peor = par(REF, D_REF, "solo_peor", 80.0)
-    dm = g_mej["descomposicion"][W]
-    dp = g_peor["descomposicion"][W]
+    mb, mg = par(REF, D_REF, "solo_mejor", 80.0)
+    pb, _ = par(REF, D_REF, "solo_peor", 80.0)
+    dm, dp = mb["descomposicion"][W], pb["descomposicion"][W]
     return f"""
 <h2 id="analisis">6. Análisis</h2>
 
 <h3>6.1 La asimetría es el resultado, no un detalle</h3>
 
-<p>El mecanismo es el que la literatura llama <em>hot stove</em>: si una experiencia
-sale mal, dejas de elegir esa opción, y al dejar de elegirla <strong>dejas de recibir
-la información que corregiría la creencia</strong>. La ec. (2) lo hace explícito —
-{tex(r"a_{ni}(t')")} apaga los días en que no elegiste—, así que una mala racha se
-congela en la memoria en vez de promediarse.</p>
+<p>El mecanismo es el que la literatura llama <em>hot stove</em>: si una experiencia sale
+mal, dejas de elegir esa opción, y al dejar de elegirla <strong>dejas de recibir la
+información que corregiría la creencia</strong>. La ec. (2) lo hace explícito —
+{tex(r"a_{ni}(t')")} apaga los días en que no elegiste—, así que una mala racha se congela
+en la memoria en vez de promediarse.</p>
 
 <p>Lo que E2 agrega es que ese mecanismo <strong>no tiene un signo propio</strong>: te
 hace abandonar lo que sea variable. Si lo variable es el modo bueno, es una trampa
-({tex(r"\Phi")} = {num(g_mej["phi"][W], 2)}, sesgo {pp(dm["sesgo"])}). Si lo variable
-es el modo malo, es una ayuda: te hace abandonar lo que igual te convenía abandonar
-({tex(r"\Phi")} = {num(g_peor["phi"][W], 2)}, sesgo {pp(dp["sesgo"])}).</p>
+({tex(r"\Phi")} = {num(mb["phi"][W], 2)}, sesgo {pp(dm["sesgo"])}). Si lo variable es el
+modo malo, es una ayuda: te hace abandonar lo que igual te convenía abandonar
+({tex(r"\Phi")} = {num(pb["phi"][W], 2)}, sesgo {pp(dp["sesgo"])}).</p>
 
 <p>Esto importa para política pública más de lo que parece. La lectura ingenua de
 «reducir la variabilidad del transporte público» supone que menos varianza siempre es
@@ -492,49 +508,57 @@ empujar gente <em>hacia</em> él.</p>
 
 <h3>6.2 Dispersión y sesgo no son lo mismo</h3>
 
-<p>La tabla 4 separa dos cosas que suelen confundirse. La <strong>dispersión</strong>
-es mecánica y siempre daña: {tex(r"\Lambda")} es cóncava arriba de ½, así que
-cualquier ruido en la creencia acerca la elección a la moneda. No necesita ninguna
-historia psicológica. El <strong>sesgo</strong> sí: es el desplazamiento sistemático
-de la creencia media, y es donde se ve el <em>hot stove</em>.</p>
+<p>La tabla 4 separa dos cosas que suelen confundirse. La <strong>dispersión</strong> es
+mecánica y siempre daña: {tex(r"\Lambda")} es cóncava arriba de ½, así que cualquier ruido
+en la creencia acerca la elección a la moneda. No necesita ninguna historia psicológica.
+El <strong>sesgo</strong> sí: es el desplazamiento sistemático de la creencia media, y es
+donde se ve el <em>hot stove</em>.</p>
 
 <p>En el caso de referencia, con ruido sólo en el mejor, el sesgo aporta
-{pp(dm["sesgo"])} de los {pp(dm["S"] - CG[REF]["p_verdadera"])} totales: <strong>manda
-el sesgo, no la dispersión</strong>. Con ruido en ambos modos la cuenta se da vuelta y
-domina la dispersión. Cualquier resumen del tipo «el daño es tal cosa» sin decir dónde
-está el ruido es falso en la mitad de las celdas.</p>
+{pp(dm["sesgo"])} de los {pp(dm["S"] - CB[REF]["p_verdadera"])} totales: <strong>manda el
+sesgo, no la dispersión</strong>. Con ruido en ambos modos la cuenta se da vuelta y domina
+la dispersión. Cualquier resumen del tipo «el daño es tal cosa» sin decir dónde está el
+ruido es falso en la mitad de las celdas.</p>
 
-<h3>6.3 Qué se había perdido con μ = 1</h3>
+<h3>6.3 Cuánto de esto depende de la calibración</h3>
 
-<p>Con la escala vieja, {num(100 * par(REF, D_REF, "solo_mejor", 80.0)[0]["ventanas"][W]["invertidos"], 1)} %
-de las personas quedaba invertida en la peor celda del diseño. Con la escala de
-Guevara son {num(100 * g_mej["ventanas"][W]["invertidos"], 1)} %. No es que la escala
-«exagere» el efecto: es que a {tex(r"\mu")} = 1 el ruido del logit (
-{num(3.141592653589793 / 3**0.5, 2)} útiles) era del mismo orden que toda la señal del
-experimento, y una elección ya casi aleatoria no tiene nada que perder.</p>
+<p>El logit trae su propio ruido: el término de Gumbel tiene desviación
+{tex(r"\pi/\sqrt3")} ≈ {num(3.141592653589793 / 3**0.5, 2)} útiles. Con los
+{tex(r"\beta")} del simulador, {tex(r"\sigma")} = 80 min valen
+{num(mb["sigma_utiles"], 2)} útiles: el ruido del experimento y el del logit son del
+<strong>mismo orden</strong>. Una elección que ya es bastante aleatoria por construcción
+tiene poco que perder, y eso acota cuánto puede verse el efecto.</p>
 
-<p>Dicho de otro modo: {tex(r"\mu")} = 1 no era una escala neutral, era una escala en
-la que las personas ya se equivocaban tanto por el logit que la variabilidad no
-agregaba daño medible. La conclusión anterior —«la variabilidad casi no importa»— no
-era un resultado del modelo IBL sino del valor de {tex(r"\mu")}.</p>
+<p>Si los {tex(r"\beta")} fueran {num(K, 1)} veces mayores —lo que sugiere la literatura
+de elección repetida, §4— esa razón pasaría a {num(mg["sigma_utiles"] / (3.141592653589793 / 3**0.5), 1)}
+y el daño sería otro: los invertidos de la peor celda pasan de
+{num(100 * mb["ventanas"][W]["invertidos"], 1)} % a
+{num(100 * mg["ventanas"][W]["invertidos"], 1)} %. <strong>El mecanismo es el mismo; lo
+que cambia es cuánto margen hay para que se note.</strong></p>
+
+<p>La lectura honesta es ésa: en la medida en que el {tex(r"\beta")} del simulador esté
+absorbiendo heterogeneidad no observada —y algo de eso hace—, <strong>E2 subestima el
+efecto</strong>. No al revés.</p>
 
 <h3>6.4 Lo que este informe no muestra</h3>
 
 <ul>
-  <li><strong>C2 y C3 están saturados</strong> a esta escala y sólo informan por
-      contraste. Un diseño que quisiera barrer la ventaja {tex("A")} tendría que
-      elegir celdas nuevas, con P* repartido entre 0,6 y 0,95 <em>a la escala de
-      Guevara</em>, no a la vieja.</li>
-  <li><strong>Un solo {tex(r"\beta")}.</strong> Guevara estima dos coeficientes de
-      tiempo, uno por ruta (tabla 2). Acá se usó sólo TIMEF, porque
-      {tex("A = \\Delta V/|\\beta|")} deja de estar bien definido con dos. Es una
-      simplificación deliberada y acota la comparación con su modelo.</li>
+  <li><strong>Un solo {tex(r"\beta")}.</strong> Guevara estima dos coeficientes de tiempo,
+      uno por ruta (tabla 2). Acá se usó sólo TIMEF para la sensibilidad, porque
+      {tex("A = \\Delta V/|\\beta|")} deja de estar bien definido con dos.</li>
   <li><strong>Sin inercia ni dummies de escenario.</strong> El CWA de Guevara (5,71,
       grande) captura la tendencia a repetir lo ya elegido, que reforzaría el
-      atrapamiento. No está en este modelo, así que si algo, E2
-      <em>subestima</em> el efecto.</li>
-  <li><strong>σ no se calibró.</strong> La grilla de 0 a 80 min es exploratoria. Qué
-      σ es realista para el metro o el auto de esta ciudad es una pregunta aparte.</li>
+      atrapamiento. No está en este modelo, así que si algo, E2 <em>subestima</em> el
+      efecto.</li>
+  <li><strong>σ no se calibró.</strong> La grilla de 0 a 80 min es exploratoria. Qué σ es
+      realista para el metro o el auto de esta ciudad es una pregunta aparte, y es la que
+      más haría falta para convertir esto en una predicción.</li>
+  <li><strong>En la columna de sensibilidad, C2 y C3 saturan.</strong> Con los
+      {tex(r"\beta")} del simulador los tres casos tienen {tex("P^*")} entre
+      {num(CB["C1"]["p_verdadera"], 2)} y {num(CB["C3"]["p_verdadera"], 2)} y los tres
+      informan; multiplicados por {num(K, 1)}, {tex("P^*")} de C2 y C3 pasa de
+      {num(CG["C2"]["p_verdadera"], 3)} y ahí {tex(r"\Phi")} ya no tiene recorrido
+      (tabla 5).</li>
 </ul>
 """
 
@@ -543,30 +567,36 @@ era un resultado del modelo IBL sino del valor de {tex(r"\mu")}.</p>
 
 
 def s7() -> str:
-    _, g = par(REF, D_REF, "solo_mejor", 80.0)
-    _, gp = par(REF, D_REF, "solo_peor", 80.0)
-    _, ga = par(REF, D_REF, "ambos", 80.0)
+    mb, mg = par(REF, D_REF, "solo_mejor", 80.0)
+    pb, _ = par(REF, D_REF, "solo_peor", 80.0)
+    ab, _ = par(REF, D_REF, "ambos", 80.0)
     return f"""
 <h2 id="conclusiones">7. Conclusiones</h2>
 
+<p>Todo con los {tex(r"\beta")} del simulador; entre paréntesis, qué daría si fueran
+{num(K, 1)} veces mayores (§4).</p>
+
 <ol>
-  <li><strong>La variabilidad del tiempo de viaje sí destruye la ventaja del modo
-      mejor</strong>, y bastante. En el caso de referencia, con σ = 80 min en los dos
-      modos sobrevive el {num(100 * ga["phi"][W], 0)} % de la ventaja.</li>
+  <li><strong>En promedio la variabilidad parece inofensiva.</strong> Con
+      {tex(r"\sigma")} = 80 min en los dos modos sobrevive el
+      {num(100 * ab["phi"][W], 0)} % de la ventaja del modo mejor. Ése es justamente el
+      número que no hay que mirar solo.</li>
   <li><strong>Dónde está el ruido importa más que cuánto ruido hay.</strong> El mismo
-      σ da {tex(r"\Phi")} = {num(g["phi"][W], 2)} si cae sobre el modo mejor y
-      {num(gp["phi"][W], 2)} si cae sobre el peor. El <em>hot stove</em> no distingue
-      entre opciones buenas y malas: hace abandonar lo variable.</li>
-  <li><strong>Cuando la trampa se cierra, se cierra fuerte.</strong> El
-      {num(100 * g["ventanas"][W]["invertidos"], 0)} % de las personas termina
-      eligiendo sistemáticamente el modo peor, y se queda ahí: son los días 51 a 250,
-      no el arranque.</li>
-  <li><strong>El daño se reparte entre dispersión y sesgo, y la proporción cambia con
-      el diseño.</strong> La dispersión siempre resta; el sesgo decide el signo.</li>
-  <li><strong>La escala del logit no es un detalle de calibración.</strong> Con
-      {tex(r"\mu")} = 1 el experimento medía el ruido del logit, y la conclusión que
-      salía era la contraria. Cualquier resultado de aprendizaje día a día en este
-      simulador debería declarar a qué escala se obtuvo.</li>
+      {tex(r"\sigma")} da {tex(r"\Phi")} = {num(mb["phi"][W], 2)} si cae sobre el modo
+      mejor y {num(pb["phi"][W], 2)} si cae sobre el peor. El <em>hot stove</em> no
+      distingue entre opciones buenas y malas: hace abandonar lo variable.</li>
+  <li><strong>Y la trampa atrapa a una minoría grande.</strong> El
+      {num(100 * mb["ventanas"][W]["invertidos"], 0)} % de las personas termina eligiendo
+      sistemáticamente el modo peor, y se queda ahí: son los días 51 a 250, no el
+      arranque ({num(100 * mg["ventanas"][W]["invertidos"], 0)} % con los
+      {tex(r"\beta")} mayores).</li>
+  <li><strong>El daño se reparte entre dispersión y sesgo, y la proporción cambia con el
+      diseño.</strong> La dispersión siempre resta; el sesgo decide el signo.</li>
+  <li><strong>El tamaño del efecto depende de la calibración, el mecanismo no.</strong>
+      Con los {tex(r"\beta")} del simulador el ruido del experimento es del mismo orden
+      que el del propio logit, lo que acota cuánto puede verse. En la medida en que esos
+      {tex(r"\beta")} absorban heterogeneidad no observada, esto <em>subestima</em> el
+      efecto.</li>
 </ol>
 
 <h3>7.1 Lo que queda</h3>

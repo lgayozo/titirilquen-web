@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E4 · La ciudad de cuatro modos</title>
+<link rel="stylesheet" href="../../docs/libro/libro.css">
+<style>
+  /* Lo propio de estos informes: figuras y tablas numericas. El resto es libro.css. */
+  figure { margin: 22px 0 8px; }
+  figure img { width: 100%; display: block; border: 1px solid var(--rule); }
+  figcaption {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; color: var(--muted);
+    margin-top: 6px; max-width: 78ch; line-height: 1.5;
+  }
+  figcaption .n, .titulo-tabla .n {
+    font-weight: 700; color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
+    margin-right: 8px; font-size: 11px;
+  }
+  .titulo-tabla {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 13px; font-weight: 600;
+    margin: 22px 0 0; color: var(--ink);
+  }
+  .pie-tabla { line-height: 1.5; margin-bottom: 14px; }
+  /* Ver `sim()`: en un encabezado, pasar un simbolo a mayuscula lo cambia. */
+  th .sim { text-transform: none; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  @media print { figure { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen &middot; Side project</div>
+  <h1>La ciudad de cuatro modos</h1>
+  <p class="bajada">Qué pasa cuando la variabilidad está en unos modos y no en otros — a dónde van los viajes, y quién paga.</p>
+  <p class="meta">Experimento E4 · 36.000 agentes · 250 días · d = 1,28 · escalas μ = 1 y μ = 5,982</p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#preguntas">Preguntas de investigación</a></li>
+    <li><a href="#experimento">El experimento</a></li>
+    <li><a href="#modelo">El modelo</a></li>
+    <li><a href="#escala">La escala del logit</a></li>
+    <li><a href="#resultados">Resultados</a></li>
+    <li><a href="#analisis">Análisis</a></li>
+    <li><a href="#conclusiones">Conclusiones</a></li>
+    <li><a href="#reproducir">Reproducir</a></li>
+  </ol>
+</nav>
+
+
+<h2 id="preguntas">1. Preguntas de investigación</h2>
+
+<p>E3 pone ruido en <strong>todos</strong> los modos que la gente aprende. Pero en una
+ciudad real la variabilidad no se reparte pareja: el auto tiene congestión, el metro
+tiene su propia irregularidad, y caminar tarda lo que tarda. E4 pregunta qué pasa cuando
+el ruido está en unos modos y no en otros. Cuatro preguntas, con los
+<span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador.</p>
+
+<p><strong>P1. ¿A dónde van los viajes que el ruido expulsa?</strong> Al modo que no lo
+tiene. Con <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 80 min sólo en el auto, la cuota del auto cae
+2,1 puntos y
+Bici y Caminata reciben buena parte: la
+bici sola gana 0,8 puntos. <strong>La variabilidad no
+sólo empeora las decisiones: redistribuye viajes</strong>, y lo hace hacia donde no hay
+nada que aprender.</p>
+
+<p><strong>P2. ¿A quién daña?</strong> A quien tiene el ruido en <em>su</em> modo mejor,
+y a nadie más. Con el ruido sólo en el metro, quienes deberían usar el metro quedan en
+<span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> = 0,33; quienes deberían usar la bici, en
+1,32 —<em>mejor</em> que sin ruido—. Es la asimetría de E2, pero
+acá no se impone por diseño: <strong>sale sola de quién es cada persona</strong>.</p>
+
+<p><strong>P3. ¿Sirve mirar el promedio?</strong> No, y E4 lo muestra con un caso
+incómodo: en esa misma celda el <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> agregado de toda la ciudad vale
+1,06 — <strong>por encima de 1</strong>, o sea «la
+ciudad elige mejor que con información perfecta». Un promedio que no sólo tranquiliza:
+miente de signo.</p>
+
+<p><strong>P4. ¿Cuánto depende de la calibración?</strong> El tamaño, no el mecanismo.
+Con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de la literatura (§4) el grupo del metro pasa de
+0,33 a
+−0,78 y la redistribución se multiplica.
+La §4.4 muestra además por qué en la ciudad esa columna no es una reescala inocua.</p>
+
+
+<h2 id="experimento">2. El experimento</h2>
+
+<p>La misma mecánica de E3 —36.000 agentes, 250 días, la red cargando
+y respondiendo cada día— con dos diferencias. La primera: los cuatro modos de la app, con
+la tenencia de auto por estrato, así que cada persona elige entre los <span class="mat" data-tex="J_n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">J_n</annotation></semantics></math></span> modos
+que le son factibles y no entre dos. La segunda, que es la pregunta de E4:
+<strong>el ruido va sobre unos modos y no sobre otros</strong>.</p>
+
+<p>Tres condiciones:</p>
+<ul>
+<li><strong>Ruido sólo en el auto</strong></li><li><strong>Ruido sólo en el metro</strong></li><li><strong>Ruido en el auto y en el metro</strong></li>
+</ul>
+
+<p>más un control sin ruido. Cruzadas con 5 niveles —<span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> ∈
+{5, 10, 20, 40, 80} min— y 3 de memoria —<span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> ∈
+{0,00, 0,50, 1,28}—, en las dos escalas del logit de la §4.</p>
+
+<p class="titulo-tabla"><span class="n">Tabla 1</span>La ciudad de cuatro modos, día 0</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th>modo</th><th class='n'>cuota de equilibrio (%)</th><th>puede llevar ruido</th><th>se aprende</th></tr></thead>
+  <tbody><tr><td>Auto</td><td class='n'>28,25</td><td>sí</td><td>sí</td></tr><tr><td>Metro</td><td class='n'>26,11</td><td>sí</td><td>sí</td></tr><tr><td>Bici</td><td class='n'>35,79</td><td>no</td><td>sí</td></tr><tr><td>Caminata</td><td class='n'>9,85</td><td>no</td><td>no</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">La configuración de la app tal cual: tenencia de auto por estrato y los cuatro modos. El ruido va sobre el auto y sobre el metro, nunca sobre la bici ni la caminata. Se aprenden auto, metro y bici —la bici se congestiona en la ciclovía—; la caminata no, porque su tiempo es geométrico y no tiene ni congestión ni ruido. <strong>Que Bici y Caminata no lleven ruido es el punto del experimento</strong>, no una omisión: es lo que permite ver hacia dónde se desplazan los viajes.</p>
+
+<p>Con más de dos modos, el punto de indiferencia de <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> ya no es ½ sino
+<span class="mat" data-tex="1/J_n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>J</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">1/J_n</annotation></semantics></math></span>, el reparto uniforme entre los modos factibles de cada persona. Eso
+importa al leer la tabla 6: donde <span class="mat" data-tex="P^*"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>P</mi><mo>∗</mo></msup></mrow><annotation encoding="application/x-tex">P^*</annotation></semantics></math></span> está cerca de <span class="mat" data-tex="1/J_n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>J</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">1/J_n</annotation></semantics></math></span>, el
+denominador es chico y <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> amplifica.</p>
+
+
+<h2 id="modelo">3. El modelo</h2>
+
+<p>Es el de E3, con <span class="mat" data-tex="J_n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">J_n</annotation></semantics></math></span> modos en vez de dos. Lo repetimos corto para que este
+informe se lea solo.</p>
+
+<p>Cada persona cree que el modo <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span> tarda el promedio ponderado de lo que
+<strong>vivió</strong> en ese modo, con los días recientes pesando más y los días en que
+no lo eligió sin entrar:</p>
+
+<div class="ecuacion" data-tex="b_{ni}(t) \;=\; \sum_{t' \lt t} w_{ni}(t', t)\, x_{ni}(t'), \qquad w_{ni} \;\propto\; a_{ni}(t')\,(t - t')^{-d}" data-id="(1)">
+  <span class="id">(1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><munder><mo>∑</mo><mrow><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>&lt;</mo><mi>t</mi></mrow></munder><msub><mi>w</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo separator="true">,</mo><mi>t</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>x</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>w</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mtext>  </mtext><mo>∝</mo><mtext>  </mtext><msub><mi>a</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo><mtext> </mtext><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mi>d</mi></mrow></msup></mrow><annotation encoding="application/x-tex">b_{ni}(t) \;=\; \sum_{t&#x27; \lt t} w_{ni}(t&#x27;, t)\, x_{ni}(t&#x27;), \qquad w_{ni} \;\propto\; a_{ni}(t&#x27;)\,(t - t&#x27;)^{-d}</annotation></semantics></math></span>
+</div>
+
+<p><span class="mat" data-tex="x_{ni}(t')"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">x_{ni}(t&#x27;)</annotation></semantics></math></span> es el tiempo que la red entregó ese día en su celda, más su
+<span class="mat" data-tex="\varepsilon"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span> propio <em>si ese modo lleva ruido en esa condición</em>. El prior
+es el tiempo de equilibrio del día 0 (<code>ibl.py:48</code>).</p>
+
+<div class="ecuacion" data-tex="V_{ni}(t) \;=\; \bar V_i \;+\; \beta\,\bigl(b_{ni}(t) - \tau_i\bigr), \qquad P_{ni}(t) \;=\; \frac{e^{\mu V_{ni}(t)}}{\sum_{j} e^{\mu V_{nj}(t)}}" data-id="(2)">
+  <span class="id">(2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><msub><mover accent="true"><mi>V</mi><mo>ˉ</mo></mover><mi>i</mi></msub><mtext>  </mtext><mo>+</mo><mtext>  </mtext><mi>β</mi><mtext> </mtext><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>τ</mi><mi>i</mi></msub><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>P</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><msup><mi>e</mi><mrow><mi>μ</mi><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msup><mrow><munder><mo>∑</mo><mi>j</mi></munder><msup><mi>e</mi><mrow><mi>μ</mi><msub><mi>V</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">V_{ni}(t) \;=\; \bar V_i \;+\; \beta\,\bigl(b_{ni}(t) - \tau_i\bigr), \qquad P_{ni}(t) \;=\; \frac{e^{\mu V_{ni}(t)}}{\sum_{j} e^{\mu V_{nj}(t)}}</annotation></semantics></math></span>
+</div>
+
+<p><span class="mat" data-tex="\bar V_i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>V</mi><mo>ˉ</mo></mover><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\bar V_i</annotation></semantics></math></span> sale del núcleo, así que constantes modales, costo,
+penalizaciones y factibilidad quedan como las calcula el simulador. La caminata no se
+aprende: su tiempo es geométrico y vive entero en <span class="mat" data-tex="\bar V"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>V</mi><mo>ˉ</mo></mover></mrow><annotation encoding="application/x-tex">\bar V</annotation></semantics></math></span>.</p>
+
+<p>El indicador central generaliza el de E2 al caso de varios modos:</p>
+
+<div class="ecuacion" data-tex="\Phi \;=\; \frac{\bar S - \overline{1/J}}{\bar P^{*} - \overline{1/J}}" data-id="(3)">
+  <span class="id">(3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Φ</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mrow><mover accent="true"><mi>S</mi><mo>ˉ</mo></mover><mo>−</mo><mover accent="true"><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>J</mi></mrow><mo stretchy="true">‾</mo></mover></mrow><mrow><msup><mover accent="true"><mi>P</mi><mo>ˉ</mo></mover><mo lspace="0em" rspace="0em">∗</mo></msup><mo>−</mo><mover accent="true"><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>J</mi></mrow><mo stretchy="true">‾</mo></mover></mrow></mfrac></mrow><annotation encoding="application/x-tex">\Phi \;=\; \frac{\bar S - \overline{1/J}}{\bar P^{*} - \overline{1/J}}</annotation></semantics></math></span>
+</div>
+
+<p>donde <span class="mat" data-tex="\bar S"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>S</mi><mo>ˉ</mo></mover></mrow><annotation encoding="application/x-tex">\bar S</annotation></semantics></math></span> es la cuota media del modo que de verdad es mejor para cada
+persona y <span class="mat" data-tex="\bar P^{*}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover accent="true"><mi>P</mi><mo>ˉ</mo></mover><mo lspace="0em" rspace="0em">∗</mo></msup></mrow><annotation encoding="application/x-tex">\bar P^{*}</annotation></semantics></math></span> la de quien conoce los tiempos de equilibrio. Con dos
+modos <span class="mat" data-tex="1/J"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">1/J</annotation></semantics></math></span> = ½ y es la de E2 tal cual. Se calcula en total y, lo que acá
+importa, <strong>separando a la gente por cuál es su modo mejor</strong>
+(<code>poblacion.py:262</code>).</p>
+
+<p>Y la brecha entre lo que se cree y lo que se vive, en minutos:</p>
+
+<div class="ecuacion" data-tex="B \;=\; \frac{\mathbb{E}\bigl[V^{\text{decisión}}\bigr] - \mathbb{E}\bigl[V^{\text{experimentada}}\bigr]}{|\beta|}" data-id="(4)">
+  <span class="id">(4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>B</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mrow><mi mathvariant="double-struck">E</mi><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">[</mo><msup><mi>V</mi><mrow><mtext>decisi</mtext><mover accent="true"><mtext>o</mtext><mo>ˊ</mo></mover><mtext>n</mtext></mrow></msup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">]</mo><mo>−</mo><mi mathvariant="double-struck">E</mi><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">[</mo><msup><mi>V</mi><mtext>experimentada</mtext></msup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">]</mo></mrow><mrow><mi mathvariant="normal">∣</mi><mi>β</mi><mi mathvariant="normal">∣</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">B \;=\; \frac{\mathbb{E}\bigl[V^{\text{decisión}}\bigr] - \mathbb{E}\bigl[V^{\text{experimentada}}\bigr]}{|\beta|}</annotation></semantics></math></span>
+</div>
+
+<p>Los dos bienestares están en útiles del núcleo —<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> entra sólo en la
+ec. (2), no multiplica <span class="mat" data-tex="V"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span>—, así que <span class="mat" data-tex="B"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span> es comparable entre escalas con
+el mismo <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> = −0,0331 útiles/min.</p>
+
+
+<h2 id="escala">4. La calibración de <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>, y qué tan lejos puede estar</h2>
+
+<p>Todo lo que sigue está calculado con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador. Esta sección
+explica qué son, por qué la literatura de elección repetida sugiere valores bastante
+mayores, y por qué eso se reporta como <strong>sensibilidad</strong> y no como
+corrección.</p>
+
+<h3>4.1 <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1 no es una medición, es una convención</h3>
+
+<p>En un logit sólo se identifica el producto <span class="mat" data-tex="\mu\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>β</mi></mrow><annotation encoding="application/x-tex">\mu\beta</annotation></semantics></math></span>: multiplicar la escala
+por un número y dividir los coeficientes por el mismo deja <em>exactamente</em> las
+mismas probabilidades. Por eso el logit de transporte del simulador fija
+<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1 —<code>titirilquen_core/demand/choice.py:19</code>
+calcula <span class="mat" data-tex="e^V"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>e</mi><mi>V</mi></msup></mrow><annotation encoding="application/x-tex">e^V</annotation></semantics></math></span> a secas, sin ninguna escala— y son los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> los que la
+absorben.</p>
+
+<p>La consecuencia importa: <strong><span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> no es una perilla disponible, ya está
+consumida</strong>. Los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> valen lo que valen porque, con
+<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1, reproducen una partición modal observada. (El <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> del uso
+de suelo es otra cosa: ahí sí es un parámetro de escenario, porque fija cuánto pesa el
+ruido de localizarse frente a una accesibilidad que ya trae su propia escala.)</p>
+
+<h3>4.2 Qué dice la literatura de elección repetida</h3>
+
+<p>Guevara, Tang y Gao (2018) estiman un IBL con los datos de laboratorio de ruta de
+Ben-Elia y Shiftan (2010) —que es casi exactamente el experimento que estos informes
+simulan— y obtienen:</p>
+
+<p class="titulo-tabla"><span class="n">Tabla 2</span>Guevara, Tang y Gao (2018), tabla 4, dataset completo</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th>parámetro</th><th class='n'>d</th><th class='n'>TIMEF</th><th class='n'>TIMES</th><th class='n'>LRISK</th><th class='n'>FRISKY</th><th class='n'>CWA</th></tr></thead>
+  <tbody><tr><td>estimación</td><td class='n'>1,28</td><td class='n'>−0,198</td><td class='n'>−0,086</td><td class='n'>0,864</td><td class='n'>0,405</td><td class='n'>5,71</td></tr><tr><td>error estándar</td><td class='n'>0,137</td><td class='n'>0,015</td><td class='n'>0,013</td><td class='n'>0,144</td><td class='n'>0,12</td><td class='n'>0,192</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">TIMEF multiplica el tiempo <em>percibido</em> de la ruta rápida (su ec. 15), no el real: es el análogo exacto de nuestro tiempo del IBL. TIMES es el de la ruta lenta — son dos coeficientes específicos de alternativa dentro del mismo modelo, no un rango. De acá sale también el d = 1,28 que usamos de referencia, que el paper subraya como estimado y no fijado.</p>
+
+<p>Su coeficiente de tiempo es −0,198 útiles/min contra los
+−0,0331 del simulador:</p>
+
+<div class="ecuacion" data-tex="\frac{|\beta|_{\text{lit}}}{|\beta|_{\text{sim}}} \;=\; \frac{0{,}198}{0{,}0331} \;=\; 5{,}982" data-id="(5)">
+  <span class="id">(5)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∣</mi><mi>β</mi><msub><mi mathvariant="normal">∣</mi><mtext>lit</mtext></msub></mrow><mrow><mi mathvariant="normal">∣</mi><mi>β</mi><msub><mi mathvariant="normal">∣</mi><mtext>sim</mtext></msub></mrow></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mn>0,198</mn><mn>0,0331</mn></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mn>5,982</mn></mrow><annotation encoding="application/x-tex">\frac{|\beta|_{\text{lit}}}{|\beta|_{\text{sim}}} \;=\; \frac{0{,}198}{0{,}0331} \;=\; 5{,}982</annotation></semantics></math></span>
+</div>
+
+<h3>4.3 Por qué no lo adoptamos</h3>
+
+<p>Tomar ese número <em>no</em> es «elegir otra escala». Como <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> ya está
+normalizado, equivale a afirmar que los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de transporte del simulador son
+seis veces chicos — es decir, que la elección modal del modelo es mucho más ruidosa de
+lo que sería en la realidad. Y eso contradice su calibración, que es lo que fija esos
+<span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>.</p>
+
+<p>Hay además una razón de fondo: <strong>la escala del logit no es transferible entre
+contextos de elección</strong>. El dato de Guevara viene de elegir entre dos rutas que
+difieren sólo en tiempo, en laboratorio, con información en pantalla. Elegir entre auto,
+metro, bici y caminata en una ciudad real es una decisión con mucha más heterogeneidad
+no observada — y esa heterogeneidad es precisamente lo que un <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> chico
+representa. Su valor no es «el verdadero» que el simulador debería copiar.</p>
+
+<p>Por eso los resultados van con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador y las tablas traen
+una columna <strong>«<span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> × 6,0»</strong> como
+sensibilidad de calibración: dice cuánto crecería cada efecto si la elección modal fuera
+tan determinista como sugiere el laboratorio. Cuando un efecto se vea chico, esa columna
+contesta la pregunta obligada — <em>¿chico de verdad, o chico porque el modelo elige con
+demasiado ruido?</em></p>
+
+<h3>4.4 En la ciudad, la sensibilidad no es neutral</h3>
+
+<p>En los experimentos de una persona la red está congelada y subir la escala sólo afila
+la elección. Acá no: el día 0 es el equilibrio que calcula el MSA del núcleo con
+<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1, y con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> multiplicados ese reparto deja de ser un
+punto fijo. La ciudad se corre sola, sin ningún ruido.</p>
+
+<p class="titulo-tabla"><span class="n">Tabla 3</span>El día 0 deja de ser equilibrio — cuota (%) sin nada de ruido</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th>modo</th><th class='n'>día 0 (MSA, <span class="sim">μ</span> = 1)</th><th class='n'>control (simulador)</th><th class='n'>control (β × 6,0)</th></tr></thead>
+  <tbody><tr><td>Auto</td><td class='n'>28,25</td><td class='n'>28,22</td><td class='n'>46,61</td></tr><tr><td>Metro</td><td class='n'>26,11</td><td class='n'>26,13</td><td class='n'>16,06</td></tr><tr><td>Bici</td><td class='n'>35,79</td><td class='n'>35,77</td><td class='n'>32,24</td></tr><tr><td>Caminata</td><td class='n'>9,85</td><td class='n'>9,88</td><td class='n'>5,08</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Las tres columnas son la misma ciudad, sin ningún ruido. Con <span class="sim">μ</span> = 1 la dinámica se queda donde el MSA la dejó —es el control de que todo está bien conectado—. Con los β de la literatura el auto salta 18,4 puntos el primer día y se asienta ahí: el logit más afilado concentra la demanda y la congestión acomoda el resto. Por eso <span class="sim">Φ</span> del control vale 0,956 y no 1.</p>
+
+<p>Es la forma más directa de ver lo de la §4.1: los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> estaban calibrados
+para reproducir esa partición, así que multiplicarlos la rompe. De ahí dos reglas de
+lectura: <strong>la línea base es el control sin ruido de cada columna</strong>, y
+<strong>los <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> no se comparan entre columnas en valor absoluto</strong> —lo
+comparable es cuánto cae cada uno al subir <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span>.</p>
+
+
+<h2 id="resultados">5. Resultados</h2>
+
+<h3>5.1 A dónde van los viajes</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 4</span>A dónde van los viajes — cambio de cuota (pp) con <span class="sim">σ</span> = 80 min, <span class="sim">d</span> = 1,28</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan='2'>ruido</th><th colspan='2'>Auto</th><th colspan='2'>Metro</th><th colspan='2'>Bici</th><th colspan='2'>Caminata</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th></tr></thead>
+  <tbody><tr><td>sólo en el auto</td><td class='n'>−2,09</td><td class='n'>−22,50</td><td class='n'>+0,79</td><td class='n'>+7,74</td><td class='n'>+0,85</td><td class='n'>+7,44</td><td class='n'>+0,45</td><td class='n'>+7,32</td></tr><tr><td>sólo en el metro</td><td class='n'>+0,43</td><td class='n'>+1,59</td><td class='n'>−1,74</td><td class='n'>−10,15</td><td class='n'>+1,19</td><td class='n'>+8,14</td><td class='n'>+0,12</td><td class='n'>+0,43</td></tr><tr><td>en el auto y en el metro</td><td class='n'>−1,68</td><td class='n'>−18,17</td><td class='n'>−1,08</td><td class='n'>−6,91</td><td class='n'>+2,18</td><td class='n'>+16,76</td><td class='n'>+0,58</td><td class='n'>+8,32</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Contra el control sin ruido, cuya partición es: Auto 28,22 %  Metro 26,13 %  Bici 35,77 %  Caminata 9,88 %. El patrón es el mismo en las dos escalas y más fuerte en la de Guevara: <strong>el modo que lleva ruido pierde y Bici y Caminata, que nunca lo llevan, ganan</strong>. No es que la bici se haya vuelto mejor: es que dejó de competir contra algo que la gente puede evaluar bien.</p>
+
+<figure><img src="salida/e4-particion.png" alt="Figura 1"><figcaption><span class="n">Figura 1</span>Cambio de cuota por modo contra σ, un panel por condición, con los β del simulador (<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1).</figcaption></figure>
+
+<figure><img src="salida/e4-particion-guevara.png" alt="Figura 2"><figcaption><span class="n">Figura 2</span>Lo mismo con los β de la literatura (<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 5,98).</figcaption></figure>
+
+<h3>5.2 El promedio</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 5</span>Φ agregado de la ciudad, <span class="sim">d</span> = 1,28</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan='2'>ruido</th><th rowspan='2' class='n'><span class="sim">σ</span> (min)</th><th colspan='2'>días 1–10</th><th colspan='2'>días 11–50</th><th colspan='2'>días 51–250</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th></tr></thead>
+  <tbody><tr><td><em>sin ruido</em></td><td class='n'>0</td><td class='n'><em>1,000</em></td><td class='n'><em>0,961</em></td><td class='n'><em>1,000</em></td><td class='n'><em>0,956</em></td><td class='n'><em>1,000</em></td><td class='n'><em>0,956</em></td></tr><tr><td>sólo en el auto</td><td class='n'>5</td><td class='n'>0,999</td><td class='n'>0,955</td><td class='n'>0,999</td><td class='n'>0,952</td><td class='n'>0,999</td><td class='n'>0,954</td></tr><tr><td>sólo en el auto</td><td class='n'>10</td><td class='n'>0,995</td><td class='n'>0,937</td><td class='n'>0,995</td><td class='n'>0,941</td><td class='n'>0,997</td><td class='n'>0,947</td></tr><tr><td>sólo en el auto</td><td class='n'>20</td><td class='n'>0,979</td><td class='n'>0,865</td><td class='n'>0,980</td><td class='n'>0,895</td><td class='n'>0,989</td><td class='n'>0,919</td></tr><tr><td>sólo en el auto</td><td class='n'>40</td><td class='n'>0,920</td><td class='n'>0,693</td><td class='n'>0,920</td><td class='n'>0,709</td><td class='n'>0,958</td><td class='n'>0,801</td></tr><tr><td>sólo en el auto</td><td class='n'>80</td><td class='n'>0,775</td><td class='n'>0,503</td><td class='n'>0,695</td><td class='n'>0,377</td><td class='n'>0,838</td><td class='n'>0,450</td></tr><tr><td>sólo en el metro</td><td class='n'>5</td><td class='n'>1,000</td><td class='n'>0,956</td><td class='n'>1,001</td><td class='n'>0,954</td><td class='n'>1,000</td><td class='n'>0,955</td></tr><tr><td>sólo en el metro</td><td class='n'>10</td><td class='n'>1,000</td><td class='n'>0,945</td><td class='n'>1,002</td><td class='n'>0,950</td><td class='n'>1,000</td><td class='n'>0,953</td></tr><tr><td>sólo en el metro</td><td class='n'>20</td><td class='n'>0,997</td><td class='n'>0,917</td><td class='n'>1,008</td><td class='n'>0,931</td><td class='n'>1,001</td><td class='n'>0,951</td></tr><tr><td>sólo en el metro</td><td class='n'>40</td><td class='n'>0,989</td><td class='n'>0,875</td><td class='n'>1,030</td><td class='n'>0,883</td><td class='n'>1,009</td><td class='n'>0,926</td></tr><tr><td>sólo en el metro</td><td class='n'>80</td><td class='n'>0,973</td><td class='n'>0,843</td><td class='n'>1,091</td><td class='n'>0,831</td><td class='n'>1,060</td><td class='n'>0,868</td></tr><tr><td>en el auto y en el metro</td><td class='n'>5</td><td class='n'>0,999</td><td class='n'>0,950</td><td class='n'>0,999</td><td class='n'>0,951</td><td class='n'>0,999</td><td class='n'>0,952</td></tr><tr><td>en el auto y en el metro</td><td class='n'>10</td><td class='n'>0,995</td><td class='n'>0,921</td><td class='n'>0,997</td><td class='n'>0,935</td><td class='n'>0,997</td><td class='n'>0,944</td></tr><tr><td>en el auto y en el metro</td><td class='n'>20</td><td class='n'>0,976</td><td class='n'>0,823</td><td class='n'>0,988</td><td class='n'>0,874</td><td class='n'>0,990</td><td class='n'>0,916</td></tr><tr><td>en el auto y en el metro</td><td class='n'>40</td><td class='n'>0,911</td><td class='n'>0,618</td><td class='n'>0,951</td><td class='n'>0,665</td><td class='n'>0,966</td><td class='n'>0,790</td></tr><tr><td>en el auto y en el metro</td><td class='n'>80</td><td class='n'>0,759</td><td class='n'>0,400</td><td class='n'>0,787</td><td class='n'>0,320</td><td class='n'>0,892</td><td class='n'>0,450</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Promedio sobre toda la población, ec. (3). <strong>La primera fila es el control sin ruido: el impacto del ruido es la caída respecto de ella</strong>, no el nivel. Con los β de la literatura ese control ya vale 0,956 por el reequilibrio de la §4.1, no por el ruido. Ojo con los valores por encima de 1: no son un error, significan que la ciudad en conjunto elige su modo mejor más seguido que con información perfecta. La tabla 6 muestra lo que ese promedio esconde.</p>
+
+<h3>5.3 Quién paga</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 6</span>Quién paga — Φ a largo plazo según cuál es su modo mejor (<span class="sim">σ</span> = 80 min, <span class="sim">d</span> = 1,28)</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th>ruido</th><th>su modo mejor</th><th>¿lleva ruido?</th><th class='n'>personas</th><th class='n'><span class="sim">P*</span> (simulador)</th><th class='n'><span class="sim">1/J</span></th><th class='n'><span class="sim">Φ</span> (simulador)</th><th class='n'><span class="sim">Φ</span> (β × 6,0)</th></tr></thead>
+  <tbody><tr><td><em>sin ruido</em></td><td>Auto</td><td>no</td><td class='n'>18.696</td><td class='n'>0,520</td><td class='n'>0,309</td><td class='n'><em>1,000</em></td><td class='n'><em>0,914</em></td></tr><tr><td><em>sin ruido</em></td><td>Metro</td><td>no</td><td class='n'>4.966</td><td class='n'>0,546</td><td class='n'>0,477</td><td class='n'><em>1,000</em></td><td class='n'><em>1,041</em></td></tr><tr><td><em>sin ruido</em></td><td>Bici</td><td>no</td><td class='n'>10.812</td><td class='n'>0,552</td><td class='n'>0,456</td><td class='n'><em>1,000</em></td><td class='n'><em>1,051</em></td></tr><tr><td><em>sin ruido</em></td><td>Caminata</td><td>no</td><td class='n'>1.526</td><td class='n'>0,552</td><td class='n'>0,483</td><td class='n'><em>1,000</em></td><td class='n'><em>0,974</em></td></tr><tr><td>sólo en el auto</td><td>Auto</td><td>sí</td><td class='n'>18.696</td><td class='n'>0,520</td><td class='n'>0,309</td><td class='n'>0,774</td><td class='n'>0,180</td></tr><tr><td>sólo en el auto</td><td>Metro</td><td>no</td><td class='n'>4.966</td><td class='n'>0,546</td><td class='n'>0,477</td><td class='n'>1,074</td><td class='n'>1,241</td></tr><tr><td>sólo en el auto</td><td>Bici</td><td>no</td><td class='n'>10.812</td><td class='n'>0,552</td><td class='n'>0,456</td><td class='n'>0,989</td><td class='n'>0,917</td></tr><tr><td>sólo en el auto</td><td>Caminata</td><td>no</td><td class='n'>1.526</td><td class='n'>0,552</td><td class='n'>0,483</td><td class='n'>1,010</td><td class='n'>1,066</td></tr><tr><td>sólo en el metro</td><td>Auto</td><td>no</td><td class='n'>18.696</td><td class='n'>0,520</td><td class='n'>0,309</td><td class='n'>1,056</td><td class='n'>0,935</td></tr><tr><td>sólo en el metro</td><td>Metro</td><td>sí</td><td class='n'>4.966</td><td class='n'>0,546</td><td class='n'>0,477</td><td class='n'>0,332</td><td class='n'>−0,777</td></tr><tr><td>sólo en el metro</td><td>Bici</td><td>no</td><td class='n'>10.812</td><td class='n'>0,552</td><td class='n'>0,456</td><td class='n'>1,316</td><td class='n'>1,246</td></tr><tr><td>sólo en el metro</td><td>Caminata</td><td>no</td><td class='n'>1.526</td><td class='n'>0,552</td><td class='n'>0,483</td><td class='n'>1,028</td><td class='n'>1,067</td></tr><tr><td>en el auto y en el metro</td><td>Auto</td><td>sí</td><td class='n'>18.696</td><td class='n'>0,520</td><td class='n'>0,309</td><td class='n'>0,823</td><td class='n'>0,300</td></tr><tr><td>en el auto y en el metro</td><td>Metro</td><td>sí</td><td class='n'>4.966</td><td class='n'>0,546</td><td class='n'>0,477</td><td class='n'>0,403</td><td class='n'>−0,506</td></tr><tr><td>en el auto y en el metro</td><td>Bici</td><td>no</td><td class='n'>10.812</td><td class='n'>0,552</td><td class='n'>0,456</td><td class='n'>1,302</td><td class='n'>1,180</td></tr><tr><td>en el auto y en el metro</td><td>Caminata</td><td>no</td><td class='n'>1.526</td><td class='n'>0,552</td><td class='n'>0,483</td><td class='n'>1,041</td><td class='n'>1,197</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Ésta es la tabla del informe. <strong>El primer bloque es el control sin ruido: contra él se lee todo lo demás.</strong> La columna «¿lleva ruido?» dice si la variabilidad cayó sobre el modo que a esa persona le convenía. Donde dice <strong>sí</strong>, <span class="sim">Φ</span> se hunde; donde dice <strong>no</strong>, se queda en 1 o lo pasa. Es la asimetría de E2 —«ruido sólo en el mejor» contra «sólo en el peor»— pero acá no se impuso por diseño: cada persona cae de un lado o del otro según quién es. <span class="sim">P*</span> y <span class="sim">1/J</span> están para leer con cuidado los grupos donde el denominador de la ec. (3) es chico.</p>
+
+<figure><img src="salida/e4-phi-mejor.png" alt="Figura 3"><figcaption><span class="n">Figura 3</span>Φ según cuál es el modo mejor de cada persona, contra σ. Escala vieja. Las curvas se separan por grupo: el daño no es de la ciudad, es de quienes tienen el ruido encima.</figcaption></figure>
+
+<figure><img src="salida/e4-phi-mejor-guevara.png" alt="Figura 4"><figcaption><span class="n">Figura 4</span>Lo mismo con los β de la literatura.</figcaption></figure>
+
+<h3>5.4 La historia y la percepción</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 7</span>Dependencia de la trayectoria y error de percepción, <span class="sim">d</span> = 1,28</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan='2'>ruido</th><th rowspan='2' class='n'><span class="sim">σ</span> (min)</th><th colspan='2'>dispersión entre iguales, <span class="sim">R</span></th><th colspan='2'><span class="sim">B</span>: se cree mejor por (min/viaje)</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th></tr></thead>
+  <tbody><tr><td><em>sin ruido</em></td><td class='n'>0</td><td class='n'><em>0,98</em></td><td class='n'><em>0,99</em></td><td class='n'><em>−0,00</em></td><td class='n'><em>−0,00</em></td></tr><tr><td>sólo en el auto</td><td class='n'>5</td><td class='n'>0,99</td><td class='n'>1,02</td><td class='n'>0,01</td><td class='n'>0,02</td></tr><tr><td>sólo en el auto</td><td class='n'>10</td><td class='n'>1,00</td><td class='n'>1,11</td><td class='n'>0,05</td><td class='n'>0,08</td></tr><tr><td>sólo en el auto</td><td class='n'>20</td><td class='n'>1,03</td><td class='n'>1,43</td><td class='n'>0,20</td><td class='n'>0,29</td></tr><tr><td>sólo en el auto</td><td class='n'>40</td><td class='n'>1,14</td><td class='n'>3,17</td><td class='n'>0,78</td><td class='n'>0,98</td></tr><tr><td>sólo en el auto</td><td class='n'>80</td><td class='n'>1,52</td><td class='n'>6,85</td><td class='n'>2,59</td><td class='n'>2,17</td></tr><tr><td>sólo en el metro</td><td class='n'>5</td><td class='n'>0,99</td><td class='n'>1,10</td><td class='n'>0,02</td><td class='n'>0,04</td></tr><tr><td>sólo en el metro</td><td class='n'>10</td><td class='n'>1,00</td><td class='n'>1,36</td><td class='n'>0,08</td><td class='n'>0,14</td></tr><tr><td>sólo en el metro</td><td class='n'>20</td><td class='n'>1,04</td><td class='n'>2,07</td><td class='n'>0,30</td><td class='n'>0,38</td></tr><tr><td>sólo en el metro</td><td class='n'>40</td><td class='n'>1,16</td><td class='n'>3,58</td><td class='n'>1,09</td><td class='n'>0,75</td></tr><tr><td>sólo en el metro</td><td class='n'>80</td><td class='n'>1,54</td><td class='n'>4,54</td><td class='n'>3,28</td><td class='n'>1,09</td></tr><tr><td>en el auto y en el metro</td><td class='n'>5</td><td class='n'>0,99</td><td class='n'>1,13</td><td class='n'>0,03</td><td class='n'>0,06</td></tr><tr><td>en el auto y en el metro</td><td class='n'>10</td><td class='n'>1,01</td><td class='n'>1,46</td><td class='n'>0,13</td><td class='n'>0,22</td></tr><tr><td>en el auto y en el metro</td><td class='n'>20</td><td class='n'>1,08</td><td class='n'>2,39</td><td class='n'>0,50</td><td class='n'>0,66</td></tr><tr><td>en el auto y en el metro</td><td class='n'>40</td><td class='n'>1,31</td><td class='n'>4,91</td><td class='n'>1,85</td><td class='n'>1,79</td></tr><tr><td>en el auto y en el metro</td><td class='n'>80</td><td class='n'>2,01</td><td class='n'>9,06</td><td class='n'>5,87</td><td class='n'>3,64</td></tr></tbody>
+</table></div>
+<p class="pie-tabla"><strong>La primera fila es el control sin ruido.</strong> <span class="sim">R</span> = 1 significa que personas idénticas —mismo estrato, celda y tenencia de auto— se comportan como si tiraran la misma moneda; más de 1, que la historia las diferenció. <span class="sim">B</span> es la ec. (4). Los dos indicadores se definen igual que en E3, así que los informes se pueden comparar.</p>
+
+
+<h2 id="analisis">6. Análisis</h2>
+
+<h3>6.1 La variabilidad es un impuesto sobre el modo que la tiene</h3>
+
+<p>La tabla 4 dice algo simple y poco intuitivo: el ruido no sólo empeora las
+decisiones, <strong>mueve demanda</strong>. Y la mueve hacia donde no hay nada que
+aprender. La bici no mejoró en absoluto —su tiempo es el mismo— pero gana
+0,85 pp cuando el ruido está
+en el auto y 1,19 pp cuando está
+en el metro.</p>
+
+<p>El mecanismo es la ec. (1) otra vez. Un modo con ruido genera creencias dispersas y,
+por la concavidad del logit arriba del punto de indiferencia, la dispersión empuja la
+elección hacia el reparto uniforme; un modo sin ruido mantiene su creencia clavada en el
+valor correcto. Con el tiempo, lo predecible le gana a lo bueno-pero-incierto.</p>
+
+<p>Para política pública la lectura es directa: <strong>la confiabilidad es un atributo
+del modo, no un detalle operativo</strong>. Un metro que mejora su tiempo medio pero
+sigue siendo irregular puede perder viajes frente a una alternativa peor en promedio y
+predecible.</p>
+
+<h3>6.2 El promedio esconde signos opuestos</h3>
+
+<p>Con el ruido sólo en el metro, el <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> agregado de la ciudad pasa de
+1,00 sin ruido a
+1,06: <strong>sube</strong>. Leído solo, ese número
+dice que la ciudad elige su modo mejor más seguido que con información perfecta. Debajo
+conviven 4.966 personas cuyo modo mejor es el metro, en
+<span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> = 0,33, y 10.812 cuyo
+modo mejor es la bici, en 1,32.</p>
+
+<p>Los segundos «mejoran» por una razón que no tiene nada de buena: el ruido degradó a su
+competidor, así que eligen más seguido lo que de todos modos les convenía. El promedio
+suma esa ganancia espuria con la pérdida real de los primeros y da un número no sólo
+tranquilizador sino <strong>de signo equivocado</strong>. Un indicador agregado que
+sube mientras un grupo identificable cae a 0,33 no sirve
+para evaluar nada.</p>
+
+<p>Esto es la contracara del hallazgo de E3. Allá el agregado escondía rotación
+individual con signos que se cancelaban; acá esconde una <strong>redistribución entre
+grupos</strong>. En los dos casos la conclusión es la misma: la partición modal y los
+promedios de ciudad son las variables que peor informan sobre este fenómeno.</p>
+
+<h3>6.3 La asimetría de E2 no hubo que imponerla</h3>
+
+<p>En E2 «ruido sólo en el mejor» y «ruido sólo en el peor» eran dos condiciones
+construidas a mano para aislar el mecanismo. Acá hay una sola condición física —el ruido
+está en tal modo— y la población se parte sola: quien tiene ese modo como mejor queda en
+el lado malo de la asimetría, quien lo tiene como peor, en el bueno.</p>
+
+<p>Ésa es la razón por la que E4 vale la pena aunque el mecanismo ya se conociera: en una
+ciudad, «a quién le toca» no es una condición experimental, es la distribución de
+orígenes, destinos y tenencia de auto. Con el ruido en el auto, los
+18.696 agentes cuyo modo mejor es el auto quedan en
+0,77; los otros, en 1 o por encima.</p>
+
+<h3>6.4 Lo que este informe no muestra</h3>
+
+<ul>
+  <li><strong>La bici y la caminata nunca llevan ruido.</strong> Es el supuesto que hace
+      visible la sustitución, y también su límite: una ciclovía congestionada o una
+      vereda insegura tienen su propia variabilidad, y el experimento no la tiene.</li>
+  <li><strong>σ es el mismo para el auto y el metro.</strong> En la realidad no lo es, y
+      cuál de los dos es más irregular decide buena parte del resultado.</li>
+  <li><strong>σ no está calibrado</strong> y el ruido es i.i.d. y sin truncar, igual que
+      en E3.</li>
+  <li><strong>Sin inercia ni heterogeneidad de <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>.</strong> El CWA de
+      Guevara (5,71) agravaría el atrapamiento; no está.</li>
+  <li><strong>La caminata no se aprende.</strong> Su tiempo es geométrico y vive entero
+      en <span class="mat" data-tex="\bar V"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>V</mi><mo>ˉ</mo></mover></mrow><annotation encoding="application/x-tex">\bar V</annotation></semantics></math></span>, así que su cuota se mueve sólo por lo que hacen los demás.</li>
+</ul>
+
+
+<h2 id="conclusiones">7. Conclusiones</h2>
+
+<p>Con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador; el punto 5 dice qué cambia si fueran los de la
+literatura.</p>
+
+<ol>
+  <li><strong>La variabilidad redistribuye viajes hacia el modo que no la tiene.</strong>
+      Con <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 80 min la bici gana
+      0,85 pp con el ruido en
+      el auto y 1,19 pp con el
+      ruido en el metro, sin haber mejorado en nada.</li>
+  <li><strong>El daño cae sobre quien tiene el ruido en su modo mejor.</strong> Con el
+      ruido en el metro, quienes deberían usarlo quedan en
+      <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> = 0,33; con el ruido
+      en el auto, quienes deberían usar el auto quedan en
+      0,77.</li>
+  <li><strong>El promedio agregado miente de signo.</strong> El <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> de toda la
+      ciudad con ruido en el metro <em>sube</em> de 1,00
+      a 1,06 mientras ese grupo se hunde.</li>
+  <li><strong>La asimetría de E2 aparece sola.</strong> No hay que construir «ruido en el
+      mejor» y «ruido en el peor»: la ciudad las genera según quién es cada persona.</li>
+  <li><strong>La calibración mueve el tamaño, no el signo.</strong> Con los
+      <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de la literatura el grupo del metro pasa de
+      0,33 a
+      −0,78 y la redistribución se
+      multiplica — pero ahí la comparación arrastra además el reequilibrio de la §4.4, y
+      hay que leerla contra el control de su propia columna.</li>
+</ol>
+
+<h3>7.1 Lo que queda</h3>
+
+<ul>
+  <li>Ruido en la bici: hoy es un refugio sin variabilidad por construcción, y eso acota
+      cuánto se puede concluir sobre el tamaño de la sustitución.</li>
+  <li>σ distinto por modo, y calibrado contra variabilidad observada.</li>
+  <li>Ruido correlacionado entre días y entre personas, en vez de i.i.d.</li>
+  <li>Conseguir y leer Denrell y March (2001) y Erev y Barron (2005); hoy se citan de
+      memoria.</li>
+</ul>
+
+<h3>7.2 Referencias</h3>
+<ul class="refs">
+  <li>Guevara, C. A., Tang, Y. y Gao, S. (2018). The initial condition problem with
+      complete history dependency in learning models for travel choices.
+      <em>Transportation Research Part B</em> 117, 850–861. — Verificado contra
+      <code>papers/2018 Guevara Tang Gao TRB.pdf</code>: la tabla 2 es su tabla 4,
+      dataset completo.</li>
+  <li>Tang, Y. y Gao, S., 2017. An exploratory study of instance-based learning for
+      route choice with random travel times. <em>J. Choice Modell.</em> 24, 22–33. —
+      Referencia tomada de la bibliografía de Guevara et al. (2018); no revisada
+      directamente.</li>
+  <li>Ben-Elia, E. y Shiftan, Y., 2010. Which road do I take? A learning-based model of
+      route-choice behavior with real-time information. <em>Transport. Res. Part A</em>
+      44. — Referencia tomada de la bibliografía de Guevara et al. (2018), no revisada
+      directamente.</li>
+  <li>Gonzalez, C., Lerch, J. F. y Lebiere, C., 2003. Instance-based learning in dynamic
+      decision making. <em>Cogn. Sci.</em> 27, 591–635. — Origen del IBL; referencia
+      tomada de la bibliografía de Guevara et al. (2018), no revisada directamente.</li>
+  <li>Denrell, J. y March, J. G. (2001), sobre el <em>hot stove effect</em>:
+      <strong>citado de memoria, sin verificar contra el texto.</strong></li>
+</ul>
+
+<h2 id="reproducir">Reproducir</h2>
+
+<pre><code>cd sandbox/ibl-dia-a-dia
+uv sync --extra dev --reinstall-package titirilquen-core   # el núcleo del repo, no uno cacheado
+uv run python poblacion.py ciudad                          # → salida/ciudad4.json
+uv run python poblacion.py ciudad --guevara                # → salida/ciudad4-guevara.json
+uv run python figuras_experimentos.py
+uv run python figuras_experimentos.py --guevara
+uv run python informe_e4.py
+node ../../tools/renderiza_ecuaciones.js</code></pre>
+
+
+</div>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E3 · La ciudad completa aprende</title>
+<link rel="stylesheet" href="../../docs/libro/libro.css">
+<style>
+  /* Lo propio de estos informes: figuras y tablas numericas. El resto es libro.css. */
+  figure { margin: 22px 0 8px; }
+  figure img { width: 100%; display: block; border: 1px solid var(--rule); }
+  figcaption {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; color: var(--muted);
+    margin-top: 6px; max-width: 78ch; line-height: 1.5;
+  }
+  figcaption .n, .titulo-tabla .n {
+    font-weight: 700; color: var(--accent); letter-spacing: .1em; text-transform: uppercase;
+    margin-right: 8px; font-size: 11px;
+  }
+  .titulo-tabla {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 13px; font-weight: 600;
+    margin: 22px 0 0; color: var(--ink);
+  }
+  .pie-tabla { line-height: 1.5; margin-bottom: 14px; }
+  /* Ver `sim()`: en un encabezado, pasar un simbolo a mayuscula lo cambia. */
+  th .sim { text-transform: none; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  @media print { figure { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">Titirilquen &middot; Side project</div>
+  <h1>La ciudad completa aprende</h1>
+  <p class="bajada">Qué queda del efecto de la variabilidad cuando aprenden todos a la vez y la congestión responde — y por qué la partición modal no lo muestra.</p>
+  <p class="meta">Experimento E3 · 36.000 agentes · 250 días · d = 1,28 · escalas μ = 1 y μ = 5,982</p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#preguntas">Preguntas de investigación</a></li>
+    <li><a href="#experimento">El experimento</a></li>
+    <li><a href="#modelo">El modelo</a></li>
+    <li><a href="#escala">La escala del logit</a></li>
+    <li><a href="#resultados">Resultados</a></li>
+    <li><a href="#analisis">Análisis</a></li>
+    <li><a href="#conclusiones">Conclusiones</a></li>
+    <li><a href="#reproducir">Reproducir</a></li>
+  </ol>
+</nav>
+
+
+<h2 id="preguntas">1. Preguntas de investigación</h2>
+
+<p>E1 y E2 miran a <strong>una</strong> persona, con la red congelada. E3 pregunta qué
+queda de eso cuando aprende la <strong>ciudad entera</strong> y la congestión responde:
+36.000 agentes eligiendo el mismo día, cargando la red, y el tiempo de cada
+uno dependiendo de lo que eligieron los demás. Cinco preguntas, con la respuesta corta al
+lado; los números son los del simulador y la §4 dice qué tan lejos podrían estar.</p>
+
+<p><strong>P1. ¿La ciudad reproduce lo que le pasa a una persona?</strong> Sí, y
+amortiguado. Con <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 80 min y <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> = 1,28,
+<span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> a largo plazo cae de 1,000 sin ruido a
+0,873. El mecanismo es el mismo de E2; lo que cambia es
+que acá nadie está solo.</p>
+
+<p><strong>P2. ¿La variabilidad mueve la partición modal?</strong> Prácticamente nada:
+la cuota de auto pasa de 59,34 % sin ruido a
+59,15 % con <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 80 min. Es la pregunta
+cuya respuesta más se aleja de la intuición de E2 — y la §6.1 explica por qué el
+agregado no es la variable que hay que mirar.</p>
+
+<p><strong>P3. ¿Cuánto de la conducta final es historia y no preferencias?</strong>
+Bastante. Personas <em>idénticas</em> —mismo estrato, misma celda, misma tenencia de
+auto— terminan 2,58 veces más dispersas que lo que
+explicaría el azar de elegir con la misma probabilidad. En cambio la suerte del
+<em>estreno</em> no deja huella medible: quienes empezaron mal terminan en
+58,6 % de auto y quienes empezaron bien en
+58,9 %.</p>
+
+<p><strong>P4. ¿Cuánto cuesta, y cuánto de ese costo se percibe?</strong> Acá aparece lo
+que E1 y E2 no pueden ver, porque necesita separar la utilidad con la que se
+<em>decide</em> de la que se <em>vive</em>. Con <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 80 min la gente cree
+estar <strong>6,8 minutos por viaje mejor de lo que está</strong>, y
+el error no se corrige con los días. Es además el único indicador de este informe que
+<em>no</em> depende de la calibración (§6.3).</p>
+
+<p><strong>P5. ¿Cuánto de esto depende de la calibración?</strong> La dependencia de
+trayectoria, mucho. Con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de la literatura (§4) la dispersión entre
+iguales pasa de 2,58 a 7,66
+veces la binomial, y la brecha de estreno —que acá es nula— se vuelve
++14,6. El
+mecanismo no cambia; el margen para que se note, sí.</p>
+
+
+<h2 id="experimento">2. El experimento</h2>
+
+<p>La diferencia con E1 y E2 cabe en una frase: <strong>acá la red responde</strong>.
+Cada día los 36.000 agentes eligen con sus tiempos percibidos, los flujos cargan
+la oferta (BPR del auto, frecuencia del metro), y cada uno experimenta el tiempo real de
+su modo en su celda más un <span class="mat" data-tex="\varepsilon"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span> propio. Al día siguiente decide con el
+IBL sobre lo que vivió. Son 250 días.</p>
+
+<p>Eso agrega dos cosas que en fase 0 no existían:</p>
+<ul>
+  <li><strong>Congestión endógena.</strong> Si muchos abandonan el metro, el auto se
+      llena y empeora para todos — un estabilizador que no estaba cuando la red era
+      fija.</li>
+  <li><strong>Personas comparables.</strong> Con 36.000 agentes hay muchos grupos
+      de personas <em>idénticas</em> por construcción, y se puede medir cuánto las
+      separó la historia. Es lo que contesta P3 y no tiene análogo con una sola
+      persona.</li>
+</ul>
+
+<p>El diseño cruza 6 niveles de ruido —<span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> ∈
+{0, 5, 10, 20, 40, 80} min, sobre el auto y sobre el metro— y
+3 de memoria —<span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> ∈ {0,00, 0,50, 1,28}—, en las
+dos escalas del logit de la §4. <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 0 es la referencia de cada escala:
+la misma dinámica sin ruido, que converge al equilibrio del logit.</p>
+
+<p class="titulo-tabla"><span class="n">Tabla 1</span>La ciudad del día 0</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th>modo</th><th class='n'>cuota de equilibrio (%)</th></tr></thead>
+  <tbody><tr><td>Auto</td><td class='n'>59,32</td></tr><tr><td>Metro</td><td class='n'>40,68</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">El día 0 es el equilibrio MSA de esta ciudad: 36.000 agentes con su celda y su estrato, los tiempos de equilibrio por celda y la partición de arriba. Esos tiempos son la «información exógena de buena calidad» con la que todos arrancan: el <em>prior</em> de la ec. (2). Sólo Auto y Metro, y todos con auto, para que cada persona elija entre los dos modos que tienen ruido — si hubiera modos sin ruido serían un refugio y parte del efecto sería ese artefacto.</p>
+
+
+<h2 id="modelo">3. El modelo</h2>
+
+<h3>3.1 Lo que cada persona cree y elige</h3>
+
+<p>El <em>instance-based learning</em> es el mismo de E1 y E2: el tiempo que la persona
+<span class="mat" data-tex="n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span> cree que toma el modo <span class="mat" data-tex="i"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span> es el promedio ponderado de los tiempos que
+vivió en ese modo, con los días recientes pesando más y los días en que no lo eligió
+sin entrar.</p>
+
+<div class="ecuacion" data-tex="b_{ni}(t) \;=\; \sum_{t' \lt t} w_{ni}(t', t)\, x_{ni}(t'), \qquad w_{ni} \;\propto\; a_{ni}(t')\,(t - t')^{-d}" data-id="(1)">
+  <span class="id">(1)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><munder><mo>∑</mo><mrow><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>&lt;</mo><mi>t</mi></mrow></munder><msub><mi>w</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo separator="true">,</mo><mi>t</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>x</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>w</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mtext>  </mtext><mo>∝</mo><mtext>  </mtext><msub><mi>a</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo><mtext> </mtext><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mi>d</mi></mrow></msup></mrow><annotation encoding="application/x-tex">b_{ni}(t) \;=\; \sum_{t&#x27; \lt t} w_{ni}(t&#x27;, t)\, x_{ni}(t&#x27;), \qquad w_{ni} \;\propto\; a_{ni}(t&#x27;)\,(t - t&#x27;)^{-d}</annotation></semantics></math></span>
+</div>
+
+<p>La novedad de E3 está en <span class="mat" data-tex="x_{ni}(t')"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><msup><mi>t</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">x_{ni}(t&#x27;)</annotation></semantics></math></span>: ya no es un tiempo fijo con ruido, sino
+<strong>el tiempo que la red entregó ese día</strong> en la celda de esa persona, más su
+<span class="mat" data-tex="\varepsilon"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span> propio. Si mucha gente se pasa al auto, el auto se congestiona y
+todos lo viven peor. El prior es el tiempo de equilibrio del día 0
+(<code>ibl.py:48</code>).</p>
+
+<p>La utilidad no se reimplementa: se llama al núcleo una vez por grupo con los tiempos
+del día 0 y se corrige sólo la parte lineal en el tiempo de viaje,</p>
+
+<div class="ecuacion" data-tex="V_{ni}(t) \;=\; \bar V_i \;+\; \beta\,\bigl(b_{ni}(t) - \tau_i\bigr)" data-id="(2)">
+  <span class="id">(2)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><msub><mover accent="true"><mi>V</mi><mo>ˉ</mo></mover><mi>i</mi></msub><mtext>  </mtext><mo>+</mo><mtext>  </mtext><mi>β</mi><mtext> </mtext><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>b</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>τ</mi><mi>i</mi></msub><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo></mrow><annotation encoding="application/x-tex">V_{ni}(t) \;=\; \bar V_i \;+\; \beta\,\bigl(b_{ni}(t) - \tau_i\bigr)</annotation></semantics></math></span>
+</div>
+
+<p>de modo que las constantes modales, el costo, las penalizaciones y la factibilidad
+quedan exactamente como las calcula el simulador. La elección es un logit sobre los
+<span class="mat" data-tex="J_n"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">J_n</annotation></semantics></math></span> modos factibles de esa persona:</p>
+
+<div class="ecuacion" data-tex="P_{ni}(t) \;=\; \frac{e^{\mu V_{ni}(t)}}{\sum_{j} e^{\mu V_{nj}(t)}}" data-id="(3)">
+  <span class="id">(3)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><msup><mi>e</mi><mrow><mi>μ</mi><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msup><mrow><munder><mo>∑</mo><mi>j</mi></munder><msup><mi>e</mi><mrow><mi>μ</mi><msub><mi>V</mi><mrow><mi>n</mi><mi>j</mi></mrow></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">P_{ni}(t) \;=\; \frac{e^{\mu V_{ni}(t)}}{\sum_{j} e^{\mu V_{nj}(t)}}</annotation></semantics></math></span>
+</div>
+
+<p><span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> es la escala del logit, y la §4 explica por qué acá sí importa cuál se
+usa (<code>poblacion.py:183</code>).</p>
+
+<h3>3.2 Los indicadores</h3>
+
+<p><strong>Cuánta ventaja sobrevive.</strong> Igual que en E2, pero el punto de
+indiferencia ya no es ½ sino el reparto uniforme entre los modos factibles de cada
+persona:</p>
+
+<div class="ecuacion" data-tex="\Phi \;=\; \frac{\bar S - \overline{1/J}}{\bar P^{*} - \overline{1/J}}" data-id="(4)">
+  <span class="id">(4)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Φ</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mrow><mover accent="true"><mi>S</mi><mo>ˉ</mo></mover><mo>−</mo><mover accent="true"><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>J</mi></mrow><mo stretchy="true">‾</mo></mover></mrow><mrow><msup><mover accent="true"><mi>P</mi><mo>ˉ</mo></mover><mo lspace="0em" rspace="0em">∗</mo></msup><mo>−</mo><mover accent="true"><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>J</mi></mrow><mo stretchy="true">‾</mo></mover></mrow></mfrac></mrow><annotation encoding="application/x-tex">\Phi \;=\; \frac{\bar S - \overline{1/J}}{\bar P^{*} - \overline{1/J}}</annotation></semantics></math></span>
+</div>
+
+<p>donde <span class="mat" data-tex="\bar S"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>S</mi><mo>ˉ</mo></mover></mrow><annotation encoding="application/x-tex">\bar S</annotation></semantics></math></span> es la cuota media del modo que de verdad es mejor para cada
+persona y <span class="mat" data-tex="\bar P^{*}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover accent="true"><mi>P</mi><mo>ˉ</mo></mover><mo lspace="0em" rspace="0em">∗</mo></msup></mrow><annotation encoding="application/x-tex">\bar P^{*}</annotation></semantics></math></span> la que elegiría quien conoce los tiempos de equilibrio.
+Se calcula en total y por <strong>banda de ventaja</strong> <span class="mat" data-tex="\Delta V"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>V</mi></mrow><annotation encoding="application/x-tex">\Delta V</annotation></semantics></math></span> del mejor
+sobre el segundo (<code>poblacion.py:262</code>). Esas bandas están en útiles del
+núcleo y <strong>no cambian con la escala</strong>, así que separan exactamente a la
+misma gente en las dos corridas — algo que en E1 y E2 no se podía, porque ahí la
+saturación obligó a elegir un caso de referencia a mano.</p>
+
+<p><strong>Cuánto separó la historia a personas iguales.</strong> Dos personas con el
+mismo estrato, la misma celda y la misma tenencia de auto tienen el mismo modo mejor y
+la misma <span class="mat" data-tex="P"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span> de equilibrio. Si eligieran con esa misma probabilidad, la varianza
+de su cuota en los últimos 20 días sería la binomial. La razón</p>
+
+<div class="ecuacion" data-tex="R \;=\; \frac{\operatorname{Var}\bigl(\text{cuota observada}\bigr)}{\bar p\,(1 - \bar p)\,/\,U}" data-id="(5)">
+  <span class="id">(5)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>R</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mrow><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mtext>cuota observada</mtext><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo></mrow><mrow><mover accent="true"><mi>p</mi><mo>ˉ</mo></mover><mtext> </mtext><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mover accent="true"><mi>p</mi><mo>ˉ</mo></mover><mo stretchy="false">)</mo><mtext> </mtext><mi mathvariant="normal">/</mi><mtext> </mtext><mi>U</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">R \;=\; \frac{\operatorname{Var}\bigl(\text{cuota observada}\bigr)}{\bar p\,(1 - \bar p)\,/\,U}</annotation></semantics></math></span>
+</div>
+
+<p>vale 1 si la historia no diferenció a nadie y crece cuando sí
+(<code>poblacion.py:240</code>). Es el indicador de dependencia de la
+trayectoria, y no tiene análogo en E1 ni E2.</p>
+
+<p><strong>Cuánto pesó el primer día.</strong> Entre quienes estrenaron el modo con una
+experiencia del decil <em>peor</em> y quienes la tuvieron del decil <em>mejor</em>, la
+cuota final de cada grupo (<code>poblacion.py:195</code>). Si la suerte inicial no
+importa, los dos números coinciden.</p>
+
+<p><strong>Cuánto cuesta y cuánto se percibe.</strong> Dos bienestares distintos: la
+utilidad con la que se <em>decidió</em> —la percibida, <span class="mat" data-tex="V_{ni}"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>n</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{ni}</annotation></semantics></math></span> del modo
+elegido— y la que de verdad se <em>vivió</em>, con el tiempo que la red entregó. Su
+diferencia, en minutos,</p>
+
+<div class="ecuacion" data-tex="B \;=\; \frac{\mathbb{E}\bigl[V^{\text{decisión}}\bigr] - \mathbb{E}\bigl[V^{\text{experimentada}}\bigr]}{|\beta|}" data-id="(6)">
+  <span class="id">(6)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>B</mi><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mrow><mi mathvariant="double-struck">E</mi><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">[</mo><msup><mi>V</mi><mrow><mtext>decisi</mtext><mover accent="true"><mtext>o</mtext><mo>ˊ</mo></mover><mtext>n</mtext></mrow></msup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">]</mo><mo>−</mo><mi mathvariant="double-struck">E</mi><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">[</mo><msup><mi>V</mi><mtext>experimentada</mtext></msup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">]</mo></mrow><mrow><mi mathvariant="normal">∣</mi><mi>β</mi><mi mathvariant="normal">∣</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">B \;=\; \frac{\mathbb{E}\bigl[V^{\text{decisión}}\bigr] - \mathbb{E}\bigl[V^{\text{experimentada}}\bigr]}{|\beta|}</annotation></semantics></math></span>
+</div>
+
+<p>es cuánto mejor <em>cree</em> estar la gente de lo que está. Los dos se miden en
+útiles del núcleo —<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> entra sólo en la ec. (3), no multiplica
+<span class="mat" data-tex="V"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span>—, así que <span class="mat" data-tex="B"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span> es comparable entre escalas y se lee en minutos de viaje
+con el mismo <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> = −0,0331 útiles/min.</p>
+
+
+<h2 id="escala">4. La calibración de <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>, y qué tan lejos puede estar</h2>
+
+<p>Todo lo que sigue está calculado con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador. Esta sección
+explica qué son, por qué la literatura de elección repetida sugiere valores bastante
+mayores, y por qué eso se reporta como <strong>sensibilidad</strong> y no como
+corrección.</p>
+
+<h3>4.1 <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1 no es una medición, es una convención</h3>
+
+<p>En un logit sólo se identifica el producto <span class="mat" data-tex="\mu\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>β</mi></mrow><annotation encoding="application/x-tex">\mu\beta</annotation></semantics></math></span>: multiplicar la escala
+por un número y dividir los coeficientes por el mismo deja <em>exactamente</em> las
+mismas probabilidades. Por eso el logit de transporte del simulador fija
+<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1 —<code>titirilquen_core/demand/choice.py:19</code>
+calcula <span class="mat" data-tex="e^V"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>e</mi><mi>V</mi></msup></mrow><annotation encoding="application/x-tex">e^V</annotation></semantics></math></span> a secas, sin ninguna escala— y son los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> los que la
+absorben.</p>
+
+<p>La consecuencia importa: <strong><span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> no es una perilla disponible, ya está
+consumida</strong>. Los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> valen lo que valen porque, con
+<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1, reproducen una partición modal observada. (El <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> del uso
+de suelo es otra cosa: ahí sí es un parámetro de escenario, porque fija cuánto pesa el
+ruido de localizarse frente a una accesibilidad que ya trae su propia escala.)</p>
+
+<h3>4.2 Qué dice la literatura de elección repetida</h3>
+
+<p>Guevara, Tang y Gao (2018) estiman un IBL con los datos de laboratorio de ruta de
+Ben-Elia y Shiftan (2010) —que es casi exactamente el experimento que estos informes
+simulan— y obtienen:</p>
+
+<p class="titulo-tabla"><span class="n">Tabla 2</span>Guevara, Tang y Gao (2018), tabla 4, dataset completo</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th>parámetro</th><th class='n'>d</th><th class='n'>TIMEF</th><th class='n'>TIMES</th><th class='n'>LRISK</th><th class='n'>FRISKY</th><th class='n'>CWA</th></tr></thead>
+  <tbody><tr><td>estimación</td><td class='n'>1,28</td><td class='n'>−0,198</td><td class='n'>−0,086</td><td class='n'>0,864</td><td class='n'>0,405</td><td class='n'>5,71</td></tr><tr><td>error estándar</td><td class='n'>0,137</td><td class='n'>0,015</td><td class='n'>0,013</td><td class='n'>0,144</td><td class='n'>0,12</td><td class='n'>0,192</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">TIMEF multiplica el tiempo <em>percibido</em> de la ruta rápida (su ec. 15), no el real: es el análogo exacto de nuestro tiempo del IBL. TIMES es el de la ruta lenta — son dos coeficientes específicos de alternativa dentro del mismo modelo, no un rango. De acá sale también el d = 1,28 que usamos de referencia, que el paper subraya como estimado y no fijado.</p>
+
+<p>Su coeficiente de tiempo es −0,198 útiles/min contra los
+−0,0331 del simulador:</p>
+
+<div class="ecuacion" data-tex="\frac{|\beta|_{\text{lit}}}{|\beta|_{\text{sim}}} \;=\; \frac{0{,}198}{0{,}0331} \;=\; 5{,}982" data-id="(7)">
+  <span class="id">(7)</span><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∣</mi><mi>β</mi><msub><mi mathvariant="normal">∣</mi><mtext>lit</mtext></msub></mrow><mrow><mi mathvariant="normal">∣</mi><mi>β</mi><msub><mi mathvariant="normal">∣</mi><mtext>sim</mtext></msub></mrow></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mfrac><mn>0,198</mn><mn>0,0331</mn></mfrac><mtext>  </mtext><mo>=</mo><mtext>  </mtext><mn>5,982</mn></mrow><annotation encoding="application/x-tex">\frac{|\beta|_{\text{lit}}}{|\beta|_{\text{sim}}} \;=\; \frac{0{,}198}{0{,}0331} \;=\; 5{,}982</annotation></semantics></math></span>
+</div>
+
+<h3>4.3 Por qué no lo adoptamos</h3>
+
+<p>Tomar ese número <em>no</em> es «elegir otra escala». Como <span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> ya está
+normalizado, equivale a afirmar que los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de transporte del simulador son
+seis veces chicos — es decir, que la elección modal del modelo es mucho más ruidosa de
+lo que sería en la realidad. Y eso contradice su calibración, que es lo que fija esos
+<span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>.</p>
+
+<p>Hay además una razón de fondo: <strong>la escala del logit no es transferible entre
+contextos de elección</strong>. El dato de Guevara viene de elegir entre dos rutas que
+difieren sólo en tiempo, en laboratorio, con información en pantalla. Elegir entre auto,
+metro, bici y caminata en una ciudad real es una decisión con mucha más heterogeneidad
+no observada — y esa heterogeneidad es precisamente lo que un <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> chico
+representa. Su valor no es «el verdadero» que el simulador debería copiar.</p>
+
+<p>Por eso los resultados van con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador y las tablas traen
+una columna <strong>«<span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> × 6,0»</strong> como
+sensibilidad de calibración: dice cuánto crecería cada efecto si la elección modal fuera
+tan determinista como sugiere el laboratorio. Cuando un efecto se vea chico, esa columna
+contesta la pregunta obligada — <em>¿chico de verdad, o chico porque el modelo elige con
+demasiado ruido?</em></p>
+
+<h3>4.4 En la ciudad, la sensibilidad no es neutral</h3>
+
+<p>En los experimentos de una persona la red está congelada y subir la escala sólo afila
+la elección. Acá no: el día 0 es el equilibrio que calcula el MSA del núcleo con
+<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1, y con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> multiplicados ese reparto deja de ser un
+punto fijo. La ciudad se corre sola, sin ningún ruido.</p>
+
+<p class="titulo-tabla"><span class="n">Tabla 3</span>El día 0 deja de ser equilibrio — cuota (%) sin nada de ruido</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th>modo</th><th class='n'>día 0 (MSA, <span class="sim">μ</span> = 1)</th><th class='n'>control (simulador)</th><th class='n'>control (β × 6,0)</th></tr></thead>
+  <tbody><tr><td>Auto</td><td class='n'>59,32</td><td class='n'>59,34</td><td class='n'>60,97</td></tr><tr><td>Metro</td><td class='n'>40,68</td><td class='n'>40,66</td><td class='n'>39,03</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Las tres columnas son la misma ciudad, sin ningún ruido. Con <span class="sim">μ</span> = 1 la dinámica se queda donde el MSA la dejó —es el control de que todo está bien conectado—. Con los β de la literatura el auto se corre 1,65 puntos: el logit más afilado concentra la demanda y la congestión acomoda el resto. Por eso <span class="sim">Φ</span> del control vale 0,960 y no 1.</p>
+
+<p>Es la forma más directa de ver lo de la §4.1: los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> estaban calibrados
+para reproducir esa partición, así que multiplicarlos la rompe. De ahí dos reglas de
+lectura: <strong>la línea base es el control sin ruido de cada columna</strong>, y
+<strong>los <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> no se comparan entre columnas en valor absoluto</strong> —lo
+comparable es cuánto cae cada uno al subir <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span>.</p>
+
+
+<h2 id="resultados">5. Resultados</h2>
+
+<h3>5.1 Cuánta ventaja sobrevive</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 4</span>Φ de la población, <span class="sim">d</span> = 1,28</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan='2' class='n'><span class="sim">σ</span> (min)</th><th colspan='2'>días 1–10</th><th colspan='2'>días 11–50</th><th colspan='2'>días 51–250</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th></tr></thead>
+  <tbody><tr><td class='n'>0</td><td class='n'>0,999</td><td class='n'>0,943</td><td class='n'>1,000</td><td class='n'>0,958</td><td class='n'>1,000</td><td class='n'>0,960</td></tr><tr><td class='n'>5</td><td class='n'>0,996</td><td class='n'>0,916</td><td class='n'>0,999</td><td class='n'>0,947</td><td class='n'>0,999</td><td class='n'>0,951</td></tr><tr><td class='n'>10</td><td class='n'>0,987</td><td class='n'>0,847</td><td class='n'>0,996</td><td class='n'>0,919</td><td class='n'>0,995</td><td class='n'>0,932</td></tr><tr><td class='n'>20</td><td class='n'>0,953</td><td class='n'>0,685</td><td class='n'>0,986</td><td class='n'>0,821</td><td class='n'>0,984</td><td class='n'>0,886</td></tr><tr><td class='n'>40</td><td class='n'>0,853</td><td class='n'>0,452</td><td class='n'>0,963</td><td class='n'>0,612</td><td class='n'>0,947</td><td class='n'>0,752</td></tr><tr><td class='n'>80</td><td class='n'>0,651</td><td class='n'>0,274</td><td class='n'>0,863</td><td class='n'>0,369</td><td class='n'>0,873</td><td class='n'>0,515</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">Fracción de la ventaja verdadera que sobrevive, ec. (4), en los tres horizontes. Con σ = 0 debe dar 1 en las dos escalas y da: es el control de que la dinámica sin ruido converge al equilibrio del logit de esa escala.</p>
+
+<figure><img src="salida/e3-phi.png" alt="Figura 1"><figcaption><span class="n">Figura 1</span>Φ de la población contra σ, un panel por horizonte, una línea por <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span>, con los β del simulador (<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 1).</figcaption></figure>
+
+<figure><img src="salida/e3-phi-guevara.png" alt="Figura 2"><figcaption><span class="n">Figura 2</span>Lo mismo con los β de la literatura (<span class="mat" data-tex="\mu"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span> = 5,98). Mismo eje vertical que la figura 1: la diferencia es el resultado, no el encuadre.</figcaption></figure>
+
+<h3>5.2 A quién le pasa</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 5</span>Φ a largo plazo por banda de ventaja, <span class="sim">d</span> = 1,28</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan='2' class='n'><span class="sim">ΔV</span> (útiles)</th><th rowspan='2' class='n'>personas</th><th colspan='2'><span class="sim">P*</span></th><th colspan='2'><span class="sim">σ</span> = 0</th><th colspan='2'><span class="sim">σ</span> = 20</th><th colspan='2'><span class="sim">σ</span> = 40</th><th colspan='2'><span class="sim">σ</span> = 80</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th></tr></thead>
+  <tbody><tr><td class='n'>0,0–0,1</td><td class='n'>3.924</td><td class='n'>0,512</td><td class='n'>0,568</td><td class='n'>1,000</td><td class='n'>0,812</td><td class='n'>0,982</td><td class='n'>0,655</td><td class='n'>0,910</td><td class='n'>0,575</td><td class='n'>0,823</td><td class='n'>0,327</td></tr><tr><td class='n'>0,1–0,3</td><td class='n'>8.502</td><td class='n'>0,549</td><td class='n'>0,757</td><td class='n'>1,000</td><td class='n'>0,892</td><td class='n'>0,981</td><td class='n'>0,763</td><td class='n'>0,943</td><td class='n'>0,576</td><td class='n'>0,869</td><td class='n'>0,346</td></tr><tr><td class='n'>0,3–0,6</td><td class='n'>9.564</td><td class='n'>0,608</td><td class='n'>0,926</td><td class='n'>1,000</td><td class='n'>0,971</td><td class='n'>0,981</td><td class='n'>0,886</td><td class='n'>0,940</td><td class='n'>0,724</td><td class='n'>0,863</td><td class='n'>0,462</td></tr><tr><td class='n'>0,6–∞</td><td class='n'>7.994</td><td class='n'>0,696</td><td class='n'>0,990</td><td class='n'>1,000</td><td class='n'>0,996</td><td class='n'>0,986</td><td class='n'>0,970</td><td class='n'>0,953</td><td class='n'>0,892</td><td class='n'>0,882</td><td class='n'>0,677</td></tr></tbody>
+</table></div>
+<p class="pie-tabla"><strong>La columna <span class="sim">σ</span> = 0 es el control sin ruido</strong>: el impacto del ruido es la caída respecto de ella, no el nivel. <span class="sim">ΔV</span> es la ventaja del modo mejor sobre el segundo, en útiles del núcleo. <strong>Las bandas parten a la misma gente en las dos escalas</strong> —<span class="sim">ΔV</span> se calcula sobre la utilidad del simulador y μ entra sólo en la ec. (3)—, así que las columnas son directamente comparables. Lo que sí cambia con la escala es <span class="sim">P*</span>: la misma ventaja en útiles se traduce en una elección mucho más decidida.</p>
+
+<h3>5.3 La partición modal apenas se mueve</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 6</span>La partición modal, <span class="sim">d</span> = 1,28, últimos 20 días</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan='2' class='n'><span class="sim">σ</span> (min)</th><th colspan='2'>cuota de auto (%)</th><th colspan='2'>abandono del auto (%)</th><th colspan='2'>abandono del metro (%)</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th></tr></thead>
+  <tbody><tr><td class='n'>0</td><td class='n'>59,34</td><td class='n'>60,97</td><td class='n'>0,02</td><td class='n'>13,35</td><td class='n'>0,02</td><td class='n'>13,12</td></tr><tr><td class='n'>5</td><td class='n'>59,33</td><td class='n'>60,94</td><td class='n'>0,02</td><td class='n'>13,54</td><td class='n'>0,02</td><td class='n'>13,68</td></tr><tr><td class='n'>10</td><td class='n'>59,31</td><td class='n'>60,88</td><td class='n'>0,03</td><td class='n'>13,92</td><td class='n'>0,02</td><td class='n'>14,83</td></tr><tr><td class='n'>20</td><td class='n'>59,29</td><td class='n'>60,76</td><td class='n'>0,03</td><td class='n'>14,31</td><td class='n'>0,02</td><td class='n'>16,49</td></tr><tr><td class='n'>40</td><td class='n'>59,26</td><td class='n'>60,53</td><td class='n'>0,06</td><td class='n'>13,62</td><td class='n'>0,04</td><td class='n'>17,22</td></tr><tr><td class='n'>80</td><td class='n'>59,15</td><td class='n'>59,99</td><td class='n'>0,26</td><td class='n'>11,21</td><td class='n'>0,25</td><td class='n'>14,92</td></tr></tbody>
+</table></div>
+<p class="pie-tabla">«Abandono» es la fracción de quienes podían usar el modo y terminaron sin usarlo ningún día de la ventana. <strong>Léase contra la fila <span class="sim">σ</span> = 0</strong>: con los β de la literatura el abandono ya parte de 13,4 % sin nada de ruido —el logit afilado hace que mucha gente no toque nunca uno de los dos modos, §4.1—, así que el nivel no es efecto del ruido y la diferencia sí. La cuota de auto se mueve −1,0 entre σ = 0 y σ = 80 a la sensibilidad de calibración, y −0,2 a la vieja. Contrastar con la tabla 4: <strong>las elecciones individuales se degradan mucho más que el agregado</strong> (§6.1).</p>
+
+<h3>5.4 La historia separa a personas idénticas</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 7</span>Cuánto separó la historia a personas idénticas, <span class="sim">d</span> = 1,28</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan='2' class='n'><span class="sim">σ</span> (min)</th><th colspan='2'>dispersión entre iguales, <span class="sim">R</span></th><th colspan='2'><span class="sim">μ</span> = 1: cuota final de auto (%)</th><th colspan='2'><span class="sim">μ</span> = 5,98: cuota final de auto (%)</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>mala suerte</th><th class='n'>buena suerte</th><th class='n'>mala suerte</th><th class='n'>buena suerte</th></tr></thead>
+  <tbody><tr><td class='n'>0</td><td class='n'>0,99</td><td class='n'>0,99</td><td class='n'>59,3</td><td class='n'>59,3</td><td class='n'>63,0</td><td class='n'>63,0</td></tr><tr><td class='n'>5</td><td class='n'>1,00</td><td class='n'>1,30</td><td class='n'>59,2</td><td class='n'>58,9</td><td class='n'>62,4</td><td class='n'>63,2</td></tr><tr><td class='n'>10</td><td class='n'>1,04</td><td class='n'>2,01</td><td class='n'>59,2</td><td class='n'>58,9</td><td class='n'>62,2</td><td class='n'>62,9</td></tr><tr><td class='n'>20</td><td class='n'>1,16</td><td class='n'>3,47</td><td class='n'>59,1</td><td class='n'>58,7</td><td class='n'>60,5</td><td class='n'>62,2</td></tr><tr><td class='n'>40</td><td class='n'>1,55</td><td class='n'>5,86</td><td class='n'>59,3</td><td class='n'>58,7</td><td class='n'>55,3</td><td class='n'>62,6</td></tr><tr><td class='n'>80</td><td class='n'>2,58</td><td class='n'>7,66</td><td class='n'>58,6</td><td class='n'>58,9</td><td class='n'>49,0</td><td class='n'>63,6</td></tr></tbody>
+</table></div>
+<p class="pie-tabla"><span class="sim">R</span> es la ec. (5): 1 significa que personas iguales se comportan como si tiraran la misma moneda, y más de 1 que la historia las diferenció. «Mala» y «buena suerte» son quienes estrenaron el modo con una experiencia del decil peor y del mejor. Con los β de la literatura esa brecha de estreno vale +14,6 con σ = 80; con los β del simulador, +0,3.</p>
+
+<figure><img src="salida/e3-iguales.png" alt="Figura 3"><figcaption><span class="n">Figura 3</span>Izquierda: dispersión entre personas iguales, <span class="mat" data-tex="R"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span> de la ec. (5); 1 es «la historia no diferenció a nadie». Derecha: la brecha <span class="mat" data-tex="B"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span> entre la utilidad de decisión y la experimentada, en minutos por viaje. Escala vieja.</figcaption></figure>
+
+<figure><img src="salida/e3-iguales-guevara.png" alt="Figura 4"><figcaption><span class="n">Figura 4</span>Lo mismo con los β de la literatura.</figcaption></figure>
+
+<h3>5.5 Lo que cuesta y lo que se percibe</h3>
+
+<p class="titulo-tabla"><span class="n">Tabla 8</span>El costo y lo que se percibe de él, <span class="sim">d</span> = 1,28, últimos 20 días</p>
+<div class="envoltorio-tabla"><table>
+  <thead><tr><th rowspan='2' class='n'><span class="sim">σ</span> (min)</th><th colspan='2'><span class="sim">B</span>: se cree mejor por (min/viaje)</th><th colspan='2'>utilidad experimentada (útiles)</th></tr><tr><th class='n'>simulador</th><th class='n'>β × 6,0</th><th class='n'>simulador</th><th class='n'>β × 6,0</th></tr></thead>
+  <tbody><tr><td class='n'>0</td><td class='n'>0,01</td><td class='n'>0,02</td><td class='n'>−1,0919</td><td class='n'>−1,0245</td></tr><tr><td class='n'>5</td><td class='n'>0,04</td><td class='n'>0,13</td><td class='n'>−1,0917</td><td class='n'>−1,0247</td></tr><tr><td class='n'>10</td><td class='n'>0,16</td><td class='n'>0,39</td><td class='n'>−1,0916</td><td class='n'>−1,0248</td></tr><tr><td class='n'>20</td><td class='n'>0,60</td><td class='n'>1,12</td><td class='n'>−1,0918</td><td class='n'>−1,0267</td></tr><tr><td class='n'>40</td><td class='n'>2,19</td><td class='n'>2,83</td><td class='n'>−1,0933</td><td class='n'>−1,0360</td></tr><tr><td class='n'>80</td><td class='n'>6,83</td><td class='n'>6,77</td><td class='n'>−1,0959</td><td class='n'>−1,0591</td></tr></tbody>
+</table></div>
+<p class="pie-tabla"><span class="sim">B</span> es la ec. (6): cuánto mejor <em>cree</em> estar la gente de lo que está, en minutos de viaje. Con σ = 80 min son 6,8 min por viaje con los β de la literatura y 6,8 a los del simulador. Los dos bienestares están en útiles del núcleo, así que las columnas son comparables entre escalas. La utilidad experimentada cae mucho menos que lo que la brecha sugiere: el grueso del efecto es <strong>error de percepción</strong>, no pérdida de tiempo.</p>
+
+
+<h2 id="analisis">6. Análisis</h2>
+
+<h3>6.1 El agregado engaña</h3>
+
+<p>Es el contraste más útil de E3. Las elecciones individuales se degradan
+—<span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> cae de 1,00 a
+0,87— y sin embargo la cuota de auto se mueve
+−0,2. Un observador que sólo mirara la
+partición modal concluiría que no pasó nada.</p>
+
+<p>Hay dos razones y conviene no confundirlas. La primera es
+<strong>compensación</strong>: el ruido está en los dos modos, así que tanta gente
+abandona el auto como el metro, y los errores se cancelan en la suma. La segunda es
+<strong>congestión</strong>: si demasiados se pasan al auto, el auto empeora y los
+devuelve. El equilibrio agregado es estable aunque abajo las personas estén rotando sin
+parar.</p>
+
+<p>La consecuencia práctica es incómoda para la evaluación de proyectos. La partición
+modal es la variable que casi siempre se reporta, y acá es justamente la que menos
+informa: el daño está en <em>quién</em> va en cada modo, no en <em>cuántos</em>.</p>
+
+<h3>6.2 Personas iguales dejan de ser iguales</h3>
+
+<p>Con <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 80 min, personas con el mismo estrato, la misma celda y la
+misma tenencia de auto terminan 2,6 veces más dispersas
+que si todas eligieran con la misma probabilidad. No es heterogeneidad de preferencias:
+<strong>por construcción son idénticas</strong>. Es historia.</p>
+
+<p>Lo que <em>no</em> aparece con estos <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> es que la suerte del estreno deje
+huella: la diferencia entre empezar con una mala experiencia y empezar con una buena vale
++0,3 de cuota
+final, que es ruido. La dispersión viene de toda la trayectoria, no del primer día.</p>
+
+<h3>6.3 Lo que la gente cree que le pasa</h3>
+
+<p>La ec. (6) separa dos cosas que normalmente se miden juntas: lo que la persona
+<em>vive</em> y lo que <em>cree</em> estar viviendo cuando decide. Con
+<span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 80 min la gente se cree 6,8 minutos por viaje
+mejor de lo que está, y ese error no se corrige con los días.</p>
+
+<p>Y tiene una propiedad que lo separa de todo lo demás de este informe:
+<strong><span class="mat" data-tex="B"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span> es casi el mismo con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de la literatura</strong>
+(6,8 contra 6,8 min). No es casualidad: los dos
+bienestares se miden en útiles del núcleo, así que la escala cambia <em>a quién</em> le
+toca equivocarse, no <em>cuánto</em> se equivoca quien se equivoca. Mientras
+<span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span>, <span class="mat" data-tex="R"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span> y la brecha de estreno dependen fuerte de la calibración, el
+error de percepción por viaje no. <strong>Es el resultado más robusto de E3.</strong></p>
+
+<p>El mecanismo vuelve a ser la ec. (1): como sólo se observa el modo elegido, y se elige
+lo que parece bueno, la creencia sobre el modo usado está sesgada hacia lo favorable. La
+persona no tiene manera de descubrir su error, porque el experimento que lo revelaría
+—usar el otro modo— es justamente el que dejó de hacer.</p>
+
+<p>Esto importa para medir beneficios. Si se evalúa con la utilidad de decisión —que es
+lo que una encuesta de preferencias declaradas recoge— se sobreestima el bienestar en del
+orden de 7 minutos por viaje. La utilidad experimentada, en
+cambio, cae poco: el grueso del daño es de percepción, no de tiempo perdido.</p>
+
+<h3>6.4 Cuánto de esto depende de la calibración</h3>
+
+<p>Mucho, salvo <span class="mat" data-tex="B"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi></mrow><annotation encoding="application/x-tex">B</annotation></semantics></math></span>. Con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de la literatura (§4)
+<span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> cae de 0,96 a
+0,51 en vez de hasta
+0,87; la dispersión entre iguales llega a
+7,7 veces la binomial; y la brecha de estreno, que acá es
+nula, pasa a valer
++14,6.</p>
+
+<p>O sea: <strong>la dependencia de trayectoria es el indicador más sensible a la
+calibración de todo este trabajo</strong>. Si el <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador está
+absorbiendo heterogeneidad no observada, lo que E3 reporta como «la historia diferencia
+un poco» podría ser bastante más.</p>
+
+<h3>6.5 Lo que este informe no muestra</h3>
+
+<ul>
+  <li><strong>Sólo auto y metro, y todos con auto.</strong> Es deliberado: con modos sin
+      ruido, la bici y la caminata serían un refugio hacia el que migraría la elección por
+      construcción, y parte del efecto sería ese artefacto. La ciudad de cuatro modos es
+      E4.</li>
+  <li><strong>σ no está calibrado.</strong> La grilla de 0 a 80 min es exploratoria.</li>
+  <li><strong>Ruido i.i.d. y sin truncar.</strong> La variabilidad real está
+      correlacionada entre días y entre personas, y los tiempos no pueden ser
+      negativos.</li>
+  <li><strong>Sin inercia.</strong> El CWA de Guevara (5,71) agravaría el atrapamiento y
+      no está.</li>
+  <li><strong>El prior es el equilibrio.</strong> Todos arrancan sabiendo los tiempos del
+      día 0. Un prior equivocado es otra pregunta.</li>
+</ul>
+
+
+<h2 id="conclusiones">7. Conclusiones</h2>
+
+<p>Con los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> del simulador; el punto 5 dice qué cambia si fueran los de la
+literatura.</p>
+
+<ol>
+  <li><strong>La ciudad reproduce el mecanismo de E2, amortiguado.</strong> Con
+      <span class="mat" data-tex="\sigma"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi></mrow><annotation encoding="application/x-tex">\sigma</annotation></semantics></math></span> = 80 min y <span class="mat" data-tex="d"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span> = 1,28, <span class="mat" data-tex="\Phi"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Φ</mi></mrow><annotation encoding="application/x-tex">\Phi</annotation></semantics></math></span> a largo
+      plazo cae de 1,00 sin ruido a
+      0,87.</li>
+  <li><strong>La partición modal no se entera.</strong> Se mueve
+      −0,2 mientras las elecciones
+      individuales se degradan. Quien mire sólo el agregado no ve nada.</li>
+  <li><strong>La historia diferencia a personas idénticas.</strong>
+      <span class="mat" data-tex="R"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span> = 2,6 veces la binomial. La suerte del
+      estreno, en cambio, no deja huella con estos <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span>.</li>
+  <li><strong>El costo es sobre todo de percepción, y es el resultado más
+      robusto.</strong> La gente se cree 6,8 min por viaje mejor de
+      lo que está, no se corrige, y el número casi no cambia con la calibración. Si se
+      evalúa con la utilidad de decisión, se sobreestima el beneficio.</li>
+  <li><strong>La dependencia de trayectoria sí depende de la calibración.</strong> Con
+      los <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> de la literatura, <span class="mat" data-tex="R"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span> pasa a
+      7,7 y la brecha de estreno de
+      +0,3 a
+      +14,6. Es
+      donde más margen hay, y donde más haría falta saber cuál es el
+      <span class="mat" data-tex="\beta"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span> correcto.</li>
+</ol>
+
+<h3>7.1 Lo que queda</h3>
+
+<ul>
+  <li>E4 —la ciudad de cuatro modos— tiene su propio informe: ahí el ruido no está en
+      todos los modos y aparece la sustitución hacia el que no lo tiene.</li>
+  <li>Calibrar σ contra variabilidad observada, que es lo que falta para que estos
+      números sean una predicción y no una exploración.</li>
+  <li>Ruido correlacionado entre días y entre personas, en vez de i.i.d.</li>
+  <li>Conseguir y leer Denrell y March (2001) y Erev y Barron (2005); hoy se citan de
+      memoria.</li>
+</ul>
+
+<h3>7.2 Referencias</h3>
+<ul class="refs">
+  <li>Guevara, C. A., Tang, Y. y Gao, S. (2018). The initial condition problem with
+      complete history dependency in learning models for travel choices.
+      <em>Transportation Research Part B</em> 117, 850–861. — Verificado contra
+      <code>papers/2018 Guevara Tang Gao TRB.pdf</code>: la tabla 2 es su tabla 4,
+      dataset completo.</li>
+  <li>Tang, Y. y Gao, S., 2017. An exploratory study of instance-based learning for
+      route choice with random travel times. <em>J. Choice Modell.</em> 24, 22–33. —
+      Referencia tomada de la bibliografía de Guevara et al. (2018); no revisada
+      directamente.</li>
+  <li>Ben-Elia, E. y Shiftan, Y., 2010. Which road do I take? A learning-based model of
+      route-choice behavior with real-time information. <em>Transport. Res. Part A</em>
+      44. — Referencia tomada de la bibliografía de Guevara et al. (2018), no revisada
+      directamente.</li>
+  <li>Gonzalez, C., Lerch, J. F. y Lebiere, C., 2003. Instance-based learning in dynamic
+      decision making. <em>Cogn. Sci.</em> 27, 591–635. — Origen del IBL; referencia
+      tomada de la bibliografía de Guevara et al. (2018), no revisada directamente.</li>
+  <li>Denrell, J. y March, J. G. (2001), sobre el <em>hot stove effect</em>:
+      <strong>citado de memoria, sin verificar contra el texto.</strong></li>
+</ul>
+
+<h2 id="reproducir">Reproducir</h2>
+
+<pre><code>cd sandbox/ibl-dia-a-dia
+uv sync --extra dev --reinstall-package titirilquen-core   # el núcleo del repo, no uno cacheado
+uv run python poblacion.py                                 # → salida/poblacion.json
+uv run python poblacion.py --guevara                       # → salida/poblacion-guevara.json
+uv run python figuras_experimentos.py
+uv run python figuras_experimentos.py --guevara
+uv run python informe_e3.py
+node ../../tools/renderiza_ecuaciones.js</code></pre>
+
+
+</div>
+</body>
+</html>
