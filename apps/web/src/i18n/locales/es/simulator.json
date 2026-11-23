@@ -1015,5 +1015,195 @@
     "constante": "La espera es la MISMA en toda la línea: hay una sola frecuencia para el servicio y el recargo de andén no muerde, así que un perfil espacial dibujaría una recta.",
     "varia": "Varía entre {{min}} y {{max}} min según la estación ({{pct}} %): el andén carga distinto en cada una.",
     "msa_nota": "La cifra de arriba es la del equilibrio y no coincide exactamente con 30/f_op porque el MSA promedia tiempos entre iteraciones."
+  },
+  "aprendizaje": {
+    "title": "Aprendizaje día a día",
+    "subtitle": "Una persona que no conoce los tiempos y los aprende de lo que vive — y sólo vive el modo que eligió.",
+    "listo": "listo",
+    "corriendo": "corriendo…",
+    "correr": "Correr experimento",
+    "sin_corrida": "Esta página usa los tiempos del equilibrio. Corre primero el módulo de Transporte y vuelve: así el experimento es instantáneo.",
+    "ir_a_transporte": "Ir a Transporte →",
+    "aviso_margen": "Ojo con Φ: el margen P* − ½ vale {{margen}}, así que divide por casi nada y amplifica cualquier diferencia. Mirá también S y los invertidos.",
+    "estrato": "Estrato",
+    "celda": "Celda de origen",
+    "celda_hint": "De dónde sale la persona. El CBD está al centro de la ciudad.",
+    "decaimiento": "Decaimiento d",
+    "decaimiento_hint": "0 promedia toda la historia por igual; más alto mira sólo lo reciente. Guevara, Tang y Gao (2018) estiman 1,28.",
+    "condicion": "Dónde cae el ruido",
+    "sigma": "Variabilidad σ",
+    "k_shocks": "Experiencias malas (k)",
+    "k_shocks_hint": "Las primeras k veces que usa el modo mejor salen peores. Si abandona antes, no las recibe todas.",
+    "delta": "Cuánto peor (Δ)",
+    "dias": "Horizonte",
+    "dias_hint": "El costo del IBL crece con el cuadrado del horizonte.",
+    "replicas": "Réplicas",
+    "sec": {
+      "persona": "La persona",
+      "memoria": "La memoria",
+      "variabilidad": "Variabilidad del tiempo",
+      "racha": "Una mala racha temprana",
+      "horizonte": "Horizonte y réplicas",
+      "ciudad": "La ciudad"
+    },
+    "cond": {
+      "ninguno": "Sin ruido",
+      "ambos": "En los dos modos",
+      "solo_mejor": "Sólo en el mejor",
+      "solo_peor": "Sólo en el peor"
+    },
+    "kpi": {
+      "ventaja": "Ventaja verdadera",
+      "ventaja_sub": "a favor de {{modo}}",
+      "p_estrella": "P* informado",
+      "phi": "Φ a largo plazo",
+      "phi_sub": "días {{desde}}–{{hasta}}",
+      "invertidos": "Invertidos"
+    },
+    "fig": {
+      "titulo": "Cuota media del modo mejor, día a día",
+      "titulo_una": "Una réplica: la historia de una persona",
+      "meta": "promedio de {{replicas}} réplicas · {{dias}} días",
+      "meta_una": "réplica #{{n}} · {{dias}} días",
+      "eje_dia": "día",
+      "eje_cuota": "cuota del modo mejor",
+      "cuota": "cuota media",
+      "cuota_una": "P(t) de esta réplica",
+      "dia": "día",
+      "vista": "qué mostrar",
+      "vista_promedio": "promedio",
+      "vista_replica": "una réplica",
+      "otra": "otra réplica",
+      "nota": "Cada punto es el promedio sobre las réplicas de la probabilidad de elegir el modo mejor ese día. Sale suave aunque ninguna historia individual lo sea: la creencia sólo cambia los días en que la persona usa el modo, y el shock cae la primera vez que lo elige, que no es el mismo día en todas. Mire «una réplica» para ver la forma real.",
+      "nota_una": "Una sola historia, sin promediar. La curva es escalonada porque la creencia sólo cambia los días en que la persona usa el modo: entre medio, P(t) es constante. El shock cae la primera vez que elige el modo mejor —no necesariamente el día 1— y después se diluye a medida que acumula experiencias buenas. Es la misma simulación que el promedio."
+    },
+    "tabla": {
+      "titulo": "Por horizonte",
+      "ventana": "Ventana",
+      "dias": "Días",
+      "invertidos": "Invertidos (%)"
+    },
+    "ventana": {
+      "corto": "Corto plazo",
+      "medio": "Mediano plazo",
+      "largo": "Largo plazo"
+    },
+    "shock": {
+      "titulo": "El umbral de la mala racha",
+      "w_k": "Peso de la racha, W_k",
+      "critico": "Shock crítico Δ*",
+      "analitica": "P tras el shock (fórmula)",
+      "simulada": "P tras el shock (simulado)",
+      "llegan": "Llegan a recibir las k"
+    },
+    "modo": "Qué se simula",
+    "modo_persona": "Una persona",
+    "modo_ciudad": "La ciudad",
+    "modos_ciudad": "Modos de la ciudad",
+    "modos_dos": "Auto y metro (E3)",
+    "modos_cuatro": "Los cuatro modos (E4)",
+    "ruido_auto": "El auto lleva ruido",
+    "ruido_metro": "El metro lleva ruido",
+    "dias_ciudad_hint": "Corto a propósito: el costo crece con el cuadrado y acá la red se resuelve cada día. Los informes publicados usan 250.",
+    "ciudad": {
+      "agentes": "sobre {{n}} que eligen",
+      "dispersion": "Dispersión entre iguales",
+      "dispersion_sub": "veces la binomial; 1 = la historia no diferenció",
+      "brecha": "Se creen mejor por",
+      "brecha_sub": "decisión menos experiencia",
+      "abandono": "Abandono del metro",
+      "abandono_sub": "podían usarlo y no lo tocaron",
+      "quien_paga": "Quién paga",
+      "quien_paga_meta": "según cuál es SU modo mejor",
+      "modo_mejor": "Su modo mejor",
+      "lleva_ruido": "¿Lleva ruido?",
+      "personas": "Personas",
+      "si": "sí",
+      "no": "no",
+      "particion": "La partición modal",
+      "modo": "Modo",
+      "equilibrio": "Equilibrio (%)",
+      "final": "Final (%)"
+    },
+    "col": {
+      "s": "S (cuota del modo mejor)",
+      "phi": "Φ (ventaja que sobrevive)",
+      "p_estrella": "P* (con información perfecta)",
+      "uniforme": "1/J (eligiendo al azar)"
+    },
+    "teoria": {
+      "titulo": "El modelo y sus indicadores",
+      "meta": "qué es cada símbolo",
+      "intro": "Sin saber qué es cada componente, un Φ de 1,01 o un Δ* de 39,8 min no dicen nada. Acá están las ecuaciones que corre el módulo y el significado de cada variable.",
+      "percibido": {
+        "titulo": "1. Lo que la persona cree",
+        "texto": "El aprendizaje por instancias: el tiempo que la persona cree que toma un modo es el promedio ponderado de los tiempos que efectivamente vivió en él. Los días en que no lo eligió no entran — ésa es la asimetría de la que sale todo lo demás.",
+        "sim": {
+          "b": "el tiempo que la persona n cree que toma el modo i al decidir el día t",
+          "x": "el tiempo que efectivamente vivió en ese modo el día t′",
+          "a": "vale 1 si ese día eligió el modo i, y 0 si no",
+          "w": "cuánto pesa la experiencia del día t′ en la creencia de hoy",
+          "d": "el decaimiento de la memoria: 0 promedia toda la historia por igual, y más alto mira casi sólo lo reciente"
+        }
+      },
+      "eleccion": {
+        "titulo": "2. Lo que elige",
+        "texto": "La utilidad del simulador, corregida por la diferencia entre lo que la persona cree y el tiempo de referencia. Todo lo que no es tiempo de viaje —constantes modales, costo, penalizaciones— ya está dentro de la utilidad de referencia y no se reaprende.",
+        "sim": {
+          "vref": "la utilidad del modo i con los tiempos de referencia del día 0",
+          "beta": "el coeficiente del tiempo de viaje, en útiles por minuto (negativo)",
+          "tau": "el tiempo de referencia del modo i, el del equilibrio",
+          "mu": "la escala del logit. El simulador la normaliza en 1 y son los β los que la absorben"
+        }
+      },
+      "ventaja": {
+        "titulo": "3. La ventaja verdadera y el techo",
+        "texto": "Cuánto le gana el modo mejor al otro, y qué elegiría alguien que conoce los tiempos. Leída en minutos, la ventaja no depende de la escala del logit; la probabilidad sí.",
+        "sim": {
+          "dv": "la ventaja del modo mejor sobre el otro, en útiles",
+          "A": "la misma ventaja en minutos — la forma que no depende de la escala",
+          "pestrella": "la probabilidad de elegir el modo mejor con información perfecta: el techo contra el que se mide el aprendizaje",
+          "logit": "la logística, 1/(1+e^−z)"
+        }
+      },
+      "phi": {
+        "titulo": "4. Cuánta ventaja sobrevive",
+        "texto": "El indicador central. Vale 1 si el aprendizaje reprodujo la decisión informada, 0 si la persona terminó tirando una moneda, y negativo si se invirtió: en promedio elige el modo peor. Puede pasar de 1, y no es un error — significa que eligió el modo bueno más seguido que el informado. Ojo cuando el denominador es chico: ahí Φ amplifica cualquier diferencia.",
+        "sim": {
+          "S": "la cuota media del modo que de verdad es mejor",
+          "uniforme": "el punto de indiferencia: ½ con dos modos, y el reparto uniforme entre los J modos factibles cuando hay más",
+          "phi": "la fracción de la ventaja verdadera que sobrevive al aprendizaje"
+        }
+      },
+      "racha": {
+        "titulo": "5. El umbral de una mala racha",
+        "texto": "Si las primeras veces que usa el modo mejor salen peores, ¿cuánto hace falta para que cambie de conducta? El umbral es exacto y no depende de la escala del logit: sale sólo de la ventaja en minutos y de la memoria. Lo que sí depende de la escala es cuán abrupta es la caída al cruzarlo.",
+        "sim": {
+          "k": "cuántas de las primeras veces que usa el modo mejor salen peores",
+          "delta": "cuánto peor sale cada una de esas veces, en minutos",
+          "wk": "cuánto pesa la mala racha frente a la creencia inicial",
+          "dcritico": "el shock que deja la ventaja percibida exactamente en cero",
+          "ppost": "la probabilidad de volver a elegir el modo mejor justo después del k-ésimo golpe. Si queda muy baja, la persona deja de muestrearlo y no se entera de que ya no es malo"
+        }
+      },
+      "dispersion": {
+        "titulo": "6. Cuánto separó la historia a personas iguales",
+        "texto": "Sólo tiene sentido con la ciudad entera. Personas con el mismo estrato, la misma celda y la misma tenencia de auto tienen la misma probabilidad de equilibrio: si todas eligieran con ella, la varianza de su cuota sería la binomial. Más de 1 es dependencia de trayectoria pura.",
+        "sim": {
+          "R": "la razón entre la dispersión observada y la que explicaría el azar",
+          "pbarra": "la cuota media del grupo de personas idénticas",
+          "U": "los días finales sobre los que se mide la cuota"
+        }
+      },
+      "brecha": {
+        "titulo": "7. Lo que se cree y lo que se vive",
+        "texto": "La utilidad con la que se decide no es la que se experimenta: como sólo se observa el modo elegido, y se elige lo que parece bueno, la creencia queda sesgada a favor. Medido en minutos de viaje, es cuánto mejor cree estar la gente de lo que está.",
+        "sim": {
+          "B": "la brecha, en minutos de viaje por persona",
+          "vdec": "la utilidad percibida del modo elegido, con la que se decidió",
+          "vexp": "la utilidad verdadera de ese mismo viaje, con el tiempo real"
+        }
+      }
+    }
   }
 }

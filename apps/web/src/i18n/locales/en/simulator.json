@@ -1015,5 +1015,195 @@
     "constante": "Waiting is the SAME along the whole line: one frequency for the service and a platform surcharge that does not bite, so a spatial profile would draw a straight line.",
     "varia": "Ranges from {{min}} to {{max}} min by station ({{pct}} %): each one carries a different load.",
     "msa_nota": "The figure above is the equilibrium one and does not exactly match 30/f_op because the MSA averages times across iterations."
+  },
+  "aprendizaje": {
+    "title": "Day-to-day learning",
+    "subtitle": "A person who does not know travel times and learns them from experience — and only experiences the mode they chose.",
+    "listo": "done",
+    "corriendo": "running…",
+    "correr": "Run experiment",
+    "sin_corrida": "This page uses equilibrium travel times. Run the Transport module first and come back: the experiment is then instantaneous.",
+    "ir_a_transporte": "Go to Transport →",
+    "aviso_margen": "Careful with Φ: the margin P* − ½ is {{margen}}, so it divides by almost nothing and amplifies any difference. Look at S and the inverted share too.",
+    "estrato": "Stratum",
+    "celda": "Origin cell",
+    "celda_hint": "Where the person lives. The CBD sits at the city centre.",
+    "decaimiento": "Decay d",
+    "decaimiento_hint": "0 averages the whole history evenly; higher values look only at recent days. Guevara, Tang and Gao (2018) estimate 1.28.",
+    "condicion": "Where the noise falls",
+    "sigma": "Variability σ",
+    "k_shocks": "Bad experiences (k)",
+    "k_shocks_hint": "The first k times they use the better mode come out worse. If they quit early they never get all of them.",
+    "delta": "How much worse (Δ)",
+    "dias": "Horizon",
+    "dias_hint": "The IBL cost grows with the square of the horizon.",
+    "replicas": "Replications",
+    "sec": {
+      "persona": "The person",
+      "memoria": "Memory",
+      "variabilidad": "Travel time variability",
+      "racha": "An early bad streak",
+      "horizonte": "Horizon and replications",
+      "ciudad": "The city"
+    },
+    "cond": {
+      "ninguno": "No noise",
+      "ambos": "On both modes",
+      "solo_mejor": "Only on the better one",
+      "solo_peor": "Only on the worse one"
+    },
+    "kpi": {
+      "ventaja": "True advantage",
+      "ventaja_sub": "favouring {{modo}}",
+      "p_estrella": "Informed P*",
+      "phi": "Long-run Φ",
+      "phi_sub": "days {{desde}}–{{hasta}}",
+      "invertidos": "Inverted"
+    },
+    "fig": {
+      "titulo": "Mean share of the better mode, day by day",
+      "titulo_una": "One replica: a single person's history",
+      "meta": "mean of {{replicas}} replicas · {{dias}} days",
+      "meta_una": "replica #{{n}} · {{dias}} days",
+      "eje_dia": "day",
+      "eje_cuota": "share of the better mode",
+      "cuota": "mean share",
+      "cuota_una": "P(t) of this replica",
+      "dia": "day",
+      "vista": "what to show",
+      "vista_promedio": "mean",
+      "vista_replica": "one replica",
+      "otra": "another replica",
+      "nota": "Each point is the mean across replicas of the probability of choosing the better mode that day. It comes out smooth even though no individual history is: belief only changes on days the person uses the mode, and the shock lands the first time they choose it, which is not the same day for everyone. Switch to «one replica» to see the real shape.",
+      "nota_una": "A single history, not averaged. The curve is a step function because belief only changes on days the person uses the mode: in between, P(t) is flat. The shock lands the first time they choose the better mode — not necessarily day 1 — and then dilutes as good experiences accumulate. It is the same simulation as the mean."
+    },
+    "tabla": {
+      "titulo": "By horizon",
+      "ventana": "Window",
+      "dias": "Days",
+      "invertidos": "Inverted (%)"
+    },
+    "ventana": {
+      "corto": "Short run",
+      "medio": "Medium run",
+      "largo": "Long run"
+    },
+    "shock": {
+      "titulo": "The bad-streak threshold",
+      "w_k": "Weight of the streak, W_k",
+      "critico": "Critical shock Δ*",
+      "analitica": "P after the shock (formula)",
+      "simulada": "P after the shock (simulated)",
+      "llegan": "Reach all k"
+    },
+    "modo": "What to simulate",
+    "modo_persona": "One person",
+    "modo_ciudad": "The city",
+    "modos_ciudad": "City modes",
+    "modos_dos": "Car and metro (E3)",
+    "modos_cuatro": "All four modes (E4)",
+    "ruido_auto": "Car carries noise",
+    "ruido_metro": "Metro carries noise",
+    "dias_ciudad_hint": "Deliberately short: the cost grows with the square and the network is solved every day. The published reports use 250.",
+    "ciudad": {
+      "agentes": "over {{n}} who choose",
+      "dispersion": "Spread among equals",
+      "dispersion_sub": "times the binomial; 1 = history made no difference",
+      "brecha": "They believe they are better off by",
+      "brecha_sub": "decision minus experience",
+      "abandono": "Metro abandonment",
+      "abandono_sub": "could use it and never did",
+      "quien_paga": "Who pays",
+      "quien_paga_meta": "by which mode is THEIR best",
+      "modo_mejor": "Their best mode",
+      "lleva_ruido": "Carries noise?",
+      "personas": "People",
+      "si": "yes",
+      "no": "no",
+      "particion": "Modal split",
+      "modo": "Mode",
+      "equilibrio": "Equilibrium (%)",
+      "final": "Final (%)"
+    },
+    "col": {
+      "s": "S (share of the better mode)",
+      "phi": "Φ (advantage that survives)",
+      "p_estrella": "P* (with perfect information)",
+      "uniforme": "1/J (choosing at random)"
+    },
+    "teoria": {
+      "titulo": "The model and its indicators",
+      "meta": "what each symbol means",
+      "intro": "Without knowing what each component is, a Φ of 1.01 or a Δ* of 39.8 min says nothing. These are the equations the module runs and the meaning of every variable.",
+      "percibido": {
+        "titulo": "1. What the person believes",
+        "texto": "Instance-based learning: the time a person believes a mode takes is the weighted average of the times they actually experienced on it. Days they did not choose it do not count — that asymmetry is where everything else comes from.",
+        "sim": {
+          "b": "the time person n believes mode i takes when deciding on day t",
+          "x": "the time they actually experienced on that mode on day t′",
+          "a": "1 if they chose mode i that day, 0 otherwise",
+          "w": "how much day t′ weighs in today's belief",
+          "d": "memory decay: 0 averages the whole history evenly, higher values look almost only at recent days"
+        }
+      },
+      "eleccion": {
+        "titulo": "2. What they choose",
+        "texto": "The simulator's utility, corrected by the gap between belief and the reference time. Everything that is not travel time — modal constants, cost, penalties — already sits inside the reference utility and is not relearned.",
+        "sim": {
+          "vref": "utility of mode i at the day-0 reference times",
+          "beta": "travel time coefficient, in utils per minute (negative)",
+          "tau": "reference travel time of mode i, the equilibrium one",
+          "mu": "the logit scale. The simulator normalises it to 1 and the β coefficients absorb it"
+        }
+      },
+      "ventaja": {
+        "titulo": "3. True advantage and ceiling",
+        "texto": "How much the better mode beats the other, and what someone who knows the times would choose. Read in minutes the advantage does not depend on the logit scale; the probability does.",
+        "sim": {
+          "dv": "advantage of the better mode over the other, in utils",
+          "A": "the same advantage in minutes — the scale-free form",
+          "pestrella": "probability of choosing the better mode with perfect information: the ceiling learning is measured against",
+          "logit": "the logistic, 1/(1+e^−z)"
+        }
+      },
+      "phi": {
+        "titulo": "4. How much advantage survives",
+        "texto": "The central indicator. It is 1 if learning reproduced the informed choice, 0 if the person ended up flipping a coin, and negative if it inverted: on average they pick the worse mode. It can exceed 1, and that is not an error — it means they chose the good mode more often than the informed benchmark. Careful when the denominator is small: Φ then amplifies any difference.",
+        "sim": {
+          "S": "mean share of the mode that truly is better",
+          "uniforme": "the indifference point: ½ with two modes, and the uniform split across the J feasible modes when there are more",
+          "phi": "the fraction of the true advantage that survives learning"
+        }
+      },
+      "racha": {
+        "titulo": "5. The bad-streak threshold",
+        "texto": "If the first times they use the better mode come out worse, how much does it take to change behaviour? The threshold is exact and does not depend on the logit scale: it follows only from the advantage in minutes and from memory. What does depend on scale is how abrupt the fall is once it is crossed.",
+        "sim": {
+          "k": "how many of the first uses of the better mode come out worse",
+          "delta": "how much worse each of those is, in minutes",
+          "wk": "how much the bad streak weighs against the initial belief",
+          "dcritico": "the shock that leaves the perceived advantage exactly at zero",
+          "ppost": "probability of choosing the better mode again right after the k-th hit. If it stays very low the person stops sampling it and never learns it is no longer bad"
+        }
+      },
+      "dispersion": {
+        "titulo": "6. How much history separated equal people",
+        "texto": "Only meaningful for the whole city. People with the same stratum, cell and car ownership share the same equilibrium probability: if they all chose with it, the variance of their share would be the binomial. Above 1 is pure path dependence.",
+        "sim": {
+          "R": "ratio of observed spread to the spread chance alone would explain",
+          "pbarra": "mean share of the group of identical people",
+          "U": "the final days over which the share is measured"
+        }
+      },
+      "brecha": {
+        "titulo": "7. What is believed versus what is lived",
+        "texto": "The utility used to decide is not the one experienced: since only the chosen mode is observed, and what looks good is chosen, the belief ends up biased in its favour. Measured in travel minutes, it is how much better people believe they are than they actually are.",
+        "sim": {
+          "B": "the gap, in travel minutes per person",
+          "vdec": "perceived utility of the chosen mode, the one used to decide",
+          "vexp": "true utility of that same trip, with the real travel time"
+        }
+      }
+    }
   }
 }

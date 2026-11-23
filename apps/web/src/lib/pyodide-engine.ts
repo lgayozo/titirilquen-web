@@ -12,6 +12,13 @@
  */
 
 import type {
+  AprendizajeDict,
+  CasoDict,
+  CiudadDict,
+  ConfigCiudad,
+  EscenarioResumenDict,
+  TiemposCeldaDict,
+  ConfigPersona,
   DemandConfig,
   SupplyConfig,
   IterationSnapshot,
@@ -33,6 +40,14 @@ type WorkerOutMsg =
   | { id: string; type: "iteration"; snapshot: IterationSnapshot }
   | { id: string; type: "done"; result: SimulationResult }
   | { id: string; type: "landUseDone"; result: LandUseSolveResponse }
+  | { id: string; type: "aprendizajeCasoListo"; result: CasoDict }
+  | {
+      id: string;
+      type: "aprendizajeCiudadLista";
+      result: EscenarioResumenDict;
+    }
+  | { id: string; type: "aprendizajeCiudadDone"; result: CiudadDict }
+  | { id: string; type: "aprendizajeDone"; result: AprendizajeDict }
   | { id: string; type: "outerIteration"; outer: OuterIteration }
   | { id: string; type: "coupledDone" }
   | { id: string; type: "error"; message: string };
@@ -56,6 +71,38 @@ type WorkerInMsg =
         largo_km: number;
         land_use: LandUseConfig;
       };
+    }
+  | {
+      id: string;
+      type: "aprendizajeCiudadPrep";
+      req: {
+        config: SimulationConfig;
+        land_use: LandUseConfig;
+        k_modos: 2 | 3;
+      };
+    }
+  | {
+      id: string;
+      type: "aprendizajeCiudadRun";
+      req: { clave: string; ciudad: ConfigCiudad };
+    }
+  | {
+      id: string;
+      type: "aprendizajeCaso";
+      req: {
+        config: SimulationConfig;
+        land_use: LandUseConfig;
+        estrato: number;
+        celda: number;
+        /** Los del equilibrio que la app ya tiene. Sin ellos se corre el MSA,
+         *  que en Pyodide cuesta más de un minuto. */
+        tiempos?: TiemposCeldaDict | null;
+      };
+    }
+  | {
+      id: string;
+      type: "aprendizajeRun";
+      req: { caso: CasoDict; aprendizaje: ConfigPersona };
     }
   | { id: string; type: "coupledStream"; req: CoupledRequest }
   | { id: string; type: "cancel"; targetId: string };
@@ -212,6 +259,100 @@ class PyodideEngine {
           return false;
         }
         if (data.type === "done") {
+          resolve(data.result);
+          return true;
+        }
+        if (data.type === "error") {
+          reject(new Error(data.message));
+          return true;
+        }
+        return false;
+      },
+      signal,
+    );
+  }
+
+  async prepararCiudadAprendizaje(
+    req: {
+      config: SimulationConfig;
+      land_use: LandUseConfig;
+      k_modos: 2 | 3;
+    },
+    signal?: AbortSignal,
+  ): Promise<EscenarioResumenDict> {
+    return this.request<EscenarioResumenDict>(
+      { type: "aprendizajeCiudadPrep", req },
+      (data, resolve, reject) => {
+        if (data.type === "aprendizajeCiudadLista") {
+          resolve(data.result);
+          return true;
+        }
+        if (data.type === "error") {
+          reject(new Error(data.message));
+          return true;
+        }
+        return false;
+      },
+      signal,
+    );
+  }
+
+  async correrCiudadAprendizaje(
+    req: { clave: string; ciudad: ConfigCiudad },
+    signal?: AbortSignal,
+  ): Promise<CiudadDict> {
+    return this.request<CiudadDict>(
+      { type: "aprendizajeCiudadRun", req },
+      (data, resolve, reject) => {
+        if (data.type === "aprendizajeCiudadDone") {
+          resolve(data.result);
+          return true;
+        }
+        if (data.type === "error") {
+          reject(new Error(data.message));
+          return true;
+        }
+        return false;
+      },
+      signal,
+    );
+  }
+
+  async prepararCasoAprendizaje(
+    req: {
+      config: SimulationConfig;
+      land_use: LandUseConfig;
+      estrato: number;
+      celda: number;
+      tiempos?: TiemposCeldaDict | null;
+    },
+    signal?: AbortSignal,
+  ): Promise<CasoDict> {
+    return this.request<CasoDict>(
+      { type: "aprendizajeCaso", req },
+      (data, resolve, reject) => {
+        if (data.type === "aprendizajeCasoListo") {
+          resolve(data.result);
+          return true;
+        }
+        if (data.type === "error") {
+          reject(new Error(data.message));
+          return true;
+        }
+        return false;
+      },
+      signal,
+    );
+  }
+
+  async correrAprendizaje(
+    req: { caso: CasoDict; aprendizaje: ConfigPersona },
+    signal?: AbortSignal,
+  ): Promise<AprendizajeDict> {
+    return this.request<AprendizajeDict>(
+      { type: "aprendizajeRun", req },
+      (data, resolve, reject) => {
+        if (data.type === "aprendizajeDone") {
           resolve(data.result);
           return true;
         }

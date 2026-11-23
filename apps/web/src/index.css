@@ -3344,3 +3344,105 @@ table.cmp th {
   color: var(--accent);
   text-decoration: none;
 }
+
+/* Apartado teórico del módulo de aprendizaje: las ecuaciones y qué significa
+   cada símbolo. La glosa va en dos columnas —símbolo y significado— para que
+   se lea como un diccionario y no como prosa corrida. */
+.teoria-intro {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: var(--fs-ayuda);
+  max-width: 68ch;
+}
+
+.teoria-bloque + .teoria-bloque {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.teoria-bloque h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: var(--fs-cuerpo);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.teoria-bloque > p {
+  margin: 0 0 10px;
+  font-size: var(--fs-ayuda);
+  max-width: 68ch;
+}
+
+/* La fórmula puede ser más ancha que el panel en pantallas chicas: se deja
+   desplazar en vez de desbordar el layout. */
+.teoria-formula {
+  margin: 10px 0;
+  padding: 2px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.teoria-glosa {
+  margin: 10px 0 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+  font-size: var(--fs-ayuda);
+}
+
+.teoria-glosa > div {
+  display: contents;
+}
+
+.teoria-glosa dt {
+  text-align: right;
+  color: var(--ink);
+}
+
+.teoria-glosa dd {
+  margin: 0;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+/* --- Figura de aprendizaje: elegir promedio o una réplica ----------------- */
+
+.fig-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.fig-otra {
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--fs-etiqueta);
+  font-weight: 500;
+  transition:
+    border-color 120ms,
+    color 120ms;
+}
+
+.fig-otra:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+/* La figura miente sin esto: el lector tiene que saber si está viendo un
+   promedio sobre réplicas o una historia sola. */
+.fig-nota {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: var(--fs-etiqueta);
+  line-height: 1.5;
+  max-width: 72ch;
+}

@@ -20,6 +20,13 @@
 
 import { pyodideEngine } from "@/lib/pyodide-engine";
 import type {
+  AprendizajeDict,
+  CasoDict,
+  CiudadDict,
+  ConfigCiudad,
+  EscenarioResumenDict,
+  TiemposCeldaDict,
+  ConfigPersona,
   DemandConfig,
   SupplyConfig,
   IterationSnapshot,
@@ -161,6 +168,67 @@ export async function resolverUsoDeSuelo(
 ): Promise<LandUseSolveResponse> {
   if (motorLocal()) return pyodideEngine.solveLandUse(req, signal);
   return postJson<LandUseSolveResponse>("/land-use/solve", req, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Aprendizaje día a día
+// ---------------------------------------------------------------------------
+
+/** Sólo motor local: son cientos de réplicas sobre cientos de días y no hay
+ *  endpoint REST para esto. Si alguna vez lo hay, va acá. */
+const SOLO_LOCAL =
+  "El aprendizaje día a día sólo corre en el motor local (Pyodide).";
+
+/** Paso 1 de la ciudad: resuelve el equilibrio y deja el escenario preparado
+ *  DEL LADO DEL MOTOR. No viaja —son matrices de N × 4—: se referencia por la
+ *  clave que devuelve. Es el paso caro, y se hace una vez por ciudad. */
+export async function prepararCiudadAprendizaje(
+  req: {
+    config: SimulationConfig;
+    land_use: LandUseConfig;
+    k_modos: 2 | 3;
+  },
+  signal?: AbortSignal,
+): Promise<EscenarioResumenDict> {
+  if (!motorLocal()) throw new Error(SOLO_LOCAL);
+  return pyodideEngine.prepararCiudadAprendizaje(req, signal);
+}
+
+/** Paso 2 de la ciudad: corre un experimento sobre el escenario preparado. */
+export async function correrCiudadAprendizaje(
+  req: { clave: string; ciudad: ConfigCiudad },
+  signal?: AbortSignal,
+): Promise<CiudadDict> {
+  if (!motorLocal()) throw new Error(SOLO_LOCAL);
+  return pyodideEngine.correrCiudadAprendizaje(req, signal);
+}
+
+/** Paso 1, el caro: resuelve el equilibrio y devuelve el caso de esa celda.
+ *
+ *  Se hace una vez por ciudad y celda. En Pyodide cuesta cerca de un minuto,
+ *  contra un par de segundos del experimento: por eso están separados. */
+export async function prepararCasoAprendizaje(
+  req: {
+    config: SimulationConfig;
+    land_use: LandUseConfig;
+    estrato: number;
+    celda: number;
+    /** Los del equilibrio ya corrido; sin ellos se resuelve la ciudad de nuevo. */
+    tiempos?: TiemposCeldaDict | null;
+  },
+  signal?: AbortSignal,
+): Promise<CasoDict> {
+  if (!motorLocal()) throw new Error(SOLO_LOCAL);
+  return pyodideEngine.prepararCasoAprendizaje(req, signal);
+}
+
+/** Paso 2, el barato: corre un experimento sobre un caso ya preparado. */
+export async function correrAprendizaje(
+  req: { caso: CasoDict; aprendizaje: ConfigPersona },
+  signal?: AbortSignal,
+): Promise<AprendizajeDict> {
+  if (!motorLocal()) throw new Error(SOLO_LOCAL);
+  return pyodideEngine.correrAprendizaje(req, signal);
 }
 
 // ---------------------------------------------------------------------------

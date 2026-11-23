@@ -8,6 +8,7 @@ import {
 import { useTranslation } from "react-i18next";
 import {
   BookOpen,
+  Brain,
   Building2,
   ChartNoAxesColumn,
   GitCompareArrows,
@@ -45,6 +46,9 @@ const navItems: readonly NavItem[] = [
   { to: "/land-use", key: "nav.land_use", icon: Building2 },
   { to: "/sandbox", key: "nav.sandbox", icon: TrainFront },
   { to: "/coupled", key: "nav.coupled", icon: Repeat },
+  // El aprendizaje va DESPUÉS del equilibrio: primero la ciudad que la
+  // gente tendría que conocer, después qué pasa cuando la aprende.
+  { to: "/aprendizaje", key: "nav.aprendizaje", icon: Brain },
   { to: "/compare", key: "nav.compare", icon: GitCompareArrows },
   { to: "/about", key: "nav.about", icon: Info },
 ];

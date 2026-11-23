@@ -14,6 +14,13 @@
  */
 
 import type {
+  AprendizajeDict,
+  CasoDict,
+  CiudadDict,
+  ConfigCiudad,
+  EscenarioResumenDict,
+  TiemposCeldaDict,
+  ConfigPersona,
   DemandConfig,
   SupplyConfig,
   IterationSnapshot,
@@ -58,6 +65,38 @@ type InMsg =
         modos_habilitados?: readonly string[] | null;
       };
     }
+  | {
+      id: string;
+      type: "aprendizajeCiudadPrep";
+      req: {
+        config: SimulationConfig;
+        land_use: LandUseConfig;
+        k_modos: 2 | 3;
+      };
+    }
+  | {
+      id: string;
+      type: "aprendizajeCiudadRun";
+      req: { clave: string; ciudad: ConfigCiudad };
+    }
+  | {
+      id: string;
+      type: "aprendizajeCaso";
+      req: {
+        config: SimulationConfig;
+        land_use: LandUseConfig;
+        estrato: number;
+        celda: number;
+        /** Los del equilibrio que la app ya tiene. Sin ellos se corre el MSA,
+         *  que en Pyodide cuesta más de un minuto. */
+        tiempos?: TiemposCeldaDict | null;
+      };
+    }
+  | {
+      id: string;
+      type: "aprendizajeRun";
+      req: { caso: CasoDict; aprendizaje: ConfigPersona };
+    }
   | { id: string; type: "coupledStream"; req: CoupledRequest }
   /** Cancelación cooperativa (F-03): marca la corrida `targetId` para que su
    *  loop de streaming se detenga en el próximo borde de iteración, SIN
@@ -70,6 +109,14 @@ type OutMsg =
   | { id: string; type: "iteration"; snapshot: IterationSnapshot }
   | { id: string; type: "done"; result: SimulationResult }
   | { id: string; type: "landUseDone"; result: LandUseSolveResponse }
+  | { id: string; type: "aprendizajeCasoListo"; result: CasoDict }
+  | {
+      id: string;
+      type: "aprendizajeCiudadLista";
+      result: EscenarioResumenDict;
+    }
+  | { id: string; type: "aprendizajeCiudadDone"; result: CiudadDict }
+  | { id: string; type: "aprendizajeDone"; result: AprendizajeDict }
   | { id: string; type: "outerIteration"; outer: OuterIteration }
   | { id: string; type: "coupledDone" }
   | { id: string; type: "error"; message: string };
@@ -92,6 +139,10 @@ let pyodide: PyodideInterface | null = null;
 let iterSueloFn: ((req: unknown, reqId: string) => unknown) | null = null;
 let lastTraceFn: ((reqId: string) => unknown) | null = null;
 let landUseSolveFn: ((req: unknown) => unknown) | null = null;
+let aprendizajeFn: ((req: unknown) => unknown) | null = null;
+let aprendizajeCasoFn: ((req: unknown) => unknown) | null = null;
+let ciudadPrepFn: ((req: unknown) => unknown) | null = null;
+let ciudadRunFn: ((req: unknown) => unknown) | null = null;
 let coupledIterFn: ((req: unknown) => unknown) | null = null;
 
 function post(msg: OutMsg): void {
@@ -148,6 +199,20 @@ import json
 # Antes estaba reescrita acá dentro, en un string que ninguna herramienta
 # revisa; divergió del gemelo de la API y el frontend terminó mostrando ceros.
 # Este bloque ya solo es el pegamento entre el worker y el núcleo.
+import hashlib
+
+from titirilquen_core.aprendizaje import (
+    ConfigCiudad,
+    ConfigPersona,
+    ejecutar_ciudad,
+    ejecutar_persona,
+    preparar_caso,
+    preparar_escenario,
+    resumen_escenario,
+)
+
+# El escenario de ciudad vive aca entre llamadas: resolverlo es el paso caro.
+_ESCENARIOS = {}
 from titirilquen_core.serializacion import (
     iteration_to_dict,
     land_use_city_to_dict,
@@ -203,6 +268,48 @@ def land_use_solve_from_json(req_json: str):
     )
     return land_use_city_to_dict(city)
 
+def aprendizaje_ciudad_prep_from_json(req_json: str):
+    # El paso caro: resuelve el equilibrio y arma la poblacion. El escenario NO
+    # viaja —son matrices de N x 4— y se queda cacheado aca; la interfaz lo
+    # referencia por su clave. Se guarda uno solo: acumular ciudades en el
+    # navegador no tiene sentido y la memoria es la del tab.
+    req = json.loads(req_json)
+    sim = SimulationConfig.model_validate(req['config'])
+    lu = LandUseConfig.model_validate(req['land_use'])
+    k = int(req.get('k_modos', 2))
+    firma = json.dumps([req['config'], req['land_use'], k], sort_keys=True)
+    clave = hashlib.sha1(firma.encode('utf-8')).hexdigest()[:16]
+    if clave not in _ESCENARIOS:
+        _ESCENARIOS.clear()
+        _ESCENARIOS[clave] = preparar_escenario(sim, lu, k_modos=k)
+    return resumen_escenario(_ESCENARIOS[clave], clave=clave, k_modos=k)
+
+def aprendizaje_ciudad_from_json(req_json: str):
+    # El paso barato: corre sobre el escenario cacheado.
+    req = json.loads(req_json)
+    esc = _ESCENARIOS.get(req['clave'])
+    if esc is None:
+        raise KeyError('el escenario no esta preparado; volve a prepararlo')
+    return ejecutar_ciudad(esc, ConfigCiudad.model_validate(req['ciudad']))
+
+def aprendizaje_caso_from_json(req_json: str):
+    # El paso caro: resuelve el equilibrio. Se hace UNA vez por celda; en
+    # Pyodide cuesta cerca de un minuto y la simulación un par de segundos.
+    req = json.loads(req_json)
+    sim = SimulationConfig.model_validate(req['config'])
+    lu = LandUseConfig.model_validate(req['land_use'])
+    return preparar_caso(
+        sim, lu,
+        estrato=int(req['estrato']), celda=int(req['celda']),
+        tiempos=req.get('tiempos') or None,
+    )
+
+def aprendizaje_from_json(req_json: str):
+    # El paso barato: corre sobre el caso ya preparado.
+    req = json.loads(req_json)
+    cfg = ConfigPersona.model_validate(req['aprendizaje'])
+    return ejecutar_persona(req['caso'], cfg)
+
 def coupled_iter_from_json(req_json: str):
     req = json.loads(req_json)
     sim = SimulationConfig.model_validate(req["sim"])
@@ -223,6 +330,10 @@ def coupled_iter_from_json(req_json: str):
     last_trace_to_py: unknown;
     land_use_solve_from_json: unknown;
     coupled_iter_from_json: unknown;
+    aprendizaje_from_json: unknown;
+    aprendizaje_caso_from_json: unknown;
+    aprendizaje_ciudad_prep_from_json: unknown;
+    aprendizaje_ciudad_from_json: unknown;
   };
   iterSueloFn = globals.iter_from_json_suelo as (
     r: unknown,
@@ -231,6 +342,14 @@ def coupled_iter_from_json(req_json: str):
   lastTraceFn = globals.last_trace_to_py as (reqId: string) => unknown;
   landUseSolveFn = globals.land_use_solve_from_json as (r: unknown) => unknown;
   coupledIterFn = globals.coupled_iter_from_json as (r: unknown) => unknown;
+  aprendizajeFn = globals.aprendizaje_from_json as (r: unknown) => unknown;
+  aprendizajeCasoFn = globals.aprendizaje_caso_from_json as (
+    r: unknown,
+  ) => unknown;
+  ciudadPrepFn = globals.aprendizaje_ciudad_prep_from_json as (
+    r: unknown,
+  ) => unknown;
+  ciudadRunFn = globals.aprendizaje_ciudad_from_json as (r: unknown) => unknown;
 }
 
 function jsFromPy(value: unknown): unknown {
@@ -301,6 +420,34 @@ self.addEventListener("message", async (ev: MessageEvent<InMsg>) => {
         landUseSolveFn!(JSON.stringify(msg.req)),
       ) as LandUseSolveResponse;
       post({ id: msg.id, type: "landUseDone", result });
+      return;
+    }
+    if (msg.type === "aprendizajeCiudadPrep") {
+      const result = jsFromPy(
+        ciudadPrepFn!(JSON.stringify(msg.req)),
+      ) as EscenarioResumenDict;
+      post({ id: msg.id, type: "aprendizajeCiudadLista", result });
+      return;
+    }
+    if (msg.type === "aprendizajeCiudadRun") {
+      const result = jsFromPy(
+        ciudadRunFn!(JSON.stringify(msg.req)),
+      ) as CiudadDict;
+      post({ id: msg.id, type: "aprendizajeCiudadDone", result });
+      return;
+    }
+    if (msg.type === "aprendizajeCaso") {
+      const result = jsFromPy(
+        aprendizajeCasoFn!(JSON.stringify(msg.req)),
+      ) as CasoDict;
+      post({ id: msg.id, type: "aprendizajeCasoListo", result });
+      return;
+    }
+    if (msg.type === "aprendizajeRun") {
+      const result = jsFromPy(
+        aprendizajeFn!(JSON.stringify(msg.req)),
+      ) as AprendizajeDict;
+      post({ id: msg.id, type: "aprendizajeDone", result });
       return;
     }
     if (msg.type === "coupledStream") {
