@@ -19,6 +19,8 @@ export type {
   SimulationConfig,
   StratumBetas,
   StratumConfig,
+  ConfigCiudad,
+  ConfigPersona,
   StratumId,
   SupplyConfig,
   TrainSupplyParams,
@@ -26,8 +28,18 @@ export type {
 
 export type {
   AgenteDict as AgentRecord,
+  AprendizajeDict,
+  CasoDict,
+  CiudadDict,
+  EscenarioResumenDict,
+  GrupoDict,
+  PhiVentanasDict,
+  ShockDict,
+  TiemposCeldaDict,
   SnapshotDict as IterationSnapshot,
   TraceDict as SimulationResult,
+  VentanaDict,
+  VentanasDict,
 } from "@/lib/gen/trace.gen";
 
 /** Todos los modos, incluido el teletrabajo (que no es elegible: se decide

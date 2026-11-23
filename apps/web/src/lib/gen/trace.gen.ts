@@ -288,3 +288,111 @@ export interface CoupledResultDict {
   final_parcelas: number[][];
   S: number[] | null;
 }
+
+/** Lo que resume una ventana de días. */
+export interface VentanaDict {
+  desde: number;
+  hasta: number;
+  s: number;
+  phi: number;
+  invertidos: number;
+}
+
+/** Los tres horizontes de análisis. */
+export interface VentanasDict {
+  corto: VentanaDict;
+  medio: VentanaDict;
+  largo: VentanaDict;
+}
+
+/** El caso binario del que salió el experimento. */
+export interface CasoDict {
+  estrato: number;
+  celda: number;
+  modos: string[];
+  mejor: string;
+  tau: number[];
+  v_ref: number[];
+  beta: number;
+  dv: number;
+  ventaja_min: number;
+  p_verdadera: number;
+  margen_phi: number;
+}
+
+/** El umbral analítico y su contraste con la simulación. Sólo con tratamiento. */
+export interface ShockDict {
+  w_k: number;
+  delta_critico_min: number;
+  p_post_analitica: number;
+  p_post_simulada: number | null;
+  llegan_a_k: number;
+}
+
+/** Los tiempos de UNA celda, tal como los trae el snapshot del equilibrio. */
+export interface TiemposCeldaDict {
+  auto_total: number;
+  bici_total: number;
+  bici_libre: number;
+  tren_acceso: number;
+  tren_espera: number;
+  tren_viaje: number;
+}
+
+/** El resultado completo de un experimento de una persona. */
+export interface AprendizajeDict {
+  caso: CasoDict;
+  dias: number;
+  replicas: number;
+  ventanas: VentanasDict;
+  s_por_dia: number[];
+  p_replicas: number[][];
+  shock: ShockDict | null;
+}
+
+/** Lo que la interfaz necesita saber de un escenario ya preparado. */
+export interface EscenarioResumenDict {
+  clave: string;
+  k_modos: number;
+  n_agentes: number;
+  eligen: number;
+  modos: string[];
+  split_equilibrio: number[];
+}
+
+/** Φ en los tres horizontes. */
+export interface PhiVentanasDict {
+  corto: number;
+  medio: number;
+  largo: number;
+}
+
+/** Un grupo de la población, separado por cuál es SU modo mejor. */
+export interface GrupoDict {
+  modo: string;
+  n: number;
+  lleva_ruido: boolean;
+  p_estrella: number;
+  uniforme: number;
+  phi: PhiVentanasDict;
+}
+
+/** El resultado de un experimento sobre la ciudad. */
+export interface CiudadDict {
+  n_agentes: number;
+  eligen: number;
+  modos: string[];
+  dias: number;
+  escala: number;
+  split_equilibrio: number[];
+  split_ultimos: number[];
+  split_por_dia: number[][];
+  phi: PhiVentanasDict;
+  por_mejor: GrupoDict[];
+  dispersion_iguales: number;
+  abandono_auto: number;
+  abandono_metro: number;
+  suerte_mala_auto: number;
+  suerte_buena_auto: number;
+  brecha_percepcion_min: number;
+}

@@ -49,6 +49,19 @@ from types import UnionType
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
 
 from titirilquen_core import constantes
+from titirilquen_core.aprendizaje.config import ConfigCiudad, ConfigPersona
+from titirilquen_core.aprendizaje.ejecutar import (
+    AprendizajeDict,
+    CasoDict,
+    CiudadDict,
+    EscenarioResumenDict,
+    GrupoDict,
+    PhiVentanasDict,
+    ShockDict,
+    TiemposCeldaDict,
+    VentanaDict,
+    VentanasDict,
+)
 from titirilquen_core.bienestar import AgregadosDict
 from titirilquen_core.config import SimulationConfig
 from titirilquen_core.coupled_metrics import (
@@ -181,7 +194,7 @@ def emite_tipos() -> str:
         "export type StratumId = 1 | 2 | 3;\n",
     ]
     vistos: set[str] = set()
-    for modelo in (SimulationConfig, LandUseConfig):
+    for modelo in (SimulationConfig, LandUseConfig, ConfigPersona, ConfigCiudad):
         esquema = modelo.model_json_schema(by_alias=True)
         for nombre, sub in esquema.get("$defs", {}).items():
             if nombre not in vistos:
@@ -296,6 +309,16 @@ def emite_trace() -> str:
         EquilibriumMetrics,
         OuterIterationDict,
         CoupledResultDict,
+        VentanaDict,
+        VentanasDict,
+        CasoDict,
+        ShockDict,
+        TiemposCeldaDict,
+        AprendizajeDict,
+        EscenarioResumenDict,
+        PhiVentanasDict,
+        GrupoDict,
+        CiudadDict,
     ):
         partes.append("\n" + _interfaz_desde_anotaciones(cls))
     return "".join(partes)

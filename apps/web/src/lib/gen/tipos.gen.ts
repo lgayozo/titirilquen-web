@@ -238,3 +238,69 @@ export interface LandUseConfig {
    */
   forma_param: number;
 }
+
+/** Un experimento de una persona entre dos modos, con la red congelada. */
+export interface ConfigPersona {
+  /** Estrato de ingreso de la persona. */
+  estrato: 1 | 2 | 3;
+  /** Celda de origen en la ciudad lineal. */
+  celda: number;
+  /** Horizonte en días. El costo del IBL crece con el cuadrado. */
+  dias: number;
+  /** Historias independientes de la misma persona. */
+  replicas: number;
+  /** Semilla del generador. */
+  semilla: number;
+  /**
+   *  Decaimiento del IBL. 0 promedia toda la historia por igual; más alto mira
+   *  sólo lo reciente. Guevara, Tang y Gao (2018) estiman 1,28.
+   */
+  d: number;
+  /** En qué modo cae el ruido del tiempo vivido. */
+  condicion: "ninguno" | "ambos" | "solo_mejor" | "solo_peor";
+  /** Desviación estándar del tiempo vivido, en minutos. */
+  sigma_min: number;
+  /** Cuántas de las primeras veces que usa el modo mejor salen peores. */
+  k_shocks: number;
+  /** Cuánto peor sale cada una de esas veces, en minutos. */
+  delta_min: number;
+}
+
+/**
+ *  Un experimento sobre la ciudad entera, con la congestión respondiendo. El
+ *  horizonte por defecto es corto a propósito: el costo del IBL crece con su
+ *  cuadrado y en el navegador 250 días no son viables. Los resultados
+ *  publicados usan 250; acá se busca poder mover las palancas y ver.
+ */
+export interface ConfigCiudad {
+  /**
+   *  2 = auto y metro, todos con auto (E3). 3 agrega la bici, que no lleva
+   *  ruido y por eso hace visible la sustitución (E4).
+   */
+  k_modos: 2 | 3;
+  /** Horizonte en días. El costo crece con el cuadrado. */
+  dias: number;
+  /** Días finales que definen el estado final. */
+  ultimos: number;
+  /** Semilla del generador. */
+  semilla: number;
+  /** Decaimiento del IBL. Guevara, Tang y Gao (2018) estiman 1,28. */
+  d: number;
+  /** Desviación estándar del tiempo vivido, en minutos. */
+  sigma_min: number;
+  /** Si el auto lleva ruido. */
+  ruido_auto: boolean;
+  /** Si el metro lleva ruido. */
+  ruido_metro: boolean;
+  /**
+   *  Si la bici lleva ruido. Dejarla sin él es el supuesto que hace visible
+   *  hacia dónde se desplazan los viajes (E4).
+   */
+  ruido_bici: boolean;
+  /**
+   *  Escala del logit. 1 es el simulador; otra es una sensibilidad de
+   *  calibración y NO es inocua acá: el día 0 deja de ser equilibrio y la
+   *  ciudad se corre sola, sin ningún ruido.
+   */
+  escala: number;
+}
