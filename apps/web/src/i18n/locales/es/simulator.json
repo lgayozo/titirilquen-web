@@ -1016,6 +1016,13 @@
     "recursos_por_pkm": "Costo de recursos por pasajero-km",
     "co2_por_pkm": "CO₂ por pasajero-km",
     "u_por_pkm": "(por pax-km)",
+    "peaje_pigou": "Peaje de Pigou del auto (medio)",
+    "u_por_km": "(por km)",
+    "peaje_pigou_nota": "(máximo {{max}}/km junto al centro · hoy se cobra {{actual}}/km)",
+    "peaje_pigou_porque": "Es el costo marginal externo de la congestión: la demora que un auto más le impone a todos los que ya van por el tramo, y que el conductor no paga. Cobrarlo hace que cada uno decida con el costo que le causa a la ciudad, no sólo con el propio. Es un indicador sobre la demanda de esta corrida: si se cobrara, parte de los autos dejaría el corredor y el peaje bajaría; el óptimo es donde ese ajuste se detiene. Sólo cuenta demora: la bencina extra que la congestión hace quemar a los demás queda fuera.",
+    "frecuencia_mohring": "Frecuencia óptima del metro (Mohring)",
+    "frecuencia_mohring_nota": "(operada {{operada}} · minimiza espera + operación)",
+    "frecuencia_mohring_porque": "El modelo opera el metro con la frecuencia justa para que quepa la carga del tramo crítico. La de Mohring responde otra pregunta: la que minimiza lo que gastan los usuarios esperando más lo que cuesta operar. Crece con la raíz de la demanda, no en proporción. Si es mayor que la operada, sumar trenes ahorra más espera de la que cuesta. Depende del costo por tren-km, que es un valor ilustrativo, y no considera el tope de capacidad ni la congestión de andén. Es un indicador sobre la demanda de esta corrida, no otro equilibrio.",
     "grupo": {
       "fisico": "1. Eventos físicos",
       "fisico_glosa": "conteos y emisiones",
@@ -1032,6 +1039,13 @@
     "costo_recursos_nota": "(tiempo al VST + operación de autos y metro + CO₂ + inversión)",
     "costo_recursos_porque": "Es el otro camino para medir el beneficio, y el que usa el MESPIVU: el ahorro en el consumo total de recursos entre la situación base y la con proyecto. El costo generalizado y el excedente miran el viaje desde el usuario, y cuentan lo que paga aunque ese pago no consuma nada: el peaje, el parking, la tarifa y el impuesto a la bencina salen de un bolsillo y entran a otro. Acá entra sólo lo que la sociedad gasta de verdad, a precios sociales, y el tiempo va al valor social, no al de cada estrato. Su Δ con signo cambiado es el ahorro de recursos. No son una identidad, y pueden discrepar hasta en el signo: con Tarificación Vial (200 $/km) el costo de recursos baja 303 mil —un ahorro— y el bienestar social baja 727 mil. El de recursos sólo cuenta tiempo, operación y CO₂; no lo que pierde quien cambia a un modo que prefería menos, que el excedente sí recoge.",
     "sim": {
+      "tau_k": "peaje del tramo k, en $/km",
+      "q_c": "flujo de autos del tramo y capacidad práctica del corredor",
+      "bpr": "tiempo a flujo libre del tramo y parámetros de la BPR del auto",
+      "vot_auto": "valor del tiempo medio de quienes van en auto en esta corrida: {{vot}}/h",
+      "q_metro": "pasajeros del metro en la hora punta",
+      "v_espera": "valor social del tiempo de espera: el VST ({{vot}}/h) por el ponderador de espera",
+      "c_l": "costo por tren-km y tren-km de una vuelta completa (ida y regreso)",
       "d_mi": "viajes en el modo m desde la celda i",
       "l_i": "distancia de la celda i al CBD, en km",
       "k_tren": "capacidad de un tren, en pasajeros",
@@ -1327,5 +1341,10 @@
       "vida_util_anios": "Vida útil (años) · MESPIVU 5.3.8",
       "horas_punta_anio": "Horas punta equivalentes al año (supuesto)"
     }
+  },
+  "optimos": {
+    "pigou_titulo": "Peaje de Pigou por ubicación",
+    "pigou_meta": "$/km · por tramo",
+    "pigou_nota": "Costo marginal externo de congestión de cada tramo del corredor: lo que un auto más le cuesta a los demás. Indicador sobre la demanda de esta corrida, no el equilibrio con ese peaje cobrado."
   }
 }

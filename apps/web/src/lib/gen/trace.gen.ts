@@ -37,6 +37,11 @@ export interface AgregadosDict {
   ocupacion_metro: number;
   costo_recursos_por_pkm_clp: number;
   co2_g_por_pkm: number;
+  peaje_pigou_perfil_clp_km: number[];
+  peaje_pigou_medio_clp_km: number;
+  peaje_pigou_max_clp_km: number;
+  vot_auto_clp_hora: number;
+  frecuencia_mohring_tph: number;
   auto_km_hora: number;
   litros_combustible_hora: number;
   recursos_combustible_clp: number;

@@ -1016,6 +1016,13 @@
     "recursos_por_pkm": "Resource cost per passenger-km",
     "co2_por_pkm": "CO₂ per passenger-km",
     "u_por_pkm": "(per pax-km)",
+    "peaje_pigou": "Pigouvian car toll (mean)",
+    "u_por_km": "(per km)",
+    "peaje_pigou_nota": "(maximum {{max}}/km next to the centre · currently charged {{actual}}/km)",
+    "peaje_pigou_porque": "It is the marginal external cost of congestion: the delay one more car imposes on everyone already on the link, which the driver does not pay. Charging it makes each driver decide with the cost caused to the city, not only their own. It is an indicator on this run's demand: if it were charged, some cars would leave the corridor and the toll would fall; the optimum is where that adjustment stops. It only counts delay: the extra fuel congestion makes others burn is left out.",
+    "frecuencia_mohring": "Optimal metro frequency (Mohring)",
+    "frecuencia_mohring_nota": "(operated {{operada}} · minimises waiting + operation)",
+    "frecuencia_mohring_porque": "The model runs the metro at just the frequency needed to fit the load of the critical section. Mohring's answers another question: the one that minimises what users spend waiting plus what operating costs. It grows with the square root of demand, not in proportion. If it is higher than the operated one, adding trains saves more waiting than it costs. It depends on the cost per train-km, which is an illustrative value, and ignores the capacity cap and platform congestion. It is an indicator on this run's demand, not another equilibrium.",
     "grupo": {
       "fisico": "1. Physical events",
       "fisico_glosa": "counts and emissions",
@@ -1032,6 +1039,13 @@
     "costo_recursos_nota": "(time at the social VoT + car and metro operation + CO₂ + investment)",
     "costo_recursos_porque": "This is the other route to measuring the benefit, and the one MESPIVU uses: the saving in total resource consumption between the base and the project. Generalised cost and consumer surplus look at the trip from the user's side, and count what they pay even when that payment consumes nothing: the toll, parking, the fare and the fuel tax leave one pocket and enter another. Only what society actually spends goes in here, at social prices, and time goes at the social value, not each stratum's. Its Δ with the sign flipped is the resource saving. They are not an identity, and may disagree even in sign: with Tarificación Vial (200 $/km) the resource cost falls by 303 thousand —a saving— while social welfare falls by 727 thousand. The resource cost only counts time, operation and CO₂; not what is lost by those who switch to a mode they liked less, which the surplus does capture.",
     "sim": {
+      "tau_k": "toll on link k, in $/km",
+      "q_c": "car flow on the link and practical capacity of the corridor",
+      "bpr": "free-flow time of the link and parameters of the car BPR",
+      "vot_auto": "mean value of time of those driving in this run: {{vot}}/h",
+      "q_metro": "metro passengers in the peak hour",
+      "v_espera": "social value of waiting time: the VST ({{vot}}/h) times the waiting weight",
+      "c_l": "cost per train-km and train-km of one full round trip",
       "d_mi": "trips by mode m from cell i",
       "l_i": "distance from cell i to the CBD, in km",
       "k_tren": "capacity of one train, in passengers",
@@ -1327,5 +1341,10 @@
       "vida_util_anios": "Service life (years) · MESPIVU 5.3.8",
       "horas_punta_anio": "Equivalent peak hours per year (assumption)"
     }
+  },
+  "optimos": {
+    "pigou_titulo": "Pigouvian toll by location",
+    "pigou_meta": "$/km · per link",
+    "pigou_nota": "Marginal external congestion cost of each link of the corridor: what one more car costs the others. Indicator on this run's demand, not the equilibrium with that toll charged."
   }
 }

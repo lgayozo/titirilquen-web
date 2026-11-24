@@ -53,6 +53,7 @@ const fmtMin = (v: number) => `${fmtDecimal(v)} min`;
 const fmtMoney = (v: number) => fmtPesos(v);
 const fmtMiles = (v: number) => fmtEntero(v);
 const fmtKm = (v: number) => `${fmtDecimal(v)} km`;
+const fmtTph = (v: number) => `${fmtDecimal(v)} tr/h`;
 const fmtGramos = (v: number) => `${fmtEntero(v)} g`;
 
 /** Distancia media de viaje de un modo: sus pasajero-km sobre sus viajes. */
@@ -593,6 +594,60 @@ export function ReferenceComparison({
       nota: t("agg.subsidio_nota", {
         f: config.supply.train.factor_dia_punta,
       }),
+    },
+    {
+      // Dos referencias de óptimo evaluadas sobre la demanda de ESTA corrida:
+      // dicen cuánto se debería cobrar y con qué frecuencia operar. No son
+      // otro equilibrio —con ese peaje la demanda respondería—, y por eso van
+      // sin color: no hay un «mejor» que leer en el Δ.
+      label: t("agg.peaje_pigou"),
+      grupo: "transferencias",
+      saber: {
+        ecuacion: String.raw`\tau_k \;=\; VoT \cdot q_k \frac{\partial t_k}{\partial q_k} \;=\; VoT \; t_0 \, \alpha \, \beta \left(\frac{q_k}{C}\right)^{\beta}`,
+        simbolos: [
+          [String.raw`\tau_k`, t("agg.sim.tau_k")],
+          [String.raw`q_k,\, C`, t("agg.sim.q_c")],
+          [String.raw`t_0,\, \alpha,\, \beta`, t("agg.sim.bpr")],
+          [
+            String.raw`VoT`,
+            t("agg.sim.vot_auto", { vot: fmtMoney(agg.vot_auto_clp_hora) }),
+          ],
+        ],
+        fuente: { archivo: "optimos.py", simbolo: "peaje_pigou_clp_km" },
+      },
+      actual: agg.peaje_pigou_medio_clp_km,
+      ref: aggRef?.peaje_pigou_medio_clp_km ?? null,
+      fmt: fmtMoney,
+      menorEsMejor: false,
+      neutra: true,
+      unidad: t("agg.u_por_km"),
+      nota: t("agg.peaje_pigou_nota", {
+        max: fmtMoney(agg.peaje_pigou_max_clp_km),
+        actual: fmtMoney(config.demand.globales.peaje_km),
+      }),
+      porque: t("agg.peaje_pigou_porque"),
+    },
+    {
+      label: t("agg.frecuencia_mohring"),
+      grupo: "transferencias",
+      saber: {
+        ecuacion: String.raw`f^{*} \;=\; \sqrt{\frac{Q \, V_e}{2 \, c \, \ell}}`,
+        simbolos: [
+          [String.raw`Q`, t("agg.sim.q_metro")],
+          [String.raw`V_e`, t("agg.sim.v_espera", precio)],
+          [String.raw`c,\, \ell`, t("agg.sim.c_l")],
+        ],
+        fuente: { archivo: "optimos.py", simbolo: "frecuencia_mohring_tph" },
+      },
+      actual: agg.frecuencia_mohring_tph,
+      ref: aggRef?.frecuencia_mohring_tph ?? null,
+      fmt: fmtTph,
+      menorEsMejor: false,
+      neutra: true,
+      nota: t("agg.frecuencia_mohring_nota", {
+        operada: fmtTph(result.iteraciones.at(-1)?.frecuencia_metro ?? 0),
+      }),
+      porque: t("agg.frecuencia_mohring_porque"),
     },
     {
       // Por unidad de transporte producido: dos escenarios que mueven distinta

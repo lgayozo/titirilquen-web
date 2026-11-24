@@ -395,6 +395,21 @@ def test_los_indicadores_por_pasajero_km_son_cocientes(
     assert 0 < agg["ocupacion_metro"] < 1
 
 
+def test_los_optimos_se_evaluan_sobre_la_corrida(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """El perfil del peaje de Pigou tiene una entrada por celda y vale cero en
+    el CBD, donde no circula nadie; su media ponderada queda entre cero y el
+    máximo; y la frecuencia de Mohring es positiva cuando hay metro."""
+    agg = _agregados(sim_liviana, lu_chica)
+    perfil = agg["peaje_pigou_perfil_clp_km"]
+    assert len(perfil) == sim_liviana.city.n_celdas
+    assert perfil[sim_liviana.city.n_celdas // 2] == 0
+    assert 0 < agg["peaje_pigou_medio_clp_km"] <= agg["peaje_pigou_max_clp_km"]
+    assert agg["peaje_pigou_max_clp_km"] == pytest.approx(max(perfil))
+    assert agg["frecuencia_mohring_tph"] > 0
+
+
 def test_la_inversion_parte_en_cero(sim_liviana: SimulationConfig, lu_chica: LandUseConfig) -> None:
     """Los costos unitarios de fábrica son cero: no hay fuente para ellos, y
     hasta que alguien los llene la inversión no puede mover ningún resultado."""

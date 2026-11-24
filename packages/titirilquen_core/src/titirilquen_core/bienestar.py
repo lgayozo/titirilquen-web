@@ -92,6 +92,11 @@ from titirilquen_core.demand.utility import (
 from titirilquen_core.emissions import tren_km_hora
 from titirilquen_core.equilibrium.msa import ConvergenceTrace
 from titirilquen_core.operacion_vehicular import otros_costos_operacion_auto_clp_km
+from titirilquen_core.optimos import (
+    costo_marginal_externo_auto_min,
+    frecuencia_mohring_tph,
+    peaje_pigou_clp_km,
+)
 
 #: Los estratos como llegan al JSON. Las claves de un objeto JSON son strings,
 #: así que `dict[StratumId, ...]` de Python cruza como "1"/"2"/"3"; declararlo
@@ -171,6 +176,19 @@ class AgregadosDict(TypedDict):
     #: distinta cantidad de transporte ($/pax-km y gramos/pax-km).
     costo_recursos_por_pkm_clp: float
     co2_g_por_pkm: float
+    #: Peaje de Pigou del auto (`optimos.py`): el costo marginal externo de
+    #: congestión de cada tramo, en $/km, al valor del tiempo medio de quienes
+    #: van en auto (`vot_auto_clp_hora`). El perfil va por celda; el medio pondera
+    #: por auto-km y el máximo cae junto al CBD. Es un indicador sobre la
+    #: demanda de esta corrida, no el equilibrio con ese peaje cobrado.
+    peaje_pigou_perfil_clp_km: list[float]
+    peaje_pigou_medio_clp_km: float
+    peaje_pigou_max_clp_km: float
+    vot_auto_clp_hora: float
+    #: Frecuencia del metro que minimiza espera de los usuarios (al VST por
+    #: el ponderador de espera) más costo de operación: la regla de la raíz
+    #: cuadrada de Mohring. Tampoco es otro equilibrio.
+    frecuencia_mohring_tph: float
     #: Auto-km de la hora punta: viajes en auto por su distancia al CBD.
     auto_km_hora: float
     #: Litros de bencina de la hora punta (`utility.litros_viaje_auto`): la
@@ -520,6 +538,37 @@ def calcular_agregados(
         rec_tiempo + rec_combustible + rec_otros + costo_operador + costo_co2 + c_inversion
     )
     pkm = sum(pkm_modo.values())
+
+    # Referencias de óptimo, sobre la demanda de esta corrida (`optimos.py`).
+    viajes_auto_h = {h: viajes_modo_estrato[str(h)]["Auto"] for h in estratos}
+    total_auto = sum(viajes_auto_h.values())
+    vot_auto = (
+        sum(viajes_auto_h[h] * vot[h] for h in estratos) / total_auto if total_auto > 0 else 0.0
+    )
+    pigou = np.zeros(ciudad.n_celdas)
+    pigou_medio = 0.0
+    if trace.flujos_auto_veh_h is not None:
+        flujos = np.asarray(trace.flujos_auto_veh_h, dtype=float)
+        pigou = peaje_pigou_clp_km(
+            costo_marginal_externo_auto_min(
+                flujos,
+                capacidad_direccion=trace.capacidad_auto,
+                v_libre_kmh=trace.v_libre_auto,
+                ancho_celda_km=ciudad.ancho_celda_km,
+                alpha=trace.alpha_auto_bpr,
+                beta=trace.beta_auto_bpr,
+            ),
+            vot_clp_hora=vot_auto,
+            ancho_celda_km=ciudad.ancho_celda_km,
+        )
+        if flujos.sum() > 0:
+            pigou_medio = float((pigou * flujos).sum() / flujos.sum())
+    f_mohring = frecuencia_mohring_tph(
+        pasajeros_hora=viajes_modo["Metro"],
+        valor_espera_clp_hora=vot_social_clp_hora * ps.ponderador_espera,
+        costo_tren_km_clp=cfg.supply.train.costo_operacion_tren_km,
+        tren_km_por_vuelta=tren_km_hora(1.0, trace.estaciones_km),
+    )
     oferta_metro = tren_km * cfg.supply.train.capacidad_tren
 
     logsum: dict[str, float] = {}
@@ -573,6 +622,11 @@ def calcular_agregados(
         "ocupacion_metro": pkm_modo["Metro"] / oferta_metro if oferta_metro > 0 else 0.0,
         "costo_recursos_por_pkm_clp": costo_recursos / pkm if pkm > 0 else 0.0,
         "co2_g_por_pkm": trace.emisiones_total_kg * 1000 / pkm if pkm > 0 else 0.0,
+        "peaje_pigou_perfil_clp_km": [float(x) for x in pigou],
+        "peaje_pigou_medio_clp_km": pigou_medio,
+        "peaje_pigou_max_clp_km": float(pigou.max()) if pigou.size else 0.0,
+        "vot_auto_clp_hora": vot_auto,
+        "frecuencia_mohring_tph": f_mohring,
         "auto_km_hora": auto_km,
         "litros_combustible_hora": litros,
         "recursos_combustible_clp": rec_combustible,

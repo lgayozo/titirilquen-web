@@ -1382,6 +1382,34 @@ export function SandboxPage() {
                 </Panel>
               )}
 
+              {/* El peaje de Pigou tramo a tramo: dónde se concentra el costo
+                  externo de la congestión. Indicador sobre la demanda de esta
+                  corrida, no el equilibrio con ese peaje cobrado. */}
+              {result && agregadosDe(result)?.peaje_pigou_perfil_clp_km && (
+                <Panel
+                  n="07"
+                  title={t("optimos.pigou_titulo")}
+                  meta={t("optimos.pigou_meta")}
+                  cls="col-12"
+                >
+                  <ExportableFigure
+                    name="peaje-pigou-por-ubicacion"
+                    title={t("optimos.pigou_titulo")}
+                    exportSize={{ width: 1000, height: 200 }}
+                  >
+                    <FlowProfile
+                      flows={agregadosDe(result)!.peaje_pigou_perfil_clp_km}
+                      largoKm={cfgRes.city.largo_ciudad_km}
+                      color="var(--auto)"
+                      label="$/km"
+                      valueFmt={(v) => fmtEntero(v)}
+                      height={130}
+                    />
+                  </ExportableFigure>
+                  <p className="fig-nota">{t("optimos.pigou_nota")}</p>
+                </Panel>
+              )}
+
               {result && result.agentes.length > 0 && (
                 <>
                   <Panel
