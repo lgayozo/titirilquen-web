@@ -74,6 +74,41 @@ export function IngresoPanel({ config, onChange }: Props) {
         <li>{t("ingreso.paso_reserva")}</li>
         <li>{t("ingreso.paso_orden")}</li>
       </ul>
+
+      {/* La demostración completa. El punto que confunde es el paso 2: el
+          ingreso SÍ entra al logit de la subasta; lo cancela la utilidad de
+          reserva en el equilibrio, no el álgebra del logit. */}
+      <p className="mt-3 text-etiqueta font-semibold leading-snug text-[var(--ink)]">
+        {t("ingreso.pasos_titulo")}
+      </p>
+      <ol className="mt-1 list-decimal pl-4 text-etiqueta leading-snug text-muted">
+        <li>{t("ingreso.paso1")}</li>
+        <li>
+          {t("ingreso.paso2")}
+          <Formula
+            tex={String.raw`Q_{hi} \;=\; \frac{H_h\, e^{\beta\, w_{hi}}}{\sum_g H_g\, e^{\beta\, w_{gi}}}`}
+          />
+        </li>
+        <li>
+          {t("ingreso.paso3")}
+          <Formula
+            tex={String.raw`\sum_i S_i\, Q_{hi} \;=\; H_h \qquad \forall\, h`}
+          />
+        </li>
+        <li>
+          {t("ingreso.paso4")}
+          <Formula
+            tex={String.raw`w'_{hi} \;=\; (y_h + \Delta_h) + \frac{f_h(z_i) - (u_h + \lambda_h \Delta_h)}{\lambda_h} \;=\; y_h + \frac{f_h(z_i) - u_h}{\lambda_h} \;=\; w_{hi}`}
+          />
+        </li>
+        <li>{t("ingreso.paso5")}</li>
+      </ol>
+      <p className="mt-2 text-etiqueta leading-snug text-muted">
+        {t("ingreso.ejemplo")}
+      </p>
+      <p className="mt-2 text-etiqueta leading-snug text-muted">
+        {t("ingreso.supuesto")}
+      </p>
       <p className="mt-2 text-etiqueta leading-snug text-[var(--ink)]">
         {t("ingreso.donde_importa")}
       </p>

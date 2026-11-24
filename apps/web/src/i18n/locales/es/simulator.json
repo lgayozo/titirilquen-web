@@ -1320,6 +1320,14 @@
     "paso_constante": "y_h es el mismo en todas las parcelas: subirlo sube la puja del estrato en toda la ciudad por igual, sin preferir ninguna parcela.",
     "paso_reserva": "u_h, la utilidad de reserva, se ajusta en el equilibrio hasta que el estrato ubica exactamente a todos sus hogares. Si y_h sube en Δ, u_h sube en λ_h·Δ y la puja queda idéntica: ni la localización ni los arriendos cambian.",
     "paso_orden": "Lo que ordena la ciudad es lo que SÍ varía entre parcelas: la accesibilidad en pesos, T/λ_h, y la densidad, ρ/λ_h. Por eso manda el valor del tiempo de cada estrato, no su ingreso.",
+    "pasos_titulo": "Paso a paso: dónde se cancela el ingreso",
+    "paso1": "La puja. Es la disposición a pagar de arriba: el ingreso entra sumando, igual en todas las parcelas.",
+    "paso2": "La subasta. Cada parcela se la lleva el mejor postor; con ruido Gumbel, la probabilidad de que gane el estrato h es un logit ENTRE ESTRATOS. Aquí el ingreso sí entra y no se cancela: con u_h dado, un estrato más rico ganaría más parcelas en toda la ciudad.",
+    "paso3": "El equilibrio. Pero u_h no es un dato: la ciudad es cerrada, cada estrato tiene H_h hogares y todos deben quedar ubicados. Esa condición es la que determina u_h.",
+    "paso4": "El cambio de ingreso. Sube el ingreso de cada estrato en un monto cualquiera Δ_h (distinto por estrato) y prueba con la utilidad de reserva corrida en λ_h·Δ_h. La puja queda idéntica:",
+    "paso5": "La conclusión. Con las mismas pujas la subasta reparte igual: Q no cambia, la condición del paso 3 se sigue cumpliendo y la utilidad corrida es el nuevo equilibrio. Tampoco cambian los arriendos, que son el máximo esperado de esas mismas pujas. El ingreso extra aparece entero en u_h: más bienestar, misma localización.",
+    "ejemplo": "Ejemplo: con el estrato bajo en $1M, que el alto gane $3M o $10M da la misma ciudad. Los $7M de diferencia suben su utilidad de reserva en λ_alto·$7M y nada más. Para representar un estrato alto «más rico» en la localización hay que mover lo que el ingreso le hace a sus preferencias: el valor del tiempo (los múltiplos de arriba), que es lo que empina su puja hacia el centro.",
+    "supuesto": "El resultado descansa en dos supuestos del modelo: la puja es lineal en el ingreso (utilidad cuasilineal, sin efecto ingreso) y la población de cada estrato es fija. En una ciudad abierta, con u_h dado, el ingreso sí movería la localización. El núcleo lo comprueba en un test: cambiar los ingresos no mueve la asignación.",
     "donde_importa": "Donde sí importa: la carga mensual de transporte (costo / ingreso) de «Ciudad en equilibrio» divide por estos valores. Y la utilidad de reserva de cada estrato sube con su ingreso: quien gana más vive mejor, pero en el mismo lugar."
   },
   "escenario": {

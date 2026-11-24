@@ -1320,6 +1320,14 @@
     "paso_constante": "y_h is the same on every parcel: raising it raises the stratum's bid across the whole city equally, favouring no parcel.",
     "paso_reserva": "u_h, the reservation utility, adjusts in equilibrium until the stratum places exactly all its households. If y_h rises by Δ, u_h rises by λ_h·Δ and the bid is identical: neither location nor rents change.",
     "paso_orden": "What orders the city is what DOES vary between parcels: accessibility in money, T/λ_h, and density, ρ/λ_h. That is why each stratum's value of time rules, not its income.",
+    "pasos_titulo": "Step by step: where income cancels out",
+    "paso1": "The bid. It is the willingness to pay above: income enters additively, the same on every parcel.",
+    "paso2": "The auction. Each parcel goes to the highest bidder; with Gumbel noise, the probability that stratum h wins is a logit ACROSS STRATA. Here income does enter and does not cancel: with u_h given, a richer stratum would win more parcels across the whole city.",
+    "paso3": "The equilibrium. But u_h is not given: the city is closed, each stratum has H_h households and all must be located. That condition is what determines u_h.",
+    "paso4": "The income change. Raise each stratum's income by any amount Δ_h (different per stratum) and try the reservation utility shifted by λ_h·Δ_h. The bid is identical:",
+    "paso5": "The conclusion. With the same bids the auction allocates the same: Q does not change, the condition of step 3 still holds and the shifted utility is the new equilibrium. Rents do not change either, since they are the expected maximum of those same bids. The extra income shows up entirely in u_h: more welfare, same location.",
+    "ejemplo": "Example: with the low stratum at $1M, the high stratum earning $3M or $10M gives the same city. The $7M difference raises its reservation utility by λ_high·$7M and nothing else. To represent a «richer» high stratum in location, move what income does to its preferences: the value of time (the multiples above), which is what steepens its bid towards the centre.",
+    "supuesto": "The result rests on two model assumptions: the bid is linear in income (quasi-linear utility, no income effect) and each stratum's population is fixed. In an open city, with u_h given, income would move location. The core checks it in a test: changing incomes does not move the allocation.",
     "donde_importa": "Where it does matter: the monthly transport burden (cost / income) in «City in equilibrium» divides by these values. And each stratum's reservation utility rises with its income: those who earn more live better, but in the same place."
   },
   "escenario": {
