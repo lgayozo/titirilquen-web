@@ -38,7 +38,7 @@ async function capacidad(page: Page) {
 }
 
 for (const [ciudad, politica, esperado] of [
-  ["Metrópolis", "Pro-Auto", { pistas: 20, ciclovia: 12000 }],
+  ["Metrópolis", "Pro-Auto", { pistas: 20, ciclovia: 24000 }],
   ["Metrópolis", "Ciclorrecreovía", { pistas: 12, ciclovia: 57600 }],
   ["Base", "Pro-Bici", { pistas: 4, ciclovia: 12000 }],
 ] as const) {

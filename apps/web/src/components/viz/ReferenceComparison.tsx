@@ -480,11 +480,11 @@ export function ReferenceComparison({
       // nada: peaje, parking y tarifa son transferencias. Acá sólo entra lo
       // que la sociedad gasta de verdad, y el tiempo va al VST porque en
       // recursos no tiene sentido que un minuto valga más según quién lo
-      // gaste. Es el enfoque del MESPIVU (13.1.1). Medido en la base
-      // (nov-2026, localización original): con 6 pistas el ahorro de recursos
-      // da +1.305.558 y el Δ del bienestar social +1.082.644; con peaje de
-      // 50 $/km, +160.365 contra +57.469. Mismo signo, distinta magnitud: no
-      // son una identidad. Por eso los dos están a la vista.
+      // gaste. Es el enfoque del MESPIVU (13.1.1). No es una identidad con
+      // el bienestar y pueden discrepar en signo: medido en la base
+      // (nov-2026), con Tarificación Vial a 200 $/km el costo de recursos
+      // baja 303 mil y el bienestar social baja 727 mil. Por eso los dos
+      // están a la vista.
       label: t("agg.costo_recursos"),
       grupo: "beneficio",
       subgrupo: "ahorro_recursos",

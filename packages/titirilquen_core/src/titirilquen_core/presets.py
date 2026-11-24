@@ -189,19 +189,27 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
     # D7 (oct-2026): un peaje por km, no un parking más caro. En esta ciudad
     # todos van al CBD, así que el parking es un cordón plano; el costo externo
     # de un viaje crece con los tramos que cruza, y un cobro por km se le acerca.
-    # 50 $/km es el máximo medido del bienestar social con la base de 4 pistas
-    # (oct-2026, +51 mil $ en la hora punta; meseta de 25–50 $/km, ΔW < 0 desde
-    # 100 $/km; datos_cap04 `peaje_y_bienestar`). Con 2 pistas, v/c 2, el máximo era
-    # 275 $/km: el cobro óptimo crece con la congestión, y con congestión
-    # moderada hay poco que corregir. El parking de 5.000 que usaba antes da
-    # menos bienestar que el peaje.
+    #
+    # 200 $/km (nov-2026, decisión de Leandro): un peaje «que muerde». Lleva el
+    # corredor justo a su capacidad (v/c 1,20 → 1,00), le quita al auto 5,1 pp
+    # (1.820 viajes) y recauda 5,0 millones en la hora punta.
+    #
+    # NO es el óptimo de bienestar, y conviene saberlo al leer el escenario:
+    # hasta nov-2026 el preset era 50 $/km, que es donde el bienestar social
+    # tiene su máximo con la base de 4 pistas (+90 mil $; meseta de 25–50 $/km,
+    # ΔW < 0 desde 100 $/km). Con 200 el bienestar social BAJA 727 mil $ y el
+    # tiempo medio sube de 16,2 a 16,4 min: el auto es el modo más rápido aun
+    # congestionado, y quien lo deja pasa a uno más lento. El enfoque de
+    # recursos, en cambio, dice que ahorra 303 mil $: los dos enfoques de
+    # beneficio discrepan en signo. Con 2 pistas, v/c 2, el máximo era
+    # 275 $/km: el cobro óptimo crece con la congestión.
     "Tarificación Vial": {
         "tarifa": 800,
         "parking": 2000,
         "num_pistas": 4,
         "num_estaciones": 10,
         "bencina": 1086,
-        "peaje": 50,
+        "peaje": 200,
         "cap_tren": 1000,
         "cap_bici": 6000,
         "frec_max": 40,
@@ -209,16 +217,22 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
         # hibridos» dejaba la flota en 0.7 en silencio.
         "factor_flota": 1.0,
     },
+    # SÓLO toca el auto (nov-2026): una pista más, el parking a la mitad y la
+    # bencina más barata. Antes era un paquete de ocho cambios que además
+    # recortaba el metro (estaciones, capacidad, frecuencia, tarifa) y la
+    # ciclovía a la mitad, y casi toda su pérdida venía de ahí —la bici pasaba
+    # de 19,5 a 27,2 min—: medía «castigar a los otros modos», no «favorecer
+    # al auto».
     "Pro-Auto": {
-        "tarifa": 1000,
+        "tarifa": 800,
         "parking": 1000,
         "num_pistas": 5,
-        "num_estaciones": 8,
+        "num_estaciones": 10,
         "bencina": 905,
         "peaje": 0,
-        "cap_tren": 800,
-        "cap_bici": 3000,
-        "frec_max": 6,
+        "cap_tren": 1000,
+        "cap_bici": 6000,
+        "frec_max": 40,
         # Sin declararlo, aplicar esta politica DESPUES de «Vehiculos
         # hibridos» dejaba la flota en 0.7 en silencio.
         "factor_flota": 1.0,
