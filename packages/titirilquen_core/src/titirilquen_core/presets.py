@@ -372,6 +372,14 @@ POLICY_PRESETS: dict[str, PolicyPreset] = {
 # agrega teletrabajo, los viajeros cambian y el ancla se mueve:
 # `tests/test_presets.py` lo vigila sobre los defaults.
 #
+# RAZONES REDONDAS 4 : 2 : 1 (nov-2026, decisión de Leandro). Las razones
+# heredadas eran 3,875 : 1,937 : 1; se llevaron a 4 y 2 veces el estrato bajo
+# porque así se enseñan y así las edita la página Calibración («el medio vale
+# 2 veces el bajo»). Se mantiene el ancla: con los shares 20/50/30 la media es
+# 2,1 × VoT_bajo, así que VoT_bajo = 3.338 / 2,1 = 1.589,5 y los otros dos son
+# su doble y su cuádruple: 6.358 / 3.179 / 1.590 $/h. `b_costo` del medio lleva
+# los decimales; el del bajo es exactamente su doble y el del alto su mitad.
+#
 # (Sigue ASC SIN GRADIENTE, ago-2026.) Las ASC comunes se eligieron para que
 # el agregado no se moviera
 # (auto 11.99 vs 12.16, v/c 0.97 vs 0.99): son neutrales respecto de la
@@ -395,7 +403,7 @@ DEFAULT_STRATA = {
             "asc_bici": -0.71616,  # -18 min
             "asc_caminata": -0.12036,  # 0 min
             "b_tiempo_viaje": -0.0331,
-            "b_costo": -0.000313794,  # VoT 6.329 $/h (D5)
+            "b_costo": -0.0003123575,  # VoT 6.358 $/h = 4 × el bajo
             "b_tiempo_espera": -0.0662,  # 2.0 x viaje
             "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.05627,  # 1.7 x viaje
@@ -418,7 +426,7 @@ DEFAULT_STRATA = {
             "asc_bici": -0.4918,
             "asc_caminata": 0.104,
             "b_tiempo_viaje": -0.0331,
-            "b_costo": -0.000627686,  # VoT 3.164 $/h (D5)
+            "b_costo": -0.000624715,  # VoT 3.179 $/h = 2 × el bajo
             "b_tiempo_espera": -0.0662,  # 2.0 x viaje
             "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.05627,  # 1.7 x viaje
@@ -441,7 +449,7 @@ DEFAULT_STRATA = {
             "asc_bici": -0.044133,  # -18 min
             "asc_caminata": 0.55167,  # 0 min
             "b_tiempo_viaje": -0.0331,
-            "b_costo": -0.001216167,  # VoT 1.633 $/h (D5)
+            "b_costo": -0.00124943,  # VoT 1.590 $/h
             "b_tiempo_espera": -0.0662,  # 2.0 x viaje
             "b_tiempo_acceso": -0.0662,  # 2.0 x viaje (ponderador 2 del SNI)
             "b_tiempo_caminata": -0.05627,  # 1.7 x viaje

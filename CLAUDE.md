@@ -116,8 +116,8 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   se deriva donde se muestra (D-46). `teletrabajo_factor` vive en
   `demand.globales`.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
-  defecto de la app da **auto 29,58 · metro 23,09 · bici 35,32 · caminata 12,02**
-  con la localización «original» (mezcla uniforme), y **28,86 · 25,62 · 35,64 ·
+  defecto de la app da **auto 29,56 · metro 22,96 · bici 35,44 · caminata 12,04**
+  con la localización «original» (mezcla uniforme), y **28,82 · 25,51 · 35,80 ·
   9,88** con la de equilibrio (seed 42, brecha < 0,02 min), pineadas en
   `tests/test_linea_base.py` — ese archivo manda si estos números y él difieren. Si un cambio las mueve más de 0,05 pp,
   no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
@@ -134,7 +134,8 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   auditoría B; auto y bici cruzan la media celda del CBD, de centroide a
   centroide como los demás modos, D-71) y en nov-2026 (consumo único de
   bencina: el auto paga los litros que quema a su velocidad media, a precio de
-  mercado, en vez de un costo fijo por km):
+  mercado, en vez de un costo fijo por km; y los valores del tiempo por
+  estrato en razón 4 : 2 : 1, anclados al VST):
   ver ese test.
 - **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
   0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`

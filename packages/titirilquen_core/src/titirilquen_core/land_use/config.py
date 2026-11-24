@@ -117,7 +117,7 @@ class LandUseConfig(BaseModel):
     #   * `lambda_h = |b_costo_h|`, en utiles de transporte por peso: con los
     #     presets, 0,000314 / 0,000628 / 0,001216 (D5). Con eso el score
     #     `y + f/lambda` queda en $/mes, como `p` e `y` (D-27), el VoT
-    #     `b_tiempo_viaje·60/b_costo` = 6.329 / 3.164 / 1.633 $/h coincide con
+    #     `b_tiempo_viaje·60/b_costo` = 6.358 / 3.179 / 1.590 $/h coincide con
     #     transporte, y el ruido de la puja `1/(mu·lambda_h)` = $10.623 /
     #     $5.311 / $2.741 al mes (con mu = 0,30; `1/lambda_h` = $3.187 /
     #     $1.593 / $822). Desde el schema

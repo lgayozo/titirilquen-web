@@ -148,18 +148,24 @@ ESPERADO = {
     #     menos por km que antes, así que sube el auto. Original auto +0,42,
     #     metro −0,33, bici −0,10, caminata +0,01; equilibrio auto +0,61,
     #     metro −0,49, bici −0,15, caminata +0,03.
+    # 19. Valores del tiempo en razón 4 : 2 : 1 (2026-11-24, decisión de
+    #     Leandro): eran 3,875 : 1,937 : 1. Se mantiene el ancla al VST, así que
+    #     los tres VoT se mueven poco (6.358 / 3.179 / 1.590 $/h); el que más
+    #     cambia es el bajo, −2,7 %, y por eso baja algo el metro y sube la
+    #     bici. Original auto −0,02, metro −0,13, bici +0,12, caminata +0,02;
+    #     equilibrio auto −0,04, metro −0,11, bici +0,16, caminata 0,00.
     "equilibrio": {
-        "Auto": 28.86,
-        "Metro": 25.62,
-        "Bici": 35.64,
+        "Auto": 28.82,
+        "Metro": 25.51,
+        "Bici": 35.80,
         "Caminata": 9.88,
         "Teletrabajo": 0.0,
     },
     "original": {
-        "Auto": 29.58,
-        "Metro": 23.09,
-        "Bici": 35.32,
-        "Caminata": 12.02,
+        "Auto": 29.56,
+        "Metro": 22.96,
+        "Bici": 35.44,
+        "Caminata": 12.04,
         "Teletrabajo": 0.0,
     },
 }
@@ -193,10 +199,11 @@ ITERACIONES_ESPERADAS = {"equilibrio": 6, "original": 6}
 #: y +0,19; 12 → 6 y 9 → 6 iteraciones. Con la media celda del CBD (D-71,
 #: oct-2026), también como la base: bici −0,25 y −0,26, metro +0,21 y +0,23.
 #: Con el consumo único de bencina (nov-2026) se movió como la base: auto +0,4 y
-#: +0,6 pp.
+#: +0,6 pp. Con los VoT en razón 4 : 2 : 1 (nov-2026), también como la base:
+#: metro −0,12 y −0,13, bici +0,12 y +0,15.
 ESPERADO_SUAVES = {
-    "equilibrio": {"Auto": 29.13, "Metro": 25.24, "Bici": 35.64, "Caminata": 9.99},
-    "original": {"Auto": 29.82, "Metro": 22.56, "Bici": 35.48, "Caminata": 12.14},
+    "equilibrio": {"Auto": 29.11, "Metro": 25.11, "Bici": 35.79, "Caminata": 9.99},
+    "original": {"Auto": 29.81, "Metro": 22.44, "Bici": 35.60, "Caminata": 12.16},
 }
 ITERACIONES_SUAVES = {"equilibrio": 6, "original": 6}
 

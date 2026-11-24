@@ -1,14 +1,18 @@
 /**
- * «Heterogeneidad de λ»: un solo parámetro `s` que mueve los tres `b_costo`
- * a lo largo de una curva que pasa por la calibración vigente.
+ * El valor del tiempo entre estratos, dicho como se enseña: cuántas VECES vale
+ * el del medio y el del alto respecto del bajo. Por defecto 2 y 4.
  *
- *     λ_h(s) = λ_medio · (λ_h^cal / λ_medio^cal)^s,   b_costo_h = −λ_h(s)
+ * Hasta nov-2026 el control era un deslizador sobre un exponente `s`
+ * (λ_h = λ_medio·(λ_h/λ_medio calibrado)^s). No tenía unidad ni aparecía en
+ * ninguna tabla: para saber qué había hecho había que ir a mirar los VoT.
  *
- * s = 0 ⇒ los tres λ iguales al del medio · s = 1 ⇒ la calibración exacta ·
- * s = 2 ⇒ el doble de dispersión en escala logarítmica. El estrato medio queda
- * fijo: una escala común de λ no mueve la asignación (D-41), así que el control
- * mueve sólo lo que importa, la DIFERENCIA de valor del tiempo entre estratos.
- * Se interpola en logaritmos porque los λ se comparan por razones.
+ * El VoT de un estrato es β_tiempo/β_costo·60 y β_tiempo es común a los tres,
+ * así que la razón de VoT es la inversa de la razón de `b_costo`: ahí vive
+ * toda la heterogeneidad, y es lo único que esto escribe.
+ *
+ * **El estrato medio queda fijo.** Al cambiar un múltiplo se mueven el bajo y
+ * el alto: una escala común de λ no mueve la asignación (D-41), y con el medio
+ * de ancla «Iguales» deja a los tres en el valor del medio.
  *
  * Es aritmética de presentación sobre la config (no matemática del modelo):
  * el núcleo sigue derivando λ_h = |b_costo_h| de lo que esto escriba.
@@ -17,42 +21,53 @@
 import { defaultSimulationConfig } from "@/lib/defaults";
 import type { SimulationConfig } from "@/lib/types";
 
-const lamCal = (h: 1 | 2 | 3) =>
-  -defaultSimulationConfig.demand.estratos[h].betas.b_costo;
-
-/** Razones calibradas λ_h/λ_medio de los estratos alto (1) y bajo (3). */
-const RAZON = { 1: lamCal(1) / lamCal(2), 3: lamCal(3) / lamCal(2) } as const;
-
-/** `s` de la demanda viva, o `null` si sus `b_costo` no caen en la curva
- *  (p. ej. editados a mano): en ese caso el control dice «personalizado». */
-export function sDeDemanda(demand: SimulationConfig["demand"]): number | null {
-  const lam = (h: 1 | 2 | 3) => -demand.estratos[h].betas.b_costo;
-  const m = lam(2);
-  if (!(lam(1) > 0 && m > 0 && lam(3) > 0)) return null;
-  const sA = Math.log(lam(1) / m) / Math.log(RAZON[1]);
-  const sB = Math.log(lam(3) / m) / Math.log(RAZON[3]);
-  return Math.abs(sA - sB) < 1e-6 ? sA : null;
+/** Cuántas veces vale el tiempo del medio y del alto respecto del bajo. */
+export interface MultiplosVot {
+  medio: number;
+  alto: number;
 }
 
-/** Escribe los `b_costo` del alto y el bajo para el `s` dado, con el λ del
- *  medio vigente como ancla. */
-export function conHeterogeneidad(
+const lam = (demand: SimulationConfig["demand"], h: 1 | 2 | 3) =>
+  -demand.estratos[h].betas.b_costo;
+
+/** Los múltiplos de la demanda viva, o `null` si algún `b_costo` no es
+ *  negativo (el VoT no está definido). */
+export function multiplosDe(
+  demand: SimulationConfig["demand"],
+): MultiplosVot | null {
+  const [a, m, b] = [lam(demand, 1), lam(demand, 2), lam(demand, 3)];
+  if (!(a > 0 && m > 0 && b > 0)) return null;
+  return { medio: b / m, alto: b / a };
+}
+
+/** Los de fábrica: salen del núcleo (`presets.py`), no de este archivo. */
+export const MULTIPLOS_CALIBRADOS: MultiplosVot = multiplosDe(
+  defaultSimulationConfig.demand,
+) ?? { medio: 1, alto: 1 };
+
+/** Escribe los `b_costo` del bajo y del alto para los múltiplos dados, con el
+ *  del medio vigente como ancla. */
+export function conMultiplos(
   c: SimulationConfig,
-  s: number,
+  { medio, alto }: MultiplosVot,
 ): SimulationConfig {
-  const m = -c.demand.estratos[2].betas.b_costo;
-  const conBeta = (h: 1 | 3) => ({
+  const m = lam(c.demand, 2);
+  // VoT_bajo = VoT_medio / medio ⇒ λ_bajo = λ_medio · medio;
+  // VoT_alto = alto · VoT_bajo  ⇒ λ_alto = λ_bajo / alto.
+  const lamBajo = m * medio;
+  const conLambda = (h: 1 | 3, valor: number) => ({
     ...c.demand.estratos[h],
-    betas: {
-      ...c.demand.estratos[h].betas,
-      b_costo: -m * Math.pow(RAZON[h], s),
-    },
+    betas: { ...c.demand.estratos[h].betas, b_costo: -valor },
   });
   return {
     ...c,
     demand: {
       ...c.demand,
-      estratos: { ...c.demand.estratos, 1: conBeta(1), 3: conBeta(3) },
+      estratos: {
+        ...c.demand.estratos,
+        1: conLambda(1, lamBajo / alto),
+        3: conLambda(3, lamBajo),
+      },
     },
   };
 }

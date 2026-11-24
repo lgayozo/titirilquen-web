@@ -277,8 +277,9 @@ def test_ejecutar_sin_tratamiento_da_phi_uno(ciudad_base):
     )
     assert r["caso"]["mejor"] == "Auto"
     # 33,37 hasta nov-2026; se movió con el consumo único de bencina (el auto
-    # paga los litros que quema, no un costo fijo por km).
-    assert r["caso"]["ventaja_min"] == pytest.approx(34.69, abs=0.05)
+    # paga los litros que quema, no un costo fijo por km) a 34,69, y con los
+    # VoT en razón 4 : 2 : 1 a 34,81.
+    assert r["caso"]["ventaja_min"] == pytest.approx(34.81, abs=0.05)
     for v in r["ventanas"].values():
         assert v["phi"] == pytest.approx(1.0)
 

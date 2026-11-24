@@ -1,13 +1,20 @@
 import { useTranslation } from "react-i18next";
 
-import { CalibrationPanel } from "@/components/modules/CalibrationPanel";
+import {
+  CalibrationPanel,
+  NumberField,
+} from "@/components/modules/CalibrationPanel";
 import { PreciosSocialesPanel } from "@/components/modules/PreciosSocialesPanel";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
-import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { Panel } from "@/components/ui/Panel";
 import { PorQue } from "@/components/ui/PorQue";
 import { votClpHora } from "@/lib/agregados";
-import { conHeterogeneidad, sDeDemanda } from "@/lib/heterogeneidadLambda";
+import {
+  conMultiplos,
+  MULTIPLOS_CALIBRADOS,
+  multiplosDe,
+  type MultiplosVot,
+} from "@/lib/heterogeneidadLambda";
 import { COLOR_ESTRATO, fmtDecimal, fmtPct, fmtPesos } from "@/lib/modos";
 import type { StratumId } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
@@ -42,9 +49,15 @@ export function CalibrationPage() {
   const setConfig = useSimulationStore((s) => s.setConfig);
 
   const mu = useLandUseStore((s) => s.config.mu);
-  // Heterogeneidad de λ: `null` si los b_costo no caen en la curva.
-  const sLam = sDeDemanda(config.demand);
-  const setS = (v: number) => setConfig((c) => conHeterogeneidad(c, v));
+  // Cuántas veces vale el tiempo del medio y del alto respecto del bajo.
+  const multiplos = multiplosDe(config.demand);
+  const setMultiplos = (m: MultiplosVot) =>
+    setConfig((c) => conMultiplos(c, m));
+  const esIguales = multiplos?.medio === 1 && multiplos.alto === 1;
+  const esCalibrada =
+    multiplos != null &&
+    Math.abs(multiplos.medio - MULTIPLOS_CALIBRADOS.medio) < 1e-9 &&
+    Math.abs(multiplos.alto - MULTIPLOS_CALIBRADOS.alto) < 1e-9;
   const filas = STRATA.map((h) => {
     const e = config.demand.estratos[h];
     const lam = -e.betas.b_costo;
@@ -65,43 +78,76 @@ export function CalibrationPage() {
         <CollapsibleSection
           title={t("calibration_page.het_section")}
           meta={
-            sLam == null
-              ? t("calibration_page.het_custom")
-              : `s=${fmtDecimal(sLam, 2)}`
+            multiplos == null
+              ? "—"
+              : `${fmtDecimal(multiplos.alto, 2)} : ${fmtDecimal(multiplos.medio, 2)} : 1`
           }
           defaultOpen
         >
-          <LabeledSlider
-            label={t("calibration_page.het_label")}
-            value={sLam ?? 1}
-            min={0}
-            max={2}
-            step={0.05}
-            format={(v) =>
-              sLam == null ? t("calibration_page.het_custom") : fmtDecimal(v, 2)
-            }
-            hint={t("calibration_page.het_corto")}
-            onChange={setS}
-          />
-          <PorQue>{t("calibration_page.het_porque")}</PorQue>
+          <p className="mb-2 text-etiqueta leading-snug text-muted">
+            {t("calibration_page.het_corto")}
+          </p>
+          {/* Dos múltiplos del estrato bajo, no un exponente: «el medio vale
+              2 veces el bajo» se lee directo. El medio queda fijo; al mover
+              un múltiplo cambian el bajo y el alto. */}
+          <div className="flex flex-col gap-1.5">
+            <NumberField
+              label={t("calibration_page.het_medio")}
+              value={Number((multiplos?.medio ?? 1).toFixed(4))}
+              step={0.1}
+              onChange={(v) =>
+                setMultiplos({
+                  medio: Math.max(0.05, v),
+                  alto: multiplos?.alto ?? 1,
+                })
+              }
+            />
+            <NumberField
+              label={t("calibration_page.het_alto")}
+              value={Number((multiplos?.alto ?? 1).toFixed(4))}
+              step={0.1}
+              onChange={(v) =>
+                setMultiplos({
+                  medio: multiplos?.medio ?? 1,
+                  alto: Math.max(0.05, v),
+                })
+              }
+            />
+          </div>
+          {/* El efecto, a la vista: el VoT que resulta para cada estrato. */}
+          <dl className="mt-2 grid grid-cols-3 gap-2 text-etiqueta tabular-nums">
+            {STRATA.map((h, i) => (
+              <div key={h}>
+                <dt className="text-muted">{t(`strata.${STR[i]}`)}</dt>
+                <dd className="font-fig text-[var(--ink)]">
+                  {filas[i]!.vot}
+                  {filas[i]!.vot !== "—" && "/h"}
+                </dd>
+              </div>
+            ))}
+          </dl>
           <div className="mt-2 flex gap-2">
             <button
               type="button"
-              className="chip-toggle"
+              className={esIguales ? "chip-toggle active" : "chip-toggle"}
               style={{ flex: 1 }}
-              onClick={() => setS(0)}
+              onClick={() => setMultiplos({ medio: 1, alto: 1 })}
             >
               {t("calibration_page.het_iguales")}
             </button>
             <button
               type="button"
-              className="chip-toggle"
+              className={esCalibrada ? "chip-toggle active" : "chip-toggle"}
               style={{ flex: 1 }}
-              onClick={() => setS(1)}
+              onClick={() => setMultiplos(MULTIPLOS_CALIBRADOS)}
             >
-              {t("calibration_page.het_calibrada")}
+              {t("calibration_page.het_calibrada", {
+                medio: fmtDecimal(MULTIPLOS_CALIBRADOS.medio, 0),
+                alto: fmtDecimal(MULTIPLOS_CALIBRADOS.alto, 0),
+              })}
             </button>
           </div>
+          <PorQue>{t("calibration_page.het_porque")}</PorQue>
         </CollapsibleSection>
         <CalibrationPanel config={config} onChange={setConfig} defaultOpen />
         <CollapsibleSection
