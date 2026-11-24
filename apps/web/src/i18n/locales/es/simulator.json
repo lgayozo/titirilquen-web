@@ -964,7 +964,7 @@
     "meta": "ciudad completa",
     "recaudacion": "Recaudación (estacionamiento + peaje + tarifa + impuesto a la bencina)",
     "recaudacion_nota": "(transferencias; de la bencina entra sólo el impuesto)",
-    "bienestar": "Bienestar social = excedente + recaudación − costo operador",
+    "bienestar": "Bienestar social = excedente + recaudación − costo operador − inversión",
     "bienestar_nota": "(el costo por tren-km es un valor ilustrativo)",
     "costo_operador": "Costo de operación del metro",
     "costo_operador_nota": "({{km}} tren-km/h en la hora punta · costo por tren-km ilustrativo)",
@@ -1003,6 +1003,9 @@
     "precios_distintos": "⚠ La referencia se corrió con otros precios sociales: las filas valoradas a precios sociales muestran el nivel, no el Δ, que mezclaría política y precios.",
     "impuesto_bencina": "· de la cual, impuesto a la bencina",
     "impuesto_bencina_nota": "(lo pagado a {{mercado}}/l menos el recurso a {{combustible}}/l · {{impuesto}} % del precio)",
+    "costo_inversion": "Costo de inversión",
+    "costo_inversion_nota_cero": "(costos unitarios en cero: se definen en Calibración)",
+    "costo_inversion_nota": "(capital de {{capital}}, anualizado y llevado a la hora punta)",
     "grupo": {
       "fisico": "1. Eventos físicos",
       "fisico_glosa": "conteos y emisiones",
@@ -1016,9 +1019,13 @@
       "beneficio_glosa": "ahorro de recursos y excedente del consumidor son alternativas, no sumandos"
     },
     "costo_recursos": "Costo de recursos",
-    "costo_recursos_nota": "(tiempo al VST + operación de autos y metro + CO₂)",
+    "costo_recursos_nota": "(tiempo al VST + operación de autos y metro + CO₂ + inversión)",
     "costo_recursos_porque": "Es el otro camino para medir el beneficio, y el que usa el MESPIVU: el ahorro en el consumo total de recursos entre la situación base y la con proyecto. El costo generalizado y el excedente miran el viaje desde el usuario, y cuentan lo que paga aunque ese pago no consuma nada: el peaje, el parking, la tarifa y el impuesto a la bencina salen de un bolsillo y entran a otro. Acá entra sólo lo que la sociedad gasta de verdad, a precios sociales, y el tiempo va al valor social, no al de cada estrato. Su Δ con signo cambiado es el ahorro de recursos. No son una identidad, y pueden discrepar hasta en el signo: con Tarificación Vial (200 $/km) el costo de recursos baja 303 mil —un ahorro— y el bienestar social baja 727 mil. El de recursos sólo cuenta tiempo, operación y CO₂; no lo que pierde quien cambia a un modo que prefería menos, que el excedente sí recoge.",
     "sim": {
+      "k_capital": "capital: el stock de infraestructura del escenario a sus costos unitarios",
+      "q_c_inv": "cantidad y costo unitario de cada obra: pista-km, estaciones, km de ciclovía por cada 1.000 bici/h y sobrecosto de la flota limpia (se editan en Calibración)",
+      "r_n": "tasa social de descuento ({{r}} %) y vida útil ({{n}} años): juntas dan el factor que anualiza el capital",
+      "h_punta": "horas punta equivalentes al año ({{h}}): llevan el costo anual a la hora punta que simula el modelo",
       "litros": "litros de bencina que queman los autos en la hora punta: los mismos que entran al costo de cada viaje y a la elección de modo",
       "ps_comb": "precio social del combustible del automóvil: {{combustible}}/l (Precios Sociales {{anio}}; se edita en Calibración)",
       "p_mercado": "precio de mercado de la bencina: {{mercado}}/l (la palanca «Bencina» de Economía)",
@@ -1028,7 +1035,7 @@
       "precios_otros": "sus precios sociales {{anio}}: {{lubricante}}/l, {{neumatico}}/neumático, {{vehiculo}}/vehículo y {{mantencion}}/h (se editan en Calibración)",
       "e_co2": "toneladas de CO₂ de autos y metro en la hora punta",
       "ps_c": "precio social del carbono: {{carbono}}/t CO₂ (Precios Sociales {{anio}}; se edita en Calibración)",
-      "partes_cr": "combustible y otros costos de los autos, operación del metro y costo social del CO₂: las filas del bloque 2",
+      "partes_cr": "combustible y otros costos de los autos, operación del metro, costo social del CO₂ e inversión: las filas del bloque 2",
       "d": "viajes del estrato h en el modo m desde la celda i",
       "hmi": "estrato, modo y celda de origen",
       "modo_n": "el modo que eligió la persona n; vacío si ninguno le es factible",
@@ -1264,6 +1271,7 @@
     "corto": "Los del reporte anual del SNI (MDSF). Cuando salga el reporte nuevo, se actualizan acá.",
     "porque": "Entran sólo a la evaluación —costo de recursos, costo generalizado social y excedente con ponderación social—, nunca a la elección de modo: cambiarlos no mueve el equilibrio, pero hay que volver a simular para que los agregados los tomen. Viajan con el escenario exportado, así una corrida vieja se reproduce con los precios de su año. La rugosidad (IRI) no es un precio ni viene del reporte: es el supuesto con que el MESPIVU calcula lubricantes, neumáticos, repuestos y mantención; en 0 da un piso.",
     "campo": {
+      "tasa_social_descuento": "Tasa social de descuento (fracción) · tabla 1.1",
       "vigencia": "Año del reporte",
       "vst_viaje_clp_h": "VST urbano, viaje ($/h) · tabla 2.1",
       "ponderador_espera": "Ponderador de espera · tabla 2.1",
@@ -1290,5 +1298,21 @@
   "escenario": {
     "desde_base": "Cada preset arma el escenario desde la base: descarta los ajustes hechos a mano y conserva sólo la calibración.",
     "ajustes": "⚠ Este escenario tiene ajustes hechos a mano: no es el preset tal cual. Al elegir un preset se descartan."
+  },
+  "inversion": {
+    "titulo": "Inversión",
+    "sin_costos": "sin costos",
+    "con_costos": "con costos",
+    "corto": "Costos unitarios de la infraestructura, para que ampliar oferta no sea gratis.",
+    "aviso_cero": "⚠ Todos los costos están en cero: una pista, una estación o más ciclovía no cuestan nada, y las políticas que agregan capacidad salen favorecidas.",
+    "porque": "Se valora el stock completo del escenario: pistas × largo de la ciudad, estaciones, capacidad de ciclovía × largo, y el sobrecosto de una flota más limpia en proporción a cuánto baja su factor de emisión. Ese capital se anualiza con la tasa social de descuento (en Precios sociales) y la vida útil, y se divide por las horas punta equivalentes del año para quedar en la misma base que el resto de la tabla. Entra al costo de recursos y se resta del bienestar social; no cambia la elección de modo. Los costos parten en cero porque no hay una fuente para ellos: los 20 años son el horizonte que el MESPIVU recomienda para infraestructura, y las 500 horas punta al año (250 días por 2) son un supuesto.",
+    "campo": {
+      "costo_pista_km_clp": "Pista de auto ($ por pista-km)",
+      "costo_estacion_clp": "Estación de metro ($ por estación)",
+      "costo_ciclovia_km_clp": "Ciclovía ($ por km, cada 1.000 bici/h)",
+      "sobrecosto_flota_limpia_clp": "Flota limpia ($ por vehículo, de factor 1 a 0)",
+      "vida_util_anios": "Vida útil (años) · MESPIVU 5.3.8",
+      "horas_punta_anio": "Horas punta equivalentes al año (supuesto)"
+    }
   }
 }

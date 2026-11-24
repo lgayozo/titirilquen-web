@@ -38,6 +38,8 @@ export interface AgregadosDict {
   pago_combustible_clp: number;
   recursos_otros_operacion_clp: number;
   costo_co2_clp: number;
+  inversion_capital_clp: number;
+  costo_inversion_clp: number;
   costo_recursos_clp: number;
   vot_por_estrato_clp_hora: Record<"1" | "2" | "3", number>;
   logsum_por_estrato: Record<"1" | "2" | "3", number>;

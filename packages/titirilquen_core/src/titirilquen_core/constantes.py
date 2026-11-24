@@ -96,6 +96,10 @@ PRECIO_SOCIAL_MANTENCION_CLP_H: Final[float] = 6931.0
 #: default de `demand.globales.precio_combustible_clp_l`, la palanca «Bencina».
 PRECIO_MERCADO_COMBUSTIBLE_CLP_L: Final[float] = 1086.0
 
+#: Tasa social de descuento (Precios Sociales 2026, tabla 1.1). Anualiza la
+#: inversión en infraestructura.
+TASA_SOCIAL_DESCUENTO: Final[float] = 0.055
+
 #: Precio social del carbono, $/tonelada de CO₂ equivalente (tabla 5.1).
 PRECIO_SOCIAL_CARBONO_CLP_T: Final[float] = 71801.0
 

@@ -65,6 +65,28 @@ export interface GlobalConfig {
 }
 
 /**
+ *  Costos unitarios de la infraestructura, para que ampliar oferta no sea
+ *  gratis. Sin esto, toda política que agrega capacidad —una pista, veinte
+ *  estaciones, el doble de ciclovía, una flota híbrida— gana siempre: sus
+ *  beneficios entran al costo de recursos y al bienestar, y su costo no
+ *  existía. **Todos los costos parten en CERO** (nov-2026): no hay una fuente
+ *  para ellos en `reference/`, y un valor plausible inventado sería peor que
+ *  declarar el vacío. Con ceros nada cambia; se llenan en Calibración. Se
+ *  valora el STOCK completo de cada escenario, no la diferencia contra una
+ *  base: el nivel no significa nada por sí solo (como el del excedente), y la
+ *  resta entre dos escenarios da la inversión adicional de uno sobre el otro,
+ *  también cuando cambia el largo de la ciudad.
+ */
+export interface Inversion {
+  costo_pista_km_clp: number;
+  costo_estacion_clp: number;
+  costo_ciclovia_km_clp: number;
+  sobrecosto_flota_limpia_clp: number;
+  vida_util_anios: number;
+  horas_punta_anio: number;
+}
+
+/**
  *  Penalizaciones aditivas escalonadas (step) para bici y caminata. Ver
  *  docs/DISCREPANCIES.md (D-02) — estas son constantes aditivas, no
  *  multiplicativas como sugiere el Overleaf.
@@ -98,6 +120,7 @@ export interface PreciosSociales {
   neumatico_auto_clp: number;
   vehiculo_auto_clp: number;
   mantencion_clp_h: number;
+  tasa_social_descuento: number;
   carbono_clp_t: number;
   iri: number;
 }
@@ -167,6 +190,7 @@ export interface SimulationConfig {
   supply: SupplyConfig;
   demand: DemandConfig;
   precios_sociales: PreciosSociales;
+  inversion: Inversion;
   max_iter: number;
   tolerance: number;
   seed: number | null;

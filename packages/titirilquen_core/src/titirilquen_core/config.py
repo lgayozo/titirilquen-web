@@ -23,6 +23,7 @@ from titirilquen_core.constantes import (
     PRECIO_SOCIAL_MANTENCION_CLP_H,
     PRECIO_SOCIAL_NEUMATICO_AUTO_CLP,
     PRECIO_SOCIAL_VEHICULO_AUTO_CLP,
+    TASA_SOCIAL_DESCUENTO,
     VIGENCIA_PRECIOS_SOCIALES,
     VOT_SOCIAL_CLP_HORA,
 )
@@ -428,6 +429,8 @@ class PreciosSociales(BaseModel):
     neumatico_auto_clp: float = Field(default=PRECIO_SOCIAL_NEUMATICO_AUTO_CLP, ge=0)
     vehiculo_auto_clp: float = Field(default=PRECIO_SOCIAL_VEHICULO_AUTO_CLP, ge=0)
     mantencion_clp_h: float = Field(default=PRECIO_SOCIAL_MANTENCION_CLP_H, ge=0)
+    # Tasa social de descuento (tabla 1.1): anualiza la inversión.
+    tasa_social_descuento: float = Field(default=TASA_SOCIAL_DESCUENTO, ge=0, le=1)
     # Precio social del carbono ($/t CO₂ equivalente, tabla 5.1).
     carbono_clp_t: float = Field(default=PRECIO_SOCIAL_CARBONO_CLP_T, ge=0)
     # Rugosidad del pavimento (IRI) con que se evalúan los «otros costos de
@@ -435,6 +438,49 @@ class PreciosSociales(BaseModel):
     # defecto —lo saca de un catastro—: 0 deja sólo el término que no depende
     # de la rugosidad, o sea un piso.
     iri: float = Field(default=0, ge=0, le=20)
+
+
+class Inversion(BaseModel):
+    """Costos unitarios de la infraestructura, para que ampliar oferta no sea
+    gratis.
+
+    Sin esto, toda política que agrega capacidad —una pista, veinte estaciones,
+    el doble de ciclovía, una flota híbrida— gana siempre: sus beneficios
+    entran al costo de recursos y al bienestar, y su costo no existía.
+
+    **Todos los costos parten en CERO** (nov-2026): no hay una fuente para
+    ellos en `reference/`, y un valor plausible inventado sería peor que
+    declarar el vacío. Con ceros nada cambia; se llenan en Calibración.
+
+    Se valora el STOCK completo de cada escenario, no la diferencia contra una
+    base: el nivel no significa nada por sí solo (como el del excedente), y la
+    resta entre dos escenarios da la inversión adicional de uno sobre el otro,
+    también cuando cambia el largo de la ciudad."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    # $ por pista-km de vía para autos: `num_pistas × largo_ciudad_km`. Las
+    # pistas del modelo son por sentido; si el costo es de la calzada completa,
+    # va el de los dos sentidos.
+    costo_pista_km_clp: float = Field(default=0, ge=0)
+    # $ por estación de metro (las que el modelo construye, no el parámetro).
+    costo_estacion_clp: float = Field(default=0, ge=0)
+    # $ por km de ciclovía por cada 1.000 bici/h de capacidad: la ciclovía del
+    # modelo no tiene pistas, tiene capacidad.
+    costo_ciclovia_km_clp: float = Field(default=0, ge=0)
+    # $ por vehículo de pasar de la flota de referencia (factor 1) a una que no
+    # emite (factor 0); se aplica en proporción lineal a `1 − factor_flota_auto`
+    # sobre los autos de los hogares que viajan. La proporción lineal es un
+    # supuesto.
+    sobrecosto_flota_limpia_clp: float = Field(default=0, ge=0)
+    # Años en que se anualiza. 20 es el horizonte que el MESPIVU (5.3.8)
+    # recomienda para proyectos de infraestructura.
+    vida_util_anios: float = Field(default=20, gt=0, le=100)
+    # Horas punta equivalentes al año: lleva el costo anual a la hora punta que
+    # simula el modelo, la base del resto de los agregados. El MESPIVU (8.2.2)
+    # las deriva de los flujos medidos; acá es un SUPUESTO: 250 días hábiles
+    # por 2, el mismo factor día/punta del metro (`factor_dia_punta`).
+    horas_punta_anio: float = Field(default=500, gt=0)
 
 
 class SimulationConfig(BaseModel):
@@ -447,6 +493,7 @@ class SimulationConfig(BaseModel):
     supply: SupplyConfig = Field(default_factory=SupplyConfig)
     demand: DemandConfig
     precios_sociales: PreciosSociales = Field(default_factory=PreciosSociales)
+    inversion: Inversion = Field(default_factory=Inversion)
     # 150 (antes 40, y 20 antes de D8). Con el paso halving (auditoría B,
     # oct-2026) la base converge en 6 y el p95 del rango de la interfaz en 11.
     # El techo de 1.000 viene de cuando había métodos con paso 1/n ('montecarlo'

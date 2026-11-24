@@ -153,9 +153,13 @@ export function ReferenceComparison({
   // pesos sociales muestran los de ESTA corrida, y si la referencia se corrió
   // con otros, su Δ mezclaría política y precios: no se muestra.
   const ps = config.precios_sociales;
+  // Los costos unitarios de inversión son calibración igual que los precios:
+  // con otros, el Δ también mezclaría política y supuestos.
   const preciosIguales =
     !reference ||
-    JSON.stringify(ps) === JSON.stringify(reference.config.precios_sociales);
+    (JSON.stringify(ps) === JSON.stringify(reference.config.precios_sociales) &&
+      JSON.stringify(config.inversion) ===
+        JSON.stringify(reference.config.inversion));
   const precio = {
     anio: ps.vigencia,
     vot: fmtMoney(ps.vst_viaje_clp_h),
@@ -425,6 +429,42 @@ export function ReferenceComparison({
       nota: t("agg.otros_operacion_auto_nota", precio),
     },
     {
+      // El costo que faltaba: sin él, ampliar oferta era gratis. Vale cero
+      // mientras los costos unitarios estén en cero, y la nota lo dice.
+      label: t("agg.costo_inversion"),
+      grupo: "recursos",
+      saber: {
+        ecuacion: String.raw`C_{\text{inv}} \;=\; \frac{K \cdot \dfrac{r}{1 - (1+r)^{-n}}}{H} \qquad K \;=\; \sum_{j} q_j \, c_j`,
+        simbolos: [
+          [String.raw`K`, t("agg.sim.k_capital")],
+          [String.raw`q_j,\, c_j`, t("agg.sim.q_c_inv")],
+          [
+            String.raw`r,\, n`,
+            t("agg.sim.r_n", {
+              r: fmtDecimal(ps.tasa_social_descuento * 100, 1),
+              n: config.inversion.vida_util_anios,
+            }),
+          ],
+          [
+            String.raw`H`,
+            t("agg.sim.h_punta", { h: config.inversion.horas_punta_anio }),
+          ],
+        ],
+        fuente: { archivo: "bienestar.py", simbolo: "costo_inversion" },
+      },
+      actual: agg.costo_inversion_clp,
+      ref: aggRef?.costo_inversion_clp ?? null,
+      fmt: fmtMoney,
+      menorEsMejor: true,
+      comparable: preciosIguales,
+      nota:
+        agg.inversion_capital_clp === 0
+          ? t("agg.costo_inversion_nota_cero")
+          : t("agg.costo_inversion_nota", {
+              capital: fmtMoney(agg.inversion_capital_clp),
+            }),
+    },
+    {
       label: t("agg.costo_co2"),
       grupo: "recursos",
       saber: {
@@ -496,7 +536,7 @@ export function ReferenceComparison({
       nota: t("agg.costo_recursos_nota"),
       porque: t("agg.costo_recursos_porque"),
       saber: {
-        ecuacion: String.raw`CR \;=\; \underbrace{\sum d\,\frac{\tilde t_{\text{SNI}}}{60}VST}_{\text{tiempo}} \;+\; \underbrace{C_{\text{comb}} + C_{\text{otros}}}_{\text{autos}} \;+\; \underbrace{C_{\text{op}}}_{\text{metro}} \;+\; C_{CO_2}`,
+        ecuacion: String.raw`CR \;=\; \underbrace{\sum d\,\frac{\tilde t_{\text{SNI}}}{60}VST}_{\text{tiempo}} \;+\; \underbrace{C_{\text{comb}} + C_{\text{otros}}}_{\text{autos}} \;+\; \underbrace{C_{\text{op}}}_{\text{metro}} \;+\; C_{CO_2} \;+\; C_{\text{inv}}`,
         simbolos: [
           [String.raw`CR`, t("agg.sim.CR")],
           [
@@ -536,7 +576,7 @@ export function ReferenceComparison({
       grupo: "beneficio",
       subgrupo: "excedente_consumidor",
       saber: {
-        ecuacion: String.raw`W \;=\; EC \;+\; R \;-\; C_{\text{op}}`,
+        ecuacion: String.raw`W \;=\; EC \;+\; R \;-\; C_{\text{op}} \;-\; C_{\text{inv}}`,
         simbolos: [[String.raw`W`, t("agg.sim.W")]],
         fuente: { archivo: "bienestar.py", simbolo: "bienestar_social_clp" },
       },

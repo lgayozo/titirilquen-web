@@ -50,6 +50,7 @@ def test_el_bienestar_social_se_descompone(
         + agg["recaudacion_tarifa_clp"]
         + agg["recaudacion_combustible_clp"]
         - agg["costo_operador_clp"]
+        - agg["costo_inversion_clp"]
     )
     assert agg["bienestar_social_clp"] == pytest.approx(esperado, rel=1e-9)
 
@@ -67,6 +68,7 @@ def test_el_peaje_es_transferencia(sim_liviana: SimulationConfig, lu_chica: Land
         + agg["recaudacion_tarifa_clp"]
         + agg["recaudacion_combustible_clp"]
         - agg["costo_operador_clp"]
+        - agg["costo_inversion_clp"]
     )
     assert agg["bienestar_social_clp"] == pytest.approx(esperado, rel=1e-9)
 
@@ -288,6 +290,7 @@ def test_el_costo_de_recursos_se_descompone(
         + agg["recursos_otros_operacion_clp"]
         + agg["costo_operador_clp"]
         + agg["costo_co2_clp"]
+        + agg["costo_inversion_clp"]
     )
     assert agg["costo_recursos_clp"] == pytest.approx(esperado, rel=1e-12)
     for parte in ("recursos_tiempo_clp", "recursos_combustible_clp", "costo_co2_clp"):
@@ -363,6 +366,36 @@ def test_la_congestion_encarece_la_bencina_del_viaje() -> None:
     assert fluido == pytest.approx(5.0 * 81.3 / 1000)
     assert lento > fluido
     assert costo_monetario_auto(5.0, 20.0, g) > costo_monetario_auto(5.0, 10.0, g)
+
+
+def test_la_inversion_parte_en_cero(sim_liviana: SimulationConfig, lu_chica: LandUseConfig) -> None:
+    """Los costos unitarios de fábrica son cero: no hay fuente para ellos, y
+    hasta que alguien los llene la inversión no puede mover ningún resultado."""
+    agg = _agregados(sim_liviana, lu_chica)
+    assert agg["inversion_capital_clp"] == 0
+    assert agg["costo_inversion_clp"] == 0
+
+
+def test_la_inversion_se_anualiza_y_resta_del_bienestar(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """Con un costo por pista-km, el capital es pistas × largo × costo; la
+    cuota por hora punta es ese capital por el factor de recuperación, sobre
+    las horas punta del año; y sale uno a uno del bienestar social y entra al
+    costo de recursos, sin tocar el equilibrio."""
+    con = sim_liviana.model_copy(deep=True)
+    con.inversion.costo_pista_km_clp = 1_000_000_000
+    a = _agregados(sim_liviana, lu_chica)
+    b = _agregados(con, lu_chica)
+
+    capital = con.supply.car.num_pistas * con.city.largo_ciudad_km * 1_000_000_000
+    r, n = con.precios_sociales.tasa_social_descuento, con.inversion.vida_util_anios
+    cuota = capital * r / (1 - (1 + r) ** -n) / con.inversion.horas_punta_anio
+    assert b["inversion_capital_clp"] == pytest.approx(capital)
+    assert b["costo_inversion_clp"] == pytest.approx(cuota)
+    assert b["viajes_por_modo"] == a["viajes_por_modo"]
+    assert a["bienestar_social_clp"] - b["bienestar_social_clp"] == pytest.approx(cuota)
+    assert b["costo_recursos_clp"] - a["costo_recursos_clp"] == pytest.approx(cuota)
 
 
 def test_los_otros_costos_y_el_co2_entran_al_costo_de_recursos(

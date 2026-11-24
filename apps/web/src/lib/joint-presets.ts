@@ -216,6 +216,7 @@ export function applyJointPreset(
     // También son calibración (nov-2026): se actualizan cada año, no por
     // escenario.
     precios_sociales: calibrado.precios_sociales,
+    inversion: calibrado.inversion,
     city: {
       ...defaultSimulationConfig.city,
       ...(city.largo_ciudad !== undefined && {

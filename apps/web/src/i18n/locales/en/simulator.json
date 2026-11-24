@@ -964,7 +964,7 @@
     "meta": "city-wide",
     "recaudacion": "Revenue (parking + toll + fare + fuel tax)",
     "recaudacion_nota": "(transfers; only the tax part of fuel goes in)",
-    "bienestar": "Social welfare = surplus + revenue − operating cost",
+    "bienestar": "Social welfare = surplus + revenue − operator cost − investment",
     "bienestar_nota": "(cost per train-km is an illustrative value)",
     "costo_operador": "Metro operating cost",
     "costo_operador_nota": "({{km}} train-km/h in the peak hour · illustrative cost per train-km)",
@@ -1003,6 +1003,9 @@
     "precios_distintos": "⚠ The reference was run with different social prices: rows valued at social prices show the level, not the Δ, which would mix policy and prices.",
     "impuesto_bencina": "· of which, fuel tax",
     "impuesto_bencina_nota": "(paid at {{mercado}}/l minus the resource at {{combustible}}/l · {{impuesto}} % of the price)",
+    "costo_inversion": "Investment cost",
+    "costo_inversion_nota_cero": "(unit costs at zero: set them in Calibration)",
+    "costo_inversion_nota": "(capital of {{capital}}, annualised and taken to the peak hour)",
     "grupo": {
       "fisico": "1. Physical events",
       "fisico_glosa": "counts and emissions",
@@ -1016,9 +1019,13 @@
       "beneficio_glosa": "resource savings and consumer surplus are alternatives, not addends"
     },
     "costo_recursos": "Resource cost",
-    "costo_recursos_nota": "(time at the social VoT + car and metro operation + CO₂)",
+    "costo_recursos_nota": "(time at the social VoT + car and metro operation + CO₂ + investment)",
     "costo_recursos_porque": "This is the other route to measuring the benefit, and the one MESPIVU uses: the saving in total resource consumption between the base and the project. Generalised cost and consumer surplus look at the trip from the user's side, and count what they pay even when that payment consumes nothing: the toll, parking, the fare and the fuel tax leave one pocket and enter another. Only what society actually spends goes in here, at social prices, and time goes at the social value, not each stratum's. Its Δ with the sign flipped is the resource saving. They are not an identity, and may disagree even in sign: with Tarificación Vial (200 $/km) the resource cost falls by 303 thousand —a saving— while social welfare falls by 727 thousand. The resource cost only counts time, operation and CO₂; not what is lost by those who switch to a mode they liked less, which the surplus does capture.",
     "sim": {
+      "k_capital": "capital: the scenario's infrastructure stock at its unit costs",
+      "q_c_inv": "quantity and unit cost of each work: lane-km, stations, km of cycleway per 1,000 bike/h and the clean-fleet premium (edited in Calibration)",
+      "r_n": "social discount rate ({{r}}%) and service life ({{n}} years): together they give the factor that annualises the capital",
+      "h_punta": "equivalent peak hours per year ({{h}}): they take the annual cost to the peak hour the model simulates",
       "litros": "litres of fuel cars burn in the peak hour: the same that enter each trip's cost and mode choice",
       "ps_comb": "social price of car fuel: {{combustible}}/l (Precios Sociales {{anio}}; edited in Calibration)",
       "p_mercado": "market price of fuel: {{mercado}}/l (the «Fuel» lever in Economy)",
@@ -1028,7 +1035,7 @@
       "precios_otros": "their {{anio}} social prices: {{lubricante}}/l, {{neumatico}}/tyre, {{vehiculo}}/vehicle and {{mantencion}}/h (edited in Calibration)",
       "e_co2": "tonnes of CO₂ from cars and metro in the peak hour",
       "ps_c": "social price of carbon: {{carbono}}/t CO₂ (Precios Sociales {{anio}}; edited in Calibration)",
-      "partes_cr": "car fuel and other costs, metro operation and the social cost of CO₂: the rows of block 2",
+      "partes_cr": "car fuel and other costs, metro operation, the social cost of CO₂ and investment: the rows of block 2",
       "d": "trips by stratum h on mode m from cell i",
       "hmi": "stratum, mode and origin cell",
       "modo_n": "the mode person n chose; empty if none is feasible for them",
@@ -1264,6 +1271,7 @@
     "corto": "From the SNI annual report (MDSF). When the new report is published, update them here.",
     "porque": "They only enter the appraisal —resource cost, social generalised cost and socially weighted surplus—, never mode choice: changing them does not move the equilibrium, but you must simulate again for the aggregates to pick them up. They travel with the exported scenario, so an old run can be reproduced with the prices of its year. Roughness (IRI) is not a price and is not in the report: it is the assumption MESPIVU uses for lubricants, tyres, parts and maintenance; at 0 it gives a floor.",
     "campo": {
+      "tasa_social_descuento": "Social discount rate (fraction) · table 1.1",
       "vigencia": "Report year",
       "vst_viaje_clp_h": "Urban VST, in-vehicle ($/h) · table 2.1",
       "ponderador_espera": "Waiting weight · table 2.1",
@@ -1290,5 +1298,21 @@
   "escenario": {
     "desde_base": "Each preset builds the scenario from the base: it discards manual adjustments and keeps only the calibration.",
     "ajustes": "⚠ This scenario has manual adjustments: it is not the preset as is. Choosing a preset discards them."
+  },
+  "inversion": {
+    "titulo": "Investment",
+    "sin_costos": "no costs",
+    "con_costos": "with costs",
+    "corto": "Unit costs of infrastructure, so that adding supply is not free.",
+    "aviso_cero": "⚠ All costs are zero: a lane, a station or more cycleway cost nothing, and policies that add capacity are favoured.",
+    "porque": "The scenario's whole stock is valued: lanes × city length, stations, cycleway capacity × length, and the premium of a cleaner fleet in proportion to how much its emission factor falls. That capital is annualised with the social discount rate (under Social prices) and the service life, and divided by the equivalent peak hours of the year to be on the same basis as the rest of the table. It enters the resource cost and is subtracted from social welfare; it does not change mode choice. Costs start at zero because there is no source for them: the 20 years are the horizon MESPIVU recommends for infrastructure, and the 500 peak hours a year (250 days times 2) are an assumption.",
+    "campo": {
+      "costo_pista_km_clp": "Car lane ($ per lane-km)",
+      "costo_estacion_clp": "Metro station ($ per station)",
+      "costo_ciclovia_km_clp": "Cycleway ($ per km, per 1,000 bike/h)",
+      "sobrecosto_flota_limpia_clp": "Clean fleet ($ per vehicle, factor 1 to 0)",
+      "vida_util_anios": "Service life (years) · MESPIVU 5.3.8",
+      "horas_punta_anio": "Equivalent peak hours per year (assumption)"
+    }
   }
 }

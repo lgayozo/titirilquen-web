@@ -197,7 +197,8 @@ export interface Escenario {
  * Lo único que se conserva de `actual` es la CALIBRACIÓN, que no describe un
  * escenario sino el modelo con que se comparan todos: los estratos de la
  * demanda (betas, tenencia de auto, teletrabajo), los cortes de caminata y
- * bici, los precios sociales y el ingreso de cada estrato. Es lo mismo que
+ * bici, los precios sociales, los costos unitarios de inversión y el ingreso
+ * de cada estrato. Es lo mismo que
  * conserva `applyJointPreset`.
  *
  * `null` en ciudad o en política significa «la de Base».
@@ -217,6 +218,7 @@ export function escenarioDesdeBase(
   const config: SimulationConfig = {
     ...base,
     precios_sociales: actual.config.precios_sociales,
+    inversion: actual.config.inversion,
     city: {
       ...base.city,
       ...(c.largo_ciudad !== undefined && { largo_ciudad_km: c.largo_ciudad }),

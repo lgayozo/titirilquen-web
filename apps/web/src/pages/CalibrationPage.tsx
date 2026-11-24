@@ -5,6 +5,7 @@ import {
   NumberField,
 } from "@/components/modules/CalibrationPanel";
 import { IngresoPanel } from "@/components/modules/IngresoPanel";
+import { InversionPanel } from "@/components/modules/InversionPanel";
 import { PreciosSocialesPanel } from "@/components/modules/PreciosSocialesPanel";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { Panel } from "@/components/ui/Panel";
@@ -168,6 +169,7 @@ export function CalibrationPage() {
         </CollapsibleSection>
         <IngresoPanel config={landUse} onChange={setLandUse} />
         <PreciosSocialesPanel config={config} onChange={setConfig} />
+        <InversionPanel config={config} onChange={setConfig} />
       </aside>
 
       <section className="main">

@@ -174,8 +174,15 @@ class AgregadosDict(TypedDict):
     recursos_otros_operacion_clp: float
     #: Las emisiones al precio social del carbono (71.801 $/t CO₂).
     costo_co2_clp: float
+    #: El stock de infraestructura del escenario a sus costos unitarios
+    #: (`config.inversion`), sin anualizar: pistas, estaciones, ciclovía y el
+    #: sobrecosto de una flota más limpia.
+    inversion_capital_clp: float
+    #: Ese capital anualizado (tasa social de descuento, vida útil) y llevado a
+    #: la hora punta. Cero mientras los costos unitarios estén en cero.
+    costo_inversion_clp: float
     #: `recursos_tiempo + recursos_combustible + recursos_otros_operacion +
-    #: costo_operador + costo_co2`.
+    #: costo_operador + costo_co2 + costo_inversion`.
     costo_recursos_clp: float
     #: Valor del tiempo conductual por estrato ($/hora) = β_t/β_c · 60.
     vot_por_estrato_clp_hora: dict[EstratoKey, float]
@@ -218,7 +225,7 @@ class AgregadosDict(TypedDict):
     #: Costo del operador × `factor_dia_punta` − recaudación por tarifa: el costo
     #: por viaje del día completo contra la tarifa. Negativo ⇒ superávit.
     subsidio_metro_clp: float
-    #: Excedente + recaudación − costo del operador.
+    #: Excedente + recaudación − costo del operador − costo de inversión.
     #:
     #: Es la función objetivo estándar en evaluación de políticas de precio, y
     #: sin ella el simulador estaba SESGADO contra ellas: subir el
@@ -303,6 +310,32 @@ def logsum_de_utilidad(
         return None
     mx = max(valores)
     return mx + float(np.log(sum(np.exp(v - mx) for v in valores)))
+
+
+def costo_inversion(cfg: SimulationConfig, trace: ConvergenceTrace) -> tuple[float, float]:
+    """`(capital, costo por hora punta)` de la infraestructura del escenario.
+
+    El capital es el stock a sus costos unitarios. Se anualiza con el factor de
+    recuperación del capital, `r / (1 − (1 + r)^−n)` —con r = 0, `1/n`—, y se
+    divide por las horas punta equivalentes del año para quedar en la base de
+    los demás agregados."""
+    inv = cfg.inversion
+    largo = cfg.city.largo_ciudad_km
+    estaciones = (
+        len(trace.estaciones_km)
+        if trace.estaciones_km is not None
+        else cfg.supply.train.num_estaciones
+    )
+    autos = sum(1 for a in trace.agentes if a.tiene_auto)
+    capital = (
+        cfg.supply.car.num_pistas * largo * inv.costo_pista_km_clp
+        + estaciones * inv.costo_estacion_clp
+        + cfg.supply.bike.capacidad_pista / 1000 * largo * inv.costo_ciclovia_km_clp
+        + autos * (1 - cfg.demand.globales.factor_flota_auto) * inv.sobrecosto_flota_limpia_clp
+    )
+    r, n = cfg.precios_sociales.tasa_social_descuento, inv.vida_util_anios
+    recuperacion = r / (1 - (1 + r) ** -n) if r > 0 else 1 / n
+    return capital, capital * recuperacion / inv.horas_punta_anio
 
 
 def calcular_agregados(
@@ -466,6 +499,7 @@ def calcular_agregados(
     rec_combustible_imp = pago_combustible - rec_combustible
     rec_otros = auto_km * otros_costos_operacion_auto_clp_km(ps)
     costo_co2 = trace.emisiones_total_kg / 1000 * ps.carbono_clp_t
+    capital, c_inversion = costo_inversion(cfg, trace)
 
     logsum: dict[str, float] = {}
     excedente: dict[str, float] = {}
@@ -519,8 +553,10 @@ def calcular_agregados(
         "pago_combustible_clp": pago_combustible,
         "recursos_otros_operacion_clp": rec_otros,
         "costo_co2_clp": costo_co2,
+        "inversion_capital_clp": capital,
+        "costo_inversion_clp": c_inversion,
         "costo_recursos_clp": (
-            rec_tiempo + rec_combustible + rec_otros + costo_operador + costo_co2
+            rec_tiempo + rec_combustible + rec_otros + costo_operador + costo_co2 + c_inversion
         ),
         "vot_por_estrato_clp_hora": {str(h): vot[h] for h in estratos},
         "logsum_por_estrato": logsum,
@@ -543,5 +579,6 @@ def calcular_agregados(
             + rec_tarifa
             + rec_combustible_imp
             - costo_operador
+            - c_inversion
         ),
     }

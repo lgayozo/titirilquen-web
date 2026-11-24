@@ -34,12 +34,14 @@ const CAMPOS: readonly (readonly [keyof Precios, number])[] = [
   ["vehiculo_auto_clp", 1000],
   ["mantencion_clp_h", 1],
   ["carbono_clp_t", 1],
+  ["tasa_social_descuento", 0.005],
   ["iri", 0.5],
 ];
 
 /** Topes que el núcleo exige además de «no negativo». */
 const MAXIMO: Partial<Record<keyof Precios, number>> = {
   iri: 20,
+  tasa_social_descuento: 1,
 };
 
 interface Props {
