@@ -1,0 +1,23 @@
+errores 0 []
+
+== galeria: 108 casos con REF
+ rho 0.999999: no conv   2  conv>0,1pp  0  err med 0.001 p95 0.006 max 2.873  it med 6.5 p95 49 max 150  seg tot 138
+    nc: [('Ciudad con metro', 'Base', 'escalones', 'original', 11.847, 2.458), ('Ciudad con metro', 'Base', 'suaves', 'original', 13.732, 2.873)]
+ rho 0.990000: no conv   0  conv>0,1pp  0  err med 0.001 p95 0.005 max 0.010  it med 6.5 p95 23 max 74  seg tot 119
+    nc: []
+ rho 0.950000: no conv   0  conv>0,1pp  0  err med 0.001 p95 0.005 max 0.010  it med 6.5 p95 23 max 74  seg tot 119
+    nc: []
+ rho 0.900000: no conv   0  conv>0,1pp  0  err med 0.001 p95 0.005 max 0.010  it med 6.5 p95 22 max 52  seg tot 111
+    nc: []
+
+== barrido: 776 casos con REF
+ rho 0.999999: no conv   3  conv>0,1pp  1  err med 0.002 p95 0.008 max 2.312  it med 6.0 p95 11 max 150  seg tot 1049
+    nc: [('num_pistas', 2, 'escalones', 'original', 0.022, 0.004), ('num_pistas', 2, 'suaves', 'original', 0.141, 0.027), ('b_tiempo_espera x', 1.5, 'suaves', 'original', 0.262, 2.312)]
+ rho 0.990000: no conv   3  conv>0,1pp  1  err med 0.002 p95 0.008 max 2.573  it med 6.0 p95 11 max 150  seg tot 1044
+    nc: [('num_pistas', 2, 'escalones', 'original', 0.022, 0.004), ('num_pistas', 2, 'suaves', 'original', 0.141, 0.027), ('b_tiempo_espera x', 1.5, 'suaves', 'original', 0.235, 2.573)]
+ rho 0.950000: no conv   1  conv>0,1pp  1  err med 0.002 p95 0.008 max 2.816  it med 6.0 p95 11 max 150  seg tot 1018
+    nc: [('b_tiempo_espera x', 1.5, 'suaves', 'original', 0.219, 2.816)]
+ rho 0.900000: no conv   1  conv>0,1pp  1  err med 0.002 p95 0.008 max 3.288  it med 6.0 p95 11 max 150  seg tot 1012
+    nc: [('b_tiempo_espera x', 1.5, 'suaves', 'original', 0.213, 3.288)]
+
+REF galería no convergida: []

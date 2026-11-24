@@ -13,7 +13,11 @@ pytest
 
 ```python
 from titirilquen_core import (
-    CityConfig, DemandConfig, SimulationConfig, SupplyConfig, run_msa,
+    CityConfig,
+    DemandConfig,
+    SimulationConfig,
+    SupplyConfig,
+    run_msa,
 )
 from titirilquen_core.presets import DEFAULT_STRATA
 

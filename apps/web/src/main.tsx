@@ -7,6 +7,8 @@ import "@/index.css";
 import { applyTheme, getStoredTheme } from "@/lib/theme";
 import { RootLayout } from "@/components/RootLayout";
 import { AboutPage } from "@/pages/AboutPage";
+import { CalibrationPage } from "@/pages/CalibrationPage";
+import { AprendizajePage } from "@/pages/AprendizajePage";
 import { ComparePage } from "@/pages/ComparePage";
 import { CoupledPage } from "@/pages/CoupledPage";
 import { LandUsePage } from "@/pages/LandUsePage";
@@ -35,9 +37,11 @@ const router = createBrowserRouter([
       { index: true, element: <TutorialPage /> },
       { path: "tutorial", element: <TutorialPage /> },
       { path: "tutorial/:slug", element: <TutorialPage /> },
+      { path: "calibration", element: <CalibrationPage /> },
       { path: "sandbox", element: <SandboxPage /> },
       { path: "land-use", element: <LandUsePage /> },
       { path: "coupled", element: <CoupledPage /> },
+      { path: "aprendizaje", element: <AprendizajePage /> },
       { path: "compare", element: <ComparePage /> },
       { path: "about", element: <AboutPage /> },
     ],
@@ -47,5 +51,5 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>
+  </StrictMode>,
 );

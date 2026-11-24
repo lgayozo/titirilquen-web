@@ -1,0 +1,38 @@
+---
+slug: assignment
+order: 6
+title: Carga de la demanda
+tagline: Flujos esperados del logit
+---
+
+# Carga de la demanda
+
+El equilibrio del capítulo anterior necesita, en cada iteración, repartir a cada grupo de viajeros entre los modos disponibles. Un grupo del simulador es la tripleta **(estrato, celda de origen, tenencia de auto)**: personas que enfrentan los mismos tiempos y tienen los mismos coeficientes.
+
+## Un solo método: los flujos esperados
+
+El simulador carga la red con los **flujos esperados** del logit. A un grupo de $n$ viajeros con probabilidades $P_m$ le asigna
+
+$$
+x_m = n \cdot P_m
+$$
+
+viajeros al modo $m$: una fracción a cada modo, sin sortear a nadie. En la literatura es la *carga estocástica* de la red, y su equilibrio, el **equilibrio estocástico de usuario** (SUE).
+
+«Estocástico» describe al modelo de elección, no al cálculo: cada persona tiene un gusto idiosincrático que el modelador no observa, y por eso dos viajeros iguales en todo lo observable pueden elegir modos distintos. Pero el reparto de un grupo grande es determinista: es $n \cdot P_m$. Dos corridas con la misma configuración dan exactamente el mismo resultado.
+
+## Lo que no se sortea, y lo único que sí
+
+- **El equilibrio no usa azar.** Flujos, tiempos, partición modal y agregados de bienestar salen de los flujos esperados.
+- **El modo de cada agente sí se sortea**, una sola vez y al final, con las probabilidades del estado de equilibrio. Sirve sólo para las figuras que cuentan agentes; no vuelve a entrar al cálculo.
+
+## Por qué no hay otros métodos
+
+Hasta noviembre de 2026 el simulador ofrecía otros dos, y se retiraron:
+
+- **Logit — sorteo (Monte Carlo).** Sorteaba el modo de cada viajero en cada iteración. Es el mismo modelo que los flujos esperados más ruido de muestreo: no agregaba análisis, y el ruido impedía leer curvas de sensibilidad y obligaba a aflojar la tolerancia.
+- **Todo o nada.** Mandaba cada grupo entero al modo de mayor utilidad: el límite del logit cuando desaparece el gusto no observado. Dejaba ver fenómenos que el logit amortigua —la paradoja de Downs-Thomson—, pero convergía lento y dejó de converger con una pista cuando el costo de la bencina pasó a depender de la congestión.
+
+Con un solo modelo de comportamiento hay también una sola medida de bienestar, el logsum (capítulo de Bienestar).
+
+<NextStep to="land-use">Módulo Uso de suelo</NextStep>

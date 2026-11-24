@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
+import { cityShapeWeights } from "@/lib/citySupply";
 import { cn } from "@/lib/cn";
+import { fmtDecimal, fmtEntero } from "@/lib/modos";
 import type { FormaOferta } from "@/lib/types-v2";
 
 interface CityShapePreviewProps {
@@ -12,60 +15,14 @@ interface CityShapePreviewProps {
   sigmaFrac: number;
   formaParam: number;
   className?: string;
+  /** Largo de la ciudad (km) y hogares totales (ΣH). Con los dos, la figura
+   *  muestra un tooltip por celda con su oferta en hogares, como la figura de
+   *  la ciudad de Transporte; sin ellos se comporta como antes. */
+  largoKm?: number;
+  hogares?: number;
 }
 
 const MARGIN = { top: 16, right: 14, bottom: 26, left: 44 };
-
-/**
- * Perfil de pesos de la oferta de vivienda `w(d)` — **espejo de presentación**
- * de `land_use/supply.py:generar_oferta` (solo para el preview en vivo). El
- * vector S entero que realmente se resuelve lo genera el core Python; acá solo
- * dibujamos la *forma* relativa para que se entienda qué ciudad se configura.
- */
-function shapeWeights(
-  forma: FormaOferta,
-  L: number,
-  CBD: number,
-  sigmaFrac: number,
-  formaParam: number,
-): number[] {
-  const semi = Math.max(1, Math.min(CBD, L - 1 - CBD));
-  const sigma = Math.max(sigmaFrac * semi, 1e-6);
-  const w = new Array<number>(L).fill(0);
-  for (let i = 0; i < L; i++) {
-    const d = Math.abs(i - CBD);
-    let v = 0;
-    switch (forma) {
-      case "normal":
-        v = Math.exp(-0.5 * (d / sigma) ** 2);
-        break;
-      case "uniforme":
-        v = 1;
-        break;
-      case "exponencial":
-        v = Math.exp(-d / sigma);
-        break;
-      case "meseta":
-        v = Math.exp(-((d / sigma) ** 8));
-        break;
-      case "bimodal": {
-        const sp = sigma * 0.5;
-        const sep = formaParam * semi;
-        v =
-          Math.exp(-0.5 * ((i - (CBD - sep)) / sp) ** 2) +
-          Math.exp(-0.5 * ((i - (CBD + sep)) / sp) ** 2);
-        break;
-      }
-      case "valle":
-        // densidad crece con la distancia; σ controla la profundidad del valle
-        v = (d / semi) ** (2 * sigmaFrac);
-        break;
-    }
-    w[i] = v;
-  }
-  w[CBD] = 0; // no se construye sobre el CBD
-  return w;
-}
 
 /**
  * Vista previa de la **forma de la ciudad** (oferta de vivienda) antes de
@@ -79,8 +36,12 @@ export function CityShapePreview({
   sigmaFrac,
   formaParam,
   className,
+  largoKm,
+  hogares,
 }: CityShapePreviewProps) {
+  const { t } = useTranslation("simulator");
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const [W, setW] = useState(800);
 
   useEffect(() => {
@@ -94,10 +55,11 @@ export function CityShapePreview({
   }, []);
 
   const weights = useMemo(
-    () => shapeWeights(forma, L, CBD, sigmaFrac, formaParam),
+    () => cityShapeWeights(forma, L, CBD, sigmaFrac, formaParam),
     [forma, L, CBD, sigmaFrac, formaParam],
   );
   const wMax = useMemo(() => Math.max(...weights, 1e-9), [weights]);
+  const wSum = useMemo(() => weights.reduce((a, b) => a + b, 0), [weights]);
 
   const H = 150;
   const plotW = Math.max(1, W - MARGIN.left - MARGIN.right);
@@ -106,9 +68,31 @@ export function CityShapePreview({
   const barW = plotW / L;
   const cbdX = MARGIN.left + (CBD + 0.5) * barW;
 
+  // Una sola capa de captura, como en StratumDistribution. La oferta de la
+  // celda en hogares es w_i/Σw·ΣH: la misma normalización de `smoothSupply`,
+  // que la página usa para colocar los hogares en la Fig. 01.
+  const conTooltip = largoKm != null && hogares != null;
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const onMove = (e: React.MouseEvent<SVGRectElement>) => {
+    const svg = svgRef.current;
+    if (!svg || L === 0) return;
+    const r = svg.getBoundingClientRect();
+    // El SVG se escala con maxWidth:100%: px del puntero → coordenadas del viewBox.
+    const xView = ((e.clientX - r.left) * W) / Math.max(r.width, 1);
+    const i = Math.floor((xView - MARGIN.left) / barW);
+    setHoverIdx(i >= 0 && i < L ? i : null);
+  };
+  const cellKm = largoKm != null && L > 0 ? largoKm / L : 0;
+  const hoverX = hoverIdx != null ? MARGIN.left + (hoverIdx + 0.5) * barW : 0;
+  const hoverS =
+    hoverIdx != null && hogares != null && wSum > 0
+      ? ((weights[hoverIdx] ?? 0) / wSum) * hogares
+      : 0;
+
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
       <svg
+        ref={svgRef}
         width={W}
         height={H}
         viewBox={`0 0 ${W} ${H}`}
@@ -119,7 +103,7 @@ export function CityShapePreview({
           border: "1px solid var(--rule)",
         }}
         role="img"
-        aria-label="Forma de la ciudad — oferta de vivienda"
+        aria-label={t("land_use.shape_aria")}
       >
         {/* Eje Y (rótulo) */}
         <text
@@ -129,7 +113,7 @@ export function CityShapePreview({
           transform="rotate(-90)"
           className="label"
         >
-          OFERTA
+          {t("land_use.shape_y_axis")}
         </text>
 
         {/* Barras de densidad de oferta por celda */}
@@ -143,7 +127,10 @@ export function CityShapePreview({
               y={yFloor - barH}
               width={Math.max(barW - 0.2, 0.3)}
               height={barH}
-              fill="var(--s2)"
+              // Ciudad vacía: oferta de vivienda (capacidad) sin estratos aún.
+              // Gris neutro — NO un color de estrato ni de modo; la Fig. 01
+              // colorea esta misma silueta por estrato.
+              fill="var(--muted)"
               opacity={0.8}
               style={{ transition: "y 200ms ease-out, height 200ms ease-out" }}
             />
@@ -180,9 +167,22 @@ export function CityShapePreview({
           CBD
         </text>
 
+        {/* Guía de la celda bajo el puntero */}
+        {hoverIdx != null && (
+          <line
+            x1={hoverX}
+            y1={MARGIN.top}
+            x2={hoverX}
+            y2={yFloor}
+            stroke="var(--ink)"
+            strokeWidth={0.8}
+            opacity={0.5}
+          />
+        )}
+
         {/* Etiquetas X */}
         <text x={MARGIN.left} y={H - 8} textAnchor="start" className="label">
-          PERIFERIA
+          {t("network.periphery")}
         </text>
         <text
           x={MARGIN.left + plotW}
@@ -190,9 +190,55 @@ export function CityShapePreview({
           textAnchor="end"
           className="label"
         >
-          PERIFERIA
+          {t("network.periphery")}
         </text>
+
+        {/* Capa de captura del puntero, encima de todo. */}
+        {conTooltip && (
+          <rect
+            x={MARGIN.left}
+            y={MARGIN.top}
+            width={plotW}
+            height={plotH}
+            fill="transparent"
+            onMouseMove={onMove}
+            onMouseLeave={() => setHoverIdx(null)}
+          />
+        )}
       </svg>
+
+      {/* Tooltip como HTML, con el estilo del de StratumDistribution. */}
+      {conTooltip && hoverIdx != null && (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{
+            left: Math.min(Math.max(hoverX, 92), Math.max(W - 92, 92)),
+            top: MARGIN.top + 4,
+            transform: "translateX(-50%)",
+            background: "var(--panel)",
+            border: "1px solid var(--rule)",
+            borderRadius: 7,
+            padding: "6px 8px",
+            fontFamily: "var(--font-fig)",
+            fontSize: "var(--fs-etiqueta)",
+            lineHeight: 1.5,
+            whiteSpace: "nowrap",
+            color: "var(--ink)",
+          }}
+        >
+          <div style={{ color: "var(--muted)" }}>
+            {t("stratum_distribution.tooltip_pos", {
+              km: fmtDecimal((hoverIdx + 0.5) * cellKm),
+              dist: fmtDecimal(Math.abs(CBD - hoverIdx) * cellKm),
+            })}
+          </div>
+          <div style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+            {hoverIdx === CBD
+              ? t("land_use.shape_tooltip_cbd")
+              : t("land_use.shape_tooltip_oferta", { n: fmtEntero(hoverS) })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

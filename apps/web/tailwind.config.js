@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       // Paleta editorial: todos los colores referencian CSS variables para
-      // respetar los 3 temas (paper / dark / journal).
+      // respetar los temas (paper / dark).
       colors: {
         paper: {
           DEFAULT: "var(--paper)",
@@ -42,6 +42,17 @@ export default {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
       },
+      // La escala de index.css (B2). Sin `lineHeight`: como las clases
+      // `text-[Npx]` que reemplaza, hereda el interlineado.
+      fontSize: {
+        titulo: "var(--fs-titulo)",
+        seccion: "var(--fs-seccion)",
+        dato: "var(--fs-dato)",
+        figura: "var(--fs-figura)",
+        cuerpo: "var(--fs-cuerpo)",
+        ayuda: "var(--fs-ayuda)",
+        etiqueta: "var(--fs-etiqueta)",
+      },
       borderRadius: {
         none: "0",
         DEFAULT: "0",
@@ -52,7 +63,10 @@ export default {
           "50%": { opacity: "0.9", transform: "scaleY(1)" },
         },
         "iteration-flash": {
-          "0%": { boxShadow: "0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent)" },
+          "0%": {
+            boxShadow:
+              "0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent)",
+          },
           "100%": { boxShadow: "0 0 0 12px transparent" },
         },
         "pulse-dot": {

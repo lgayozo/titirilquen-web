@@ -1,3 +1,4 @@
+import { ticks } from "d3";
 import { useMemo } from "react";
 import {
   Area,
@@ -15,103 +16,137 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import type { IterationSnapshot } from "@/lib/types";
+import { COLOR_MODO, MODOS, fmtDecimal, localeCifras } from "@/lib/modos";
 
 interface ConvergenceTraceProps {
   iterations: readonly IterationSnapshot[];
+  /** Todo o nada: el residuo es la brecha relativa (adimensional, auditoría
+   *  B), que se dibuja en %; en los métodos logit es la brecha en minutos. */
+  relativa?: boolean;
   className?: string;
 }
 
-const MODE_VAR: Record<string, string> = {
-  Auto: "var(--auto)",
-  Metro: "var(--metro)",
-  Bici: "var(--bici)",
-  Caminata: "var(--walk)",
-  Teletrabajo: "var(--tele)",
-};
-
-const MODE_ORDER = ["Auto", "Metro", "Bici", "Caminata", "Teletrabajo"] as const;
-
 const AXIS_STYLE = {
   fontFamily: "var(--font-fig)",
-  fontSize: 10,
+  fontSize: 12,
   letterSpacing: "0.04em",
 };
 
 const PANEL_STYLE: React.CSSProperties = {
   border: "1px solid var(--rule)",
-  background: "var(--paper)",
+  borderRadius: 10,
+  background: "var(--panel)",
   padding: 12,
 };
 
 const PANEL_TITLE: React.CSSProperties = {
   margin: 0,
-  fontFamily: "var(--font-fig)",
-  fontSize: 10,
-  fontWeight: 500,
-  letterSpacing: "0.12em",
-  textTransform: "uppercase",
-  color: "var(--muted)",
+  fontFamily: "var(--font-body)",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--ink-2)",
 };
 
 const PANEL_SUB: React.CSSProperties = {
   margin: "4px 0 10px",
-  fontFamily: "var(--font-fig)",
-  fontSize: 10,
-  letterSpacing: "0.04em",
+  fontFamily: "var(--font-body)",
+  fontSize: 12,
   color: "var(--muted)",
 };
 
 const TOOLTIP_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-fig)",
-  fontSize: 11,
-  background: "var(--paper)",
+  fontSize: 12,
+  background: "var(--panel)",
   border: "1px solid var(--rule)",
-  borderRadius: 0,
+  borderRadius: 7,
   color: "var(--ink)",
 };
 
-export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProps) {
+export function ConvergenceTrace({
+  iterations,
+  relativa = false,
+  className,
+}: ConvergenceTraceProps) {
   const { t } = useTranslation("simulator");
 
   const data = useMemo(
     () =>
       iterations.map((it) => ({
         iter: it.iter + 1,
-        residuo: it.residuo ?? null,
+        residuo:
+          it.residuo == null ? null : relativa ? 100 * it.residuo : it.residuo,
         Auto: it.modal_split.Auto ?? 0,
         Metro: it.modal_split.Metro ?? 0,
         Bici: it.modal_split.Bici ?? 0,
         Caminata: it.modal_split.Caminata ?? 0,
-        Teletrabajo: it.modal_split.Teletrabajo ?? 0,
         frec: it.frecuencia_metro,
       })),
-    [iterations]
+    [iterations, relativa],
+  );
+
+  // Marcas 1·2·5×10ⁿ: el redondeo propio de recharts daba 9,5k · 19k · 28,5k.
+  const yRes = useMemo(
+    () => ticks(0, Math.max(...data.map((d) => d.residuo ?? 0), 0), 4),
+    [data],
+  );
+  const yViajes = useMemo(
+    () =>
+      ticks(
+        0,
+        Math.max(...data.map((d) => d.Auto + d.Metro + d.Bici + d.Caminata), 0),
+        4,
+      ),
+    [data],
   );
 
   if (data.length === 0) return null;
 
   const fmtMin = (v: number | string) =>
-    typeof v === "number" ? `${v.toFixed(3)} min` : String(v);
+    typeof v === "number"
+      ? `${fmtDecimal(v, 3)} ${relativa ? "%" : "min"}`
+      : String(v);
   // Ticks del residuo: hasta 3 decimales pero sin ceros sobrantes (12.000 → 12,
   // 0.030 → 0.03) para que no invadan la etiqueta rotada del eje Y.
-  const fmtResidualTick = (v: number) => String(Number(v.toFixed(3)));
+  const fmtResidualTick = (v: number) =>
+    v.toLocaleString(localeCifras(), { maximumFractionDigits: 3 });
   const fmtTrips = (v: number | string) =>
-    typeof v === "number" ? `${v.toLocaleString()} ${t("convergence.trips_unit")}` : String(v);
+    typeof v === "number"
+      ? `${v.toLocaleString(localeCifras())} ${t("convergence.trips_unit")}`
+      : String(v);
   // Ticks compactos (10000 → "10k") para que no invadan la etiqueta del eje Y.
   const fmtTickCompact = (v: number) =>
-    Math.abs(v) >= 1000 ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `${v}`;
+    Math.abs(v) >= 1000
+      ? `${fmtDecimal(v / 1000, v % 1000 === 0 ? 0 : 1)}k`
+      : v.toLocaleString(localeCifras());
 
   return (
     <div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2", className)}>
       <div style={PANEL_STYLE}>
         <h4 style={PANEL_TITLE}>{t("equilibrium.residual")}</h4>
         <p style={PANEL_SUB}>
-          ‖T<sub>n</sub> − T<sub>n−1</sub>‖<sub>∞</sub> · min · debe tender a 0
+          {/* La brecha no amortiguada (D8), no el cambio del iterado: ver
+              cap. 5 del libro, ec. (5.4). */}
+          {relativa ? (
+            t("convergence.sub_relativa")
+          ) : (
+            <>
+              ‖c(d(T<sub>n</sub>)) − T<sub>n</sub>‖<sub>∞</sub> · min · debe
+              tender a 0
+            </>
+          )}
         </p>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
-            <LineChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
-              <CartesianGrid strokeDasharray="2 3" stroke="var(--rule)" opacity={0.6} />
+            <LineChart
+              data={data}
+              margin={{ top: 8, right: 16, bottom: 4, left: 8 }}
+            >
+              <CartesianGrid
+                strokeDasharray="2 3"
+                stroke="var(--rule)"
+                opacity={0.6}
+              />
               <XAxis
                 dataKey="iter"
                 stroke="var(--muted)"
@@ -125,13 +160,20 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
                 width={52}
+                ticks={yRes}
                 tickFormatter={fmtResidualTick}
                 label={{
-                  value: t("convergence.y_min"),
+                  value: t(
+                    relativa ? "convergence.y_pct" : "convergence.y_min",
+                  ),
                   angle: -90,
                   position: "insideLeft",
                   offset: 0,
-                  style: { ...AXIS_STYLE, fill: "var(--muted)", textAnchor: "middle" },
+                  style: {
+                    ...AXIS_STYLE,
+                    fill: "var(--muted)",
+                    textAnchor: "middle",
+                  },
                 }}
               />
               <Tooltip
@@ -159,8 +201,15 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
         <p style={PANEL_SUB}>{t("convergence.modal_split_sub")}</p>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
-            <AreaChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
-              <CartesianGrid strokeDasharray="2 3" stroke="var(--rule)" opacity={0.6} />
+            <AreaChart
+              data={data}
+              margin={{ top: 8, right: 16, bottom: 4, left: 8 }}
+            >
+              <CartesianGrid
+                strokeDasharray="2 3"
+                stroke="var(--rule)"
+                opacity={0.6}
+              />
               <XAxis
                 dataKey="iter"
                 stroke="var(--muted)"
@@ -173,14 +222,20 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
                 tickLine={{ stroke: "var(--rule)" }}
                 axisLine={{ stroke: "var(--rule)" }}
                 style={AXIS_STYLE}
-                width={52}
+                // 64 y offset 4: con ticks de 12 px (B2) «28.5k» pisaba el rótulo.
+                width={64}
+                ticks={yViajes}
                 tickFormatter={fmtTickCompact}
                 label={{
                   value: t("convergence.y_trips"),
                   angle: -90,
                   position: "insideLeft",
-                  offset: 12,
-                  style: { ...AXIS_STYLE, fill: "var(--muted)", textAnchor: "middle" },
+                  offset: 4,
+                  style: {
+                    ...AXIS_STYLE,
+                    fill: "var(--muted)",
+                    textAnchor: "middle",
+                  },
                 }}
               />
               <Tooltip
@@ -192,18 +247,20 @@ export function ConvergenceTrace({ iterations, className }: ConvergenceTraceProp
               <Legend
                 wrapperStyle={{
                   fontFamily: "var(--font-fig)",
-                  fontSize: 10,
+                  fontSize: 12,
                   letterSpacing: "0.04em",
                 }}
               />
-              {MODE_ORDER.map((m) => (
+              {/* Sólo los modos físicos: el eje es de viajes y el teletrabajo
+                  no viaja ni cambia entre iteraciones (auditoría C, ítem 10). */}
+              {MODOS.map((m) => (
                 <Area
                   key={m}
                   type="monotone"
                   dataKey={m}
                   stackId="1"
-                  stroke={MODE_VAR[m]}
-                  fill={MODE_VAR[m]}
+                  stroke={COLOR_MODO[m]}
+                  fill={COLOR_MODO[m]}
                   fillOpacity={0.7}
                   isAnimationActive={false}
                 />

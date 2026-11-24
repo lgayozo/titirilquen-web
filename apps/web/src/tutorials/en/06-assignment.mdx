@@ -1,0 +1,38 @@
+---
+slug: assignment
+order: 6
+title: Loading the demand
+tagline: Expected logit flows
+---
+
+# Loading the demand
+
+The equilibrium loop of the previous chapter needs, at every iteration, to split each group of travellers across the available modes. A group in the simulator is the triple **(stratum, origin cell, car ownership)**: people facing the same times and sharing the same coefficients.
+
+## A single method: expected flows
+
+The simulator loads the network with the **expected flows** of the logit. A group of $n$ travellers with probabilities $P_m$ sends
+
+$$
+x_m = n \cdot P_m
+$$
+
+travellers to mode $m$: a fraction to each mode, with nobody sampled. In the literature this is the *stochastic loading* of the network, and its equilibrium, the **stochastic user equilibrium** (SUE).
+
+«Stochastic» describes the choice model, not the computation: each person has an idiosyncratic taste the modeller does not observe, so two travellers identical in everything observable may choose different modes. But the split of a large group is deterministic: it is $n \cdot P_m$. Two runs with the same configuration give exactly the same result.
+
+## What is not sampled, and the one thing that is
+
+- **The equilibrium uses no randomness.** Flows, times, modal split and welfare aggregates come from expected flows.
+- **Each agent's mode is sampled**, once and at the end, with the probabilities of the equilibrium state. It only feeds the figures that count agents; it never re-enters the computation.
+
+## Why there are no other methods
+
+Until November 2026 the simulator offered two more, which were retired:
+
+- **Logit — sampling (Monte Carlo).** It sampled each traveller's mode at every iteration. It is the same model as expected flows plus sampling noise: it added no analysis, and the noise made sensitivity curves unreadable and forced a looser tolerance.
+- **All-or-nothing.** It sent each whole group to the highest-utility mode: the limit of the logit when unobserved taste vanishes. It revealed phenomena the logit dampens —the Downs-Thomson paradox—, but it converged slowly and stopped converging with one lane once fuel cost came to depend on congestion.
+
+With a single behavioural model there is also a single welfare measure, the logsum (Welfare chapter).
+
+<NextStep to="land-use">Land use module</NextStep>

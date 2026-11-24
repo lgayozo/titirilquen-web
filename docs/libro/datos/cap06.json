@@ -1,0 +1,804 @@
+{
+ "_meta": {
+  "fecha": "2026-10-28",
+  "commit": "10d0f04",
+  "script": "docs/libro/datos/datos_cap06.py",
+  "configuracion": "La de la aplicación (`test_linea_base._config_web` y `_land_use_web`): 201 celdas, 20 km, 36.000 hogares 20/50/30, semilla 42, asignación esperada, brecha interior < 0,02 min. El acoplado con `outer_max_iter = 10` y la tolerancia del núcleo, 100 $/hogar-mes."
+ },
+ "fuentes_externas": {
+  "alonso_1964": "Alonso, W. (1964). Location and Land Use: Toward a General Theory of Land Rent. Harvard University Press.",
+  "williams_1977": "Williams, H. C. W. L. (1977). On the formation of travel demand models and economic evaluation measures of user benefit. Environment and Planning A, 9(3), 285–344.",
+  "small_rosen_1981": "Small, K. A. y Rosen, H. S. (1981). Applied welfare economics with discrete choice models. Econometrica, 49(1), 105–130."
+ },
+ "parametros_vigentes": {
+  "viajes_mes": 44,
+  "prob_teletrabajo": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "viajes_mes_por_estrato": [
+   44.0,
+   44.0,
+   44.0
+  ],
+  "rho": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "lambda_h": [
+   0.000313794,
+   0.000627686,
+   0.001216167
+  ],
+  "paso": "1; a la mitad cada vez que la brecha no baja (A4)",
+  "assignment_forzado": "expected",
+  "tolerancia_interior_min": 0.02,
+  "outer_tol": {
+   "nucleo": 100.0,
+   "constante": 100.0,
+   "api_usa_la_constante": true,
+   "worker_usa_la_constante": true,
+   "app_lo_manda": false,
+   "comparador_lo_manda": false
+  },
+  "veredicto_motor_local_es_el_del_nucleo": true,
+  "outer_max_iter": {
+   "constante": 10,
+   "nucleo": 10,
+   "api_usa_la_constante": true,
+   "worker_usa_la_constante": true,
+   "app_usa_la_constante": true,
+   "comparador_usa_la_constante": true
+  }
+ },
+ "accesibilidad": {
+  "unidad": "T = −VIAJES_MES·(1 − p_tele,h)·logsum; útiles de transporte por mes, y $/mes al dividir por λ_h",
+  "viajes_mes_por_estrato": [
+   44.0,
+   44.0,
+   44.0
+  ],
+  "lambda_h": [
+   0.000313794,
+   0.000627686,
+   0.001216167
+  ],
+  "uno_sobre_lambda_clp": [
+   3187,
+   1593,
+   822
+  ],
+  "perfil": [
+   {
+    "km": 0.5,
+    "utiles_mes": [
+     -32.16,
+     -27.75,
+     -35.57
+    ],
+    "clp_mes": [
+     -102485,
+     -44210,
+     -29250
+    ]
+   },
+   {
+    "km": 1.0,
+    "utiles_mes": [
+     -26.22,
+     -19.96,
+     -26.35
+    ],
+    "clp_mes": [
+     -83555,
+     -31798,
+     -21664
+    ]
+   },
+   {
+    "km": 2.0,
+    "utiles_mes": [
+     -22.33,
+     -13.88,
+     -16.28
+    ],
+    "clp_mes": [
+     -71147,
+     -22117,
+     -13388
+    ]
+   },
+   {
+    "km": 3.0,
+    "utiles_mes": [
+     -7.34,
+     7.64,
+     10.46
+    ],
+    "clp_mes": [
+     -23380,
+     12165,
+     8604
+    ]
+   },
+   {
+    "km": 5.0,
+    "utiles_mes": [
+     3.19,
+     21.09,
+     26.18
+    ],
+    "clp_mes": [
+     10173,
+     33592,
+     21524
+    ]
+   },
+   {
+    "km": 8.0,
+    "utiles_mes": [
+     14.46,
+     35.76,
+     46.47
+    ],
+    "clp_mes": [
+     46077,
+     56976,
+     38209
+    ]
+   }
+  ],
+  "pendiente_1_a_9km": {
+   "utiles_mes_por_km": [
+    6.0407,
+    8.1799,
+    10.2111
+   ],
+   "clp_mes_por_km": [
+    19251,
+    13032,
+    8396
+   ]
+  },
+  "rango_utiles_mes": [
+   65.24,
+   89.28,
+   111.4
+  ],
+  "cortes_modales_km": {
+   "caminata": 2.4,
+   "bici": 10.5
+  },
+  "monotona_celda_a_celda": [
+   false,
+   false,
+   false
+  ],
+  "nota": "`T` NO es monótona celda a celda: cerca de cada estación el acceso al metro baja y la accesibilidad mejora. Es la red configurada, no una función de la distancia (D-42)."
+ },
+ "quien_remueve_la_inversion": {
+  "factor_escala_minutos": 2.7764,
+  "pendiente_minutos_por_km": [
+   2.2514,
+   2.7758,
+   3.3779
+  ],
+  "criterio_de_alonso": {
+   "logsum": {
+    "razon_pendientes_bajo_sobre_alto": 1.6904,
+    "razon_lambda_bajo_sobre_alto": 3.8757,
+    "margen_con_lambda_heterogeneo": 2.2928,
+    "margen_con_lambda_uniforme": 0.5916
+   },
+   "minutos": {
+    "razon_pendientes_bajo_sobre_alto": 1.5004,
+    "razon_lambda_bajo_sobre_alto": 3.8757,
+    "margen_con_lambda_heterogeneo": 2.5832,
+    "margen_con_lambda_uniforme": 0.6665
+   }
+  },
+  "casos": [
+   {
+    "objeto": "logsum (D-34)",
+    "moneda": "λ heterogéneo",
+    "dist_media_km": [
+     1.3825,
+     2.8886,
+     6.3748
+    ],
+    "invierte_alonso": false
+   },
+   {
+    "objeto": "logsum (D-34)",
+    "moneda": "λ uniforme",
+    "dist_media_km": [
+     6.331,
+     3.8234,
+     1.5177
+    ],
+    "invierte_alonso": true
+   },
+   {
+    "objeto": "minutos (D-22)",
+    "moneda": "λ heterogéneo",
+    "dist_media_km": [
+     1.2243,
+     2.8967,
+     6.4668
+    ],
+    "invierte_alonso": false
+   },
+   {
+    "objeto": "minutos (D-22)",
+    "moneda": "λ uniforme",
+    "dist_media_km": [
+     6.0751,
+     3.5939,
+     2.0709
+    ],
+    "invierte_alonso": true
+   }
+  ],
+  "veredicto": "La fila (minutos vs logsum) no decide nada; la columna (λ uniforme vs heterogéneo) decide todo. Lo que remueve la inversión es la MONEDA, no el objeto: con `λ_h = |b_costo_h|` el estrato alto puja más empinado en $/km aunque su tiempo crezca más lento en min/km."
+ },
+ "teletrabajo": {
+  "prob_teletrabajo_ilustrativo": [
+   0.4,
+   0.2,
+   0.05
+  ],
+  "filas": [
+   {
+    "teletrabajo_factor": 0.0,
+    "viajes_mes": [
+     44.0,
+     44.0,
+     44.0
+    ],
+    "pendiente_clp_mes_por_km": [
+     19251,
+     13032,
+     8396
+    ],
+    "dist_media_km": [
+     1.3825,
+     2.8886,
+     6.3748
+    ],
+    "theil": 0.3918
+   },
+   {
+    "teletrabajo_factor": 0.5,
+    "viajes_mes": [
+     35.2,
+     39.6,
+     42.9
+    ],
+    "pendiente_clp_mes_por_km": [
+     15401,
+     11729,
+     8186
+    ],
+    "dist_media_km": [
+     1.8387,
+     2.8103,
+     6.2012
+    ],
+    "theil": 0.2943
+   },
+   {
+    "teletrabajo_factor": 1.0,
+    "viajes_mes": [
+     26.4,
+     35.2,
+     41.8
+    ],
+    "pendiente_clp_mes_por_km": [
+     11550,
+     10425,
+     7976
+    ],
+    "dist_media_km": [
+     2.6591,
+     2.7198,
+     5.8051
+    ],
+    "theil": 0.1809
+   },
+   {
+    "teletrabajo_factor": 2.0,
+    "viajes_mes": [
+     8.8,
+     26.4,
+     39.6
+    ],
+    "pendiente_clp_mes_por_km": [
+     3850,
+     7819,
+     7557
+    ],
+    "dist_media_km": [
+     5.606,
+     3.0899,
+     3.2237
+    ],
+    "theil": 0.0818
+   }
+  ]
+ },
+ "red_configurada": {
+  "default_app": 10,
+  "filas": [
+   {
+    "num_estaciones": 4,
+    "max_dT_vs_4_estaciones": 0.0,
+    "dist_media_km": [
+     1.3258,
+     2.9538,
+     6.304
+    ]
+   },
+   {
+    "num_estaciones": 6,
+    "max_dT_vs_4_estaciones": 12.544,
+    "dist_media_km": [
+     1.378,
+     2.8635,
+     6.4197
+    ]
+   },
+   {
+    "num_estaciones": 10,
+    "max_dT_vs_4_estaciones": 18.684,
+    "dist_media_km": [
+     1.3825,
+     2.8886,
+     6.3748
+    ]
+   },
+   {
+    "num_estaciones": 20,
+    "max_dT_vs_4_estaciones": 17.493,
+    "dist_media_km": [
+     1.3315,
+     2.8997,
+     6.3904
+    ]
+   },
+   {
+    "num_estaciones": 30,
+    "max_dT_vs_4_estaciones": 16.347,
+    "dist_media_km": [
+     1.296,
+     2.9071,
+     6.4017
+    ]
+   }
+  ],
+  "nota": "La accesibilidad se mueve fuerte y localmente (decenas de útiles/mes junto a las estaciones), pero la ASIGNACIÓN casi no: la localización la fija la pendiente del corredor, no dónde para el tren."
+ },
+ "loop": {
+  "outer_max_iter": 10,
+  "outer_tol": 100.0,
+  "iteraciones_corridas": 3,
+  "convergio": true,
+  "trayectoria": [
+   {
+    "k": 0,
+    "brecha_clp_mes": null,
+    "max_dQ": null,
+    "theil": 0.39177,
+    "dist_media_km": [
+     1.3825,
+     2.8886,
+     6.3748
+    ],
+    "reparto_pct": {
+     "Auto": 28.251,
+     "Metro": 26.107,
+     "Bici": 35.791,
+     "Caminata": 9.851,
+     "Teletrabajo": 0.0,
+     "Varado": 0.0
+    },
+    "tiempo_medio_min": 16.6297,
+    "frecuencia_metro_tph": 4.6991,
+    "delta_excedente_hogar_mes_clp": [
+     1236,
+     2737,
+     2233
+    ],
+    "delta_bienestar_total_mes_clp": 82293547,
+    "msa_convergio": true,
+    "msa_iteraciones": 6,
+    "subasta_convergio": true,
+    "convergio_nucleo": false
+   },
+   {
+    "k": 1,
+    "brecha_clp_mes": 130.258,
+    "max_dQ": 0.111,
+    "theil": 0.37175,
+    "dist_media_km": [
+     1.4531,
+     2.909,
+     6.2938
+    ],
+    "reparto_pct": {
+     "Auto": 28.245,
+     "Metro": 25.996,
+     "Bici": 35.85,
+     "Caminata": 9.91,
+     "Teletrabajo": 0.0,
+     "Varado": 0.0
+    },
+    "tiempo_medio_min": 16.6224,
+    "frecuencia_metro_tph": 4.6791,
+    "delta_excedente_hogar_mes_clp": [
+     1609,
+     2727,
+     2072
+    ],
+    "delta_bienestar_total_mes_clp": 83039736,
+    "msa_convergio": true,
+    "msa_iteraciones": 6,
+    "subasta_convergio": true,
+    "convergio_nucleo": false
+   },
+   {
+    "k": 2,
+    "brecha_clp_mes": 3.661,
+    "max_dQ": 0.0008064,
+    "theil": 0.37196,
+    "dist_media_km": [
+     1.4517,
+     2.9094,
+     6.294
+    ],
+    "reparto_pct": {
+     "Auto": 28.242,
+     "Metro": 25.997,
+     "Bici": 35.851,
+     "Caminata": 9.909,
+     "Teletrabajo": 0.0,
+     "Varado": 0.0
+    },
+    "tiempo_medio_min": 16.6229,
+    "frecuencia_metro_tph": 4.6794,
+    "delta_excedente_hogar_mes_clp": [
+     1609,
+     2727,
+     2072
+    ],
+    "delta_bienestar_total_mes_clp": 83059198,
+    "msa_convergio": true,
+    "msa_iteraciones": 6,
+    "subasta_convergio": true,
+    "convergio_nucleo": true
+   }
+  ],
+  "sin_feedback_vs_con_feedback": {
+   "nota": "La iteración 0 es la ciudad resuelta con la accesibilidad de la red VACÍA: el baseline honesto de D-23, en la misma escala que el resto.",
+   "theil": [
+    0.39177,
+    0.37196
+   ],
+   "dist_media_km": [
+    [
+     1.3825,
+     2.8886,
+     6.3748
+    ],
+    [
+     1.4517,
+     2.9094,
+     6.294
+    ]
+   ],
+   "reparto_pct": [
+    {
+     "Auto": 28.251,
+     "Metro": 26.107,
+     "Bici": 35.791,
+     "Caminata": 9.851,
+     "Teletrabajo": 0.0,
+     "Varado": 0.0
+    },
+    {
+     "Auto": 28.242,
+     "Metro": 25.997,
+     "Bici": 35.851,
+     "Caminata": 9.909,
+     "Teletrabajo": 0.0,
+     "Varado": 0.0
+    }
+   ],
+   "tiempo_medio_min": [
+    16.6297,
+    16.6229
+   ],
+   "frecuencia_metro_tph": [
+    4.6991,
+    4.6794
+   ]
+  }
+ },
+ "paso": {
+  "n_vueltas": 8,
+  "casos": {
+   "base": {
+    "msa_1_sobre_k": [
+     null,
+     130.258,
+     59.59,
+     41.34,
+     31.02,
+     24.816,
+     20.68,
+     17.725
+    ],
+    "nucleo": [
+     null,
+     130.258,
+     3.661,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "msa_interior_convergio": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "k_bajo_tol_nucleo": 2,
+    "k_bajo_tol_msa": 2
+   },
+   "rho_54": {
+    "msa_1_sobre_k": [
+     null,
+     39.725,
+     21.827,
+     14.611,
+     12.204,
+     9.764,
+     8.136,
+     6.974
+    ],
+    "nucleo": [
+     null,
+     39.725,
+     6.873,
+     1.121,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "msa_interior_convergio": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "k_bajo_tol_nucleo": 1,
+    "k_bajo_tol_msa": 1
+   },
+   "poblacion_x2_5": {
+    "msa_1_sobre_k": [
+     null,
+     1141.153,
+     565.591,
+     358.267,
+     284.407,
+     206.515,
+     171.16,
+     152.839
+    ],
+    "nucleo": [
+     null,
+     1141.153,
+     31.82,
+     4.732,
+     3.222,
+     3.222,
+     1.611,
+     2.416
+    ],
+    "msa_interior_convergio": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "k_bajo_tol_nucleo": 2,
+    "k_bajo_tol_msa": null
+   }
+  }
+ },
+ "brecha_distribucion": {
+  "max": 130.3,
+  "percentil_50": 50.2,
+  "percentil_90": 107.9,
+  "percentil_99": 125.9,
+  "celdas_sobre_la_tolerancia": 98,
+  "celdas_totales": 603,
+  "celda_del_maximo": {
+   "estrato": 1,
+   "indice": 0,
+   "km_del_cbd": 9.9502
+  }
+ },
+ "parada": {
+  "max_iter_interior": 2,
+  "outer_max_iter": 6,
+  "filas": [
+   {
+    "k": 0,
+    "brecha_clp_mes": null,
+    "msa_convergio": false,
+    "nucleo_dice": false
+   },
+   {
+    "k": 1,
+    "brecha_clp_mes": 124.392,
+    "msa_convergio": false,
+    "nucleo_dice": false
+   },
+   {
+    "k": 2,
+    "brecha_clp_mes": 7.949,
+    "msa_convergio": false,
+    "nucleo_dice": false
+   }
+  ]
+ },
+ "tolerancia": {
+  "outer_tol_clp_mes": 100.0,
+  "un_util_mes_en_clp": [
+   3187,
+   1593,
+   822
+  ],
+  "brechas_sin_corte": [
+   130.258,
+   3.661,
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "poblacion": [
+  {
+   "poblacion": 12000,
+   "iteraciones": 2,
+   "convergio": true,
+   "msa_convergio": true,
+   "brecha_final_clp_mes": 1.158,
+   "delta_bienestar_total_mes_clp": -9205836,
+   "theil": 0.39191,
+   "tiempo_medio_min": 16.1668,
+   "dist_media_km": [
+    1.3796,
+    2.8907,
+    6.3739
+   ],
+   "reparto_pct": {
+    "Auto": 29.781,
+    "Metro": 16.228,
+    "Bici": 44.017,
+    "Caminata": 9.974,
+    "Teletrabajo": 0.0,
+    "Varado": 0.0
+   }
+  },
+  {
+   "poblacion": 24000,
+   "iteraciones": 2,
+   "convergio": true,
+   "msa_convergio": true,
+   "brecha_final_clp_mes": 35.974,
+   "delta_bienestar_total_mes_clp": -51492760,
+   "theil": 0.39029,
+   "tiempo_medio_min": 17.1454,
+   "dist_media_km": [
+    1.3775,
+    2.9005,
+    6.3595
+   ],
+   "reparto_pct": {
+    "Auto": 30.081,
+    "Metro": 17.967,
+    "Bici": 41.901,
+    "Caminata": 10.051,
+    "Teletrabajo": 0.0,
+    "Varado": 0.0
+   }
+  },
+  {
+   "poblacion": 36000,
+   "iteraciones": 3,
+   "convergio": true,
+   "msa_convergio": true,
+   "brecha_final_clp_mes": 3.661,
+   "delta_bienestar_total_mes_clp": 83059198,
+   "theil": 0.37196,
+   "tiempo_medio_min": 16.6229,
+   "dist_media_km": [
+    1.4517,
+    2.9094,
+    6.294
+   ],
+   "reparto_pct": {
+    "Auto": 28.242,
+    "Metro": 25.997,
+    "Bici": 35.851,
+    "Caminata": 9.909,
+    "Teletrabajo": 0.0,
+    "Varado": 0.0
+   }
+  },
+  {
+   "poblacion": 60000,
+   "iteraciones": 3,
+   "convergio": true,
+   "msa_convergio": true,
+   "brecha_final_clp_mes": 1.291,
+   "delta_bienestar_total_mes_clp": -20226722,
+   "theil": 0.38704,
+   "tiempo_medio_min": 18.1856,
+   "dist_media_km": [
+    1.3568,
+    2.9817,
+    6.2354
+   ],
+   "reparto_pct": {
+    "Auto": 25.998,
+    "Metro": 32.746,
+    "Bici": 31.111,
+    "Caminata": 10.146,
+    "Teletrabajo": 0.0,
+    "Varado": 0.0
+   }
+  },
+  {
+   "poblacion": 90000,
+   "iteraciones": 3,
+   "convergio": true,
+   "msa_convergio": true,
+   "brecha_final_clp_mes": 31.82,
+   "delta_bienestar_total_mes_clp": -717793542,
+   "theil": 0.42684,
+   "tiempo_medio_min": 20.9711,
+   "dist_media_km": [
+    1.1878,
+    3.089,
+    6.1718
+   ],
+   "reparto_pct": {
+    "Auto": 22.506,
+    "Metro": 39.104,
+    "Bici": 27.589,
+    "Caminata": 10.801,
+    "Teletrabajo": 0.0,
+    "Varado": 0.0
+   }
+  }
+ ]
+}

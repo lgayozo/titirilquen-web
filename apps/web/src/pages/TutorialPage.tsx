@@ -45,7 +45,9 @@ export function TutorialPage() {
       <article className="tutorial-article">
         {current && (
           <div className="tutorial-eyebrow">
-            {t("tutorial.chapter", { n: String(current.order).padStart(2, "0") })}
+            {t("tutorial.chapter", {
+              n: String(current.order).padStart(2, "0"),
+            })}
             {" · "}
             {current.title}
           </div>
@@ -58,7 +60,9 @@ export function TutorialPage() {
             </MDXProvider>
           </Suspense>
         ) : (
-          <div className="tut-notfound">{t("tutorial.not_found", { slug })}</div>
+          <div className="tut-notfound">
+            {t("tutorial.not_found", { slug })}
+          </div>
         )}
 
         {(prev || next) && (
@@ -110,7 +114,11 @@ function TocItem({ entry }: { entry: TutorialMeta }) {
 function SkeletonArticle() {
   const { t } = useTranslation("simulator");
   return (
-    <div className="tut-skeleton" aria-busy="true" aria-label={t("tutorial.loading")}>
+    <div
+      className="tut-skeleton"
+      aria-busy="true"
+      aria-label={t("tutorial.loading")}
+    >
       <div />
       <div />
       <div />

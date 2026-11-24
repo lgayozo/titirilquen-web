@@ -12,13 +12,20 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
+
 @dataclass(frozen=True)
 class TrainSupplyResult:
     t_acceso_min: NDArray[np.float64]
     t_espera_min: NDArray[np.float64]
     t_viaje_min: NDArray[np.float64]
-    t_total_min: NDArray[np.float64]
     frecuencia_operativa: float
+    #: Frecuencia ANTES del recorte: `carga_maxima / capacidad_tren`. Junto con
+    #: `frecuencia_operativa` dice si `frec_min`/`frec_max` estan mordiendo y
+    #: cuanto falta para que dejen de hacerlo. Sin esto la UI no puede
+    #: distinguir «subi el tope y no paso nada» de «el tope no estaba activo»
+    #: (AT-08/AT-09): cuando la frecuencia esta topada el efecto Mohring esta
+    #: agotado, `frec_min` es irrelevante y la BPR de anden si muerde.
+    frecuencia_teorica: float
     carga_por_tramo: NDArray[np.float64]
     estaciones_km: NDArray[np.float64]
 
@@ -32,11 +39,12 @@ def oferta_tren(
     capacidad_tren: int,
     num_estaciones: int,
     v_caminata_kmh: float,
-    tasa_carga: float,
     frec_min: float,
     frec_max: float,
+    tiempo_detencion_min: float = 0.5,
     anden_alpha: float = 0.15,
     anden_beta: float = 4.0,
+    excluir_estacion_cbd: bool = False,
 ) -> TrainSupplyResult:
     N = len(demanda)
     dx = L_ciudad_km / N
@@ -51,7 +59,15 @@ def oferta_tren(
             ]
         )
     )
-    estaciones = np.sort(estaciones[(estaciones >= 0) & (estaciones <= L_ciudad_km)])
+    # Tolerancia en los bordes: el arange hacia la izquierda deja la estación
+    # extrema en −1,8e−15 cuando el espaciado no es exacto en binario (20 km con
+    # N = 6 o 14), y un filtro `>= 0` estricto la descartaba mientras su espejo
+    # en 20 km sí entraba: la red quedaba asimétrica respecto del CBD.
+    eps = 1e-9
+    estaciones = np.clip(
+        estaciones[(estaciones >= -eps) & (estaciones <= L_ciudad_km + eps)], 0.0, L_ciudad_km
+    )
+    estaciones = np.sort(estaciones)
     num_s = len(estaciones)
 
     pax_suben = np.zeros(num_s)
@@ -60,8 +76,17 @@ def oferta_tren(
     idx_estacion_usuario = np.zeros(N, dtype=int)
 
     idx_cbd_parcela = int((x_centro_km / L_ciudad_km) * N)
+    # `excluir_estacion_cbd` (especificación `umbrales="suaves"`, ver
+    # demand/utility.py): fuera de la celda del CBD, la estación del CBD no es de
+    # acceso, porque bajarse ahí es el destino. La celda a menos de media
+    # interestación del centro accede por la siguiente, y la dominancia suave de
+    # la utilidad decide cuánto vale ese metro. Sin la exclusión, esas celdas
+    # tienen `tren_viaje = 0` y el metro sale del conjunto (D-69).
+    idx_centro_est = int(np.argmin(np.abs(estaciones - x_centro_km)))
     for i in range(N):
         dists = np.abs(estaciones - x_parcelas[i])
+        if excluir_estacion_cbd and i != idx_cbd_parcela and num_s > 1:
+            dists[idx_centro_est] = np.inf
         idx_est = int(np.argmin(dists))
         dist_acceso[i] = dists[idx_est]
         loc_estacion_acceso[i] = estaciones[idx_est]
@@ -69,12 +94,7 @@ def oferta_tren(
         if i != idx_cbd_parcela:
             pax_suben[idx_est] += demanda[i]
 
-    idx_centro_est = int(np.argmin(np.abs(estaciones - x_centro_km)))
-
-    if num_s >= 2:
-        carga_por_tramo = np.zeros(num_s - 1)
-    else:
-        carga_por_tramo = np.zeros(0)
+    carga_por_tramo = np.zeros(num_s - 1) if num_s >= 2 else np.zeros(0)
     carga_al_salir_estacion = np.zeros(num_s)
 
     acum = 0.0
@@ -112,19 +132,28 @@ def oferta_tren(
 
     t_acceso_min = (dist_acceso / v_caminata_kmh) * 60
     t_espera_min = t_espera_por_estacion[idx_estacion_usuario]
-    t_viaje_min = (np.abs(loc_estacion_acceso - x_centro_km) / v_tren_kmh) * 60
-    t_total = t_acceso_min + t_espera_min + t_viaje_min
-
-    # `tasa_carga` actualmente sin uso en la fórmula original, se preserva como
-    # parámetro reservado para futura inclusión de tiempo de dwell.
-    _ = tasa_carga
-
+    # Tiempo en vehículo = marcha + detenciones. Las paradas que el viajero
+    # sufre son las INTERMEDIAS: no la de subida (ya está adentro) ni la del CBD
+    # (se baja). Sin este término, agregar estaciones acortaba el acceso sin
+    # ningún costo — ver el comentario de `tiempo_detencion_min` en config.py.
+    paradas_intermedias = np.maximum(np.abs(idx_estacion_usuario - idx_centro_est) - 1, 0)
+    t_marcha_min = (np.abs(loc_estacion_acceso - x_centro_km) / v_tren_kmh) * 60
+    t_viaje_min = t_marcha_min + paradas_intermedias * tiempo_detencion_min
+    # Hubo aquí un `t_total = acceso + espera + viaje` que se devolvía y nadie
+    # leía: cada consumidor suma los tres tramos por su cuenta, porque los
+    # necesita separados para descomponer el costo generalizado.
+    #
+    # Y un parámetro `tasa_carga` (pax/s de subida) que solo se asignaba a `_`.
+    # Estaba reservado para un dwell dependiente de los pasajeros que suben —
+    # una deseconomía de escala del metro, que juega EN CONTRA del efecto
+    # Mohring. Es una decisión de modelación, no un refinamiento pendiente: si
+    # se toma, se toma con su ecuación.
     return TrainSupplyResult(
         t_acceso_min=t_acceso_min,
         t_espera_min=t_espera_min,
         t_viaje_min=t_viaje_min,
-        t_total_min=t_total,
         frecuencia_operativa=f_op,
+        frecuencia_teorica=f_teorica,
         carga_por_tramo=carga_por_tramo,
         estaciones_km=estaciones,
     )

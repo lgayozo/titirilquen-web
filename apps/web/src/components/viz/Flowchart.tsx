@@ -95,7 +95,10 @@ export function Flowchart({
   }, [playing, playbackSteps]);
 
   const start = () => {
-    if (activeId == null || activeId === playbackSteps[playbackSteps.length - 1]) {
+    if (
+      activeId == null ||
+      activeId === playbackSteps[playbackSteps.length - 1]
+    ) {
       setActiveId(playbackSteps[0] ?? null);
     }
     setPlaying(true);
@@ -219,10 +222,12 @@ export function Flowchart({
                 "fc-node",
                 `fc-node--${kind}`,
                 isActive && "fc-node--active",
-                isHovered && "fc-node--hovered"
+                isHovered && "fc-node--hovered",
               )}
               onMouseEnter={() => setHoveredId(n.id)}
-              onMouseLeave={() => setHoveredId((cur) => (cur === n.id ? null : cur))}
+              onMouseLeave={() =>
+                setHoveredId((cur) => (cur === n.id ? null : cur))
+              }
               tabIndex={0}
               onFocus={() => setHoveredId(n.id)}
               onBlur={() => setHoveredId((cur) => (cur === n.id ? null : cur))}
@@ -265,7 +270,7 @@ export function Flowchart({
         <div
           className={cn(
             "fc-tooltip",
-            tooltipPos.align === "right" && "fc-tooltip--right"
+            tooltipPos.align === "right" && "fc-tooltip--right",
           )}
           style={{
             left: tooltipPos.align === "right" ? undefined : tooltipPos.x,
@@ -285,14 +290,18 @@ export function Flowchart({
           {hoveredNode.tooltip.description && (
             <p className="fc-tooltip-desc">{hoveredNode.tooltip.description}</p>
           )}
-          {hoveredNode.tooltip.formula && <Katex src={hoveredNode.tooltip.formula} />}
+          {hoveredNode.tooltip.formula && (
+            <Katex src={hoveredNode.tooltip.formula} />
+          )}
           {hoveredNode.tooltip.ref && (
             <div className="fc-tooltip-ref">
               <span className="fc-tooltip-ref-label">
                 {t("flowchart.source")}
               </span>{" "}
               <code>{hoveredNode.tooltip.ref.path}</code>{" "}
-              <span className="fc-tooltip-ref-fn">{hoveredNode.tooltip.ref.label}</span>
+              <span className="fc-tooltip-ref-fn">
+                {hoveredNode.tooltip.ref.label}
+              </span>
             </div>
           )}
         </div>
@@ -305,12 +314,21 @@ export function Flowchart({
             {t("flowchart.pause")}
           </button>
         ) : (
-          <button type="button" className="fc-btn fc-btn--primary" onClick={start}>
+          <button
+            type="button"
+            className="fc-btn fc-btn--primary"
+            onClick={start}
+          >
             <Play className="fc-icon" aria-hidden />
             {t("flowchart.play")}
           </button>
         )}
-        <button type="button" className="fc-btn" onClick={reset} disabled={activeId == null}>
+        <button
+          type="button"
+          className="fc-btn"
+          onClick={reset}
+          disabled={activeId == null}
+        >
           <RotateCcw className="fc-icon" aria-hidden />
           {t("flowchart.reset")}
         </button>

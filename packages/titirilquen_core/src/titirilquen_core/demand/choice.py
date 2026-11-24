@@ -1,7 +1,7 @@
 """Elección de modo — logit multinomial con numerical stabilization.
 
-Portado de `titirilquen-repo/app.py:341-350`. El sorteo usa el RNG de numpy
-para reproducibilidad si se fija `seed`.
+Portado de `titirilquen-repo/app.py:341-350`. Es el único reparto del modelo:
+la carga determinística (`probabilidades_todo_o_nada`) se retiró en nov-2026.
 """
 
 from __future__ import annotations
@@ -24,38 +24,14 @@ def probabilidades_logit(utilidades: dict[Modo, UtilityBreakdown]) -> dict[Modo,
     """
     modos_feasibles = [m for m, u in utilidades.items() if u.feasible]
     if not modos_feasibles:
-        return {m: 0.0 for m in utilidades}
+        return dict.fromkeys(utilidades, 0.0)
 
     valores: NDArray[np.float64] = np.array([utilidades[m].valor for m in modos_feasibles])
     valores = valores - np.max(valores)
     exp_v = np.exp(valores)
     probs = exp_v / np.sum(exp_v)
 
-    out: dict[Modo, float] = {m: 0.0 for m in utilidades}
+    out: dict[Modo, float] = dict.fromkeys(utilidades, 0.0)
     for m, p in zip(modos_feasibles, probs, strict=True):
         out[m] = float(p)
     return out
-
-
-def elegir_modo(
-    utilidades: dict[Modo, UtilityBreakdown],
-    *,
-    rng: np.random.Generator | None = None,
-) -> Modo | None:
-    """Sortea un modo según sus probabilidades logit.
-
-    Devuelve `None` si el agente no tiene ningún modo feasible (p.ej. sin auto y
-    con todos los demás modos deshabilitados): es un viaje "varado" que no se
-    asigna a ningún modo.
-    """
-    probs = probabilidades_logit(utilidades)
-    modos = list(probs.keys())
-    weights = np.array([probs[m] for m in modos])
-
-    if weights.sum() <= 0:
-        return None
-
-    if rng is None:
-        rng = np.random.default_rng()
-    idx = rng.choice(len(modos), p=weights)
-    return modos[idx]  # type: ignore[return-value]

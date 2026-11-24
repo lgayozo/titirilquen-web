@@ -1,0 +1,18 @@
+[project]
+name = "hev-paso-a-paso"
+version = "0.1.0"
+description = "La subasta heteroscedastica resuelta paso a paso en el caso mas simple"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    # Solo para el paso 6, que contrasta este demo contra el nucleo de produccion.
+    "titirilquen-core",
+]
+
+[tool.uv.sources]
+titirilquen-core = { path = "../../packages/titirilquen_core" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

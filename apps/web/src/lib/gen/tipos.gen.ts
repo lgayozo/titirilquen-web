@@ -1,0 +1,339 @@
+// GENERADO por packages/titirilquen_core/tools/genera_contrato.py — NO EDITAR.
+// Para cambiar algo de acá, cambiá el núcleo Python y corré `npm run sync:core`.
+
+/** Los tres estratos socioeconómicos. */
+export type StratumId = 1 | 2 | 3;
+
+export interface BikeSupplyParams {
+  v_media_kmh: number;
+  capacidad_pista: number;
+  alpha_bpr: number;
+  beta_bpr: number;
+}
+
+export interface CarSupplyParams {
+  v_max_kmh: number;
+  ancho_pista_m: number;
+  largo_vehiculo_m: number;
+  gap_m: number;
+  num_pistas: number;
+  alpha_bpr: number;
+  beta_bpr: number;
+  capacidad_pista: number | null;
+}
+
+/**
+ *  Ciudad lineal: la geometría y nada más. Tres números. `n_celdas` es la
+ *  resolución numérica (impar, para que el CBD sea una celda y su centroide
+ *  caiga en L/2); `largo_ciudad_km` el tamaño físico; `pendiente_porcentaje`
+ *  el terreno, que sólo ve la bicicleta. Hasta sep-2026 traía además
+ *  `densidad_hab_km`, `share_estratos` y `teletrabajo_factor`. Los dos
+ *  primeros eran la fuente de población de la ruta «transporte solo», que
+ *  dejó de existir: la población viene SIEMPRE del uso de suelo
+ *  (`LandUseConfig.H_por_estrato` sobre la oferta `S`), así que eran inertes
+ *  por la ruta de la app y el schema afirmaba «población = densidad × largo»
+ *  sin condición (D-46). El tercero es una palanca de demanda y vive ahora en
+ *  `GlobalConfig`. La densidad media es una CONSECUENCIA, ΣH / largo, y así
+ *  se reporta.
+ */
+export interface CityConfig {
+  n_celdas: number;
+  largo_ciudad_km: number;
+  pendiente_porcentaje: number;
+}
+
+export interface DemandConfig {
+  globales: GlobalConfig;
+  estratos: Record<StratumId, StratumConfig>;
+}
+
+export interface GlobalConfig {
+  v_auto: number;
+  v_metro: number;
+  v_bici: number;
+  v_caminata: number;
+  corte_caminata_min: number;
+  corte_bici_min: number;
+  umbrales: "escalones" | "suaves";
+  precio_combustible_clp_l: number;
+  costo_tarifa_metro: number;
+  costo_parking: number;
+  peaje_km: number;
+  factor_flota_auto: number;
+  factor_emision_metro_tren_km: number;
+  teletrabajo_factor: number;
+}
+
+/**
+ *  Costos unitarios de la infraestructura, para que ampliar oferta no sea
+ *  gratis. Sin esto, toda política que agrega capacidad —una pista, veinte
+ *  estaciones, el doble de ciclovía, una flota híbrida— gana siempre: sus
+ *  beneficios entran al costo de recursos y al bienestar, y su costo no
+ *  existía. **Todos los costos parten en CERO** (nov-2026): no hay una fuente
+ *  para ellos en `reference/`, y un valor plausible inventado sería peor que
+ *  declarar el vacío. Con ceros nada cambia; se llenan en Calibración. Se
+ *  valora el STOCK completo de cada escenario, no la diferencia contra una
+ *  base: el nivel no significa nada por sí solo (como el del excedente), y la
+ *  resta entre dos escenarios da la inversión adicional de uno sobre el otro,
+ *  también cuando cambia el largo de la ciudad.
+ */
+export interface Inversion {
+  costo_pista_km_clp: number;
+  costo_estacion_clp: number;
+  costo_ciclovia_km_clp: number;
+  sobrecosto_flota_limpia_clp: number;
+  vida_util_anios: number;
+  horas_punta_anio: number;
+}
+
+/**
+ *  Penalizaciones aditivas escalonadas (step) para bici y caminata. Ver
+ *  docs/DISCREPANCIES.md (D-02) — estas son constantes aditivas, no
+ *  multiplicativas como sugiere el Overleaf.
+ */
+export interface PhysicalPenalties {
+  bici_10: number;
+  bici_20: number;
+  bici_30: number;
+  walk_5: number;
+  walk_15: number;
+  walk_25: number;
+}
+
+/**
+ *  Precios sociales del Sistema Nacional de Inversiones (MDSF). Se publican
+ *  cada año, y por eso son configuración y no constantes: se editan en la
+ *  página Calibración y viajan con el escenario, así una corrida vieja se
+ *  reproduce con los precios de su año. Los valores por defecto son los de
+ *  `reference/Precios-Sociales-2026.pdf`. Entran sólo a la EVALUACIÓN
+ *  (`bienestar.py`): costo de recursos, costo generalizado social y excedente
+ *  con ponderación social. Ninguno toca la elección de modo, así que moverlos
+ *  no cambia el equilibrio.
+ */
+export interface PreciosSociales {
+  vigencia: number;
+  vst_viaje_clp_h: number;
+  ponderador_espera: number;
+  ponderador_caminata: number;
+  combustible_auto_clp_l: number;
+  lubricante_auto_clp_l: number;
+  neumatico_auto_clp: number;
+  vehiculo_auto_clp: number;
+  mantencion_clp_h: number;
+  tasa_social_descuento: number;
+  carbono_clp_t: number;
+  iri: number;
+}
+
+/** Coeficientes del logit multinomial por estrato. */
+export interface StratumBetas {
+  asc_auto: number;
+  asc_metro: number;
+  asc_bici: number;
+  asc_caminata: number;
+  /** Desutilidad del tiempo en vehículo (utiles/min); negativo */
+  b_tiempo_viaje: number;
+  /** Desutilidad del dinero (utiles/$); negativo. Es λ en el suelo (D-34) */
+  b_costo: number;
+  b_tiempo_espera: number;
+  b_tiempo_acceso: number;
+  b_tiempo_caminata: number;
+  penalizaciones_fisicas: PhysicalPenalties;
+}
+
+/**
+ *  Configuración por estrato: quién es y cómo valora el viaje. Tuvo también
+ *  `prob_jornada_flexible`, `prob_part_time` y una `jornada` con horas por
+ *  tipo de contrato. Se retiraron en la limpieza de agosto de 2026: ningún
+ *  módulo del núcleo los leía (D-07 ya lo declaraba: "sólo afectan metadatos
+ *  de agentes"), y ni siquiera eso — `Agente` no tiene campos de jornada.
+ *  Eran ocho números por estrato que el frontend mostraba y nadie usaba. Si
+ *  algún día la jornada entra al modelo, entra con su ecuación.
+ */
+export interface StratumConfig {
+  prob_teletrabajo: number;
+  prob_auto: number;
+  betas: StratumBetas;
+}
+
+export interface SupplyConfig {
+  bike: BikeSupplyParams;
+  car: CarSupplyParams;
+  train: TrainSupplyParams;
+}
+
+export interface TrainSupplyParams {
+  v_tren_kmh: number;
+  capacidad_tren: number;
+  num_estaciones: number;
+  v_caminata_kmh: number;
+  costo_operacion_tren_km: number;
+  factor_dia_punta: number;
+  tiempo_detencion_min: number;
+  frec_min: number;
+  frec_max: number;
+  /**
+   *  α de la BPR de congestión de andén: t_espera = base·(1 + α·ρ^β), ρ =
+   *  carga/(frec_max·K)
+   */
+  anden_alpha: number;
+  /** β de la BPR de congestión de andén */
+  anden_beta: number;
+}
+
+/**
+ *  Configuración completa de una corrida del simulador — el objeto que se
+ *  serializa al archivo `.ttrq.json`.
+ */
+export interface SimulationConfig {
+  city: CityConfig;
+  supply: SupplyConfig;
+  demand: DemandConfig;
+  precios_sociales: PreciosSociales;
+  inversion: Inversion;
+  max_iter: number;
+  tolerance: number;
+  seed: number | null;
+  /**
+   *  Modos disponibles en el set de elección. Los modos excluidos se tratan
+   *  como infeasibles (utilidad −∞) y no reciben demanda. Útil para escenarios
+   *  estilizados (p.ej. solo Auto vs Metro).
+   */
+  modos_habilitados: ("Auto" | "Metro" | "Bici" | "Caminata")[];
+}
+
+/**
+ *  Parámetros de la función de puje (bid function) por estrato. La
+ *  atractividad es `f_h(i) = −T_h(i) − ρ_h·d_i` (schema v7, oct-2026).
+ *  **Unidades (D-26/D-27/D-34)**: `T` es el logsum mensual de transporte
+ *  (utiles de transporte por mes) y `d_i` la densidad RELATIVA de la parcela
+ *  —su densidad sobre la media de la ciudad, adimensional—, así que `rho` va
+ *  en utiles-mes: lo que el hogar resta a su puja, en accesibilidad mensual,
+ *  por cada «densidad media» que tenga su celda. λ_h, la utilidad marginal
+ *  del ingreso que pasa el score a $/mes, NO es un campo: es |b_costo_h| de
+ *  la demanda (`accesibilidad.lambda_desde_demanda`, schema v6). `y` está en
+ *  $/mes (CLP); no mueve la asignación (se absorbe en ū, ver D-08) pero sí la
+ *  métrica de carga mensual costo/ingreso del acoplado. **No hay `alpha`
+ *  (desde v7, D1 de la auditoría).** El peso de la accesibilidad es 1: la
+ *  puja lee la utilidad de transporte del mismo hogar, que ya está en su
+ *  escala. Un multiplicador por estrato no tenía fuente, y uno común era
+ *  indistinguible de mover μ (sólo μ·α y μ·ρ están identificados: escalar
+ *  pujas y escala del ruido por el mismo k no cambia ninguna probabilidad).
+ *  La sensibilidad relativa a la densidad es ρ.
+ */
+export interface LandUseStratumConfig {
+  /** Ingreso mensual del estrato ($/mes) */
+  y: number;
+  /**
+   *  Penalización de densidad, en utiles de transporte por mes por unidad de
+   *  densidad RELATIVA (densidad de la celda / densidad media de la ciudad). 0
+   *  = Alonso puro: sólo manda la accesibilidad. Entra en pesos como
+   *  rho/lambda_h
+   */
+  rho: number;
+}
+
+/** Configuración del módulo de uso de suelo. */
+export interface LandUseConfig {
+  /** Número de hogares por estrato (alto, medio, bajo) */
+  H_por_estrato: [number, number, number];
+  /**
+   *  Parámetros de puja de los tres estratos (alto, medio, bajo). La
+   *  accesibilidad entra con peso 1; la diferencia de λ_h = |b_costo_h| entre
+   *  estratos (de la demanda) fija el valor del tiempo `1/λ` de cada uno, que
+   *  es lo que produce el gradiente de Alonso.
+   */
+  estratos: [LandUseStratumConfig, LandUseStratumConfig, LandUseStratumConfig];
+  /**
+   *  Precisión μ del ruido de localizarse, común a los estratos: ruido de la
+   *  puja 1/(μ·λ_h) $/mes. Mayor ⇒ ciudad más segregada. Valor de escenario, no
+   *  estimado: se calibra con la localización observada por estrato (Martínez
+   *  2018 §9.3).
+   */
+  mu: number;
+  tol: number;
+  max_iter: number;
+  /**
+   *  Forma del perfil de oferta de vivienda a lo largo del corredor: normal ·
+   *  uniforme · exponencial · meseta · bimodal · valle.
+   */
+  forma: "normal" | "uniforme" | "exponencial" | "meseta" | "bimodal" | "valle";
+  /**
+   *  Ancho/dispersión de la oferta como fracción de la semi-ciudad: σ = frac ·
+   *  min(CBD, L-1-CBD). Menor ⇒ ciudad compacta (vivienda junto al CBD); mayor
+   *  ⇒ dispersa. También controla la pendiente de la exponencial y el ancho de
+   *  los picos (bimodal). Default 0.5 = σ ≈ L/4.
+   */
+  oferta_sigma_frac: number;
+  /**
+   *  2º parámetro de la forma, como fracción de la semi-ciudad: separación de
+   *  los picos (bimodal). Ignorado en las demás formas.
+   */
+  forma_param: number;
+}
+
+/** Un experimento de una persona entre dos modos, con la red congelada. */
+export interface ConfigPersona {
+  /** Estrato de ingreso de la persona. */
+  estrato: 1 | 2 | 3;
+  /** Celda de origen en la ciudad lineal. */
+  celda: number;
+  /** Horizonte en días. El costo del IBL crece con el cuadrado. */
+  dias: number;
+  /** Historias independientes de la misma persona. */
+  replicas: number;
+  /** Semilla del generador. */
+  semilla: number;
+  /**
+   *  Decaimiento del IBL. 0 promedia toda la historia por igual; más alto mira
+   *  sólo lo reciente. Guevara, Tang y Gao (2018) estiman 1,28.
+   */
+  d: number;
+  /** En qué modo cae el ruido del tiempo vivido. */
+  condicion: "ninguno" | "ambos" | "solo_mejor" | "solo_peor";
+  /** Desviación estándar del tiempo vivido, en minutos. */
+  sigma_min: number;
+  /** Cuántas de las primeras veces que usa el modo mejor salen peores. */
+  k_shocks: number;
+  /** Cuánto peor sale cada una de esas veces, en minutos. */
+  delta_min: number;
+}
+
+/**
+ *  Un experimento sobre la ciudad entera, con la congestión respondiendo. El
+ *  horizonte por defecto es corto a propósito: el costo del IBL crece con su
+ *  cuadrado y en el navegador 250 días no son viables. Los resultados
+ *  publicados usan 250; acá se busca poder mover las palancas y ver.
+ */
+export interface ConfigCiudad {
+  /**
+   *  2 = auto y metro, todos con auto (E3). 3 agrega la bici, que no lleva
+   *  ruido y por eso hace visible la sustitución (E4).
+   */
+  k_modos: 2 | 3;
+  /** Horizonte en días. El costo crece con el cuadrado. */
+  dias: number;
+  /** Días finales que definen el estado final. */
+  ultimos: number;
+  /** Semilla del generador. */
+  semilla: number;
+  /** Decaimiento del IBL. Guevara, Tang y Gao (2018) estiman 1,28. */
+  d: number;
+  /** Desviación estándar del tiempo vivido, en minutos. */
+  sigma_min: number;
+  /** Si el auto lleva ruido. */
+  ruido_auto: boolean;
+  /** Si el metro lleva ruido. */
+  ruido_metro: boolean;
+  /**
+   *  Si la bici lleva ruido. Dejarla sin él es el supuesto que hace visible
+   *  hacia dónde se desplazan los viajes (E4).
+   */
+  ruido_bici: boolean;
+  /**
+   *  Escala del logit. 1 es el simulador; otra es una sensibilidad de
+   *  calibración y NO es inocua acá: el día 0 deja de ser equilibrio y la
+   *  ciudad se corre sola, sin ningún ruido.
+   */
+  escala: number;
+}

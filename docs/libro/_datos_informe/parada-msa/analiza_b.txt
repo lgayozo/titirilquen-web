@@ -1,0 +1,41 @@
+776 casos; 0 con error []
+
+tol 0.2: no conv 1  conv a >0,1 pp 23  máx|Δ| pp mediana 0.031 p95 0.072 máx 2.312  it mediana 4 p95 7 máx 150
+   b_tiempo_espera x=1.5 suaves original: 2.312 pp, it 150, conv False
+   b_tiempo_caminata x=0.5 suaves original: 0.928 pp, it 6, conv True
+   b_tiempo_espera x=1.5 escalones original: 0.330 pp, it 4, conv True
+   prob_teletrabajo[medio]=0.5 suaves original: 0.301 pp, it 8, conv True
+   largo_ciudad_km=12 suaves equilibrio: 0.290 pp, it 6, conv True
+   v_media_kmh=30 suaves original: 0.282 pp, it 8, conv True
+
+tol 0.1: no conv 2  conv a >0,1 pp 9  máx|Δ| pp mediana 0.011 p95 0.038 máx 2.312  it mediana 5 p95 8 máx 150
+   b_tiempo_espera x=1.5 suaves original: 2.312 pp, it 150, conv False
+   b_tiempo_caminata x=0.5 suaves original: 0.458 pp, it 10, conv True
+   prob_teletrabajo[medio]=0.5 suaves original: 0.173 pp, it 10, conv True
+   v_media_kmh=30 suaves original: 0.141 pp, it 10, conv True
+   b_tiempo_espera x=1.5 escalones original: 0.136 pp, it 6, conv True
+   asc_metro +=-0.5 suaves original: 0.129 pp, it 9, conv True
+
+tol 0.05: no conv 2  conv a >0,1 pp 1  máx|Δ| pp mediana 0.003 p95 0.019 máx 2.312  it mediana 6 p95 10 máx 150
+   b_tiempo_espera x=1.5 suaves original: 2.312 pp, it 150, conv False
+   b_tiempo_caminata x=0.5 suaves original: 0.239 pp, it 14, conv True
+   largo_ciudad_km=12 suaves original: 0.098 pp, it 4, conv True
+   b_tiempo_espera x=1.5 escalones original: 0.088 pp, it 7, conv True
+   prob_teletrabajo[medio]=0.5 suaves original: 0.078 pp, it 13, conv True
+   v_media_kmh=30 suaves original: 0.072 pp, it 12, conv True
+
+tol 0.02: no conv 3  conv a >0,1 pp 1  máx|Δ| pp mediana 0.002 p95 0.008 máx 2.312  it mediana 6 p95 11 máx 150
+   b_tiempo_espera x=1.5 suaves original: 2.312 pp, it 150, conv False
+   b_tiempo_caminata x=0.5 suaves original: 0.109 pp, it 19, conv True
+   largo_ciudad_km=12 suaves original: 0.086 pp, it 5, conv True
+   b_tiempo_espera x=1.5 escalones original: 0.037 pp, it 9, conv True
+   v_media_kmh=30 suaves original: 0.037 pp, it 14, conv True
+   prob_teletrabajo[medio]=0.5 suaves original: 0.035 pp, it 16, conv True
+
+coherencia corrida/derivada (tol 0,02): 0 discrepancias
+tol 0,02 |Δexc| $/viaje: mediana 0.03 p95 0.12 máx 66.75
+no convergidos con tol 0,02 (tope 150):
+   num_pistas=2 escalones original: G final 0.023, alfa final 1.00e+00, gap_final 0.022, error 0.004 pp
+   num_pistas=2 suaves original: G final 0.145, alfa final 1.00e+00, gap_final 0.141, error 0.027 pp
+   b_tiempo_espera x=1.5 suaves original: G final 0.262, alfa final 1.43e-42, gap_final 0.262, error 2.312 pp
+segundos (15 procesos en paralelo): mediana 0.91 máx 13.37

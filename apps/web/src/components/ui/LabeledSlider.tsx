@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { localeCifras } from "@/lib/modos";
 
 interface LabeledSliderProps {
   label: string;
@@ -28,11 +29,10 @@ export function LabeledSlider({
   hint,
   className,
 }: LabeledSliderProps) {
-  const display = format
-    ? format(value)
-    : unit
-      ? `${value} ${unit}`
-      : String(value);
+  // Sin `format`, el valor tal cual pero con los separadores del idioma:
+  // `String(0.15)` daba «0.15» en una interfaz en español.
+  const crudo = value.toLocaleString(localeCifras());
+  const display = format ? format(value) : unit ? `${crudo} ${unit}` : crudo;
 
   return (
     <label className={cn("slider-row block", className)}>
@@ -54,7 +54,7 @@ export function LabeledSlider({
         aria-label={`${label}: ${display}`}
       />
       {hint && (
-        <p className="mt-1 text-[11px] leading-snug text-muted">{hint}</p>
+        <p className="mt-1 text-etiqueta leading-snug text-muted">{hint}</p>
       )}
     </label>
   );

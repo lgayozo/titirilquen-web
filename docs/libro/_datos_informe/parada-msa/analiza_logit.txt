@@ -1,0 +1,351 @@
+## Referencias (tope 5000)
+base·original·escalones  R1 it 13    conv True  gap 2.95e-08 f 4.183 pct [29.177, 23.241, 35.63, 11.952] exc/viaj 70.41 | R2 it 13 gap 2.95e-08 máx|R1−R2| 0.0000 pp | R3(1/n,5000) gap 0.00138 máx|R1−R3| 0.001 pp
+     R3 metro por it: {'1': 22.003, '2': 22.452, '5': 22.935, '10': 23.072, '20': 23.144, '50': 23.193, '100': 23.213, '150': 23.22, '200': 23.224, '300': 23.229, '500': 23.232, '1000': 23.236, '2000': 23.238, '3000': 23.238, '5000': 23.239}
+base·original·suaves     R1 it 14    conv True  gap 3.49e-08 f 4.084 pct [29.431, 22.691, 35.81, 12.068] exc/viaj 47.03 | R2 it 14 gap 3.49e-08 máx|R1−R2| 0.0000 pp | R3(1/n,5000) gap 0.0016 máx|R1−R3| 0.002 pp
+     R3 metro por it: {'1': 19.932, '2': 21.925, '5': 22.377, '10': 22.512, '20': 22.586, '50': 22.638, '100': 22.659, '150': 22.667, '200': 22.671, '300': 22.676, '500': 22.681, '1000': 22.685, '2000': 22.687, '3000': 22.688, '5000': 22.689}
+base·equilibrio·escalones R1 it 12    conv True  gap 7.71e-09 f 4.665 pct [28.284, 25.914, 35.997, 9.805] exc/viaj 248.81 | R2 it 12 gap 7.71e-09 máx|R1−R2| 0.0000 pp | R3(1/n,5000) gap 0.001 máx|R1−R3| 0.001 pp
+     R3 metro por it: {'1': 23.514, '2': 25.15, '5': 25.632, '10': 25.764, '20': 25.831, '50': 25.875, '100': 25.892, '150': 25.898, '200': 25.901, '300': 25.905, '500': 25.908, '1000': 25.911, '2000': 25.912, '3000': 25.913, '5000': 25.913}
+base·equilibrio·suaves   R1 it 12    conv True  gap 3.29e-08 f 4.591 pct [28.545, 25.507, 36.035, 9.913] exc/viaj 224.66 | R2 it 12 gap 3.29e-08 máx|R1−R2| 0.0000 pp | R3(1/n,5000) gap 0.00115 máx|R1−R3| 0.001 pp
+     R3 metro por it: {'1': 21.468, '2': 24.714, '5': 25.202, '10': 25.341, '20': 25.414, '50': 25.462, '100': 25.481, '150': 25.489, '200': 25.492, '300': 25.496, '500': 25.5, '1000': 25.503, '2000': 25.505, '3000': 25.506, '5000': 25.506}
+b_espera×1,45·suaves     R1 it 52    conv True  gap 4.66e-07 f 2.771 pct [31.788, 15.393, 40.1, 12.719] exc/viaj -168.36 | R2 it 52 gap 4.66e-07 máx|R1−R2| 0.0000 pp | R3(1/n,5000) gap 0.0416 máx|R1−R3| 0.195 pp
+     R3 metro por it: {'1': 17.575, '2': 16.973, '5': 16.524, '10': 16.312, '20': 16.152, '50': 15.991, '100': 15.894, '150': 15.846, '200': 15.815, '300': 15.775, '500': 15.731, '1000': 15.679, '2000': 15.635, '3000': 15.613, '5000': 15.588}
+K100·frec_max4           R1 it 68    conv True  gap 5.34e-07 f 4.000 pct [34.775, 4.469, 47.224, 13.532] exc/viaj -454.40 | R2 it 48 gap 3.85e-07 máx|R1−R2| 0.0000 pp | R3(1/n,5000) gap 1.65 máx|R1−R3| 0.011 pp
+     R3 metro por it: {'1': 22.003, '2': 1.267, '5': 2.931, '10': 3.243, '20': 3.365, '50': 3.821, '100': 3.968, '150': 4.025, '200': 4.078, '300': 4.166, '500': 4.267, '1000': 4.368, '2000': 4.427, '3000': 4.446, '5000': 4.459}
+1 pista                  R1 it 69    conv True  gap 5.66e-07 f 5.622 pct [16.146, 31.233, 39.545, 13.076] exc/viaj -375.25 | R2 it 51 gap 4.87e-07 máx|R1−R2| 0.0000 pp | R3(1/n,5000) gap 0.00388 máx|R1−R3| 0.003 pp
+     R3 metro por it: {'1': 22.003, '2': 33.621, '5': 37.717, '10': 34.69, '20': 32.09, '50': 31.515, '100': 31.374, '150': 31.327, '200': 31.304, '300': 31.281, '500': 31.262, '1000': 31.248, '2000': 31.24, '3000': 31.238, '5000': 31.236}
+Metrópolis+Pro-Auto      R1 it 65    conv True  gap 4.30e-07 f 6.000 pct [22.185, 13.99, 47.427, 16.398] exc/viaj -1745.25 | R2 it 52 gap 4.40e-07 máx|R1−R2| 0.0000 pp | R3(1/n,5000) gap 0.00473 máx|R1−R3| 0.000 pp
+     R3 metro por it: {'1': 18.317, '2': 25.999, '5': 9.97, '10': 10.155, '20': 12.709, '50': 13.989, '100': 14.015, '150': 14.005, '200': 14.0, '300': 13.995, '500': 13.992, '1000': 13.991, '2000': 13.99, '3000': 13.99, '5000': 13.99}
+b_espera×1,5·suaves      R1 it 28    conv True  gap 4.75e-08 f 2.000 pct [33.299, 10.377, 43.187, 13.137] exc/viaj -310.51 | R2 it 5000 gap 2.62e-01 máx|R1−R2| 2.3117 pp | R3(1/n,5000) gap 0.212 máx|R1−R3| 3.137 pp
+     R3 metro por it: {'1': 17.326, '2': 16.403, '5': 15.705, '10': 15.344, '20': 15.049, '50': 14.722, '100': 14.505, '150': 14.387, '200': 14.307, '300': 14.198, '500': 14.065, '1000': 13.894, '2000': 13.728, '3000': 13.633, '5000': 13.514}
+
+## Opciones: error vs R1 (máx|Δ| pp sobre modos; Δ metro pp; Δ excedente $/viaje)
+
+### tope 150
+escenario                op      it  conv    seg  gap_fin  máx|Δ|  Δmetro  Δexc/v   Δpin
+base·original·escalones  L0      10  True    0.9    0.156   0.169  -0.169   -7.66   0.00
+base·original·escalones  L1      47  True    3.0   0.0482   0.050  -0.050   -2.39   0.12
+base·original·escalones  L2     150 False   10.2   0.0199   0.020  -0.020   -0.99   0.15
+base·original·escalones  L3     150 False    9.9   0.0199   0.020  -0.020   -0.99   0.15
+base·original·escalones  L4a      9  True    3.9    0.156   0.169  -0.169   -7.76   0.00
+base·original·escalones  L4b    133  True   10.2   0.0197   0.020  -0.020   -0.99   0.15
+base·original·escalones  L5a      4  True    0.6   0.0111   0.048  -0.048   -0.57   0.12
+base·original·escalones  L5b      6  True    0.6 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L6a     11  True    1.7   0.0062   0.010  -0.010   -0.31   0.16
+base·original·escalones  L6b     11  True    1.5  0.00684   0.011  -0.011   -0.34   0.16
+base·original·escalones  L6c      6  True    0.7 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L6d      6  True    3.2   0.0688   0.112  -0.112   -3.45   0.06
+base·original·escalones  L7a      4  True    0.5   0.0111   0.048  -0.048   -0.57   0.12
+base·original·escalones  L7b      6  True    0.6 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L7c      6  True    0.7 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L8a      4  True    0.5   0.0111   0.048  -0.048   -0.57   0.12
+base·original·escalones  L8b      6  True    0.6 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L8c      6  True    0.6 0.000643   0.003  -0.003   -0.03   0.17
+base·original·suaves     L0       9  True    1.0     0.16   0.194  -0.194   -8.49   0.00
+base·original·suaves     L1      47  True    4.1    0.048   0.056  -0.056   -2.55   0.14
+base·original·suaves     L2     150 False   15.6   0.0206   0.024  -0.024   -1.09   0.17
+base·original·suaves     L3     150 False   16.4   0.0206   0.024  -0.024   -1.09   0.17
+base·original·suaves     L4a      9  True    1.1     0.15   0.180  -0.180   -8.01   0.01
+base·original·suaves     L4b    141  True   32.9   0.0197   0.023  -0.023   -1.05   0.17
+base·original·suaves     L5a      4  True    0.7   0.0143   0.061  -0.061   -0.77   0.13
+base·original·suaves     L5b      6  True    0.8  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L6a     11  True    2.0  0.00709   0.013  -0.013   -0.38   0.18
+base·original·suaves     L6b     11  True    1.4  0.00771   0.014  -0.014   -0.41   0.18
+base·original·suaves     L6c      6  True    1.0  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L6d      6  True    1.0   0.0692   0.123  -0.123   -3.69   0.07
+base·original·suaves     L7a      4  True    2.4   0.0143   0.061  -0.061   -0.77   0.13
+base·original·suaves     L7b      6  True    1.5  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L7c      6  True    0.8  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L8a      4  True    0.7   0.0143   0.061  -0.061   -0.77   0.13
+base·original·suaves     L8b      6  True    0.9  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L8c      6  True    0.8  0.00109   0.005  -0.005   -0.06   0.19
+base·equilibrio·escalones L0      12  True    3.1    0.166   0.128  -0.128   -6.42   0.00
+base·equilibrio·escalones L1      48  True   17.5   0.0477   0.040  -0.040   -2.05   0.08
+base·equilibrio·escalones L2     132  True   13.0   0.0197   0.018  -0.018   -0.89   0.11
+base·equilibrio·escalones L3     150 False   17.5   0.0177   0.016  -0.016   -0.80   0.11
+base·equilibrio·escalones L4a     12  True    6.4    0.156   0.110  -0.110   -5.76   0.01
+base·equilibrio·escalones L4b    118  True   13.5   0.0196   0.016  -0.016   -0.85   0.11
+base·equilibrio·escalones L5a      4  True    4.9   0.0053   0.027  -0.027   -0.23   0.10
+base·equilibrio·escalones L5b      6  True    7.3 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L6a     11  True    5.3  0.00439   0.007  -0.007   -0.20   0.12
+base·equilibrio·escalones L6b     11  True    5.2  0.00511   0.008  -0.008   -0.23   0.12
+base·equilibrio·escalones L6c      6  True    8.8 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L6d      7  True    8.5   0.0372   0.054  -0.054   -1.67   0.07
+base·equilibrio·escalones L7a      4  True    6.3   0.0053   0.027  -0.027   -0.23   0.10
+base·equilibrio·escalones L7b      6  True    3.0 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L7c      6  True    4.2 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L8a      4  True    3.1   0.0053   0.027  -0.027   -0.23   0.10
+base·equilibrio·escalones L8b      6  True    3.2 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L8c      6  True    3.2 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·suaves   L0      12  True   11.7    0.161   0.143  -0.143   -6.81   0.00
+base·equilibrio·suaves   L1      47  True   15.3   0.0479   0.047  -0.047   -2.27   0.10
+base·equilibrio·suaves   L2     139  True   18.4   0.0197   0.020  -0.020   -0.95   0.13
+base·equilibrio·suaves   L3     150 False   18.2   0.0186   0.019  -0.019   -0.90   0.13
+base·equilibrio·suaves   L4a     11  True    6.4    0.165   0.134  -0.134   -6.64   0.01
+base·equilibrio·suaves   L4b    119  True   25.6   0.0196   0.019  -0.019   -0.95   0.13
+base·equilibrio·suaves   L5a      4  True   12.0  0.00749   0.038  -0.038   -0.35   0.11
+base·equilibrio·suaves   L5b      6  True   14.0 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L6a     11  True    5.3  0.00504   0.009  -0.009   -0.24   0.14
+base·equilibrio·suaves   L6b     11  True    6.8  0.00578   0.010  -0.010   -0.28   0.14
+base·equilibrio·suaves   L6c      6  True    3.5 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L6d      7  True    7.1   0.0385   0.063  -0.063   -1.87   0.08
+base·equilibrio·suaves   L7a      4  True    6.8  0.00749   0.038  -0.038   -0.35   0.11
+base·equilibrio·suaves   L7b      6  True    3.3 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L7c      6  True    4.4 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L8a      4  True    3.3  0.00749   0.038  -0.038   -0.35   0.11
+base·equilibrio·suaves   L8b      6  True    3.4 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L8c      6  True    3.3 0.000348   0.002  -0.002   -0.02   0.15
+b_espera×1,45·suaves     L0      14  True    6.1    0.189   0.836   0.836   25.80    nan
+b_espera×1,45·suaves     L1     150 False   18.6      0.1   0.453   0.453   14.20    nan
+b_espera×1,45·suaves     L2     150 False   16.9      0.1   0.453   0.453   14.20    nan
+b_espera×1,45·suaves     L3     150 False   17.1      0.1   0.453   0.453   14.20    nan
+b_espera×1,45·suaves     L4a     14  True    7.3    0.191   0.846   0.846   26.10    nan
+b_espera×1,45·suaves     L4b    150 False   24.9    0.102   0.462   0.462   14.46    nan
+b_espera×1,45·suaves     L5a      5  True    3.4   0.0991   0.598   0.598   14.06    nan
+b_espera×1,45·suaves     L5b     13  True    1.6   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L6a     25  True    3.1    0.014   0.076   0.076    2.09    nan
+b_espera×1,45·suaves     L6b     25  True    4.5   0.0138   0.075   0.075    2.06    nan
+b_espera×1,45·suaves     L6c     13  True    1.5   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L6d      8  True    1.7    0.129   0.657   0.657   18.04    nan
+b_espera×1,45·suaves     L7a      5  True    1.5   0.0991   0.598   0.598   14.06    nan
+b_espera×1,45·suaves     L7b     13  True    1.4   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L7c     13  True    1.4   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L8a      5  True    0.8   0.0991   0.598   0.598   14.06    nan
+b_espera×1,45·suaves     L8b     13  True    1.4   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L8c     13  True    1.4   0.0109   0.068   0.068    1.62    nan
+K100·frec_max4           L0     150 False   24.5      162   0.445  -0.445  -13.18    nan
+K100·frec_max4           L1     150 False   26.7      162   0.445  -0.445  -13.18    nan
+K100·frec_max4           L2     150 False   13.7      162   0.445  -0.445  -13.18    nan
+K100·frec_max4           L3     150 False   19.8      162   0.445  -0.445  -13.18    nan
+K100·frec_max4           L4a    150 False   25.5    0.515   0.004  -0.004   -0.06    nan
+K100·frec_max4           L4b    150 False   36.2    0.515   0.004  -0.004   -0.06    nan
+K100·frec_max4           L5a     23  True    3.8   0.0547   0.001  -0.001   -0.01    nan
+K100·frec_max4           L5b     27  True    2.0  0.00714   0.000  -0.000   -0.00    nan
+K100·frec_max4           L6a     25  True    1.9  0.00628   0.000   0.000   -0.00    nan
+K100·frec_max4           L6b     23  True    1.8  0.00547   0.000   0.000   -0.00    nan
+K100·frec_max4           L6c    150 False    9.1 2.26e+04   3.455  -3.150  253.82    nan
+K100·frec_max4           L6d     20  True    1.6   0.0625   0.001  -0.001    0.01    nan
+K100·frec_max4           L7a     19  True    2.4   0.0606   0.000  -0.000    0.01    nan
+K100·frec_max4           L7b     19  True    1.4   0.0606   0.000  -0.000    0.01    nan
+K100·frec_max4           L7c     48  True    3.4 0.000721   0.000  -0.000   -0.00    nan
+K100·frec_max4           L8a     23  True    1.6   0.0547   0.001  -0.001   -0.01    nan
+K100·frec_max4           L8b     27  True    1.8  0.00714   0.000  -0.000   -0.00    nan
+K100·frec_max4           L8c     43  True    2.2  0.00612   0.000  -0.000   -0.03    nan
+1 pista                  L0     119  True   11.0    0.195   0.119   0.119    3.14    nan
+1 pista                  L1     150 False   22.5    0.153   0.094   0.094    2.79    nan
+1 pista                  L2     150 False   28.5    0.153   0.094   0.094    2.79    nan
+1 pista                  L3     150 False   10.0    0.153   0.094   0.094    2.79    nan
+1 pista                  L4a     23  True    1.6    0.179   0.019  -0.019   -5.96    nan
+1 pista                  L4b    150 False   19.6   0.0269   0.003  -0.003   -0.97    nan
+1 pista                  L5a     14  True    1.1   0.0737   0.004  -0.002   -0.32    nan
+1 pista                  L5b     20  True    1.5  0.00973   0.001  -0.000   -0.07    nan
+1 pista                  L6a    150 False   10.6      136   6.272   2.498  201.06    nan
+1 pista                  L6b    150 False   12.9     27.6   1.729  -0.638  -68.87    nan
+1 pista                  L6c    150 False   12.1      565  15.743   3.670  482.14    nan
+1 pista                  L6d    150 False    9.4      136   6.272   2.498  201.06    nan
+1 pista                  L7a     13  True    1.4   0.0152   0.005   0.002   -0.04    nan
+1 pista                  L7b     15  True    1.7  0.00211   0.000  -0.000   -0.01    nan
+1 pista                  L7c     29  True    1.9  0.00156   0.000   0.000    0.02    nan
+1 pista                  L8a     14  True    1.1   0.0737   0.004  -0.002   -0.32    nan
+1 pista                  L8b     20  True    1.4  0.00973   0.001  -0.000   -0.07    nan
+1 pista                  L8c     29  True    1.7    0.011   0.010   0.010    0.63    nan
+Metrópolis+Pro-Auto      L0     150 False   13.7    0.513   0.015   0.015   -1.09    nan
+Metrópolis+Pro-Auto      L1     150 False   14.8    0.513   0.015   0.015   -1.09    nan
+Metrópolis+Pro-Auto      L2     150 False   24.1    0.513   0.015   0.015   -1.09    nan
+Metrópolis+Pro-Auto      L3     150 False   15.2    0.513   0.015   0.015   -1.09    nan
+Metrópolis+Pro-Auto      L4a     27  True    7.8    0.159   0.011  -0.011   -0.10    nan
+Metrópolis+Pro-Auto      L4b     81  True    7.7   0.0193   0.000   0.000    0.08    nan
+Metrópolis+Pro-Auto      L5a     18  True    2.1    0.044   0.003  -0.003   -0.08    nan
+Metrópolis+Pro-Auto      L5b     22  True    8.6  0.00512   0.000  -0.000   -0.01    nan
+Metrópolis+Pro-Auto      L6a    150 False   15.7      873  19.438  11.424  906.57    nan
+Metrópolis+Pro-Auto      L6b    150 False   15.4      148   7.866  -0.535  173.53    nan
+Metrópolis+Pro-Auto      L6c    150 False   12.3 3.58e+03  27.040  27.040 1191.68    nan
+Metrópolis+Pro-Auto      L6d    150 False   11.3      873  19.438  11.424  906.57    nan
+Metrópolis+Pro-Auto      L7a     23  True    1.9   0.0623   0.002   0.001    0.11    nan
+Metrópolis+Pro-Auto      L7b     28  True    2.8  0.00371   0.000   0.000    0.01    nan
+Metrópolis+Pro-Auto      L7c     59  True    4.2  0.00125   0.000  -0.000   -0.00    nan
+Metrópolis+Pro-Auto      L8a     18  True    1.4    0.044   0.003  -0.003   -0.08    nan
+Metrópolis+Pro-Auto      L8b     22  True    1.4  0.00512   0.000  -0.000   -0.01    nan
+Metrópolis+Pro-Auto      L8c     32  True    1.5   0.0104   0.000  -0.000   -0.08    nan
+b_espera×1,5·suaves      L0     150 False   15.8    0.254   4.011   4.011  115.61    nan
+b_espera×1,5·suaves      L1     150 False   17.4    0.254   4.011   4.011  115.61    nan
+b_espera×1,5·suaves      L2     150 False   33.1    0.254   4.011   4.011  115.61    nan
+b_espera×1,5·suaves      L3     150 False   25.1    0.254   4.011   4.011  115.61    nan
+b_espera×1,5·suaves      L4a    150 False   17.6    0.257   4.051   4.051  116.74    nan
+b_espera×1,5·suaves      L4b    150 False   43.0    0.257   4.051   4.051  116.74    nan
+b_espera×1,5·suaves      L5a    150 False   27.2    0.262   2.312   2.312   66.75    nan
+b_espera×1,5·suaves      L5b    150 False   28.1    0.262   2.312   2.312   66.75    nan
+b_espera×1,5·suaves      L6a     39  True    3.8  0.00243   0.001  -0.001    0.08    nan
+b_espera×1,5·suaves      L6b     40  True    3.6  0.00313   0.002   0.002    0.13    nan
+b_espera×1,5·suaves      L6c     21  True    3.6 0.000428   0.001   0.000    0.00    nan
+b_espera×1,5·suaves      L6d     36  True    3.7   0.0285   0.017  -0.013    0.76    nan
+b_espera×1,5·suaves      L7a    150 False   12.7    0.262   2.312   2.312   66.75    nan
+b_espera×1,5·suaves      L7b    150 False   12.8    0.262   2.312   2.312   66.75    nan
+b_espera×1,5·suaves      L7c    150 False   12.6    0.262   2.308   2.308   66.66    nan
+b_espera×1,5·suaves      L8a     72  True    4.8  0.00225   0.004   0.002    0.01    nan
+b_espera×1,5·suaves      L8b     73  True    4.8 0.000548   0.001  -0.000   -0.00    nan
+b_espera×1,5·suaves      L8c     73  True    4.6 0.000486   0.001  -0.000   -0.00    nan
+
+### tope 5000
+escenario                op      it  conv    seg  gap_fin  máx|Δ|  Δmetro  Δexc/v   Δpin
+base·original·escalones  L0      10  True    0.8    0.156   0.169  -0.169   -7.66   0.00
+base·original·escalones  L1      47  True    2.8   0.0482   0.050  -0.050   -2.39   0.12
+base·original·escalones  L2     152  True    8.6   0.0197   0.020  -0.020   -0.98   0.15
+base·original·escalones  L3     202  True   11.5   0.0159   0.016  -0.016   -0.79   0.15
+base·original·escalones  L4a      9  True    0.8    0.156   0.169  -0.169   -7.76   0.00
+base·original·escalones  L4b    133  True    7.9   0.0197   0.020  -0.020   -0.99   0.15
+base·original·escalones  L5a      4  True    0.5   0.0111   0.048  -0.048   -0.57   0.12
+base·original·escalones  L5b      6  True    0.6 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L6a     11  True    1.1   0.0062   0.010  -0.010   -0.31   0.16
+base·original·escalones  L6b     11  True    1.8  0.00684   0.011  -0.011   -0.34   0.16
+base·original·escalones  L6c      6  True    0.7 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L6d      6  True    0.9   0.0688   0.112  -0.112   -3.45   0.06
+base·original·escalones  L7a      4  True    1.7   0.0111   0.048  -0.048   -0.57   0.12
+base·original·escalones  L7b      6  True    0.7 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L7c      6  True    0.9 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L8a      4  True    0.5   0.0111   0.048  -0.048   -0.57   0.12
+base·original·escalones  L8b      6  True    0.6 0.000643   0.003  -0.003   -0.03   0.17
+base·original·escalones  L8c      6  True    0.6 0.000643   0.003  -0.003   -0.03   0.17
+base·original·suaves     L0       9  True    0.9     0.16   0.194  -0.194   -8.49   0.00
+base·original·suaves     L1      47  True    3.9    0.048   0.056  -0.056   -2.55   0.14
+base·original·suaves     L2     158  True   12.3   0.0198   0.023  -0.023   -1.05   0.17
+base·original·suaves     L3     215  True   16.4   0.0158   0.018  -0.018   -0.84   0.17
+base·original·suaves     L4a      9  True    1.2     0.15   0.180  -0.180   -8.01   0.01
+base·original·suaves     L4b    141  True   11.5   0.0197   0.023  -0.023   -1.05   0.17
+base·original·suaves     L5a      4  True    0.7   0.0143   0.061  -0.061   -0.77   0.13
+base·original·suaves     L5b      6  True    0.8  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L6a     11  True    1.7  0.00709   0.013  -0.013   -0.38   0.18
+base·original·suaves     L6b     11  True    1.4  0.00771   0.014  -0.014   -0.41   0.18
+base·original·suaves     L6c      6  True    0.9  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L6d      6  True    1.4   0.0692   0.123  -0.123   -3.69   0.07
+base·original·suaves     L7a      4  True    1.0   0.0143   0.061  -0.061   -0.77   0.13
+base·original·suaves     L7b      6  True    1.0  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L7c      6  True    2.7  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L8a      4  True    0.7   0.0143   0.061  -0.061   -0.77   0.13
+base·original·suaves     L8b      6  True    0.8  0.00109   0.005  -0.005   -0.06   0.19
+base·original·suaves     L8c      6  True    0.8  0.00109   0.005  -0.005   -0.06   0.19
+base·equilibrio·escalones L0      12  True    3.0    0.166   0.128  -0.128   -6.42   0.00
+base·equilibrio·escalones L1      48  True    4.9   0.0477   0.040  -0.040   -2.05   0.08
+base·equilibrio·escalones L2     132  True    8.4   0.0197   0.018  -0.018   -0.89   0.11
+base·equilibrio·escalones L3     166  True    9.7   0.0163   0.015  -0.015   -0.74   0.11
+base·equilibrio·escalones L4a     12  True    3.2    0.156   0.110  -0.110   -5.76   0.01
+base·equilibrio·escalones L4b    118  True    7.8   0.0196   0.016  -0.016   -0.85   0.11
+base·equilibrio·escalones L5a      4  True    2.8   0.0053   0.027  -0.027   -0.23   0.10
+base·equilibrio·escalones L5b      6  True    2.7 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L6a     11  True    6.3  0.00439   0.007  -0.007   -0.20   0.12
+base·equilibrio·escalones L6b     11  True    4.3  0.00511   0.008  -0.008   -0.23   0.12
+base·equilibrio·escalones L6c      6  True    8.7 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L6d      7  True    6.2   0.0372   0.054  -0.054   -1.67   0.07
+base·equilibrio·escalones L7a      4  True    3.3   0.0053   0.027  -0.027   -0.23   0.10
+base·equilibrio·escalones L7b      6  True    6.2 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L7c      6  True    3.8 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L8a      4  True    3.1   0.0053   0.027  -0.027   -0.23   0.10
+base·equilibrio·escalones L8b      6  True    3.3 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·escalones L8c      6  True    3.1 0.000185   0.001  -0.001   -0.01   0.12
+base·equilibrio·suaves   L0      12  True    3.8    0.161   0.143  -0.143   -6.81   0.00
+base·equilibrio·suaves   L1      47  True    5.9   0.0479   0.047  -0.047   -2.27   0.10
+base·equilibrio·suaves   L2     139  True   11.4   0.0197   0.020  -0.020   -0.95   0.13
+base·equilibrio·suaves   L3     177  True   13.6   0.0163   0.017  -0.017   -0.79   0.13
+base·equilibrio·suaves   L4a     11  True    3.4    0.165   0.134  -0.134   -6.64   0.01
+base·equilibrio·suaves   L4b    119  True   10.2   0.0196   0.019  -0.019   -0.95   0.13
+base·equilibrio·suaves   L5a      4  True    2.8  0.00749   0.038  -0.038   -0.35   0.11
+base·equilibrio·suaves   L5b      6  True    3.1 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L6a     11  True    7.2  0.00504   0.009  -0.009   -0.24   0.14
+base·equilibrio·suaves   L6b     11  True    5.0  0.00578   0.010  -0.010   -0.28   0.14
+base·equilibrio·suaves   L6c      6  True    4.0 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L6d      7  True    5.8   0.0385   0.063  -0.063   -1.87   0.08
+base·equilibrio·suaves   L7a      4  True    4.6  0.00749   0.038  -0.038   -0.35   0.11
+base·equilibrio·suaves   L7b      6  True    6.9 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L7c      6  True    7.2 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L8a      4  True    3.2  0.00749   0.038  -0.038   -0.35   0.11
+base·equilibrio·suaves   L8b      6  True    3.4 0.000348   0.002  -0.002   -0.02   0.15
+base·equilibrio·suaves   L8c      6  True    3.4 0.000348   0.002  -0.002   -0.02   0.15
+b_espera×1,45·suaves     L0      14  True    3.4    0.189   0.836   0.836   25.80    nan
+b_espera×1,45·suaves     L1    2351  True  209.5     0.05   0.233   0.233    7.28    nan
+b_espera×1,45·suaves     L2    5000 False  592.9   0.0416   0.195   0.195    6.09    nan
+b_espera×1,45·suaves     L3    5000 False  581.3   0.0416   0.195   0.195    6.09    nan
+b_espera×1,45·suaves     L4a     14  True    2.5    0.191   0.846   0.846   26.10    nan
+b_espera×1,45·suaves     L4b   5000 False  575.8   0.0426   0.200   0.200    6.23    nan
+b_espera×1,45·suaves     L5a      5  True    1.6   0.0991   0.598   0.598   14.06    nan
+b_espera×1,45·suaves     L5b     13  True    2.7   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L6a     25  True    2.4    0.014   0.076   0.076    2.09    nan
+b_espera×1,45·suaves     L6b     25  True    5.1   0.0138   0.075   0.075    2.06    nan
+b_espera×1,45·suaves     L6c     13  True    1.4   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L6d      8  True    1.4    0.129   0.657   0.657   18.04    nan
+b_espera×1,45·suaves     L7a      5  True    2.4   0.0991   0.598   0.598   14.06    nan
+b_espera×1,45·suaves     L7b     13  True    2.9   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L7c     13  True    1.3   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L8a      5  True    0.8   0.0991   0.598   0.598   14.06    nan
+b_espera×1,45·suaves     L8b     13  True    1.4   0.0109   0.068   0.068    1.62    nan
+b_espera×1,45·suaves     L8c     13  True    1.4   0.0109   0.068   0.068    1.62    nan
+K100·frec_max4           L0    5000 False  436.2     1.65   0.011  -0.011   -0.81    nan
+K100·frec_max4           L1    5000 False  495.3     1.65   0.011  -0.011   -0.81    nan
+K100·frec_max4           L2    5000 False  402.3     1.65   0.011  -0.011   -0.81    nan
+K100·frec_max4           L3    5000 False  484.9     1.65   0.011  -0.011   -0.81    nan
+K100·frec_max4           L4a    260  True   16.6    0.197   0.002  -0.001   -0.03    nan
+K100·frec_max4           L4b   1015  True   67.3   0.0199   0.000  -0.000   -0.01    nan
+K100·frec_max4           L5a     23  True    1.8   0.0547   0.001  -0.001   -0.01    nan
+K100·frec_max4           L5b     27  True    2.0  0.00714   0.000  -0.000   -0.00    nan
+K100·frec_max4           L6a     25  True    3.0  0.00628   0.000   0.000   -0.00    nan
+K100·frec_max4           L6b     23  True    3.5  0.00547   0.000   0.000   -0.00    nan
+K100·frec_max4           L6c   5000 False  288.1 2.26e+04   3.455  -3.150  253.82    nan
+K100·frec_max4           L6d     20  True    1.7   0.0625   0.001  -0.001    0.01    nan
+K100·frec_max4           L7a     19  True    1.7   0.0606   0.000  -0.000    0.01    nan
+K100·frec_max4           L7b     19  True    2.5   0.0606   0.000  -0.000    0.01    nan
+K100·frec_max4           L7c     48  True    5.5 0.000721   0.000  -0.000   -0.00    nan
+K100·frec_max4           L8a     23  True    1.7   0.0547   0.001  -0.001   -0.01    nan
+K100·frec_max4           L8b     27  True    1.9  0.00714   0.000  -0.000   -0.00    nan
+K100·frec_max4           L8c     43  True    2.7  0.00612   0.000  -0.000   -0.03    nan
+1 pista                  L0     119  True    7.8    0.195   0.119   0.119    3.14    nan
+1 pista                  L1     430  True   33.2   0.0497   0.034   0.034    1.46    nan
+1 pista                  L2    1024  True   80.7   0.0199   0.015   0.015    0.78    nan
+1 pista                  L3     935  True   75.7   0.0219   0.016   0.016    0.84    nan
+1 pista                  L4a     23  True    5.5    0.179   0.019  -0.019   -5.96    nan
+1 pista                  L4b    204  True   20.6   0.0198   0.003  -0.003   -0.72    nan
+1 pista                  L5a     14  True    1.1   0.0737   0.004  -0.002   -0.32    nan
+1 pista                  L5b     20  True    1.5  0.00973   0.001  -0.000   -0.07    nan
+1 pista                  L6a   5000 False  288.6      136   6.272   2.498  201.06    nan
+1 pista                  L6b   5000 False  272.9     27.6   1.729  -0.638  -68.87    nan
+1 pista                  L6c   5000 False  283.8      565  15.743   3.670  482.14    nan
+1 pista                  L6d   5000 False  286.4      136   6.272   2.498  201.06    nan
+1 pista                  L7a     13  True    1.5   0.0152   0.005   0.002   -0.04    nan
+1 pista                  L7b     15  True    3.6  0.00211   0.000  -0.000   -0.01    nan
+1 pista                  L7c     29  True    2.8  0.00156   0.000   0.000    0.02    nan
+1 pista                  L8a     14  True    1.1   0.0737   0.004  -0.002   -0.32    nan
+1 pista                  L8b     20  True    1.5  0.00973   0.001  -0.000   -0.07    nan
+1 pista                  L8c     29  True    2.0    0.011   0.010   0.010    0.63    nan
+Metrópolis+Pro-Auto      L0     267  True   30.4    0.197   0.006   0.006   -0.63    nan
+Metrópolis+Pro-Auto      L1     577  True   62.5   0.0496   0.002   0.002   -0.31    nan
+Metrópolis+Pro-Auto      L2    1279  True  158.3     0.02   0.000   0.000   -0.14    nan
+Metrópolis+Pro-Auto      L3     633  True   79.1    0.042   0.001   0.001   -0.28    nan
+Metrópolis+Pro-Auto      L4a     27  True    2.2    0.159   0.011  -0.011   -0.10    nan
+Metrópolis+Pro-Auto      L4b     81  True   17.2   0.0193   0.000   0.000    0.08    nan
+Metrópolis+Pro-Auto      L5a     18  True    7.5    0.044   0.003  -0.003   -0.08    nan
+Metrópolis+Pro-Auto      L5b     22  True    1.8  0.00512   0.000  -0.000   -0.01    nan
+Metrópolis+Pro-Auto      L6a   5000 False  290.1      873  19.438  11.424  906.57    nan
+Metrópolis+Pro-Auto      L6b   5000 False  280.1      132  14.846   6.847  -53.92    nan
+Metrópolis+Pro-Auto      L6c   5000 False  280.5 3.58e+03  27.040  27.040 1191.68    nan
+Metrópolis+Pro-Auto      L6d   5000 False  285.8      873  19.438  11.424  906.57    nan
+Metrópolis+Pro-Auto      L7a     23  True    3.0   0.0623   0.002   0.001    0.11    nan
+Metrópolis+Pro-Auto      L7b     28  True    3.7  0.00371   0.000   0.000    0.01    nan
+Metrópolis+Pro-Auto      L7c     59  True    6.6  0.00125   0.000  -0.000   -0.00    nan
+Metrópolis+Pro-Auto      L8a     18  True    1.6    0.044   0.003  -0.003   -0.08    nan
+Metrópolis+Pro-Auto      L8b     22  True    1.8  0.00512   0.000  -0.000   -0.01    nan
+Metrópolis+Pro-Auto      L8c     32  True    2.3   0.0104   0.000  -0.000   -0.08    nan
+b_espera×1,5·suaves      L0    5000 False  469.7    0.212   3.137   3.137   90.04    nan
+b_espera×1,5·suaves      L1    5000 False  434.9    0.212   3.137   3.137   90.04    nan
+b_espera×1,5·suaves      L2    5000 False  467.0    0.212   3.137   3.137   90.04    nan
+b_espera×1,5·suaves      L3    5000 False  511.5    0.212   3.137   3.137   90.04    nan
+b_espera×1,5·suaves      L4a   5000 False  600.7    0.212   3.186   3.186   91.42    nan
+b_espera×1,5·suaves      L4b   5000 False  553.5    0.212   3.186   3.186   91.42    nan
+b_espera×1,5·suaves      L5a   5000 False  551.5    0.262   2.312   2.312   66.75    nan
+b_espera×1,5·suaves      L5b   5000 False  547.2    0.262   2.312   2.312   66.75    nan
+b_espera×1,5·suaves      L6a     39  True    3.8  0.00243   0.001  -0.001    0.08    nan
+b_espera×1,5·suaves      L6b     40  True    5.4  0.00313   0.002   0.002    0.13    nan
+b_espera×1,5·suaves      L6c     21  True    2.2 0.000428   0.001   0.000    0.00    nan
+b_espera×1,5·suaves      L6d     36  True    4.2   0.0285   0.017  -0.013    0.76    nan
+b_espera×1,5·suaves      L7a   5000 False  341.0    0.262   2.312   2.312   66.75    nan
+b_espera×1,5·suaves      L7b   5000 False  343.4    0.262   2.312   2.312   66.75    nan
+b_espera×1,5·suaves      L7c   5000 False  335.2    0.262   2.308   2.308   66.66    nan
+b_espera×1,5·suaves      L8a     72  True    6.1  0.00225   0.004   0.002    0.01    nan
+b_espera×1,5·suaves      L8b     73  True    6.2 0.000548   0.001  -0.000   -0.00    nan
+b_espera×1,5·suaves      L8c     73  True    6.1 0.000486   0.001  -0.000   -0.00    nan

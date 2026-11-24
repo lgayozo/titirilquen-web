@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titirilquen — Auditoría integral, octubre 2026</title>
+<link rel="stylesheet" href="libro.css">
+</head>
+<!--
+  INFORME DE AUDITORÍA (fotografía al 2026-10-13). No es un capítulo: sus cifras
+  salen de corridas puntuales y sus punteros archivo:línea NO se mantienen. Se
+  escriben como <code>, fuera de las celdas class="ruta", a propósito: el
+  verificador del libro sólo coteja esas celdas, y este documento describe el
+  código de una fecha, no el vigente.
+-->
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <div class="kicker">El libro de Titirilquén · auditoría integral</div>
+  <h1>Auditoría del simulador: teoría, supuestos y código</h1>
+  <p class="bajada">
+    Revisión módulo por módulo del núcleo, la arquitectura y la interfaz, cotejada
+    contra Martínez (2018), Train (2009, cap. 4), Jara-Díaz (2007) y
+    <em>Transportation network analysis</em> (Boyles et al.). Está ordenada por
+    las decisiones que hay que tomar antes de reescribir la documentación y el
+    módulo acoplado.
+  </p>
+  <p class="meta">
+    Fotografía del código al 2026-10-13 (rama <code>ciudad-equilibrio-mejoras</code>, commit acf926c) ·
+    <span class="estado borrador">borrador</span>
+  </p>
+</header>
+
+<nav class="indice">
+  <ol>
+    <li><a href="#s1">Veredicto por módulo</a></li>
+    <li><a href="#s2">Las tres preguntas guía</a></li>
+    <li><a href="#s3">Decisiones pendientes</a></li>
+    <li><a href="#s4">Hallazgos por módulo</a></li>
+    <li><a href="#s5">Batería de aceptación del módulo de transporte</a></li>
+    <li><a href="#s6">Interfaz: inventario y problemas</a></li>
+    <li><a href="#s7">Método y límites</a></li>
+  </ol>
+</nav>
+
+<div class="aviso">
+  <p>
+    <strong>Cómo leer las etiquetas.</strong>
+    <span class="etiqueta ok">verificado</span> = lo comprobé yo contra el código
+    después de la auditoría. <span class="etiqueta neutra">reportado</span> = lo
+    midió o leyó un subagente; su evidencia es razonable, pero no lo reproduje.
+    Clases de hallazgo: <strong>[TEORÍA]</strong> error de teoría o de
+    identificación · <strong>[SUPUESTO]</strong> supuesto no declarado ·
+    <strong>[DOC]</strong> documento ≠ código · <strong>[UI]</strong> interfaz ·
+    <strong>[MENOR]</strong>.
+  </p>
+</div>
+
+<!-- ===================================================================== -->
+<h2 id="s1"><span class="num">§1</span> Veredicto por módulo</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Módulo</th><th>Veredicto</th><th>Lo más importante</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Ciudad y uso de suelo</td>
+      <td><span class="etiqueta ok">sano</span></td>
+      <td>La subasta coincide término a término con Martínez (ecs. 4.2, 4.3, 4.26,
+        4.27, 5.3 y 5.4), y la HEV es la integral de Train p. 92. Converge con
+        error de balance de 10⁻¹³ y se reduce al logit con λ uniforme. Problemas:
+        α común ≡ μ, la justificación de μ = 1/√44 y ρ dependiente de la población.</td>
+    </tr>
+    <tr>
+      <td>Oferta de transporte</td>
+      <td><span class="etiqueta lim">errores de teoría</span></td>
+      <td>La congestión está subestimada en los dos modos motorizados: la BPR 0,15/4
+        se aplica sobre la capacidad real y no sobre la práctica, la congestión de
+        andén se mide contra una capacidad que no se opera y no hay hacinamiento.
+        Además no hay peaje.</td>
+    </tr>
+    <tr>
+      <td>Demanda y calibración</td>
+      <td><span class="etiqueta ok">sano, con supuestos sin declarar</span></td>
+      <td>λ = |b_costo|, VoT y logsum coherentes con Jara-Díaz (pp. 55, 89, 98).
+        Sin declarar: la b_tiempo común, viaje vs. <em>tour</em> y el ancla de los VoT
+        en el VST.</td>
+    </tr>
+    <tr>
+      <td>Equilibrio de transporte</td>
+      <td><span class="etiqueta lim">criterios mal medidos</span></td>
+      <td>El SUE logit está bien planteado y los signos de política salen correctos
+        en 16 de 17 escenarios. Pero el criterio de parada está deflactado, el mapa
+        es discontinuo por las penalizaciones de bici y «todo o nada» no llega a un
+        equilibrio.</td>
+    </tr>
+    <tr>
+      <td>Acoplamiento suelo–transporte</td>
+      <td><span class="etiqueta lim">rehacer</span></td>
+      <td>El vínculo λ ↔ calibración funciona. El esquema iterativo, en cambio, no
+        mide distancia al equilibrio: declara convergencia siempre en la iteración 1.
+        Los presets descartan la calibración del usuario y el bienestar es parcial.</td>
+    </tr>
+    <tr>
+      <td>Arquitectura</td>
+      <td><span class="etiqueta ok">sana</span></td>
+      <td>203 tests pasan. El contrato <code>gen/</code> y el wheel de Pyodide son
+        idénticos byte a byte al núcleo, y los dos motores reciben las mismas
+        entradas. Los defectos están en la UI: hay tres fuentes de población y un
+        tope de iteraciones distinto por página.</td>
+    </tr>
+    <tr>
+      <td>Interfaz</td>
+      <td><span class="etiqueta lim">reordenar</span></td>
+      <td>Transporte tiene 1.450 líneas y unas 2.500 palabras. Hay cifras repetidas
+        3 o 4 veces, cinco sistemas de presets, controles duplicados entre páginas y
+        códigos internos (D-34, S-04) visibles para el alumno.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ===================================================================== -->
+<h2 id="s2"><span class="num">§2</span> Las tres preguntas guía</h2>
+
+<h3>(i) ¿Cómo se asigna la población a la ciudad lineal? — Responde, y bien</h3>
+
+<p>
+  La puja en dinero es <code>s_hi = y_h + f_h(i)/λ_h</code>, con
+  <code>f_h = −α·T_h(i) − ρ_h·S_i/Δx</code> (<code>land_use/equilibrium.py:117</code>)
+  y la accesibilidad <code>T_h = −44·logsum_h</code>. Como los λ_h son distintos,
+  el ruido de la puja tiene escala <code>θ_h = 1/(μ·λ_h)</code> por estrato y se
+  despacha a la subasta heterocedástica (<code>land_use/equilibrium.py:420-422</code>,
+  <span class="etiqueta ok">verificado</span>). El precio es el máximo esperado
+  de las pujas (ec. 4.27).
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>Comprobación</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td>Convergencia del punto fijo HEV</td><td>42 iteraciones, |colocados/H − 1| ≤ 2,3·10⁻¹³</td></tr>
+    <tr><td>Cuadratura de Q (401 frente a 20.001 nodos)</td><td>max|ΔQ| = 3,5·10⁻¹¹</td></tr>
+    <tr><td>Reducción al logit con λ uniforme</td><td>max|ΔQ| = 3,5·10⁻¹⁴</td></tr>
+    <tr><td>Unicidad (arranques en u* ± 3·10⁵ $)</td><td>mismo u, diferencia &lt; 10⁻⁶</td></tr>
+    <tr><td>¿Importa la HEV? (logit con β común sobre los mismos λ)</td><td>d̄ del estrato alto entre 1,23 y 2,11 km según el β elegido, contra 1,99 con HEV</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">Fuente: subagente de suelo, configuración por defecto del núcleo (1001 celdas, 20 km, T a red vacía). <span class="etiqueta neutra">reportado</span></p>
+
+<p>
+  <strong>La ciudad responde como dice la teoría.</strong> El estrato alto, con
+  menor λ y por lo tanto mayor VoT, se ubica en el centro: distancias medias de
+  1,99 / 3,05 / 5,82 km para alto / medio / bajo. μ ordena la nitidez de la
+  segregación: el índice de disimilitud va de 0,07 con μ = 0,01 a 0,995 con
+  μ = 1. Con T plana la segregación desaparece, y con λ ×10 la asignación no
+  cambia y el gradiente de precio cae ×10.
+</p>
+
+<h3>(ii) ¿Qué equilibrios produce cada política? — Responde con los signos correctos, pero con dos asteriscos</h3>
+
+<p>
+  Localización fija, asignación <code>expected</code>, tolerancia 0,001. ΔBS es
+  el cambio de bienestar social (excedente + recaudación − costo del operador),
+  en M$/h de punta, frente a la Base. <span class="etiqueta neutra">reportado</span>
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead>
+    <tr><th>Escenario</th><th class="n">Auto %</th><th class="n">Metro %</th><th class="n">Bici %</th><th class="n">Cam. %</th><th class="n">v/c auto</th><th class="n">ΔBS</th><th>¿Signo según la teoría?</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Base</td><td class="n">20,2</td><td class="n">29,3</td><td class="n">36,7</td><td class="n">13,8</td><td class="n">1,32</td><td class="n">0</td><td>—</td></tr>
+    <tr><td>TP gratis</td><td class="n">16,8</td><td class="n">41,0</td><td class="n">29,7</td><td class="n">12,4</td><td class="n">1,10</td><td class="n">+1,6</td><td>✓ (Mohring)</td></tr>
+    <tr><td>Máx. metro</td><td class="n">17,0</td><td class="n">40,5</td><td class="n">30,7</td><td class="n">11,8</td><td class="n">1,11</td><td class="n">+5,1</td><td>✓</td></tr>
+    <tr><td>Tarificación vial (parking 5.000)</td><td class="n">7,0</td><td class="n">38,0</td><td class="n">39,6</td><td class="n">15,5</td><td class="n">0,46</td><td class="n">−10,7</td><td>✓, pero es un sobreprecio (ver abajo)</td></tr>
+    <tr><td>Pro-auto</td><td class="n">31,4</td><td class="n">27,3</td><td class="n">27,5</td><td class="n">13,8</td><td class="n">1,37</td><td class="n">−1,7</td><td>✓</td></tr>
+    <tr><td>Pro-bici</td><td class="n">19,5</td><td class="n">24,2</td><td class="n">42,8</td><td class="n">13,5</td><td class="n">1,28</td><td class="n">+1,4</td><td>✓</td></tr>
+    <tr><td>Tarifa 400 / 1.200</td><td class="n">18,5 / 22,0</td><td class="n">35,1 / 24,0</td><td class="n">33,3 / 39,7</td><td class="n">13,1 / 14,4</td><td class="n">1,21 / 1,44</td><td class="n">+1,3 / −2,3</td><td>✓</td></tr>
+    <tr><td>3 pistas / 1 pista</td><td class="n">20,5 / 17,2</td><td class="n">29,1 / 31,6</td><td class="n">36,6 / 37,2</td><td class="n">13,7 / 14,0</td><td class="n">0,90 / 2,26</td><td class="n">+0,5 / −4,3</td><td>✓ (no hay Downs-Thomson bajo logit)</td></tr>
+    <tr><td>Bencina 180</td><td class="n">18,8</td><td class="n">30,6</td><td class="n">36,9</td><td class="n">13,8</td><td class="n">1,23</td><td class="n">−1,8</td><td>✓</td></tr>
+    <tr><td>Teletrabajo ×1,5</td><td class="n">19,0</td><td class="n">27,6</td><td class="n">39,4</td><td class="n">14,1</td><td class="n">1,09</td><td class="n">−2,2</td><td>✗ no comparable (H-E4)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="aviso idea">
+  <p>
+    <strong>El resultado más elocuente que hoy no se muestra.</strong> Un barrido
+    del cobro al auto (parking de 0 a 5.000) da un bienestar social cóncavo, con
+    máximo cerca de 1.000 $, donde el cobro iguala el costo marginal externo de
+    congestión (≈ 914 $/viaje). Es el Pigou autoconsistente de Jara-Díaz
+    (p. 116). La Base ya cobra 2.000, unas seis veces el costo externo que genera,
+    y por eso cualquier «tarificación» adicional <em>reduce</em> el bienestar. Es
+    teoría correcta, pero hoy el alumno solo ve el preset y no el barrido.
+  </p>
+</div>
+
+<p>
+  Los dos asteriscos son estos. (1) El «convergió» acepta brechas de hasta
+  (it+1)·tol (ver H-E1), así que el nivel del bienestar está sesgado en
+  ≈ 0,35 M$/h con la tolerancia de la app. (2) El ruido numérico entre arranques
+  es ≈ 0,2 M$/h, por lo que diferencias de bienestar menores que ≈ 0,5 M$/h no
+  se distinguen.
+</p>
+
+<h3>(iii) El acoplamiento iterativo — no responde todavía</h3>
+
+<p>
+  El loop exterior amortigua T con un promedio 1/(n+1) y mide el residuo contra
+  ese promedio (<code>coupled.py:176-182</code>,
+  <span class="etiqueta ok">verificado</span>). Por construcción, el residuo cae
+  como c/n aunque el mapa no se contraiga. En 7 corridas, de 25k a 90k hogares,
+  el acoplado declaró convergencia siempre en la iteración 1. Martínez (p. 134)
+  llama a este esquema secuencial <em>interaction heuristic</em> y advierte que
+  en general no lleva al equilibrio integrado. Además, la unicidad del equilibrio
+  sin externalidades (p. 137) exige costos crecientes (p. 139), y el efecto
+  Mohring del metro no lo cumple. Ver D10 y D11.
+</p>
+
+<!-- ===================================================================== -->
+<h2 id="s3"><span class="num">§3</span> Decisiones pendientes</h2>
+
+<p>
+  Están agrupadas por módulo. Cada una trae la recomendación de la auditoría, que
+  no es una decisión tomada. Las marcadas con <strong>⚑</strong> mueven la línea
+  base (<code>tests/test_linea_base.py</code>) y hay que declararlas como cambio
+  de modelo.
+</p>
+
+<h3>Suelo</h3>
+
+<div class="paso">
+  <h3>D1. Una sola perilla de «sensibilidad a la accesibilidad» ⚑</h3>
+  <p>
+    La puja en dinero es y_h + f_h/λ_h y la escala del ruido θ_h = 1/(μ·λ_h)
+    (<code>land_use/equilibrium.py:405-422</code>). Las probabilidades de la
+    subasta, tanto logit como HEV, no cambian si se multiplican todas las pujas
+    y todas las escalas por un mismo k. Por eso α → kα (con ρ → kρ) es lo mismo
+    que θ → θ/k, es decir μ → kμ; los y_h/k que sobran son constantes por
+    estrato y los absorbe u_h. Solo se identifican <strong>μ·α</strong> y
+    <strong>μ·ρ</strong> (<span class="etiqueta ok">verificado</span>
+    algebraicamente; el subagente de acoplamiento lo reprodujo numéricamente:
+    α = 2 da la misma asignación que μ = 2μ₀ hasta 10⁻¹⁴). Hoy la UI ofrece dos
+    sliders, μ y α, que hacen exactamente lo mismo.
+  </p>
+  <p>
+    <strong>Recomendación:</strong> dejar un solo control, μ, con el rótulo
+    «sensibilidad a la accesibilidad». Si se quiere que los estratos difieran en
+    sensibilidad, hacerlo con b_tiempo_h en Calibración, que respeta «un hogar,
+    una utilidad» (D-34), y no con α_h, que rompe la igualdad del VoT entre suelo
+    y transporte.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>D2. Qué hacer con ρ ⚑</h3>
+  <p>
+    ρ es de <em>suelo</em> y no de transporte: es una penalización por densidad,
+    en útiles-mes por (hogar/km), con default 0 y sin fuente. Hay dos problemas.
+    (a) La densidad es exógena (la oferta S), así que ρ no modela congestión
+    residencial y es casi colineal con T. (b) Escala con la población: el «se
+    invierte en ρ ≈ 0,019» vale para 36.000 hogares y no para los 25.000 de la
+    página acoplada.
+  </p>
+  <p>
+    <strong>Opciones:</strong> eliminarlo; normalizarlo por la densidad media
+    (ρ·S/S̄, sin unidad e invariante a la población); o volver endógena la
+    densidad, que sería una externalidad real pero deja de tener unicidad
+    garantizada (Martínez p. 137). <strong>Recomendación:</strong> normalizar.
+    Conserva el experimento pedagógico (la preferencia por espacio, que en un
+    modelo con lote fijo no tiene otro canal) sin la dependencia de escala.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>D3. μ = 1/√44: ¿derivación o decisión? Y la unidad de elección, ¿viaje o <em>tour</em>?</h3>
+  <p>
+    El argumento escrito suma 44 shocks de viaje para obtener el shock de vivienda.
+    Pero esos shocks ya están integrados en el logsum, que es un máximo esperado;
+    si fueran persistentes, la escala sería 44 y no √44. Es defendible como
+    decisión de calibración, no como derivación. Es además la perilla que más
+    mueve la segregación.
+  </p>
+  <p>
+    Ligado a esto, el estacionamiento completo se cobra en cada viaje de ida (dos
+    veces por día con VIAJES_MES = 44), mientras main.tex declara
+    <em>tours</em> casa-trabajo-casa. Con <em>tours</em> serían 22 y μ = 1/√22.
+    <strong>Recomendación:</strong> declarar μ como decisión, decidir la unidad
+    (viaje o <em>tour</em>) y alinear parking, VIAJES_MES y μ con esa elección.
+  </p>
+</div>
+
+<h3>Demanda</h3>
+
+<div class="paso">
+  <h3>D4. Logit heterocedástico en transporte</h3>
+  <p>
+    Hay tres lecturas posibles, con consecuencias muy distintas:
+  </p>
+  <ul>
+    <li><strong>(a) Escala por estrato con betas propias:</strong> es una
+      reparametrización (V/θ_h) que no cambia probabilidades. El modelo actual
+      <em>ya es</em> uno de escala por estrato, leído en betas normalizados.</li>
+    <li><strong>(b) Varianza distinta por modo (HEV, Train §4.5):</strong> sí
+      cambia el modelo. <code>q_hev</code> y <code>e_max_hev</code> de
+      <code>land_use/hev.py</code> sirven tal cual con alternativas = modos; con
+      θ = 1 reproducen el logit (error 5·10⁻¹⁶). Costo: unos 10 archivos, 3
+      parámetros sin fuente, recalibrar las ASC y vectorizar
+      <code>_probs_grupo</code>.</li>
+    <li><strong>(c) Correlación entre modos</strong> (motorizados frente a
+      activos): lo indicado es un logit anidado, que tiene logsum cerrado y es más
+      barato que la HEV.</li>
+  </ul>
+  <p>
+    En la subasta la heterocedasticidad aparece porque compiten postores con λ
+    distintos. En la elección modal todas las alternativas son del mismo hogar y
+    comparten λ_h, así que no aparece sola: hay que postularla.
+    <strong>Recomendación:</strong> (b) solo si el objetivo pedagógico es mostrar
+    varianzas distintas por modo, con θ = 1 por defecto para no mover la línea
+    base.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>D5. b_tiempo común a los estratos: declararla como supuesto</h3>
+  <p>
+    Los documentos dicen que una b_tiempo distinta por estrato «era
+    heterocedasticidad». No es identificable, y Jara-Díaz (p. 59, Train-McFadden)
+    admite un coeficiente del tiempo que crece con el salario. La b_tiempo común
+    es el límite β→1 de ese modelo. <strong>Recomendación:</strong> mantenerla y
+    presentarla como supuesto. Escribir también el ancla de los VoT: su media
+    ponderada por viajeros da 3.285 $/h, a 1,6 % del VST de 3.338 de Precios
+    Sociales 2026 (p. 7), y no está documentado en ninguna parte.
+  </p>
+</div>
+
+<h3>Oferta</h3>
+
+<div class="paso">
+  <h3>D6. Congestión del auto y del metro ⚑</h3>
+  <ul>
+    <li><strong>Auto:</strong> la BPR 0,15/4 (<code>config.py:255-256</code>) se
+      aplica sobre la capacidad de Greenshields q_max = k_j·v_l/4
+      (<code>supply/car.py:55</code>), que es la capacidad <em>real</em>. Boyles
+      (p. 102) advierte que 0,15/4 se estimó con la capacidad <em>práctica</em>
+      (≈ 80 % de la real). Con C·0,8 el auto baja de 16,4 % a 15,9 % y el v/c
+      sube de 1,33 a 1,62. Opciones: usar 0,8·q_max, recalibrar α/β para la
+      capacidad real, o usar un α coherente con Greenshields (t = 2·t0 en
+      capacidad).</li>
+    <li><strong>Metro:</strong> la congestión de andén divide la carga por
+      <code>frec_max·K</code> (<code>supply/train.py:102,111</code>,
+      <span class="etiqueta ok">verificado</span>), una capacidad que no se opera.
+      El recargo es del orden de 10⁻⁴: nunca actúa. Además el tren va al 100 %
+      en el tramo crítico por construcción, sin costo de hacinamiento. Propuesta:
+      ρ = carga/(f_op·K) y un multiplicador de hacinamiento sobre el tiempo en
+      vehículo.</li>
+    <li><strong>Frecuencia:</strong> f = carga/K es la regla del mínimo técnico
+      (Jara-Díaz p. 15-16), no la frecuencia óptima de Mohring. Con la población
+      por defecto el metro opera a unos 5 trenes/h, con esperas de 6 a 7 min.
+      Efecto contraintuitivo: subir K <em>baja</em> la frecuencia y sube la
+      espera.</li>
+  </ul>
+</div>
+
+<div class="paso">
+  <h3>D7. Peaje vial explícito</h3>
+  <p>
+    No existe. El preset «Tarificación Vial» es un parking plano de 5.000
+    (<code>presets.py:170</code>), equivalente a un cordón no diferenciado y unas
+    cinco veces el Pigou autoconsistente. Hay que decidir también si el parking
+    de 2.000 de la Base es un precio (transferencia) o un costo de recursos.
+    <strong>Recomendación:</strong> agregar un peaje por km o de cordón, separado
+    del parking, y un preset «cobro óptimo» que se apoye en el barrido de §2.
+  </p>
+</div>
+
+<h3>Equilibrio de transporte</h3>
+
+<div class="paso">
+  <h3>D8. Criterio de parada del MSA ⚑</h3>
+  <p>
+    El residuo es el cambio del promedio, f·‖c(d(t)) − t‖ con f = 1/(it+1)
+    (<code>equilibrium/msa.py:420-438</code>, <span class="etiqueta ok">verificado</span>).
+    Parar con residuo &lt; tol acepta una brecha de hasta (it+1)·tol, es decir,
+    hasta 2 min con 20 iteraciones. La brecha honesta ya se calcula
+    (<code>gap_final_min</code>, <code>equilibrium/msa.py:613</code>) pero no se
+    usa para parar. <strong>Recomendación:</strong> parar por residuo/f, que es
+    exactamente la brecha de Boyles p. 314, con tol ≈ 0,05 min.
+  </p>
+</div>
+
+<div class="paso">
+  <h3>D9. Discontinuidades y «todo o nada»</h3>
+  <ul>
+    <li>Las penalizaciones escalonadas de la bici (10/20/30 min) y el corte de 45
+      min se evalúan sobre el tiempo de bici <em>congestionado</em>
+      (<code>demand/utility.py:132-141</code>, alimentado desde
+      <code>equilibrium/msa.py:443</code>, <span class="etiqueta ok">verificado</span>).
+      El mapa d(t) se vuelve discontinuo, Brouwer deja de aplicar y el conjunto
+      factible depende de los tiempos finales (Boyles p. 311). El 8 % de la
+      demanda de bici está a menos de 0,5 min de un umbral. Propuesta: evaluar los
+      umbrales sobre el tiempo a flujo libre, o usar penalizaciones continuas.</li>
+    <li><code>todo_o_nada</code> no alcanza un equilibrio: la brecha queda en 1–4
+      min, depende del arranque y agota las iteraciones. La evidencia de
+      Downs-Thomson está medida sobre esos estados. Opciones: retirarlo de la UI,
+      o reemplazarlo por un equilibrio determinístico con grupos divisibles o por
+      un SUE de escala alta.</li>
+  </ul>
+</div>
+
+<h3>Acoplamiento (rediseño)</h3>
+
+<div class="paso">
+  <h3>D10. Esquema iterativo del módulo acoplado</h3>
+  <p>Qué conservar y qué cambiar:</p>
+  <ul>
+    <li><strong>Conservar:</strong> λ_h = |b_costo_h| derivado y sin copias (el
+      vínculo funciona en el núcleo, la API, Pyodide y la UI); T = −N·logsum por
+      estrato (análogo a la accesibilidad de Martínez p. 142); HEV con
+      β_h = λ_h·μ; una sola implementación del excedente.</li>
+    <li><strong>Cambiar:</strong> medir el residuo sobre el mapa (T_new(n) contra
+      T_new(n−1), o sobre Q y ū), con tolerancia relativa o en dinero en lugar del
+      absoluto 1,0 en útiles; elegir el amortiguamiento (paso constante o promedio
+      de Polyak).</li>
+    <li><strong>Unificar en la UI:</strong> los presets acoplados deben aplicarse
+      sobre la calibración del usuario, que hoy se descarta
+      (<code>lib/joint-presets.ts:181-210</code> usa
+      <code>defaultSimulationConfig</code>, <span class="etiqueta ok">verificado</span>).
+      Debe haber una sola fuente de población (hoy la página acoplada re-escala
+      H a su propio slider, <code>pages/CoupledPage.tsx:57,95</code>) y el mismo
+      tope de iteraciones en todas las páginas (12, 8 y 3 según la página).</li>
+  </ul>
+</div>
+
+<div class="paso">
+  <h3>D11. Bienestar del sistema acoplado y alcance de las comparaciones</h3>
+  <ul>
+    <li>Hoy el bienestar se mide en $ por viaje y cuenta solo transporte: no hay
+      mercado de suelo, porque ū se normaliza con u₀ = 0 y el precio vale «salvo
+      constante». Martínez (p. 264) advierte que el beneficio en transporte y el
+      cambio en rentas son cotas inferiores y que no deben sumarse sin cuidado.
+      Decidir: ¿unidad mensual?, ¿ancla de precios (renta agrícola en el borde)?,
+      ¿cómo se evita el doble conteo?</li>
+    <li>Teletrabajo: hoy no tiene utilidad (se le asigna 0 y no se suma), así que
+      la política no es evaluable. Además T le carga los 44 viajes también a quien
+      teletrabaja.</li>
+    <li>Al comparar políticas en la rama «equilibrio», cada escenario relocaliza
+      hogares a flujo libre. ¿Se congela Q del escenario de referencia (corto
+      plazo) o se acepta la relocalización?</li>
+  </ul>
+</div>
+
+<!-- ===================================================================== -->
+<h2 id="s4"><span class="num">§4</span> Hallazgos por módulo</h2>
+
+<p>
+  Las decisiones de §3 no se repiten aquí. Abajo va el resto, sobre todo
+  documentación desfasada, que hay que corregir al reescribir cada capítulo.
+</p>
+
+<h3>Suelo</h3>
+<ul>
+  <li><strong>[DOC]</strong> <code>informe-hev.html</code> §8.2 y §9.4 atribuyen la
+    pérdida de invariancia a la escala de población al término θ_h·ln H_h. No es
+    así: escalar H suma una constante por estrato que absorbe u_h. La causa real
+    es ρ·densidad/λ_h. Con ρ = 0, d̄_alto vale 1,98–1,99 km para 9k–144k hogares.
+    <span class="etiqueta neutra">reportado</span></li>
+  <li><strong>[DOC]</strong> <code>informe-hev.html</code> propone el
+    <em>bid-choice</em> de Martínez (1992) como puente, pero Martínez (p. 90) dice
+    que esa equivalencia exige β iguales. Con HEV el modelo es solo de subasta, y
+    hay que declararlo.</li>
+  <li><strong>[DOC]</strong> cap02 §5.3 dice que la bandera de convergencia «no
+    sale del balance». Sí sale: con ΣS = ΣH, Δu → 0 equivale al balance.
+    Propuesta: un <code>assert</code> de ΣS = ΣH dentro de <code>solve_subasta</code>.</li>
+  <li><strong>[DOC]</strong> «T en minutos» sigue en el docstring de <code>_f</code>
+    (<code>land_use/equilibrium.py:88</code>, <span class="etiqueta ok">verificado</span>),
+    en <code>coupled.py</code> y en <code>informe-uso-suelo.html</code>. Desde
+    D-34, T es el logsum mensual en útiles. <code>informe-uso-suelo</code> e
+    <code>informe-hev</code> miden con la calibración anterior y deben marcarse
+    como históricos.</li>
+  <li><strong>[DOC]</strong> cap02, Pendientes, dice «ρ por estrato. Hoy es
+    común». El schema y la UI ya lo admiten por estrato.</li>
+  <li><strong>[MENOR]</strong> Hay dos validadores contradictorios de
+    <code>H_por_estrato</code> en <code>land_use/config.py</code>. El redondeo por
+    celda de <code>population.py</code> desvía los totales por estrato hasta en 38
+    hogares. <code>e_max_hev</code> usa 4001 nodos fijos, que podrían no bastar
+    en el acoplado con gridlock.</li>
+</ul>
+
+<h3>Oferta</h3>
+<ul>
+  <li><strong>[SUPUESTO]</strong> El costo de bencina por km es fijo, mientras la
+    emisión (COPERT) sube con la congestión. Ocupación de una persona por auto y
+    toda la demanda en una hora (agente = veh/h). El costo del operador solo
+    incluye tren-km, sin flota ni capital («PROVISORIO»). La curva COPERT no tiene
+    fuente en el repo.</li>
+  <li><strong>[DOC]</strong> cap03 dice «2.214 veh/h por pista», pero es por
+    dirección (1.107 por pista). Los comentarios de <code>config.py</code> dan v/c
+    ≈ 1,03–1,05, contra 1,33 medido. main.tex R-6 trae K = 300, f_min = 6 y
+    f_max = 30, contra 1000/2/40 en el código. Detenciones: main.tex dice que
+    están implícitas y el código las suma aparte. Pendiente de la bici: main.tex
+    usa ±p por lado y el código la misma p.</li>
+  <li><strong>[MENOR]</strong> Las velocidades de iteración 0 (<code>v_auto</code>,
+    <code>v_metro</code>) y los valores fijos de acceso 10 y espera 5 no siguen a
+    <code>v_max</code> ni a <code>v_tren</code>. Sin red, el metro opera a f_min = 2
+    con 15 min de espera, y eso pesa en la accesibilidad del suelo. No hay tests
+    a mano de la BPR, la espera de andén ni las detenciones.</li>
+</ul>
+
+<h3>Demanda y calibración</h3>
+<ul>
+  <li><strong>[DOC]</strong> cap09 está desfasado: dice ciclovía 2.500, Pro-Bici
+    5.000 y Ciclorrecreovía 6.000, contra 4.000, 8.000 y 9.600 en el código.
+    Su reparto de referencia no es la línea base actual. cap04 rotula
+    <code>costo_parking</code> 2.000 como «heredado», y es una elección de
+    ago-2026 (el original era 6.000). main.tex usa β de caminata para el acceso
+    al metro y lista P_jornada, que ya se retiró.</li>
+  <li><strong>[UI]</strong> <code>lib/kpis.ts</code> promedia
+    <code>utilidad_elegida</code>, la V del modo elegido sin ε, que no es
+    bienestar.</li>
+  <li><strong>[MENOR]</strong> <code>b_tiempo_espera</code>,
+    <code>b_tiempo_acceso</code> y <code>b_tiempo_caminata</code> no tienen
+    restricción de signo.</li>
+</ul>
+
+<h3>Equilibrio de transporte</h3>
+<ul>
+  <li><strong>[TEORÍA] H-E4</strong> El bienestar no es comparable cuando cambia
+    el número de viajeros, porque los teletrabajadores tienen utilidad 0 y no se
+    suman. Con teletrabajo ×1,5 el ΔExc cambia de signo entre ramas.</li>
+  <li><strong>[DOC]</strong> La receta Downs-Thomson de
+    <code>docs/CONTINUAR.md</code> (metro 39,3 → 26,2 %) quedó obsoleta.
+    <code>informe-downs-thomson.html</code> dice BPR 0,8/2 y ciclovía 2.500.
+    cap05 dice «no mueve a nadie de casa», lo que contradice la rama
+    «equilibrio», y cita el caso determinístico (§6.2) cuando corresponde el SUE
+    (Boyles §8.3.5, pp. 311-315). <code>frec_max</code> inactivo sí entra en la
+    ρ del andén.</li>
+  <li><strong>[MENOR]</strong> Los defaults de <code>localizacion</code> difieren
+    entre <code>run_msa</code> («original») e <code>iter_msa_desde_suelo</code>
+    («equilibrio»). Un <code>assignment</code> inválido se ejecuta en silencio como
+    Monte Carlo. No hay ningún test de estática comparativa.</li>
+</ul>
+
+<h3>Acoplamiento y bienestar</h3>
+<ul>
+  <li><strong>[DOC]</strong> <code>coupled.py</code> dice «minutos» para una
+    tolerancia que está en útiles/mes. <code>bienestar.py</code> cita
+    <code>coupled_metrics._tiempos_red_vacia</code>, que no existe.
+    <code>coupled_metrics.py</code> dice que b_costo varía «~7,5 veces»; son 3,88.
+    «VoT α/λ = 6.200 $/h» (i18n <code>bidrent_hint</code>) es dimensionalmente
+    incorrecto: α/λ está en $ por útil, y el VoT es b_t/b_c·60. cap06 sigue
+    describiendo T en minutos.</li>
+  <li><strong>[UI]</strong> El texto <code>lambda_values</code> dice que «una
+    escala común no mueve la asignación». Eso vale para λ puro, pero vía b_costo
+    también cambia T: con los tres b_costo ×2, d̄_alto pasa de 1,92 a 1,62 km.</li>
+  <li><strong>[UI]</strong> El slider de iteraciones exteriores va hasta 50, pero
+    la API acepta un máximo de 10: con el motor <code>api</code> eso da un 422.</li>
+</ul>
+
+<h3>Arquitectura</h3>
+<ul>
+  <li><strong>[UI]</strong> Las tarjetas de Comparar muestran la densidad de
+    <code>coupledPoblacion</code> (25.000), pero las lentes Transporte y Suelo
+    corren con ΣH = 36.000.</li>
+  <li><strong>[UI]</strong> En el motor local, <code>lib/api.ts</code> reconstruye
+    <code>converged</code> solo con el residuo, no con el criterio compuesto de
+    D-39, y Comparar consume esa versión.</li>
+  <li><strong>[UI]</strong> Hay un espejo matemático no declarado:
+    <code>EsperaMetro.tsx</code> reimplementa la espera del metro sin golden, y
+    con otra carga. <code>NetworkDiagram</code> recibe la config viva y no la de
+    la corrida.</li>
+  <li><strong>[UI]</strong> La UI no tiene forma de elegir el motor
+    <code>api</code>: <code>setEngine</code> no se llama desde ningún lado, así
+    que toda la rama REST es inalcanzable desde la interfaz.</li>
+  <li><strong>[MENOR]</strong> Código muerto: <code>generar_oferta_normal</code>
+    (solo tests) y, en <code>lib/modos.ts</code>, los formateadores
+    <code>fmt*</code> y tres constantes sin uso. Las cifras se formatean con 41
+    <code>toLocaleString</code> sueltos.</li>
+</ul>
+
+<!-- ===================================================================== -->
+<h2 id="s5"><span class="num">§5</span> Batería de aceptación del módulo de transporte</h2>
+
+<p>
+  Propuesta para convertir la pregunta (ii) en tests. Todas con localización fija,
+  asignación <code>expected</code> y brecha honesta &lt; 0,05 min (requiere D8).
+</p>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>#</th><th>Experimento</th><th>Resultado esperado por teoría</th></tr></thead>
+  <tbody>
+    <tr><td class="n">1</td><td>Parking +1.000</td><td>auto↓, v/c↓, metro↑, f_op↑, espera↓, CO₂↓</td></tr>
+    <tr><td class="n">2</td><td>Barrido del cobro al auto</td><td>BS con máximo interior; en él, |p − CME(p)|/p &lt; 20 %</td></tr>
+    <tr><td class="n">3</td><td>Tarifa del metro ↓</td><td>metro↑, f_op↑, excedente↑; el máximo del BS queda bajo el costo marginal del operador</td></tr>
+    <tr><td class="n">4</td><td>+1 pista (logit)</td><td>auto↑, t_auto↓, f_op↓, ΔExc ≥ 0</td></tr>
+    <tr><td class="n">5</td><td>Rendimiento decreciente vial</td><td>|Δauto(3→4)| &lt; |Δauto(1→2)|/10</td></tr>
+    <tr><td class="n">6</td><td>Capacidad de ciclovía ↑</td><td>bici↑, metro↓, espera↑ (Mohring inverso)</td></tr>
+    <tr><td class="n">7</td><td>K ↓</td><td>f_op↑, espera↓, costo del operador↑</td></tr>
+    <tr><td class="n">8</td><td>Barrido de estaciones 5–40</td><td>acceso↓, t_viaje↑, reparto del metro con óptimo interior</td></tr>
+    <tr><td class="n">9</td><td>Bencina ↑</td><td>auto↓, CO₂↓</td></tr>
+    <tr><td class="n">10</td><td>Factor de flota 0,7</td><td>CO₂ total↓ aunque el auto suba</td></tr>
+    <tr><td class="n">11</td><td>Invariantes</td><td>Σ viajes constante; mismo reparto desde 3 arranques (±0,1 pp); <code>frec_max</code> no activo no cambia nada; el preset Base reproduce la línea base</td></tr>
+    <tr><td class="n">12</td><td>Downs-Thomson estilizado</td><td>solo después de resolver D9</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ===================================================================== -->
+<h2 id="s6"><span class="num">§6</span> Interfaz: inventario y problemas</h2>
+
+<div class="envoltorio-tabla">
+<table>
+  <thead><tr><th>Página</th><th class="n">Palabras alcanzables</th><th>Problema principal</th></tr></thead>
+  <tbody>
+    <tr><td>Tutorial</td><td class="n">≈ 4.860 (MDX)</td><td>Re-explica lo que ya dicen los <em>hints</em> de Transporte y Suelo</td></tr>
+    <tr><td>Calibración</td><td class="n">≈ 670</td><td>μ se edita aquí y también en Suelo</td></tr>
+    <tr><td>Uso de suelo</td><td class="n">≈ 1.010</td><td>μ y α son la misma perilla (D1); la numeración de figuras cambia al correr</td></tr>
+    <tr><td>Transporte</td><td class="n">≈ 2.540</td><td>Monolito de 1.450 líneas; el botón ▶ queda después de seis bloques; KPI vacío con 8 «—»; el reparto modal aparece 3 o 4 veces</td></tr>
+    <tr><td>Ciudad en equilibrio</td><td class="n">≈ 650</td><td>Población e iteraciones propias; tercer sistema de presets, que descarta la calibración</td></tr>
+    <tr><td>Comparar</td><td class="n">≈ 300</td><td>Cuarto sistema de presets; densidad mostrada distinta de la corrida</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="pie-tabla">Conteo sobre las claves i18n en español alcanzables desde cada página (sin interpoladas). <span class="etiqueta neutra">reportado</span></p>
+
+<p><strong>Problemas transversales, para la fase de frontend:</strong></p>
+<ol>
+  <li>Cinco sistemas de presets: city, policy, conjuntos, ciudad×política en
+    Comparar y los escenarios del tutorial.</li>
+  <li>Controles duplicados: μ (Suelo y Calibración), población (tres lugares) y
+    teletrabajo partido entre Economía y Calibración.</li>
+  <li>Hay 26 cadenas de 40 palabras o más pegadas a los controles. La más larga
+    tiene 99.</li>
+  <li>Códigos internos visibles para el alumno: D-34, D-41 y S-04.</li>
+  <li>Nombres que no coinciden: el nav dice «Transporte», la ruta es
+    <code>/sandbox</code> y el hero dice «La ciudad lineal».</li>
+  <li>Numeración de figuras inestable entre el estado antes y después de
+    correr.</li>
+</ol>
+
+<!-- ===================================================================== -->
+<h2 id="s7"><span class="num">§7</span> Método y límites</h2>
+
+<ul>
+  <li>Seis revisiones en paralelo, de solo lectura: suelo, oferta, demanda,
+    equilibrio, acoplamiento y arquitectura con interfaz. Cada una cotejó código,
+    capítulo del libro y fuente, y corrió experimentos en un directorio temporal.
+    Pasan 203 tests del núcleo.</li>
+  <li>Verifiqué personalmente contra el código las afirmaciones que sostienen
+    D1, D6 (metro), D8, D9 (bici), D10 y la parte de presets y población de la
+    interfaz. Las cifras de los experimentos son de los subagentes y no las
+    reproduje.</li>
+  <li>Las referencias de línea del revisor del acoplamiento no eran fiables
+    (citaba líneas inexistentes); aquí solo aparecen las que verifiqué.</li>
+  <li>No leí Bhat (1995), que no está en <code>reference/</code>. De Train solo
+    se verificaron las pp. 91-94. Las páginas de Boyles et al. y Jara-Díaz se
+    leyeron sobre texto extraído.</li>
+  <li>No se reprodujo la paridad numérica entre los motores <code>api</code> y
+    <code>local</code>, ni se levantó la UI para el inventario, que se dedujo del
+    código.</li>
+</ul>
+
+<footer>
+  Titirilquén · auditoría integral · 2026-10-13
+</footer>
+
+</div>
+</body>
+</html>

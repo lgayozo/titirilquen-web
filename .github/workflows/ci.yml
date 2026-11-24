@@ -11,25 +11,69 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
-      - name: Install (core primero, luego api que depende de él)
+          enable-cache: true
+      - name: Ruff
         run: |
-          python -m pip install --upgrade pip
-          pip install -e "packages/titirilquen_core[dev]"
-          pip install -e "apps/api[dev]"
-      - name: Ruff (no bloqueante)
-        continue-on-error: true
-        run: ruff check packages/titirilquen_core apps/api
+          uvx ruff check packages/titirilquen_core
+          uvx ruff format --check packages/titirilquen_core
       - name: Pytest — core
-        run: pytest packages/titirilquen_core
+        working-directory: packages/titirilquen_core
+        run: uv run --extra dev pytest
       - name: Pytest — api
-        run: pytest apps/api
+        working-directory: apps/api
+        run: uv run --extra dev pytest
+
+  contrato:
+    name: Contrato generado al día
+    runs-on: ubuntu-latest
+    # El frontend deriva del núcleo tres artefactos versionados: el wheel que
+    # instala Pyodide, los tipos/defaults/presets de `src/lib/gen/` y los
+    # fixtures golden. Se commitean, así que pueden quedar viejos. Este job los
+    # regenera y exige que no cambie nada: si cambia, alguien tocó el core sin
+    # correr `npm run sync:core`.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: Regenerar todo lo derivado del núcleo
+        run: npm run sync:core --workspace @titirilquen/web
+      # El wheel se compara por CONTENIDO, no byte a byte: es un zip, y el
+      # mismo código empaquetado en Windows y en Linux difiere en los metadatos
+      # del contenedor. Si adentro es idéntico se restaura el commiteado, para
+      # que el `git diff` de abajo mire sólo lo que de verdad puede quedar viejo.
+      - name: El wheel regenerado tiene el mismo contenido
+        run: |
+          WHL=$(ls apps/web/public/pyodide/*.whl)
+          git show "HEAD:$WHL" > /tmp/commiteado.whl
+          if ! python3 packages/titirilquen_core/tools/compara_wheel.py /tmp/commiteado.whl "$WHL"; then
+            echo "::error::El wheel de Pyodide no corresponde al núcleo actual."
+            echo "Corré 'npm run sync:core' y commiteá el resultado junto al cambio del core."
+            exit 1
+          fi
+          git checkout -- "$WHL"
+      - name: Exigir que no haya cambios
+        run: |
+          if ! git diff --exit-code --stat; then
+            echo ""
+            echo "::error::Hay artefactos derivados del núcleo sin regenerar."
+            echo "Corré 'npm run sync:core' y commiteá el resultado junto al cambio del core."
+            exit 1
+          fi
 
   web:
     name: Web (typecheck + lint + build + e2e)
-    runs-on: ubuntu-latest
+    # 24.04 y no `latest`: desde nov-2026 `latest` es 26.04, y el Playwright
+    # del proyecto no instala Chromium ahí («does not support chromium on
+    # ubuntu26.04»). Se vuelve a `latest` al subir Playwright.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -41,6 +85,10 @@ jobs:
         run: npm run typecheck --workspace @titirilquen/web
       - name: Lint
         run: npm run lint --workspace @titirilquen/web
+      - name: Formato
+        run: npm run format:check
+      - name: Ecuaciones del libro pre-renderizadas a MathML
+        run: node tools/renderiza_ecuaciones.js --check
       - name: Build (tsc + vite)
         run: npm run build --workspace @titirilquen/web
       - name: Instalar navegador Playwright
@@ -49,3 +97,36 @@ jobs:
       - name: E2E (rápido, excluye @slow que requiere CDN/Pyodide)
         working-directory: apps/web
         run: npm run test:e2e:fast
+
+  pyodide:
+    name: Pyodide arranca de verdad
+    # 24.04 por lo mismo que el job `web`: Playwright y ubuntu 26.04.
+    runs-on: ubuntu-24.04
+    # El motor POR DEFECTO de la app es Pyodide, y hasta ahora no lo tocaba
+    # ningún job: los otros corren en CPython (pytest) o excluyen el test que
+    # necesita CDN (`test:e2e:fast`). O sea que el runtime que usa cada alumno
+    # era el único sin cobertura automática.
+    #
+    # No es hipotético. Alinear `pydantic>=2.8` en el núcleo dejó el motor sin
+    # arrancar —Pyodide 0.26.4 trae 2.7.0 precompilado y `micropip` aborta con
+    # "already installed"— con los 117 tests del core en verde. Lo que corre en
+    # el navegador se verifica en el navegador.
+    #
+    # Va separado del job `web` a propósito: depende de un CDN externo
+    # (jsdelivr), así que su modo de falla es distinto y conviene poder leerlo
+    # sin confundirlo con un fallo de la app. `retries: 2` de la config de
+    # Playwright cubre el parpadeo de red.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: Instalar navegador Playwright
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Smoke del motor Pyodide (@slow, descarga el runtime del CDN)
+        working-directory: apps/web
+        run: npx playwright test --grep @slow
