@@ -8,8 +8,9 @@ import type {
   SimulationConfig,
   SimulationResult,
 } from "@/lib/types";
+import { BAND_GAP, BAND_H } from "@/components/viz/CityPreview";
 import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
-import { fmtDecimal, fmtEntero } from "@/lib/modos";
+import { fmtDecimal, fmtEntero, localeCifras } from "@/lib/modos";
 
 interface NetworkDiagramProps {
   snapshot: IterationSnapshot;
@@ -136,8 +137,10 @@ export function NetworkDiagram({
   );
 
   // Bandas (y centers) -------------------------------------------------------
-  const bandH = 40;
-  const bandGap = 12;
+  // La misma geometría del plano previo a simular (`CityPreview`): esta
+  // figura es ese plano, cargado.
+  const bandH = BAND_H;
+  const bandGap = BAND_GAP;
   const bandsTop = MARGIN.top + 18;
   const yAuto = bandsTop;
   const yMetro = bandsTop + bandH + bandGap;
@@ -184,6 +187,11 @@ export function NetworkDiagram({
           h={bandH}
           label={t("modes.auto")}
           labelColor="var(--auto)"
+          spec={t("preview.spec_auto", {
+            lanes: config.supply.car.num_pistas,
+            width:
+              config.supply.car.ancho_pista_m.toLocaleString(localeCifras()),
+          })}
         />
         <BandFrame
           x={MARGIN.left}
@@ -192,6 +200,10 @@ export function NetworkDiagram({
           h={bandH}
           label={t("modes.metro")}
           labelColor="var(--metro)"
+          spec={t("preview.spec_metro", {
+            stations: stations.length,
+            cap: config.supply.train.capacidad_tren,
+          })}
         />
         <BandFrame
           x={MARGIN.left}
@@ -200,6 +212,9 @@ export function NetworkDiagram({
           h={bandH}
           label={t("modes.bici")}
           labelColor="var(--bici)"
+          spec={t("preview.spec_bici", {
+            cap: config.supply.bike.capacidad_pista,
+          })}
         />
         <BandFrame
           x={MARGIN.left}
@@ -208,6 +223,9 @@ export function NetworkDiagram({
           h={bandH}
           label={t("modes.caminata")}
           labelColor="var(--walk)"
+          // La caminata no tiene capacidad: su único parámetro de oferta es
+          // la velocidad.
+          spec={`${fmtDecimal(vCam)} km/h`}
         />
 
         {/* Celdas de cada modo --------------------------------------------- */}
@@ -551,6 +569,7 @@ function BandFrame({
   h,
   label,
   labelColor,
+  spec,
 }: {
   x: number;
   y: number;
@@ -558,6 +577,8 @@ function BandFrame({
   h: number;
   label: string;
   labelColor: string;
+  /** La oferta de la banda, con los mismos rótulos del plano previo. */
+  spec: string;
 }) {
   return (
     <g pointerEvents="none">
@@ -576,12 +597,21 @@ function BandFrame({
       <rect x={x - 4} y={y} width={3} height={h} fill={labelColor} />
       <text
         x={x - 8}
-        y={y + h / 2 + 3}
+        y={y + h / 2 - 3}
         textAnchor="end"
         className="network-band-label"
         fill="var(--ink-2)"
       >
         {label}
+      </text>
+      <text
+        x={x - 8}
+        y={y + h / 2 + 11}
+        textAnchor="end"
+        className="label"
+        fill="var(--muted)"
+      >
+        {spec}
       </text>
     </g>
   );

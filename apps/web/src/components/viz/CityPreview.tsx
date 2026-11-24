@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { PorQue } from "@/components/ui/PorQue";
 import { cn } from "@/lib/cn";
+import { EJE_ESPACIAL } from "@/lib/ejeEspacial";
 import type { SimulationConfig } from "@/lib/types";
 import { useLandUseStore } from "@/store/landUseStore";
 import { fmtDecimal, fmtPct, localeCifras } from "@/lib/modos";
@@ -13,9 +14,16 @@ interface CityPreviewProps {
   className?: string;
 }
 
-// left 204: el rótulo más largo («definida en Uso de Suelo») mide 190 px en
-// Plex Mono de 12 px (B2). bottom 38 (y H 324) separa los ticks del título.
-const MARGIN = { top: 30, right: 16, bottom: 38, left: 204 };
+// El eje horizontal es el de `EJE_ESPACIAL`, el mismo de la red (FIG. 01) y
+// de las demás figuras espaciales: el plano y la red son la misma ciudad
+// antes y después de simular, y tienen que caer en las mismas columnas.
+// bottom 38 (y H 324) separa los ticks del título.
+const MARGIN = {
+  top: 30,
+  right: EJE_ESPACIAL.right,
+  bottom: 38,
+  left: EJE_ESPACIAL.left,
+};
 
 /** Ancho mínimo del SVG: bajo esto la figura deja de encoger y desborda. */
 const MIN_W = 420;
@@ -48,9 +56,11 @@ function estacionesKm(largoKm: number, numEstaciones: number): number[] {
   return [...set].filter((x) => x >= 0 && x <= largoKm).sort((a, b) => a - b);
 }
 
-/** Bandas de infraestructura del "plano" (orden de apilado vertical). */
-const BAND_H = 38;
-const BAND_GAP = 14;
+/** Bandas de infraestructura del "plano" (orden de apilado vertical). Las
+ *  exporta porque la red con saturación (`NetworkDiagram`) dibuja las mismas
+ *  bandas, ya cargadas, y tiene que usar la misma geometría. */
+export const BAND_H = 38;
+export const BAND_GAP = 14;
 /** Franja de demanda (orígenes) — más baja que las de oferta, otra "capa". */
 const DEMAND_H = 30;
 

@@ -31,8 +31,12 @@
  */
 export const EJE_ESPACIAL = {
   /** Espacio para las etiquetas del eje Y y los rótulos de banda. 96 y no 82
-   *  desde B2: «BICICLETA» en Plex Mono de 12 px no cabía. */
-  left: 96,
+   *  desde B2: «BICICLETA» en Plex Mono de 12 px no cabía. 128 desde
+   *  nov-2026: la red (FIG. 01) rotula cada banda con su capacidad, igual
+   *  que el plano previo a simular, y el plano dejó de tener margen propio
+   *  (eran 204 px): antes y después de la corrida la ciudad cae en las
+   *  mismas columnas. */
+  left: 128,
   /** Aire a la derecha para que la última barra no toque el borde. */
   right: 16,
 } as const;
