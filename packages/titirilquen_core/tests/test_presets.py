@@ -52,14 +52,17 @@ def test_la_politica_base_es_el_escenario_de_referencia() -> None:
 
 @pytest.mark.parametrize("nombre", [n for n in CITY_PRESETS if n not in VACIOS_A_PROPOSITO])
 def test_cada_ciudad_declara_su_geometria(nombre: str) -> None:
-    """Las formas urbanas siempre fijan largo y dispersión (la densidad es
-    ΣH/largo, una consecuencia, y desde sep-2026 ni siquiera un campo).
+    """Un preset de ciudad es un escenario completo: largo, dispersión,
+    población y la oferta vial a su escala (la densidad es ΣH/largo, una
+    consecuencia, y desde sep-2026 ni siquiera un campo).
 
-    `poblacion` es la excepción deliberada: sólo la declaran «Base» y
-    «Metrópolis». Las otras dos comparan FORMA a la población que el usuario
-    tenga, que es justamente el punto de la iso-población.
+    Hasta nov-2026 «Compacta» y «Dispersa» no declaraban población ni oferta, y
+    elegirlas después de «Metrópolis» dejaba 144.000 hogares y 16 pistas: dos
+    corridas del mismo preset no eran comparables.
     """
-    faltan = {"largo_ciudad", "sigma"} - set(CITY_PRESETS[nombre])
+    faltan = {"largo_ciudad", "sigma", "poblacion", "num_pistas", "cap_bici"} - set(
+        CITY_PRESETS[nombre]
+    )
     assert not faltan, f"«{nombre}» no declara {sorted(faltan)}"
 
 

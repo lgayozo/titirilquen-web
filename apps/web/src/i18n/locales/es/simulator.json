@@ -142,7 +142,7 @@
     "no_diff_hint": "Escenario base: ningún parámetro difiere del default.",
     "vs_base": "Base: {{base}}",
     "same_as_base": "Igual al escenario base",
-    "presets_hint": "Los presets de ciudad cambian solo el largo y conservan la población: comparan forma urbana, no tamaño de la demanda."
+    "presets_hint": "Compacta, Base y Dispersa tienen la misma población (36.000 hogares) y comparan forma urbana; Metrópolis cambia el tamaño, con la oferta a su escala."
   },
   "sandbox": {
     "city_heading": "Ciudad",
@@ -1286,5 +1286,9 @@
     "paso_reserva": "u_h, la utilidad de reserva, se ajusta en el equilibrio hasta que el estrato ubica exactamente a todos sus hogares. Si y_h sube en Δ, u_h sube en λ_h·Δ y la puja queda idéntica: ni la localización ni los arriendos cambian.",
     "paso_orden": "Lo que ordena la ciudad es lo que SÍ varía entre parcelas: la accesibilidad en pesos, T/λ_h, y la densidad, ρ/λ_h. Por eso manda el valor del tiempo de cada estrato, no su ingreso.",
     "donde_importa": "Donde sí importa: la carga mensual de transporte (costo / ingreso) de «Ciudad en equilibrio» divide por estos valores. Y la utilidad de reserva de cada estrato sube con su ingreso: quien gana más vive mejor, pero en el mismo lugar."
+  },
+  "escenario": {
+    "desde_base": "Cada preset arma el escenario desde la base: descarta los ajustes hechos a mano y conserva sólo la calibración.",
+    "ajustes": "⚠ Este escenario tiene ajustes hechos a mano: no es el preset tal cual. Al elegir un preset se descartan."
   }
 }

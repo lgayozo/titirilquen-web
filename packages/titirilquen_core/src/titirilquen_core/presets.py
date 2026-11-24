@@ -61,7 +61,19 @@ CITY_PRESETS: dict[str, CityPreset] = {
     # monocéntrica el tramo junto al CBD carga ~la mitad de los viajes en auto
     # sea cual sea el largo, así que responde a población/precios/capacidad y no
     # a la forma.
-    "Compacta": {"largo_ciudad": 8, "sigma": 0.30},
+    #
+    # Los CUATRO declaran población y oferta (nov-2026). Compacta y Dispersa no
+    # lo hacían —«comparan forma a la población que el usuario tenga»— y eso
+    # rompía la comparación: viniendo de Metrópolis quedaban con 144.000
+    # hogares y 16 pistas. Un preset es un escenario completo, no un parche
+    # sobre el anterior.
+    "Compacta": {
+        "largo_ciudad": 8,
+        "sigma": 0.30,
+        "poblacion": 36_000,
+        "num_pistas": 4,
+        "cap_bici": 6_000,
+    },
     # `num_pistas` declarado por la misma razón que `poblacion`: para que el
     # viaje de VUELTA funcione. Sin esto, volver de Metrópolis dejaba la ciudad
     # de 36.000 habitantes con las 12 pistas de la metrópolis y un v/c de 0,25,
@@ -73,7 +85,13 @@ CITY_PRESETS: dict[str, CityPreset] = {
         "num_pistas": 4,
         "cap_bici": 6_000,
     },
-    "Dispersa": {"largo_ciudad": 40, "sigma": 0.90},
+    "Dispersa": {
+        "largo_ciudad": 40,
+        "sigma": 0.90,
+        "poblacion": 36_000,
+        "num_pistas": 4,
+        "cap_bici": 6_000,
+    },
     # ESCALA, no forma: misma geometría que Base (20 km, sigma 0.50) con 4x la
     # población. Es el único preset que rompe la iso-población de arriba, y a
     # propósito: aísla la dimensión que los otros tres mantienen fija.

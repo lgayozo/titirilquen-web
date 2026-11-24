@@ -33,6 +33,9 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
   Compacta: {
     largo_ciudad: 8,
     sigma: 0.3,
+    poblacion: 36000,
+    num_pistas: 4,
+    cap_bici: 6000,
   },
   Base: {
     largo_ciudad: 20,
@@ -44,6 +47,9 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
   Dispersa: {
     largo_ciudad: 40,
     sigma: 0.9,
+    poblacion: 36000,
+    num_pistas: 4,
+    cap_bici: 6000,
   },
   Metrópolis: {
     largo_ciudad: 20,

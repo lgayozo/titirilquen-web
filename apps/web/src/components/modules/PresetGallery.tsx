@@ -9,11 +9,12 @@ import {
   CITY_PRESETS,
   LEE_POLITICA,
   POLICY_PRESETS,
-  capacidadPolitica,
   ciudadActiva,
-  escalaCiudad,
+  escenarioDesdeBase,
   politicaActiva,
+  tieneAjustesManuales,
   type CityPresetName,
+  type PolicyPresetName,
   type PolicyPresetValues,
 } from "@/lib/presets";
 import { fmtParking } from "@/lib/parking";
@@ -168,7 +169,7 @@ interface PresetGalleryProps {
 export function PresetGallery({ variant }: PresetGalleryProps) {
   const { t } = useTranslation("simulator");
   const config = useSimulationStore((s) => s.config);
-  const setConfig = useSimulationStore((s) => s.setConfig);
+  const replaceConfig = useSimulationStore((s) => s.replaceConfig);
   const setLandUse = useLandUseStore((s) => s.setConfig);
   const landUse = useLandUseStore((s) => s.config);
 
@@ -184,127 +185,28 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
   const activePolicy = politicaActiva(config, landUse);
 
   /**
-   * ISO-POBLACIÓN: el preset de ciudad cambia SOLO el largo y conserva ΣH; la
-   * densidad se recalcula como ρ = ΣH/largo. Así «compacta vs dispersa» compara
-   * forma urbana con la misma gente, que es la comparativa estática que interesa.
+   * Elegir un preset arma el escenario DESDE LA BASE (`escenarioDesdeBase`):
+   * valores de fábrica + la ciudad + la política, conservando sólo la
+   * calibración. No parcha la config que haya, así que dos corridas del mismo
+   * par ciudad-política son la misma corrida y se pueden comparar.
    *
-   * Antes se escalaba ΣH desde la densidad del preset y la población cambiaba
-   * (Compacta 50.400 vs Dispersa 19.500): eso INVERTÍA la lectura de congestión
-   * —la compacta parecía saturada (v/c 1.25 vs 0.55) por tener 2.6× más gente,
-   * cuando a igual población es 0.92 vs 0.98— y enmascaraba el efecto real de la
-   * compacidad sobre la bici (+5.0 pp medidos vs +1.0 pp aparente).
-   *
-   * El campo `densidad` de CITY_PRESETS lo sigue usando el módulo acoplado
-   * (applyJointPreset), donde las poblaciones difieren a propósito por
-   * estabilidad numérica del loop exterior (D-24).
-   *
-   * EXCEPCIÓN — presets de ESCALA (`poblacion` declarada): «Metrópolis» existe
-   * justamente para mover la población, así que fija ΣH escalando los estratos
-   * y conservando sus proporciones. «Base» también la declara para que el viaje
-   * de vuelta funcione: sin eso, volver de Metrópolis dejaba la geometría de
-   * Base con 144.000 habitantes. Compacta y Dispersa NO la declaran a
-   * propósito: comparan forma a la población que el usuario tenga.
+   * Ciudad y política son dos dimensiones: elegir una conserva la otra, si se
+   * reconoce; si no se reconoce (se editó a mano), vuelve a la de Base.
    */
-  const applyCity = (name: string) => {
-    const p = CITY_PRESETS[name];
-    if (!p?.largo_ciudad) return;
-    const largo = p.largo_ciudad;
-    const sumaH = landUse.H_por_estrato.reduce((a, b) => a + b, 0);
-    // Si hay una política activa, sus pistas y ciclovía se recalculan a la
-    // escala de la ciudad nueva (A3): el par ciudad-política da lo mismo en
-    // cualquier orden. Sin política reconocible, la ciudad fija su escala si la
-    // declara y si no deja la del usuario, como antes.
-    const pol = activePolicy ? POLICY_PRESETS[activePolicy] : undefined;
-    const cap = pol
-      ? capacidadPolitica(pol, escalaCiudad(name as CityPresetName))
-      : { num_pistas: p.num_pistas, cap_bici: p.cap_bici };
-    setConfig((c) => ({
-      ...c,
-      city: { ...c.city, largo_ciudad_km: largo },
-      // La capacidad vial la traen SOLO los presets de escala (los que declaran
-      // `poblacion`): con el doble o el cuádruple de población, las 4 pistas de la base
-      // saturan el corredor y el auto deja de competir, así que el escenario
-      // no compara lo que dice comparar. Los de iso-población (Compacta,
-      // Dispersa) no la declaran y conservan la del usuario, igual que hacen
-      // con la población.
-      supply: {
-        ...c.supply,
-        car: {
-          ...c.supply.car,
-          ...(cap.num_pistas !== undefined && { num_pistas: cap.num_pistas }),
-        },
-        bike: {
-          ...c.supply.bike,
-          ...(cap.cap_bici !== undefined && { capacidad_pista: cap.cap_bici }),
-        },
-      },
-    }));
-    // La concentración de la oferta (σ) es la segunda dimensión de la forma:
-    // sin ella el preset movía la mitad del efecto.
-    setLandUse((lu) => {
-      const next =
-        p.sigma !== undefined ? { ...lu, oferta_sigma_frac: p.sigma } : lu;
-      if (p.poblacion === undefined || sumaH <= 0) return next;
-      // `H_por_estrato` es `tuple[int, int, int]` en Pydantic: hay que entregar
-      // enteros. El tercero absorbe el residuo para que ΣH dé EXACTO — si no,
-      // el redondeo movería la suma y `activeCity` no reconocería su propio
-      // preset.
-      const k = p.poblacion / sumaH;
-      const [h1, h2] = next.H_por_estrato;
-      const a = Math.round(h1 * k);
-      const b = Math.round(h2 * k);
-      return { ...next, H_por_estrato: [a, b, p.poblacion - a - b] };
-    });
+  const aplicar = (
+    ciudad: CityPresetName | null,
+    politica: PolicyPresetName | null,
+  ) => {
+    const e = escenarioDesdeBase({ config, landUse }, ciudad, politica);
+    replaceConfig(e.config);
+    setLandUse(() => e.landUse);
   };
+  const applyCity = (name: string) =>
+    aplicar(name as CityPresetName, activePolicy);
+  const applyPolicy = (name: string) =>
+    aplicar(activeCity, name as PolicyPresetName);
 
-  const applyPolicy = (name: string) => {
-    const p = POLICY_PRESETS[name];
-    if (!p) return;
-    // Pistas y ciclovía a la escala de la ciudad activa (A3).
-    const cap = capacidadPolitica(p, escalaCiudad(activeCity));
-    setConfig((c) => ({
-      ...c,
-      supply: {
-        ...c.supply,
-        car: {
-          ...c.supply.car,
-          ...(cap.num_pistas !== undefined && { num_pistas: cap.num_pistas }),
-        },
-        bike: {
-          ...c.supply.bike,
-          ...(cap.cap_bici !== undefined && { capacidad_pista: cap.cap_bici }),
-        },
-        train: {
-          ...c.supply.train,
-          ...(p.num_estaciones !== undefined && {
-            num_estaciones: p.num_estaciones,
-          }),
-          ...(p.frec_max !== undefined && { frec_max: p.frec_max }),
-          ...(p.cap_tren !== undefined && { capacidad_tren: p.cap_tren }),
-        },
-      },
-      demand: {
-        ...c.demand,
-        globales: {
-          ...c.demand.globales,
-          ...(p.tarifa !== undefined && { costo_tarifa_metro: p.tarifa }),
-          ...(p.parking !== undefined && { costo_parking: p.parking }),
-          ...(p.bencina !== undefined && {
-            precio_combustible_clp_l: p.bencina,
-          }),
-          ...(p.peaje !== undefined && { peaje_km: p.peaje }),
-          // Faltaba: el preset lo declaraba y la tabla de la tarjeta lo
-          // mostraba, pero nunca llegaba a la config. «Vehículos híbridos»
-          // —cuyo único punto es una flota que emite menos— sólo abarataba la
-          // bencina, así que en vez de bajar el CO₂ lo SUBÍA: más viajes en
-          // auto con la misma emisión por km.
-          ...(p.factor_flota !== undefined && {
-            factor_flota_auto: p.factor_flota,
-          }),
-        },
-      },
-    }));
-  };
+  const ajustesManuales = tieneAjustesManuales({ config, landUse });
 
   const esCiudad = variant === "city";
   const nCambios = esCiudad
@@ -320,6 +222,20 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
       meta={(esCiudad ? activeCity : activePolicy) || t("presets.custom")}
       defaultOpen
     >
+      {/* La regla, a la vista: un preset no parcha lo que haya, lo rearma. Y
+          si el escenario ya no es el preset tal cual, se avisa antes de que
+          alguien compare dos corridas creyendo que son del mismo preset. */}
+      <p className="mb-1.5 text-etiqueta leading-snug text-muted">
+        {t("escenario.desde_base")}
+      </p>
+      {ajustesManuales && (
+        <p
+          className="mb-1.5 text-etiqueta leading-snug text-[var(--alerta)]"
+          role="status"
+        >
+          {t("escenario.ajustes")}
+        </p>
+      )}
       {esCiudad && (
         <>
           <div className="mb-1.5 flex flex-wrap gap-1">

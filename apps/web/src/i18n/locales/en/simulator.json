@@ -142,7 +142,7 @@
     "no_diff_hint": "Base scenario: no parameter differs from the default.",
     "vs_base": "Base: {{base}}",
     "same_as_base": "Same as base scenario",
-    "presets_hint": "City presets change only the length and keep population: they compare urban form, not demand size."
+    "presets_hint": "Compacta, Base and Dispersa share the same population (36,000 households) and compare urban form; Metrópolis changes size, with supply at its scale."
   },
   "sandbox": {
     "city_heading": "City",
@@ -1286,5 +1286,9 @@
     "paso_reserva": "u_h, the reservation utility, adjusts in equilibrium until the stratum places exactly all its households. If y_h rises by Δ, u_h rises by λ_h·Δ and the bid is identical: neither location nor rents change.",
     "paso_orden": "What orders the city is what DOES vary between parcels: accessibility in money, T/λ_h, and density, ρ/λ_h. That is why each stratum's value of time rules, not its income.",
     "donde_importa": "Where it does matter: the monthly transport burden (cost / income) in «City in equilibrium» divides by these values. And each stratum's reservation utility rises with its income: those who earn more live better, but in the same place."
+  },
+  "escenario": {
+    "desde_base": "Each preset builds the scenario from the base: it discards manual adjustments and keeps only the calibration.",
+    "ajustes": "⚠ This scenario has manual adjustments: it is not the preset as is. Choosing a preset discards them."
   }
 }

@@ -16,9 +16,11 @@ import {
   CITY_PRESETS,
   POLICY_PRESETS,
   type CityPresetName,
+  type CityPresetValues,
   type PolicyPresetName,
   type PolicyPresetValues,
 } from "@/lib/gen/presets.gen";
+import { defaultLandUseConfig, defaultSimulationConfig } from "@/lib/defaults";
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 
@@ -93,8 +95,7 @@ const REFERENCIA = POLICY_PRESETS.Base as Required<
 
 /**
  * Pistas y ciclovía de la ESCALA de una ciudad: las que declara su preset
- * (Base, Metrópolis) o, si no declara escala (Compacta,
- * Dispersa, ninguna), las de Base.
+ * o, si no hay ciudad reconocible, las de Base.
  */
 export function escalaCiudad(ciudad: CityPresetName | null): {
   num_pistas: number;
@@ -156,8 +157,8 @@ export function capacidadPolitica(
  * Fijar un valor y usarlo para identificar son cosas distintas. Base y
  * Metrópolis, que comparten geometría, se distinguen por `poblacion`.
  *
- * Compacta y Dispersa no declaran `poblacion` a propósito: son iso-población y
- * matchean con la que el usuario tenga.
+ * Los cuatro presets declaran `poblacion` (nov-2026): un preset es un
+ * escenario completo.
  */
 export function ciudadActiva(
   cfg: SimulationConfig,
@@ -173,4 +174,133 @@ export function ciudadActiva(
         (v.poblacion === undefined || Math.round(sumaH) === v.poblacion),
     )?.[0] ?? null
   );
+}
+
+/** El escenario que corre una página: la config de simulación y la de suelo. */
+export interface Escenario {
+  config: SimulationConfig;
+  landUse: LandUseConfig;
+}
+
+/**
+ * El escenario de un par ciudad-política, armado DESDE LA BASE.
+ *
+ * Elegir un preset no parcha la config que haya: la reconstruye desde los
+ * valores de fábrica y le aplica la ciudad y la política pedidas. Así dos
+ * corridas del mismo preset son la misma corrida, se haya pasado antes por
+ * donde se haya pasado, que es lo que hace falta para comparar resultados.
+ *
+ * Hasta nov-2026 el preset pisaba sólo los parámetros que declaraba, y todo lo
+ * demás —una pendiente movida a mano, otro tope de iteraciones, la población de
+ * la ciudad anterior— se heredaba en silencio.
+ *
+ * Lo único que se conserva de `actual` es la CALIBRACIÓN, que no describe un
+ * escenario sino el modelo con que se comparan todos: los estratos de la
+ * demanda (betas, tenencia de auto, teletrabajo), los cortes de caminata y
+ * bici, los precios sociales y el ingreso de cada estrato. Es lo mismo que
+ * conserva `applyJointPreset`.
+ *
+ * `null` en ciudad o en política significa «la de Base».
+ */
+export function escenarioDesdeBase(
+  actual: Escenario,
+  ciudad: CityPresetName | null,
+  politica: PolicyPresetName | null,
+): Escenario {
+  const c: CityPresetValues = (ciudad && CITY_PRESETS[ciudad]) || {};
+  const p: PolicyPresetValues = (politica && POLICY_PRESETS[politica]) || {};
+  const base = defaultSimulationConfig;
+  // Pistas y ciclovía: las de la política, leídas a la escala de la ciudad.
+  const escala = escalaCiudad(ciudad);
+  const cap = { ...escala, ...capacidadPolitica(p, escala) };
+
+  const config: SimulationConfig = {
+    ...base,
+    precios_sociales: actual.config.precios_sociales,
+    city: {
+      ...base.city,
+      ...(c.largo_ciudad !== undefined && { largo_ciudad_km: c.largo_ciudad }),
+    },
+    supply: {
+      ...base.supply,
+      car: { ...base.supply.car, num_pistas: cap.num_pistas },
+      bike: { ...base.supply.bike, capacidad_pista: cap.cap_bici },
+      train: {
+        ...base.supply.train,
+        ...(p.num_estaciones !== undefined && {
+          num_estaciones: p.num_estaciones,
+        }),
+        ...(p.frec_max !== undefined && { frec_max: p.frec_max }),
+        ...(p.cap_tren !== undefined && { capacidad_tren: p.cap_tren }),
+      },
+    },
+    demand: {
+      ...base.demand,
+      estratos: actual.config.demand.estratos,
+      globales: {
+        ...base.demand.globales,
+        corte_caminata_min: actual.config.demand.globales.corte_caminata_min,
+        corte_bici_min: actual.config.demand.globales.corte_bici_min,
+        ...(p.tarifa !== undefined && { costo_tarifa_metro: p.tarifa }),
+        ...(p.parking !== undefined && { costo_parking: p.parking }),
+        ...(p.bencina !== undefined && { precio_combustible_clp_l: p.bencina }),
+        ...(p.peaje !== undefined && { peaje_km: p.peaje }),
+        ...(p.factor_flota !== undefined && {
+          factor_flota_auto: p.factor_flota,
+        }),
+      },
+    },
+  };
+
+  const lu = defaultLandUseConfig;
+  // La población del preset reparte ΣH con la composición de fábrica. Enteros
+  // (`tuple[int, int, int]` en Pydantic); el tercero absorbe el redondeo para
+  // que ΣH dé exacto, o `ciudadActiva` no reconocería su propio preset.
+  const [h1, h2, h3] = lu.H_por_estrato;
+  const total = c.poblacion ?? h1 + h2 + h3;
+  const k = total / (h1 + h2 + h3 || 1);
+  const a = Math.round(h1 * k);
+  const b = Math.round(h2 * k);
+  const landUse: LandUseConfig = {
+    ...lu,
+    ...(c.sigma !== undefined && { oferta_sigma_frac: c.sigma }),
+    H_por_estrato: [a, b, total - a - b],
+    // El ingreso es calibración; ρ es del escenario y vuelve al de fábrica.
+    estratos: lu.estratos.map((e, i) => ({
+      ...e,
+      y: actual.landUse.estratos[i]?.y ?? e.y,
+    })) as LandUseConfig["estratos"],
+  };
+
+  return { config, landUse };
+}
+
+/** JSON con las claves ordenadas: dos objetos iguales dan el mismo texto
+ *  aunque se hayan armado en otro orden (un escenario importado, p. ej.). */
+function canonico(v: unknown): string {
+  return JSON.stringify(v, (_k, x: unknown) =>
+    x && typeof x === "object" && !Array.isArray(x)
+      ? Object.fromEntries(
+          Object.entries(x as Record<string, unknown>).sort(([a], [b]) =>
+            a < b ? -1 : a > b ? 1 : 0,
+          ),
+        )
+      : x,
+  );
+}
+
+/**
+ * ¿El escenario tiene ajustes hechos a mano por fuera de sus presets?
+ *
+ * Se arma el escenario que sus presets reconocidos darían desde la base y se
+ * compara entero. Si difiere, comparar esta corrida con otra «del mismo
+ * preset» no es comparar lo mismo, y la galería lo avisa.
+ */
+export function tieneAjustesManuales(actual: Escenario): boolean {
+  const limpio = escenarioDesdeBase(
+    actual,
+    ciudadActiva(actual.config, actual.landUse),
+    politicaActiva(actual.config, actual.landUse),
+  );
+  return canonico(limpio) !== canonico(actual);
 }

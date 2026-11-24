@@ -412,7 +412,7 @@
     <tr><td class="n">(4.2)</td><td class="ruta py">demand/choice.py</td><td class="n">19</td><td><code>probabilidades_logit</code> — sobre los modos factibles, con resta del máximo por estabilidad</td></tr>
     <tr><td class="n">—</td><td class="ruta py">population.py</td><td class="n">57</td><td><code>generar_poblacion_desde_land_use_det</code> — agentes desde el suelo; teletrabajo y auto por conteos redondeados</td></tr>
     <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">139</td><td><code>_agrupar_agentes</code> — separa a los teletrabajadores y agrupa por estrato, celda y auto; <code>_probs_grupo</code> (160) llama a la utilidad y al logit</td></tr>
-    <tr><td class="n">(4.3)</td><td class="ruta py">presets.py</td><td class="n">379</td><td><code>DEFAULT_STRATA</code> — la calibración de los tres estratos, con los minutos-equivalentes en sus comentarios</td></tr>
+    <tr><td class="n">(4.3)</td><td class="ruta py">presets.py</td><td class="n">397</td><td><code>DEFAULT_STRATA</code> — la calibración de los tres estratos, con los minutos-equivalentes en sus comentarios</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">61</td><td><code>StratumBetas</code> — <code>b_tiempo_viaje</code> (70), <code>b_costo</code> (73), <code>b_tiempo_espera</code> (76), <code>b_tiempo_acceso</code> (86), <code>b_tiempo_caminata</code> (91); <code>PhysicalPenalties</code> (44)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">95</td><td><code>StratumConfig</code> — <code>prob_teletrabajo</code> (108), <code>prob_auto</code> (109)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">113</td><td><code>GlobalConfig</code> — <code>corte_caminata_min</code> (133), <code>corte_bici_min</code> (134), <code>precio_combustible_clp_l</code> (145), <code>costo_tarifa_metro</code> (146), <code>costo_parking</code> (168), <code>peaje_km</code> (174), <code>teletrabajo_factor</code> (195)</td></tr>
@@ -455,9 +455,9 @@
     <tr><td><code class="ruta py">tests/test_linea_base.py</code>:291</td><td>La línea base con «suaves», en las dos localizaciones.</td></tr>
     <tr><td><code class="ruta py">tests/test_contract_frontend.py</code>:213</td><td>El núcleo reproduce el golden del espejo TypeScript, con casos de las dos especificaciones.</td></tr>
     <tr><td><code class="ruta py">tests/test_bienestar.py</code>:57</td><td>El peaje es transferencia: entra a la recaudación y al bienestar social.</td></tr>
-    <tr><td><code class="ruta py">tests/test_presets.py</code>:66</td><td>Los tres estratos están calibrados y el valor del tiempo los ordena (75).</td></tr>
-    <tr><td><code class="ruta py">tests/test_presets.py</code>:92</td><td>Los estratos comparten la escala del tiempo, y la utilidad marginal del ingreso decrece con el ingreso (104).</td></tr>
-    <tr><td><code class="ruta py">tests/test_presets.py</code>:129</td><td>Las ASC conservan sus minutos-equivalentes: 20 de ventaja del auto en los tres estratos.</td></tr>
+    <tr><td><code class="ruta py">tests/test_presets.py</code>:69</td><td>Los tres estratos están calibrados y el valor del tiempo los ordena (78).</td></tr>
+    <tr><td><code class="ruta py">tests/test_presets.py</code>:95</td><td>Los estratos comparten la escala del tiempo, y la utilidad marginal del ingreso decrece con el ingreso (107).</td></tr>
+    <tr><td><code class="ruta py">tests/test_presets.py</code>:132</td><td>Las ASC conservan sus minutos-equivalentes: 20 de ventaja del auto en los tres estratos.</td></tr>
     <tr><td><code class="ruta py">tests/test_vot_consistente.py</code>:107</td><td>El valor del tiempo es el mismo en la elección de modo y en la puja por suelo.</td></tr>
   </tbody>
 </table>
