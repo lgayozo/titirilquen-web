@@ -41,13 +41,6 @@ export const CITY_PRESETS: Record<string, CityPresetValues> = {
     num_pistas: 4,
     cap_bici: 6000,
   },
-  "Ciudad con metro": {
-    largo_ciudad: 20,
-    sigma: 0.5,
-    poblacion: 72000,
-    num_pistas: 8,
-    cap_bici: 12000,
-  },
   Dispersa: {
     largo_ciudad: 40,
     sigma: 0.9,

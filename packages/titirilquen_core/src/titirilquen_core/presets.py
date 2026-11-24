@@ -73,20 +73,6 @@ CITY_PRESETS: dict[str, CityPreset] = {
         "num_pistas": 4,
         "cap_bici": 6_000,
     },
-    # ESCALA intermedia: el preset «ciudad con metro». Con 72.000 hogares la
-    # carga del tramo crítico del metro pasa de 5.800 a 14.600 pax/h y la
-    # frecuencia de 5,8 a ~11 tph (espera de 3 min): un metro urbano, no un tren
-    # de cercanías. Para que auto y bici sigan compitiendo en la misma condición
-    # que en Base, la oferta escala con la población: 8 pistas y 12.000 bici/h
-    # (el doble de Base) dejan la vía y la ciclovía a v/c 1,13 y 1,00 (oct-2026,
-    # rama original; con 4 pistas y 7.500, la calibración anterior, 1,95 y 1,53).
-    "Ciudad con metro": {
-        "largo_ciudad": 20,
-        "sigma": 0.50,
-        "poblacion": 72_000,
-        "num_pistas": 8,
-        "cap_bici": 12_000,
-    },
     "Dispersa": {"largo_ciudad": 40, "sigma": 0.90},
     # ESCALA, no forma: misma geometría que Base (20 km, sigma 0.50) con 4x la
     # población. Es el único preset que rompe la iso-población de arriba, y a
@@ -127,7 +113,7 @@ CITY_PRESETS: dict[str, CityPreset] = {
 # `parking: 6000`).
 #
 # Pistas y ciclovía se declaran a la escala de Base (4 pistas, 6.000 bici/h).
-# A otra escala (Ciudad con metro, Metrópolis) la galería aplica su RAZÓN
+# A otra escala (Metrópolis) la galería aplica su RAZÓN
 # contra Base sobre la escala de la ciudad (`capacidadPolitica` en
 # apps/web/src/lib/presets.ts, auditoría A3, oct-2026): Pro-Auto en Metrópolis
 # son 20 pistas, no 5. Antes la política pisaba la escala y el resultado

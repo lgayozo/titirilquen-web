@@ -93,7 +93,7 @@ const REFERENCIA = POLICY_PRESETS.Base as Required<
 
 /**
  * Pistas y ciclovía de la ESCALA de una ciudad: las que declara su preset
- * (Base, Ciudad con metro, Metrópolis) o, si no declara escala (Compacta,
+ * (Base, Metrópolis) o, si no declara escala (Compacta,
  * Dispersa, ninguna), las de Base.
  */
 export function escalaCiudad(ciudad: CityPresetName | null): {
