@@ -19,9 +19,10 @@ interface LandUseBuilderProps {
 
 const pct = (v: number) => fmtPct(v * 100, 0);
 
-// Tres ciudades de contraste para μ. Medidas a flujo libre con ρ = 0 (oct-2026):
-// mezclada Theil 0,12 y el alto a 2,4 km del CBD; base 0,39 y 1,4 km;
-// segregada 0,70 y 0,85 km. La base es el default del núcleo.
+// Tres ciudades de contraste para μ. Medidas a flujo libre con ρ = 0 (nov-2026,
+// con los VoT en razón 4 : 2 : 1): mezclada Theil 0,11 y el alto a 2,4 km del
+// CBD; base 0,38 y 1,4 km; segregada 0,68 y 0,87 km. La base es el default
+// del núcleo.
 const MU_PRESETS = [
   { key: "mezclada", mu: 0.1 },
   { key: "base", mu: defaultLandUseConfig.mu },

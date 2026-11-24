@@ -2,7 +2,12 @@
  "_meta": {
   "generado": "2026-10-28",
   "commit": "4050079",
-  "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)"
+  "configuracion": "config de la app (test_linea_base._config_web/_land_use_web)",
+  "suelo_regenerado": {
+   "generado": "2026-11-24",
+   "commit": "6e254a8",
+   "nota": "Solo el bloque `suelo` (funcion suelo() del script). El resto es de la fecha de arriba: el script recorre metodos de carga retirados (montecarlo, todo_o_nada) y no corre entero."
+  }
  },
  "parametros": {
   "share_estratos_pct": {
@@ -571,46 +576,46 @@
   "mu": 0.3,
   "base": {
    "dist_km": {
-    "alto": 1.38,
+    "alto": 1.42,
     "medio": 2.89,
-    "bajo": 6.37
+    "bajo": 6.34
    },
-   "theil": 0.392
+   "theil": 0.377
   },
   "lambda_iguales": {
    "dist_km": {
-    "alto": 5.05,
-    "medio": 3.81,
-    "bajo": 2.4
+    "alto": 5.29,
+    "medio": 3.82,
+    "bajo": 2.21
    },
-   "theil": 0.1
+   "theil": 0.128
   },
   "lambda_alto_doble": {
    "dist_km": {
-    "alto": 3.1,
-    "medio": 2.23,
-    "bajo": 6.32
+    "alto": 3.27,
+    "medio": 2.21,
+    "bajo": 6.24
    },
-   "theil": 0.324
+   "theil": 0.312
   },
   "lambda_alto_mitad": {
    "dist_km": {
-    "alto": 1.0,
-    "medio": 3.05,
-    "bajo": 6.37
+    "alto": 1.01,
+    "medio": 3.07,
+    "bajo": 6.33
    },
-   "theil": 0.478
+   "theil": 0.466
   },
-  "theil_mu_1": 0.744,
+  "theil_mu_1": 0.735,
   "rho_54": {
    "dist_km": {
-    "alto": 7.01,
-    "medio": 2.99,
-    "bajo": 2.45
+    "alto": 7.06,
+    "medio": 3.03,
+    "bajo": 2.35
    },
-   "theil": 0.335
+   "theil": 0.352
   },
-  "rho_umbral_inversion": 30
+  "rho_umbral_inversion": 28
  },
  "umbrales": {
   "compacta": {
