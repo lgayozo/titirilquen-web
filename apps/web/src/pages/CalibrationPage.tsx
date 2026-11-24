@@ -4,6 +4,7 @@ import {
   CalibrationPanel,
   NumberField,
 } from "@/components/modules/CalibrationPanel";
+import { IngresoPanel } from "@/components/modules/IngresoPanel";
 import { PreciosSocialesPanel } from "@/components/modules/PreciosSocialesPanel";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { Panel } from "@/components/ui/Panel";
@@ -49,6 +50,8 @@ export function CalibrationPage() {
   const setConfig = useSimulationStore((s) => s.setConfig);
 
   const mu = useLandUseStore((s) => s.config.mu);
+  const landUse = useLandUseStore((s) => s.config);
+  const setLandUse = useLandUseStore((s) => s.setConfig);
   // Cuántas veces vale el tiempo del medio y del alto respecto del bajo.
   const multiplos = multiplosDe(config.demand);
   const setMultiplos = (m: MultiplosVot) =>
@@ -163,6 +166,7 @@ export function CalibrationPage() {
           </p>
           <PorQue>{t("calibration_page.mu_porque")}</PorQue>
         </CollapsibleSection>
+        <IngresoPanel config={landUse} onChange={setLandUse} />
         <PreciosSocialesPanel config={config} onChange={setConfig} />
       </aside>
 

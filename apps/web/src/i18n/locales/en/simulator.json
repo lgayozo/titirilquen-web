@@ -456,7 +456,6 @@
     "logit_converged": "Auction converged",
     "logit_iterations": "Auction iters",
     "param_H": "H ({{stratum}})",
-    "param_y": "Income y ($/month)",
     "param_rho": "ρ (density, util-months per mean density)",
     "param_densidad": "Stratum density (pop/km)",
     "densidad_hint": "Each cell's density is set by the housing supply, S/Δx: equilibrium decides who lives in each cell, not how many.",
@@ -488,8 +487,8 @@
     "forma_valle": "Valley",
     "forma_hint_valle": "Little space at the center, lots at the periphery: density grows with distance (inverted triangle).",
     "oferta_sigma_na": "Not applicable to the uniform shape (flat density).",
-    "y_na_corto": "Does not affect the allocation: income is a per-stratum constant absorbed by the reservation utility.",
-    "y_na_porque": "Sorting is governed by λ (the value of time), each stratum's accessibility and ρ.",
+    "y_na_corto": "Income is not here: it does not change where any stratum lives.",
+    "y_na_link": "It is edited in Calibration, which explains why.",
     "intro": "Bid-rent: households that value accessibility to the center most outbid the rest for parcels near the CBD and push the others to the periphery.",
     "distribution_meta": "bid-rent · 3 strata",
     "relation": "This module solves land use ONLY, with transport fixed at free flow. For the full land ↔ transport loop, see “City at equilibrium”.",
@@ -1277,5 +1276,15 @@
       "carbono_clp_t": "Carbon ($/t CO₂) · table 5.1",
       "iri": "Roughness IRI (assumption, not a price)"
     }
+  },
+  "ingreso": {
+    "titulo": "Income by stratum",
+    "campo": "{{estrato}} ($/month)",
+    "pregunta": "Why does income not change where each stratum lives?",
+    "respuesta": "Because in the land auction income is a constant of the stratum, and what decides who wins each parcel is the DIFFERENCE in bids between parcels. Stratum h's willingness to pay for parcel i is:",
+    "paso_constante": "y_h is the same on every parcel: raising it raises the stratum's bid across the whole city equally, favouring no parcel.",
+    "paso_reserva": "u_h, the reservation utility, adjusts in equilibrium until the stratum places exactly all its households. If y_h rises by Δ, u_h rises by λ_h·Δ and the bid is identical: neither location nor rents change.",
+    "paso_orden": "What orders the city is what DOES vary between parcels: accessibility in money, T/λ_h, and density, ρ/λ_h. That is why each stratum's value of time rules, not its income.",
+    "donde_importa": "Where it does matter: the monthly transport burden (cost / income) in «City in equilibrium» divides by these values. And each stratum's reservation utility rises with its income: those who earn more live better, but in the same place."
   }
 }

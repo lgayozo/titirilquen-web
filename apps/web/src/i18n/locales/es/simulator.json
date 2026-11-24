@@ -456,7 +456,6 @@
     "logit_converged": "Subasta convergió",
     "logit_iterations": "Iter. subasta",
     "param_H": "H ({{stratum}})",
-    "param_y": "Ingreso y ($/mes)",
     "param_rho": "ρ (densidad, utiles-mes por densidad media)",
     "param_densidad": "Densidad del estrato (hab/km)",
     "densidad_hint": "La densidad de cada celda la fija la oferta de vivienda, S/Δx: el equilibrio decide quién vive en cada celda, no cuántos.",
@@ -488,8 +487,8 @@
     "forma_valle": "Valle",
     "forma_hint_valle": "Poco espacio en el centro, mucho en la periferia: la densidad crece con la distancia (triángulo invertido).",
     "oferta_sigma_na": "No aplica a la forma uniforme (densidad plana).",
-    "y_na_corto": "No afecta la asignación: el ingreso es una constante por estrato que absorbe la utilidad de reserva.",
-    "y_na_porque": "El ordenamiento lo gobiernan λ (el valor del tiempo), la accesibilidad de cada estrato y ρ.",
+    "y_na_corto": "El ingreso no está acá: no cambia dónde vive ningún estrato.",
+    "y_na_link": "Se edita en Calibración, que explica por qué.",
     "intro": "Bid-rent: los hogares que más valoran la accesibilidad al centro ganan en subasta las parcelas cercanas al CBD y empujan al resto a la periferia.",
     "distribution_meta": "bid-rent · 3 estratos",
     "relation": "Este módulo resuelve SOLO el suelo, con transporte fijo a flujo libre. Para el loop completo suelo ↔ transporte, ver «Ciudad en equilibrio».",
@@ -1277,5 +1276,15 @@
       "carbono_clp_t": "Carbono ($/t CO₂) · tabla 5.1",
       "iri": "Rugosidad IRI (supuesto, no es un precio)"
     }
+  },
+  "ingreso": {
+    "titulo": "Ingreso por estrato",
+    "campo": "{{estrato}} ($/mes)",
+    "pregunta": "¿Por qué el ingreso no cambia dónde vive cada estrato?",
+    "respuesta": "Porque en la subasta por suelo el ingreso es una constante del estrato, y lo que decide quién gana cada parcela es la DIFERENCIA de pujas entre parcelas. La disposición a pagar del estrato h por la parcela i es:",
+    "paso_constante": "y_h es el mismo en todas las parcelas: subirlo sube la puja del estrato en toda la ciudad por igual, sin preferir ninguna parcela.",
+    "paso_reserva": "u_h, la utilidad de reserva, se ajusta en el equilibrio hasta que el estrato ubica exactamente a todos sus hogares. Si y_h sube en Δ, u_h sube en λ_h·Δ y la puja queda idéntica: ni la localización ni los arriendos cambian.",
+    "paso_orden": "Lo que ordena la ciudad es lo que SÍ varía entre parcelas: la accesibilidad en pesos, T/λ_h, y la densidad, ρ/λ_h. Por eso manda el valor del tiempo de cada estrato, no su ingreso.",
+    "donde_importa": "Donde sí importa: la carga mensual de transporte (costo / ingreso) de «Ciudad en equilibrio» divide por estos valores. Y la utilidad de reserva de cada estrato sube con su ingreso: quien gana más vive mejor, pero en el mismo lugar."
   }
 }

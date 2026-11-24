@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
@@ -267,18 +268,15 @@ export function LandUseBuilder({
               onChange={(v) => setStratum(idx, { rho: v })}
             />
             <PorQue>{t("land_use.rho_porque")}</PorQue>
-            <LabeledSlider
-              label={t("land_use.param_y")}
-              value={s.y}
-              min={100_000}
-              max={10_000_000}
-              step={100_000}
-              format={(v) => `$${fmtDecimal(v / 1_000_000)}M`}
-              disabled
-              hint={t("land_use.y_na_corto")}
-              onChange={(v) => setStratum(idx, { y: v })}
-            />
-            <PorQue>{t("land_use.y_na_porque")}</PorQue>
+            {/* El ingreso no es un control de la puja: no cambia dónde vive
+                nadie. Estaba acá como un deslizador deshabilitado, que se
+                leía como roto; se edita en Calibración, que explica por qué. */}
+            <p className="mt-2 text-etiqueta leading-snug text-muted">
+              {t("land_use.y_na_corto")}{" "}
+              <Link to="/calibration" className="underline">
+                {t("land_use.y_na_link")}
+              </Link>
+            </p>
           </CollapsibleSection>
         );
       })}
