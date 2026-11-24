@@ -202,7 +202,13 @@ def _utilidad_casos() -> list[dict]:
                         "tren_viaje": tiempos.tren_viaje,
                     },
                     "utilidades": {
-                        modo: {"valor": u.valor, "feasible": u.feasible}
+                        # 12 decimales: el fixture se compara EXACTO y se
+                        # regenera en otra plataforma (el CI corre en Linux).
+                        # Sin redondear, las utilidades de «suaves» —que pasan
+                        # por `logaddexp`— diferían en el último bit entre
+                        # Windows y Linux y el contrato fallaba sin que nada
+                        # hubiera cambiado.
+                        modo: {"valor": round(u.valor, 12), "feasible": u.feasible}
                         for modo, u in utils.items()
                     },
                 }

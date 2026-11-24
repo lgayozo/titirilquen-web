@@ -45,6 +45,20 @@ jobs:
       - run: npm ci
       - name: Regenerar todo lo derivado del núcleo
         run: npm run sync:core --workspace @titirilquen/web
+      # El wheel se compara por CONTENIDO, no byte a byte: es un zip, y el
+      # mismo código empaquetado en Windows y en Linux difiere en los metadatos
+      # del contenedor. Si adentro es idéntico se restaura el commiteado, para
+      # que el `git diff` de abajo mire sólo lo que de verdad puede quedar viejo.
+      - name: El wheel regenerado tiene el mismo contenido
+        run: |
+          WHL=$(ls apps/web/public/pyodide/*.whl)
+          git show "HEAD:$WHL" > /tmp/commiteado.whl
+          if ! python3 packages/titirilquen_core/tools/compara_wheel.py /tmp/commiteado.whl "$WHL"; then
+            echo "::error::El wheel de Pyodide no corresponde al núcleo actual."
+            echo "Corré 'npm run sync:core' y commiteá el resultado junto al cambio del core."
+            exit 1
+          fi
+          git checkout -- "$WHL"
       - name: Exigir que no haya cambios
         run: |
           if ! git diff --exit-code --stat; then
@@ -56,7 +70,10 @@ jobs:
 
   web:
     name: Web (typecheck + lint + build + e2e)
-    runs-on: ubuntu-latest
+    # 24.04 y no `latest`: desde nov-2026 `latest` es 26.04, y el Playwright
+    # del proyecto no instala Chromium ahí («does not support chromium on
+    # ubuntu26.04»). Se vuelve a `latest` al subir Playwright.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -83,7 +100,8 @@ jobs:
 
   pyodide:
     name: Pyodide arranca de verdad
-    runs-on: ubuntu-latest
+    # 24.04 por lo mismo que el job `web`: Playwright y ubuntu 26.04.
+    runs-on: ubuntu-24.04
     # El motor POR DEFECTO de la app es Pyodide, y hasta ahora no lo tocaba
     # ningún job: los otros corren en CPython (pytest) o excluyen el test que
     # necesita CDN (`test:e2e:fast`). O sea que el runtime que usa cada alumno
