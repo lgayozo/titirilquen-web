@@ -9,36 +9,9 @@
  * El LaTeX NO se traduce (es notación); lo traducido es la prosa.
  */
 
-import katex from "katex";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-/** Una fórmula en bloque. `throwOnError: false` deja ver el fuente si algo
- *  falla, en vez de romper la página entera. */
-function Formula({ tex }: { tex: string }) {
-  const html = useMemo(
-    () => katex.renderToString(tex, { throwOnError: false, displayMode: true }),
-    [tex],
-  );
-  return (
-    <div
-      className="teoria-formula"
-      // El HTML lo produce KaTeX a partir de una constante del módulo: no hay
-      // entrada de usuario en juego.
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
-}
-
-/** Un símbolo, en línea, para la lista de significados. */
-function Simbolo({ tex }: { tex: string }) {
-  const html = useMemo(
-    () =>
-      katex.renderToString(tex, { throwOnError: false, displayMode: false }),
-    [tex],
-  );
-  return <span dangerouslySetInnerHTML={{ __html: html }} />;
-}
+import { Formula, Simbolo } from "@/components/ui/Formula";
 
 interface Bloque {
   /** Clave de i18n bajo `aprendizaje.teoria.`. */

@@ -3446,3 +3446,130 @@ table.cmp th {
   line-height: 1.5;
   max-width: 72ch;
 }
+
+/* --- Tabla de agregados: bloques y «saber más» --------------------------- */
+
+/* El encabezado de bloque es lo que dice qué se puede sumar con qué. Sin él
+   la tabla era una lista plana de 19 cifras de naturalezas incompatibles. */
+/* `table.tabla-datos` adelante a propósito: sin él, `table.tabla-datos th`
+   (peso 500, color apagado) gana por especificidad y el título de grupo no
+   salía en negrita. */
+table.tabla-datos .fila-grupo th {
+  text-align: left;
+  padding: 14px 0 6px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-fig);
+  font-size: var(--fs-etiqueta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 700;
+  white-space: normal;
+}
+
+/* Los dos enfoques del bloque de beneficios. */
+table.tabla-datos .fila-subgrupo th {
+  text-align: left;
+  padding: 10px 0 4px;
+  border-bottom: 1px dotted var(--rule);
+  font-family: var(--font-body);
+  font-size: var(--fs-etiqueta);
+  color: var(--ink);
+  font-weight: 700;
+  white-space: normal;
+}
+
+.grupo-glosa {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: var(--fs-etiqueta);
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.saber-mas {
+  display: inline;
+}
+
+/* La etiqueta de la fila ES el summary: cerrada tiene que ocupar exactamente
+   lo mismo que un <td> de texto plano. De ahí `display: inline` y cero
+   márgenes: lo único que se agrega es el «+» del ::before. */
+.saber-mas > summary {
+  display: inline;
+  cursor: pointer;
+  list-style: none;
+}
+
+.saber-mas > summary::-webkit-details-marker {
+  display: none;
+}
+
+.saber-mas > summary::before {
+  content: "+";
+  display: inline-block;
+  width: 1em;
+  margin-right: 2px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.saber-mas[open] > summary::before {
+  content: "−";
+}
+
+.saber-mas > summary:hover::before {
+  color: var(--accent);
+}
+
+.saber-mas-body {
+  margin: 8px 0 4px 1em;
+  padding: 10px 12px;
+  border-left: 2px solid var(--rule);
+  max-width: 68ch;
+}
+
+.saber-mas-porque {
+  margin: 0 0 10px;
+  font-family: var(--font-body);
+  font-size: var(--fs-etiqueta);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.saber-mas-glosa {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 8px 0 0;
+  font-size: var(--fs-etiqueta);
+}
+
+.saber-mas-glosa > div {
+  display: contents;
+}
+
+.saber-mas-glosa dt {
+  text-align: right;
+  color: var(--ink);
+}
+
+.saber-mas-glosa dd {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.saber-mas-fuente {
+  margin: 10px 0 0;
+  font-family: var(--font-body);
+  font-size: var(--fs-etiqueta);
+  color: var(--muted);
+}
+
+.saber-mas-fuente code {
+  font-family: var(--font-mono);
+}
