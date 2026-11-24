@@ -42,8 +42,6 @@ import { cn } from "@/lib/cn";
 import { expectedComposition, smoothSupply } from "@/lib/citySupply";
 import { simularTransporte } from "@/lib/api";
 import { calcularFlujo } from "@/lib/derivados";
-import { TOL_RELATIVA_TON } from "@/lib/gen/constantes.gen";
-import { DEFAULTS_CORE } from "@/lib/gen/defaults.gen";
 import {
   COLOR_MODO,
   COLOR_MODO_MINUSCULA,
@@ -85,15 +83,6 @@ const PRE_VIEW_OPTIONS: readonly HeatMode[] = ["ciudad"];
 /** Modos del panel de carga del corredor (FIG. 02), en orden. */
 type FlowMode = "auto" | "bici" | "metro" | "caminata";
 const FLOW_MODES: readonly FlowMode[] = ["auto", "bici", "metro", "caminata"];
-
-/** Tope de iteraciones al elegir todo o nada: el peor caso medido corta en
- *  ~615 con `TOL_RELATIVA_TON` (Máx Metro; auditoría B, oct-2026). */
-const MAX_ITER_TODO_O_NADA = 700;
-
-/** Tolerancia (min) al elegir Montecarlo: con sorteo la brecha esperada final
- *  queda en ~0,1-0,4 min tras 150 iteraciones, y no baja de ~0,05 ni con
- *  3.000; con el default de 0,02 nunca convergería (auditoría B, oct-2026). */
-const TOL_MONTECARLO = 0.2;
 
 export function SandboxPage() {
   const { t } = useTranslation("simulator");
@@ -538,26 +527,12 @@ export function SandboxPage() {
   // max_iter fijas), así que ese caso se dice aparte.
   const convergencia = useMemo(() => {
     if (!result || !lastIter) return null;
-    // Con sorteo el residuo de la última iteración mide el ruido de muestreo;
-    // el veredicto del núcleo sale de la brecha con flujos esperados
-    // (auditoría B), y se muestra esa para que número y veredicto coincidan.
-    const res =
-      cfgRes.assignment === "montecarlo"
-        ? result.gap_final_min
-        : lastIter.residuo;
+    const res = lastIter.residuo;
     return {
       ok: result.converged,
       sinCriterio: !(cfgRes.tolerance > 0),
-      // Todo o nada para por su brecha relativa —costo en exceso medio sobre
-      // tiempo medio de viaje— contra `TOL_RELATIVA_TON`, no por la brecha de
-      // tiempos contra la tolerancia (D-70, auditoría B), así que su veredicto
-      // lo dice aparte.
-      aon: cfgRes.assignment === "todo_o_nada",
       res: res == null || !isFinite(res) ? null : res,
-      tol:
-        cfgRes.assignment === "todo_o_nada"
-          ? TOL_RELATIVA_TON
-          : cfgRes.tolerance,
+      tol: cfgRes.tolerance,
       usadas: lastIter.iter + 1,
       total: cfgRes.max_iter,
     };
@@ -670,12 +645,7 @@ export function SandboxPage() {
       min: agg.tiempo_medio_por_modo_min[m] ?? 0,
       color: MODE_COLOR[m]!,
     }));
-    const porEstratoUtil =
-      agg == null
-        ? null
-        : agg.medida_bienestar === "utilidad_maxima"
-          ? agg.util_maxima_por_estrato
-          : agg.logsum_por_estrato;
+    const porEstratoUtil = agg?.logsum_por_estrato ?? null;
     const porEstrato = [1, 2, 3].map((sNum, idx) => {
       const h = String(sNum) as "1" | "2" | "3";
       const viajesModo = agg?.viajes_por_modo_estrato?.[h];
@@ -712,7 +682,6 @@ export function SandboxPage() {
         lastIter.residuo == null || !isFinite(lastIter.residuo)
           ? null
           : lastIter.residuo,
-      residuoRelativo: cfgRes.assignment === "todo_o_nada",
       co2Total: result.emisiones_total_kg,
       co2Auto: result.emisiones_auto_kg,
       co2Metro: result.emisiones_metro_kg,
@@ -725,23 +694,17 @@ export function SandboxPage() {
       vcMetro: operatingRatios.metro,
       tiempoPorModo,
       porEstrato,
-      medidaBienestar: agg?.medida_bienestar ?? null,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result, lastIter, cfgRes.assignment, t]);
+  }, [result, lastIter, t]);
 
   // Barra de estado (B3): una línea con el veredicto; el texto largo, que
   // dice qué hacer si no convergió, va en su «¿por qué?».
   const textosEstado = (() => {
     if (!convergencia) return null;
-    // La unidad va con el número: minutos para la brecha de tiempos, % para
-    // la brecha relativa de todo o nada. 3 decimales en ambos: con toFixed(2)
-    // una tolerancia de 0,001 se imprimía "0.00" y se leía como si no hubiera
-    // criterio.
-    const brecha = (v: number) =>
-      convergencia.aon
-        ? `${fmtDecimal(100 * v, 3)} %`
-        : `${fmtDecimal(v, 3)} min`;
+    // La unidad va con el número. 3 decimales: con toFixed(2) una tolerancia
+    // de 0,001 se imprimía "0.00" y se leía como si no hubiera criterio.
+    const brecha = (v: number) => `${fmtDecimal(v, 3)} min`;
     const res = convergencia.res == null ? "—" : brecha(convergencia.res);
     const tol = brecha(convergencia.tol);
     const total = convergencia.total;
@@ -750,16 +713,15 @@ export function SandboxPage() {
         estado: t("equilibrium.estado_no_tol", { total, res }),
         veredicto: t("equilibrium.verdict_no_tol", { total, res }),
       };
-    const clave = convergencia.aon ? "_aon" : "";
     if (convergencia.ok)
       return {
-        estado: t(`equilibrium.estado_ok${clave}`, {
+        estado: t("equilibrium.estado_ok", {
           n: convergencia.usadas,
           total,
           res,
           tol,
         }),
-        veredicto: t(`equilibrium.verdict_ok${clave}`, {
+        veredicto: t("equilibrium.verdict_ok", {
           n: convergencia.usadas,
           total,
           res,
@@ -767,8 +729,8 @@ export function SandboxPage() {
         }),
       };
     return {
-      estado: t(`equilibrium.estado_fail${clave}`, { total, res, tol }),
-      veredicto: t(`equilibrium.verdict_fail${clave}`, { total, res, tol }),
+      estado: t("equilibrium.estado_fail", { total, res, tol }),
+      veredicto: t("equilibrium.verdict_fail", { total, res, tol }),
     };
   })();
 
@@ -815,19 +777,6 @@ export function SandboxPage() {
         >
           {cintaTiempos()}
         </ExportableFigure>
-      )}
-
-      {/* La ciudad y el plano siguen alcanzables después de simular, pero
-          PLEGADOS: son el insumo, no el resultado, y desplegados empujan
-          los KPI y el veredicto fuera de la primera pantalla. `details`
-          nativo, así que abre con teclado y se anuncia a lectores. */}
-      {hasData && (
-        <CollapsibleSection
-          title={t("sandbox.city_view_heading")}
-          className="mt-3"
-        >
-          {bloqueCiudad}
-        </CollapsibleSection>
       )}
 
       <div className="ribbon-legend">
@@ -955,56 +904,16 @@ export function SandboxPage() {
             />
           </label>
 
-          <div className="mt-2">
-            <div className="mb-1 text-etiqueta text-muted">
-              {t("equilibrium.assignment")}
-            </div>
-            <div className="seg" style={{ width: "100%" }}>
-              {(["montecarlo", "expected", "todo_o_nada"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  className={config.assignment === m ? "active" : ""}
-                  // Todo o nada promedia flujos con paso 1/n y su brecha
-                  // relativa cae como 1/n: con 1 pista pide ~520 iteraciones y
-                  // Máx Metro ~615 (auditoría B, oct-2026). Al elegirlo se sube
-                  // el tope a 700; no se baja al volver al logit, que converge
-                  // antes y corta solo. Montecarlo no llega a la tolerancia
-                  // por defecto (0,02 min): su brecha tiene un piso de ruido
-                  // de muestreo. Al elegirlo la tolerancia sube a 0,2, y vuelve
-                  // al default al dejarlo si nadie la movió.
-                  onClick={() =>
-                    setConfig((c) => ({
-                      ...c,
-                      assignment: m,
-                      max_iter:
-                        m === "todo_o_nada"
-                          ? Math.max(c.max_iter, MAX_ITER_TODO_O_NADA)
-                          : c.max_iter,
-                      tolerance:
-                        m === "montecarlo" &&
-                        c.tolerance === DEFAULTS_CORE.tolerance
-                          ? TOL_MONTECARLO
-                          : m !== "montecarlo" &&
-                              c.assignment === "montecarlo" &&
-                              c.tolerance === TOL_MONTECARLO
-                            ? DEFAULTS_CORE.tolerance
-                            : c.tolerance,
-                    }))
-                  }
-                  style={{ flex: 1 }}
-                >
-                  {t(`equilibrium.assignment_${m}`)}
-                </button>
-              ))}
-            </div>
-            <p className="mt-1 text-etiqueta text-muted">
-              {t(`equilibrium.assignment_hint_${config.assignment}`)}
-            </p>
-          </div>
+          {/* El método de carga dejó de ser una opción (nov-2026): el
+              equilibrio se resuelve siempre con flujos esperados —el logit sin
+              ruido de muestreo—. Se retiraron el sorteo por agente, que no
+              agregaba análisis, y todo o nada. */}
+          <p className="mt-2 text-etiqueta leading-snug text-muted">
+            {t("equilibrium.carga_nota")}
+          </p>
 
-          {/* Especificación de los umbrales físicos (oct-2026). Va junto al
-              método de asignación porque cambia la función de utilidad, no
+          {/* Especificación de los umbrales físicos (oct-2026). Va en este
+              bloque porque cambia la función de utilidad, no
               una política: el bienestar no se compara entre las dos. */}
           <div className="mt-2">
             <div className="mb-1 text-etiqueta text-muted">
@@ -1155,7 +1064,13 @@ export function SandboxPage() {
             )}
           </div>
 
-          {!hasData && ribbon}
+          {/* La barra de estado existe en los dos estados y en el mismo
+              lugar: antes dice que no hay corrida, después da el veredicto. */}
+          {!hasData && stage === "idle" && (
+            <div className="estado-corrida" role="status">
+              {t("equilibrium.estado_pre")}
+            </div>
+          )}
 
           {/* Barra de estado: ANTES de los números, junto a la pastilla.
               Sin equilibrio va en color de alerta, porque los KPI son lo
@@ -1178,6 +1093,11 @@ export function SandboxPage() {
         {/* KPIs — el resultado en una línea: viajes, reparto modal, frecuencia
             y CO₂. Convergencia y residuo los dice el veredicto. */}
         <KPIStrip items={kpis} />
+
+        {/* Antes de simular, el plano ocupa el lugar de FIG. 01: la página
+            tiene el mismo orden en los dos estados (estado → KPI → ciudad →
+            …) y cada bloque se llena donde ya estaba. */}
+        {!hasData && <div className="hero">{ribbon}</div>}
 
         {/* Hint row — guía pedagógica (solo antes de la primera corrida: tras
             simular, los resultados mandan y los hints serían ruido) */}
@@ -1254,6 +1174,17 @@ export function SandboxPage() {
                   result={result}
                   config={config}
                 />
+                {/* El plano que ocupaba este lugar antes de simular sigue
+                    acá mismo, PLEGADO: es el insumo de esta figura, no su
+                    resultado. Estaba dos niveles adentro («Más resultados»
+                    → cinta), y la ciudad que se venía mirando desaparecía
+                    al terminar la corrida. */}
+                <CollapsibleSection
+                  title={t("sandbox.city_view_heading")}
+                  className="mt-3"
+                >
+                  {bloqueCiudad}
+                </CollapsibleSection>
               </Panel>
             )}
 
@@ -1368,6 +1299,24 @@ export function SandboxPage() {
           </div>
         )}
 
+        {/* Inspector de utilidad: UNA sola instancia, a la vista antes y
+            después de simular (pasa de flujo libre a tiempos de equilibrio).
+            Tras la corrida quedaba como FIG. 07 al fondo de «Más
+            resultados», justo cuando se vuelve más interesante. */}
+        <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
+          <Panel
+            title={t("demand_inspector.title")}
+            meta={
+              lastIter
+                ? t("demand_inspector.hint_with_sim")
+                : t("demand_inspector.hint_no_sim")
+            }
+            cls="col-12"
+          >
+            <DemandInspector config={cfgRes} lastIter={lastIter} />
+          </Panel>
+        </div>
+
         {/* «Más resultados» (B3): todo lo que no es el resultado principal,
             en un plegable cerrado. A la vista quedan la barra de estado, los
             KPI, tres figuras (la red con v/c, el flujo en el corredor y el
@@ -1391,10 +1340,7 @@ export function SandboxPage() {
                   meta="MSA"
                   cls="col-12"
                 >
-                  <ConvergenceTrace
-                    iterations={liveIterations}
-                    relativa={cfgRes.assignment === "todo_o_nada"}
-                  />
+                  <ConvergenceTrace iterations={liveIterations} />
                 </Panel>
               )}
 
@@ -1508,38 +1454,8 @@ export function SandboxPage() {
                   )}
                 </>
               )}
-              <Panel
-                n="07"
-                title={t("demand_inspector.title")}
-                meta={
-                  lastIter
-                    ? t("demand_inspector.hint_with_sim")
-                    : t("demand_inspector.hint_no_sim")
-                }
-                cls="col-12"
-              >
-                <DemandInspector config={cfgRes} lastIter={lastIter} />
-              </Panel>
             </div>
           </CollapsibleSection>
-        )}
-
-        {/* Inspector de utilidad antes de simular: lo referencia el tutorial
-            de demanda y usa tiempos de flujo libre. */}
-        {liveIterations.length === 0 && (
-          <div className="panel-grid" style={{ marginTop: "var(--gap)" }}>
-            <Panel
-              title={t("demand_inspector.title")}
-              meta={
-                lastIter
-                  ? t("demand_inspector.hint_with_sim")
-                  : t("demand_inspector.hint_no_sim")
-              }
-              cls="col-12"
-            >
-              <DemandInspector config={cfgRes} lastIter={lastIter} />
-            </Panel>
-          </div>
         )}
       </section>
     </div>

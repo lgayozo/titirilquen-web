@@ -47,7 +47,6 @@ def trace(demanda_sintetica_modulo: DemandConfig) -> ConvergenceTrace:
         demand=demanda_sintetica_modulo,
         max_iter=2,
         seed=7,
-        assignment="expected",
     )
     tr = ConvergenceTrace()
     for _ in iter_msa_desde_suelo(cfg, suelo_uniforme(4000), tr, localizacion="original"):

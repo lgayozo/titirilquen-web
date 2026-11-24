@@ -17,10 +17,10 @@ $$
 
 ## Utilities per mode
 
-**Car** — the cost has a per-trip component (half the parking) and a **per-kilometre** one (fuel and toll):
+**Car** — the cost has a per-trip component (half the parking), the toll **per kilometre** and fuel **per litre**: the litres $L_i$ the trip burns depend on its average speed (slower, more litres per km), so congestion also costs in fuel:
 
 $$
-V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(\frac{c_{\text{parking}}}{2} + \left(c_{\text{combustible}} + c_{\text{peaje}}\right) \cdot d_i\right)
+V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(\frac{c_{\text{parking}}}{2} + p_{\text{bencina}} \cdot L_i + c_{\text{peaje}} \cdot d_i\right)
 $$
 
 <OverleafRef sec="Modelo de Demanda" tag="R-14" />

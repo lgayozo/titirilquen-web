@@ -17,10 +17,10 @@ $$
 
 ## Utilidades por modo
 
-**Auto** — el costo tiene un componente por viaje (medio parking) y uno **por kilómetro** (combustible y peaje):
+**Auto** — el costo tiene un componente por viaje (medio parking), el peaje **por kilómetro** y la bencina **por litro**: los litros $L_i$ que quema el viaje dependen de su velocidad media (más lento, más litros por km), así que la congestión también cuesta en bencina:
 
 $$
-V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(\frac{c_{\text{parking}}}{2} + \left(c_{\text{combustible}} + c_{\text{peaje}}\right) \cdot d_i\right)
+V_{\text{auto}}^s = ASC_{\text{auto}}^s + \beta_{t_{\text{viaje}}}^s \cdot t_{\text{viaje}} + \beta_c^s \cdot \left(\frac{c_{\text{parking}}}{2} + p_{\text{bencina}} \cdot L_i + c_{\text{peaje}} \cdot d_i\right)
 $$
 
 <OverleafRef sec="Modelo de Demanda" tag="R-14" />

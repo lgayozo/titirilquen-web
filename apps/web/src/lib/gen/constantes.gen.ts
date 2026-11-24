@@ -25,9 +25,15 @@ export const OMEGA_CORTE_SUAVE = 0.5;
 export const A_DOMINANCIA_METRO = 1.2;
 export const OMEGA_DOMINANCIA_METRO = 0.25;
 
-/** Valor social del tiempo ($/hora-pasajero), Precios Sociales del SNI.
- *  Se actualiza cada año. */
-export const VOT_SOCIAL_CLP_HORA = 3338.0;
+/** Consumo de bencina de un auto en movimiento (MESPIVU, tabla
+ *  13.1.1-3): velocidad (km/h) → ml/km. Se interpola linealmente y fuera
+ *  del rango se queda en el extremo. Ver `operacion_vehicular.py`. */
+export const CONSUMO_AUTO_VELOCIDAD_KMH = [
+  10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0,
+] as const;
+export const CONSUMO_AUTO_ML_KM = [
+  205.6, 110.2, 81.3, 68.9, 63.7, 62.4, 64.0, 67.5, 73.1, 80.1,
+] as const;
 
 /** Viajes por tour casa-trabajo-casa: el parking (costo por día) se
  *  reparte entre la ida y la vuelta. */
@@ -43,10 +49,6 @@ export const TOL_ACOPLADO_CLP_MES = 100.0;
 /** Tope de vueltas del loop acoplado: default y cota en todos los
  *  consumidores (D-61). Ver `constantes.VUELTAS_ACOPLADO_MAX`. */
 export const VUELTAS_ACOPLADO_MAX = 10;
-
-/** Tolerancia de todo o nada sobre su brecha relativa (costo en exceso
- *  medio / tiempo medio de viaje): ver `constantes.TOL_RELATIVA_TON`. */
-export const TOL_RELATIVA_TON = 0.001;
 
 /** Fracción de la capacidad real sobre la que se evalúa la BPR del auto
  *  (capacidad práctica, D6): ver `constantes.FACTOR_CAPACIDAD_PRACTICA`. */

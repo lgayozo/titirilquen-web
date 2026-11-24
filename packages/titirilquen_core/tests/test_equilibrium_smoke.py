@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from tests._poblacion import suelo_uniforme
 from titirilquen_core.config import (
     CityConfig,
@@ -29,7 +31,8 @@ def test_run_msa_smoke_pequena(demanda_sintetica: DemandConfig) -> None:
     last = trace.iteraciones[-1]
     total_agentes = len(trace.agentes)
     total_modal = sum(last.modal_split.values())
-    assert total_modal == total_agentes
+    # flujos esperados: fracciones, no conteos enteros
+    assert total_modal == pytest.approx(total_agentes)
     # Flujos de corredor expuestos en el trace (numerador del v/c). El flujo
     # acumulado domina a la demanda originada por celda y es 0 en el CBD.
     assert trace.flujos_auto_veh_h is not None

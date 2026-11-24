@@ -19,7 +19,7 @@ $$
 
 It is the same **logsum** that the Equilibrium and Land use chapters use as accessibility: the value of having that menu of modes from that cell. It rises when any alternative improves, and more so when the improved one was already good. Euler's constant $\gamma$ is dropped, because no difference sees it.
 
-With the **all-or-nothing** method there is no random term: the agent takes the best mode and its expected value is $\max_m V_m$. The simulator pairs the measure with the assignment method and does not let you choose: logsum with the logit methods and maximum utility with all-or-nothing (Assignment methods chapter).
+The logsum is the simulator's only surplus measure, because there is a single behavioural model: the logit (Loading the demand chapter).
 
 ## From utils to pesos
 
@@ -62,7 +62,7 @@ $$
 W = CS + R_{\text{parking}} + R_{\text{toll}} + R_{\text{fare}} - C_{\text{op}}, \qquad C_{\text{op}} = \text{train-km} \cdot c_{\text{km}}
 $$
 
-Fuel does not enter the revenue: it is burnt, nobody receives it. The metro operating cost does enter, because it consumes resources. Like $CS$, the level of $W$ has an arbitrary zero and only its Δ is read.
+Of fuel, only the tax enters the revenue —the gap between the market price and the social price per litre—; the rest is burnt, nobody receives it. The metro operating cost does enter, because it consumes resources. Like $CS$, the level of $W$ has an arbitrary zero and only its Δ is read.
 
 The **required subsidy** answers a different question: whether the fare covers the cost of the whole day. That is why it multiplies the peak cost by a day/peak factor, and $W$ does not.
 

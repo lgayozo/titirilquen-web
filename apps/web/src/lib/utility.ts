@@ -12,6 +12,8 @@ import type {
 } from "@/lib/types";
 import {
   A_DOMINANCIA_METRO,
+  CONSUMO_AUTO_ML_KM,
+  CONSUMO_AUTO_VELOCIDAD_KMH,
   OMEGA_CORTE_SUAVE,
   OMEGA_DOMINANCIA_METRO,
   VIAJES_POR_TOUR,
@@ -40,6 +42,32 @@ export interface UtilityBreakdown {
 const UTIL_IMPOSIBLE = -9999;
 
 type Tres = readonly [number, number, number];
+
+/** Espejo de `consumo_combustible_auto_ml_km`: interpola la tabla del MESPIVU
+ *  y se queda en el extremo fuera de su rango (como `np.interp`). */
+function consumoAutoMlKm(vKmh: number): number {
+  const vs = CONSUMO_AUTO_VELOCIDAD_KMH;
+  const cs = CONSUMO_AUTO_ML_KM;
+  if (vKmh <= vs[0]!) return cs[0]!;
+  const n = vs.length - 1;
+  if (vKmh >= vs[n]!) return cs[n]!;
+  let k = 0;
+  while (vKmh > vs[k + 1]!) k++;
+  const f = (vKmh - vs[k]!) / (vs[k + 1]! - vs[k]!);
+  return cs[k]! + f * (cs[k + 1]! - cs[k]!);
+}
+
+/** Espejo de `litros_viaje_auto`: los litros del viaje, con el consumo a su
+ *  velocidad media y escalados por la flota. */
+function litrosViajeAuto(
+  distKm: number,
+  tAutoMin: number,
+  gl: DemandConfig["globales"],
+): number {
+  if (distKm <= 0 || tAutoMin <= 0) return 0;
+  const vMedia = distKm / (tAutoMin / 60);
+  return ((distKm * consumoAutoMlKm(vMedia)) / 1000) * gl.factor_flota_auto;
+}
 
 /** Espejo de `_escalones` (D-02): suma `p_k` por cada umbral cruzado. */
 function escalones(t: number, umbrales: Tres, penal: Tres): number {
@@ -120,10 +148,11 @@ export function calcularUtilidades({
   const tCam = (distKm / gl.v_caminata) * 60;
 
   // Auto
-  // Espejo de `costo_monetario_auto`: bencina y peaje por km (D7), más medio
-  // parking, que es por tour (día).
+  // Espejo de `costo_monetario_auto`: los litros que quema el viaje a precio
+  // de mercado, el peaje por km (D7) y medio parking, que es por tour (día).
   const cAuto =
-    distKm * (gl.costo_combustible_km + gl.peaje_km) +
+    litrosViajeAuto(distKm, tt.auto_total, gl) * gl.precio_combustible_clp_l +
+    distKm * gl.peaje_km +
     gl.costo_parking / VIAJES_POR_TOUR;
   const vTAuto = betas.b_tiempo_viaje * tt.auto_total;
   const vCAuto = betas.b_costo * cAuto;

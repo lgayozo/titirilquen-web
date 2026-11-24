@@ -52,15 +52,13 @@ export type RazonIncomparable =
   | "betas"
   | "umbrales"
   | "teletrabajo"
-  | "poblacion"
-  | "medida";
+  | "poblacion";
 
 /** Lo que hace falta de una corrida para decidir si su excedente se compara. */
 export interface CorridaBienestar {
   config: SimulationConfig;
   /** `null` ⇒ el uso de suelo por defecto. */
   landUse: LandUseConfig | null;
-  medida: "logsum" | "utilidad_maxima";
 }
 
 /**
@@ -75,8 +73,7 @@ export interface CorridaBienestar {
  *   función de utilidad, con otras penalizaciones en cada distancia;
  * - el teletrabajo y la población: cambian cuántas personas suman un nivel
  *   que no es cero, así que el total se mueve aunque nadie gane ni pierda
- *   (H-E4 de la auditoría de oct-2026);
- * - la medida: logsum y utilidad máxima son definiciones distintas.
+ *   (H-E4 de la auditoría de oct-2026).
  * La tenencia de auto (`prob_auto`) NO está: bajarla es una política, y la
  * pérdida de logsum es lo que se quiere medir. Es una regla de
  * interpretación, no un cálculo, y por eso vive del lado que decide qué
@@ -104,6 +101,5 @@ export function bienestarComparable(
   const h = (lu: LandUseConfig | null) =>
     JSON.stringify((lu ?? defaultLandUseConfig).H_por_estrato);
   if (h(a.landUse) !== h(b.landUse)) return "poblacion";
-  if (a.medida !== b.medida) return "medida";
   return null;
 }

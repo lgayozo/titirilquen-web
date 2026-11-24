@@ -15,7 +15,7 @@ $$
 
 <OverleafRef sec="Bucle de equilibrio" />
 
-The step $\alpha$ starts at 1 — the first iteration replaces fully — and halves every time the gap fails to fall by at least 10% (Boyles, §8.3.5). With «Logit — sampling» the times are averaged instead, with weight $1/(n+1)$: the sampled gap is too noisy to decide the step.
+The step $\alpha$ starts at 1 — the first iteration replaces fully — and halves every time the gap fails to fall by at least 10% (Boyles, §8.3.5).
 
 ## Interpretation
 
@@ -32,7 +32,7 @@ $$
 
 <OverleafRef sec="Criterio de Parada" tag="R-11" />
 
-— the **undamped gap**: what the loaded network returns against the times the demand was computed with, the maximum over any mode and parcel — falls below the tolerance (**0.02 min**) for **two consecutive iterations**. `max_iter` (150 by default, up to 1,000) remains as a safety cap: the default city converges in 6 iterations, and with 1 lane in 20. With «Logit — sampling» the interface uses 0.2 min, because sampling leaves a noise floor in the gap; with «All-or-nothing» the run stops when the average excess cost falls below one thousandth of the mean travel time, with a cap of 700. If a run exhausts the cap, the status bar says so: what it shows is not an equilibrium.
+— the **undamped gap**: what the loaded network returns against the times the demand was computed with, the maximum over any mode and parcel — falls below the tolerance (**0.02 min**) for **two consecutive iterations**. `max_iter` (150 by default, up to 1,000) remains as a safety cap: the default city converges in 6 iterations, and with 1 lane in 20. If a run exhausts the cap, the status bar says so: what it shows is not an equilibrium.
 
 <MSAFlowchart />
 

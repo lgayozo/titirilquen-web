@@ -101,8 +101,8 @@ const GRUPOS: { labelKey: string; campos: Campo[] }[] = [
       },
       {
         labelKey: "coupled.param.bencina",
-        get: (c) => c.demand.globales.costo_combustible_km,
-        fmt: (v) => `${money(v)}/km`,
+        get: (c) => c.demand.globales.precio_combustible_clp_l,
+        fmt: (v) => `${money(v)}/l`,
       },
       {
         labelKey: "coupled.param.peaje",
@@ -212,7 +212,6 @@ const GRUPOS: { labelKey: string; campos: Campo[] }[] = [
     campos: [
       { labelKey: "compare.diff.max_iter", get: (c) => c.max_iter },
       { labelKey: "compare.diff.tolerance", get: (c) => c.tolerance },
-      { labelKey: "compare.diff.assignment", get: (c) => c.assignment },
     ],
   },
 ];

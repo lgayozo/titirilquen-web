@@ -45,7 +45,7 @@ export const LEE_POLITICA: Record<
 > = {
   num_pistas: (c) => c.supply.car.num_pistas,
   parking: (c) => c.demand.globales.costo_parking,
-  bencina: (c) => c.demand.globales.costo_combustible_km,
+  bencina: (c) => c.demand.globales.precio_combustible_clp_l,
   peaje: (c) => c.demand.globales.peaje_km,
   factor_flota: (c) => c.demand.globales.factor_flota_auto,
   num_estaciones: (c) => c.supply.train.num_estaciones,

@@ -150,9 +150,6 @@ def iter_coupled(
             f"outer_max_iter debe estar entre 1 y {VUELTAS_ACOPLADO_MAX}: {outer_max_iter}"
         )
     rng = np.random.default_rng(sim.seed)
-    # El loop acoplado usa asignación **esperada** (determinista) para que el
-    # equilibrio suelo↔transporte converja sin el piso estocástico del Monte Carlo.
-    sim_eq = sim.model_copy(update={"assignment": "expected"})
     L = sim.city.n_celdas
     CBD = L // 2
     ciudad = CiudadLineal(n_celdas=L, largo_total_km=sim.city.largo_ciudad_km)
@@ -202,8 +199,8 @@ def iter_coupled(
             demand_config=sim.demand,
             teletrabajo_factor=sim.demand.globales.teletrabajo_factor,
         )
-        transport_trace, final_snap = _run_transport_with_population(sim_eq, agentes, ciudad)
-        T_new = _T_logsum_snapshot(sim_eq, ciudad, final_snap)
+        transport_trace, final_snap = _run_transport_with_population(sim, agentes, ciudad)
+        T_new = _T_logsum_snapshot(sim, ciudad, final_snap)
 
         # Brecha del mapa |Φ(T) − T| en $/hogar-mes: ÷λ_h la pasa a pesos, así la
         # tolerancia significa lo mismo en los tres estratos (λ varía ~3,9×, D10).
@@ -234,7 +231,7 @@ def iter_coupled(
             trace=transport_trace,
             S=city.S,
             # La configuración EFECTIVA (D-40): el transporte corre `expected`.
-            sim=sim_eq,
+            sim=sim,
             land_use_config=land_use_config,
             T_residual=residual,
             converged=is_converged,

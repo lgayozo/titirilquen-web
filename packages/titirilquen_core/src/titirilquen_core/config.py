@@ -11,7 +11,21 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from titirilquen_core.constantes import CORTE_BICI_MIN, CORTE_CAMINATA_MIN
+from titirilquen_core.constantes import (
+    CORTE_BICI_MIN,
+    CORTE_CAMINATA_MIN,
+    PONDERADOR_SNI_ACCESO,
+    PONDERADOR_SNI_ESPERA,
+    PRECIO_MERCADO_COMBUSTIBLE_CLP_L,
+    PRECIO_SOCIAL_CARBONO_CLP_T,
+    PRECIO_SOCIAL_COMBUSTIBLE_AUTO_CLP_L,
+    PRECIO_SOCIAL_LUBRICANTE_AUTO_CLP_L,
+    PRECIO_SOCIAL_MANTENCION_CLP_H,
+    PRECIO_SOCIAL_NEUMATICO_AUTO_CLP,
+    PRECIO_SOCIAL_VEHICULO_AUTO_CLP,
+    VIGENCIA_PRECIOS_SOCIALES,
+    VOT_SOCIAL_CLP_HORA,
+)
 
 StratumId = Literal[1, 2, 3]
 """1 = Alto, 2 = Medio, 3 = Bajo."""
@@ -128,7 +142,7 @@ class GlobalConfig(BaseModel):
     # demand/utility.py. Cambia la función de utilidad: no se comparan
     # bienestares entre especificaciones.
     umbrales: Literal["escalones", "suaves"] = "escalones"
-    costo_combustible_km: float = 120
+    precio_combustible_clp_l: float = Field(default=PRECIO_MERCADO_COMBUSTIBLE_CLP_L, ge=0)
     costo_tarifa_metro: float = 800
     # 2000 (antes 4000, antes 6000). NO es un precio de lista: el modelo le cobra
     # parking a TODOS los viajes en auto, cuando en la realidad buena parte
@@ -385,6 +399,44 @@ class SupplyConfig(BaseModel):
     train: TrainSupplyParams = Field(default_factory=TrainSupplyParams)
 
 
+class PreciosSociales(BaseModel):
+    """Precios sociales del Sistema Nacional de Inversiones (MDSF).
+
+    Se publican cada año, y por eso son configuración y no constantes: se
+    editan en la página Calibración y viajan con el escenario, así una corrida
+    vieja se reproduce con los precios de su año. Los valores por defecto son
+    los de `reference/Precios-Sociales-2026.pdf`.
+
+    Entran sólo a la EVALUACIÓN (`bienestar.py`): costo de recursos, costo
+    generalizado social y excedente con ponderación social. Ninguno toca la
+    elección de modo, así que moverlos no cambia el equilibrio."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Año del reporte de donde salen los valores. Sólo rotula.
+    vigencia: int = Field(default=VIGENCIA_PRECIOS_SOCIALES, ge=2000, le=2100)
+    # Valor social del tiempo urbano, viaje en vehículo ($/h-pasajero, tabla 2.1).
+    vst_viaje_clp_h: float = Field(default=VOT_SOCIAL_CLP_HORA, ge=0)
+    # Ponderadores de la tabla 2.1 sobre el tiempo en vehículo, sólo para el
+    # transporte público mayor: la espera, y la caminata de acceso al metro. El
+    # viaje entero a pie no está en esa tabla y pondera 1.
+    ponderador_espera: float = Field(default=PONDERADOR_SNI_ESPERA, ge=0)
+    ponderador_caminata: float = Field(default=PONDERADOR_SNI_ACCESO, ge=0)
+    # Insumos de operación del automóvil (tablas 4.3, 4.4 y 4.5).
+    combustible_auto_clp_l: float = Field(default=PRECIO_SOCIAL_COMBUSTIBLE_AUTO_CLP_L, ge=0)
+    lubricante_auto_clp_l: float = Field(default=PRECIO_SOCIAL_LUBRICANTE_AUTO_CLP_L, ge=0)
+    neumatico_auto_clp: float = Field(default=PRECIO_SOCIAL_NEUMATICO_AUTO_CLP, ge=0)
+    vehiculo_auto_clp: float = Field(default=PRECIO_SOCIAL_VEHICULO_AUTO_CLP, ge=0)
+    mantencion_clp_h: float = Field(default=PRECIO_SOCIAL_MANTENCION_CLP_H, ge=0)
+    # Precio social del carbono ($/t CO₂ equivalente, tabla 5.1).
+    carbono_clp_t: float = Field(default=PRECIO_SOCIAL_CARBONO_CLP_T, ge=0)
+    # Rugosidad del pavimento (IRI) con que se evalúan los «otros costos de
+    # operación» del MESPIVU. NO es un precio y el manual no trae un valor por
+    # defecto —lo saca de un catastro—: 0 deja sólo el término que no depende
+    # de la rugosidad, o sea un piso.
+    iri: float = Field(default=0, ge=0, le=20)
+
+
 class SimulationConfig(BaseModel):
     """Configuración completa de una corrida del simulador — el objeto que se
     serializa al archivo `.ttrq.json`."""
@@ -394,44 +446,22 @@ class SimulationConfig(BaseModel):
     city: CityConfig = Field(default_factory=CityConfig)
     supply: SupplyConfig = Field(default_factory=SupplyConfig)
     demand: DemandConfig
-    # 150 (antes 40, y 20 antes de D8). Con el paso halving de 'expected'
-    # (auditoría B, oct-2026) la base converge en 6 y el p95 del rango de la
-    # interfaz en 11; el tope lo muerden 'montecarlo' (paso 1/n) y todo o nada,
-    # cuya brecha baja como 1/n: con 1 pista pide ~520 y Máx Metro ~615. El
-    # techo de 1.000 cubre esos casos; la interfaz sube el tope a 700 al elegir
-    # todo o nada. Una corrida que converge corta antes y no paga el tope.
+    precios_sociales: PreciosSociales = Field(default_factory=PreciosSociales)
+    # 150 (antes 40, y 20 antes de D8). Con el paso halving (auditoría B,
+    # oct-2026) la base converge en 6 y el p95 del rango de la interfaz en 11.
+    # El techo de 1.000 viene de cuando había métodos con paso 1/n ('montecarlo'
+    # y todo o nada, retirados en nov-2026). Una corrida que converge corta
+    # antes y no paga el tope.
     max_iter: int = Field(default=150, ge=1, le=1000)
     # 0,02 min sobre la brecha no amortiguada `max |c(x(t)) − t|` (D8). Con
     # 0,2 y el paso 1/n la base quedaba 0,12-0,19 pp lejos del equilibrio;
     # con halving y 0,02, la mediana de los 776 casos del rango de la interfaz
-    # queda a 0,002 pp y el p95 a 0,008 (auditoría B, oct-2026). Montecarlo
-    # no llega a 0,02 —su brecha tiene un piso de ruido de muestreo—, así que la
-    # interfaz le sube la tolerancia a 0,2 al elegirlo; todo o nada no usa este
-    # valor sino `TOL_RELATIVA_TON` (sólo hereda que 0 apaga el corte).
+    # queda a 0,002 pp y el p95 a 0,008 (auditoría B, oct-2026).
     # `tolerance=0` sigue siendo válido y significa «no cortar por brecha».
     # Historia: el 0 original replicaba al repo de origen, que cortaba sólo por
     # max_iter y marcaba «sin converger» siempre; D8 la llevó a 0,2.
     tolerance: float = Field(default=0.02, ge=0)
     seed: int | None = None
-    assignment: Literal["montecarlo", "expected", "todo_o_nada"] = Field(
-        default="montecarlo",
-        description=(
-            "Método de asignación de demanda. 'montecarlo' sortea el modo de cada "
-            "agente; 'expected' usa los flujos esperados = probabilidades logit "
-            "(el mismo modelo sin ruido de muestreo); 'todo_o_nada' manda al "
-            "grupo ENTERO al modo de mayor utilidad. "
-            "Los tres son el mismo modelo de utilidad aleatoria: 'todo_o_nada' es "
-            "el límite del logit cuando la escala de los coeficientes crece, o sea "
-            "con varianza cero en la parte no observada. "
-            "NO produce igualación de costos entre modos — medido en "
-            "scripts/auditoria_wardrop.py: los cuatro modos se usan a la vez con "
-            "costos que difieren hasta 32 min. Lo que cambia es que el grupo "
-            "marginal salta entero en vez de trasvasar una fracción, y de ahí que "
-            "sólo con este método aparezca Downs-Thomson (docs/CONTINUAR.md §5). "
-            "Se llamó 'wardrop' hasta agosto de 2026; el nombre prometía una "
-            "condición de equilibrio de usuario que este modelo no cumple."
-        ),
-    )
     modos_habilitados: tuple[Modo, ...] = Field(
         default=("Auto", "Metro", "Bici", "Caminata"),
         description=(

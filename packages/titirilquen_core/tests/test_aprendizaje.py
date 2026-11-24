@@ -43,7 +43,6 @@ def ciudad_base():
         max_iter=150,
         tolerance=0.02,
         seed=42,
-        assignment="expected",
     )
     lu = LandUseConfig(
         H_por_estrato=(7200, 18000, 10800),
@@ -277,7 +276,9 @@ def test_ejecutar_sin_tratamiento_da_phi_uno(ciudad_base):
         sim, lu, ConfigPersona(estrato=2, celda=135, d=1.28, dias=40, replicas=50)
     )
     assert r["caso"]["mejor"] == "Auto"
-    assert r["caso"]["ventaja_min"] == pytest.approx(33.37, abs=0.05)
+    # 33,37 hasta nov-2026; se movió con el consumo único de bencina (el auto
+    # paga los litros que quema, no un costo fijo por km).
+    assert r["caso"]["ventaja_min"] == pytest.approx(34.69, abs=0.05)
     for v in r["ventanas"].values():
         assert v["phi"] == pytest.approx(1.0)
 

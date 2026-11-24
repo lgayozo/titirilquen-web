@@ -169,8 +169,8 @@ export function describePresetParams(
     {
       key: "bencina",
       labelKey: "coupled.param.bencina",
-      value: `$${nf(sim.demand.globales.costo_combustible_km)}`,
-      unit: "/km",
+      value: `$${nf(sim.demand.globales.precio_combustible_clp_l)}`,
+      unit: "/l",
       group: "transport",
     },
     {
@@ -247,7 +247,9 @@ export function applyJointPreset(
         corte_bici_min: calibrado.demand.globales.corte_bici_min,
         ...(pol.tarifa !== undefined && { costo_tarifa_metro: pol.tarifa }),
         ...(pol.parking !== undefined && { costo_parking: pol.parking }),
-        ...(pol.bencina !== undefined && { costo_combustible_km: pol.bencina }),
+        ...(pol.bencina !== undefined && {
+          precio_combustible_clp_l: pol.bencina,
+        }),
         ...(pol.peaje !== undefined && { peaje_km: pol.peaje }),
         ...(pol.factor_flota !== undefined && {
           factor_flota_auto: pol.factor_flota,

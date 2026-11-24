@@ -141,18 +141,25 @@ ESPERADO = {
     #     flujo de su lado. La bici se alarga 50 m y deja de derivar con
     #     n_celdas. Original auto −0,02, metro +0,18, bici −0,21, caminata
     #     +0,06; equilibrio auto −0,03, metro +0,20, bici −0,21, caminata +0,04.
+    # 18. Consumo ÚNICO de bencina (2026-11-24, decisión de Leandro): el costo
+    #     del auto deja de ser 120 $/km fijo y pasa a ser los litros del viaje
+    #     (MESPIVU, tabla 13.1.1-3, a la velocidad media) por el precio de
+    #     mercado, 1.086 $/l. A las velocidades de la base el conductor paga
+    #     menos por km que antes, así que sube el auto. Original auto +0,42,
+    #     metro −0,33, bici −0,10, caminata +0,01; equilibrio auto +0,61,
+    #     metro −0,49, bici −0,15, caminata +0,03.
     "equilibrio": {
-        "Auto": 28.25,
-        "Metro": 26.11,
-        "Bici": 35.79,
-        "Caminata": 9.85,
+        "Auto": 28.86,
+        "Metro": 25.62,
+        "Bici": 35.64,
+        "Caminata": 9.88,
         "Teletrabajo": 0.0,
     },
     "original": {
-        "Auto": 29.16,
-        "Metro": 23.42,
-        "Bici": 35.42,
-        "Caminata": 12.01,
+        "Auto": 29.58,
+        "Metro": 23.09,
+        "Bici": 35.32,
+        "Caminata": 12.02,
         "Teletrabajo": 0.0,
     },
 }
@@ -185,9 +192,11 @@ ITERACIONES_ESPERADAS = {"equilibrio": 6, "original": 6}
 #: Con la parada de la auditoría B (oct-2026) se movió como la base: metro +0,15
 #: y +0,19; 12 → 6 y 9 → 6 iteraciones. Con la media celda del CBD (D-71,
 #: oct-2026), también como la base: bici −0,25 y −0,26, metro +0,21 y +0,23.
+#: Con el consumo único de bencina (nov-2026) se movió como la base: auto +0,4 y
+#: +0,6 pp.
 ESPERADO_SUAVES = {
-    "equilibrio": {"Auto": 28.53, "Metro": 25.74, "Bici": 35.78, "Caminata": 9.96},
-    "original": {"Auto": 29.41, "Metro": 22.90, "Bici": 35.56, "Caminata": 12.12},
+    "equilibrio": {"Auto": 29.13, "Metro": 25.24, "Bici": 35.64, "Caminata": 9.99},
+    "original": {"Auto": 29.82, "Metro": 22.56, "Bici": 35.48, "Caminata": 12.14},
 }
 ITERACIONES_SUAVES = {"equilibrio": 6, "original": 6}
 
@@ -214,7 +223,6 @@ def _config_web(umbrales: str = "escalones") -> SimulationConfig:
         max_iter=150,
         tolerance=0.02,  # = default del core desde la auditoría B (oct-2026)
         seed=42,  # web fija la semilla; el core la deja libre
-        assignment="expected",  # web: expected · core: montecarlo
     )
 
 

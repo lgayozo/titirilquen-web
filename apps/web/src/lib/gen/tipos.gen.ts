@@ -55,7 +55,7 @@ export interface GlobalConfig {
   corte_caminata_min: number;
   corte_bici_min: number;
   umbrales: "escalones" | "suaves";
-  costo_combustible_km: number;
+  precio_combustible_clp_l: number;
   costo_tarifa_metro: number;
   costo_parking: number;
   peaje_km: number;
@@ -76,6 +76,30 @@ export interface PhysicalPenalties {
   walk_5: number;
   walk_15: number;
   walk_25: number;
+}
+
+/**
+ *  Precios sociales del Sistema Nacional de Inversiones (MDSF). Se publican
+ *  cada año, y por eso son configuración y no constantes: se editan en la
+ *  página Calibración y viajan con el escenario, así una corrida vieja se
+ *  reproduce con los precios de su año. Los valores por defecto son los de
+ *  `reference/Precios-Sociales-2026.pdf`. Entran sólo a la EVALUACIÓN
+ *  (`bienestar.py`): costo de recursos, costo generalizado social y excedente
+ *  con ponderación social. Ninguno toca la elección de modo, así que moverlos
+ *  no cambia el equilibrio.
+ */
+export interface PreciosSociales {
+  vigencia: number;
+  vst_viaje_clp_h: number;
+  ponderador_espera: number;
+  ponderador_caminata: number;
+  combustible_auto_clp_l: number;
+  lubricante_auto_clp_l: number;
+  neumatico_auto_clp: number;
+  vehiculo_auto_clp: number;
+  mantencion_clp_h: number;
+  carbono_clp_t: number;
+  iri: number;
 }
 
 /** Coeficientes del logit multinomial por estrato. */
@@ -142,25 +166,10 @@ export interface SimulationConfig {
   city: CityConfig;
   supply: SupplyConfig;
   demand: DemandConfig;
+  precios_sociales: PreciosSociales;
   max_iter: number;
   tolerance: number;
   seed: number | null;
-  /**
-   *  Método de asignación de demanda. 'montecarlo' sortea el modo de cada
-   *  agente; 'expected' usa los flujos esperados = probabilidades logit (el
-   *  mismo modelo sin ruido de muestreo); 'todo_o_nada' manda al grupo ENTERO
-   *  al modo de mayor utilidad. Los tres son el mismo modelo de utilidad
-   *  aleatoria: 'todo_o_nada' es el límite del logit cuando la escala de los
-   *  coeficientes crece, o sea con varianza cero en la parte no observada. NO
-   *  produce igualación de costos entre modos — medido en
-   *  scripts/auditoria_wardrop.py: los cuatro modos se usan a la vez con costos
-   *  que difieren hasta 32 min. Lo que cambia es que el grupo marginal salta
-   *  entero en vez de trasvasar una fracción, y de ahí que sólo con este método
-   *  aparezca Downs-Thomson (docs/CONTINUAR.md §5). Se llamó 'wardrop' hasta
-   *  agosto de 2026; el nombre prometía una condición de equilibrio de usuario
-   *  que este modelo no cumple.
-   */
-  assignment: "montecarlo" | "expected" | "todo_o_nada";
   /**
    *  Modos disponibles en el set de elección. Los modos excluidos se tratan
    *  como infeasibles (utilidad −∞) y no reciben demanda. Útil para escenarios

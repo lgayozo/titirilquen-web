@@ -4,7 +4,7 @@
  * Formato de archivo `.ttrq.json`:
  * ```json
  * {
- *   "$schema": "titirilquen-scenario/v11",
+ *   "$schema": "titirilquen-scenario/v12",
  *   "name": "Mi escenario",
  *   "config": { ...SimulationConfig },
  *   "land_use": { ...LandUseConfig },          // opcional
@@ -23,7 +23,7 @@
  * educativo cuyos escenarios se rehacen en minutos, no un sistema con datos
  * que no se pueden perder.
  *
- * La consecuencia es explícita: un archivo o link anterior a v11 falla al
+ * La consecuencia es explícita: un archivo o link anterior a v12 falla al
  * importarse, con un mensaje que dice por qué. v5 (sep-2026): el campo de
  * suelo `beta` pasó a llamarse `mu`, la precisión μ de Martínez; `beta` era
  * la otra precisión de su libro (D-31). v6 (sep-2026): se eliminó
@@ -41,7 +41,10 @@
  * no lo trae y correría otra ciudad sin avisar. v11 (oct-2026): la demanda
  * ganó `globales.umbrales` («escalones» o «suaves»); un v10 no lo trae, el
  * selector de Transporte quedaría sin opción activa y Comparar declararía
- * incomparables dos corridas con la misma especificación. Si algún día hay escenarios que
+ * incomparables dos corridas con la misma especificación. v12 (nov-2026):
+ * la config ganó `precios_sociales` (VST, combustible, carbono… del reporte
+ * anual del SNI), que antes eran constantes; un v11 no lo trae y la página
+ * Calibración no tendría qué mostrar. Si algún día hay escenarios que
  * de verdad importe conservar, la decisión se revisa — y entonces el lugar
  * correcto es un migrador versionado, no cinco parches sueltos.
  */
@@ -49,7 +52,7 @@
 import type { SimulationConfig } from "@/lib/types";
 import type { LandUseConfig } from "@/lib/types-v2";
 
-export const TTRQ_SCHEMA = "titirilquen-scenario/v11";
+export const TTRQ_SCHEMA = "titirilquen-scenario/v12";
 export const TTRQ_EXT = ".ttrq.json";
 
 export interface CoupledPrefs {
@@ -156,6 +159,13 @@ export function scenarioFromUrlParam(param: string): ScenarioPayload {
     throw new Error(
       "Este link es de una versión anterior del simulador (sin la " +
         "especificación de los umbrales, schema v10) y ya no se puede abrir. " +
+        "Vuelve a generarlo.",
+    );
+  }
+  if (typeof cfg.precios_sociales !== "object" || !cfg.precios_sociales) {
+    throw new Error(
+      "Este link es de una versión anterior del simulador (sin los precios " +
+        "sociales en la configuración, schema v11) y ya no se puede abrir. " +
         "Vuelve a generarlo.",
     );
   }

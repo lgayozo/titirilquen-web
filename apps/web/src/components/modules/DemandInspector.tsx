@@ -169,20 +169,6 @@ export function DemandInspector({ config, lastIter }: DemandInspectorProps) {
       <PorQue className="mb-2">
         {t("demand_inspector.interpretation_porque")}
       </PorQue>
-
-      {/* P siempre es logit, incluso con `assignment: "todo_o_nada"`: el inspector
-          existe para leer la función de utilidad, y Wardrop es el límite del
-          logit cuando la escala crece. Pero entonces la P de acá NO es el
-          reparto que produjo la corrida, así que hay que decirlo. Con
-          "montecarlo" y "expected" sí coinciden y no se advierte nada. */}
-      {config.assignment === "todo_o_nada" && (
-        <p
-          className="text-etiqueta leading-snug"
-          style={{ marginTop: -6, color: "var(--alerta)" }}
-        >
-          {t("demand_inspector.todo_o_nada_notice")}
-        </p>
-      )}
     </div>
   );
 }

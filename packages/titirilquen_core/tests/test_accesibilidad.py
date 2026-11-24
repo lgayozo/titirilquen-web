@@ -177,7 +177,6 @@ def test_la_pendiente_mueve_la_accesibilidad_y_la_localizacion() -> None:
             demand=dem,
             max_iter=1,
             seed=1,
-            assignment="expected",
         )
         trace = ConvergenceTrace()
         lu = LandUseConfig(H_por_estrato=(720, 1800, 1080))

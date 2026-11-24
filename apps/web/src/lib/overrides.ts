@@ -43,10 +43,6 @@ export const defaultSimulationConfig: SimulationConfig = {
   // Semilla fija: dos corridas con la misma configuración deben dar el mismo
   // número, o comparar escenarios es imposible.
   seed: 42,
-  // El núcleo conserva el Monte Carlo del original. La app reparte por flujos
-  // esperados: es el mismo modelo sin ruido de muestreo, y sin ruido las
-  // curvas de sensibilidad se leen.
-  assignment: "expected",
 };
 
 export const defaultLandUseConfig: LandUseConfig = {

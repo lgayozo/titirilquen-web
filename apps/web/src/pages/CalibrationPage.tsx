@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { CalibrationPanel } from "@/components/modules/CalibrationPanel";
+import { PreciosSocialesPanel } from "@/components/modules/PreciosSocialesPanel";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { Panel } from "@/components/ui/Panel";
@@ -116,6 +117,7 @@ export function CalibrationPage() {
           </p>
           <PorQue>{t("calibration_page.mu_porque")}</PorQue>
         </CollapsibleSection>
+        <PreciosSocialesPanel config={config} onChange={setConfig} />
       </aside>
 
       <section className="main">

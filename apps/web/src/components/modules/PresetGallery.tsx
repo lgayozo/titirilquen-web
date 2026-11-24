@@ -126,7 +126,7 @@ const CAMPO: Record<
   },
   bencina: {
     labelKey: "coupled.param.bencina",
-    fmt: (v) => `${money(v)}/km`,
+    fmt: (v) => `${money(v)}/l`,
   },
   peaje: {
     labelKey: "coupled.param.peaje",
@@ -289,7 +289,9 @@ export function PresetGallery({ variant }: PresetGalleryProps) {
           ...c.demand.globales,
           ...(p.tarifa !== undefined && { costo_tarifa_metro: p.tarifa }),
           ...(p.parking !== undefined && { costo_parking: p.parking }),
-          ...(p.bencina !== undefined && { costo_combustible_km: p.bencina }),
+          ...(p.bencina !== undefined && {
+            precio_combustible_clp_l: p.bencina,
+          }),
           ...(p.peaje !== undefined && { peaje_km: p.peaje }),
           // Faltaba: el preset lo declaraba y la tabla de la tarjeta lo
           // mostraba, pero nunca llegaba a la config. «Vehículos híbridos»

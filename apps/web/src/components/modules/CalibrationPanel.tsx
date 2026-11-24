@@ -107,7 +107,7 @@ const fmtMoney = (v: number) => fmtPesos(v);
  * De paso, confirmar al salir evita recalcular las cifras derivadas con
  * números a medio escribir.
  */
-function NumberField({
+export function NumberField({
   label,
   value,
   step,

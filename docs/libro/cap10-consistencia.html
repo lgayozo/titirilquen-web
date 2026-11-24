@@ -124,8 +124,8 @@
     <tr>
       <td class="n">1</td>
       <td class="ruta py">bienestar.py</td>
-      <td class="n">274</td>
-      <td><code>medidas_de_utilidad</code> — por rama con/sin auto, mezcladas por la tenencia realizada de la celda (auditoría C); <code>calcular_agregados</code> (317) cuenta viajeros en 349</td>
+      <td class="n">271</td>
+      <td><code>logsum_de_utilidad</code> — por rama con/sin auto, mezcladas por la tenencia realizada de la celda (auditoría C); <code>calcular_agregados</code> (308) cuenta viajeros en 349</td>
     </tr>
     <tr>
       <td class="n">1</td>
@@ -142,19 +142,19 @@
     <tr>
       <td class="n">2</td>
       <td class="ruta py">coupled.py</td>
-      <td class="n">155</td>
-      <td><code>sim_eq</code> — el acoplado fuerza <code>expected</code>; la misma semilla en 138</td>
+      <td class="n">152</td>
+      <td><code>default_rng</code> — la semilla de la corrida; el acoplado usa el mismo método de carga que Transporte, el único que queda</td>
     </tr>
     <tr>
       <td class="n">3</td>
       <td class="ruta py">equilibrium/msa.py</td>
-      <td class="n">183</td>
+      <td class="n">180</td>
       <td><code>_correr_iteracion</code> — el conteo ESPERADO <em>n·p_m</em> (204) que es <code>modal_split</code></td>
     </tr>
     <tr>
       <td class="n">3</td>
       <td class="ruta py">equilibrium/msa.py</td>
-      <td class="n">309</td>
+      <td class="n">224</td>
       <td><code>_asignar_modos_agentes</code> — el <code>modo_elegido</code> MUESTREADO por agente al final, sólo para lo que se dibuja agente a agente (D-67, corregido)</td>
     </tr>
     <tr>
@@ -166,19 +166,19 @@
     <tr>
       <td class="n">3</td>
       <td class="ruta py">coupled_metrics.py</td>
-      <td class="n">329</td>
+      <td class="n">312</td>
       <td><code>compute_equilibrium_metrics</code> — <code>reparto_modal</code> de la demanda esperada (<code>demanda_estrato</code>), con teletrabajo y varado en el denominador</td>
     </tr>
     <tr>
       <td class="n">4</td>
       <td class="ruta py">demand/utility.py</td>
-      <td class="n">111</td>
-      <td><code>_tiempos_flujo_libre</code> — el arranque ingenuo: velocidades globales, 10 min de acceso, 5 de espera; lo usa <code>calcular_utilidades</code> (122) cuando no hay tiempos</td>
+      <td class="n">134</td>
+      <td><code>_tiempos_flujo_libre</code> — el arranque ingenuo: velocidades globales, 10 min de acceso, 5 de espera; lo usa <code>calcular_utilidades</code> (145) cuando no hay tiempos</td>
     </tr>
     <tr>
       <td class="n">5</td>
       <td class="ruta py">equilibrium/msa.py</td>
-      <td class="n">340</td>
+      <td class="n">256</td>
       <td><code>iter_msa_desde_suelo</code> — la rama «original» en 331; la geometría se hereda de <code>CiudadLineal</code></td>
     </tr>
     <tr>
@@ -219,7 +219,7 @@
   Sobre nueve combinaciones estrato × celda (tres estratos; celdas 60, 125 y
   180), el logsum recalculado a mano desde <code>calcular_utilidades</code>, el
   recuperado de <code>probabilidades_logit</code>, el de
-  <code>medidas_de_utilidad</code> y el de <code>logsum_por_celda</code> con
+  <code>logsum_de_utilidad</code> y el de <code>logsum_por_celda</code> con
   <code>prob_auto = 1</code> <strong>coinciden en las nueve</strong> a 10⁻⁹. Y el
   valor del tiempo:
 </p>

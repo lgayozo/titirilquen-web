@@ -109,7 +109,6 @@ def _snapshot(demand: DemandConfig):
         demand=demand,
         max_iter=2,
         seed=11,
-        assignment="expected",
     )
     ciudad = CiudadLineal(n_celdas=41, largo_total_km=8)
     trace = ConvergenceTrace()

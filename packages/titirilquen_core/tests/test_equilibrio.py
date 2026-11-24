@@ -48,20 +48,13 @@ def lu_chica() -> LandUseConfig:
 
 
 # ---------------------------------------------------------------------------
-# Los tres métodos de asignación, bajo el loop
+# El loop
 # ---------------------------------------------------------------------------
-#
-# `probabilidades_todo_o_nada` tiene sus propios tests unitarios, pero hasta
-# ahora nunca se había ejercitado DENTRO del MSA — que es donde la decisión de
-# `msa.py` ("todo_o_nada carga fraccionalmente igual que expected") podía estar
-# equivocada sin que nada avisara.
 
 
-@pytest.mark.parametrize("metodo", ["montecarlo", "expected", "todo_o_nada"])
-def test_los_tres_metodos_corren_y_conservan_la_poblacion(
-    sim_liviana: SimulationConfig, lu_chica: LandUseConfig, metodo: str
+def test_el_loop_corre_y_conserva_la_poblacion(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
 ) -> None:
-    sim_liviana.assignment = metodo
     sim_liviana.max_iter = 8
     sim_liviana.tolerance = 0.1
     tr = _drena(sim_liviana, lu_chica)
@@ -73,43 +66,15 @@ def test_los_tres_metodos_corren_y_conservan_la_poblacion(
     assert total == pytest.approx(len(tr.agentes), rel=1e-9)
 
 
-def test_el_todo_o_nada_concentra_mas_que_el_logit(
+def test_el_loop_promedia_flujos_con_paso_halving(
     sim_liviana: SimulationConfig, lu_chica: LandUseConfig
 ) -> None:
-    """La propiedad que DEFINE al método: sin dispersión de gustos, cada grupo
-    va entero a un modo, así que el reparto agregado es más concentrado.
-
-    Se mide con la entropía del reparto modal. Es una propiedad estructural, no
-    un número calibrado: sobrevive a que se recalibre el simulador.
-    """
-
-    def entropia(sim: SimulationConfig, metodo: str) -> float:
-        sim.assignment = metodo
-        sim.max_iter = 10
-        sim.tolerance = 0.05
-        split = _drena(sim, lu_chica).iteraciones[-1].modal_split
-        viajes = np.array([v for m, v in split.items() if m != "Teletrabajo"], dtype=float)
-        p = viajes[viajes > 0] / viajes.sum()
-        return float(-(p * np.log(p)).sum())
-
-    logit = entropia(sim_liviana.model_copy(deep=True), "expected")
-    determinista = entropia(sim_liviana.model_copy(deep=True), "todo_o_nada")
-    assert determinista < logit, (
-        f"el todo-o-nada debería concentrar más el reparto: "
-        f"entropía {determinista:.4f} vs logit {logit:.4f}"
-    )
-
-
-def test_expected_promedia_flujos_con_paso_halving(
-    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
-) -> None:
-    """'expected' promedia FLUJOS con el paso halving de Boyles §8.3.5
+    """El loop promedia FLUJOS con el paso halving de Boyles §8.3.5
     (auditoría B, oct-2026): el paso parte en 1 y, cuando cambia, sólo se
     divide por 2. Y el corte es honesto: la brecha fresca del estado que se
     entrega (`gap_final_min`, medida un paso más allá) también queda bajo la
     tolerancia. Con el residuo de tiempos consecutivos, que con flujos
     promediados es un cambio amortiguado, eso fallaba."""
-    sim_liviana.assignment = "expected"
     sim_liviana.max_iter = 150
     sim_liviana.tolerance = 0.02
     tr = _drena(sim_liviana, lu_chica)
@@ -121,26 +86,6 @@ def test_expected_promedia_flujos_con_paso_halving(
     assert tr.gap_final_min < sim_liviana.tolerance
 
 
-def test_montecarlo_converge_segun_la_brecha_esperada(
-    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
-) -> None:
-    """Con sorteo, la brecha del loop mide el ruido de muestreo: el veredicto
-    sale de `gap_final_min`, que carga flujos esperados (auditoría B). Antes el
-    loop podía declarar «convergió» con esa brecha sobre la tolerancia, o
-    agotar las iteraciones con ella bajo la tolerancia."""
-    sim_liviana.assignment = "montecarlo"
-    vistos = set()
-    # Con max_iter=2 el loop no alcanza a ver 2 brechas bajo la tolerancia (la
-    # primera es inf): antes era siempre «no convergió», aunque la brecha
-    # esperada cumpliera con holgura.
-    for max_iter, tol in ((2, 10.0), (20, 0.2), (20, 0.02), (20, 1e-6)):
-        sim = sim_liviana.model_copy(update={"max_iter": max_iter, "tolerance": tol})
-        tr = _drena(sim, lu_chica)
-        assert tr.converged == (tr.gap_final_min < tol), (max_iter, tol, tr.gap_final_min)
-        vistos.add(tr.converged)
-    assert vistos == {True, False}, "los casos no ejercen las dos caras del veredicto"
-
-
 # ---------------------------------------------------------------------------
 # Bordes del conjunto de elección
 # ---------------------------------------------------------------------------
@@ -150,7 +95,6 @@ def test_un_modo_deshabilitado_no_recibe_demanda(
     sim_liviana: SimulationConfig, lu_chica: LandUseConfig
 ) -> None:
     sim_liviana.modos_habilitados = ("Auto", "Caminata")
-    sim_liviana.assignment = "expected"
     tr = _drena(sim_liviana, lu_chica)
     último = tr.iteraciones[-1]
     assert último.demanda_metro.sum() == 0.0
@@ -169,7 +113,6 @@ def test_sin_modos_factibles_los_agentes_quedan_varados(
     un modo cualquiera, estaría inventando viajes.
     """
     sim_liviana.modos_habilitados = ("Auto",)
-    sim_liviana.assignment = "expected"
     tr = _drena(sim_liviana, lu_chica)
 
     varados = [a for a in tr.agentes if a.modo_elegido is None]
@@ -201,7 +144,6 @@ def test_las_dos_localizaciones_dan_ciudades_distintas(
     los diferenciaba un λ del suelo que no era el de su demanda.
     """
     sim_liviana.demand = demanda_calibrada
-    sim_liviana.assignment = "expected"
     eq = _drena(sim_liviana.model_copy(deep=True), lu_chica, localizacion="equilibrio")
     orig = _drena(sim_liviana.model_copy(deep=True), lu_chica, localizacion="original")
 
@@ -224,7 +166,6 @@ def test_la_demanda_por_estrato_cuadra_con_el_reparto(
     recibía `undefined` y mostraba todos los indicadores en cero, sin error.
     Este test fija que el cubo exista y cuadre con el reparto agregado.
     """
-    sim_liviana.assignment = "expected"
     tr = _drena(sim_liviana, lu_chica)
     cubo = tr.demanda_estrato
     assert cubo is not None, "el trace no trae demanda_estrato"
@@ -241,7 +182,6 @@ def test_el_criterio_de_corte_corta_antes_del_tope(
     """Con una tolerancia realista el loop debe terminar por convergencia, no
     por agotar `max_iter`. Sólo se probaba con `tolerance=1e6`, que corta
     siempre y no verifica nada."""
-    sim_liviana.assignment = "expected"
     sim_liviana.max_iter = 40
     sim_liviana.tolerance = 0.1
     tr = _drena(sim_liviana, lu_chica)
@@ -254,7 +194,6 @@ def test_el_criterio_de_corte_corta_antes_del_tope(
 def test_el_residuo_baja(sim_liviana: SimulationConfig, lu_chica: LandUseConfig) -> None:
     """No exige monotonía —el MSA puede rebotar en las primeras vueltas— pero sí
     que el final sea mucho mejor que el primer valor finito."""
-    sim_liviana.assignment = "expected"
     sim_liviana.max_iter = 15
     sim_liviana.tolerance = 0.0  # sin corte: se ven todas
     residuos = [

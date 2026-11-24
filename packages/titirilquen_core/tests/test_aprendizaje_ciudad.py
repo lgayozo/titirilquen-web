@@ -43,7 +43,6 @@ def escenario():
         max_iter=40,
         tolerance=0.05,
         seed=42,
-        assignment="expected",
     )
     lu = LandUseConfig(
         H_por_estrato=(300, 700, 400),

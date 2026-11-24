@@ -59,7 +59,45 @@ OMEGA_DOMINANCIA_METRO: Final[float] = 0.25
 #: **Se actualiza cada año.** Es un valor de norma, no una calibración: entra en
 #: la evaluación social (costo del tiempo agregado), no en la elección de modo,
 #: que usa el valor del tiempo CONDUCTUAL de cada estrato.
+#:
+#: Esta constante y las `PRECIO_SOCIAL_*` de abajo son sólo los valores POR
+#: DEFECTO de `SimulationConfig.precios_sociales`: el cálculo lee la
+#: configuración, que se edita en la página Calibración y viaja con el
+#: escenario. Acá queda la vigencia que trae el simulador de fábrica.
 VOT_SOCIAL_CLP_HORA: Final[float] = 3338.0
+
+#: Año de los precios sociales por defecto.
+VIGENCIA_PRECIOS_SOCIALES: Final[int] = 2026
+
+#: Ponderadores del SNI (tabla 2.1) para el tiempo de espera y de acceso
+#: caminando del transporte público mayor, sobre el tiempo en vehículo. El
+#: viaje entero a pie NO está en esa tabla: pondera 1.
+PONDERADOR_SNI_ESPERA: Final[float] = 2.0
+PONDERADOR_SNI_ACCESO: Final[float] = 2.0
+
+# Precios Sociales 2026 (MDSF, `reference/Precios-Sociales-2026.pdf`), moneda
+# del 31 de diciembre de 2025. Valores de norma: se actualizan cada año. Entran
+# sólo al costo de recursos de `bienestar.py`, nunca a la elección de modo.
+
+#: Combustible del automóvil, $/litro (tabla 4.3). Sin impuesto específico ni
+#: IVA: es lo que le cuesta a la sociedad, no lo que paga el conductor.
+PRECIO_SOCIAL_COMBUSTIBLE_AUTO_CLP_L: Final[float] = 760.0
+
+#: Lubricante ($/litro), neumático ($/unidad) y vehículo nuevo ($) del
+#: automóvil (tabla 4.4), y mano de obra de mantenimiento ($/hora, tabla 4.5).
+PRECIO_SOCIAL_LUBRICANTE_AUTO_CLP_L: Final[float] = 8740.0
+PRECIO_SOCIAL_NEUMATICO_AUTO_CLP: Final[float] = 87543.0
+PRECIO_SOCIAL_VEHICULO_AUTO_CLP: Final[float] = 11360008.0
+PRECIO_SOCIAL_MANTENCION_CLP_H: Final[float] = 6931.0
+
+#: Precio de MERCADO de la bencina, $/litro: lo que paga el conductor, con
+#: impuestos. NO es de norma. 1.086 es el que resulta de suponer que el 30 % del
+#: precio es impuesto (supuesto de trabajo, nov-2026): 760 / (1 − 0,30). Es el
+#: default de `demand.globales.precio_combustible_clp_l`, la palanca «Bencina».
+PRECIO_MERCADO_COMBUSTIBLE_CLP_L: Final[float] = 1086.0
+
+#: Precio social del carbono, $/tonelada de CO₂ equivalente (tabla 5.1).
+PRECIO_SOCIAL_CARBONO_CLP_T: Final[float] = 71801.0
 
 #: Viajes de conmutación por mes (2 por día laboral × 22 días). Convierte el
 #: costo por viaje en carga mensual costo/ingreso (D-27) y el logsum por viaje en
@@ -77,14 +115,6 @@ VIAJES_MES: Final[int] = 44
 #: docs/libro cap. 6, `paso`): 100 corta en la vuelta 2 sin dejar nada
 #: relevante sobre la mesa.
 TOL_ACOPLADO_CLP_MES: Final[float] = 100.0
-
-#: Tolerancia de todo o nada sobre su brecha relativa, costo en exceso medio /
-#: tiempo medio de viaje (`msa._brecha_relativa_ton`). 1e-3 son ≈ 0,016 min en
-#: la base (t̄ ≈ 16 min), del orden de la tolerancia del logit. Con el MSA 1/n
-#: la brecha baja como 1/n: la base corta en 10-15 iteraciones, 1 pista en
-#: ~520 y Máx Metro en ~615, todavía a 0,4-1,2 pp del equilibrio (auditoría B,
-#: oct-2026). Por eso la interfaz sube el tope a 700 al elegir el método.
-TOL_RELATIVA_TON: Final[float] = 1e-3
 
 #: Tope de vueltas del loop acoplado: default y cota de TODOS sus consumidores
 #: (núcleo, API, worker, página acoplada y comparador; D-61). Antes eran 5 / 3 /

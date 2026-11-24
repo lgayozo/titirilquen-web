@@ -25,6 +25,13 @@
   </p>
 </header>
 
+<div class="aviso alerta">
+  <p><strong>Capítulo parcialmente desactualizado (noviembre de 2026).</strong>
+  El equilibrio se resuelve ahora con un solo método de carga, los flujos esperados del logit: se retiraron el sorteo por agente («Montecarlo») y la carga determinística («todo o nada»), con su brecha relativa y su tolerancia propia. Las tablas de parámetros, código y pruebas de este capítulo ya
+  reflejan el cambio; el texto que describe los métodos retirados está
+  pendiente de reescritura.</p>
+</div>
+
 <nav class="indice">
   <ol>
     <li><a href="#s1">Teoría</a></li>
@@ -261,8 +268,6 @@
     <tr><td><code>tolerance</code></td><td class="n">0,02</td><td class="n">0,02</td><td>min</td><td><span class="etiqueta neutra">decisión</span> auditoría B: sobre la brecha (5.4), dos iteraciones seguidas; con Montecarlo la interfaz la sube a 0,2</td></tr>
     <tr><td><code>max_iter</code></td><td class="n">150</td><td class="n">150</td><td>—</td><td><span class="etiqueta neutra">decisión</span> cubre los 8 presets de política, que convergen en 11 o menos, y la pista única de la §5.5; con todo o nada la interfaz lo sube a 700 (el schema admite hasta 1.000)</td></tr>
     <tr><td>paso del MSA</td><td class="n">halving</td><td class="n">halving</td><td>—</td><td><span class="etiqueta ok">literatura</span> Boyles §8.3.5: con carga esperada parte en 1 y se divide por 2 cuando la brecha no baja al menos un 10 % (ρ = 0,9, decisión propia, auditoría B); Montecarlo y todo o nada, 1/(n+1)</td></tr>
-    <tr><td><code>TOL_RELATIVA_TON</code></td><td class="n">10<sup>−3</sup></td><td class="n">10<sup>−3</sup></td><td>—</td><td><span class="etiqueta neutra">decisión</span> auditoría B: todo o nada para con AEC/<em>t̄</em> bajo este valor; constante del núcleo, no campo del schema</td></tr>
-    <tr><td><code>assignment</code></td><td class="n">expected</td><td class="n">montecarlo</td><td>—</td><td><span class="etiqueta neutra">decisión</span> la app usa «Logit — probabilidades» (carga los flujos esperados n·P, sin ruido de muestreo); es una de las divergencias declaradas</td></tr>
     <tr><td><code>seed</code></td><td class="n">42</td><td class="n">—</td><td>—</td><td><span class="etiqueta neutra">decisión</span> reproducibilidad</td></tr>
     <tr><td><code>modos_habilitados</code></td><td class="n">4</td><td class="n">4</td><td>modos</td><td><span class="etiqueta neutra">decisión</span> los cuatro; apagar uno lo saca del conjunto de elección</td></tr>
     <tr><td>tiempo de los escalones de la bici</td><td class="n">red vacía</td><td class="n">red vacía</td><td>min</td><td><span class="etiqueta neutra">decisión</span> D9: <em>t<sup>0</sup></em> con pendiente; la congestión entra sólo por <em>β<sub>t</sub></em></td></tr>
@@ -330,28 +335,20 @@
     <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">340</td><td><code>iter_msa_desde_suelo</code> — la entrada: población desde el suelo, una iteración por vez; <code>run_msa</code> (715) la consume entera y <code>run_msa_con_poblacion</code> (742) sirve al acoplado</td></tr>
-    <tr><td class="n">(5.2), (5.3)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">476</td><td><code>_iter_loop</code> — el loop; su docstring explica qué promedia cada método de carga</td></tr>
-    <tr><td class="n">(5.1)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">183</td><td><code>_correr_iteracion</code> — el lado <em>d(t)</em>: carga por grupo, esperada o sorteada; <code>_agrupar_agentes</code> (140) separa a los teletrabajadores</td></tr>
-    <tr><td class="n">(5.5)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">545</td><td><code>resolver_red_vacia</code> — el tiempo de bici de la red vacía, una vez por corrida, para los escalones (D9)</td></tr>
-    <tr><td class="n">(5.2)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">524</td><td><code>flujos</code> — con carga esperada el loop promedia flujos; <code>alfa</code> (548) es el paso halving, que se divide por 2 cuando la brecha no baja al menos un 10 % (690), el umbral <code>_RHO_HALVING</code> (123)</td></tr>
-    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">458</td><td><code>_brecha_tiempos</code> — la brecha: máximo de |tiempo de la oferta − tiempo vigente| en auto, bici y metro</td></tr>
-    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">615</td><td><code>residuo</code> — lo que decide la parada: la brecha contra el objetivo con carga esperada, contra el iterado con Montecarlo</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">703</td><td><code>estables</code> — criterio de parada: residuo bajo la tolerancia dos veces seguidas</td></tr>
-    <tr><td class="n">(5.2)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">523</td><td><code>ton</code> — con todo o nada el loop promedia el reparto de cada grupo con paso 1/(n+1) (D-70)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">265</td><td><code>_costo_en_exceso_medio</code> — Σ<em>n·x</em>·(<em>V*</em> − <em>V</em>)/|<em>β<sub>t</sub></em>| sobre Σ<em>n·x</em>, en minutos</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">290</td><td><code>_brecha_relativa_ton</code> — el residuo de todo o nada: el AEC dividido por el tiempo medio ponderado por la demanda</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">779</td><td><code>_finalizar_ton</code> — el estado final es el reparto promediado: modos por agente con cuotas de mayor residuo, sin sorteo</td></tr>
-    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">817</td><td><code>_finalizar_trace</code> — modos por agente, demanda por estrato, brecha final y emisiones; con Montecarlo, <code>converged</code> (876) sale de esa brecha</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">309</td><td><code>_asignar_modos_agentes</code> — el modo muestreado por agente al final, para las figuras y el bienestar</td></tr>
-    <tr><td class="n">(5.5)</td><td class="ruta py">demand/utility.py</td><td class="n">87</td><td><code>bici_libre</code> — el campo de <code>TiemposObservados</code> sobre el que van escalones y corte; <code>t_esfuerzo</code> (237) los evalúa</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">256</td><td><code>iter_msa_desde_suelo</code> — la entrada: población desde el suelo, una iteración por vez; <code>run_msa</code> (556) la consume entera y <code>run_msa_con_poblacion</code> (583) sirve al acoplado</td></tr>
+    <tr><td class="n">(5.2), (5.3)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">392</td><td><code>_iter_loop</code> — el loop; su docstring explica qué promedia cada método de carga</td></tr>
+    <tr><td class="n">(5.1)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">180</td><td><code>_correr_iteracion</code> — el lado <em>d(t)</em>: carga por grupo, esperada o sorteada; <code>_agrupar_agentes</code> (139) separa a los teletrabajadores</td></tr>
+    <tr><td class="n">(5.5)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">438</td><td><code>resolver_red_vacia</code> — el tiempo de bici de la red vacía, una vez por corrida, para los escalones (D9)</td></tr>
+    <tr><td class="n">(5.2)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">415</td><td><code>flujos</code> — el loop promedia flujos, no tiempos; <code>alfa</code> (441) es el paso halving, que se divide por 2 cuando la brecha no baja al menos un 10 % (536), el umbral <code>_RHO_HALVING</code> (122)</td></tr>
+    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">374</td><td><code>_brecha_tiempos</code> — la brecha: máximo de |tiempo de la oferta − tiempo vigente| en auto, bici y metro</td></tr>
+    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">477</td><td><code>residuo</code> — lo que decide la parada: la brecha contra el objetivo, medida antes de promediar</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">544</td><td><code>estables</code> — criterio de parada: residuo bajo la tolerancia dos veces seguidas</td></tr>
+    <tr><td class="n">(5.4)</td><td class="ruta py">equilibrium/msa.py</td><td class="n">620</td><td><code>_finalizar_trace</code> — modos por agente, demanda por estrato, brecha final y emisiones; <code>converged</code> (547) lo fija el loop cuando la brecha queda bajo la tolerancia dos iteraciones seguidas</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">224</td><td><code>_asignar_modos_agentes</code> — el modo muestreado por agente al final, para las figuras y el bienestar</td></tr>
+    <tr><td class="n">(5.5)</td><td class="ruta py">demand/utility.py</td><td class="n">88</td><td><code>bici_libre</code> — el campo de <code>TiemposObservados</code> sobre el que van escalones y corte; <code>t_esfuerzo</code> (260) los evalúa</td></tr>
     <tr><td class="n">(5.6)</td><td class="ruta py">emissions.py</td><td class="n">56</td><td><code>calcular_emisiones</code> — auto por velocidad local; <code>factor_emision_auto</code> (29) es la curva; <code>tren_km_hora</code> (43) los tren-km del metro</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">388</td><td><code>SimulationConfig</code> — <code>max_iter</code> (403), <code>tolerance</code> (411), <code>seed</code> (415), <code>assignment</code> (416), <code>modos_habilitados</code> (435)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">constantes.py</td><td class="n">87</td><td><code>TOL_RELATIVA_TON</code> — la tolerancia relativa de todo o nada; el contrato la exporta a la interfaz</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">lib/overrides.ts</td><td class="n">49</td><td><code>assignment</code> — la app corre <code>expected</code>; el núcleo trae Montecarlo</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">440</td><td><code>SimulationConfig</code> — <code>max_iter</code> (455), <code>tolerance</code> (460), <code>seed</code> (464), <code>modos_habilitados</code> (465)</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">components/RunStatus.tsx</td><td class="n">43</td><td><code>converged</code> — lo que la interfaz declara al terminar: convergió o no, en cuántas iteraciones y con qué residuo</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">91</td><td><code>MAX_ITER_TODO_O_NADA</code> — el tope que pone la interfaz al elegir todo o nada; <code>TOL_MONTECARLO</code> (96) la tolerancia de Montecarlo</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">pages/SandboxPage.tsx</td><td class="n">555</td><td><code>aon</code> — con todo o nada el veredicto y el gráfico muestran la brecha relativa, en %</td></tr>
   </tbody>
 </table>
 </div>
@@ -376,21 +373,18 @@
     <tr><th>Test</th><th>Qué fija</th></tr>
   </thead>
   <tbody>
-    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:61</td><td>Los tres métodos de carga corren y conservan la población.</td></tr>
-    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:76</td><td>El todo o nada concentra más que el logit.</td></tr>
-    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:103</td><td>La carga esperada promedia flujos con paso halving: el paso parte en 1 y sólo se mantiene o se divide por 2; la corrida converge con la brecha final bajo la tolerancia.</td></tr>
-    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:124</td><td>Con Montecarlo, «convergió» equivale a que la brecha con carga esperada quede bajo la tolerancia, en casos que ejercen las dos respuestas.</td></tr>
-    <tr><td><code class="ruta py">tests/test_todo_o_nada_equilibrio.py</code>:45</td><td>D-70: con 1, 2 y 3 pistas todo o nada converge bajo la tolerancia relativa; el costo en exceso cae (52), el estado final es el reparto promediado (60) y quedan grupos repartidos (83).</td></tr>
-    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:149</td><td>Un modo deshabilitado no recibe demanda; sin modos factibles los agentes quedan varados (161).</td></tr>
-    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:189</td><td>Las dos localizaciones dan ciudades distintas, y la demanda por estrato cuadra con el reparto (217).</td></tr>
-    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:238</td><td>El criterio de corte corta antes del tope, y la brecha baja (254).</td></tr>
-    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:325</td><td>Bajar el corte de caminata reduce la caminata.</td></tr>
-    <tr><td><code class="ruta py">tests/test_convergencia.py</code>:39</td><td>La brecha final existe y es finita; con Montecarlo, que promedia tiempos, la brecha de cada iteración es exactamente el cambio del iterado dividido por <em>f</em> (44, D8); y se cierra al exigir más tolerancia (67).</td></tr>
+    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:55</td><td>El loop corre y conserva la población.</td></tr>
+    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:69</td><td>La carga esperada promedia flujos con paso halving: el paso parte en 1 y sólo se mantiene o se divide por 2; la corrida converge con la brecha final bajo la tolerancia.</td></tr>
+    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:94</td><td>Un modo deshabilitado no recibe demanda; sin modos factibles los agentes quedan varados (105).</td></tr>
+    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:132</td><td>Las dos localizaciones dan ciudades distintas, y la demanda por estrato cuadra con el reparto (159).</td></tr>
+    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:179</td><td>El criterio de corte corta antes del tope, y la brecha baja (194).</td></tr>
+    <tr><td><code class="ruta py">tests/test_equilibrio.py</code>:264</td><td>Bajar el corte de caminata reduce la caminata.</td></tr>
+    <tr><td><code class="ruta py">tests/test_convergencia.py</code>:36</td><td>La brecha final existe y es finita; con Montecarlo, que promedia tiempos, la brecha de cada iteración es exactamente el cambio del iterado dividido por <em>f</em> (44, D8); y se cierra al exigir más tolerancia (41).</td></tr>
     <tr><td><code class="ruta py">tests/test_demand.py</code>:117</td><td>D9: la congestión no suma escalones ni saca a la bici del conjunto; sólo pesa por <em>β<sub>t</sub></em>.</td></tr>
     <tr><td><code class="ruta py">tests/test_estatica_comparativa.py</code>:51</td><td>Los efectos propios tienen el signo de la teoría: el peaje baja el auto, la tarifa cero sube el metro, una pista más sube el auto y más ciclovía sube la bici.</td></tr>
-    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:248</td><td>El reparto de las dos ramas y el número de iteraciones (268), con cinco centésimas de punto de tolerancia; lo mismo con umbrales suaves (269); las dos ramas difieren (285).</td></tr>
+    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:256</td><td>El reparto de las dos ramas y el número de iteraciones (276), con cinco centésimas de punto de tolerancia; lo mismo con umbrales suaves (277); las dos ramas difieren (293).</td></tr>
     <tr><td><code class="ruta py">tests/test_emissions.py</code>:25</td><td>El metro emite por tren-km e independiente de la carga (32); el perfil espacial suma el total (44); sin servicio no hay emisiones de metro (50).</td></tr>
-    <tr><td><code class="ruta py">tests/test_equilibrium_smoke.py</code>:13</td><td>Una corrida chica conserva invariantes básicas y converge con tolerancia alta (43).</td></tr>
+    <tr><td><code class="ruta py">tests/test_equilibrium_smoke.py</code>:15</td><td>Una corrida chica conserva invariantes básicas y converge con tolerancia alta (46).</td></tr>
   </tbody>
 </table>
 </div>

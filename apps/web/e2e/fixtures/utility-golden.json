@@ -120,7 +120,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": 0.14999472835820898,
+     "valor": 0.14676993767259705,
      "feasible": true
     },
     "Metro": {
@@ -154,7 +154,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": 0.05671476417910448,
+     "valor": 0.05026417568382091,
      "feasible": true
     },
     "Metro": {
@@ -188,7 +188,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.09109287462686577,
+     "valor": -0.10359115060967183,
      "feasible": true
     },
     "Metro": {
@@ -324,7 +324,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": 0.021830740298507456,
+     "valor": 0.001470794861803848,
      "feasible": true
     },
     "Metro": {
@@ -358,7 +358,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.11267682985074634,
+     "valor": -0.153403079273561,
      "feasible": true
     },
     "Metro": {
@@ -392,7 +392,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.337777495522388,
+     "valor": -0.41668625018920613,
      "feasible": true
     },
     "Metro": {
@@ -528,7 +528,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.12963579104477607,
+     "valor": -0.13968209303136003,
      "feasible": true
     },
     "Metro": {
@@ -562,7 +562,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.3128668955223881,
+     "valor": -0.3329626370239812,
      "feasible": true
     },
     "Metro": {
@@ -596,7 +596,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.6293138656716417,
+     "valor": -0.6682501772267315,
      "feasible": true
     },
     "Metro": {
@@ -732,7 +732,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.6539430149253731,
+     "valor": -0.6372643794162964,
      "feasible": true
     },
     "Metro": {
@@ -766,7 +766,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -1.0058325074626864,
+     "valor": -0.9724700275932491,
      "feasible": true
     },
     "Metro": {
@@ -800,7 +800,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -1.6384782238805968,
+     "valor": -1.57383707041314,
      "feasible": true
     },
     "Metro": {
@@ -936,7 +936,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.03437117014925378,
+     "valor": -0.054731115585957335,
      "feasible": true
     },
     "Metro": {
@@ -970,7 +970,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.22509820298507477,
+     "valor": -0.26582445240788943,
      "feasible": true
     },
     "Metro": {
@@ -1004,7 +1004,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.5555984507462688,
+     "valor": -0.6345072054130869,
      "feasible": true
     },
     "Metro": {
@@ -1038,7 +1038,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.9817874925373135,
+     "valor": -0.9651088570282368,
      "feasible": true
     },
     "Metro": {
@@ -1072,7 +1072,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -1.661623850746269,
+     "valor": -1.6282613708768312,
      "feasible": true
     },
     "Metro": {
@@ -1106,7 +1106,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -2.9091004626865673,
+     "valor": -2.8444593092191104,
      "feasible": true
     },
     "Metro": {
@@ -1242,7 +1242,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": 0.14999472835820898,
+     "valor": 0.14676993767259705,
      "feasible": true
     },
     "Metro": {
@@ -1276,7 +1276,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": 0.05671476417910448,
+     "valor": 0.05026417568382091,
      "feasible": true
     },
     "Metro": {
@@ -1310,7 +1310,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.09109287462686577,
+     "valor": -0.10359115060967183,
      "feasible": true
     },
     "Metro": {
@@ -1446,7 +1446,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": 0.021830740298507456,
+     "valor": 0.001470794861803848,
      "feasible": true
     },
     "Metro": {
@@ -1480,7 +1480,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.11267682985074634,
+     "valor": -0.153403079273561,
      "feasible": true
     },
     "Metro": {
@@ -1514,7 +1514,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.337777495522388,
+     "valor": -0.41668625018920613,
      "feasible": true
     },
     "Metro": {
@@ -1650,7 +1650,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.12963579104477607,
+     "valor": -0.13968209303136003,
      "feasible": true
     },
     "Metro": {
@@ -1684,7 +1684,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.3128668955223881,
+     "valor": -0.3329626370239812,
      "feasible": true
     },
     "Metro": {
@@ -1718,7 +1718,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.6293138656716417,
+     "valor": -0.6682501772267315,
      "feasible": true
     },
     "Metro": {
@@ -1854,7 +1854,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -0.6539430149253731,
+     "valor": -0.6372643794162964,
      "feasible": true
     },
     "Metro": {
@@ -1888,7 +1888,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -1.0058325074626864,
+     "valor": -0.9724700275932491,
      "feasible": true
     },
     "Metro": {
@@ -1922,7 +1922,7 @@
    },
    "utilidades": {
     "Auto": {
-     "valor": -1.6384782238805968,
+     "valor": -1.57383707041314,
      "feasible": true
     },
     "Metro": {

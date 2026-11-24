@@ -19,7 +19,7 @@ $$
 
 Es el mismo **logsum** que los capítulos de Equilibrio y Uso de suelo usan como accesibilidad: el valor de tener ese menú de modos desde esa celda. Sube si mejora cualquier alternativa, y más si mejora la que ya era buena. La constante de Euler $\gamma$ se omite, porque ninguna diferencia la ve.
 
-Con el método **todo o nada** no hay término aleatorio: el agente toma el mejor modo y su valor esperado es $\max_m V_m$. El simulador empareja la medida con el método de asignación y no deja elegir: logsum con los métodos logit y utilidad máxima con todo o nada (capítulo de Métodos de asignación).
+El logsum es la única medida de excedente del simulador, porque hay un solo modelo de comportamiento: el logit (capítulo de Carga de la demanda).
 
 ## De útiles a pesos
 
@@ -62,7 +62,7 @@ $$
 W = CS + R_{\text{parking}} + R_{\text{peaje}} + R_{\text{tarifa}} - C_{\text{op}}, \qquad C_{\text{op}} = \text{tren-km} \cdot c_{\text{km}}
 $$
 
-La bencina no entra en la recaudación: se quema, no la recibe nadie. El costo de operación del metro sí entra, porque consume recursos. Como $CS$, el nivel de $W$ tiene un cero arbitrario y sólo se lee su Δ.
+De la bencina entra a la recaudación sólo el impuesto —la diferencia entre el precio de mercado y el precio social por cada litro—; el resto se quema, no lo recibe nadie. El costo de operación del metro sí entra, porque consume recursos. Como $CS$, el nivel de $W$ tiene un cero arbitrario y sólo se lee su Δ.
 
 El **subsidio requerido** responde otra pregunta: si la tarifa cubre el costo del día completo. Por eso multiplica el costo de la punta por un factor día/punta, y $W$ no.
 

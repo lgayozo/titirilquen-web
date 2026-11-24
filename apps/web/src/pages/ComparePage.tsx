@@ -84,23 +84,18 @@ type DeltasBienestar = Map<
   { d: Record<string, number | null>; razon: RazonIncomparable | null }
 >;
 
-/** Lente Transporte: los agregados de hora punta del núcleo (`bienestar.py`).
- *  El excedente es el de la medida emparejada con el método de asignación. */
+/** Lente Transporte: los agregados de hora punta del núcleo (`bienestar.py`). */
 function nivelesTransporte(s: Scenario): NivelesBienestar | null {
   const agg = s.result ? agregadosDe(s.result) : null;
   if (!agg || !s.config) return null;
-  const max = agg.medida_bienestar === "utilidad_maxima";
-  const porViaje = max
-    ? agg.excedente_max_por_estrato_clp
-    : agg.excedente_por_estrato_clp;
+  const porViaje = agg.excedente_por_estrato_clp;
   return {
     corrida: {
       config: s.config,
       landUse: s.landUse ?? null,
-      medida: agg.medida_bienestar,
     },
     niveles: {
-      excedente: max ? agg.excedente_max_total_clp : agg.excedente_total_clp,
+      excedente: agg.excedente_total_clp,
       // El excedente total, abierto por estrato (Σ_h = `excedente`): reemplaza
       // a la «utilidad media» de la tabla de KPIs, que no era una medida de
       // bienestar y no miraba si las dos corridas eran restables.
@@ -129,7 +124,6 @@ function nivelesAcoplado(s: Scenario): NivelesBienestar | null {
     corrida: {
       config: s.config,
       landUse: s.landUse ?? null,
-      medida: sis.medida_bienestar,
     },
     niveles: { excedente: sis.excedente_total_mes_clp },
   };

@@ -31,20 +31,25 @@ export interface AgregadosDict {
   tiempo_medio_por_estrato_min: Record<"1" | "2" | "3", number>;
   costo_generalizado_percibido_clp: number;
   costo_generalizado_social_clp: number;
+  recursos_tiempo_clp: number;
+  auto_km_hora: number;
+  litros_combustible_hora: number;
+  recursos_combustible_clp: number;
+  pago_combustible_clp: number;
+  recursos_otros_operacion_clp: number;
+  costo_co2_clp: number;
+  costo_recursos_clp: number;
   vot_por_estrato_clp_hora: Record<"1" | "2" | "3", number>;
   logsum_por_estrato: Record<"1" | "2" | "3", number>;
   excedente_por_estrato_clp: Record<"1" | "2" | "3", number>;
-  util_maxima_por_estrato: Record<"1" | "2" | "3", number>;
-  excedente_max_por_estrato_clp: Record<"1" | "2" | "3", number>;
   excedente_social_por_estrato_clp: Record<"1" | "2" | "3", number>;
   excedente_social_total_clp: number;
   viajeros_por_estrato: Record<"1" | "2" | "3", number>;
   excedente_total_clp: number;
-  excedente_max_total_clp: number;
-  medida_bienestar: "logsum" | "utilidad_maxima";
   recaudacion_parking_clp: number;
   recaudacion_peaje_clp: number;
   recaudacion_tarifa_clp: number;
+  recaudacion_combustible_clp: number;
   tren_km_hora: number;
   costo_operador_clp: number;
   subsidio_metro_clp: number;
@@ -244,16 +249,9 @@ export interface SystemMetrics {
    *  **Nivel** del excedente de la ciudad, en $/mes: la misma suma que
    *  `delta_bienestar_total_mes_clp` sin restar la red vacía. Sólo su
    *  diferencia con otro escenario es interpretable, y sólo si comparten β,
-   *  modos habilitados, teletrabajo y medida (ver `excedente_hogar_mes_clp`).
+   *  modos habilitados y teletrabajo (ver `excedente_hogar_mes_clp`).
    */
   excedente_total_mes_clp: number;
-  /**
-   *  Con qué medida se calculó el ΔCS: `logsum` bajo los métodos logit,
-   *  `utilidad_maxima` bajo `todo_o_nada`. La decide el núcleo
-   *  (`bienestar.medida_emparejada`), igual que en el Sandbox, para que las dos
-   *  páginas no contesten distinto la misma pregunta.
-   */
-  medida_bienestar: "logsum" | "utilidad_maxima";
   /** Tiempo medio bajo / alto. >1 ⇒ los pobres viajan más (regresivo). */
   ratio_tiempo_bajo_alto: number | null;
   /** Carga (costo/ingreso) bajo / alto. >1 ⇒ el transporte pesa más al pobre. */

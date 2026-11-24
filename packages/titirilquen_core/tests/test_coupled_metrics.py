@@ -118,11 +118,7 @@ def test_acoplado_y_transporte_dan_el_mismo_excedente_y_tiempo(corrida_res) -> N
     it = res.iterations[-1]
     agg = calcular_agregados(sim, it.transport)
     assert agg is not None
-    clave = (
-        "excedente_max_por_estrato_clp"
-        if agg["medida_bienestar"] == "utilidad_maxima"
-        else "excedente_por_estrato_clp"
-    )
+    clave = "excedente_por_estrato_clp"
     for sm in it.metrics.por_estrato:
         h = str(sm.estrato)
         agentes = [a for a in it.transport.agentes if a.estrato == sm.estrato]
@@ -190,46 +186,6 @@ def test_un_peaje_lo_ve_el_nivel_y_no_el_delta_contra_la_red_vacia(corrida_res) 
     d_delta = peaje.delta_bienestar_total_mes_clp - base.delta_bienestar_total_mes_clp
     assert d_nivel < 0
     assert abs(d_delta) < 0.2 * abs(d_nivel)
-
-
-# ---------------------------------------------------------------------------
-# La medida del excedente sigue al método (emparejamiento con el Sandbox)
-# ---------------------------------------------------------------------------
-#
-# Esta página calculaba su propio logsum y no aplicaba el emparejamiento, así
-# que bajo `todo_o_nada` medía el bienestar con una regla distinta de la del
-# Sandbox para el mismo escenario. Nada lo detectaba: los dos números eran
-# plausibles.
-
-
-@pytest.mark.parametrize("metodo", ["montecarlo", "expected", "todo_o_nada"])
-def test_la_medida_sigue_al_metodo_efectivo(demanda_sintetica: DemandConfig, metodo: str) -> None:
-    """D-40: el acoplado SIEMPRE corre el transporte con `expected` (flujos
-    fraccionales, logit), así que la medida emparejada es el logsum pida lo que
-    pida la configuración. Antes las métricas recibían la configuración original
-    y con `todo_o_nada` rotulaban `utilidad_maxima` un flujo que era logit."""
-    sim = _sim_small(demanda_sintetica)
-    sim.assignment = metodo
-    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
-    assert res.iterations[-1].metrics.sistema.medida_bienestar == "logsum"
-
-
-def test_el_nucleo_decide_la_medida_una_sola_vez(demanda_sintetica: DemandConfig) -> None:
-    """La página acoplada y el Sandbox deben coincidir para la misma config.
-
-    Es el punto del refactor: una sola implementación (`medidas_de_utilidad`) y
-    un solo criterio (`medida_emparejada`). Si alguien reintroduce un logsum
-    local en `coupled_metrics`, este test no lo ve — pero sí ve que el criterio
-    se bifurque, que es como empezaría.
-    """
-    from titirilquen_core.bienestar import medida_emparejada
-
-    sim = _sim_small(demanda_sintetica)
-    sim.assignment = "todo_o_nada"
-    res = run_coupled(sim=sim, land_use_config=_land_use_config(), outer_max_iter=1, outer_tol=0.1)
-    acoplada = res.iterations[-1].metrics.sistema.medida_bienestar
-    # El criterio es uno solo, aplicado a la configuración EFECTIVA del acoplado.
-    assert acoplada == medida_emparejada("expected")
 
 
 def test_el_estado_final_es_el_de_la_ultima_iteracion(demanda_sintetica: DemandConfig) -> None:

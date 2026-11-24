@@ -65,7 +65,6 @@ export interface TransportMetricsData {
   /** Cuál de las dos medidas trae `StratumMetric.utilidad`. Decide el rótulo:
    *  bajo logit es el logsum y bajo determinístico la utilidad máxima, y
    *  llamarlas igual haría pasar una por la otra. */
-  medidaBienestar: "logsum" | "utilidad_maxima" | null;
 }
 
 interface Props {
@@ -84,10 +83,6 @@ const fig = (color = "var(--muted)"): React.CSSProperties => ({
 const fmtMin = (v: number) => fmtDecimal(v);
 const fmtRatio = (v: number | null) =>
   v == null ? "—" : `${fmtDecimal(v, 2)}×`;
-
-/** Cómo se llama la medida de bienestar que se está mostrando. */
-const claveMedida = (m: TransportMetricsData["medidaBienestar"]) =>
-  m === "utilidad_maxima" ? "st_util_max" : "st_logsum";
 
 /**
  * Los tres v/c de los modos con oferta congestionable.
@@ -279,7 +274,7 @@ export function TransportMetricsTable({ data, className }: Props) {
       ]);
       rows.push([
         "por_estrato",
-        H(claveMedida(data.medidaBienestar)),
+        H("st_logsum"),
         s.label,
         s.utilidad == null ? "" : s.utilidad.toFixed(3),
         "utiles",
@@ -436,7 +431,7 @@ export function TransportMetricsTable({ data, className }: Props) {
               get={(s) => `${fmtMin(s.tiempoMin)} min`}
             />
             <StratRow
-              label={t(`metrics_table.${claveMedida(data.medidaBienestar)}`)}
+              label={t("metrics_table.st_logsum")}
               data={data.porEstrato}
               get={(s) =>
                 s.utilidad == null ? "—" : fmtDecimal(s.utilidad, 2)

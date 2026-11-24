@@ -45,7 +45,7 @@
    "corte_caminata_min": 30.0,
    "corte_bici_min": 45.0,
    "umbrales": "escalones",
-   "costo_combustible_km": 120,
+   "precio_combustible_clp_l": 1086.0,
    "costo_tarifa_metro": 800,
    "costo_parking": 2000,
    "peaje_km": 0,
@@ -57,7 +57,6 @@
    "max_iter": 150,
    "tolerance": 0.02,
    "seed": null,
-   "assignment": "montecarlo",
    "modos_habilitados": [
     "Auto",
     "Metro",

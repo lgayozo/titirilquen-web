@@ -192,7 +192,6 @@ def test_todos_los_modulos_ven_el_mismo_cbd(n: int, demanda_sintetica: DemandCon
         demand=demanda_sintetica,
         max_iter=2,
         seed=1,
-        assignment="expected",
     )
     tr = ConvergenceTrace()
     for _ in iter_msa_desde_suelo(sim, suelo_uniforme(500), tr, localizacion="original"):

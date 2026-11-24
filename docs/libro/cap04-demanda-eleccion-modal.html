@@ -25,6 +25,13 @@
   </p>
 </header>
 
+<div class="aviso alerta">
+  <p><strong>Capítulo parcialmente desactualizado (noviembre de 2026).</strong>
+  La carga determinística («todo o nada») se retiró del simulador, junto con sus pruebas. Las tablas de parámetros, código y pruebas de este capítulo ya
+  reflejan el cambio; el texto que describe los métodos retirados está
+  pendiente de reescritura.</p>
+</div>
+
 <nav class="indice">
   <ol>
     <li><a href="#s1">Teoría</a></li>
@@ -286,7 +293,7 @@
   </thead>
   <tbody>
     <tr><td><code>costo_parking</code></td><td class="n">2.000</td><td>$/día</td><td><span class="etiqueta neutra">decisión</span> ago-2026 (el original traía 6.000); costo esperado, no precio de lista; cada viaje carga la mitad desde oct-2026</td></tr>
-    <tr><td><code>costo_combustible_km</code></td><td class="n">120</td><td>$/km</td><td><span class="etiqueta lim">heredado</span></td></tr>
+    <tr><td><code>precio_combustible_clp_l</code></td><td class="n">1.086</td><td>$/l</td><td><span class="etiqueta lim">heredado</span></td></tr>
     <tr><td><code>peaje_km</code></td><td class="n">0</td><td>$/km</td><td><span class="etiqueta neutra">decisión</span> palanca de política (D7, oct-2026): transferencia, no consumo; 50 en «Tarificación Vial»</td></tr>
     <tr><td><code>costo_tarifa_metro</code></td><td class="n">800</td><td>$/viaje</td><td><span class="etiqueta lim">heredado</span></td></tr>
     <tr><td><code>corte_caminata_min</code></td><td class="n">30</td><td>min</td><td><span class="etiqueta neutra">decisión</span> 2,4 km a 4,8 km/h</td></tr>
@@ -391,28 +398,27 @@
     <tr><th class="n">Ec.</th><th>Archivo</th><th class="n">Lín.</th><th>Símbolo y notas</th></tr>
   </thead>
   <tbody>
-    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">122</td><td><code>calcular_utilidades</code> — los cuatro modos; <code>UtilityBreakdown</code> (91) guarda la descomposición y la factibilidad; <code>_tiempos_flujo_libre</code> (111) es la iteración cero</td></tr>
-    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">103</td><td><code>costo_monetario_auto</code> — bencina y peaje por km más medio parking; la usan también los agregados de bienestar, que antes tenían su copia</td></tr>
-    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">245</td><td>bicicleta: usa <code>b_tiempo_viaje</code>; las penalizaciones se suman como saltos fijos por umbral (132)</td></tr>
-    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">258</td><td>caminata: usa <code>b_tiempo_caminata</code>, propio, con sus umbrales de 5, 15 y 25 minutos</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">demand/utility.py</td><td class="n">199</td><td>el metro es factible si <code>tren_viaje</code> es positivo: hay un tramo en tren desde la estación más cercana</td></tr>
-    <tr><td class="n">(4.4)</td><td class="ruta py">demand/utility.py</td><td class="n">38</td><td><code>_rampa</code> — la penalización por los puntos medios de los escalones; <code>_escalones</code> (31) es la de «escalones»</td></tr>
-    <tr><td class="n">(4.5)</td><td class="ruta py">demand/utility.py</td><td class="n">59</td><td><code>_ln_phi</code> — el corte CMNL, también para la dominancia; <code>_fisica</code> (230) elige entre escalones y corte duro o rampa y corte suave</td></tr>
-    <tr><td class="n">(4.6)</td><td class="ruta py">demand/utility.py</td><td class="n">198</td><td><code>suaves</code> — la rama de la especificación; la dominancia del metro (211)</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">145</td><td><code>calcular_utilidades</code> — los cuatro modos; <code>UtilityBreakdown</code> (92) guarda la descomposición y la factibilidad; <code>_tiempos_flujo_libre</code> (134) es la iteración cero</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">126</td><td><code>costo_monetario_auto</code> — bencina y peaje por km más medio parking; la usan también los agregados de bienestar, que antes tenían su copia</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">268</td><td>bicicleta: usa <code>b_tiempo_viaje</code>; las penalizaciones se suman como saltos fijos por umbral (132)</td></tr>
+    <tr><td class="n">(4.1)</td><td class="ruta py">demand/utility.py</td><td class="n">281</td><td>caminata: usa <code>b_tiempo_caminata</code>, propio, con sus umbrales de 5, 15 y 25 minutos</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">demand/utility.py</td><td class="n">222</td><td>el metro es factible si <code>tren_viaje</code> es positivo: hay un tramo en tren desde la estación más cercana</td></tr>
+    <tr><td class="n">(4.4)</td><td class="ruta py">demand/utility.py</td><td class="n">39</td><td><code>_rampa</code> — la penalización por los puntos medios de los escalones; <code>_escalones</code> (32) es la de «escalones»</td></tr>
+    <tr><td class="n">(4.5)</td><td class="ruta py">demand/utility.py</td><td class="n">60</td><td><code>_ln_phi</code> — el corte CMNL, también para la dominancia; <code>_fisica</code> (253) elige entre escalones y corte duro o rampa y corte suave</td></tr>
+    <tr><td class="n">(4.6)</td><td class="ruta py">demand/utility.py</td><td class="n">221</td><td><code>suaves</code> — la rama de la especificación; la dominancia del metro (211)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">supply/train.py</td><td class="n">88</td><td><code>excluir_estacion_cbd</code> — fuera de la celda del CBD, la estación del CBD no es de acceso; la activa <code>supply/oferta.py</code> con «suaves»</td></tr>
     <tr><td class="n">—</td><td class="ruta py">constantes.py</td><td class="n">46</td><td><code>OMEGA_CORTE_SUAVE</code> — y <code>A_DOMINANCIA_METRO</code> (51), <code>OMEGA_DOMINANCIA_METRO</code> (54): supuestos, no calibrados</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">130</td><td><code>umbrales</code> — «escalones» (default) o «suaves»; el selector está en Transporte → Equilibrio</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">144</td><td><code>umbrales</code> — «escalones» (default) o «suaves»; el selector está en Transporte → Equilibrio</td></tr>
     <tr><td class="n">(4.2)</td><td class="ruta py">demand/choice.py</td><td class="n">19</td><td><code>probabilidades_logit</code> — sobre los modos factibles, con resta del máximo por estabilidad</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">demand/choice.py</td><td class="n">44</td><td><code>probabilidades_todo_o_nada</code> — el límite determinístico; su docstring explica por qué no es Wardrop</td></tr>
     <tr><td class="n">—</td><td class="ruta py">population.py</td><td class="n">57</td><td><code>generar_poblacion_desde_land_use_det</code> — agentes desde el suelo; teletrabajo y auto por conteos redondeados</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">140</td><td><code>_agrupar_agentes</code> — separa a los teletrabajadores y agrupa por estrato, celda y auto; <code>_probs_grupo</code> (161) llama a la utilidad y al logit</td></tr>
-    <tr><td class="n">(4.3)</td><td class="ruta py">presets.py</td><td class="n">381</td><td><code>DEFAULT_STRATA</code> — la calibración de los tres estratos, con los minutos-equivalentes en sus comentarios</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">47</td><td><code>StratumBetas</code> — <code>b_tiempo_viaje</code> (56), <code>b_costo</code> (59), <code>b_tiempo_espera</code> (62), <code>b_tiempo_acceso</code> (72), <code>b_tiempo_caminata</code> (77); <code>PhysicalPenalties</code> (30)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">81</td><td><code>StratumConfig</code> — <code>prob_teletrabajo</code> (94), <code>prob_auto</code> (95)</td></tr>
-    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">99</td><td><code>GlobalConfig</code> — <code>corte_caminata_min</code> (119), <code>corte_bici_min</code> (120), <code>costo_combustible_km</code> (131), <code>costo_tarifa_metro</code> (132), <code>costo_parking</code> (154), <code>peaje_km</code> (160), <code>teletrabajo_factor</code> (181)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">equilibrium/msa.py</td><td class="n">139</td><td><code>_agrupar_agentes</code> — separa a los teletrabajadores y agrupa por estrato, celda y auto; <code>_probs_grupo</code> (160) llama a la utilidad y al logit</td></tr>
+    <tr><td class="n">(4.3)</td><td class="ruta py">presets.py</td><td class="n">385</td><td><code>DEFAULT_STRATA</code> — la calibración de los tres estratos, con los minutos-equivalentes en sus comentarios</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">61</td><td><code>StratumBetas</code> — <code>b_tiempo_viaje</code> (70), <code>b_costo</code> (73), <code>b_tiempo_espera</code> (76), <code>b_tiempo_acceso</code> (86), <code>b_tiempo_caminata</code> (91); <code>PhysicalPenalties</code> (44)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">95</td><td><code>StratumConfig</code> — <code>prob_teletrabajo</code> (108), <code>prob_auto</code> (109)</td></tr>
+    <tr><td class="n">—</td><td class="ruta py">config.py</td><td class="n">113</td><td><code>GlobalConfig</code> — <code>corte_caminata_min</code> (133), <code>corte_bici_min</code> (134), <code>precio_combustible_clp_l</code> (145), <code>costo_tarifa_metro</code> (146), <code>costo_parking</code> (168), <code>peaje_km</code> (174), <code>teletrabajo_factor</code> (195)</td></tr>
     <tr><td class="n">—</td><td class="ruta py">constantes.py</td><td class="n">37</td><td><code>CORTE_CAMINATA_MIN</code> — los dos cortes por defecto; <code>CORTE_BICI_MIN</code> (40)</td></tr>
     <tr><td class="n">(4.3)</td><td class="ruta py">packages/titirilquen_core/scripts/diagnostico_calibracion.py</td><td class="n">89</td><td><code>razones</code> — los betas en minutos-equivalentes contra rangos declarados</td></tr>
-    <tr><td class="n">—</td><td class="ruta ts">components/modules/EconomyBuilder.tsx</td><td class="n">59</td><td><code>costo_tarifa_metro</code> — el panel de economía: tarifa, estacionamiento, combustible, flota y teletrabajo</td></tr>
+    <tr><td class="n">—</td><td class="ruta ts">components/modules/EconomyBuilder.tsx</td><td class="n">65</td><td><code>costo_tarifa_metro</code> — el panel de economía: tarifa, estacionamiento, combustible, flota y teletrabajo</td></tr>
     <tr><td class="n">—</td><td class="ruta ts">components/modules/CalibrationPanel.tsx</td><td class="n">69</td><td><code>b_costo</code> — el panel de calibración de la interfaz: los tres valores del tiempo y las tasas base de auto y teletrabajo</td></tr>
   </tbody>
 </table>
@@ -446,12 +452,9 @@
     <tr><td><code class="ruta py">tests/test_umbrales.py</code>:80</td><td>Con «suaves» la utilidad es continua en la distancia, celda a celda.</td></tr>
     <tr><td><code class="ruta py">tests/test_umbrales.py</code>:95</td><td>La dominancia del metro vale −ln 2 en la frontera y es despreciable con un metro mucho mejor que caminar.</td></tr>
     <tr><td><code class="ruta py">tests/test_umbrales.py</code>:111</td><td>Con la exclusión, sólo la celda del CBD queda sin tramo en tren.</td></tr>
-    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:276</td><td>La línea base con «suaves», en las dos localizaciones.</td></tr>
+    <tr><td><code class="ruta py">tests/test_linea_base.py</code>:284</td><td>La línea base con «suaves», en las dos localizaciones.</td></tr>
     <tr><td><code class="ruta py">tests/test_contract_frontend.py</code>:213</td><td>El núcleo reproduce el golden del espejo TypeScript, con casos de las dos especificaciones.</td></tr>
-    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:124</td><td>El peaje es transferencia: entra a la recaudación y al bienestar social.</td></tr>
-    <tr><td><code class="ruta py">tests/test_choice_todo_o_nada.py</code>:22</td><td>Toda la masa al mejor modo; ignora los infactibles aunque tengan mejor valor (28).</td></tr>
-    <tr><td><code class="ruta py">tests/test_choice_todo_o_nada.py</code>:41</td><td>Un empate se reparte en partes iguales; sin modos factibles devuelve todo cero (51).</td></tr>
-    <tr><td><code class="ruta py">tests/test_choice_todo_o_nada.py</code>:57</td><td>Es el límite del logit al escalar las utilidades.</td></tr>
+    <tr><td><code class="ruta py">tests/test_bienestar.py</code>:57</td><td>El peaje es transferencia: entra a la recaudación y al bienestar social.</td></tr>
     <tr><td><code class="ruta py">tests/test_presets.py</code>:66</td><td>Los tres estratos están calibrados y el valor del tiempo los ordena (75).</td></tr>
     <tr><td><code class="ruta py">tests/test_presets.py</code>:92</td><td>Los estratos comparten la escala del tiempo, y la utilidad marginal del ingreso decrece con el ingreso (104).</td></tr>
     <tr><td><code class="ruta py">tests/test_presets.py</code>:129</td><td>Las ASC conservan sus minutos-equivalentes: 20 de ventaja del auto en los tres estratos.</td></tr>

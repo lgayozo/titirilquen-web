@@ -81,7 +81,7 @@ que queda, y está pineado con `e2e/fixtures/utility-golden.json`: si divergen, 
 test falla. Lo mismo `citySupply.ts` con su golden de oferta.
 
 **Estado serializable.** Export a archivo `.ttrq.json` (`$schema:
-"titirilquen-scenario/v11"`) y share por `?s=` (base64url), sin DB. No hay
+"titirilquen-scenario/v12"`) y share por `?s=` (base64url), sin DB. No hay
 migraciones: un archivo de un schema anterior falla con un error explícito.
 
 **i18n.** Las ecuaciones LaTeX no se traducen. Ojo al borrar claves: varias se
@@ -116,9 +116,9 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   se deriva donde se muestra (D-46). `teletrabajo_factor` vive en
   `demand.globales`.
 - **La línea base es la red de seguridad de la matemática.** La corrida por
-  defecto de la app da **auto 29,16 · metro 23,42 · bici 35,42 · caminata 12,01**
-  con la localización «original» (mezcla uniforme), y **28,25 · 26,11 · 35,79 ·
-  9,85** con la de equilibrio (seed 42, brecha < 0,02 min), pineadas en
+  defecto de la app da **auto 29,58 · metro 23,09 · bici 35,32 · caminata 12,02**
+  con la localización «original» (mezcla uniforme), y **28,86 · 25,62 · 35,64 ·
+  9,88** con la de equilibrio (seed 42, brecha < 0,02 min), pineadas en
   `tests/test_linea_base.py` — ese archivo manda si estos números y él difieren. Si un cambio las mueve más de 0,05 pp,
   no era refactor: es un cambio de modelo. Decláralo. Se movieron a propósito en
   sep-2026 (λ heterogéneo en suelo; transporte homoscedástico; accesibilidad =
@@ -132,7 +132,9 @@ en `TUTORIAL_TOC_ES`/`TUTORIAL_TOC_EN` de `src/tutorials/manifest.ts`.
   pistas y ciclovía de 6.000 bici/h, con el corredor a v/c 1,19 en vez de 2,01;
   la carga esperada promedia flujos con paso halving y para con brecha < 0,02,
   auditoría B; auto y bici cruzan la media celda del CBD, de centroide a
-  centroide como los demás modos, D-71):
+  centroide como los demás modos, D-71) y en nov-2026 (consumo único de
+  bencina: el auto paga los litros que quema a su velocidad media, a precio de
+  mercado, en vez de un costo fijo por km):
   ver ese test.
 - **El piso de pydantic del núcleo es `>=2.7` y no se puede subir.** Pyodide
   0.26.4 trae pydantic 2.7.0 precompilado; pedir `>=2.8` hace que `micropip`

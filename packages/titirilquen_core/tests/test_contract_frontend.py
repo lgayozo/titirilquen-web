@@ -68,7 +68,7 @@ def _defaults() -> dict:
     sim_fields = {
         k: f.default
         for k, f in SimulationConfig.model_fields.items()
-        if k in ("max_iter", "tolerance", "seed", "assignment", "modos_habilitados")
+        if k in ("max_iter", "tolerance", "seed", "modos_habilitados")
     }
     return {
         "city": CityConfig().model_dump(),

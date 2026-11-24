@@ -15,7 +15,7 @@ $$
 
 <OverleafRef sec="Bucle de equilibrio" />
 
-El paso $\alpha$ parte en 1 —la primera iteración reemplaza completo— y se divide por 2 cada vez que la brecha no baja al menos un 10 % (Boyles, §8.3.5). Con «Logit — sorteo» se promedian en cambio los tiempos, con peso $1/(n+1)$: la brecha sorteada es demasiado ruidosa para decidir el paso.
+El paso $\alpha$ parte en 1 —la primera iteración reemplaza completo— y se divide por 2 cada vez que la brecha no baja al menos un 10 % (Boyles, §8.3.5).
 
 ## Interpretación
 
@@ -32,7 +32,7 @@ $$
 
 <OverleafRef sec="Criterio de Parada" tag="R-11" />
 
-— la **brecha sin amortiguar**: lo que devuelve la red cargada contra los tiempos con que se calculó la demanda, el máximo en cualquier modo y parcela — es menor que la tolerancia (**0,02 min**) durante **dos iteraciones consecutivas**. `max_iter` (150 por defecto, hasta 1.000) queda como tope de seguridad: la ciudad por defecto converge en 6 iteraciones, y con 1 pista en 20. Con «Logit — sorteo» la interfaz usa 0,2 min, porque el sorteo deja un piso de ruido en la brecha; con «Todo o nada» la corrida para cuando el costo en exceso medio baja de una milésima del tiempo medio de viaje, con tope 700. Si una corrida agota el tope, la barra de estado lo avisa: lo que muestra no es un equilibrio.
+— la **brecha sin amortiguar**: lo que devuelve la red cargada contra los tiempos con que se calculó la demanda, el máximo en cualquier modo y parcela — es menor que la tolerancia (**0,02 min**) durante **dos iteraciones consecutivas**. `max_iter` (150 por defecto, hasta 1.000) queda como tope de seguridad: la ciudad por defecto converge en 6 iteraciones, y con 1 pista en 20. Si una corrida agota el tope, la barra de estado lo avisa: lo que muestra no es un equilibrio.
 
 <MSAFlowchart />
 

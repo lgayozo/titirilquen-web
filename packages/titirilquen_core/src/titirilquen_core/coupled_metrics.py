@@ -24,9 +24,7 @@ Caveats de unidades (ver discusión en DISCREPANCIES.md / OVERLEAF_CHANGES.md):
   p. 264) muestra que el beneficio de los usuarios de transporte y la variación
   de rentas son, cada uno, una cota inferior del beneficio total, y que sumarlos
   sin cuidado cuenta dos veces lo mismo; esto es la primera cota.
-  Cuál `E[max]` usar lo decide `bienestar.medida_emparejada` según el método de asignación: el
-  logsum bajo los logit, la utilidad máxima bajo `todo_o_nada`, sin término aleatorio que
-  promediar. El campo `sistema.medida_bienestar` dice cuál se usó. Es comparable
+  El `E[max]` es el logsum (`bienestar.logsum_de_utilidad`). Es comparable
   como *escala monetaria* (eficiencia / disposición a pagar), **no** como
   bienestar interpersonal: cada $1 vale distinto para un rico que para un pobre,
   y `b_costo` varía ~3,9 veces entre estratos. Para la lectura distributiva usar
@@ -59,11 +57,7 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy as np
 from numpy.typing import NDArray
 
-from titirilquen_core.bienestar import (
-    MedidaBienestar,
-    medida_emparejada,
-    medidas_de_utilidad,
-)
+from titirilquen_core.bienestar import logsum_de_utilidad
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig
 from titirilquen_core.constantes import (
@@ -181,13 +175,7 @@ class SystemMetrics:
     """**Nivel** del excedente de la ciudad, en $/mes: la misma suma que
     `delta_bienestar_total_mes_clp` sin restar la red vacía. Sólo su diferencia
     con otro escenario es interpretable, y sólo si comparten β, modos
-    habilitados, teletrabajo y medida (ver `excedente_hogar_mes_clp`)."""
-
-    medida_bienestar: MedidaBienestar
-    """Con qué medida se calculó el ΔCS: `logsum` bajo los métodos logit,
-    `utilidad_maxima` bajo `todo_o_nada`. La decide el núcleo
-    (`bienestar.medida_emparejada`), igual que en el Sandbox, para que las dos
-    páginas no contesten distinto la misma pregunta."""
+    habilitados y teletrabajo (ver `excedente_hogar_mes_clp`)."""
 
     ratio_tiempo_bajo_alto: float | None
     """Tiempo medio bajo / alto. >1 ⇒ los pobres viajan más (regresivo)."""
@@ -251,10 +239,11 @@ def _tiempo_modo(
     return dist_km / v_caminata * 60.0  # Caminata
 
 
-def _costo_modo(modo: str, dist_km: float, gl) -> float:
-    """Costo monetario ($) del `modo` para un viaje de `dist_km`."""
+def _costo_modo(modo: str, dist_km: float, gl, t_auto_min: float) -> float:
+    """Costo monetario ($) del `modo` para un viaje de `dist_km`. El del auto
+    depende de su tiempo de viaje: la bencina se quema según la velocidad."""
     if modo == "Auto":
-        return costo_monetario_auto(dist_km, gl)
+        return costo_monetario_auto(dist_km, t_auto_min, gl)
     if modo == "Metro":
         return float(gl.costo_tarifa_metro)
     return 0.0  # Bici / Caminata
@@ -268,17 +257,14 @@ def _utilidad_esperada(
     tiene_auto: bool,
     ciudad: CiudadLineal,
     sim: SimulationConfig,
-    medida: MedidaBienestar,
 ) -> float:
-    """`E[max]` del agente en útiles, en la medida que pida `medida`.
+    """`E[max]` del agente en útiles: el logsum sobre sus modos factibles.
 
-    Delega en `bienestar.medidas_de_utilidad`, que es la única implementación de
-    las dos fórmulas en el núcleo. Antes este módulo tenía su propia copia del
-    logsum —con un filtro de factibilidad levemente distinto— y no aplicaba el
-    emparejamiento con el método de asignación, así que bajo `todo_o_nada` esta
-    página y el Sandbox medían el bienestar con reglas diferentes.
+    Delega en `bienestar.logsum_de_utilidad`, que es la única implementación de
+    la fórmula en el núcleo. Antes este módulo tenía su propia copia —con un
+    filtro de factibilidad levemente distinto—.
     """
-    par = medidas_de_utilidad(
+    ls = logsum_de_utilidad(
         estrato,  # type: ignore[arg-type]
         celda,
         tiene_auto,
@@ -286,10 +272,7 @@ def _utilidad_esperada(
         sim,
         tiempos,
     )
-    if par is None:
-        return float("nan")
-    logsum, maximo = par
-    return maximo if medida == "utilidad_maxima" else logsum
+    return float("nan") if ls is None else ls
 
 
 def _theil(Q: np.ndarray, S: np.ndarray | None = None) -> float:
@@ -375,12 +358,6 @@ def compute_equilibrium_metrics(
     total_ag = np.zeros(n_strata, dtype=int)
     cat_idx = {c: k for k, c in enumerate(_CATEGORIAS_MODALES)}
 
-    # La medida del excedente la manda el método de asignación, igual que en el
-    # Sandbox: sin dispersión de gustos el E[max] del agente es el máximo, no el
-    # logsum. Se aplica a los DOS términos del Δ —red real y red vacía— porque
-    # restar medidas distintas no daría un delta de nada.
-    medida = medida_emparejada(sim.assignment)
-
     # E[max] depende solo de (estrato, celda, tiene_auto): memoizar.
     # `cache_ff` es el baseline de red vacía del ΔCS (no depende del snapshot).
     cache_ls: dict[tuple[int, int, bool], float] = {}
@@ -408,7 +385,6 @@ def compute_equilibrium_metrics(
                 tiene_auto=a.tiene_auto,
                 ciudad=ciudad,
                 sim=sim,
-                medida=medida,
             )
             cache_ls[key] = ls
         ls_ff = cache_ff.get(key)
@@ -420,7 +396,6 @@ def compute_equilibrium_metrics(
                 tiene_auto=a.tiene_auto,
                 ciudad=ciudad,
                 sim=sim,
-                medida=medida,
             )
             cache_ff[key] = ls_ff
         # ΔCS vs red vacía: el nivel tiene cero arbitrario (ASC); solo la
@@ -444,7 +419,7 @@ def compute_equilibrium_metrics(
             modal[h, cat_idx[modo]] += float(dem.sum())
             for i in np.flatnonzero(dem > 0):
                 t_sum[h] += dem[i] * _tiempo_modo(snap, modo, int(i), dist[i], gl.v_caminata)
-                c_sum[h] += dem[i] * _costo_modo(modo, dist[i], gl)
+                c_sum[h] += dem[i] * _costo_modo(modo, dist[i], gl, float(snap.t_auto[i]))
 
     # --- Construir métricas por estrato ---
     por_estrato: list[StratumMetrics] = []
@@ -521,7 +496,6 @@ def compute_equilibrium_metrics(
         segregacion_theil=_theil(Q, S),
         delta_bienestar_total_mes_clp=bienestar_total,
         excedente_total_mes_clp=float(VIAJES_MES * cs_nivel.sum()),
-        medida_bienestar=medida,
         ratio_tiempo_bajo_alto=ratio_t,
         ratio_carga_bajo_alto=ratio_carga,
     )

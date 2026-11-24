@@ -48,7 +48,7 @@ from pathlib import Path
 from types import UnionType
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
 
-from titirilquen_core import constantes
+from titirilquen_core import constantes, operacion_vehicular
 from titirilquen_core.aprendizaje.config import ConfigCiudad, ConfigPersona
 from titirilquen_core.aprendizaje.ejecutar import (
     AprendizajeDict,
@@ -410,9 +410,13 @@ def emite_constantes() -> str:
         + f"export const OMEGA_CORTE_SUAVE = {constantes.OMEGA_CORTE_SUAVE!r};\n"
         + f"export const A_DOMINANCIA_METRO = {constantes.A_DOMINANCIA_METRO!r};\n"
         + f"export const OMEGA_DOMINANCIA_METRO = {constantes.OMEGA_DOMINANCIA_METRO!r};\n"
-        + "\n/** Valor social del tiempo ($/hora-pasajero), Precios Sociales del SNI.\n"
-        + " *  Se actualiza cada año. */\n"
-        + f"export const VOT_SOCIAL_CLP_HORA = {constantes.VOT_SOCIAL_CLP_HORA};\n"
+        + "\n/** Consumo de bencina de un auto en movimiento (MESPIVU, tabla\n"
+        + " *  13.1.1-3): velocidad (km/h) → ml/km. Se interpola linealmente y fuera\n"
+        + " *  del rango se queda en el extremo. Ver `operacion_vehicular.py`. */\n"
+        + "export const CONSUMO_AUTO_VELOCIDAD_KMH = "
+        + f"{_literal(operacion_vehicular.CONSUMO_AUTO_VELOCIDAD_KMH.tolist())} as const;\n"
+        + "export const CONSUMO_AUTO_ML_KM = "
+        + f"{_literal(operacion_vehicular.CONSUMO_AUTO_ML_KM.tolist())} as const;\n"
         + "\n/** Viajes por tour casa-trabajo-casa: el parking (costo por día) se\n"
         + " *  reparte entre la ida y la vuelta. */\n"
         + f"export const VIAJES_POR_TOUR = {constantes.VIAJES_POR_TOUR};\n"
@@ -424,9 +428,6 @@ def emite_constantes() -> str:
         + "\n/** Tope de vueltas del loop acoplado: default y cota en todos los\n"
         + " *  consumidores (D-61). Ver `constantes.VUELTAS_ACOPLADO_MAX`. */\n"
         + f"export const VUELTAS_ACOPLADO_MAX = {constantes.VUELTAS_ACOPLADO_MAX!r};\n"
-        + "\n/** Tolerancia de todo o nada sobre su brecha relativa (costo en exceso\n"
-        + " *  medio / tiempo medio de viaje): ver `constantes.TOL_RELATIVA_TON`. */\n"
-        + f"export const TOL_RELATIVA_TON = {constantes.TOL_RELATIVA_TON!r};\n"
         + "\n/** Fracción de la capacidad real sobre la que se evalúa la BPR del auto\n"
         + " *  (capacidad práctica, D6): ver `constantes.FACTOR_CAPACIDAD_PRACTICA`. */\n"
         + f"export const FACTOR_CAPACIDAD_PRACTICA = {constantes.FACTOR_CAPACIDAD_PRACTICA!r};\n"

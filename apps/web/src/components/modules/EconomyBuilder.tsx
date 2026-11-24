@@ -42,12 +42,18 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
       },
     }));
 
-  const { costo_tarifa_metro, costo_parking, costo_combustible_km, peaje_km } =
-    config.demand.globales;
+  const {
+    costo_tarifa_metro,
+    costo_parking,
+    precio_combustible_clp_l,
+    peaje_km,
+  } = config.demand.globales;
 
   const fmtCurrency = (v: number) => `$${v.toLocaleString(localeCifras())}`;
   const fmtCurrencyPerKm = (v: number) =>
     `$${v.toLocaleString(localeCifras())}/km`;
+  const fmtCurrencyPerLitre = (v: number) =>
+    `$${v.toLocaleString(localeCifras())}/l`;
 
   return (
     <CollapsibleSection
@@ -74,13 +80,13 @@ export function EconomyBuilder({ config, onChange }: EconomyBuilderProps) {
       />
       <LabeledSlider
         label={t("economy_params.bencina")}
-        value={costo_combustible_km}
-        min={50}
-        max={300}
+        value={precio_combustible_clp_l}
+        min={500}
+        max={2500}
         step={10}
-        format={fmtCurrencyPerKm}
+        format={fmtCurrencyPerLitre}
         hint={t("economy_params.bencina_hint")}
-        onChange={(v) => setGlobal({ costo_combustible_km: v })}
+        onChange={(v) => setGlobal({ precio_combustible_clp_l: v })}
       />
       <LabeledSlider
         label={t("economy_params.peaje")}

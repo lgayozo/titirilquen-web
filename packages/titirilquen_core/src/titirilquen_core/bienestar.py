@@ -27,25 +27,15 @@ Tres medidas separadas a propósito, porque responden preguntas distintas:
      no un dato técnico, y en evaluación social se reemplaza por un valor de
      norma para no sesgar hacia proyectos que sirven a los de mayor ingreso.
 
-3. **Excedente del consumidor**, en la medida que corresponda al método de
-   asignación. Ambas se dividen por λ = −β_costo para quedar en pesos, y ambas
-   reemplazan a la "utilidad media", que no significa nada: promediar utilidades
-   entre personas no es bienestar.
+3. **Excedente del consumidor**: el logsum `ln Σ_m e^{V_m}`, dividido por
+   λ = −β_costo para quedar en pesos. Es `E[max_m (V_m + ε_m)]` con ε Gumbel
+   iid —o sea, el bienestar del agente que el logit describe—, y reemplaza a la
+   "utilidad media", que no significa nada: promediar utilidades entre personas
+   no es bienestar.
 
-   * *logsum*: `ln Σ_m e^{V_m}`. Es `E[max_m (V_m + ε_m)]` con ε Gumbel iid — o
-     sea, el bienestar del agente que el LOGIT describe (`montecarlo` y
-     `expected`).
-   * *utilidad máxima*: `max_m V_m`. Bajo `todo_o_nada` no hay ε: el agente toma
-     determinísticamente el mejor modo, y su `E[max]` es simplemente el máximo.
-
-   **No son intercambiables, y la diferencia no es un desplazamiento constante.**
-   Por log-sum-exp `ln Σ e^{V_m} ≥ max_m V_m`, con brecha acotada por
-   `ln(nº modos factibles)`: es el valor que el logit le atribuye a la dispersión
-   de gustos. Como el número de modos factibles cambia entre escenarios (una
-   política puede volver infactible la bici), la brecha también cambia, y usar el
-   logsum bajo `todo_o_nada` contamina justamente el Δ. De ahí `medida_bienestar`
-   — el núcleo dice cuál está emparejada con el método, y la UI no reimplementa
-   esa regla.
+   Hasta nov-2026 había una segunda medida, la utilidad máxima `max_m V_m`,
+   emparejada con la carga determinística ('todo_o_nada'). Se retiró junto con
+   ese método: con un solo modelo de comportamiento hay una sola medida.
 
    **El nivel tiene cero arbitrario** (incluye las constantes específicas), así
    que sólo la DIFERENCIA contra otro escenario es interpretable. Este módulo
@@ -56,8 +46,8 @@ Tres medidas separadas a propósito, porque responden preguntas distintas:
    es dos implementaciones de la matemática.
 
    Desde el 2026-08-17 la página acoplada usa la MISMA implementación
-   (`medidas_de_utilidad`) y el mismo emparejamiento (`medida_emparejada`), así
-   que las dos páginas no pueden contestar distinto la misma pregunta.
+   (`logsum_de_utilidad`), así que las dos páginas no pueden contestar distinto
+   la misma pregunta.
 
 Dos convenciones que conviene tener escritas
 --------------------------------------------
@@ -65,15 +55,10 @@ Dos convenciones que conviene tener escritas
 **La constante de Euler se omite.** El `E[max]` exacto del logit es
 `ln Σ e^{V_m} + γ`, con γ ≈ 0,5772; acá se calcula sólo el primer término, que es
 la convención habitual. No afecta ningún Δ —γ es aditiva y común, y se cancela en
-toda diferencia, que es lo único interpretable—, pero sí afecta la comparación
-ABSOLUTA entre las dos medidas: la brecha real entre el `E[max]` del logit y el
-del determinístico es ~0,58 útiles mayor que la que se obtiene restando los
-campos de este módulo. O sea que la brecha reportada subestima el valor de la
-variedad, no lo exagera. Sólo importaría para comparar niveles entre métodos, que
-es justamente lo que no se debe hacer.
+toda diferencia, que es lo único interpretable.
 
 **Los agentes sin ninguna alternativa factible quedan fuera.** Si para un par
-(estrato, celda) no hay modo factible ni con auto ni sin él, `medidas_de_utilidad`
+(estrato, celda) no hay modo factible ni con auto ni sin él, `logsum_de_utilidad`
 devuelve `None` en las dos ramas y ese grupo no entra al promedio NI al
 denominador de población. La consecuencia a vigilar: una política que dejara
 gente sin alternativas no la contaría como bienestar muy bajo, la haría
@@ -97,14 +82,16 @@ import numpy as np
 
 from titirilquen_core.city import CiudadLineal
 from titirilquen_core.config import SimulationConfig, StratumId
-from titirilquen_core.constantes import MODOS, VIAJES_POR_TOUR, VOT_SOCIAL_CLP_HORA
+from titirilquen_core.constantes import MODOS, VIAJES_POR_TOUR
 from titirilquen_core.demand.utility import (
     TiemposObservados,
     calcular_utilidades,
     costo_monetario_auto,
+    litros_viaje_auto,
 )
 from titirilquen_core.emissions import tren_km_hora
 from titirilquen_core.equilibrium.msa import ConvergenceTrace
+from titirilquen_core.operacion_vehicular import otros_costos_operacion_auto_clp_km
 
 #: Los estratos como llegan al JSON. Las claves de un objeto JSON son strings,
 #: así que `dict[StratumId, ...]` de Python cruza como "1"/"2"/"3"; declararlo
@@ -152,17 +139,50 @@ class AgregadosDict(TypedDict):
     costo_generalizado_percibido_clp: float
     #: Ídem con un VoT único (evaluación social).
     costo_generalizado_social_clp: float
+    #: **El otro enfoque para medir el beneficio.** El costo generalizado y el
+    #: excedente miran el viaje desde el usuario, e incluyen lo que paga aunque
+    #: ese pago no consuma nada: el peaje, el parking y la tarifa son
+    #: TRANSFERENCIAS, le salen del bolsillo a uno y le entran a otro. El costo
+    #: de recursos cuenta sólo lo que la sociedad gasta de verdad —tiempo,
+    #: operación de autos y metro, y el daño del CO₂— y por eso su Δ entre
+    #: escenarios es el ahorro de recursos. Es el enfoque del MESPIVU (13.1.1):
+    #: «ahorro en el consumo total de recursos entre las situaciones base y
+    #: con proyecto», con tiempo, combustible y otros costos de operación.
+    #:
+    #: El tiempo va al VST, no al VoT conductual: en el enfoque de recursos no
+    #: tiene sentido que un minuto valga más según quién lo gaste.
+    #:
+    #: No es intercambiable con el excedente: son dos caminos a la misma
+    #: pregunta, y sumarlos cuenta dos veces. Tampoco coinciden número a número
+    #: —el excedente valora con λ_h y lleva el término de Gumbel— así que la
+    #: equivalencia es conceptual, no una identidad contable.
+    recursos_tiempo_clp: float
+    #: Auto-km de la hora punta: viajes en auto por su distancia al CBD.
+    auto_km_hora: float
+    #: Litros de bencina de la hora punta (`utility.litros_viaje_auto`): la
+    #: ÚNICA cuantificación del consumo. De ellos salen las tres cifras de
+    #: abajo, y por eso cierran: pagado = recurso + impuesto.
+    litros_combustible_hora: float
+    #: Los litros a PRECIO SOCIAL (sin impuestos): lo que le cuesta a la
+    #: sociedad. La congestión gasta más bencina por kilómetro.
+    recursos_combustible_clp: float
+    #: Los mismos litros al precio de MERCADO: lo que pagan los conductores, y
+    #: lo que entra a su costo generalizado y a su elección de modo.
+    pago_combustible_clp: float
+    #: Lubricantes, neumáticos, repuestos y mantención de los autos (MESPIVU,
+    #: ec. 13.1.1-7), sin rugosidad: un piso.
+    recursos_otros_operacion_clp: float
+    #: Las emisiones al precio social del carbono (71.801 $/t CO₂).
+    costo_co2_clp: float
+    #: `recursos_tiempo + recursos_combustible + recursos_otros_operacion +
+    #: costo_operador + costo_co2`.
+    costo_recursos_clp: float
     #: Valor del tiempo conductual por estrato ($/hora) = β_t/β_c · 60.
     vot_por_estrato_clp_hora: dict[EstratoKey, float]
     #: Logsum medio por estrato (útiles) y su equivalente en pesos (÷ λ_h).
-    #: Emparejado con `montecarlo` y `expected`.
     logsum_por_estrato: dict[EstratoKey, float]
     excedente_por_estrato_clp: dict[EstratoKey, float]
-    #: Utilidad máxima media por estrato (útiles) y en pesos. Emparejada con
-    #: `todo_o_nada`, donde no hay término aleatorio que promediar.
-    util_maxima_por_estrato: dict[EstratoKey, float]
-    excedente_max_por_estrato_clp: dict[EstratoKey, float]
-    #: El excedente EMPAREJADO, pero valorado con el VoT social único en vez del
+    #: El mismo excedente, pero valorado con el VoT social único en vez del
     #: conductual de cada estrato. Es al excedente lo que
     #: `costo_generalizado_social_clp` es al percibido.
     #:
@@ -170,25 +190,26 @@ class AgregadosDict(TypedDict):
     #: conductual le da al minuto del estrato alto varias veces el valor del
     #: minuto del bajo, así que agregar en esa unidad pondera a favor de quien
     #: más gana. Con VoT único el minuto de todos vale lo mismo, que es el
-    #: supuesto de la evaluación social chilena. Medido: en la base, barrer
-    #: pistas de 1 a 6 bajo `todo_o_nada` da bienestar CRECIENTE con λ_h y
-    #: DECRECIENTE entre 3 y 4 pistas con λ social — o sea que Downs-Thomson
-    #: aparece o no según la unidad. Ver `scripts/regimenes_metro.py`.
+    #: supuesto de la evaluación social chilena.
     excedente_social_por_estrato_clp: dict[EstratoKey, float]
     excedente_social_total_clp: float
     viajeros_por_estrato: dict[EstratoKey, float]
     #: Σ_h viajeros_h · excedente_h. Cero arbitrario: sólo el Δ es interpretable.
     excedente_total_clp: float
-    excedente_max_total_clp: float
-    #: Cuál de las dos medidas corresponde al `assignment` de esta corrida. La
-    #: regla se decide acá y no en la UI: es matemática, no presentación.
-    medida_bienestar: Literal["logsum", "utilidad_maxima"]
     #: Recaudación de estacionamiento. Es TRANSFERENCIA, no consumo de recursos:
     #: alguien la recibe. La bencina NO entra — ésa sí se consume.
     recaudacion_parking_clp: float
     #: Recaudación del peaje por km (D7). Transferencia, como el parking.
     recaudacion_peaje_clp: float
     recaudacion_tarifa_clp: float
+    #: La parte de la bencina que es impuesto: lo pagado menos el recurso, o
+    #: sea los litros por (precio de mercado − precio social). No es un
+    #: supuesto aparte: resulta de los dos precios. Es transferencia, como el
+    #: peaje: el conductor la pierde y el fisco la gana. Negativa si el precio
+    #: de mercado queda bajo el social (un subsidio a la bencina).
+    #: Sin ella, el bienestar social trataba toda la bencina como recurso
+    #: perdido y toda política que saca autos se veía mejor de lo que es.
+    recaudacion_combustible_clp: float
     #: Tren-km por hora del servicio (f_op · largo de línea · 2).
     tren_km_hora: float
     #: Costo de operación del metro EN LA HORA PUNTA, la misma base que el
@@ -197,22 +218,13 @@ class AgregadosDict(TypedDict):
     #: Costo del operador × `factor_dia_punta` − recaudación por tarifa: el costo
     #: por viaje del día completo contra la tarifa. Negativo ⇒ superávit.
     subsidio_metro_clp: float
-    #: Excedente + recaudación − costo del operador, con el excedente **de la
-    #: medida emparejada** (`medida_bienestar`): sumarle recaudación a un logsum
-    #: bajo `todo_o_nada` mezclaría dos supuestos de comportamiento distintos.
+    #: Excedente + recaudación − costo del operador.
     #:
     #: Es la función objetivo estándar en evaluación de políticas de precio, y
     #: sin ella el simulador estaba SESGADO contra ellas: subir el
     #: estacionamiento bajaba el excedente sin acreditar que la ciudad recauda,
     #: así que toda tarificación parecía empeorar el bienestar.
     bienestar_social_clp: float
-
-
-#: Ponderadores del SNI (Precios Sociales 2026, tabla 2.1) para el tiempo de
-#: espera y de acceso caminando del transporte público mayor, sobre el tiempo
-#: en vehículo. El viaje entero a pie NO está en esa tabla: pondera 1.
-PONDERADOR_SNI_ESPERA = 2.0
-PONDERADOR_SNI_ACCESO = 2.0
 
 
 def minutos_ponderados(
@@ -247,51 +259,31 @@ def vot_clp_hora(cfg: SimulationConfig, estrato: StratumId) -> float:
     return 0.0 if b.b_costo == 0 else (b.b_tiempo_viaje / b.b_costo) * 60
 
 
-def _dinero_del_modo(modo: str, cfg: SimulationConfig, dist_km: float) -> float:
+def _dinero_del_modo(modo: str, cfg: SimulationConfig, dist_km: float, t_auto_min: float) -> float:
     g = cfg.demand.globales
     if modo == "Auto":
-        return costo_monetario_auto(dist_km, g)
+        return costo_monetario_auto(dist_km, t_auto_min, g)
     if modo == "Metro":
         return g.costo_tarifa_metro
     return 0.0  # bici y caminata no cuestan dinero en el modelo
 
 
-#: Cuál medida de bienestar corresponde a cada método de asignación.
-MedidaBienestar = Literal["logsum", "utilidad_maxima"]
-
-
-def medida_emparejada(assignment: str) -> MedidaBienestar:
-    """La medida que corresponde al supuesto de comportamiento del método.
-
-    El logit describe un agente con término aleatorio Gumbel, cuyo `E[max]` es el
-    logsum; `todo_o_nada` uno determinístico, cuyo `E[max]` es el máximo a secas.
-    Vive acá —y no en cada consumidor— para que el Sandbox y la página acoplada
-    no puedan responder distinto a la misma pregunta.
-    """
-    return "utilidad_maxima" if assignment == "todo_o_nada" else "logsum"
-
-
-def medidas_de_utilidad(
+def logsum_de_utilidad(
     estrato: StratumId,
     celda: int,
     tiene_auto: bool,
     ciudad: CiudadLineal,
     cfg: SimulationConfig,
     tiempos: TiemposObservados,
-) -> tuple[float, float] | None:
-    """`(ln Σ_m e^{V_m}, max_m V_m)` sobre los modos FACTIBLES. `None` si no hay.
+) -> float | None:
+    """`ln Σ_m e^{V_m}` sobre los modos FACTIBLES. `None` si no hay ninguno.
 
-    Es la ÚNICA implementación de estas dos fórmulas en el núcleo: la usan tanto
-    los agregados del Sandbox (`calcular_agregados`) como las métricas de la
-    página acoplada (`coupled_metrics`). Hasta agosto de 2026 el logsum estaba
-    escrito dos veces, y las dos copias ya habían empezado a separarse — una
-    filtraba por `isfinite` y la otra por `> UTIL_IMPOSIBLE`. Daban lo mismo, que
-    es exactamente como empieza un espejo roto.
-
-    Las dos medidas salen del mismo set de utilidades a propósito: calcularlas
-    por separado significaría llamar dos veces a `calcular_utilidades`, que es lo
-    caro de este módulo, y abriría la puerta a que una filtre por factibilidad y
-    la otra no.
+    Es la ÚNICA implementación del logsum en el núcleo: la usan tanto los
+    agregados del Sandbox (`calcular_agregados`) como las métricas de la página
+    acoplada (`coupled_metrics`). Hasta agosto de 2026 estaba escrito dos veces,
+    y las dos copias ya habían empezado a separarse — una filtraba por
+    `isfinite` y la otra por `> UTIL_IMPOSIBLE`. Daban lo mismo, que es
+    exactamente como empieza un espejo roto.
 
     `calcular_utilidades` ya marca infactible lo que quede fuera de
     `modos_habilitados`, así que basta filtrar por `feasible`: sin ese filtro,
@@ -310,16 +302,19 @@ def medidas_de_utilidad(
     if not valores:
         return None
     mx = max(valores)
-    logsum = mx + float(np.log(sum(np.exp(v - mx) for v in valores)))
-    return logsum, mx
+    return mx + float(np.log(sum(np.exp(v - mx) for v in valores)))
 
 
 def calcular_agregados(
     cfg: SimulationConfig,
     trace: ConvergenceTrace,
-    vot_social_clp_hora: float = VOT_SOCIAL_CLP_HORA,
 ) -> AgregadosDict | None:
-    """Agregados del estado final de la corrida. `None` si no hay iteraciones."""
+    """Agregados del estado final de la corrida. `None` si no hay iteraciones.
+
+    Los precios sociales salen de `cfg.precios_sociales`: se actualizan cada
+    año y por eso son configuración, no constantes."""
+    ps = cfg.precios_sociales
+    vot_social_clp_hora = ps.vst_viaje_clp_h
     if not trace.iteraciones:
         return None
     snap = trace.iteraciones[-1]
@@ -333,6 +328,12 @@ def calcular_agregados(
     vot = {h: vot_clp_hora(cfg, h) for h in estratos}
 
     tiempo_total = viajeros = cg_percibido = cg_social = 0.0
+    # Enfoque de AHORRO DE RECURSOS: sólo lo que la sociedad consume de
+    # verdad. El tiempo al VST (no al VoT conductual, que pondera por
+    # ingreso); la operación de los autos va después del loop, por tramo.
+    # Peaje, parking y tarifa quedan fuera: son transferencias, cambian de
+    # bolsillo sin consumir nada.
+    rec_tiempo = 0.0
     viajes_modo = dict.fromkeys(MODOS, 0.0)
     viajes_modo_estrato: dict[str, dict[str, float]] = {
         str(h): dict.fromkeys(MODOS, 0.0) for h in (1, 2, 3)
@@ -341,6 +342,7 @@ def calcular_agregados(
     tiempo_estrato = dict.fromkeys(estratos, 0.0)
     viajes_estrato = dict.fromkeys(estratos, 0.0)
     rec_parking = rec_peaje = rec_tarifa = 0.0
+    auto_km = litros = 0.0
     # Tenencia de auto REALIZADA por (estrato, celda) entre quienes viajan: la
     # población la fija por conteo redondeado, `round(n·prob_auto)` en cada
     # celda, y con ella se calculó la demanda. Ponderar el logsum por la
@@ -353,7 +355,6 @@ def calcular_agregados(
             n_viaja[a.estrato - 1, a.celda_origen] += 1
             n_con_auto[a.estrato - 1, a.celda_origen] += a.tiene_auto
     ls_suma = dict.fromkeys(estratos, 0.0)
-    mx_suma = dict.fromkeys(estratos, 0.0)
     ls_n = dict.fromkeys(estratos, 0.0)
 
     for i in range(ciudad.n_celdas):
@@ -380,7 +381,7 @@ def calcular_agregados(
                 if d <= 0:
                     continue
                 minutos = minutos_por_modo[modo]
-                dinero = _dinero_del_modo(modo, cfg, dist_km)
+                dinero = _dinero_del_modo(modo, cfg, dist_km, tiempos.auto_total)
                 tiempo_total += d * minutos
                 viajeros += d
                 viajes_modo[modo] += d
@@ -405,15 +406,21 @@ def calcular_agregados(
                     modo,
                     tiempos,
                     t_cam,
-                    w_espera=PONDERADOR_SNI_ESPERA,
-                    w_acceso=PONDERADOR_SNI_ACCESO,
+                    w_espera=ps.ponderador_espera,
+                    w_acceso=ps.ponderador_caminata,
                     w_caminata=1.0,
                 )
                 cg_percibido += d * ((min_perc / 60) * vot[h] + dinero)
                 cg_social += d * ((min_soc / 60) * vot_social_clp_hora + dinero)
-                # Sólo las TRANSFERENCIAS cuentan como recaudación. La bencina se
-                # excluye a propósito: es consumo real de recursos, no ingreso.
+                rec_tiempo += d * (min_soc / 60) * vot_social_clp_hora
+                # Sólo las TRANSFERENCIAS cuentan como recaudación. De la bencina
+                # entra la parte que es impuesto (se separa al final); el resto
+                # es consumo real de recursos, no ingreso.
                 if modo == "Auto":
+                    auto_km += d * dist_km
+                    litros += d * litros_viaje_auto(
+                        dist_km, tiempos.auto_total, cfg.demand.globales
+                    )
                     rec_parking += d * cfg.demand.globales.costo_parking / VIAJES_POR_TOUR
                     rec_peaje += d * dist_km * cfg.demand.globales.peaje_km
                 elif modo == "Metro":
@@ -430,16 +437,14 @@ def calcular_agregados(
             nv = n_viaja[h - 1, i]
             p_auto = n_con_auto[h - 1, i] / nv if nv > 0 else cfg.demand.estratos[h].prob_auto
             partes = [
-                (medidas_de_utilidad(h, i, True, ciudad, cfg, tiempos), p_auto),
-                (medidas_de_utilidad(h, i, False, ciudad, cfg, tiempos), 1 - p_auto),
+                (logsum_de_utilidad(h, i, True, ciudad, cfg, tiempos), p_auto),
+                (logsum_de_utilidad(h, i, False, ciudad, cfg, tiempos), 1 - p_auto),
             ]
             vivas = [(v, w) for v, w in partes if v is not None]
             peso = sum(w for _, w in vivas)
             if peso > 0:
-                ls = sum(v[0] * w for v, w in vivas) / peso
-                mx = sum(v[1] * w for v, w in vivas) / peso
+                ls = sum(v * w for v, w in vivas) / peso
                 ls_suma[h] += ls * n_estrato
-                mx_suma[h] += mx * n_estrato
                 ls_n[h] += n_estrato
 
     # Tren-km del servicio, de la misma función que usan las emisiones (D-36).
@@ -452,27 +457,28 @@ def calcular_agregados(
     # bienestar le cargaría a la punta la operación del valle sin sus beneficios.
     costo_operador = tren_km * cfg.supply.train.costo_operacion_tren_km
 
-    medida = medida_emparejada(cfg.assignment)
-    usa_max = medida == "utilidad_maxima"
+    # Operación de los autos. Los LITROS son los mismos con que cada conductor
+    # eligió modo (`litros_viaje_auto`): al precio social dan el recurso, al de
+    # mercado lo que se pagó, y la diferencia es el impuesto. Cierra por
+    # construcción: pagado = recurso + impuesto.
+    rec_combustible = litros * ps.combustible_auto_clp_l
+    pago_combustible = litros * cfg.demand.globales.precio_combustible_clp_l
+    rec_combustible_imp = pago_combustible - rec_combustible
+    rec_otros = auto_km * otros_costos_operacion_auto_clp_km(ps)
+    costo_co2 = trace.emisiones_total_kg / 1000 * ps.carbono_clp_t
 
     logsum: dict[str, float] = {}
     excedente: dict[str, float] = {}
-    util_max: dict[str, float] = {}
-    excedente_max: dict[str, float] = {}
     excedente_social: dict[str, float] = {}
     excedente_total = 0.0
-    excedente_max_total = 0.0
     excedente_social_total = 0.0
     for h in estratos:
         n = ls_n[h]
         logsum[str(h)] = ls_suma[h] / n if n > 0 else 0.0
-        util_max[str(h)] = mx_suma[h] / n if n > 0 else 0.0
         # λ_h = −β_costo (utilidad marginal del ingreso): pasa útiles a pesos.
         lam = -cfg.demand.estratos[h].betas.b_costo
         excedente[str(h)] = logsum[str(h)] / lam if lam > 0 else 0.0
-        excedente_max[str(h)] = util_max[str(h)] / lam if lam > 0 else 0.0
         excedente_total += excedente[str(h)] * n
-        excedente_max_total += excedente_max[str(h)] * n
 
         # λ SOCIAL: la misma utilidad, valorada con el VoT de NORMA en vez del
         # conductual del estrato. Se despeja del propio VoT:
@@ -487,11 +493,8 @@ def calcular_agregados(
             if vot_social_clp_hora > 0
             else 0.0
         )
-        base_social = util_max[str(h)] if usa_max else logsum[str(h)]
-        excedente_social[str(h)] = base_social / lam_social if lam_social > 0 else 0.0
+        excedente_social[str(h)] = logsum[str(h)] / lam_social if lam_social > 0 else 0.0
         excedente_social_total += excedente_social[str(h)] * n
-
-    excedente_emparejado = excedente_max_total if usa_max else excedente_total
 
     return {
         "tiempo_total_min": tiempo_total,
@@ -509,24 +512,36 @@ def calcular_agregados(
         },
         "costo_generalizado_percibido_clp": cg_percibido,
         "costo_generalizado_social_clp": cg_social,
+        "recursos_tiempo_clp": rec_tiempo,
+        "auto_km_hora": auto_km,
+        "litros_combustible_hora": litros,
+        "recursos_combustible_clp": rec_combustible,
+        "pago_combustible_clp": pago_combustible,
+        "recursos_otros_operacion_clp": rec_otros,
+        "costo_co2_clp": costo_co2,
+        "costo_recursos_clp": (
+            rec_tiempo + rec_combustible + rec_otros + costo_operador + costo_co2
+        ),
         "vot_por_estrato_clp_hora": {str(h): vot[h] for h in estratos},
         "logsum_por_estrato": logsum,
         "excedente_por_estrato_clp": excedente,
-        "util_maxima_por_estrato": util_max,
-        "excedente_max_por_estrato_clp": excedente_max,
         "excedente_social_por_estrato_clp": excedente_social,
         "excedente_social_total_clp": excedente_social_total,
         "viajeros_por_estrato": {str(h): ls_n[h] for h in estratos},
         "excedente_total_clp": excedente_total,
-        "excedente_max_total_clp": excedente_max_total,
-        "medida_bienestar": medida,
         "recaudacion_parking_clp": rec_parking,
         "recaudacion_peaje_clp": rec_peaje,
         "recaudacion_tarifa_clp": rec_tarifa,
+        "recaudacion_combustible_clp": rec_combustible_imp,
         "tren_km_hora": tren_km,
         "costo_operador_clp": costo_operador,
         "subsidio_metro_clp": costo_operador * cfg.supply.train.factor_dia_punta - rec_tarifa,
         "bienestar_social_clp": (
-            excedente_emparejado + rec_parking + rec_peaje + rec_tarifa - costo_operador
+            excedente_total
+            + rec_parking
+            + rec_peaje
+            + rec_tarifa
+            + rec_combustible_imp
+            - costo_operador
         ),
     }

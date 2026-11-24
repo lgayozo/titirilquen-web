@@ -19,6 +19,7 @@ from titirilquen_core.constantes import (
     OMEGA_DOMINANCIA_METRO,
     VIAJES_POR_TOUR,
 )
+from titirilquen_core.operacion_vehicular import consumo_combustible_auto_ml_km
 
 Modo = Literal["Auto", "Metro", "Bici", "Caminata"]
 
@@ -100,12 +101,34 @@ class UtilityBreakdown:
     feasible: bool = True
 
 
-def costo_monetario_auto(dist_km: float, globales: GlobalConfig) -> float:
-    """Dinero ($) de un viaje de ida en auto: bencina y peaje por km recorrido,
-    más medio parking, que es por tour (día). Única fuente: la usan la elección
-    modal y los agregados de bienestar, que antes tenían cada uno su copia."""
-    por_km = globales.costo_combustible_km + globales.peaje_km
-    return dist_km * por_km + globales.costo_parking / VIAJES_POR_TOUR
+def litros_viaje_auto(dist_km: float, t_auto_min: float, globales: GlobalConfig) -> float:
+    """Litros de bencina de un viaje de ida en auto.
+
+    **Es la única cuantificación del consumo del modelo**: de estos litros
+    salen lo que paga el conductor (× precio de mercado), el costo de recursos
+    (× precio social) y el impuesto (la diferencia). Antes había un costo fijo
+    por km para la elección y una cuenta aparte, por velocidad, para los
+    recursos: dos consumos distintos para el mismo viaje.
+
+    El consumo por km es el del MESPIVU (tabla 13.1.1-3) a la velocidad MEDIA
+    del viaje, `dist / t`. El manual lo aplica tramo a tramo; acá va con la
+    media del recorrido, que es un atajo: como la curva es convexa, subestima
+    algo el consumo de un viaje que cruza tramos muy desiguales. A cambio el
+    costo depende sólo del tiempo de viaje, que es lo que el equilibrio ya
+    hace converger. `factor_flota_auto` lo escala: un híbrido quema menos."""
+    if dist_km <= 0 or t_auto_min <= 0:
+        return 0.0
+    v_media = dist_km / (t_auto_min / 60)
+    ml_km = float(consumo_combustible_auto_ml_km(v_media))
+    return dist_km * ml_km / 1000 * globales.factor_flota_auto
+
+
+def costo_monetario_auto(dist_km: float, t_auto_min: float, globales: GlobalConfig) -> float:
+    """Dinero ($) de un viaje de ida en auto: la bencina que quema a precio de
+    mercado, el peaje por km recorrido y medio parking, que es por tour (día).
+    Única fuente: la usan la elección modal y los agregados de bienestar."""
+    bencina = litros_viaje_auto(dist_km, t_auto_min, globales) * globales.precio_combustible_clp_l
+    return bencina + dist_km * globales.peaje_km + globales.costo_parking / VIAJES_POR_TOUR
 
 
 def _tiempos_flujo_libre(dist_km: float, globales) -> TiemposObservados:
@@ -148,7 +171,7 @@ def calcular_utilidades(
     t_cam = (dist_km / gl.v_caminata) * 60
 
     # AUTO
-    c_auto = costo_monetario_auto(dist_km, gl)
+    c_auto = costo_monetario_auto(dist_km, tiempos.auto_total, gl)
     asc_auto = betas.asc_auto
     v_t_auto = betas.b_tiempo_viaje * tiempos.auto_total
     v_c_auto = betas.b_costo * c_auto
