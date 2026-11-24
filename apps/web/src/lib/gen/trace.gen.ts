@@ -32,6 +32,11 @@ export interface AgregadosDict {
   costo_generalizado_percibido_clp: number;
   costo_generalizado_social_clp: number;
   recursos_tiempo_clp: number;
+  pasajero_km_por_modo: Record<string, number>;
+  pasajero_km: number;
+  ocupacion_metro: number;
+  costo_recursos_por_pkm_clp: number;
+  co2_g_por_pkm: number;
   auto_km_hora: number;
   litros_combustible_hora: number;
   recursos_combustible_clp: number;

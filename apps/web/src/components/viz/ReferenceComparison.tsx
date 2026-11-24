@@ -52,6 +52,20 @@ const fmtMin = (v: number) => `${fmtDecimal(v)} min`;
 // El signo va ANTES del símbolo: «−$3.331», no «$-3.331».
 const fmtMoney = (v: number) => fmtPesos(v);
 const fmtMiles = (v: number) => fmtEntero(v);
+const fmtKm = (v: number) => `${fmtDecimal(v)} km`;
+const fmtGramos = (v: number) => `${fmtEntero(v)} g`;
+
+/** Distancia media de viaje de un modo: sus pasajero-km sobre sus viajes. */
+function mediaKm(
+  agg: {
+    pasajero_km_por_modo: Record<string, number>;
+    viajes_por_modo: Record<string, number>;
+  },
+  modo: string,
+): number {
+  const viajes = agg.viajes_por_modo[modo] ?? 0;
+  return viajes > 0 ? (agg.pasajero_km_por_modo[modo] ?? 0) / viajes : 0;
+}
 // Un share se escribe en «%» y su delta en puntos porcentuales: escribir el
 // delta como «%» invitaría a leerlo como variación relativa.
 const fmtPct = (v: number) => `${fmtDecimal(v)} %`;
@@ -241,6 +255,72 @@ export function ReferenceComparison({
       menorEsMejor: false,
       neutra: true,
     })),
+    {
+      // Lo que la ciudad produce de transporte. Los viajes cuentan igual uno
+      // de 500 m que uno de 10 km; los pasajero-km no, y son el denominador
+      // de las dos filas «por pasajero-km» de más abajo.
+      label: t("agg.pasajero_km"),
+      grupo: "fisico",
+      saber: {
+        ecuacion: String.raw`PKM \;=\; \sum_{m} \sum_{i} d_{mi} \, \ell_i`,
+        simbolos: [
+          [String.raw`d_{mi}`, t("agg.sim.d_mi")],
+          [String.raw`\ell_i`, t("agg.sim.l_i")],
+        ],
+        fuente: { archivo: "bienestar.py", simbolo: "pasajero_km_por_modo" },
+      },
+      actual: agg.pasajero_km,
+      ref: aggRef?.pasajero_km ?? null,
+      fmt: fmtMiles,
+      menorEsMejor: false,
+      neutra: true,
+      unidad: t("agg.u_pkm"),
+      nota: t("agg.pasajero_km_nota", {
+        auto: fmtMiles(agg.pasajero_km_por_modo.Auto ?? 0),
+        metro: fmtMiles(agg.pasajero_km_por_modo.Metro ?? 0),
+        bici: fmtMiles(agg.pasajero_km_por_modo.Bici ?? 0),
+        caminata: fmtMiles(agg.pasajero_km_por_modo.Caminata ?? 0),
+      }),
+    },
+    {
+      label: t("agg.distancia_media"),
+      grupo: "fisico",
+      saber: {
+        ecuacion: String.raw`\bar \ell \;=\; PKM \,/\, V`,
+        simbolos: [[String.raw`V`, t("agg.sim.v")]],
+        fuente: { archivo: "bienestar.py", simbolo: "pasajero_km" },
+      },
+      actual: agg.viajeros > 0 ? agg.pasajero_km / agg.viajeros : 0,
+      ref:
+        aggRef && aggRef.viajeros > 0
+          ? aggRef.pasajero_km / aggRef.viajeros
+          : null,
+      fmt: fmtKm,
+      menorEsMejor: false,
+      neutra: true,
+      nota: t("agg.distancia_media_nota", {
+        auto: fmtKm(mediaKm(agg, "Auto")),
+        metro: fmtKm(mediaKm(agg, "Metro")),
+        bici: fmtKm(mediaKm(agg, "Bici")),
+        caminata: fmtKm(mediaKm(agg, "Caminata")),
+      }),
+    },
+    {
+      label: t("agg.ocupacion_metro"),
+      grupo: "fisico",
+      saber: {
+        ecuacion: String.raw`\rho_{\text{metro}} \;=\; \frac{PKM_{\text{metro}}}{(\text{tren·km}) \times K}`,
+        simbolos: [[String.raw`K`, t("agg.sim.k_tren")]],
+        fuente: { archivo: "bienestar.py", simbolo: "ocupacion_metro" },
+      },
+      actual: agg.ocupacion_metro * 100,
+      ref: aggRef ? aggRef.ocupacion_metro * 100 : null,
+      fmt: fmtPct,
+      fmtDelta: fmtPuntos,
+      menorEsMejor: false,
+      neutra: true,
+      nota: t("agg.ocupacion_metro_nota"),
+    },
     {
       // Va con los eventos físicos: son kilos, no pesos. Su valor al precio
       // social del carbono es otra fila, en «Consumo de recursos».
@@ -513,6 +593,40 @@ export function ReferenceComparison({
       nota: t("agg.subsidio_nota", {
         f: config.supply.train.factor_dia_punta,
       }),
+    },
+    {
+      // Por unidad de transporte producido: dos escenarios que mueven distinta
+      // cantidad de pasajero-km no se comparan bien por sus totales.
+      label: t("agg.recursos_por_pkm"),
+      grupo: "recursos",
+      saber: {
+        ecuacion: String.raw`CR \,/\, PKM`,
+        simbolos: [[String.raw`CR`, t("agg.sim.CR")]],
+        fuente: {
+          archivo: "bienestar.py",
+          simbolo: "costo_recursos_por_pkm_clp",
+        },
+      },
+      actual: agg.costo_recursos_por_pkm_clp,
+      ref: aggRef?.costo_recursos_por_pkm_clp ?? null,
+      fmt: fmtMoney,
+      menorEsMejor: true,
+      comparable: preciosIguales,
+      unidad: t("agg.u_por_pkm"),
+    },
+    {
+      label: t("agg.co2_por_pkm"),
+      grupo: "recursos",
+      saber: {
+        ecuacion: String.raw`E_{CO_2} \,/\, PKM`,
+        simbolos: [[String.raw`E_{CO_2}`, t("agg.sim.e_co2")]],
+        fuente: { archivo: "bienestar.py", simbolo: "co2_g_por_pkm" },
+      },
+      actual: agg.co2_g_por_pkm,
+      ref: aggRef?.co2_g_por_pkm ?? null,
+      fmt: fmtGramos,
+      menorEsMejor: true,
+      unidad: t("agg.u_por_pkm"),
     },
     {
       // EL OTRO ENFOQUE. El costo generalizado y el excedente miran el viaje

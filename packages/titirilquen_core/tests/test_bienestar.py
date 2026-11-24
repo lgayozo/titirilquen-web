@@ -368,6 +368,33 @@ def test_la_congestion_encarece_la_bencina_del_viaje() -> None:
     assert costo_monetario_auto(5.0, 20.0, g) > costo_monetario_auto(5.0, 10.0, g)
 
 
+def test_los_pasajero_km_suman_y_coinciden_con_los_auto_km(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    """El total es la suma de los modos; los del auto son sus auto-km (un
+    pasajero por vehículo); y la distancia media de cada modo cabe en la
+    ciudad: nadie viaja más que del borde al CBD."""
+    agg = _agregados(sim_liviana, lu_chica)
+    pkm = agg["pasajero_km_por_modo"]
+    assert agg["pasajero_km"] == pytest.approx(sum(pkm.values()))
+    assert pkm["Auto"] == pytest.approx(agg["auto_km_hora"])
+    medio_largo = sim_liviana.city.largo_ciudad_km / 2
+    for modo, viajes in agg["viajes_por_modo"].items():
+        if viajes > 0:
+            assert 0 < pkm[modo] / viajes <= medio_largo, modo
+
+
+def test_los_indicadores_por_pasajero_km_son_cocientes(
+    sim_liviana: SimulationConfig, lu_chica: LandUseConfig
+) -> None:
+    agg = _agregados(sim_liviana, lu_chica)
+    pkm = agg["pasajero_km"]
+    assert agg["costo_recursos_por_pkm_clp"] == pytest.approx(agg["costo_recursos_clp"] / pkm)
+    oferta = agg["tren_km_hora"] * sim_liviana.supply.train.capacidad_tren
+    assert agg["ocupacion_metro"] == pytest.approx(agg["pasajero_km_por_modo"]["Metro"] / oferta)
+    assert 0 < agg["ocupacion_metro"] < 1
+
+
 def test_la_inversion_parte_en_cero(sim_liviana: SimulationConfig, lu_chica: LandUseConfig) -> None:
     """Los costos unitarios de fábrica son cero: no hay fuente para ellos, y
     hasta que alguien los llene la inversión no puede mover ningún resultado."""

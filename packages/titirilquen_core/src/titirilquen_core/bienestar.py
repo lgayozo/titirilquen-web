@@ -157,6 +157,20 @@ class AgregadosDict(TypedDict):
     #: —el excedente valora con λ_h y lleva el término de Gumbel— así que la
     #: equivalencia es conceptual, no una identidad contable.
     recursos_tiempo_clp: float
+    #: Pasajero-km de la hora punta, por modo y en total: viajes por la
+    #: distancia de su celda al CBD. Es la medida física de cuánto transporte
+    #: produce la ciudad —los viajes cuentan igual uno de 500 m que uno de
+    #: 10 km—, y el denominador de toda comparación por unidad de servicio.
+    pasajero_km_por_modo: dict[str, float]
+    pasajero_km: float
+    #: Pasajero-km del metro sobre los que ofrece: `tren-km × capacidad`. Los
+    #: tren-km cuentan la ida y la vuelta del servicio, así que con todos los
+    #: viajes hacia el CBD no puede pasar de la mitad salvo sobrecarga.
+    ocupacion_metro: float
+    #: Costo de recursos y CO₂ por pasajero-km: comparan escenarios que mueven
+    #: distinta cantidad de transporte ($/pax-km y gramos/pax-km).
+    costo_recursos_por_pkm_clp: float
+    co2_g_por_pkm: float
     #: Auto-km de la hora punta: viajes en auto por su distancia al CBD.
     auto_km_hora: float
     #: Litros de bencina de la hora punta (`utility.litros_viaje_auto`): la
@@ -372,6 +386,7 @@ def calcular_agregados(
         str(h): dict.fromkeys(MODOS, 0.0) for h in (1, 2, 3)
     }
     tiempo_modo = dict.fromkeys(MODOS, 0.0)
+    pkm_modo = dict.fromkeys(MODOS, 0.0)
     tiempo_estrato = dict.fromkeys(estratos, 0.0)
     viajes_estrato = dict.fromkeys(estratos, 0.0)
     rec_parking = rec_peaje = rec_tarifa = 0.0
@@ -420,6 +435,7 @@ def calcular_agregados(
                 viajes_modo[modo] += d
                 viajes_modo_estrato[str(h)][modo] += d
                 tiempo_modo[modo] += d * minutos
+                pkm_modo[modo] += d * dist_km
                 tiempo_estrato[h] += d * minutos
                 viajes_estrato[h] += d
                 # Costo generalizado por COMPONENTES (D-37): el percibido pesa
@@ -500,6 +516,11 @@ def calcular_agregados(
     rec_otros = auto_km * otros_costos_operacion_auto_clp_km(ps)
     costo_co2 = trace.emisiones_total_kg / 1000 * ps.carbono_clp_t
     capital, c_inversion = costo_inversion(cfg, trace)
+    costo_recursos = (
+        rec_tiempo + rec_combustible + rec_otros + costo_operador + costo_co2 + c_inversion
+    )
+    pkm = sum(pkm_modo.values())
+    oferta_metro = tren_km * cfg.supply.train.capacidad_tren
 
     logsum: dict[str, float] = {}
     excedente: dict[str, float] = {}
@@ -547,6 +568,11 @@ def calcular_agregados(
         "costo_generalizado_percibido_clp": cg_percibido,
         "costo_generalizado_social_clp": cg_social,
         "recursos_tiempo_clp": rec_tiempo,
+        "pasajero_km_por_modo": pkm_modo,
+        "pasajero_km": pkm,
+        "ocupacion_metro": pkm_modo["Metro"] / oferta_metro if oferta_metro > 0 else 0.0,
+        "costo_recursos_por_pkm_clp": costo_recursos / pkm if pkm > 0 else 0.0,
+        "co2_g_por_pkm": trace.emisiones_total_kg * 1000 / pkm if pkm > 0 else 0.0,
         "auto_km_hora": auto_km,
         "litros_combustible_hora": litros,
         "recursos_combustible_clp": rec_combustible,
@@ -555,9 +581,7 @@ def calcular_agregados(
         "costo_co2_clp": costo_co2,
         "inversion_capital_clp": capital,
         "costo_inversion_clp": c_inversion,
-        "costo_recursos_clp": (
-            rec_tiempo + rec_combustible + rec_otros + costo_operador + costo_co2 + c_inversion
-        ),
+        "costo_recursos_clp": costo_recursos,
         "vot_por_estrato_clp_hora": {str(h): vot[h] for h in estratos},
         "logsum_por_estrato": logsum,
         "excedente_por_estrato_clp": excedente,
